@@ -25,7 +25,7 @@ describe('execute test', () => {
             .toBe('/session/foobar-123/element')
         expect(JSON.parse(vi.mocked(fetch).mock.calls[4][1]?.body as string)).toEqual(expect.objectContaining({
             script: expect.stringContaining('return ((elem, a, b, c) => elem.selector + a + b + c).apply(null, arguments)'),
-            args: [{ [ELEMENT_KEY]: 'some-elem-123', ELEMENT: 'some-elem-123' }, 1, 2, 3]
+            args: [{ [ELEMENT_KEY]: 'some-elem-123' }, 1, 2, 3]
         }))
     })
 

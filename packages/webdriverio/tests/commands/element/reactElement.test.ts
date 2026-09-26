@@ -30,7 +30,6 @@ describe('elem.react$', () => {
                 { some: 'props' },
                 true,
                 {
-                    ELEMENT: elem.elementId,
                     [ELEMENT_KEY]: elem.elementId
                 },
             ])
@@ -53,7 +52,6 @@ describe('elem.react$', () => {
             {},
             {},
             {
-                ELEMENT: elem.elementId,
                 [ELEMENT_KEY]: elem.elementId
             },
         ])

@@ -435,10 +435,6 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      */
     elementId: string
     /**
-     * WebDriver element reference
-     */
-    ELEMENT: string
-    /**
      * selector used to fetch this element, can be
      * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
      * - a string if `findElement` was used and a reference was found

@@ -48,7 +48,6 @@ describe('isDisplayed test', () => {
         expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
         expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]?.body as any).args[0]).toEqual({
-            ELEMENT: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123'
         })
     })
@@ -62,14 +61,12 @@ describe('isDisplayed test', () => {
         expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
         expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]?.body as any).args[0]).toEqual({
-            ELEMENT: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
         })
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).args[0]).toEqual({
-            ELEMENT: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
         })
     })

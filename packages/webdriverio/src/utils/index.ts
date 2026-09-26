@@ -96,16 +96,6 @@ export const getElementFromResponse = (res?: ElementReference) => {
         return null
     }
 
-    /**
-     * deprecated JSONWireProtocol response
-     */
-    if ((res as unknown as { ELEMENT: string }).ELEMENT) {
-        return (res as unknown as { ELEMENT: string }).ELEMENT
-    }
-
-    /**
-     * W3C WebDriver response
-     */
     if (res[ELEMENT_KEY]) {
         return res[ELEMENT_KEY]
     }
@@ -1000,7 +990,7 @@ export async function findElements(
 }
 
 /**
- * Strip element object and return w3c and jsonwp compatible keys
+ * Strip an element down to its W3C element reference.
  */
 export function verifyArgsAndStripIfElement(args: unknown) {
     function verify(arg: unknown) {
@@ -1011,8 +1001,7 @@ export function verifyArgsAndStripIfElement(args: unknown) {
             }
 
             return {
-                [ELEMENT_KEY]: elem.elementId,
-                ELEMENT: elem.elementId
+                [ELEMENT_KEY]: elem.elementId
             }
         }
 

@@ -43,9 +43,15 @@ describe('utils', () => {
             expect(getElementFromResponse()).toBe(null)
         })
 
-        it('should find element from JSONWireProtocol response', () => {
-            // @ts-ignore depcrecated functionality
-            expect(getElementFromResponse({ ELEMENT: 'foobar' })).toBe('foobar')
+        it('ignores a JSON Wire Protocol element id', () => {
+            expect(getElementFromResponse({ ELEMENT: 'foobar' } as unknown as ElementReference)).toBe(null)
+        })
+
+        it('uses the W3C element id when a JSONWP key is also present', () => {
+            expect(getElementFromResponse({
+                ELEMENT: 'jsonwp',
+                'element-6066-11e4-a52e-4f735466cecf': 'w3c'
+            } as unknown as ElementReference)).toBe('w3c')
         })
 
         it('should find element from W3C response', () => {
@@ -404,8 +410,8 @@ describe('utils', () => {
                 anotherProp: 'abc'
             })
 
-            expect(verifyArgsAndStripIfElement([fakeObj, 'abc', 123])).toMatchObject([
-                { [ELEMENT_KEY]: 'foo-bar', ELEMENT: 'foo-bar' },
+            expect(verifyArgsAndStripIfElement([fakeObj, 'abc', 123])).toEqual([
+                { [ELEMENT_KEY]: 'foo-bar' },
                 'abc',
                 123
             ])
@@ -418,8 +424,8 @@ describe('utils', () => {
                 anotherProp: 'abc'
             })
 
-            expect(verifyArgsAndStripIfElement(fakeObj)).toMatchObject(
-                { [ELEMENT_KEY]: 'foo-bar', ELEMENT: 'foo-bar' }
+            expect(verifyArgsAndStripIfElement(fakeObj)).toEqual(
+                { [ELEMENT_KEY]: 'foo-bar' }
             )
             expect(verifyArgsAndStripIfElement('foo')).toEqual('foo')
         })

@@ -154,8 +154,7 @@ export async function scrollIntoView (
                 isPainted
             }
         }, {
-            [ELEMENT_KEY]: this.elementId, // w3c compatible
-            ELEMENT: this.elementId, // jsonwp compatible
+            [ELEMENT_KEY]: this.elementId
         } as unknown as HTMLElement)
 
         /**
@@ -321,8 +320,7 @@ export async function scrollIntoView (
                 // element can disappear between the scroll and the settle check
             }
         }, {
-            [ELEMENT_KEY]: this.elementId, // w3c compatible
-            ELEMENT: this.elementId, // jsonwp compatible
+            [ELEMENT_KEY]: this.elementId
         } as unknown as HTMLElement)
 
         /**
@@ -456,8 +454,7 @@ function scrollIntoViewWeb (
     return browser.execute(
         (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options),
         {
-            [ELEMENT_KEY]: this.elementId, // w3c compatible
-            ELEMENT: this.elementId, // jsonwp compatible
+            [ELEMENT_KEY]: this.elementId
         } as unknown as HTMLElement,
         options,
     )
