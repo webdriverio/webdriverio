@@ -138,33 +138,18 @@ through the repo; search for every occurrence before renaming a key.
 
 ## Terminology
 
-Project spelling conventions. They are decisions made for this repository,
-not English grammar rules. Apply them in code, docs, comments, JSDoc, test
-titles, log and error messages.
+Project conventions (#14975), not English rules. Apply them everywhere,
+including code ported from v9.
 
-| Term | Prose | Code | Do not write |
-|------|-------|------|--------------|
-| multi-remote | multi-remote ("Multi-remote" at the start of a sentence or heading) | `multiRemote`, `MultiRemote`, `isMultiRemote` | `multiremote`, `Multiremote`, `isMultiremote`, `multiremote()`, `MultiremoteConfig`, any `multiremoteXxx` / `XxxMultiremote` name |
+| Prose | Code | Never |
+|-------|------|-------|
+| multi-remote ("Multi-remote" at the start of a sentence or heading) | `multiRemote`, `MultiRemote`, `isMultiRemote` | `multiremote`, `Multiremote`, `isMultiremote`, `multiremote()` |
 
-### Multi-remote
+Kept for compatibility, do not change: the `id: multiremote` permalink and
+`/docs/multiremote` links, file and folder names, the Allure historyId key
+`'multiremote'`, the v9 column of `v10Migration.md`, and `CHANGELOG.md`.
 
-The project spells the feature multi-remote (#14975). `multiremote` and
-`Multiremote` are retired spellings. Do not use them anywhere new, including
-when copying code or docs from `main` / v9 or from older examples. v10 renamed
-the old APIs without aliases; `website/docs/v10Migration.md` lists them.
-
-Keep the old spelling only where changing it would break users. Do not
-"fix" these:
-
-- `id: multiremote` in `website/docs/Multiremote.md` and every
-  `/docs/multiremote` link (the page permalink).
-- File and folder names, e.g. `Multiremote.md`, `tests/multiremote/`,
-  `.github/workflows/test-multiremote.yml`.
-- The Allure historyId key `'multiremote'` in `wdio-allure-reporter`: it is
-  hash input, never shown, and changing it resets report history.
-- The v9 column of the migration guide, and `CHANGELOG.md`.
-
-Check before committing. It must print nothing:
+Must print nothing before committing:
 
 ```sh
 git grep -nE "isMultiremote|Multiremote|multiremote[A-Z(]|[a-z]multiremote|[ (]multiremote[ ,.):'\"\`]" -- \
