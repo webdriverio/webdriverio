@@ -158,7 +158,9 @@ export default class MultiRemote {
             }
             client.instances = [...instances.keys()]
             client.isMultiremote = true
-            client.selector = selector ?? results[0]?.selector ?? null
+            client.selector = selector ?? (Array.isArray(result) && result[0]
+                ? result[0].selector
+                : null)
             // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
 
@@ -225,9 +227,10 @@ export default class MultiRemote {
                 : [...instances.entries()]
 
             const result = await Promise.all(
-                scopeEntries.map(
-                    ([, instance]) => (instance as WebdriverIO.Browser)[commandName](...args)
-                )
+                scopeEntries.map(([, instance]) => {
+                    const command = (instance as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>)[commandName as string]
+                    return command.call(instance, ...args)
+                })
             )
 
             // Narrow instances to only those actually used in this command call
@@ -248,7 +251,7 @@ export default class MultiRemote {
                 return MultiRemote.elementWrapper(activeInstances, result, this.__propertiesObject__, self)
             } else if (commandName === '$$') {
                 const selector = args[0] as Selector
-                const zippedResult = zip(...result)
+                const zippedResult = zip(...(result as unknown[][]))
                 const wrappedResult = zippedResult.map((singleResult) => MultiRemote.elementWrapper(activeInstances, singleResult, this.__propertiesObject__, self, typeof selector === 'string' ? selector : undefined))
 
                 const elementArray = enhanceElementsArray(
