@@ -311,7 +311,7 @@ const requestMock: any = vi.fn().mockImplementation(async (uri, params) => {
     case `/session/${sessionId}/execute`:
     case `/session/${sessionId}/execute/sync`: {
         const script = Function(body.script)
-        const args = transformPropertyWithMockFunction(body.args.map((arg: any) => (arg && (arg.ELEMENT || arg[ELEMENT_KEY])) || arg))
+        const args = transformPropertyWithMockFunction(body.args.map((arg: any) => (arg && arg[ELEMENT_KEY]) || arg))
         let result: any = null
         if (body.script.includes('resq')) {
             if (body.script.includes('react$$')) {

@@ -1,7 +1,7 @@
 ---
 id: v10-migration
 title: From v9 to v10
-description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, and multiremote instance access.
+description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multiremote instance access, and element references.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
@@ -281,6 +281,26 @@ A TypeScript augmentation that adds `myChromeBrowser: WebdriverIO.Browser` to `W
 With the testrunner and `injectGlobals` left on, the instance name is still a global (`myChromeBrowser.url(...)`). That global is the single session. It is not `browser.myChromeBrowser`.
 
 Command results stay in capability order: the first entry belongs to the first key in the capabilities object.
+
+## Element references
+
+Element ids use the W3C WebDriver key `element-6066-11e4-a52e-4f735466cecf` and the `elementId` property. The JSON Wire Protocol field `ELEMENT` is no longer part of the element contract.
+
+`WebdriverIO.Element` no longer declares `ELEMENT`. Read `element.elementId`, which element instances already expose.
+
+`browser.execute`, and the built-in scripts that send an element into the page (`getHTML`, `isClickable`, `isDisplayed`, `scrollIntoView`, and the rest), pass only the W3C reference:
+
+```diff
+- await browser.execute((el) => el.ELEMENT, elem)
++ await browser.execute(
++     (el) => el['element-6066-11e4-a52e-4f735466cecf'],
++     elem
++ )
+```
+
+A find-element body that contains only `{ ELEMENT: '...' }` is not an element. Include the W3C key. If both keys are present, WebdriverIO uses the W3C id.
+
+Jasmine prints a chained `$()` result through `toJSON`. That value is the same W3C reference, `{ 'element-6066-11e4-a52e-4f735466cecf': elementId }`.
 
 ## Jasmine
 

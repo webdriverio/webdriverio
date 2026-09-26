@@ -98,8 +98,7 @@ export async function getHTML(
 
     const basicGetHTML = (elementId: string, includeSelectorTag: boolean) => {
         return browser.execute(getHTMLScript, {
-            [ELEMENT_KEY]: elementId, // w3c compatible
-            ELEMENT: elementId // jsonwp compatible
+            [ELEMENT_KEY]: elementId
         } as unknown as HTMLElement, includeSelectorTag, excludeElements)
     }
 

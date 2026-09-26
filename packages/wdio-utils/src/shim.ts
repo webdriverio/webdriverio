@@ -299,12 +299,12 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                         }
 
                         /**
-                         * Jasmine uses `toJSON` to parse the target object for information.
-                         * Since WebdriverIo doesn't have this method on the Element object
-                         * we need to mimic it here
+                         * Jasmine calls `toJSON` when it prints or diffs the target.
+                         * WebdriverIO elements do not define it, so return the W3C
+                         * element reference (`element-6066-11e4-a52e-4f735466cecf`).
                          */
                         if (prop === 'toJSON') {
-                            return { ELEMENT: elem.elementId }
+                            return { 'element-6066-11e4-a52e-4f735466cecf': elem.elementId }
                         }
 
                         /**
