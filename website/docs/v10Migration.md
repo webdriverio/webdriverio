@@ -1,7 +1,7 @@
 ---
 id: v10-migration
 title: From v9 to v10
-description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, multi-remote network mocks, element references, and the WebDriver protocol.
+description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, multi-remote network mocks, element references, the WebDriver protocol, and virtual displays on Linux.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
@@ -545,3 +545,57 @@ APIs spelled `multiremote` or `Multiremote` are now camelCased / PascalCase as `
 | `browser.multiremoteFetch()` (`@wdio/webdriver-mock-service`) | `browser.multiRemoteFetch()` |
 
 Search for `multiremote` and `Multiremote` (case-sensitive) and replace every match. Allure reports also label multi-remote tests with `isMultiRemote` instead of `isMultiremote`.
+
+## Virtual displays on Linux
+
+`@wdio/xvfb` is replaced by `@wdio/display-server`. Instead of wrapping each worker in `xvfb-run`, the testrunner starts one display server for the whole run, before any service's `onPrepare` hook. It prefers Weston in headless mode and falls back to Xvfb. See [Headless & Display Servers](/docs/headless-and-display-servers) for details.
+
+The options are renamed. The old names still work in v10 but log a deprecation warning, and will be removed in v11. If you set both names, the new one wins:
+
+```diff
+- autoXvfb: false,
++ displayServerEnabled: false,
+- xvfbAutoInstall: true,
++ displayServerAutoInstall: true,
+- xvfbAutoInstallMode: 'sudo',
++ displayServerAutoInstallMode: 'sudo',
+- xvfbAutoInstallCommand: 'my-install-command',
++ displayServerAutoInstallCommand: 'my-install-command',
+```
+
+`xvfbMaxRetries` and `xvfbRetryDelay` have no effect, and will also be removed in v11. Startup is no longer retried: if Weston fails to start, the testrunner tries Xvfb, and if neither starts, the run continues without a display.
+
+A config that sets one of the four renamed options without its replacement, and doesn't set `displayServer`, keeps using Xvfb as v9 did. Unless it turns the display server off, it also logs `Preferring Xvfb, as v9 did, because the config sets v9 display keys`. Once you rename the options, add `displayServer: 'xvfb'` to keep Xvfb, or leave it out to prefer Weston. In auto mode a custom install command runs for Weston first, and again for Xvfb only if Weston still isn't available or fails to start and Xvfb is still missing, so set `displayServer` to the server it installs to skip the other server's attempt.
+
+Auto-install no longer supports `yum`, which v9 used on hosts without `dnf`. v10 detects `apt-get`, `dnf`, `zypper`, `pacman`, `apk` and `xbps-install` only, so install Xvfb yourself on a `yum`-only host.
+
+An `xvfbAutoInstallCommand` array ran through a shell in v9, so elements such as `&&` or `VAR=value` worked. Arrays now run without a shell under either option name, so use a string for shell syntax.
+
+Other changes you may notice:
+
+- All workers share one display. In v9, each worker had a display of its own. Chrome and Edge pages can now lack focus, see [Window focus](/docs/headless-and-display-servers#window-focus).
+- The Xvfb display number isn't fixed. Read it from `DISPLAY` instead of assuming `:99`.
+- A host with only `WAYLAND_DISPLAY` set now counts as having a display. v9 ran workers under Xvfb there, since `DISPLAY` was unset. v10 starts nothing, opens browser windows on your compositor, and sets `XDG_SESSION_TYPE`, `GDK_BACKEND` and `ELECTRON_OZONE_PLATFORM_HINT` to `wayland` for the run. To run them under Xvfb as before, unset `WAYLAND_DISPLAY` and set `displayServer: 'xvfb'`.
+- The default screen is 1920x1080. v9 used `xvfb-run`'s default, which is 1280x1024 on Debian and Ubuntu and 640x480 on Fedora, RHEL and Arch. To keep the size your baselines use, set `displayServerWidth` and `displayServerHeight` to it.
+- Browsers pick Wayland or X11 from the `XDG_SESSION_TYPE` the display server sets. Under Weston, WebdriverIO also adds `--ozone-platform=wayland` to the Chrome and Edge it launches, since Chrome and Edge before 140 (Chrome for Testing before 135) ignore `XDG_SESSION_TYPE`. Weston provides no `DISPLAY`, so if your tests or tools need X11, set `displayServer: 'xvfb'`.
+- If you used `XvfbManager` or the `xvfb` instance from `@wdio/xvfb` directly, use `DisplayServerManager` from `@wdio/display-server` instead. Where you ran `xvfb.init()` and wrapped commands in `xvfb-run`, or spawned processes through `ProcessFactory`, start a display and pass its environment to the processes that need it. The example uses Xvfb at 1280x1024, as v9 did on Debian and Ubuntu. On a host where only `WAYLAND_DISPLAY` is set, unset it first, or `startDaemon()` starts nothing:
+
+  ```js
+  import { spawn } from 'node:child_process'
+  import { once } from 'node:events'
+  import { DisplayServerManager } from '@wdio/display-server'
+
+  const manager = new DisplayServerManager({ displayServer: 'xvfb' })
+  const daemon = await manager.startDaemon({ width: 1280, height: 1024 })
+  // startDaemon() also returns null when a display already exists
+  if (!daemon && manager.shouldRun()) {
+      throw new Error('Xvfb could not be started')
+  }
+  try {
+      const child = spawn('your-command', { shell: true, stdio: 'inherit', env: { ...process.env, ...daemon?.env } })
+      const [code] = await once(child, 'exit')
+      process.exitCode = code ?? 1
+  } finally {
+      await daemon?.stop()
+  }
+  ```
