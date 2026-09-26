@@ -1,4 +1,4 @@
-import { vi, beforeEach, afterEach, type Mock } from 'vitest'
+import { vi, beforeEach, afterEach, onTestFinished, type Mock } from 'vitest'
 import { EventEmitter } from 'node:events'
 import path from 'node:path'
 import { PassThrough } from 'node:stream'
@@ -94,13 +94,15 @@ export const onPath = (mockStat: Mock, ...commands: string[]) => {
     })
 }
 
-export const runAsRoot = () => {
-    (process as any).getuid = vi.fn().mockReturnValue(0)
-}
-
+// Replaced rather than spied on, since process.getuid doesn't exist on Windows.
+const realGetuid = process.getuid
 export const runAsUser = (uid = 1000) => {
-    (process as any).getuid = vi.fn().mockReturnValue(uid)
+    process.getuid = () => uid
+    onTestFinished(() => {
+        process.getuid = realGetuid
+    })
 }
+export const runAsRoot = () => runAsUser(0)
 
 export const makeDaemonHandle = (overrides: Partial<DisplayDaemon> = {}): DisplayDaemon => ({
     env: {},

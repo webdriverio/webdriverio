@@ -218,7 +218,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * pattern to match multiple files at once or wrap a glob or set of
      * paths into an array to run them within a single worker process.
      */
-    specs?: (string | string[])[],
+    specs?: (string | string[])[]
     /**
      * Exclude specs from test execution.
      */

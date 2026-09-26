@@ -38,12 +38,12 @@ const installsOk = (server: typeof mockWayland | typeof mockXvfb) => server.inst
     return true
 })
 
-describe('DisplayServerManager (gap coverage)', () => {
+describe('DisplayServerManager', () => {
     beforeEach(() => {
         vi.clearAllMocks()
         mockPlatform.mockReturnValue('linux')
-        delete process.env.DISPLAY
-        delete process.env.WAYLAND_DISPLAY
+        vi.stubEnv('DISPLAY', undefined)
+        vi.stubEnv('WAYLAND_DISPLAY', undefined)
         // Defaults: nothing available or installable unless a test overrides
         mockWayland.isAvailable.mockResolvedValue(false)
         mockXvfb.isAvailable.mockResolvedValue(false)
@@ -53,6 +53,23 @@ describe('DisplayServerManager (gap coverage)', () => {
 
     afterEach(() => {
         vi.restoreAllMocks()
+        vi.unstubAllEnvs()
+    })
+
+    describe('init when no display server is needed', () => {
+        it('returns false without probing on other platforms', async () => {
+            mockPlatform.mockReturnValue('darwin')
+
+            expect(await new DisplayServerManager().init()).toBe(false)
+            expect(mockWayland.isAvailable).not.toHaveBeenCalled()
+            expect(mockXvfb.isAvailable).not.toHaveBeenCalled()
+        })
+
+        it('returns false without probing when disabled', async () => {
+            expect(await new DisplayServerManager({ enabled: false }).init()).toBe(false)
+            expect(mockWayland.isAvailable).not.toHaveBeenCalled()
+            expect(mockXvfb.isAvailable).not.toHaveBeenCalled()
+        })
     })
 
     describe('auto-fallback', () => {
@@ -102,15 +119,6 @@ describe('DisplayServerManager (gap coverage)', () => {
             expect(mgr.getDisplayServer()?.name).toBe('xvfb')
         })
 
-        it('returns false when neither Wayland nor Xvfb is available and autoInstall is off', async () => {
-            const mgr = new DisplayServerManager({ displayServer: 'auto' })
-
-            const ok = await mgr.init()
-
-            expect(ok).toBe(false)
-            expect(mgr.getDisplayServer()).toBeNull()
-        })
-
         it('auto-installs Wayland in auto mode when missing and autoInstall is enabled', async () => {
             installsOk(mockWayland)
             const mgr = new DisplayServerManager({ displayServer: 'auto', autoInstall: true, autoInstallMode: 'root' })
@@ -151,9 +159,12 @@ describe('DisplayServerManager (gap coverage)', () => {
             const mgr = new DisplayServerManager()
 
             expect(await mgr.init()).toBe(false)
+            expect(mgr.getDisplayServer()).toBeNull()
             const warn = vi.mocked(logger('@wdio/display-server').warn)
             expect(warn).toHaveBeenCalledWith(expect.stringMatching(/^wayland not found/))
             expect(warn).toHaveBeenCalledWith(expect.stringMatching(/^xvfb not found/))
+            expect(mockWayland.install).not.toHaveBeenCalled()
+            expect(mockXvfb.install).not.toHaveBeenCalled()
         })
 
         it('forwards a custom autoInstallCommand to install()', async () => {
@@ -175,13 +186,29 @@ describe('DisplayServerManager (gap coverage)', () => {
     })
 
     describe('shouldRun', () => {
+        it('returns true on Linux without a display', () => {
+            expect(new DisplayServerManager().shouldRun()).toBe(true)
+        })
+
+        it('returns false on Linux when DISPLAY is set', () => {
+            vi.stubEnv('DISPLAY', ':0')
+
+            expect(new DisplayServerManager().shouldRun()).toBe(false)
+        })
+
+        it('returns false on other platforms', () => {
+            mockPlatform.mockReturnValue('darwin')
+
+            expect(new DisplayServerManager().shouldRun()).toBe(false)
+        })
+
+        it('returns false when disabled', () => {
+            expect(new DisplayServerManager({ enabled: false }).shouldRun()).toBe(false)
+        })
+
         it('returns false on Linux when only WAYLAND_DISPLAY is set', () => {
-            process.env.WAYLAND_DISPLAY = 'wayland-0'
-            try {
-                expect(new DisplayServerManager().shouldRun()).toBe(false)
-            } finally {
-                delete process.env.WAYLAND_DISPLAY
-            }
+            vi.stubEnv('WAYLAND_DISPLAY', 'wayland-0')
+            expect(new DisplayServerManager().shouldRun()).toBe(false)
         })
     })
 
@@ -243,7 +270,7 @@ describe('DisplayServerManager (gap coverage)', () => {
     })
 
     describe('forced preference', () => {
-        it('returns null when the requested display server is unavailable and autoInstall is off', async () => {
+        it('returns false from init() when the requested display server is unavailable and autoInstall is off', async () => {
             mockWayland.isAvailable.mockResolvedValue(false)
             const mgr = new DisplayServerManager({ displayServer: 'wayland' })
 
@@ -253,13 +280,15 @@ describe('DisplayServerManager (gap coverage)', () => {
             expect(mockXvfb.isAvailable).not.toHaveBeenCalled()
         })
 
-        it('does not probe Wayland when displayServer: "xvfb"', async () => {
-            mockXvfb.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'xvfb' })
+        it('installs Xvfb, and nothing else, for displayServer: "xvfb" with auto-install', async () => {
+            installsOk(mockXvfb)
+            const mgr = new DisplayServerManager({ displayServer: 'xvfb', autoInstall: true, autoInstallMode: 'root' })
 
-            await mgr.init()
-
+            expect(await mgr.init()).toBe(true)
+            expect(mgr.getDisplayServer()?.name).toBe('xvfb')
+            expect(mockXvfb.install).toHaveBeenCalledWith(expect.objectContaining({ mode: 'root' }))
             expect(mockWayland.isAvailable).not.toHaveBeenCalled()
+            expect(mockWayland.install).not.toHaveBeenCalled()
         })
     })
 })

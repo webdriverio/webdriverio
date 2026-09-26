@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { constants } from 'node:fs'
 import path from 'node:path'
 
-import { onPath } from './helpers.js'
+import { onPath, runAsRoot, runAsUser } from './helpers.js'
 
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockExecFileAsync = vi.hoisted(() => vi.fn())
@@ -294,7 +294,7 @@ describe('installViaPackageManager', () => {
 
     describe('mode: "root"', () => {
         it('runs install command directly when root', async () => {
-            ;(process as any).getuid = vi.fn().mockReturnValue(0)
+            runAsRoot()
             onPath(mockStat, 'apt-get')
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' }) // install
 
@@ -310,7 +310,7 @@ describe('installViaPackageManager', () => {
         })
 
         it('refuses to install when not root', async () => {
-            ;(process as any).getuid = vi.fn().mockReturnValue(1000)
+            runAsUser()
             onPath(mockStat, 'apt-get')
 
             const ok = await installViaPackageManager({
@@ -327,7 +327,7 @@ describe('installViaPackageManager', () => {
 
     describe('mode: "sudo"', () => {
         it('runs `sudo -n sh -c <cmd>` via execFile when non-root and sudo is on PATH', async () => {
-            ;(process as any).getuid = vi.fn().mockReturnValue(1000)
+            runAsUser()
             onPath(mockStat, 'apt-get', 'sudo')
             mockExecFileAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' }) // sudo install
 
@@ -351,7 +351,7 @@ describe('installViaPackageManager', () => {
         })
 
         it('attempts install without sudo wrapping when sudo is missing', async () => {
-            ;(process as any).getuid = vi.fn().mockReturnValue(1000)
+            runAsUser()
             onPath(mockStat, 'apt-get')
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' }) // install (non-sudo)
 
@@ -367,7 +367,7 @@ describe('installViaPackageManager', () => {
         })
 
         it('does not wrap with sudo when running as root', async () => {
-            ;(process as any).getuid = vi.fn().mockReturnValue(0)
+            runAsRoot()
             onPath(mockStat, 'apt-get')
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' }) // install
 
@@ -384,7 +384,7 @@ describe('installViaPackageManager', () => {
     })
 
     it('returns false when the install command itself fails', async () => {
-        ;(process as any).getuid = vi.fn().mockReturnValue(0)
+        runAsRoot()
         onPath(mockStat, 'apt-get')
         mockExecAsync.mockRejectedValueOnce(new Error('apt failed')) // install
 

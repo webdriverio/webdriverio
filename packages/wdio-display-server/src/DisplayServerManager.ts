@@ -175,14 +175,3 @@ export class DisplayServerManager {
         return this.#displayServer
     }
 }
-
-// Lazy singleton — avoids side-effects (logger init, option parsing) at import time.
-// Methods are bound to _defaultInstance so private-field access inside them works.
-let _defaultInstance: DisplayServerManager | undefined
-export const displayServer: DisplayServerManager = new Proxy({} as DisplayServerManager, {
-    get(_, prop) {
-        _defaultInstance ??= new DisplayServerManager()
-        const value = Reflect.get(_defaultInstance, prop, _defaultInstance)
-        return typeof value === 'function' ? (value as Function).bind(_defaultInstance) : value
-    }
-})

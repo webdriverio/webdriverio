@@ -73,7 +73,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(env.XDG_RUNTIME_DIR).toBe('/tmp/wdio-test-runtime')
         expect(env.ELECTRON_OZONE_PLATFORM_HINT).toBe('wayland')
 
-        await daemon!.stop()
+        await daemon?.stop()
         expect(stopSpy).toHaveBeenCalledTimes(1)
         expect(process.env.WAYLAND_DISPLAY).toBeUndefined()
         expect(process.env.XDG_RUNTIME_DIR).toBeUndefined()
@@ -99,7 +99,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         const env = JSON.parse(stdout.trim())
         expect(env.DISPLAY).toBe(':99')
 
-        await daemon!.stop()
+        await daemon?.stop()
         expect(stopSpy).toHaveBeenCalledTimes(1)
         expect(process.env.DISPLAY).toBeUndefined()
     })
@@ -120,7 +120,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         )
         expect(process.env.NODE_ENV).toBe('daemon-set')
 
-        await daemon!.stop()
+        await daemon?.stop()
         expect(process.env.NODE_ENV).toBe('preserved')
         expect(process.env.DISPLAY).toBeUndefined()
     })

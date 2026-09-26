@@ -1,4 +1,4 @@
-export { DisplayServerManager, displayServer, optionsFromConfig } from './DisplayServerManager.js'
+export { DisplayServerManager, optionsFromConfig } from './DisplayServerManager.js'
 export { WaylandDisplayServer } from './WaylandDisplayServer.js'
 export { XvfbDisplayServer } from './XvfbDisplayServer.js'
 export { startDisplayDaemonFromConfig } from './daemon.js'
