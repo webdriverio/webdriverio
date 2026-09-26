@@ -16,12 +16,12 @@ exports[`getCapabilities > should get capability from wdio.conf.js 1`] = `
 exports[`getCapabilities > should return driver with capabilities for android 1`] = `
 {
   "capabilities": {
-    "app": "foo.apk",
-    "automationName": "UiAutomator2",
-    "deviceName": "Test",
+    "appium:app": "foo.apk",
+    "appium:automationName": "UiAutomator2",
+    "appium:deviceName": "Test",
+    "appium:platformVersion": undefined,
+    "appium:udid": undefined,
     "platformName": "Android",
-    "platformVersion": undefined,
-    "udid": undefined,
   },
 }
 `;
@@ -29,12 +29,12 @@ exports[`getCapabilities > should return driver with capabilities for android 1`
 exports[`getCapabilities > should return driver with capabilities for android 2`] = `
 {
   "capabilities": {
-    "automationName": "UiAutomator2",
+    "appium:automationName": "UiAutomator2",
+    "appium:deviceName": "Test",
+    "appium:platformVersion": undefined,
+    "appium:udid": undefined,
     "browserName": "Chrome",
-    "deviceName": "Test",
     "platformName": "Android",
-    "platformVersion": undefined,
-    "udid": undefined,
   },
 }
 `;
@@ -50,12 +50,12 @@ exports[`getCapabilities > should return driver with capabilities for desktop 1`
 exports[`getCapabilities > should return driver with capabilities for ios 1`] = `
 {
   "capabilities": {
-    "app": "foo.app",
-    "automationName": "XCUITest",
-    "deviceName": "fooName",
+    "appium:app": "foo.app",
+    "appium:automationName": "XCUITest",
+    "appium:deviceName": "fooName",
+    "appium:platformVersion": "fooNum",
+    "appium:udid": "num",
     "platformName": "iOS",
-    "platformVersion": "fooNum",
-    "udid": "num",
   },
 }
 `;
@@ -63,12 +63,12 @@ exports[`getCapabilities > should return driver with capabilities for ios 1`] = 
 exports[`getCapabilities > should return driver with capabilities for ios 2`] = `
 {
   "capabilities": {
-    "automationName": "XCUITest",
+    "appium:automationName": "XCUITest",
+    "appium:deviceName": "iPhone Simulator",
+    "appium:platformVersion": undefined,
+    "appium:udid": undefined,
     "browserName": "Safari",
-    "deviceName": "iPhone Simulator",
     "platformName": "iOS",
-    "platformVersion": undefined,
-    "udid": undefined,
   },
 }
 `;
