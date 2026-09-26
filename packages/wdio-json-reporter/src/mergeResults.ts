@@ -18,19 +18,18 @@ export default async function mergeResults(
     if (!doesDirExist) {
         throw new Error(`Directory "${dir}" does not exist.`)
     }
-    const rawData = await getDataFromFiles(dir, filePattern)
+    const fileName = customFileName || DEFAULT_FILENAME
+    const filePath = path.join(dir, fileName)
+    // Skip a previous merged report so a broad pattern cannot fold it back in.
+    const rawData = await getDataFromFiles(dir, filePattern, path.basename(fileName))
     const mergedResults = mergeData(rawData)
 
-    if (customFileName) {
-        const fileName = customFileName || DEFAULT_FILENAME
-        const filePath = path.join(dir, fileName)
-        await fs.writeFile(filePath, JSON.stringify(mergedResults))
-    }
+    await fs.writeFile(filePath, JSON.stringify(mergedResults))
 
     return mergedResults
 }
 
-async function getDataFromFiles (dir: string, filePattern: string | RegExp) {
+async function getDataFromFiles (dir: string, filePattern: string | RegExp, outputFileName?: string) {
     let safePattern: RegExp
 
     if (filePattern instanceof RegExp) {
@@ -49,7 +48,7 @@ async function getDataFromFiles (dir: string, filePattern: string | RegExp) {
         safePattern = /\.json$/
     }
 
-    const fileNames = (await fs.readdir(dir)).filter((file) => file.match(safePattern))
+    const fileNames = (await fs.readdir(dir)).filter((file) => file !== outputFileName && file.match(safePattern))
     const data: unknown[] = []
 
     await Promise.all(fileNames.map(async (fileName) => {
