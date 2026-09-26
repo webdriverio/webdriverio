@@ -75,7 +75,7 @@ describe('runDaemon', () => {
         })
 
         it('rejects with the exit code and signal when the process exits before the socket appears', async () => {
-            const proc = arrangeSpawn(mockSpawn, undefined, { exited: true })
+            const proc = arrangeSpawn(mockSpawn)
             mockWaitForSocket.mockReturnValue(NEVER())
 
             const startPromise = startDaemon()
@@ -88,7 +88,7 @@ describe('runDaemon', () => {
         })
 
         it('includes the stderr tail in the exit rejection', async () => {
-            const proc = arrangeSpawn(mockSpawn, undefined, { exited: true })
+            const proc = arrangeSpawn(mockSpawn)
             mockWaitForSocket.mockReturnValue(NEVER())
 
             const startPromise = startDaemon()
@@ -112,12 +112,25 @@ describe('runDaemon', () => {
             await expect(startPromise).rejects.toThrow('Timed out waiting for test socket\nfailed to load the shell')
         })
 
-        it('rejects with the error message when the process errors before the socket appears', async () => {
-            const proc = arrangeSpawn(mockSpawn, undefined, { exited: true })
+        it('includes stderr that arrives after the exit event', async () => {
+            const proc = arrangeSpawn(mockSpawn)
             mockWaitForSocket.mockReturnValue(NEVER())
 
             const startPromise = startDaemon()
             await new Promise((r) => setImmediate(r))
+            proc.emit('exit', 1, null)
+            proc.stderr.emit('data', 'Fatal server error')
+
+            await expect(startPromise).rejects.toThrow(/Fatal server error/)
+        })
+
+        it('rejects with the error message when the process errors before the socket appears', async () => {
+            const proc = arrangeSpawn(mockSpawn)
+            mockWaitForSocket.mockReturnValue(NEVER())
+
+            const startPromise = startDaemon()
+            await new Promise((r) => setImmediate(r))
+            proc.exitCode = -2 // Node records the errno before emitting a spawn error
             proc.emit('error', new Error('spawn ENOENT'))
 
             await expect(startPromise).rejects.toThrow(/TestDaemon process error: spawn ENOENT/)
@@ -127,13 +140,9 @@ describe('runDaemon', () => {
             const cleanup = vi.fn()
             const proc = arrangeSpawn(mockSpawn)
             exitOnKill(proc)
-            mockWaitForSocket.mockReturnValue(NEVER())
+            mockWaitForSocket.mockRejectedValue(new Error('Timed out waiting for test socket'))
 
-            const startPromise = startDaemon({ cleanup })
-            await new Promise((r) => setImmediate(r))
-            proc.emit('exit', 1, null)
-
-            await expect(startPromise).rejects.toThrow()
+            await expect(startDaemon({ cleanup })).rejects.toThrow('Timed out waiting for test socket')
             expect(cleanup).toHaveBeenCalledTimes(1)
             expect(proc.kill).toHaveBeenCalledWith('SIGTERM')
         })
@@ -155,7 +164,7 @@ describe('runDaemon', () => {
         })
 
         it('rejects when the process exits before reporting a display', async () => {
-            const proc = arrangeDisplayFdSpawn(mockSpawn, null, { exited: true })
+            const proc = arrangeDisplayFdSpawn(mockSpawn, null)
 
             const startPromise = startDaemon({ ready: displayFdReady() })
             await new Promise((r) => setImmediate(r))
@@ -247,7 +256,6 @@ describe('runDaemon', () => {
             expect(cleanupSync).toHaveBeenCalledTimes(1)
 
             // The child is gone; let the pending start settle.
-            proc.exitCode = 137
             proc.emit('exit', null, 'SIGKILL')
             await expect(startPromise).rejects.toThrow()
         })
@@ -276,7 +284,6 @@ describe('runDaemon', () => {
 
             const startPromise = startDaemon({ cleanupSync })
             await new Promise((r) => setImmediate(r))
-            proc.exitCode = 1
             proc.emit('exit', 1, null)
             await expect(startPromise).rejects.toThrow()
 

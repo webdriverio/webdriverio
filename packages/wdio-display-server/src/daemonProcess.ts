@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process'
+import { spawn, type ChildProcess } from 'node:child_process'
 import { once } from 'node:events'
 import { createInterface } from 'node:readline'
 import type { Readable } from 'node:stream'
@@ -23,7 +23,7 @@ interface RunDaemonOptions {
     /** For the spawned process; defaults to inheriting process.env. */
     spawnEnv?: NodeJS.ProcessEnv
     timeoutMs?: number
-    /** Runs after the process exits, in stop() and on startup failure. */
+    /** Runs after the process exits or fails to spawn, in stop() and on startup failure. */
     cleanup?: () => void | Promise<void>
     /** Best-effort synchronous teardown for Node's 'exit' handler. */
     cleanupSync?: () => void
@@ -53,7 +53,13 @@ export async function runDaemon({
     const stdio: Array<'ignore' | 'pipe'> = displayFd
         ? ['ignore', 'ignore', 'pipe', 'pipe'] // stderr for startup errors, and DISPLAY_FD
         : ['ignore', 'ignore', 'pipe']
-    const proc = spawn(command, args, { stdio, ...(spawnEnv ? { env: spawnEnv } : {}) })
+    let proc: ChildProcess
+    try {
+        proc = spawn(command, args, { stdio, ...(spawnEnv ? { env: spawnEnv } : {}) })
+    } catch (err) { // errnos like E2BIG throw synchronously instead of emitting 'error'
+        await cleanup?.()
+        throw err
+    }
 
     let syncDone = false
     const stopSync = (): void => {
@@ -76,15 +82,18 @@ export async function runDaemon({
     proc.stderr?.on('data', (chunk) => {
         stderr = (stderr + chunk.toString()).slice(-4096)
     })
+    proc.stderr?.on('error', (err) => log.debug(`${label} stderr error: ${err.message}`))
 
     let rejectExit!: (err: Error) => void
     const exitPromise = new Promise<never>((_, reject) => { rejectExit = reject })
-    const onExit = (code: number | null, signal: NodeJS.Signals | null) =>
+    const onClose = (code: number | null, signal: NodeJS.Signals | null) =>
         rejectExit(new Error(`${label} process exited unexpectedly (code=${code}, signal=${signal})`))
-    const onError = (err: Error) =>
+    const onError = (err: Error) => {
+        log.debug(`${label} process error: ${err.message}`)
         rejectExit(new Error(`${label} process error: ${err.message}`))
-    proc.once('exit', onExit)
-    proc.once('error', onError)
+    }
+    proc.once('close', onClose) // unlike 'exit', 'close' waits for stderr to drain, so the error has the full tail
+    proc.on('error', onError) // never removed: an unhandled 'error' from a kill during teardown would crash the process
 
     const displayStream = displayFd ? proc.stdio?.[DISPLAY_FD] as Readable | undefined : undefined
     displayStream?.on('error', (err) => log.debug(`${label} fd ${DISPLAY_FD} error: ${err.message}`)) // an unhandled 'error' after readline detaches would crash the process
@@ -142,16 +151,13 @@ export async function runDaemon({
         }
         env = await Promise.race([readiness, exitPromise])
     } catch (err) {
-        proc.removeListener('exit', onExit)
-        proc.removeListener('error', onError)
         await teardown()
         const tail = stderr.trim()
         throw tail ? new Error(`${(err as Error).message}\n${tail}`, { cause: err }) : err
     } finally {
         readyWait.abort()
+        proc.removeListener('close', onClose)
     }
-    proc.removeListener('exit', onExit)
-    proc.removeListener('error', onError)
 
     let stopPromise: Promise<void> | null = null
     const stop = (): Promise<void> => {

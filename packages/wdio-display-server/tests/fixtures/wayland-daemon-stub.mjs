@@ -15,10 +15,8 @@ const socketName = socketArg?.slice('--socket='.length)
 const runtimeDir = process.env.XDG_RUNTIME_DIR
 
 if (mode === 'crash') {
-    process.stderr.write('weston: fatal: simulated startup failure\n')
-    // Delay the exit a touch so the parent reliably receives the stderr 'data'
-    // before the 'exit' event — the capture reads stderr at exit time.
-    setTimeout(() => process.exit(1), 50)
+    fs.writeSync(2, 'weston: fatal: simulated startup failure\n') // synchronous, so the line is written before the immediate exit
+    process.exit(1)
 } else {
     if (socketName && runtimeDir) {
         fs.writeFileSync(path.join(runtimeDir, socketName), '')

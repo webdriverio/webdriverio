@@ -157,7 +157,7 @@ describe('XvfbDisplayServer', () => {
         })
 
         it('rejects when Xvfb exits before reporting a display', async () => {
-            const proc = arrangeDisplayFdSpawn(mockSpawn, null, { exited: true })
+            const proc = arrangeDisplayFdSpawn(mockSpawn, null)
 
             const server = new XvfbDisplayServer()
             const startPromise = server.startDaemon()

@@ -9,8 +9,8 @@ import fs from 'node:fs'
 const mode = process.env.WDIO_STUB_MODE || 'ready'
 
 if (mode === 'crash') {
-    process.stderr.write('Xvfb: fatal: simulated startup failure\n')
-    setTimeout(() => process.exit(1), 50) // lets the parent receive the stderr data before the exit event
+    fs.writeSync(2, 'Xvfb: fatal: simulated startup failure\n') // synchronous, so the line is written before the immediate exit
+    process.exit(1)
 } else {
     const fdIndex = process.argv.indexOf('-displayfd')
     if (fdIndex !== -1) {
