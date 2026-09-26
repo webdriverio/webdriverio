@@ -56,6 +56,7 @@ describe('utils', () => {
             isW3C: false, isChromium: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(chromiumPrototype instanceof Object).toBe(true)
+        expect(typeof chromiumPrototype.sessionStatus.value).toBe('function')
         expect(typeof chromiumPrototype.sendCommand.value).toBe('function')
         expect(typeof chromiumPrototype.getElementValue.value).toBe('function')
         expect(typeof chromiumPrototype.elementSendKeys.value).toBe('function')

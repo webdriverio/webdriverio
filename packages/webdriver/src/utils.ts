@@ -292,7 +292,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: unknown) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ProtocolCommands = deepmerge<any>(
@@ -305,9 +305,10 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
             ? deepmerge<any>(AppiumProtocol as Protocol, WebDriverProtocol as Protocol) as Protocol
             : WebDriverProtocol,
         /**
-         * enable Bidi protocol for W3C sessions
+         * v10 sessions are W3C, so the BiDi command set is always present.
+         * A live BiDi connection still depends on `webSocketUrl`.
          */
-        isW3C ? WebDriverBidiProtocol : {},
+        WebDriverBidiProtocol,
         /**
          * only apply special Chromium commands if session is using Chrome or Edge
          */

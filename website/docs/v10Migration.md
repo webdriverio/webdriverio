@@ -310,6 +310,14 @@ export default [
 
 Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript version this repository compiles with.
 
+## WebDriver protocol
+
+Every session is a W3C session. `browser.isW3C` is `true` when the driver returns a capabilities object, including sessions that omit `setWindowRect` or `browserVersion`. Passing `isW3C: false` to `attach` is ignored, and the BiDi command set stays on the client. A live BiDi connection still depends on `webSocketUrl`.
+
+`webdriver.remote.sessionid` no longer marks a Selenium standalone session. Selenium Grid 4 is still detected from `se:cdp`.
+
+On desktop, `[name="..."]` is a CSS selector. The `name` locator strategy remains for mobile sessions.
+
 ## Appium
 
 WebdriverIO 10 requires **Appium 3** and current official drivers (UiAutomator2, XCUITest, Espresso, Windows, Mac2, and so on). Appium 1.x and 2.x are unsupported. Stay on WebdriverIO 9 if you cannot upgrade the server.
@@ -352,4 +360,4 @@ Appium 3 requires a driver or `*` scope prefix on `--allow-insecure` features, f
 
 ### `getValue` on mobile reads the element property
 
-On a W3C session, including Appium 3, `element.getValue()` calls Get Element Property. It previously called Get Element Attribute for every mobile session. A non-W3C session still reads the attribute.
+`element.getValue()` calls Get Element Property, including on Appium 3. It previously called Get Element Attribute for every mobile session.

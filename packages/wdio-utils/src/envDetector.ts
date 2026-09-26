@@ -8,47 +8,18 @@ const MOBILE_CAPABILITIES = [
 ]
 
 /**
- * check if session is based on W3C protocol based on the /session response
- * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if W3C (browser)
+ * v10 sessions use the W3C WebDriver protocol.
+ *
+ * A capabilities object is enough. Drivers do not have to echo
+ * `setWindowRect`, `browserVersion`, or an Appium prefix for the session
+ * to be W3C. JSONWP-only servers (Selenium 3, Appium 1/2, PhantomJS) are
+ * unsupported.
+ *
+ * @param  capabilities  caps of the session response
+ * @return               true when a session response is present
  */
 export function isW3C(capabilities?: WebdriverIO.Capabilities) {
-    /**
-     * JSONWire protocol doesn't return a property `capabilities`.
-     * Also check for Appium response as it is using JSONWire protocol for most of the part.
-     */
-    if (!capabilities) {
-        return false
-    }
-
-    /**
-     * assume session to be a WebDriver session when
-     * - capabilities are returned
-     *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
-     * - it is an Appium session (since Appium is full W3C compliant)
-     */
-    const isAppium = Boolean(
-        capabilities['appium:automationName'] ||
-        capabilities['appium:deviceName'] ||
-        capabilities['appium:appiumVersion']
-    )
-    const hasW3CCaps = Boolean(
-        /**
-         * safari docker image may not provide a platformName therefore
-         * check one of the available "platformName" or "browserVersion"
-         */
-        (capabilities.platformName || capabilities.browserVersion) &&
-        /**
-         * local safari and BrowserStack don't provide platformVersion therefore
-         * check also if setWindowRect is provided
-         */
-        (
-            capabilities['appium:platformVersion'] ||
-            Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect')
-        )
-    )
-    const hasWebdriverFlag = Boolean(capabilities['ms:experimental-webdriver'])
-    return Boolean(hasW3CCaps || isAppium || hasWebdriverFlag)
+    return Boolean(capabilities)
 }
 
 /**
@@ -291,17 +262,12 @@ function isSeleniumStandalone(capabilities?: WebdriverIO.Capabilities) {
     if (!capabilities) {
         return false
     }
-    return (
-        /**
-         * Selenium v3 and below
-         */
-        // @ts-expect-error outdated JSONWP capabilities
-        Boolean(capabilities['webdriver.remote.sessionid']) ||
-        /**
-         * Selenium v4 and up
-         */
-        Boolean(capabilities['se:cdp'])
-    )
+    /**
+     * Selenium Grid 4 advertises a CDP endpoint. Selenium 3's
+     * `webdriver.remote.sessionid` is a JSONWP capability and does not
+     * select the Selenium command set.
+     */
+    return Boolean(capabilities['se:cdp'])
 }
 
 /**

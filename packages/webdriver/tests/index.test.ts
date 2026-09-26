@@ -276,7 +276,7 @@ describe('WebDriver', () => {
                 isWindowsApp: false,
                 isMacApp: false
             })
-            expect(client.isW3C).toBe(false)
+            expect(client.isW3C).toBe(true)
             expect(client.isMobile).toBe(false)
             expect(client.isIOS).toBe(false)
             expect(client.isAndroid).toBe(false)

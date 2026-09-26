@@ -41,10 +41,10 @@ describe('selector strategies helper', () => {
         expect(element.value).toBe('#purplebox')
     })
 
-    it('should find an element using "name" method through jsonwp', () => {
+    it('should keep a desktop name attribute on the css strategy', () => {
         const element = findStrategy('[name="searchinput"]', false)
-        expect(element.using).toBe('name')
-        expect(element.value).toBe('searchinput')
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[name="searchinput"]')
     })
 
     it('should find an element using "name" method through WC3', () => {
@@ -78,7 +78,7 @@ describe('selector strategies helper', () => {
     ])(
         'should find an element using "name" method with special characters in the name (using selector %s)',
         ({ selector, expectedValue }) => {
-            const element = findStrategy(selector)
+            const element = findStrategy(selector, undefined, true)
             expect(element.using).toBe('name')
             expect(element.value).toBe(expectedValue)
         }

@@ -191,7 +191,11 @@ export function getAriaXPathSelector(label: string) {
 
 export const findStrategy = function (
     selector: SelectorStrategy,
-    isW3C?: boolean,
+    /**
+     * Kept so existing positional callers stay aligned.
+     * v10 does not select a JSONWP locator from this flag.
+     */
+    _isW3C?: boolean,
     isMobile?: boolean,
     isBidi?: boolean
 ) {
@@ -284,7 +288,7 @@ export const findStrategy = function (
         break
     }
     case 'name': {
-        if (isMobile || !isW3C) {
+        if (isMobile) {
             const match = stringSelector.match(/^\[name=(?:"(.[^"]*)"|'(.[^']*)')]$/)
             if (!match) {
                 throw new Error(`InvalidSelectorMatch. Strategy 'name' has failed to match '${stringSelector}'`)

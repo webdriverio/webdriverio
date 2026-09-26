@@ -119,13 +119,16 @@ export default class WebDriver {
         }
 
         options.capabilities = options.capabilities || {}
-        options.isW3C = options.isW3C === false ? false : true
         options.protocol = options.protocol || DEFAULTS.protocol.default
         options.hostname = options.hostname || DEFAULTS.hostname.default
         options.port = options.port || DEFAULTS.port.default
         options.path = options.path || DEFAULTS.path.default
         const environment = sessionEnvironmentDetector({ capabilities: options.capabilities, requestedCapabilities: options.capabilities })
-        options = Object.assign(environment, options)
+        /**
+         * v10 has no JSONWP mode. An explicit `isW3C: false` used to strip
+         * the BiDi command set; ignore it and keep the session on W3C.
+         */
+        options = Object.assign(environment, options, { isW3C: true })
 
         const environmentPrototype = getEnvironmentVars(options as Partial<SessionFlags>)
         const protocolCommands = getPrototype(options as Partial<SessionFlags>)
