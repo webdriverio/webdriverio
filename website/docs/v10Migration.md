@@ -246,6 +246,25 @@ await browser.action('pointer', { parameters: { pointerType: 'touch' } })
     .perform()
 ```
 
+## `setTimeout`
+
+The JSON Wire Protocol key `page load` is rejected. Use `pageLoad`.
+
+```diff
+- await browser.setTimeout({ 'page load': 10000 })
++ await browser.setTimeout({ pageLoad: 10000 })
+```
+
+`implicit` and `script` are unchanged.
+
+## Reporters
+
+`client:afterCommand` no longer includes `name`. Read `command` for the command name. Custom commands already sent `command`.
+
+## Allure
+
+`addEnvironment(name, value)` is removed. It had no effect. Set environment rows with `reportedEnvironmentVars` in the Allure reporter options.
+
 ## Jasmine
 
 `@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 needs Node.js 20, 22, or 24, which the v10 floor of 22.19.0 already covers.
