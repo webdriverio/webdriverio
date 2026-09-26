@@ -7,9 +7,23 @@ export interface WrapperMethods {
     executeAsync: typeof executeAsync
 }
 
+/**
+ * Spec result owned by the test framework, read after the spec body.
+ * Jasmine passes expectation failures through this instead of a process global.
+ */
+export interface FrameworkResult {
+    result?: unknown
+    errors?: { stack?: string, matcherName?: string }[]
+}
+
 export interface SpecFunction {
     specFn: Function
     specFnArgs: unknown[]
+    /**
+     * Called after the spec body. Returning a result replaces the spec return
+     * value and turns the first entry of `errors` into the after-test error.
+     */
+    frameworkResult?: () => FrameworkResult | undefined
 }
 
 export interface BeforeHookParam<T> {

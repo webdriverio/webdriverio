@@ -168,7 +168,6 @@ describe('framework parameter conversion', () => {
             '--jasmineOpts.invertGrep', 'true',
             '--jasmineOpts.cleanStack', 'true',
             '--jasmineOpts.stopOnSpecFailure', 'true',
-            '--jasmineOpts.stopSpecOnExpectationFailure', 'true',
             '--jasmineOpts.requireModule', 'foo'
         )
         const { params } = await run() as any
@@ -193,7 +192,6 @@ describe('framework parameter conversion', () => {
             ],
             "seed": "foo",
             "stopOnSpecFailure": true,
-            "stopSpecOnExpectationFailure": true,
           }
         `)
     })

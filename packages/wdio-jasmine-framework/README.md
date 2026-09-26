@@ -89,11 +89,11 @@ Stops test suite (`describe`) execution on first spec (`it`) failure (other suit
 
 </Option>
 
-### stopSpecOnExpectationFailure
+### oneFailurePerSpec
 
 <Option type="Boolean" default="false">
 
-Stops a spec (`it`) execution on a first expectation failure (other specs continue running)
+Whether to cause specs to only have one expectation failure.
 
 </Option>
 
