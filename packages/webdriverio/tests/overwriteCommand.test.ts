@@ -262,7 +262,7 @@ describe('overwriteCommand', () => {
         })
     })
 
-    describe('multiremote', () => {
+    describe('multi-remote', () => {
         test('should allow to overwrite commands', async () => {
             const browser = await multiRemote(multiRemoteConfig as any)
             browser.overwriteCommand('pause', customBrowserCommand)

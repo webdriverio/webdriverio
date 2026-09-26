@@ -90,7 +90,7 @@ export const multiRemoteHandler = (
         const commandResults = this.instances.map((instanceName: string) => {
             const instance = this.getInstance(instanceName)
             if (!instance) {
-                throw new Error(`Multiremote object has no instance named "${instanceName}"`)
+                throw new Error(`Multi-remote object has no instance named "${instanceName}"`)
             }
             const command = (instance as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>)[commandName as unknown as string]
             return command.call(instance, ...args)

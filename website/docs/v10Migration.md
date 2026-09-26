@@ -1,7 +1,7 @@
 ---
 id: v10-migration
 title: From v9 to v10
-description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multiremote instance access, and element references.
+description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, and element references.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
@@ -265,9 +265,9 @@ The JSON Wire Protocol key `page load` is rejected. Use `pageLoad`.
 
 `addEnvironment(name, value)` is removed. It had no effect. Set environment rows with `reportedEnvironmentVars` in the Allure reporter options.
 
-## Multiremote instance access
+## Multi-remote instance access
 
-A multiremote browser no longer stores each session as its own property. The same is true for a multiremote element. `getInstance` and `select` are how you address one session.
+A multi-remote browser no longer stores each session as its own property. The same is true for a multi-remote element. `getInstance` and `select` are how you address one session.
 
 ```diff
 - await browser.myChromeBrowser.url('https://webdriver.io')

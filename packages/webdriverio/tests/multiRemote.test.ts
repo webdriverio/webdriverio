@@ -87,7 +87,7 @@ describe('Multi-Remote tests', () => {
     })
 
     test('keeps instances in capability order and off the client', async () => {
-        const browser = await multiremote(caps())
+        const browser = await multiRemote(caps())
 
         expect(browser.instances).toEqual(['browserA', 'browserB'])
         expect(Object.hasOwn(browser, 'browserA')).toBe(false)
@@ -138,7 +138,7 @@ describe('Multi-Remote tests', () => {
                     return
                 }
                 if (Date.now() - started > 2000) {
-                    reject(new Error(`timed out waiting for the other multiremote session (ports: ${[...portOf]})`))
+                    reject(new Error(`timed out waiting for the other multi-remote session (ports: ${[...portOf]})`))
                     return
                 }
                 setImmediate(check)
@@ -194,7 +194,7 @@ describe('Multi-Remote tests', () => {
         })
 
         try {
-            const browser = await multiremote(caps())
+            const browser = await multiRemote(caps())
 
             expect(sessionFinished).toEqual(['browserB', 'browserA'])
             expect(browser.instances).toEqual(['browserA', 'browserB'])

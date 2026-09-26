@@ -174,7 +174,7 @@ export default class MultiRemote {
                 value (browserName: string) {
                     const found = byName.get(browserName)
                     if (!found) {
-                        throw new Error(`MultiRemote object has no instance named "${browserName}"`)
+                        throw new Error(`Multi-remote object has no instance named "${browserName}"`)
                     }
                     return found
                 }
@@ -238,7 +238,7 @@ export default class MultiRemote {
                 ? new Map(thisElement.instances.map((instanceName) => {
                     const browserInstance = instances.get(instanceName)
                     if (!browserInstance) {
-                        throw new Error(`MultiRemote object has no instance named "${instanceName}"`)
+                        throw new Error(`Multi-remote object has no instance named "${instanceName}"`)
                     }
                     return [instanceName, browserInstance] as const
                 }))
