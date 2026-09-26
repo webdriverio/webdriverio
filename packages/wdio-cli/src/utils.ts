@@ -63,8 +63,8 @@ function collectConfigPaths (config: Partial<WebdriverIO.Config>): string[] {
 }
 
 /**
- * Specs declared on capabilities (or `wdio:specs`) are not always mirrored on
- * the top-level config object.
+ * Specs declared on capabilities via `wdio:specs` / `wdio:exclude` are not
+ * always mirrored on the top-level config object.
  */
 function collectCapabilityPaths (
     capabilities?: Capabilities.TestrunnerCapabilities
@@ -93,17 +93,10 @@ function collectCapabilityPaths (
             entry && typeof entry === 'object' && 'capabilities' in entry
                 ? (entry as { capabilities: WebdriverIO.Capabilities }).capabilities
                 : entry
-        ) as WebdriverIO.Capabilities & {
-            specs?: unknown
-            exclude?: unknown
-            'wdio:specs'?: unknown
-            'wdio:exclude'?: unknown
-        }
+        ) as WebdriverIO.Capabilities
         if (!caps || typeof caps !== 'object') {
             continue
         }
-        push(caps.specs)
-        push(caps.exclude)
         push(caps['wdio:specs'])
         push(caps['wdio:exclude'])
     }
