@@ -99,8 +99,7 @@ describe('attachToSession', () => {
 
     it('should call modifier if multiremote', async () => {
         const multiremote = new Multiremote()
-        // @ts-ignore test scenario
-        multiremote.instances.instanceName = 'instance'
+        multiremote.instances.set('instanceName', 'instance' as unknown as WebdriverIO.Browser)
 
         const session = await ProtocolStub.attachToSession(
             // @ts-expect-error
@@ -110,7 +109,9 @@ describe('attachToSession', () => {
 
         expect(session.capabilities).toBeUndefined()
         expect(session.commandList).toHaveLength(0)
-        expect(session.instanceName).toBe('instance')
+        expect(session.instances).toEqual(['instanceName'])
+        expect(session.getInstance('instanceName')).toBe('instance')
+        expect(Object.hasOwn(session, 'instanceName')).toBe(false)
         expect(() => session.addCommand()).toThrow()
         expect(() => session.overwriteCommand()).toThrow()
     })
