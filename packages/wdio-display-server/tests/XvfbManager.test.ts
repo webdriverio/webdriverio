@@ -1,10 +1,11 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import path from 'node:path'
 
-import { runAsRoot, runAsUser } from './helpers.js'
+import { onPath, runAsUser } from './helpers.js'
 
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockPlatform = vi.hoisted(() => vi.fn())
+const mockStat = vi.hoisted(() => vi.fn())
 
 vi.mock('node:child_process', () => ({
     exec: vi.fn(),
@@ -16,6 +17,7 @@ vi.mock('node:util', () => ({
 }))
 
 vi.mock('node:fs/promises', () => ({
+    stat: mockStat,
     readdir: vi.fn(),
     access: vi.fn(),
 }))
@@ -39,6 +41,7 @@ describe('XvfbManager', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
+        mockStat.mockReset()
 
         manager = new XvfbManager({ displayServer: 'xvfb' })
 
@@ -115,12 +118,11 @@ describe('XvfbManager', () => {
         })
 
         it('sets up xvfb-run when needed', async () => {
-            mockExecAsync.mockResolvedValue({ stdout: '/usr/bin/xvfb-run\n', stderr: '' })
+            onPath(mockStat, 'Xvfb')
 
             const result = await manager.init()
 
             expect(result).toBe(true)
-            expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
         })
 
         it('does not set up when not needed', async () => {
@@ -143,15 +145,18 @@ describe('XvfbManager', () => {
 
         describe('autoInstall', () => {
             it('installs xvfb with sudo -n when allowed and available (non-root, apt)', async () => {
-                // which Xvfb twice (initial probe, then before installing) -> which apt-get
-                // -> which sudo -> run install -> which Xvfb (re-probe after installing)
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found'))
-                    .mockRejectedValueOnce(new Error('Command not found'))
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' })
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' })
-                    .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
+                let installed = false
+                mockStat.mockImplementation(async (file: string) => {
+                    const name = path.basename(file)
+                    if (name === 'apt-get' || name === 'sudo' || (installed && name === 'Xvfb')) {
+                        return { isFile: () => true, mode: 0o100755 }
+                    }
+                    throw new Error(`ENOENT: ${file}`)
+                })
+                mockExecAsync.mockImplementation(async (command: string) => {
+                    installed ||= command === 'sudo'
+                    return { stdout: 'installation success', stderr: '' }
+                })
 
                 runAsUser()
 
@@ -163,9 +168,6 @@ describe('XvfbManager', () => {
                 const result = await manager.init()
 
                 expect(result).toBe(true)
-                expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
-                expect(mockExecAsync).toHaveBeenCalledWith('which', ['apt-get'])
-                expect(mockExecAsync).toHaveBeenCalledWith('which', ['sudo'])
                 expect(mockExecAsync).toHaveBeenCalledWith(
                     'sudo',
                     ['-n', 'sh', '-c', 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb'],
@@ -174,8 +176,7 @@ describe('XvfbManager', () => {
             })
 
             it('does not install and returns false when xvfb-run is not available and autoInstall is disabled', async () => {
-                mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found'))
+                onPath(mockStat)
 
                 const manager = new XvfbManager({ displayServer: 'xvfb' })
 
@@ -185,13 +186,7 @@ describe('XvfbManager', () => {
                 const result = await manager.init()
 
                 expect(result).toBe(false)
-                expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['apt-get'])
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['dnf'])
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['zypper'])
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['pacman'])
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['apk'])
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['xbps-install'])
+                expect(new Set(mockStat.mock.calls.map(([file]) => path.basename(file)))).toEqual(new Set(['Xvfb'])) // no package manager is probed without autoInstall
             })
         })
     })

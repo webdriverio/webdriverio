@@ -1,11 +1,11 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import path from 'node:path'
 
-import { arrangeDisplayFdSpawn, queuePackageManagerDetection, runAsRoot, trackExitListeners } from './helpers.js'
+import { PM_NAME_TO_CMD, arrangeDisplayFdSpawn, onPath, runAsRoot, trackExitListeners } from './helpers.js'
 
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockSpawn = vi.hoisted(() => vi.fn())
-const mockReadFile = vi.hoisted(() => vi.fn())
+const mockStat = vi.hoisted(() => vi.fn())
 
 vi.mock('node:child_process', () => ({
     exec: vi.fn(),
@@ -18,7 +18,8 @@ vi.mock('node:util', () => ({
 }))
 
 vi.mock('node:fs/promises', () => ({
-    readFile: mockReadFile,
+    access: vi.fn(), // commandExists' execute check passes
+    stat: mockStat,
 }))
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -30,7 +31,7 @@ describe('XvfbDisplayServer', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
-        mockReadFile.mockReset()
+        mockStat.mockReset()
     })
 
     afterEach(() => {
@@ -38,35 +39,17 @@ describe('XvfbDisplayServer', () => {
     })
 
     describe('isAvailable', () => {
-        it('reports an installed Xvfb on CentOS Stream 10', async () => {
-            mockReadFile.mockResolvedValueOnce('NAME="CentOS Stream"\nVERSION_ID="10"\n')
-            mockExecAsync.mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
-
-            expect(await new XvfbDisplayServer().isAvailable()).toBe(true)
-        })
-
-        it('returns true when Xvfb is on PATH', async () => {
-            mockExecAsync.mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
-
-            const server = new XvfbDisplayServer()
-            expect(await server.isAvailable()).toBe(true)
-        })
-
         it('returns true when Xvfb is present even though xvfb-run is missing', async () => {
             // The daemon spawns Xvfb directly, so only Xvfb must be probed, not xvfb-run.
-            mockExecAsync.mockImplementation((cmd: string) =>
-                cmd === 'which Xvfb'
-                    ? Promise.resolve({ stdout: '/usr/bin/Xvfb', stderr: '' })
-                    : Promise.reject(new Error('not found'))
-            )
+            onPath(mockStat, 'Xvfb')
 
             const server = new XvfbDisplayServer()
             expect(await server.isAvailable()).toBe(true)
-            expect(mockExecAsync).not.toHaveBeenCalledWith('which xvfb-run')
+            expect(mockStat).not.toHaveBeenCalledWith(expect.stringMatching(/xvfb-run$/))
         })
 
         it('returns false when Xvfb is missing', async () => {
-            mockExecAsync.mockRejectedValueOnce(new Error('no Xvfb'))
+            onPath(mockStat)
 
             const server = new XvfbDisplayServer()
             expect(await server.isAvailable()).toBe(false)
@@ -82,7 +65,7 @@ describe('XvfbDisplayServer', () => {
             ['apk', 'apk add --no-cache xvfb-run'],
             ['xbps', 'xbps-install -Suy xbps && xbps-install -y xvfb-run'],
         ])('uses the correct install command for %s', async (pm, expectedCmd) => {
-            queuePackageManagerDetection(mockExecAsync, pm)
+            onPath(mockStat, PM_NAME_TO_CMD[pm])
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
             runAsRoot()
             const server = new XvfbDisplayServer()

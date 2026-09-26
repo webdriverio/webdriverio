@@ -1,5 +1,6 @@
 import { vi, beforeEach, afterEach, type Mock } from 'vitest'
 import { EventEmitter } from 'node:events'
+import path from 'node:path'
 import { PassThrough } from 'node:stream'
 
 import type { DisplayDaemon, DisplayDaemonOptions, DisplayServer } from '../src/types.js'
@@ -78,26 +79,19 @@ export const trackExitListeners = () => {
     })
 }
 
-// Queue execAsync rejections for the package managers probed before `pm`, then a
-// resolution for `pm`, so install()'s detectPackageManager lands deterministically.
-export const PM_PROBE_ORDER = ['apt-get', 'dnf', 'zypper', 'pacman', 'apk', 'xbps-install']
 export const PM_NAME_TO_CMD: Record<string, string> = {
     apt: 'apt-get', dnf: 'dnf', zypper: 'zypper',
     pacman: 'pacman', apk: 'apk', xbps: 'xbps-install',
 }
-export const queuePackageManagerDetection = (mockExecAsync: Mock, pm: string) => {
-    if (pm === 'unknown') {
-        for (let i = 0; i < PM_PROBE_ORDER.length; i++) {
-            mockExecAsync.mockRejectedValueOnce(new Error('not found'))
+
+/** Makes the stat mock report only `commands` as installed. */
+export const onPath = (mockStat: Mock, ...commands: string[]) => {
+    mockStat.mockImplementation(async (file: string) => {
+        if (commands.includes(path.basename(file))) {
+            return { isFile: () => true, mode: 0o100755 }
         }
-        return
-    }
-    const target = PM_NAME_TO_CMD[pm]
-    const targetIdx = PM_PROBE_ORDER.indexOf(target)
-    for (let i = 0; i < targetIdx; i++) {
-        mockExecAsync.mockRejectedValueOnce(new Error('not found'))
-    }
-    mockExecAsync.mockResolvedValueOnce({ stdout: `/usr/bin/${target}`, stderr: '' })
+        throw Object.assign(new Error(`ENOENT: ${file}`), { code: 'ENOENT' })
+    })
 }
 
 export const runAsRoot = () => {

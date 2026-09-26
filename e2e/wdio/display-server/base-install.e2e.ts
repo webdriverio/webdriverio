@@ -40,7 +40,7 @@ describe('display server fresh installation', () => {
             }
         } else if (displayServer?.name === 'wayland') {
             try {
-                const westonPath = execSync('which weston', { encoding: 'utf8' }).trim()
+                const westonPath = execSync('command -v weston', { encoding: 'utf8' }).trim()
                 expect(westonPath).toContain('weston')
             } catch (error) {
                 throw new Error(`weston not available after installation: ${error}`)

@@ -23,7 +23,7 @@ describe('display server existing installation', () => {
         if (displayServer?.name === 'xvfb') {
             let xvfbRunPath = ''
             try {
-                xvfbRunPath = execSync('which xvfb-run', { encoding: 'utf8' }).trim()
+                xvfbRunPath = execSync('command -v xvfb-run', { encoding: 'utf8' }).trim()
             } catch (error) {
                 throw new Error(`xvfb-run should be pre-installed: ${error}`)
             }
@@ -39,7 +39,7 @@ describe('display server existing installation', () => {
         } else if (displayServer?.name === 'wayland') {
             let westonPath = ''
             try {
-                westonPath = execSync('which weston', { encoding: 'utf8' }).trim()
+                westonPath = execSync('command -v weston', { encoding: 'utf8' }).trim()
             } catch (error) {
                 throw new Error(`weston should be pre-installed: ${error}`)
             }
