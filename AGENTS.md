@@ -136,7 +136,7 @@ User docs come from several sources. Update the source, then regenerate:
 `pnpm run docs:list` prints a path + title index. Config examples are copied
 through the repo; search for every occurrence before renaming a key.
 
-## Multi-remote naming/casing project conventions
+## Multi-remote naming
 
 - `multi-remote` in English text, never `multiremote`.
 - `Multi-remote` at the start of a sentence, heading or title.
