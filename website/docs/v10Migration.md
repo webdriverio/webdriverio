@@ -314,6 +314,15 @@ Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript ver
 
 Every session is a W3C session. `browser.isW3C` is `true` when the driver returns a capabilities object, including sessions that omit `setWindowRect` or `browserVersion`. Passing `isW3C: false` to `attach` is ignored, and the BiDi command set stays on the client. A live BiDi connection still depends on `webSocketUrl`.
 
+The drivers WebdriverIO runs against already speak W3C on the client connection:
+
+- ChromeDriver has been W3C by default since Chrome 75. Chromium-based Edge matches it. Current ChromeDriver still accepts `goog:chromeOptions.w3c: false`, which switches that one session back to the legacy protocol. WebdriverIO does not support that switch.
+- geckodriver and Apple's safaridriver are W3C-only. A Safari response that omits `platformName` or `browserVersion` is still W3C.
+- Selenium 4 and Grid 4 speak W3C. Grid stopped translating JSONWP in 4.9.
+- Appium 2 dropped JSONWP and MJSONWP. Appium 3 also dropped the leftover JSONWP parameter shapes. v10 requires Appium 3, covered below. A mobile session that omits `setWindowRect` is still W3C; that capability means the device cannot resize a window.
+
+These servers still speak JSONWP and are not supported: Selenium 3, PhantomJS, EdgeHTML (`--jwp`), and WinAppDriver connected to directly. The Appium Windows driver stays supported as a W3C client. It translates commands to WinAppDriver, including Get Element Property to the attribute endpoint. Point WebdriverIO at Appium, not at WinAppDriver's port.
+
 `webdriver.remote.sessionid` no longer marks a Selenium standalone session. Selenium Grid 4 is still detected from `se:cdp`.
 
 On desktop, `[name="..."]` is a CSS selector. The `name` locator strategy remains for mobile sessions.
