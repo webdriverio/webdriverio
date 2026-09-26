@@ -141,13 +141,13 @@ export class ProcessFactory implements ProcessCreator {
 }
 
 /**
- * Move the `ipc` stdio slot past the fd `xvfb-run` takes for itself, padding with `ignore`
+ * Move an `ipc` slot on the fd `xvfb-run` takes for itself to the end, leaving every other slot on its fd
  */
 function withIpcPastXvfbRunFd(stdio: NonNullable<ProcessCreationOptions['stdio']>) {
-    const ipcIndex = stdio.indexOf('ipc')
-    if (ipcIndex === -1 || ipcIndex > XVFB_RUN_DIAGNOSTIC_FD) {
+    if (stdio[XVFB_RUN_DIAGNOSTIC_FD] !== 'ipc') {
         return stdio
     }
-    const padding = Array<'ignore'>(XVFB_RUN_DIAGNOSTIC_FD + 1 - ipcIndex).fill('ignore')
-    return [...stdio.slice(0, ipcIndex), ...padding, ...stdio.slice(ipcIndex)]
+    const relocated = [...stdio, 'ipc' as const]
+    relocated[XVFB_RUN_DIAGNOSTIC_FD] = 'ignore'
+    return relocated
 }
