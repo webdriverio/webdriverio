@@ -302,6 +302,42 @@ describe('BiDi blob serialization', () => {
         expect(typeof result.arrayBuffer).toBe('function')
     })
 
+    it('keeps own fields on a File along with its bytes', async () => {
+        const file = await roundTrip<File & { meta: string }>(() => {
+            const file = new File([new Uint8Array([1])], 'notes.txt', {
+                type: 'text/plain',
+                lastModified: 5
+            })
+            Object.assign(file, { meta: 'keep' })
+            return file
+        })
+
+        expect(file).toBeInstanceOf(File)
+        expect(file.name).toBe('notes.txt')
+        expect(file.meta).toBe('keep')
+        expect(await bytesOf(file)).toEqual([1])
+    })
+
+    it('returns files from a FileList that also has its own field', async () => {
+        const raw = await runInBrowser<File[] & { note: string }>(() => {
+            const file = new File(['z'], 'z.txt', { type: 'text/plain', lastModified: 5 })
+            const list = Object.assign(Object.create({
+                [Symbol.toStringTag]: 'FileList',
+                length: 1,
+                0: file
+            }), { note: 'keep' })
+            return list
+        })
+
+        expect(Array.isArray(raw)).toBe(true)
+        expect(raw.note).toBe('keep')
+
+        const files = deserialize(asRemote(raw)) as File[]
+        expect(files[0]).toBeInstanceOf(File)
+        expect(files[0].name).toBe('z.txt')
+        expect(await files[0].text()).toBe('z')
+    })
+
     it('leaves an object that only looks like a serialized blob alone', () => {
         const lookalike = {
             [SERIALIZED_BLOB_KEY]: true,

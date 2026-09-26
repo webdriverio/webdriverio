@@ -9,9 +9,9 @@
  * sees it.
  *
  * Blob, File, and FileList are detected by the brand they inherit, so a value
- * created in a same-origin iframe still transfers. An ordinary object that sets
- * the brand itself, or that carries its own fields, is left unchanged. The helper
- * is appended after the user
+ * created in a same-origin iframe still transfers. Own fields on that value are
+ * copied onto the result. An ordinary object that sets the brand itself is left
+ * unchanged. The helper is appended after the user
  * script so BiDi exception line numbers keep pointing at the user's code.
  *
  * This module does not import Node builtins. The browser runner loads it too.
@@ -24,7 +24,7 @@ export const SERIALIZED_BLOB_KIND_BLOB = 'blob'
 export const SERIALIZED_BLOB_KIND_FILE = 'file'
 
 const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/
-const BLOB_TRANSFER_KEYS = new Set(['data', 'type', 'size', 'kind', SERIALIZED_BLOB_KEY])
+const BLOB_TRANSFER_KEYS = new Set(['data', 'type', 'size', 'kind', 'props', SERIALIZED_BLOB_KEY])
 const FILE_TRANSFER_KEYS = new Set([...BLOB_TRANSFER_KEYS, 'name', 'lastModified'])
 
 type SerializedBlobKind = typeof SERIALIZED_BLOB_KIND_BLOB | typeof SERIALIZED_BLOB_KIND_FILE
@@ -37,6 +37,7 @@ export interface SerializedBlobValue {
     kind: SerializedBlobKind
     name?: string
     lastModified?: number
+    props?: Record<string, unknown>
 }
 
 /**
@@ -68,23 +69,16 @@ const SERIALIZER_HELPER = `
         if (typeof value.arrayBuffer !== 'function' || typeof value.size !== 'number' || typeof value.type !== 'string') {
             return false;
         }
-        // A real Blob/File, including one from another realm, inherits its brand
-        // and has no own data properties. An object that sets the brand or
-        // carries its own fields is user data.
-        if (Object.prototype.hasOwnProperty.call(value, Symbol.toStringTag) || Object.keys(value).length !== 0) {
-            return false;
-        }
-        return true;
+        // A real Blob/File, including one from another realm, inherits its brand.
+        // An object that sets the brand itself is user data.
+        return !Object.prototype.hasOwnProperty.call(value, Symbol.toStringTag);
     }
 
     function __wdioIsFileList(value) {
         if (__wdioTag(value) !== '[object FileList]' || typeof value.length !== 'number') {
             return false;
         }
-        if (Object.prototype.hasOwnProperty.call(value, Symbol.toStringTag)) {
-            return false;
-        }
-        return Object.keys(value).every((key) => key === 'length' || __wdioIsIndexKey(key));
+        return !Object.prototype.hasOwnProperty.call(value, Symbol.toStringTag);
     }
 
     function __wdioArrayBufferToBase64(buffer) {
@@ -102,7 +96,7 @@ const SERIALIZER_HELPER = `
         return parts.join('');
     }
 
-    async function __wdioSerializeBlob(blob) {
+    async function __wdioSerializeBlob(blob, seen) {
         const base64 = __wdioArrayBufferToBase64(await blob.arrayBuffer());
         const serialized = {
             [__wdioSerializedBlobKey]: true,
@@ -115,6 +109,20 @@ const SERIALIZER_HELPER = `
             serialized.kind = __wdioSerializedBlobKindFile;
             serialized.name = blob.name;
             serialized.lastModified = blob.lastModified;
+        }
+        const propKeys = Object.keys(blob);
+        if (propKeys.length) {
+            seen.add(blob);
+            try {
+                const props = {};
+                for (const key of propKeys) {
+                    const next = await __wdioSerializeValue(blob[key], seen);
+                    props[key] = next === __wdioCycle ? null : next;
+                }
+                serialized.props = props;
+            } finally {
+                seen.delete(blob);
+            }
         }
         return serialized;
     }
@@ -166,7 +174,7 @@ const SERIALIZER_HELPER = `
             return __wdioCycle;
         }
         if (__wdioIsBlob(value)) {
-            return __wdioSerializeBlob(value);
+            return __wdioSerializeBlob(value, seen);
         }
         if (__wdioIsHostValue(value)) {
             return value;
@@ -180,7 +188,22 @@ const SERIALIZER_HELPER = `
                     listed.push(value[i]);
                 }
                 const { changed, copy } = await __wdioSerializeEntries(listed, seen);
-                return changed ? copy : value;
+                const extras = {};
+                let hasExtras = false;
+                for (const key of Object.keys(value)) {
+                    if (key === 'length' || __wdioIsIndexKey(key)) {
+                        continue;
+                    }
+                    hasExtras = true;
+                    const next = await __wdioSerializeValue(value[key], seen);
+                    extras[key] = next === __wdioCycle ? null : next;
+                }
+                if (!changed && !hasExtras) {
+                    return value;
+                }
+                const result = changed ? copy : listed.slice();
+                Object.assign(result, extras);
+                return result;
             }
             if (typeof Map !== 'undefined' && value instanceof Map) {
                 let changed = false;
@@ -317,19 +340,29 @@ export function isSerializedBlobValue (value: unknown): value is SerializedBlobV
     if (serialized.lastModified !== undefined && typeof serialized.lastModified !== 'number') {
         return false
     }
+    if (serialized.props !== undefined) {
+        if (typeof serialized.props !== 'object' || serialized.props === null || Array.isArray(serialized.props)) {
+            return false
+        }
+    }
     return true
 }
 
 export function createBlobFromSerializedValue (value: SerializedBlobValue) {
     const bytes = decodeBase64(value.data)
+    let blob: Blob | Uint8Array
     if (value.kind === SERIALIZED_BLOB_KIND_FILE && typeof File === 'function') {
-        return new File([bytes], value.name ?? 'file', {
+        blob = new File([bytes], value.name ?? 'file', {
             type: value.type,
             lastModified: typeof value.lastModified === 'number' ? value.lastModified : Date.now()
         })
+    } else if (typeof Blob === 'function') {
+        blob = new Blob([bytes], { type: value.type })
+    } else {
+        blob = bytes
     }
-    if (typeof Blob === 'function') {
-        return new Blob([bytes], { type: value.type })
+    if (value.props) {
+        Object.assign(blob, value.props)
     }
-    return bytes
+    return blob
 }
