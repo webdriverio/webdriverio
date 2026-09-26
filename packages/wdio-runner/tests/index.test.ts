@@ -246,6 +246,41 @@ describe('wdio-runner', () => {
             expect(failures).toBe(0)
         })
 
+        it('should start the pre-session stub without a side-channel protocol field', async () => {
+            const runner = new WDIORunner()
+            const config: any = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                runner: 'local',
+                automationProtocol: 'webdriver'
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_shutdown'] = vi.fn()
+            const startSession = vi.spyOn(runner as any, '_startSession').mockResolvedValue({
+                capabilities: { browserName: 'chrome' },
+                options: {}
+            })
+            runner['_initSession'] = vi.fn().mockResolvedValue({
+                capabilities: { browserName: 'chrome' },
+                options: {},
+                sessionId: 'sid'
+            })
+
+            await runner.run({
+                args: { reporters: [] },
+                cid: '0-0',
+                caps: { browserName: 'chrome' },
+                specs: ['foobar'],
+                configFile: '/foo/bar'
+            } as any)
+
+            const stubConfig = startSession.mock.calls[0][0]
+            expect(stubConfig.automationProtocol).toBe('./protocol-stub.js')
+            expect(stubConfig).not.toHaveProperty('_automationProtocol')
+            expect(config.automationProtocol).toBe('webdriver')
+        })
+
         it('should not call browser url if args watch', async () => {
             const runner = new WDIORunner()
             const config: any = {

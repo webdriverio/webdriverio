@@ -37,7 +37,7 @@ You can set this timeout like so:
 await browser.setTimeout({ 'pageLoad': 10000 })
 ```
 
-> The `pageLoad` keyword is a part of the official WebDriver [specification](https://www.w3.org/TR/webdriver/#set-timeouts), but might not be [supported](https://github.com/seleniumhq/selenium-google-code-issue-archive/issues/687) for your browser (the previous name is `page load`).
+> `pageLoad` is the WebDriver [timeouts](https://www.w3.org/TR/webdriver/#set-timeouts) name. WebdriverIO v10 accepts that key only.
 
 ### Session Implicit Wait Timeout
 

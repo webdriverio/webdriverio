@@ -101,10 +101,19 @@ describe('setTimeout', () => {
         await expect(browser.setTimeout({ implicit: undefined, pageLoad: undefined, script: undefined }))
             .rejects
             .toEqual(invalidTimeoutValueError)
-        // @ts-expect-error invalid param
+        const removedPageLoadKeyError = new Error('The `page load` timeout key was removed in WebdriverIO v10. Use `{ pageLoad: ... }`.')
+        // @ts-expect-error removed JSONWP key
         await expect(browser.setTimeout({ 'page load': null }))
             .rejects
-            .toEqual(invalidTimeoutValueError)
+            .toEqual(removedPageLoadKeyError)
+        // @ts-expect-error removed JSONWP key
+        await expect(browser.setTimeout({ 'page load': 10000 }))
+            .rejects
+            .toEqual(removedPageLoadKeyError)
+        // @ts-expect-error removed JSONWP key
+        await expect(browser.setTimeout({ pageLoad: 10000, 'page load': 10000 }))
+            .rejects
+            .toEqual(removedPageLoadKeyError)
         // @ts-expect-error invalid param
         await expect(browser.setTimeout({ script: '4000' }))
             .rejects

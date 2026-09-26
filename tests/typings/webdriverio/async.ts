@@ -182,6 +182,24 @@ async function bar() {
     })
     // @ts-expect-error positional arguments were removed in v10
     await browser.startActivity('com.example.app', '.MainActivity')
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity',
+        // @ts-expect-error appWaitPackage was removed in v10
+        appWaitPackage: 'com.example.app',
+    })
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity',
+        // @ts-expect-error appWaitActivity was removed in v10
+        appWaitActivity: '.MainActivity',
+    })
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity',
+        // @ts-expect-error optionalIntentArguments was removed in v10
+        optionalIntentArguments: '--ez extra true',
+    })
     await browser.setCookies({
         name: '',
         value: ''

@@ -359,8 +359,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
                         log.info('RESULT', resultLog)
                         this.emit('result', {
                             command: name,
-                            result: { value: res },
-                            name // Kept for legacy reasons, as the `command` property is now used in the reporter. To remove one day!
+                            result: { value: res }
                         })
                     }).catch((error: Error) => {
                         this.emit('result', { command: name, result: { error } })

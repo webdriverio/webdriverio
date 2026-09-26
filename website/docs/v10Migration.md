@@ -193,15 +193,38 @@ Use `type: 'tab'` to open a tab.
 
 ### `startActivity`
 
-Only the options object is accepted.
+Only the options object is accepted. `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments` are gone. They only applied to the removed Appium HTTP endpoint. `mobile: startActivity` does not accept them, and passing them throws.
 
 ```diff
 - await browser.startActivity('com.example.app', '.MainActivity')
+- await browser.startActivity({
+-     appPackage: 'com.example.app',
+-     appActivity: '.MainActivity',
+-     appWaitPackage: 'com.example.app',
+-     appWaitActivity: '.MainActivity',
+-     optionalIntentArguments: '--ez extra true',
+- })
 + await browser.startActivity({
 +     appPackage: 'com.example.app',
 +     appActivity: '.MainActivity',
 + })
 ```
+
+## Capability spec filters
+
+Spec and exclude lists on a capability use the `wdio:` prefix. Bare `specs` and `exclude` on a capability are ignored. The top-level config keys stay `specs` and `exclude`.
+
+```diff
+capabilities: [{
+    browserName: 'firefox',
+-   specs: ['test/ffOnly/*'],
+-   exclude: ['test/ffOnly/skip.js'],
++   'wdio:specs': ['test/ffOnly/*'],
++   'wdio:exclude': ['test/ffOnly/skip.js'],
+}]
+```
+
+A leftover bare list does not select files for that capability. The capability then uses the top-level `specs` and `exclude`.
 
 ## Removed commands
 
@@ -223,6 +246,25 @@ await browser.action('pointer', { parameters: { pointerType: 'touch' } })
     .perform()
 ```
 
+## `setTimeout`
+
+The JSON Wire Protocol key `page load` is rejected. Use `pageLoad`.
+
+```diff
+- await browser.setTimeout({ 'page load': 10000 })
++ await browser.setTimeout({ pageLoad: 10000 })
+```
+
+`implicit` and `script` are unchanged.
+
+## Reporters
+
+`client:afterCommand` no longer includes `name`. Read `command` for the command name. Custom commands already sent `command`.
+
+## Allure
+
+`addEnvironment(name, value)` is removed. It had no effect. Set environment rows with `reportedEnvironmentVars` in the Allure reporter options.
+
 ## Multiremote instance access
 
 A multiremote browser no longer stores each session as its own property. The same is true for a multiremote element. `getInstance` and `select` are how you address one session.
@@ -243,6 +285,10 @@ Command results stay in capability order: the first entry belongs to the first k
 ## Jasmine
 
 `@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 needs Node.js 20, 22, or 24, which the v10 floor of 22.19.0 already covers.
+
+`jasmineNodeOpts` was removed. Configure Jasmine with `jasmineOpts`. Setting `jasmineNodeOpts` throws.
+
+`jasmineOpts.stopSpecOnExpectationFailure` was removed. Use `jasmineOpts.oneFailurePerSpec`. Setting the old key throws.
 
 ## Puppeteer
 
@@ -288,3 +334,22 @@ Appium 3 [removed many deprecated base-driver endpoints](https://appium.io/docs/
 ### Appium `--allow-insecure` scope
 
 Appium 3 requires a driver or `*` scope prefix on `--allow-insecure` features, for example `uiautomator2:adb_shell` or `*:adb_shell`.
+
+### Unprefixed Appium capabilities no longer select an Appium session
+
+`automationName`, `deviceName`, and `appiumVersion` without an `appium:` prefix no longer tell WebdriverIO to skip the browser driver and attach the Appium service. Use the prefixed capability, or nest it under `appium:options`:
+
+```diff
+- capabilities: { platformName: 'Android', automationName: 'UiAutomator2', deviceName: 'emulator' }
++ capabilities: {
++     platformName: 'Android',
++     'appium:automationName': 'UiAutomator2',
++     'appium:deviceName': 'emulator'
++ }
+```
+
+`wdio repl` now emits those prefixed keys, including `appium:app`, `appium:platformVersion`, and `appium:udid`.
+
+### `getValue` on mobile reads the element property
+
+On a W3C session, including Appium 3, `element.getValue()` calls Get Element Property. It previously called Get Element Attribute for every mobile session. A non-W3C session still reads the attribute.
