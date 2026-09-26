@@ -28,7 +28,7 @@ const getRunnerConfig = (config: any = {}) => {
         capabilities: config.capabilities || defaultCaps,
         config,
         sessionId: fakeSessionId,
-        isMultiremote: Boolean(config.isMultiremote)
+        isMultiRemote: Boolean(config.isMultiRemote)
     })
 }
 
@@ -264,7 +264,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print jobs of all instance when run with multiremote', () => {
+            it('should print jobs of all instance when run with multi-remote', () => {
                 const options = {
                     hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',
@@ -275,7 +275,7 @@ describe('SpecReporter', () => {
                         browserA: { browserName: 'chrome' },
                         browserB: { browserName: 'firefox' }
                     },
-                    isMultiremote: true
+                    isMultiRemote: true
                 })
                 printReporter.runnerStat.instanceOptions['foobar'] = options
                 printReporter.runnerStat.instanceOptions['barfoo'] = options
@@ -410,14 +410,14 @@ describe('SpecReporter', () => {
             expect(result).toMatchSnapshot()
         })
 
-        it('should validate header output in multiremote', () => {
+        it('should validate header output in multi-remote', () => {
             const result = tmpReporter.getHeaderDisplay(
                 getRunnerConfig({
                     capabilities: {
                         browserA: { browserName: 'chrome' },
                         browserB: { browserName: 'firefox' }
                     },
-                    isMultiremote: true,
+                    isMultiRemote: true,
                 }))
 
             expect(result).toMatchSnapshot()
@@ -905,13 +905,13 @@ describe('SpecReporter', () => {
     })
 
     describe('getEnviromentCombo', () => {
-        it('should return Multibrowser as capability if multiremote is used', () => {
+        it('should return Multibrowser as capability if multi-remote is used', () => {
             expect(tmpReporter.getEnviromentCombo({
                 myBrowser: {
                     browserName: 'chrome',
                     platform: 'Windows 8.1'
                 }
-            } as any, true, true)).toBe('MultiremoteBrowser on chrome')
+            } as any, true, true)).toBe('MultiRemoteBrowser on chrome')
         })
 
         it('should not throw if mutliremote name is "app"', () => {
@@ -920,7 +920,7 @@ describe('SpecReporter', () => {
                     browserName: 'chrome',
                     platform: 'Windows 8.1'
                 }
-            } as any, true, true)).toBe('MultiremoteBrowser on chrome')
+            } as any, true, true)).toBe('MultiRemoteBrowser on chrome')
         })
 
         it('should return verbose desktop combo', () => {

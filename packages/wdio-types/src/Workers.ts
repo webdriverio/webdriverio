@@ -79,7 +79,7 @@ export interface WorkerMessage {
     specFileRetries?: number
     content: {
         sessionId?: string
-        isMultiremote?: boolean
+        isMultiRemote?: boolean
         capabilities: WebdriverIO.Capabilities
     }
     origin: string

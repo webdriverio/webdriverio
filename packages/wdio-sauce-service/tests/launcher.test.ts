@@ -184,14 +184,14 @@ test('onPrepare w/ SauceConnect w/ region EU', async () => {
     expect(SauceLabs.default.instances[0].options.region).toBe('eu')
 })
 
-test('onPrepare multiremote', async () => {
+test('onPrepare multi-remote', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: true,
         sauceConnectOpts: {
             tunnelName: 'my-tunnel'
         }
     }
-    const caps: Capabilities.RequestedMultiremoteCapabilities = {
+    const caps: Capabilities.RequestedMultiRemoteCapabilities = {
         browserA: {
             capabilities: { browserName: 'chrome' }
         },
@@ -227,14 +227,14 @@ test('onPrepare multiremote', async () => {
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
-test('onPrepare parallel multiremote', async () => {
+test('onPrepare parallel multi-remote', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: true,
         sauceConnectOpts: {
             tunnelName: 'my-tunnel'
         }
     }
-    const caps: Capabilities.RequestedMultiremoteCapabilities[] = [{
+    const caps: Capabilities.RequestedMultiRemoteCapabilities[] = [{
         browserA: {
             capabilities: { browserName: 'chrome' }
         },
@@ -316,14 +316,14 @@ test('onPrepare if sauceTunnel is not set', async () => {
     expect(SauceLabs.default.instances[0].startSauceConnect).toBeCalledTimes(0)
 })
 
-test('onPrepare multiremote with tunnel identifier and with w3c caps ', async () => {
+test('onPrepare multi-remote with tunnel identifier and with w3c caps ', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: true,
         sauceConnectOpts: {
             tunnelName: 'my-tunnel'
         }
     }
-    const caps: Capabilities.RequestedMultiremoteCapabilities = {
+    const caps: Capabilities.RequestedMultiRemoteCapabilities = {
         browserA: {
             capabilities: {
                 browserName: 'chrome',

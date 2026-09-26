@@ -32,7 +32,7 @@ describe('SharedStoreService', () => {
             expect(setPort).toBeCalledWith(65209)
         })
 
-        it('using multiremote caps', async () => {
+        it('using multi-remote caps', async () => {
             new SharedStoreService(null as never, {
                 browserA: { capabilities },
                 browserB: { capabilities }

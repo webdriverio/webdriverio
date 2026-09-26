@@ -7,7 +7,7 @@ import { XvfbDisplayServer } from './XvfbDisplayServer.js'
 import { executeWithRetry } from './utils.js'
 
 // WDIO capabilities come in four shapes: single ({ browserName }), vendor-keyed
-// ({ 'goog:chromeOptions' }), parallel (array), and multiremote ({ browserA: {...} }).
+// ({ 'goog:chromeOptions' }), parallel (array), and multi-remote ({ browserA: {...} }).
 
 type CapsRoot = WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>
 
@@ -40,7 +40,7 @@ function forEachBrowserCapability(
     if (!capabilities) {
         return
     }
-    // Explicit branch — Object.entries would otherwise walk the array as a multiremote map.
+    // Explicit branch — Object.entries would otherwise walk the array as a multi-remote map.
     if (Array.isArray(capabilities)) {
         for (const entry of capabilities) {
             forEachBrowserCapability(entry as CapsRoot, visit)

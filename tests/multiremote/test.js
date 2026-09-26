@@ -1,6 +1,6 @@
 import assert from 'node:assert'
 
-describe('smoke test multiremote', () => {
+describe('smoke test multi-remote', () => {
     it('should return value', async () => {
         assert.equal(
             JSON.stringify(await browser.getTitle()),
@@ -16,7 +16,7 @@ describe('smoke test multiremote', () => {
     })
 
     it('should allow to chain element calls', async () => {
-        await browser.multiremoteFetch()
+        await browser.multiRemoteFetch()
         const elem = await $('foo').$('bar')
         await elem.click()
     })

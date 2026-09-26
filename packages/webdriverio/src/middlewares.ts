@@ -81,16 +81,16 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
 }
 
 /**
- * handle single command calls from multiremote instances
+ * handle single command calls from multi-remote instances
  */
-export const multiremoteHandler = (
+export const multiRemoteHandler = (
     wrapCommand: Function
 ) => (commandName: keyof WebdriverIO.Browser) => {
     return wrapCommand(commandName, function (this: WebdriverIO.MultiRemoteBrowser, ...args: unknown[]) {
         const commandResults = this.instances.map((instanceName: string) => {
             const instance = this.getInstance(instanceName)
             if (!instance) {
-                throw new Error(`Multiremote object has no instance named "${instanceName}"`)
+                throw new Error(`Multi-remote object has no instance named "${instanceName}"`)
             }
             const command = (instance as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>)[commandName as unknown as string]
             return command.call(instance, ...args)

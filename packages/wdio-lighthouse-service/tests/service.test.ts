@@ -152,7 +152,7 @@ test('_enablePerformanceAudits', async () => {
     expect(service['_command'][0].enablePerformanceAudits).toBeCalledTimes(1)
 })
 
-test('_enablePerformanceAudits for multiremote', async () => {
+test('_enablePerformanceAudits for multi-remote', async () => {
     const service = new DevToolsService({})
     service['_browser'] = multiBrowser
     await service._setupHandler()
@@ -177,7 +177,7 @@ test('_disablePerformanceAudits', async () => {
     expect(service['_command'][0].disablePerformanceAudits).toBeCalledTimes(1)
 })
 
-test('_disablePerformanceAudits for multiremote', async () => {
+test('_disablePerformanceAudits for multi-remote', async () => {
     const service = new DevToolsService({})
     service['_browser'] = multiBrowser
     await service._setupHandler()
@@ -202,7 +202,7 @@ test('_setThrottlingProfile', async () => {
     expect(service['_command'][0].setThrottlingProfile).toBeCalledTimes(1)
 })
 
-test('_setThrottlingProfile for multiremote', async () => {
+test('_setThrottlingProfile for multi-remote', async () => {
     const service = new DevToolsService({})
     service['_browser'] = multiBrowser
     await service._setupHandler()
@@ -221,7 +221,7 @@ test('_checkPWA', async () => {
     expect(service['_command'][0].checkPWA).toBeCalledTimes(1)
 })
 
-test('_checkPWA for multiremote', async () => {
+test('_checkPWA for multi-remote', async () => {
     const service = new DevToolsService({})
     service['_browser'] = multiBrowser
     await service._setupHandler()

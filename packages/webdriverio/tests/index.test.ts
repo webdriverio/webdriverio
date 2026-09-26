@@ -25,8 +25,8 @@ describe('index.js', () => {
         expect(webdriverio.attach).toBeDefined()
     })
 
-    it('exports multiremote method', () => {
-        expect(webdriverio.multiremote).toBeDefined()
+    it('exports multi-remote method', () => {
+        expect(webdriverio.multiRemote).toBeDefined()
     })
 
     it('exports remote method', () => {

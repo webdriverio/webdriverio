@@ -1108,11 +1108,11 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
         scope.strategies.set(name, func)
 
         /**
-         * multiremote dispatches commands to each instance individually, so
+         * Multi-remote dispatches commands to each instance individually, so
          * `custom$` / `custom$$` resolve strategies on the instances rather
          * than on the wrapper client — propagate the strategy to all of them
          */
-        if ((scope as WebdriverIO.MultiRemoteBrowser).isMultiremote) {
+        if ((scope as WebdriverIO.MultiRemoteBrowser).isMultiRemote) {
             const multiRemoteScope = scope as WebdriverIO.MultiRemoteBrowser
             for (const instanceName of multiRemoteScope.instances) {
                 const instance = multiRemoteScope.getInstance(instanceName)
@@ -1143,7 +1143,7 @@ export function enhanceElementsArray(
     props?: unknown[]
 ): WebdriverIO.ElementArray
 /**
- * On a multiremote browser every entry is a `MultiRemoteElement`, so the array
+ * On a multi-remote browser every entry is a `MultiRemoteElement`, so the array
  * that comes back is a `MultiRemoteElementArray`. The body is the same; only the
  * element and parent types differ.
  */

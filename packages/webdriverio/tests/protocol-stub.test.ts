@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import ProtocolStub from '../src/protocol-stub.js'
-import Multiremote from '../src/multiremote.js'
+import MultiRemote from '../src/multiRemote.js'
 
 describe('reloadSession', () => {
     it('should throw', () => {
@@ -83,7 +83,7 @@ describe('recording custom commands', () => {
 })
 
 describe('attachToSession', () => {
-    it('should throw if not multiremote', async () => {
+    it('should throw if not multi-remote', async () => {
         const modifier = vi.fn()
         expect(() => ProtocolStub.attachToSession({
             sessionId: '1234',
@@ -97,14 +97,14 @@ describe('attachToSession', () => {
             .toThrow()
     })
 
-    it('should call modifier if multiremote', async () => {
-        const multiremote = new Multiremote()
-        multiremote.instances.set('instanceName', 'instance' as unknown as WebdriverIO.Browser)
+    it('should call modifier if multi-remote', async () => {
+        const multiRemote = new MultiRemote()
+        multiRemote.instances.set('instanceName', 'instance' as unknown as WebdriverIO.Browser)
 
         const session = await ProtocolStub.attachToSession(
             // @ts-expect-error
             undefined,
-            multiremote.modifier.bind(multiremote)
+            multiRemote.modifier.bind(multiRemote)
         )
 
         expect(session.capabilities).toBeUndefined()

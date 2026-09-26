@@ -63,7 +63,7 @@
     "bench:runner": "cd ./tests && WDIO_UNIT_TESTS=1 node ./benchmark/runner.js",
     "test:e2e:testrunner": "cd ./e2e && npx wdio run ./wdio/wdio.conf.ts",
     "test:e2e:lighthouse": "cd ./e2e && npx wdio run ./wdio/lighthouse.conf.ts",
-    "test:e2e:multiremote": "cd ./e2e && npx wdio run ./wdio/wdio-multiRemote.conf.ts",
+    "test:e2e:multi-remote": "cd ./e2e && npx wdio run ./wdio/wdio-multiRemote.conf.ts",
     "test:e2e:standalone": "vitest --config ./e2e/vitest.config.ts --run standalone",
     "test:e2e:webdriver": "cd ./e2e && npx wdio run ./wdio/wdio.local.conf.ts",
     "test:e2e:classic": "cd ./e2e && npx wdio run ./wdio/wdio.classic.conf.ts",

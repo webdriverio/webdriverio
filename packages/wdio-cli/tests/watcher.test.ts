@@ -34,12 +34,12 @@ vi.mock('../src/launcher', async () => {
     const { ConfigParser } = await import('@wdio/config/node')
 
     interface LauncherMockRunCommandArguments extends Omit<RunCommandArguments, 'configPath'> {
-        isMultiremote?: boolean;
+        isMultiRemote?: boolean;
     }
 
     class LauncherMock {
         public configParser: any
-        isMultiremote: boolean
+        isMultiRemote: boolean
         runner: any
         interface: any
 
@@ -49,7 +49,7 @@ vi.mock('../src/launcher', async () => {
             this.configParser = new ConfigParser(configFile)
             this.configParser.addConfigFile(configFile)
             this.configParser.merge(args)
-            this.isMultiremote = args.isMultiremote || false
+            this.isMultiRemote = args.isMultiRemote || false
             this.runner = {}
             this.interface = {
                 emit: vi.fn(),

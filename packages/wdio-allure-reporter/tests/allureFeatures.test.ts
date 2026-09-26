@@ -275,18 +275,18 @@ describe('reporter runtime implementation', () => {
             expect(results[0].parameters[0]).toEqual({ name: 'device', value: 'Google Pixel 3-9.0' })
         })
 
-        it('should correctly add argument for multiremote', async () => {
+        it('should correctly add argument for multi-remote', async () => {
             const reporter = new AllureReporter({ outputDir })
             reporter.onRunnerStart({
                 ...runnerStart(),
-                isMultiremote: true,
+                isMultiRemote: true,
                 capabilities: { myBrowser: { browserName: 'chrome' } },
             })
             reporter.onTestStart(testStart())
             reporter.onTestPass(testPassed())
             await reporter.onRunnerEnd(runnerEnd())
             const { results } = getResults(outputDir)
-            expect(results[0].parameters[0]).toEqual({ name: 'isMultiremote', value: 'true' })
+            expect(results[0].parameters[0]).toEqual({ name: 'isMultiRemote', value: 'true' })
         })
     })
 })

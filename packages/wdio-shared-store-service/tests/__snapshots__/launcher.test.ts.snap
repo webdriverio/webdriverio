@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`SharedStoreService > should update capabilities correctly > using multiremote caps 1`] = `
+exports[`SharedStoreService > should update capabilities correctly > using multi-remote caps 1`] = `
 {
   "browserA": {
     "capabilities": {
@@ -17,7 +17,7 @@ exports[`SharedStoreService > should update capabilities correctly > using multi
 }
 `;
 
-exports[`SharedStoreService > should update capabilities correctly > using parallel multiremote caps 1`] = `
+exports[`SharedStoreService > should update capabilities correctly > using parallel multi-remote caps 1`] = `
 [
   {
     "browserA": {

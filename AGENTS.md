@@ -136,6 +136,25 @@ User docs come from several sources. Update the source, then regenerate:
 `pnpm run docs:list` prints a path + title index. Config examples are copied
 through the repo; search for every occurrence before renaming a key.
 
+## Multi-remote naming
+
+- `multi-remote` in English text, never `multiremote`.
+- `Multi-remote` at the start of a sentence, heading or title.
+- `multiRemote` / `MultiRemote` in camelCase / PascalCase code, e.g. `isMultiRemote`.
+- Never write `multiremote` or `Multiremote`, e.g. `isMultiremote`, `multiremote()`.
+- Exceptions, kept for compatibility: the `id: multiremote` permalink and
+  `/docs/multiremote` links, file and folder names, the Allure historyId key
+  `'multiremote'`, the v9 column of `v10Migration.md`, and `CHANGELOG.md`.
+
+Must print nothing before committing. It flags every `multiremote` /
+`Multiremote` and filters out the exceptions above:
+
+```sh
+git grep -nE "[Mm]ultiremote" -- ':!AGENTS.md' ':!CHANGELOG.md' \
+  ':!website/_sidebars.json' ':!**/__fixtures__/**' ':!**/__snapshots__/**' \
+  | grep -vE "multiremotebrowser|/multiremote|multiremote/|[.-]multiremote|multiremote[.-]|'multiremote', '|return 'multiremote'|^website/docs/Multiremote\.md:2:|^website/docs/v10Migration\.md:[0-9]+:(\| \`|APIs spelled|The old \`isMultiremote\`|Search for \`multiremote\`)"
+```
+
 ## Working agreement
 
 - Inspect `git status -sb` before editing. Do not switch branches or rewrite

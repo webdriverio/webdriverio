@@ -892,14 +892,14 @@ describe('command reporting', () => {
         expect(results[0].steps).toHaveLength(0)
     })
 
-    it('should not add step if isMultiremote = true', async () => {
+    it('should not add step if isMultiRemote = true', async () => {
         const allureOptions = {
             stdout: true,
             outputDir,
         }
         const reporter = new AllureReporter(allureOptions)
         reporter.onRunnerStart(
-            Object.assign(runnerStart(), { isMultiremote: true }),
+            Object.assign(runnerStart(), { isMultiRemote: true }),
         )
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
@@ -922,7 +922,7 @@ describe('command reporting', () => {
         }
         const reporter = new AllureReporter(allureOptions)
         reporter.onRunnerStart(
-            Object.assign(runnerStart(), { isMultiremote: true }),
+            Object.assign(runnerStart(), { isMultiRemote: true }),
         )
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
