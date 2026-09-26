@@ -1024,13 +1024,13 @@ importers:
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
     devDependencies:
       '@types/node':
         specifier: ^22.20.4
         version: 22.20.4
-      '@wdio/types':
-        specifier: workspace:*
-        version: link:../wdio-types
 
   packages/wdio-dot-reporter:
     dependencies:
