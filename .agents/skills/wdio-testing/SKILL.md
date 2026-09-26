@@ -9,12 +9,17 @@ Use this skill when deciding which tests to run or add. Read
 [AGENTS.md](../../../AGENTS.md) and [tests/AGENTS.md](../../../tests/AGENTS.md)
 first.
 
+Passing a lane below does not prove a feature works the way a user runs it.
+That proof is [verify-webdriverio](../verify-webdriverio/SKILL.md). Do not
+cite a unit test as that proof.
+
 ## Pick a lane
 
 1. Identify the owning package (see the root repo map or [OWNERSHIP.md](../../../.github/OWNERSHIP.md)).
 2. Compile that package (`pnpm run dev <name>` or `pnpm run compile:all`).
 3. Prefer `pnpm run test:changed --dry-run` to see the CI lanes for this diff.
 4. Run the first matching row, then stop unless a lower row also applies.
+5. Prove the user-facing path with verify-webdriverio. Stopping after a unit lane is not done.
 
 | If you touched | Run |
 |----------------|-----|

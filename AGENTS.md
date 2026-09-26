@@ -75,6 +75,13 @@ Prefer the smallest proof that covers the touched contract. Do not start with
 `pnpm test` or `pnpm run ci` — those run the full unit + smoke + component
 (+ e2e) pipeline and waste time.
 
+The table is the regression check. It is not proof that a feature works the
+way a user runs it. Before you report a feature or bug fix as done, follow
+[verify-webdriverio](.agents/skills/verify-webdriverio/SKILL.md). Use a named
+smoke suite for the testrunner, an example script for a real browser and
+driver, the runner benchmark for performance, and typings for public types.
+A unit test is not that proof.
+
 | Change | Minimum local proof |
 |--------|---------------------|
 | Mixed / unsure | `pnpm run test:changed --dry-run` then `pnpm run test:changed` |
@@ -141,6 +148,10 @@ through the repo; search for every occurrence before renaming a key.
   generated docs.
 - Tests must fail on the original defect. Do not hide flakes with retries,
   longer timeouts, or weaker assertions — fix the cause.
+- Verify user-facing work with
+  [verify-webdriverio](.agents/skills/verify-webdriverio/SKILL.md) before
+  claiming it is done. Record the command, the output, and the observable
+  result. A passing unit test does not replace that.
 - UI / docs-site visual changes need a before/after screenshot in the PR.
 - American English. Match existing code style; do not reformat unrelated files.
 
@@ -162,6 +173,7 @@ Read the matching guide in full before editing that tree.
 - **E2E / component:** [e2e/AGENTS.md](e2e/AGENTS.md)
 - **Docs site:** [website/AGENTS.md](website/AGENTS.md)
 - **Testing skill:** [.agents/skills/wdio-testing/SKILL.md](.agents/skills/wdio-testing/SKILL.md)
+- **Verify a change:** [.agents/skills/verify-webdriverio/SKILL.md](.agents/skills/verify-webdriverio/SKILL.md)
 - **Hot-path perf skill:** [.agents/skills/wdio-perf/SKILL.md](.agents/skills/wdio-perf/SKILL.md)
 - **Ownership map:** [.github/OWNERSHIP.md](.github/OWNERSHIP.md)
 - **Docs skill:** [.agents/skills/wdio-docs/SKILL.md](.agents/skills/wdio-docs/SKILL.md)
