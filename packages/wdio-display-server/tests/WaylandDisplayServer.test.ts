@@ -114,12 +114,11 @@ describe('WaylandDisplayServer', () => {
         })
 
         it.each([
-            ['dnf', 'dnf -y makecache && dnf -y install weston'],
-            ['yum', 'yum -y makecache && yum -y install weston'],
+            ['dnf', 'dnf -y makecache && (dnf -y install weston || ([ "$(rpm -E "%{?rhel}")" -ge 10 ] 2>/dev/null && dnf -y install epel-release dnf-plugins-core && crb enable && dnf -y install weston))'],
             ['zypper', 'zypper --non-interactive refresh && zypper --non-interactive install -y weston'],
-            ['pacman', 'pacman -Sy --noconfirm weston'],
-            ['apk', 'apk update && apk add --no-cache weston'],
-            ['xbps', 'xbps-install -Sy weston'],
+            ['pacman', 'pacman -Syu --noconfirm weston'],
+            ['apk', 'apk add --no-cache weston weston-backend-headless weston-shell-desktop'],
+            ['xbps', 'xbps-install -Suy xbps && xbps-install -y weston'],
         ])('uses the correct install command for %s', async (pm, expectedCmd) => {
             queuePackageManagerDetection(mockExecAsync, pm)
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })

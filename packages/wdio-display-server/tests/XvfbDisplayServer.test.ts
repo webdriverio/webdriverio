@@ -30,8 +30,7 @@ describe('XvfbDisplayServer', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
-        // '' reads as non-CentOS-10, so checkIsCentOS10() is false.
-        mockReadFile.mockResolvedValue('')
+        mockReadFile.mockReset()
     })
 
     afterEach(() => {
@@ -39,12 +38,11 @@ describe('XvfbDisplayServer', () => {
     })
 
     describe('isAvailable', () => {
-        it('returns false when /etc/os-release identifies CentOS Stream 10', async () => {
+        it('reports an installed Xvfb on CentOS Stream 10', async () => {
             mockReadFile.mockResolvedValueOnce('NAME="CentOS Stream"\nVERSION_ID="10"\n')
+            mockExecAsync.mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
 
-            const server = new XvfbDisplayServer()
-            expect(await server.isAvailable()).toBe(false)
-            expect(mockExecAsync).not.toHaveBeenCalled()
+            expect(await new XvfbDisplayServer().isAvailable()).toBe(true)
         })
 
         it('returns true when Xvfb is on PATH', async () => {
@@ -73,37 +71,16 @@ describe('XvfbDisplayServer', () => {
             const server = new XvfbDisplayServer()
             expect(await server.isAvailable()).toBe(false)
         })
-
-        it('returns false when /etc/os-release shows a different CentOS Stream version', async () => {
-            mockReadFile.mockResolvedValueOnce('NAME="CentOS Stream"\nVERSION_ID="9"\n')
-            mockExecAsync.mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
-
-            const server = new XvfbDisplayServer()
-            expect(await server.isAvailable()).toBe(true)
-        })
     })
 
     describe('install', () => {
-        it('returns false immediately when CentOS 10 was detected by a prior isAvailable()', async () => {
-            mockReadFile.mockResolvedValueOnce('NAME="CentOS Stream"\nVERSION_ID="10"\n')
-            const server = new XvfbDisplayServer()
-            await server.isAvailable()
-
-            mockExecAsync.mockClear()
-            const result = await server.install()
-
-            expect(result).toBe(false)
-            expect(mockExecAsync).not.toHaveBeenCalled()
-        })
-
         it.each([
             ['apt', 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb'],
-            ['dnf', 'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb xorg-x11-server-utils'],
-            ['yum', 'yum -y makecache && yum -y install xorg-x11-server-Xvfb xorg-x11-server-utils'],
+            ['dnf', 'dnf -y makecache && dnf -y install xorg-x11-server-Xvfb'],
             ['zypper', 'zypper --non-interactive refresh && zypper --non-interactive install -y xvfb-run'],
-            ['pacman', 'pacman -Sy --noconfirm xorg-server-xvfb'],
-            ['apk', 'apk update && apk add --no-cache xvfb-run'],
-            ['xbps', 'xbps-install -Sy xvfb-run'],
+            ['pacman', 'pacman -Syu --noconfirm xorg-server-xvfb'],
+            ['apk', 'apk add --no-cache xvfb-run'],
+            ['xbps', 'xbps-install -Suy xbps && xbps-install -y xvfb-run'],
         ])('uses the correct install command for %s', async (pm, expectedCmd) => {
             queuePackageManagerDetection(mockExecAsync, pm)
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })

@@ -5,7 +5,6 @@ import { runAsRoot, runAsUser } from './helpers.js'
 
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockPlatform = vi.hoisted(() => vi.fn())
-const mockReadFile = vi.hoisted(() => vi.fn())
 
 vi.mock('node:child_process', () => ({
     exec: vi.fn(),
@@ -17,9 +16,6 @@ vi.mock('node:util', () => ({
 }))
 
 vi.mock('node:fs/promises', () => ({
-    // checkIsCentOS10() reads /etc/os-release directly; readdir/access are stubbed
-    // for the paths that aren't exercised by these manager-level tests.
-    readFile: mockReadFile,
     readdir: vi.fn(),
     access: vi.fn(),
 }))
@@ -43,12 +39,6 @@ describe('XvfbManager', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
-
-        // XvfbDisplayServer.isAvailable() reads /etc/os-release first for CentOS
-        // Stream 10 detection. A rejected read means "not CentOS Stream 10", so each
-        // test's sequential execAsync chain stays aligned with `which Xvfb`,
-        // `which apt-get`, etc. without the CentOS check consuming a slot.
-        mockReadFile.mockRejectedValue(new Error('not centos'))
 
         manager = new XvfbManager({ displayServer: 'xvfb' })
 
@@ -198,7 +188,6 @@ describe('XvfbManager', () => {
                 expect(mockExecAsync).toHaveBeenCalledWith('which Xvfb')
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['apt-get'])
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['dnf'])
-                expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['yum'])
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['zypper'])
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['pacman'])
                 expect(mockExecAsync).not.toHaveBeenCalledWith('which', ['apk'])

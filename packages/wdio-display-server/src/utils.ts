@@ -55,7 +55,6 @@ export async function detectPackageManager(): Promise<string> {
     const packageManagers = [
         { command: 'apt-get', name: 'apt' },
         { command: 'dnf', name: 'dnf' },
-        { command: 'yum', name: 'yum' },
         { command: 'zypper', name: 'zypper' },
         { command: 'pacman', name: 'pacman' },
         { command: 'apk', name: 'apk' },

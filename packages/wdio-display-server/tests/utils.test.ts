@@ -41,6 +41,7 @@ const makeLogger = () => ({
 describe('detectPackageManager', () => {
     beforeEach(() => {
         vi.clearAllMocks()
+        mockExecFileAsync.mockReset()
     })
 
     it('returns "apt" when apt-get is available', async () => {
@@ -64,20 +65,16 @@ describe('detectPackageManager', () => {
         expect(mockExecFileAsync).toHaveBeenCalledWith('which', ['dnf'])
     })
 
-    it('returns "yum" when only yum is available', async () => {
-        mockExecFileAsync
-            .mockRejectedValueOnce(new Error('not found'))
-            .mockRejectedValueOnce(new Error('not found'))
-            .mockResolvedValueOnce({ stdout: '/usr/bin/yum', stderr: '' })
+    it('does not probe yum, since yum-only systems are too old to run Node.js 22', async () => {
+        mockExecFileAsync.mockRejectedValue(new Error('not found'))
 
-        const result = await detectPackageManager()
+        await detectPackageManager()
 
-        expect(result).toBe('yum')
+        expect(mockExecFileAsync).not.toHaveBeenCalledWith('which', ['yum'])
     })
 
     it('returns "zypper" when only zypper is available', async () => {
         mockExecFileAsync
-            .mockRejectedValueOnce(new Error('not found'))
             .mockRejectedValueOnce(new Error('not found'))
             .mockRejectedValueOnce(new Error('not found'))
             .mockResolvedValueOnce({ stdout: '/usr/bin/zypper', stderr: '' })
@@ -89,7 +86,6 @@ describe('detectPackageManager', () => {
 
     it('returns "pacman" when only pacman is available', async () => {
         mockExecFileAsync
-            .mockRejectedValueOnce(new Error('not found'))
             .mockRejectedValueOnce(new Error('not found'))
             .mockRejectedValueOnce(new Error('not found'))
             .mockRejectedValueOnce(new Error('not found'))
@@ -106,7 +102,6 @@ describe('detectPackageManager', () => {
             .mockRejectedValueOnce(new Error('not found'))
             .mockRejectedValueOnce(new Error('not found'))
             .mockRejectedValueOnce(new Error('not found'))
-            .mockRejectedValueOnce(new Error('not found'))
             .mockResolvedValueOnce({ stdout: '/sbin/apk', stderr: '' })
 
         const result = await detectPackageManager()
@@ -116,7 +111,6 @@ describe('detectPackageManager', () => {
 
     it('returns "xbps" when only xbps-install is available', async () => {
         mockExecFileAsync
-            .mockRejectedValueOnce(new Error('not found'))
             .mockRejectedValueOnce(new Error('not found'))
             .mockRejectedValueOnce(new Error('not found'))
             .mockRejectedValueOnce(new Error('not found'))
@@ -136,7 +130,7 @@ describe('detectPackageManager', () => {
         const result = await detectPackageManager()
 
         expect(result).toBe('unknown')
-        expect(mockExecFileAsync).toHaveBeenCalledTimes(7)
+        expect(mockExecFileAsync).toHaveBeenCalledTimes(6)
     })
 
     it('probes package managers in priority order, stopping at first hit', async () => {

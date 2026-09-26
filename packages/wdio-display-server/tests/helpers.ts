@@ -80,9 +80,9 @@ export const trackExitListeners = () => {
 
 // Queue execAsync rejections for the package managers probed before `pm`, then a
 // resolution for `pm`, so install()'s detectPackageManager lands deterministically.
-export const PM_PROBE_ORDER = ['apt-get', 'dnf', 'yum', 'zypper', 'pacman', 'apk', 'xbps-install']
+export const PM_PROBE_ORDER = ['apt-get', 'dnf', 'zypper', 'pacman', 'apk', 'xbps-install']
 export const PM_NAME_TO_CMD: Record<string, string> = {
-    apt: 'apt-get', dnf: 'dnf', yum: 'yum', zypper: 'zypper',
+    apt: 'apt-get', dnf: 'dnf', zypper: 'zypper',
     pacman: 'pacman', apk: 'apk', xbps: 'xbps-install',
 }
 export const queuePackageManagerDetection = (mockExecAsync: Mock, pm: string) => {
