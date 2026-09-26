@@ -4,7 +4,14 @@ import libCoverage, { type CoverageMap, type CoverageMapData } from 'istanbul-li
 import logger from '@wdio/logger'
 import type { WebSocketClient } from 'vite'
 import type { WorkerInstance } from '@wdio/local-runner'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import {
+    MESSAGE_TYPES,
+    browserChannelMessage,
+    isWorkerProcessEvent,
+    routeBrowserToRunnerMessage,
+    parseRunnerToBrowserMessage,
+    type Workers,
+} from '@wdio/types'
 import type { SessionStartedMessage, SessionEndedMessage, WorkerResponseMessage } from '@wdio/runner'
 
 import { SESSIONS } from './constants.js'
@@ -15,7 +22,7 @@ const log = logger('@wdio/browser-runner')
 
 type WorkerMessagePayload = SessionStartedMessage | SessionEndedMessage | WorkerResponseMessage | Workers.WorkerEvent
 
-interface WorkerMessage {
+interface PendingWorkerMessage {
     id: number
     client: WebSocketClient
 }
@@ -31,9 +38,10 @@ export class ServerWorkerCommunicator {
     #customCommands = new Map<string, Set<string>>()
 
     /**
-     * keep track of request/response messages on browser/worker level
+     * request/response messages waiting for a worker reply, keyed by the
+     * communicator routing id (not the id inside the browser payload)
      */
-    #pendingMessages = new Map<number, WorkerMessage>()
+    #pendingMessages = new Map<number, PendingWorkerMessage>()
 
     public coverageMaps: CoverageMap[] = []
 
@@ -59,16 +67,17 @@ export class ServerWorkerCommunicator {
 
         if (payload.name === 'sessionEnded') {
             SESSIONS.delete(payload.cid)
+            this.#customCommands.delete(payload.cid)
         }
 
-        if (payload.name === 'workerEvent' && payload.args.type === MESSAGE_TYPES.coverageMap) {
-            const coverageMapData = payload.args.value as CoverageMapData
+        if (payload.name === 'workerEvent' && isWorkerProcessEvent(payload.args, MESSAGE_TYPES.coverageMap)) {
+            const coverageMapData = (payload.args.value ?? {}) as CoverageMapData
             this.coverageMaps.push(
                 await this.#mapStore.transformCoverage(libCoverage.createCoverageMap(coverageMapData))
             )
         }
 
-        if (payload.name === 'workerEvent' && payload.args.type === MESSAGE_TYPES.customCommand) {
+        if (payload.name === 'workerEvent' && isWorkerProcessEvent(payload.args, MESSAGE_TYPES.customCommand)) {
             const { commandName, cid } = payload.args.value
             if (!this.#customCommands.has(cid)) {
                 this.#customCommands.set(cid, new Set())
@@ -81,31 +90,57 @@ export class ServerWorkerCommunicator {
         if (payload.name === 'workerResponse') {
             const msg = this.#pendingMessages.get(payload.args.id)
             if (!msg) {
-                return log.error(`Couldn't find message with id ${payload.args.id} from type ${payload.args.message.type}`)
+                return log.error(`Couldn't find message with id ${payload.args.id} from type ${payload.args.message?.type}`)
+            }
+            const message = parseRunnerToBrowserMessage(payload.args.message)
+            if (!message) {
+                this.#pendingMessages.delete(payload.args.id)
+                return log.error(`Worker response ${payload.args.id} is not a runner → browser message`)
             }
             this.#pendingMessages.delete(payload.args.id)
-            return msg.client.send(WDIO_EVENT_NAME, payload.args.message)
+            return msg.client.send(WDIO_EVENT_NAME, message)
         }
     }
 
-    #onBrowserEvent (message: Workers.SocketMessage, client: WebSocketClient, worker: WorkerInstance) {
+    #onBrowserEvent (data: unknown, client: WebSocketClient, worker: WorkerInstance) {
+        const route = routeBrowserToRunnerMessage(data)
+
         /**
-         * some browser events don't need to go through the worker process
+         * browser state is answered by the parent process, which already knows
+         * the custom commands registered for this session
          */
-        if (message.type === MESSAGE_TYPES.initiateBrowserStateRequest) {
-            const result: Workers.SocketMessage = {
-                type: MESSAGE_TYPES.initiateBrowserStateResponse,
-                value: {
-                    customCommands: [...(this.#customCommands.get(message.value.cid) || [])]
-                }
-            }
+        if (route.kind === 'browserState') {
+            const result = browserChannelMessage(MESSAGE_TYPES.initiateBrowserStateResponse, {
+                customCommands: [...(this.#customCommands.get(route.cid) || [])]
+            })
             return client.send(WDIO_EVENT_NAME, result)
         }
 
-        const id = this.#msgId++
-        const msg: WorkerMessage = { id, client }
-        this.#pendingMessages.set(id, msg)
-        const args: Workers.WorkerRequest['args'] = { id, message }
-        return worker.postMessage('workerRequest', args as unknown as Workers.WorkerMessageArgs, true)
+        if (route.kind === 'drop') {
+            const type = isUnknownMessage(data) ? data.type : typeof data
+            return log.error(`Dropping invalid browser channel message (type: ${String(type)})`)
+        }
+
+        /**
+         * console output and the final test report do not expect a reply.
+         * Tracking them would leak pending entries for every `console.log`.
+         */
+        if (route.kind === 'event' || route.kind === 'request') {
+            const id = this.#msgId++
+            if (route.kind === 'request') {
+                this.#pendingMessages.set(id, { id, client })
+            }
+            return worker.postMessage('workerRequest', { id, message: route.message }, true)
+        }
+
+        return assertRouteHandled(route)
     }
+}
+
+function assertRouteHandled (route: never): never {
+    throw new Error(`Unhandled browser channel route (${String(route)})`)
+}
+
+function isUnknownMessage (data: unknown): data is { type?: unknown } {
+    return Boolean(data) && typeof data === 'object'
 }

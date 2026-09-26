@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { type CustomCommands, MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { type CustomCommands, MESSAGE_TYPES, workerProcessEvent, type Workers } from '@wdio/types'
 import _mitt from 'mitt'
 
 import { resolveCustomCommandOptions } from './customCommands.js'
@@ -266,17 +266,15 @@ export default function WebDriver(options: object, modifier?: Function, properti
              *
              * @todo(Christian): this won't be sufficient, e.g. in cases where the page is reloaded and the command is not re-added.
              */
-            if (typeof process.send === 'function' && process.env.WDIO_WORKER_ID) {
+            const workerId = process.env.WDIO_WORKER_ID
+            if (typeof process.send === 'function' && workerId) {
                 const message: Workers.WorkerEvent = {
                     origin: 'worker',
                     name: 'workerEvent',
-                    args: {
-                        type: MESSAGE_TYPES.customCommand,
-                        value: {
-                            commandName: name,
-                            cid: process.env.WDIO_WORKER_ID,
-                        }
-                    }
+                    args: workerProcessEvent(MESSAGE_TYPES.customCommand, {
+                        commandName: name,
+                        cid: workerId,
+                    })
                 }
                 process.send(message)
             }

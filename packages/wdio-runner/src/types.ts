@@ -1,4 +1,4 @@
-import type { Capabilities, Services, Workers } from '@wdio/types'
+import type { AnyRunnerToBrowserMessage, Capabilities, Services } from '@wdio/types'
 import type { getDefaultOptions, wdioCustomMatchers } from 'expect-webdriverio'
 import type { AddCommandFunction, CustomCommandOptions } from 'webdriverio'
 
@@ -101,7 +101,11 @@ export interface WorkerResponseMessage {
     origin: 'worker'
     name: 'workerResponse',
     args: {
+        /**
+         * Communicator routing id, matching the id the browser runner assigned
+         * when it forwarded the browser message. Not the id inside `message.value`.
+         */
         id: number
-        message: Workers.SocketMessage
+        message: AnyRunnerToBrowserMessage
     }
 }
