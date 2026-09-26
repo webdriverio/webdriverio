@@ -1,9 +1,10 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { remote } from 'webdriver'
 
-import { verifyArgsAndStripIfElement, createFunctionDeclarationFromString } from '../../utils/index.js'
+import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
+import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
 import { getContextManager } from '../../session/context.js'
 import { polyfillFn } from '../../scripts/polyfill.js'
 import type { TransformElement, TransformReturn } from '../../types.js'
@@ -22,6 +23,12 @@ import type { TransformElement, TransformReturn } from '../../types.js'
  * reference will be converted to the corresponding DOM element. Likewise, any WebElements in the script
  * result will be returned to the client as WebElement JSON objects.
  *
+ * BiDi sessions preserve `Blob` and `File` results. The value arrives in the test as a `Blob` or
+ * `File`; read it with `text()` or `arrayBuffer()`. A `Blob` or `File` nested in an array, plain
+ * object, class instance, `Map`, or `Set` is preserved the same way. A `FileList` that contains
+ * files is returned as an array of `File` objects. A cyclic reference inside a value that also
+ * contains a `Blob` or `File` is returned as `null`.
+ *
  * <example>
     :execute.js
     it('should inject javascript on the page', async () => {
@@ -31,6 +38,13 @@ import type { TransformElement, TransformReturn } from '../../types.js'
         }, 1, 2, 3, 4)
         // node.js context - client and console are available
         console.log(result) // outputs: 10
+    });
+
+    :blob.js
+    it('should return a blob from the browser', async () => {
+        const blob = await browser.execute(() => new Blob(['hello'], { type: 'text/plain' }))
+        console.log(blob.type) // outputs: text/plain
+        console.log(await blob.text()) // outputs: hello
     });
  * </example>
  *
@@ -59,8 +73,7 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
         const browser = getBrowserObject(this)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
-        const userScript = typeof script === 'string' ? new Function(script) : script
-        const functionDeclaration = createFunctionDeclarationFromString(userScript)
+        const functionDeclaration = createBidiFunctionDeclaration(script)
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
             awaitPromise: true,

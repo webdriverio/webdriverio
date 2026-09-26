@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { type remote, type local } from 'webdriver'
 
+import { createBidiFunctionDeclaration } from '../../../src/utils/bidi/serialize.js'
+
 let customStack: undefined | string
 
 // @ts-expect-error
@@ -174,5 +176,34 @@ describe('getFailureLine', () => {
         ╵ ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     at`)
+    })
+
+    it('reports the throw from a one-line user script', () => {
+        const userScript = new Function(
+            'return () => { const a = 1; if(a){if(a){throw new Error("Hello Bidi")}} }'
+        )() as () => void
+        const declaration = createBidiFunctionDeclaration(userScript)
+        const markedLine = declaration.split('\n').find((line) => line.includes('/* __wdio script__ */')) || ''
+
+        params.functionDeclaration = declaration
+        exception.exceptionDetails = {
+            columnNumber: markedLine.indexOf('throw new Error("Hello Bidi")'),
+            exception: {
+                type: 'error'
+            },
+            lineNumber: 3,
+            stackTrace: {
+                callFrames: []
+            },
+            text: 'Error: Hello Bidi'
+        }
+        customStack = `Error: Error: Hello Bidi
+    at parseScriptResult (file:///path/to/webdriverio/packages/webdriverio/build/index.js:750:19)
+    at Browser.execute (file:///path/to/webdriverio/packages/webdriverio/build/index.js:2982:12)
+    at Context.<anonymous> (file:///path/to/webdriverio/e2e/wdio/headless/bidi.e2e.ts:16:28)
+    at Context.executeAsync (file:///path/to/webdriverio/packages/wdio-utils/build/index.js:1488:20)`
+
+        expect(getErrorStack()).toContain('throw new Error("Hello Bidi")')
+        expect(getErrorStack()).not.toContain('__wdioSerializeValue')
     })
 })
