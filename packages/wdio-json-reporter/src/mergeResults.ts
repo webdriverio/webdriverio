@@ -22,11 +22,11 @@ export default async function mergeResults(
     const filePath = path.join(dir, fileName)
     const rawData = await getDataFromFiles(dir, filePattern, path.basename(fileName))
 
-    if (rawData.length === 0) {
-        const existing = await readExistingReport(filePath)
-        if (existing) {
-            return existing
-        }
+    // Nothing matched this pattern. Return an empty result and leave a usable
+    // output file alone so a previous merge or a raw report is not handed back
+    // or replaced with {}.
+    if (rawData.length === 0 && await outputFileParses(filePath)) {
+        return {} as MergedResultSet
     }
 
     const mergedResults = mergeData(rawData)
@@ -55,10 +55,19 @@ async function getDataFromFiles (dir: string, filePattern: string | RegExp, outp
     }
 
     const fileNames = (await fs.readdir(dir)).filter((file) => file.match(safePattern))
-    const entries = await Promise.all(fileNames.map(async (fileName) => {
-        const contents = JSON.parse((await fs.readFile(path.join(dir, fileName))).toString()) as ResultSet
-        return { fileName, contents }
-    }))
+    const entries = (await Promise.all(fileNames.map(async (fileName) => {
+        const raw = (await fs.readFile(path.join(dir, fileName))).toString()
+        try {
+            const contents = JSON.parse(raw) as ResultSet
+            return { fileName, contents }
+        } catch (err) {
+            // A truncated previous output must not block merging valid worker reports.
+            if (fileName === outputFileName) {
+                return undefined
+            }
+            throw err
+        }
+    }))).filter((entry): entry is { fileName: string, contents: ResultSet } => entry !== undefined)
 
     // A previous merge stores capabilities as an array. A raw worker report keeps
     // a capabilities object, including when outputFileFormat uses the merged filename.
@@ -67,12 +76,13 @@ async function getDataFromFiles (dir: string, filePattern: string | RegExp, outp
         .map(({ contents }) => contents)
 }
 
-async function readExistingReport (filePath: string): Promise<ResultSet | MergedResultSet | undefined> {
+async function outputFileParses (filePath: string) {
     try {
-        return JSON.parse((await fs.readFile(filePath)).toString()) as ResultSet | MergedResultSet
+        JSON.parse((await fs.readFile(filePath)).toString())
+        return true
     } catch (err) {
-        if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-            return undefined
+        if ((err as NodeJS.ErrnoException).code === 'ENOENT' || err instanceof SyntaxError) {
+            return false
         }
         throw err
     }

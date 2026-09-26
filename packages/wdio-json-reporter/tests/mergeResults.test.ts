@@ -105,8 +105,54 @@ describe('mergeResults', () => {
         const second = await mergeResults(dir, 'wdio-.*-json-reporter\\.json')
         const written = JSON.parse(await fs.readFile(path.join(dir, 'wdio-merged.json'), 'utf8'))
 
-        expect(second).toEqual(first)
+        expect(second).toEqual({})
         expect(written).toEqual(first)
+    })
+
+    it('should not return a raw output file when the pattern does not match it', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-json-reporter-'))
+        dirs.push(dir)
+        const rawPath = path.join(dir, 'wdio-merged.json')
+        await fs.copyFile(path.join(fixturesDir, 'wdio-0-0-json-reporter.json'), rawPath)
+        const raw = JSON.parse(await fs.readFile(rawPath, 'utf8'))
+
+        const result = await mergeResults(dir, 'does-not-match')
+
+        expect(result).toEqual({})
+        expect(JSON.parse(await fs.readFile(rawPath, 'utf8'))).toEqual(raw)
+    })
+
+    it('should replace a truncated merged report when worker reports are valid', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-json-reporter-'))
+        dirs.push(dir)
+        await fs.copyFile(
+            path.join(fixturesDir, 'wdio-0-0-json-reporter.json'),
+            path.join(dir, 'wdio-0-0-json-reporter.json')
+        )
+        await fs.writeFile(path.join(dir, 'wdio-merged.json'), '{"suites":')
+
+        const result = await mergeResults(dir, 'wdio-.*.json')
+        const written = JSON.parse(await fs.readFile(path.join(dir, 'wdio-merged.json'), 'utf8'))
+
+        expect(result.suites).toHaveLength(1)
+        expect(written).toEqual(result)
+    })
+
+    it('should not throw when the only matched output file is truncated', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-json-reporter-'))
+        dirs.push(dir)
+        await fs.writeFile(path.join(dir, 'wdio-merged.json'), '{"suites":')
+
+        await expect(mergeResults(dir, 'wdio-.*.json')).resolves.toEqual({})
+        expect(JSON.parse(await fs.readFile(path.join(dir, 'wdio-merged.json'), 'utf8'))).toEqual({})
+    })
+
+    it('should reject an invalid worker report', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-json-reporter-'))
+        dirs.push(dir)
+        await fs.writeFile(path.join(dir, 'wdio-0-0-json-reporter.json'), '{')
+
+        await expect(mergeResults(dir, 'wdio-.*.json')).rejects.toThrow(SyntaxError)
     })
 
     it('should ignore a previous merged report when the pattern would match it', async () => {
