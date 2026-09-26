@@ -32,14 +32,19 @@ verified through a different path.
 
 ## Launch
 
-There is no server to leave running. Compile once, then start each drive as its
-own process.
+There is no server to leave running. Prepare the checkout once, then start each
+drive as its own process.
 
 ```sh
-pnpm run setup
+.agents/setup
 ```
 
-If a watch compile is already running for the package you edited, `pnpm run dev <package>` is enough. Ready when doctor prints `Ready.`
+`.agents/setup` installs, compiles, and writes the revision stamp that
+`.agents/resume` checks. `pnpm run setup` compiles without that stamp, so
+doctor fails afterward.
+
+If doctor already prints `Ready.` and a watch compile is running for the
+package you edited, `pnpm run dev <package>` is enough.
 
 ## Doctor
 
