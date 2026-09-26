@@ -9,7 +9,7 @@ A user runs `wdio` and the testrunner loads config, starts workers, runs a frame
 - `smoke-cucumber` runs a Cucumber session, including line filters, tags, and pending steps.
 - `smoke-cli` runs spec and exclude selection from the CLI.
 - `smoke-plugin` runs a custom service and a custom reporter through the launcher.
-- `smoke-standalone` runs `remote`, `attach`, and `multiremote` inside a worker with the mock driver.
+- `smoke-standalone` runs `remote`, `attach`, and `multiRemote` inside a worker with the mock driver.
 
 ## How to get to it (user POV)
 
