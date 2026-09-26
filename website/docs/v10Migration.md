@@ -203,6 +203,22 @@ Only the options object is accepted.
 + })
 ```
 
+## Capability spec filters
+
+Spec and exclude lists on a capability use the `wdio:` prefix. Bare `specs` and `exclude` on a capability are ignored. The top-level config keys stay `specs` and `exclude`.
+
+```diff
+capabilities: [{
+    browserName: 'firefox',
+-   specs: ['test/ffOnly/*'],
+-   exclude: ['test/ffOnly/skip.js'],
++   'wdio:specs': ['test/ffOnly/*'],
++   'wdio:exclude': ['test/ffOnly/skip.js'],
+}]
+```
+
+A leftover bare list does not select files for that capability. The capability then uses the top-level `specs` and `exclude`.
+
 ## Removed commands
 
 `browser.throttle` and the deprecated `touchAction` commands have been removed.

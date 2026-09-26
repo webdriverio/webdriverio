@@ -384,11 +384,16 @@ describe('shouldEnableTsx', () => {
     it('detects TypeScript specs declared on capabilities', () => {
         expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
             browserName: 'chrome',
-            specs: ['./e2e/**/*.ts']
-        } as WebdriverIO.Capabilities])).toBe(true)
+            specs: ['./e2e/**/*.ts'],
+            exclude: ['./e2e/skip.spec.ts']
+        } as WebdriverIO.Capabilities])).toBe(false)
         expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
             browserName: 'chrome',
             'wdio:specs': ['./e2e/app.spec.ts']
+        } as WebdriverIO.Capabilities])).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
+            browserName: 'chrome',
+            'wdio:exclude': ['./e2e/skip.spec.ts']
         } as WebdriverIO.Capabilities])).toBe(true)
     })
 })
