@@ -5,6 +5,7 @@ import url from 'node:url'
 import type { ChildProcess } from 'node:child_process'
 
 import { startDisplayDaemonFromConfig } from '../src/daemon.js'
+import { sessionEnv } from '../src/sessionEnv.js'
 import { makeDaemonHandle, makeDisplayServer, makeManager, makeRetryManager } from './helpers.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -54,14 +55,14 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
                 env: {
                     WAYLAND_DISPLAY: 'wayland-test',
                     XDG_RUNTIME_DIR: '/tmp/wdio-test-runtime',
-                    ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+                    ...sessionEnv('wayland'),
                 },
                 stop: stopSpy,
             }),
         }))
 
         const daemon = await startDisplayDaemonFromConfig(
-            {} as WebdriverIO.Config,
+            {},
             manager,
         )
         expect(daemon).not.toBeNull()
@@ -90,7 +91,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         }))
 
         const daemon = await startDisplayDaemonFromConfig(
-            {} as WebdriverIO.Config,
+            {},
             manager,
         )
         expect(daemon).not.toBeNull()
@@ -115,14 +116,14 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
                 env: {
                     WAYLAND_DISPLAY: 'wayland-test',
                     XDG_RUNTIME_DIR: '/tmp/wdio-test-runtime',
-                    ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+                    ...sessionEnv('wayland'),
                 },
                 stop: stopSpy,
             }),
         }))
 
         const daemon = await startDisplayDaemonFromConfig(
-            {} as WebdriverIO.Config,
+            {},
             manager,
         )
         expect(daemon).toBeNull()
@@ -138,14 +139,14 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
                 env: {
                     WAYLAND_DISPLAY: 'wayland-test',
                     XDG_RUNTIME_DIR: '/tmp/wdio-test-runtime',
-                    ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+                    ...sessionEnv('wayland'),
                 },
                 stop: stopSpy,
             }),
         }), { shouldRun: false })
 
         const daemon = await startDisplayDaemonFromConfig(
-            {} as WebdriverIO.Config,
+            {},
             manager,
         )
         expect(daemon).toBeNull()
@@ -163,7 +164,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         const manager = makeRetryManager(server)
 
         const daemon = await startDisplayDaemonFromConfig(
-            {} as WebdriverIO.Config,
+            {},
             manager,
         )
 
@@ -181,11 +182,10 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         const manager = makeRetryManager(server)
 
         await expect(
-            startDisplayDaemonFromConfig({} as WebdriverIO.Config, manager),
+            startDisplayDaemonFromConfig({}, manager),
         ).rejects.toBe(finalError)
         expect(startSpy).toHaveBeenCalledTimes(3)
-        // Threw before the Object.assign step, so env stays untouched.
-        expect(process.env.DISPLAY).toBeUndefined()
+        expect(process.env.DISPLAY).toBeUndefined() // Threw before applyEnv, so env stays untouched.
     })
 
     it('registers an exit listener that uses stopSync, not the abandonable async stop', async () => {
@@ -198,7 +198,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         const manager = makeManager(server)
 
         const daemon = await startDisplayDaemonFromConfig(
-            {} as WebdriverIO.Config,
+            {},
             manager,
         )
         expect(daemon).not.toBeNull()
@@ -224,7 +224,7 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         const manager = makeManager(server)
 
         const daemon = await startDisplayDaemonFromConfig(
-            {} as WebdriverIO.Config,
+            {},
             manager,
         )
         expect(process.env.NODE_ENV).toBe('daemon-set')

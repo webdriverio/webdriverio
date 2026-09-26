@@ -63,16 +63,6 @@ describe('WaylandDisplayServer', () => {
         })
     })
 
-    describe('getChromeFlags', () => {
-        it('returns the Ozone Wayland flags', () => {
-            const server = new WaylandDisplayServer()
-            expect(server.getChromeFlags()).toEqual([
-                '--ozone-platform=wayland',
-                '--enable-features=UseOzonePlatform',
-            ])
-        })
-    })
-
     describe('install', () => {
         it('uses the custom string command verbatim when provided', async () => {
             mockExecAsync.mockResolvedValueOnce({ stdout: 'ok', stderr: '' })
@@ -181,6 +171,7 @@ describe('WaylandDisplayServer', () => {
             expect(daemon.env.WAYLAND_DISPLAY).toMatch(/^wayland-\d+$/)
             expect(daemon.env.XDG_RUNTIME_DIR).toMatch(/^\/tmp\/wdio-wayland-/)
             expect(daemon.env.GDK_BACKEND).toBe('wayland')
+            expect(daemon.env.XDG_SESSION_TYPE).toBe('wayland')
             expect(daemon.env.ELECTRON_OZONE_PLATFORM_HINT).toBe('wayland')
         })
 

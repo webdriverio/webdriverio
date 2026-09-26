@@ -6,14 +6,12 @@ const mockWayland = vi.hoisted(() => ({
     name: 'wayland' as const,
     isAvailable: vi.fn(),
     install: vi.fn(),
-    getChromeFlags: vi.fn(() => ['--ozone-platform=wayland', '--enable-features=UseOzonePlatform']),
     startDaemon: vi.fn(),
 }))
 const mockXvfb = vi.hoisted(() => ({
     name: 'xvfb' as const,
     isAvailable: vi.fn(),
     install: vi.fn(),
-    getChromeFlags: vi.fn(() => ['--ozone-platform=x11']),
     startDaemon: vi.fn(),
 }))
 
@@ -23,7 +21,6 @@ vi.mock('node:os', () => ({
 
 vi.mock('../src/WaylandDisplayServer.js', () => ({
     WaylandDisplayServer: vi.fn(function () { return mockWayland }),
-    WAYLAND_CHROME_FLAGS: ['--ozone-platform=wayland', '--enable-features=UseOzonePlatform'],
 }))
 
 vi.mock('../src/XvfbDisplayServer.js', () => ({
@@ -153,215 +150,6 @@ describe('DisplayServerManager (gap coverage)', () => {
         })
     })
 
-    describe('shouldRun #initialized gate', () => {
-        it('returns true after init() once a display server is active, even with DISPLAY set later', async () => {
-            mockXvfb.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'xvfb' })
-
-            await mgr.init()
-
-            process.env.DISPLAY = ':99'
-            expect(mgr.shouldRun()).toBe(true)
-        })
-
-        it('returns false after init() if the manager was disabled (initialized but disabled)', async () => {
-            mockXvfb.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'xvfb', enabled: false })
-
-            await mgr.init()
-
-            expect(mgr.shouldRun()).toBe(false)
-        })
-    })
-
-    describe('injectDisplayFlags (per-worker)', () => {
-        it('does nothing when no display server is active', () => {
-            const mgr = new DisplayServerManager()
-            const caps = { 'goog:chromeOptions': { args: [] } } as WebdriverIO.Capabilities
-
-            mgr.injectDisplayFlags(caps as never)
-
-            expect(caps['goog:chromeOptions']!.args).toEqual([])
-        })
-
-        it('injects Wayland flags when WAYLAND_DISPLAY is set externally (runner pre-set, this manager did not init)', () => {
-            // Reproduces the runner-daemon interaction: the local-runner's
-            // startDisplayDaemonFromConfig set process.env.WAYLAND_DISPLAY at
-            // initialize() time; this manager's own init() short-circuits
-            // (shouldRun = false because env is set), so #displayServer is null.
-            // Workers must still receive ozone-wayland flags so Chrome doesn't
-            // fall back to absent X11.
-            process.env.WAYLAND_DISPLAY = 'wayland-1'
-            try {
-                const mgr = new DisplayServerManager()
-                const caps = { browserName: 'chrome' } as WebdriverIO.Capabilities
-
-                mgr.injectDisplayFlags(caps as never)
-
-                expect(caps['goog:chromeOptions']?.args).toEqual([
-                    '--ozone-platform=wayland',
-                    '--enable-features=UseOzonePlatform',
-                ])
-            } finally {
-                delete process.env.WAYLAND_DISPLAY
-            }
-        })
-
-        it('injects --ozone-platform=x11 into Chrome args when Xvfb is the active server', async () => {
-            mockXvfb.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'xvfb' })
-            await mgr.init()
-
-            const caps = { 'goog:chromeOptions': { args: [] } } as WebdriverIO.Capabilities
-            mgr.injectDisplayFlags(caps as never)
-
-            expect(caps['goog:chromeOptions']!.args).toEqual(['--ozone-platform=x11'])
-        })
-
-        it('injects the Xvfb flag into Electron appArgs as well as Chrome args', async () => {
-            mockXvfb.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'xvfb' })
-            await mgr.init()
-
-            const caps = {
-                browserName: 'electron',
-                'wdio:electronServiceOptions': { appArgs: ['--my-app-flag'] },
-            } as unknown as WebdriverIO.Capabilities
-            mgr.injectDisplayFlags(caps as never)
-
-            const electronOpts = (caps as Record<string, unknown>)['wdio:electronServiceOptions'] as { appArgs: string[] }
-            expect(electronOpts.appArgs).toEqual(['--my-app-flag', '--ozone-platform=x11'])
-        })
-
-        it('preserves a user-supplied --ozone-platform=<other> rather than appending a conflicting flag', async () => {
-            mockXvfb.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'xvfb' })
-            await mgr.init()
-
-            const caps = {
-                'goog:chromeOptions': { args: ['--ozone-platform=wayland'] },
-            } as WebdriverIO.Capabilities
-            mgr.injectDisplayFlags(caps as never)
-
-            expect(caps['goog:chromeOptions']!.args).toEqual(['--ozone-platform=wayland'])
-        })
-
-        it('appends Wayland Chrome flags to single-capability args', async () => {
-            mockWayland.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'wayland' })
-            await mgr.init()
-
-            const caps = { 'goog:chromeOptions': { args: ['--disable-gpu'] } } as WebdriverIO.Capabilities
-            mgr.injectDisplayFlags(caps as never)
-
-            expect(caps['goog:chromeOptions']!.args).toEqual([
-                '--disable-gpu',
-                '--ozone-platform=wayland',
-                '--enable-features=UseOzonePlatform',
-            ])
-        })
-
-        it('creates goog:chromeOptions for bare `browserName: chrome` capabilities', async () => {
-            mockWayland.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'wayland' })
-            await mgr.init()
-
-            const caps = { browserName: 'chrome' } as WebdriverIO.Capabilities
-            mgr.injectDisplayFlags(caps as never)
-
-            expect(caps['goog:chromeOptions']?.args).toEqual([
-                '--ozone-platform=wayland',
-                '--enable-features=UseOzonePlatform',
-            ])
-        })
-
-        it('does not duplicate Wayland flags when already present', async () => {
-            mockWayland.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'wayland' })
-            await mgr.init()
-
-            const caps = {
-                'goog:chromeOptions': {
-                    args: ['--ozone-platform=wayland', '--enable-features=UseOzonePlatform'],
-                },
-            } as WebdriverIO.Capabilities
-
-            mgr.injectDisplayFlags(caps as never)
-
-            expect(caps['goog:chromeOptions']!.args).toEqual([
-                '--ozone-platform=wayland',
-                '--enable-features=UseOzonePlatform',
-            ])
-        })
-
-        it('injects Wayland flags into Edge capabilities', async () => {
-            mockWayland.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'wayland' })
-            await mgr.init()
-
-            const caps = { browserName: 'msedge' } as WebdriverIO.Capabilities
-            mgr.injectDisplayFlags(caps as never)
-
-            expect(caps['ms:edgeOptions']?.args).toEqual([
-                '--ozone-platform=wayland',
-                '--enable-features=UseOzonePlatform',
-            ])
-        })
-
-        it('injects Wayland flags into bare MicrosoftEdge capabilities', async () => {
-            mockWayland.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'wayland' })
-            await mgr.init()
-
-            const caps = { browserName: 'MicrosoftEdge' } as WebdriverIO.Capabilities
-            mgr.injectDisplayFlags(caps as never)
-
-            expect(caps['ms:edgeOptions']?.args).toEqual([
-                '--ozone-platform=wayland',
-                '--enable-features=UseOzonePlatform',
-            ])
-        })
-
-        it('injects Wayland flags into Electron appArgs as well as Chrome args', async () => {
-            mockWayland.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'wayland' })
-            await mgr.init()
-
-            const caps = {
-                browserName: 'electron',
-                'wdio:electronServiceOptions': { appArgs: [] },
-            } as unknown as WebdriverIO.Capabilities
-            mgr.injectDisplayFlags(caps as never)
-
-            const electronOpts = (caps as Record<string, unknown>)['wdio:electronServiceOptions'] as { appArgs: string[] }
-            expect(electronOpts.appArgs).toEqual([
-                '--ozone-platform=wayland',
-                '--enable-features=UseOzonePlatform',
-            ])
-        })
-
-        it('injects Wayland flags into every browser in a multi-remote config', async () => {
-            mockWayland.isAvailable.mockResolvedValue(true)
-            const mgr = new DisplayServerManager({ displayServer: 'wayland' })
-            await mgr.init()
-
-            const caps = {
-                browserA: { capabilities: { browserName: 'chrome' } as WebdriverIO.Capabilities },
-                browserB: { capabilities: { 'goog:chromeOptions': { args: ['--disable-gpu'] } } as WebdriverIO.Capabilities },
-            }
-            mgr.injectDisplayFlags(caps as never)
-
-            const a = caps.browserA.capabilities as WebdriverIO.Capabilities
-            const b = caps.browserB.capabilities as WebdriverIO.Capabilities
-            expect(a['goog:chromeOptions']?.args).toContain('--ozone-platform=wayland')
-            expect(b['goog:chromeOptions']?.args).toEqual([
-                '--disable-gpu',
-                '--ozone-platform=wayland',
-                '--enable-features=UseOzonePlatform',
-            ])
-        })
-    })
-
     describe('forced preference', () => {
         it('returns null when the requested display server is unavailable and autoInstall is off', async () => {
             mockWayland.isAvailable.mockResolvedValue(false)
@@ -392,7 +180,7 @@ describe('optionsFromConfig', () => {
             displayServerAutoInstall: true,
             displayServerAutoInstallMode: 'sudo',
             displayServerAutoInstallCommand: 'custom-cmd',
-        } as never)
+        })
 
         expect(result).toMatchObject({
             enabled: false,
@@ -404,7 +192,7 @@ describe('optionsFromConfig', () => {
     })
 
     it('returns undefined values for keys absent from the config (DisplayServerManager fills defaults)', () => {
-        const result = optionsFromConfig({} as never)
+        const result = optionsFromConfig({})
 
         expect(result.enabled).toBeUndefined()
         expect(result.displayServer).toBeUndefined()

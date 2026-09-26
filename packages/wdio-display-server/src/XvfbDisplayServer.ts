@@ -8,6 +8,7 @@ import type {
 } from './types.js'
 import { commandExists, installViaPackageManager, resolveDaemonDimensions } from './utils.js'
 import { runDaemon } from './daemonProcess.js'
+import { sessionEnv } from './sessionEnv.js'
 
 const X_SOCKET_DIR = '/tmp/.X11-unix'
 // Xvfb hardcodes /tmp for its lock files regardless of TMPDIR.
@@ -70,13 +71,6 @@ export class XvfbDisplayServer implements DisplayServer {
         })
     }
 
-    getChromeFlags(): string[] {
-        // Forces the X11 ozone backend so a Wayland-host caller using
-        // `displayServer: 'xvfb'` doesn't have Chromium try the host's
-        // compositor instead of our Xvfb.
-        return ['--ozone-platform=x11']
-    }
-
     async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon> {
         const { width, height, depth } = resolveDaemonDimensions(options)
 
@@ -90,9 +84,6 @@ export class XvfbDisplayServer implements DisplayServer {
         // start, so cleanup only releases the display reservation.
         const releaseDisplay = () => { XvfbDisplayServer.reservedDisplays.delete(displayNum) }
 
-        // Force GTK/Electron to X11. Without these, a Wayland-host's inherited
-        // `GDK_BACKEND=wayland,x11` makes them try Wayland first and fail, since
-        // we're running Xvfb.
         return runDaemon({
             command: 'Xvfb',
             args: [display, '-screen', '0', `${width}x${height}x${depth}`, '-nolisten', 'tcp'],
@@ -102,8 +93,7 @@ export class XvfbDisplayServer implements DisplayServer {
             log: this.log,
             env: {
                 DISPLAY: display,
-                GDK_BACKEND: 'x11',
-                ELECTRON_OZONE_PLATFORM_HINT: 'x11',
+                ...sessionEnv('x11'),
             },
             cleanup: releaseDisplay,
             cleanupSync: releaseDisplay,

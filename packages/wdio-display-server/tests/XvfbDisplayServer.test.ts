@@ -126,12 +126,6 @@ describe('XvfbDisplayServer', () => {
         })
     })
 
-    describe('getChromeFlags', () => {
-        it('returns --ozone-platform=x11 (authoritative against a Wayland-host bleed-through)', () => {
-            expect(new XvfbDisplayServer().getChromeFlags()).toEqual(['--ozone-platform=x11'])
-        })
-    })
-
     describe('startDaemon', () => {
         it('spawns Xvfb with the right args, waits for the socket, and returns DISPLAY', async () => {
             arrangeSpawn(mockSpawn, mockAccess)
@@ -154,14 +148,14 @@ describe('XvfbDisplayServer', () => {
             expect(daemon.env.DISPLAY).toBe(':99')
         })
 
-        it('publishes GDK_BACKEND=x11 and ELECTRON_OZONE_PLATFORM_HINT=x11 in daemon env (Wayland-host fallback)', async () => {
+        it('publishes GDK_BACKEND, XDG_SESSION_TYPE and ELECTRON_OZONE_PLATFORM_HINT as x11 in daemon env', async () => {
             arrangeSpawn(mockSpawn, mockAccess)
 
             const server = new XvfbDisplayServer()
             const daemon = await server.startDaemon()
 
-            // Force GTK/Electron to X11 even when the host inherited GDK_BACKEND=wayland,x11.
             expect(daemon.env.GDK_BACKEND).toBe('x11')
+            expect(daemon.env.XDG_SESSION_TYPE).toBe('x11')
             expect(daemon.env.ELECTRON_OZONE_PLATFORM_HINT).toBe('x11')
         })
 

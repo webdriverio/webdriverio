@@ -79,7 +79,6 @@ export const makeDisplayServer = (overrides: Partial<DisplayServer> = {}): Displ
     name: 'xvfb',
     isAvailable: async () => true,
     install: async () => true,
-    getChromeFlags: () => [],
     startDaemon: async () => makeDaemonHandle(),
     ...overrides,
 } as DisplayServer)
@@ -95,7 +94,6 @@ export const makeManager = (
     shouldRun: () => shouldRun,
     init: vi.fn().mockResolvedValue(server !== null),
     getDisplayServer: () => server,
-    injectDisplayFlags: vi.fn(),
     executeWithRetry: vi.fn(async (fn: () => Promise<unknown>) => fn()),
 }) as unknown as DisplayServerManager
 
@@ -107,7 +105,6 @@ export const makeRetryManager = (server: DisplayServer): DisplayServerManager =>
     shouldRun: () => true,
     init: vi.fn().mockResolvedValue(true),
     getDisplayServer: () => server,
-    injectDisplayFlags: vi.fn(),
     executeWithRetry: vi.fn(async (fn: () => Promise<unknown>) => {
         let lastError: unknown
         for (let i = 0; i < 3; i++) {

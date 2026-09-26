@@ -39,8 +39,6 @@ export interface DisplayServer {
     /** @returns true if the install succeeded or the server was already available. */
     install(options?: DisplayServerInstallOptions): Promise<boolean>
 
-    getChromeFlags(): string[]
-
     /**
      * The launcher starts this so children spawned in a service `onPrepare`
      * (e.g. tauri-driver) inherit DISPLAY / WAYLAND_DISPLAY via process.env.

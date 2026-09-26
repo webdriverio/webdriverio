@@ -47,6 +47,11 @@ jobs:
             scenario: wayland-runner
             dockerfile: ubuntu-wayland.dockerfile
             test: runner
+          - distro: ubuntu
+            version: "24.04"
+            scenario: existing-wayland-runner
+            dockerfile: ubuntu-wayland.dockerfile
+            test: runner:existing-wayland
 
           # Other distros - pre-installed only
           - distro: fedora
@@ -134,6 +139,10 @@ jobs:
               cd e2e && pnpm test:display-server:${{ matrix.test }}
             "
 
+      - name: Check the runner used the existing Weston
+        if: matrix.scenario == 'existing-wayland-runner'
+        run: grep -F "Existing Wayland display; setting" e2e/wdio/display-server/logs/wdio.log
+
       - name: Display logs on failure
         if: failure()
         run: |
@@ -152,6 +161,11 @@ jobs:
           if [ -f e2e/wdio/display-server/logs/wdio-0-0-chromedriver.log ]; then
             echo "=== Chromedriver Log ==="
             cat e2e/wdio/display-server/logs/wdio-0-0-chromedriver.log
+          fi
+
+          if [ -f e2e/wdio/display-server/logs/weston-existing.log ]; then
+            echo "=== Weston Log ==="
+            cat e2e/wdio/display-server/logs/weston-existing.log
           fi
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

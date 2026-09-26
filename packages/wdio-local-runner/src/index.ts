@@ -1,11 +1,6 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
-import {
-    DisplayServerManager,
-    optionsFromConfig,
-    startDisplayDaemonFromConfig,
-    type RunningDaemon,
-} from '@wdio/display-server'
+import { startDisplayDaemonFromConfig, type RunningDaemon } from '@wdio/display-server'
 import type { Workers } from '@wdio/types'
 
 import WorkerInstance from './worker.js'
@@ -23,7 +18,6 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export default class LocalRunner {
     workerPool: Record<string, WorkerInstance> = {}
-    private displayServerManager: DisplayServerManager
     private daemon: RunningDaemon | null = null
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
@@ -32,20 +26,13 @@ export default class LocalRunner {
     constructor(
         private _options: never,
         protected config: WebdriverIO.Config
-    ) {
-        this.displayServerManager = new DisplayServerManager(optionsFromConfig(this.config))
-    }
+    ) {}
 
     /**
-     * Start a persistent Xvfb/Weston daemon (if the config requests one) and publish
-     * its env onto `process.env` so workers — and drivers spawned in a service's
-     * `onPrepare` — inherit the display. Runs before any service `onPrepare`.
+     * Runs before any service `onPrepare`, so drivers those services start inherit the display.
      */
     async initialize() {
-        this.daemon = await startDisplayDaemonFromConfig(this.config, this.displayServerManager)
-        if (this.daemon) {
-            log.info('Display server daemon initialized for this run')
-        }
+        this.daemon = await startDisplayDaemonFromConfig(this.config)
     }
 
     getWorkerCount() {
@@ -53,10 +40,6 @@ export default class LocalRunner {
     }
 
     async run({ command, args, ...workerOptions }: RunArgs) {
-        // Per-worker `--ozone-platform=...` injection (env vars were set in
-        // initialize()).
-        this.displayServerManager.injectDisplayFlags(workerOptions.caps)
-
         /**
          * adjust max listeners on stdout/stderr when creating listeners
          */

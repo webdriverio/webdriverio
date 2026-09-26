@@ -10,7 +10,6 @@ import type { ChildProcess } from 'node:child_process'
 import type * as ChildProcessModule from 'node:child_process'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import type * as DisplayServerModule from '@wdio/display-server'
 import LocalRunner from '../src/index.js'
 
 const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -47,23 +46,6 @@ vi.mock('node:child_process', async (importOriginal) => {
             stdout: { pipe: vi.fn() },
             stderr: { pipe: vi.fn() },
         })),
-    }
-})
-
-vi.mock('@wdio/display-server', async () => {
-    const actual = await vi.importActual<typeof DisplayServerModule>('@wdio/display-server')
-    return {
-        ...actual,
-        DisplayServerManager: vi.fn().mockImplementation(function () {
-            return {
-                init: vi.fn().mockResolvedValue(true),
-                shouldRun: vi.fn().mockReturnValue(true),
-                injectDisplayFlags: vi.fn(),
-                getDisplayServer: vi.fn().mockReturnValue(null),
-            }
-        }),
-        startDisplayDaemonFromConfig: vi.fn().mockResolvedValue(null),
-        default: vi.fn()
     }
 })
 

@@ -9,13 +9,7 @@ import type {
 } from './types.js'
 import { commandExists, installViaPackageManager, resolveDaemonDimensions } from './utils.js'
 import { runDaemon } from './daemonProcess.js'
-
-// One source of truth: getChromeFlags() and DisplayServerManager's
-// externally-set-WAYLAND_DISPLAY fallback both use these and must not drift.
-export const WAYLAND_CHROME_FLAGS: string[] = [
-    '--ozone-platform=wayland',
-    '--enable-features=UseOzonePlatform',
-]
+import { sessionEnv } from './sessionEnv.js'
 
 export class WaylandDisplayServer implements DisplayServer {
     readonly name = 'wayland' as const
@@ -48,10 +42,6 @@ export class WaylandDisplayServer implements DisplayServer {
         })
     }
 
-    getChromeFlags(): string[] {
-        return [...WAYLAND_CHROME_FLAGS]
-    }
-
     async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon> {
         const { width, height } = resolveDaemonDimensions(options)
 
@@ -77,10 +67,7 @@ export class WaylandDisplayServer implements DisplayServer {
             env: {
                 WAYLAND_DISPLAY: socketName,
                 XDG_RUNTIME_DIR: runtimeDir,
-                // Pin GTK to our weston compositor so an inherited GDK_BACKEND
-                // doesn't send GTK to a missing X11.
-                GDK_BACKEND: 'wayland',
-                ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
+                ...sessionEnv('wayland'),
             },
             cleanup: () => rm(runtimeDir, { recursive: true, force: true }).catch(() => {}),
             cleanupSync: () => {

@@ -1,16 +1,18 @@
 import logger from '@wdio/logger'
+import type { Options } from '@wdio/types'
 
 import { DisplayServerManager, optionsFromConfig } from './DisplayServerManager.js'
+import { sessionEnv } from './sessionEnv.js'
 import type { DisplayDaemon, DisplayDaemonOptions } from './types.js'
 
 const log = logger('@wdio/display-server:daemon')
 
-/** Stopping reverses both the daemon process and the env mutation on `process.env`. */
 export interface RunningDaemon {
+    /** Stops the daemon, if any, and restores the `process.env` values it changed. */
     stop(): Promise<void>
 }
 
-function daemonOptionsFromConfig(config: WebdriverIO.Config): DisplayDaemonOptions {
+function daemonOptionsFromConfig(config: Options.Testrunner): DisplayDaemonOptions {
     return {
         width: config.displayServerWidth,
         height: config.displayServerHeight,
@@ -18,16 +20,30 @@ function daemonOptionsFromConfig(config: WebdriverIO.Config): DisplayDaemonOptio
     }
 }
 
+function applyEnv(env: Readonly<Record<string, string>>): () => void {
+    const previous = Object.keys(env).map((key) => [key, process.env[key]] as const)
+    Object.assign(process.env, env)
+    return () => {
+        for (const [key, value] of previous) {
+            if (value === undefined) {
+                delete process.env[key]
+            } else {
+                process.env[key] = value
+            }
+        }
+    }
+}
+
 /**
  * Start a persistent display-server daemon (Wayland/Weston or Xvfb) and publish
- * its env onto `process.env`, so any child process — including drivers spawned
- * from a service's `onPrepare` — inherits the display.
+ * its env onto `process.env`, so any child process, including drivers spawned
+ * from a service's `onPrepare`, inherits the display.
  *
- * Returns `null` (no-op) when:
- *  - not Linux,
- *  - `displayServerEnabled` is false,
+ * With `WAYLAND_DISPLAY` set and no `DISPLAY`, it starts nothing and sets the Wayland
+ * session vars instead. Otherwise it returns `null` when:
+ *  - `DISPLAY` is already set,
  *  - `shouldRun()` says no, or
- *  - `DISPLAY` / `WAYLAND_DISPLAY` is already on `process.env`.
+ *  - no display server is available or installable.
  *
  * Intended to be called from a `Runner`'s `initialize()`, which runs before
  * any service `onPrepare`.
@@ -36,11 +52,19 @@ function daemonOptionsFromConfig(config: WebdriverIO.Config): DisplayDaemonOptio
  *   real Xvfb/Weston spawns.
  */
 export async function startDisplayDaemonFromConfig(
-    config: WebdriverIO.Config,
+    config: Options.Testrunner,
     manager: DisplayServerManager = new DisplayServerManager(optionsFromConfig(config)),
 ): Promise<RunningDaemon | null> {
-    if (process.env.DISPLAY || process.env.WAYLAND_DISPLAY) {
-        log.info('DISPLAY/WAYLAND_DISPLAY already set; daemon not needed')
+    if (process.env.WAYLAND_DISPLAY && !process.env.DISPLAY) {
+        // Without XDG_SESSION_TYPE=wayland, whether unset or tty over SSH, Chrome picks X11.
+        const env = sessionEnv('wayland')
+        log.info(`Existing Wayland display; setting ${JSON.stringify(env)}`)
+        const restoreEnv = applyEnv(env)
+        return { stop: async () => restoreEnv() }
+    }
+
+    if (process.env.DISPLAY) {
+        log.info('DISPLAY already set; daemon not needed')
         return null
     }
 
@@ -67,15 +91,7 @@ export async function startDisplayDaemonFromConfig(
         `${server.name} daemon startup`,
     )
 
-    // Capture pre-existing values so stop() can restore them.
-    const envKeys = Object.keys(daemon.env)
-    const savedEnv: Record<string, string> = {}
-    for (const key of envKeys) {
-        if (key in process.env) {
-            savedEnv[key] = process.env[key] as string
-        }
-    }
-    Object.assign(process.env, daemon.env)
+    const restoreEnv = applyEnv(daemon.env)
     log.info(`Daemon ready (${server.name}); env: ${JSON.stringify(daemon.env)}`)
 
     // Memoize the in-flight stop promise (not a sync flag) so the 'exit' listener
@@ -84,16 +100,6 @@ export async function startDisplayDaemonFromConfig(
     let stopPromise: Promise<void> | null = null
     let signalHandler: (() => void) | null = null
     let exitHandler: (() => void) | null = null
-
-    const restoreEnv = (): void => {
-        for (const key of envKeys) {
-            if (key in savedEnv) {
-                process.env[key] = savedEnv[key]
-            } else {
-                delete process.env[key]
-            }
-        }
-    }
 
     const deregisterHandlers = (): void => {
         if (signalHandler) {

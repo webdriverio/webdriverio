@@ -1,63 +1,12 @@
 import os from 'node:os'
 import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
+import type { Options } from '@wdio/types'
 import type { DisplayServer, DisplayServerOptions } from './types.js'
-import { WaylandDisplayServer, WAYLAND_CHROME_FLAGS } from './WaylandDisplayServer.js'
+import { WaylandDisplayServer } from './WaylandDisplayServer.js'
 import { XvfbDisplayServer } from './XvfbDisplayServer.js'
 import { executeWithRetry } from './utils.js'
 
-// A worker's capabilities come in three shapes: single ({ browserName }), vendor-keyed
-// ({ 'goog:chromeOptions' }), and multi-remote ({ browserA: {...} }).
-
-type CapsRoot = WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>
-
-function isSingleCapability(caps: CapsRoot): caps is WebdriverIO.Capabilities {
-    return Boolean(
-        (caps as WebdriverIO.Capabilities)['goog:chromeOptions'] ||
-        (caps as WebdriverIO.Capabilities)['ms:edgeOptions'] ||
-        (caps as WebdriverIO.Capabilities)['moz:firefoxOptions'] ||
-        'browserName' in caps
-    )
-}
-
-function isMultiRemoteCapability(caps: CapsRoot): caps is Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }> {
-    return !isSingleCapability(caps) && !Array.isArray(caps) && typeof caps === 'object' && caps !== null
-}
-
-function extractCapabilitiesFromBrowserConfig(
-    browserConfig: { capabilities: WebdriverIO.Capabilities } | WebdriverIO.Capabilities
-): WebdriverIO.Capabilities {
-    if (browserConfig && typeof browserConfig === 'object' && 'capabilities' in browserConfig && browserConfig.capabilities) {
-        return browserConfig.capabilities
-    }
-    return browserConfig as WebdriverIO.Capabilities
-}
-
-function forEachBrowserCapability(
-    capabilities: CapsRoot | WebdriverIO.Config['capabilities'] | undefined,
-    visit: (cap: WebdriverIO.Capabilities) => void
-): void {
-    if (!capabilities) {
-        return
-    }
-    // Explicit branch — Object.entries would otherwise walk the array as a multi-remote map.
-    if (Array.isArray(capabilities)) {
-        for (const entry of capabilities) {
-            forEachBrowserCapability(entry as CapsRoot, visit)
-        }
-        return
-    }
-    const caps = capabilities as CapsRoot
-    if (isSingleCapability(caps)) {
-        visit(caps)
-    } else if (isMultiRemoteCapability(caps)) {
-        for (const [, browserConfig] of Object.entries(caps)) {
-            visit(extractCapabilitiesFromBrowserConfig(browserConfig))
-        }
-    }
-}
-
-export function optionsFromConfig(config: WebdriverIO.Config): DisplayServerOptions {
+export function optionsFromConfig(config: Options.Testrunner): DisplayServerOptions {
     return {
         enabled: config.displayServerEnabled,
         displayServer: config.displayServer,
@@ -80,7 +29,6 @@ export class DisplayServerManager {
     #force: boolean
     #log: ReturnType<typeof logger>
     #displayServer: DisplayServer | null = null
-    #initialized = false
 
     constructor(options: DisplayServerOptions = {}) {
         this.#enabled = options.enabled ?? true
@@ -104,12 +52,6 @@ export class DisplayServerManager {
             return false
         }
 
-        // Once init() has run on this instance we know a display is active and
-        // workers must use it, regardless of what process.env now shows.
-        if (this.#initialized) {
-            return true
-        }
-
         return !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY
     }
 
@@ -118,7 +60,7 @@ export class DisplayServerManager {
 
         // Idempotent: a second init() must not re-select and overwrite
         // #displayServer, which may already back a running daemon.
-        if (this.#initialized && this.#displayServer) {
+        if (this.#displayServer) {
             return true
         }
 
@@ -134,7 +76,6 @@ export class DisplayServerManager {
 
             if (displayServer) {
                 this.#displayServer = displayServer
-                this.#initialized = true
                 this.#log.info(`${displayServer.name} display server is ready for use`)
                 return true
             }
@@ -199,77 +140,8 @@ export class DisplayServerManager {
         })
     }
 
-    #injectDisplayServerFlags(
-        capabilities: Capabilities.ResolvedTestrunnerCapabilities,
-        flags: string[],
-    ): void {
-        if (flags.length === 0) {
-            return
-        }
-        forEachBrowserCapability(capabilities, (cap) => this.#addFlagsToCapability(cap, flags))
-    }
-
-    #addFlagsToCapability(caps: WebdriverIO.Capabilities, flags: string[]): void {
-        let chromeOptions = caps['goog:chromeOptions'] || (caps as Record<string, unknown>).chromeOptions as { args?: string[] }
-        let edgeOptions = caps['ms:edgeOptions'] || (caps as Record<string, unknown>).edgeOptions as { args?: string[] }
-        const electronOptions = (caps as Record<string, unknown>)['wdio:electronServiceOptions'] as { appArgs?: string[] } | undefined
-
-        // Create options objects for bare caps like { browserName: 'chrome' }
-        if (!chromeOptions && (caps.browserName === 'chrome' || caps.browserName === 'chromium')) {
-            caps['goog:chromeOptions'] = { args: [] }
-            chromeOptions = caps['goog:chromeOptions']
-        }
-        // Selenium accepts both 'MicrosoftEdge' and 'msedge'.
-        if (!edgeOptions && (caps.browserName === 'MicrosoftEdge' || caps.browserName === 'msedge')) {
-            caps['ms:edgeOptions'] = { args: [] }
-            edgeOptions = caps['ms:edgeOptions']
-        }
-
-        this.#applyFlags(chromeOptions, 'args', flags, 'Chrome capabilities')
-        this.#applyFlags(edgeOptions, 'args', flags, 'Edge capabilities')
-        // Electron needs the CLI --ozone-platform in appArgs; the env hint
-        // ELECTRON_OZONE_PLATFORM_HINT isn't authoritative enough on Wayland hosts.
-        this.#applyFlags(electronOptions, 'appArgs', flags, 'Electron appArgs')
-    }
-
-    // Add the ozone flags to one options bag, de-duplicated by the --ozone-platform=
-    // token so re-injection or a user's own flag doesn't double up.
-    #applyFlags(
-        options: { args?: string[] } | { appArgs?: string[] } | undefined,
-        key: 'args' | 'appArgs',
-        flags: string[],
-        label: string,
-    ): void {
-        if (!options) {
-            return
-        }
-        const opts = options as Record<'args' | 'appArgs', string[] | undefined>
-        opts[key] = opts[key] || []
-        const hasOzoneFlag = opts[key]!.some(arg => typeof arg === 'string' && arg.startsWith('--ozone-platform='))
-        if (!hasOzoneFlag) {
-            opts[key]!.push(...flags)
-            this.#log.info(`Added display-server flags to ${label}: ${flags.join(' ')}`)
-        }
-    }
-
     getDisplayServer(): DisplayServer | null {
         return this.#displayServer
-    }
-
-    // When no daemon was started but WAYLAND_DISPLAY is set externally, Chrome still
-    // needs --ozone-platform=wayland so it doesn't fall back to a missing X11 server.
-    // No equivalent for an externally-set DISPLAY: Chromium defaults to X11 anyway.
-    injectDisplayFlags(capabilities: Capabilities.ResolvedTestrunnerCapabilities): void {
-        if (!capabilities) {
-            return
-        }
-        if (this.#displayServer) {
-            this.#injectDisplayServerFlags(capabilities, this.#displayServer.getChromeFlags())
-            return
-        }
-        if (process.env.WAYLAND_DISPLAY) {
-            this.#injectDisplayServerFlags(capabilities, [...WAYLAND_CHROME_FLAGS])
-        }
     }
 
     async executeWithRetry<T>(
