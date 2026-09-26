@@ -265,6 +265,17 @@ describe('WebDriver', () => {
             expect(client.getDeviceTime).toBeTruthy()
         })
 
+        it('drops a legacy isW3C attach option', () => {
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
+                isW3C: false
+            } as typeof sessionOptions & { isW3C?: boolean })
+
+            expect('isW3C' in client).toBe(false)
+            expect(client.options).not.toHaveProperty('isW3C')
+            expect(typeof client.sessionStatus).toBe('function')
+        })
+
         it('it should propagate all environment flags', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
                 isMobile: false,
