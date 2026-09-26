@@ -1,10 +1,10 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { remote } from 'webdriver'
 
-import { verifyArgsAndStripIfElement, createFunctionDeclarationFromString } from '../../utils/index.js'
+import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
-import { createSerializableScript } from '../../utils/bidi/serialize.js'
+import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
 import { getContextManager } from '../../session/context.js'
 import { polyfillFn } from '../../scripts/polyfill.js'
 import type { TransformElement, TransformReturn } from '../../types.js'
@@ -73,8 +73,7 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
         const browser = getBrowserObject(this)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()
-        const userScript = typeof script === 'string' ? new Function(script) : script
-        const functionDeclaration = createFunctionDeclarationFromString(new Function(createSerializableScript(userScript)))
+        const functionDeclaration = createBidiFunctionDeclaration(script)
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
             awaitPromise: true,

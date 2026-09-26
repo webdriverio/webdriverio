@@ -8,14 +8,22 @@
  * one is replaced with `null`, because that graph has to be copied before BiDi
  * sees it.
  *
+ * Blob, File, and FileList are detected by their brand string so a value created
+ * in a same-origin iframe still transfers. The helper is appended after the user
+ * script so BiDi exception line numbers keep pointing at the user's code.
+ *
  * This module does not import Node builtins. The browser runner loads it too.
  */
+
+import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../../commands/constant.js'
 
 export const SERIALIZED_BLOB_KEY = '__wdioSerializedBlob__'
 export const SERIALIZED_BLOB_KIND_BLOB = 'blob'
 export const SERIALIZED_BLOB_KIND_FILE = 'file'
 
 const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/
+const BLOB_TRANSFER_KEYS = new Set(['data', 'type', 'size', 'kind', SERIALIZED_BLOB_KEY])
+const FILE_TRANSFER_KEYS = new Set([...BLOB_TRANSFER_KEYS, 'name', 'lastModified'])
 
 type SerializedBlobKind = typeof SERIALIZED_BLOB_KIND_BLOB | typeof SERIALIZED_BLOB_KIND_FILE
 
@@ -42,6 +50,19 @@ const SERIALIZER_HELPER = `
     const __wdioSerializedBlobKindFile = ${JSON.stringify(SERIALIZED_BLOB_KIND_FILE)};
     const __wdioCycle = Object.create(null);
 
+    function __wdioTag(value) {
+        return Object.prototype.toString.call(value);
+    }
+
+    function __wdioIsBlob(value) {
+        const tag = __wdioTag(value);
+        return (tag === '[object Blob]' || tag === '[object File]') && typeof value.arrayBuffer === 'function';
+    }
+
+    function __wdioIsFileList(value) {
+        return __wdioTag(value) === '[object FileList]' && typeof value.length === 'number';
+    }
+
     function __wdioArrayBufferToBase64(buffer) {
         if (typeof btoa !== 'function') {
             throw new Error('Unable to encode Blob data: btoa is not available');
@@ -66,7 +87,7 @@ const SERIALIZER_HELPER = `
             size: blob.size,
             kind: __wdioSerializedBlobKindBlob
         };
-        if (typeof File !== 'undefined' && blob instanceof File) {
+        if (__wdioTag(blob) === '[object File]') {
             serialized.kind = __wdioSerializedBlobKindFile;
             serialized.name = blob.name;
             serialized.lastModified = blob.lastModified;
@@ -120,7 +141,7 @@ const SERIALIZER_HELPER = `
         if (seen.has(value)) {
             return __wdioCycle;
         }
-        if (typeof Blob !== 'undefined' && value instanceof Blob) {
+        if (__wdioIsBlob(value)) {
             return __wdioSerializeBlob(value);
         }
         if (__wdioIsHostValue(value)) {
@@ -129,7 +150,7 @@ const SERIALIZER_HELPER = `
 
         seen.add(value);
         try {
-            if (typeof FileList !== 'undefined' && value instanceof FileList) {
+            if (__wdioIsFileList(value)) {
                 const listed = [];
                 for (let i = 0; i < value.length; i++) {
                     listed.push(value[i]);
@@ -182,15 +203,39 @@ const SERIALIZER_HELPER = `
     }
 `
 
-export function createSerializableScript (script: Function) {
-    return `
-        const userScript = ${script.toString()};
-        ${SERIALIZER_HELPER}
-        return (async () => {
-            const result = await userScript.apply(this, arguments);
-            return __wdioSerializeValue(result, new WeakSet());
-        })();
-    `
+/**
+ * BiDi function declaration for `execute`.
+ *
+ * The user script stays between the script markers, on the same lines
+ * `createFunctionDeclarationFromString` would emit, so a thrown line still
+ * points at the user's code. Blob encoding runs only after that call returns.
+ * A rejected user promise is returned as-is: the `.then` has no rejection
+ * handler, so the original throw location is preserved.
+ */
+export function createBidiFunctionDeclaration (script: string | Function): string {
+    const userScript = typeof script === 'string' ? new Function(script) : script
+    const declaration = new Function(
+        `return (${SCRIPT_PREFIX}${userScript.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);`
+    ).toString()
+
+    const markerIndex = declaration.indexOf(SCRIPT_PREFIX)
+    const returnIndex = declaration.lastIndexOf('return (', markerIndex)
+    const suffixIndex = declaration.indexOf(SCRIPT_SUFFIX)
+    const applyToken = ').apply(this, arguments);'
+    const applyIndex = declaration.indexOf(applyToken, suffixIndex)
+    if (returnIndex === -1 || applyIndex === -1) {
+        throw new Error('Unable to wrap BiDi execute script')
+    }
+
+    const resultPrefix = 'const __wdioResult = ('
+    const withResult = declaration.slice(0, returnIndex)
+        + resultPrefix
+        + declaration.slice(returnIndex + 'return ('.length)
+    const applyEnd = applyIndex + (resultPrefix.length - 'return ('.length) + applyToken.length
+
+    return withResult.slice(0, applyEnd)
+        + `\n${SERIALIZER_HELPER}\nreturn Promise.resolve(__wdioResult).then((value) => __wdioSerializeValue(value, new WeakSet()));\n`
+        + withResult.slice(applyEnd)
 }
 
 function decodedByteLength (data: string) {
@@ -224,6 +269,10 @@ export function isSerializedBlobValue (value: unknown): value is SerializedBlobV
         return false
     }
     if (serialized.kind !== SERIALIZED_BLOB_KIND_BLOB && serialized.kind !== SERIALIZED_BLOB_KIND_FILE) {
+        return false
+    }
+    const allowedKeys = serialized.kind === SERIALIZED_BLOB_KIND_FILE ? FILE_TRANSFER_KEYS : BLOB_TRANSFER_KEYS
+    if (!Object.keys(serialized).every((key) => allowedKeys.has(key))) {
         return false
     }
     if (typeof serialized.data !== 'string' || !BASE64_PATTERN.test(serialized.data)) {
