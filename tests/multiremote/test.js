@@ -126,7 +126,7 @@ describe('smoke test multiremote', () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
             browser.overwriteCommand('saveRecordingScreen', async function (origCommand, filepath, elem) {
                 if (elem) {
-                    return await this.execute('1+1') + '-' + elem.instances.map(i => elem[i].selector)
+                    return await this.execute('1+1') + '-' + elem.instances.map((name) => elem.getInstance(name).selector)
                 }
                 return origCommand(filepath)
             })
