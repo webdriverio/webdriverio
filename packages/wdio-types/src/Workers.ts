@@ -24,6 +24,8 @@ export type {
     AnyBrowserToRunnerMessage,
     AnyRunnerToBrowserMessage,
     AnyBrowserChannelMessage,
+    SocketMessageValue,
+    SocketMessagePayload,
 } from './BrowserChannel.js'
 
 export { MESSAGE_TYPES } from './BrowserChannel.js'

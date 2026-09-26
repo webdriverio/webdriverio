@@ -41,6 +41,8 @@ export type {
     WorkerProcessEvent,
     CoverageMapPayload,
     BrowserTestEvent,
+    SocketMessageValue,
+    SocketMessagePayload,
 } from './BrowserChannel.js'
 
 export type { Automation, Capabilities, Options, Services, Frameworks, Reporters, Workers, CustomCommands }

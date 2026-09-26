@@ -228,10 +228,25 @@ export type AnyRunnerToBrowserMessage = BrowserChannelMessage<RunnerToBrowserTyp
 export type AnyBrowserChannelMessage = BrowserChannelMessage<BrowserChannelType>
 
 /**
- * Bidirectional browser-channel message. Prefer the directional aliases when
- * the sender or receiver is known.
+ * Every `MESSAGE_TYPES` payload, including worker-process events.
+ * Kept so existing `Workers.SocketMessageValue` imports still resolve.
  */
-export type SocketMessage = AnyBrowserChannelMessage
+export type SocketMessageValue = BrowserChannelValue & WorkerProcessEventValue
+
+/**
+ * Discriminated message for one `MESSAGE_TYPES` member.
+ * Kept so existing `Workers.SocketMessagePayload<...>` imports still resolve.
+ */
+export type SocketMessagePayload<T extends MESSAGE_TYPES> = T extends any
+    ? { type: T, value: SocketMessageValue[T] }
+    : never
+
+/**
+ * Historical union of every `MESSAGE_TYPES` payload. Prefer
+ * `AnyBrowserToRunnerMessage` or `AnyRunnerToBrowserMessage` when the
+ * direction is known.
+ */
+export type SocketMessage = SocketMessagePayload<MESSAGE_TYPES>
 
 export type WorkerProcessEvent<T extends WorkerProcessEventType = WorkerProcessEventType> = T extends any
     ? { type: T, value: WorkerProcessEventValue[T] }
