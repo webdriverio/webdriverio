@@ -162,7 +162,7 @@ describe('Multi-Remote tests', () => {
         // @ts-expect-error invalid params
             const size = await this.getSize()
             return size.width
-        }, true)
+        }, { attachToElement: true })
 
         const elem = await browser.$('#foo')
 
@@ -185,7 +185,7 @@ describe('Multi-Remote tests', () => {
             let size = await origCmd()
             size = { width: size.width / 10, height: size.height / 10 }
             return size
-        }, true)
+        }, { attachToElement: true })
 
         const elem = await browser.$('#foo')
 
@@ -238,7 +238,7 @@ describe('Multi-Remote tests', () => {
             // @ts-expect-error untyped custom command
             browser.addCommand('myCustomElementCommand', async function () {
                 return 'from the element command'
-            }, true)
+            }, { attachToElement: true })
 
             const selected = browser.select('browserA')
             const elem = await selected.$('#foo')

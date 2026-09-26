@@ -59,7 +59,7 @@ browser.addCommand('getUrlAndTitle', async function (customVar) {
 })
 ```
 
-Additionally, you can extend the element instance with your own set of commands, by passing `true` as the final argument. The scope (`this`) in this case is a [`WebdriverIO.Element`](/docs/api/element) object.
+Additionally, you can extend the element instance with your own set of commands by setting `attachToElement` to `true`. The scope (`this`) in this case is a [`WebdriverIO.Element`](/docs/api/element) object.
 
 ```js
 browser.addCommand("waitAndClick", async function () {
@@ -314,7 +314,7 @@ console.log(`was sleeping for ${await browser.pause(1000)}`)
 
 ### Overwriting Element Commands
 
-Overwriting commands on element level is almost the same. Simply pass `true` as the third argument to `overwriteCommand`:
+Overwriting commands on element level is almost the same. Set `attachToElement` to `true`:
 
 ```js
 /**

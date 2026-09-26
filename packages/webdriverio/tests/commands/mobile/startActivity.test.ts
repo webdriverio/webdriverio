@@ -10,13 +10,27 @@ describe('startActivity', () => {
         vi.mocked(fetch).mockClear()
     })
 
+    it('rejects the removed positional signature', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: { browserName: 'foobar', mobileMode: true, platformName: 'Android' } as any
+        })
+        await expect(
+            // @ts-expect-error removed positional signature
+            browser.startActivity('com.example.app', '.MainActivity')
+        ).rejects.toThrow('`startActivity` only accepts an options object in WebdriverIO v10.')
+    })
+
     describe('non-mobile', () => {
         it('should throw for non-mobile platforms', async () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
                 capabilities: { browserName: 'foobar' } as any
             })
-            await expect(browser.startActivity('com.example.app', '.MainActivity')).rejects.toThrow('The `startActivity` command is only available for mobile platforms.')
+            await expect(browser.startActivity({
+                appPackage: 'com.example.app',
+                appActivity: '.MainActivity'
+            })).rejects.toThrow('The `startActivity` command is only available for mobile platforms.')
         })
     })
 
@@ -26,7 +40,10 @@ describe('startActivity', () => {
                 baseUrl: 'http://foobar.com',
                 capabilities: { browserName: 'foobar', mobileMode: true, platformName: 'iOS' } as any
             })
-            await expect(browser.startActivity('com.example', '.MainActivity')).rejects.toThrow('The `startActivity` command is only available for Android.')
+            await expect(browser.startActivity({
+                appPackage: 'com.example',
+                appActivity: '.MainActivity'
+            })).rejects.toThrow('The `startActivity` command is only available for Android.')
         })
     })
 
@@ -42,74 +59,7 @@ describe('startActivity', () => {
             })
         })
 
-        describe('legacy positional API', () => {
-            it('should build component from appPackage and appActivity', async () => {
-                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
-                await browser.startActivity('com.example.app', '.MainActivity')
-                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
-                    component: 'com.example.app/.MainActivity',
-                }])
-            })
-
-            it('should map intentAction, intentCategory and intentFlags', async () => {
-                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
-                await browser.startActivity(
-                    'com.example.app',
-                    '.MainActivity',
-                    undefined,
-                    undefined,
-                    'android.intent.action.MAIN',
-                    'android.intent.category.LAUNCHER',
-                    '0x10200000'
-                )
-                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
-                    component: 'com.example.app/.MainActivity',
-                    action: 'android.intent.action.MAIN',
-                    categories: 'android.intent.category.LAUNCHER',
-                    flags: '0x10200000',
-                }])
-            })
-
-            it('should map dontStopAppOnReset=true to stop=false', async () => {
-                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
-                await browser.startActivity(
-                    'com.example.app',
-                    '.MainActivity',
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    'true'
-                )
-                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
-                    component: 'com.example.app/.MainActivity',
-                    stop: false,
-                }])
-            })
-
-            it('should map dontStopAppOnReset=false to stop=true', async () => {
-                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
-                await browser.startActivity(
-                    'com.example.app',
-                    '.MainActivity',
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    'false'
-                )
-                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
-                    component: 'com.example.app/.MainActivity',
-                    stop: true,
-                }])
-            })
-        })
-
-        describe('object-based API', () => {
+        describe('object API', () => {
             it('should accept an options object with required fields', async () => {
                 const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
                 await browser.startActivity({ appPackage: 'com.example.app', appActivity: '.MainActivity' })
@@ -147,11 +97,27 @@ describe('startActivity', () => {
                     stop: false,
                 }])
             })
+
+            it('should map dontStopAppOnReset=false to stop=true', async () => {
+                const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
+                await browser.startActivity({
+                    appPackage: 'com.example.app',
+                    appActivity: '.MainActivity',
+                    dontStopAppOnReset: 'false',
+                })
+                expect(executeSpy).toHaveBeenCalledWith('mobile: startActivity', [{
+                    component: 'com.example.app/.MainActivity',
+                    stop: true,
+                }])
+            })
         })
 
         it('should re-throw non-unknown-method errors', async () => {
             vi.spyOn(browser, 'executeScript').mockRejectedValue(new Error('device disconnected'))
-            await expect(browser.startActivity('com.example.app', '.MainActivity')).rejects.toThrow('device disconnected')
+            await expect(browser.startActivity({
+                appPackage: 'com.example.app',
+                appActivity: '.MainActivity'
+            })).rejects.toThrow('device disconnected')
         })
     })
 })

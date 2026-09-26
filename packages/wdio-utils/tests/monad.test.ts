@@ -88,7 +88,7 @@ describe('monad', () => {
 
         const func = function (x: number, y: number) { return x + y }
 
-        client.addCommand('myCustomElementCommand', func, true)
+        client.addCommand('myCustomElementCommand', func, { attachToElement: true })
         expect(typeof client.__propertiesObject__.myCustomElementCommand).toBe('object')
         expect(client.__propertiesObject__.myCustomElementCommand.value).toBe(func)
     })
@@ -99,7 +99,7 @@ describe('monad', () => {
 
         const func = function (x: number, y: number) { return x + y }
 
-        client.addCommand('myCustomElementCommandNoImplicitWait', func, true, undefined, undefined, true)
+        client.addCommand('myCustomElementCommandNoImplicitWait', func, { attachToElement: true, disableElementImplicitWait: true })
         expect(typeof client.__propertiesObject__.myCustomElementCommandNoImplicitWait).toBe('object')
         expect(client.__propertiesObject__.myCustomElementCommandNoImplicitWait.value).toBe(func)
     })
@@ -110,7 +110,7 @@ describe('monad', () => {
 
         const func = function (x: number, y: number) { return x + y }
 
-        client.overwriteCommand('someFunc', func, true)
+        client.overwriteCommand('someFunc', func, { attachToElement: true })
         expect(client.__propertiesObject__.__elementOverrides__.value.someFunc(2, 3)).toBe(5)
     })
 
@@ -123,13 +123,13 @@ describe('monad', () => {
             const result = await originalCommand('value from first')
             calls.push('first after')
             return `first(${result})`
-        }, true)
+        }, { attachToElement: true })
         client.overwriteCommand('someFunc', async (originalCommand: Function, value: string) => {
             calls.push(`second before: ${value}`)
             const result = await originalCommand('value from second')
             calls.push('second after')
             return `second(${result})`
-        }, true)
+        }, { attachToElement: true })
 
         const element = createElement(client.__propertiesObject__.__elementOverrides__, async (value: string) => {
             calls.push(`base: ${value}`)
@@ -150,16 +150,16 @@ describe('monad', () => {
         {
             name: 'plugin before guard',
             register: (client: any, plugin: Function, guard: Function) => {
-                client.overwriteCommand('someFunc', plugin, true)
-                client.overwriteCommand('someFunc', guard, true)
+                client.overwriteCommand('someFunc', plugin, { attachToElement: true })
+                client.overwriteCommand('someFunc', guard, { attachToElement: true })
             },
             expected: ['guard start', 'plugin', 'base', 'guard wait']
         },
         {
             name: 'guard before plugin',
             register: (client: any, plugin: Function, guard: Function) => {
-                client.overwriteCommand('someFunc', guard, true)
-                client.overwriteCommand('someFunc', plugin, true)
+                client.overwriteCommand('someFunc', guard, { attachToElement: true })
+                client.overwriteCommand('someFunc', plugin, { attachToElement: true })
             },
             expected: ['plugin', 'guard start', 'base', 'guard wait']
         }
@@ -213,7 +213,7 @@ describe('monad', () => {
                 calls.push('first caught')
                 throw err
             }
-        }, true)
+        }, { attachToElement: true })
         client.overwriteCommand('someFunc', async (originalCommand: Function) => {
             try {
                 return await originalCommand()
@@ -221,7 +221,7 @@ describe('monad', () => {
                 calls.push('second caught')
                 throw err
             }
-        }, true)
+        }, { attachToElement: true })
 
         const element = createElement(client.__propertiesObject__.__elementOverrides__, async () => {
             calls.push('base')
@@ -242,11 +242,11 @@ describe('monad', () => {
         client.overwriteCommand('someFunc', function (this: unknown, originalCommand: Function, value: string) {
             firstContext = this
             return originalCommand(value)
-        }, true)
+        }, { attachToElement: true })
         client.overwriteCommand('someFunc', function (this: unknown, originalCommand: Function, value: string) {
             secondContext = this
             return originalCommand.call(reboundElement, value)
-        }, true)
+        }, { attachToElement: true })
 
         const element = createElement(client.__propertiesObject__.__elementOverrides__, function (this: unknown, value: string) {
             baseContext = this
@@ -267,7 +267,7 @@ describe('monad', () => {
             client.overwriteCommand('someFunc', (originalCommand: Function) => {
                 calls.push(label)
                 return originalCommand()
-            }, true)
+            }, { attachToElement: true })
         }
 
         const element = createElement(client.__propertiesObject__.__elementOverrides__, () => calls.push('base'))
@@ -283,7 +283,7 @@ describe('monad', () => {
 
         const func = function (x: number, y: number) { return x + y }
 
-        client.addCommand('myCustomElementCommand', func, true, undefined, instances)
+        client.addCommand('myCustomElementCommand', func, { attachToElement: true, instances })
         expect(typeof instances.foo.__propertiesObject__.myCustomElementCommand).toBe('object')
         expect(instances.foo.__propertiesObject__.myCustomElementCommand.value).toBe(func)
     })
@@ -312,11 +312,11 @@ describe('monad', () => {
         client.overwriteCommand('someFunc', function (originalCommand: Function, value: string) {
             calls.push(`first: ${value}`)
             return originalCommand(`${value} -> first`)
-        }, true, undefined, instances)
+        }, { attachToElement: true, instances })
         client.overwriteCommand('someFunc', function (originalCommand: Function, value: string) {
             calls.push(`second: ${value}`)
             return originalCommand(`${value} -> second`)
-        }, true, undefined, instances)
+        }, { attachToElement: true, instances })
         const fooElement = createElement(instances.foo.__propertiesObject__.__elementOverrides__, (value: string) => {
             calls.push(`foo base: ${value}`)
             return `foo: ${value}`
@@ -347,8 +347,8 @@ describe('monad', () => {
             }
         })
 
-        client.overwriteCommand('someFunc', (originalCommand: Function) => originalCommand(), true)
-        client.overwriteCommand('someFunc', (originalCommand: Function) => originalCommand(), true)
+        client.overwriteCommand('someFunc', (originalCommand: Function) => originalCommand(), { attachToElement: true })
+        client.overwriteCommand('someFunc', (originalCommand: Function) => originalCommand(), { attachToElement: true })
 
         const element = createElement(client.__propertiesObject__.__elementOverrides__, () => calls.push('base'))
 

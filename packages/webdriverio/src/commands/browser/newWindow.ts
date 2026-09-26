@@ -3,8 +3,6 @@ import { sleep } from '@wdio/utils'
 import newWindowHelper from '../../scripts/newWindow.js'
 import { getContextManager } from '../../session/context.js'
 import type { NewWindowOptions } from '../../types.js'
-import logger from '@wdio/logger'
-const log = logger('webdriverio:newWindow')
 
 const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
 
@@ -21,10 +19,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
         await browser.url('https://google.com')
         console.log(await browser.getTitle()) // outputs: "Google"
 
-        const result = await browser.newWindow('https://webdriver.io', {
-            windowName: 'WebdriverIO window',
-            windowFeature: 'width=420,height=230,resizable,scrollbars=yes,status=1',
-        })
+        const result = await browser.newWindow('https://webdriver.io')
         console.log(await browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
         console.log(result.type) // outputs: "window"
         const handles = await browser.getWindowHandles()
@@ -40,10 +35,8 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
           await browser.url('https://google.com')
           console.log(await browser.getTitle()) // outputs: "Google"
 
-          await browser.newWindow('https://webdriver.io', {
-              type:'tab',
-              windowName: 'WebdriverIO window',
-              windowFeature: 'width=420,height=230,resizable,scrollbars=yes,status=1',
+          const result = await browser.newWindow('https://webdriver.io', {
+              type: 'tab'
           })
           console.log(await browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
           console.log(result.type) // outputs: "tab"
@@ -58,8 +51,6 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * @param {string}  url      website URL to open
  * @param {NewWindowOptions=} options                newWindow command options
  * @param {string=}           options.type           type of new window: 'tab' or 'window'
- * @param {String=}           options.windowName     name of the new window
- * @param {String=}           options.windowFeatures features of opened window (e.g. size, position, scrollbars, etc.)
  *
  * @return {Object}          An object containing the window handle and the type of new window `{handle: string, type: string}` handle - The ID of the window handle of the new tab or window, type - The type of the new window, either 'tab' or 'window'
  *
@@ -72,7 +63,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
 export async function newWindow (
     this: WebdriverIO.Browser,
     url: string,
-    { type = 'window', windowName = '', windowFeatures = '' }: NewWindowOptions = {}
+    options: NewWindowOptions = {}
 ): Promise<{ handle: string, type: 'tab' | 'window' }> {
     /**
      * parameter check
@@ -81,15 +72,25 @@ export async function newWindow (
         throw new Error('number or type of arguments don\'t agree with newWindow command')
     }
 
+    const legacyOptions = options as NewWindowOptions & {
+        windowName?: string
+        windowFeatures?: string
+        windowFeature?: string
+    }
+    if (legacyOptions.windowName || legacyOptions.windowFeatures || legacyOptions.windowFeature) {
+        throw new Error(
+            'The `windowName` and `windowFeatures` options were removed from `newWindow` in WebdriverIO v10. ' +
+            'Only `{ type: \'tab\' | \'window\' }` is supported.'
+        )
+    }
+
+    const { type = 'window' } = options
+
     /**
     * Validate the 'type' parameter to ensure it is either 'tab' or 'window'
     */
     if (!['tab', 'window'].includes(type)) {
         throw new Error(`Invalid type '${type}' provided to newWindow command. Use either 'tab' or 'window'`)
-    }
-
-    if (windowName || windowFeatures) {
-        log.warn('The "windowName" and "windowFeatures" options are deprecated and only supported in WebDriver Classic sessions.')
     }
 
     /**
@@ -107,7 +108,7 @@ export async function newWindow (
         contextManager.setCurrentContext(context)
         await this.browsingContextNavigate({ context, url })
     } else {
-        await this.execute(newWindowHelper, url, windowName, windowFeatures)
+        await this.execute(newWindowHelper, url)
     }
 
     /**

@@ -289,7 +289,7 @@ describe('multi remote test', () => {
                 it('preserve overridden elements commands on multiRemoteBrowser', async () => {
                     multiRemoteBrowser.overwriteCommand('getValue', async function (_originalCommand) {
                         return 'getValue (overwritten)'
-                    }, true)
+                    }, { attachToElement: true })
 
                     expect(await multiRemoteBrowser.$('header').$('h1').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)', 'getValue (overwritten)'])
                     expect(await multiRemoteBrowser.select('browserA', 'browserB').$('header').$('h1').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)'])

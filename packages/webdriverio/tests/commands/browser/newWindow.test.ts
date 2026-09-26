@@ -38,14 +38,11 @@ describe('newWindow', () => {
             null
         ])
 
-        const newHandle = await browser.newWindow('https://webdriver.io', {
-            windowName: 'some name',
-            windowFeatures: 'some params'
-        })
+        const newHandle = await browser.newWindow('https://webdriver.io')
         expect(newHandle.handle).toBe('new-window-handle')
         expect(vi.mocked(fetch).mock.calls).toHaveLength(8)
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).args)
-            .toEqual(['https://webdriver.io', 'some name', 'some params'])
+            .toEqual(['https://webdriver.io'])
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[3][0].pathname)
             .toContain('/window/handles')
@@ -71,7 +68,22 @@ describe('newWindow', () => {
         await browser.newWindow('https://webdriver.io')
         expect(vi.mocked(fetch).mock.calls).toHaveLength(6)
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).args)
-            .toEqual(['https://webdriver.io', '', ''])
+            .toEqual(['https://webdriver.io'])
+    })
+
+    it('should reject removed window options', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        await expect(browser.newWindow('https://webdriver.io', {
+            // @ts-expect-error removed in v10
+            windowName: 'some name',
+            windowFeatures: 'some params'
+        })).rejects.toThrow('The `windowName` and `windowFeatures` options were removed from `newWindow` in WebdriverIO v10.')
     })
 
     it('should fail if url is invalid', async () => {
@@ -102,10 +114,7 @@ describe('newWindow', () => {
             }
         })
 
-        const error = await browser.newWindow('https://webdriver.io', {
-            windowName: 'some name',
-            windowFeatures: 'some params'
-        }).catch((err: Error) => err) as Error
+        const error = await browser.newWindow('https://webdriver.io').catch((err: Error) => err) as Error
         expect(error.message).toContain('not supported on mobile')
     })
 
@@ -122,9 +131,7 @@ describe('newWindow', () => {
         const browsingContextNavigateSpy: MockInstance = vi.spyOn(browser, 'browsingContextNavigate')
         browsingContextNavigateSpy.mockImplementation(() => ({}))
 
-        const newHandle = await browser.newWindow('https://webdriver.io', {
-            windowName: 'some window'
-        })
+        const newHandle = await browser.newWindow('https://webdriver.io')
 
         expect(newHandle.type).toBe('window')
         expect(browsingContextCreateSpy).toHaveBeenCalledTimes(1)
@@ -150,8 +157,7 @@ describe('newWindow', () => {
         browsingContextNavigateSpy.mockImplementation(() => ({}))
 
         const newHandle = await browser.newWindow('https://webdriver.io', {
-            type: 'tab',
-            windowName: 'some tab'
+            type: 'tab'
         })
 
         expect(newHandle.type).toBe('tab')

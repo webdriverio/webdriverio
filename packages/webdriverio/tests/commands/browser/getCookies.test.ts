@@ -35,38 +35,28 @@ describe('getCookies', () => {
             ])
         })
 
-        it('should support passing a string', async () => {
-            const cookies = await browser.getCookies('cookie1')
+        it('should reject a string filter', async () => {
+            // @ts-expect-error removed string filter
+            await expect(browser.getCookies('cookie1')).rejects.toThrow(
+                'Passing a string or string array to `getCookies` was removed in WebdriverIO v10.'
+            )
+        })
+
+        it('should reject a string array filter', async () => {
+            // @ts-expect-error removed string array filter
+            await expect(browser.getCookies(['cookie1', 'cookie3'])).rejects.toThrow(
+                'Passing a string or string array to `getCookies` was removed in WebdriverIO v10.'
+            )
+        })
+
+        it('should filter cookies by name', async () => {
+            const cookies = await browser.getCookies({ name: 'cookie1' })
 
             expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('GET')
             // @ts-expect-error mock implementation
             expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
                 .toBe('/session/foobar-123/cookie')
             expect(cookies).toEqual([{ name: 'cookie1', value: 'dummy-value-1' }])
-        })
-
-        it('should support passing a array with strings', async () => {
-            const cookies = await browser.getCookies(['cookie1'])
-
-            expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('GET')
-            // @ts-expect-error mock implementation
-            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
-                .toBe('/session/foobar-123/cookie')
-            expect(cookies).toEqual([{ name: 'cookie1', value: 'dummy-value-1' }])
-        })
-
-        it('should get all cookies and filter out cookies that match by name', async () => {
-            const cookieNames = ['cookie1', 'doesn-not-exist', 'cookie3']
-            const cookies = await browser.getCookies(cookieNames)
-
-            expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('GET')
-            // @ts-expect-error mock implementation
-            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
-                .toBe('/session/foobar-123/cookie')
-            expect(cookies).toEqual([
-                { name: 'cookie1', value: 'dummy-value-1' },
-                { name: 'cookie3', value: 'dummy-value-3' },
-            ])
         })
 
         it('should require all attributes in an object filter to match', async () => {
@@ -103,9 +93,10 @@ describe('getCookies', () => {
         })
 
         it('should throw error if invalid arguments are passed', async () => {
-            // @ts-ignore test invalid input
-            const cookies = await browser.getCookies([2])
-            expect(cookies).toEqual([])
+            // @ts-expect-error test invalid input
+            await expect(browser.getCookies([2])).rejects.toThrow(
+                'Passing a string or string array to `getCookies` was removed in WebdriverIO v10.'
+            )
         })
 
         it('should not throw for an invalid cookie value filter', async () => {

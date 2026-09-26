@@ -53,24 +53,19 @@ describe('recording custom commands', () => {
         expect(recorded(session)).toEqual([['myCommand', fn, options]])
     })
 
-    /**
-     * `addCommand` still accepts the deprecated positional form, so the stub has to
-     * fold it into the options object - the runner only replays `[name, fn, options]`.
-     */
-    it('folds the deprecated positional form into the options object', async () => {
+    it('rejects the removed positional boolean form', async () => {
         const session = await newSession()
         const fn = () => {}
-        const proto = { foo: 'bar' }
-        const instances = { baz: 'qux' }
 
-        // @ts-expect-error deprecated positional signature
-        session.addCommand('myCommand', fn, true, proto, instances)
+        expect(() => {
+            // @ts-expect-error removed positional signature
+            session.addCommand('myCommand', fn, true)
+        }).toThrow('Passing a boolean as the third argument to `addCommand` was removed in WebdriverIO v10.')
 
-        expect(recorded(session)).toEqual([[
-            'myCommand',
-            fn,
-            { attachToElement: true, proto, instances }
-        ]])
+        expect(() => {
+            // @ts-expect-error removed positional signature
+            session.overwriteCommand('click', fn, false)
+        }).toThrow('Passing a boolean as the third argument to `overwriteCommand` was removed in WebdriverIO v10.')
     })
 
     it('records an options object even when only a name and a function are given', async () => {

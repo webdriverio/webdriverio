@@ -93,7 +93,6 @@ describe('overwriteCommand', () => {
                         const promise: Promise<void> = originalFunction(10)
                         return await promise
                     },
-                    false,
                 )
 
                 await expect(browser.pause()).resolves.toBeUndefined()
@@ -124,7 +123,7 @@ describe('overwriteCommand', () => {
             })
         })
         describe('given element scope', () => {
-            const isElementScope = true
+            const isElementScope = { attachToElement: true as const }
 
             test('should propagate element commands for all prototypes', async () => {
                 const browser = await remote(remoteConfig)
@@ -288,7 +287,7 @@ describe('overwriteCommand', () => {
 
         test('should be able to overwrite element command in multiremote mode', async () => {
             const browser = await multiremote(multiremoteConfig as any)
-            browser.overwriteCommand('getAttribute', customElementCommand, true)
+            browser.overwriteCommand('getAttribute', customElementCommand, { attachToElement: true })
             const elem = await browser.$('#foo')
 
             // @ts-expect-error command overwritten
