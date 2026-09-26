@@ -101,8 +101,8 @@ const defineStrategy = function (selector: SelectorStrategy) {
     if (stringSelector.search(/<[0-9a-zA-Z-]+( \/)*>/g) >= 0) {
         return 'tag name'
     }
-    // Use name strategy if selector queries elements with name attributes for JSONWP
-    // or if isMobile is used even when w3c is used
+    // Mobile sessions use the name strategy for [name="..."] selectors.
+    // Desktop sessions keep them on the css strategy.
     // e.g. "[name='myName']" or '[name="myName"]'
     if (stringSelector.search(/^\[name=(?:"(.[^"]*)"|'(.[^']*)')]$/) >= 0) {
         return 'name'
@@ -191,11 +191,6 @@ export function getAriaXPathSelector(label: string) {
 
 export const findStrategy = function (
     selector: SelectorStrategy,
-    /**
-     * Kept so existing positional callers stay aligned.
-     * v10 does not select a JSONWP locator from this flag.
-     */
-    _isW3C?: boolean,
     isMobile?: boolean,
     isBidi?: boolean
 ) {

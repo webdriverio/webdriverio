@@ -9,7 +9,6 @@ import {
 } from '../../packages/wdio-utils/src/utils.js'
 import webdriverMonadOrig from '../../packages/wdio-utils/src/monad.js'
 import {
-    isW3C as isW3cOrig,
     isBidi as isBidiOrig,
     sessionEnvironmentDetector as sessionEnvDetector,
     capabilitiesEnvironmentDetector as capabilitiesEnvDetector
@@ -102,7 +101,6 @@ export const runFnInFiberContext = vi.fn().mockImplementation((fn) => {
 export const setWdioSyncSupport = (value: boolean) => { hasWdioSyncSupport = value }
 export let hasWdioSyncSupport = false
 export const testFnWrapper = vi.fn()
-export const isW3C = isW3cOrig
 export const isBidi = isBidiOrig
 export const sessionEnvironmentDetector = vi.fn().mockImplementation(
     // @ts-ignore

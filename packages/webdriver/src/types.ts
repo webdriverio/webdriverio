@@ -16,7 +16,6 @@ export interface JSONWPCommandError extends Error {
 }
 
 export interface SessionFlags {
-    isW3C: boolean
     isChromium: boolean
     isFirefox: boolean
     isAndroid: boolean

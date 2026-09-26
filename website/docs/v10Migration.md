@@ -312,7 +312,7 @@ Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript ver
 
 ## WebDriver protocol
 
-Every session is a W3C session. `browser.isW3C` is `true` when the driver returns a capabilities object, including sessions that omit `setWindowRect` or `browserVersion`. Passing `isW3C: false` to `attach` is ignored, and the BiDi command set stays on the client. A live BiDi connection still depends on `webSocketUrl`.
+Every session is a W3C session. `browser.isW3C` is removed, including the value previously forwarded on the worker `sessionStarted` message. Passing `isW3C` to `attach` is ignored. The BiDi command set stays on the client. A live BiDi connection still depends on `webSocketUrl`.
 
 The drivers WebdriverIO runs against already speak W3C on the client connection:
 

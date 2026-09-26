@@ -8,27 +8,6 @@ const MOBILE_CAPABILITIES = [
 ]
 
 /**
- * v10 sessions use the W3C WebDriver protocol.
- *
- * A capabilities object is enough. Drivers do not have to echo
- * `setWindowRect`, `browserVersion`, or an Appium prefix for the session
- * to be W3C. Chrome, Edge, Firefox, Safari, Selenium 4, and Appium 2+
- * speak W3C on the client connection. Missing `setWindowRect` means the
- * browser cannot resize; it does not mean the session is JSONWP.
- *
- * Direct WinAppDriver, Selenium 3, PhantomJS, EdgeHTML, and ChromeDriver
- * started with `goog:chromeOptions.w3c: false` still speak JSONWP and are
- * unsupported. Appium's Windows driver is a W3C client that translates
- * to WinAppDriver itself.
- *
- * @param  capabilities  caps of the session response
- * @return               true when a session response is present
- */
-export function isW3C(capabilities?: WebdriverIO.Capabilities) {
-    return Boolean(capabilities)
-}
-
-/**
  * check if session is run by Chromedriver
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run by Chromedriver
@@ -322,7 +301,6 @@ export function sessionEnvironmentDetector({
     requestedCapabilities: Capabilities.RequestedStandaloneCapabilities
 }) {
     return {
-        isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),
         isFirefox: isFirefox(capabilities),
         isMobile: isMobile(capabilities),

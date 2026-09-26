@@ -267,7 +267,6 @@ describe('WebDriver', () => {
 
         it('it should propagate all environment flags', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
-                isW3C: false,
                 isMobile: false,
                 isIOS: false,
                 isAndroid: false,
@@ -276,7 +275,6 @@ describe('WebDriver', () => {
                 isWindowsApp: false,
                 isMacApp: false
             })
-            expect(client.isW3C).toBe(true)
             expect(client.isMobile).toBe(false)
             expect(client.isIOS).toBe(false)
             expect(client.isAndroid).toBe(false)
@@ -286,7 +284,6 @@ describe('WebDriver', () => {
             expect(client.isMacApp).toBe(false)
 
             const anotherClient = WebDriver.attachToSession({ ...sessionOptions,
-                isW3C: true,
                 isMobile: true,
                 isIOS: true,
                 isAndroid: true,
@@ -295,7 +292,6 @@ describe('WebDriver', () => {
                 isWindowsApp: true,
                 isMacApp: true
             })
-            expect(anotherClient.isW3C).toBe(true)
             expect(anotherClient.isMobile).toBe(true)
             expect(anotherClient.isIOS).toBe(true)
             expect(anotherClient.isAndroid).toBe(true)

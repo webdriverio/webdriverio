@@ -43,7 +43,7 @@ export async function shadow$ (
     const browser = getBrowserObject(this)
     try {
         const shadowRoot = await browser.getElementShadowRoot(this.elementId)
-        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+        const { using, value } = findStrategy(selector as string, this.isMobile)
         const res = await browser.findElementFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
         /**
          * `shadow$` never counts matches itself, so a refetch (implicit wait, stale

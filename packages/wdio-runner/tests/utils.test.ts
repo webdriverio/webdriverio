@@ -137,8 +137,7 @@ describe('utils', () => {
 
     describe('getInstancesData', () => {
         it('isMultiremote = true', () => {
-            const { sessionId, isW3C, protocol, hostname, port, path, queryParams } = {
-                isW3C: true,
+            const { sessionId, protocol, hostname, port, path, queryParams } = {
                 sessionId: 'bar',
                 protocol: 'http',
                 hostname: 'localhost',
@@ -150,13 +149,12 @@ describe('utils', () => {
             expect(getInstancesData({
                 instances: ['foo'],
                 getInstance: vi.fn().mockReturnValue({
-                    isW3C,
                     sessionId,
                     options: { protocol, hostname, port, path, queryParams }
                 })
             // @ts-expect-error
             } as unknown as WebdriverIO.MultiRemoteBrowserObject, true))
-                .toEqual({ foo: { sessionId, isW3C, protocol, hostname, port, path, queryParams } })
+                .toEqual({ foo: { sessionId, protocol, hostname, port, path, queryParams } })
         })
 
         it('isMultiremote = false', () => {

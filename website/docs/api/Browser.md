@@ -20,7 +20,6 @@ A browser object has the following properties:
 | `sessionId` | `String` | Session id assigned from the remote server. |
 | `options` | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes). |
 | `commandList` | `String[]` | A list of commands registered to the browser instance |
-| `isW3C` | `Boolean` | Indicates if this is a W3C session |
 | `isChrome` | `Boolean` | Indicates if this Chrome instance |
 | `isFirefox` | `Boolean` | Indicates if this Firefox instance |
 | `isBidi` | `Boolean` | Indicates if this session uses Bidi |

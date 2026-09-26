@@ -124,11 +124,9 @@ export default class WebDriver {
         options.port = options.port || DEFAULTS.port.default
         options.path = options.path || DEFAULTS.path.default
         const environment = sessionEnvironmentDetector({ capabilities: options.capabilities, requestedCapabilities: options.capabilities })
-        /**
-         * v10 has no JSONWP mode. An explicit `isW3C: false` used to strip
-         * the BiDi command set; ignore it and keep the session on W3C.
-         */
-        options = Object.assign(environment, options, { isW3C: true })
+        const attachOptions = { ...options }
+        delete (attachOptions as { isW3C?: boolean }).isW3C
+        options = Object.assign(environment, attachOptions)
 
         const environmentPrototype = getEnvironmentVars(options as Partial<SessionFlags>)
         const protocolCommands = getPrototype(options as Partial<SessionFlags>)

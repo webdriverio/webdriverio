@@ -320,7 +320,6 @@ describe('multi remote test', () => {
                     const selected = multiRemoteBrowser.select('browserA', 'browserB')
 
                     expect(browserA.strategies).toBeInstanceOf(Map)
-                    expect(browserA.isW3C).toBe(true)
                     expect(browserA.isMobile).toBe(false)
                     expect(browserA.isIOS).toBe(false)
                     expect(browserA.isAndroid).toBe(false)
@@ -337,7 +336,6 @@ describe('multi remote test', () => {
                     expect(browserA.isMultiremote).toBe(undefined)
 
                     expect(multiRemoteBrowser.strategies).toBeInstanceOf(Map)
-                    expect(multiRemoteBrowser.isW3C).toBe(true)
                     expect(multiRemoteBrowser.isMobile).toBe(false)
                     expect(multiRemoteBrowser.isIOS).toBe(false)
                     expect(multiRemoteBrowser.isAndroid).toBe(false)
@@ -354,7 +352,6 @@ describe('multi remote test', () => {
                     expect(multiRemoteBrowser.isMultiremote).toBe(true)
 
                     expect(selected.strategies).toEqual(multiRemoteBrowser.strategies)
-                    expect(selected.isW3C).toBe(multiRemoteBrowser.isW3C)
                     expect(selected.isMobile).toBe(multiRemoteBrowser.isMobile)
                     expect(selected.isIOS).toBe(multiRemoteBrowser.isIOS)
                     expect(selected.isAndroid).toBe(multiRemoteBrowser.isAndroid)

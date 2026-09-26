@@ -21,9 +21,7 @@
  *
  */
 export function getValue (this: WebdriverIO.Element): Promise<string> {
-    const value = this.isW3C
-        ? this.getElementProperty(this.elementId, 'value')
-        : this.getElementAttribute(this.elementId, 'value')
+    const value = this.getElementProperty(this.elementId, 'value')
 
     return value.then((res) => typeof res === 'string' ? res : '')
 }
