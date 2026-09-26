@@ -2,7 +2,7 @@
 
 /// <reference path="../types.d.ts" />
 
-type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect' | 'multiRemoteBrowser'
+type SupportedGlobals = 'browser' | 'driver' | '$' | '$$' | 'expect' | 'multiRemoteBrowser'
 
 declare global {
 
@@ -48,13 +48,6 @@ export const browser: WebdriverIO.Browser = new Proxy(
 export const driver: WebdriverIO.Browser = new Proxy(
     class Browser {} as unknown as WebdriverIO.Browser,
     proxyHandler('driver')
-)
-/**
- * @deprecated Use `multiRemoteBrowser` instead.
- */
-export const multiremotebrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
-    class Browser {} as unknown as WebdriverIO.MultiRemoteBrowser,
-    proxyHandler('multiremotebrowser')
 )
 export const multiRemoteBrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
     class Browser {} as unknown as WebdriverIO.MultiRemoteBrowser,

@@ -90,13 +90,6 @@ export interface JasmineOpts {
      */
     seed?: Function
     /**
-     * Whether to stop execution of the suite after the first spec failure.
-     * @default false
-     * @since v3.3.0
-     * @deprecated Use the `stopOnSpecFailure` config property instead.
-     */
-    failFast?: boolean
-    /**
      * Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed.
      * Setting this to true will report such spec as a failure.
      * @default false

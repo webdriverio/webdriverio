@@ -391,7 +391,6 @@ const jasmineTypes: Record<string, string> = {
     requires: 'array',
     random: 'boolean',
     seed: 'string',
-    failFast: 'boolean',
     failSpecWithNoExpectations: 'boolean',
     oneFailurePerSpec: 'boolean',
     grep: 'string',

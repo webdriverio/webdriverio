@@ -185,11 +185,7 @@ class JasmineAdapter {
     ) {
         this._jasmineOpts = Object.assign({
             cleanStack: true
-        }, (
-            this._config.jasmineOpts ||
-            // @ts-expect-error legacy option
-            this._config.jasmineNodeOpts
-        ))
+        }, this._config.jasmineOpts)
 
         this._reporter = new JasmineReporter(reporter, {
             cid: this._cid,
@@ -254,7 +250,6 @@ class JasmineAdapter {
             specFilter: this._jasmineOpts.specFilter || this.customSpecFilter.bind(this),
             stopOnSpecFailure: Boolean(this._jasmineOpts.stopOnSpecFailure),
             failSpecWithNoExpectations: Boolean(this._jasmineOpts.failSpecWithNoExpectations),
-            failFast: this._jasmineOpts.failFast,
             random: Boolean(this._jasmineOpts.random),
             seed: Boolean(this._jasmineOpts.seed),
             oneFailurePerSpec: Boolean(

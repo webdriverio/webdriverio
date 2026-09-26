@@ -358,17 +358,7 @@ class Launcher {
         } else {
             caps = capabilities as WebdriverIO.Capabilities
         }
-        const specs = (
-            // @ts-expect-error deprecated
-            caps.specs ||
-            caps['wdio:specs']
-        )
-        const excludes = (
-            // @ts-expect-error deprecated
-            caps.exclude ||
-            caps['wdio:exclude']
-        )
-        const files = this.configParser.getSpecs(specs, excludes)
+        const files = this.configParser.getSpecs(caps['wdio:specs'], caps['wdio:exclude'])
 
         return files.map((file: string | string[]) => {
             if (typeof file === 'string') {

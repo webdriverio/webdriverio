@@ -161,7 +161,6 @@ describe('framework parameter conversion', () => {
             '--jasmineOpts.requires', 'foo',
             '--jasmineOpts.random', 'true',
             '--jasmineOpts.seed', 'foo',
-            '--jasmineOpts.failFast', 'true',
             '--jasmineOpts.failSpecWithNoExpectations', 'true',
             '--jasmineOpts.oneFailurePerSpec', 'true',
             '--jasmineOpts.grep', 'foo',
@@ -176,7 +175,6 @@ describe('framework parameter conversion', () => {
           {
             "cleanStack": true,
             "defaultTimeoutInterval": 123,
-            "failFast": true,
             "failSpecWithNoExpectations": true,
             "grep": "foo",
             "helpers": [
