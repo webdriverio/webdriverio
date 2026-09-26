@@ -116,8 +116,6 @@ export default class Runner extends EventEmitter {
          */
         let browser = await this._startSession({
             ...this._config,
-            // @ts-ignore used in `/packages/webdriverio/src/protocol-stub.ts`
-            _automationProtocol: this._config.automationProtocol,
             automationProtocol: './protocol-stub.js'
         }, this._caps)
 
