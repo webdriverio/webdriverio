@@ -68,18 +68,13 @@ export async function startDisplayDaemonFromConfig(
     const restoreEnv = applyEnv(daemon.env)
     log.info(`Display server env: ${JSON.stringify(daemon.env)}`)
 
-    // The daemon is killed on process exit by runDaemon; callers that handle signals call stop().
-    let stopPromise: Promise<void> | null = null
-    const stop = (): Promise<void> => {
-        stopPromise ??= (async () => {
+    return {
+        stop: async () => {
             try {
                 await daemon.stop()
             } finally {
                 restoreEnv()
             }
-        })()
-        return stopPromise
+        },
     }
-
-    return { stop }
 }

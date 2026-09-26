@@ -143,14 +143,14 @@ export default class LocalRunner {
             }, 250)
         })
 
-        if (this.daemon) {
-            try {
-                await this.daemon.stop()
-            } finally {
-                this.daemon = null
-            }
-        }
-
         return shutdownResult
+    }
+
+    /**
+     * Stop the display daemon. Runs after `onComplete`, so a driver or app a
+     * service started in `onPrepare` still has its display while it is torn down.
+     */
+    async dispose() {
+        await this.daemon?.stop()
     }
 }
