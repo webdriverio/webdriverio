@@ -193,10 +193,17 @@ Use `type: 'tab'` to open a tab.
 
 ### `startActivity`
 
-Only the options object is accepted.
+Only the options object is accepted. `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments` are gone. They only applied to the removed Appium HTTP endpoint. `mobile: startActivity` does not accept them, and passing them throws.
 
 ```diff
 - await browser.startActivity('com.example.app', '.MainActivity')
+- await browser.startActivity({
+-     appPackage: 'com.example.app',
+-     appActivity: '.MainActivity',
+-     appWaitPackage: 'com.example.app',
+-     appWaitActivity: '.MainActivity',
+-     optionalIntentArguments: '--ez extra true',
+- })
 + await browser.startActivity({
 +     appPackage: 'com.example.app',
 +     appActivity: '.MainActivity',
