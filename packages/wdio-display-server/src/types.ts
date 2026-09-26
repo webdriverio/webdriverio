@@ -24,9 +24,9 @@ export interface DisplayDaemon {
     stop(): Promise<void>
 
     /**
-     * Best-effort **synchronous** cleanup for Node's `'exit'` listener, where async
-     * work is abandoned: `proc.kill('SIGKILL')` and `rmSync` any runtime files.
-     * Safe to call multiple times and after `stop()`.
+     * Best-effort **synchronous** cleanup: `proc.kill('SIGKILL')` and `rmSync` any runtime
+     * files. The built-in servers also run it on Node's `'exit'` event, where async work is
+     * abandoned, until `stop()` or `stopSync()` has run. Safe to call multiple times and after `stop()`.
      */
     stopSync(): void
 }

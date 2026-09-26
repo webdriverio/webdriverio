@@ -104,31 +104,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         expect(process.env.DISPLAY).toBeUndefined()
     })
 
-    it('registers an exit listener that uses stopSync, not the abandonable async stop', async () => {
-        const stopSpy = vi.fn().mockResolvedValue(undefined)
-        const stopSyncSpy = vi.fn()
-        const server = makeDisplayServer({
-            name: 'xvfb',
-            startDaemon: async () => makeDaemonHandle({ env: { DISPLAY: ':99' }, stop: stopSpy, stopSync: stopSyncSpy }),
-        })
-        const manager = makeManager(server)
-
-        const daemon = await startDisplayDaemonFromConfig(
-            {},
-            manager,
-        )
-        expect(daemon).not.toBeNull()
-        expect(process.env.DISPLAY).toBe(':99')
-
-        // Node abandons async work scheduled in an 'exit' listener, so cleanup must be sync.
-        process.emit('exit', 0)
-
-        expect(stopSyncSpy).toHaveBeenCalledTimes(1)
-        // Async path was NOT used — `void daemon.stop()` here would leave the daemon running.
-        expect(stopSpy).not.toHaveBeenCalled()
-        expect(process.env.DISPLAY).toBeUndefined()
-    })
-
     it('restores any prior process.env value the daemon overwrote, rather than deleting it', async () => {
         // Simulate the daemon overwriting a key that already had a value.
         process.env.NODE_ENV = 'preserved'

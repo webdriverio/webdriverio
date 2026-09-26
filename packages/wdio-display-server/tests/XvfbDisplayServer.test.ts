@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import path from 'node:path'
 
-import { arrangeDisplayFdSpawn, queuePackageManagerDetection, runAsRoot } from './helpers.js'
+import { arrangeDisplayFdSpawn, queuePackageManagerDetection, runAsRoot, trackExitListeners } from './helpers.js'
 
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockSpawn = vi.hoisted(() => vi.fn())
@@ -26,6 +26,8 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 const { XvfbDisplayServer } = await import('../src/XvfbDisplayServer.js')
 
 describe('XvfbDisplayServer', () => {
+    trackExitListeners()
+
     beforeEach(() => {
         vi.clearAllMocks()
         // '' reads as non-CentOS-10, so checkIsCentOS10() is false.

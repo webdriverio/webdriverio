@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import path from 'node:path'
 
-import { arrangeSpawn, queuePackageManagerDetection, runAsRoot } from './helpers.js'
+import { arrangeSpawn, queuePackageManagerDetection, runAsRoot, trackExitListeners } from './helpers.js'
 
 const mockExecAsync = vi.hoisted(() => vi.fn())
 const mockSpawn = vi.hoisted(() => vi.fn())
@@ -38,6 +38,8 @@ const { WaylandDisplayServer } = await import('../src/WaylandDisplayServer.js')
 const RUNTIME_DIR = '/tmp/wdio-wayland-abc123'
 
 describe('WaylandDisplayServer', () => {
+    trackExitListeners()
+
     beforeEach(() => {
         vi.clearAllMocks()
         mockMkdtemp.mockResolvedValue(RUNTIME_DIR)
