@@ -138,9 +138,6 @@ through the repo; search for every occurrence before renaming a key.
 
 ## Terminology
 
-Project conventions, not English rules. Apply them everywhere,
-including code ported from v9.
-
 - `multi-remote` in English text, never `multiremote`.
 - `Multi-remote` at the start of a sentence, heading or title.
 - `multiRemote` / `MultiRemote` in camelCase / PascalCase code, e.g. `isMultiRemote`.
