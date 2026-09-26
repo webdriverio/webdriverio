@@ -318,6 +318,35 @@ describe('BiDi blob serialization', () => {
         expect(await bytesOf(file)).toEqual([1])
     })
 
+    it('ignores own fields that shadow File getters', async () => {
+        const file = await roundTrip<File & { meta: string }>(() => {
+            const file = new File([new Uint8Array([1])], 'notes.txt', {
+                type: 'text/plain',
+                lastModified: 5
+            })
+            Object.defineProperty(file, 'name', {
+                value: 'other.txt',
+                enumerable: true,
+                writable: true,
+                configurable: true
+            })
+            Object.defineProperty(file, 'size', {
+                value: 99,
+                enumerable: true,
+                writable: true,
+                configurable: true
+            })
+            Object.assign(file, { meta: 'keep' })
+            return file
+        })
+
+        expect(file).toBeInstanceOf(File)
+        expect(file.name).toBe('notes.txt')
+        expect(file.size).toBe(1)
+        expect(file.meta).toBe('keep')
+        expect(await bytesOf(file)).toEqual([1])
+    })
+
     it('returns files from a FileList that also has its own field', async () => {
         const raw = await runInBrowser<File[] & { note: string }>(() => {
             const file = new File(['z'], 'z.txt', { type: 'text/plain', lastModified: 5 })
@@ -336,6 +365,8 @@ describe('BiDi blob serialization', () => {
         expect(files[0]).toBeInstanceOf(File)
         expect(files[0].name).toBe('z.txt')
         expect(await files[0].text()).toBe('z')
+        // BiDi arrays only carry indexed elements, so the extra field stops here.
+        expect(files).not.toHaveProperty('note')
     })
 
     it('leaves an object that only looks like a serialized blob alone', () => {

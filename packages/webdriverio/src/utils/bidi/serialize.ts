@@ -61,6 +61,18 @@ const SERIALIZER_HELPER = `
         return String(Number(key)) === key && Number.isInteger(Number(key)) && Number(key) >= 0;
     }
 
+    function __wdioHostValue(value, key) {
+        let proto = Object.getPrototypeOf(value);
+        while (proto) {
+            const desc = Object.getOwnPropertyDescriptor(proto, key);
+            if (desc) {
+                return typeof desc.get === 'function' ? desc.get.call(value) : desc.value;
+            }
+            proto = Object.getPrototypeOf(proto);
+        }
+        return value[key];
+    }
+
     function __wdioIsBlob(value) {
         const tag = __wdioTag(value);
         if (tag !== '[object Blob]' && tag !== '[object File]') {
@@ -101,16 +113,18 @@ const SERIALIZER_HELPER = `
         const serialized = {
             [__wdioSerializedBlobKey]: true,
             data: base64,
-            type: blob.type || '',
-            size: blob.size,
+            type: __wdioHostValue(blob, 'type') || '',
+            size: __wdioHostValue(blob, 'size'),
             kind: __wdioSerializedBlobKindBlob
         };
         if (__wdioTag(blob) === '[object File]') {
             serialized.kind = __wdioSerializedBlobKindFile;
-            serialized.name = blob.name;
-            serialized.lastModified = blob.lastModified;
+            serialized.name = __wdioHostValue(blob, 'name');
+            serialized.lastModified = __wdioHostValue(blob, 'lastModified');
         }
-        const propKeys = Object.keys(blob);
+        const propKeys = Object.keys(blob).filter((key) => (
+            key !== 'size' && key !== 'type' && key !== 'name' && key !== 'lastModified'
+        ));
         if (propKeys.length) {
             seen.add(blob);
             try {
@@ -362,7 +376,14 @@ export function createBlobFromSerializedValue (value: SerializedBlobValue) {
         blob = bytes
     }
     if (value.props) {
-        Object.assign(blob, value.props)
+        const target = blob as unknown as Record<string, unknown>
+        for (const [key, prop] of Object.entries(value.props)) {
+            try {
+                target[key] = prop
+            } catch {
+                // File#name and similar host getters are already restored above.
+            }
+        }
     }
     return blob
 }
