@@ -141,13 +141,13 @@ through the repo; search for every occurrence before renaming a key.
 Project conventions (#14975), not English rules. Apply them everywhere,
 including code ported from v9.
 
-| Prose | Code | Never |
-|-------|------|-------|
-| multi-remote ("Multi-remote" at the start of a sentence or heading) | `multiRemote`, `MultiRemote`, `isMultiRemote` | `multiremote`, `Multiremote`, `isMultiremote`, `multiremote()` |
-
-Kept for compatibility, do not change: the `id: multiremote` permalink and
-`/docs/multiremote` links, file and folder names, the Allure historyId key
-`'multiremote'`, the v9 column of `v10Migration.md`, and `CHANGELOG.md`.
+- `multi-remote` in English text, never `multiremote`.
+- `Multi-remote` at the start of a sentence, heading or title.
+- `multiRemote` / `MultiRemote` in camelCase / PascalCase code, e.g. `isMultiRemote`.
+- Never write `multiremote` or `Multiremote`, e.g. `isMultiremote`, `multiremote()`.
+- Exceptions, kept for compatibility: the `id: multiremote` permalink and
+  `/docs/multiremote` links, file and folder names, the Allure historyId key
+  `'multiremote'`, the v9 column of `v10Migration.md`, and `CHANGELOG.md`.
 
 Must print nothing before committing:
 
