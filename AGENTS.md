@@ -160,8 +160,6 @@ Keep the old spelling only where changing it would break users. Do not
   `/docs/multiremote` link (the page permalink).
 - File and folder names, e.g. `Multiremote.md`, `tests/multiremote/`,
   `.github/workflows/test-multiremote.yml`.
-- The deprecated `multiremotebrowser` global (new code uses
-  `multiRemoteBrowser`).
 - The Allure historyId key `'multiremote'` in `wdio-allure-reporter`: it is
   hash input, never shown, and changing it resets report history.
 - The v9 column of the migration guide, and `CHANGELOG.md`.
