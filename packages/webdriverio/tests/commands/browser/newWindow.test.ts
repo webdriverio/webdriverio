@@ -82,7 +82,6 @@ describe('newWindow', () => {
         await expect(browser.newWindow('https://webdriver.io', {
             // @ts-expect-error removed in v10
             windowName: 'some name',
-            // @ts-expect-error removed in v10
             windowFeatures: 'some params'
         })).rejects.toThrow('The `windowName` and `windowFeatures` options were removed from `newWindow` in WebdriverIO v10.')
     })
