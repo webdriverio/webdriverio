@@ -447,7 +447,7 @@ export interface RunnerStart {
     cid: string
     specs: string[]
     config: Testrunner
-    isMultiremote: boolean
+    isMultiRemote: boolean
     instanceOptions: Record<string, WebdriverIO>
     sessionId: string
     capabilities: WebdriverIO.Capabilities

@@ -67,7 +67,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     logsAggregator: string[] = []
 
     instances?: Record<string, { sessionId: string }>
-    isMultiremote?: boolean
+    isMultiRemote?: boolean
 
     isBusy = false
     isKilled = false
@@ -227,7 +227,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             if (this.retries === -1 && payload.specFileRetries) {
                 this.retries = payload.specFileRetries - 1
             }
-            if (payload.content.isMultiremote) {
+            if (payload.content.isMultiRemote) {
                 Object.assign(this, payload.content)
             } else {
                 this.sessionId = payload.content.sessionId

@@ -1,11 +1,11 @@
 import type { WriteStream } from 'node:fs'
 import type { EventEmitter } from 'node:events'
 
-import type { RequestedStandaloneCapabilities, RequestedMultiremoteCapabilities } from './Capabilities.js'
+import type { RequestedStandaloneCapabilities, RequestedMultiRemoteCapabilities } from './Capabilities.js'
 
 interface OutputFileFormatOptions {
     cid: string
-    capabilities: RequestedStandaloneCapabilities | RequestedMultiremoteCapabilities
+    capabilities: RequestedStandaloneCapabilities | RequestedMultiRemoteCapabilities
 }
 
 export interface Options {

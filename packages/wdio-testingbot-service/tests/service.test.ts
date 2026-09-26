@@ -309,7 +309,7 @@ describe('wdio-testingbot-service', () => {
         tbService['_browser'] = browser
         const updateJobSpy = vi.spyOn(tbService, 'updateJob')
 
-        tbService['_browser'].isMultiremote = true
+        tbService['_browser'].isMultiRemote = true
         tbService['_browser'].sessionId = 'sessionId'
         tbService['_failures'] = 2
         await tbService.after()
@@ -359,7 +359,7 @@ describe('wdio-testingbot-service', () => {
         tbService['_browser'] = browser
         const updateJobSpy = vi.spyOn(tbService, 'updateJob')
 
-        tbService['_browser'].isMultiremote = true
+        tbService['_browser'].isMultiRemote = true
         tbService['_browser'].sessionId = 'sessionId'
         tbService['_failures'] = 2
         await tbService.onReload('oldSessionId', 'sessionChromeA')

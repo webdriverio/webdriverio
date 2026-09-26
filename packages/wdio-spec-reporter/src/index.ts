@@ -92,7 +92,7 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onRunnerStart (runner: RunnerStats) {
-        this._preface = this._showPreface ? `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]` : ''
+        this._preface = this._showPreface ? `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiRemote).trim()} #${runner.cid}]` : ''
     }
 
     onSuiteStart (suite: SuiteStats) {
@@ -225,7 +225,7 @@ export default class SpecReporter extends WDIOReporter {
         }
 
         const duration = `(${prettyMs(runner._duration)})`
-        const preface = `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]`
+        const preface = `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiRemote).trim()} #${runner.cid}]`
         const divider = '------------------------------------------------------------------'
 
         // Get the results
@@ -244,11 +244,11 @@ export default class SpecReporter extends WDIOReporter {
             return
         }
 
-        const testLinks = runner.isMultiremote
+        const testLinks = runner.isMultiRemote
             ? Object.entries(runner.capabilities).map(([instanceName, capabilities]: [string, CapabilitiesWithSessionId]) => this.getTestLink({
                 capabilities,
                 sessionId: capabilities.sessionId,
-                isMultiremote: runner.isMultiremote,
+                isMultiRemote: runner.isMultiRemote,
                 instanceName
             })).filter((links) => links.length)
             : this.getTestLink(runner)
@@ -279,21 +279,21 @@ export default class SpecReporter extends WDIOReporter {
     /**
      * get link to saucelabs job
      */
-    getTestLink ({ sessionId, isMultiremote, instanceName, capabilities }: TestLink) {
+    getTestLink ({ sessionId, isMultiRemote, instanceName, capabilities }: TestLink) {
         const config = this.runnerStat && this.runnerStat.instanceOptions[sessionId]
 
         const isSauceJob = (
             (config && config.hostname && config.hostname.includes('saucelabs')) ||
-            // only show if multiremote is not used
+            // only show if multi-remote is not used
             capabilities['sauce:options']
         )
 
         if (isSauceJob && config && config.user && config.key && sessionId) {
-            const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
+            const multiRemoteNote = isMultiRemote ? ` ${instanceName}` : ''
             const note = 'Check out%s job at %s'
             // The report url of RDC is in the caps that are returned
             if ('testobject_test_report_url' in capabilities){
-                return [format(note, multiremoteNote, capabilities.testobject_test_report_url)]
+                return [format(note, multiRemoteNote, capabilities.testobject_test_report_url)]
             }
 
             // VDC urls can be constructed / be made shared
@@ -305,7 +305,7 @@ export default class SpecReporter extends WDIOReporter {
                 : ''
             const sauceUrl = `https://app${dc}.saucelabs.com/tests/${sessionId}${sauceLabsSharableLinks}`
 
-            return [format(note, multiremoteNote, sauceUrl)]
+            return [format(note, multiRemoteNote, sauceUrl)]
         }
 
         return []
@@ -317,13 +317,13 @@ export default class SpecReporter extends WDIOReporter {
      * @return {Array}         Header data
      */
     getHeaderDisplay (runner: RunnerStats) {
-        const combo = this.getEnviromentCombo(runner.capabilities, undefined, runner.isMultiremote).trim()
+        const combo = this.getEnviromentCombo(runner.capabilities, undefined, runner.isMultiRemote).trim()
 
         // Spec file name and enviroment information
         const output = [`Running: ${combo}`]
 
         /**
-         * print session ID if not multiremote
+         * print session ID if not multi-remote
          */
         // @ts-expect-error
         if (runner.capabilities.sessionId) {
@@ -657,16 +657,16 @@ export default class SpecReporter extends WDIOReporter {
      * Get information about the enviroment
      * @param capability
      * @param  {Boolean} verbose
-     * @param isMultiremote
+     * @param isMultiRemote
      * @return {String}          Enviroment string
      */
-    getEnviromentCombo (capability: Capabilities.ResolvedTestrunnerCapabilities, verbose = true, isMultiremote = false): string {
-        if (isMultiremote) {
+    getEnviromentCombo (capability: Capabilities.ResolvedTestrunnerCapabilities, verbose = true, isMultiRemote = false): string {
+        if (isMultiRemote) {
             const browserNames = Object.values(capability).map((c) => c.browserName)
             const browserName = browserNames.length > 1
                 ? `${browserNames.slice(0, -1).join(', ')} and ${browserNames.pop()}`
                 : browserNames.pop()
-            return `MultiremoteBrowser on ${browserName}`
+            return `MultiRemoteBrowser on ${browserName}`
         }
         const caps = 'alwaysMatch' in capability ? capability.alwaysMatch : capability
         const device = caps['appium:deviceName']

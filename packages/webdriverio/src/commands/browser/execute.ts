@@ -69,7 +69,7 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
         throw new Error('number or type of arguments don\'t agree with execute protocol command')
     }
 
-    if (this.isBidi && !this.isMultiremote) {
+    if (this.isBidi && !this.isMultiRemote) {
         const browser = getBrowserObject(this)
         const contextManager = getContextManager(browser)
         const context = await contextManager.getCurrentContext()

@@ -156,9 +156,9 @@ export const config = {
 
     -If `logName` is not set in the capabilities, the `formatImageName` option will show it as an empty string in the filenames (`homepage--15-1920x1080.png`)
 
-### WebdriverIO MultiRemote
+### WebdriverIO multi-remote
 
-We also support [MultiRemote](https://webdriver.io/docs/multiremote/). To make this work properly make sure that you add `wdio-ics:options` to your
+We also support [multi-remote](https://webdriver.io/docs/multiremote/). To make this work properly make sure that you add `wdio-ics:options` to your
 capabilities as you can see below. This will make sure that each screenshot will have its own unique name.
 
 [Writing your tests](/docs/visual-testing/writing-tests) will not be any different in comparison to using the [testrunner](https://webdriver.io/docs/testrunner)

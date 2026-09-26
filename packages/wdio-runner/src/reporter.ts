@@ -19,7 +19,7 @@ export default class BaseReporter {
     constructor(
         private _config: Options.Testrunner,
         private _cid: string,
-        public caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
+        public caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities
     ) {
 
         /**
@@ -52,7 +52,7 @@ export default class BaseReporter {
         error?: string
         sessionId?: string
         config?: unknown
-        isMultiremote?: boolean
+        isMultiRemote?: boolean
         instanceOptions?: Options.Testrunner
         capabilities?: unknown
         retry?: number,
@@ -107,7 +107,7 @@ export default class BaseReporter {
         // clone the config to avoid changing original properties
         const options = Object.assign({}, this._config) as Options.Testrunner & {
             cid: string
-            capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
+            capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities
         }
         let filename = `wdio-${this._cid}-${name}-reporter.log`
 

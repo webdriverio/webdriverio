@@ -243,7 +243,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
                 }
 
                 /**
-                 * add command to every multiremote instance
+                 * add command to every multi-remote instance
                  */
                 if (_instances) {
                     Object.values(_instances).forEach((instance: { __propertiesObject__: Record<string, unknown> }) => {
@@ -295,7 +295,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
             if (attachToElement) {
                 if (instances) {
                     /**
-                     * add command to every multiremote instance
+                     * add command to every multi-remote instance
                      */
                     Object.values(instances).forEach((instance: { __propertiesObject__: { __elementOverrides__: { value: Record<string, Function> } } }) => {
                         setElementOverride(instance.__propertiesObject__.__elementOverrides__.value, name, customCommand)

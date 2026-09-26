@@ -24,7 +24,7 @@ export type RunParams = {
     cid: string
     args: Args
     specs: string[]
-    caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
+    caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities
     configFile: string
     retries: number
 }
@@ -34,7 +34,7 @@ export interface TestFramework {
         cid: string,
         config: WebdriverIO.Config,
         specs: string[],
-        capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
+        capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities,
         reporter: BaseReporter
     ) => TestFramework
     run (): Promise<number>
@@ -56,7 +56,7 @@ export interface SessionStartedMessage {
         port: number
         path: string
         headers: Record<string, string>
-        isMultiremote: boolean
+        isMultiRemote: boolean
         injectGlobals: boolean
         capabilities: WebdriverIO.Capabilities
     },

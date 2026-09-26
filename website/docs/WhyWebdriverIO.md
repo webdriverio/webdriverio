@@ -19,7 +19,7 @@ Most teams ship more than a website. WebdriverIO lets you test all of it with th
 | Editors and extensions | VS Code extensions and browser extensions | [Extensions & Editors](/docs/platforms/apps-and-extensions) |
 | Visual regressions | Screen, element and full-page comparisons for web and mobile | [Visual Testing](/docs/visual-testing) |
 
-The same test can even drive several of these at once, e.g. a mobile app and a web dashboard in one scenario, with [Multiremote](/docs/multiremote).
+The same test can even drive several of these at once, e.g. a mobile app and a web dashboard in one scenario, with [multi-remote](/docs/multiremote).
 
 ## Built on web standards
 

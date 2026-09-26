@@ -73,7 +73,7 @@ exports[`getCapabilities > should return driver with capabilities for ios 2`] = 
 }
 `;
 
-exports[`getCapabilities > should return driver with capabilities for multiremote config 1`] = `
+exports[`getCapabilities > should return driver with capabilities for multi-remote config 1`] = `
 {
   "capabilities": {
     "browserName": "chrome",

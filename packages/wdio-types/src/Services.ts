@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options.js'
-import type { RequestedStandaloneCapabilities, RequestedMultiremoteCapabilities, TestrunnerCapabilities, ResolvedTestrunnerCapabilities } from './Capabilities.js'
+import type { RequestedStandaloneCapabilities, RequestedMultiRemoteCapabilities, TestrunnerCapabilities, ResolvedTestrunnerCapabilities } from './Capabilities.js'
 import type { Suite, Test, TestResult } from './Frameworks.js'
 import type { Worker } from './Workers.js'
 
@@ -191,7 +191,7 @@ export interface HookFunctions {
      * @param browser       instance of created browser/device session
      */
     before?(
-        capabilities: RequestedStandaloneCapabilities | RequestedMultiremoteCapabilities,
+        capabilities: RequestedStandaloneCapabilities | RequestedMultiRemoteCapabilities,
         specs: string[],
         browser: any // BrowserObject
     ): unknown | Promise<unknown>
@@ -205,7 +205,7 @@ export interface HookFunctions {
      */
     after?(
         result: number,
-        capabilities: RequestedStandaloneCapabilities | RequestedMultiremoteCapabilities,
+        capabilities: RequestedStandaloneCapabilities | RequestedMultiRemoteCapabilities,
         specs: string[]
     ): unknown | Promise<unknown>
 
@@ -219,7 +219,7 @@ export interface HookFunctions {
      */
     beforeSession?(
         config: Omit<TestrunnerOptions, 'capabilities'>,
-        capabilities: RequestedStandaloneCapabilities | RequestedMultiremoteCapabilities,
+        capabilities: RequestedStandaloneCapabilities | RequestedMultiRemoteCapabilities,
         specs: string[],
         cid: string
     ): unknown | Promise<unknown>

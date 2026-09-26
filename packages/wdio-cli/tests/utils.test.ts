@@ -342,7 +342,7 @@ describe('getCapabilities', () => {
         expect(resolveMock).not.toHaveBeenCalled()
     })
 
-    it('should return driver with capabilities for multiremote config', async () => {
+    it('should return driver with capabilities for multi-remote config', async () => {
         const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
         getCapabilitiesMock.mockReturnValue({
             myChromeBrowser: {

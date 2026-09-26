@@ -77,7 +77,7 @@ End-to-end testing across browsers:
 - [WebDriver BiDi commands](/docs/api/webdriverBidi): raw BiDi protocol commands available on the `browser` object.
 - [Selectors](/docs/selectors): CSS, text, ARIA, deep (shadow DOM) and React selectors.
 - [Auto-waiting](/docs/autowait) and [Timeouts](/docs/timeouts): how WebdriverIO waits for elements and what to tune.
-- [Multiremote](/docs/multiremote): control several browsers in one test, e.g. for chat or WebRTC apps.
+- [Multi-remote](/docs/multiremote): control several browsers in one test, e.g. for chat or WebRTC apps.
 
 Browser capabilities that need WebDriver BiDi (Chrome, Edge and Firefox; not Safari):
 

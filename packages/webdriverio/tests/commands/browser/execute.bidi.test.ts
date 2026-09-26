@@ -28,7 +28,7 @@ function bidiBrowser (scriptArgs: unknown[] = []) {
 
     return {
         isBidi: true,
-        isMultiremote: false,
+        isMultiRemote: false,
         scriptCallFunction
     }
 }

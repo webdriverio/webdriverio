@@ -1,33 +1,33 @@
 ---
 id: multiremote
-title: Multiremote
-description: "Control multiple browser or device sessions from a single test with multiremote, in standalone mode or with the WDIO testrunner."
+title: Multi-remote
+description: "Control multiple browser or device sessions from a single test with multi-remote, in standalone mode or with the WDIO testrunner."
 ---
 
 WebdriverIO allows you to run multiple automated sessions in a single test. This becomes handy when you’re testing features that require multiple users (for example, chat or WebRTC applications).
 
-Instead of creating a couple of remote instances where you need to execute common commands like [`newSession`](/docs/api/webdriver#newsession) or [`url`](/docs/api/browser/url) on each instance, you can simply create a **multiremote** instance and control all browsers at the same time.
+Instead of creating a couple of remote instances where you need to execute common commands like [`newSession`](/docs/api/webdriver#newsession) or [`url`](/docs/api/browser/url) on each instance, you can simply create a **multi-remote** instance and control all browsers at the same time.
 
-To do so, just use the `multiremote()` function, and pass in an object with names keyed to `capabilities` for values. By giving each capability a name, you can easily select and access that single instance when executing commands on a single instance.
+To do so, just use the `multiRemote()` function, and pass in an object with names keyed to `capabilities` for values. By giving each capability a name, you can easily select and access that single instance when executing commands on a single instance.
 
 :::info
 
-Multiremote is _not_ meant to execute all your tests in parallel.
+MultiRemote is _not_ meant to execute all your tests in parallel.
 It is intended to help coordinate multiple browsers and/or mobile devices for special integration tests (e.g. chat applications).
 
 :::
 
-All multiremote instances return an array of results. The first result represents the capability defined first in the capability object the second result the second capability and so on.
+All multi-remote instances return an array of results. The first result represents the capability defined first in the capability object the second result the second capability and so on.
 
 ## Using Standalone Mode
 
-Here is an example of how to create a multiremote instance in __standalone mode__:
+Here is an example of how to create a multi-remote instance in __standalone mode__:
 
 ```js
-import { multiremote } from 'webdriverio'
+import { multiRemote } from 'webdriverio'
 
 (async () => {
-    const browser = await multiremote({
+    const browser = await multiRemote({
         myChromeBrowser: {
             capabilities: {
                 browserName: 'chrome'
@@ -58,7 +58,7 @@ import { multiremote } from 'webdriverio'
 
 ## Using WDIO Testrunner
 
-In order to use multiremote in the WDIO testrunner, just define the `capabilities` object in your `wdio.conf.js` as an object with the browser names as keys (instead of a list of capabilities):
+In order to use multi-remote in the WDIO testrunner, just define the `capabilities` object in your `wdio.conf.js` as an object with the browser names as keys (instead of a list of capabilities):
 
 ```js
 export const config = {
@@ -81,7 +81,7 @@ export const config = {
 
 This will create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io) or one mobile device and one browser.
 
-You can also run multiremote in parallel by putting the browser capabilities object in an array. Please make sure to have `capabilities` field included in each browser, as this is how we tell each mode apart.
+You can also run multi-remote in parallel by putting the browser capabilities object in an array. Please make sure to have `capabilities` field included in each browser, as this is how we tell each mode apart.
 
 ```js
 export const config = {
@@ -186,11 +186,11 @@ assert.true(
 
 In this example, the `myFirefoxBrowser` instance will start waiting on a message once the `myChromeBrowser` instance has clicked on `#send` button.
 
-Multiremote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
+MultiRemote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
 
 ### What `$$` returns
 
-On a multiremote browser, `$$` (and `custom$$` / `react$$`) returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`:
+On a multi-remote browser, `$$` (and `custom$$` / `react$$`) returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`:
 
 ```js
 const messages = await $$('.messages')
@@ -199,8 +199,8 @@ messages.length      // how many elements were found
 messages[0]          // a MultiRemoteElement, addressing all instances
 messages.selector    // '.messages'
 messages.foundWith   // '$$'
-messages.parent      // the multiremote browser or element it was fetched from
-messages.isMultiremote // true, so it can be told apart from a plain ElementArray
+messages.parent      // the multi-remote browser or element it was fetched from
+messages.isMultiRemote // true, so it can be told apart from a plain ElementArray
 
 // the async array helpers are available, as on a single browser
 await messages.map((m) => m.getText())
@@ -247,7 +247,7 @@ When(/^User (.) types a message into the chat/, async (userId) => {
 
 ## Accessing one instance
 
-Instance names are not properties of the multiremote browser or of a multiremote element. `browser.myChromeBrowser` and `elem.myChromeDriver` are not set. Ask for the session with `getInstance`, or narrow the multiremote object with `select`:
+Instance names are not properties of the multi-remote browser or of a multi-remote element. `browser.myChromeBrowser` and `elem.myChromeDriver` are not set. Ask for the session with `getInstance`, or narrow the multi-remote object with `select`:
 
 ```ts
 const myChromeBrowser = browser.getInstance('myChromeBrowser')
@@ -259,4 +259,4 @@ await myChromeElement.click()
 await browser.select('myChromeBrowser').url('https://webdriver.io')
 ```
 
-The testrunner still assigns each instance name as its own global when `injectGlobals` is left on, so a test can call `myChromeBrowser.$('button')` without going through `browser`. That global is the single session from `getInstance`, not a field on the multiremote object.
+The testrunner still assigns each instance name as its own global when `injectGlobals` is left on, so a test can call `myChromeBrowser.$('button')` without going through `browser`. That global is the single session from `getInstance`, not a field on the multi-remote object.

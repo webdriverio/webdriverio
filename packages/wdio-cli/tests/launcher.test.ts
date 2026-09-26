@@ -140,9 +140,9 @@ describe('launcher', () => {
             expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
         })
 
-        it('should start instance in multiremote', () => {
+        it('should start instance in multi-remote', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = true
+            launcher.isMultiRemote = true
             launcher['_runMode'](
                 { specs: ['./'], specFileRetries: 2 } as any,
                 { foo: { capabilities: { browserName: 'chrome' } } }
@@ -155,10 +155,10 @@ describe('launcher', () => {
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
         })
 
-        it('should start instances with parallel multiremote', () => {
+        it('should start instances with parallel multi-remote', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = true
-            launcher.isParallelMultiremote = true
+            launcher.isMultiRemote = true
+            launcher.isParallelMultiRemote = true
             launcher['_runMode'](
                 { specs: ['./'], specFileRetries: 2 } as any,
                 [
@@ -177,7 +177,7 @@ describe('launcher', () => {
 
         it('should start instance with grouped specs', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = false
+            launcher.isMultiRemote = false
             launcher['_runMode'](
                 { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
                 [caps]
@@ -190,9 +190,9 @@ describe('launcher', () => {
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
         })
 
-        it('should start instance in multiremote with grouped specs', () => {
+        it('should start instance in multi-remote with grouped specs', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = true
+            launcher.isMultiRemote = true
             launcher['_runMode'](
                 { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
                 { foo: { capabilities: { browserName: 'chrome' } } }
