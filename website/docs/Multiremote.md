@@ -17,7 +17,7 @@ It is intended to help coordinate multiple browsers and/or mobile devices for sp
 
 :::
 
-All multi-remote instances return an array of results. The first result represents the capability defined first in the capability object the second result the second capability and so on.
+Most multi-remote commands return an array of results. The first result represents the capability defined first in the capability object, the second result the second capability, and so on. `mock()` returns a `MultiRemoteMock` instead of an array. See [What mock() returns](#what-mock-returns).
 
 ## Using Standalone Mode
 
@@ -212,6 +212,39 @@ await messages.filter(async (m) => await m.isDisplayed())
 Before v10 this returned a plain array unless `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY=true` was set. The array is now the default and the environment variable has been removed. Index access is unchanged, so code that only read `elements[0]` keeps working.
 
 :::
+
+### What mock() returns {#what-mock-returns}
+
+On a multi-remote browser, `mock()` returns a `MultiRemoteMock`. It is not an array. `respond()`, `restore()`, and the other mock methods run on every instance. Captured requests stay on the mock for one browser, so read them with `getInstance`:
+
+```ts
+const mock = await browser.mock('**/users/list')
+
+mock.instances // ['myChromeBrowser', 'myFirefoxBrowser']
+mock.respond([{ id: 1 }])
+
+const chromeCalls = mock.getInstance('myChromeBrowser').calls
+const firefoxCalls = mock.getInstance('myFirefoxBrowser').calls
+```
+
+`examples/bidi/multiremote-mock.js` runs this against two headless Chrome sessions.
+
+`instances` follows the order the mocks were created. After `select()`, that order can differ from `browser.instances`:
+
+```ts
+const selected = await browser.select('myFirefoxBrowser', 'myChromeBrowser').mock('**/users/list')
+
+selected.instances // ['myFirefoxBrowser', 'myChromeBrowser']
+selected.getInstance('myChromeBrowser') // the Chrome mock, whatever the order
+```
+
+`getInstance` throws `Multi-remote object has no instance named "<name>"` when `name` is not in `instances`.
+
+To mock one browser only, call `mock()` on that instance:
+
+```ts
+const chromeOnly = await browser.getInstance('myChromeBrowser').mock('**/users/list')
+```
 
 ## Accessing browser instances using strings via the browser object
 In addition to accessing the browser instance via their global variables (e.g. `myChromeBrowser`, `myFirefoxBrowser`), you can also access them via the `browser` object, e.g. `browser["myChromeBrowser"]` or `browser["myFirefoxBrowser"]`. You can get a list of all your instances via `browser.instances`. This is especially useful when writing re-usable test steps that can be performed in either browser, e.g.:

@@ -1,7 +1,7 @@
 ---
 id: v10-migration
 title: From v9 to v10
-description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, and element references.
+description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, multi-remote network mocks, and element references.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
@@ -281,6 +281,21 @@ A TypeScript augmentation that adds `myChromeBrowser: WebdriverIO.Browser` to `W
 With the testrunner and `injectGlobals` left on, the instance name is still a global (`myChromeBrowser.url(...)`). That global is the single session. It is not `browser.myChromeBrowser`.
 
 Command results stay in capability order: the first entry belongs to the first key in the capabilities object.
+
+## Multi-remote network mocks
+
+`browser.mock()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteMock`, not an array of mocks. `respond`, `restore`, and the other mock methods run on every instance. Read captured requests from the mock for one browser. Use the `WebdriverIO.MultiRemoteMock` type from the global `WebdriverIO` namespace.
+
+```diff
+- const [chromeMock, firefoxMock] = await browser.mock('**/api')
+- expect(chromeMock.calls).toHaveLength(1)
++ const mock = await browser.mock('**/api')
++ mock.respond({ ok: true })
++ expect(mock.getInstance('myChromeBrowser').calls).toHaveLength(1)
++ expect(mock.instances).toEqual(['myChromeBrowser', 'myFirefoxBrowser'])
+```
+
+`getInstance` throws `Multi-remote object has no instance named "<name>"` when the name is not one of `instances`. A mock from `browser.select('myFirefoxBrowser', 'myChromeBrowser')` lists those instances in that order, which can differ from `browser.instances`. Do not assume `mocks[0]` is a particular browser.
 
 ## Element references
 

@@ -38,6 +38,16 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  *
  * :::
  *
+ * :::info
+ *
+ * On a [multi-remote](https://webdriver.io/docs/multiremote) browser, `mock` returns a
+ * [`MultiRemoteMock`](https://webdriver.io/docs/api/mock#multi-remote) instead of a single mock.
+ * `instances` lists the browser names, `getInstance(name)` returns that browser's mock,
+ * and `respond()`, `restore()`, and the other mock methods run on every instance.
+ * Captured requests stay on each mock: `mock.getInstance('myChromeBrowser').calls`.
+ *
+ * :::
+ *
  * <example>
     :mock.js
     it('should mock network resources', async () => {

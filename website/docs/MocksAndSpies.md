@@ -195,3 +195,24 @@ expect(mock.calls[0].body).toEqual({ success: true })
 ```
 
 If you need to wait until a matching request has responded, use `mock.waitForResponse(options)`. See the API reference: [waitForResponse](/docs/api/mock/waitForResponse).
+
+## Multi-remote
+
+On a [multi-remote](/docs/multiremote) browser, `mock()` returns a `MultiRemoteMock` rather than one `Mock`. Methods such as `respond()` and `restore()` run on every instance. `waitForResponse()` waits until every instance has a matching response. Captured requests stay on the mock for that browser:
+
+```ts
+const mock = await browser.mock('**/user', { method: 'post' })
+
+mock.respond({ success: true })
+
+expect(mock.getInstance('myChromeBrowser').calls).toHaveLength(1)
+expect(mock.getInstance('myFirefoxBrowser').calls).toHaveLength(1)
+```
+
+`mock.instances` lists those names in the order the mocks were created. `getInstance` throws `Multi-remote object has no instance named "<name>"` when the name is not in that list. A mock created from `browser.select('myFirefoxBrowser', 'myChromeBrowser')` lists Firefox first, which can differ from `browser.instances`.
+
+To stub one browser only, call `mock()` on that instance:
+
+```ts
+const chromeOnly = await browser.getInstance('myChromeBrowser').mock('**/user')
+```
