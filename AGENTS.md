@@ -138,7 +138,7 @@ through the repo; search for every occurrence before renaming a key.
 
 ## Terminology
 
-Project conventions (#14975), not English rules. Apply them everywhere,
+Project conventions, not English rules. Apply them everywhere,
 including code ported from v9.
 
 - `multi-remote` in English text, never `multiremote`.
