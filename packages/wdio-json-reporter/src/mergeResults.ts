@@ -20,10 +20,16 @@ export default async function mergeResults(
     }
     const fileName = customFileName || DEFAULT_FILENAME
     const filePath = path.join(dir, fileName)
-    // Skip a previous merged report so a broad pattern cannot fold it back in.
     const rawData = await getDataFromFiles(dir, filePattern, path.basename(fileName))
-    const mergedResults = mergeData(rawData)
 
+    if (rawData.length === 0) {
+        const existing = await readExistingReport(filePath)
+        if (existing) {
+            return existing
+        }
+    }
+
+    const mergedResults = mergeData(rawData)
     await fs.writeFile(filePath, JSON.stringify(mergedResults))
 
     return mergedResults
@@ -48,14 +54,28 @@ async function getDataFromFiles (dir: string, filePattern: string | RegExp, outp
         safePattern = /\.json$/
     }
 
-    const fileNames = (await fs.readdir(dir)).filter((file) => file !== outputFileName && file.match(safePattern))
-    const data: unknown[] = []
-
-    await Promise.all(fileNames.map(async (fileName) => {
-        data.push(JSON.parse((await fs.readFile(`${dir}/${fileName}`)).toString()))
+    const fileNames = (await fs.readdir(dir)).filter((file) => file.match(safePattern))
+    const entries = await Promise.all(fileNames.map(async (fileName) => {
+        const contents = JSON.parse((await fs.readFile(path.join(dir, fileName))).toString()) as ResultSet
+        return { fileName, contents }
     }))
 
-    return data as ResultSet[]
+    // A previous merge stores capabilities as an array. A raw worker report keeps
+    // a capabilities object, including when outputFileFormat uses the merged filename.
+    return entries
+        .filter(({ fileName, contents }) => !(fileName === outputFileName && Array.isArray(contents.capabilities)))
+        .map(({ contents }) => contents)
+}
+
+async function readExistingReport (filePath: string): Promise<ResultSet | MergedResultSet | undefined> {
+    try {
+        return JSON.parse((await fs.readFile(filePath)).toString()) as ResultSet | MergedResultSet
+    } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+            return undefined
+        }
+        throw err
+    }
 }
 
 function mergeData (rawData: ResultSet[]) {

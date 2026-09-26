@@ -56,6 +56,59 @@ describe('mergeResults', () => {
         await expect(fs.access(path.join(dir, 'wdio-merged.json'))).rejects.toThrow()
     })
 
+    it('should merge a lone raw report named wdio-merged.json', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-json-reporter-'))
+        dirs.push(dir)
+        await fs.copyFile(
+            path.join(fixturesDir, 'wdio-0-0-json-reporter.json'),
+            path.join(dir, 'wdio-merged.json')
+        )
+
+        const result = await mergeResults(dir, 'wdio-.*.json')
+
+        expect(result.suites).toHaveLength(1)
+        expect(Array.isArray(result.capabilities)).toBe(true)
+        expect(result.capabilities).toHaveLength(1)
+    })
+
+    it('should merge a raw report that uses the default output filename', async () => {
+        const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-json-reporter-'))
+        dirs.push(dir)
+        await fs.copyFile(
+            path.join(fixturesDir, 'wdio-0-0-json-reporter.json'),
+            path.join(dir, 'wdio-merged.json')
+        )
+        await fs.copyFile(
+            path.join(fixturesDir, 'wdio-0-1-json-reporter.json'),
+            path.join(dir, 'wdio-0-1-json-reporter.json')
+        )
+
+        const result = await mergeResults(dir, 'wdio-.*.json')
+        const written = JSON.parse(await fs.readFile(path.join(dir, 'wdio-merged.json'), 'utf8'))
+
+        expect(result.suites).toHaveLength(2)
+        expect(result.capabilities).toHaveLength(2)
+        expect(written).toEqual(result)
+    })
+
+    it('should keep an existing merged report when no raw reports match', async () => {
+        const dir = await copyFixtures()
+        dirs.push(dir)
+
+        const first = await mergeResults(dir, 'wdio-.*-json-reporter\\.json')
+        for (const file of await fs.readdir(dir)) {
+            if (file !== 'wdio-merged.json') {
+                await fs.rm(path.join(dir, file))
+            }
+        }
+
+        const second = await mergeResults(dir, 'wdio-.*-json-reporter\\.json')
+        const written = JSON.parse(await fs.readFile(path.join(dir, 'wdio-merged.json'), 'utf8'))
+
+        expect(second).toEqual(first)
+        expect(written).toEqual(first)
+    })
+
     it('should ignore a previous merged report when the pattern would match it', async () => {
         const dir = await copyFixtures()
         dirs.push(dir)
