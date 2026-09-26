@@ -1,6 +1,6 @@
 ---
 id: multiremote
-title: Multiremote
+title: Multi-remote
 description: "Control multiple browser or device sessions from a single test with multi-remote, in standalone mode or with the WDIO testrunner."
 ---
 
