@@ -21,6 +21,23 @@ describe('startActivity', () => {
         ).rejects.toThrow('`startActivity` only accepts an options object in WebdriverIO v10.')
     })
 
+    it('rejects options that only applied to the removed HTTP endpoint', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: { browserName: 'foobar', mobileMode: true, platformName: 'Android' } as any
+        })
+        const executeSpy = vi.spyOn(browser, 'executeScript').mockResolvedValue(undefined)
+        await expect(browser.startActivity({
+            appPackage: 'com.example.app',
+            appActivity: '.MainActivity',
+            // @ts-expect-error removed in v10
+            appWaitPackage: 'com.example.app',
+        })).rejects.toThrow(
+            'The `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments` options were removed from `startActivity` in WebdriverIO v10.'
+        )
+        expect(executeSpy).not.toHaveBeenCalled()
+    })
+
     describe('non-mobile', () => {
         it('should throw for non-mobile platforms', async () => {
             browser = await remote({

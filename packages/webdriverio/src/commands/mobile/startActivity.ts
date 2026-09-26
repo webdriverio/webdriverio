@@ -10,16 +10,6 @@ export interface StartActivityOptions {
      */
     appActivity: string
     /**
-     * The package name to wait for after starting the activity. Passed to the legacy fallback only.
-     * <br /><strong>LEGACY-ONLY</strong>
-     */
-    appWaitPackage?: string
-    /**
-     * The activity name to wait for after starting the activity. Passed to the legacy fallback only.
-     * <br /><strong>LEGACY-ONLY</strong>
-     */
-    appWaitActivity?: string
-    /**
      * The intent action to use to start the activity (maps to `action` in the new driver API).
      */
     intentAction?: string
@@ -31,11 +21,6 @@ export interface StartActivityOptions {
      * Flags to use when starting the activity (maps to `flags` in the new driver API).
      */
     intentFlags?: string
-    /**
-     * Additional intent arguments. Passed to the legacy fallback only.
-     * <br /><strong>LEGACY-ONLY</strong>
-     */
-    optionalIntentArguments?: string
     /**
      * Whether to stop the app before starting the activity. Passed as `stop` (inverted) to the new driver API.
      */
@@ -66,12 +51,9 @@ export interface StartActivityOptions {
  * @param {StartActivityOptions} options activity options
  * @param {string} options.appPackage package name of the app to start
  * @param {string} options.appActivity activity name to start
- * @param {string=} options.appWaitPackage package name to wait for. <br /><strong>LEGACY-ONLY</strong>
- * @param {string=} options.appWaitActivity activity name to wait for. <br /><strong>LEGACY-ONLY</strong>
  * @param {string=} options.intentAction intent action
  * @param {string=} options.intentCategory intent category
  * @param {string=} options.intentFlags flags for the intent
- * @param {string=} options.optionalIntentArguments additional intent arguments. <br /><strong>LEGACY-ONLY</strong>
  * @param {string=} options.dontStopAppOnReset whether to stop the app before starting the activity
  *
  * @support ["android"]
@@ -86,6 +68,22 @@ export async function startActivity(
         throw new Error(
             '`startActivity` only accepts an options object in WebdriverIO v10. ' +
             'Use `browser.startActivity({ appPackage, appActivity })`.'
+        )
+    }
+
+    const legacyOptions = options as StartActivityOptions & {
+        appWaitPackage?: unknown
+        appWaitActivity?: unknown
+        optionalIntentArguments?: unknown
+    }
+    if (
+        'appWaitPackage' in legacyOptions ||
+        'appWaitActivity' in legacyOptions ||
+        'optionalIntentArguments' in legacyOptions
+    ) {
+        throw new Error(
+            'The `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments` options were removed from `startActivity` in WebdriverIO v10. ' +
+            'They only applied to the removed Appium HTTP endpoint and are not accepted by `mobile: startActivity`.'
         )
     }
 
