@@ -18,19 +18,24 @@ export default async function mergeResults(
     if (!doesDirExist) {
         throw new Error(`Directory "${dir}" does not exist.`)
     }
-    const rawData = await getDataFromFiles(dir, filePattern)
-    const mergedResults = mergeData(rawData)
+    const fileName = customFileName || DEFAULT_FILENAME
+    const filePath = path.join(dir, fileName)
+    const rawData = await getDataFromFiles(dir, filePattern, path.basename(fileName))
 
-    if (customFileName) {
-        const fileName = customFileName || DEFAULT_FILENAME
-        const filePath = path.join(dir, fileName)
-        await fs.writeFile(filePath, JSON.stringify(mergedResults))
+    // Nothing matched this pattern. Return an empty result and leave a usable
+    // output file alone so a previous merge or a raw report is not handed back
+    // or replaced with {}.
+    if (rawData.length === 0 && await outputFileParses(filePath)) {
+        return {} as MergedResultSet
     }
+
+    const mergedResults = mergeData(rawData)
+    await fs.writeFile(filePath, JSON.stringify(mergedResults))
 
     return mergedResults
 }
 
-async function getDataFromFiles (dir: string, filePattern: string | RegExp) {
+async function getDataFromFiles (dir: string, filePattern: string | RegExp, outputFileName?: string) {
     let safePattern: RegExp
 
     if (filePattern instanceof RegExp) {
@@ -50,13 +55,37 @@ async function getDataFromFiles (dir: string, filePattern: string | RegExp) {
     }
 
     const fileNames = (await fs.readdir(dir)).filter((file) => file.match(safePattern))
-    const data: unknown[] = []
+    const entries = (await Promise.all(fileNames.map(async (fileName) => {
+        const raw = (await fs.readFile(path.join(dir, fileName))).toString()
+        try {
+            const contents = JSON.parse(raw) as ResultSet
+            return { fileName, contents }
+        } catch (err) {
+            // A truncated previous output must not block merging valid worker reports.
+            if (fileName === outputFileName) {
+                return undefined
+            }
+            throw err
+        }
+    }))).filter((entry): entry is { fileName: string, contents: ResultSet } => entry !== undefined)
 
-    await Promise.all(fileNames.map(async (fileName) => {
-        data.push(JSON.parse((await fs.readFile(`${dir}/${fileName}`)).toString()))
-    }))
+    // A previous merge stores capabilities as an array. A raw worker report keeps
+    // a capabilities object, including when outputFileFormat uses the merged filename.
+    return entries
+        .filter(({ fileName, contents }) => !(fileName === outputFileName && Array.isArray(contents.capabilities)))
+        .map(({ contents }) => contents)
+}
 
-    return data as ResultSet[]
+async function outputFileParses (filePath: string) {
+    try {
+        JSON.parse((await fs.readFile(filePath)).toString())
+        return true
+    } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === 'ENOENT' || err instanceof SyntaxError) {
+            return false
+        }
+        throw err
+    }
 }
 
 function mergeData (rawData: ResultSet[]) {
