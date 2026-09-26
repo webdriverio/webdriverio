@@ -5,7 +5,7 @@ import type * as DisplayServerManagerModule from '../src/DisplayServerManager.js
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/DisplayServerManager.js', async (importOriginal) => ({
     ...await importOriginal<typeof DisplayServerManagerModule>(),
-    DisplayServerManager: vi.fn(function () { return { shouldRun: () => false } }),
+    DisplayServerManager: vi.fn(function () { return { startDaemon: async () => null } }),
 }))
 
 const { DisplayServerManager, optionsFromConfig } = await import('../src/DisplayServerManager.js')

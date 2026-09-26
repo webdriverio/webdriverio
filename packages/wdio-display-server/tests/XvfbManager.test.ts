@@ -153,12 +153,15 @@ describe('XvfbManager', () => {
 
         describe('autoInstall', () => {
             it('installs xvfb with sudo -n when allowed and available (non-root, apt)', async () => {
-                // Sequence in install(): which Xvfb -> detectPackageManager (apt-get) -> which sudo -> run install
+                // which Xvfb twice (initial probe, then before installing) -> which apt-get
+                // -> which sudo -> run install -> which Xvfb (re-probe after installing)
                 mockExecAsync
-                    .mockRejectedValueOnce(new Error('Command not found')) // which Xvfb (initial)
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' }) // which apt-get
-                    .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' }) // which sudo
-                    .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' }) // install
+                    .mockRejectedValueOnce(new Error('Command not found'))
+                    .mockRejectedValueOnce(new Error('Command not found'))
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/apt-get', stderr: '' })
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/sudo', stderr: '' })
+                    .mockResolvedValueOnce({ stdout: 'installation success', stderr: '' })
+                    .mockResolvedValueOnce({ stdout: '/usr/bin/Xvfb', stderr: '' })
 
                 runAsUser()
 

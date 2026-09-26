@@ -51,7 +51,7 @@ export interface DisplayServerOptions {
     enabled?: boolean
 
     /**
-     * - 'auto': Wayland first, then Xvfb fallback
+     * - 'auto': installed servers before auto-installing, Wayland before Xvfb, falling back when one fails to start
      * - 'wayland': Wayland only
      * - 'xvfb': Xvfb only
      * @default 'auto'

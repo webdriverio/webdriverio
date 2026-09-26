@@ -32,7 +32,11 @@ export default class LocalRunner {
      * Runs before any service `onPrepare`, so drivers those services start inherit the display.
      */
     async initialize() {
-        this.daemon = await startDisplayDaemonFromConfig(this.config)
+        try {
+            this.daemon = await startDisplayDaemonFromConfig(this.config)
+        } catch (error) {
+            log.warn('Failed to start a display server; continuing without a virtual display:', error)
+        }
     }
 
     getWorkerCount() {

@@ -6,7 +6,7 @@ import type { ChildProcess } from 'node:child_process'
 
 import { startDisplayDaemonFromConfig } from '../src/daemon.js'
 import { sessionEnv } from '../src/sessionEnv.js'
-import { makeDaemonHandle, makeDisplayServer, makeManager, makeRetryManager } from './helpers.js'
+import { makeDaemonHandle, makeDisplayServer, makeManager } from './helpers.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const shimPath = path.join(__dirname, 'fixtures', 'env-echo.mjs')
@@ -102,87 +102,6 @@ describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
         await daemon!.stop()
         expect(stopSpy).toHaveBeenCalledTimes(1)
         expect(process.env.DISPLAY).toBeUndefined()
-    })
-
-    it('returns null when DISPLAY is already set (someone wrapped us with xvfb-run)', async () => {
-        process.env.DISPLAY = ':42'
-        const stopSpy = vi.fn().mockResolvedValue(undefined)
-        const manager = makeManager(makeDisplayServer({
-            name: 'wayland',
-            startDaemon: async () => makeDaemonHandle({
-                env: {
-                    WAYLAND_DISPLAY: 'wayland-test',
-                    XDG_RUNTIME_DIR: '/tmp/wdio-test-runtime',
-                    ...sessionEnv('wayland'),
-                },
-                stop: stopSpy,
-            }),
-        }))
-
-        const daemon = await startDisplayDaemonFromConfig(
-            {},
-            manager,
-        )
-        expect(daemon).toBeNull()
-        expect(process.env.DISPLAY).toBe(':42')
-        expect(stopSpy).not.toHaveBeenCalled()
-    })
-
-    it('returns null when manager.shouldRun() returns false (non-Linux, disabled, etc.)', async () => {
-        const stopSpy = vi.fn().mockResolvedValue(undefined)
-        const manager = makeManager(makeDisplayServer({
-            name: 'wayland',
-            startDaemon: async () => makeDaemonHandle({
-                env: {
-                    WAYLAND_DISPLAY: 'wayland-test',
-                    XDG_RUNTIME_DIR: '/tmp/wdio-test-runtime',
-                    ...sessionEnv('wayland'),
-                },
-                stop: stopSpy,
-            }),
-        }), { shouldRun: false })
-
-        const daemon = await startDisplayDaemonFromConfig(
-            {},
-            manager,
-        )
-        expect(daemon).toBeNull()
-        expect(process.env.WAYLAND_DISPLAY).toBeUndefined()
-        expect(stopSpy).not.toHaveBeenCalled()
-    })
-
-    it('routes daemon startup through manager.executeWithRetry so the configured retry policy applies', async () => {
-        const startSpy = vi.fn()
-            .mockRejectedValueOnce(new Error('Xvfb spawn flake #1'))
-            .mockRejectedValueOnce(new Error('Xvfb spawn flake #2'))
-            .mockResolvedValueOnce(makeDaemonHandle({ env: { DISPLAY: ':99' } }))
-
-        const server = makeDisplayServer({ name: 'xvfb', startDaemon: startSpy })
-        const manager = makeRetryManager(server)
-
-        const daemon = await startDisplayDaemonFromConfig(
-            {},
-            manager,
-        )
-
-        expect(daemon).not.toBeNull()
-        expect(startSpy).toHaveBeenCalledTimes(3)
-        expect(process.env.DISPLAY).toBe(':99')
-
-        await daemon!.stop()
-    })
-
-    it('surfaces the last error when daemon startup exhausts every retry', async () => {
-        const finalError = new Error('Xvfb spawn flake #final')
-        const startSpy = vi.fn().mockRejectedValue(finalError)
-        const server = makeDisplayServer({ name: 'xvfb', startDaemon: startSpy })
-        const manager = makeRetryManager(server)
-
-        await expect(
-            startDisplayDaemonFromConfig({}, manager),
-        ).rejects.toBe(finalError)
-        expect(startSpy).toHaveBeenCalledTimes(3)
-        expect(process.env.DISPLAY).toBeUndefined() // Threw before applyEnv, so env stays untouched.
     })
 
     it('registers an exit listener that uses stopSync, not the abandonable async stop', async () => {

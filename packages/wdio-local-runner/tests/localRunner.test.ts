@@ -272,6 +272,16 @@ test('starts a display-server daemon during initialize() when one is needed', as
     expect(displayServer.startDisplayDaemonFromConfig).toHaveBeenCalledWith(config)
 })
 
+test('continues without a display when starting the daemon throws', async () => {
+    const displayServer = await import('@wdio/display-server')
+    vi.mocked(displayServer.startDisplayDaemonFromConfig).mockRejectedValueOnce(new Error('mkdtemp ENOSPC'))
+
+    const runner = new LocalRunner({} as never, { displayServerEnabled: true } as WebdriverIO.Config)
+
+    await expect(runner.initialize()).resolves.toBeUndefined()
+    expect(runner['daemon']).toBeNull()
+})
+
 test('shuts down cleanly when startDisplayDaemonFromConfig returns null', async () => {
     const displayServer = await import('@wdio/display-server')
     vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce(null)
