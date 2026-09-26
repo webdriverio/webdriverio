@@ -22,7 +22,7 @@ export const config: WebdriverIO.Config = {
             ],
             ...(process.env.CHROME_BIN && { binary: process.env.CHROME_BIN })
         },
-        // See wdio.conf.ts — same musl/glibc rationale.
+        // Images that use the distro's Chromium set this to the distro's chromedriver, which matches that Chromium.
         ...(process.env.CHROMEDRIVER_PATH && {
             'wdio:chromedriverOptions': { binary: process.env.CHROMEDRIVER_PATH }
         })
@@ -36,7 +36,7 @@ export const config: WebdriverIO.Config = {
 
     // Let the local runner start Xvfb/Weston when the container has no display.
     displayServerEnabled: true,
-    displayServer: 'auto',
+    displayServer: (process.env.DISPLAY_SERVER_PREFERENCE || 'auto') as WebdriverIO.Config['displayServer'], // set per CI matrix cell
 
     reporters: ['spec'],
 
