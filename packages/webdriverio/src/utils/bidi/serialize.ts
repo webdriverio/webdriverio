@@ -123,7 +123,8 @@ const SERIALIZER_HELPER = `
             serialized.lastModified = __wdioHostValue(blob, 'lastModified');
         }
         const propKeys = Object.keys(blob).filter((key) => (
-            key !== 'size' && key !== 'type' && key !== 'name' && key !== 'lastModified'
+            key !== 'size' && key !== 'type' &&
+            (serialized.kind !== __wdioSerializedBlobKindFile || (key !== 'name' && key !== 'lastModified'))
         ));
         if (propKeys.length) {
             seen.add(blob);

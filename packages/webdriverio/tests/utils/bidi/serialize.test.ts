@@ -318,6 +318,20 @@ describe('BiDi blob serialization', () => {
         expect(await bytesOf(file)).toEqual([1])
     })
 
+    it('keeps name and lastModified stored on a Blob', async () => {
+        const blob = await roundTrip<Blob & { name: string, lastModified: number }>(() => {
+            const blob = new Blob([new Uint8Array([1])], { type: 'text/plain' })
+            Object.assign(blob, { name: 'notes.txt', lastModified: 5 })
+            return blob
+        })
+
+        expect(blob).toBeInstanceOf(Blob)
+        expect(blob).not.toBeInstanceOf(File)
+        expect(blob.name).toBe('notes.txt')
+        expect(blob.lastModified).toBe(5)
+        expect(await bytesOf(blob)).toEqual([1])
+    })
+
     it('ignores own fields that shadow File getters', async () => {
         const file = await roundTrip<File & { meta: string }>(() => {
             const file = new File([new Uint8Array([1])], 'notes.txt', {
