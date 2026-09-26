@@ -236,12 +236,12 @@ describe('BiDi blob serialization', () => {
     it('serializes a Blob from another realm', async () => {
         const blob = await roundTrip<Blob>(() => {
             const bytes = new Uint8Array([104, 105])
-            return {
+            return Object.create({
                 [Symbol.toStringTag]: 'Blob',
                 type: 'text/plain',
                 size: bytes.byteLength,
                 arrayBuffer: async () => bytes.buffer
-            }
+            })
         })
 
         expect(blob).toBeInstanceOf(Blob)
@@ -252,14 +252,14 @@ describe('BiDi blob serialization', () => {
     it('serializes a File from another realm', async () => {
         const file = await roundTrip<File>(() => {
             const bytes = new Uint8Array([97])
-            return {
+            return Object.create({
                 [Symbol.toStringTag]: 'File',
                 type: 'text/plain',
                 size: bytes.byteLength,
                 name: 'a.txt',
                 lastModified: 9,
                 arrayBuffer: async () => bytes.buffer
-            }
+            })
         })
 
         expect(file).toBeInstanceOf(File)
@@ -271,17 +271,35 @@ describe('BiDi blob serialization', () => {
     it('returns a cross-realm FileList as an array of File objects', async () => {
         const files = await roundTrip<File[]>(() => {
             const file = new File(['z'], 'z.txt', { type: 'text/plain', lastModified: 5 })
-            return {
+            return Object.create({
                 [Symbol.toStringTag]: 'FileList',
                 length: 1,
                 0: file
-            }
+            })
         })
 
         expect(Array.isArray(files)).toBe(true)
         expect(files[0]).toBeInstanceOf(File)
         expect(files[0].name).toBe('z.txt')
         expect(await files[0].text()).toBe('z')
+    })
+
+    it('keeps own fields on an object that only brands itself as a Blob', async () => {
+        const result = await runInBrowser<{ id: number, type: string, arrayBuffer: unknown }>(() => {
+            const bytes = new Uint8Array([104, 105])
+            return {
+                [Symbol.toStringTag]: 'Blob',
+                type: 'text/plain',
+                size: bytes.byteLength,
+                id: 42,
+                arrayBuffer: async () => bytes.buffer
+            }
+        })
+
+        expect(result).not.toBeInstanceOf(Blob)
+        expect(result.id).toBe(42)
+        expect(result.type).toBe('text/plain')
+        expect(typeof result.arrayBuffer).toBe('function')
     })
 
     it('leaves an object that only looks like a serialized blob alone', () => {

@@ -8,8 +8,10 @@
  * one is replaced with `null`, because that graph has to be copied before BiDi
  * sees it.
  *
- * Blob, File, and FileList are detected by their brand string so a value created
- * in a same-origin iframe still transfers. The helper is appended after the user
+ * Blob, File, and FileList are detected by the brand they inherit, so a value
+ * created in a same-origin iframe still transfers. An ordinary object that sets
+ * the brand itself, or that carries its own fields, is left unchanged. The helper
+ * is appended after the user
  * script so BiDi exception line numbers keep pointing at the user's code.
  *
  * This module does not import Node builtins. The browser runner loads it too.
@@ -54,13 +56,35 @@ const SERIALIZER_HELPER = `
         return Object.prototype.toString.call(value);
     }
 
+    function __wdioIsIndexKey(key) {
+        return String(Number(key)) === key && Number.isInteger(Number(key)) && Number(key) >= 0;
+    }
+
     function __wdioIsBlob(value) {
         const tag = __wdioTag(value);
-        return (tag === '[object Blob]' || tag === '[object File]') && typeof value.arrayBuffer === 'function';
+        if (tag !== '[object Blob]' && tag !== '[object File]') {
+            return false;
+        }
+        if (typeof value.arrayBuffer !== 'function' || typeof value.size !== 'number' || typeof value.type !== 'string') {
+            return false;
+        }
+        // A real Blob/File, including one from another realm, inherits its brand
+        // and has no own data properties. An object that sets the brand or
+        // carries its own fields is user data.
+        if (Object.prototype.hasOwnProperty.call(value, Symbol.toStringTag) || Object.keys(value).length !== 0) {
+            return false;
+        }
+        return true;
     }
 
     function __wdioIsFileList(value) {
-        return __wdioTag(value) === '[object FileList]' && typeof value.length === 'number';
+        if (__wdioTag(value) !== '[object FileList]' || typeof value.length !== 'number') {
+            return false;
+        }
+        if (Object.prototype.hasOwnProperty.call(value, Symbol.toStringTag)) {
+            return false;
+        }
+        return Object.keys(value).every((key) => key === 'length' || __wdioIsIndexKey(key));
     }
 
     function __wdioArrayBufferToBase64(buffer) {
