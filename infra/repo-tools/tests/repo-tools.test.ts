@@ -153,7 +153,7 @@ describe('hasPackageTests', () => {
     it('detects packages with and without Vitest files', () => {
         expect(hasPackageTests(path.join(workspaceRoot, 'packages', 'webdriverio'))).toBe(true)
         expect(hasPackageTests(path.join(workspaceRoot, 'packages', 'wdio-protocols'))).toBe(false)
-        expect(hasPackageTests(path.join(workspaceRoot, 'packages', 'wdio-types'))).toBe(false)
+        expect(hasPackageTests(path.join(workspaceRoot, 'packages', 'wdio-types'))).toBe(true)
         expect(hasPackageTests(path.join(workspaceRoot, 'infra', 'repo-tools'))).toBe(true)
     })
 })
