@@ -121,7 +121,7 @@ The Browser Runner requires `@wdio/browser-runner`. The React preset also needs 
 
 ## Troubleshooting
 
-- Chrome fails to start in CI with "user data directory is already in use" or "DevToolsActivePort file doesn't exist": see [Headless & Xvfb](/docs/headless-and-xvfb).
+- Chrome fails to start in CI with "user data directory is already in use" or "DevToolsActivePort file doesn't exist": see [Headless & Display Servers](/docs/headless-and-display-servers#troubleshooting).
 - `browser.mock()` or `browser.emulate()` has no effect: the session is not using WebDriver BiDi. Check your browser (Safari has no BiDi support), your cloud vendor, and `wdio:enforceWebDriverClassic`.
 - Drivers or browsers can't be downloaded behind a proxy: see [Custom Driver Download Host](/docs/capabilities#custom-driver-download-host) and [Proxy Setup](/docs/proxy).
 - Flaky tests: see [Retry Flaky Tests](/docs/retry) and [Debugging](/docs/debugging).

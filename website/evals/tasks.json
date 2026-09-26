@@ -101,7 +101,7 @@
         "id": "headless",
         "task": "Run Chrome headless in CI",
         "query": "headless chrome",
-        "pages": ["/docs/headless-and-xvfb", "/docs/capabilities"],
+        "pages": ["/docs/headless-and-display-servers", "/docs/capabilities"],
         "mustInclude": ["headless"]
     },
     {

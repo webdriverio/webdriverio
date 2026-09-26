@@ -345,7 +345,7 @@
         "runner",
         "frameworks",
         "typescript",
-        "headless-and-xvfb",
+        "headless-and-display-servers",
         "sharding",
         "retry",
         "watcher",
