@@ -6,10 +6,10 @@ import { browser, $, expect } from '@wdio/globals'
  * existing Wayland display it sets the session vars for) is reachable by Chrome
  * inside the worker, and a real browser session can navigate and read the DOM.
  *
- * If the display-server env vars (DISPLAY / WAYLAND_DISPLAY / XDG_RUNTIME_DIR /
- * XDG_SESSION_TYPE) don't propagate to the worker's child Chrome, Chrome will
- * fail to connect to a display and the session will not start, making session
- * creation itself the assertion.
+ * If the display-server env vars (DISPLAY / WAYLAND_DISPLAY / XDG_RUNTIME_DIR)
+ * don't propagate to the worker's child Chrome, Chrome will fail to connect to a
+ * display and the session will not start, making session creation itself the
+ * assertion.
  */
 describe('display server through local runner', () => {
     it('inherits the display', () => {

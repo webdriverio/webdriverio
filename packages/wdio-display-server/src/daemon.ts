@@ -56,8 +56,7 @@ export async function startDisplayDaemonFromConfig(
     manager: DisplayServerManager = new DisplayServerManager(optionsFromConfig(config)),
 ): Promise<RunningDaemon | null> {
     if (process.env.WAYLAND_DISPLAY && !process.env.DISPLAY) {
-        // Without XDG_SESSION_TYPE=wayland, whether unset or tty over SSH, Chrome picks X11.
-        const env = sessionEnv('wayland')
+        const env = sessionEnv('wayland') // XDG_SESSION_TYPE may be tty, e.g. over SSH, which sends Chrome and GTK apps to X11
         log.info(`Existing Wayland display; setting ${JSON.stringify(env)}`)
         const restoreEnv = applyEnv(env)
         return { stop: async () => restoreEnv() }
