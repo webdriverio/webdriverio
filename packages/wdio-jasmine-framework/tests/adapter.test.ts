@@ -183,7 +183,7 @@ test('emitHookEvent: should emit events for beforeAll and afterAll hooks', async
 test('should properly configure the jasmine environment', async () => {
     const stopOnSpecFailure = false
     const failSpecWithNoExpectations = false
-    const stopSpecOnExpectationFailure = false
+    const oneFailurePerSpec = false
     const random = false
     const failFast = false
     const seed = false
@@ -191,7 +191,7 @@ test('should properly configure the jasmine environment', async () => {
     const adapter = adapterFactory({
         jasmineOpts: {
             stopOnSpecFailure,
-            stopSpecOnExpectationFailure,
+            oneFailurePerSpec,
             random,
             failFast,
         }
@@ -202,12 +202,56 @@ test('should properly configure the jasmine environment', async () => {
     expect(adapter['_jrunner']!.jasmine.getEnv().configure).toBeCalledWith({
         specFilter: expect.any(Function),
         failSpecWithNoExpectations,
-        oneFailurePerSpec: stopSpecOnExpectationFailure,
+        oneFailurePerSpec,
         stopOnSpecFailure,
         random,
         seed,
         failFast,
     })
+})
+
+test('rejects removed jasmine config aliases', () => {
+    expect(() => adapterFactory({ jasmineNodeOpts: { grep: '@smoke' } })).toThrow(
+        /jasmineNodeOpts/
+    )
+    expect(() => adapterFactory({
+        jasmineOpts: { stopSpecOnExpectationFailure: true }
+    })).toThrow(/oneFailurePerSpec/)
+})
+
+test('hands the spec result to the wrapped spec once', async () => {
+    const adapter = adapterFactory()
+    await adapter.init()
+
+    const calls = vi.mocked(wrapGlobalTestMethod).mock.calls
+    const specCall = calls.find((call) => call[5] === 'it')
+    const hookCall = calls.find((call) => call[5] === 'beforeEach')
+    const readResult = specCall?.[8] as (() => { result: unknown, errors?: unknown[] } | undefined) | undefined
+
+    expect(readResult).toEqual(expect.any(Function))
+    expect(hookCall?.[8]).toBeUndefined()
+    expect(readResult!()).toBeUndefined()
+
+    adapter['_reporter'].specStarted({
+        id: 'test1',
+        description: 'test',
+        fullName: 'test',
+        failedExpectations: [{ stack: 'at spec', matcherName: 'toBe' }],
+        passedExpectations: [],
+        deprecationWarnings: [],
+        pendingReason: '',
+        duration: null,
+        properties: null,
+        debugLogs: null,
+        status: 'failed',
+        filename: '/foo/bar.test.js'
+    } as any)
+
+    expect(readResult!()).toEqual({
+        result: adapter['_lastTest'],
+        errors: [{ stack: 'at spec', matcherName: 'toBe' }]
+    })
+    expect(readResult!()).toBeUndefined()
 })
 
 test('set custom ', async () => {

@@ -398,7 +398,6 @@ const jasmineTypes: Record<string, string> = {
     invertGrep: 'boolean',
     cleanStack: 'boolean',
     stopOnSpecFailure: 'boolean',
-    stopSpecOnExpectationFailure: 'boolean',
     requireModule: 'array',
 }
 

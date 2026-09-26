@@ -135,11 +135,6 @@ export interface JasmineOpts {
      */
     stopOnSpecFailure?: boolean
     /**
-     * Stops a spec (`it`) execution on a first expectation failure (other specs continue running)
-     * @default false
-     */
-    stopSpecOnExpectationFailure?: boolean
-    /**
      * The Jasmine framework allows it to intercept each assertion in order to log the state of the application
      * or website depending on the result. For example it is pretty handy to take a screenshot every time
      * an assertion fails.

@@ -11,7 +11,7 @@ import type { expect as wdioExpectImport, wdioCustomMatchers as wdioMatchersImpo
 import JasmineReporter from './reporter.js'
 import { jestResultToJasmine } from './utils.js'
 import type {
-    JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage
+    JasmineOpts as JasmineOptions, ResultHandlerPayload, FrameworkMessage, FormattedMessage
 } from './types.js'
 
 const INTERFACES = {
@@ -152,7 +152,6 @@ function recordExpectation (
     }
     const list = passed ? lastTest.passedExpectations : lastTest.failedExpectations
     list?.push(recorded)
-    globalThis._wdioDynamicJasmineResultErrorList = lastTest.failedExpectations
 }
 
 type HooksArray = {
@@ -160,19 +159,24 @@ type HooksArray = {
 }
 
 interface WebdriverIOJasmineConfig extends Omit<WebdriverIO.Config, keyof HooksArray>, HooksArray {
-    jasmineOpts: Omit<jasmineNodeOpts, 'cleanStack'>
+    jasmineOpts: Omit<JasmineOptions, 'cleanStack'>
 }
 
 /**
  * Jasmine runner
  */
 class JasmineAdapter {
-    private _jasmineOpts: jasmineNodeOpts
+    private _jasmineOpts: JasmineOptions
     private _reporter: JasmineReporter
     private _totalTests = 0
     private _hasTests = true
     private _lastTest?: unknown
     private _lastSpec?: unknown
+    /**
+     * Set when a spec starts so the wrapped `it` can read failures after the
+     * body. Cleared on that read so later hooks do not inherit the spec result.
+     */
+    private _frameworkResultPending = false
 
     private _jrunner = new Jasmine({})
 
@@ -183,13 +187,22 @@ class JasmineAdapter {
         private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         reporter: EventEmitter
     ) {
+        const legacyConfig = this._config as WebdriverIOJasmineConfig & { jasmineNodeOpts?: JasmineOptions }
+        if (legacyConfig.jasmineNodeOpts !== undefined) {
+            throw new Error(
+                'The option "jasmineNodeOpts" was removed in WebdriverIO v10. Use "jasmineOpts" instead.'
+            )
+        }
+        const userOpts = this._config.jasmineOpts as (JasmineOptions & { stopSpecOnExpectationFailure?: boolean }) | undefined
+        if (userOpts?.stopSpecOnExpectationFailure !== undefined) {
+            throw new Error(
+                'The option "jasmineOpts.stopSpecOnExpectationFailure" was removed in WebdriverIO v10. Use "jasmineOpts.oneFailurePerSpec" instead.'
+            )
+        }
+
         this._jasmineOpts = Object.assign({
             cleanStack: true
-        }, (
-            this._config.jasmineOpts ||
-            // @ts-expect-error legacy option
-            this._config.jasmineNodeOpts
-        ))
+        }, this._config.jasmineOpts)
 
         this._reporter = new JasmineReporter(reporter, {
             cid: this._cid,
@@ -199,6 +212,26 @@ class JasmineAdapter {
         })
         this._hasTests = true
         this._jrunner.exitOnCompletion = false
+    }
+
+    /**
+     * Hand the in-flight spec result to the wrapped spec once. `failedExpectations`
+     * is the same array `recordExpectation` fills, so the read sees failures
+     * recorded during the body.
+     */
+    private takeFrameworkResult() {
+        if (!this._frameworkResultPending) {
+            return undefined
+        }
+        this._frameworkResultPending = false
+        const test = this._lastTest as { failedExpectations?: { stack?: string, matcherName?: string }[] } | undefined
+        if (!test) {
+            return undefined
+        }
+        return {
+            result: test,
+            errors: test.failedExpectations
+        }
     }
 
     async init() {
@@ -240,8 +273,7 @@ class JasmineAdapter {
                 test.debugLogs = null
                 ;(test as jasmine.SpecResult & Record<symbol, unknown>)[recordedByWdio] = true
             }
-            globalThis._wdioDynamicJasmineResultErrorList = test.failedExpectations
-            globalThis._jasmineTestResult = test
+            self._frameworkResultPending = true
             return origSpecStarted(test)
         }
 
@@ -257,11 +289,7 @@ class JasmineAdapter {
             failFast: this._jasmineOpts.failFast,
             random: Boolean(this._jasmineOpts.random),
             seed: Boolean(this._jasmineOpts.seed),
-            oneFailurePerSpec: Boolean(
-                // depcrecated old property
-                this._jasmineOpts.stopSpecOnExpectationFailure ||
-                this._jasmineOpts.oneFailurePerSpec
-            )
+            oneFailurePerSpec: Boolean(this._jasmineOpts.oneFailurePerSpec)
         })
 
         /**
@@ -339,7 +367,9 @@ class JasmineAdapter {
                 isTest ? this._config.afterTest : afterHook,
                 hookArgsFn,
                 fnName,
-                this._cid
+                this._cid,
+                globalThis,
+                isTest ? () => self.takeFrameworkResult() : undefined
             )
         })
 
@@ -365,8 +395,7 @@ class JasmineAdapter {
                 self._lastTest.start = new Date().getTime()
                 // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
                 self._lastTest.file = this.result.filename
-                globalThis._wdioDynamicJasmineResultErrorList = this.result.failedExpectations
-                globalThis._jasmineTestResult = this.result
+                self._frameworkResultPending = true
                 executeMock.apply(this, args)
             }
         }
@@ -725,7 +754,7 @@ declare global {
     function afterAll(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void
 
     namespace WebdriverIO {
-        interface JasmineOpts extends jasmineNodeOpts {}
+        interface JasmineOpts extends JasmineOptions {}
     }
     namespace ExpectWebdriverIO {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
