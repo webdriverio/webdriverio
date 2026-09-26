@@ -171,7 +171,6 @@ export const multiremote = async function (
     const firstBrowser = multibrowser.instances.get(browserNames[0])
     const sessionParams = isStub(automationProtocol) || !firstBrowser ? undefined : {
         sessionId: '',
-        isW3C: firstBrowser.isW3C,
         logLevel: firstBrowser.options.logLevel
     }
 

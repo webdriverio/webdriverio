@@ -45,23 +45,6 @@ describe('getValue', () => {
             .toBe('/session/foobar-123/element/some-elem-123/property/value')
     })
 
-    it('should get the value using getElementAttribute when the session is not W3C', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar',
-                // @ts-ignore mock feature
-                jsonwpMode: true
-            } as any
-        })
-        const elem = await browser.$('#foo')
-
-        await elem.getValue()
-        // @ts-expect-error mock implementation
-        const pathnames = vi.mocked(fetch).mock.calls.map((call) => call[0]?.pathname)
-        expect(pathnames).toContain('/session/foobar-123/element/some-elem-123/attribute/value')
-    })
-
     it('should return empty string if value is not a string', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -81,21 +64,6 @@ describe('getValue', () => {
 
         // mocked return value is undefined
         vi.spyOn(elem, 'getElementProperty').mockResolvedValue(undefined)
-        expect(await elem.getValue()).toBe('')
-    })
-
-    it('should return empty string if the non-W3C attribute is null', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar',
-                // @ts-ignore mock feature
-                jsonwpMode: true
-            } as any
-        })
-        const elem = await browser.$('#foo')
-
-        vi.spyOn(elem, 'getElementAttribute').mockResolvedValue(null)
         expect(await elem.getValue()).toBe('')
     })
 })

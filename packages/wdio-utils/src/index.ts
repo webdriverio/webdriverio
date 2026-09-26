@@ -13,7 +13,7 @@ import {
 import { wrapCommand, executeHooksWithArgs, executeAsync } from './shim.js'
 import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
-import { isW3C, isBidi, capabilitiesEnvironmentDetector, sessionEnvironmentDetector } from './envDetector.js'
+import { isBidi, capabilitiesEnvironmentDetector, sessionEnvironmentDetector } from './envDetector.js'
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
 import { TimingTracker, type TimingMetrics, type TimingPhase } from './profiler.js'
 
@@ -49,7 +49,6 @@ export {
     /**
      * environmentDetector
      */
-    isW3C,
     isBidi,
     sessionEnvironmentDetector,
     capabilitiesEnvironmentDetector,

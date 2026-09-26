@@ -149,7 +149,6 @@ export function filterLogTypes(
 
 type BrowserData = {
     sessionId: string
-    isW3C: boolean
     protocol: string
     hostname: string
     port: number
@@ -158,7 +157,7 @@ type BrowserData = {
 }
 
 /**
- * Gets { sessionId, isW3C, protocol, hostname, port, path, queryParams } of every Multiremote instance
+ * Gets { sessionId, protocol, hostname, port, path, queryParams } of every Multiremote instance
  * @param {object} browser browser
  * @param {boolean} isMultiremote isMultiremote
  * @return {object}
@@ -175,9 +174,9 @@ export function getInstancesData (
     const instances: Record<string, Partial<BrowserData>> = {}
     multiRemoteBrowser.instances.forEach((browserName: string) => {
         const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser.getInstance(browserName)!.options
-        const { isW3C, sessionId } = multiRemoteBrowser.getInstance(browserName)!
+        const { sessionId } = multiRemoteBrowser.getInstance(browserName)!
 
-        instances[browserName] = { sessionId, isW3C, protocol, hostname, port, path, queryParams }
+        instances[browserName] = { sessionId, protocol, hostname, port, path, queryParams }
     })
 
     return instances

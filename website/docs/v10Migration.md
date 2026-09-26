@@ -310,6 +310,23 @@ export default [
 
 Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript version this repository compiles with.
 
+## WebDriver protocol
+
+Every session is a W3C session. `browser.isW3C` is removed, including the value previously forwarded on the worker `sessionStarted` message. Passing `isW3C` to `attach` is ignored. The BiDi command set stays on the client. A live BiDi connection still depends on `webSocketUrl`.
+
+The drivers WebdriverIO runs against already speak W3C on the client connection:
+
+- ChromeDriver has been W3C by default since Chrome 75. Chromium-based Edge matches it. Current ChromeDriver still accepts `goog:chromeOptions.w3c: false`, which switches that one session back to the legacy protocol. WebdriverIO does not support that switch.
+- geckodriver and Apple's safaridriver are W3C-only. A Safari response that omits `platformName` or `browserVersion` is still W3C.
+- Selenium 4 and Grid 4 speak W3C. Grid stopped translating JSONWP in 4.9.
+- Appium 2 dropped JSONWP and MJSONWP. Appium 3 also dropped the leftover JSONWP parameter shapes. v10 requires Appium 3, covered below. A mobile session that omits `setWindowRect` is still W3C; that capability means the device cannot resize a window.
+
+These servers still speak JSONWP and are not supported: Selenium 3, PhantomJS, EdgeHTML (`--jwp`), and WinAppDriver connected to directly. The Appium Windows driver stays supported as a W3C client. It translates commands to WinAppDriver, including Get Element Property to the attribute endpoint. Point WebdriverIO at Appium, not at WinAppDriver's port.
+
+`webdriver.remote.sessionid` no longer marks a Selenium standalone session. Selenium Grid 4 is still detected from `se:cdp`.
+
+On desktop, `[name="..."]` is a CSS selector. The `name` locator strategy remains for mobile sessions.
+
 ## Appium
 
 WebdriverIO 10 requires **Appium 3** and current official drivers (UiAutomator2, XCUITest, Espresso, Windows, Mac2, and so on). Appium 1.x and 2.x are unsupported. Stay on WebdriverIO 9 if you cannot upgrade the server.
@@ -352,4 +369,4 @@ Appium 3 requires a driver or `*` scope prefix on `--allow-insecure` features, f
 
 ### `getValue` on mobile reads the element property
 
-On a W3C session, including Appium 3, `element.getValue()` calls Get Element Property. It previously called Get Element Attribute for every mobile session. A non-W3C session still reads the attribute.
+`element.getValue()` calls Get Element Property, including on Appium 3. It previously called Get Element Attribute for every mobile session.

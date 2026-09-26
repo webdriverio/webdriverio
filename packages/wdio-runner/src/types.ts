@@ -51,7 +51,6 @@ export interface SessionStartedMessage {
     name: 'sessionStarted'
     content: {
         sessionId: string
-        isW3C: boolean
         protocol: string
         hostname: string
         port: number

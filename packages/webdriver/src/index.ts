@@ -119,13 +119,14 @@ export default class WebDriver {
         }
 
         options.capabilities = options.capabilities || {}
-        options.isW3C = options.isW3C === false ? false : true
         options.protocol = options.protocol || DEFAULTS.protocol.default
         options.hostname = options.hostname || DEFAULTS.hostname.default
         options.port = options.port || DEFAULTS.port.default
         options.path = options.path || DEFAULTS.path.default
         const environment = sessionEnvironmentDetector({ capabilities: options.capabilities, requestedCapabilities: options.capabilities })
-        options = Object.assign(environment, options)
+        const attachOptions = { ...options }
+        delete (attachOptions as { isW3C?: boolean }).isW3C
+        options = Object.assign(environment, attachOptions)
 
         const environmentPrototype = getEnvironmentVars(options as Partial<SessionFlags>)
         const protocolCommands = getPrototype(options as Partial<SessionFlags>)
