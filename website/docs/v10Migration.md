@@ -395,7 +395,7 @@ On a W3C session, including Appium 3, `element.getValue()` calls Get Element Pro
 
 ## Multi-remote naming
 
-APIs spelled `multiremote` or `Multiremote` are now camelCased as `multiRemote` / `MultiRemote`. The old names are not aliased.
+APIs spelled `multiremote` or `Multiremote` are now camelCased / PascalCase as `multiRemote` / `MultiRemote`. The old names are not aliased.
 
 | v9 | v10 |
 |----|-----|
@@ -406,6 +406,7 @@ APIs spelled `multiremote` or `Multiremote` are now camelCased as `multiRemote` 
 | `Capabilities.WithRequestedMultiremoteCapabilities` | `Capabilities.WithRequestedMultiRemoteCapabilities` |
 | `runner.isMultiremote` (reporters) | `runner.isMultiRemote` |
 | `Launcher#isMultiremote`, `Launcher#isParallelMultiremote` (`@wdio/cli`) | `isMultiRemote`, `isParallelMultiRemote` |
+| `isMultiremote` in `Workers.WorkerMessage`, `WorkerInstance` (`@wdio/local-runner`) and `SpecReporter#getTestLink()` | `isMultiRemote` |
 | `browser.multiremoteFetch()` (`@wdio/webdriver-mock-service`) | `browser.multiRemoteFetch()` |
 
-The old `isMultiremote` reads as `undefined`, not an error. Search for `multiremote` and `Multiremote` (case-sensitive) and replace every match; the deprecated `multiremotebrowser` global is unchanged. Allure reports also label multi-remote tests with `isMultiRemote` instead of `isMultiremote`.
+The old `isMultiremote` reads as `undefined`, not an error. Search for `multiremote` and `Multiremote` (case-sensitive) and replace every match. Allure reports also label multi-remote tests with `isMultiRemote` instead of `isMultiremote`.
