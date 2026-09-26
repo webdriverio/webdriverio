@@ -276,9 +276,9 @@ describe('overwriteCommand', () => {
             browser.getInstance('browserA').overwriteCommand('pause', customBrowserCommand)
 
             // @ts-expect-error command overwritten
-            expect(await browser.browserA.pause(10, 10)).toBeGreaterThanOrEqual(19)
+            expect(await browser.getInstance('browserA').pause(10, 10)).toBeGreaterThanOrEqual(19)
             // @ts-expect-error command overwritten
-            expect(await browser.browserB.pause(10)).toBe(undefined)
+            expect(await browser.getInstance('browserB').pause(10)).toBe(undefined)
 
             const results = await browser.pause(10)
             expect(results[0]).toBeGreaterThanOrEqual(10)

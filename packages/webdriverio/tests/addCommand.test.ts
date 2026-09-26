@@ -446,9 +446,9 @@ describe('addCommand', () => {
             const elem = await browser.$('#foo')
             expect(typeof elem.myCustomOtherOtherCommand).toBe('undefined')
             // @ts-expect-error undefined custom command
-            expect(typeof elem.browserA.myCustomOtherOtherCommand).toBe('undefined')
+            expect(typeof elem.getInstance('browserA').myCustomOtherOtherCommand).toBe('undefined')
             // @ts-expect-error undefined custom command
-            expect(typeof elem.browserB.myCustomOtherOtherCommand).toBe('undefined')
+            expect(typeof elem.getInstance('browserB').myCustomOtherOtherCommand).toBe('undefined')
         })
         test('should allow disabling the implicitWait for element scope', async () => {
             mockImplicitWait.mockClear()

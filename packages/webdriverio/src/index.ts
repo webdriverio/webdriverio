@@ -151,23 +151,28 @@ export const multiremote = async function (
     const browserNames = Object.keys(params)
 
     /**
-     * create all instance sessions
+     * create all instance sessions, then register them in capability order.
+     * `Promise.all` keeps result order even when the sessions resolve out of order.
      */
-    await Promise.all(
+    const sessions = await Promise.all(
         browserNames.map(async (browserName) => {
             const instance = await remote(params[browserName])
-            return multibrowser.addInstance(browserName, instance)
+            return [browserName, instance] as const
         })
     )
+    for (const [browserName, instance] of sessions) {
+        await multibrowser.addInstance(browserName, instance)
+    }
 
     /**
      * use attachToSession capability to wrap instances around blank pod
      */
     const prototype = getPrototype('browser')
-    const sessionParams = isStub(automationProtocol) ? undefined : {
+    const firstBrowser = multibrowser.instances.get(browserNames[0])
+    const sessionParams = isStub(automationProtocol) || !firstBrowser ? undefined : {
         sessionId: '',
-        isW3C: multibrowser.instances[browserNames[0]].isW3C,
-        logLevel: multibrowser.instances[browserNames[0]].options.logLevel
+        isW3C: firstBrowser.isW3C,
+        logLevel: firstBrowser.options.logLevel
     }
 
     const ProtocolDriver = typeof automationProtocol === 'string'
@@ -199,7 +204,7 @@ export const multiremote = async function (
                 {
                     attachToElement: resolved.attachToElement,
                     proto: Object.getPrototypeOf(multibrowser.baseInstance),
-                    instances: multibrowser.instances
+                    instances: Object.fromEntries(multibrowser.instances)
                 }
             )
         }
@@ -213,7 +218,7 @@ export const multiremote = async function (
                 {
                     attachToElement: resolved.attachToElement,
                     proto: Object.getPrototypeOf(multibrowser.baseInstance),
-                    instances: multibrowser.instances
+                    instances: Object.fromEntries(multibrowser.instances)
                 }
             )
         }
