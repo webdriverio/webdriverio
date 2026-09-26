@@ -158,6 +158,53 @@ describe('ProcessFactory', () => {
                 expect(result).toBe(mockProcess)
             })
 
+            it('should keep the ipc channel off the fd xvfb-run takes for itself', async () => {
+                mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
+
+                await processFactory.createWorkerProcess(scriptPath, args, options)
+
+                expect(mockSpawn).toHaveBeenCalledWith(
+                    'xvfb-run',
+                    ['--auto-servernum', '--', 'node', '--inspect', scriptPath, ...args],
+                    {
+                        cwd: options.cwd,
+                        env: options.env,
+                        stdio: ['inherit', 'pipe', 'pipe', 'ignore', 'ipc']
+                    }
+                )
+            })
+
+            it('should keep every other descriptor on its fd when moving the ipc channel', async () => {
+                mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
+                const stdio = ['inherit', 'pipe', 'pipe', 'ipc', 'pipe'] as ('inherit' | 'pipe' | 'ignore' | 'ipc')[]
+
+                await processFactory.createWorkerProcess(scriptPath, args, { ...options, stdio })
+
+                expect(mockSpawn).toHaveBeenCalledWith(
+                    'xvfb-run',
+                    expect.any(Array),
+                    expect.objectContaining({ stdio: ['inherit', 'pipe', 'pipe', 'ignore', 'pipe', 'ipc'] })
+                )
+            })
+
+            it.each([
+                ['no ipc channel', ['inherit', 'pipe', 'pipe']],
+                ['ipc on fd 0', ['ipc', 'pipe', 'pipe']],
+                ['ipc on fd 1', ['inherit', 'ipc', 'pipe']],
+                ['ipc on fd 2', ['inherit', 'pipe', 'ipc']],
+                ['ipc past fd 3', ['inherit', 'pipe', 'pipe', 'ignore', 'ipc']],
+            ] as [string, ('inherit' | 'pipe' | 'ignore' | 'ipc')[]][])('should pass stdio through unchanged with %s', async (_, stdio) => {
+                mockExecSync.mockReturnValue('/usr/bin/xvfb-run')
+
+                await processFactory.createWorkerProcess(scriptPath, args, { ...options, stdio })
+
+                expect(mockSpawn).toHaveBeenCalledWith(
+                    'xvfb-run',
+                    expect.any(Array),
+                    expect.objectContaining({ stdio })
+                )
+            })
+
             it('should fallback to fork when xvfb-run is not available', async () => {
                 mockExecSync.mockImplementation(() => {
                     throw new Error('Command not found')
