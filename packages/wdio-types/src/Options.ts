@@ -392,6 +392,18 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * @default 24
      */
     displayServerDepth?: number
+    /** @deprecated Use `displayServerEnabled` instead. */
+    autoXvfb?: boolean
+    /** @deprecated Use `displayServerAutoInstall` instead. */
+    xvfbAutoInstall?: boolean
+    /** @deprecated Use `displayServerAutoInstallMode` instead. */
+    xvfbAutoInstallMode?: 'root' | 'sudo'
+    /** @deprecated Use `displayServerAutoInstallCommand` instead. */
+    xvfbAutoInstallCommand?: string | string[]
+    /** @deprecated Has no effect: display-server startup is not retried. */
+    xvfbMaxRetries?: number
+    /** @deprecated Has no effect: display-server startup is not retried. */
+    xvfbRetryDelay?: number
     // framework options
     /**
      * Mocha specific options

@@ -5,14 +5,46 @@ import type { DisplayDaemon, DisplayDaemonOptions, DisplayServer, DisplayServerO
 import { WaylandDisplayServer } from './WaylandDisplayServer.js'
 import { XvfbDisplayServer } from './XvfbDisplayServer.js'
 
-export function optionsFromConfig(config: Options.Testrunner): DisplayServerOptions {
-    return {
-        enabled: config.displayServerEnabled,
-        displayServer: config.displayServer,
-        autoInstall: config.displayServerAutoInstall,
-        autoInstallMode: config.displayServerAutoInstallMode,
-        autoInstallCommand: config.displayServerAutoInstallCommand,
+// v9 config keys, still honored so existing configs keep working.
+const RENAMED_KEYS = {
+    autoXvfb: 'displayServerEnabled',
+    xvfbAutoInstall: 'displayServerAutoInstall',
+    xvfbAutoInstallMode: 'displayServerAutoInstallMode',
+    xvfbAutoInstallCommand: 'displayServerAutoInstallCommand',
+} as const
+type RenamedKey = keyof typeof RENAMED_KEYS
+const IGNORED_KEYS = ['xvfbMaxRetries', 'xvfbRetryDelay'] as const
+const MIGRATION_GUIDE = 'https://webdriver.io/docs/v10-migration#virtual-displays-on-linux'
+
+function warnAboutXvfbKeys(config: Options.Testrunner, preferringXvfb: boolean): void {
+    const log = logger('@wdio/display-server')
+    for (const [xvfbKey, key] of Object.entries(RENAMED_KEYS)) {
+        if (config[xvfbKey as RenamedKey] !== undefined) {
+            log.warn(`\`${xvfbKey}\` is deprecated, use \`${key}\` instead. See ${MIGRATION_GUIDE}`)
+        }
     }
+    for (const xvfbKey of IGNORED_KEYS) {
+        if (config[xvfbKey] !== undefined) {
+            log.warn(`\`${xvfbKey}\` is deprecated and has no effect, since display-server startup is not retried. See ${MIGRATION_GUIDE}`)
+        }
+    }
+    if (preferringXvfb) {
+        log.warn(`Preferring Xvfb, as v9 did, because the config sets v9 display keys; set \`displayServer\` to choose. See ${MIGRATION_GUIDE}`)
+    }
+}
+
+export function optionsFromConfig(config: Options.Testrunner): DisplayServerOptions {
+    const usesRenamedKeys = Object.entries(RENAMED_KEYS)
+        .some(([xvfbKey, key]) => config[xvfbKey as RenamedKey] !== undefined && config[key] === undefined)
+    const options: DisplayServerOptions = {
+        enabled: config.displayServerEnabled ?? config.autoXvfb,
+        displayServer: config.displayServer ?? (usesRenamedKeys ? 'xvfb' : undefined),
+        autoInstall: config.displayServerAutoInstall ?? config.xvfbAutoInstall,
+        autoInstallMode: config.displayServerAutoInstallMode ?? config.xvfbAutoInstallMode,
+        autoInstallCommand: config.displayServerAutoInstallCommand ?? config.xvfbAutoInstallCommand,
+    }
+    warnAboutXvfbKeys(config, usesRenamedKeys && config.displayServer === undefined && options.enabled !== false)
+    return options
 }
 
 export class DisplayServerManager {
