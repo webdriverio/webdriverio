@@ -117,8 +117,8 @@ export async function initializeInstance (
      */
     const browserNames = config.injectGlobals ? Object.keys(capabilities) : []
     for (const browserName of browserNames) {
-        // @ts-ignore allow random global browser names
-        global[browserName] = browser[browserName]
+        // Instance names are chosen by the user and become globals when injectGlobals is set.
+        (globalThis as Record<string, unknown>)[browserName] = browser.getInstance(browserName)
     }
 
     return browser

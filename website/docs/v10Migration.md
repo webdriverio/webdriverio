@@ -1,7 +1,7 @@
 ---
 id: v10-migration
 title: From v9 to v10
-description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures and removed commands.
+description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, and multiremote instance access.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
@@ -222,6 +222,23 @@ await browser.action('pointer', { parameters: { pointerType: 'touch' } })
     .up()
     .perform()
 ```
+
+## Multiremote instance access
+
+A multiremote browser no longer stores each session as its own property. The same is true for a multiremote element. `getInstance` and `select` are how you address one session.
+
+```diff
+- await browser.myChromeBrowser.url('https://webdriver.io')
+- await (await browser.$('button')).myChromeBrowser.click()
++ await browser.getInstance('myChromeBrowser').url('https://webdriver.io')
++ await (await browser.$('button')).getInstance('myChromeBrowser').click()
+```
+
+A TypeScript augmentation that adds `myChromeBrowser: WebdriverIO.Browser` to `WebdriverIO.MultiRemoteBrowser` no longer matches a runtime property. Delete that augmentation and call `getInstance`.
+
+With the testrunner and `injectGlobals` left on, the instance name is still a global (`myChromeBrowser.url(...)`). That global is the single session. It is not `browser.myChromeBrowser`.
+
+Command results stay in capability order: the first entry belongs to the first key in the capabilities object.
 
 ## Jasmine
 

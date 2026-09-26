@@ -86,6 +86,21 @@ describe('Multi-Remote tests', () => {
         expect(selected.strategies.get('selectHeader')).toBe(strategy)
     })
 
+    test('keeps instances in capability order and off the client', async () => {
+        const browser = await multiremote(caps())
+
+        expect(browser.instances).toEqual(['browserA', 'browserB'])
+        expect(Object.hasOwn(browser, 'browserA')).toBe(false)
+        expect(Object.hasOwn(browser, 'browserB')).toBe(false)
+        expect(browser['browserA' as 'getInstance']).toBeUndefined()
+
+        const elem = await browser.$('#foo')
+        expect(elem.instances).toEqual(['browserA', 'browserB'])
+        expect(Object.hasOwn(elem, 'browserA')).toBe(false)
+        expect(elem['browserA' as 'getInstance']).toBeUndefined()
+        expect(elem.getInstance('browserA').elementId).toBe('some-elem-123')
+    })
+
     test('should run command on all instances', async () => {
         const browser = await multiremote(caps())
 
@@ -167,9 +182,9 @@ describe('Multi-Remote tests', () => {
         const elem = await browser.$('#foo')
 
         // @ts-expect-error untyped custom command
-        expect(await elem.browserA.myCustomElementCommand()).toBe(50)
+        expect(await elem.getInstance('browserA').myCustomElementCommand()).toBe(50)
         // @ts-expect-error untyped custom command
-        expect(await elem.browserB.myCustomElementCommand()).toBe(50)
+        expect(await elem.getInstance('browserB').myCustomElementCommand()).toBe(50)
         // @ts-expect-error untyped custom command
         expect(await elem.myCustomElementCommand()).toEqual([50, 50])
     })

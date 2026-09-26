@@ -6,12 +6,12 @@ describe('smoke test multiremote', () => {
             JSON.stringify(await browser.getTitle()),
             JSON.stringify(['Mock Page Title', 'Mock Page Title']))
 
-        if (browser.browserA) {
-            assert.equal(await browser.browserB.getTitle(), 'Mock Page Title')
-            assert.equal(await browser.browserA.getTitle(), 'Mock Page Title')
+        if (browser.getInstance('browserA')) {
+            assert.equal(await browser.getInstance('browserB').getTitle(), 'Mock Page Title')
+            assert.equal(await browser.getInstance('browserA').getTitle(), 'Mock Page Title')
         } else {
-            assert.equal(await browser.browserC.getTitle(), 'Mock Page Title')
-            assert.equal(await browser.browserD.getTitle(), 'Mock Page Title')
+            assert.equal(await browser.getInstance('browserD').getTitle(), 'Mock Page Title')
+            assert.equal(await browser.getInstance('browserC').getTitle(), 'Mock Page Title')
         }
     })
 
@@ -41,7 +41,7 @@ describe('smoke test multiremote', () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
             let browserObj = global.browserA,
                 anotherBrowserObj  = global.browserB
-            if (browser.browserC) {
+            if (browser.getInstance('browserC')) {
                 browserObj = global.browserC
                 anotherBrowserObj  = global.browserD
             }
@@ -96,7 +96,7 @@ describe('smoke test multiremote', () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
             let browserObj = global.browserA,
                 anotherBrowserObj  = global.browserB
-            if (browser.browserC) {
+            if (browser.getInstance('browserC')) {
                 browserObj = global.browserC
                 anotherBrowserObj  = global.browserD
             }
