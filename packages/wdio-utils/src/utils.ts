@@ -342,17 +342,11 @@ export function isAppiumCapability(caps: WebdriverIO.Capabilities): boolean {
     return Boolean(
         caps &&
         (
-            // @ts-expect-error outdated jsonwp cap
-            caps.automationName ||
             caps['appium:automationName'] ||
             ('appium:options' in caps && caps['appium:options']?.automationName) ||
-            // @ts-expect-error outdated jsonwp cap
-            caps.deviceName ||
             caps['appium:deviceName'] ||
             ('appium:options' in caps && caps['appium:options']?.deviceName) ||
             ('lt:options' in caps && caps['lt:options']?.deviceName) ||
-            // @ts-expect-error outdated jsonwp cap
-            caps.appiumVersion ||
             caps['appium:appiumVersion'] ||
             ('appium:options' in caps && caps['appium:options']?.appiumVersion) ||
             ('lt:options' in caps && caps['lt:options']?.appiumVersion)

@@ -271,3 +271,22 @@ Appium 3 [removed many deprecated base-driver endpoints](https://appium.io/docs/
 ### Appium `--allow-insecure` scope
 
 Appium 3 requires a driver or `*` scope prefix on `--allow-insecure` features, for example `uiautomator2:adb_shell` or `*:adb_shell`.
+
+### Unprefixed Appium capabilities no longer select an Appium session
+
+`automationName`, `deviceName`, and `appiumVersion` without an `appium:` prefix no longer tell WebdriverIO to skip the browser driver and attach the Appium service. Use the prefixed capability, or nest it under `appium:options`:
+
+```diff
+- capabilities: { platformName: 'Android', automationName: 'UiAutomator2', deviceName: 'emulator' }
++ capabilities: {
++     platformName: 'Android',
++     'appium:automationName': 'UiAutomator2',
++     'appium:deviceName': 'emulator'
++ }
+```
+
+`wdio repl` now emits those prefixed keys, including `appium:app`, `appium:platformVersion`, and `appium:udid`.
+
+### `getValue` on mobile reads the element property
+
+On a W3C session, including Appium 3, `element.getValue()` calls Get Element Property. It previously called Get Element Attribute for every mobile session. A non-W3C session still reads the attribute.
