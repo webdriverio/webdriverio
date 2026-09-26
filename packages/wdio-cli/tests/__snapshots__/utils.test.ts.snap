@@ -17,11 +17,11 @@ exports[`getCapabilities > should return driver with capabilities for android 1`
 {
   "capabilities": {
     "appium:app": "foo.apk",
-    "platformName": "Android",
     "appium:automationName": "UiAutomator2",
     "appium:deviceName": "Test",
     "appium:platformVersion": undefined,
     "appium:udid": undefined,
+    "platformName": "Android",
   },
 }
 `;
@@ -29,12 +29,12 @@ exports[`getCapabilities > should return driver with capabilities for android 1`
 exports[`getCapabilities > should return driver with capabilities for android 2`] = `
 {
   "capabilities": {
-    "browserName": "Chrome",
-    "platformName": "Android",
     "appium:automationName": "UiAutomator2",
     "appium:deviceName": "Test",
     "appium:platformVersion": undefined,
     "appium:udid": undefined,
+    "browserName": "Chrome",
+    "platformName": "Android",
   },
 }
 `;
@@ -51,11 +51,11 @@ exports[`getCapabilities > should return driver with capabilities for ios 1`] = 
 {
   "capabilities": {
     "appium:app": "foo.app",
-    "platformName": "iOS",
     "appium:automationName": "XCUITest",
     "appium:deviceName": "fooName",
     "appium:platformVersion": "fooNum",
     "appium:udid": "num",
+    "platformName": "iOS",
   },
 }
 `;
@@ -63,12 +63,12 @@ exports[`getCapabilities > should return driver with capabilities for ios 1`] = 
 exports[`getCapabilities > should return driver with capabilities for ios 2`] = `
 {
   "capabilities": {
-    "browserName": "Safari",
-    "platformName": "iOS",
     "appium:automationName": "XCUITest",
     "appium:deviceName": "iPhone Simulator",
     "appium:platformVersion": undefined,
     "appium:udid": undefined,
+    "browserName": "Safari",
+    "platformName": "iOS",
   },
 }
 `;
