@@ -13,7 +13,8 @@ const log = logger('@wdio/session:helpers')
 const DEBOUNCE_MS = 200
 /**
  * macOS can drop a watch event, including one that lands before `fs.watch`
- * is active. A quiet directory only pays for a stat.
+ * is active. The poll re-reads file contents, because a same-size edit can
+ * keep its modification time and a stat would still look unchanged.
  */
 const POLL_MS = 500
 
@@ -367,7 +368,7 @@ function armWatcher (session: Session, dir: string, onChange: (names: ReadonlySe
             return
         }
         try {
-            onChange(new Set(), false)
+            onChange(new Set(), true)
         } catch (err) {
             log.warn(`Helper watch failed: ${errorLine(err)}`)
         }
