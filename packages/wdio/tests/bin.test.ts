@@ -10,24 +10,21 @@ import { describe, expect, it } from 'vitest'
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
 /**
- * `shell: true` joins argv with spaces, then Node wraps that string for
- * `cmd /d /s /c`. Quote each argument so a temp path such as
- * `C:\Users\Ada Lovelace\AppData\Local\Temp\wdio-pack` stays one argument
- * after cmd strips only the outer quotes.
+ * Run pnpm with argv, not a shell. On Windows `pnpm` is `pnpm.cmd`, and
+ * `shell: true` joins the arguments into one `cmd.exe` string, so a temp
+ * path such as `C:\Users\Ada Lovelace\AppData\Local\Temp\wdio-pack` splits.
+ * pnpm sets `npm_execpath` to its JavaScript entry when it runs the test.
  */
-function quoteShellArg (arg: string): string {
-    if (!/[\s"&|<>^%]/.test(arg)) {
-        return arg
+function pnpm (args: string[], cwd: string) {
+    const entry = process.env.npm_execpath
+    if (entry && !/\.(cmd|bat|ps1)$/i.test(entry)) {
+        return execFileSync(process.execPath, [entry, ...args], { cwd, encoding: 'utf8' })
     }
-    return `"${arg.replace(/"/g, '""')}"`
+    if (process.platform !== 'win32') {
+        return execFileSync('pnpm', args, { cwd, encoding: 'utf8' })
+    }
+    throw new Error('Run this test with pnpm so npm_execpath points at the pnpm script.')
 }
-
-describe('quoteShellArg', () => {
-    it('quotes a Windows path that contains spaces and leaves a plain path alone', () => {
-        expect(quoteShellArg('C:\\Users\\Ada Lovelace\\AppData\\Local\\Temp\\wdio-pack')).toBe('"C:\\Users\\Ada Lovelace\\AppData\\Local\\Temp\\wdio-pack"')
-        expect(quoteShellArg('C:\\Temp\\wdio-pack')).toBe('C:\\Temp\\wdio-pack')
-    })
-})
 
 describe('wdio package', () => {
     it('is the public unscoped CLI published with the monorepo', () => {
@@ -69,13 +66,7 @@ describe('wdio package', () => {
 
     it('packs a bin that imports @wdio/cli at its published version', () => {
         const dest = mkdtempSync(resolve(tmpdir(), 'wdio-pack-'))
-        // Windows installs pnpm as pnpm.cmd, which execFile cannot spawn unless a shell resolves it.
-        const packArgs = ['pack', '--pack-destination', dest]
-        const packed = execFileSync('pnpm', process.platform === 'win32' ? packArgs.map(quoteShellArg) : packArgs, {
-            cwd: packageDir,
-            encoding: 'utf8',
-            shell: process.platform === 'win32'
-        }).trim().split('\n').pop()
+        const packed = pnpm(['pack', '--pack-destination', dest], packageDir).trim().split('\n').pop()
         expect(packed).toBeTruthy()
         const listing = execFileSync('tar', ['-xOf', resolve(dest, packed!), 'package/package.json'], { encoding: 'utf8' })
         const published = JSON.parse(listing) as { dependencies: Record<string, string>, bin: { wdio: string } }
