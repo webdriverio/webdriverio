@@ -1002,14 +1002,6 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     pointer-events: none;
 }
 
-.sessionWire {
-    fill: none;
-    stroke: url(#session-wire);
-    stroke-width: 2;
-    stroke-dasharray: 4 6;
-    opacity: 0.28;
-}
-
 .sessionWireOn {
     opacity: 0.95;
 }
@@ -1374,29 +1366,54 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
         opacity: 1;
     }
 
-    .sessionStage[data-focus="all"] .device {
+    .sessionStage[data-focus="all"] .deviceBrowser,
+    .sessionStage[data-focus="all"] .devicePhone,
+    .sessionStage[data-focus="all"] .deviceDesktop {
         display: flex;
-        inset: auto;
         opacity: 1;
         transform: none;
-        height: 78%;
-        top: 11%;
+        top: 10%;
+        right: auto;
+        bottom: auto;
+        height: 80%;
     }
 
     .sessionStage[data-focus="all"] .deviceBrowser {
         left: 2%;
-        width: 34%;
+        width: 31%;
     }
 
     .sessionStage[data-focus="all"] .devicePhone {
-        left: 36%;
-        width: 26%;
-        top: 6%;
-        height: 88%;
+        left: 34%;
+        width: 30%;
+        top: 5%;
+        height: 90%;
     }
 
     .sessionStage[data-focus="all"] .deviceDesktop {
-        left: 63%;
-        width: 34%;
+        left: 66%;
+        width: 32%;
+    }
+
+    .sessionStage[data-focus="all"] .shop {
+        gap: 0.35rem;
+        padding: 0.4rem;
+    }
+
+    .sessionStage[data-focus="all"] .swatch {
+        width: 1.3rem;
+        height: 1.3rem;
+    }
+
+    .sessionStage[data-focus="all"] .productName,
+    .sessionStage[data-focus="all"] .shopBar,
+    .sessionStage[data-focus="all"] .addButton {
+        font-size: 0.62rem;
+    }
+
+    .sessionStage[data-focus="all"] .addButton {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }

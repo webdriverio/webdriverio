@@ -151,7 +151,12 @@ export default function SessionDemo () {
                         <use
                             key={id}
                             href={`#session-path-${id}`}
-                            className={clsx(styles.sessionWire, active.includes(id) && styles.sessionWireOn, fan && styles.sessionWireFan)}
+                            className={clsx(active.includes(id) && styles.sessionWireOn, fan && styles.sessionWireFan)}
+                            fill="none"
+                            stroke="url(#session-wire)"
+                            strokeWidth={active.includes(id) ? 3 : 1.5}
+                            strokeDasharray="5 7"
+                            opacity={active.includes(id) ? 0.95 : 0.22}
                         />
                     ))}
                     {!fan && active.map((id) => (
