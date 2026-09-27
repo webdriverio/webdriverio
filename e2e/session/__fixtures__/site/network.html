@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Network Fixture</title>
+</head>
+<body>
+  <h1>Network</h1>
+  <button type="button" id="load" onclick="load()">Load user</button>
+  <button type="button" id="log-error" onclick="console.error('boom')">Log error</button>
+  <button type="button" id="log-info" onclick="console.log('hello from page')">Log info</button>
+  <button type="button" id="throw" onclick="setTimeout(() => { throw new Error('uncaught kaboom') })">Throw</button>
+  <button type="button" id="fail" onclick="fetch('http://127.0.0.1:9/nothing').catch(() => { document.getElementById('name').textContent = 'Request failed' })">Fail request</button>
+  <p id="name"></p>
+  <script>
+    async function load () {
+      try {
+        const res = await fetch('/api/user')
+        if (!res.ok) throw new Error('HTTP ' + res.status)
+        const user = await res.json()
+        document.getElementById('name').textContent = user.name
+      } catch (err) {
+        document.getElementById('name').textContent = 'Error: ' + err.message
+      }
+    }
+  </script>
+</body>
+</html>

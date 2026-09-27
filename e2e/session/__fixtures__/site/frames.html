@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Frames Fixture</title>
+</head>
+<body>
+  <h1>Frames</h1>
+  <iframe id="same" title="Same origin frame" src="/frame-child.html" width="400" height="150"></iframe>
+  <iframe id="cross" title="Cross origin frame" width="400" height="150"></iframe>
+  <script>
+    const other = new URLSearchParams(location.search).get('cross')
+    const cross = document.getElementById('cross')
+    cross.src = other ? other + '/frame-child.html' : 'about:blank'
+  </script>
+</body>
+</html>

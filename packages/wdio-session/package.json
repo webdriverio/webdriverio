@@ -1,0 +1,79 @@
+{
+  "name": "@wdio/session",
+  "version": "9.32.0",
+  "description": "Drive browsers, mobile apps and desktop apps with WebdriverIO from the shell",
+  "author": "Christian Bromann <mail@bromann.dev>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-session",
+  "license": "MIT",
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    },
+    "./daemon": {
+      "source": "./src/daemon/main.ts",
+      "import": "./build/daemon.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "wdio-session": "./bin/wdio-session.js"
+  },
+  "typeScriptVersion": "5.9.3",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-session"
+  },
+  "keywords": [
+    "webdriverio",
+    "wdio",
+    "session",
+    "cli",
+    "agent",
+    "automation"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+    "@types/node": "^22.20.4",
+    "@wdio/display-server": "workspace:*",
+    "@wdio/logger": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
+    "acorn": "^8.15.0",
+    "aria-query": "^5.3.0",
+    "expect-webdriverio": "^6.1.0",
+    "webdriverio": "workspace:*",
+    "yargs": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/aria-query": "^5.0.4",
+    "@types/yargs": "^17.0.33"
+  },
+  "peerDependencies": {
+    "@wdio/electron-service": "*",
+    "@wdio/visual-service": "*",
+    "appium": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@wdio/electron-service": {
+      "optional": true
+    },
+    "@wdio/visual-service": {
+      "optional": true
+    },
+    "appium": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
