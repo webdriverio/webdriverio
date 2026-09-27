@@ -92,4 +92,20 @@ describe('native snapshots', () => {
         expect(bySelector.text).not.toContain('[ref=e1]')
         await expect(takeNativeSnapshot(session, { scope: '~go' })).rejects.toThrow(/matches 2 elements/)
     })
+
+    it('scopes a non-interactive node by its selector', async () => {
+        const refs = new RefRegistry()
+        const session = {
+            browser: {
+                capabilities: { platformName: 'Android' },
+                getPageSource: async () => fixture('android.xml')
+            },
+            plan: { target: 'android' },
+            refs
+        } as unknown as Session
+        const scoped = await takeNativeSnapshot(session, { scope: '//android.widget.TextView[@text="Hello"]' })
+        expect(scoped.text).toContain('text "Hello"')
+        expect(scoped.text).not.toContain('button "save"')
+        expect(scoped.text).not.toContain('[ref=')
+    })
 })
