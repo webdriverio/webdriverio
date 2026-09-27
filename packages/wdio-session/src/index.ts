@@ -1,4 +1,5 @@
 export { runSessionCli } from './cli/command.js'
+export { applyDebugAgentTimeouts, enableDebugAgent, pauseDebugSession, DEBUG_AGENT_TIMEOUT, DEBUG_AGENT_CLOSED } from './debug.js'
 export { send, getLiveState } from './cli/client.js'
 export { SessionServer } from './daemon/server.js'
 export { Session } from './session.js'

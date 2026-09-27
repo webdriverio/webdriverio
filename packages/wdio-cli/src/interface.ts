@@ -270,6 +270,14 @@ export default class WDIOCLInterface extends EventEmitter {
             return this._inDebugMode
         }
 
+        if (event.origin === 'debugger' && event.name === 'agent') {
+            const session = event.params?.session
+            const spec = event.params?.spec
+            const test = event.params?.test
+            console.error(`Paused in ${spec} › ${test}. Inspect with \`wdio session -s ${session} snapshot\`, continue with \`wdio session -s ${session} resume\`.`)
+            return
+        }
+
         if (event.name === 'testFrameworkInit') {
             return this.emit('job:start', event.content)
         }

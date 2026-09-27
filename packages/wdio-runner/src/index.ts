@@ -63,6 +63,10 @@ export default class Runner extends EventEmitter {
         }
 
         this._config = this._configParser.getConfig()
+        if (args.debug === 'agent') {
+            const { applyDebugAgentTimeouts } = await import('@wdio/session')
+            applyDebugAgentTimeouts(this._config)
+        }
 
         /**
          * Track setup / execution / teardown wall-clock for the worker.
@@ -161,6 +165,11 @@ export default class Runner extends EventEmitter {
             await executeHooksWithArgs('after', this._config.after as Function, afterArgs)
             await this.endSession()
             return this._shutdown(1, retries, true)
+        }
+
+        if (args.debug === 'agent' && !isMultiRemote) {
+            const { enableDebugAgent } = await import('@wdio/session')
+            enableDebugAgent({ browser: browser as WebdriverIO.Browser, cid, specs })
         }
 
         this._reporter.caps = browser.capabilities

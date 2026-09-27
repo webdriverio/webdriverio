@@ -77,6 +77,8 @@ export interface Project {
     runtimeDir: string
     env: NodeJS.ProcessEnv
     run: (args: string[], opts?: RunOptions) => Promise<RunResult>
+    wdio: (args: string[], opts?: RunOptions) => Promise<RunResult>
+    start: (args: string[], opts?: RunOptions) => BackgroundRun
     cleanup: () => Promise<void>
 }
 
@@ -87,12 +89,46 @@ export interface RunOptions {
     timeout?: number
 }
 
+export interface BackgroundRun {
+    stdout: () => string
+    stderr: () => string
+    result: Promise<RunResult>
+    kill: () => void
+}
+
 /**
- * Run `wdio session …` as a child process.
+ * Start `wdio <args>` and return before it exits.
  */
-export function runSession (args: string[], opts: RunOptions = {}): Promise<RunResult> {
+export function startWdio (args: string[], opts: RunOptions = {}): BackgroundRun {
+    const child = spawn(process.execPath, [WDIO_BIN, ...args], {
+        cwd: opts.cwd,
+        env: { ...process.env, NO_COLOR: '1', ...opts.env },
+        stdio: ['ignore', 'pipe', 'pipe']
+    })
+    let stdout = ''
+    let stderr = ''
+    child.stdout.on('data', (d) => (stdout += d))
+    child.stderr.on('data', (d) => (stderr += d))
+    const result = new Promise<RunResult>((resolve) => {
+        child.on('close', (code) => {
+            resolve({ code: code ?? 1, stdout, stderr })
+        })
+    })
+    return {
+        stdout: () => stdout,
+        stderr: () => stderr,
+        result,
+        kill: () => {
+            if (child.exitCode === null && !child.killed) {
+                child.kill('SIGTERM')
+            }
+        }
+    }
+}
+
+export function runWdio (args: string[], opts: RunOptions = {}): Promise<RunResult> {
     return new Promise((resolve, reject) => {
-        const child = spawn(process.execPath, [WDIO_BIN, 'session', ...args], {
+        const child = spawn(process.execPath, [WDIO_BIN, ...args], {
             cwd: opts.cwd,
             env: { ...process.env, NO_COLOR: '1', ...opts.env },
             stdio: [opts.stdin === undefined ? 'ignore' : 'pipe', 'pipe', 'pipe']
@@ -103,7 +139,7 @@ export function runSession (args: string[], opts: RunOptions = {}): Promise<RunR
         child.stderr.on('data', (d) => (stderr += d))
         const timer = setTimeout(() => {
             child.kill('SIGKILL')
-            reject(new Error(`wdio session ${args.join(' ')} timed out\nstdout: ${stdout}\nstderr: ${stderr}`))
+            reject(new Error(`wdio ${args.join(' ')} timed out\nstdout: ${stdout}\nstderr: ${stderr}`))
         }, opts.timeout ?? 120_000)
         if (opts.stdin !== undefined) {
             child.stdin!.end(opts.stdin)
@@ -124,6 +160,13 @@ export function runSession (args: string[], opts: RunOptions = {}): Promise<RunR
 }
 
 /**
+ * Run `wdio session …` as a child process.
+ */
+export function runSession (args: string[], opts: RunOptions = {}): Promise<RunResult> {
+    return runWdio(['session', ...args], opts)
+}
+
+/**
  * A temp project dir with its own runtime dir, so tests never see the
  * user's sessions.
  */
@@ -136,6 +179,8 @@ export function createProject (name = 'proj'): Project {
         runtimeDir,
         env,
         run: (args, opts = {}) => runSession(args, { cwd: dir, ...opts, env: { ...env, ...opts.env } }),
+        wdio: (args, opts = {}) => runWdio(args, { cwd: dir, ...opts, env: { ...env, ...opts.env } }),
+        start: (args, opts = {}) => startWdio(args, { cwd: dir, ...opts, env: { ...env, ...opts.env } }),
         cleanup: async () => {
             await runSession(['close', '--all'], { cwd: dir, env }).catch(() => {})
             fs.rmSync(dir, { recursive: true, force: true })

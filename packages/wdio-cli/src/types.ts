@@ -31,6 +31,10 @@ export interface RunCommandArguments {
     tsConfigPath?: string
     cpuProf?: boolean
     heapProf?: boolean
+    /**
+     * `wdio run --debug=agent` pauses `browser.debug()` and failing tests.
+     */
+    debug?: 'agent'
 
     /**
      * @internal
@@ -44,6 +48,7 @@ export interface ReplCommandArguments {
     udid: string
     option: string
     capabilities: string
+    session?: string
 }
 
 export interface InstallCommandArguments {

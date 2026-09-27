@@ -3,6 +3,7 @@ import { vi, describe, it, expect, afterEach } from 'vitest'
 
 import * as shim from '../../src/shim.js'
 import { testFnWrapper, filterStackTrace } from '../../src/test-framework/testFnWrapper.js'
+import { setDebugAgentPause } from '../../src/test-framework/debugAgent.js'
 
 vi.mock('../../src/shim', () => ({
     executeHooksWithArgs: vi.fn(),
@@ -251,8 +252,38 @@ describe('testFnWrapper', () => {
         })
     })
 
+    it('pauses a failed test before afterTest and close fails the test', async () => {
+        const order: string[] = []
+        executeHooksWithArgs.mockImplementation(async (name: string) => {
+            order.push(name)
+            return []
+        })
+        setDebugAgentPause(async () => {
+            order.push('pause')
+            throw new Error('Session closed from wdio session')
+        })
+        const failure = new Error('assertion failed')
+        const args = [
+            'Test',
+            { specFn: () => { throw failure }, specFnArgs: [] },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [{ title: 'reads the title', file: '/tmp/spec.ts' }] },
+            { afterFn: 'afterFn', afterFnArgs: () => [{ title: 'reads the title', file: '/tmp/spec.ts' }] },
+            '0-0',
+            0
+        ] as any[]
+
+        // @ts-expect-error test args
+        await expect(testFnWrapper(...args)).rejects.toThrow('Session closed from wdio session')
+        expect(order).toEqual(['beforeTest', 'pause', 'afterTest'])
+        const afterCall = executeHooksWithArgs.mock.calls.find((call) => call[0] === 'afterTest')
+        const report = (afterCall?.[2] as { error?: Error, passed?: boolean }[])[1]
+        expect(report.error?.message).toBe('Session closed from wdio session')
+        expect(report.passed).toBe(false)
+    })
+
     afterEach(() => {
         executeHooksWithArgs.mockClear()
+        setDebugAgentPause(undefined)
     })
 })
 
