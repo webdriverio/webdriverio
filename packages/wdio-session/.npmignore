@@ -1,4 +1,7 @@
-src
+src/*
+!src/skill/
+src/skill/*
+!src/skill/SKILL.md
 tests
 tsconfig.json
 tsconfig.prod.json

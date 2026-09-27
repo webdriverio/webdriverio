@@ -4,6 +4,7 @@ import inquirer from 'inquirer'
 import { buildTauriBanner, buildDioxusBanner, configHelperSuccessMessage, CONFIG_HELPER_SERENITY_BANNER, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_INTRO, getResolvedPurpose, isNuxtProject, SUPPORTED_PACKAGES } from '../constants.js'
 import type { ParsedAnswers } from '../types.js'
 import { createPackageJSON, setupTypeScript, npmInstall, createWDIOConfig, createWDIOScript, runAppiumInstaller, convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps, getProjectRoot, getSerenityPackages } from '../utils.js'
+import { writeAgentSupport } from './agent.js'
 
 export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: string) {
     console.log('\n')
@@ -41,6 +42,9 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: str
     )
 
     await runAppiumInstaller(parsedAnswers)
+    if (parsedAnswers.rawAnswers?.agentSupport) {
+        writeAgentSupport(parsedAnswers.projectRootDir)
+    }
 }
 
 /**
