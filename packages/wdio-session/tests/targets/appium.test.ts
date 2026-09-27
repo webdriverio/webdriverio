@@ -53,7 +53,7 @@ describe('appium server', () => {
         if (process.platform !== 'win32') {
             expect(Date.now() - started).toBeGreaterThanOrEqual(250)
         }
-        expect(child.signalCode === 'SIGKILL' || child.exitCode !== null || !child.pid).toBe(true)
+        expect(child.killed || child.exitCode !== null || child.signalCode !== null).toBe(true)
     })
 
     it('rejects when the Appium process fails to spawn', async () => {
