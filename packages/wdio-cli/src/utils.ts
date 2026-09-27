@@ -63,8 +63,8 @@ function collectConfigPaths (config: Partial<WebdriverIO.Config>): string[] {
 }
 
 /**
- * Specs declared on capabilities (or `wdio:specs`) are not always mirrored on
- * the top-level config object.
+ * Specs declared on capabilities via `wdio:specs` / `wdio:exclude` are not
+ * always mirrored on the top-level config object.
  */
 function collectCapabilityPaths (
     capabilities?: Capabilities.TestrunnerCapabilities
@@ -93,17 +93,10 @@ function collectCapabilityPaths (
             entry && typeof entry === 'object' && 'capabilities' in entry
                 ? (entry as { capabilities: WebdriverIO.Capabilities }).capabilities
                 : entry
-        ) as WebdriverIO.Capabilities & {
-            specs?: unknown
-            exclude?: unknown
-            'wdio:specs'?: unknown
-            'wdio:exclude'?: unknown
-        }
+        ) as WebdriverIO.Capabilities
         if (!caps || typeof caps !== 'object') {
             continue
         }
-        push(caps.specs)
-        push(caps.exclude)
         push(caps['wdio:specs'])
         push(caps['wdio:exclude'])
     }
@@ -280,9 +273,9 @@ export function findInConfig(config: string, type: string) {
 
 export async function getCapabilities(arg: ReplCommandArguments) {
     const optionalCapabilites = {
-        platformVersion: arg.platformVersion,
-        udid: arg.udid,
-        ...(arg.deviceName && { deviceName: arg.deviceName })
+        'appium:platformVersion': arg.platformVersion,
+        'appium:udid': arg.udid,
+        ...(arg.deviceName && { 'appium:deviceName': arg.deviceName })
     }
     /**
      * Parsing of option property and constructing desiredCapabilities
@@ -291,7 +284,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
     if (/.*\.(apk|app|ipa)$/.test(arg.option)) {
         return {
             capabilities: {
-                app: arg.option,
+                'appium:app': arg.option,
                 ...(arg.option.endsWith('apk') ? ANDROID_CONFIG : IOS_CONFIG),
                 ...optionalCapabilites,
             }
@@ -325,8 +318,8 @@ export async function getCapabilities(arg: ReplCommandArguments) {
         requiredCaps = (
             // multi capabilities
             (requiredCaps as (Capabilities.RequestedStandaloneCapabilities)[])[parseInt(arg.capabilities, 10)] ||
-            // multiremote
-            (requiredCaps as Capabilities.RequestedMultiremoteCapabilities)[arg.capabilities]?.capabilities
+            // Multi-remote
+            (requiredCaps as Capabilities.RequestedMultiRemoteCapabilities)[arg.capabilities]?.capabilities
         )
         const requiredW3CCaps = pickBy(requiredCaps, (_: never, key: string) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
         if (!Object.keys(requiredW3CCaps).length) {
@@ -397,7 +390,6 @@ const jasmineTypes: Record<string, string> = {
     invertGrep: 'boolean',
     cleanStack: 'boolean',
     stopOnSpecFailure: 'boolean',
-    stopSpecOnExpectationFailure: 'boolean',
     requireModule: 'array',
 }
 

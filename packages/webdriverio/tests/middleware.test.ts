@@ -86,7 +86,7 @@ describe('middleware', () => {
                 'WebDriver Bidi command "script.callFunction" failed with error: no such node - The node with the reference stale-element-123 is not known'
             ))
             .mockResolvedValueOnce(false)
-        browser.addCommand('isAfterNavigationDisplayed', isAfterNavigationDisplayed, true)
+        browser.addCommand('isAfterNavigationDisplayed', isAfterNavigationDisplayed, { attachToElement: true })
         const elem = await browser.$('#foo')
 
         // @ts-expect-error undefined custom command
@@ -133,7 +133,7 @@ describe('middleware', () => {
             'WebDriver Bidi command "script.callFunction" failed with error: no such node - The node with the reference stale-element-123 is not known'
         )
         const staleCheck = vi.fn().mockRejectedValueOnce(staleError)
-        browser.addCommand('rethrowStaleCheck', staleCheck, true)
+        browser.addCommand('rethrowStaleCheck', staleCheck, { attachToElement: true })
         const elem = await browser.$('#foo')
 
         vi.mocked(refetchElement).mockRejectedValueOnce(new Error('Index out of bounds'))
@@ -184,7 +184,7 @@ describe('middleware', () => {
 
         commands.forEach(commandName => {
             it(`elem NOT_FOUND and command = ${commandName}`, async () => {
-                browser.addCommand(commandName, () => {}, true)
+                browser.addCommand(commandName, () => {}, { attachToElement: true })
                 const elem = await browser.$('#nonexisting')
                 await elem[commandName]()
                 expect(vi.mocked(waitForExist).mock.calls).toHaveLength(0)
@@ -192,7 +192,7 @@ describe('middleware', () => {
         })
 
         it('elem EXISTS and command = foo', async () => {
-            browser.addCommand('foo', () => {}, true)
+            browser.addCommand('foo', () => {}, { attachToElement: true })
             const elem = await browser.$('#exists')
             // @ts-expect-error undefined custom command
             await elem.foo()
@@ -208,7 +208,7 @@ describe('middleware', () => {
 
     describe('should wait on element if', () => {
         it('elem NOT_FOUND and command = foo', async () => {
-            browser.addCommand('foo', () => {}, true)
+            browser.addCommand('foo', () => {}, { attachToElement: true })
             const elem = await browser.$('#nonexisting')
             // @ts-expect-error undefined custom command
             await elem.foo()

@@ -67,8 +67,8 @@ export default class FirefoxProfileLauncher {
         const zippedProfile = await promisify(this._profile.encoded.bind(this._profile))()
 
         if (Array.isArray(capabilities)) {
-            (capabilities as Capabilities.RequestedStandaloneCapabilities[] | Capabilities.RequestedMultiremoteCapabilities[])
-                .flatMap((c: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities) => {
+            (capabilities as Capabilities.RequestedStandaloneCapabilities[] | Capabilities.RequestedMultiRemoteCapabilities[])
+                .flatMap((c: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities) => {
                     if (Object.values(c).length > 0 && Object.values(c).every(c => typeof c === 'object' && c.capabilities)) {
                         return Object.values(c).map((o) => o.capabilities)
                     }
@@ -83,7 +83,7 @@ export default class FirefoxProfileLauncher {
         }
 
         for (const browser in capabilities) {
-            const capability = capabilities[browser].capabilities as Capabilities.RequestedMultiremoteCapabilities[string]['capabilities']
+            const capability = capabilities[browser].capabilities as Capabilities.RequestedMultiRemoteCapabilities[string]['capabilities']
             const cap = capability && ('alwaysMatch' in capability ? capability.alwaysMatch : capability)
             if (!capability || cap.browserName !== 'firefox') {
                 continue

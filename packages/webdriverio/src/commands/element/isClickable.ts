@@ -53,7 +53,6 @@ export async function isClickable (this: WebdriverIO.Element) {
 
     const browser = getBrowserObject(this)
     return browser.execute(isElementClickableScript, {
-        [ELEMENT_KEY]: this.elementId, // w3c compatible
-        ELEMENT: this.elementId // jsonwp compatible
+        [ELEMENT_KEY]: this.elementId
     } as unknown as HTMLElement)
 }

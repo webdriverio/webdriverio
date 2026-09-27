@@ -1,12 +1,12 @@
 ---
 id: v10-migration
 title: From v9 to v10
-description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors and removed commands.
+description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, and element references.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
 
-Unlike previous majors, most of these changes cannot be applied by the WebdriverIO [codemod](https://github.com/webdriverio/codemod), because they depend on what your tests actually mean. Each section below describes how to find the affected places in your suite.
+Unlike previous majors, most of these changes cannot be applied by the WebdriverIO [codemod](https://github.com/webdriverio/codemod), because they depend on what your tests actually mean. The [legacy command signatures](#legacy-command-signatures) below are mechanical replacements. Each other section describes how to find the affected places in your suite.
 
 ## Node.js
 
@@ -68,7 +68,7 @@ The deprecated `jasmineOpts.failFast` option was removed. Use `stopOnSpecFailure
 + jasmineOpts: { stopOnSpecFailure: true }
 ```
 
-## Multiremote Global
+## Multi-remote Global
 
 The lowercase `multiremotebrowser` global was removed, from `@wdio/globals` and from the globals of `eslint-plugin-wdio` too. Use `multiRemoteBrowser`.
 
@@ -186,6 +186,110 @@ Under the hood a strict `$` issues a `findElements` request instead of `findElem
 
 :::
 
+## Legacy command signatures
+
+v9 still accepted older positional forms and warned. v10 accepts only the options object.
+
+The v10 [codemod](https://github.com/webdriverio/codemod) rewrites `addCommand` and `overwriteCommand` when the third argument is a boolean, `getHTML(true)` and `getHTML(false)`, and `getCookies` when the filter is a string or a one-element array. A `getCookies` call with more than one name is left unchanged, because one filter matches one name.
+
+Install the codemod first. WebdriverIO does not depend on it.
+
+```sh
+npm install jscodeshift @wdio/codemod
+npx jscodeshift -t ./node_modules/@wdio/codemod/v10 ./e2e/
+```
+
+Use `--parser=tsx` for TypeScript files.
+
+### `addCommand` and `overwriteCommand`
+
+```diff
+- browser.addCommand('myFn', fn, true)
++ browser.addCommand('myFn', fn, { attachToElement: true })
+
+- browser.overwriteCommand('click', fn, true)
++ browser.overwriteCommand('click', fn, { attachToElement: true })
+```
+
+A boolean third argument is a TypeScript error. At runtime it throws:
+
+```
+Passing a boolean as the third argument to `addCommand` was removed in WebdriverIO v10. Use `addCommand(name, fn, { attachToElement: true })`.
+```
+
+`proto` and `instances` belong on that same options object. Omit the third argument to attach a command to the browser.
+
+### `getCookies`
+
+String and string-array filters are rejected. Pass a [cookie filter object](https://w3c.github.io/webdriver-bidi/#type-storage-CookieFilter). One call filters one name; call it again for another name.
+
+```diff
+- await browser.getCookies('session')
+- await browser.getCookies(['session', 'auth'])
++ await browser.getCookies({ name: 'session' })
++ await browser.getCookies({ name: 'auth' })
+```
+
+`getCookies()` with no arguments still returns every cookie visible to the page.
+
+### `getHTML`
+
+```diff
+- await $('h1').getHTML(false)
++ await $('h1').getHTML({ includeSelectorTag: false })
+```
+
+`getHTML()` with no arguments still includes the element's own tag.
+
+### `newWindow`
+
+`windowName` and `windowFeatures` are gone. They only applied to WebDriver Classic. The command still accepts `type`:
+
+```diff
+- await browser.newWindow('https://webdriver.io', {
+-     windowName: 'WebdriverIO window',
+-     windowFeatures: 'width=420,height=230,resizable,scrollbars=yes,status=1',
+- })
++ await browser.newWindow('https://webdriver.io', { type: 'window' })
+```
+
+Use `type: 'tab'` to open a tab.
+
+### `startActivity`
+
+Only the options object is accepted. `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments` are gone. They only applied to the removed Appium HTTP endpoint. `mobile: startActivity` does not accept them, and passing them throws.
+
+```diff
+- await browser.startActivity('com.example.app', '.MainActivity')
+- await browser.startActivity({
+-     appPackage: 'com.example.app',
+-     appActivity: '.MainActivity',
+-     appWaitPackage: 'com.example.app',
+-     appWaitActivity: '.MainActivity',
+-     optionalIntentArguments: '--ez extra true',
+- })
++ await browser.startActivity({
++     appPackage: 'com.example.app',
++     appActivity: '.MainActivity',
++ })
+```
+
+## Capability spec filters
+
+Spec and exclude lists on a capability use the `wdio:` prefix. Bare `specs` and `exclude` on a capability are ignored. The top-level config keys stay `specs` and `exclude`.
+
+```diff
+capabilities: [{
+    browserName: 'firefox',
+-   specs: ['test/ffOnly/*'],
+-   exclude: ['test/ffOnly/skip.js'],
++   'wdio:specs': ['test/ffOnly/*'],
++   'wdio:exclude': ['test/ffOnly/skip.js'],
+}]
+```
+
+A leftover bare list does not select files for that capability. The capability then uses the top-level `specs` and `exclude`.
+
 ## Removed commands
 
 `browser.throttle` and the deprecated `touchAction` commands have been removed.
@@ -206,9 +310,69 @@ await browser.action('pointer', { parameters: { pointerType: 'touch' } })
     .perform()
 ```
 
+## `setTimeout`
+
+The JSON Wire Protocol key `page load` is rejected. Use `pageLoad`.
+
+```diff
+- await browser.setTimeout({ 'page load': 10000 })
++ await browser.setTimeout({ pageLoad: 10000 })
+```
+
+`implicit` and `script` are unchanged.
+
+## Reporters
+
+`client:afterCommand` no longer includes `name`. Read `command` for the command name. Custom commands already sent `command`.
+
+## Allure
+
+`addEnvironment(name, value)` is removed. It had no effect. Set environment rows with `reportedEnvironmentVars` in the Allure reporter options.
+
+## Multi-remote instance access
+
+A multi-remote browser no longer stores each session as its own property. The same is true for a multi-remote element. `getInstance` and `select` are how you address one session.
+
+```diff
+- await browser.myChromeBrowser.url('https://webdriver.io')
+- await (await browser.$('button')).myChromeBrowser.click()
++ await browser.getInstance('myChromeBrowser').url('https://webdriver.io')
++ await (await browser.$('button')).getInstance('myChromeBrowser').click()
+```
+
+A TypeScript augmentation that adds `myChromeBrowser: WebdriverIO.Browser` to `WebdriverIO.MultiRemoteBrowser` no longer matches a runtime property. Delete that augmentation and call `getInstance`.
+
+With the testrunner and `injectGlobals` left on, the instance name is still a global (`myChromeBrowser.url(...)`). That global is the single session. It is not `browser.myChromeBrowser`.
+
+Command results stay in capability order: the first entry belongs to the first key in the capabilities object.
+
+## Element references
+
+Element ids use the W3C WebDriver key `element-6066-11e4-a52e-4f735466cecf` and the `elementId` property. The JSON Wire Protocol field `ELEMENT` is no longer part of the element contract.
+
+`WebdriverIO.Element` no longer declares `ELEMENT`. Read `element.elementId`, which element instances already expose.
+
+`browser.execute`, and the built-in scripts that send an element into the page (`getHTML`, `isClickable`, `isDisplayed`, `scrollIntoView`, and the rest), pass only the W3C reference:
+
+```diff
+- await browser.execute((el) => el.ELEMENT, elem)
++ await browser.execute(
++     (el) => el['element-6066-11e4-a52e-4f735466cecf'],
++     elem
++ )
+```
+
+A find-element body that contains only `{ ELEMENT: '...' }` is not an element. Include the W3C key. If both keys are present, WebdriverIO uses the W3C id.
+
+Jasmine prints a chained `$()` result through `toJSON`. That value is the same W3C reference, `{ 'element-6066-11e4-a52e-4f735466cecf': elementId }`.
+
 ## Jasmine
 
 `@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 needs Node.js 20, 22, or 24, which the v10 floor of 22.19.0 already covers.
+
+`jasmineNodeOpts` was removed. Configure Jasmine with `jasmineOpts`. Setting `jasmineNodeOpts` throws.
+
+`jasmineOpts.stopSpecOnExpectationFailure` was removed. Use `jasmineOpts.oneFailurePerSpec`. Setting the old key throws.
 
 ## Puppeteer
 
@@ -229,6 +393,23 @@ export default [
 ## TypeScript
 
 Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript version this repository compiles with.
+
+## WebDriver protocol
+
+Every session is a W3C session. `browser.isW3C` is removed, including the value previously forwarded on the worker `sessionStarted` message. Passing `isW3C` to `attach` is ignored. The BiDi command set stays on the client. A live BiDi connection still depends on `webSocketUrl`.
+
+The drivers WebdriverIO runs against already speak W3C on the client connection:
+
+- ChromeDriver has been W3C by default since Chrome 75. Chromium-based Edge matches it. Current ChromeDriver still accepts `goog:chromeOptions.w3c: false`, which switches that one session back to the legacy protocol. WebdriverIO does not support that switch.
+- geckodriver and Apple's safaridriver are W3C-only. A Safari response that omits `platformName` or `browserVersion` is still W3C.
+- Selenium 4 and Grid 4 speak W3C. Grid stopped translating JSONWP in 4.9.
+- Appium 2 dropped JSONWP and MJSONWP. Appium 3 also dropped the leftover JSONWP parameter shapes. v10 requires Appium 3, covered below. A mobile session that omits `setWindowRect` is still W3C; that capability means the device cannot resize a window.
+
+These servers still speak JSONWP and are not supported: Selenium 3, PhantomJS, EdgeHTML (`--jwp`), and WinAppDriver connected to directly. The Appium Windows driver stays supported as a W3C client. It translates commands to WinAppDriver, including Get Element Property to the attribute endpoint. Point WebdriverIO at Appium, not at WinAppDriver's port.
+
+`webdriver.remote.sessionid` no longer marks a Selenium standalone session. Selenium Grid 4 is still detected from `se:cdp`.
+
+On desktop, `[name="..."]` is a CSS selector. The `name` locator strategy remains for mobile sessions.
 
 ## Appium
 
@@ -254,3 +435,42 @@ Appium 3 [removed many deprecated base-driver endpoints](https://appium.io/docs/
 ### Appium `--allow-insecure` scope
 
 Appium 3 requires a driver or `*` scope prefix on `--allow-insecure` features, for example `uiautomator2:adb_shell` or `*:adb_shell`.
+
+### Unprefixed Appium capabilities no longer select an Appium session
+
+`automationName`, `deviceName`, and `appiumVersion` without an `appium:` prefix no longer tell WebdriverIO to skip the browser driver and attach the Appium service. Use the prefixed capability, or nest it under `appium:options`:
+
+```diff
+- capabilities: { platformName: 'Android', automationName: 'UiAutomator2', deviceName: 'emulator' }
++ capabilities: {
++     platformName: 'Android',
++     'appium:automationName': 'UiAutomator2',
++     'appium:deviceName': 'emulator'
++ }
+```
+
+`wdio repl` now emits those prefixed keys, including `appium:app`, `appium:platformVersion`, and `appium:udid`.
+
+### `getValue` on mobile reads the element property
+
+`element.getValue()` calls Get Element Property, including on Appium 3. It previously called Get Element Attribute for every mobile session.
+
+On a W3C session, including Appium 3, `element.getValue()` calls Get Element Property. It previously called Get Element Attribute for every mobile session. A non-W3C session still reads the attribute.
+
+## Multi-remote naming
+
+APIs spelled `multiremote` or `Multiremote` are now camelCased / PascalCase as `multiRemote` / `MultiRemote`. The old names are not aliased.
+
+| v9 | v10 |
+|----|-----|
+| `multiremote()` (`webdriverio`) | `multiRemote()` |
+| `WebdriverIO.MultiremoteConfig` | `WebdriverIO.MultiRemoteConfig` |
+| `isMultiremote` on the browser, `$` and `$$` results | `isMultiRemote` |
+| `Capabilities.RequestedMultiremoteCapabilities` | `Capabilities.RequestedMultiRemoteCapabilities` |
+| `Capabilities.WithRequestedMultiremoteCapabilities` | `Capabilities.WithRequestedMultiRemoteCapabilities` |
+| `runner.isMultiremote` (reporters) | `runner.isMultiRemote` |
+| `Launcher#isMultiremote`, `Launcher#isParallelMultiremote` (`@wdio/cli`) | `isMultiRemote`, `isParallelMultiRemote` |
+| `isMultiremote` in `Workers.WorkerMessage`, `WorkerInstance` (`@wdio/local-runner`) and `SpecReporter#getTestLink()` | `isMultiRemote` |
+| `browser.multiremoteFetch()` (`@wdio/webdriver-mock-service`) | `browser.multiRemoteFetch()` |
+
+Search for `multiremote` and `Multiremote` (case-sensitive) and replace every match. Allure reports also label multi-remote tests with `isMultiRemote` instead of `isMultiremote`.

@@ -44,7 +44,7 @@ describe('utils', () => {
         const isSeleniumStandalone = false
 
         const webdriverPrototype = getPrototype({
-            isW3C: true, isChromium, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
+            isChromium, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(webdriverPrototype instanceof Object).toBe(true)
         expect(typeof webdriverPrototype.sendKeys).toBe('undefined')
@@ -53,16 +53,17 @@ describe('utils', () => {
         expect(typeof webdriverPrototype.lock).toBe('undefined')
 
         const chromiumPrototype = getPrototype({
-            isW3C: false, isChromium: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
+            isChromium: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(chromiumPrototype instanceof Object).toBe(true)
+        expect(typeof chromiumPrototype.sessionStatus.value).toBe('function')
         expect(typeof chromiumPrototype.sendCommand.value).toBe('function')
         expect(typeof chromiumPrototype.getElementValue.value).toBe('function')
         expect(typeof chromiumPrototype.elementSendKeys.value).toBe('function')
         expect(typeof chromiumPrototype.lock).toBe('undefined')
 
         const geckoPrototype = getPrototype({
-            isW3C: true, isChromium: false, isFirefox: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
+            isChromium: false, isFirefox: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(geckoPrototype instanceof Object).toBe(true)
         expect(typeof geckoPrototype.setMozContext.value).toBe('function')
@@ -71,7 +72,7 @@ describe('utils', () => {
         expect(typeof geckoPrototype.lock).toBe('undefined')
 
         const mobilePrototype = getPrototype({
-            isW3C: true, isChromium: false, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
+            isChromium: false, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(mobilePrototype instanceof Object).toBe(true)
         expect(typeof mobilePrototype.performActions.value).toBe('function')
@@ -79,7 +80,7 @@ describe('utils', () => {
         expect(typeof mobilePrototype.getGeoLocation.value).toBe('function')
 
         const mobileChromePrototype = getPrototype({
-            isW3C: true, isChromium: true, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
+            isChromium: true, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(mobileChromePrototype instanceof Object).toBe(true)
         expect(typeof mobileChromePrototype.sendCommand.value).toBe('function')
@@ -88,7 +89,7 @@ describe('utils', () => {
         expect(typeof mobileChromePrototype.getNetworkConnection.value).toBe('function')
 
         const saucePrototype = getPrototype({
-            isW3C: true, isChromium, isMobile, isSauce: true, isSeleniumStandalone, isIOS, isAndroid
+            isChromium, isMobile, isSauce: true, isSeleniumStandalone, isIOS, isAndroid
         })
         expect(saucePrototype instanceof Object).toBe(true)
         expect(typeof saucePrototype.getPageLogs.value).toBe('function')

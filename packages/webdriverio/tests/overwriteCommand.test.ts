@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, expect, expectTypeOf, test, vi } from 'vitest'
 import type { ClickOptions } from '../src/index.js'
-import { remote, multiremote } from '../src/index.js'
+import { remote, multiRemote } from '../src/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -13,7 +13,7 @@ const remoteConfig = {
     }
 }
 
-const multiremoteConfig = {
+const multiRemoteConfig = {
     browserA: {
         logLevel: 'debug',
         capabilities: {
@@ -93,7 +93,6 @@ describe('overwriteCommand', () => {
                         const promise: Promise<void> = originalFunction(10)
                         return await promise
                     },
-                    false,
                 )
 
                 await expect(browser.pause()).resolves.toBeUndefined()
@@ -124,7 +123,7 @@ describe('overwriteCommand', () => {
             })
         })
         describe('given element scope', () => {
-            const isElementScope = true
+            const isElementScope = { attachToElement: true as const }
 
             test('should propagate element commands for all prototypes', async () => {
                 const browser = await remote(remoteConfig)
@@ -263,32 +262,32 @@ describe('overwriteCommand', () => {
         })
     })
 
-    describe('multiremote', () => {
+    describe('multi-remote', () => {
         test('should allow to overwrite commands', async () => {
-            const browser = await multiremote(multiremoteConfig as any)
+            const browser = await multiRemote(multiRemoteConfig as any)
             browser.overwriteCommand('pause', customBrowserCommand)
 
             // @ts-expect-error command overwritten. Using 19 instead of 20 since rounding down of 19.8 can happen.
             expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(19)
         })
 
-        test.skip('should allow to overwrite commands for a single multiremote instance', async () => {
-            const browser = await multiremote(multiremoteConfig as any)
+        test.skip('should allow to overwrite commands for a single multi-remote instance', async () => {
+            const browser = await multiRemote(multiRemoteConfig as any)
             browser.getInstance('browserA').overwriteCommand('pause', customBrowserCommand)
 
             // @ts-expect-error command overwritten
-            expect(await browser.browserA.pause(10, 10)).toBeGreaterThanOrEqual(19)
+            expect(await browser.getInstance('browserA').pause(10, 10)).toBeGreaterThanOrEqual(19)
             // @ts-expect-error command overwritten
-            expect(await browser.browserB.pause(10)).toBe(undefined)
+            expect(await browser.getInstance('browserB').pause(10)).toBe(undefined)
 
             const results = await browser.pause(10)
             expect(results[0]).toBeGreaterThanOrEqual(10)
             expect(results[1]).toBe(undefined)
         })
 
-        test('should be able to overwrite element command in multiremote mode', async () => {
-            const browser = await multiremote(multiremoteConfig as any)
-            browser.overwriteCommand('getAttribute', customElementCommand, true)
+        test('should be able to overwrite element command in multi-remote mode', async () => {
+            const browser = await multiRemote(multiRemoteConfig as any)
+            browser.overwriteCommand('getAttribute', customElementCommand, { attachToElement: true })
             const elem = await browser.$('#foo')
 
             // @ts-expect-error command overwritten

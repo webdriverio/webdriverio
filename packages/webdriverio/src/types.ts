@@ -209,7 +209,7 @@ export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototyp
 export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype> & ChainablePrototype
 
 /**
- * Multiremote command definition
+ * Multi-remote command definition
  */
 type SingleElementCommandNames = '$' | 'custom$' | 'react$'
 type MultiElementCommandNames = '$$' | 'custom$$' | 'react$$'
@@ -220,7 +220,7 @@ type MultiRemoteElementCommands = {
     [K in keyof Pick<BrowserCommandsType, '$$'>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElementArray>
 } & {
     /**
-     * only `$$` zips the per-instance results into one multiremote array; `custom$$`
+     * only `$$` zips the per-instance results into one multi-remote array; `custom$$`
      * and `react$$` still resolve to one result per instance, so they keep the
      * element-list type rather than claiming to be a `MultiRemoteElementArray`
      */
@@ -269,9 +269,9 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
 export type ElementArray = ElementArrayExport
 
 /**
- * The array `$$` returns on a multiremote browser. It carries the same
+ * The array `$$` returns on a multi-remote browser. It carries the same
  * information as `ElementArray` — every entry is a `MultiRemoteElement` rather
- * than an `Element`, and `isMultiremote` tells the two apart at runtime.
+ * than an `Element`, and `isMultiRemote` tells the two apart at runtime.
  */
 interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemoteElement>, keyof AsyncIterators<WebdriverIO.MultiRemoteElement>>, AsyncIterators<WebdriverIO.MultiRemoteElement> {
     /**
@@ -279,7 +279,7 @@ interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemo
      */
     selector: Selector
     /**
-     * parent of the element array, i.e. the multiremote browser or element it was fetched from
+     * parent of the element array, i.e. the multi-remote browser or element it was fetched from
      */
     parent: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement
     /**
@@ -295,9 +295,9 @@ interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemo
      */
     length: number
     /**
-     * always `true`, so a multiremote element array can be told apart from a plain one
+     * always `true`, so a multi-remote element array can be told apart from a plain one
      */
-    isMultiremote: true
+    isMultiRemote: true
     /**
      * get the `WebdriverIO.MultiRemoteElement[]` list
      */
@@ -344,51 +344,7 @@ export type AddCommandFunction<IsElement extends boolean, T = any, Instance = We
 export interface CustomInstanceCommands<T> {
 
     /**
-     * @deprecated use option object as 3rd parameter
-     * add command to `browser` or `element` scope
-     */
-    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
-        name: string,
-        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
-        attachToElement: IsElement,
-        proto?: Record<string, any>,
-        instances?: Record<string, Instances>,
-    ): void;
-
-    /**
-     * @deprecated use option object as 3rd parameter
-     * add command to `browser` or `element` scope
-     */
-    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
-        name: string,
-        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
-        attachToElement: IsElement,
-        proto: Record<string, any>,
-        instances?: Record<string, Instances>,
-    ): void;
-
-    /**
-     * @deprecated use option object as 3rd parameter
-     * add command to `browser` or `element` scope
-     */
-    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
-        name: string,
-        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
-        attachToElement: IsElement,
-        proto: Record<string, any>,
-        instances: Record<string, Instances>,
-    ): void;
-
-    /**
-     * add command to `browser`
-     */
-    addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
-        name: string,
-        func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
-    ): void;
-
-    /**
-     * add command to `browser` or to an `element` when using options.attachToElement to true
+     * add command to `browser`, or to an element when `options.attachToElement` is true
      */
     addCommand<IsElement extends boolean = false, Instance extends Instances = WebdriverIO.Browser>(
         name: string,
@@ -397,14 +353,12 @@ export interface CustomInstanceCommands<T> {
     ): void;
 
     /**
-     * overwrite `browser` or `element` command
+     * overwrite a `browser` command, or an element command when `options.attachToElement` is true
      */
     overwriteCommand<ElementKey extends keyof $ElementCommands, BrowserKey extends keyof $BrowserCommands, IsElement extends boolean = false>(
         name: IsElement extends true ? ElementKey : BrowserKey,
         func: IsElement extends true ? OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement> : OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
-        attachToElement?: IsElement,
-        proto?: Record<string, any>,
-        instances?: Record<string, Instances>
+        options?: CustomCommands.CustomCommandOptions<IsElement>
     ): void;
 
     /**
@@ -447,7 +401,7 @@ interface InstanceBase extends EventEmitter, SessionFlags {
  * a browser base that has everything besides commands which are defined for sync and async separately
  */
 export interface BrowserBase extends InstanceBase, CustomInstanceCommands<WebdriverIO.Browser> {
-    isMultiremote: false
+    isMultiRemote: false
     /**
      * capabilities of the browser instance
      */
@@ -480,10 +434,6 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      * WebDriver element reference
      */
     elementId: string
-    /**
-     * WebDriver element reference
-     */
-    ELEMENT: string
     /**
      * selector used to fetch this element, can be
      * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
@@ -527,15 +477,15 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
     /**
      * capabilities of the browser instance
      */
-    capabilities: Capabilities.RequestedMultiremoteCapabilities
+    capabilities: Capabilities.RequestedMultiRemoteCapabilities
     /**
-     * multiremote browser instance names
+     * Multi-remote browser instance names
      */
     instances: string[]
     /**
-     * flag to indicate multiremote browser session
+     * flag to indicate multi-remote browser session
      */
-    isMultiremote: true
+    isMultiRemote: true
     /**
      * get a specific instance to run commands on it
      */
@@ -552,16 +502,16 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
 interface MultiRemoteElementBase {
     selector: string
     /**
-     * multiremote browser instance names
+     * Multi-remote browser instance names
      */
     instances: string[]
     commandList: string[]
     addCommand: Function
     overwriteCommand: Function
     /**
-     * flag to indicate multiremote browser session
+     * flag to indicate multi-remote browser session
      */
-    isMultiremote: true
+    isMultiRemote: true
     /**
      * get a specific instance to run commands on it
      */
@@ -674,9 +624,7 @@ export type DragAndDropOptions = {
 }
 
 export type NewWindowOptions = {
-    type?: 'tab' | 'window',
-    windowName?: string,
-    windowFeatures?: string
+    type?: 'tab' | 'window'
 }
 
 export type TapOptions = MobileScrollIntoViewOptions & {
@@ -900,8 +848,8 @@ declare global {
          */
         interface ElementArray extends ElementArrayExport {}
         /**
-         * WebdriverIO multiremote browser object
-         * A multiremote browser instance is a property on the global WebdriverIO browser object that
+         * WebdriverIO multi-remote browser object
+         * A multi-remote browser instance is a property on the global WebdriverIO browser object that
          * allows to control multiple browser instances at once. It can be represented as `Record<string, WebdriverIO.Browser>`
          * where `string` is the capability name defined in the WebdriverIO options.
          *
@@ -909,8 +857,8 @@ declare global {
          */
         interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
         /**
-         * WebdriverIO multiremote browser object
-         * A multiremote browser instance is a property on the global WebdriverIO browser object that
+         * WebdriverIO multi-remote browser object
+         * A multi-remote browser instance is a property on the global WebdriverIO browser object that
          * allows to control multiple browser instances at once. It can be represented as `Record<string, WebdriverIO.Element>`
          * where `string` is the capability name defined in the WebdriverIO options.
          *
@@ -918,10 +866,10 @@ declare global {
          */
         interface MultiRemoteElement extends MultiRemoteElementType {}
         /**
-         * WebdriverIO multiremote element array
-         * What `$$`, `custom$$` and `react$$` return on a multiremote browser. Like
+         * WebdriverIO multi-remote element array
+         * What `$$`, `custom$$` and `react$$` return on a multi-remote browser. Like
          * `ElementArray` it carries the selector, parent and properties of the fetched
-         * set, and `isMultiremote` marks it as the multiremote variant.
+         * set, and `isMultiRemote` marks it as the multi-remote variant.
          *
          * @see https://webdriver.io/docs/multiremote/
          */

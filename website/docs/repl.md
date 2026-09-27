@@ -24,9 +24,9 @@ If driver is running on different port eg : 9515, it could passed with the comma
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY -p 9515
 ```
 
-Repl could also be ran using the capabilities from the webdriverIO config file. Wdio supports capabilities object; or ; multiremote capability list or object.
+Repl could also be ran using the capabilities from the webdriverIO config file. Wdio supports capabilities object; or ; multi-remote capability list or object.
 
-If the config file uses capabilities object then just pass the path to config file, else if its a multiremote capability then, specify which capability to use from list or multiremote using the positional argument . Note: for list we consider zero based index.
+If the config file uses capabilities object then just pass the path to config file, else if its a multi-remote capability then, specify which capability to use from list or multi-remote using the positional argument . Note: for list we consider zero based index.
 
 ### Example
 
@@ -47,7 +47,7 @@ export const config = {
 wdio repl "./path/to/wdio.config.js" 0 -p 9515
 ```
 
-WebdriverIO with [multiremote](https://webdriver.io/docs/multiremote/) capability object:
+WebdriverIO with [multi-remote](https://webdriver.io/docs/multiremote/) capability object:
 
 ```ts title="wdio.conf.ts example"
 export const config = {

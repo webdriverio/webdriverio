@@ -73,10 +73,10 @@ describe('wdio-runner', () => {
             expect(hook).toBeCalledTimes(0)
         })
 
-        it('should work normally when called after framework run in multiremote', async () => {
+        it('should work normally when called after framework run in multi-remote', async () => {
             const hook = vi.fn()
             const runner = new WDIORunner()
-            runner['_isMultiremote'] = true
+            runner['_isMultiRemote'] = true
             runner['_shutdown'] = vi.fn()
             runner['_browser'] = {
                 deleteSession: vi.fn(),
@@ -106,10 +106,10 @@ describe('wdio-runner', () => {
             expect(runner['_shutdown']).toBeCalledTimes(0)
         })
 
-        it('should do nothing when triggered by run method without session in multiremote', async () => {
+        it('should do nothing when triggered by run method without session in multi-remote', async () => {
             const hook = vi.fn()
             const runner = new WDIORunner()
-            runner['_isMultiremote'] = true
+            runner['_isMultiRemote'] = true
             runner['_shutdown'] = vi.fn()
             await runner.endSession()
             expect(hook).toBeCalledTimes(0)
@@ -244,6 +244,41 @@ describe('wdio-runner', () => {
             const failures = await runner.run({ args: {}, caps: {}, configFile: '/bar/foo' } as any)
 
             expect(failures).toBe(0)
+        })
+
+        it('should start the pre-session stub without a side-channel protocol field', async () => {
+            const runner = new WDIORunner()
+            const config: any = {
+                framework: 'testNoFailures',
+                reporters: [],
+                beforeSession: [],
+                runner: 'local',
+                automationProtocol: 'webdriver'
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_shutdown'] = vi.fn()
+            const startSession = vi.spyOn(runner as any, '_startSession').mockResolvedValue({
+                capabilities: { browserName: 'chrome' },
+                options: {}
+            })
+            runner['_initSession'] = vi.fn().mockResolvedValue({
+                capabilities: { browserName: 'chrome' },
+                options: {},
+                sessionId: 'sid'
+            })
+
+            await runner.run({
+                args: { reporters: [] },
+                cid: '0-0',
+                caps: { browserName: 'chrome' },
+                specs: ['foobar'],
+                configFile: '/foo/bar'
+            } as any)
+
+            const stubConfig = startSession.mock.calls[0][0]
+            expect(stubConfig.automationProtocol).toBe('./protocol-stub.js')
+            expect(stubConfig).not.toHaveProperty('_automationProtocol')
+            expect(config.automationProtocol).toBe('webdriver')
         })
 
         it('should not call browser url if args watch', async () => {
@@ -613,7 +648,7 @@ describe('wdio-runner', () => {
                     'cid': undefined,
                     'config': undefined,
                     'instanceOptions': {},
-                    'isMultiremote': false,
+                    'isMultiRemote': false,
                     'retry': 0,
                     'specs': undefined
                 }],

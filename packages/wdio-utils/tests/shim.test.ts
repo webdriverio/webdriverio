@@ -1,7 +1,19 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { wrapCommand, executeAsync } from '../src/shim.js'
 
+const W3C_ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
+
 describe('wrapCommand', () => {
+    it('serializes a chained element with the W3C element reference', async () => {
+        const commandFn = vi.fn().mockResolvedValue({ elementId: 'abc-123', selector: '#foo' })
+        const scope = { options: { beforeCommand: [], afterCommand: [] } }
+        const chained = wrapCommand('$', commandFn).call(scope) as { toJSON: () => Promise<Record<string, string>> }
+
+        await expect(chained.toJSON()).resolves.toEqual({
+            [W3C_ELEMENT_KEY]: 'abc-123'
+        })
+    })
+
     it('should run command with before and after hook', async () => {
         const commandFn = vi.fn().mockReturnValue(Promise.resolve('foobar'))
         const beforeHook = vi.fn()

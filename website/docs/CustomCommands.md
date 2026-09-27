@@ -59,7 +59,7 @@ browser.addCommand('getUrlAndTitle', async function (customVar) {
 })
 ```
 
-Additionally, you can extend the element instance with your own set of commands, by passing `true` as the final argument. The scope (`this`) in this case is a [`WebdriverIO.Element`](/docs/api/element) object.
+Additionally, you can extend the element instance with your own set of commands by setting `attachToElement` to `true`. The scope (`this`) in this case is a [`WebdriverIO.Element`](/docs/api/element) object.
 
 ```js
 browser.addCommand("waitAndClick", async function () {
@@ -125,11 +125,11 @@ Be careful to not overload the `browser` scope with too many custom commands.
 
 We recommend defining custom logic in [page objects](pageobjects), so they are bound to a specific page.
 
-### Multiremote
+### Multi-remote
 
-`addCommand` works in a similar way for multiremote, except the new command will propagate down to the children instances. You have to be mindful when using `this` object since the multiremote `browser` and its children instances have different `this`.
+`addCommand` works in a similar way for multi-remote, except the new command will propagate down to the children instances. You have to be mindful when using `this` object since the multi-remote `browser` and its children instances have different `this`.
 
-This example shows how to add a new command for multiremote.
+This example shows how to add a new command for multi-remote.
 
 ```js
 import { multiRemoteBrowser } from '@wdio/globals'
@@ -314,7 +314,7 @@ console.log(`was sleeping for ${await browser.pause(1000)}`)
 
 ### Overwriting Element Commands
 
-Overwriting commands on element level is almost the same. Simply pass `true` as the third argument to `overwriteCommand`:
+Overwriting commands on element level is almost the same. Set `attachToElement` to `true`:
 
 ```js
 /**

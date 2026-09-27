@@ -41,7 +41,6 @@ import { findDeepElement, findDeepElements } from '../../src/utils/index.js'
  */
 function createMockBrowser(overrides: Record<string, any> = {}) {
     const browser: any = {
-        isW3C: true,
         isMobile: false,
         browsingContextLocateNodes: vi.fn(),
         execute: vi.fn(),
@@ -158,7 +157,6 @@ describe('findDeepElement - isConnected validation', () => {
 
         const browser = createMockBrowser()
         const element: any = {
-            isW3C: true,
             isMobile: false,
             elementId: 'parent-elem-id',
             __browser: browser,
@@ -192,7 +190,6 @@ describe('findDeepElement - isConnected validation', () => {
 
         const browser = createMockBrowser()
         const element: any = {
-            isW3C: true,
             isMobile: false,
             elementId: 'select-elem-id',
             __browser: browser,
@@ -229,7 +226,6 @@ describe('findDeepElement - isConnected validation', () => {
 
         const browser = createMockBrowser()
         const element: any = {
-            isW3C: true,
             isMobile: false,
             elementId: 'wrapper-elem-id',
             __browser: browser,
@@ -255,7 +251,6 @@ describe('findDeepElement - isConnected validation', () => {
 
         const browser = createMockBrowser()
         const element: any = {
-            isW3C: true,
             isMobile: false,
             elementId: 'parent-elem-id',
             __browser: browser,
@@ -290,7 +285,6 @@ describe('findDeepElement - isConnected validation', () => {
 
         const browser = createMockBrowser()
         const element: any = {
-            isW3C: true,
             isMobile: false,
             elementId: 'parent-elem-id',
             __browser: browser,
@@ -424,7 +418,6 @@ describe('findDeepElements - isConnected validation', () => {
 
         const browser = createMockBrowser()
         const element: any = {
-            isW3C: true,
             isMobile: false,
             elementId: 'parent-elem',
             __browser: browser,
@@ -458,7 +451,6 @@ describe('findDeepElements - isConnected validation', () => {
 
         const browser = createMockBrowser()
         const element: any = {
-            isW3C: true,
             isMobile: false,
             elementId: 'select-elem-id',
             __browser: browser,
@@ -496,7 +488,6 @@ describe('findDeepElements - isConnected validation', () => {
 
         const browser = createMockBrowser()
         const element: any = {
-            isW3C: true,
             isMobile: false,
             elementId: 'select-elem-id',
             __browser: browser,
@@ -527,7 +518,6 @@ describe('findDeepElements - isConnected validation', () => {
 
         const browser = createMockBrowser()
         const element: any = {
-            isW3C: true,
             isMobile: false,
             elementId: 'parent-elem',
             __browser: browser,
@@ -703,7 +693,7 @@ describe.each([
         name: 'findDeepElement',
         fn: findDeepElement,
         scopedElementStub: (browser: any) => ({
-            isW3C: true, isMobile: false, isFirefox: true,
+            isMobile: false, isFirefox: true,
             elementId: 'parent-id', __browser: browser,
             findElementFromElement: vi.fn().mockResolvedValue({ [ELEMENT_KEY]: 'found' }),
         }),
@@ -713,7 +703,7 @@ describe.each([
         name: 'findDeepElements',
         fn: findDeepElements,
         scopedElementStub: (browser: any) => ({
-            isW3C: true, isMobile: false, isFirefox: true,
+            isMobile: false, isFirefox: true,
             elementId: 'parent-id', __browser: browser,
             findElementsFromElement: vi.fn().mockResolvedValue([]),
         }),

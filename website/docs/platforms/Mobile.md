@@ -104,7 +104,7 @@ For iOS mobile web, use `platformName: 'iOS'`, `browserName: 'Safari'` and `'app
 - [Flutter apps](/docs/flutter-testing/introduction): why Flutter needs the Appium Flutter Driver, then [prepare the app](/docs/flutter-testing/preparing-flutter-application), [configure Appium](/docs/flutter-testing/base-appium-configuration), [set up WebdriverIO](/docs/flutter-testing/setting-up-webdriverio) and [write tests](/docs/flutter-testing/writing-tests).
 - [Cloud Services](/docs/cloudservices): connect to Sauce Labs, BrowserStack, TestingBot, TestMu AI, Perfecto or RobotActions to run on hosted real devices.
 - [Visual Testing](/docs/visual-testing): image comparison for native apps, hybrid apps and mobile browsers. For Percy on mobile, see [App Percy](/docs/visual-testing/integrate-with-app-percy).
-- [Multiremote](/docs/multiremote): coordinate several devices or browsers in one test.
+- [Multi-remote](/docs/multiremote): coordinate several devices or browsers in one test.
 
 Emulating a device viewport in a desktop browser with [`browser.emulate('device', ...)`](/docs/emulation) is not mobile testing. Desktop browser engines differ from mobile ones, so use Appium with a real mobile browser instead.
 

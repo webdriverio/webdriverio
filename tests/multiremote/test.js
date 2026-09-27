@@ -1,22 +1,22 @@
 import assert from 'node:assert'
 
-describe('smoke test multiremote', () => {
+describe('smoke test multi-remote', () => {
     it('should return value', async () => {
         assert.equal(
             JSON.stringify(await browser.getTitle()),
             JSON.stringify(['Mock Page Title', 'Mock Page Title']))
 
-        if (browser.browserA) {
-            assert.equal(await browser.browserB.getTitle(), 'Mock Page Title')
-            assert.equal(await browser.browserA.getTitle(), 'Mock Page Title')
+        if (browser.getInstance('browserA')) {
+            assert.equal(await browser.getInstance('browserB').getTitle(), 'Mock Page Title')
+            assert.equal(await browser.getInstance('browserA').getTitle(), 'Mock Page Title')
         } else {
-            assert.equal(await browser.browserC.getTitle(), 'Mock Page Title')
-            assert.equal(await browser.browserD.getTitle(), 'Mock Page Title')
+            assert.equal(await browser.getInstance('browserD').getTitle(), 'Mock Page Title')
+            assert.equal(await browser.getInstance('browserC').getTitle(), 'Mock Page Title')
         }
     })
 
     it('should allow to chain element calls', async () => {
-        await browser.multiremoteFetch()
+        await browser.multiRemoteFetch()
         const elem = await $('foo').$('bar')
         await elem.click()
     })
@@ -41,7 +41,7 @@ describe('smoke test multiremote', () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
             let browserObj = global.browserA,
                 anotherBrowserObj  = global.browserB
-            if (browser.browserC) {
+            if (browser.getInstance('browserC')) {
                 browserObj = global.browserC
                 anotherBrowserObj  = global.browserD
             }
@@ -74,7 +74,7 @@ describe('smoke test multiremote', () => {
                 const start = Date.now() - 1
                 await browser.pause(30)
                 return Promise.resolve(Date.now() - start)
-            }, true)
+            }, { attachToElement: true })
             const elem = await $('elem')
             const results = await elem.myCustomPromiseCommand()
 
@@ -96,7 +96,7 @@ describe('smoke test multiremote', () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
             let browserObj = global.browserA,
                 anotherBrowserObj  = global.browserB
-            if (browser.browserC) {
+            if (browser.getInstance('browserC')) {
                 browserObj = global.browserC
                 anotherBrowserObj  = global.browserD
             }
@@ -113,7 +113,7 @@ describe('smoke test multiremote', () => {
             browser.overwriteCommand('getSize', async function (origCommand, ratio = 1) {
                 const { width, height } = await origCommand()
                 return { width: width * ratio, height: height * ratio }
-            }, true)
+            }, { attachToElement: true })
             const elem = await $('elem')
 
             assert.equal(
@@ -126,7 +126,7 @@ describe('smoke test multiremote', () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
             browser.overwriteCommand('saveRecordingScreen', async function (origCommand, filepath, elem) {
                 if (elem) {
-                    return await this.execute('1+1') + '-' + elem.instances.map(i => elem[i].selector)
+                    return await this.execute('1+1') + '-' + elem.instances.map((name) => elem.getInstance(name).selector)
                 }
                 return origCommand(filepath)
             })
@@ -147,7 +147,7 @@ describe('smoke test multiremote', () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
             browser.overwriteCommand('getHTML', async function (origCommand) {
                 return Promise.resolve('' + await origCommand())
-            }, true)
+            }, { attachToElement: true })
             const elem = await $('elem')
 
             assert.equal(await elem.getHTML(), '2,2')

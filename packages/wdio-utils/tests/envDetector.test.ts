@@ -69,30 +69,6 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromiumAppiumCaps, requestedCapabilities }).isMobile).toBe(false)
     })
 
-    it('isW3C', () => {
-        const requestedCapabilities = { browserName: '' }
-        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isW3C).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isW3C).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isW3C).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isW3C).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: safariCaps, requestedCapabilities }).isW3C).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: safariDockerNbVCaps, requestedCapabilities }).isW3C).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: safariDockerNpNCaps, requestedCapabilities }).isW3C).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isW3C).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: safariLegacyCaps, requestedCapabilities }).isW3C).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isW3C).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities }).isW3C).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: {
-            'wdio:maxInstances': 7,
-            platformName: 'WINDOWS',
-            'appium:app': 'C:\\Program Files\\App.exe',
-            'appium:appArguments': '-noCloseConfirmationPopUp -shouldDisplayDiesToTake',
-            'ms:experimental-webdriver': true,
-            'ms:waitForAppLaunch': '10',
-        }, requestedCapabilities }).isW3C).toBe(true)
-    })
-
     it('isChrome', () => {
         const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isChrome).toBe(false)
@@ -418,7 +394,7 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: standaloneCaps, requestedCapabilities }).isSeleniumStandalone).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: standaloneCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: standalonev4Caps, requestedCapabilities }).isSeleniumStandalone).toBe(true)
     })
 
@@ -578,11 +554,11 @@ describe('sessionEnvironmentDetector', () => {
 })
 
 describe('capabilitiesEnvironmentDetector', () => {
-    it('should return env flags without isW3C and isSeleniumStandalone', () => {
+    it('should return env flags without isSeleniumStandalone', () => {
         const sessionFlags = sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: { browserName: '' } })
         const capabilitiesFlags = capabilitiesEnvironmentDetector({})
 
-        const expectedFlags = Object.keys(sessionFlags).filter(flagName => !['isW3C', 'isSeleniumStandalone'].includes(flagName))
+        const expectedFlags = Object.keys(sessionFlags).filter(flagName => flagName !== 'isSeleniumStandalone')
         expect(Object.keys(capabilitiesFlags)).toEqual(expectedFlags)
     })
 })

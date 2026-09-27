@@ -100,7 +100,7 @@ export default class LocalRunner {
                 server,
                 sessionId,
                 config,
-                isMultiremote,
+                isMultiRemote,
                 instances,
             } = worker
             let payload: Partial<Workers.WorkerMessageArgs> = {}
@@ -109,12 +109,12 @@ export default class LocalRunner {
              * put connection information to payload if in watch mode
              * in order to attach to browser session and kill it
              */
-            if (config && config.watch && (sessionId || isMultiremote)) {
+            if (config && config.watch && (sessionId || isMultiRemote)) {
                 payload = {
                     config: { ...server, sessionId, ...config },
                     capabilities,
                     watch: true,
-                    isMultiremote,
+                    isMultiRemote,
                     instances,
                 } as unknown as Workers.WorkerMessageArgs
             } else if (!worker.isBusy) {

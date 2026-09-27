@@ -1,7 +1,8 @@
 import logger from '@wdio/logger'
-import { type CustomCommands, MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { type CustomCommands, MESSAGE_TYPES, workerProcessEvent, type Workers } from '@wdio/types'
 import _mitt from 'mitt'
 
+import { resolveCustomCommandOptions } from './customCommands.js'
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
@@ -230,10 +231,8 @@ export default function WebDriver(options: object, modifier?: Function, properti
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name: string, func: Function | Promise<unknown>, attachToElementOrOptions = false, proto: Record<string, unknown>, instances?: Record<string, CustomCommands.Instances>) {
-            const { attachToElement, disableElementImplicitWait, proto: _proto, instances: _instances }: CustomCommands.CustomCommandOptions<boolean> = (typeof attachToElementOrOptions === 'object' && attachToElementOrOptions !== null)
-                ? attachToElementOrOptions
-                : { attachToElement: attachToElementOrOptions, proto, instances } satisfies CustomCommands.CustomCommandOptions<boolean>
+        client.addCommand = function (name: string, func: Function | Promise<unknown>, options?: CustomCommands.CustomCommandOptions<boolean>) {
+            const { attachToElement, disableElementImplicitWait, proto: _proto, instances: _instances } = resolveCustomCommandOptions('addCommand', options)
 
             const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
@@ -244,7 +243,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
                 }
 
                 /**
-                 * add command to every multiremote instance
+                 * add command to every multi-remote instance
                  */
                 if (_instances) {
                     Object.values(_instances).forEach((instance: { __propertiesObject__: Record<string, unknown> }) => {
@@ -267,17 +266,15 @@ export default function WebDriver(options: object, modifier?: Function, properti
              *
              * @todo(Christian): this won't be sufficient, e.g. in cases where the page is reloaded and the command is not re-added.
              */
-            if (typeof process.send === 'function' && process.env.WDIO_WORKER_ID) {
+            const workerId = process.env.WDIO_WORKER_ID
+            if (typeof process.send === 'function' && workerId) {
                 const message: Workers.WorkerEvent = {
                     origin: 'worker',
                     name: 'workerEvent',
-                    args: {
-                        type: MESSAGE_TYPES.customCommand,
-                        value: {
-                            commandName: name,
-                            cid: process.env.WDIO_WORKER_ID,
-                        }
-                    }
+                    args: workerProcessEvent(MESSAGE_TYPES.customCommand, {
+                        commandName: name,
+                        cid: workerId,
+                    })
                 }
                 process.send(message)
             }
@@ -285,23 +282,22 @@ export default function WebDriver(options: object, modifier?: Function, properti
 
         /**
          * overwriteCommand
-         * @param  {string}   name              command name to be overwritten
-         * @param  {Function} func              function to replace original command with;
-         *                                      takes original function as first argument.
-         * @param  {boolean=} attachToElement   overwrite browser command (false) or element command (true)
-         * @param  {Object=}  proto             prototype to add function to (optional)
-         * @param  {Object=}  instances         multiremote instances
+         * @param  {string}   name     command name to be overwritten
+         * @param  {Function} func     function to replace original command with;
+         *                             takes original function as first argument.
+         * @param  {Object=}  options  `{ attachToElement, proto, instances }`
          */
-        client.overwriteCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, unknown>, instances?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+        client.overwriteCommand = function (name: string, func: Function, options?: CustomCommands.CustomCommandOptions<boolean>) {
+            const { attachToElement, proto, instances } = resolveCustomCommandOptions('overwriteCommand', options)
             const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
                 if (instances) {
                     /**
-                     * add command to every multiremote instance
+                     * add command to every multi-remote instance
                      */
-                    Object.values(instances).forEach(instance => {
+                    Object.values(instances).forEach((instance: { __propertiesObject__: { __elementOverrides__: { value: Record<string, Function> } } }) => {
                         setElementOverride(instance.__propertiesObject__.__elementOverrides__.value, name, customCommand)
                     })
                 } else {
@@ -330,7 +326,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
      * @param  {Function} origCommand   original command to be passed to custom command as first argument
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    unit.lift = function (name: string, func: Function, proto: Record<string, any>, origCommand?: Function) {
+    unit.lift = function (name: string, func: Function, proto?: Record<string, any>, origCommand?: Function) {
         (proto || prototype)[name] = function next(...args: unknown[]) {
             log.info('COMMAND', commandCallStructure(name, args))
             this.emit('command', { command: name, body: args })
@@ -359,7 +355,10 @@ export default function WebDriver(options: object, modifier?: Function, properti
                         }
 
                         log.info('RESULT', resultLog)
-                        this.emit('result', { command: name, result: { value: res } })
+                        this.emit('result', {
+                            command: name,
+                            result: { value: res }
+                        })
                     }).catch((error: Error) => {
                         this.emit('result', { command: name, result: { error } })
                     })

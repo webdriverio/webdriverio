@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import safeStringify from 'safe-stringify'
 import { applyMochaDefaults, setupEnv, formatMessage } from '@wdio/mocha-framework/common'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { MESSAGE_TYPES, browserChannelMessage, isBrowserChannelMessage, parseRunnerToBrowserMessage, type Workers } from '@wdio/types'
 
 import { getCID, filterTestArgument, toViteFsUrl } from '../utils.js'
 import { EVENTS, WDIO_EVENT_NAME } from '../../constants.js'
@@ -177,8 +177,9 @@ export class MochaFramework extends HTMLElement {
         console.log(`[WDIO] Finished test suite in ${Date.now() - startTime}ms`)
     }
 
-    #handleSocketMessage (message: Workers.SocketMessage) {
-        if (message.type === MESSAGE_TYPES.hookResultMessage) {
+    #handleSocketMessage (payload: unknown) {
+        const message = parseRunnerToBrowserMessage(payload)
+        if (message && isBrowserChannelMessage(message, MESSAGE_TYPES.hookResultMessage)) {
             return this.#handleHookResult(message.value)
         }
     }
@@ -247,18 +248,14 @@ export class MochaFramework extends HTMLElement {
         })
     }
 
-    #hookTrigger (value: Workers.HookTriggerEvent): Workers.SocketMessage {
-        return {
-            type: MESSAGE_TYPES.hookTriggerMessage,
-            value: JSON.parse(safeStringify(value))
-        }
+    #hookTrigger (value: Workers.HookTriggerEvent) {
+        const serialized: Workers.HookTriggerEvent = JSON.parse(safeStringify(value))
+        return browserChannelMessage(MESSAGE_TYPES.hookTriggerMessage, serialized)
     }
 
     #sendTestReport (value: Workers.BrowserTestResults) {
-        import.meta.hot?.send(WDIO_EVENT_NAME, {
-            type: MESSAGE_TYPES.browserTestResult,
-            value: JSON.parse(safeStringify(value))
-        })
+        const serialized: Workers.BrowserTestResults = JSON.parse(safeStringify(value))
+        import.meta.hot?.send(WDIO_EVENT_NAME, browserChannelMessage(MESSAGE_TYPES.browserTestResult, serialized))
     }
 }
 

@@ -1,5 +1,5 @@
 const assert = require('node:assert')
-const { remote, attach, multiremote, Key, SevereServiceError } = require('webdriverio')
+const { remote, attach, multiRemote, Key, SevereServiceError } = require('webdriverio')
 const os = require('node:os')
 
 const isLinux = os.platform() === 'linux'
@@ -7,7 +7,7 @@ const isLinux = os.platform() === 'linux'
 ;(async () => {
     assert.equal(typeof remote, 'function')
     assert.equal(typeof attach, 'function')
-    assert.equal(typeof multiremote, 'function')
+    assert.equal(typeof multiRemote, 'function')
     assert.equal(typeof Key, 'object')
     assert.equal(typeof SevereServiceError, 'function')
 

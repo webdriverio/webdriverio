@@ -53,7 +53,7 @@
  * @alias browser.addCommand
  * @param {string} name name of the custom command
  * @param {Function} callback  function to be called
- * @param {Boolean|Object=} options **DEPRECATED when Boolean (elementScope)**. Options object with the following properties:
+ * @param {Object=} options options object with the following properties:
  * @param {Boolean=} options.attachToElement extend the Element object instead of the Browser object
  * @param {Boolean=} options.disableElementImplicitWait disable implicit wait for element commands
  * @type utility

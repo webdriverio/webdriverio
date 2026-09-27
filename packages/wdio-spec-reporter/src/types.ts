@@ -89,6 +89,6 @@ export enum State {
 export interface TestLink {
     capabilities: Capabilities.ResolvedTestrunnerCapabilities
     sessionId: string
-    isMultiremote: boolean
+    isMultiRemote: boolean
     instanceName?: string
 }

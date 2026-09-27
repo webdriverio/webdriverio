@@ -12,7 +12,7 @@ pnpm run test:e2e:launch       # vitest launch helpers
 pnpm run test:e2e:testrunner   # headless wdio testrunner
 pnpm run test:e2e:webdriver    # local webdriver conf
 pnpm run test:e2e:classic
-pnpm run test:e2e:multiremote
+pnpm run test:e2e:multi-remote
 pnpm run test:component        # e2e/browser-runner (needs @wdio/browser-runner)
 pnpm run test:e2e:display-server # @wdio/display-server
 pnpm run test:e2e:cloud        # Sauce — needs credentials, main-branch CI

@@ -39,7 +39,7 @@ await browser.deleteSession()
 
 See the raw [protocol example](https://www.npmjs.com/package/webdriver#example) using the `webdriver` package to get a glance at the differences.
 
-For more information on [options](https://webdriver.io/docs/options#webdriver-options), [multiremote usage](https://webdriver.io/docs/multiremote) or integration into [cloud services](https://webdriver.io/docs/cloudservices) please check out the [docs](https://webdriver.io/docs/gettingstarted).
+For more information on [options](https://webdriver.io/docs/options#webdriver-options), [multi-remote usage](https://webdriver.io/docs/multiremote) or integration into [cloud services](https://webdriver.io/docs/cloudservices) please check out the [docs](https://webdriver.io/docs/gettingstarted).
 
 ---
 

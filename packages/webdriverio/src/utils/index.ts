@@ -96,16 +96,6 @@ export const getElementFromResponse = (res?: ElementReference) => {
         return null
     }
 
-    /**
-     * deprecated JSONWireProtocol response
-     */
-    if ((res as unknown as { ELEMENT: string }).ELEMENT) {
-        return (res as unknown as { ELEMENT: string }).ELEMENT
-    }
-
-    /**
-     * W3C WebDriver response
-     */
     if (res[ELEMENT_KEY]) {
         return res[ELEMENT_KEY]
     }
@@ -541,7 +531,7 @@ export async function findDeepElement(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    let { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
+    let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -691,7 +681,7 @@ export async function findDeepElements(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    let { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
+    let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -896,7 +886,7 @@ export async function findElement(
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+        const { using, value } = findStrategy(selector as string, this.isMobile)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
             ? this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference
@@ -980,7 +970,7 @@ export async function findElements(
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+        const { using, value } = findStrategy(selector as string, this.isMobile)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
             ? this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference[]
@@ -1000,7 +990,7 @@ export async function findElements(
 }
 
 /**
- * Strip element object and return w3c and jsonwp compatible keys
+ * Strip an element down to its W3C element reference.
  */
 export function verifyArgsAndStripIfElement(args: unknown) {
     function verify(arg: unknown) {
@@ -1011,8 +1001,7 @@ export function verifyArgsAndStripIfElement(args: unknown) {
             }
 
             return {
-                [ELEMENT_KEY]: elem.elementId,
-                ELEMENT: elem.elementId
+                [ELEMENT_KEY]: elem.elementId
             }
         }
 
@@ -1119,11 +1108,11 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
         scope.strategies.set(name, func)
 
         /**
-         * multiremote dispatches commands to each instance individually, so
+         * Multi-remote dispatches commands to each instance individually, so
          * `custom$` / `custom$$` resolve strategies on the instances rather
          * than on the wrapper client — propagate the strategy to all of them
          */
-        if ((scope as WebdriverIO.MultiRemoteBrowser).isMultiremote) {
+        if ((scope as WebdriverIO.MultiRemoteBrowser).isMultiRemote) {
             const multiRemoteScope = scope as WebdriverIO.MultiRemoteBrowser
             for (const instanceName of multiRemoteScope.instances) {
                 const instance = multiRemoteScope.getInstance(instanceName)
@@ -1154,7 +1143,7 @@ export function enhanceElementsArray(
     props?: unknown[]
 ): WebdriverIO.ElementArray
 /**
- * On a multiremote browser every entry is a `MultiRemoteElement`, so the array
+ * On a multi-remote browser every entry is a `MultiRemoteElement`, so the array
  * that comes back is a `MultiRemoteElementArray`. The body is the same; only the
  * element and parent types differ.
  */

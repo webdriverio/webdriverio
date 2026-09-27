@@ -12,14 +12,14 @@ export const SUPPORTED_COMMANDS = ['run', 'install', 'config', 'repl']
 
 export const ANDROID_CONFIG = {
     platformName: 'Android',
-    automationName: 'UiAutomator2',
-    deviceName: 'Test'
+    'appium:automationName': 'UiAutomator2',
+    'appium:deviceName': 'Test'
 }
 
 export const IOS_CONFIG = {
     platformName: 'iOS',
-    automationName: 'XCUITest',
-    deviceName: 'iPhone Simulator'
+    'appium:automationName': 'XCUITest',
+    'appium:deviceName': 'iPhone Simulator'
 }
 
 export const TS_FILE_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']

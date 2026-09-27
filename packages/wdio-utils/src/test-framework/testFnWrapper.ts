@@ -8,14 +8,6 @@ import type {
     AfterHookParam
 } from './types.js'
 
-declare global {
-    // Firstly variable '_wdioDynamicJasmineResultErrorList' gets reference to test result in packages/wdio-jasmine-framework/src/index.ts and then used here in wdio-utils/ as workaround for Jasmine
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    var _wdioDynamicJasmineResultErrorList: any | undefined
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    var _jasmineTestResult: any | undefined
-}
-
 const STACKTRACE_FILTER = [
     'node_modules/webdriver/',
     'node_modules/webdriverio/',
@@ -71,7 +63,7 @@ export const testFrameworkFnWrapper = async function (
     this: unknown,
     { executeHooksWithArgs, executeAsync }: WrapperMethods,
     type: string,
-    { specFn, specFnArgs }: SpecFunction,
+    { specFn, specFnArgs, frameworkResult: readFrameworkResult }: SpecFunction,
     { beforeFn, beforeFnArgs }: BeforeHookParam<unknown>,
     { afterFn, afterFnArgs }: AfterHookParam<unknown>,
     cid: string,
@@ -103,22 +95,25 @@ export const testFrameworkFnWrapper = async function (
     const identitySnapshot = typeof afterFnArgs === 'function' ? afterFnArgs(this) : undefined
 
     let result
-    let error
+    let error: { stack?: string, matcherName?: string } | undefined
     let skip = false
     let autoSkipError: unknown
 
     const testStart = Date.now()
     try {
         result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout)
-        if (globalThis._jasmineTestResult !== undefined) {
-            result = globalThis._jasmineTestResult
-            globalThis._jasmineTestResult = undefined
-        }
-
-        if (globalThis._wdioDynamicJasmineResultErrorList?.length > 0) {
-            globalThis._wdioDynamicJasmineResultErrorList[0].stack = filterStackTrace(globalThis._wdioDynamicJasmineResultErrorList[0].stack)
-            error = globalThis._wdioDynamicJasmineResultErrorList[0]
-            globalThis._wdioDynamicJasmineResultErrorList = undefined
+        const frameworkResult = readFrameworkResult?.()
+        if (frameworkResult) {
+            if (frameworkResult.result !== undefined) {
+                result = frameworkResult.result
+            }
+            const frameworkError = frameworkResult.errors?.[0]
+            if (frameworkError) {
+                if (typeof frameworkError.stack === 'string') {
+                    frameworkError.stack = filterStackTrace(frameworkError.stack)
+                }
+                error = frameworkError
+            }
         }
     } catch (_err: unknown) {
         /**

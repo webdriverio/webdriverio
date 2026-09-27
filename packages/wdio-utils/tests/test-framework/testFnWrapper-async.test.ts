@@ -215,6 +215,42 @@ describe('testFnWrapper', () => {
         expect(afterCall![2][0]).toMatchObject({ result: 'ok', passed: true })
     })
 
+    it('should apply a framework spec result and filter its expectation stack', async () => {
+        const failure = {
+            matcherName: 'toBe',
+            stack: [
+                '    at spec (/foo/bar/baz/example.e2e.js:27:9)',
+                '    at Context.testFrameworkFnWrapper (/foo/bar/baz/node_modules/@wdio/utils/build/test-framework/testFnWrapper.js:50:32)'
+            ].join('\n')
+        }
+        const specResult = { id: 'spec-1', failedExpectations: [failure] }
+        const args = [
+            'Test',
+            {
+                specFn: () => 'body',
+                specFnArgs: [],
+                frameworkResult: () => ({ result: specResult, errors: specResult.failedExpectations })
+            },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [] },
+            { afterFn: 'afterFn', afterFnArgs: () => [] },
+            '0-9',
+            0
+        ] as any[]
+
+        // @ts-expect-error
+        const result = await testFnWrapper(...args)
+
+        expect(result).toBe(specResult)
+        expect(failure.stack).not.toContain('node_modules/@wdio/utils')
+        expect(failure.stack).toContain('example.e2e.js')
+        const afterCall = executeHooksWithArgs.mock.calls.find((c: any[]) => c[0] === 'afterTest')
+        expect(afterCall![2][0]).toMatchObject({
+            result: specResult,
+            error: failure,
+            passed: false
+        })
+    })
+
     afterEach(() => {
         executeHooksWithArgs.mockClear()
     })

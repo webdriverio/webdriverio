@@ -1,7 +1,7 @@
 import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, SevereServiceError, Key } from 'webdriverio'
+import { remote, multiRemote, SevereServiceError, Key } from 'webdriverio'
 import type { ClickOptions, Selector, Action } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
 
@@ -32,8 +32,8 @@ const actions: Action[] = [{
 }]
 
 async function bar() {
-    // multiremote
-    const mr = await multiremote({
+    // Multi-remote
+    const mr = await multiRemote({
         myBrowserInstance: {
             capabilities: { browserName: 'chrome' }
         }
@@ -49,20 +49,20 @@ async function bar() {
     const url = await multiRemoteBrowser.getUrl()
     expectType<string[]>(url)
 
-    multiremote({
+    multiRemote({
         myBrowserInstance: {
             capabilities: { browserName: 'chrome' }
         }
     }).then(() => {}, () => {})
 
-    // $$ on a multiremote browser resolves to a MultiRemoteElementArray
+    // $$ on a multi-remote browser resolves to a MultiRemoteElementArray
     const mrElems = await mr.$$('foobar')
-    expectType<true>(mrElems.isMultiremote)
+    expectType<true>(mrElems.isMultiRemote)
     expectType<Selector>(mrElems.selector)
     expectType<string>(mrElems.foundWith)
     expectType<WebdriverIO.MultiRemoteElement>(mrElems[0])
 
-    // the async iterators keep the multiremote element type
+    // the async iterators keep the multi-remote element type
     expectType<string[][]>(await mrElems.map((el) => el.instances))
     expectType<WebdriverIO.MultiRemoteElement[]>(await mrElems.filter(async () => true))
     await mrElems.forEach((el) => el.click())
@@ -120,12 +120,14 @@ async function bar() {
             await this.waitForClickable().catch()
         }
         return clickFn.call(this, opts).catch()
-    }, true)
+    }, { attachToElement: true })
+
+    // @ts-expect-error boolean third argument was removed in v10
+    browser.addCommand('legacyElementCommand', async function () { return this.getAttribute('class') }, true)
 
     // browser
-    browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
-        return pause(ms).catch()
-    }, false)
+    // @ts-expect-error boolean third argument was removed in v10
+    browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) { return pause(ms) }, false)
 
     browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
         return pause(ms).catch()
@@ -136,9 +138,10 @@ async function bar() {
     // browser
     await browser.pause(1)
     await browser.newWindow('https://webdriver.io', {
-        windowName: 'some name',
-        windowFeatures: 'some features'
+        type: 'window'
     })
+    // @ts-expect-error windowName and windowFeatures were removed in v10
+    await browser.newWindow('https://webdriver.io', { windowName: 'some name', windowFeatures: 'some features' })
 
     await browser.createWindow('tab')
     await browser.createWindow('window')
@@ -162,8 +165,41 @@ async function bar() {
     expectType<WebdriverIO.ElementArray>(waitUntilElems)
 
     await browser.getCookies()
+    await browser.getCookies({ name: 'foobar' })
+    // @ts-expect-error string filters were removed in v10
     await browser.getCookies('foobar')
+    // @ts-expect-error string filters were removed in v10
     await browser.getCookies(['foobar'])
+
+    const htmlElement = await browser.$('h1')
+    await htmlElement.getHTML({ includeSelectorTag: false })
+    // @ts-expect-error boolean argument was removed in v10
+    await htmlElement.getHTML(false)
+
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity'
+    })
+    // @ts-expect-error positional arguments were removed in v10
+    await browser.startActivity('com.example.app', '.MainActivity')
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity',
+        // @ts-expect-error appWaitPackage was removed in v10
+        appWaitPackage: 'com.example.app',
+    })
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity',
+        // @ts-expect-error appWaitActivity was removed in v10
+        appWaitActivity: '.MainActivity',
+    })
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity',
+        // @ts-expect-error optionalIntentArguments was removed in v10
+        optionalIntentArguments: '--ez extra true',
+    })
     await browser.setCookies({
         name: '',
         value: ''

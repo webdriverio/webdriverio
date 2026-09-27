@@ -44,11 +44,15 @@ export async function setTimeout(
         throw new Error('Parameter for "setTimeout" command needs to be an object')
     }
 
+    if ('page load' in timeouts) {
+        throw new Error('The `page load` timeout key was removed in WebdriverIO v10. Use `{ pageLoad: ... }`.')
+    }
+
     /**
      * If value is not an integer, or it is less than 0 or greater than the maximum safe
     * integer, return error with error code invalid argument.
      */
-    const timeoutKeys = ['implicit', 'pageLoad', 'script', 'page load'] as const
+    const timeoutKeys = ['implicit', 'pageLoad', 'script'] as const
     const knownTimeoutValues = Object.entries(timeouts)
         .filter(([key]) => timeoutKeys.includes(key as typeof timeoutKeys[number]))
         .map(([, timeout]) => timeout)
@@ -64,8 +68,7 @@ export async function setTimeout(
     }
 
     const implicit = timeouts.implicit as number
-    // Previously also known as `page load` with JsonWireProtocol
-    const pageLoad = (timeouts as unknown as { 'page load': number })['page load'] || timeouts.pageLoad
+    const pageLoad = timeouts.pageLoad
     const script = timeouts.script as number
     const setTimeouts = this.setTimeouts.bind(this)
 

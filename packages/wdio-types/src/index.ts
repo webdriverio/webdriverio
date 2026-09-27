@@ -10,9 +10,40 @@ import type * as Network from './Network.js'
 import type * as CustomCommands from './CustomCommands.js'
 
 /**
- * exported constant values
+ * exported constant values and browser-channel helpers
  */
-export { MESSAGE_TYPES } from './Workers.js'
+export {
+    MESSAGE_TYPES,
+    BROWSER_TO_RUNNER_TYPES,
+    RUNNER_TO_BROWSER_TYPES,
+    BROWSER_REQUEST_TYPES,
+    browserChannelMessage,
+    isBrowserChannelMessage,
+    isBrowserRequestMessage,
+    isWorkerProcessEvent,
+    parseBrowserToRunnerMessage,
+    parseRunnerToBrowserMessage,
+    routeBrowserToRunnerMessage,
+    workerProcessEvent,
+} from './BrowserChannel.js'
+
+export type {
+    BrowserChannelMessage,
+    AnyBrowserChannelMessage,
+    AnyBrowserToRunnerMessage,
+    AnyRunnerToBrowserMessage,
+    BrowserChannelType,
+    BrowserToRunnerType,
+    RunnerToBrowserType,
+    BrowserRequestType,
+    BrowserChannelRoute,
+    ChannelError,
+    WorkerProcessEvent,
+    CoverageMapPayload,
+    BrowserTestEvent,
+    SocketMessageValue,
+    SocketMessagePayload,
+} from './BrowserChannel.js'
 
 export type { Automation, Capabilities, Options, Services, Frameworks, Reporters, Workers, CustomCommands }
 
@@ -80,7 +111,7 @@ declare global {
         interface CucumberOpts { [key: string]: any }
         interface Config extends Options.Testrunner, Capabilities.WithRequestedTestrunnerCapabilities {}
         interface RemoteConfig extends Options.WebdriverIO, Capabilities.WithRequestedCapabilities {}
-        interface MultiRemoteConfig extends Options.Testrunner, Capabilities.WithRequestedMultiremoteCapabilities {}
+        interface MultiRemoteConfig extends Options.Testrunner, Capabilities.WithRequestedMultiRemoteCapabilities {}
         interface HookFunctionExtension {}
         interface WDIOVSCodeServiceOptions {}
         interface BrowserRunnerOptions {}

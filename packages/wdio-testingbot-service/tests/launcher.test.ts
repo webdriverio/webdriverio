@@ -86,7 +86,7 @@ describe('wdio-testingbot-service', () => {
         }])
     })
 
-    it('should merge tunnelIdentifier in tb:options in multiremote', async () => {
+    it('should merge tunnelIdentifier in tb:options in multi-remote', async () => {
         const options: TestingbotOptions = {
             tbTunnel: true,
             tbTunnelOpts: {
@@ -99,7 +99,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps: Capabilities.RequestedMultiremoteCapabilities = {
+        const caps: Capabilities.RequestedMultiRemoteCapabilities = {
             browserA: {
                 capabilities: {
                     'tb:options': {
@@ -138,7 +138,7 @@ describe('wdio-testingbot-service', () => {
         })
     })
 
-    it('should merge tunnelIdentifier in tb:options in parallel multiremote', async () => {
+    it('should merge tunnelIdentifier in tb:options in parallel multi-remote', async () => {
         const options: TestingbotOptions = {
             tbTunnel: true,
             tbTunnelOpts: {
@@ -151,7 +151,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps: Capabilities.RequestedMultiremoteCapabilities[] = [{
+        const caps: Capabilities.RequestedMultiRemoteCapabilities[] = [{
             browserA: {
                 capabilities: {
                     'tb:options': {
@@ -246,7 +246,7 @@ describe('wdio-testingbot-service', () => {
         expect(Object.keys(caps[0]['tb:options'])).toContain('build')
     })
 
-    it('should add tunnelIdentifier in tb:options using multiremote', async () => {
+    it('should add tunnelIdentifier in tb:options using multi-remote', async () => {
         const options: TestingbotOptions = {
             tbTunnel: true,
             tbTunnelOpts: {
@@ -258,7 +258,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps: Capabilities.RequestedMultiremoteCapabilities = {
+        const caps: Capabilities.RequestedMultiRemoteCapabilities = {
             browserA: {
                 capabilities: {}
             },

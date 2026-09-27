@@ -17,6 +17,9 @@ import type { TransformElement, TransformReturn } from '../../types.js'
  * reference will be converted to the corresponding DOM element. Likewise, any WebElements in the script
  * result will be returned to the client as WebElement JSON objects.
  *
+ * BiDi sessions preserve `Blob` and `File` results the same way `browser.execute` does, including
+ * values nested in arrays, plain objects, class instances, `Map`, `Set`, and `FileList`.
+ *
  * <example>
     :execute.js
     it('should wait for the element to exist, then executes javascript on the page with the element as first argument', async () => {

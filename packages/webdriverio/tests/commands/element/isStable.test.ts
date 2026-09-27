@@ -35,7 +35,6 @@ describe('isStable test', () => {
             .toEqual(expect.stringContaining('async function isElementStable'))
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).args)
             .toEqual([{
-                ELEMENT: elem.elementId,
                 [ELEMENT_KEY]: elem.elementId,
             }])
     })

@@ -1,9 +1,12 @@
 import type { Plugin, WebSocketClient } from 'vite'
-import type { Workers } from '@wdio/types'
 
 import { WDIO_EVENT_NAME } from '../../constants.js'
 
-export type SocketEventHandler = (data: Workers.SocketMessage, client: WebSocketClient) => void
+/**
+ * Vite hands the websocket payload through as untrusted data. Callers parse it
+ * with `parseBrowserToRunnerMessage` / `routeBrowserToRunnerMessage` before use.
+ */
+export type SocketEventHandler = (data: unknown, client: WebSocketClient) => void
 
 /**
  * a Vite plugin to help communicate with the worker process

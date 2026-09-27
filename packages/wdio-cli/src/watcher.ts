@@ -30,7 +30,7 @@ export default class Watcher {
     async watch() {
         await this._launcher.initialize()
         const specs = this._launcher.configParser.getSpecs()
-        const capSpecs = this._launcher.isMultiremote
+        const capSpecs = this._launcher.isMultiRemote
             ? []
             : union(flattenDeep(
                 (this._launcher.configParser.getCapabilities() as Capabilities.RequestedStandaloneCapabilities[]).map(cap => (

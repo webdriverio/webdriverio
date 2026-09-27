@@ -1,4 +1,4 @@
-import type { Capabilities, Services, Workers } from '@wdio/types'
+import type { AnyRunnerToBrowserMessage, Capabilities, Services } from '@wdio/types'
 import type { getDefaultOptions, wdioCustomMatchers } from 'expect-webdriverio'
 import type { AddCommandFunction, CustomCommandOptions } from 'webdriverio'
 
@@ -6,8 +6,7 @@ import type BaseReporter from './reporter.js'
 
 /**
  * Represents a custom command stored by the protocol stub before the session starts.
- * The stub folds the deprecated positional `addCommand` form into the options object,
- * so only `[name, fn, CustomCommandOptions]` reaches the runner.
+ * Both `addCommand` and `overwriteCommand` are stored as `[name, fn, options]`.
  */
 export type CustomStubCommand = [string, AddCommandFunction<boolean>, CustomCommandOptions<boolean>]
 
@@ -25,7 +24,7 @@ export type RunParams = {
     cid: string
     args: Args
     specs: string[]
-    caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities
+    caps: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities
     configFile: string
     retries: number
 }
@@ -35,7 +34,7 @@ export interface TestFramework {
         cid: string,
         config: WebdriverIO.Config,
         specs: string[],
-        capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities,
+        capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities,
         reporter: BaseReporter
     ) => TestFramework
     run (): Promise<number>
@@ -52,13 +51,12 @@ export interface SessionStartedMessage {
     name: 'sessionStarted'
     content: {
         sessionId: string
-        isW3C: boolean
         protocol: string
         hostname: string
         port: number
         path: string
         headers: Record<string, string>
-        isMultiremote: boolean
+        isMultiRemote: boolean
         injectGlobals: boolean
         capabilities: WebdriverIO.Capabilities
     },
@@ -102,7 +100,11 @@ export interface WorkerResponseMessage {
     origin: 'worker'
     name: 'workerResponse',
     args: {
+        /**
+         * Communicator routing id, matching the id the browser runner assigned
+         * when it forwarded the browser message. Not the id inside `message.value`.
+         */
         id: number
-        message: Workers.SocketMessage
+        message: AnyRunnerToBrowserMessage
     }
 }

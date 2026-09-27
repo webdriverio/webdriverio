@@ -342,7 +342,7 @@ describe('getCapabilities', () => {
         expect(resolveMock).not.toHaveBeenCalled()
     })
 
-    it('should return driver with capabilities for multiremote config', async () => {
+    it('should return driver with capabilities for multi-remote config', async () => {
         const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
         getCapabilitiesMock.mockReturnValue({
             myChromeBrowser: {
@@ -384,11 +384,16 @@ describe('shouldEnableTsx', () => {
     it('detects TypeScript specs declared on capabilities', () => {
         expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
             browserName: 'chrome',
-            specs: ['./e2e/**/*.ts']
-        } as WebdriverIO.Capabilities])).toBe(true)
+            specs: ['./e2e/**/*.ts'],
+            exclude: ['./e2e/skip.spec.ts']
+        } as WebdriverIO.Capabilities])).toBe(false)
         expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
             browserName: 'chrome',
             'wdio:specs': ['./e2e/app.spec.ts']
+        } as WebdriverIO.Capabilities])).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
+            browserName: 'chrome',
+            'wdio:exclude': ['./e2e/skip.spec.ts']
         } as WebdriverIO.Capabilities])).toBe(true)
     })
 })

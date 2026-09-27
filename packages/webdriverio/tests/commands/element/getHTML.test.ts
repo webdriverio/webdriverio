@@ -34,6 +34,23 @@ describe('getHTML test', () => {
         expect(result).toBe('some inner html')
     })
 
+    it('rejects the removed boolean argument', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$('#foo')
+
+        await expect(
+            // @ts-expect-error removed boolean argument
+            elem.getHTML(false)
+        ).rejects.toThrow(
+            'Passing a boolean to `getHTML` was removed in WebdriverIO v10. Use `element.getHTML({ includeSelectorTag: false })`.'
+        )
+    })
+
     it('should exclude elements from reconstructed nested shadow roots in Node.js', async ({ onTestFinished }) => {
         expect(globalThis.wdio).toBeUndefined()
         const browser = await remote({

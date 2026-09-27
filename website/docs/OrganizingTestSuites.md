@@ -184,7 +184,7 @@ Note that each test file is running in a single test runner process. Since we do
 
 This feature will help you to accomplish the same goal.
 
-When the `--spec` option is provided, it will override any patterns defined by the config or capability level's `specs` parameter.
+When the `--spec` option is provided, it will override any patterns defined by the config `specs` or a capability's `wdio:specs`.
 
 ## Exclude Selected Tests
 
@@ -238,7 +238,7 @@ In this example, if `signup` is a defined suite name, that suite will be exclude
 If you specify both `--suite X` and `--exclude X`, the exclusion takes precedence and suite `X` will not run.
 :::
 
-When the `--exclude` option is provided, it will override any patterns defined by the config or capability level's `exclude` parameter.
+When the `--exclude` option is provided, it will override any patterns defined by the config `exclude` or a capability's `wdio:exclude`.
 
 ## Run Suites and Test Specs
 
@@ -295,8 +295,8 @@ Please see [Options Page](configuration) for additional information on the bail 
 
 When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence. Currently, this is how it works, from highest priority to lowest:
 
-> CLI `--spec` argument > capability `specs` pattern > config `specs` pattern
-> CLI `--exclude` argument > config `exclude` pattern > capability `exclude` pattern
+> CLI `--spec` argument > capability `wdio:specs` > config `specs`
+> CLI `--exclude` argument > config `exclude` > capability `wdio:exclude`
 
 If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line will override all other patterns given.
 
@@ -319,7 +319,7 @@ but then, you will have different capabilities for your Android and iOS devices,
 ```json
 {
   "platformName": "Android",
-  "specs": [
+  "wdio:specs": [
     "tests/android/**/*.js"
   ]
 }
@@ -328,7 +328,7 @@ but then, you will have different capabilities for your Android and iOS devices,
 ```json
 {
   "platformName": "iOS",
-  "specs": [
+  "wdio:specs": [
     "tests/ios/**/*.js"
   ]
 }
@@ -345,12 +345,12 @@ export const config = {
     "capabilities": [
         {
             platformName: "Android",
-            specs: ["tests/android/**/*.js"],
+            "wdio:specs": ["tests/android/**/*.js"],
             //...
         },
         {
             platformName: "iOS",
-            specs: ["tests/ios/**/*.js"],
+            "wdio:specs": ["tests/ios/**/*.js"],
             //...
         },
         {

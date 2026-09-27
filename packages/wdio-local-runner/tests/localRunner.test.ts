@@ -239,7 +239,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
     expect(call.cid).toBe('0-6')
     expect(call.command).toBe('endSession')
     expect(call.args.watch).toBe(true)
-    expect(call.args.isMultiremote).toBeFalsy()
+    expect(call.args.isMultiRemote).toBeFalsy()
     expect(call.args.config.sessionId).toBe('abc')
     expect(call.args.config.host).toEqual('foo')
 })
@@ -266,7 +266,7 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
         retries: 0,
     })
     worker['_handleMessage']({ name: 'ready' } as any)
-    runner.workerPool['0-7'].isMultiremote = true
+    runner.workerPool['0-7'].isMultiRemote = true
     runner.workerPool['0-7'].instances = { foo: { sessionId: '123' } }
     runner.workerPool['0-7'].caps = {
         foo: {
@@ -290,7 +290,7 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
     expect(call.cid).toBe('0-7')
     expect(call.command).toBe('endSession')
     expect(call.args.watch).toBe(true)
-    expect(call.args.isMultiremote).toBe(true)
+    expect(call.args.isMultiRemote).toBe(true)
     expect(call.args.instances).toEqual({ foo: { sessionId: '123' } })
 })
 

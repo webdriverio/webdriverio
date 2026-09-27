@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 
 import detectBackend from '../src/utils/detectBackend.js'
-import { remote, multiremote, attach, Key, SevereServiceError } from '../src/index.js'
+import { remote, multiRemote, attach, Key, SevereServiceError } from '../src/index.js'
 import { registerSessionManager } from '../src/session/index.js'
 
 vi.mock('../src/utils/detectBackend', () => ({ default: vi.fn() }))
@@ -27,7 +27,7 @@ vi.mock('webdriver', () => {
     newSessionMock.mockImplementation((params, cb) => {
         const result = cb(client, params)
         // @ts-ignore mock feature
-        if (params.test_multiremote) {
+        if (params.test_multi_remote) {
             result.options = { logLevel: 'error' }
         }
         return result
@@ -76,7 +76,7 @@ describe('WebdriverIO module interface', () => {
     it('should provide all exports', () => {
         expect(typeof remote).toBe('function')
         expect(typeof attach).toBe('function')
-        expect(typeof multiremote).toBe('function')
+        expect(typeof multiRemote).toBe('function')
         expect(typeof Key).toBe('object')
         expect(typeof SevereServiceError).toBe('function')
     })
@@ -211,18 +211,18 @@ describe('WebdriverIO module interface', () => {
         })
     })
 
-    describe('multiremote', () => {
+    describe('multi-remote', () => {
         it('register multiple clients', async () => {
-            await multiremote({
+            await multiRemote({
                 browserA: {
                     // @ts-ignore mock feature
-                    test_multiremote: true,
+                    test_multi_remote: true,
                     automationProtocol: 'webdriver',
                     capabilities: { browserName: 'chrome' }
                 },
                 browserB: {
                     // @ts-ignore mock feature
-                    test_multiremote: true,
+                    test_multi_remote: true,
                     automationProtocol: 'webdriver',
                     capabilities: { browserName: 'firefox' }
                 }
@@ -235,17 +235,17 @@ describe('WebdriverIO module interface', () => {
         })
 
         it('should attach custom locators to the strategies', async () => {
-            const driver = await multiremote({
+            const driver = await multiRemote({
                 browserA: {
                     automationProtocol: 'webdriver',
                     // @ts-ignore mock feature
-                    test_multiremote: true,
+                    test_multi_remote: true,
                     capabilities: { browserName: 'chrome' }
                 },
                 browserB: {
                     automationProtocol: 'webdriver',
                     // @ts-ignore mock feature
-                    test_multiremote: true,
+                    test_multi_remote: true,
                     capabilities: { browserName: 'firefox' }
                 }
             })
@@ -258,11 +258,11 @@ describe('WebdriverIO module interface', () => {
         it('throws error if trying to overwrite locator strategy', async () => {
             // @ts-ignore uses expect-webdriverio
             expect.assertions(1)
-            const driver = await multiremote({
+            const driver = await multiRemote({
                 // @ts-ignore mock feature
-                browserA: { automationProtocol: 'webdriver', test_multiremote: true, capabilities: { browserName: 'chrome' } },
+                browserA: { automationProtocol: 'webdriver', test_multi_remote: true, capabilities: { browserName: 'chrome' } },
                 // @ts-ignore mock feature
-                browserB: { automationProtocol: 'webdriver', test_multiremote: true, capabilities: { browserName: 'firefox' } }
+                browserB: { automationProtocol: 'webdriver', test_multi_remote: true, capabilities: { browserName: 'firefox' } }
             })
 
             try {
@@ -360,16 +360,16 @@ describe('WebdriverIO module interface', () => {
     })
 
     it('should use the element disable implicitWait exclusion list', async () => {
-        await multiremote({
+        await multiRemote({
             browserA: {
                 // @ts-ignore mock feature
-                test_multiremote: true,
+                test_multi_remote: true,
                 automationProtocol: 'webdriver',
                 capabilities: { browserName: 'chrome' }
             },
             browserB: {
                 // @ts-ignore mock feature
-                test_multiremote: true,
+                test_multi_remote: true,
                 automationProtocol: 'webdriver',
                 capabilities: { browserName: 'firefox' }
             }

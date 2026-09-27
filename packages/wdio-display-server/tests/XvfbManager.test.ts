@@ -139,7 +139,7 @@ describe('XvfbManager', () => {
             expect(manager.shouldRun(capabilities)).toBe(true)
         })
 
-        it('handles an array of capabilities (multiremote)', () => {
+        it('handles an array of capabilities (multi-remote)', () => {
             mockPlatform.mockReturnValue('linux')
             process.env.DISPLAY = ':0'
 
