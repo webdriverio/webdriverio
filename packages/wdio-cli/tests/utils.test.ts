@@ -3,7 +3,6 @@ import cp from 'node:child_process'
 import fs from 'node:fs/promises'
 
 import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
-import readDir from 'recursive-readdir'
 import { readPackageUp } from 'read-pkg-up'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config/node'
@@ -19,12 +18,6 @@ import {
     looksLikeTypeScriptPath,
 } from '../src/utils.js'
 
-vi.mock('recursive-readdir', () => ({
-    default: vi.fn().mockResolvedValue([
-        '/foo/bar/loo/page.js.ejs',
-        '/foo/bar/example.e2e.js'
-    ] as any)
-}))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => {
     const m = {
@@ -409,7 +402,6 @@ describe('looksLikeTypeScriptPath', () => {
 
 afterEach(() => {
     vi.mocked(console.log).mockRestore()
-    vi.mocked(readDir).mockClear()
     vi.mocked(fs.writeFile).mockClear()
     vi.mocked(cp.spawn).mockClear()
     vi.mocked(fs.mkdir).mockClear()

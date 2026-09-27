@@ -3,7 +3,6 @@ import path from 'node:path'
 import util, { promisify } from 'node:util'
 import fs from 'node:fs/promises'
 import { execSync } from 'node:child_process'
-import readDir from 'recursive-readdir'
 
 import { $ } from 'execa'
 import { readPackageUp } from 'read-pkg-up'
@@ -800,6 +799,14 @@ export async function generateTestFiles(answers: ParsedAnswers) {
     return generateBrowserRunnerTestFiles(answers)
 }
 
+/**
+ * list all files below a directory, recursively
+ */
+async function readDir (dir: string) {
+    const entries = await fs.readdir(dir, { recursive: true, withFileTypes: true })
+    return entries.filter((entry) => entry.isFile()).map((entry) => path.join(entry.parentPath, entry.name))
+}
+
 /* c8 ignore start */
 async function generateSerenityExamples(answers: ParsedAnswers): Promise<void> {
     const templateDirectories = Object.entries({
@@ -837,10 +844,9 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
         testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))
     }
 
-    const files = (await Promise.all(testFiles.map((dirPath) => readDir(
-        dirPath,
-        [(file, stats) => !stats.isDirectory() && !(file.endsWith('.ejs') || file.endsWith('.feature'))]
-    )))).reduce((cur, acc) => [...acc, ...(cur)], [])
+    const files = (await Promise.all(testFiles.map(readDir)))
+        .flat()
+        .filter((file) => file.endsWith('.ejs') || file.endsWith('.feature'))
 
     await Promise.all(files.map(async (file) => {
         const renderedTpl = await renderFile(file, { answers })
