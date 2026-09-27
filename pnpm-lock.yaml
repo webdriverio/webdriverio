@@ -1224,6 +1224,9 @@ importers:
       '@types/node':
         specifier: ^22.20.4
         version: 22.20.4
+      '@wdio/config':
+        specifier: workspace:*
+        version: link:../wdio-config
       '@wdio/display-server':
         specifier: workspace:*
         version: link:../wdio-display-server

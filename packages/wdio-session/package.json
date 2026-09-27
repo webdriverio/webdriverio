@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@types/node": "^22.20.4",
+    "@wdio/config": "workspace:*",
     "@wdio/display-server": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
