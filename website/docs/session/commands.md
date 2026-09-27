@@ -232,6 +232,22 @@ Save a PNG of the viewport, an element or the full page. Applies to web, native 
 | `--full` | Full page (web) |
 | `--path` | Output file |
 
+## `pdf`
+
+Save the current page as a PDF. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `file` | no | Output file (must end in .pdf) |
+
+**Flags**
+
+| Flag | Description |
+| --- | --- |
+| `--path` | Output file (must end in .pdf) |
+
 ## `source`
 
 Save the page HTML or app XML. Applies to web, native mobile, native desktop.

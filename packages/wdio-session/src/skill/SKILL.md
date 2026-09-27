@@ -37,7 +37,7 @@ npx wdio session find "Add to cart"
 npx wdio session diff
 ```
 
-Refs look like `button "Add to cart" [ref=e3]`. Take a screenshot only when the question is about layout.
+Refs look like `button "Add to cart" [ref=e3]`. Take a screenshot only when the question is about layout. `pdf report.pdf` saves the page as a PDF.
 
 ## 4. Act
 

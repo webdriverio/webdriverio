@@ -151,6 +151,13 @@ export const ACTIONS: ActionSpec[] = [
         positionals: [{ name: 'target', desc: 'Element to capture' }],
         options: { full: { type: 'boolean', desc: 'Full page (web)' }, path: { type: 'string', desc: 'Output file' } }
     },
+    {
+        name: 'pdf', group: 'Observation', applies: ['W'],
+        desc: 'Save the current page as a PDF',
+        positionals: [{ name: 'file', desc: 'Output file (must end in .pdf)' }],
+        options: { path: { type: 'string', desc: 'Output file (must end in .pdf)' } },
+        examples: [['$0 session pdf report.pdf', 'Write report.pdf in the current directory']]
+    },
     { name: 'source', group: 'Observation', applies: ['W', 'M', 'D'], desc: 'Save the page HTML or app XML', options: { path: { type: 'string', desc: 'Output file' } } },
     {
         name: 'get', group: 'Observation', applies: ['W'],

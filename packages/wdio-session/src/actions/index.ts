@@ -31,6 +31,7 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     find: observe.find,
     diff: observe.diff,
     screenshot: observe.screenshot,
+    pdf: observe.pdf,
     source: observe.source,
     get,
     is,

@@ -83,6 +83,7 @@ npx wdio session click e2
 | `find "Add to cart"` | A line from a fresh snapshot |
 | `diff` | What changed since the previous snapshot |
 | `screenshot` | Layout. Skip it when a snapshot answers the question |
+| `pdf` | A PDF of the current page (`pdf report.pdf`) |
 | `source` | The page HTML or the native XML |
 
 Refs come from the latest snapshot. After navigation, snapshot again. An old ref fails with `REF_STALE`. An unknown ref fails with `REF_NOT_FOUND`.

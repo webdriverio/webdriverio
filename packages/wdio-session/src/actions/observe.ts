@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { SessionError, notSupported } from '../errors.js'
+import { quote } from '../daemon/init.js'
 import { collectWeb } from '../snapshot/web.js'
 import { countRefs, formatSnapshot, type SnapshotNode } from '../snapshot/format.js'
 import { unifiedDiff } from '../snapshot/diff.js'
@@ -177,6 +178,36 @@ export const screenshot: ActionFn = async (session, args) => {
     return {
         text: `Saved ${what} screenshot${size ? ` ${size.width}x${size.height}` : ''} → ${file}`,
         data: { file, ...size, ...(selector ? { selector } : {}) },
+        files: [file]
+    }
+}
+
+/**
+ * Print the current page to a PDF. The path must end in `.pdf`, matching
+ * `browser.savePDF`.
+ */
+export const pdf: ActionFn = async (session, args) => {
+    if (!session.isWeb) {
+        throw notSupported('pdf is only supported for web sessions.')
+    }
+    const given = typeof args.file === 'string' && args.file
+        ? args.file
+        : typeof args.path === 'string' ? args.path : undefined
+    let file: string
+    if (given) {
+        if (!given.toLowerCase().endsWith('.pdf')) {
+            throw new SessionError('USAGE', 'The PDF path must end with .pdf.')
+        }
+        file = path.resolve(String(args.$cwd), given)
+        fs.mkdirSync(path.dirname(file), { recursive: true })
+    } else {
+        file = session.artifact('pdf', `${session.timestamp()}.pdf`)
+    }
+    await session.browser.savePDF(file)
+    return {
+        text: `Saved PDF → ${file}`,
+        code: `await browser.savePDF(${quote(file)})`,
+        data: { file },
         files: [file]
     }
 }
