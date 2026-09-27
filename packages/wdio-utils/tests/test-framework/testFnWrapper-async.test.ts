@@ -281,6 +281,23 @@ describe('testFnWrapper', () => {
         expect(report.passed).toBe(false)
     })
 
+    it('pauses a failed cucumber step', async () => {
+        setDebugAgentPause(async () => {
+            throw new Error('paused on step')
+        })
+        const args = [
+            'Step',
+            { specFn: () => { throw new Error('step failed') }, specFnArgs: [] },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [{ title: 'a step', file: '/tmp/spec.ts' }] },
+            { afterFn: 'afterFn', afterFnArgs: () => [{ title: 'a step', file: '/tmp/spec.ts' }] },
+            '0-0',
+            0
+        ] as any[]
+
+        // @ts-expect-error test args
+        await expect(testFnWrapper(...args)).rejects.toThrow('paused on step')
+    })
+
     afterEach(() => {
         executeHooksWithArgs.mockClear()
         setDebugAgentPause(undefined)

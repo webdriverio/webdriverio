@@ -5,7 +5,7 @@ import { execFile } from 'node:child_process'
 import { installCommand, resolveOptionalDependency } from '@wdio/utils/node'
 
 import { MIN_NODE_VERSION } from './constants.js'
-import { ensureRuntimeDir, isPidAlive, listStates, removeStaleState } from './daemon/state.js'
+import { ensureRuntimeDir, isPidAlive, listStates, readState, removeStaleState } from './daemon/state.js'
 import {
     APPIUM_DRIVERS, APPIUM_VERSION, PACKAGE_DEPENDENCIES, appiumCliPath,
     findBinary, findPackageRoot, listAppiumDrivers, type AppiumTarget
@@ -137,11 +137,11 @@ function idsFor (target: string | undefined, platform: NodeJS.Platform) {
     } else if (target === 'windows') {
         ids.push('appium', 'appium-driver:windows')
     } else if (target === 'electron') {
-        ids.push('package:@wdio/electron-service', 'package:electron')
+        ids.push('package:@wdio/electron-service', 'package:electron', ...display)
     } else if (target === 'tauri') {
         ids.push('package:@wdio/tauri-service', 'binary:tauri-driver', ...display)
     } else if (target === 'dioxus') {
-        ids.push('package:@wdio/dioxus-service', ...display)
+        ids.push('package:@wdio/dioxus-service', 'binary:wdio-dioxus-driver', ...display)
     } else if ((PROVIDERS as readonly string[]).includes(target)) {
         ids.push(`credentials:${target}`)
     }
@@ -192,19 +192,30 @@ function checkRuntimeDir (ctx: DoctorContext): DoctorCheck {
     }
 }
 
+const STARTING_GRACE_MS = 10_000
+
 function checkSessions (ctx: DoctorContext): DoctorCheck[] {
     const stale = listStates(ctx.runtimeDir).filter((state) => {
-        const spawning = state.status === 'starting' && (state.pid === null || isPidAlive(state.pid))
+        const age = Date.now() - Date.parse(state.startedAt || '')
+        const spawning = state.status === 'starting' && (
+            isPidAlive(state.pid) || (state.pid === null && age >= 0 && age < STARTING_GRACE_MS)
+        )
         const live = state.status === 'ready' && isPidAlive(state.pid)
         return !spawning && !live
     })
-    if (!stale.length) {
+    const removed: string[] = []
+    for (const state of stale) {
+        const current = readState(ctx.runtimeDir, state.name)
+        if (!current || current.pid !== state.pid || current.startedAt !== state.startedAt || current.status !== state.status) {
+            continue
+        }
+        removeStaleState(ctx.runtimeDir, state)
+        removed.push(state.name)
+    }
+    if (!removed.length) {
         return [ok('sessions', 'no stale sessions')]
     }
-    return stale.map((state) => {
-        removeStaleState(ctx.runtimeDir, state)
-        return warn('sessions', `removed stale session "${state.name}"`)
-    })
+    return removed.map((name) => warn('sessions', `removed stale session "${name}"`))
 }
 
 function checkBrowser (name: (typeof BROWSERS)[number], env: NodeJS.ProcessEnv, platform: NodeJS.Platform): DoctorCheck {
@@ -392,6 +403,9 @@ export async function runDoctor (args: Record<string, unknown>, ctx: DoctorConte
     }
     if (wanted.has('binary:tauri-driver')) {
         checks.push(checkBinaryRow('tauri-driver', ctx.env, strict, 'cargo install tauri-driver --locked'))
+    }
+    if (wanted.has('binary:wdio-dioxus-driver')) {
+        checks.push(checkBinaryRow('wdio-dioxus-driver', ctx.env, strict, 'cargo install wdio-dioxus-driver --locked'))
     }
     if (wanted.has('binary:ffmpeg')) {
         checks.push(checkBinaryRow('ffmpeg', ctx.env, false, 'sudo apt-get install -y ffmpeg'))

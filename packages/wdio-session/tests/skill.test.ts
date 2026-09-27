@@ -24,6 +24,10 @@ describe('skill', () => {
             const dest = path.join(tmp, '.agents', 'skills', 'wdio-session', 'SKILL.md')
             expect(result.data).toEqual({ path: dest })
             expect(fs.readFileSync(dest, 'utf-8')).toBe(fs.readFileSync(SKILL, 'utf-8'))
+            fs.writeFileSync(dest, 'local edits\n')
+            const again = await skill({ install: tmp })
+            expect(again.data).toMatchObject({ path: dest, skipped: true })
+            expect(fs.readFileSync(dest, 'utf-8')).toBe('local edits\n')
         } finally {
             fs.rmSync(tmp, { recursive: true, force: true })
         }

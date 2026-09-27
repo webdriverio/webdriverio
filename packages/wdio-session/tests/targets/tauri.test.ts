@@ -65,6 +65,22 @@ describe('tauri targets', () => {
         expect(plan).toMatchObject({ platform: 'tauri', mode: 'driver', display: false })
     })
 
+    it('skips tauri-driver when the service exports startWdioSession', async () => {
+        const dir = tempDir()
+        const pkg = path.join(dir, 'node_modules', '@wdio', 'tauri-service')
+        fs.mkdirSync(pkg, { recursive: true })
+        fs.writeFileSync(path.join(pkg, 'package.json'), JSON.stringify({ name: '@wdio/tauri-service', type: 'module', main: 'index.js' }))
+        fs.writeFileSync(path.join(pkg, 'index.js'), 'export function startWdioSession () { return {} }\n')
+        fs.writeFileSync(path.join(dir, 'my-app'), '')
+        const plan = await nativeWebviewPlan('tauri', { target: 'tauri', url: 'my-app' }, {
+            cwd: dir,
+            platform: 'linux',
+            env: { DISPLAY: ':1', PATH: path.join(dir, 'empty') }
+        })
+        expect(plan.mode).toBe('remote')
+        expect(plan.driver).toBeUndefined()
+    })
+
     it('fails with MISSING_BINARY when tauri-driver is not on PATH', async () => {
         const dir = tempDir()
         installService(dir)
@@ -83,5 +99,11 @@ describe('tauri targets', () => {
         expect(isAlive(driver.pid)).toBe(true)
         await driver.stop()
         expect(isAlive(driver.pid)).toBe(false)
+    })
+
+    it('rejects ready when the driver binary cannot be spawned', async () => {
+        const dir = tempDir()
+        const driver = startDriver({ binary: path.join(dir, 'missing-tauri-driver'), args: [], port: 1 })
+        await expect(driver.ready).rejects.toThrow(/ENOENT|missing-tauri-driver/)
     })
 })

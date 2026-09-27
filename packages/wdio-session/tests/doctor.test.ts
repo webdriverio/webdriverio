@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 import { STATE_VERSION } from '../src/constants.js'
 import { runDoctor, versionBelow } from '../src/doctor.js'
@@ -171,5 +171,72 @@ describe('doctor', () => {
         const row = (result.data as { checks: DoctorCheck[] }).checks.find((item) => item.id === 'package:electron')
         expect(row?.status).toBe('fail')
         expect(row?.fix).toBe('npm i -D electron')
+        expect(ids((result.data as { checks: DoctorCheck[] }).checks)).toContain('display')
+    })
+
+    it('checks the dioxus driver and a display on Linux', async () => {
+        const result = await runDoctor({ target: 'dioxus' }, ctx(), { platform: 'linux' })
+        const checks = (result.data as { checks: DoctorCheck[] }).checks
+        expect(ids(checks)).toContain('binary:wdio-dioxus-driver')
+        expect(ids(checks)).toContain('display')
+    })
+
+    it('keeps a session that is still starting and drops one that never started', async () => {
+        fs.mkdirSync(runtimeDir, { recursive: true })
+        const young = {
+            version: STATE_VERSION,
+            name: 'booting',
+            pid: null,
+            status: 'starting',
+            cwd: tmp,
+            artifactsDir: path.join(tmp, 'artifacts'),
+            startedAt: new Date().toISOString()
+        }
+        const abandoned = {
+            ...young,
+            name: 'abandoned',
+            startedAt: new Date(Date.now() - 60_000).toISOString()
+        }
+        fs.writeFileSync(path.join(runtimeDir, 'booting.json'), JSON.stringify(young))
+        fs.writeFileSync(path.join(runtimeDir, 'abandoned.json'), JSON.stringify(abandoned))
+        const result = await runDoctor({ target: 'chrome' }, ctx(), { platform: 'darwin' })
+        const checks = (result.data as { checks: DoctorCheck[] }).checks
+        expect(checks.filter((row) => row.id === 'sessions').map((row) => row.message)).toEqual(['removed stale session "abandoned"'])
+        expect(fs.existsSync(path.join(runtimeDir, 'booting.json'))).toBe(true)
+        expect(fs.existsSync(path.join(runtimeDir, 'abandoned.json'))).toBe(false)
+    })
+
+    it('does not remove a session replaced before the stale file is deleted', async () => {
+        fs.mkdirSync(runtimeDir, { recursive: true })
+        const file = path.join(runtimeDir, 'swap.json')
+        const original = {
+            version: STATE_VERSION,
+            name: 'swap',
+            pid: 2_147_483_646,
+            status: 'ready',
+            cwd: tmp,
+            artifactsDir: path.join(tmp, 'artifacts'),
+            startedAt: new Date(Date.now() - 60_000).toISOString()
+        }
+        fs.writeFileSync(file, JSON.stringify(original))
+        const real = fs.readFileSync.bind(fs)
+        let seen = 0
+        const spy = vi.spyOn(fs, 'readFileSync').mockImplementation(((target: fs.PathOrFileDescriptor, encoding?: unknown) => {
+            if (String(target) === file) {
+                seen++
+                if (seen > 1) {
+                    return JSON.stringify({ ...original, pid: process.pid, startedAt: new Date().toISOString() })
+                }
+            }
+            return real(target, encoding as BufferEncoding)
+        }) as typeof fs.readFileSync)
+        try {
+            const result = await runDoctor({ target: 'chrome' }, ctx(), { platform: 'darwin' })
+            const checks = (result.data as { checks: DoctorCheck[] }).checks
+            expect(checks.find((row) => row.id === 'sessions')).toMatchObject({ status: 'ok', message: 'no stale sessions' })
+            expect(fs.existsSync(file)).toBe(true)
+        } finally {
+            spy.mockRestore()
+        }
     })
 })

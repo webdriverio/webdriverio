@@ -54,6 +54,22 @@ describe('dioxus targets', () => {
         expect(plan).toMatchObject({ platform: 'dioxus', mode: 'driver', display: false })
     })
 
+    it('skips wdio-dioxus-driver when the service exports startWdioSession', async () => {
+        const dir = tempDir()
+        const pkg = path.join(dir, 'node_modules', '@wdio', 'dioxus-service')
+        fs.mkdirSync(pkg, { recursive: true })
+        fs.writeFileSync(path.join(pkg, 'package.json'), JSON.stringify({ name: '@wdio/dioxus-service', type: 'module', main: 'index.js' }))
+        fs.writeFileSync(path.join(pkg, 'index.js'), 'export function startWdioSession () { return {} }\n')
+        fs.writeFileSync(path.join(dir, 'my-app'), '')
+        const plan = await nativeWebviewPlan('dioxus', { target: 'dioxus', url: 'my-app' }, {
+            cwd: dir,
+            platform: 'linux',
+            env: { DISPLAY: ':1', PATH: '' }
+        })
+        expect(plan.mode).toBe('remote')
+        expect(plan.driver).toBeUndefined()
+    })
+
     it('fails with MISSING_BINARY when wdio-dioxus-driver is not on PATH', async () => {
         const dir = tempDir()
         installService(dir)

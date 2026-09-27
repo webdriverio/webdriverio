@@ -35,6 +35,9 @@ describe('mobile targets', () => {
         const web = await buildPlan({ target: 'android', appiumUrl: 'http://localhost:4723/', browser: 'chrome' }, ctx)
         expect(web.capabilities).toMatchObject({ browserName: 'chrome' })
         expect(web.applies).toEqual(['W'])
+
+        const uploaded = await buildPlan({ target: 'android', appiumUrl: 'http://127.0.0.1:4723/', app: 'bs://uploaded' }, ctx)
+        expect(uploaded.capabilities).toMatchObject({ 'appium:app': 'bs://uploaded' })
     })
 
     it('builds iOS capabilities', async () => {

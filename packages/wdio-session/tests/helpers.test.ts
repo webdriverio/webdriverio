@@ -4,10 +4,12 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { describe, it, expect, afterEach } from 'vitest'
 
+import { helpers } from '../src/actions/helpers.js'
 import { formatHelpers, loadHelpers, reloadHelpers, rewriteRelativeImports, type LoadedHelper } from '../src/helpers.js'
 import type { Session } from '../src/session.js'
 
 const dirs: string[] = []
+const sessions: Session[] = []
 
 function project () {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-helpers-'))
@@ -34,7 +36,18 @@ function fakeSession (cwd: string) {
     } as unknown as Session
 }
 
-afterEach(() => {
+function tracked (cwd: string) {
+    const session = fakeSession(cwd)
+    sessions.push(session)
+    return session
+}
+
+afterEach(async () => {
+    for (const session of sessions.splice(0)) {
+        for (const dispose of session.disposers.splice(0).reverse()) {
+            await dispose()
+        }
+    }
     for (const dir of dirs.splice(0)) {
         fs.rmSync(dir, { recursive: true, force: true })
     }
@@ -55,6 +68,22 @@ describe('rewriteRelativeImports', () => {
         expect(out).toContain(`import('${file('dyn.js')}'`)
         expect(out).toContain("from 'node:fs'")
     })
+
+    it('leaves specifiers inside strings and comments unchanged', () => {
+        const dir = '/proj/.wdio/helpers'
+        const out = rewriteRelativeImports([
+            "const note = \"from './util.js'\"",
+            "// import './skip.js'",
+            "/* import('./nope.js') */",
+            "import { x } from './util.js'"
+        ].join('\n'), dir, 5)
+        expect(out).toContain("const note = \"from './util.js'\"")
+        expect(out).toContain("// import './skip.js'")
+        expect(out).toContain("/* import('./nope.js') */")
+        expect(out).not.toContain('skip.js?v=')
+        expect(out).not.toContain('nope.js?v=')
+        expect(out).toContain(`from '${pathToFileURL(path.join(dir, 'util.js')).href}?v=5'`)
+    })
 })
 
 describe('loadHelpers', () => {
@@ -73,7 +102,7 @@ describe('loadHelpers', () => {
         await loadHelpers(session)
         const loaded = session.get<LoadedHelper[]>('helpers')!
         expect(loaded.find((h) => h.file.endsWith('login.ts'))?.commands).toEqual(['fillLogin'])
-        expect(loaded.find((h) => h.file.endsWith('broken.ts'))?.error).toMatch(/SyntaxError|Unexpected/)
+        expect(loaded.find((h) => h.file.endsWith('broken.ts'))?.error).toMatch(/SyntaxError|Unexpected|invalid JS syntax/)
         expect(formatHelpers(loaded)).toContain('fillLogin (login.ts)')
         expect(formatHelpers(loaded)).toContain('broken.ts:')
         const fill = (session.browser as unknown as { fillLogin: (email: string) => Promise<string> }).fillLogin
@@ -84,6 +113,57 @@ describe('loadHelpers', () => {
         const fill2 = (session.browser as unknown as { fillLogin: (email: string) => Promise<string> }).fillLogin
         expect(await fill2('a')).toBe('av2')
         expect(session.get<LoadedHelper[]>('helpers')!.find((h) => h.file.endsWith('broken.ts'))?.error).toBeTruthy()
+    })
+
+    it('resolves a bare package import from the project', async () => {
+        const dir = project()
+        const dep = path.join(dir, 'node_modules', 'helper-dep')
+        fs.mkdirSync(dep, { recursive: true })
+        fs.writeFileSync(path.join(dep, 'package.json'), JSON.stringify({ name: 'helper-dep', type: 'module', main: 'index.js' }))
+        fs.writeFileSync(path.join(dep, 'index.js'), 'export const mark = "pkg"\n')
+        fs.writeFileSync(path.join(dir, '.wdio', 'helpers', 'pkg.js'), [
+            "import { mark } from 'helper-dep'",
+            'export default function (browser) {',
+            "    browser.addCommand('fromPkg', () => mark)",
+            '}'
+        ].join('\n'))
+        const session = tracked(dir)
+        await loadHelpers(session)
+        const fromPkg = (session.browser as unknown as { fromPkg: () => string }).fromPkg
+        expect(fromPkg()).toBe('pkg')
+    })
+
+    it('starts watching when the helpers directory appears after open', async () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-helpers-'))
+        dirs.push(dir)
+        const session = tracked(dir)
+        await loadHelpers(session, { watch: true })
+        expect(session.get<LoadedHelper[]>('helpers')).toEqual([])
+        const helpersDir = path.join(dir, '.wdio', 'helpers')
+        fs.mkdirSync(helpersDir, { recursive: true })
+        await new Promise((resolve) => setTimeout(resolve, 50))
+        fs.writeFileSync(path.join(helpersDir, 'cmd.js'), [
+            'export default function (browser) {',
+            "    browser.addCommand('ping', () => 'pong')",
+            '}'
+        ].join('\n'))
+        const started = Date.now()
+        let ping: (() => string) | undefined
+        while (Date.now() - started < 3000) {
+            ping = (session.browser as unknown as { ping?: () => string }).ping
+            if (ping) {
+                break
+            }
+            await new Promise((resolve) => setTimeout(resolve, 50))
+        }
+        expect(ping?.()).toBe('pong')
+    })
+
+    it('reload starts the watcher', async () => {
+        const dir = project()
+        const session = tracked(dir)
+        await helpers(session, { reload: true })
+        expect(session.get('helpersWatch')).toBe(true)
     })
 
     it('prints a placeholder when the directory is empty', async () => {

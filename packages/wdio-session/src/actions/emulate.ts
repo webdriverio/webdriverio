@@ -96,6 +96,7 @@ export const emulate: ActionFn = async (session, args) => {
             throw usage(`Unknown device "${value}".`, close.length ? `Did you mean: ${close.join(', ')}?` : 'Run `wdio session emulate device` to list devices.')
         }
         const device = deviceDescriptorsSource[name]
+        await remember(session, 'device', undefined)
         await remember(session, 'device', await browser.emulate('device', name))
         return {
             ...done(`Emulating ${name} (${device.viewport.width}x${device.viewport.height} @${device.deviceScaleFactor}x). ${RELOAD_HINT}`, `await browser.emulate('device', ${quote(name)})`),
@@ -192,12 +193,14 @@ export const emulate: ActionFn = async (session, args) => {
             throw usage(`Invalid color scheme "${scheme}".`, 'Use light or dark.')
         }
         session.requireBidi('Color scheme emulation')
+        await remember(session, 'colorScheme', undefined)
         await remember(session, 'colorScheme', await browser.emulate('colorScheme', scheme))
         return done(`Color scheme ${scheme}. ${RELOAD_HINT}`, `await browser.emulate('colorScheme', '${scheme}')`)
     }
     case 'user-agent': {
         const ua = needsValue('a user agent string')
         session.requireBidi('User agent emulation')
+        await remember(session, 'userAgent', undefined)
         await remember(session, 'userAgent', await browser.emulate('userAgent', ua))
         return done(`User agent set. ${RELOAD_HINT}`, `await browser.emulate('userAgent', ${quote(ua)})`)
     }
@@ -229,6 +232,7 @@ export const geolocation: ActionFn = async (session, args) => {
     }
     session.requireBidi('Geolocation emulation')
     const coords = { latitude, longitude, ...(accuracy !== undefined ? { accuracy } : {}) }
+    await remember(session, 'geolocation', undefined)
     await remember(session, 'geolocation', await browser.emulate('geolocation', coords))
     return done(`Location set to ${latitude}, ${longitude}. ${RELOAD_HINT}`,
         `await browser.emulate('geolocation', { latitude: ${latitude}, longitude: ${longitude}${accuracy !== undefined ? `, accuracy: ${accuracy}` : ''} })`)

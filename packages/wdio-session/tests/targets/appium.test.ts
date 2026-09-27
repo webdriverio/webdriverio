@@ -1,9 +1,12 @@
 import http from 'node:http'
+import { EventEmitter } from 'node:events'
 import { spawn } from 'node:child_process'
+import type { ChildProcess } from 'node:child_process'
 import type { AddressInfo } from 'node:net'
 import { describe, it, expect } from 'vitest'
 
-import { appiumServerArgs, stopChild, waitForStatus } from '../../src/targets/appium.js'
+import { appiumServerArgs, startAppium, stopChild, waitForStatus } from '../../src/targets/appium.js'
+import type { OpenPlan } from '../../src/types.js'
 
 describe('appium server', () => {
     it('builds the server arguments', () => {
@@ -45,5 +48,26 @@ describe('appium server', () => {
         await stopChild(child, 300)
         expect(Date.now() - started).toBeGreaterThanOrEqual(250)
         expect(child.signalCode === 'SIGKILL' || child.exitCode !== null || !child.pid).toBe(true)
+    })
+
+    it('rejects when the Appium process fails to spawn', async () => {
+        const child = new EventEmitter() as ChildProcess
+        child.exitCode = null
+        child.signalCode = null
+        child.kill = (() => {
+            child.emit('exit', 1, null)
+            return true
+        }) as ChildProcess['kill']
+        const plan = {
+            cwd: '/tmp',
+            artifactsDir: '/tmp',
+            appium: { main: 'appium.js', port: 4723 }
+        } as OpenPlan
+        const pending = startAppium(plan, {
+            spawn: (() => child) as unknown as typeof spawn,
+            timeoutMs: 2000
+        })
+        child.emit('error', new Error('spawn ENOENT'))
+        await expect(pending).rejects.toThrow(/ENOENT/)
     })
 })

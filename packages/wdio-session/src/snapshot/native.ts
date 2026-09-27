@@ -4,6 +4,9 @@ import { nativeCandidates, type SelectorNode } from './selectors.js'
 import type { XmlNode } from './xml.js'
 import { parseXml } from './xml.js'
 import type { SnapshotOptions, TakenSnapshot } from '../actions/observe.js'
+import { usage } from '../errors.js'
+import { isRef } from './refs.js'
+import { resolveTarget } from './target.js'
 import type { Session } from '../session.js'
 import type { SnapshotRef } from './format.js'
 
@@ -290,6 +293,58 @@ export function parseNativeSource (xml: string, platform: NativePlatform, opts: 
     return { tree, refs: built?.refs || [], counter }
 }
 
+function findRef (node: SnapshotNode, id: string): SnapshotNode | undefined {
+    if (node.ref === id) {
+        return node
+    }
+    for (const child of node.children || []) {
+        const found = findRef(child, id)
+        if (found) {
+            return found
+        }
+    }
+    return undefined
+}
+
+function findNamed (node: SnapshotNode, needles: string[]): SnapshotNode | undefined {
+    if (node.name && needles.includes(node.name)) {
+        return node
+    }
+    for (const child of node.children || []) {
+        const found = findNamed(child, needles)
+        if (found) {
+            return found
+        }
+    }
+    return undefined
+}
+
+async function scopeNativeTree (session: Session, tree: SnapshotNode, scope: string): Promise<SnapshotNode> {
+    const id = isRef(scope) ? scope : undefined
+    const found = id
+        ? findRef(tree, id)
+        : findNamed(tree, await scopeNeedles(session, scope))
+    if (!found) {
+        throw usage(`Scope ${scope} is not in this snapshot.`, 'Run `wdio session snapshot` and pass a ref from that tree.')
+    }
+    return { role: 'document', name: tree.name, children: [found] }
+}
+
+async function scopeNeedles (session: Session, scope: string) {
+    const target = await resolveTarget(session, scope)
+    const needles = new Set<string>()
+    if (target.label) {
+        needles.add(target.label)
+    }
+    for (const attr of ['resource-id', 'name', 'label', 'content-desc', 'text']) {
+        const value = await target.element.getAttribute(attr).catch(() => '')
+        if (value) {
+            needles.add(value)
+        }
+    }
+    return [...needles]
+}
+
 /**
  * Snapshot an Appium page source (RFC §8.3).
  */
@@ -298,8 +353,10 @@ export async function takeNativeSnapshot (session: Session, opts: SnapshotOption
     const platform = nativePlatform(session.browser.capabilities as Record<string, unknown>, session.plan.target)
     const parsed = parseNativeSource(xml, platform, { all: opts.all, counter: session.refs.counter })
     const remap = new Map<string, string>()
+    const identity = (candidates: string[]) => candidates.join('\n')
     for (const ref of parsed.refs) {
-        const previous = session.refs.all().find((entry) => entry.kind === 'native' && entry.candidates[0] === ref.candidates[0])
+        const key = identity(ref.candidates)
+        const previous = session.refs.all().find((entry) => entry.kind === 'native' && identity(entry.candidates) === key)
         if (previous && previous.id !== ref.id) {
             remap.set(ref.id, previous.id)
         }
@@ -311,6 +368,9 @@ export async function takeNativeSnapshot (session: Session, opts: SnapshotOption
         node.children?.forEach(apply)
     }
     apply(parsed.tree)
+    if (opts.scope) {
+        parsed.tree = await scopeNativeTree(session, parsed.tree, String(opts.scope))
+    }
     session.refs.counter = parsed.counter
     session.refs.generation++
     for (const ref of parsed.refs) {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { generateSpec, getterName, pageClassName } from '../../src/export/spec.js'
+import { generateSpec, getterName, pageClassName, pageInstanceName } from '../../src/export/spec.js'
 import type { HistoryEntry } from '../../src/types.js'
 
 const step = (partial: Partial<HistoryEntry> & Pick<HistoryEntry, 'code'>): HistoryEntry => ({
@@ -15,6 +15,9 @@ describe('names', () => {
         expect(pageClassName('/cart.html')).toBe('Cart')
         expect(pageClassName('/')).toBe('Home')
         expect(pageClassName('/shop/my-orders')).toBe('MyOrders')
+        expect(pageClassName('/404.html')).toBe('Page404')
+        expect(pageClassName('/new')).toBe('PageNew')
+        expect(pageInstanceName('New')).toBe('newPage')
     })
 
     it('names getters from the accessible name or the selector', () => {
@@ -75,6 +78,37 @@ describe('generateSpec', () => {
     it('fails when a ref() call survived', () => {
         expect(() => generateSpec([step({ n: 4, kind: 'exec', code: "await ref('e5').click()" })], { title: 'x' }))
             .toThrow('Step 4 still contains ref().')
+    })
+
+    it('hoists static imports out of the test and leaves strings and $$ alone', () => {
+        const [spec] = generateSpec([
+            step({
+                kind: 'exec',
+                code: [
+                    "import os from 'node:os'",
+                    "const note = \"await $('x').click()\"",
+                    "await $$('a')",
+                    'await $(selector).click()'
+                ].join('\n')
+            })
+        ], { title: 'imports', pageObjects: true })
+        const bodyAt = spec.contents.indexOf('async () => {')
+        expect(spec.contents.indexOf("import os from 'node:os'")).toBeLessThan(bodyAt)
+        expect(spec.contents.slice(bodyAt)).not.toContain("import os from 'node:os'")
+        expect(spec.contents).toContain("const note = \"await $('x').click()\"")
+        expect(spec.contents).toContain("await $$('a')")
+        expect(spec.contents).toContain('await $(selector).click()')
+        expect(spec.contents).toContain('import { browser, $, $$, expect }')
+        expect(spec.contents).not.toContain('pageobjects/')
+    })
+
+    it('names a digit path as a valid page object', () => {
+        const files = generateSpec([
+            step({ code: "await $('h1').click()", path: '/404.html' })
+        ], { title: 'missing', pageObjects: true })
+        expect(files[0].contents).toContain('const page404 = new Page404Page()')
+        expect(files[0].contents).toContain('await page404.h1.click()')
+        expect(files[1].path).toBe('pageobjects/Page404.page.ts')
     })
 
     it('keeps the same structure for jasmine', () => {
