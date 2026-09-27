@@ -63,6 +63,11 @@ export interface RequirePackageOptions {
      */
     then?: string[]
     hint?: string
+    /**
+     * location of the package that needs the dependency, searched after `cwd`
+     * (usually `import.meta.url`)
+     */
+    from?: string
 }
 
 /**
@@ -71,7 +76,7 @@ export interface RequirePackageOptions {
  * package manager.
  */
 export async function requirePackage (pkg: string, opts: RequirePackageOptions): Promise<string> {
-    const resolved = await resolveOptionalDependency(pkg, { cwd: opts.cwd, global: opts.global })
+    const resolved = await resolveOptionalDependency(pkg, { cwd: opts.cwd, global: opts.global, from: opts.from })
     if (resolved) {
         return resolved
     }

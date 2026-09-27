@@ -6,6 +6,8 @@ if (process.argv.includes('--version-check')) {
     app.exit(0)
 }
 
+app.setName('session-fixture-app')
+
 app.whenReady().then(() => {
     const win = new BrowserWindow({
         width: 800,
@@ -13,7 +15,12 @@ app.whenReady().then(() => {
         webPreferences: { contextIsolation: true }
     })
     win.loadFile(path.join(__dirname, 'index.html'))
+    /**
+     * Main-process capture attaches after the WebDriver session is up, so a
+     * log emitted only during startup is missed. Keep emitting until close.
+     */
     console.log('main ready')
+    setInterval(() => console.log('main ready'), 400)
 })
 
 app.on('window-all-closed', () => app.quit())

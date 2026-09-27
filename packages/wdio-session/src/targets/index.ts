@@ -84,7 +84,8 @@ export async function buildPlan (args: OpenArgs, ctx: PlanContext): Promise<Open
         plan = { ...base, url: undefined, ...await electronPlan(args, { ...ctx, env }) }
     } else if (target === 'tauri' || target === 'dioxus') {
         const { nativeWebviewPlan } = await import('./webview.js')
-        plan = { ...base, url: undefined, ...await nativeWebviewPlan(target, args, { ...ctx, env }) }
+        const web = await nativeWebviewPlan(target, args, { ...ctx, env })
+        plan = { ...base, url: undefined, ...web, remote: { ...base.remote, ...(web.remote || {}) } }
     } else if (isConfigTarget(target)) {
         const configPath = path.resolve(ctx.cwd, target)
         if (!fs.existsSync(configPath)) {
