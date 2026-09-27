@@ -46,9 +46,9 @@ describe('url', () => {
         it('should accept a full url', async () => {
             await browser.url('http://google.com')
             // @ts-expect-error mock implementation
-            expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
                 .toBe('/session/foobar-123/url')
-            expect(vi.mocked(fetch).mock.calls[1][1]!.body)
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body)
                 .toEqual(JSON.stringify({ url: 'http://google.com/' }))
         })
 

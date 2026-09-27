@@ -19,9 +19,9 @@ describe('getWindowSize', () => {
 
     it('should get size of W3C browser window', async () => {
         await browser.getWindowSize()
-        expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('GET')
+        expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('GET')
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/window/rect')
     })
 

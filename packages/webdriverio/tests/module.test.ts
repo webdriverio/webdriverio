@@ -7,8 +7,28 @@ import { validateConfig } from '@wdio/config'
 import detectBackend from '../src/utils/detectBackend.js'
 import { remote, multiRemote, attach, Key, SevereServiceError } from '../src/index.js'
 import { registerSessionManager } from '../src/session/index.js'
+import type * as DriverModule from '../src/utils/driver.js'
 
 vi.mock('../src/utils/detectBackend', () => ({ default: vi.fn() }))
+/**
+ * `getProtocolDriver` imports `webdriver` dynamically. When `multiRemote` starts
+ * several sessions at once, Vitest can hand the concurrent imports the real
+ * package instead of the mock (https://github.com/vitest-dev/vitest/issues/7040),
+ * so pin the driver to the mocked class.
+ */
+vi.mock('../src/utils/driver.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof DriverModule>()
+    const { default: WebDriverMock } = await import('webdriver')
+    return {
+        ...actual,
+        getProtocolDriver: async (options: Parameters<typeof actual.getProtocolDriver>[0]) => {
+            const result = await actual.getProtocolDriver(options)
+            return (options.automationProtocol ?? 'webdriver') === 'webdriver'
+                ? { ...result, Driver: WebDriverMock }
+                : result
+        }
+    }
+})
 vi.mock('../src/session/index.js', () => ({ registerSessionManager: vi.fn() }))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('webdriver', () => {
@@ -228,10 +248,7 @@ describe('WebdriverIO module interface', () => {
                 }
             })
             expect(WebDriver.attachToSession).toBeCalled()
-            /**
-             * started to be flaky in CI
-             */
-            // expect(vi.mocked(WebDriver.newSession).mock.calls).toHaveLength(2)
+            expect(vi.mocked(WebDriver.newSession).mock.calls).toHaveLength(2)
         })
 
         it('should attach custom locators to the strategies', async () => {

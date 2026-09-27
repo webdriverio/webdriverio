@@ -4,6 +4,9 @@ import { afterAll, beforeAll, expect, test, vi } from 'vitest'
 // @ts-ignore mock exports instances, package doesn't
 import { instances } from '@wdio/runner'
 
+// the tests below assert on calls made once, when `run.js` is imported in `beforeAll`
+vi.setConfig({ clearMocks: false })
+
 vi.mock('@wdio/runner', () => import(path.join(process.cwd(), '__mocks__', '@wdio/runner')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 

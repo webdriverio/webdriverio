@@ -54,12 +54,14 @@ vi.mock('@wdio/display-server', async () => {
     const actual = await vi.importActual<typeof DisplayServerModule>('@wdio/display-server')
     return {
         ...actual,
-        DisplayServerManager: vi.fn().mockImplementation(() => ({
-            init: vi.fn().mockResolvedValue(true),
-            shouldRun: vi.fn().mockReturnValue(true),
-            injectDisplayFlags: vi.fn(),
-            getDisplayServer: vi.fn().mockReturnValue(null),
-        })),
+        DisplayServerManager: vi.fn().mockImplementation(function () {
+            return {
+                init: vi.fn().mockResolvedValue(true),
+                shouldRun: vi.fn().mockReturnValue(true),
+                injectDisplayFlags: vi.fn(),
+                getDisplayServer: vi.fn().mockReturnValue(null),
+            }
+        }),
         startDisplayDaemonFromConfig: vi.fn().mockResolvedValue(null),
         default: vi.fn()
     }

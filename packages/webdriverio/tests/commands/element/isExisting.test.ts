@@ -22,7 +22,7 @@ describe('isExisting test', () => {
         const elem = await browser.$('#foo')
         await elem.isExisting()
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/elements')
     })
 

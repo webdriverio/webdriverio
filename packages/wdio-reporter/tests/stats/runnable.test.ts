@@ -32,8 +32,8 @@ describe('RunnableStats', () => {
 
     it('complete', () => {
         stat.start = { getTime: vi.fn().mockReturnValue(3) } as any
-        global.Date = vi.fn().mockReturnValue({
-            getTime: () => 45
+        global.Date = vi.fn(function () {
+            return { getTime: () => 45 }
         }) as any
         stat.complete()
 
@@ -42,8 +42,8 @@ describe('RunnableStats', () => {
 
     it('duration', () => {
         stat.start = { getTime: vi.fn().mockReturnValue(3) } as any
-        global.Date = vi.fn().mockReturnValue({
-            getTime: () => 45
+        global.Date = vi.fn(function () {
+            return { getTime: () => 45 }
         }) as any
         expect(stat.duration).toBe(42)
     })

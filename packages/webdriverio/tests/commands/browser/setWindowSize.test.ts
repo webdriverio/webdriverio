@@ -19,11 +19,11 @@ describe('setWindowSize', () => {
 
     it('should resize W3C browser window', async () => {
         await browser.setWindowSize(777, 888)
-        expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('POST')
+        expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('POST')
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/window/rect')
-        expect(vi.mocked(fetch).mock.calls[1][1]!.body)
+        expect(vi.mocked(fetch).mock.calls[0][1]!.body)
             .toEqual(JSON.stringify({ x: null, y: null, width: 777, height: 888 }))
     })
 

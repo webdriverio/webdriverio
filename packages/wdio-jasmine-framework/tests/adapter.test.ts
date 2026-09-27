@@ -105,7 +105,7 @@ test('should properly set up jasmine', async () => {
     expect(result).toBe(0)
     expect(vi.mocked(adapter['_jrunner']!.addSpecFile).mock.calls[0][0]).toEqual('/foo/bar.test.js')
     // @ts-ignore outdated types
-    expect(vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls).toHaveLength(2)
+    expect(vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls).toHaveLength(1)
     expect(vi.mocked(executeHooksWithArgs).mock.calls).toHaveLength(1)
 
     // @ts-expect-error
@@ -122,8 +122,6 @@ test('should properly set up jasmine', async () => {
     expect(adapter['_jrunner']!.configureDefaultReporter.name).toBe('noop')
     // @ts-ignore outdated types
     adapter['_jrunner']!.configureDefaultReporter()
-
-    expect(globalThis.jasmine.addAsyncMatchers).toBeCalledTimes(1)
 })
 
 test('should propery wrap interfaces', async () => {

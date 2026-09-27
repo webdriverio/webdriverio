@@ -21,9 +21,9 @@ describe('deleteCookies', () => {
         it('should delete all cookies', async () => {
             await browser.deleteCookies()
 
-            expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('DELETE')
+            expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('DELETE')
             // @ts-expect-error mock implementation
-            expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
                 .toBe('/session/foobar-123/cookie')
         })
 

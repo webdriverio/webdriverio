@@ -10,6 +10,12 @@ import {
     isAbsolute
 } from '../src/utils.js'
 
+vi.mock('node:fs/promises', () => ({
+    default: {
+        mkdir: vi.fn(),
+    }
+}))
+
 describe('utils', () => {
     it('commandCallStructure', () => {
         const stringFunction = 'return (function () => { })()'
@@ -295,12 +301,6 @@ describe('getBrowserObject', () => {
 
 describe('enableFileLogging', () => {
     beforeEach(() => {
-        vi.mock('node:fs/promises', () => ({
-            default: {
-                mkdir: vi.fn(),
-            }
-        }))
-
         delete process.env.WDIO_LOG_PATH
     })
 

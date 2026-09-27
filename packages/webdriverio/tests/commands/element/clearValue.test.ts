@@ -24,7 +24,7 @@ describe('clearValue test', () => {
     it('should allow to clear an input element', async () => {
         await elem.clearValue()
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/clear')
     })
 

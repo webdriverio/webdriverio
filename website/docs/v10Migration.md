@@ -310,6 +310,15 @@ Jasmine prints a chained `$()` result through `toJSON`. That value is the same W
 
 `jasmineOpts.stopSpecOnExpectationFailure` was removed. Use `jasmineOpts.oneFailurePerSpec`. Setting the old key throws.
 
+## Component testing
+
+`@wdio/browser-runner` re-exports `fn`, `spyOn` and the mock types from `@vitest/spy` 5 (previously 3). A mock that your code calls with `new` needs a `function` or `class` implementation. An arrow function throws `is not a constructor`, and `mockReturnValue` throws when the mock is called with `new`.
+
+```diff
+- const Client = fn(() => ({ close: fn() }))
++ const Client = fn(function () { return { close: fn() } })
+```
+
 ## Puppeteer
 
 `webdriverio` accepts `puppeteer-core` `>=24 <26`, including Puppeteer 25. `getPuppeteer()` and `@wdio/lighthouse-service` are tested against that line.

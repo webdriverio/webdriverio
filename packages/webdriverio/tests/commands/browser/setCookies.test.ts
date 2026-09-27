@@ -24,12 +24,12 @@ describe('setCookies', () => {
 
         it('should output the expected format', async () => {
             await browser.setCookies([cookie1])
-            expect(vi.mocked(fetch).mock.calls).toHaveLength(2!)
-            expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('POST')
+            expect(vi.mocked(fetch).mock.calls).toHaveLength(1!)
+            expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('POST')
             // @ts-expect-error mock implementation
-            expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
+            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
                 .toBe('/session/foobar-123/cookie')
-            expect(vi.mocked(fetch).mock.calls[1][1]!.body)
+            expect(vi.mocked(fetch).mock.calls[0][1]!.body)
                 .toEqual(JSON.stringify({ 'cookie': cookie1 }))
         })
 

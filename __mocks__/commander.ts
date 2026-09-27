@@ -16,4 +16,4 @@ command.on = vi.fn().mockReturnValue(command)
 command.parse = vi.fn().mockReturnValue(command)
 command.opts = vi.fn().mockReturnValue('foobar')
 
-export const Command = vi.fn().mockReturnValue(command)
+export const Command = vi.fn(function () { return command })
