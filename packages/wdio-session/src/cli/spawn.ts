@@ -4,7 +4,7 @@ import url from 'node:url'
 import { spawn } from 'node:child_process'
 
 import { SessionError } from '../errors.js'
-import { createState, ensureRuntimeDir, isPidAlive, readState, removeState, updateState } from '../daemon/state.js'
+import { createState, ensureRuntimeDir, isPidAlive, killOrphans, readState, removeStaleState, removeState, updateState } from '../daemon/state.js'
 import type { OpenPlan, StateFile } from '../types.js'
 
 export interface SpawnOptions {
@@ -55,7 +55,7 @@ export async function spawnDaemon (plan: OpenPlan, opts: SpawnOptions = {}): Pro
          */
         const spawning = existing.pid === null && Date.now() - Date.parse(existing.startedAt) < 10_000
         if (!spawning && (existing.status === 'failed' || !isPidAlive(existing.pid))) {
-            removeState(plan.runtimeDir, plan.name)
+            removeStaleState(plan.runtimeDir, existing)
         }
     }
     try {
@@ -107,6 +107,7 @@ export async function spawnDaemon (plan: OpenPlan, opts: SpawnOptions = {}): Pro
             }
         }
         removeState(plan.runtimeDir, plan.name)
+        killOrphans(child.pid)
         const code = error && error.code !== 'INTERNAL' && error.code !== 'SESSION_START_FAILED' ? error.code : 'SESSION_START_FAILED'
         return SessionError.fromJSON({
             ...(error || {}),
@@ -158,6 +159,7 @@ export async function waitForExit (runtimeDir: string, name: string, pid: number
         } catch {
             // ignore
         }
+        await new Promise((resolve) => setTimeout(resolve, 100))
     }
-    removeState(runtimeDir, name)
+    removeStaleState(runtimeDir, { name, pid })
 }

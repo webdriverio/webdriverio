@@ -104,6 +104,30 @@ export function removeState (runtimeDir: string, name: string) {
     }
 }
 
+/**
+ * The daemon is started detached, so it leads a process group that also
+ * holds its driver and browser. When the daemon died without cleaning up
+ * (e.g. SIGKILL), kill what is left of that group.
+ */
+export function killOrphans (pid?: number | null, platform = process.platform) {
+    if (!pid || platform === 'win32' || isPidAlive(pid)) {
+        return
+    }
+    try {
+        process.kill(-pid, 'SIGKILL')
+    } catch {
+        // group is gone
+    }
+}
+
+/**
+ * Remove the files of a session whose daemon is gone, plus its orphans.
+ */
+export function removeStaleState (runtimeDir: string, state: { name: string, pid?: number | null }) {
+    killOrphans(state.pid)
+    removeState(runtimeDir, state.name)
+}
+
 export function listStates (runtimeDir: string): StateFile[] {
     let files: string[] = []
     try {

@@ -49,6 +49,13 @@ async function main () {
         }
         await launched?.cleanup(reason === 'died').catch((e) => log.warn(`Cleanup failed: ${e.message}`))
         removeState(plan.runtimeDir, plan.name)
+        if (reason === 'died' && process.platform !== 'win32') {
+            /**
+             * the daemon leads its process group (spawned detached); take
+             * the remains of a crashed browser or driver down with it
+             */
+            process.kill(-process.pid, 'SIGKILL')
+        }
         process.exit(0)
     }
 

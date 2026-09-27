@@ -172,14 +172,29 @@ export async function waitFor (fn: () => boolean | Promise<boolean>, timeout = 1
  * PIDs of all descendants of a process (Linux/macOS)
  */
 export function descendants (pid: number): number[] {
-    const out: number[] = []
+    const parents = new Map<number, number[]>()
+    let entries: string[] = []
     try {
-        const children = fs.readFileSync(`/proc/${pid}/task/${pid}/children`, 'utf-8').trim().split(/\s+/).filter(Boolean).map(Number)
-        for (const child of children) {
-            out.push(child, ...descendants(child))
-        }
+        entries = fs.readdirSync('/proc').filter((e) => /^\d+$/.test(e))
     } catch {
-        // not Linux or process gone
+        return []
+    }
+    for (const entry of entries) {
+        try {
+            const stat = fs.readFileSync(`/proc/${entry}/stat`, 'utf-8')
+            const ppid = Number(stat.slice(stat.lastIndexOf(')') + 2).split(' ')[1])
+            parents.set(ppid, [...(parents.get(ppid) || []), Number(entry)])
+        } catch {
+            // process gone
+        }
+    }
+    const out: number[] = []
+    const queue = [pid]
+    while (queue.length) {
+        for (const child of parents.get(queue.shift()!) || []) {
+            out.push(child)
+            queue.push(child)
+        }
     }
     return out
 }
