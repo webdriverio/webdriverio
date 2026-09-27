@@ -343,7 +343,7 @@ const DRIVER_TARGETS = Object.fromEntries(APPIUM_TARGETS.map((target) => [APPIUM
  */
 async function serviceStartsSession (pkg: string, cwd: string) {
     try {
-        const resolved = await resolveOptionalDependency(pkg, { cwd })
+        const resolved = await resolveOptionalDependency(pkg, { cwd, from: import.meta.url })
         if (!resolved) {
             return false
         }

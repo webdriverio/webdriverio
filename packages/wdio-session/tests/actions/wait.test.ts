@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { SessionError } from '../../src/errors.js'
-import { matchUrl, wait } from '../../src/actions/wait.js'
+import { matchUrl, pageNetworkState, wait } from '../../src/actions/wait.js'
 import type { Session } from '../../src/session.js'
 
 afterEach(() => {
@@ -15,6 +15,61 @@ describe('matchUrl', () => {
         expect(matchUrl('**/dashboard', 'https://example.com/dashboard/settings')).toBe(false)
         expect(matchUrl('https://example.com/*', 'https://example.com/cart')).toBe(true)
         expect(matchUrl('https://example.com/*', 'https://example.com/cart/1')).toBe(false)
+    })
+})
+
+describe('pageNetworkState', () => {
+    const saved = {
+        window: globalThis.window,
+        document: globalThis.document,
+        performance: globalThis.performance,
+        XMLHttpRequest: globalThis.XMLHttpRequest
+    }
+
+    afterEach(() => {
+        globalThis.window = saved.window
+        globalThis.document = saved.document
+        globalThis.performance = saved.performance
+        globalThis.XMLHttpRequest = saved.XMLHttpRequest
+    })
+
+    function installPage () {
+        class XHR {
+            listeners = new Map<string, Array<() => void>>()
+            addEventListener (type: string, fn: () => void) {
+                const list = this.listeners.get(type) || []
+                list.push(fn)
+                this.listeners.set(type, list)
+            }
+            send () {
+                throw new Error('InvalidStateError')
+            }
+        }
+        const resources: Array<{ responseEnd: number, duration: number }> = []
+        const window = { fetch: () => Promise.resolve() } as unknown as Window & typeof globalThis
+        globalThis.window = window
+        globalThis.document = { readyState: 'complete' } as Document
+        globalThis.performance = { getEntriesByType: () => resources } as unknown as Performance
+        globalThis.XMLHttpRequest = XHR as unknown as typeof XMLHttpRequest
+        return { XHR, resources }
+    }
+
+    it('does not keep a failed XMLHttpRequest.send in flight', () => {
+        const { XHR } = installPage()
+        pageNetworkState()
+        const xhr = new XHR()
+        expect(() => xhr.send()).toThrow('InvalidStateError')
+        expect(pageNetworkState().inflight).toBe(0)
+    })
+
+    it('does not treat a finished cross-origin resource as in flight', () => {
+        const { resources } = installPage()
+        resources.push(
+            { responseEnd: 0, duration: 12 },
+            { responseEnd: 0, duration: 0 },
+            { responseEnd: 40, duration: 40 }
+        )
+        expect(pageNetworkState().inflight).toBe(1)
     })
 })
 

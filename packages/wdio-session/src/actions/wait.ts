@@ -37,14 +37,29 @@ export function pageNetworkState (): PageNetwork {
         const origSend = XMLHttpRequest.prototype.send
         XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, body?: Document | XMLHttpRequestBodyInit | null) {
             state.inflight++
-            this.addEventListener('loadend', () => {
+            let settled = false
+            const finish = () => {
+                if (settled) {
+                    return
+                }
+                settled = true
                 state.inflight--
-            })
-            return origSend.call(this, body)
+            }
+            this.addEventListener('loadend', finish)
+            try {
+                return origSend.call(this, body)
+            } catch (err) {
+                // send() can throw before any loadend event, which would leave the count stuck.
+                finish()
+                throw err
+            }
         }
     }
     const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
-    const unfinished = resources.filter((entry) => entry.responseEnd === 0).length
+    // A finished cross-origin resource without Timing-Allow-Origin can keep
+    // responseEnd at 0. duration is still the time it took, so only an entry
+    // with neither timestamp is still open.
+    const unfinished = resources.filter((entry) => entry.responseEnd === 0 && entry.duration === 0).length
     return {
         ready: document.readyState,
         completed: resources.length,

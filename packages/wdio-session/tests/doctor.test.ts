@@ -191,6 +191,26 @@ describe('doctor', () => {
         expect(ids(checks)).toContain('package:@wdio/dioxus-service')
     })
 
+    it('finds a standalone service installed next to @wdio/session', async () => {
+        const beside = path.resolve(import.meta.dirname, '..', 'node_modules', '@wdio', 'tauri-service')
+        fs.mkdirSync(beside, { recursive: true })
+        fs.writeFileSync(path.join(beside, 'package.json'), JSON.stringify({
+            name: '@wdio/tauri-service',
+            version: '1.0.0',
+            type: 'module',
+            main: 'index.js'
+        }))
+        fs.writeFileSync(path.join(beside, 'index.js'), 'export function startWdioSession () {}\n')
+        try {
+            const result = await runDoctor({ target: 'tauri' }, ctx(), { platform: 'linux' })
+            const checks = (result.data as { checks: DoctorCheck[] }).checks
+            expect(ids(checks)).not.toContain('binary:tauri-driver')
+            expect(ids(checks)).toContain('package:@wdio/tauri-service')
+        } finally {
+            fs.rmSync(beside, { recursive: true, force: true })
+        }
+    })
+
     it('keeps a session that is still starting and drops one that never started', async () => {
         fs.mkdirSync(runtimeDir, { recursive: true })
         const young = {
