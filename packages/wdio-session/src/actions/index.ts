@@ -48,6 +48,8 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     upload: interact.upload,
     hover: interact.hover,
     focus: interact.focus,
+    check: interact.check,
+    uncheck: interact.uncheck,
     drag: interact.drag,
     scroll: interact.scroll,
     swipe: interact.swipe,

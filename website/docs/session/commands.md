@@ -482,6 +482,26 @@ Focus an element. Applies to web.
 | --- | --- | --- |
 | `target` | yes | Ref (e12) or WebdriverIO selector |
 
+## `check`
+
+Check a checkbox or radio. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `target` | yes | Ref (e12) or WebdriverIO selector |
+
+## `uncheck`
+
+Uncheck a checkbox. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `target` | yes | Ref (e12) or WebdriverIO selector |
+
 ## `drag`
 
 Drag an element onto another. Applies to web, native mobile, native desktop.

@@ -227,6 +227,8 @@ export const ACTIONS: ActionSpec[] = [
     { name: 'upload', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Set a file input', positionals: [target(), { name: 'file', desc: 'File to upload', required: true }] },
     { name: 'hover', group: 'Interaction', applies: ['W', 'D'], mutation: true, desc: 'Move the pointer over an element', positionals: [target()] },
     { name: 'focus', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Focus an element', positionals: [target()] },
+    { name: 'check', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Check a checkbox or radio', positionals: [target()] },
+    { name: 'uncheck', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Uncheck a checkbox', positionals: [target()] },
     { name: 'drag', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Drag an element onto another', positionals: [{ name: 'from', desc: 'Source', required: true }, { name: 'to', desc: 'Destination', required: true }] },
     { name: 'scroll', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Scroll an element into view or the page', positionals: [{ name: 'target', desc: 'Ref, selector, up, down, top or bottom' }], options: { px: { type: 'number', desc: 'Pixels for up/down (default 600)' } } },
     { name: 'swipe', group: 'Interaction', applies: ['M'], mutation: true, desc: 'Swipe the screen (mobile)', positionals: [{ name: 'direction', desc: 'Direction', required: true, choices: ['up', 'down', 'left', 'right'] }], options: { percent: { type: 'number', desc: 'Swipe length 0..1' } } },
