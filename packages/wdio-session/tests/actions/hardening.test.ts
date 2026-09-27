@@ -212,17 +212,23 @@ describe('recordings and traces', () => {
             cwd: dir,
             applies: ['M'],
             isBidi: false,
+            plan: { target: 'android' },
             timestamp: () => 't',
             artifact: () => path.join(dir, 'record'),
             browser: {
-                startRecordingScreen: async (opts: { videoFps?: number }) => {
-                    bag.set('fps', opts.videoFps)
+                capabilities: { platformName: 'Android' },
+                executeScript: async (script: string, args: unknown[]) => {
+                    bag.set('script', script)
+                    bag.set('args', args)
                 },
-                stopRecordingScreen: async () => Buffer.from('video').toString('base64')
+                saveRecordingScreen: async (filepath: string) => {
+                    fs.writeFileSync(filepath, 'video')
+                    return Buffer.from('video')
+                }
             }
         } as unknown as Session
         await record(session, { sub: 'start', fps: 8 })
-        expect(bag.get('fps')).toBe(8)
+        expect(bag.get('script')).toBe('mobile: startMediaProjectionRecording')
         const stopped = await record(session, { sub: 'stop' })
         const file = (stopped.data as { file: string }).file
         expect(fs.readFileSync(file).toString()).toBe('video')

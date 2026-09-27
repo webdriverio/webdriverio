@@ -237,6 +237,21 @@ export const trace: ActionFn = async (session, args) => {
     throw usage('trace needs start or stop.')
 }
 
+/**
+ * Appium 3 records through driver execute methods. `saveRecordingScreen`
+ * stops that recording and writes the file.
+ */
+function mobileRecordingStart (session: Session, fps: number) {
+    const target = String(session.plan?.target || (session.browser.capabilities as { platformName?: string })?.platformName || '').toLowerCase()
+    if (target === 'ios') {
+        return { script: 'mobile: startXCTestScreenRecording', args: { videoFps: fps } }
+    }
+    if (target === 'android') {
+        return { script: 'mobile: startMediaProjectionRecording', args: {} }
+    }
+    return undefined
+}
+
 export const record: ActionFn = async (session, args) => {
     const sub = String(args.sub || '')
     if (sub === 'start') {
@@ -248,11 +263,9 @@ export const record: ActionFn = async (session, args) => {
         const dir = session.artifact('record', session.timestamp())
         fs.mkdirSync(dir, { recursive: true, mode: 0o700 })
         restrict(dir, 0o700)
-        const browser = session.browser as WebdriverIO.Browser & {
-            startRecordingScreen?: (options?: { videoFps?: number }) => Promise<void>
-        }
-        if (session.applies.includes('M') && typeof browser.startRecordingScreen === 'function') {
-            await browser.startRecordingScreen({ videoFps: fps })
+        const mobile = session.applies.includes('M') ? mobileRecordingStart(session, fps) : undefined
+        if (mobile) {
+            await session.browser.executeScript(mobile.script, [mobile.args])
             const recorder: Recorder = { mode: 'appium', dir, fps, frames: [] }
             session.set('recorder', recorder)
             return { text: `Recording the device screen to ${dir}` }
@@ -281,9 +294,8 @@ export const record: ActionFn = async (session, args) => {
             recorder.timer = undefined
         }
         if (recorder.mode === 'appium') {
-            const recorded = await session.browser.stopRecordingScreen()
             const file = path.join(recorder.dir, 'recording.mp4')
-            fs.writeFileSync(file, Buffer.from(recorded, 'base64'), { mode: 0o600 })
+            await session.browser.saveRecordingScreen(file)
             restrict(file, 0o600)
             session.set('recorder', undefined)
             return { text: `Recorded ${file}`, files: [file], data: { file, mode: 'appium' } }
