@@ -48,6 +48,12 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
             }
         }
 
+        if (plan.tunnel) {
+            const { startCloudTunnel } = await import('./cloud.js')
+            const stop = await startCloudTunnel(plan)
+            cleanups.push(stop)
+        }
+
         if (plan.appium?.main) {
             const { startAppium } = await import('./appium.js')
             const appium = await startAppium(plan)
