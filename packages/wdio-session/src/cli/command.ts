@@ -249,7 +249,10 @@ async function execArgs (args: Record<string, unknown>, ctx: RunContext) {
     } else if (typeof args.file === 'string') {
         filename = path.resolve(ctx.cwd, args.file)
         if (!fs.existsSync(filename)) {
-            throw usage(`File ${filename} does not exist.`)
+            throw usage(
+                `File ${filename} does not exist.`,
+                /[\s(;]/.test(args.file) ? `To run inline code use -e: wdio session exec -e ${JSON.stringify(args.file)}` : undefined
+            )
         }
         code = fs.readFileSync(filename, 'utf-8')
     } else if (!ctx.io.stdin.isTTY) {

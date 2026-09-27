@@ -1,0 +1,18 @@
+- document "Form Fixture" url=http://localhost:PORT/form.html
+  - main
+    - textbox "Email" [ref=e35] [required]
+    - textbox "Password" [ref=e36] value="••••"
+    - checkbox "Remember me" [ref=e37] [checked]
+    - radio "Free" [ref=e38] [checked]
+    - radio "Pro" [ref=e39]
+    - combobox "Country" [ref=e40] value="Germany"
+    - spinbutton "Quantity" [ref=e41] value="1" [min=1] [max=9]
+    - textbox "Your message" [ref=e42]
+    - textbox "Avatar" [ref=e43]
+    - textbox "Account id" [ref=e44] value="A-1" [readonly]
+    - button "Delete account" [ref=e45] [disabled]
+    - button "Submit" [ref=e46]
+    - button "Drag me" [ref=e47]
+    - region "Drop zone" [ref=e48]
+    - textbox "Key log" [ref=e49]
+    - button "Bottom button" [ref=e50]
