@@ -89,6 +89,7 @@ A unit test is not that proof.
 | Public command / interface shape | package unit tests **and** `pnpm run test:typings` (or the matching `test:typings:*`) |
 | Testrunner, CLI, reporter, service, framework wiring | `pnpm run test:smoke:list` then `pnpm run test:smoke <suite>` (see [tests/AGENTS.md](tests/AGENTS.md)) |
 | `@wdio/browser-runner` / `e2e/browser-runner` | `pnpm run test:component` |
+| `@wdio/session` / `e2e/session` | `pnpm run test:e2e:session` |
 | `@wdio/display-server` / display-server e2e | `pnpm run test:e2e:display-server` |
 | Docs-only (`website/docs`, JSDoc, package README) | `pnpm run docs:list` then `pnpm run docs:generate` |
 | Root CI / toolchain files | treat as `run-all`; run `pnpm run test:local` |

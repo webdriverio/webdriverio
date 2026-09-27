@@ -1,0 +1,45 @@
+name: Session E2E Tests
+
+on:
+  workflow_call:
+
+jobs:
+  check:
+    name: Session E2E Tests (ubuntu)
+    permissions:
+      contents: read
+      actions: write
+    # Local run is about 7 minutes. Cold driver and Electron downloads on a
+    # fresh runner need more room; files cannot share a browser.
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: Download Build Archive
+        uses: ./.github/workflows/actions/download-archive
+        with:
+          name: webdriverio
+          path: .
+          filename: webdriverio-build.zip
+
+      # Electron sessions are not headless. With no DISPLAY, the daemon starts
+      # @wdio/display-server, which needs Xvfb. Hosted Ubuntu images usually
+      # already have it.
+      - name: Ensure Xvfb
+        run: |
+          if ! command -v Xvfb >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+          fi
+
+      - name: Session E2E Tests
+        run: pnpm run test:e2e:session
+        shell: bash
+
+      - name: Check Git Context
+        uses: ./.github/workflows/actions/check-git-context

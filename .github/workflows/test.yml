@@ -1,10 +1,10 @@
 # Orchestrates the WebdriverIO test pipeline.
 #
 # Pull requests detect which areas changed and skip expensive suites that
-# cannot be affected (display-server distro matrix, component tests, docs site build,
-# etc.). PRs also use a reduced OS × Node matrix. Pushes to main/v10 (and PRs
-# that touch CI config) still run the full matrix so merge coverage stays
-# complete.
+# cannot be affected (display-server distro matrix, component tests, session
+# e2e, docs site build, etc.). PRs also use a reduced OS × Node matrix. Pushes
+# to main/v10 (and PRs that touch CI config) still run the full matrix so merge
+# coverage stays complete.
 #
 # Typical PR (e.g. a webdriverio package change): ~25 jobs instead of ~70.
 name: Test
@@ -38,6 +38,7 @@ jobs:
       docs: ${{ github.event_name != 'pull_request' || steps.filter.outputs.docs == 'true' }}
       code: ${{ github.event_name != 'pull_request' || steps.filter.outputs.code == 'true' }}
       component: ${{ github.event_name != 'pull_request' || steps.filter.outputs.component == 'true' }}
+      session: ${{ github.event_name != 'pull_request' || steps.filter.outputs.session == 'true' }}
       display_server: ${{ github.event_name != 'pull_request' || steps.filter.outputs.display_server == 'true' }}
     steps:
       - name: 🔎 Filter changed paths
@@ -62,20 +63,25 @@ jobs:
             component:
               - 'packages/wdio-browser-runner/**'
               - 'e2e/browser-runner/**'
+            session:
+              - 'packages/wdio-session/**'
+              - 'e2e/session/**'
             display_server:
               - 'packages/wdio-display-server/**'
               - 'packages/wdio-local-runner/**'
               - 'e2e/wdio/display-server/**'
-            # Core product / test code. Display-server and browser-runner trees are
-            # excluded so those dedicated suites can run on their own.
+            # Core product / test code. Display-server, browser-runner, and session
+            # trees are excluded so those dedicated suites can run on their own.
             code:
               - 'packages/**'
               - '!packages/wdio-display-server/**'
               - '!packages/wdio-browser-runner/**'
+              - '!packages/wdio-session/**'
               - 'tests/**'
               - 'e2e/**'
               - '!e2e/wdio/display-server/**'
               - '!e2e/browser-runner/**'
+              - '!e2e/session/**'
               - 'scripts/**'
               - '!scripts/docs-generation/**'
               - 'infra/**'
@@ -86,7 +92,7 @@ jobs:
   build_core:
     name: Build
     needs: [changes]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.display_server == 'true'
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.session == 'true' || needs.changes.outputs.display_server == 'true'
     uses: ./.github/workflows/build.yml
 
   static_code_analysis:
@@ -114,7 +120,7 @@ jobs:
   unit_tests:
     name: Unit Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.display_server == 'true'
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.session == 'true' || needs.changes.outputs.display_server == 'true'
     uses: ./.github/workflows/test-unit.yml
     with:
       full_matrix: ${{ needs.changes.outputs.run-all == 'true' }}
@@ -134,6 +140,15 @@ jobs:
     uses: ./.github/workflows/test-component.yml
     with:
       full_matrix: ${{ needs.changes.outputs.run-all == 'true' }}
+
+  # Same start gate as component tests, so this runs beside unit tests and the
+  # later e2e jobs instead of waiting for them. Ubuntu only: lifecycle and
+  # Electron tests inspect /proc.
+  session_tests:
+    name: Session E2E Tests
+    needs: [changes, build_core, static_code_analysis]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.session == 'true'
+    uses: ./.github/workflows/test-session.yml
 
   launch_tests:
     name: E2E Tests
@@ -187,6 +202,7 @@ jobs:
       - unit_tests
       - smoke_tests
       - component_tests
+      - session_tests
       - launch_tests
       - cloud_tests
       - testrunner_tests

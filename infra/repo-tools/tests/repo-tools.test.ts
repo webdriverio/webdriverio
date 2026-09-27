@@ -46,7 +46,29 @@ describe('classify', () => {
         const report = classify(['packages/wdio-browser-runner/src/index.ts'])
         expect(report.lanes.component).toBe(true)
         expect(report.lanes.code).toBe(false)
+        expect(report.lanes.session).toBe(false)
         expect(report.lanes.display_server).toBe(false)
+    })
+
+    it('keeps the session package on its own lane', () => {
+        const report = classify(['packages/wdio-session/src/index.ts', 'e2e/session/smoke.test.ts'])
+        expect(report.lanes.session).toBe(true)
+        expect(report.lanes.code).toBe(false)
+        expect(report.lanes.component).toBe(false)
+        const dry = planChecks(report)
+        expect(dry.some((step) => step.name === 'session' && !step.cmd)).toBe(true)
+        expect(dry.some((step) => step.cmd?.join(' ') === 'pnpm run test:package wdio-session')).toBe(true)
+        const withE2e = planChecks(report, { e2e: true })
+        expect(withE2e.some((step) => step.cmd?.join(' ') === 'pnpm run test:e2e:session')).toBe(true)
+    })
+
+    it('keeps a session change from hiding other product code', () => {
+        const report = classify([
+            'packages/webdriverio/src/index.ts',
+            'packages/wdio-session/src/index.ts'
+        ])
+        expect(report.lanes.code).toBe(true)
+        expect(report.lanes.session).toBe(true)
     })
 
     it('keeps display-server trees out of the code lane', () => {

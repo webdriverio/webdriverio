@@ -34,6 +34,10 @@ export const LANE_FILTERS: LaneFilters = {
         'packages/wdio-browser-runner/**',
         'e2e/browser-runner/**'
     ],
+    session: [
+        'packages/wdio-session/**',
+        'e2e/session/**'
+    ],
     display_server: [
         'packages/wdio-display-server/**',
         'packages/wdio-local-runner/**',
@@ -43,10 +47,12 @@ export const LANE_FILTERS: LaneFilters = {
         'packages/**',
         '!packages/wdio-display-server/**',
         '!packages/wdio-browser-runner/**',
+        '!packages/wdio-session/**',
         'tests/**',
         'e2e/**',
         '!e2e/wdio/display-server/**',
         '!e2e/browser-runner/**',
+        '!e2e/session/**',
         'scripts/**',
         '!scripts/docs-generation/**',
         'infra/**',
@@ -127,6 +133,7 @@ export function classify (files: readonly string[]): Omit<ChangeReport, 'base'> 
         ci: false,
         docs: false,
         component: false,
+        session: false,
         display_server: false,
         code: false
     }
