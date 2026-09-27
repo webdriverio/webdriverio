@@ -37,6 +37,12 @@ jobs:
             sudo apt-get install -y xvfb
           fi
 
+      # pnpm runs dependency build scripts only for `sharp`, so Electron's
+      # postinstall never downloads dist/electron. electron.test.ts launches
+      # that binary.
+      - name: Install Electron
+        run: node e2e/node_modules/electron/install.js
+
       - name: Session E2E Tests
         run: pnpm run test:e2e:session
         shell: bash
