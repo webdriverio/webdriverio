@@ -1,0 +1,47 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
+import { usage } from '../errors.js'
+import { generateSpec } from '../export/spec.js'
+import type { ActionFn } from '../session.js'
+
+export const history: ActionFn = async (session, args) => {
+    if (args.clear) {
+        session.history.clear()
+        return { text: 'History cleared.', data: { entries: [] } }
+    }
+    return {
+        text: session.history.format(),
+        data: { entries: session.history.entries }
+    }
+}
+
+export const exportSpec: ActionFn = async (session, args) => {
+    const entries = session.history.entries
+    if (!entries.length) {
+        throw usage('No steps recorded.', 'Drive the session first, then run `wdio session export`.')
+    }
+    const title = typeof args.title === 'string' && args.title ? args.title : session.name
+    const framework = args.framework === 'jasmine' ? 'jasmine' : 'mocha'
+    const files = generateSpec(entries, {
+        title,
+        framework,
+        pageObjects: Boolean(args.pageObjects),
+        baseUrl: session.plan.remote.baseUrl
+    })
+    const out = path.resolve(String(args.$cwd || session.cwd), typeof args.out === 'string' && args.out
+        ? args.out
+        : session.artifact('export', `${session.name}.e2e.ts`))
+    const written: string[] = []
+    for (const file of files) {
+        const target = file.path === 'spec.ts' ? out : path.join(path.dirname(out), file.path)
+        fs.mkdirSync(path.dirname(target), { recursive: true })
+        fs.writeFileSync(target, file.contents)
+        written.push(target)
+    }
+    return {
+        text: written.map((file) => `Wrote ${file}`).join('\n'),
+        data: { files: written, framework },
+        files: written
+    }
+}
