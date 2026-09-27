@@ -194,6 +194,26 @@ export const ACTIONS: ActionSpec[] = [
     { name: 'back', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Go back' },
     { name: 'forward', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Go forward' },
     { name: 'reload', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Reload the page' },
+    {
+        name: 'wait', group: 'Interaction', applies: ['W'],
+        desc: 'Wait for an element, text, a URL, a load state, a condition or a few milliseconds',
+        timeout: 120_000,
+        positionals: [{ name: 'target', desc: 'Ref, selector or milliseconds' }],
+        options: {
+            text: { type: 'string', desc: 'Wait until the page contains this text' },
+            url: { type: 'string', desc: 'Wait until the URL matches (substring, or * and ** globs)' },
+            load: { type: 'string', desc: 'domcontentloaded, load or networkidle' },
+            fn: { type: 'string', desc: 'Wait until this JavaScript expression is true' },
+            state: { type: 'string', desc: 'visible (default), hidden, enabled or disabled' },
+            limit: { type: 'number', desc: 'Milliseconds to wait (default 10000)' }
+        },
+        examples: [
+            ['$0 session wait e1', 'Wait until a ref is visible'],
+            ['$0 session wait --text Welcome', 'Wait for text'],
+            ['$0 session wait --url "**/dashboard"', 'Wait for a URL'],
+            ['$0 session wait 500', 'Pause 500ms']
+        ]
+    },
     { name: 'click', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Click an element', positionals: [target()], options: { double: { type: 'boolean', desc: 'Double click' }, right: { type: 'boolean', desc: 'Right click' } } },
     { name: 'tap', group: 'Interaction', applies: ['M'], mutation: true, desc: 'Tap an element (mobile)', positionals: [target()] },
     { name: 'fill', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Replace the value of an input', positionals: [target(), { name: 'text', desc: 'Text', required: true }] },

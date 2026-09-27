@@ -3,6 +3,7 @@ import * as lifecycle from './lifecycle.js'
 import { exec } from './exec.js'
 import * as observe from './observe.js'
 import { get, is } from './query.js'
+import { wait } from './wait.js'
 import * as interact from './interact.js'
 import * as contexts from './contexts.js'
 import { emulate, geolocation } from './emulate.js'
@@ -37,6 +38,7 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     back: interact.back,
     forward: interact.forward,
     reload: interact.reload,
+    wait,
     click: interact.click,
     tap: interact.tap,
     fill: interact.fill,

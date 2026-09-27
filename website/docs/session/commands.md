@@ -329,6 +329,53 @@ Go forward. Applies to web.
 
 Reload the page. Applies to web.
 
+## `wait`
+
+Wait for an element, text, a URL, a load state, a condition or a few milliseconds. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `target` | no | Ref, selector or milliseconds |
+
+**Flags**
+
+| Flag | Description |
+| --- | --- |
+| `--text` | Wait until the page contains this text |
+| `--url` | Wait until the URL matches (substring, or * and ** globs) |
+| `--load` | domcontentloaded, load or networkidle |
+| `--fn` | Wait until this JavaScript expression is true |
+| `--state` | visible (default), hidden, enabled or disabled |
+| `--limit` | Milliseconds to wait (default 10000) |
+
+**Examples**
+
+```sh
+$0 session wait e1
+```
+
+Wait until a ref is visible
+
+```sh
+$0 session wait --text Welcome
+```
+
+Wait for text
+
+```sh
+$0 session wait --url "**/dashboard"
+```
+
+Wait for a URL
+
+```sh
+$0 session wait 500
+```
+
+Pause 500ms
+
 ## `click`
 
 Click an element. Applies to web, native mobile, native desktop.
