@@ -319,6 +319,8 @@ Jasmine prints a chained `$()` result through `toJSON`. That value is the same W
 + const Client = fn(function () { return { close: fn() } })
 ```
 
+For other spy changes, see the [Vitest migration guide](https://vitest.dev/guide/migration).
+
 ## Puppeteer
 
 `webdriverio` accepts `puppeteer-core` `>=24 <26`, including Puppeteer 25. `getPuppeteer()` and `@wdio/lighthouse-service` are tested against that line.
