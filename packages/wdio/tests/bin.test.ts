@@ -1,6 +1,6 @@
 import { execFileSync, spawn } from 'node:child_process'
 import { once } from 'node:events'
-import { mkdtempSync, readFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -8,25 +8,64 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const PNPM_SCRIPT = /(?:^|[\\/])pnpm(?:\.cjs|\.js|\.mjs)?$/i
 
 /**
- * Run pnpm with argv, not a shell. On Windows `pnpm` is `pnpm.cmd`, and
- * `shell: true` joins the arguments into one `cmd.exe` string, so a temp
- * path such as `C:\Users\Ada Lovelace\AppData\Local\Temp\wdio-pack` splits.
- * pnpm sets `npm_execpath` to its JavaScript entry when it runs the test.
+ * Node ships corepack next to the executable. Windows setup puts it in
+ * `node_modules` beside `node.exe`; nvm and fnm put it under `lib`.
  */
+function corepackJs (): string {
+    const nodeDir = dirname(process.execPath)
+    const candidates = [
+        resolve(nodeDir, 'node_modules', 'corepack', 'dist', 'corepack.js'),
+        resolve(nodeDir, '..', 'lib', 'node_modules', 'corepack', 'dist', 'corepack.js')
+    ]
+    const found = candidates.find((candidate) => existsSync(candidate))
+    if (!found) {
+        throw new Error('Could not find corepack. Run this test with pnpm so npm_execpath points at the pnpm script.')
+    }
+    return found
+}
+
+/**
+ * Argv after `node`. Run pnpm's JavaScript entry so a destination such as
+ * `C:\Users\Ada Lovelace\AppData\Local\Temp\wdio-pack` stays one argument.
+ * `npm_execpath` is pnpm's entry when pnpm launched the test, and npm's
+ * entry when npm did, so ignore anything that is not pnpm.
+ */
+function pnpmArgv (args: string[], execpath = process.env.npm_execpath): string[] {
+    if (execpath && PNPM_SCRIPT.test(execpath)) {
+        return [execpath, ...args]
+    }
+    return [corepackJs(), 'pnpm', ...args]
+}
+
 function pnpm (args: string[], cwd: string) {
-    const entry = process.env.npm_execpath
-    if (entry && !/\.(cmd|bat|ps1)$/i.test(entry)) {
-        return execFileSync(process.execPath, [entry, ...args], { cwd, encoding: 'utf8' })
-    }
-    if (process.platform !== 'win32') {
-        return execFileSync('pnpm', args, { cwd, encoding: 'utf8' })
-    }
-    throw new Error('Run this test with pnpm so npm_execpath points at the pnpm script.')
+    return execFileSync(process.execPath, pnpmArgv(args), { cwd, encoding: 'utf8' })
 }
 
 describe('wdio package', () => {
+    it('packs with pnpm when npm launched the test', () => {
+        const argv = pnpmArgv(
+            ['pack', '--pack-destination', 'C:\\Users\\Ada Lovelace\\AppData\\Local\\Temp\\wdio-pack'],
+            '/usr/lib/node_modules/npm/bin/npm-cli.js'
+        )
+        expect(argv[0]).toMatch(/corepack\.js$/)
+        expect(argv[1]).toBe('pnpm')
+        expect(argv.at(-1)).toBe('C:\\Users\\Ada Lovelace\\AppData\\Local\\Temp\\wdio-pack')
+    })
+
+    it('uses the pnpm script pnpm already put on npm_execpath', () => {
+        const entry = '/home/user/.cache/node/corepack/v1/pnpm/11.27.1/bin/pnpm.mjs'
+        expect(pnpmArgv(['pack'], entry)[0]).toBe(entry)
+    })
+
+    it('does not execute a Windows pnpm.cmd shim', () => {
+        const argv = pnpmArgv(['pack'], 'C:\\Program Files\\nodejs\\pnpm.cmd')
+        expect(argv[0]).toMatch(/corepack\.js$/)
+        expect(argv[1]).toBe('pnpm')
+    })
+
     it('is the public unscoped CLI published with the monorepo', () => {
         const pkg = JSON.parse(readFileSync(resolve(packageDir, 'package.json'), 'utf-8'))
         const lerna = JSON.parse(readFileSync(resolve(packageDir, '..', '..', 'lerna.json'), 'utf-8'))
