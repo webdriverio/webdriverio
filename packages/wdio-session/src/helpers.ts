@@ -21,6 +21,16 @@ export function helpersDir (cwd: string) {
     return path.join(cwd, '.wdio', 'helpers')
 }
 
+/**
+ * Compiled copies live beside the helpers directory, not inside it. The
+ * watcher watches the helpers directory, so a cache there reloads forever.
+ */
+function helperCacheDir (cwd: string) {
+    return path.join(cwd, '.wdio', 'helper-cache')
+}
+
+let generation = 0
+
 function isRelativeSpecifier (spec: string) {
     return spec.startsWith('./') || spec.startsWith('../')
 }
@@ -165,35 +175,33 @@ function forget (session: Session, names: string[]) {
 }
 
 /**
- * Copy a helper and its relative imports into fresh `.mjs` files. A new
- * path on every reload keeps Node (and the test runner) from serving the
- * previous module, and the files live in the project so bare specifiers
- * resolve from its `node_modules`.
+ * Copy a helper and its relative imports into fresh `.mjs` files. Each
+ * reload gets its own directory, which keeps Node from serving the previous
+ * module, and the files live in the project so bare specifiers resolve from
+ * its `node_modules`.
  */
-function materialize (file: string, cacheDir: string, stamp: number, seen = new Map<string, string>()) {
+function materialize (file: string, cacheDir: string, seen = new Map<string, string>()) {
     const abs = path.resolve(file)
     const cached = seen.get(abs)
     if (cached) {
         return cached
     }
-    const dest = path.join(cacheDir, `${stamp}-${seen.size}.mjs`)
+    const dest = path.join(cacheDir, `${seen.size}.mjs`)
     const href = pathToFileURL(dest).href
     seen.set(abs, href)
     const raw = fs.readFileSync(abs, 'utf-8')
     const stripped = abs.endsWith('.ts') ? stripTypes(raw) : raw
     const source = rewriteRelativeImports(stripped, path.dirname(abs), (spec) => {
-        return materialize(path.resolve(path.dirname(abs), spec), cacheDir, stamp, seen)
+        return materialize(path.resolve(path.dirname(abs), spec), cacheDir, seen)
     })
     fs.writeFileSync(dest, source)
     return href
 }
 
-async function importHelper (session: Session, file: string): Promise<LoadedHelper> {
+async function importHelper (session: Session, file: string, cacheDir: string, seen: Map<string, string>): Promise<LoadedHelper> {
     const names: string[] = []
     try {
-        const cacheDir = path.join(path.dirname(file), '.cache')
-        fs.mkdirSync(cacheDir, { recursive: true })
-        const href = materialize(file, cacheDir, Date.now())
+        const href = materialize(file, cacheDir, seen)
         const mod = await import(href)
         const setup = mod.default
         if (typeof setup !== 'function') {
@@ -219,14 +227,28 @@ async function importHelper (session: Session, file: string): Promise<LoadedHelp
 }
 
 async function reloadNow (session: Session) {
-    fs.rmSync(path.join(helpersDir(session.cwd), '.cache'), { recursive: true, force: true })
     const previous = session.get<LoadedHelper[]>('helpers') || []
-    forget(session, previous.flatMap((helper) => helper.commands))
+    const previousCache = session.get<string>('helperCache')
+    const files = helperSources(session.cwd)
     const loaded: LoadedHelper[] = []
-    for (const file of helperSources(session.cwd)) {
-        loaded.push(await importHelper(session, file))
+    let cacheDir: string | undefined
+    if (files.length) {
+        cacheDir = path.join(helperCacheDir(session.cwd), `${Date.now()}-${++generation}`)
+        fs.mkdirSync(cacheDir, { recursive: true })
+        const seen = new Map<string, string>()
+        for (const file of files) {
+            loaded.push(await importHelper(session, file, cacheDir, seen))
+        }
     }
+    const kept = new Set(loaded.flatMap((helper) => helper.commands))
+    forget(session, previous.flatMap((helper) => helper.commands).filter((name) => !kept.has(name)))
     session.set('helpers', loaded)
+    session.set('helperCache', cacheDir)
+    // Drop the previous generation only after the new modules are imported,
+    // so a command that still has a dynamic import() can finish.
+    if (previousCache && previousCache !== cacheDir) {
+        fs.rmSync(previousCache, { recursive: true, force: true })
+    }
 }
 
 /**

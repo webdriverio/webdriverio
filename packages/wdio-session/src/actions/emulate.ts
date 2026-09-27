@@ -41,8 +41,8 @@ function restores (session: Session) {
 }
 
 /**
- * Remember how to undo an emulation; emulating the same scope again undoes
- * the previous one first.
+ * Undo an emulation and forget it. `swap` does this before applying the
+ * next one, so the new emulation is not undone by the previous restore.
  */
 async function remember (session: Session, scope: string, restore: Restore | undefined) {
     const map = restores(session)
@@ -51,6 +51,14 @@ async function remember (session: Session, scope: string, restore: Restore | und
     await previous?.().catch(() => {})
     if (restore) {
         map.set(scope, restore)
+    }
+}
+
+async function swap (session: Session, scope: string, apply: () => Promise<unknown>) {
+    await remember(session, scope, undefined)
+    const restore = await apply()
+    if (typeof restore === 'function') {
+        restores(session).set(scope, restore as Restore)
     }
 }
 
@@ -96,8 +104,7 @@ export const emulate: ActionFn = async (session, args) => {
             throw usage(`Unknown device "${value}".`, close.length ? `Did you mean: ${close.join(', ')}?` : 'Run `wdio session emulate device` to list devices.')
         }
         const device = deviceDescriptorsSource[name]
-        await remember(session, 'device', undefined)
-        await remember(session, 'device', await browser.emulate('device', name))
+        await swap(session, 'device', () => browser.emulate('device', name))
         return {
             ...done(`Emulating ${name} (${device.viewport.width}x${device.viewport.height} @${device.deviceScaleFactor}x). ${RELOAD_HINT}`, `await browser.emulate('device', ${quote(name)})`),
             data: { device: name, ...device.viewport, devicePixelRatio: device.deviceScaleFactor }
@@ -122,11 +129,13 @@ export const emulate: ActionFn = async (session, args) => {
         if (preset === 'offline' || preset === 'online') {
             session.requireBidi('Network emulation')
             const offline = preset === 'offline'
-            await browser.emulationSetNetworkConditions({ networkConditions: offline ? { type: 'offline' } : null })
             if (!offline && isChromium(session) && restores(session).has('throttle')) {
                 await remember(session, 'throttle', undefined)
             }
-            await remember(session, 'network', offline ? () => browser.emulationSetNetworkConditions({ networkConditions: null }) : undefined)
+            await swap(session, 'network', async () => {
+                await browser.emulationSetNetworkConditions({ networkConditions: offline ? { type: 'offline' } : null })
+                return offline ? () => browser.emulationSetNetworkConditions({ networkConditions: null }) : undefined
+            })
             return done(offline ? 'Network offline' : 'Network online',
                 `await browser.emulationSetNetworkConditions({ networkConditions: ${offline ? "{ type: 'offline' }" : 'null'} })`)
         }
@@ -138,8 +147,10 @@ export const emulate: ActionFn = async (session, args) => {
             throw notSupported('Network throttling is only supported in Chromium based browsers.')
         }
         const [name, values] = conditions
-        await browser.setNetworkConditions(values)
-        await remember(session, 'throttle', () => browser.deleteNetworkConditions())
+        await swap(session, 'throttle', async () => {
+            await browser.setNetworkConditions(values)
+            return () => browser.deleteNetworkConditions()
+        })
         return done(`Network throttled to ${name} (${values.latency}ms latency)`,
             `await browser.setNetworkConditions({ latency: ${values.latency}, download_throughput: ${values.download_throughput}, upload_throughput: ${values.upload_throughput} })`)
     }
@@ -151,8 +162,10 @@ export const emulate: ActionFn = async (session, args) => {
         if (!isChromium(session)) {
             throw notSupported('CPU throttling is only supported in Chromium based browsers.')
         }
-        await browser.sendCommand('Emulation.setCPUThrottlingRate', { rate })
-        await remember(session, 'cpu', rate === 1 ? undefined : () => browser.sendCommand('Emulation.setCPUThrottlingRate', { rate: 1 }))
+        await swap(session, 'cpu', async () => {
+            await browser.sendCommand('Emulation.setCPUThrottlingRate', { rate })
+            return rate === 1 ? undefined : () => browser.sendCommand('Emulation.setCPUThrottlingRate', { rate: 1 })
+        })
         return done(`CPU ${rate}x slower`, `await browser.sendCommand('Emulation.setCPUThrottlingRate', { rate: ${rate} })`)
     }
     case 'clock': {
@@ -193,15 +206,13 @@ export const emulate: ActionFn = async (session, args) => {
             throw usage(`Invalid color scheme "${scheme}".`, 'Use light or dark.')
         }
         session.requireBidi('Color scheme emulation')
-        await remember(session, 'colorScheme', undefined)
-        await remember(session, 'colorScheme', await browser.emulate('colorScheme', scheme))
+        await swap(session, 'colorScheme', () => browser.emulate('colorScheme', scheme))
         return done(`Color scheme ${scheme}. ${RELOAD_HINT}`, `await browser.emulate('colorScheme', '${scheme}')`)
     }
     case 'user-agent': {
         const ua = needsValue('a user agent string')
         session.requireBidi('User agent emulation')
-        await remember(session, 'userAgent', undefined)
-        await remember(session, 'userAgent', await browser.emulate('userAgent', ua))
+        await swap(session, 'userAgent', () => browser.emulate('userAgent', ua))
         return done(`User agent set. ${RELOAD_HINT}`, `await browser.emulate('userAgent', ${quote(ua)})`)
     }
     case 'reset': {
@@ -232,8 +243,7 @@ export const geolocation: ActionFn = async (session, args) => {
     }
     session.requireBidi('Geolocation emulation')
     const coords = { latitude, longitude, ...(accuracy !== undefined ? { accuracy } : {}) }
-    await remember(session, 'geolocation', undefined)
-    await remember(session, 'geolocation', await browser.emulate('geolocation', coords))
+    await swap(session, 'geolocation', () => browser.emulate('geolocation', coords))
     return done(`Location set to ${latitude}, ${longitude}. ${RELOAD_HINT}`,
         `await browser.emulate('geolocation', { latitude: ${latitude}, longitude: ${longitude}${accuracy !== undefined ? `, accuracy: ${accuracy}` : ''} })`)
 }

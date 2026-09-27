@@ -113,6 +113,38 @@ describe('loadHelpers', () => {
         const fill2 = (session.browser as unknown as { fillLogin: (email: string) => Promise<string> }).fillLogin
         expect(await fill2('a')).toBe('av2')
         expect(session.get<LoadedHelper[]>('helpers')!.find((h) => h.file.endsWith('broken.ts'))?.error).toBeTruthy()
+        expect(fs.readdirSync(helpers)).not.toContain('.cache')
+        expect(String(session.get('helperCache'))).toContain(`${path.sep}helper-cache${path.sep}`)
+    })
+
+    it('keeps a dynamic import alive and does not reload from its own cache', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        fs.writeFileSync(path.join(helpers, 'dyn.js'), 'export const mark = "d1"\n')
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            'export default function (browser) {',
+            "    browser.addCommand('loadDyn', () => import('./dyn.js').then((mod) => mod.mark))",
+            '}'
+        ].join('\n'))
+        const session = tracked(dir)
+        await loadHelpers(session, { watch: true })
+        const loadDyn = () => (session.browser as unknown as { loadDyn: () => Promise<string> }).loadDyn()
+        expect(await loadDyn()).toBe('d1')
+        const cache = session.get('helperCache')
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        expect(session.get('helperCache')).toBe(cache)
+        expect(await loadDyn()).toBe('d1')
+
+        fs.writeFileSync(path.join(helpers, 'dyn.js'), 'export const mark = "d2"\n')
+        const started = Date.now()
+        let mark = 'd1'
+        while (Date.now() - started < 3000 && mark !== 'd2') {
+            mark = await loadDyn()
+            if (mark !== 'd2') {
+                await new Promise((resolve) => setTimeout(resolve, 50))
+            }
+        }
+        expect(mark).toBe('d2')
     })
 
     it('resolves a bare package import from the project', async () => {
