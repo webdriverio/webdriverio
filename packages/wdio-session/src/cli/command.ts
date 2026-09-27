@@ -6,7 +6,7 @@ import yargs, { type Argv, type Options } from 'yargs'
 import { ACTIONS, ACTION_MAP, actionTimeout, type ActionSpec } from '../actions/specs.js'
 import { DEFAULT_SESSION, SESSION_NAME_PATTERN } from '../constants.js'
 import { SessionError, usage } from '../errors.js'
-import { getArtifactsDir, getRuntimeDir, isPidAlive, listStates, readState, removeState } from '../daemon/state.js'
+import { getArtifactsDir, getRuntimeDir, isPidAlive, listStates, readState, removeStaleState } from '../daemon/state.js'
 import { getLiveState, send } from './client.js'
 import { printError, printResult, useColor, type OutputOptions } from './output.js'
 import { spawnDaemon, waitForExit } from './spawn.js'
@@ -370,7 +370,7 @@ async function list (ctx: RunContext): Promise<ActionResult> {
         if (spawning || (state.status === 'ready' && isPidAlive(state.pid))) {
             sessions.push(state)
         } else {
-            removeState(ctx.runtimeDir, state.name)
+            removeStaleState(ctx.runtimeDir, state)
             stale.push(state.name)
         }
     }

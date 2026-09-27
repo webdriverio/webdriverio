@@ -3,7 +3,7 @@ import crypto from 'node:crypto'
 
 import { PROTOCOL_VERSION } from '../constants.js'
 import { SessionError } from '../errors.js'
-import { getRuntimeDir, isPidAlive, readState, removeState } from '../daemon/state.js'
+import { getRuntimeDir, isPidAlive, readState, removeStaleState } from '../daemon/state.js'
 import type { ActionResult, Request, Response, StateFile } from '../types.js'
 
 export interface SendOptions {
@@ -27,7 +27,7 @@ export function getLiveState (name: string, runtimeDir = getRuntimeDir()): State
         throw new SessionError('SESSION_NOT_FOUND', `Session "${name}" is still starting.`, { hint: 'Retry once `wdio session open` has returned.' })
     }
     if (state.status !== 'ready' || !isPidAlive(state.pid)) {
-        removeState(runtimeDir, name)
+        removeStaleState(runtimeDir, state)
         throw new SessionError('SESSION_NOT_FOUND', `Session "${name}" is not running (stale state removed).`, {
             hint: `Start it with \`wdio session open <target>${name === 'default' ? '' : ` -s ${name}`}\`.`
         })
@@ -93,7 +93,7 @@ export async function send (name: string, action: string, args: Record<string, u
     } catch (err) {
         const code = (err as NodeJS.ErrnoException).code
         if (code === 'ECONNREFUSED' || code === 'ENOENT') {
-            removeState(runtimeDir, name)
+            removeStaleState(runtimeDir, state)
             throw new SessionError('SESSION_NOT_FOUND', `Session "${name}" is not running (stale state removed).`)
         }
         throw SessionError.from(err)
