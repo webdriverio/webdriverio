@@ -262,6 +262,23 @@ export function reloadHelpers (session: Session) {
     return run
 }
 
+function directoryStamp (dir: string) {
+    let names: string[]
+    try {
+        names = fs.readdirSync(dir)
+    } catch {
+        return ''
+    }
+    return names.sort().map((name) => {
+        try {
+            const stat = fs.statSync(path.join(dir, name))
+            return `${name}:${stat.mtimeMs}:${stat.size}`
+        } catch {
+            return `${name}:missing`
+        }
+    }).join('\n')
+}
+
 function armWatcher (session: Session, dir: string, onChange: () => void) {
     let timer: NodeJS.Timeout | undefined
     let closed = false
@@ -309,7 +326,14 @@ function watchHelpers (session: Session) {
         })
         return
     }
+    let stamp = directoryStamp(dir)
     armWatcher(session, dir, () => {
+        // macOS emits a watch event when the watcher starts, with no edit.
+        const next = directoryStamp(dir)
+        if (next === stamp) {
+            return
+        }
+        stamp = next
         reloadHelpers(session).catch((err) => log.warn(`Helpers failed to reload: ${errorLine(err)}`))
     })
 }

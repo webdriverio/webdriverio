@@ -100,8 +100,35 @@ describe('removePortFromArgs', () => {
 })
 
 describe('determineAppiumCliCommand', () => {
+    const savedPrefix = process.env.npm_config_prefix
+    const savedPrefixUpper = process.env.NPM_CONFIG_PREFIX
+
     beforeEach(() => {
         vi.clearAllMocks()
+        delete process.env.npm_config_prefix
+        delete process.env.NPM_CONFIG_PREFIX
+    })
+
+    afterEach(() => {
+        if (process.platform === 'win32') {
+            const value = savedPrefix ?? savedPrefixUpper
+            if (value === undefined) {
+                delete process.env.npm_config_prefix
+            } else {
+                process.env.npm_config_prefix = value
+            }
+            return
+        }
+        if (savedPrefix === undefined) {
+            delete process.env.npm_config_prefix
+        } else {
+            process.env.npm_config_prefix = savedPrefix
+        }
+        if (savedPrefixUpper === undefined) {
+            delete process.env.NPM_CONFIG_PREFIX
+        } else {
+            process.env.NPM_CONFIG_PREFIX = savedPrefixUpper
+        }
     })
 
     it('should resolve Appium from local node_modules', async () => {
