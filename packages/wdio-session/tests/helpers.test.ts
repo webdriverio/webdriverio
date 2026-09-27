@@ -381,6 +381,62 @@ describe('loadHelpers', () => {
         expect(label).toBe('two')
     })
 
+    it('reloads a large data file when its modification time stays the same', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const data = path.join(helpers, 'payload.bin')
+        const fill = (byte: number) => Buffer.alloc(CONTENT_POLL_BYTES + 1, byte)
+        fs.writeFileSync(data, fill(7))
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            "import fs from 'node:fs'",
+            `const data = ${JSON.stringify(data)}`,
+            'const mark = fs.readFileSync(data)[0]',
+            'export default function (browser) {',
+            "    browser.addCommand('mark', () => mark)",
+            '}'
+        ].join('\n'))
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation(() => {
+            return {
+                on() {
+                    return this
+                },
+                close() {
+                    return undefined
+                }
+            } as unknown as fs.FSWatcher
+        })
+        let statSpy: ReturnType<typeof vi.spyOn> | undefined
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const read = () => (session.browser as unknown as { mark: () => number }).mark()
+            expect(read()).toBe(7)
+            const frozen = fs.statSync(data)
+            const originalStat = fs.statSync.bind(fs)
+            statSpy = vi.spyOn(fs, 'statSync').mockImplementation(((file: fs.PathLike, opts?: fs.StatSyncOptions) => {
+                const stat = originalStat(file, opts as never)
+                if (String(file) === data) {
+                    stat.mtimeMs = frozen.mtimeMs
+                    stat.size = frozen.size
+                }
+                return stat
+            }) as typeof fs.statSync)
+            fs.writeFileSync(data, fill(8))
+            const started = Date.now()
+            let mark = 7
+            while (Date.now() - started < 3000 && mark !== 8) {
+                mark = read()
+                if (mark !== 8) {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            expect(mark).toBe(8)
+        } finally {
+            statSpy?.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
     it('does not reread an unchanged data file when a helper changes', async () => {
         const dir = project()
         const helpers = path.join(dir, '.wdio', 'helpers')

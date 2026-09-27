@@ -13,11 +13,13 @@ const log = logger('@wdio/session:helpers')
 const DEBOUNCE_MS = 200
 /**
  * macOS can drop a watch event, including one that lands before `fs.watch`
- * is active. The poll stats every file. It re-reads a file when the size or
- * modification time changed, and it also re-reads small files so a same-size
- * edit that keeps its modification time is still visible. A large helper
- * source is hashed on a stream, at most once every few seconds. Other large
- * files stay on their previous hash until a stat or a named event changes.
+ * is active. The poll stats every file. It re-reads a file when the size,
+ * modification time, or status-change time changed, and it also re-reads
+ * small files so a same-size edit that keeps both times is still visible.
+ * A content edit updates the status-change time even when the modification
+ * time is put back, including for a large data file a helper reads. A large
+ * helper source is also hashed on a stream, at most once every few seconds.
+ * A large file whose size and times are unchanged is not read again.
  */
 const POLL_MS = 500
 /**
@@ -287,6 +289,11 @@ export function reloadHelpers (session: Session) {
 
 interface HashedFile {
     mtimeMs: number
+    /**
+     * Status-change time. A write updates it even when the modification time
+     * is restored. On Windows this is the creation time.
+     */
+    ctimeMs: number
     size: number
     hash: string
     /** The last read failed, so a later event must try this file again. */
@@ -298,8 +305,8 @@ interface HashedFile {
  * files. An event with no filename re-reads the directory, because the size
  * and modification time can stay the same. A poll re-reads small files for
  * the same reason. A larger unchanged helper source is listed in `deferred`
- * so the caller can hash it without blocking. Other large files keep their
- * previous hash.
+ * so the caller can hash it without blocking. A large data file is re-read
+ * when its status-change time changes and otherwise keeps its previous hash.
  * A file that could not be read keeps its previous hash and is read again on
  * the next pass.
  */
@@ -331,7 +338,7 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
             continue
         }
         const prior = previous.get(name)
-        const statSame = prior !== undefined && prior.mtimeMs === stat.mtimeMs && prior.size === stat.size
+        const statSame = prior !== undefined && prior.mtimeMs === stat.mtimeMs && prior.ctimeMs === stat.ctimeMs && prior.size === stat.size
         const pollContent = unchangedReadLimit > 0 && stat.size <= unchangedReadLimit
         const unchanged = !rereadAll && prior !== undefined && !prior.unread && statSame && !reread.has(name) && !pollContent
         let content: string
@@ -346,13 +353,13 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
             } catch (err) {
                 log.warn(`Helper file could not be read: ${errorLine(err)}`)
                 content = prior?.hash ?? 'unreadable'
-                files.set(name, { mtimeMs: stat.mtimeMs, size: stat.size, hash: content, unread: true })
+                files.set(name, { mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs, size: stat.size, hash: content, unread: true })
                 hash.update(content)
                 hash.update('\0')
                 continue
             }
         }
-        files.set(name, { mtimeMs: stat.mtimeMs, size: stat.size, hash: content })
+        files.set(name, { mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs, size: stat.size, hash: content })
         hash.update(content)
         hash.update('\0')
     }
