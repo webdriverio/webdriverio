@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { EventEmitter } from 'node:events'
-import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
+import type { remote, local, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
 import type { Capabilities, Options, ThenArg, CustomCommands } from '@wdio/types'
 import type { ElementReference, ProtocolCommands, RectReturn } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
@@ -10,6 +10,7 @@ import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
 import type WebDriverInterception from './utils/interception/index.js'
+import type { Response as MockResponse } from './utils/interception/types.js'
 
 /**
  * export mock primitives
@@ -314,7 +315,8 @@ export type MultiRemoteElementArray = MultiRemoteElementArrayExport
 /**
  * What `browser.mock()` returns on a multi-remote browser. Methods such as
  * `respond` and `restore` run on every instance. Captured requests stay on
- * the mock for one browser: `mock.getInstance(name).calls`.
+ * the mock for one browser: `mock.getInstance(name).calls`. Request ids are
+ * not shared across sessions, so `getBinaryResponse` stays on that mock too.
  */
 interface MultiRemoteMockBase {
     /**
@@ -345,7 +347,12 @@ interface MultiRemoteMockBase {
     /**
      * Register the same listener on every instance's mock.
      */
-    on(...args: Parameters<WebdriverIO.Mock['on']>): this
+    on(event: 'request', callback: (request: local.NetworkBeforeRequestSentParameters) => void): this
+    on(event: 'match', callback: (match: local.NetworkBeforeRequestSentParameters) => void): this
+    on(event: 'continue', callback: (requestId: string) => void): this
+    on(event: 'fail', callback: (requestId: string) => void): this
+    on(event: 'overwrite', callback: (response: MockResponse) => void): this
+    on(event: string, callback: (...args: any[]) => void): this
     /**
      * Restore every instance's mock.
      */
@@ -354,10 +361,6 @@ interface MultiRemoteMockBase {
      * Wait until every instance has received a matching response.
      */
     waitForResponse(...args: Parameters<WebdriverIO.Mock['waitForResponse']>): Promise<Awaited<ReturnType<WebdriverIO.Mock['waitForResponse']>>[]>
-    /**
-     * Binary response body for one request, one entry per instance, in `instances` order.
-     */
-    getBinaryResponse(...args: Parameters<WebdriverIO.Mock['getBinaryResponse']>): ReturnType<WebdriverIO.Mock['getBinaryResponse']>[]
 }
 
 type AddCommandFnScoped<
@@ -943,7 +946,7 @@ declare global {
          */
         interface MultiRemoteElementArray extends MultiRemoteElementArrayExport {}
         /**
-         * WebdriverIO multiremote mock
+         * WebdriverIO multi-remote mock
          * What `browser.mock()` returns on a multi-remote browser. `instances` names
          * each mock, `getInstance(name)` returns that browser's mock, and mock
          * methods such as `respond` and `restore` run on every instance.

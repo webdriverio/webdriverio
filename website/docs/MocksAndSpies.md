@@ -202,8 +202,15 @@ On a [multi-remote](/docs/multiremote) browser, `mock()` returns a `MultiRemoteM
 
 ```ts
 const mock = await browser.mock('**/user', { method: 'post' })
-
 mock.respond({ success: true })
+
+// register a user in every browser so each session sends the request
+await browser.$('#username').setValue('randomUser')
+await browser.$('#password').setValue('password123')
+await browser.$('#password_repeat').setValue('password123')
+await browser.$('button[type="submit"]').click()
+
+await mock.waitForResponse()
 
 expect(mock.getInstance('myChromeBrowser').calls).toHaveLength(1)
 expect(mock.getInstance('myFirefoxBrowser').calls).toHaveLength(1)

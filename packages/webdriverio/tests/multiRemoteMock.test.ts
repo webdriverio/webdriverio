@@ -30,7 +30,6 @@ function fakeMock(calls: { id: string }[] = []): FakeMock {
     }
     mock.restore = vi.fn(async () => mock)
     mock.waitForResponse = vi.fn(async () => true)
-    mock.getBinaryResponse = vi.fn(() => null)
     return mock
 }
 
@@ -57,7 +56,7 @@ describe('MultiRemoteMock', () => {
 
     it('rejects a result list that does not match the instances', () => {
         expect(() => new MultiRemoteMock(['chrome'], [])).toThrow(
-            'Cannot build a multiremote mock: instance names (1) and mocks (0) differ'
+            'Cannot build a multi-remote mock: instance names (1) and mocks (0) differ'
         )
     })
 
@@ -96,13 +95,45 @@ describe('MultiRemoteMock', () => {
         await expect(multi.waitForResponse()).rejects.toThrow('timed out')
     })
 
-    it('returns binary responses in instance order', () => {
+    it('still updates later instances when an earlier one throws', () => {
         const { chrome, firefox, multi } = create()
-        const body = Buffer.from('chrome')
-        chrome.getBinaryResponse.mockReturnValueOnce(body)
+        chrome.respond.mockImplementation(() => {
+            throw new Error('chrome restored')
+        })
 
-        expect(multi.getBinaryResponse('req-1')).toEqual([body, null])
-        expect(chrome.getBinaryResponse).toHaveBeenCalledWith('req-1')
-        expect(firefox.getBinaryResponse).toHaveBeenCalledWith('req-1')
+        expect(() => multi.respond({ mocked: true })).toThrow('chrome restored')
+        expect(firefox.respond).toHaveBeenCalledWith({ mocked: true })
+    })
+
+    it('aggregates failures from every instance', () => {
+        const { chrome, firefox, multi } = create()
+        chrome.respond.mockImplementation(() => {
+            throw new Error('chrome restored')
+        })
+        firefox.respond.mockImplementation(() => {
+            throw new Error('firefox restored')
+        })
+
+        expect(() => multi.respond({ mocked: true })).toThrow(AggregateError)
+        try {
+            multi.respond({ mocked: true })
+        } catch (err) {
+            expect(err).toBeInstanceOf(AggregateError)
+            expect((err as AggregateError).errors.map((error) => (error as Error).message)).toEqual([
+                'chrome restored',
+                'firefox restored'
+            ])
+            expect((err as Error).message).toBe('Multi-remote mock respond() failed for chrome, firefox')
+        }
+    })
+
+    it('restores later instances when an earlier restore throws', async () => {
+        const { chrome, firefox, multi } = create()
+        chrome.restore.mockImplementation(() => {
+            throw new Error('already restored')
+        })
+
+        await expect(multi.restore()).rejects.toThrow('already restored')
+        expect(firefox.restore).toHaveBeenCalledTimes(1)
     })
 })

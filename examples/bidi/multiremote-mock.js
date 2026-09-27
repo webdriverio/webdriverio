@@ -17,12 +17,14 @@ function chrome () {
     }
 }
 
-const browser = await multiRemote({
-    myChromeBrowser: chrome(),
-    myOtherChromeBrowser: chrome()
-})
+let browser
 
 try {
+    browser = await multiRemote({
+        myChromeBrowser: chrome(),
+        myOtherChromeBrowser: chrome()
+    })
+
     const mock = await browser.mock('https://example.com/**')
     console.log(`instances: ${mock.instances.join(',')}`)
 
@@ -58,5 +60,7 @@ try {
     console.log(`Something went wrong: ${err.stack}`)
     process.exitCode = 1
 } finally {
-    await browser.deleteSession()
+    await browser?.deleteSession().catch((err) => {
+        console.log(`Failed to delete sessions: ${err.message}`)
+    })
 }
