@@ -4,9 +4,6 @@ import { afterAll, beforeAll, expect, test, vi } from 'vitest'
 // @ts-ignore mock exports instances, package doesn't
 import { instances } from '@wdio/runner'
 
-// the tests below assert on calls made once, when `run.js` is imported in `beforeAll`
-vi.setConfig({ clearMocks: false })
-
 vi.mock('@wdio/runner', () => import(path.join(process.cwd(), '__mocks__', '@wdio/runner')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -34,6 +31,18 @@ const sleep = (ms = 100) => new Promise(
 let runner: any
 const origExit = process.exit.bind(process)
 
+/**
+ * `run.js` registers its listeners once, on import. Keep them by event name,
+ * since mocks are cleared before each test.
+ */
+type Listener = (...args: any[]) => unknown
+const findListener = (mock: { mock: { calls: unknown[][] } }, event: string) =>
+    mock.mock.calls.find(([name]) => name === event)?.[1] as Listener
+let onMessage: Listener
+let onSigint: Listener
+let onRunnerExit: Listener
+let onRunnerError: Listener
+
 beforeAll(async () => {
     vi.spyOn(process, 'on')
     process.send = vi.fn()
@@ -41,17 +50,23 @@ beforeAll(async () => {
 
     const run = await import('../src/run.js')
     runner = run.runner
+
+    onMessage = findListener(vi.mocked(process.on), 'message')
+    onSigint = findListener(vi.mocked(process.on), 'SIGINT')
+    onRunnerExit = findListener(instances[0].on, 'exit')
+    onRunnerError = findListener(instances[0].on, 'error')
 })
 
-test('should register exitHook', () => {
-    expect(exitHookMock).toHaveBeenCalled()
-    expect(exitHookCallback).toBeDefined()
+test('should register the exit hook and listeners', () => {
+    expect(exitHookCallback).toBeInstanceOf(Function)
+    expect(onMessage).toBeInstanceOf(Function)
+    expect(onSigint).toBeInstanceOf(Function)
+    expect(onRunnerExit).toBeInstanceOf(Function)
+    expect(onRunnerError).toBeInstanceOf(Function)
 })
 
-test('should have registered runner listener', () => {
-    expect(instances[0].on).toHaveBeenCalledWith('exit', expect.any(Function))
-    expect(instances[0].on).toHaveBeenCalledWith('error', expect.any(Function))
-    instances[0].on.mock.calls[1][1]({ name: 'name', message: 'message', stack: 'stack' })
+test('should forward runner errors to the parent process', () => {
+    onRunnerError({ name: 'name', message: 'message', stack: 'stack' })
     expect(process.send).toHaveBeenCalledWith({
         origin: 'worker',
         name: 'error',
@@ -60,12 +75,12 @@ test('should have registered runner listener', () => {
 })
 
 test('should not call runner if message is undefined', () => {
-    vi.mocked(process.on).mock.calls[0][1](false)
+    onMessage(false)
+    expect(instances[0].run).not.toHaveBeenCalled()
 })
 
 test('should call runner command on process message', async () => {
-    expect(instances[0].run).toHaveBeenCalledTimes(0)
-    vi.mocked(process.on).mock.calls[0][1]({
+    onMessage({
         command: 'run',
         foo: 'bar'
     })
@@ -80,7 +95,7 @@ test('should call runner command on process message', async () => {
 
 test('should exit process if failing to execute', async () => {
     runner.errorMe = vi.fn().mockReturnValue(Promise.reject(new Error('Uups')))
-    vi.mocked(process.on).mock.calls[0][1]({
+    onMessage({
         command: 'errorMe',
         foo: 'bar'
     })
@@ -91,17 +106,12 @@ test('should exit process if failing to execute', async () => {
 })
 
 test('should call gracefulExit with exit code on exit', () => {
-    const exitListener = instances[0].on.mock.calls.find(([event]: [string]) => event === 'exit')?.[1]
-    expect(exitListener).toBeDefined()
-    exitListener?.(5)
+    onRunnerExit(5)
     expect(gracefulExitMock).toHaveBeenCalledWith(5)
 })
 
 test('should call gracefulExit(130) and set sigintWasCalled on SIGINT', () => {
-    // Find SIGINT listener
-    const sigintListener = vi.mocked(process.on).mock.calls.find(([event]) => event === 'SIGINT')?.[1]
-    expect(sigintListener).toBeDefined()
-    sigintListener?.()
+    onSigint()
     expect(runner.sigintWasCalled).toBe(true)
     expect(gracefulExitMock).toHaveBeenCalledWith(130)
 })
