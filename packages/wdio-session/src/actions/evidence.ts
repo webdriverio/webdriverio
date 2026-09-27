@@ -37,6 +37,7 @@ interface Recorder {
     file?: string
     timer?: NodeJS.Timeout
     capturing?: boolean
+    pending?: Promise<void>
 }
 
 const SKIP = new Set(['trace', 'record'])
@@ -143,7 +144,7 @@ function installProbe (session: Session) {
             }
             const recorder = session.get<Recorder>('recorder')
             if (recorder?.mode === 'frames' && !recorder.timer && !SKIP.has(action)) {
-                await saveRecordingFrame(session, recorder).catch((err) => log.warn(`Frame capture failed: ${(err as Error).message}`))
+                await takeRecordingFrame(session, recorder)
             }
         }
     })
@@ -154,6 +155,20 @@ async function saveRecordingFrame (session: Session, recorder: Recorder) {
     const file = path.join(recorder.dir, 'frames', name)
     await captureFrame(session, file)
     recorder.frames.push(file)
+}
+
+/** One frame at a time. The timer, the first frame, and stop share this. */
+function takeRecordingFrame (session: Session, recorder: Recorder) {
+    if (recorder.capturing) {
+        return recorder.pending
+    }
+    recorder.capturing = true
+    recorder.pending = saveRecordingFrame(session, recorder)
+        .catch((err) => log.warn(`Frame capture failed: ${(err as Error).message}`))
+        .finally(() => {
+            recorder.capturing = false
+        })
+    return recorder.pending
 }
 
 function command (bin: string, args: string[]) {
@@ -250,17 +265,9 @@ export const record: ActionFn = async (session, args) => {
         if (recorder.mode === 'frames') {
             const interval = Math.max(100, Math.round(1000 / fps))
             recorder.timer = setInterval(() => {
-                if (recorder.capturing) {
-                    return
-                }
-                recorder.capturing = true
-                saveRecordingFrame(session, recorder)
-                    .catch((err) => log.warn(`Frame capture failed: ${(err as Error).message}`))
-                    .finally(() => {
-                        recorder.capturing = false
-                    })
+                takeRecordingFrame(session, recorder)
             }, interval)
-            await saveRecordingFrame(session, recorder)
+            await takeRecordingFrame(session, recorder)
         }
         return { text: recorder.mode === 'screencast' ? `Recording screencast to ${recorder.file || dir}` : `Recording frames to ${path.join(dir, 'frames')} at ${fps} fps` }
     }
@@ -294,7 +301,8 @@ export const record: ActionFn = async (session, args) => {
             const file = recorder.file && fs.existsSync(recorder.file) ? recorder.file : recorder.dir
             return { text: `Recorded ${file}`, files: [file], data: { file, mode: 'screencast' } }
         }
-        await saveRecordingFrame(session, recorder)
+        await recorder.pending
+        await takeRecordingFrame(session, recorder)
         const out = path.resolve(session.cwd, typeof args.path === 'string' && args.path
             ? args.path
             : path.join(recorder.dir, 'recording.mp4'))

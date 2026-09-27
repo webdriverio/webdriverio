@@ -6,7 +6,6 @@ import { parseXml } from './xml.js'
 import type { SnapshotOptions, TakenSnapshot } from '../actions/observe.js'
 import { usage } from '../errors.js'
 import { isRef } from './refs.js'
-import { resolveTarget } from './target.js'
 import type { Session } from '../session.js'
 import type { SnapshotRef } from './format.js'
 
@@ -293,12 +292,12 @@ export function parseNativeSource (xml: string, platform: NativePlatform, opts: 
     return { tree, refs: built?.refs || [], counter }
 }
 
-function findRef (node: SnapshotNode, id: string): SnapshotNode | undefined {
+function findNode (node: SnapshotNode, id: string): SnapshotNode | undefined {
     if (node.ref === id) {
         return node
     }
     for (const child of node.children || []) {
-        const found = findRef(child, id)
+        const found = findNode(child, id)
         if (found) {
             return found
         }
@@ -306,43 +305,50 @@ function findRef (node: SnapshotNode, id: string): SnapshotNode | undefined {
     return undefined
 }
 
-function findNamed (node: SnapshotNode, needles: string[]): SnapshotNode | undefined {
-    if (node.name && needles.includes(node.name)) {
-        return node
+function resourceIdOf (selector: string) {
+    const plain = /^id=(.+)$/.exec(selector)
+    if (plain) {
+        return plain[1]
     }
-    for (const child of node.children || []) {
-        const found = findNamed(child, needles)
-        if (found) {
-            return found
-        }
-    }
-    return undefined
+    const ui = /resourceId\((['"])(.*?)\1\)/.exec(selector)
+    return ui?.[2]
 }
 
-async function scopeNativeTree (session: Session, tree: SnapshotNode, scope: string): Promise<SnapshotNode> {
-    const id = isRef(scope) ? scope : undefined
-    const found = id
-        ? findRef(tree, id)
-        : findNamed(tree, await scopeNeedles(session, scope))
+/** `id=save` and `id=com.example:id/save` name the same Android resource. */
+function sameResource (left: string, right: string) {
+    const a = resourceIdOf(left)
+    const b = resourceIdOf(right)
+    if (!a || !b) {
+        return false
+    }
+    return a === b || resourceSuffix(a) === resourceSuffix(b)
+}
+
+function matchingRefs (refs: SnapshotRef[], scope: string) {
+    const exact = refs.filter((ref) => ref.candidates.includes(scope))
+    if (exact.length) {
+        return exact
+    }
+    return refs.filter((ref) => ref.candidates.some((candidate) => sameResource(candidate, scope)))
+}
+
+function scopeNativeTree (tree: SnapshotNode, refs: SnapshotRef[], scope: string): SnapshotNode {
+    const hits = isRef(scope)
+        ? refs.filter((ref) => ref.id === scope)
+        : matchingRefs(refs, scope)
+    if (hits.length !== 1) {
+        throw usage(
+            hits.length > 1 ? `Scope ${scope} matches ${hits.length} elements.` : `Scope ${scope} is not in this snapshot.`,
+            hits.length > 1
+                ? 'Pass a ref from `wdio session snapshot`.'
+                : 'Run `wdio session snapshot` and pass a ref or a selector from that tree.'
+        )
+    }
+    const found = findNode(tree, hits[0].id)
     if (!found) {
         throw usage(`Scope ${scope} is not in this snapshot.`, 'Run `wdio session snapshot` and pass a ref from that tree.')
     }
     return { role: 'document', name: tree.name, children: [found] }
-}
-
-async function scopeNeedles (session: Session, scope: string) {
-    const target = await resolveTarget(session, scope)
-    const needles = new Set<string>()
-    if (target.label) {
-        needles.add(target.label)
-    }
-    for (const attr of ['resource-id', 'name', 'label', 'content-desc', 'text']) {
-        const value = await target.element.getAttribute(attr).catch(() => '')
-        if (value) {
-            needles.add(value)
-        }
-    }
-    return [...needles]
 }
 
 /**
@@ -368,14 +374,14 @@ export async function takeNativeSnapshot (session: Session, opts: SnapshotOption
         node.children?.forEach(apply)
     }
     apply(parsed.tree)
+    const refs = parsed.refs.map((ref) => ({ ...ref, id: remap.get(ref.id) || ref.id }))
     if (opts.scope) {
-        parsed.tree = await scopeNativeTree(session, parsed.tree, String(opts.scope))
+        parsed.tree = scopeNativeTree(parsed.tree, refs, String(opts.scope))
     }
     session.refs.counter = parsed.counter
     session.refs.generation++
-    for (const ref of parsed.refs) {
-        const id = remap.get(ref.id) || ref.id
-        session.refs.set({ ...ref, id, kind: 'native', generation: session.refs.generation })
+    for (const ref of refs) {
+        session.refs.set({ ...ref, kind: 'native', generation: session.refs.generation })
     }
     const text = formatSnapshot(parsed.tree, { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes })
     session.lastSnapshot = text
