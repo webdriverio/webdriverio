@@ -140,8 +140,8 @@ describe('generateTestFiles', () => {
         await generateTestFiles(answers as any)
 
         expect(fs.readdir).toBeCalledTimes(2)
-        expect(vi.mocked(fs.readdir).mock.calls[0][0]).toContain('mocha')
-        expect(vi.mocked(fs.readdir).mock.calls[1][0]).toContain('pageobjects')
+        expect(fs.readdir).toHaveBeenNthCalledWith(1, expect.stringContaining('mocha'), { recursive: true, withFileTypes: true })
+        expect(fs.readdir).toHaveBeenNthCalledWith(2, expect.stringContaining('pageobjects'), { recursive: true, withFileTypes: true })
 
         expect(ejs.renderFile).toBeCalledTimes(4)
         expect(ejs.renderFile).toBeCalledWith(
@@ -176,8 +176,8 @@ describe('generateTestFiles', () => {
         await generateTestFiles(answers as any)
 
         expect(fs.readdir).toBeCalledTimes(2)
-        expect(vi.mocked(fs.readdir).mock.calls[0][0]).toContain('mochaJasmine')
-        expect(vi.mocked(fs.readdir).mock.calls[1][0]).toContain('pageobjects')
+        expect(fs.readdir).toHaveBeenNthCalledWith(1, expect.stringContaining('mochaJasmine'), { recursive: true, withFileTypes: true })
+        expect(fs.readdir).toHaveBeenNthCalledWith(2, expect.stringContaining('pageobjects'), { recursive: true, withFileTypes: true })
 
         expect(ejs.renderFile).toBeCalledTimes(4)
         expect(ejs.renderFile).toBeCalledWith(
@@ -249,7 +249,7 @@ describe('generateTestFiles', () => {
         await generateTestFiles(answers as any)
 
         expect(fs.readdir).toBeCalledTimes(1)
-        expect(vi.mocked(fs.readdir).mock.calls[0][0]).toContain('cucumber')
+        expect(fs.readdir).toHaveBeenNthCalledWith(1, expect.stringContaining('cucumber'), { recursive: true, withFileTypes: true })
         expect(ejs.renderFile).toBeCalledTimes(2)
         expect(ejs.renderFile).toBeCalledWith(
             path.join('/foo/bar/loo/step_definition/example.step.js.ejs'),
@@ -283,7 +283,7 @@ describe('generateTestFiles', () => {
         await generateTestFiles(answers as any)
 
         expect(fs.readdir).toBeCalledTimes(2)
-        expect(vi.mocked(fs.readdir).mock.calls[0][0]).toContain('cucumber')
+        expect(fs.readdir).toHaveBeenNthCalledWith(1, expect.stringContaining('cucumber'), { recursive: true, withFileTypes: true })
         expect(ejs.renderFile).toBeCalledTimes(6)
         expect(ejs.renderFile).toBeCalledWith(
             path.join('/foo/bar/loo/step_definition/example.step.js.ejs'),
