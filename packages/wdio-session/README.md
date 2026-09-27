@@ -18,7 +18,8 @@ npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio session close
 ```
 
-The command is part of `@wdio/cli`. For the full guide, see
+The command is part of `@wdio/cli`. The guide is the WebdriverIO Session
+section, starting at
 [webdriver.io/docs/session](https://webdriver.io/docs/session).
 Check a machine with `npx wdio session doctor`. Agents install the skill with
 `npx wdio session skill --install .`.

@@ -139,7 +139,7 @@ You can apply any options (see `wdio repl --help`) available for your REPL sessi
 
 ### Attach to a `wdio session`
 
-`wdio repl --session <name>` (alias `-s`) does not start a browser. It attaches the REPL to a session that [`wdio session`](/docs/session) already opened, and detaching leaves that session running:
+`wdio repl --session <name>` (alias `-s`) does not start a browser. It attaches the REPL to a session that [`wdio session`](/docs/session) already opened, and detaching leaves that session running. Pausing a test run is covered in [Debug a test with a session](/docs/session/debug):
 
 ```sh
 npx wdio session open chrome https://webdriver.io

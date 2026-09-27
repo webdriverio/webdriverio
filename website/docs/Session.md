@@ -14,7 +14,7 @@ npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio session close
 ```
 
-The session is named `default`. Pass `-s <name>` only when you need two sessions at once. Every action and flag is listed in [wdio session commands](/docs/session-commands).
+The session is named `default`. Pass `-s <name>` only when you need two sessions at once.
 
 ## Install
 
@@ -32,9 +32,7 @@ npx wdio session skill --install .
 
 `npx wdio session doctor` checks Node.js, the browser, Appium, SDKs and cloud credentials. `doctor <target>` checks only what that target needs. The process exits 1 when a check fails.
 
-## Walkthrough
-
-### Web
+## Open a page and act on it
 
 Open headless Chrome (add `--headed` to show the window) and read the page before clicking:
 
@@ -50,78 +48,26 @@ npx wdio session click e3
 npx wdio session exec -e "await expect($('aria/Cart (1)')).toBeDisplayed()"
 ```
 
-`open firefox`, `open edge` and `open safari` take the same URL. Chrome, Firefox and Edge are downloaded on first use when they are not installed. Safari requires macOS.
-
-### Android
-
-Android and iOS run through Appium 3. `doctor android` reports a missing server or driver with the install command.
-
-```sh
-npx wdio session doctor android
-npx wdio session open android --app ./shop.apk
-npx wdio session snapshot --interactive
-npx wdio session tap e3
-```
-
-iOS: `open ios --bundle-id com.example.shop`. Native desktop: `open macos --bundle-id com.example.shop` and `open windows --app Root`.
-
-### Electron
-
-```sh
-npx wdio session open electron ./main.js
-npx wdio session snapshot --interactive
-npx wdio session click e2
-```
-
-`open tauri ./my-app` and `open dioxus ./my-app` need their driver on `PATH`. On Linux without `DISPLAY` or `WAYLAND_DISPLAY`, install Xvfb or weston.
-
-## Observation and refs
-
-| Command | Use it for |
-| --- | --- |
-| `snapshot --interactive` | The elements you can act on, each with a ref |
-| `find "Add to cart"` | A line from a fresh snapshot |
-| `diff` | What changed since the previous snapshot |
-| `screenshot` | Layout. Skip it when a snapshot answers the question |
-| `source` | The page HTML or the native XML |
-
-Refs come from the latest snapshot. After navigation, snapshot again. An old ref fails with `REF_STALE`. An unknown ref fails with `REF_NOT_FOUND`.
-
-## `exec`
-
-`exec` runs WebdriverIO code. Always `await` commands. `$` returns one element and throws when it is missing. There is no sync mode and no `browser.element`.
-
-```sh
-npx wdio session exec -e "await browser.getTitle()"
-npx wdio session <<'JS'
-await $('aria/Cart (1)').waitForDisplayed()
-JS
-```
-
-Put assertions in `exec` with `expect-webdriverio`. Use `visual check <tag>` (needs `@wdio/visual-service`) when the question is how the screen looks.
-
-## Export
-
-`export` writes a spec from the recorded steps. Refs are replaced with stable selectors.
+Then save the steps and stop the session:
 
 ```sh
 npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio run wdio.conf.ts --spec test/specs/cart.e2e.ts
+npx wdio session close
 ```
 
-`--page-objects` writes a page object next to the spec. Add helpers under `.wdio/helpers/` when a step is too long for `exec`. Helpers become custom commands in the exported test.
+`open firefox`, `open edge` and `open safari` take the same URL. Other targets, snapshots, `exec`, export and a paused test run are separate pages in this section.
 
-## Debugging a failing test
+## This section
 
-`wdio run --debug=agent` pauses the worker on `await browser.debug()` and after a failed test, and raises the framework timeout to 24 hours. The run prints the session name (`debug-0-0` for the first worker):
-
-```sh
-npx wdio run wdio.conf.ts --debug=agent
-npx wdio session -s debug-0-0 snapshot
-npx wdio session -s debug-0-0 resume
-```
-
-`close` on that session fails the paused test with `Session closed from wdio session`. Attach a REPL to any running session with `wdio repl --session <name>`.
+| Page | Use it for |
+| --- | --- |
+| [Targets](/docs/session/targets) | Browsers, Android, iOS, desktop, Electron, Tauri, Dioxus and cloud devices |
+| [Snapshots and refs](/docs/session/snapshots) | What is on screen, and the refs you click |
+| [Run code](/docs/session/exec) | `exec`, assertions and visual checks |
+| [Export a test](/docs/session/export) | Specs, page objects and `.wdio/helpers` |
+| [Debug a test](/docs/session/debug) | `wdio run --debug=agent` and `wdio repl --session` |
+| [Commands](/docs/session-commands) | Every action and flag |
 
 ## Troubleshooting
 
@@ -138,7 +84,6 @@ Exit codes: 0 success, 1 the action failed, 2 usage, 3 a missing dependency or c
 
 ## Next steps
 
-- [wdio session commands](/docs/session-commands) — every action and flag
+- [Targets](/docs/session/targets) — open something other than Chrome
 - [WebdriverIO for Coding Agents](/docs/ai-agents) — skill, docs and project rules
-- [Debugging](/docs/debugging) — `--debug=agent` and `browser.debug()`
-- [REPL](/docs/repl) — `wdio repl --session`
+- [wdio session commands](/docs/session-commands) — every action and flag
