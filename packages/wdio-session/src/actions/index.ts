@@ -5,6 +5,7 @@ import * as observe from './observe.js'
 import * as interact from './interact.js'
 import * as contexts from './contexts.js'
 import { emulate, geolocation } from './emulate.js'
+import * as network from './network.js'
 
 /**
  * Arguments of an action as parsed by the CLI (camelCase keys) plus `$cwd`,
@@ -44,5 +45,9 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     contexts: contexts.contexts,
     dialog: contexts.dialog,
     emulate,
-    geolocation
+    geolocation,
+    logs: network.logs,
+    requests: network.requests,
+    mock: network.mock,
+    unmock: network.unmock
 }

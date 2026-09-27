@@ -100,6 +100,14 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
                 await browser.deleteSession()
             }
         }
+        if (!plan.bidi) {
+            /**
+             * Chromium returns a BiDi socket even when `webSocketUrl` was
+             * false, and the client connects to it. Drop that connection so
+             * `--no-bidi` sessions stay classic.
+             */
+            (browser as unknown as { _bidiHandler?: { close: () => void } })._bidiHandler?.close()
+        }
         const driverPid = (browser.capabilities as Record<string, unknown>)['wdio:driverPID']
         if (typeof driverPid === 'number') {
             pids.push(driverPid)
