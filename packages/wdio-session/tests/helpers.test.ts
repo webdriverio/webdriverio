@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { Readable } from 'node:stream'
 import { pathToFileURL } from 'node:url'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 
@@ -441,6 +442,76 @@ describe('loadHelpers', () => {
             expect(readOrder[0]).toBeGreaterThan(streamOrder[0])
         } finally {
             statSpy?.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
+    it('reloads a large data file when the hash outlasts the next poll', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const data = path.join(helpers, 'payload.bin')
+        const fill = (byte: number) => Buffer.alloc(CONTENT_POLL_BYTES + 1, byte)
+        fs.writeFileSync(data, fill(7))
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            "import fs from 'node:fs'",
+            `const data = ${JSON.stringify(data)}`,
+            'const mark = fs.readFileSync(data)[0]',
+            'export default function (browser) {',
+            "    browser.addCommand('mark', () => mark)",
+            '}'
+        ].join('\n'))
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation(() => {
+            return {
+                on() {
+                    return this
+                },
+                close() {
+                    return undefined
+                }
+            } as unknown as fs.FSWatcher
+        })
+        const originalStream = fs.createReadStream.bind(fs)
+        let statSpy: ReturnType<typeof vi.spyOn> | undefined
+        let streamSpy: ReturnType<typeof vi.spyOn> | undefined
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const read = () => (session.browser as unknown as { mark: () => number }).mark()
+            expect(read()).toBe(7)
+            const frozen = fs.statSync(data)
+            const originalStat = fs.statSync.bind(fs)
+            statSpy = vi.spyOn(fs, 'statSync').mockImplementation(((file: fs.PathLike, opts?: fs.StatSyncOptions) => {
+                const stat = originalStat(file, opts as never)
+                if (String(file) === data) {
+                    stat.mtimeMs = frozen.mtimeMs
+                    stat.size = frozen.size
+                }
+                return stat
+            }) as typeof fs.statSync)
+            streamSpy = vi.spyOn(fs, 'createReadStream').mockImplementation(((file: fs.PathLike, opts?: fs.CreateReadStreamOptions) => {
+                if (String(file) !== data) {
+                    return originalStream(file, opts)
+                }
+                const readable = new Readable({ read() { /* pushed on a timer */ } })
+                setTimeout(() => {
+                    readable.push(fs.readFileSync(file))
+                    readable.push(null)
+                }, 700)
+                return readable as fs.ReadStream
+            }) as typeof fs.createReadStream)
+            fs.writeFileSync(data, fill(8))
+            const started = Date.now()
+            let mark = 7
+            while (Date.now() - started < 3000 && mark !== 8) {
+                mark = read()
+                if (mark !== 8) {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            expect(mark).toBe(8)
+        } finally {
+            statSpy?.mockRestore()
+            streamSpy?.mockRestore()
             watchSpy.mockRestore()
         }
     })

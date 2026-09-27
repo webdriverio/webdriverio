@@ -471,13 +471,11 @@ function watchHelpers (session: Session) {
         return
     }
     let tracked = digestHelpers(dir, new Map(), new Set())
-    let epoch = 0
     let scanning = false
     let disposed = false
     let lastLargeScan = 0
     session.disposers.push(() => {
         disposed = true
-        epoch += 1
     })
     const apply = (next: ReturnType<typeof digestHelpers>) => {
         const changed = next.stamp !== tracked.stamp
@@ -488,7 +486,18 @@ function watchHelpers (session: Session) {
         return changed
     }
     armWatcher(session, dir, (names, rereadAll, unchangedReadLimit = 0) => {
-        epoch += 1
+        if (disposed) {
+            return
+        }
+        /**
+         * A quiet poll must not cancel a hash that is still streaming.
+         * The next poll used to bump a generation counter and drop that
+         * scan, so a file that takes longer than the poll interval to read
+         * never finished.
+         */
+        if (scanning && unchangedReadLimit > 0 && names.size === 0 && !rereadAll) {
+            return
+        }
         const next = digestHelpers(dir, tracked.files, names, rereadAll, unchangedReadLimit)
         apply(next)
         if (unchangedReadLimit === 0 || next.deferred.length === 0 || scanning || disposed) {
@@ -499,31 +508,33 @@ function watchHelpers (session: Session) {
             return
         }
         lastLargeScan = now
-        const gen = epoch
-        const pending = next.deferred
+        const pending = next.deferred.flatMap((name) => {
+            const hash = next.files.get(name)?.hash
+            return hash === undefined ? [] : [{ name, hash }]
+        })
         scanning = true
         void (async () => {
-            for (const name of pending) {
-                if (disposed || gen !== epoch) {
+            for (const item of pending) {
+                if (disposed) {
                     return
                 }
                 let nextHash: string
                 try {
-                    nextHash = await hashFileYielding(path.join(dir, name))
+                    nextHash = await hashFileYielding(path.join(dir, item.name))
                 } catch (err) {
                     log.warn(`Helper file could not be read: ${errorLine(err)}`)
                     continue
                 }
-                if (disposed || gen !== epoch) {
+                if (disposed) {
                     return
                 }
-                const entry = tracked.files.get(name)
-                if (!entry || entry.hash === nextHash) {
+                const entry = tracked.files.get(item.name)
+                if (!entry || entry.hash !== item.hash || entry.hash === nextHash) {
                     continue
                 }
                 entry.hash = nextHash
                 const refreshed = digestHelpers(dir, tracked.files, new Set(), false, CONTENT_POLL_BYTES)
-                if (disposed || gen !== epoch) {
+                if (disposed) {
                     return
                 }
                 apply(refreshed)
