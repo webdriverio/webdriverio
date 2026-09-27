@@ -1,4 +1,3 @@
-import path from 'node:path'
 import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
@@ -83,7 +82,7 @@ describe('waitUntil', () => {
             error = err
         } finally {
             expect(error.message).toContain('waitUntil condition failed with the following reason: foobar')
-            expect(error.stack).toContain(`browser${path.sep}waitUntil.test.ts:73`)
+            expect(error.stack).toMatch(/browser[\\/]waitUntil\.test\.ts:72/)
             expect(val).toBeUndefined()
         }
     })
@@ -107,7 +106,7 @@ describe('waitUntil', () => {
             error = err
         } finally {
             expect(error.message).toContain('waitUntil condition failed with the following reason: foobar')
-            expect(error.stack).toContain(`browser${path.sep}waitUntil.test.ts:99`)
+            expect(error.stack).toMatch(/browser[\\/]waitUntil\.test\.ts:98/)
             expect(val).toBeUndefined()
         }
     })

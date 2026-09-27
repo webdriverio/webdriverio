@@ -35,21 +35,19 @@ afterAll(() => {
 })
 
 // skip for Windows
-if (os.platform() !== 'win32') {
-    describe('getTemplate', () => {
-        it('renders template correctly', async () => {
-            vi.mocked(resolve).mockResolvedValue('file:///foo/bar/vue')
-            /**
-             * ensure we have CI env set so local and CI test pass
-             */
-            if (!process.env.CI) {
-                process.env.CI = '1'
-            }
-            const p: any = { env: { some: 'env' }, cwd: () => '/some/cwd' }
-            expect(await getTemplate({ preset: 'lit' }, { config: {} } as any, '/spec.js', p)).toMatchSnapshot()
-        })
+describe.skipIf(os.platform() === 'win32')('getTemplate', () => {
+    it('renders template correctly', async () => {
+        vi.mocked(resolve).mockResolvedValue('file:///foo/bar/vue')
+        /**
+         * ensure we have CI env set so local and CI test pass
+         */
+        if (!process.env.CI) {
+            process.env.CI = '1'
+        }
+        const p: any = { env: { some: 'env' }, cwd: () => '/some/cwd' }
+        expect(await getTemplate({ preset: 'lit' }, { config: {} } as any, '/spec.js', p)).toMatchSnapshot()
     })
-}
+})
 
 describe('userfriendlyImport', () => {
     it('returns nothing if pkg is empty', async () => {

@@ -40,17 +40,6 @@ vi.mock('../../../src/vite/utils.js', () => ({
     hasDir: vi.fn()
 }))
 
-vi.mock('/foo/bar/stencil.config.ts', () => ({
-    config: {
-        plugins: [{
-            name: 'esbuild-plugin',
-            options: {
-                include: ['foo', 'bar']
-            }
-        }]
-    }
-}))
-
 test('isNuxtFramework', async () => {
     expect(await isUsingStencilJS('/foo/bar', {})).toBe(false)
     expect(await isUsingStencilJS('/foo/bar', { preset: 'stencil' })).toBe(true)
@@ -59,7 +48,7 @@ test('isNuxtFramework', async () => {
 })
 
 test('optimizeForStencil', async () => {
-    const opt = await optimizeForStencil('/foo/bar')
+    const opt = await optimizeForStencil(path.join(__dirname, '__fixtures__', 'stencil'))
     expect(opt).toEqual({
         optimizeDeps: {
             include: ['foo', 'bar', '@wdio/browser-runner/stencil > @stencil/core/internal/testing/index.js']
