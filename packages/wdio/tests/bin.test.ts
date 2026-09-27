@@ -9,6 +9,26 @@ import { describe, expect, it } from 'vitest'
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
+/**
+ * `shell: true` joins argv with spaces, then Node wraps that string for
+ * `cmd /d /s /c`. Quote each argument so a temp path such as
+ * `C:\Users\Ada Lovelace\AppData\Local\Temp\wdio-pack` stays one argument
+ * after cmd strips only the outer quotes.
+ */
+function quoteShellArg (arg: string): string {
+    if (!/[\s"&|<>^%]/.test(arg)) {
+        return arg
+    }
+    return `"${arg.replace(/"/g, '""')}"`
+}
+
+describe('quoteShellArg', () => {
+    it('quotes a Windows path that contains spaces and leaves a plain path alone', () => {
+        expect(quoteShellArg('C:\\Users\\Ada Lovelace\\AppData\\Local\\Temp\\wdio-pack')).toBe('"C:\\Users\\Ada Lovelace\\AppData\\Local\\Temp\\wdio-pack"')
+        expect(quoteShellArg('C:\\Temp\\wdio-pack')).toBe('C:\\Temp\\wdio-pack')
+    })
+})
+
 describe('wdio package', () => {
     it('is the public unscoped CLI published with the monorepo', () => {
         const pkg = JSON.parse(readFileSync(resolve(packageDir, 'package.json'), 'utf-8'))
@@ -50,7 +70,8 @@ describe('wdio package', () => {
     it('packs a bin that imports @wdio/cli at its published version', () => {
         const dest = mkdtempSync(resolve(tmpdir(), 'wdio-pack-'))
         // Windows installs pnpm as pnpm.cmd, which execFile cannot spawn unless a shell resolves it.
-        const packed = execFileSync('pnpm', ['pack', '--pack-destination', dest], {
+        const packArgs = ['pack', '--pack-destination', dest]
+        const packed = execFileSync('pnpm', process.platform === 'win32' ? packArgs.map(quoteShellArg) : packArgs, {
             cwd: packageDir,
             encoding: 'utf8',
             shell: process.platform === 'win32'
