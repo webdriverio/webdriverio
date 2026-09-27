@@ -302,9 +302,17 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
         }
         const prior = previous.get(name)
         const unchanged = !rereadAll && prior !== undefined && prior.mtimeMs === stat.mtimeMs && prior.size === stat.size && !reread.has(name)
-        const content = unchanged
-            ? prior.hash
-            : crypto.createHash('sha1').update(fs.readFileSync(file)).digest('hex')
+        let content: string
+        if (unchanged && prior) {
+            content = prior.hash
+        } else {
+            try {
+                content = crypto.createHash('sha1').update(fs.readFileSync(file)).digest('hex')
+            } catch (err) {
+                log.warn(`Helper file could not be read: ${errorLine(err)}`)
+                content = prior?.hash ?? 'unreadable'
+            }
+        }
         files.set(name, { mtimeMs: stat.mtimeMs, size: stat.size, hash: content })
         hash.update(content)
         hash.update('\0')
@@ -334,7 +342,11 @@ function armWatcher (session: Session, dir: string, onChange: (names: ReadonlySe
             const rereadAll = unnamed
             pending = new Set()
             unnamed = false
-            onChange(names, rereadAll)
+            try {
+                onChange(names, rereadAll)
+            } catch (err) {
+                log.warn(`Helper watch failed: ${errorLine(err)}`)
+            }
         }, DEBOUNCE_MS)
     })
     const close = () => {
