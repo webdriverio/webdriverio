@@ -270,11 +270,11 @@ interface HashedFile {
 }
 
 /**
- * Hash of every file in the helpers directory. Files the watcher did not
- * name, and whose size and modification time are unchanged, keep their
- * previous hash so a large data file is not read again.
+ * Hash of every file in the helpers directory. A named edit re-reads those
+ * files. An event with no filename re-reads the directory, because the size
+ * and modification time can stay the same. Other files keep their hash.
  */
-function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: ReadonlySet<string>) {
+function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: ReadonlySet<string>, rereadAll = false) {
     const hash = crypto.createHash('sha1')
     const files = new Map<string, HashedFile>()
     let names: string[]
@@ -301,7 +301,7 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
             continue
         }
         const prior = previous.get(name)
-        const unchanged = prior !== undefined && prior.mtimeMs === stat.mtimeMs && prior.size === stat.size && !reread.has(name)
+        const unchanged = !rereadAll && prior !== undefined && prior.mtimeMs === stat.mtimeMs && prior.size === stat.size && !reread.has(name)
         const content = unchanged
             ? prior.hash
             : crypto.createHash('sha1').update(fs.readFileSync(file)).digest('hex')
@@ -312,24 +312,29 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
     return { stamp: hash.digest('hex'), files }
 }
 
-function armWatcher (session: Session, dir: string, onChange: (names: ReadonlySet<string>) => void) {
+function armWatcher (session: Session, dir: string, onChange: (names: ReadonlySet<string>, rereadAll: boolean) => void) {
     let timer: NodeJS.Timeout | undefined
     let closed = false
     let pending = new Set<string>()
+    let unnamed = false
     const watcher = fs.watch(dir, (_event, filename) => {
         if (closed) {
             return
         }
         if (filename) {
             pending.add(path.basename(String(filename)))
+        } else {
+            unnamed = true
         }
         if (timer) {
             clearTimeout(timer)
         }
         timer = setTimeout(() => {
             const names = pending
+            const rereadAll = unnamed
             pending = new Set()
-            onChange(names)
+            unnamed = false
+            onChange(names, rereadAll)
         }, DEBOUNCE_MS)
     })
     const close = () => {
@@ -368,8 +373,8 @@ function watchHelpers (session: Session) {
         return
     }
     let tracked = digestHelpers(dir, new Map(), new Set())
-    armWatcher(session, dir, (names) => {
-        const next = digestHelpers(dir, tracked.files, names)
+    armWatcher(session, dir, (names, rereadAll) => {
+        const next = digestHelpers(dir, tracked.files, names, rereadAll)
         const changed = next.stamp !== tracked.stamp
         tracked = next
         if (!changed) {

@@ -181,6 +181,52 @@ describe('loadHelpers', () => {
         expect(mark).toBe('d9')
     })
 
+    it('rereads helpers when the watcher omits the filename', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const file = path.join(helpers, 'dyn.js')
+        fs.writeFileSync(file, 'export const mark = "d1"\n')
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            'export default function (browser) {',
+            "    browser.addCommand('loadDyn', () => import('./dyn.js').then((mod) => mod.mark))",
+            '}'
+        ].join('\n'))
+        const frozen = new Date(Math.floor(Date.now() / 1000) * 1000)
+        fs.utimesSync(file, frozen, frozen)
+        const original = fs.watch
+        const spy = vi.spyOn(fs, 'watch').mockImplementation((...args: Parameters<typeof fs.watch>) => {
+            const cbIndex = args.findIndex((arg) => typeof arg === 'function')
+            const cb = args[cbIndex] as (event: string, filename: string | null) => void
+            const next = args.slice() as Parameters<typeof fs.watch>
+            next[cbIndex] = ((event: string) => cb(event, null)) as Parameters<typeof fs.watch>[number]
+            return original(...next)
+        })
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const loadDyn = () => (session.browser as unknown as { loadDyn: () => Promise<string> }).loadDyn()
+            expect(await loadDyn()).toBe('d1')
+            await new Promise((resolve) => setTimeout(resolve, 500))
+            const before = fs.statSync(file)
+            fs.writeFileSync(file, 'export const mark = "d9"\n')
+            fs.utimesSync(file, frozen, frozen)
+            const after = fs.statSync(file)
+            expect(after.size).toBe(before.size)
+            expect(after.mtimeMs).toBe(before.mtimeMs)
+            const started = Date.now()
+            let mark = 'd1'
+            while (Date.now() - started < 3000 && mark !== 'd9') {
+                mark = await loadDyn()
+                if (mark !== 'd9') {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            expect(mark).toBe('d9')
+        } finally {
+            spy.mockRestore()
+        }
+    })
+
     it('reloads when a helper reads a sibling file that changes', async () => {
         const dir = project()
         const helpers = path.join(dir, '.wdio', 'helpers')
