@@ -27,9 +27,11 @@ export interface TakenSnapshot {
  * Collect a snapshot, register its refs and remember it for `diff`.
  */
 export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}): Promise<TakenSnapshot> {
-    if (!session.isWeb || session.applies.includes('M')) {
+    if (!session.isWeb || (session.applies.includes('M') && !session.applies.includes('W'))) {
         const { takeNativeSnapshot } = await import('../snapshot/native.js')
-        return takeNativeSnapshot(session, opts)
+        const native = await takeNativeSnapshot(session, opts)
+        session.lastSnapshot = native.text
+        return native
     }
     const scope = opts.scope ? (await resolveTarget(session, opts.scope)).element : undefined
     const result = await collectWeb(session.browser, {

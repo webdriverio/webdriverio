@@ -11,6 +11,7 @@ import { exportSpec, history } from './export.js'
 import { helpers } from './helpers.js'
 import { visual } from './visual.js'
 import { record, trace } from './evidence.js'
+import * as device from './device.js'
 
 /**
  * Arguments of an action as parsed by the CLI (camelCase keys) plus `$cwd`,
@@ -45,6 +46,13 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     scroll: interact.scroll,
     swipe: interact.swipe,
     'long-press': interact.longPress,
+    app: device.app,
+    deeplink: device.deeplink,
+    rotate: device.rotate,
+    keyboard: device.keyboard,
+    background: device.background,
+    lock: device.lock,
+    unlock: device.unlock,
     tabs: contexts.tabs,
     windows: contexts.windows,
     frame: contexts.frame,

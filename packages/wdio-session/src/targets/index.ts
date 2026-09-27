@@ -71,7 +71,8 @@ export async function buildPlan (args: OpenArgs, ctx: PlanContext): Promise<Open
         }
     } else if ((APPIUM_TARGETS as readonly string[]).includes(target)) {
         const { appiumTargetPlan } = await import('./mobile.js')
-        plan = { ...base, url: undefined, ...await appiumTargetPlan(target as typeof APPIUM_TARGETS[number], args, { ...ctx, env }) }
+        const mobile = await appiumTargetPlan(target as typeof APPIUM_TARGETS[number], args, { ...ctx, env })
+        plan = { ...base, url: undefined, ...mobile, remote: { ...base.remote, ...(mobile.remote || {}) } }
         if (target === 'android' || target === 'ios') {
             plan.url = args.browser && typeof args.url === 'string' ? args.url : undefined
         }
