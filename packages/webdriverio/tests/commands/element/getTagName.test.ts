@@ -22,9 +22,11 @@ describe('getTagName test', () => {
 
     it('should allow to get the tag name of an element', async () => {
         await elem.getTagName()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/name')
+        expect(fetch).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({ pathname: '/session/foobar-123/element/some-elem-123/name' }),
+            expect.anything()
+        )
     })
 
     afterEach(() => {

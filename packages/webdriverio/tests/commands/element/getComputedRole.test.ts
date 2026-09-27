@@ -22,9 +22,11 @@ describe('getAttribute test', () => {
 
     it('should allow to get attribute from element', async () => {
         await elem.getComputedRole()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/computedrole')
+        expect(fetch).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({ pathname: '/session/foobar-123/element/some-elem-123/computedrole' }),
+            expect.anything()
+        )
     })
 
     afterEach(() => {

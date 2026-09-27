@@ -248,7 +248,7 @@ describe('WebdriverIO module interface', () => {
                 }
             })
             expect(WebDriver.attachToSession).toBeCalled()
-            expect(vi.mocked(WebDriver.newSession).mock.calls).toHaveLength(2)
+            expect(WebDriver.newSession).toHaveBeenCalledTimes(2)
         })
 
         it('should attach custom locators to the strategies', async () => {

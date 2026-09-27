@@ -105,7 +105,7 @@ test('should properly set up jasmine', async () => {
     expect(result).toBe(0)
     expect(vi.mocked(adapter['_jrunner']!.addSpecFile).mock.calls[0][0]).toEqual('/foo/bar.test.js')
     // @ts-ignore outdated types
-    expect(vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls).toHaveLength(1)
+    expect(adapter['_jrunner']!.jasmine.addReporter).toHaveBeenCalledTimes(1)
     expect(vi.mocked(executeHooksWithArgs).mock.calls).toHaveLength(1)
 
     // @ts-expect-error

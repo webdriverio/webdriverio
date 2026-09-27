@@ -45,17 +45,20 @@ describe('url', () => {
 
         it('should accept a full url', async () => {
             await browser.url('http://google.com')
-            // @ts-expect-error mock implementation
-            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
-                .toBe('/session/foobar-123/url')
-            expect(vi.mocked(fetch).mock.calls[0][1]!.body)
-                .toEqual(JSON.stringify({ url: 'http://google.com/' }))
+            expect(fetch).toHaveBeenNthCalledWith(
+                1,
+                expect.objectContaining({ pathname: '/session/foobar-123/url' }),
+                expect.objectContaining({ body: JSON.stringify({ url: 'http://google.com/' }) })
+            )
         })
 
         it('should accept a relative url', async () => {
             await browser.url('/foobar')
-            expect(vi.mocked(fetch).mock.calls[0][1]!.body)
-                .toEqual(JSON.stringify({ url: 'http://foobar.com/foobar' }))
+            expect(fetch).toHaveBeenNthCalledWith(
+                1,
+                expect.anything(),
+                expect.objectContaining({ body: JSON.stringify({ url: 'http://foobar.com/foobar' }) })
+            )
         })
 
         it('should throw an exception when a non-string value passed in', async () => {
@@ -79,8 +82,11 @@ describe('url', () => {
             })
 
             await browser.url('/foobar')
-            expect(vi.mocked(fetch).mock.calls[1][1]!.body)
-                .toEqual(JSON.stringify({ url: 'http://foobar/' }))
+            expect(fetch).toHaveBeenNthCalledWith(
+                2,
+                expect.anything(),
+                expect.objectContaining({ body: JSON.stringify({ url: 'http://foobar/' }) })
+            )
         })
 
         afterEach(() => {
