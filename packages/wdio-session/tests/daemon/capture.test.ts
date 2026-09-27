@@ -65,7 +65,9 @@ describe('requestMatches', () => {
     it('matches substrings and globs', () => {
         expect(requestMatches('http://localhost/api/user', '/api/user')).toBe(true)
         expect(requestMatches('http://localhost/api/user', '**/api/user')).toBe(true)
+        expect(requestMatches('http://localhost/api/user', 'api/*')).toBe(true)
         expect(requestMatches('http://localhost/other', '**/api/user')).toBe(false)
+        expect(requestMatches('http://localhost/other', 'api/*')).toBe(false)
     })
 })
 

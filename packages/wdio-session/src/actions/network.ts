@@ -51,7 +51,8 @@ function take<T extends { seq: number, time: number }>(buffer: RingBuffer<T>, op
 export function requestMatches (url: string, filter: string) {
     if (/[*?]/.test(filter)) {
         // URLs use `/` on every platform. picomatch otherwise treats `\` as a separator on Windows.
-        return picomatch.isMatch(url, filter, { windows: false })
+        // `contains` keeps a path glob such as `api/*` matching inside the full URL.
+        return picomatch.isMatch(url, filter, { windows: false, contains: true })
     }
     return url.includes(filter)
 }
