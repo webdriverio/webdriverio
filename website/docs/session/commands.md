@@ -52,7 +52,7 @@ Start a session: browser, android, ios, macos, windows, electron, tauri, dioxus 
 | `--viewport` | Initial viewport, e.g. 1280x720 |
 | `--browser-version` | Browser version |
 | `--binary` | Browser binary |
-| `--arg` | Extra browser argument (repeatable) |
+| `--arg` | Extra browser argument (repeatable). A value that starts with `-` needs `=`, for example `--arg=--headless` |
 | `--profile` | Persistent profile directory |
 | `--attach` | Attach to a running Chrome/Edge (debugging port or URL) |
 | `--app` | App file or cloud app URL |
@@ -67,7 +67,7 @@ Start a session: browser, android, ios, macos, windows, electron, tauri, dioxus 
 | `--full-reset` | appium:fullReset |
 | `--orientation` | Initial orientation Choices: portrait, landscape. |
 | `--appium-url` | Use a running Appium server |
-| `--app-arg` | Argument passed to a desktop app (repeatable) |
+| `--app-arg` | Argument passed to a desktop app (repeatable). A value that starts with `-` needs `=`, for example `--app-arg=--no-sandbox` |
 | `--chromedriver` | Electron: Chromedriver binary |
 | `--electron-version` | Electron: override version detection |
 | `--provider` | Cloud provider Choices: browserstack, saucelabs, testingbot, testmu. |
