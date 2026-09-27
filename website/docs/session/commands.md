@@ -472,6 +472,16 @@ Move the pointer over an element. Applies to web, native desktop.
 | --- | --- | --- |
 | `target` | yes | Ref (e12) or WebdriverIO selector |
 
+## `focus`
+
+Focus an element. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `target` | yes | Ref (e12) or WebdriverIO selector |
+
 ## `drag`
 
 Drag an element onto another. Applies to web, native mobile, native desktop.

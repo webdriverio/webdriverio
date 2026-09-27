@@ -193,6 +193,12 @@ export const upload: ActionFn = async (session, args) => {
     return done(`Set ${target.label} to ${path.basename(file)}`, `await ${target.code}.setValue(${quote(file)})`)
 }
 
+export const focus: ActionFn = async (session, args) => {
+    const target = await resolveTarget(session, args.target)
+    await session.browser.execute((el: HTMLElement) => el.focus(), target.element)
+    return done(`Focused ${target.label}`, `await browser.execute((el) => el.focus(), ${target.code})`)
+}
+
 export const hover: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)
     await target.element.moveTo()

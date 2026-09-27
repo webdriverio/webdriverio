@@ -45,6 +45,7 @@ Use refs from the latest snapshot. Snapshot again after navigation. Prefer `exec
 
 ```sh
 npx wdio session click e3
+npx wdio session focus e2
 npx wdio session fill e2 ada@example.com
 npx wdio session wait --text "Cart (1)"
 npx wdio session wait --url "**/cart"
