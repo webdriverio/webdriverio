@@ -9,6 +9,28 @@ import {
     detectPackageManager, installCommand
 } from '../../src/node/optionalDependency.js'
 
+function restorePrefix (lower: string | undefined, upper: string | undefined) {
+    if (process.platform === 'win32') {
+        const value = lower ?? upper
+        if (value === undefined) {
+            delete process.env.npm_config_prefix
+        } else {
+            process.env.npm_config_prefix = value
+        }
+        return
+    }
+    if (lower === undefined) {
+        delete process.env.npm_config_prefix
+    } else {
+        process.env.npm_config_prefix = lower
+    }
+    if (upper === undefined) {
+        delete process.env.NPM_CONFIG_PREFIX
+    } else {
+        process.env.NPM_CONFIG_PREFIX = upper
+    }
+}
+
 vi.mock('node:child_process', async (importOriginal) => {
     const actual = await importOriginal<typeof cp>()
     const execSync = vi.fn()
@@ -71,11 +93,37 @@ describe('optional dependencies', () => {
             const globalRoot = process.platform === 'win32' ? prefix : path.join(prefix, 'lib')
             const entry = writePackage(globalRoot, 'fake-global-dep')
             vi.mocked(cp.execSync).mockReturnValue(`${prefix}\n` as never)
+            const saved = process.env.npm_config_prefix
+            const savedUpper = process.env.NPM_CONFIG_PREFIX
+            delete process.env.npm_config_prefix
+            delete process.env.NPM_CONFIG_PREFIX
 
-            expect(await resolveOptionalDependency('fake-global-dep', { cwd: project })).toBe(null)
-            expect(cp.execSync).not.toHaveBeenCalled()
-            expect(await resolveOptionalDependency('fake-global-dep', { cwd: project, global: true })).toBe(fs.realpathSync(entry))
-            expect(cp.execSync).toHaveBeenCalledWith('npm config get prefix', expect.objectContaining({ encoding: 'utf-8' }))
+            try {
+                expect(await resolveOptionalDependency('fake-global-dep', { cwd: project })).toBe(null)
+                expect(cp.execSync).not.toHaveBeenCalled()
+                expect(await resolveOptionalDependency('fake-global-dep', { cwd: project, global: true })).toBe(fs.realpathSync(entry))
+                expect(cp.execSync).toHaveBeenCalledWith('npm config get prefix', expect.objectContaining({ encoding: 'utf-8' }))
+            } finally {
+                restorePrefix(saved, savedUpper)
+            }
+        })
+
+        it('uses npm_config_prefix without asking npm', async () => {
+            const project = path.join(tmp, 'project')
+            fs.mkdirSync(project, { recursive: true })
+            const prefix = path.join(tmp, 'prefix')
+            const globalRoot = process.platform === 'win32' ? prefix : path.join(prefix, 'lib')
+            const entry = writePackage(globalRoot, 'env-global-dep')
+            const saved = process.env.npm_config_prefix
+            const savedUpper = process.env.NPM_CONFIG_PREFIX
+            process.env.npm_config_prefix = prefix
+
+            try {
+                expect(await resolveOptionalDependency('env-global-dep', { cwd: project, global: true })).toBe(fs.realpathSync(entry))
+                expect(cp.execSync).not.toHaveBeenCalled()
+            } finally {
+                restorePrefix(saved, savedUpper)
+            }
         })
 
         it('returns null when the package is missing', async () => {

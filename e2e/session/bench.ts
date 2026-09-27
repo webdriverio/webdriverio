@@ -5,8 +5,10 @@
  *
  *   pnpm exec tsx e2e/session/bench.ts
  *
- * Exits 1 when the median client round trip is more than 50 ms above the
- * median in-session `browser.execute('return 1')`.
+ * Both sides call `browser.execute('return 1')`. The client samples pay
+ * the session round trip; the baseline runs inside one `exec`. Exits 1
+ * when the median client round trip is more than 50 ms above the median
+ * in-session execute.
  */
 import { performance } from 'node:perf_hooks'
 
@@ -43,13 +45,13 @@ try {
     }
 
     for (let i = 0; i < WARMUP; i++) {
-        await send('default', 'exec', { code: '1', history: false }, opts)
+        await send('default', 'exec', { code: 'await browser.execute(\'return 1\')', history: false }, opts)
     }
 
     const client: number[] = []
     for (let i = 0; i < SAMPLES; i++) {
         const start = performance.now()
-        const result = await send('default', 'exec', { code: '1', history: false }, opts)
+        const result = await send('default', 'exec', { code: 'await browser.execute(\'return 1\')', history: false }, opts)
         client.push(performance.now() - start)
         if (!result.text?.includes('1')) {
             throw new Error(`exec did not return 1: ${JSON.stringify(result)}`)

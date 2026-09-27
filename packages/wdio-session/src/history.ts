@@ -38,12 +38,15 @@ export class History {
 
     #write () {
         fs.mkdirSync(path.dirname(this.file), { recursive: true })
-        const fd = fs.openSync(this.file, 'w')
+        const fd = fs.openSync(this.file, 'w', 0o600)
         try {
             fs.writeSync(fd, JSON.stringify(this.entries, null, 2))
             fs.fsyncSync(fd)
         } finally {
             fs.closeSync(fd)
+        }
+        if (process.platform !== 'win32') {
+            fs.chmodSync(this.file, 0o600)
         }
     }
 

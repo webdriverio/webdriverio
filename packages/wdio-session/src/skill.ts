@@ -41,6 +41,9 @@ export async function skill (args: Record<string, unknown>, _ctx?: unknown): Pro
         }
         const root = path.resolve(args.install)
         const dest = root.endsWith(`${path.sep}SKILL.md`) || root.endsWith('SKILL.md') ? root : path.join(root, '.agents', 'skills', 'wdio-session', 'SKILL.md')
+        if (fs.existsSync(dest)) {
+            return { text: `${dest} already exists`, data: { path: dest, skipped: true } }
+        }
         fs.mkdirSync(path.dirname(dest), { recursive: true })
         fs.writeFileSync(dest, markdown)
         return { text: dest, data: { path: dest } }

@@ -29,12 +29,15 @@ interface Tracer {
 }
 
 interface Recorder {
-    mode: 'screencast' | 'frames'
+    mode: 'screencast' | 'frames' | 'appium'
     dir: string
     fps: number
     frames: string[]
     screencast?: string
     file?: string
+    timer?: NodeJS.Timeout
+    capturing?: boolean
+    pending?: Promise<void>
 }
 
 const SKIP = new Set(['trace', 'record'])
@@ -43,8 +46,15 @@ function publicArgs (args: ActionArgs) {
     return Object.fromEntries(Object.entries(args).filter(([key]) => !key.startsWith('$')))
 }
 
+function restrict (file: string, mode: number) {
+    if (process.platform !== 'win32') {
+        fs.chmodSync(file, mode)
+    }
+}
+
 function appendLine (file: string, value: unknown) {
-    fs.appendFileSync(file, JSON.stringify(value) + '\n')
+    fs.appendFileSync(file, JSON.stringify(value) + '\n', { mode: 0o600 })
+    restrict(file, 0o600)
 }
 
 function writeTranscript (tracer: Tracer) {
@@ -67,13 +77,17 @@ function writeTranscript (tracer: Tracer) {
             parts.push(`[snapshot](resources/step-${step.id}-snapshot.txt)`, '')
         }
     }
-    fs.writeFileSync(path.join(tracer.dir, 'transcript.md'), parts.join('\n'))
+    const transcript = path.join(tracer.dir, 'transcript.md')
+    fs.writeFileSync(transcript, parts.join('\n'), { mode: 0o600 })
+    restrict(transcript, 0o600)
 }
 
 async function captureFrame (session: Session, file: string) {
     const image = await session.browser.takeScreenshot()
-    fs.mkdirSync(path.dirname(file), { recursive: true })
-    fs.writeFileSync(file, Buffer.from(image, 'base64'))
+    fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 })
+    restrict(path.dirname(file), 0o700)
+    fs.writeFileSync(file, Buffer.from(image, 'base64'), { mode: 0o600 })
+    restrict(file, 0o600)
 }
 
 function installProbe (session: Session) {
@@ -129,8 +143,8 @@ function installProbe (session: Session) {
                 })
             }
             const recorder = session.get<Recorder>('recorder')
-            if (recorder?.mode === 'frames' && !SKIP.has(action)) {
-                await saveRecordingFrame(session, recorder).catch((err) => log.warn(`Frame capture failed: ${(err as Error).message}`))
+            if (recorder?.mode === 'frames' && !recorder.timer && !SKIP.has(action)) {
+                await takeRecordingFrame(session, recorder)
             }
         }
     })
@@ -141,6 +155,20 @@ async function saveRecordingFrame (session: Session, recorder: Recorder) {
     const file = path.join(recorder.dir, 'frames', name)
     await captureFrame(session, file)
     recorder.frames.push(file)
+}
+
+/** One frame at a time. The timer, the first frame, and stop share this. */
+function takeRecordingFrame (session: Session, recorder: Recorder) {
+    if (recorder.capturing) {
+        return recorder.pending
+    }
+    recorder.capturing = true
+    recorder.pending = saveRecordingFrame(session, recorder)
+        .catch((err) => log.warn(`Frame capture failed: ${(err as Error).message}`))
+        .finally(() => {
+            recorder.capturing = false
+        })
+    return recorder.pending
 }
 
 function command (bin: string, args: string[]) {
@@ -182,14 +210,17 @@ export const trace: ActionFn = async (session, args) => {
         }
         installProbe(session)
         const dir = session.artifact('trace', session.timestamp())
-        fs.mkdirSync(path.join(dir, 'resources'), { recursive: true })
+        fs.mkdirSync(path.join(dir, 'resources'), { recursive: true, mode: 0o700 })
+        restrict(dir, 0o700)
+        restrict(path.join(dir, 'resources'), 0o700)
         const tracer: Tracer = {
             dir,
             screenshots: args.screenshots !== false,
             snapshots: args.snapshots !== false,
             steps: []
         }
-        fs.writeFileSync(path.join(dir, 'trace.trace'), '')
+        fs.writeFileSync(path.join(dir, 'trace.trace'), '', { mode: 0o600 })
+        restrict(path.join(dir, 'trace.trace'), 0o600)
         session.set('tracer', tracer)
         return { text: `Tracing to ${dir}` }
     }
@@ -206,6 +237,21 @@ export const trace: ActionFn = async (session, args) => {
     throw usage('trace needs start or stop.')
 }
 
+/**
+ * Appium 3 records through driver execute methods. `saveRecordingScreen`
+ * stops that recording and writes the file.
+ */
+function mobileRecordingStart (session: Session, fps: number) {
+    const target = String(session.plan?.target || (session.browser.capabilities as { platformName?: string })?.platformName || '').toLowerCase()
+    if (target === 'ios') {
+        return { script: 'mobile: startXCTestScreenRecording', args: { videoFps: fps } }
+    }
+    if (target === 'android') {
+        return { script: 'mobile: startMediaProjectionRecording', args: {} }
+    }
+    return undefined
+}
+
 export const record: ActionFn = async (session, args) => {
     const sub = String(args.sub || '')
     if (sub === 'start') {
@@ -215,14 +261,26 @@ export const record: ActionFn = async (session, args) => {
         installProbe(session)
         const fps = typeof args.fps === 'number' && args.fps > 0 ? args.fps : 5
         const dir = session.artifact('record', session.timestamp())
-        fs.mkdirSync(dir, { recursive: true })
+        fs.mkdirSync(dir, { recursive: true, mode: 0o700 })
+        restrict(dir, 0o700)
+        const mobile = session.applies.includes('M') ? mobileRecordingStart(session, fps) : undefined
+        if (mobile) {
+            await session.browser.executeScript(mobile.script, [mobile.args])
+            const recorder: Recorder = { mode: 'appium', dir, fps, frames: [] }
+            session.set('recorder', recorder)
+            return { text: `Recording the device screen to ${dir}` }
+        }
         const screencast = await startScreencast(session, dir)
         const recorder: Recorder = screencast
             ? { mode: 'screencast', dir, fps, frames: [], screencast: screencast.screencast, file: screencast.path }
             : { mode: 'frames', dir, fps, frames: [] }
         session.set('recorder', recorder)
         if (recorder.mode === 'frames') {
-            await saveRecordingFrame(session, recorder)
+            const interval = Math.max(100, Math.round(1000 / fps))
+            recorder.timer = setInterval(() => {
+                takeRecordingFrame(session, recorder)
+            }, interval)
+            await takeRecordingFrame(session, recorder)
         }
         return { text: recorder.mode === 'screencast' ? `Recording screencast to ${recorder.file || dir}` : `Recording frames to ${path.join(dir, 'frames')} at ${fps} fps` }
     }
@@ -230,6 +288,17 @@ export const record: ActionFn = async (session, args) => {
         const recorder = session.get<Recorder>('recorder')
         if (!recorder) {
             throw usage('No recording is running.')
+        }
+        if (recorder.timer) {
+            clearInterval(recorder.timer)
+            recorder.timer = undefined
+        }
+        if (recorder.mode === 'appium') {
+            const file = path.join(recorder.dir, 'recording.mp4')
+            await session.browser.saveRecordingScreen(file)
+            restrict(file, 0o600)
+            session.set('recorder', undefined)
+            return { text: `Recorded ${file}`, files: [file], data: { file, mode: 'appium' } }
         }
         if (recorder.mode === 'screencast') {
             const browser = session.browser as WebdriverIO.Browser & {
@@ -244,7 +313,8 @@ export const record: ActionFn = async (session, args) => {
             const file = recorder.file && fs.existsSync(recorder.file) ? recorder.file : recorder.dir
             return { text: `Recorded ${file}`, files: [file], data: { file, mode: 'screencast' } }
         }
-        await saveRecordingFrame(session, recorder)
+        await recorder.pending
+        await takeRecordingFrame(session, recorder)
         const out = path.resolve(session.cwd, typeof args.path === 'string' && args.path
             ? args.path
             : path.join(recorder.dir, 'recording.mp4'))

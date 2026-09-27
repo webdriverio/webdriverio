@@ -5,7 +5,7 @@ description: Every wdio session action and flag, from open through doctor and sk
 slug: /session-commands
 ---
 
-Every `wdio session` action. Global flags apply to all of them. See [wdio session](/docs/session) for a walkthrough.
+Every `wdio session` action. Global flags apply to all of them. The rest of the [WebdriverIO Session](/docs/session) section covers [targets](/docs/session/targets), [snapshots](/docs/session/snapshots), [`exec`](/docs/session/exec), [export](/docs/session/export) and [debugging](/docs/session/debug).
 
 ```sh
 npx wdio session <action> [arguments] [flags]
@@ -52,7 +52,7 @@ Start a session: browser, android, ios, macos, windows, electron, tauri, dioxus 
 | `--viewport` | Initial viewport, e.g. 1280x720 |
 | `--browser-version` | Browser version |
 | `--binary` | Browser binary |
-| `--arg` | Extra browser argument (repeatable) |
+| `--arg` | Extra browser argument (repeatable). A value that starts with `-` needs `=`, for example `--arg=--headless` |
 | `--profile` | Persistent profile directory |
 | `--attach` | Attach to a running Chrome/Edge (debugging port or URL) |
 | `--app` | App file or cloud app URL |
@@ -67,7 +67,7 @@ Start a session: browser, android, ios, macos, windows, electron, tauri, dioxus 
 | `--full-reset` | appium:fullReset |
 | `--orientation` | Initial orientation Choices: portrait, landscape. |
 | `--appium-url` | Use a running Appium server |
-| `--app-arg` | Argument passed to a desktop app (repeatable) |
+| `--app-arg` | Argument passed to a desktop app (repeatable). A value that starts with `-` needs `=`, for example `--app-arg=--no-sandbox` |
 | `--chromedriver` | Electron: Chromedriver binary |
 | `--electron-version` | Electron: override version detection |
 | `--provider` | Cloud provider Choices: browserstack, saucelabs, testingbot, testmu. |

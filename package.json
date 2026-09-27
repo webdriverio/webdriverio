@@ -129,5 +129,24 @@
   "engines": {
     "node": ">=22.19.0",
     "pnpm": ">=8.15.3 <11"
+  },
+  "pnpm": {
+    "packageExtensions": {
+      "recast@0.23.11": {
+        "dependencies": {
+          "@babel/parser": "7.29.8"
+        }
+      },
+      "recast@0.23.21": {
+        "dependencies": {
+          "@babel/parser": "7.29.8"
+        }
+      },
+      "recast@0.24.0": {
+        "dependencies": {
+          "@babel/parser": "7.29.8"
+        }
+      }
+    }
   }
 }

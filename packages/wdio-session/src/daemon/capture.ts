@@ -187,11 +187,17 @@ export function ingestElectronLogs (session: Session) {
             tails.set(file, tail)
             continue
         }
-        const length = size - tail.offset
+        const MAX_LOG_CHUNK = 256 * 1024
+        let start = tail.offset
+        if (size - start > MAX_LOG_CHUNK) {
+            start = size - MAX_LOG_CHUNK
+            tail.rest = ''
+        }
+        const length = size - start
         const buf = Buffer.alloc(length)
         const fd = fs.openSync(file, 'r')
         try {
-            fs.readSync(fd, buf, 0, length, tail.offset)
+            fs.readSync(fd, buf, 0, length, start)
         } finally {
             fs.closeSync(fd)
         }

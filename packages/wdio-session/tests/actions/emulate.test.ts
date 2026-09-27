@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
-import { findDevice, NETWORK_PRESETS, parseViewport } from '../../src/actions/emulate.js'
+import { emulate, findDevice, NETWORK_PRESETS, parseViewport } from '../../src/actions/emulate.js'
+import type { Session } from '../../src/session.js'
 
 describe('parseViewport', () => {
     it('parses width and height', () => {
@@ -18,6 +19,31 @@ describe('findDevice', () => {
         expect(findDevice('iPhone 15')).toBe('iPhone 15')
         expect(findDevice('iphone 15')).toBe('iPhone 15')
         expect(findDevice('no such phone')).toBeUndefined()
+    })
+})
+
+describe('emulate replacement', () => {
+    it('puts the previous CPU rate back when the new one fails', async () => {
+        const rates: number[] = []
+        const store = new Map<string, unknown>()
+        const session = {
+            browser: {
+                capabilities: { browserName: 'chrome' },
+                sendCommand: async (_command: string, params: { rate: number }) => {
+                    rates.push(params.rate)
+                    if (params.rate === 8) {
+                        throw new Error('rejected')
+                    }
+                }
+            },
+            get: (key: string) => store.get(key),
+            set: (key: string, value: unknown) => store.set(key, value)
+        } as unknown as Session
+        await emulate(session, { sub: 'cpu', value: '4' })
+        await expect(emulate(session, { sub: 'cpu', value: '8' })).rejects.toThrow('rejected')
+        expect(rates).toEqual([4, 1, 8, 4])
+        await emulate(session, { sub: 'reset' })
+        expect(rates.at(-1)).toBe(1)
     })
 })
 

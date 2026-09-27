@@ -243,12 +243,10 @@ function acceptVisual (session: Session, folders: VisualFolders, tag: string, al
     }
     const files = fs.readdirSync(actualDir).filter((name) => name.endsWith('.png'))
     const records = recordsOf(session)
+    const record = records.find((item) => item.tag === tag)
     const wanted = all
         ? files
-        : files.filter((name) => {
-            const record = records.find((item) => item.tag === tag)
-            return record?.fileName === name || name.startsWith(`${tag}-`)
-        })
+        : files.filter((name) => record?.fileName === name)
     if (!wanted.length) {
         throw usage(`No actual image for "${tag}".`, 'Run `wdio session visual check` first.')
     }

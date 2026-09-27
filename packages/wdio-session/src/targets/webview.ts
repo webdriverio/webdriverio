@@ -86,14 +86,22 @@ export async function nativeWebviewPlan (target: WebviewTarget, args: OpenArgs, 
         then: spec.install,
         hint: HINT_DOCTOR(target)
     })
-    const binary = checkBinary(spec.binary, { feature: spec.feature, install: spec.install, env, hint: HINT_DOCTOR(target) })
+    const loaded = await importOptionalDependency(spec.pkg, {
+        feature: spec.feature,
+        cwd: ctx.cwd,
+        from: import.meta.url
+    }) as ServiceModule
+    const standalone = typeof loaded.startWdioSession === 'function'
+    const binary = standalone
+        ? undefined
+        : checkBinary(spec.binary, { feature: spec.feature, install: spec.install, env, platform: host, hint: HINT_DOCTOR(target) })
     const port = await freePort()
     const display = host === 'linux' && !hasDisplay(env)
     if (display) {
-        checkDisplayServer(spec.feature, env)
+        checkDisplayServer(spec.feature, env, host)
     }
     const remote: Partial<RemoteOptions> = { hostname: 'localhost', port, path: '/' }
-    const driver: DriverPlan = { binary, args: driverArgs(port), port }
+    const driver: DriverPlan | undefined = binary ? { binary, args: driverArgs(port), port } : undefined
     return {
         capabilities: {
             browserName: 'wry',
@@ -102,7 +110,7 @@ export async function nativeWebviewPlan (target: WebviewTarget, args: OpenArgs, 
         label: target,
         platform: target,
         applies: ['W'],
-        mode: 'driver',
+        mode: standalone ? 'remote' : 'driver',
         headless: false,
         display,
         driver,
@@ -113,8 +121,13 @@ export async function nativeWebviewPlan (target: WebviewTarget, args: OpenArgs, 
 
 export function startDriver (driver: DriverPlan) {
     const child: ChildProcess = spawn(driver.binary, driver.args, { stdio: 'ignore', windowsHide: true })
+    const ready = new Promise<void>((resolve, reject) => {
+        child.once('spawn', () => resolve())
+        child.once('error', reject)
+    })
     return {
         pid: child.pid ?? -1,
+        ready,
         stop: () => new Promise<void>((resolve) => {
             if (child.exitCode !== null || child.signalCode !== null) {
                 resolve()
@@ -181,6 +194,7 @@ export async function launchWebview (plan: OpenPlan): Promise<{ browser: Webdriv
     const { remote } = await import('webdriverio')
     let browser: WebdriverIO.Browser
     try {
+        await driver.ready
         browser = await remote({
             ...plan.remote,
             logLevel: plan.remote.logLevel as 'warn',

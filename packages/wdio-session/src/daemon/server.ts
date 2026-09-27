@@ -146,15 +146,20 @@ export class SessionServer {
         const { req, resolve } = item
         const timeout = req.timeout || actionTimeout(req.action)
         let timer: NodeJS.Timeout | undefined
+        const action = this.#handler(req)
+        let timedOut = false
         try {
             const result = await Promise.race([
-                this.#handler(req),
+                action,
                 new Promise<never>((_, reject) => {
-                    timer = setTimeout(() => reject(new SessionError(
-                        'TIMEOUT',
-                        `"${req.action}" did not finish within ${timeout}ms.`,
-                        { hint: 'The session is still usable. Increase --timeout if the action needs longer.' }
-                    )), timeout)
+                    timer = setTimeout(() => {
+                        timedOut = true
+                        reject(new SessionError(
+                            'TIMEOUT',
+                            `"${req.action}" did not finish within ${timeout}ms.`,
+                            { hint: 'The session is still usable. Increase --timeout if the action needs longer.' }
+                        ))
+                    }, timeout)
                 })
             ])
             resolve({ v: PROTOCOL_VERSION, id: req.id, ok: true, result })
@@ -162,6 +167,9 @@ export class SessionServer {
             resolve(errorResponse(req.id, SessionError.from(err)))
         } finally {
             clearTimeout(timer)
+            if (timedOut) {
+                await action.catch(() => {})
+            }
             this.#running = false
             this.#resetIdle()
             try {

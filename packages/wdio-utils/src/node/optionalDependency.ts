@@ -71,15 +71,23 @@ function toParentUrl (location: string | URL) {
     return location.startsWith('file:') ? location : url.pathToFileURL(location).href
 }
 
-function globalNodeModules () {
+function npmConfigPrefix () {
     try {
-        const prefix = execSync('npm config get prefix', { encoding: 'utf-8' }).trim()
-        return process.platform === 'win32'
-            ? path.resolve(prefix, 'node_modules')
-            : path.resolve(prefix, 'lib', 'node_modules')
+        return execSync('npm config get prefix', { encoding: 'utf-8' }).trim()
     } catch {
+        return ''
+    }
+}
+
+function globalNodeModules () {
+    // npm reads this variable itself. `npm config get prefix` misses it on Windows.
+    const prefix = process.env.npm_config_prefix || process.env.NPM_CONFIG_PREFIX || npmConfigPrefix()
+    if (!prefix) {
         return undefined
     }
+    return process.platform === 'win32'
+        ? path.resolve(prefix, 'node_modules')
+        : path.resolve(prefix, 'lib', 'node_modules')
 }
 
 /**

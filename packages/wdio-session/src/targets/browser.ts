@@ -36,6 +36,7 @@ export function browserPlan (target: BrowserTarget, args: OpenArgs, { cwd, platf
     }
     const viewport = parseViewport(args.viewport) || DEFAULT_VIEWPORT
     const extraArgs = toArray(args.arg)
+    const fsPath = platform === 'win32' ? path.win32 : path.posix
     const capabilities: Record<string, unknown> = {
         browserName: BROWSER_NAMES[target],
         webSocketUrl: args.bidi !== false && target !== 'safari'
@@ -53,13 +54,13 @@ export function browserPlan (target: BrowserTarget, args: OpenArgs, { cwd, platf
             const browserArgs = [
                 ...(headless ? ['--headless=new', '--disable-gpu'] : []),
                 `--window-size=${viewport.width},${viewport.height}`,
-                ...(args.profile ? [`--user-data-dir=${path.resolve(cwd, String(args.profile))}`] : []),
+                ...(args.profile ? [`--user-data-dir=${fsPath.resolve(cwd, String(args.profile))}`] : []),
                 ...extraArgs
             ]
             options.args = browserArgs
         }
         if (args.binary) {
-            options.binary = path.resolve(cwd, String(args.binary))
+            options.binary = fsPath.resolve(cwd, String(args.binary))
         }
         capabilities[key] = options
     } else if (target === 'firefox') {
@@ -68,12 +69,12 @@ export function browserPlan (target: BrowserTarget, args: OpenArgs, { cwd, platf
                 ...(headless ? ['-headless'] : []),
                 `--width=${viewport.width}`,
                 `--height=${viewport.height}`,
-                ...(args.profile ? ['-profile', path.resolve(cwd, String(args.profile))] : []),
+                ...(args.profile ? ['-profile', fsPath.resolve(cwd, String(args.profile))] : []),
                 ...extraArgs
             ]
         }
         if (args.binary) {
-            options.binary = path.resolve(cwd, String(args.binary))
+            options.binary = fsPath.resolve(cwd, String(args.binary))
         }
         capabilities['moz:firefoxOptions'] = options
     }
