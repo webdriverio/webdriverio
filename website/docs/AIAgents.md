@@ -45,7 +45,7 @@ Install the skill into the project:
 npx wdio session skill --install .
 ```
 
-That writes `.agents/skills/wdio-session/SKILL.md`. `npm init wdio` writes the same file when you accept coding agent support, and adds the project rules below. Command reference: [wdio session commands](/docs/session-commands).
+That writes `.agents/skills/wdio-session/SKILL.md`. `npm init wdio` writes the same file when you accept coding agent support, and adds the project rules below. The [WebdriverIO Session](/docs/session) section covers targets, snapshots, `exec`, export and debugging. Command reference: [wdio session commands](/docs/session-commands).
 
 ### Add the docs to your agent
 

@@ -45,6 +45,23 @@
     },
     {
       "type": "category",
+      "label": "WebdriverIO Session",
+      "collapsed": false,
+      "link": {
+        "type": "doc",
+        "id": "session"
+      },
+      "items": [
+        "session/targets",
+        "session/snapshots",
+        "session/exec",
+        "session/export",
+        "session/debug",
+        "session/session-commands"
+      ]
+    },
+    {
+      "type": "category",
       "label": "Writing Tests",
       "items": [
         "selectors",
@@ -400,8 +417,6 @@
           ]
         },
         "repl",
-        "session",
-        "session/session-commands",
         "record",
         "autocompletion"
       ]

@@ -174,6 +174,9 @@ const config: Config = {
                     label: 'AI Agents & MCP',
                     to: '/docs/ai-agents',
                 }, {
+                    label: 'WebdriverIO Session',
+                    to: '/docs/session',
+                }, {
                     label: 'Platforms',
                     to: '/docs/platforms/web',
                 }, {
