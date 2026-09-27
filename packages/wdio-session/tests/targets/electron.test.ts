@@ -1,9 +1,20 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import threads from 'node:worker_threads'
 import { describe, it, expect, afterEach } from 'vitest'
 
 import { electronPlan } from '../../src/targets/electron.js'
+
+/**
+ * Vitest runs this file in a worker thread and leaves `workerData` unset.
+ * `@wdio/electron-service` loads `web-worker`, which treats a missing payload
+ * as its own worker entry and throws. An empty payload makes it export the
+ * Worker constructor instead. The planner never starts a worker.
+ */
+if (!threads.isMainThread && threads.workerData === undefined) {
+    threads.workerData = {}
+}
 
 const dirs: string[] = []
 
