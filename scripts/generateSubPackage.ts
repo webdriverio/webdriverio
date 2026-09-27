@@ -12,10 +12,10 @@ import inquirer from 'inquirer'
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const questions = [{
-    type: 'list',
+    type: 'select',
     name: 'packageType',
     message: 'Select sub package type:',
-    choices: ['reporter', 'service', 'runner', 'framework'],
+    choices: ['reporter', 'service', 'runner', 'framework', 'tool'],
     default: 'reporter'
 }, {
     type: 'input',
@@ -25,8 +25,12 @@ const questions = [{
 
 const { packageName, packageType } = await inquirer.prompt(questions)
 const packagesDir = path.join(__dirname, '..', 'packages')
-const fullPackageName = `wdio-${packageName}-${packageType}`
-const fullScopedPackageName = `@wdio/${packageName}-${packageType}`
+/**
+ * tools (e.g. `@wdio/session`) have no type suffix in their name
+ */
+const nameSuffix = packageType === 'tool' ? '' : `-${packageType}`
+const fullPackageName = `wdio-${packageName}${nameSuffix}`
+const fullScopedPackageName = `@wdio/${packageName}${nameSuffix}`
 
 const mainPackageFolder = path.join(packagesDir, fullPackageName)
 const mainPackageFolderFiles = [{
