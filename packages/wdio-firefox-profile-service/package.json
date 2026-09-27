@@ -39,7 +39,7 @@
   "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@wdio/types": "workspace:*",
-    "firefox-profile": "^4.5.0"
+    "firefox-profile": "^4.7.1"
   },
   "publishConfig": {
     "access": "public"
