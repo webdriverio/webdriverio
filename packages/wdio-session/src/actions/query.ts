@@ -1,5 +1,6 @@
-import { usage } from '../errors.js'
+import { SessionError, usage } from '../errors.js'
 import { quote } from '../daemon/init.js'
+import { refId } from '../snapshot/refs.js'
 import { resolveTarget } from '../snapshot/target.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
@@ -27,6 +28,17 @@ export const get: ActionFn = async (session, args) => {
         const selector = String(args.target ?? '')
         if (!selector) {
             throw usage('Pass a selector.', 'Example: wdio session get count "aria/button"')
+        }
+        if (refId(selector)) {
+            try {
+                const target = await targetOf(session, selector)
+                return read('1', `(await ${target.code}.isExisting()) ? 1 : 0`, { count: 1 })
+            } catch (err) {
+                if (err instanceof SessionError && (err.code === 'REF_STALE' || err.code === 'REF_NOT_FOUND' || err.code === 'ELEMENT_NOT_FOUND')) {
+                    return read('0', '0', { count: 0 })
+                }
+                throw err
+            }
         }
         const elements = await session.browser.$$(selector)
         const count = elements.length

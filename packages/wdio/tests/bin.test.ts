@@ -1,6 +1,7 @@
-import { spawn } from 'node:child_process'
+import { execFileSync, spawn } from 'node:child_process'
 import { once } from 'node:events'
-import { readFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -44,5 +45,20 @@ describe('wdio package', () => {
         expect(code).toBe(0)
         expect(stdout).toContain('run <configPath>')
         expect(stdout).toContain('session [action..]')
+    })
+
+    it('packs a bin that imports @wdio/cli at its published version', () => {
+        const dest = mkdtempSync(resolve(tmpdir(), 'wdio-pack-'))
+        const packed = execFileSync('pnpm', ['pack', '--pack-destination', dest], {
+            cwd: packageDir,
+            encoding: 'utf8'
+        }).trim().split('\n').pop()
+        expect(packed).toBeTruthy()
+        const listing = execFileSync('tar', ['-xOf', resolve(dest, packed!), 'package/package.json'], { encoding: 'utf8' })
+        const published = JSON.parse(listing) as { dependencies: Record<string, string>, bin: { wdio: string } }
+        expect(published.bin.wdio).toBe('./bin/wdio.js')
+        expect(published.dependencies['@wdio/cli']).toMatch(/^\d+\.\d+\.\d+/)
+        const bin = execFileSync('tar', ['-xOf', resolve(dest, packed!), 'package/bin/wdio.js'], { encoding: 'utf8' })
+        expect(bin).toContain("import('@wdio/cli')")
     })
 })

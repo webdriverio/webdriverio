@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { execFile } from 'node:child_process'
 
 import { installCommand, resolveOptionalDependency } from '@wdio/utils/node'
@@ -338,6 +339,22 @@ function checkCredentials (provider: (typeof PROVIDERS)[number], env: NodeJS.Pro
 const DRIVER_TARGETS = Object.fromEntries(APPIUM_TARGETS.map((target) => [APPIUM_DRIVERS[target].driver, target])) as Record<string, AppiumTarget>
 
 /**
+ * A service that exports `startWdioSession` launches without a driver binary.
+ */
+async function serviceStartsSession (pkg: string, cwd: string) {
+    try {
+        const resolved = await resolveOptionalDependency(pkg, { cwd })
+        if (!resolved) {
+            return false
+        }
+        const mod = await import(pathToFileURL(resolved).href) as { startWdioSession?: unknown }
+        return typeof mod.startWdioSession === 'function'
+    } catch {
+        return false
+    }
+}
+
+/**
  * `wdio session doctor [target]`. Without a target every check runs; with a
  * target only what that target needs. Exit 1 when any check fails.
  */
@@ -401,10 +418,10 @@ export async function runDoctor (args: Record<string, unknown>, ctx: DoctorConte
         }
         checks.push(await checkPackage(dep.package, ctx, strict))
     }
-    if (wanted.has('binary:tauri-driver')) {
+    if (wanted.has('binary:tauri-driver') && !await serviceStartsSession('@wdio/tauri-service', ctx.cwd)) {
         checks.push(checkBinaryRow('tauri-driver', ctx.env, strict, 'cargo install tauri-driver --locked'))
     }
-    if (wanted.has('binary:wdio-dioxus-driver')) {
+    if (wanted.has('binary:wdio-dioxus-driver') && !await serviceStartsSession('@wdio/dioxus-service', ctx.cwd)) {
         checks.push(checkBinaryRow('wdio-dioxus-driver', ctx.env, strict, 'cargo install wdio-dioxus-driver --locked'))
     }
     if (wanted.has('binary:ffmpeg')) {

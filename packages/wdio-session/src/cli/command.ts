@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import yargs, { type Argv, type Options } from 'yargs'
 
-import { ACTIONS, ACTION_MAP, actionTimeout, type ActionSpec } from '../actions/specs.js'
+import { ACTIONS, ACTION_MAP, actionIsMutation, actionTimeout, type ActionSpec } from '../actions/specs.js'
 import { DEFAULT_SESSION, SESSION_NAME_PATTERN } from '../constants.js'
 import { SessionError, usage } from '../errors.js'
 import { getArtifactsDir, getRuntimeDir, isPidAlive, listStates, readState, removeStaleState } from '../daemon/state.js'
@@ -182,7 +182,7 @@ export async function runSessionCli (rawArgs: string[], io: CliIO = {}): Promise
         color: useColor(argv.color, stdout, env),
         session: name,
         action: spec.name,
-        mutation: spec.mutation,
+        mutation: actionIsMutation(spec, argv),
         stdout,
         stderr
     }

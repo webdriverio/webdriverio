@@ -18,19 +18,19 @@ type Mark = {
 
 /** Storyboard from RFC 0001 §15. Phone and desktop replay snapshot, click and check in 0.6s beats. */
 export const SESSION_MARKS: readonly Mark[] = [
-    { at: 0, device: 'browser', phase: 'paint', cmd: 'wdio session open chrome localhost:3000' },
-    { at: 1600, device: 'browser', phase: 'refs', cmd: 'wdio session snapshot', out: 'button "Add to cart" [ref=e3]' },
-    { at: 3000, device: 'browser', phase: 'click', cmd: 'wdio session click e3' },
-    { at: 4200, device: 'browser', phase: 'check', cmd: 'wdio session visual check cart', out: 'mismatch 0.00%' },
-    { at: 5600, device: 'phone', phase: 'paint', cmd: 'wdio session open android --app shop.apk' },
-    { at: 6200, device: 'phone', phase: 'refs', cmd: 'wdio session snapshot', out: 'button "Add to cart" [ref=e3]' },
-    { at: 6800, device: 'phone', phase: 'click', cmd: 'wdio session click e3' },
-    { at: 7400, device: 'phone', phase: 'check', cmd: 'wdio session visual check cart', out: 'mismatch 0.00%' },
-    { at: 8600, device: 'desktop', phase: 'paint', cmd: 'wdio session open electron ./dist/shop' },
-    { at: 9200, device: 'desktop', phase: 'refs', cmd: 'wdio session snapshot', out: 'button "Add to cart" [ref=e3]' },
-    { at: 9800, device: 'desktop', phase: 'click', cmd: 'wdio session click e3' },
-    { at: 10400, device: 'desktop', phase: 'check', cmd: 'wdio session visual check cart', out: 'mismatch 0.00%' },
-    { at: 11600, device: 'all', phase: 'fan', cmd: 'wdio session export > cart.e2e.ts', out: '✓ 1 spec · 3 platforms' },
+    { at: 0, device: 'browser', phase: 'paint', cmd: 'wdio session --session browser open chrome localhost:3000' },
+    { at: 1600, device: 'browser', phase: 'refs', cmd: 'wdio session --session browser snapshot', out: 'button "Add to cart" [ref=e3]' },
+    { at: 3000, device: 'browser', phase: 'click', cmd: 'wdio session --session browser click e3' },
+    { at: 4200, device: 'browser', phase: 'check', cmd: 'wdio session --session browser visual check cart', out: 'Baseline created' },
+    { at: 5600, device: 'phone', phase: 'paint', cmd: 'wdio session --session phone open android --app shop.apk' },
+    { at: 6200, device: 'phone', phase: 'refs', cmd: 'wdio session --session phone snapshot', out: 'button "Add to cart" [ref=e3]' },
+    { at: 6800, device: 'phone', phase: 'click', cmd: 'wdio session --session phone click e3' },
+    { at: 7400, device: 'phone', phase: 'check', cmd: 'wdio session --session phone visual check cart', out: 'Baseline created' },
+    { at: 8600, device: 'desktop', phase: 'paint', cmd: 'wdio session --session desktop open electron ./dist/shop' },
+    { at: 9200, device: 'desktop', phase: 'refs', cmd: 'wdio session --session desktop snapshot', out: 'button "Add to cart" [ref=e3]' },
+    { at: 9800, device: 'desktop', phase: 'click', cmd: 'wdio session --session desktop click e3' },
+    { at: 10400, device: 'desktop', phase: 'check', cmd: 'wdio session --session desktop visual check cart', out: 'Baseline created' },
+    { at: 11600, device: 'all', phase: 'fan', cmd: 'wdio session --session browser export --out cart.e2e.ts', out: 'Wrote cart.e2e.ts' },
 ]
 
 const SESSION_TIMES = SESSION_MARKS.map((mark) => mark.at)
@@ -97,7 +97,19 @@ function face (id: DeviceId, mark: Mark): Phase | 'idle' {
     if (mark.device === 'all') {
         return 'fan'
     }
-    return mark.device === id ? mark.phase : 'idle'
+    let phase: Phase | 'idle' = 'idle'
+    for (const item of SESSION_MARKS) {
+        if (item.at > mark.at) {
+            break
+        }
+        if (item.device === id) {
+            phase = item.phase
+        }
+    }
+    if (mark.device !== id && (phase === 'click' || phase === 'check')) {
+        return 'click'
+    }
+    return phase
 }
 
 /**

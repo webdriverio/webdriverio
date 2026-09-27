@@ -55,6 +55,22 @@ describe('get', () => {
         expect(counted.data).toEqual({ count: 2 })
     })
 
+    it('counts a ref as the one element it names', async () => {
+        const s = session()
+        const element = { elementId: '1' }
+        Object.assign(s, {
+            refs: {
+                resolve: async () => element,
+                stableSelector: async () => 'aria/Go',
+                get: () => ({ role: 'button', name: 'Go' })
+            }
+        })
+        const counted = await get(s, { sub: 'count', target: '@e12', $cwd: '/' })
+        expect(counted.text).toBe('1')
+        expect(counted.data).toEqual({ count: 1 })
+        expect(s.browser.$$).toBeTypeOf('function')
+    })
+
     it('rejects a missing attribute name', async () => {
         await expect(get(session(), { sub: 'attr', target: 'a', $cwd: '/' })).rejects.toThrow('Pass an attribute name.')
     })

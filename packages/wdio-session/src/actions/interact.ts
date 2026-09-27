@@ -112,14 +112,24 @@ export const click: ActionFn = async (session, args) => {
         if (args.double || args.right) {
             throw usage('Use either --new-tab or --double/--right.')
         }
-        const href = await target.element.getAttribute('href')
+        const property = typeof target.element.getProperty === 'function'
+            ? await target.element.getProperty('href')
+            : undefined
+        const href = typeof property === 'string' && property
+            ? property
+            : await target.element.getAttribute('href')
         if (!href) {
             throw usage(`${target.label} has no href.`, 'Pass a link, or click without --new-tab.')
         }
         const base = await session.currentUrl()
         const url = new URL(href, base || undefined).href
-        await session.browser.newWindow(url)
-        return done(`Opened ${url} in a new tab`, `await browser.newWindow(${quote(url)})`)
+        await session.browser.newWindow(url, { type: 'tab' })
+        if (session.get?.('frame')) {
+            await session.browser.switchFrame(null)
+        }
+        session.set?.('frame', undefined)
+        session.set?.('frameStack', [])
+        return done(`Opened ${url} in a new tab`, `await browser.newWindow(${quote(url)}, { type: 'tab' })`)
     }
     const [verb, call, run] = args.double
         ? ['Double-clicked', 'doubleClick()', () => target.element.doubleClick()]
@@ -218,6 +228,13 @@ export const setChecked: ActionFn = async (session, args) => {
     const selected = await target.element.isSelected()
     if (selected !== want) {
         await target.element.click()
+    }
+    const after = await target.element.isSelected()
+    if (after !== want) {
+        throw usage(
+            `${target.label} is still ${after ? 'checked' : 'unchecked'}.`,
+            want ? 'The control did not become checked.' : 'A selected radio button stays selected when it is clicked.'
+        )
     }
     const verb = want ? 'Checked' : 'Unchecked'
     const guard = `if ((await ${target.code}.isSelected()) !== ${want}) {\n    await ${target.code}.click()\n}`

@@ -48,9 +48,9 @@ export function useTimeline<T extends HTMLElement> (marks: readonly number[], lo
             }
         }
         const observer = new IntersectionObserver(([entry]) => {
-            intersecting = Boolean(entry?.isIntersecting)
+            intersecting = (entry?.intersectionRatio ?? 0) >= 0.3
             sync()
-        }, { threshold: 0.3 })
+        }, { threshold: [0, 0.3, 1] })
         observer.observe(ref.current)
         document.addEventListener('visibilitychange', sync)
         return () => {

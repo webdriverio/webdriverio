@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { SessionError } from '../../src/errors.js'
 import { matchUrl, wait } from '../../src/actions/wait.js'
 import type { Session } from '../../src/session.js'
 
@@ -46,22 +47,44 @@ describe('wait', () => {
         }
         const session = { browser } as unknown as Session
         expect((await wait(session, { fn: 'window.appReady === true', $cwd: '/' })).text).toContain('appReady')
-        expect((await wait(session, { load: 'domcontentloaded', $cwd: '/' })).text).toBe('Page reached domcontentloaded')
+        const loaded = await wait(session, { load: 'domcontentloaded', $cwd: '/' })
+        expect(loaded.text).toBe('Page reached domcontentloaded')
+        expect(loaded.code).toContain('browser.execute(() => document.readyState')
     })
 
-    it('waits until resource counts stay quiet', async () => {
+    it('stays busy while a request is in flight even if the completed count does not change', async () => {
         vi.useFakeTimers()
         vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+        let inflight = 1
         const browser = {
-            execute: async (script: unknown) => (String(script).includes('readyState') ? 'complete' : 4),
+            execute: async () => ({ ready: 'complete', completed: 4, inflight }),
             waitUntil: async (cond: () => Promise<boolean>) => {
+                expect(await cond()).toBe(false)
+                vi.setSystemTime(Date.now() + 500)
+                expect(await cond()).toBe(false)
+                inflight = 0
                 expect(await cond()).toBe(false)
                 vi.setSystemTime(Date.now() + 500)
                 expect(await cond()).toBe(true)
             }
         }
-        const result = await wait({ browser } as unknown as Session, { load: 'networkidle', $cwd: '/' })
+        const result = await wait({ browser, get: () => undefined } as unknown as Session, { load: 'networkidle', $cwd: '/' })
         expect(result.text).toBe('Page is network-idle')
+        expect(result.code).toContain('browser.execute')
+        expect(result.code).toContain('inflight')
+    })
+
+    it('treats a stale ref as already hidden', async () => {
+        const session = {
+            browser: {},
+            refs: {
+                resolve: async () => {
+                    throw new SessionError('REF_STALE', 'e1 no longer exists on the page.')
+                }
+            }
+        } as unknown as Session
+        const result = await wait(session, { target: '@e1', state: 'hidden', $cwd: '/' })
+        expect(result.text).toContain('e1 is hidden')
     })
 
     it('waits for an element to be hidden', async () => {

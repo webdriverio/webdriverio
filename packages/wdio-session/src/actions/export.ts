@@ -23,15 +23,18 @@ export const exportSpec: ActionFn = async (session, args) => {
     }
     const title = typeof args.title === 'string' && args.title ? args.title : session.name
     const framework = args.framework === 'jasmine' ? 'jasmine' : 'mocha'
+    const cwd = String(args.$cwd || session.cwd)
+    const out = path.resolve(cwd, typeof args.out === 'string' && args.out
+        ? args.out
+        : session.artifact('export', `${session.name}.e2e.ts`))
     const files = generateSpec(entries, {
         title,
         framework,
         pageObjects: Boolean(args.pageObjects),
-        baseUrl: session.plan.remote.baseUrl
+        baseUrl: session.plan.remote.baseUrl,
+        cwd,
+        outDir: path.dirname(out)
     })
-    const out = path.resolve(String(args.$cwd || session.cwd), typeof args.out === 'string' && args.out
-        ? args.out
-        : session.artifact('export', `${session.name}.e2e.ts`))
     const written: string[] = []
     for (const file of files) {
         const target = file.path === 'spec.ts' ? out : path.join(path.dirname(out), file.path)

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { dialog } from '../../src/actions/contexts.js'
+import { renderResult } from '../../src/cli/output.js'
+import { ACTION_MAP, actionIsMutation } from '../../src/actions/specs.js'
 import type { Session } from '../../src/session.js'
 
 function harness (alert?: string) {
@@ -38,6 +40,10 @@ describe('dialog status', () => {
         expect(result.data).toEqual({ open: false })
         expect(result.history).toBeUndefined()
         expect(calls).toEqual([])
+        expect(actionIsMutation(ACTION_MAP.get('dialog')!, { sub: 'status' })).toBe(false)
+        expect(actionIsMutation(ACTION_MAP.get('dialog')!, { sub: 'accept' })).toBe(true)
+        const quiet = renderResult(result, { quiet: true, mutation: false, session: 'default', action: 'dialog' })
+        expect(quiet).toContain('No dialog open')
     })
 
     it('reports a dialog the session already captured', async () => {

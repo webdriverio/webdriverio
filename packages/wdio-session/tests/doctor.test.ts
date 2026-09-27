@@ -181,6 +181,16 @@ describe('doctor', () => {
         expect(ids(checks)).toContain('display')
     })
 
+    it('skips the dioxus driver when the service starts the session', async () => {
+        writePackage(tmp, '@wdio/dioxus-service', {
+            'index.js': 'export function startWdioSession () {}\n'
+        })
+        const result = await runDoctor({ target: 'dioxus' }, ctx(), { platform: 'linux' })
+        const checks = (result.data as { checks: DoctorCheck[] }).checks
+        expect(ids(checks)).not.toContain('binary:wdio-dioxus-driver')
+        expect(ids(checks)).toContain('package:@wdio/dioxus-service')
+    })
+
     it('keeps a session that is still starting and drops one that never started', async () => {
         fs.mkdirSync(runtimeDir, { recursive: true })
         const young = {

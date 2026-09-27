@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import * as acorn from 'acorn'
 
 import type { HistoryEntry } from '../types.js'
@@ -11,6 +13,12 @@ export interface ExportOptions {
      * when set, `browser.url` calls under this origin become path-only
      */
     baseUrl?: string
+    /**
+     * project directory the recorded steps ran in, and the directory the
+     * spec is written to. Relative imports are rewritten from one to the other.
+     */
+    cwd?: string
+    outDir?: string
 }
 
 export interface GeneratedFile {
@@ -124,7 +132,16 @@ function walk (node: ProgramNode | undefined, visit: (node: ProgramNode) => void
     }
 }
 
-function splitImports (code: string) {
+function relativeImport (source: string, fromDir: string, toDir: string) {
+    const absolute = path.resolve(fromDir, source)
+    let next = path.relative(toDir, absolute).split(path.sep).join('/')
+    if (!next.startsWith('.')) {
+        next = `./${next}`
+    }
+    return next
+}
+
+function splitImports (code: string, fromDir?: string, toDir?: string) {
     const ast = parseProgram(code)
     if (!ast?.body) {
         return { imports: [] as string[], body: code }
@@ -133,10 +150,47 @@ function splitImports (code: string) {
     let body = code
     const imports: string[] = []
     for (const node of [...ranges].reverse()) {
-        imports.unshift(code.slice(node.start, node.end).trim())
+        let text = code.slice(node.start, node.end).trim()
+        const source = node.source
+        if (fromDir && toDir && source && typeof source.value === 'string' && (source.value.startsWith('./') || source.value.startsWith('../'))) {
+            const next = relativeImport(source.value, fromDir, toDir)
+            const quoted = code.slice(source.start, source.end)
+            text = `${text.slice(0, source.start - node.start)}${quoted[0]}${next}${quoted[0]}${text.slice(source.end - node.start)}`
+        }
+        imports.unshift(text)
         body = `${body.slice(0, node.start)}${body.slice(node.end)}`
     }
     return { imports, body: body.trim() }
+}
+
+function rewriteDynamicImports (code: string, fromDir?: string, toDir?: string) {
+    if (!fromDir || !toDir) {
+        return code
+    }
+    const ast = parseProgram(code)
+    if (!ast) {
+        return code
+    }
+    const edits: { start: number, end: number, next: string }[] = []
+    walk(ast, (node) => {
+        if (node.type !== 'ImportExpression' || !node.source || typeof node.source.value !== 'string') {
+            return
+        }
+        if (!node.source.value.startsWith('./') && !node.source.value.startsWith('../')) {
+            return
+        }
+        const quoted = code.slice(node.source.start, node.source.end)
+        edits.push({
+            start: node.source.start,
+            end: node.source.end,
+            next: `${quoted[0]}${relativeImport(node.source.value, fromDir, toDir)}${quoted[0]}`
+        })
+    })
+    let out = code
+    for (const edit of edits.sort((a, b) => b.start - a.start)) {
+        out = `${out.slice(0, edit.start)}${edit.next}${out.slice(edit.end)}`
+    }
+    return out
 }
 
 interface SelectorEdit {
@@ -197,9 +251,9 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
             code = relativizeUrl(code, base)
         }
         if (entry.kind !== 'marker') {
-            const split = splitImports(code)
+            const split = splitImports(code, opts.cwd, opts.outDir)
             hoisted.push(...split.imports)
-            code = split.body
+            code = rewriteDynamicImports(split.body, opts.cwd, opts.outDir)
         }
         if (!opts.pageObjects || entry.kind === 'marker') {
             return code

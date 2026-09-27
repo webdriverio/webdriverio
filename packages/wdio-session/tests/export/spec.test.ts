@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import { describe, it, expect } from 'vitest'
 
 import { generateSpec, getterName, pageClassName, pageInstanceName } from '../../src/export/spec.js'
@@ -109,6 +111,15 @@ describe('generateSpec', () => {
         expect(files[0].contents).toContain('const page404 = new Page404Page()')
         expect(files[0].contents).toContain('await page404.h1.click()')
         expect(files[1].path).toBe('pageobjects/Page404.page.ts')
+    })
+
+    it('rewrites a relative import for the directory the spec is written to', () => {
+        const [spec] = generateSpec([
+            step({ kind: 'exec', code: "import { login } from './helpers/login.ts'\nawait login()\nawait import('./helpers/extra.ts')" })
+        ], { title: 'login', cwd: path.resolve('proj'), outDir: path.resolve('proj', 'test', 'specs') })
+        expect(spec.contents).toContain("from '../../helpers/login.ts'")
+        expect(spec.contents).toContain("import('../../helpers/extra.ts')")
+        expect(spec.contents).not.toContain("from './helpers/login.ts'")
     })
 
     it('keeps the same structure for jasmine', () => {

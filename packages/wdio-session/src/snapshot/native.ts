@@ -5,7 +5,7 @@ import type { XmlNode } from './xml.js'
 import { parseXml } from './xml.js'
 import type { SnapshotOptions, TakenSnapshot } from '../actions/observe.js'
 import { usage } from '../errors.js'
-import { isRef } from './refs.js'
+import { refId } from './refs.js'
 import type { Session } from '../session.js'
 import type { SnapshotRef } from './format.js'
 
@@ -330,8 +330,9 @@ function matchingLocated (located: Located[], scope: string) {
 }
 
 function scopeNativeTree (tree: SnapshotNode, located: Located[], scope: string): SnapshotNode {
-    const hits = isRef(scope)
-        ? located.filter((entry) => entry.node.ref === scope)
+    const id = refId(scope)
+    const hits = id
+        ? located.filter((entry) => entry.node.ref === id)
         : matchingLocated(located, scope)
     if (hits.length !== 1) {
         throw usage(

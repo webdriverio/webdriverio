@@ -33,6 +33,17 @@ export interface ActionSpec {
     examples?: [string, string][]
 }
 
+/**
+ * `--quiet` hides mutation output. A read inside a mutating command, such
+ * as `dialog status`, still has to print.
+ */
+export function actionIsMutation (spec: ActionSpec, argv: Record<string, unknown>) {
+    if (spec.name === 'dialog' && argv.sub === 'status') {
+        return false
+    }
+    return Boolean(spec.mutation)
+}
+
 const target = (desc = 'Ref (e12) or WebdriverIO selector'): PositionalSpec => ({ name: 'target', desc, required: true })
 
 export const OPEN_OPTIONS: Record<string, Options> = {

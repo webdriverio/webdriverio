@@ -28,6 +28,9 @@ export async function initSession (session: Session) {
     const { startEventCapture } = await import('./capture.js')
     await startEventCapture(session).catch((err) => log.warn(`Event capture unavailable: ${err.message}`))
 
+    const { installNetworkProbe } = await import('../actions/wait.js')
+    await installNetworkProbe(session).catch((err) => log.warn(`Network probe unavailable: ${(err as Error).message}`))
+
     const { trackDialogs } = await import('../actions/contexts.js')
     await trackDialogs(session).catch((err) => log.warn(`Dialog tracking unavailable: ${err.message}`))
 

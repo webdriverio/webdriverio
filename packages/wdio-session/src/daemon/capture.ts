@@ -90,10 +90,32 @@ export function responseStats (timings: Timings | undefined, response: ResponseL
 }
 
 interface CapturedRequest {
-    request?: { method?: string, url?: string, timings?: Timings }
+    request?: { request?: string, method?: string, url?: string, timings?: Timings }
     timestamp?: number
     response?: ResponseLike & { status?: number }
     errorText?: string
+}
+
+function inflightIds (session: Session) {
+    let ids = session.get<Set<string>>('networkInflight')
+    if (!ids) {
+        ids = new Set()
+        session.set('networkInflight', ids)
+    }
+    return ids
+}
+
+function noteRequest (session: Session, params: CapturedRequest, open: boolean) {
+    const id = params.request?.request
+    if (!id) {
+        return
+    }
+    const ids = inflightIds(session)
+    if (open) {
+        ids.add(id)
+    } else {
+        ids.delete(id)
+    }
 }
 
 export function networkEntry (params: CapturedRequest, failed: boolean): Omit<NetworkEntry, 'seq'> | undefined {
@@ -261,7 +283,7 @@ export async function startEventCapture (session: Session) {
     }
     const { browser } = session
     await browser.sessionSubscribe({
-        events: ['log.entryAdded', 'network.responseCompleted', 'network.fetchError']
+        events: ['log.entryAdded', 'network.beforeRequestSent', 'network.responseCompleted', 'network.fetchError']
     })
 
     const onLog = (entry: { type?: string, level?: LogEntry['level'], text?: string | null, timestamp?: number, method?: string, args?: unknown[] }) => {
@@ -273,23 +295,28 @@ export async function startEventCapture (session: Session) {
             text: consoleText(entry) || (javascript ? 'page error' : '')
         })
     }
+    const onBefore = (params: CapturedRequest) => noteRequest(session, params, true)
     const onResponse = (params: CapturedRequest) => {
+        noteRequest(session, params, false)
         const entry = networkEntry(params, false)
         if (entry) {
             session.network.push(entry)
         }
     }
     const onFetchError = (params: CapturedRequest) => {
+        noteRequest(session, params, false)
         const entry = networkEntry(params, true)
         if (entry) {
             session.network.push(entry)
         }
     }
     browser.on('log.entryAdded', onLog)
+    browser.on('network.beforeRequestSent', onBefore)
     browser.on('network.responseCompleted', onResponse)
     browser.on('network.fetchError', onFetchError)
     session.disposers.push(() => {
         browser.off('log.entryAdded', onLog)
+        browser.off('network.beforeRequestSent', onBefore)
         browser.off('network.responseCompleted', onResponse)
         browser.off('network.fetchError', onFetchError)
     })

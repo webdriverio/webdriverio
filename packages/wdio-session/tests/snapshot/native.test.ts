@@ -80,7 +80,7 @@ describe('native snapshots', () => {
         expect(first.text).toContain('[ref=e2]')
         expect(second.text).toContain('[ref=e1]')
         expect(second.text).toContain('[ref=e2]')
-        const scoped = await takeNativeSnapshot(session, { scope: 'e1' })
+        const scoped = await takeNativeSnapshot(session, { scope: '@e1' })
         expect(scoped.text).toContain('[ref=e1]')
         expect(scoped.text).not.toContain('[ref=e2]')
         await expect(takeNativeSnapshot(session, { scope: 'e9' })).rejects.toThrow(/Scope e9/)

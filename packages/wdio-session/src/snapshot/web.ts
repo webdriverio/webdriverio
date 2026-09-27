@@ -494,12 +494,17 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             out.interactive = true
         }
         if (opts.urls && (el.tagName === 'A' || el.tagName === 'AREA' || role === 'link')) {
-            const raw = el.getAttribute('href')
-            if (raw) {
-                try {
-                    out.url = new URL(raw, location.href).href
-                } catch {
-                    out.url = raw
+            const linked = el as HTMLAnchorElement
+            if ((el.tagName === 'A' || el.tagName === 'AREA') && el.hasAttribute('href') && linked.href) {
+                out.url = linked.href
+            } else {
+                const raw = el.getAttribute('href')
+                if (raw) {
+                    try {
+                        out.url = new URL(raw, el.ownerDocument?.baseURI || location.href).href
+                    } catch {
+                        out.url = raw
+                    }
                 }
             }
         }

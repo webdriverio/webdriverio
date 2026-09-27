@@ -1,4 +1,4 @@
-import { usage } from '../errors.js'
+import { SessionError, usage } from '../errors.js'
 import { quote } from '../daemon/init.js'
 import { refId } from '../snapshot/refs.js'
 import { resolveTarget } from '../snapshot/target.js'
@@ -10,6 +10,68 @@ const NETWORK_QUIET_MS = 500
 const URL_META = new Set(['.', '+', '?', '^', '$', '(', ')', '|', '[', ']', '\\', '{', '}'])
 
 const done = (text: string, code: string): ActionOutcome => ({ text, code, history: code })
+
+interface PageNetwork {
+    ready: string
+    completed: number
+    inflight: number
+}
+
+/**
+ * Count requests the page started after this probe was installed, plus
+ * resource-timing entries that have not finished. Completed entries alone
+ * stay flat while a slow fetch is still in flight.
+ */
+export function pageNetworkState (): PageNetwork {
+    const page = window as Window & { __wdioNet?: { inflight: number } }
+    if (!page.__wdioNet) {
+        const state = { inflight: 0 }
+        page.__wdioNet = state
+        const origFetch = window.fetch.bind(window)
+        window.fetch = ((...args: Parameters<typeof fetch>) => {
+            state.inflight++
+            return Promise.resolve(origFetch(...args)).finally(() => {
+                state.inflight--
+            })
+        }) as typeof fetch
+        const origSend = XMLHttpRequest.prototype.send
+        XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, body?: Document | XMLHttpRequestBodyInit | null) {
+            state.inflight++
+            this.addEventListener('loadend', () => {
+                state.inflight--
+            })
+            return origSend.call(this, body)
+        }
+    }
+    const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
+    const unfinished = resources.filter((entry) => entry.responseEnd === 0).length
+    return {
+        ready: document.readyState,
+        completed: resources.length,
+        inflight: page.__wdioNet.inflight + unfinished
+    }
+}
+
+/**
+ * Install the probe on the current document and on later documents, so a
+ * fetch that starts before `wait --load networkidle` is still counted.
+ */
+export async function installNetworkProbe (session: Session) {
+    if (!session.isWeb || session.applies.includes('M')) {
+        return
+    }
+    if (session.isBidi && typeof session.browser.addInitScript === 'function') {
+        await session.browser.addInitScript(pageNetworkState).catch(() => {})
+    }
+    await session.browser.execute(pageNetworkState).catch(() => {})
+}
+
+function networkIdleCode () {
+    return `await browser.waitUntil(async () => {
+    const state = await browser.execute(${pageNetworkState.toString()})
+    return state.ready === 'complete' && state.inflight === 0
+})`
+}
 
 /**
  * A double-star glob matches across path segments. A single star is one
@@ -101,30 +163,36 @@ export const wait: ActionFn = async (session, args) => {
             throw usage(`Unknown load state "${load}".`, 'Use domcontentloaded, load or networkidle.')
         }
         if (load === 'networkidle') {
-            let last: number | undefined
+            let last = ''
             let since = 0
             await session.browser.waitUntil(async () => {
-                const ready = await session.browser.execute(() => document.readyState)
-                const count = await session.browser.execute(() => performance.getEntriesByType('resource').length) as number
-                if (ready !== 'complete') {
+                const state = await session.browser.execute(pageNetworkState) as PageNetwork
+                const bidi = session.get?.<Set<string>>('networkInflight')?.size ?? 0
+                const now = Date.now()
+                if (state.ready !== 'complete' || state.inflight > 0 || bidi > 0) {
+                    last = ''
+                    since = now
                     return false
                 }
-                const now = Date.now()
-                if (last !== count) {
-                    last = count
+                const signature = String(state.completed)
+                if (signature !== last) {
+                    last = signature
                     since = now
                     return false
                 }
                 return now - since >= NETWORK_QUIET_MS
             }, options('The page did not become network-idle'))
-            return done('Page is network-idle', 'await browser.waitUntil(async () => document.readyState === \'complete\')')
+            return done('Page is network-idle', networkIdleCode())
         }
         const ready = load === 'load' ? 'complete' : 'interactive'
+        const check = load === 'load'
+            ? 'document.readyState === \'complete\''
+            : 'document.readyState === \'interactive\' || document.readyState === \'complete\''
         await session.browser.waitUntil(async () => {
             const state = await session.browser.execute(() => document.readyState) as string
             return load === 'load' ? state === 'complete' : state === 'interactive' || state === 'complete'
         }, options(`document.readyState did not reach ${ready}`))
-        return done(`Page reached ${load}`, `await browser.waitUntil(async () => document.readyState === ${quote(ready === 'interactive' ? 'interactive' : 'complete')} || document.readyState === 'complete')`)
+        return done(`Page reached ${load}`, `await browser.waitUntil(async () => await browser.execute(() => ${check}))`)
     }
 
     const target = String(args.target ?? '')
@@ -140,7 +208,16 @@ export const wait: ActionFn = async (session, args) => {
     if (!['visible', 'hidden', 'enabled', 'disabled'].includes(state)) {
         throw usage(`Unknown state "${state}".`, 'Use visible, hidden, enabled or disabled.')
     }
-    const resolved = await waiter(session, target)
+    let resolved: Awaited<ReturnType<typeof waiter>>
+    try {
+        resolved = await waiter(session, target)
+    } catch (err) {
+        if (state === 'hidden' && err instanceof SessionError && (err.code === 'REF_STALE' || err.code === 'REF_NOT_FOUND' || err.code === 'ELEMENT_NOT_FOUND')) {
+            const id = refId(target) || target
+            return done(`${id} is hidden`, `// ${id} is already gone`)
+        }
+        throw err
+    }
     const reverse = state === 'hidden' || state === 'disabled'
     if (state === 'enabled' || state === 'disabled') {
         await resolved.element.waitForEnabled({ timeout: limit, reverse, timeoutMsg: timeoutMsg(`${resolved.label} did not become ${state}`) })
