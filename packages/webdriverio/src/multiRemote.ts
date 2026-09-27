@@ -5,6 +5,7 @@ import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
 import { multiRemoteHandler } from './middlewares.js'
+import { MultiRemoteMock } from './multiRemoteMock.js'
 import { addLocatorStrategyHandler, enhanceElementsArray, getPrototype } from './utils/index.js'
 import type { BrowserCommandsType, Selector, WebdriverIOEventMap } from './types.js'
 
@@ -263,6 +264,16 @@ export default class MultiRemote {
 
                 elementArray.isMultiRemote = true
                 return elementArray
+            } else if (commandName === 'mock') {
+                /**
+                 * A plain array cannot say which browser a mock belongs to, and
+                 * `select()` can reorder instances relative to `browser.instances`
+                 * (#15726).
+                 */
+                return new MultiRemoteMock(
+                    scopeEntries.map(([instanceName]) => instanceName),
+                    result as WebdriverIO.Mock[]
+                )
             }
             return result
         })

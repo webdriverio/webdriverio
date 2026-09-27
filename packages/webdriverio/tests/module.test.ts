@@ -232,6 +232,57 @@ describe('WebdriverIO module interface', () => {
     })
 
     describe('multi-remote', () => {
+        it('deletes sessions that already started when another instance fails to start', async () => {
+            const started = {
+                sessionId: 'started-session',
+                options: { logLevel: 'error' },
+                capabilities: {},
+                addCommand: vi.fn(),
+                overwriteCommand: vi.fn(),
+                strategies: new Map(),
+                deleteSession: vi.fn().mockResolvedValue(undefined)
+            }
+            let calls = 0
+            let releaseStarted = () => {}
+            const startedGate = new Promise<void>((resolve) => {
+                releaseStarted = resolve
+            })
+            const original = vi.mocked(WebDriver.newSession).getMockImplementation()
+            vi.mocked(WebDriver.newSession).mockImplementation((params: any, cb: any) => {
+                calls += 1
+                if (params.capabilities?.browserName === 'firefox') {
+                    return Promise.reject(new Error('second session failed'))
+                }
+                return startedGate.then(() => {
+                    const result = cb(started, params)
+                    result.options = { logLevel: 'error' }
+                    return result
+                })
+            })
+
+            try {
+                const pending = multiRemote({
+                    browserA: {
+                        automationProtocol: 'webdriver',
+                        capabilities: { browserName: 'chrome' }
+                    },
+                    browserB: {
+                        automationProtocol: 'webdriver',
+                        capabilities: { browserName: 'firefox' }
+                    }
+                })
+                await vi.waitFor(() => {
+                    expect(calls).toBe(2)
+                })
+                expect(started.deleteSession).not.toHaveBeenCalled()
+                releaseStarted()
+                await expect(pending).rejects.toThrow('second session failed')
+                expect(started.deleteSession).toHaveBeenCalledTimes(1)
+            } finally {
+                vi.mocked(WebDriver.newSession).mockImplementation(original!)
+            }
+        })
+
         it('register multiple clients', async () => {
             await multiRemote({
                 browserA: {

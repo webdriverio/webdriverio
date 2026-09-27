@@ -153,13 +153,25 @@ export const multiRemote = async function (
     /**
      * create all instance sessions, then register them in capability order.
      * `Promise.all` keeps result order even when the sessions resolve out of order.
+     * A later failure must still close sessions that already started, including
+     * ones still in flight when the first error is reported.
      */
-    const sessions = await Promise.all(
-        browserNames.map(async (browserName) => {
-            const instance = await remote(params[browserName])
-            return [browserName, instance] as const
-        })
-    )
+    const started: WebdriverIO.Browser[] = []
+    const pending = browserNames.map(async (browserName) => {
+        const instance = await remote(params[browserName])
+        started.push(instance)
+        return [browserName, instance] as const
+    })
+    let sessions: (readonly [string, WebdriverIO.Browser])[]
+    try {
+        sessions = await Promise.all(pending)
+    } catch (err) {
+        await Promise.allSettled(pending)
+        await Promise.allSettled(started.map(async (instance) => {
+            await instance.deleteSession()
+        }))
+        throw err
+    }
     for (const [browserName, instance] of sessions) {
         await multibrowser.addInstance(browserName, instance)
     }
