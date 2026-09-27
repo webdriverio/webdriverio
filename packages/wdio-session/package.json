@@ -62,6 +62,7 @@
   "devDependencies": {
     "@types/aria-query": "^5.0.4",
     "@types/picomatch": "^4.0.2",
+    "@types/semver": "^7.5.8",
     "@types/yargs": "^17.0.33"
   },
   "peerDependencies": {
