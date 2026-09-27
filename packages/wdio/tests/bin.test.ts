@@ -11,8 +11,9 @@ const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const PNPM_SCRIPT = /(?:^|[\\/])pnpm(?:\.cjs|\.js|\.mjs)?$/i
 
 /**
- * Node ships corepack next to the executable. Windows setup puts it in
- * `node_modules` beside `node.exe`; nvm and fnm put it under `lib`.
+ * Node 22 and 24 ship corepack next to the executable. Node 26 does not.
+ * Windows setup puts it in `node_modules` beside `node.exe`; nvm and fnm
+ * put it under `lib`. Call this only when pnpm did not launch the test.
  */
 function corepackJs (): string {
     const nodeDir = dirname(process.execPath)
@@ -33,11 +34,15 @@ function corepackJs (): string {
  * `npm_execpath` is pnpm's entry when pnpm launched the test, and npm's
  * entry when npm did, so ignore anything that is not pnpm.
  */
-function pnpmArgv (args: string[], execpath = process.env.npm_execpath): string[] {
+function pnpmArgv (
+    args: string[],
+    execpath = process.env.npm_execpath,
+    resolveCorepack: () => string = corepackJs
+): string[] {
     if (execpath && PNPM_SCRIPT.test(execpath)) {
         return [execpath, ...args]
     }
-    return [corepackJs(), 'pnpm', ...args]
+    return [resolveCorepack(), 'pnpm', ...args]
 }
 
 function pnpm (args: string[], cwd: string) {
@@ -45,24 +50,30 @@ function pnpm (args: string[], cwd: string) {
 }
 
 describe('wdio package', () => {
+    const corepack = () => '/opt/corepack/dist/corepack.js'
+
     it('packs with pnpm when npm launched the test', () => {
         const argv = pnpmArgv(
             ['pack', '--pack-destination', 'C:\\Users\\Ada Lovelace\\AppData\\Local\\Temp\\wdio-pack'],
-            '/usr/lib/node_modules/npm/bin/npm-cli.js'
+            '/usr/lib/node_modules/npm/bin/npm-cli.js',
+            corepack
         )
-        expect(argv[0]).toMatch(/corepack\.js$/)
+        expect(argv[0]).toBe('/opt/corepack/dist/corepack.js')
         expect(argv[1]).toBe('pnpm')
         expect(argv.at(-1)).toBe('C:\\Users\\Ada Lovelace\\AppData\\Local\\Temp\\wdio-pack')
     })
 
     it('uses the pnpm script pnpm already put on npm_execpath', () => {
         const entry = '/home/user/.cache/node/corepack/v1/pnpm/11.27.1/bin/pnpm.mjs'
-        expect(pnpmArgv(['pack'], entry)[0]).toBe(entry)
+        const argv = pnpmArgv(['pack'], entry, () => {
+            throw new Error('corepack should not be required when pnpm launched the test')
+        })
+        expect(argv[0]).toBe(entry)
     })
 
     it('does not execute a Windows pnpm.cmd shim', () => {
-        const argv = pnpmArgv(['pack'], 'C:\\Program Files\\nodejs\\pnpm.cmd')
-        expect(argv[0]).toMatch(/corepack\.js$/)
+        const argv = pnpmArgv(['pack'], 'C:\\Program Files\\nodejs\\pnpm.cmd', corepack)
+        expect(argv[0]).toBe('/opt/corepack/dist/corepack.js')
         expect(argv[1]).toBe('pnpm')
     })
 
