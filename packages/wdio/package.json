@@ -1,0 +1,39 @@
+{
+  "name": "wdio",
+  "version": "9.32.0",
+  "description": "WebdriverIO command line. npx wdio runs @wdio/cli without a local install.",
+  "author": "Christian Bromann <mail@bromann.dev>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio"
+  },
+  "keywords": [
+    "webdriverio",
+    "wdio",
+    "cli"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "files": [
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "bin": {
+    "wdio": "./bin/wdio.js"
+  },
+  "dependencies": {
+    "@wdio/cli": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
