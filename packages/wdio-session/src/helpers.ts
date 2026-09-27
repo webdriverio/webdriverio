@@ -15,13 +15,14 @@ const DEBOUNCE_MS = 200
  * macOS can drop a watch event, including one that lands before `fs.watch`
  * is active. The poll stats every file. It re-reads a file when the size or
  * modification time changed, and it also re-reads small files so a same-size
- * edit that keeps its modification time is still visible. Larger files keep
- * their previous hash until a stat or a named event says they changed.
+ * edit that keeps its modification time is still visible. Larger files are
+ * hashed on a stream between turns of the event loop, so a same-size edit is
+ * still noticed without holding the daemon on a synchronous read.
  */
 const POLL_MS = 500
 /**
- * A quiet poll re-reads unchanged files only up to this size. A large
- * auxiliary file is not hashed on every pass.
+ * A quiet poll re-reads unchanged files synchronously only up to this size.
+ * Larger files are hashed on a stream between event-loop turns.
  */
 export const CONTENT_POLL_BYTES = 64 * 1024
 
@@ -288,18 +289,20 @@ interface HashedFile {
  * Hash of every file in the helpers directory. A named edit re-reads those
  * files. An event with no filename re-reads the directory, because the size
  * and modification time can stay the same. A poll re-reads small files for
- * the same reason and leaves larger unchanged files on their previous hash.
+ * the same reason. Larger unchanged files keep their previous hash here and
+ * are listed in `deferred` so the caller can hash them without blocking.
  * A file that could not be read keeps its previous hash and is read again on
  * the next pass.
  */
 function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: ReadonlySet<string>, rereadAll = false, unchangedReadLimit = 0) {
     const hash = crypto.createHash('sha1')
     const files = new Map<string, HashedFile>()
+    const deferred: string[] = []
     let names: string[]
     try {
         names = fs.readdirSync(dir).sort()
     } catch {
-        return { stamp: hash.digest('hex'), files }
+        return { stamp: hash.digest('hex'), files, deferred }
     }
     for (const name of names) {
         const file = path.join(dir, name)
@@ -325,6 +328,9 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
         let content: string
         if (unchanged && prior) {
             content = prior.hash
+            if (unchangedReadLimit > 0 && stat.size > unchangedReadLimit) {
+                deferred.push(name)
+            }
         } else {
             try {
                 content = crypto.createHash('sha1').update(fs.readFileSync(file)).digest('hex')
@@ -341,7 +347,26 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
         hash.update(content)
         hash.update('\0')
     }
-    return { stamp: hash.digest('hex'), files }
+    return { stamp: hash.digest('hex'), files, deferred }
+}
+
+/**
+ * Hash a file one chunk at a time, yielding between chunks so a large
+ * helper does not stall session commands.
+ */
+async function hashFileYielding (file: string) {
+    const hash = crypto.createHash('sha1')
+    const stream = fs.createReadStream(file)
+    try {
+        for await (const chunk of stream) {
+            hash.update(chunk)
+            await new Promise((resolve) => setImmediate(resolve))
+        }
+    } catch (err) {
+        stream.destroy()
+        throw err
+    }
+    return hash.digest('hex')
 }
 
 function armWatcher (session: Session, dir: string, onChange: (names: ReadonlySet<string>, rereadAll: boolean, unchangedReadLimit?: number) => void) {
@@ -421,14 +446,60 @@ function watchHelpers (session: Session) {
         return
     }
     let tracked = digestHelpers(dir, new Map(), new Set())
-    armWatcher(session, dir, (names, rereadAll, unchangedReadLimit = 0) => {
-        const next = digestHelpers(dir, tracked.files, names, rereadAll, unchangedReadLimit)
+    let epoch = 0
+    let scanning = false
+    let disposed = false
+    session.disposers.push(() => {
+        disposed = true
+        epoch += 1
+    })
+    const apply = (next: ReturnType<typeof digestHelpers>) => {
         const changed = next.stamp !== tracked.stamp
         tracked = next
-        if (!changed) {
+        if (changed) {
+            reloadHelpers(session).catch((err) => log.warn(`Helpers failed to reload: ${errorLine(err)}`))
+        }
+        return changed
+    }
+    armWatcher(session, dir, (names, rereadAll, unchangedReadLimit = 0) => {
+        epoch += 1
+        const next = digestHelpers(dir, tracked.files, names, rereadAll, unchangedReadLimit)
+        if (apply(next) || unchangedReadLimit === 0 || next.deferred.length === 0 || scanning || disposed) {
             return
         }
-        reloadHelpers(session).catch((err) => log.warn(`Helpers failed to reload: ${errorLine(err)}`))
+        const gen = epoch
+        const pending = next.deferred
+        scanning = true
+        void (async () => {
+            for (const name of pending) {
+                if (disposed || gen !== epoch) {
+                    return
+                }
+                let nextHash: string
+                try {
+                    nextHash = await hashFileYielding(path.join(dir, name))
+                } catch (err) {
+                    log.warn(`Helper file could not be read: ${errorLine(err)}`)
+                    continue
+                }
+                if (disposed || gen !== epoch) {
+                    return
+                }
+                const entry = tracked.files.get(name)
+                if (!entry || entry.hash === nextHash) {
+                    continue
+                }
+                entry.hash = nextHash
+                const refreshed = digestHelpers(dir, tracked.files, new Set(), false, CONTENT_POLL_BYTES)
+                if (disposed || gen !== epoch) {
+                    return
+                }
+                apply(refreshed)
+                return
+            }
+        })().finally(() => {
+            scanning = false
+        })
     })
 }
 

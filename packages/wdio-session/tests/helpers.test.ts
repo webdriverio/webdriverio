@@ -530,6 +530,62 @@ describe('loadHelpers', () => {
         }
     })
 
+    it('reloads a large same-size edit when the watch event never arrives', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const main = path.join(helpers, 'main.js')
+        const source = (mark: string) => {
+            const body = [
+                'export default function (browser) {',
+                `    browser.addCommand('mark', () => ${JSON.stringify(mark)})`,
+                '}',
+                ''
+            ].join('\n')
+            return body + '/*' + 'x'.repeat(CONTENT_POLL_BYTES) + '*/\n'
+        }
+        fs.writeFileSync(main, source('a'))
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation(() => {
+            return {
+                on() {
+                    return this
+                },
+                close() {
+                    return undefined
+                }
+            } as unknown as fs.FSWatcher
+        })
+        let statSpy: ReturnType<typeof vi.spyOn> | undefined
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const read = () => (session.browser as unknown as { mark: () => string }).mark()
+            expect(read()).toBe('a')
+            const frozen = fs.statSync(main)
+            const originalStat = fs.statSync.bind(fs)
+            statSpy = vi.spyOn(fs, 'statSync').mockImplementation(((file: fs.PathLike, opts?: fs.StatSyncOptions) => {
+                const stat = originalStat(file, opts as never)
+                if (String(file) === main) {
+                    stat.mtimeMs = frozen.mtimeMs
+                    stat.size = frozen.size
+                }
+                return stat
+            }) as typeof fs.statSync)
+            fs.writeFileSync(main, source('b'))
+            const started = Date.now()
+            let mark = 'a'
+            while (Date.now() - started < 3000 && mark !== 'b') {
+                mark = read()
+                if (mark !== 'b') {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            expect(mark).toBe('b')
+        } finally {
+            statSpy?.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
     it('resolves a bare package import from the project', async () => {
         const dir = project()
         const dep = path.join(dir, 'node_modules', 'helper-dep')
