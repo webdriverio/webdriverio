@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 
 import { helpers } from '../src/actions/helpers.js'
 import { formatHelpers, loadHelpers, reloadHelpers, rewriteRelativeImports, type LoadedHelper } from '../src/helpers.js'
@@ -208,6 +208,39 @@ describe('loadHelpers', () => {
             }
         }
         expect(label).toBe('two')
+    })
+
+    it('does not reread an unchanged data file when a helper changes', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const data = path.join(helpers, 'payload.bin')
+        const main = path.join(helpers, 'main.js')
+        fs.writeFileSync(data, Buffer.alloc(1024, 7))
+        const source = (mark: string) => [
+            'export default function (browser) {',
+            `    browser.addCommand('mark', () => ${JSON.stringify(mark)})`,
+            '}'
+        ].join('\n')
+        fs.writeFileSync(main, source('a'))
+        const session = tracked(dir)
+        await loadHelpers(session, { watch: true })
+        const read = () => (session.browser as unknown as { mark: () => string }).mark()
+        expect(read()).toBe('a')
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        const spy = vi.spyOn(fs, 'readFileSync')
+        fs.writeFileSync(main, source('b'))
+        const started = Date.now()
+        let mark = 'a'
+        while (Date.now() - started < 3000 && mark !== 'b') {
+            mark = read()
+            if (mark !== 'b') {
+                await new Promise((resolve) => setTimeout(resolve, 50))
+            }
+        }
+        const reread = spy.mock.calls.some((args) => String(args[0]) === data)
+        spy.mockRestore()
+        expect(mark).toBe('b')
+        expect(reread).toBe(false)
     })
 
     it('resolves a bare package import from the project', async () => {

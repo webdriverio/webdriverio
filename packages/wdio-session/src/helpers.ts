@@ -263,45 +263,74 @@ export function reloadHelpers (session: Session) {
     return run
 }
 
-function helperStamp (cwd: string) {
+interface HashedFile {
+    mtimeMs: number
+    size: number
+    hash: string
+}
+
+/**
+ * Hash of every file in the helpers directory. Files the watcher did not
+ * name, and whose size and modification time are unchanged, keep their
+ * previous hash so a large data file is not read again.
+ */
+function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: ReadonlySet<string>) {
     const hash = crypto.createHash('sha1')
-    const dir = helpersDir(cwd)
-    let names: string[] = []
+    const files = new Map<string, HashedFile>()
+    let names: string[]
     try {
         names = fs.readdirSync(dir).sort()
     } catch {
-        return hash.digest('hex')
+        return { stamp: hash.digest('hex'), files }
     }
     for (const name of names) {
         const file = path.join(dir, name)
         hash.update(name)
         hash.update('\0')
+        let stat: fs.Stats
         try {
-            const stat = fs.statSync(file)
-            if (stat.isFile()) {
-                hash.update(fs.readFileSync(file))
-            } else {
-                hash.update('dir')
-            }
+            stat = fs.statSync(file)
         } catch {
             hash.update('missing')
+            hash.update('\0')
+            continue
         }
+        if (!stat.isFile()) {
+            hash.update('dir')
+            hash.update('\0')
+            continue
+        }
+        const prior = previous.get(name)
+        const unchanged = prior !== undefined && prior.mtimeMs === stat.mtimeMs && prior.size === stat.size && !reread.has(name)
+        const content = unchanged
+            ? prior.hash
+            : crypto.createHash('sha1').update(fs.readFileSync(file)).digest('hex')
+        files.set(name, { mtimeMs: stat.mtimeMs, size: stat.size, hash: content })
+        hash.update(content)
         hash.update('\0')
     }
-    return hash.digest('hex')
+    return { stamp: hash.digest('hex'), files }
 }
 
-function armWatcher (session: Session, dir: string, onChange: () => void) {
+function armWatcher (session: Session, dir: string, onChange: (names: ReadonlySet<string>) => void) {
     let timer: NodeJS.Timeout | undefined
     let closed = false
-    const watcher = fs.watch(dir, () => {
+    let pending = new Set<string>()
+    const watcher = fs.watch(dir, (_event, filename) => {
         if (closed) {
             return
+        }
+        if (filename) {
+            pending.add(path.basename(String(filename)))
         }
         if (timer) {
             clearTimeout(timer)
         }
-        timer = setTimeout(onChange, DEBOUNCE_MS)
+        timer = setTimeout(() => {
+            const names = pending
+            pending = new Set()
+            onChange(names)
+        }, DEBOUNCE_MS)
     })
     const close = () => {
         if (closed) {
@@ -338,15 +367,14 @@ function watchHelpers (session: Session) {
         })
         return
     }
-    let stamp = helperStamp(session.cwd)
-    armWatcher(session, dir, () => {
-        // Compare every file in the directory, including data a helper reads
-        // at setup. macOS also emits an event when the watcher starts.
-        const next = helperStamp(session.cwd)
-        if (next === stamp) {
+    let tracked = digestHelpers(dir, new Map(), new Set())
+    armWatcher(session, dir, (names) => {
+        const next = digestHelpers(dir, tracked.files, names)
+        const changed = next.stamp !== tracked.stamp
+        tracked = next
+        if (!changed) {
             return
         }
-        stamp = next
         reloadHelpers(session).catch((err) => log.warn(`Helpers failed to reload: ${errorLine(err)}`))
     })
 }
