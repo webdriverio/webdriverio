@@ -3,10 +3,10 @@ import TestStats from '../../src/stats/test.js'
 
 describe('RunnableStats', () => {
     let stat: TestStats
-    const DateOrig = Date
 
     beforeEach(() => {
-        global.Date = vi.fn() as any
+        vi.useFakeTimers()
+        vi.setSystemTime(3)
         stat = new TestStats({
             type: 'test:start',
             title: 'should can do something',
@@ -21,7 +21,7 @@ describe('RunnableStats', () => {
     })
 
     afterEach(() => {
-        global.Date = DateOrig
+        vi.useRealTimers()
     })
 
     it('getIdentifier', () => {
@@ -31,20 +31,14 @@ describe('RunnableStats', () => {
     })
 
     it('complete', () => {
-        stat.start = { getTime: vi.fn().mockReturnValue(3) } as any
-        global.Date = vi.fn().mockReturnValue({
-            getTime: () => 45
-        }) as any
+        vi.setSystemTime(45)
         stat.complete()
 
         expect(stat.duration).toBe(42)
     })
 
     it('duration', () => {
-        stat.start = { getTime: vi.fn().mockReturnValue(3) } as any
-        global.Date = vi.fn().mockReturnValue({
-            getTime: () => 45
-        }) as any
+        vi.setSystemTime(45)
         expect(stat.duration).toBe(42)
     })
 })

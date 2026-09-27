@@ -92,7 +92,7 @@
     "@vercel/routing-utils": "^6.6.0",
     "@vitejs/plugin-react": "^5.2.0",
     "@vitejs/plugin-vue": "^6.0.9",
-    "@vitest/coverage-v8": "^3.2.7",
+    "@vitest/coverage-v8": "^5.0.2",
     "@wdio/config": "workspace:*",
     "@wdio/repl": "workspace:*",
     "camelcase": "^9.0.0",
@@ -121,7 +121,7 @@
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "unzipper": "^0.12.5",
-    "vitest": "^3.2.7"
+    "vitest": "^5.0.2"
   },
   "engines": {
     "node": ">=22.19.0",

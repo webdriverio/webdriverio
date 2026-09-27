@@ -3,9 +3,11 @@ import { launch, cmdArgs } from '../src/commands/run.js'
 import Launcher from '../src/launcher.js'
 
 vi.mock('../src/launcher', () => ({
-    default: vi.fn().mockImplementation((conf, result) => ({
-        run: () => Number.isInteger(result) ? Promise.resolve(result) : Promise.reject(result)
-    }))
+    default: vi.fn().mockImplementation(function (conf, result) {
+        return {
+            run: () => Number.isInteger(result) ? Promise.resolve(result) : Promise.reject(result)
+        }
+    })
 }))
 
 describe('launch', () => {
