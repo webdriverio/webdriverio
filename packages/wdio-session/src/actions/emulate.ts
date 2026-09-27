@@ -31,8 +31,14 @@ const RELOAD_HINT = 'Reload the page to apply (`wdio session reload`).'
 
 const done = (text: string, code: string): ActionOutcome => ({ text, code, history: code })
 
-function restores (session: Session) {
-    let map = session.get<Map<string, Restore>>('emulation')
+interface Emulation {
+    restore: Restore
+    /** runs the command again when a later replacement fails */
+    apply?: () => Promise<unknown>
+}
+
+function emulations (session: Session) {
+    let map = session.get<Map<string, Emulation>>('emulation')
     if (!map) {
         map = new Map()
         session.set('emulation', map)
@@ -41,24 +47,46 @@ function restores (session: Session) {
 }
 
 /**
- * Undo an emulation and forget it. `swap` does this before applying the
- * next one, so the new emulation is not undone by the previous restore.
+ * Undo an emulation and forget it.
  */
 async function remember (session: Session, scope: string, restore: Restore | undefined) {
-    const map = restores(session)
+    const map = emulations(session)
     const previous = map.get(scope)
     map.delete(scope)
-    await previous?.().catch(() => {})
+    await previous?.restore().catch(() => {})
     if (restore) {
-        map.set(scope, restore)
+        map.set(scope, { restore })
     }
 }
 
+/**
+ * Replace one emulation. The previous restore runs first so it cannot undo
+ * the new setting. If the new command fails, the previous one is put back.
+ */
 async function swap (session: Session, scope: string, apply: () => Promise<unknown>) {
-    await remember(session, scope, undefined)
-    const restore = await apply()
-    if (typeof restore === 'function') {
-        restores(session).set(scope, restore as Restore)
+    const map = emulations(session)
+    const previous = map.get(scope)
+    if (previous) {
+        map.delete(scope)
+        await previous.restore().catch(() => {})
+    }
+    try {
+        const restore = await apply()
+        if (typeof restore === 'function') {
+            map.set(scope, { restore: restore as Restore, apply })
+        }
+    } catch (err) {
+        if (previous?.apply) {
+            try {
+                const restore = await previous.apply()
+                if (typeof restore === 'function') {
+                    map.set(scope, { restore: restore as Restore, apply: previous.apply })
+                }
+            } catch {
+                // the previous setting could not be put back
+            }
+        }
+        throw err
     }
 }
 
@@ -129,7 +157,7 @@ export const emulate: ActionFn = async (session, args) => {
         if (preset === 'offline' || preset === 'online') {
             session.requireBidi('Network emulation')
             const offline = preset === 'offline'
-            if (!offline && isChromium(session) && restores(session).has('throttle')) {
+            if (!offline && isChromium(session) && emulations(session).has('throttle')) {
                 await remember(session, 'throttle', undefined)
             }
             await swap(session, 'network', async () => {
@@ -216,7 +244,7 @@ export const emulate: ActionFn = async (session, args) => {
         return done(`User agent set. ${RELOAD_HINT}`, `await browser.emulate('userAgent', ${quote(ua)})`)
     }
     case 'reset': {
-        const map = restores(session)
+        const map = emulations(session)
         const scopes = [...map.keys()]
         for (const scope of scopes) {
             await remember(session, scope, undefined)

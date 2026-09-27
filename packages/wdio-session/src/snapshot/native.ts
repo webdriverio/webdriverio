@@ -238,9 +238,15 @@ function selectorInfo (platform: NativePlatform, tag: string, attrs: Record<stri
     }
 }
 
+interface Located {
+    node: SnapshotNode
+    candidates: string[]
+}
+
 interface Built {
     node: SnapshotNode
     refs: SnapshotRef[]
+    located: Located[]
 }
 
 function build (xml: XmlNode, platform: NativePlatform, opts: { all?: boolean }, allocate: (candidates: string[]) => string): Built | undefined {
@@ -249,7 +255,8 @@ function build (xml: XmlNode, platform: NativePlatform, opts: { all?: boolean },
         const children = xml.children.map((child) => build(child, platform, opts, allocate)).filter((child): child is Built => Boolean(child))
         return {
             node: { role: 'document', children: children.map((child) => child.node) },
-            refs: children.flatMap((child) => child.refs)
+            refs: children.flatMap((child) => child.refs),
+            located: children.flatMap((child) => child.located)
         }
     }
     const box = boundsOf(xml.attrs)
@@ -269,19 +276,22 @@ function build (xml: XmlNode, platform: NativePlatform, opts: { all?: boolean },
         ...(children.length ? { children: children.map((child) => child.node) } : {})
     }
     const refs = children.flatMap((child) => child.refs)
+    const located = children.flatMap((child) => child.located)
+    const candidates = nativeCandidates(selectorInfo(platform, xml.name, xml.attrs, name))
     if (wantsRef(platform, xml.name, xml.attrs, role, name)) {
-        const candidates = nativeCandidates(selectorInfo(platform, xml.name, xml.attrs, name))
         const id = allocate(candidates)
         node.ref = id
         node.interactive = true
         refs.push({ id, role, name: name || undefined, candidates })
     }
-    return { node, refs }
+    located.push({ node, candidates })
+    return { node, refs, located }
 }
 
 export interface ParsedNative {
     tree: SnapshotNode
     refs: SnapshotRef[]
+    located: Located[]
     counter: number
 }
 
@@ -289,20 +299,7 @@ export function parseNativeSource (xml: string, platform: NativePlatform, opts: 
     let counter = opts.counter || 0
     const built = build(parseXml(xml), platform, opts, () => `e${++counter}`)
     const tree = built?.node || { role: 'document' }
-    return { tree, refs: built?.refs || [], counter }
-}
-
-function findNode (node: SnapshotNode, id: string): SnapshotNode | undefined {
-    if (node.ref === id) {
-        return node
-    }
-    for (const child of node.children || []) {
-        const found = findNode(child, id)
-        if (found) {
-            return found
-        }
-    }
-    return undefined
+    return { tree, refs: built?.refs || [], located: built?.located || [], counter }
 }
 
 function resourceIdOf (selector: string) {
@@ -324,18 +321,18 @@ function sameResource (left: string, right: string) {
     return a === b || resourceSuffix(a) === resourceSuffix(b)
 }
 
-function matchingRefs (refs: SnapshotRef[], scope: string) {
-    const exact = refs.filter((ref) => ref.candidates.includes(scope))
+function matchingLocated (located: Located[], scope: string) {
+    const exact = located.filter((entry) => entry.candidates.includes(scope))
     if (exact.length) {
         return exact
     }
-    return refs.filter((ref) => ref.candidates.some((candidate) => sameResource(candidate, scope)))
+    return located.filter((entry) => entry.candidates.some((candidate) => sameResource(candidate, scope)))
 }
 
-function scopeNativeTree (tree: SnapshotNode, refs: SnapshotRef[], scope: string): SnapshotNode {
+function scopeNativeTree (tree: SnapshotNode, located: Located[], scope: string): SnapshotNode {
     const hits = isRef(scope)
-        ? refs.filter((ref) => ref.id === scope)
-        : matchingRefs(refs, scope)
+        ? located.filter((entry) => entry.node.ref === scope)
+        : matchingLocated(located, scope)
     if (hits.length !== 1) {
         throw usage(
             hits.length > 1 ? `Scope ${scope} matches ${hits.length} elements.` : `Scope ${scope} is not in this snapshot.`,
@@ -344,11 +341,7 @@ function scopeNativeTree (tree: SnapshotNode, refs: SnapshotRef[], scope: string
                 : 'Run `wdio session snapshot` and pass a ref or a selector from that tree.'
         )
     }
-    const found = findNode(tree, hits[0].id)
-    if (!found) {
-        throw usage(`Scope ${scope} is not in this snapshot.`, 'Run `wdio session snapshot` and pass a ref from that tree.')
-    }
-    return { role: 'document', name: tree.name, children: [found] }
+    return { role: 'document', name: tree.name, children: [hits[0].node] }
 }
 
 /**
@@ -376,7 +369,7 @@ export async function takeNativeSnapshot (session: Session, opts: SnapshotOption
     apply(parsed.tree)
     const refs = parsed.refs.map((ref) => ({ ...ref, id: remap.get(ref.id) || ref.id }))
     if (opts.scope) {
-        parsed.tree = scopeNativeTree(parsed.tree, refs, String(opts.scope))
+        parsed.tree = scopeNativeTree(parsed.tree, parsed.located, String(opts.scope))
     }
     session.refs.counter = parsed.counter
     session.refs.generation++
