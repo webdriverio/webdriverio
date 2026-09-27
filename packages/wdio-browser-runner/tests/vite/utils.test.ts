@@ -1,5 +1,4 @@
 import type fs from 'node:fs'
-import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 
@@ -34,10 +33,11 @@ afterAll(() => {
     join.mockRestore()
 })
 
-// skip for Windows
-describe.skipIf(os.platform() === 'win32')('getTemplate', () => {
+describe('getTemplate', () => {
     it('renders template correctly', async () => {
-        vi.mocked(resolve).mockResolvedValue('file:///foo/bar/vue')
+        // on Windows this resolves to e.g. `D:\foo\bar`, normalized below to keep one snapshot
+        const sourceMapDir = path.resolve('/foo/bar')
+        vi.mocked(resolve).mockResolvedValue(url.pathToFileURL(path.resolve(sourceMapDir, 'vue')).href)
         /**
          * ensure we have CI env set so local and CI test pass
          */
@@ -45,7 +45,8 @@ describe.skipIf(os.platform() === 'win32')('getTemplate', () => {
             process.env.CI = '1'
         }
         const p: any = { env: { some: 'env' }, cwd: () => '/some/cwd' }
-        expect(await getTemplate({ preset: 'lit' }, { config: {} } as any, '/spec.js', p)).toMatchSnapshot()
+        const template = await getTemplate({ preset: 'lit' }, { config: {} } as any, '/spec.js', p)
+        expect(template.replace(sourceMapDir, '/foo/bar')).toMatchSnapshot()
     })
 })
 
