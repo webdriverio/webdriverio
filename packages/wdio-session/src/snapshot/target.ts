@@ -1,6 +1,6 @@
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../daemon/init.js'
-import { isRef } from './refs.js'
+import { refId } from './refs.js'
 import type { Session } from '../session.js'
 
 export interface ResolvedTarget {
@@ -27,15 +27,16 @@ export async function resolveTarget (session: Session, target: unknown): Promise
     if (typeof target !== 'string' || !target) {
         throw usage('This action needs a target: a ref like e3 or a selector like "aria/Sign in".')
     }
-    if (isRef(target)) {
-        const element = await session.refs.resolve(session.browser, target)
-        const selector = await session.refs.stableSelector(session.browser, target, element)
-        const entry = session.refs.get(target)!
+    const id = refId(target)
+    if (id) {
+        const element = await session.refs.resolve(session.browser, id)
+        const selector = await session.refs.stableSelector(session.browser, id, element)
+        const entry = session.refs.get(id)!
         return {
             element,
             selector,
             code: `$(${quote(selector)})`,
-            label: `${target} (${entry.role}${entry.name ? ` ${JSON.stringify(entry.name)}` : ''})`
+            label: `${id} (${entry.role}${entry.name ? ` ${JSON.stringify(entry.name)}` : ''})`
         }
     }
     let element: WebdriverIO.Element

@@ -54,7 +54,62 @@ npx wdio session click e3
 npx wdio session exec -e "await expect($('aria/Cart (1)')).toBeDisplayed()"
 ```
 
-Then save the steps and stop the session:
+`open firefox`, `open edge` and `open safari` take the same URL. Chrome, Firefox and Edge are downloaded on first use when they are not installed. Safari requires macOS.
+
+### Android
+
+Android and iOS run through Appium 3. `doctor android` reports a missing server or driver with the install command.
+
+```sh
+npx wdio session doctor android
+npx wdio session open android --app ./shop.apk
+npx wdio session snapshot --interactive
+npx wdio session tap e3
+```
+
+iOS: `open ios --bundle-id com.example.shop`. Native desktop: `open macos --bundle-id com.example.shop` and `open windows --app Root`.
+
+### Electron
+
+```sh
+npx wdio session open electron ./main.js
+npx wdio session snapshot --interactive
+npx wdio session click e2
+```
+
+`open tauri ./my-app` and `open dioxus ./my-app` need their driver on `PATH`. On Linux without `DISPLAY` or `WAYLAND_DISPLAY`, install Xvfb or weston.
+
+## Observation and refs
+
+| Command | Use it for |
+| --- | --- |
+| `snapshot --interactive` | The elements you can act on, each with a ref |
+| `snapshot --compact` | The same tree with unnamed empty wrappers removed |
+| `snapshot --urls` | Link addresses on each link |
+| `find "Add to cart"` | A line from a fresh snapshot |
+| `diff` | What changed since the previous snapshot |
+| `screenshot` | Layout. Skip it when a snapshot answers the question |
+| `pdf` | A PDF of the current page (`pdf report.pdf`) |
+| `source` | The page HTML or the native XML |
+
+Refs come from the latest snapshot. After navigation, snapshot again. An old ref fails with `REF_STALE`. An unknown ref fails with `REF_NOT_FOUND`.
+
+## `exec`
+
+`exec` runs WebdriverIO code. Always `await` commands. `$` returns one element and throws when it is missing. There is no sync mode and no `browser.element`.
+
+```sh
+npx wdio session exec -e "await browser.getTitle()"
+npx wdio session <<'JS'
+await $('aria/Cart (1)').waitForDisplayed()
+JS
+```
+
+Put assertions in `exec` with `expect-webdriverio`. Use `visual check <tag>` (needs `@wdio/visual-service`) when the question is how the screen looks.
+
+## Export
+
+`export` writes a spec from the recorded steps. Refs are replaced with stable selectors.
 
 ```sh
 npx wdio session export --out test/specs/cart.e2e.ts

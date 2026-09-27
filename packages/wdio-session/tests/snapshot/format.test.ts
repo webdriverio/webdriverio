@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { countRefs, formatLine, formatSnapshot, onlyInteractive, type SnapshotNode } from '../../src/snapshot/format.js'
+import { compactTree, countRefs, formatLine, formatSnapshot, onlyInteractive, type SnapshotNode } from '../../src/snapshot/format.js'
 
 const tree: SnapshotNode = {
     role: 'document',
@@ -90,6 +90,35 @@ describe('formatSnapshot', () => {
             '    - button "Add" [ref=e2]',
             '    - textbox "Email" [ref=e3] value="a@b.c" [required] [box=1,2,3,4]'
         ].join('\n'))
+    })
+})
+
+describe('compactTree', () => {
+    it('drops unnamed nodes that have nothing left and keeps wrappers that still do', () => {
+        const compact = compactTree(tree)
+        expect(formatSnapshot(compact!)).toBe([
+            '- document "Shop" url=http://localhost/cart.html',
+            '  - banner',
+            '    - navigation "Main"',
+            '      - link "Home" [ref=e1]',
+            '  - main',
+            '    - heading "Products" [level=1]',
+            '    - list',
+            '      - listitem',
+            '        - text "Blue"',
+            '        - button "Add" [ref=e2]',
+            '    - textbox "Email" [ref=e3] value="a@b.c" [required]',
+            '  - contentinfo',
+            '    - text "Footer"'
+        ].join('\n'))
+        expect(formatSnapshot(tree, { compact: true })).toBe(formatSnapshot(compact!))
+    })
+
+    it('drops a wrapper once its only child is empty', () => {
+        expect(compactTree({
+            role: 'generic',
+            children: [{ role: 'status' }]
+        })).toBeUndefined()
     })
 })
 

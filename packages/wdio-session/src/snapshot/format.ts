@@ -26,6 +26,10 @@ export interface FormatOptions {
     depth?: number
     interactive?: boolean
     boxes?: boolean
+    /**
+     * Drop unnamed structural nodes that have nothing left under them.
+     */
+    compact?: boolean
 }
 
 const LANDMARKS = new Set(['banner', 'navigation', 'main', 'contentinfo', 'complementary', 'region', 'form', 'search', 'dialog', 'alertdialog', 'iframe'])
@@ -43,6 +47,37 @@ export function onlyInteractive (node: SnapshotNode): SnapshotNode[] {
         return [{ ...node, children }]
     }
     return children
+}
+
+/**
+ * Drop nodes that carry no name, ref, value, state, url, note or
+ * interactivity and have no children left after the same filter. Document
+ * roots and wrappers that still contain something are kept.
+ */
+export function compactTree (node: SnapshotNode): SnapshotNode | undefined {
+    const children = (node.children || []).flatMap((child) => {
+        const kept = compactTree(child)
+        return kept ? [kept] : []
+    })
+    const keep = node.role === 'document'
+        || Boolean(node.name)
+        || Boolean(node.ref)
+        || node.value !== undefined
+        || Boolean(node.states?.length)
+        || Boolean(node.url)
+        || Boolean(node.note)
+        || Boolean(node.interactive)
+        || children.length > 0
+    if (!keep) {
+        return undefined
+    }
+    const next: SnapshotNode = { ...node }
+    if (children.length) {
+        next.children = children
+    } else {
+        delete next.children
+    }
+    return next
 }
 
 export function formatLine (node: SnapshotNode, opts: FormatOptions = {}, truncated = 0) {
@@ -81,7 +116,8 @@ export function formatLine (node: SnapshotNode, opts: FormatOptions = {}, trunca
  * Render a snapshot tree as YAML-like text, two spaces per level (RFC §8.1).
  */
 export function formatSnapshot (tree: SnapshotNode, opts: FormatOptions = {}) {
-    const root = opts.interactive ? onlyInteractive(tree)[0] : tree
+    const filtered = opts.interactive ? onlyInteractive(tree)[0] : tree
+    const root = opts.compact ? (compactTree(filtered) || filtered) : filtered
     const lines: string[] = []
     const visit = (node: SnapshotNode, depth: number) => {
         const cut = opts.depth !== undefined && depth >= opts.depth && node.children?.length

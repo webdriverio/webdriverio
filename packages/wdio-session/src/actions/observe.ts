@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { SessionError, notSupported } from '../errors.js'
+import { quote } from '../daemon/init.js'
 import { collectWeb } from '../snapshot/web.js'
 import { countRefs, formatSnapshot, type SnapshotNode } from '../snapshot/format.js'
 import { unifiedDiff } from '../snapshot/diff.js'
@@ -16,6 +17,8 @@ export interface SnapshotOptions {
     interactive?: boolean
     all?: boolean
     boxes?: boolean
+    compact?: boolean
+    urls?: boolean
 }
 
 export interface TakenSnapshot {
@@ -37,14 +40,15 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
     const result = await collectWeb(session.browser, {
         counter: session.refs.counter,
         all: Boolean(opts.all),
-        boxes: Boolean(opts.boxes)
+        boxes: Boolean(opts.boxes),
+        urls: Boolean(opts.urls)
     }, scope)
     session.refs.counter = result.counter
     session.refs.generation++
     for (const ref of result.refs) {
         session.refs.set({ ...ref, kind: 'web', generation: session.refs.generation })
     }
-    const text = formatSnapshot(result.tree, { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes })
+    const text = formatSnapshot(result.tree, { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes, compact: opts.compact })
     session.lastSnapshot = text
     return { text, tree: result.tree }
 }
@@ -55,7 +59,9 @@ function snapshotOptions (args: Record<string, unknown>): SnapshotOptions {
         scope: typeof args.scope === 'string' ? args.scope : undefined,
         interactive: Boolean(args.interactive),
         all: Boolean(args.all),
-        boxes: Boolean(args.boxes)
+        boxes: Boolean(args.boxes),
+        compact: Boolean(args.compact),
+        urls: Boolean(args.urls)
     }
 }
 
@@ -177,6 +183,36 @@ export const screenshot: ActionFn = async (session, args) => {
     return {
         text: `Saved ${what} screenshot${size ? ` ${size.width}x${size.height}` : ''} → ${file}`,
         data: { file, ...size, ...(selector ? { selector } : {}) },
+        files: [file]
+    }
+}
+
+/**
+ * Print the current page to a PDF. The path must end in `.pdf`, matching
+ * `browser.savePDF`.
+ */
+export const pdf: ActionFn = async (session, args) => {
+    if (!session.isWeb) {
+        throw notSupported('pdf is only supported for web sessions.')
+    }
+    const given = typeof args.file === 'string' && args.file
+        ? args.file
+        : typeof args.path === 'string' ? args.path : undefined
+    let file: string
+    if (given) {
+        if (!given.toLowerCase().endsWith('.pdf')) {
+            throw new SessionError('USAGE', 'The PDF path must end with .pdf.')
+        }
+        file = path.resolve(String(args.$cwd), given)
+        fs.mkdirSync(path.dirname(file), { recursive: true })
+    } else {
+        file = session.artifact('pdf', `${session.timestamp()}.pdf`)
+    }
+    await session.browser.savePDF(file)
+    return {
+        text: `Saved PDF → ${file}`,
+        code: `await browser.savePDF(${quote(file)})`,
+        data: { file },
         files: [file]
     }
 }

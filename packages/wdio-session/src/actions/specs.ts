@@ -134,6 +134,8 @@ export const ACTIONS: ActionSpec[] = [
             interactive: { type: 'boolean', alias: 'i', desc: 'Only interactive elements' },
             all: { type: 'boolean', desc: 'Include hidden elements' },
             boxes: { type: 'boolean', desc: 'Append bounding boxes' },
+            compact: { type: 'boolean', desc: 'Drop unnamed nodes that have no content' },
+            urls: { type: 'boolean', alias: 'u', desc: 'Include link hrefs' },
             'file-only': { type: 'boolean', desc: 'Only write the file' },
             'max-chars': { type: 'number', desc: 'Print inline up to this many characters (default 8000)' }
         }
@@ -151,7 +153,37 @@ export const ACTIONS: ActionSpec[] = [
         positionals: [{ name: 'target', desc: 'Element to capture' }],
         options: { full: { type: 'boolean', desc: 'Full page (web)' }, path: { type: 'string', desc: 'Output file' } }
     },
+    {
+        name: 'pdf', group: 'Observation', applies: ['W'],
+        desc: 'Save the current page as a PDF',
+        positionals: [{ name: 'file', desc: 'Output file (must end in .pdf)' }],
+        options: { path: { type: 'string', desc: 'Output file (must end in .pdf)' } },
+        examples: [['$0 session pdf report.pdf', 'Write report.pdf in the current directory']]
+    },
     { name: 'source', group: 'Observation', applies: ['W', 'M', 'D'], desc: 'Save the page HTML or app XML', options: { path: { type: 'string', desc: 'Output file' } } },
+    {
+        name: 'get', group: 'Observation', applies: ['W'],
+        desc: 'Read text, html, value, an attribute, the title, the URL, a count or a box',
+        positionals: [
+            { name: 'sub', desc: 'text | html | value | attr | title | url | count | box', required: true, choices: ['text', 'html', 'value', 'attr', 'title', 'url', 'count', 'box'] },
+            { name: 'target', desc: 'Ref or selector (not used for title and url)' },
+            { name: 'name', desc: 'Attribute name (attr only)' }
+        ],
+        examples: [
+            ['$0 session get text e1', 'Text of a ref'],
+            ['$0 session get url', 'Current URL'],
+            ['$0 session get attr e3 href', 'href of a link']
+        ]
+    },
+    {
+        name: 'is', group: 'Observation', applies: ['W'],
+        desc: 'Check whether an element is visible, enabled or checked',
+        positionals: [
+            { name: 'sub', desc: 'visible | enabled | checked', required: true, choices: ['visible', 'enabled', 'checked'] },
+            { name: 'target', desc: 'Ref or selector', required: true }
+        ],
+        examples: [['$0 session is visible e1', 'Print true or false']]
+    },
     {
         name: 'logs', group: 'Observation', applies: ['W', 'M'],
         desc: 'Print console, page error, network and device logs since the last call',
@@ -171,7 +203,27 @@ export const ACTIONS: ActionSpec[] = [
     { name: 'back', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Go back' },
     { name: 'forward', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Go forward' },
     { name: 'reload', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Reload the page' },
-    { name: 'click', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Click an element', positionals: [target()], options: { double: { type: 'boolean', desc: 'Double click' }, right: { type: 'boolean', desc: 'Right click' } } },
+    {
+        name: 'wait', group: 'Interaction', applies: ['W'],
+        desc: 'Wait for an element, text, a URL, a load state, a condition or a few milliseconds',
+        timeout: 120_000,
+        positionals: [{ name: 'target', desc: 'Ref, selector or milliseconds' }],
+        options: {
+            text: { type: 'string', desc: 'Wait until the page contains this text' },
+            url: { type: 'string', desc: 'Wait until the URL matches (substring, or * and ** globs)' },
+            load: { type: 'string', desc: 'domcontentloaded, load or networkidle' },
+            fn: { type: 'string', desc: 'Wait until this JavaScript expression is true' },
+            state: { type: 'string', desc: 'visible (default), hidden, enabled or disabled' },
+            limit: { type: 'number', desc: 'Milliseconds to wait (default 10000)' }
+        },
+        examples: [
+            ['$0 session wait e1', 'Wait until a ref is visible'],
+            ['$0 session wait --text Welcome', 'Wait for text'],
+            ['$0 session wait --url "**/dashboard"', 'Wait for a URL'],
+            ['$0 session wait 500', 'Pause 500ms']
+        ]
+    },
+    { name: 'click', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Click an element', positionals: [target()], options: { double: { type: 'boolean', desc: 'Double click' }, right: { type: 'boolean', desc: 'Right click' }, 'new-tab': { type: 'boolean', desc: 'Open the link in a new tab' } } },
     { name: 'tap', group: 'Interaction', applies: ['M'], mutation: true, desc: 'Tap an element (mobile)', positionals: [target()] },
     { name: 'fill', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Replace the value of an input', positionals: [target(), { name: 'text', desc: 'Text', required: true }] },
     { name: 'type', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Type into the focused element', positionals: [{ name: 'text', desc: 'Text', required: true }] },
@@ -183,6 +235,9 @@ export const ACTIONS: ActionSpec[] = [
     },
     { name: 'upload', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Set a file input', positionals: [target(), { name: 'file', desc: 'File to upload', required: true }] },
     { name: 'hover', group: 'Interaction', applies: ['W', 'D'], mutation: true, desc: 'Move the pointer over an element', positionals: [target()] },
+    { name: 'focus', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Focus an element', positionals: [target()] },
+    { name: 'check', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Check a checkbox or radio', positionals: [target()] },
+    { name: 'uncheck', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Uncheck a checkbox', positionals: [target()] },
     { name: 'drag', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Drag an element onto another', positionals: [{ name: 'from', desc: 'Source', required: true }, { name: 'to', desc: 'Destination', required: true }] },
     { name: 'scroll', group: 'Interaction', applies: ['W'], mutation: true, desc: 'Scroll an element into view or the page', positionals: [{ name: 'target', desc: 'Ref, selector, up, down, top or bottom' }], options: { px: { type: 'number', desc: 'Pixels for up/down (default 600)' } } },
     { name: 'swipe', group: 'Interaction', applies: ['M'], mutation: true, desc: 'Swipe the screen (mobile)', positionals: [{ name: 'direction', desc: 'Direction', required: true, choices: ['up', 'down', 'left', 'right'] }], options: { percent: { type: 'number', desc: 'Swipe length 0..1' } } },
@@ -195,7 +250,7 @@ export const ACTIONS: ActionSpec[] = [
     { name: 'windows', group: 'Contexts', applies: ['W', 'D'], desc: 'List or switch windows', positionals: [{ name: 'sub', desc: 'switch', choices: ['switch'] }, { name: 'arg', desc: 'Index or handle' }] },
     { name: 'frame', group: 'Contexts', applies: ['W'], mutation: true, desc: 'Switch into an iframe, to the parent or to the top', positionals: [{ name: 'target', desc: 'Ref, selector, parent or top', required: true }] },
     { name: 'contexts', group: 'Contexts', applies: ['M'], desc: 'List or switch native/webview contexts', positionals: [{ name: 'sub', desc: 'switch', choices: ['switch'] }, { name: 'name', desc: 'Context name' }] },
-    { name: 'dialog', group: 'Contexts', applies: ['W', 'M'], mutation: true, desc: 'Accept or dismiss an open dialog', positionals: [{ name: 'sub', desc: 'accept | dismiss', required: true, choices: ['accept', 'dismiss'] }], options: { text: { type: 'string', desc: 'Prompt text' } } },
+    { name: 'dialog', group: 'Contexts', applies: ['W', 'M'], mutation: true, desc: 'Accept, dismiss or report an open dialog', positionals: [{ name: 'sub', desc: 'accept | dismiss | status', required: true, choices: ['accept', 'dismiss', 'status'] }], options: { text: { type: 'string', desc: 'Prompt text' } } },
 
     /**
      * device

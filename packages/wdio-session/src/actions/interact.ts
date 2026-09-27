@@ -108,6 +108,19 @@ export const click: ActionFn = async (session, args) => {
     if (args.double && args.right) {
         throw usage('Use either --double or --right.')
     }
+    if (args.newTab) {
+        if (args.double || args.right) {
+            throw usage('Use either --new-tab or --double/--right.')
+        }
+        const href = await target.element.getAttribute('href')
+        if (!href) {
+            throw usage(`${target.label} has no href.`, 'Pass a link, or click without --new-tab.')
+        }
+        const base = await session.currentUrl()
+        const url = new URL(href, base || undefined).href
+        await session.browser.newWindow(url)
+        return done(`Opened ${url} in a new tab`, `await browser.newWindow(${quote(url)})`)
+    }
     const [verb, call, run] = args.double
         ? ['Double-clicked', 'doubleClick()', () => target.element.doubleClick()]
         : args.right
@@ -192,6 +205,27 @@ export const upload: ActionFn = async (session, args) => {
     await target.element.setValue(file)
     return done(`Set ${target.label} to ${path.basename(file)}`, `await ${target.code}.setValue(${quote(file)})`)
 }
+
+export const focus: ActionFn = async (session, args) => {
+    const target = await resolveTarget(session, args.target)
+    await session.browser.execute((el: HTMLElement) => el.focus(), target.element)
+    return done(`Focused ${target.label}`, `await browser.execute((el) => el.focus(), ${target.code})`)
+}
+
+export const setChecked: ActionFn = async (session, args) => {
+    const target = await resolveTarget(session, args.target)
+    const want = args.uncheck !== true
+    const selected = await target.element.isSelected()
+    if (selected !== want) {
+        await target.element.click()
+    }
+    const verb = want ? 'Checked' : 'Unchecked'
+    const guard = `if ((await ${target.code}.isSelected()) !== ${want}) {\n    await ${target.code}.click()\n}`
+    return done(`${verb} ${target.label}`, guard)
+}
+
+export const check: ActionFn = async (session, args) => setChecked(session, { ...args, uncheck: false })
+export const uncheck: ActionFn = async (session, args) => setChecked(session, { ...args, uncheck: true })
 
 export const hover: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)

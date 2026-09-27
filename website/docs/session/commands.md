@@ -185,6 +185,8 @@ Accessibility snapshot with refs. Applies to web, native mobile, native desktop.
 | `--interactive`, `-i` | Only interactive elements |
 | `--all` | Include hidden elements |
 | `--boxes` | Append bounding boxes |
+| `--compact` | Drop unnamed nodes that have no content |
+| `--urls`, `-u` | Include link hrefs |
 | `--file-only` | Only write the file |
 | `--max-chars` | Print inline up to this many characters (default 8000) |
 
@@ -232,6 +234,22 @@ Save a PNG of the viewport, an element or the full page. Applies to web, native 
 | `--full` | Full page (web) |
 | `--path` | Output file |
 
+## `pdf`
+
+Save the current page as a PDF. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `file` | no | Output file (must end in .pdf) |
+
+**Flags**
+
+| Flag | Description |
+| --- | --- |
+| `--path` | Output file (must end in .pdf) |
+
 ## `source`
 
 Save the page HTML or app XML. Applies to web, native mobile, native desktop.
@@ -241,6 +259,57 @@ Save the page HTML or app XML. Applies to web, native mobile, native desktop.
 | Flag | Description |
 | --- | --- |
 | `--path` | Output file |
+
+## `get`
+
+Read text, html, value, an attribute, the title, the URL, a count or a box. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `sub` | yes | text \| html \| value \| attr \| title \| url \| count \| box Choices: text, html, value, attr, title, url, count, box. |
+| `target` | no | Ref or selector (not used for title and url) |
+| `name` | no | Attribute name (attr only) |
+
+**Examples**
+
+```sh
+$0 session get text e1
+```
+
+Text of a ref
+
+```sh
+$0 session get url
+```
+
+Current URL
+
+```sh
+$0 session get attr e3 href
+```
+
+href of a link
+
+## `is`
+
+Check whether an element is visible, enabled or checked. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `sub` | yes | visible \| enabled \| checked Choices: visible, enabled, checked. |
+| `target` | yes | Ref or selector |
+
+**Examples**
+
+```sh
+$0 session is visible e1
+```
+
+Print true or false
 
 ## `logs`
 
@@ -278,6 +347,53 @@ Go forward. Applies to web.
 
 Reload the page. Applies to web.
 
+## `wait`
+
+Wait for an element, text, a URL, a load state, a condition or a few milliseconds. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `target` | no | Ref, selector or milliseconds |
+
+**Flags**
+
+| Flag | Description |
+| --- | --- |
+| `--text` | Wait until the page contains this text |
+| `--url` | Wait until the URL matches (substring, or * and ** globs) |
+| `--load` | domcontentloaded, load or networkidle |
+| `--fn` | Wait until this JavaScript expression is true |
+| `--state` | visible (default), hidden, enabled or disabled |
+| `--limit` | Milliseconds to wait (default 10000) |
+
+**Examples**
+
+```sh
+$0 session wait e1
+```
+
+Wait until a ref is visible
+
+```sh
+$0 session wait --text Welcome
+```
+
+Wait for text
+
+```sh
+$0 session wait --url "**/dashboard"
+```
+
+Wait for a URL
+
+```sh
+$0 session wait 500
+```
+
+Pause 500ms
+
 ## `click`
 
 Click an element. Applies to web, native mobile, native desktop.
@@ -294,6 +410,7 @@ Click an element. Applies to web, native mobile, native desktop.
 | --- | --- |
 | `--double` | Double click |
 | `--right` | Right click |
+| `--new-tab` | Open the link in a new tab |
 
 ## `tap`
 
@@ -367,6 +484,36 @@ Set a file input. Applies to web.
 ## `hover`
 
 Move the pointer over an element. Applies to web, native desktop.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `target` | yes | Ref (e12) or WebdriverIO selector |
+
+## `focus`
+
+Focus an element. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `target` | yes | Ref (e12) or WebdriverIO selector |
+
+## `check`
+
+Check a checkbox or radio. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `target` | yes | Ref (e12) or WebdriverIO selector |
+
+## `uncheck`
+
+Uncheck a checkbox. Applies to web.
 
 **Arguments**
 
@@ -478,13 +625,13 @@ List or switch native/webview contexts. Applies to native mobile.
 
 ## `dialog`
 
-Accept or dismiss an open dialog. Applies to web, native mobile.
+Accept, dismiss or report an open dialog. Applies to web, native mobile.
 
 **Arguments**
 
 | Name | Required | Description |
 | --- | --- | --- |
-| `sub` | yes | accept \| dismiss Choices: accept, dismiss. |
+| `sub` | yes | accept \| dismiss \| status Choices: accept, dismiss, status. |
 
 **Flags**
 

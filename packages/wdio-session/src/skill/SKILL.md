@@ -33,11 +33,13 @@ Cloud: `open chrome --provider browserstack` (also `saucelabs`, `testingbot`, `t
 
 ```sh
 npx wdio session snapshot --interactive
+npx wdio session snapshot --compact
+npx wdio session snapshot --urls
 npx wdio session find "Add to cart"
 npx wdio session diff
 ```
 
-Refs look like `button "Add to cart" [ref=e3]`. Take a screenshot only when the question is about layout.
+Refs look like `button "Add to cart" [ref=e3]`. Take a screenshot only when the question is about layout. `pdf report.pdf` saves the page as a PDF.
 
 ## 4. Act
 
@@ -45,7 +47,12 @@ Use refs from the latest snapshot. Snapshot again after navigation. Prefer `exec
 
 ```sh
 npx wdio session click e3
+npx wdio session focus e2
+npx wdio session check e4
+npx wdio session click e5 --new-tab
 npx wdio session fill e2 ada@example.com
+npx wdio session wait --text "Cart (1)"
+npx wdio session wait --url "**/cart"
 npx wdio session <<'JS'
 await $('aria/Cart (1)').waitForDisplayed()
 JS
@@ -59,7 +66,18 @@ WebdriverIO v10 rules:
 
 ## 5. Verify
 
-Put assertions in `exec`. Use `visual check` when the question is how the screen looks.
+Read the page with `get` before writing an assertion. Put assertions in `exec`. Use `visual check` when the question is how the screen looks.
+
+```sh
+npx wdio session get title
+npx wdio session get url
+npx wdio session get text e1
+npx wdio session get value e2
+npx wdio session is visible e1
+npx wdio session is enabled e2
+npx wdio session is checked e3
+npx wdio session dialog status
+```
 
 ```sh
 npx wdio session exec -e "await expect($('h1')).toHaveText('Cart')"

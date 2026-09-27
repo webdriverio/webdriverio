@@ -2,6 +2,8 @@ import type { ActionFn } from '../session.js'
 import * as lifecycle from './lifecycle.js'
 import { exec } from './exec.js'
 import * as observe from './observe.js'
+import { get, is } from './query.js'
+import { wait } from './wait.js'
 import * as interact from './interact.js'
 import * as contexts from './contexts.js'
 import { emulate, geolocation } from './emulate.js'
@@ -29,11 +31,15 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     find: observe.find,
     diff: observe.diff,
     screenshot: observe.screenshot,
+    pdf: observe.pdf,
     source: observe.source,
+    get,
+    is,
     navigate: interact.navigate,
     back: interact.back,
     forward: interact.forward,
     reload: interact.reload,
+    wait,
     click: interact.click,
     tap: interact.tap,
     fill: interact.fill,
@@ -42,6 +48,9 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     select: interact.select,
     upload: interact.upload,
     hover: interact.hover,
+    focus: interact.focus,
+    check: interact.check,
+    uncheck: interact.uncheck,
     drag: interact.drag,
     scroll: interact.scroll,
     swipe: interact.swipe,
