@@ -116,6 +116,10 @@ export interface OpenPlan {
     configPath?: string
     provider?: string
     /**
+     * a tunnel this session should start (BrowserStack Local)
+     */
+    tunnel?: { package: string, entry: string, name?: string }
+    /**
      * original `open` arguments, used by `restart`
      */
     argv: string[]
