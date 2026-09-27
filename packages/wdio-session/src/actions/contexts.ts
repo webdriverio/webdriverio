@@ -186,6 +186,7 @@ export async function trackDialogs (session: Session) {
             dismiss: () => dialog.dismiss()
         }
         log.info(`Dialog opened: ${open.type} "${open.message}"`)
+        session.logs.push({ time: Date.now(), level: 'info', source: 'dialog', text: `${open.type} ${JSON.stringify(open.message)}` })
         session.set('dialog', open)
     }
     const onClosed = () => session.set('dialog', undefined)
