@@ -21,10 +21,10 @@ export function getRuntimeDir ({ env = process.env, platform = process.platform,
         return path.win32.join(env.LOCALAPPDATA || tmpdir, 'wdio-session')
     }
     if (env.XDG_RUNTIME_DIR) {
-        return path.join(env.XDG_RUNTIME_DIR, 'wdio-session')
+        return path.posix.join(env.XDG_RUNTIME_DIR, 'wdio-session')
     }
     const id = uid ?? (typeof process.getuid === 'function' ? process.getuid() : 0)
-    return path.join(tmpdir, `wdio-session-${id}`)
+    return path.posix.join(tmpdir, `wdio-session-${id}`)
 }
 
 export function ensureRuntimeDir (dir = getRuntimeDir()) {
@@ -47,7 +47,7 @@ export function getSocketPath (runtimeDir: string, name: string, platform: NodeJ
         const hash = crypto.createHash('sha1').update(runtimeDir).digest('hex').slice(0, 8)
         return `\\\\.\\pipe\\wdio-session-${hash}-${name}`
     }
-    return path.join(runtimeDir, `${name}.sock`)
+    return path.posix.join(runtimeDir, `${name}.sock`)
 }
 
 export function getStatePath (runtimeDir: string, name: string) {

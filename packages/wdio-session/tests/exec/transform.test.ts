@@ -1,3 +1,4 @@
+import path from 'node:path'
 import vm from 'node:vm'
 import { describe, it, expect } from 'vitest'
 
@@ -54,7 +55,7 @@ describe('exec transform', () => {
         expect(transform("const m = await import('node:os')").code).toBe("globalThis.m = await __wdioImport('node:os')")
         expect(transform("(await import('node:os')).EOL").code).toBe("return ((await __wdioImport('node:os')).EOL);")
         const { value } = await run("import { join } from 'node:path'\njoin('a', 'b')")
-        expect(value).toBe('a/b')
+        expect(value).toBe(path.join('a', 'b'))
     })
 
     it('strips TypeScript annotations', async () => {

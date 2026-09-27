@@ -106,7 +106,7 @@ export async function electronPlan (args: OpenArgs, ctx: ElectronContext): Promi
     }
     const display = host === 'linux' && !hasDisplay(env)
     if (display) {
-        checkDisplayServer('open an Electron session', env)
+        checkDisplayServer('open an Electron session', env, host)
     }
     return {
         capabilities,
