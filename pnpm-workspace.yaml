@@ -12,6 +12,7 @@ packages:
   - 'examples/bidi/**'
   - 'examples/appium/**'
   - 'test-headless-flag'
+  - '!e2e/session/__fixtures__/**'
 
 onlyBuiltDependencies:
   - sharp

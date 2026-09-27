@@ -1,0 +1,7 @@
+{
+  "name": "wdio-session-electron-fixture",
+  "productName": "Session Fixture App",
+  "version": "1.0.0",
+  "private": true,
+  "main": "main.js"
+}

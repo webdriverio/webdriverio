@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Shadow Fixture</title>
+</head>
+<body>
+  <h1>Shadow DOM</h1>
+  <fancy-card></fancy-card>
+  <script>
+    customElements.define('fancy-card', class extends HTMLElement {
+      connectedCallback () {
+        const root = this.attachShadow({ mode: 'open' })
+        root.innerHTML = '<section aria-label="Card"><h2>Inside shadow</h2><input aria-label="Shadow input"><button type="button" onclick="this.textContent = \'Clicked\'">Shadow button</button></section>'
+      }
+    })
+  </script>
+</body>
+</html>

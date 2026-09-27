@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Geo Fixture</title></head>
+<body>
+  <h1>Where am I</h1>
+  <p id="coords"></p>
+  <script>
+    navigator.geolocation.getCurrentPosition(
+      (p) => { document.getElementById('coords').textContent = p.coords.latitude.toFixed(2) + ',' + p.coords.longitude.toFixed(2) },
+      (e) => { document.getElementById('coords').textContent = 'error: ' + e.message }
+    )
+  </script>
+</body>
+</html>
