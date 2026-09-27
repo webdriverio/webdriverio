@@ -78,6 +78,30 @@ async function bar() {
     // instances array
     expectType<string[]>(mr.instances)
 
+    // mock() names each instance instead of returning a plain array
+    const mrMock = await mr.mock('**/image.jpg')
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock)
+    expectType<true>(mrMock.isMultiRemote)
+    expectType<string[]>(mrMock.instances)
+    expectType<WebdriverIO.Mock>(mrMock.getInstance('myBrowserInstance'))
+    expectType<number>(mrMock.getInstance('myBrowserInstance').calls.length)
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.respond({ ok: true }))
+    expectType<WebdriverIO.MultiRemoteMock>(await mrMock.restore())
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.on('request', (request) => {
+        expectType<boolean>(request.isBlocked)
+        // @ts-expect-error before-request payloads are not overwrite responses
+        request.statusCode
+    }))
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.on('match', () => undefined))
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.on('continue', () => undefined))
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.on('fail', () => undefined))
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.on('overwrite', () => undefined))
+    expectType<WebdriverIO.MultiRemoteMock>(await mr.select('myBrowserInstance').mock('**/image.jpg'))
+    // @ts-expect-error calls belong to one instance, not the multi-remote mock
+    mrMock.calls
+    // @ts-expect-error request ids belong to one session
+    mrMock.getBinaryResponse('req')
+
     const elements = await browser.$$('foo').getElements()
     expectType<string>(elements.foundWith)
 

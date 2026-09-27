@@ -15,7 +15,7 @@ vi.mock('node:fs', () => ({
 vi.mock('fetch')
 vi.mock('archiver', async () => {
     const { default: archiver } = await import(path.join(process.cwd(), '__mocks__', 'archiver'))
-    return { ZipArchive: vi.fn(() => archiver('zip')) }
+    return { ZipArchive: vi.fn(function () { return archiver('zip') }) }
 })
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 

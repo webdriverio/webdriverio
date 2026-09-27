@@ -1,7 +1,7 @@
 ---
 id: v10-migration
 title: From v9 to v10
-description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, and element references.
+description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, multi-remote network mocks, and element references.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
@@ -282,6 +282,21 @@ With the testrunner and `injectGlobals` left on, the instance name is still a gl
 
 Command results stay in capability order: the first entry belongs to the first key in the capabilities object.
 
+## Multi-remote network mocks
+
+`browser.mock()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteMock`, not an array of mocks. `respond`, `restore`, and the other mock methods run on every instance. Read captured requests from the mock for one browser. Use the `WebdriverIO.MultiRemoteMock` type from the global `WebdriverIO` namespace.
+
+```diff
+- const [chromeMock, firefoxMock] = await browser.mock('**/api')
+- expect(chromeMock.calls).toHaveLength(1)
++ const mock = await browser.mock('**/api')
++ mock.respond({ ok: true })
++ expect(mock.getInstance('myChromeBrowser').calls).toHaveLength(1)
++ expect(mock.instances).toEqual(['myChromeBrowser', 'myFirefoxBrowser'])
+```
+
+`getInstance` throws `Multi-remote object has no instance named "<name>"` when the name is not one of `instances`. A mock from `browser.select('myFirefoxBrowser', 'myChromeBrowser')` lists those instances in that order, which can differ from `browser.instances`. Do not assume `mocks[0]` is a particular browser.
+
 ## Element references
 
 Element ids use the W3C WebDriver key `element-6066-11e4-a52e-4f735466cecf` and the `elementId` property. The JSON Wire Protocol field `ELEMENT` is no longer part of the element contract.
@@ -309,6 +324,17 @@ Jasmine prints a chained `$()` result through `toJSON`. That value is the same W
 `jasmineNodeOpts` was removed. Configure Jasmine with `jasmineOpts`. Setting `jasmineNodeOpts` throws.
 
 `jasmineOpts.stopSpecOnExpectationFailure` was removed. Use `jasmineOpts.oneFailurePerSpec`. Setting the old key throws.
+
+## Component testing
+
+`@wdio/browser-runner` re-exports `fn`, `spyOn` and the mock types from `@vitest/spy` 5 (previously 3). A mock that your code calls with `new` needs a `function` or `class` implementation. An arrow function throws `is not a constructor`, and `mockReturnValue` throws when the mock is called with `new`.
+
+```diff
+- const Client = fn(() => ({ close: fn() }))
++ const Client = fn(function () { return { close: fn() } })
+```
+
+For other spy changes, see the [Vitest migration guide](https://vitest.dev/guide/migration).
 
 ## Puppeteer
 

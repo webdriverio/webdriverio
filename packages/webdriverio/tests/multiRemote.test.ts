@@ -3,6 +3,7 @@ import { test, expect, vi, afterEach, describe, beforeAll, afterAll } from 'vite
 import type { Capabilities } from '@wdio/types'
 
 import { multiRemote } from '../src/index.js'
+import { MultiRemoteMock } from '../src/multiRemoteMock.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -387,6 +388,55 @@ describe('Multi-Remote tests', () => {
             const h1 = await browser.$('#foo')
 
             expect(() => h1.select('nonExistentBrowser')).toThrowError('None of the following requested instances are valid: nonExistentBrowser')
+        })
+    })
+
+    describe('mock', () => {
+        function stubInstanceMocks(browser: WebdriverIO.MultiRemoteBrowser) {
+            const mocks = {
+                browserA: { calls: [{ id: 'browserA' }] } as WebdriverIO.Mock,
+                browserB: { calls: [{ id: 'browserB' }] } as WebdriverIO.Mock
+            }
+            const browserA = browser.getInstance('browserA')
+            const browserB = browser.getInstance('browserB')
+            if (!browserA || !browserB) {
+                throw new Error('expected both multiremote instances')
+            }
+            vi.spyOn(browserA, 'mock').mockResolvedValue(mocks.browserA)
+            vi.spyOn(browserB, 'mock').mockResolvedValue(mocks.browserB)
+            return mocks
+        }
+
+        test('returns a MultiRemoteMock keyed by instance name', async () => {
+            const browser = await multiRemote(caps())
+            const mocks = stubInstanceMocks(browser)
+
+            const mock = await browser.mock('**/api', { method: 'GET' })
+
+            expect(mock).toBeInstanceOf(MultiRemoteMock)
+            expect(Array.isArray(mock)).toBe(false)
+            expect(mock.isMultiRemote).toBe(true)
+            expect(mock.instances).toEqual(['browserA', 'browserB'])
+            expect(mock.getInstance('browserA')).toBe(mocks.browserA)
+            expect(mock.getInstance('browserB')).toBe(mocks.browserB)
+            expect(mock.getInstance('browserA').calls).toEqual([{ id: 'browserA' }])
+            expect(() => mock.getInstance('missing')).toThrow(
+                'Multi-remote object has no instance named "missing"'
+            )
+            expect(browser.getInstance('browserA')?.mock).toHaveBeenCalledWith('**/api', { method: 'GET' })
+            expect(browser.getInstance('browserB')?.mock).toHaveBeenCalledWith('**/api', { method: 'GET' })
+        })
+
+        test('follows select() order instead of the parent instance order', async () => {
+            const browser = await multiRemote(caps())
+            stubInstanceMocks(browser)
+
+            const mock = await browser.select('browserB', 'browserA').mock('**/api')
+
+            expect(browser.instances).toEqual(['browserA', 'browserB'])
+            expect(mock.instances).toEqual(['browserB', 'browserA'])
+            expect(mock.getInstance('browserA').calls).toEqual([{ id: 'browserA' }])
+            expect(mock.getInstance('browserB').calls).toEqual([{ id: 'browserB' }])
         })
     })
 })

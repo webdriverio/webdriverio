@@ -40,6 +40,12 @@ Never start with `pnpm test` or `pnpm run ci`.
 
 - Unit: one file per source file under `packages/<pkg>/tests/`, mock other
   packages, no real browser.
+- Assert mocks with matchers: `toHaveBeenCalledWith`, `toHaveBeenNthCalledWith`,
+  `toHaveBeenCalledTimes`, with `expect.objectContaining` / `expect.stringMatching`
+  for partial args. Index `mock.calls[i][j]` only to grab a callback to invoke, or
+  when an argument must be parsed first (e.g. a JSON body).
+- Mocks are cleared before each test (Vitest default). Do not rely on calls made in
+  `beforeAll` or earlier tests; keep what setup registered in a variable instead.
 - Typings: add a usage snippet to `tests/typings/webdriverio/async.ts` (or
   the webdriver / framework file you changed).
 - Smoke: add a named function in `tests/smoke.runner.js` and register it in

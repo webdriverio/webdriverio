@@ -39,7 +39,7 @@
   },
   "typeScriptVersion": "5.9.3",
   "dependencies": {
-    "@vitest/snapshot": "^3.2.7",
+    "@vitest/snapshot": "^5.0.2",
     "@wdio/config": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",

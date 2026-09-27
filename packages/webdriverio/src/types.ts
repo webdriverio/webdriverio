@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { EventEmitter } from 'node:events'
-import type { remote, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
+import type { remote, local, SessionFlags, AttachOptions as WebDriverAttachOptions, BidiHandler, EventMap } from 'webdriver'
 import type { Capabilities, Options, ThenArg, CustomCommands } from '@wdio/types'
 import type { ElementReference, ProtocolCommands, RectReturn } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core'
@@ -10,6 +10,7 @@ import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type { Button, ButtonNames } from './utils/actions/pointer.js'
 import type WebDriverInterception from './utils/interception/index.js'
+import type { Response as MockResponse } from './utils/interception/types.js'
 
 /**
  * export mock primitives
@@ -214,6 +215,10 @@ export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototyp
 type SingleElementCommandNames = '$' | 'custom$' | 'react$'
 type MultiElementCommandNames = '$$' | 'custom$$' | 'react$$'
 type ElementCommandNames = SingleElementCommandNames | MultiElementCommandNames
+/**
+ * `mock` is wrapped into a `MultiRemoteMock` instead of an array of results.
+ */
+type MultiRemoteArrayCommandNames = ElementCommandNames | 'SESSION_MOCKS' | 'CDP_SESSIONS' | 'mock'
 type MultiRemoteElementCommands = {
     [K in keyof Pick<BrowserCommandsType, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement>
 } & {
@@ -228,8 +233,10 @@ type MultiRemoteElementCommands = {
 }
 
 export type MultiRemoteBrowserCommandsType = {
-    [K in keyof Omit<BrowserCommandsType, ElementCommandNames | 'SESSION_MOCKS' | 'CDP_SESSIONS'>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
-} & MultiRemoteElementCommands
+    [K in keyof Omit<BrowserCommandsType, MultiRemoteArrayCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
+} & MultiRemoteElementCommands & {
+    mock(...args: Parameters<BrowserCommandsType['mock']>): Promise<WebdriverIO.MultiRemoteMock>
+}
 export type MultiRemoteElementCommandsType = {
     [K in keyof Omit<ElementCommandsType, ElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>
 } & MultiRemoteElementCommands
@@ -304,6 +311,57 @@ interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemo
     getElements(): Promise<WebdriverIO.MultiRemoteElementArray>
 }
 export type MultiRemoteElementArray = MultiRemoteElementArrayExport
+
+/**
+ * What `browser.mock()` returns on a multi-remote browser. Methods such as
+ * `respond` and `restore` run on every instance. Captured requests stay on
+ * the mock for one browser: `mock.getInstance(name).calls`. Request ids are
+ * not shared across sessions, so `getBinaryResponse` stays on that mock too.
+ */
+interface MultiRemoteMockBase {
+    /**
+     * Instance names, in the order the mocks were created. A `select()` that
+     * reorders browsers is reflected here, so this can differ from
+     * `browser.instances`.
+     */
+    instances: string[]
+    /**
+     * Always `true`, so a multi-remote mock can be told apart from a single `Mock`.
+     */
+    isMultiRemote: true
+    /**
+     * The mock registered on one instance.
+     * Throws `Multi-remote object has no instance named "<name>"` when `name` is not one of `instances`.
+     */
+    getInstance(name: string): WebdriverIO.Mock
+    abort(...args: Parameters<WebdriverIO.Mock['abort']>): this
+    abortOnce(...args: Parameters<WebdriverIO.Mock['abortOnce']>): this
+    clear(...args: Parameters<WebdriverIO.Mock['clear']>): this
+    reset(...args: Parameters<WebdriverIO.Mock['reset']>): this
+    redirect(...args: Parameters<WebdriverIO.Mock['redirect']>): this
+    redirectOnce(...args: Parameters<WebdriverIO.Mock['redirectOnce']>): this
+    request(...args: Parameters<WebdriverIO.Mock['request']>): this
+    requestOnce(...args: Parameters<WebdriverIO.Mock['requestOnce']>): this
+    respond(...args: Parameters<WebdriverIO.Mock['respond']>): this
+    respondOnce(...args: Parameters<WebdriverIO.Mock['respondOnce']>): this
+    /**
+     * Register the same listener on every instance's mock.
+     */
+    on(event: 'request', callback: (request: local.NetworkBeforeRequestSentParameters) => void): this
+    on(event: 'match', callback: (match: local.NetworkBeforeRequestSentParameters) => void): this
+    on(event: 'continue', callback: (requestId: string) => void): this
+    on(event: 'fail', callback: (requestId: string) => void): this
+    on(event: 'overwrite', callback: (response: MockResponse) => void): this
+    on(event: string, callback: (...args: any[]) => void): this
+    /**
+     * Restore every instance's mock.
+     */
+    restore(...args: Parameters<WebdriverIO.Mock['restore']>): Promise<this>
+    /**
+     * Wait until every instance has received a matching response.
+     */
+    waitForResponse(...args: Parameters<WebdriverIO.Mock['waitForResponse']>): Promise<Awaited<ReturnType<WebdriverIO.Mock['waitForResponse']>>[]>
+}
 
 type AddCommandFnScoped<
     InstanceType = WebdriverIO.Browser,
@@ -887,6 +945,15 @@ declare global {
          * @see https://webdriver.io/docs/multiremote/
          */
         interface MultiRemoteElementArray extends MultiRemoteElementArrayExport {}
+        /**
+         * WebdriverIO multi-remote mock
+         * What `browser.mock()` returns on a multi-remote browser. `instances` names
+         * each mock, `getInstance(name)` returns that browser's mock, and mock
+         * methods such as `respond` and `restore` run on every instance.
+         *
+         * @see https://webdriver.io/docs/multiremote/
+         */
+        interface MultiRemoteMock extends MultiRemoteMockBase {}
         /**
          * WebdriverIO Mock object
          * The mock object is an object that represents a network mock and contains information about

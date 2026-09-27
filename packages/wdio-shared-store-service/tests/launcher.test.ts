@@ -39,7 +39,7 @@ describe('SharedStoreService', () => {
             }
             await storeLauncher.onPrepare(null as never, capabilities)
             expect(capabilities).toMatchSnapshot()
-            expect(setPort).toBeCalledTimes(3)
+            expect(setPort).toBeCalledTimes(1)
             expect(setPort).toBeCalledWith(3000)
         })
 

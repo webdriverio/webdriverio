@@ -21,25 +21,31 @@ describe('isExisting test', () => {
     it('should allow to check if an element is enabled', async () => {
         const elem = await browser.$('#foo')
         await elem.isExisting()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
-            .toBe('/session/foobar-123/elements')
+        expect(fetch).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({ pathname: '/session/foobar-123/elements' }),
+            expect.anything()
+        )
     })
 
     it('should allow to check an react element', async () => {
         const elem = await browser.react$('#foo')
         await elem.isExisting()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
-            .toBe('/session/foobar-123/execute/sync')
+        expect(fetch).toHaveBeenNthCalledWith(
+            3,
+            expect.objectContaining({ pathname: '/session/foobar-123/execute/sync' }),
+            expect.anything()
+        )
     })
 
     it('should use getElementTagName if no selector is available', async () => {
         const elem = await browser.$({ 'element-6066-11e4-a52e-4f735466cecf': 'someId' })
         expect(await elem.isExisting()).toBe(true)
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[0][0]!.pathname.endsWith('/element/someId/name')).toBe(true)
-
+        expect(fetch).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({ pathname: expect.stringMatching(/\/element\/someId\/name$/) }),
+            expect.anything()
+        )
     })
 
     afterEach(() => {

@@ -7,6 +7,9 @@ updates:
     time: "11:00"
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
+  # pnpm rejects versions younger than its 1 day minimumReleaseAge
+  cooldown:
+    default-days: 2
   groups:
     patch-deps-updates-main:
       update-types:

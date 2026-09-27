@@ -21,7 +21,7 @@ RUN dnf install -y weston && \
 RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - && \
     dnf install -y nodejs
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@11.27.1
 
 # Install Chrome for testing
 RUN echo '[google-chrome]' > /etc/yum.repos.d/google-chrome.repo && \

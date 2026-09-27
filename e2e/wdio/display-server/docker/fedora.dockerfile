@@ -13,7 +13,7 @@ RUN dnf update -y && \
         weston && \
     dnf clean all
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@11.27.1
 
 # Install Chrome for testing
 RUN echo '[google-chrome]' > /etc/yum.repos.d/google-chrome.repo && \

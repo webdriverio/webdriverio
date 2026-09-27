@@ -16,6 +16,12 @@ automated tests in the cloud. Find out more in the [Automation Protocols](/docs/
 
 You can read more about mocking requests and responses in WebdriverIO in our [Mocks and Spies](/docs/mocksandspies) guide.
 
+## Multi-remote
+
+On a [multi-remote](/docs/multiremote) browser, [`browser.mock()`](/docs/api/browser/mock) returns a `MultiRemoteMock` instead of this object. `instances` lists the browser names, and `getInstance(name)` returns the `Mock` for that browser. `respond()`, `restore()`, and the other methods below run on every instance. `calls` stays on each instance's mock: `mock.getInstance('myChromeBrowser').calls`.
+
+`getInstance` throws `Multi-remote object has no instance named "<name>"` when `name` is not one of `instances`.
+
 ## Properties
 
 A mock object contains the following properties:

@@ -35,7 +35,7 @@ describe('client', () => {
         it('Error should be thrown when attempting to retrieve a value before server initialization', async () => {
             await expect(getValue('*')).rejects.toThrowError('Attempting to use `getValue` before the server has been initialized.')
             await expect(getValueFromPool('*')).rejects.toThrowError('Attempting to use `getValueFromPool` before the server has been initialized.')
-            expect(addValueToPool('*', '')).rejects.toThrowError('Attempting to use `addValueToPool` before the server has been initialized.')
+            await expect(addValueToPool('*', '')).rejects.toThrowError('Attempting to use `addValueToPool` before the server has been initialized.')
         })
 
         it('should not post before server has started', async () => {

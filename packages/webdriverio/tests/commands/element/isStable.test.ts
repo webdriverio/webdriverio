@@ -28,12 +28,14 @@ describe('isStable test', () => {
 
     it('should allow to check if element is stable', async () => {
         await elem.isStable()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
-            .toBe('/session/foobar-123/execute/async')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).script)
+        expect(fetch).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({ pathname: '/session/foobar-123/execute/async' }),
+            expect.anything()
+        )
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as any).script)
             .toEqual(expect.stringContaining('async function isElementStable'))
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).args)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as any).args)
             .toEqual([{
                 [ELEMENT_KEY]: elem.elementId,
             }])

@@ -8,14 +8,14 @@ A user installs WebdriverIO and runs an example. The script starts a real browse
 - `example-mocha` runs the Mocha testrunner against Chrome and asserts the WebdriverIO docs title.
 - `example-pageobject` runs a page-object suite against a real login form in Chrome.
 - `example-frameworks` runs the Jasmine, Cucumber, multi-remote, custom reporter, and custom service testrunner examples.
-- `example-bidi` runs a BiDi script that subscribes to browser log or network events, or installs a preload script.
+- `example-bidi` runs a BiDi script that subscribes to browser log or network events, installs a preload script, or mocks a request on two Chrome sessions.
 
 ## How to get to it (user POV)
 
 - Standalone script: `examples/standalone/sample.js`
 - Testrunner examples, from `examples/wdio`: `pnpm run test:mocha`, `test:jasmine`, `test:cucumber`, `test:multi-remote`, `test:customReporter`, `test:customService`
 - Page objects: `examples/pageobject` then `pnpm run test`
-- BiDi scripts: `examples/bidi/logging.js` and `examples/bidi/scripting.js` (Chrome with `webSocketUrl: true`)
+- BiDi scripts: `examples/bidi/logging.js`, `examples/bidi/scripting.js`, and `examples/bidi/multiremote-mock.js` (Chrome with `webSocketUrl: true`)
 
 ## Driving it with the WebdriverIO harness
 
@@ -32,7 +32,8 @@ Preconditions:
 - **Other testrunner examples.** Run the matching script from `examples/wdio/package.json` (`test:jasmine`, `test:cucumber`, `test:multi-remote`, `test:customReporter`, `test:customService`). Exit 0 and the spec reporter shows passing tests.
 - **BiDi logging.** Run `cd examples/bidi && node logging.js`. Exit 0 and stdout includes the log entry from `console.log('Hello Bidi')`.
 - **BiDi scripting.** Run `cd examples/bidi && node scripting.js`. Exit 0 and stdout contains `foo`. The preload script sets `window.bar` to that value before the page loads.
-- **Proof.** Save output to `.agents/verify-artifacts/example-pipeline/`. `result.txt` quotes the URL, title, flash text, log entry, or preload value the script asserted.
+- **BiDi multiremote mock.** Run `cd examples/bidi && node multiremote-mock.js`. Exit 0. Stdout contains `instances: myChromeBrowser,myOtherChromeBrowser`, `selected: myOtherChromeBrowser,myChromeBrowser`, `Multi-remote object has no instance named "missing"`, and a `myChromeBrowser calls:` line whose count is at least 1. The script deletes both sessions. A thrown error prints `Something went wrong:` and still deletes the sessions; that is a failure.
+- **Proof.** Save output to `.agents/verify-artifacts/example-pipeline/`. `result.txt` quotes the URL, title, flash text, log entry, preload value, or mock instance lines the script asserted.
 
 ## Gotchas
 
@@ -41,3 +42,4 @@ Preconditions:
 - `sample.js` forces headless through `wdio:devtoolsOptions`. The `examples/wdio` configs request `browserName: 'chrome'` and do not set headless. If Chrome cannot open a window, say so and stop. Do not point the example at the mock service.
 - `examples/cloudservices/` needs Sauce, BrowserStack, TestingBot, or Kobiton credentials. Without them the entry point is unreachable.
 - One example at a time. Kill the PID you started. Do not kill every Chrome on the machine.
+- `examples/bidi/multiremote-mock.js` starts two headless Chrome sessions. `examples/wdio/multiremote` still does not call `mock()`.

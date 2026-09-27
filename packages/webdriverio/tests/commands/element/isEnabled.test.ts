@@ -22,9 +22,11 @@ describe('isEnabled test', () => {
 
     it('should allow to check if an element is enabled', async () => {
         await elem.isEnabled()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/enabled')
+        expect(fetch).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({ pathname: '/session/foobar-123/element/some-elem-123/enabled' }),
+            expect.anything()
+        )
     })
 
     afterEach(() => {

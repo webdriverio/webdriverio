@@ -12,7 +12,7 @@ RUN zypper refresh && \
         weston && \
     zypper clean -a
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@11.27.1
 
 # Install Chrome for testing
 RUN zypper addrepo -f http://dl.google.com/linux/chrome/rpm/stable/x86_64 google-chrome && \

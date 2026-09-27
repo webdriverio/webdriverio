@@ -67,3 +67,13 @@ await browser.pause(2000)
 console.log(await browser.execute(() => window.bar))
 await browser.deleteSession()
 ```
+
+## Multi-remote mock
+
+`mock()` on a multi-remote browser returns one object for every session. `instances` names them, `getInstance(name)` returns that browser's mock, and `respond()` runs on all of them. Run it with:
+
+```sh
+node multiremote-mock.js
+```
+
+The script starts two headless Chrome sessions (`myChromeBrowser` and `myOtherChromeBrowser`) and prints the instance order, including the order after `select()`.

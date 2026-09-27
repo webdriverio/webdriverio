@@ -22,7 +22,7 @@ RUN apk update && \
         xvfb-run && \
     rm -rf /var/cache/apk/*
 
-RUN npm install -g pnpm@10
+RUN npm install -g pnpm@11.27.1
 
 RUN adduser -D -s /bin/sh testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers

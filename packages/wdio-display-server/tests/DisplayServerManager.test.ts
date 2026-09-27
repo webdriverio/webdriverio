@@ -22,12 +22,12 @@ vi.mock('node:os', () => ({
 }))
 
 vi.mock('../src/WaylandDisplayServer.js', () => ({
-    WaylandDisplayServer: vi.fn(() => mockWayland),
+    WaylandDisplayServer: vi.fn(function () { return mockWayland }),
     WAYLAND_CHROME_FLAGS: ['--ozone-platform=wayland', '--enable-features=UseOzonePlatform'],
 }))
 
 vi.mock('../src/XvfbDisplayServer.js', () => ({
-    XvfbDisplayServer: vi.fn(() => mockXvfb),
+    XvfbDisplayServer: vi.fn(function () { return mockXvfb }),
 }))
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
