@@ -274,6 +274,25 @@ $0 session get attr e3 href
 
 href of a link
 
+## `is`
+
+Check whether an element is visible, enabled or checked. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `sub` | yes | visible \| enabled \| checked Choices: visible, enabled, checked. |
+| `target` | yes | Ref or selector |
+
+**Examples**
+
+```sh
+$0 session is visible e1
+```
+
+Print true or false
+
 ## `logs`
 
 Print console, page error, network and device logs since the last call. Applies to web, native mobile.

@@ -66,6 +66,9 @@ npx wdio session get title
 npx wdio session get url
 npx wdio session get text e1
 npx wdio session get value e2
+npx wdio session is visible e1
+npx wdio session is enabled e2
+npx wdio session is checked e3
 ```
 
 ```sh

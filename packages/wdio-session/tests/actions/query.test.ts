@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { get } from '../../src/actions/query.js'
+import { get, is } from '../../src/actions/query.js'
 import type { Session } from '../../src/session.js'
 
 function session () {
@@ -11,7 +11,10 @@ function session () {
         getValue: async () => 'ada',
         getAttribute: async (name: string) => (name === 'href' ? '/guide' : null),
         getLocation: async () => ({ x: 10, y: 20 }),
-        getSize: async () => ({ width: 30, height: 40 })
+        getSize: async () => ({ width: 30, height: 40 }),
+        isDisplayed: async () => true,
+        isEnabled: async () => false,
+        isSelected: async () => true
     }
     return {
         browser: {
@@ -54,5 +57,16 @@ describe('get', () => {
 
     it('rejects a missing attribute name', async () => {
         await expect(get(session(), { sub: 'attr', target: 'a', $cwd: '/' })).rejects.toThrow('Pass an attribute name.')
+    })
+})
+
+describe('is', () => {
+    it('prints true or false for visible, enabled and checked', async () => {
+        const s = session()
+        expect((await is(s, { sub: 'visible', target: 'h1', $cwd: '/' })).text).toBe('true')
+        const enabled = await is(s, { sub: 'enabled', target: '#email', $cwd: '/' })
+        expect(enabled.text).toBe('false')
+        expect(enabled.data).toEqual({ enabled: false })
+        expect((await is(s, { sub: 'checked', target: '#agree', $cwd: '/' })).text).toBe('true')
     })
 })

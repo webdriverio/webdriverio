@@ -167,6 +167,15 @@ export const ACTIONS: ActionSpec[] = [
         ]
     },
     {
+        name: 'is', group: 'Observation', applies: ['W'],
+        desc: 'Check whether an element is visible, enabled or checked',
+        positionals: [
+            { name: 'sub', desc: 'visible | enabled | checked', required: true, choices: ['visible', 'enabled', 'checked'] },
+            { name: 'target', desc: 'Ref or selector', required: true }
+        ],
+        examples: [['$0 session is visible e1', 'Print true or false']]
+    },
+    {
         name: 'logs', group: 'Observation', applies: ['W', 'M'],
         desc: 'Print console, page error, network and device logs since the last call',
         options: {

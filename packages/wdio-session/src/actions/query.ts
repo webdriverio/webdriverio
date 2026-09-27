@@ -63,3 +63,20 @@ export const get: ActionFn = async (session, args) => {
     const box = { x: location.x, y: location.y, width: size.width, height: size.height }
     return read(`${box.x},${box.y} ${box.width}x${box.height}`, `await ${target.code}.getLocation(); await ${target.code}.getSize()`, { box })
 }
+
+const IS_COMMANDS = {
+    visible: ['isDisplayed', 'visible'],
+    enabled: ['isEnabled', 'enabled'],
+    checked: ['isSelected', 'checked']
+} as const
+
+export const is: ActionFn = async (session, args) => {
+    const sub = String(args.sub ?? '') as keyof typeof IS_COMMANDS
+    const command = IS_COMMANDS[sub]
+    if (!command) {
+        throw usage(`Unknown is "${sub}".`, 'Use visible, enabled or checked.')
+    }
+    const target = await targetOf(session, args.target)
+    const value = await target.element[command[0]]()
+    return read(String(value), `await ${target.code}.${command[0]}()`, { [command[1]]: value })
+}
