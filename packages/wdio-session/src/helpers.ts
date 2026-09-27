@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -262,21 +263,19 @@ export function reloadHelpers (session: Session) {
     return run
 }
 
-function directoryStamp (dir: string) {
-    let names: string[]
-    try {
-        names = fs.readdirSync(dir)
-    } catch {
-        return ''
-    }
-    return names.sort().map((name) => {
+function helperStamp (cwd: string) {
+    const hash = crypto.createHash('sha1')
+    for (const file of helperSources(cwd)) {
+        hash.update(path.basename(file))
+        hash.update('\0')
         try {
-            const stat = fs.statSync(path.join(dir, name))
-            return `${name}:${stat.mtimeMs}:${stat.size}`
+            hash.update(fs.readFileSync(file))
         } catch {
-            return `${name}:missing`
+            hash.update('missing')
         }
-    }).join('\n')
+        hash.update('\0')
+    }
+    return hash.digest('hex')
 }
 
 function armWatcher (session: Session, dir: string, onChange: () => void) {
@@ -326,10 +325,11 @@ function watchHelpers (session: Session) {
         })
         return
     }
-    let stamp = directoryStamp(dir)
+    let stamp = helperStamp(session.cwd)
     armWatcher(session, dir, () => {
-        // macOS emits a watch event when the watcher starts, with no edit.
-        const next = directoryStamp(dir)
+        // Compare contents. macOS emits an event when the watcher starts, and
+        // an editor can replace a file without changing its mtime or size.
+        const next = helperStamp(session.cwd)
         if (next === stamp) {
             return
         }

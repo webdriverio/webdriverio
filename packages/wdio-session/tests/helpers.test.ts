@@ -147,6 +147,40 @@ describe('loadHelpers', () => {
         expect(mark).toBe('d2')
     })
 
+    it('reloads a same-size edit that keeps its modification time', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const file = path.join(helpers, 'dyn.js')
+        fs.writeFileSync(file, 'export const mark = "d1"\n')
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            'export default function (browser) {',
+            "    browser.addCommand('loadDyn', () => import('./dyn.js').then((mod) => mod.mark))",
+            '}'
+        ].join('\n'))
+        const frozen = new Date(Math.floor(Date.now() / 1000) * 1000)
+        fs.utimesSync(file, frozen, frozen)
+        const session = tracked(dir)
+        await loadHelpers(session, { watch: true })
+        const loadDyn = () => (session.browser as unknown as { loadDyn: () => Promise<string> }).loadDyn()
+        expect(await loadDyn()).toBe('d1')
+        const before = fs.statSync(file)
+        fs.writeFileSync(file, 'export const mark = "d9"\n')
+        fs.utimesSync(file, frozen, frozen)
+        const after = fs.statSync(file)
+        expect(after.size).toBe(before.size)
+        expect(after.mtimeMs).toBe(before.mtimeMs)
+
+        const started = Date.now()
+        let mark = 'd1'
+        while (Date.now() - started < 3000 && mark !== 'd9') {
+            mark = await loadDyn()
+            if (mark !== 'd9') {
+                await new Promise((resolve) => setTimeout(resolve, 50))
+            }
+        }
+        expect(mark).toBe('d9')
+    })
+
     it('resolves a bare package import from the project', async () => {
         const dir = project()
         const dep = path.join(dir, 'node_modules', 'helper-dep')
