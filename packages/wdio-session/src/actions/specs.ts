@@ -250,7 +250,7 @@ export const ACTIONS: ActionSpec[] = [
     { name: 'windows', group: 'Contexts', applies: ['W', 'D'], desc: 'List or switch windows', positionals: [{ name: 'sub', desc: 'switch', choices: ['switch'] }, { name: 'arg', desc: 'Index or handle' }] },
     { name: 'frame', group: 'Contexts', applies: ['W'], mutation: true, desc: 'Switch into an iframe, to the parent or to the top', positionals: [{ name: 'target', desc: 'Ref, selector, parent or top', required: true }] },
     { name: 'contexts', group: 'Contexts', applies: ['M'], desc: 'List or switch native/webview contexts', positionals: [{ name: 'sub', desc: 'switch', choices: ['switch'] }, { name: 'name', desc: 'Context name' }] },
-    { name: 'dialog', group: 'Contexts', applies: ['W', 'M'], mutation: true, desc: 'Accept or dismiss an open dialog', positionals: [{ name: 'sub', desc: 'accept | dismiss', required: true, choices: ['accept', 'dismiss'] }], options: { text: { type: 'string', desc: 'Prompt text' } } },
+    { name: 'dialog', group: 'Contexts', applies: ['W', 'M'], mutation: true, desc: 'Accept, dismiss or report an open dialog', positionals: [{ name: 'sub', desc: 'accept | dismiss | status', required: true, choices: ['accept', 'dismiss', 'status'] }], options: { text: { type: 'string', desc: 'Prompt text' } } },
 
     /**
      * device

@@ -625,13 +625,13 @@ List or switch native/webview contexts. Applies to native mobile.
 
 ## `dialog`
 
-Accept or dismiss an open dialog. Applies to web, native mobile.
+Accept, dismiss or report an open dialog. Applies to web, native mobile.
 
 **Arguments**
 
 | Name | Required | Description |
 | --- | --- | --- |
-| `sub` | yes | accept \| dismiss Choices: accept, dismiss. |
+| `sub` | yes | accept \| dismiss \| status Choices: accept, dismiss, status. |
 
 **Flags**
 

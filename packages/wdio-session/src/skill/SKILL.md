@@ -76,6 +76,7 @@ npx wdio session get value e2
 npx wdio session is visible e1
 npx wdio session is enabled e2
 npx wdio session is checked e3
+npx wdio session dialog status
 ```
 
 ```sh

@@ -213,6 +213,25 @@ export function dialogOpenError (dialog: OpenDialog) {
 const noDialog = () => new SessionError('NOT_SUPPORTED', 'No dialog open.')
 
 export const dialog: ActionFn = async (session, args) => {
+    if (args.sub === 'status') {
+        const open = openDialog(session)
+        if (open) {
+            return {
+                text: `${open.type}: ${JSON.stringify(open.message)}`,
+                data: {
+                    open: true,
+                    type: open.type,
+                    message: open.message,
+                    ...(open.defaultValue !== undefined ? { defaultValue: open.defaultValue } : {})
+                }
+            }
+        }
+        const message = await session.browser.getAlertText().catch(() => undefined)
+        if (message === undefined) {
+            return { text: 'No dialog open', data: { open: false } }
+        }
+        return { text: `alert: ${JSON.stringify(message)}`, data: { open: true, type: 'alert', message } }
+    }
     const accept = args.sub === 'accept'
     const text = typeof args.text === 'string' ? args.text : undefined
     if (!accept && text !== undefined) {
