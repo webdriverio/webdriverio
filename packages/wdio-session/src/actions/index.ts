@@ -8,6 +8,7 @@ import { emulate, geolocation } from './emulate.js'
 import * as network from './network.js'
 import * as state from './state.js'
 import { exportSpec, history } from './export.js'
+import { helpers } from './helpers.js'
 
 /**
  * Arguments of an action as parsed by the CLI (camelCase keys) plus `$cwd`,
@@ -20,6 +21,7 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     close: lifecycle.close,
     resume: lifecycle.resume,
     exec,
+    helpers,
     snapshot: observe.snapshot,
     find: observe.find,
     diff: observe.diff,
