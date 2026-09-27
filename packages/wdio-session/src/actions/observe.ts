@@ -18,6 +18,7 @@ export interface SnapshotOptions {
     all?: boolean
     boxes?: boolean
     compact?: boolean
+    urls?: boolean
 }
 
 export interface TakenSnapshot {
@@ -39,7 +40,8 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
     const result = await collectWeb(session.browser, {
         counter: session.refs.counter,
         all: Boolean(opts.all),
-        boxes: Boolean(opts.boxes)
+        boxes: Boolean(opts.boxes),
+        urls: Boolean(opts.urls)
     }, scope)
     session.refs.counter = result.counter
     session.refs.generation++
@@ -58,7 +60,8 @@ function snapshotOptions (args: Record<string, unknown>): SnapshotOptions {
         interactive: Boolean(args.interactive),
         all: Boolean(args.all),
         boxes: Boolean(args.boxes),
-        compact: Boolean(args.compact)
+        compact: Boolean(args.compact),
+        urls: Boolean(args.urls)
     }
 }
 

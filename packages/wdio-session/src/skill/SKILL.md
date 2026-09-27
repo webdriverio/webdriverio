@@ -34,6 +34,7 @@ Cloud: `open chrome --provider browserstack` (also `saucelabs`, `testingbot`, `t
 ```sh
 npx wdio session snapshot --interactive
 npx wdio session snapshot --compact
+npx wdio session snapshot --urls
 npx wdio session find "Add to cart"
 npx wdio session diff
 ```

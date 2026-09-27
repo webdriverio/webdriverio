@@ -81,6 +81,7 @@ npx wdio session click e2
 | --- | --- |
 | `snapshot --interactive` | The elements you can act on, each with a ref |
 | `snapshot --compact` | The same tree with unnamed empty wrappers removed |
+| `snapshot --urls` | Link addresses on each link |
 | `find "Add to cart"` | A line from a fresh snapshot |
 | `diff` | What changed since the previous snapshot |
 | `screenshot` | Layout. Skip it when a snapshot answers the question |

@@ -135,6 +135,7 @@ export const ACTIONS: ActionSpec[] = [
             all: { type: 'boolean', desc: 'Include hidden elements' },
             boxes: { type: 'boolean', desc: 'Append bounding boxes' },
             compact: { type: 'boolean', desc: 'Drop unnamed nodes that have no content' },
+            urls: { type: 'boolean', alias: 'u', desc: 'Include link hrefs' },
             'file-only': { type: 'boolean', desc: 'Only write the file' },
             'max-chars': { type: 'number', desc: 'Print inline up to this many characters (default 8000)' }
         }

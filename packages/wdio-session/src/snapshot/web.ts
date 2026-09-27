@@ -7,6 +7,10 @@ export interface CollectOptions {
     all: boolean
     boxes: boolean
     /**
+     * include resolved hrefs on links
+     */
+    urls?: boolean
+    /**
      * the page may assign refs (false in child frames, whose elements cannot
      * be resolved from the top document)
      */
@@ -488,6 +492,16 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         }
         if (interactive) {
             out.interactive = true
+        }
+        if (opts.urls && (el.tagName === 'A' || el.tagName === 'AREA' || role === 'link')) {
+            const raw = el.getAttribute('href')
+            if (raw) {
+                try {
+                    out.url = new URL(raw, location.href).href
+                } catch {
+                    out.url = raw
+                }
+            }
         }
         if (opts.boxes) {
             out.box = box(el)
