@@ -22,9 +22,6 @@ export class XvfbDisplayServer implements DisplayServer {
             return false
         }
 
-        // Only Xvfb is required: the daemon spawns `Xvfb` directly, not the
-        // `xvfb-run` wrapper, so probing xvfb-run would wrongly skip the daemon
-        // on systems that ship Xvfb without it.
         if (await commandExists('Xvfb')) {
             this.log.info('Xvfb found in PATH')
             return true

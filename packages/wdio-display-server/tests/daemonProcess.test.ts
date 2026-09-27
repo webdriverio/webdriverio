@@ -9,15 +9,13 @@ vi.mock('node:child_process', () => ({
     spawn: mockSpawn,
 }))
 
-// runDaemon only consumes waitForSocket from utils; mocking it lets us drive the
-// socket-vs-exit race deterministically without touching the fs.
+// enables us to drive the socket-vs-exit race without touching the fs
 vi.mock('../src/utils.js', () => ({
     waitForSocket: mockWaitForSocket,
 }))
 
 const { runDaemon } = await import('../src/daemonProcess.js')
 
-// runDaemon takes `log` as a param, so no @wdio/logger mock is needed.
 const makeLog = () =>
     ({ info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() }) as never
 

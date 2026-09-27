@@ -26,11 +26,8 @@ const collectStdout = (proc: ChildProcess): Promise<string> => new Promise((reso
 })
 
 /**
- * Real `startDisplayDaemonFromConfig` + real `fork()` + real env propagation.
- * Sits between the mocked unit tests (no real fork) and the Linux-only e2e
- * (requires Weston/Xvfb on the host). A fake DisplayServer lets the same
- * path run on every platform, locking down the invariant that downstream
- * `fork()`ed children inherit the daemon's env.
+ * Checks that `fork()`ed children inherit the daemon's env. A fake DisplayServer
+ * lets it run on every platform.
  */
 describe('integration: startDisplayDaemonFromConfig ↔ real fork', () => {
     let savedEnv: NodeJS.ProcessEnv

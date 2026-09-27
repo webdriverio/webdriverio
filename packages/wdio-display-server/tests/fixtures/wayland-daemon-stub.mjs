@@ -1,11 +1,7 @@
 /**
- * Test stub standing in for the `weston` compositor, driven by WDIO_STUB_MODE.
- * Used only by WaylandDisplayServer real-process lifecycle tests (it is placed on
- * PATH as `weston`); it is not shipped.
- *
- * Modes:
+ * Fake `weston` for the real-process tests. WDIO_STUB_MODE picks the behavior:
  * - 'ready' (default): create the socket the parent polls for, then idle until
- *   signalled (exit cleanly on SIGTERM/SIGINT).
+ *   signaled, exiting cleanly on SIGTERM/SIGINT.
  * - 'ignore-sigterm': create the socket and idle, but swallow SIGTERM so the
  *   caller must escalate to SIGKILL.
  * - 'crash': write to stderr and exit non-zero without creating the socket.

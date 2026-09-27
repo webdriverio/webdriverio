@@ -32,9 +32,7 @@ describe.skipIf(process.platform === 'win32')('WaylandDisplayServer (real proces
     afterAll(() => uninstall?.())
 
     afterEach(() => {
-        // Best-effort: SIGKILL + rmSync any daemon a failed test left running so
-        // no stub process (especially the SIGTERM-ignoring one) is orphaned.
-        daemon?.stopSync()
+        daemon?.stopSync() // ensure no stub processes are orphaned
         daemon = undefined
         delete process.env.WDIO_STUB_MODE
     })
