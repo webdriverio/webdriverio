@@ -181,6 +181,35 @@ describe('loadHelpers', () => {
         expect(mark).toBe('d9')
     })
 
+    it('reloads when a helper reads a sibling file that changes', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const settings = path.join(helpers, 'settings.json')
+        fs.writeFileSync(settings, '{"label":"one"}\n')
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            "import fs from 'node:fs'",
+            `const settings = ${JSON.stringify(settings)}`,
+            'const label = JSON.parse(fs.readFileSync(settings, "utf8")).label',
+            'export default function (browser) {',
+            "    browser.addCommand('label', () => label)",
+            '}'
+        ].join('\n'))
+        const session = tracked(dir)
+        await loadHelpers(session, { watch: true })
+        const read = () => (session.browser as unknown as { label: () => string }).label()
+        expect(read()).toBe('one')
+        fs.writeFileSync(settings, '{"label":"two"}\n')
+        const started = Date.now()
+        let label = 'one'
+        while (Date.now() - started < 3000 && label !== 'two') {
+            label = read()
+            if (label !== 'two') {
+                await new Promise((resolve) => setTimeout(resolve, 50))
+            }
+        }
+        expect(label).toBe('two')
+    })
+
     it('resolves a bare package import from the project', async () => {
         const dir = project()
         const dep = path.join(dir, 'node_modules', 'helper-dep')

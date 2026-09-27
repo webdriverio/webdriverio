@@ -265,11 +265,24 @@ export function reloadHelpers (session: Session) {
 
 function helperStamp (cwd: string) {
     const hash = crypto.createHash('sha1')
-    for (const file of helperSources(cwd)) {
-        hash.update(path.basename(file))
+    const dir = helpersDir(cwd)
+    let names: string[] = []
+    try {
+        names = fs.readdirSync(dir).sort()
+    } catch {
+        return hash.digest('hex')
+    }
+    for (const name of names) {
+        const file = path.join(dir, name)
+        hash.update(name)
         hash.update('\0')
         try {
-            hash.update(fs.readFileSync(file))
+            const stat = fs.statSync(file)
+            if (stat.isFile()) {
+                hash.update(fs.readFileSync(file))
+            } else {
+                hash.update('dir')
+            }
         } catch {
             hash.update('missing')
         }
@@ -327,8 +340,8 @@ function watchHelpers (session: Session) {
     }
     let stamp = helperStamp(session.cwd)
     armWatcher(session, dir, () => {
-        // Compare contents. macOS emits an event when the watcher starts, and
-        // an editor can replace a file without changing its mtime or size.
+        // Compare every file in the directory, including data a helper reads
+        // at setup. macOS also emits an event when the watcher starts.
         const next = helperStamp(session.cwd)
         if (next === stamp) {
             return
