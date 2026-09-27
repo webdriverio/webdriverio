@@ -118,6 +118,12 @@ describe('planChecks', () => {
         expect(steps.some((step) => step.name === 'smoke')).toBe(false)
     })
 
+    it('runs the docs package unit tests for an infra/docs change', () => {
+        const steps = planChecks(classify(['infra/docs/src/generateDocs.ts']))
+        expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:package docs')).toBe(true)
+        expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:smoke')).toBe(false)
+    })
+
     it('does not run the full local suite for a docs-only change', () => {
         const steps = planChecks(classify(['website/docs/GettingStarted.md']))
         expect(steps).toHaveLength(1)

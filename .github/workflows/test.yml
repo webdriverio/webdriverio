@@ -77,6 +77,8 @@ jobs:
               - '!e2e/wdio/display-server/**'
               - '!e2e/browser-runner/**'
               - 'infra/**'
+              # @wdio/docs unit tests run in the docs workflow. Leaving this
+              # package out of the code lane keeps smoke and e2e off a docs-only PR.
               - '!infra/docs/**'
               - 'test-headless-flag/**'
               - '@types/**'

@@ -12,6 +12,14 @@ export function getRootDir() {
 }
 
 /**
+ * File URL for a dynamic `import()`. `file://${path}` drops everything after
+ * `#` and is not a valid file URL on Windows.
+ */
+export function toFileUrl(filePath: string) {
+    return url.pathToFileURL(filePath).href
+}
+
+/**
  * Fetch all sub package names from the package directory
  * @param   {string[]} ignorePackages  a list of packages to be ignored
  * @param   {string}   packagesDir     optional override, used in tests

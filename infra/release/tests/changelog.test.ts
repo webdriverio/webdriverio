@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { formatChangelogEntry, insertChangelog } from '../src/changelog.js'
+import { formatChangelogEntry, insertChangelog, releaseNotes } from '../src/changelog.js'
 import { getPushTagCommand } from '../src/pushTags.js'
 
 describe('formatChangelogEntry', () => {
@@ -13,6 +13,13 @@ describe('formatChangelogEntry', () => {
         expect(formatChangelogEntry(markdown, '9.32.0')).toBe(
             '## v9.32.0 (2026-09-20)\n\n* fix: something (#1)\n\n'
         )
+    })
+})
+
+describe('releaseNotes', () => {
+    it('publishes a placeholder body when a version has no changelog entries', () => {
+        expect(releaseNotes(undefined)).toBe('No updates!')
+        expect(releaseNotes('## v9.32.0\n')).toBe('## v9.32.0\n')
     })
 })
 

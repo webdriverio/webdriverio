@@ -28,6 +28,13 @@ jobs:
       - name: 🧑‍🔧 Get Core Dependencies
         uses: ./.github/workflows/actions/get-core-dependencies
 
+      # Docs-only PRs are excluded from the unit-test lane. Compile the
+      # packages the Vitest setup imports, then run @wdio/docs tests here.
+      - name: 🧪 Docs package unit tests
+        run: |
+          pnpm -r --filter=@wdio/compiler run build -p @wdio/logger -p @wdio/types -p @wdio/utils
+          pnpm exec vitest --config vitest.config.ts --run infra/docs
+
       - name: 📖 Generate Docs
         run: pnpm run docs:setup && pnpm run docs:generate
         env:

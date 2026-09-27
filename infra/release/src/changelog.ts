@@ -12,7 +12,7 @@ import { Octokit } from '@octokit/rest'
 import { highlight } from 'cli-highlight'
 import { Changelog } from 'lerna-changelog'
 import { load } from 'lerna-changelog/lib/configuration.js'
-import { getRootDir } from '@wdio/repo-utils'
+import { getRootDir, toFileUrl } from '@wdio/repo-utils'
 
 const BANNER = `
 #######################
@@ -31,6 +31,14 @@ export function formatChangelogEntry(newChangelog: string, version: string) {
 
 export function insertChangelog(existing: string, entry: string) {
     return existing.replace('---', '---\n\n' + entry)
+}
+
+/**
+ * A version bump with no changelog entries still publishes a GitHub release.
+ * The body matches the previous `scripts/changelog.ts` hook.
+ */
+export function releaseNotes(entry: string | undefined) {
+    return entry ?? 'No updates!'
 }
 
 export function highlightChangelog(entry: string) {
@@ -56,7 +64,7 @@ export async function generateChangelog (options: ChangelogOptions = {}) {
     const changelogPath = path.join(rootDir, 'CHANGELOG.md')
     const pkg = options.version
         ? { version: options.version }
-        : (await import(new URL(`file://${path.join(rootDir, 'lerna.json')}`).href, { with: { type: 'json' } })).default
+        : (await import(toFileUrl(path.join(rootDir, 'lerna.json')), { with: { type: 'json' } })).default
 
     if (!auth) {
         shell.exec('git checkout -- .')
@@ -94,28 +102,29 @@ export async function generateChangelog (options: ChangelogOptions = {}) {
     })
 
     const entry = formatChangelogEntry(newChangelog, pkg.version)
+    const notes = releaseNotes(entry)
     if (!entry) {
         console.log('No changelog detected, skipping!')
-        return 'No updates!'
+    } else {
+        const changelogContent = insertChangelog(fs.readFileSync(changelogPath, 'utf8'), entry)
+        fs.writeFileSync(changelogPath, changelogContent, 'utf8')
+
+        console.log(BANNER)
+        console.log(highlightChangelog(entry), '\n\n')
     }
 
-    const changelogContent = insertChangelog(fs.readFileSync(changelogPath, 'utf8'), entry)
-    fs.writeFileSync(changelogPath, changelogContent, 'utf8')
-
-    console.log(BANNER)
-    console.log(highlightChangelog(entry), '\n\n')
-
     /**
-     * make GitHub release for machine readable changelog
+     * make GitHub release for machine readable changelog, including the
+     * "No updates!" body when this version has no changelog entries
      */
     await api.repos.createRelease({
         owner: 'webdriverio',
         repo: 'webdriverio',
         tag_name: `v${pkg.version}`,
         name: `v${pkg.version}`,
-        body: entry
+        body: notes
     })
 
-    return entry
+    return notes
 }
 

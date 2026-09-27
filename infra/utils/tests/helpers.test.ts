@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { describe, it, expect, afterEach } from 'vitest'
 
-import { getRootDir, getSubPackages, buildPreface } from '../src/helpers.js'
+import { getRootDir, getSubPackages, buildPreface, toFileUrl } from '../src/helpers.js'
 import { organizationName, projectName, branch, repoUrl } from '../src/constants.js'
 
 const tempDirs: string[] = []
@@ -20,6 +20,15 @@ describe('getRootDir', () => {
         expect(fs.existsSync(path.join(root, 'lerna.json'))).toBe(true)
         expect(fs.existsSync(path.join(root, 'packages'))).toBe(true)
         expect(fs.existsSync(path.join(root, 'infra', 'utils'))).toBe(true)
+    })
+})
+
+describe('toFileUrl', () => {
+    it('keeps a hash in the path instead of treating it as a URL fragment', () => {
+        const href = toFileUrl(path.join('/tmp/repo#1', 'lerna.json'))
+        expect(href.startsWith('file:')).toBe(true)
+        expect(href).toContain('repo%231')
+        expect(href.includes('#')).toBe(false)
     })
 })
 

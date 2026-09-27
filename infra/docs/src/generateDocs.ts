@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { getRootDir } from '@wdio/repo-utils'
+import { getRootDir, toFileUrl } from '@wdio/repo-utils'
 
 import { generateProtocolDocs } from './protocolDocs.js'
 import { generateWdioDocs } from './wdioDocs.js'
@@ -43,7 +43,7 @@ export async function generateDocs (options: GenerateDocsOptions = {}) {
     const websiteDir = path.join(rootDir, 'website')
     const sidebars = options.sidebars ?? (
         await import(
-            new URL(`file://${path.join(websiteDir, '_sidebars.json')}`).href,
+            toFileUrl(path.join(websiteDir, '_sidebars.json')),
             { with: { type: 'json' } }
         )
     ).default

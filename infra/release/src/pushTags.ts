@@ -6,14 +6,14 @@
  */
 import path from 'node:path'
 import shell from 'shelljs'
-import { getRootDir } from '@wdio/repo-utils'
+import { getRootDir, toFileUrl } from '@wdio/repo-utils'
 
 export function getPushTagCommand(version: string) {
     return `git push origin refs/tags/v${version} -f --no-verify`
 }
 
 export async function pushReleaseTag (rootDir = getRootDir()) {
-    const pkg = (await import(new URL(`file://${path.join(rootDir, 'lerna.json')}`).href, { with: { type: 'json' } })).default
+    const pkg = (await import(toFileUrl(path.join(rootDir, 'lerna.json')), { with: { type: 'json' } })).default
     const command = getPushTagCommand(pkg.version)
     console.log('\nPushing release tag...')
     shell.exec(command)
