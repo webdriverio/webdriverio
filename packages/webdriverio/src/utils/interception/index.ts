@@ -303,12 +303,31 @@ export default class WebDriverInterception {
         const requestId = request.request.request
         this.#emit('request', request)
         const responseOverwrite = this.#respondOverwrites[0]
+        const overwrite = responseOverwrite?.overwrite as RespondWithOptions | undefined
+        const hasDynamicResponse = overwrite && (
+            typeof overwrite.body === 'function' ||
+            typeof overwrite.headers === 'function' ||
+            typeof overwrite.cookies === 'function' ||
+            typeof overwrite.statusCode === 'function'
+        )
 
         if (
-            responseOverwrite?.overwrite &&
-            'fetchResponse' in responseOverwrite.overwrite &&
-            responseOverwrite.overwrite.fetchResponse === false
+            overwrite && (
+                ('fetchResponse' in overwrite && overwrite.fetchResponse === false) ||
+                (
+                    this.#browser.isFirefox &&
+                    this.#requestOverwrites.length === 0 &&
+                    this.#filterOptions.statusCode === undefined &&
+                    this.#filterOptions.responseHeaders === undefined &&
+                    !hasDynamicResponse
+                )
+            )
         ) {
+            /**
+             * Firefox only supports providing response bodies at `beforeRequestSent`.
+             * For static responses without response-based filters, use that phase even
+             * when `fetchResponse` is true. This necessarily skips the origin request.
+             */
             return this.#release(request, true, () => {
                 const { overwrite } = responseOverwrite.once
                     ? this.#respondOverwrites.shift() || {}
@@ -333,7 +352,8 @@ export default class WebDriverInterception {
                             ...responseData
                         }).catch((err) => {
                             this.#requestsRespondedWithoutFetch.delete(requestId)
-                            return this.#handleNetworkProvideResponseError(err)
+                            this.#overwrittenResponseBodies.delete(requestId)
+                            return this.#handleNetworkProvideResponseError(requestId, err)
                         })
                     )
                 } catch (err) {
@@ -341,9 +361,7 @@ export default class WebDriverInterception {
                     log.error(`Failed to apply mock.respond() overwrite: ${(err as Error).message}`)
                     return this.#withBlockedRequestTracking(
                         requestId,
-                        this.#browser.networkFailRequest({
-                            request: requestId
-                        }).catch(this.#handleNetworkProvideResponseError)
+                        this.#failBlockedRequest(requestId)
                     )
                 }
             })
@@ -388,7 +406,7 @@ export default class WebDriverInterception {
             if (request.intercepts?.includes(this.#mockId)) {
                 return this.#release(request, false, () => this.#browser.networkProvideResponse({
                     request: request.request.request
-                }).catch(() => { /* ignore errors for restored mocks */ }))
+                }).catch((err) => this.#handleNetworkProvideResponseError(request.request.request, err)))
             }
             return
         }
@@ -406,7 +424,7 @@ export default class WebDriverInterception {
             if (isHandledByThisMock && request.isBlocked) {
                 return this.#release(request, false, () => this.#browser.networkProvideResponse({
                     request: request.request.request
-                }).catch(this.#handleNetworkProvideResponseError))
+                }).catch((err) => this.#handleNetworkProvideResponseError(request.request.request, err)))
             }
             return
         }
@@ -448,7 +466,7 @@ export default class WebDriverInterception {
             this.#emit('continue', request.request.request)
             return this.#release(request, false, () => this.#browser.networkProvideResponse({
                 request: request.request.request
-            }).catch(this.#handleNetworkProvideResponseError))
+            }).catch((err) => this.#handleNetworkProvideResponseError(request.request.request, err)))
         }
 
         const requestId = request.request.request
@@ -465,7 +483,7 @@ export default class WebDriverInterception {
                 requestId,
                 this.#browser.networkProvideResponse({
                     request: requestId
-                }).catch(this.#handleNetworkProvideResponseError)
+                }).catch((err) => this.#handleNetworkProvideResponseError(requestId, err))
             ))
         }
 
@@ -488,7 +506,7 @@ export default class WebDriverInterception {
                     this.#browser.networkProvideResponse({
                         request: requestId,
                         ...responseData,
-                    }).catch(this.#handleNetworkProvideResponseError)
+                    }).catch((err) => this.#handleNetworkProvideResponseError(requestId, err))
                 ))
             } catch (err) {
                 /**
@@ -499,9 +517,7 @@ export default class WebDriverInterception {
                 log.error(`Failed to apply mock.respond() overwrite: ${(err as Error).message}`)
                 return this.#release(request, true, () => this.#withBlockedRequestTracking(
                     requestId,
-                    this.#browser.networkFailRequest({
-                        request: requestId
-                    }).catch(this.#handleNetworkProvideResponseError)
+                    this.#failBlockedRequest(requestId)
                 ))
             }
         }
@@ -514,7 +530,7 @@ export default class WebDriverInterception {
             requestId,
             this.#browser.networkProvideResponse({
                 request: requestId
-            }).catch(this.#handleNetworkProvideResponseError)
+            }).catch((err) => this.#handleNetworkProvideResponseError(requestId, err))
         ))
     }
 
@@ -566,16 +582,26 @@ export default class WebDriverInterception {
     }
 
     /**
-     * It appears that the networkProvideResponse method may throw an "no such request" error even though the request
-     * is marked as "blocked", in these cases we can safely ignore the error.
-     * @param err Bidi message error
+     * Release a blocked request if providing its response fails. Geckodriver may also report
+     * "no such request" even while the event says the request is blocked; that error is safe to ignore.
+     * @param requestId BiDi request identifier
+     * @param err BiDi command error
      */
-    #handleNetworkProvideResponseError(err: Error) {
+    #handleNetworkProvideResponseError(requestId: string, err: Error) {
         if (err.message.endsWith('no such request')) {
             return
         }
 
-        throw err
+        log.error(`Failed to provide mock response for request ${requestId}: ${err.message}`)
+        return this.#failBlockedRequest(requestId)
+    }
+
+    #failBlockedRequest(requestId: string) {
+        return this.#browser.networkFailRequest({ request: requestId }).catch((err: Error) => {
+            if (!err.message.endsWith('no such request')) {
+                log.error(`Failed to fail blocked mock request ${requestId}: ${err.message}`)
+            }
+        })
     }
 
     /**
