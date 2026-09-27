@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppiumAUT>
+  <XCUIElementTypeApplication type="XCUIElementTypeApplication" name="Fixture" visible="true" x="0" y="0" width="390" height="844">
+    <XCUIElementTypeButton type="XCUIElementTypeButton" name="Save" label="Save" visible="true" accessible="true" x="0" y="40" width="80" height="40" />
+    <XCUIElementTypeTextField type="XCUIElementTypeTextField" name="Email" label="Email" value="a@b.c" visible="true" x="0" y="80" width="200" height="40" />
+    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" name="Offscreen" label="Offscreen" visible="false" x="0" y="0" width="10" height="10" />
+  </XCUIElementTypeApplication>
+</AppiumAUT>
