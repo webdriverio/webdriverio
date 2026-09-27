@@ -2,6 +2,7 @@ import type { ActionFn } from '../session.js'
 import * as lifecycle from './lifecycle.js'
 import { exec } from './exec.js'
 import * as observe from './observe.js'
+import { get } from './query.js'
 import * as interact from './interact.js'
 import * as contexts from './contexts.js'
 import { emulate, geolocation } from './emulate.js'
@@ -30,6 +31,7 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     diff: observe.diff,
     screenshot: observe.screenshot,
     source: observe.source,
+    get,
     navigate: interact.navigate,
     back: interact.back,
     forward: interact.forward,

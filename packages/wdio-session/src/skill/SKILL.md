@@ -59,7 +59,14 @@ WebdriverIO v10 rules:
 
 ## 5. Verify
 
-Put assertions in `exec`. Use `visual check` when the question is how the screen looks.
+Read the page with `get` before writing an assertion. Put assertions in `exec`. Use `visual check` when the question is how the screen looks.
+
+```sh
+npx wdio session get title
+npx wdio session get url
+npx wdio session get text e1
+npx wdio session get value e2
+```
 
 ```sh
 npx wdio session exec -e "await expect($('h1')).toHaveText('Cart')"

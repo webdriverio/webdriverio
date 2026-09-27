@@ -242,6 +242,38 @@ Save the page HTML or app XML. Applies to web, native mobile, native desktop.
 | --- | --- |
 | `--path` | Output file |
 
+## `get`
+
+Read text, html, value, an attribute, the title, the URL, a count or a box. Applies to web.
+
+**Arguments**
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `sub` | yes | text \| html \| value \| attr \| title \| url \| count \| box Choices: text, html, value, attr, title, url, count, box. |
+| `target` | no | Ref or selector (not used for title and url) |
+| `name` | no | Attribute name (attr only) |
+
+**Examples**
+
+```sh
+$0 session get text e1
+```
+
+Text of a ref
+
+```sh
+$0 session get url
+```
+
+Current URL
+
+```sh
+$0 session get attr e3 href
+```
+
+href of a link
+
 ## `logs`
 
 Print console, page error, network and device logs since the last call. Applies to web, native mobile.

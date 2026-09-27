@@ -153,6 +153,20 @@ export const ACTIONS: ActionSpec[] = [
     },
     { name: 'source', group: 'Observation', applies: ['W', 'M', 'D'], desc: 'Save the page HTML or app XML', options: { path: { type: 'string', desc: 'Output file' } } },
     {
+        name: 'get', group: 'Observation', applies: ['W'],
+        desc: 'Read text, html, value, an attribute, the title, the URL, a count or a box',
+        positionals: [
+            { name: 'sub', desc: 'text | html | value | attr | title | url | count | box', required: true, choices: ['text', 'html', 'value', 'attr', 'title', 'url', 'count', 'box'] },
+            { name: 'target', desc: 'Ref or selector (not used for title and url)' },
+            { name: 'name', desc: 'Attribute name (attr only)' }
+        ],
+        examples: [
+            ['$0 session get text e1', 'Text of a ref'],
+            ['$0 session get url', 'Current URL'],
+            ['$0 session get attr e3 href', 'href of a link']
+        ]
+    },
+    {
         name: 'logs', group: 'Observation', applies: ['W', 'M'],
         desc: 'Print console, page error, network and device logs since the last call',
         options: {
