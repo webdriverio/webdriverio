@@ -321,12 +321,24 @@ function sameResource (left: string, right: string) {
     return a === b || resourceSuffix(a) === resourceSuffix(b)
 }
 
+/** `//android.widget.FrameLayout`, with no predicate. */
+function classFallback (scope: string) {
+    return scope.startsWith('//') && !scope.includes('[') && !scope.includes('(')
+}
+
 function matchingLocated (located: Located[], scope: string) {
     const exact = located.filter((entry) => entry.candidates.includes(scope))
-    if (exact.length) {
-        return exact
+    const hits = exact.length
+        ? exact
+        : located.filter((entry) => entry.candidates.some((candidate) => sameResource(candidate, scope)))
+    if (hits.length < 2 || !classFallback(scope)) {
+        return hits
     }
-    return located.filter((entry) => entry.candidates.some((candidate) => sameResource(candidate, scope)))
+    // A bare class xpath is the fallback for every node of that class. Prefer
+    // the control that has a ref; a plain container shares the same xpath and
+    // has nothing else to select it by.
+    const interactive = hits.filter((entry) => entry.node.ref)
+    return interactive.length ? interactive : hits
 }
 
 function scopeNativeTree (tree: SnapshotNode, located: Located[], scope: string): SnapshotNode {

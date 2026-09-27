@@ -108,4 +108,23 @@ describe('native snapshots', () => {
         expect(scoped.text).not.toContain('button "save"')
         expect(scoped.text).not.toContain('[ref=')
     })
+
+    it('scopes a bare class xpath to the clickable control', async () => {
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<hierarchy>
+  <android.widget.FrameLayout clickable="true" displayed="true" bounds="[0,0][10,10]" />
+  <android.widget.FrameLayout displayed="true" bounds="[0,20][10,30]" />
+</hierarchy>`
+        const session = {
+            browser: {
+                capabilities: { platformName: 'Android' },
+                getPageSource: async () => xml
+            },
+            plan: { target: 'android' },
+            refs: new RefRegistry()
+        } as unknown as Session
+        const scoped = await takeNativeSnapshot(session, { scope: '//android.widget.FrameLayout' })
+        expect(scoped.text).toContain('[ref=e1]')
+        expect(scoped.text).not.toContain('group')
+    })
 })
