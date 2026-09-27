@@ -47,8 +47,8 @@ describe('state', () => {
     })
 
     it('getArtifactsDir honors WDIO_SESSION_ARTIFACTS', () => {
-        expect(getArtifactsDir('a', '/repo', {})).toBe('/repo/.wdio/session/a')
-        expect(getArtifactsDir('a', '/repo', { WDIO_SESSION_ARTIFACTS: 'out' })).toBe('/repo/out/a')
+        expect(getArtifactsDir('a', '/repo', {})).toBe(path.join('/repo', '.wdio', 'session', 'a'))
+        expect(getArtifactsDir('a', '/repo', { WDIO_SESSION_ARTIFACTS: 'out' })).toBe(path.join(path.resolve('/repo', 'out'), 'a'))
     })
 
     it.skipIf(process.platform === 'win32')('creates the runtime dir with mode 0700', () => {

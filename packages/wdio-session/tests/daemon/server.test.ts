@@ -87,15 +87,21 @@ describe('SessionServer', () => {
     })
 
     it('times out a slow request and keeps serving', async () => {
+        const order: string[] = []
         const s = await start(async (req) => {
+            order.push(`start ${req.action}`)
             if (req.action === 'slow') {
-                await new Promise((r) => setTimeout(r, 500))
+                await new Promise((r) => setTimeout(r, 80))
             }
+            order.push(`end ${req.action}`)
             return { text: req.action }
         })
-        const slow = await s.enqueue(request(s.token, 'slow', { timeout: 50 }))
-        expect(slow).toMatchObject({ ok: false, error: { code: 'TIMEOUT' } })
-        expect(await s.enqueue(request(s.token, 'fast'))).toMatchObject({ ok: true, result: { text: 'fast' } })
+        const slow = s.enqueue(request(s.token, 'slow', { timeout: 20 }))
+        await new Promise((r) => setTimeout(r, 5))
+        const fast = s.enqueue(request(s.token, 'fast'))
+        expect(await slow).toMatchObject({ ok: false, error: { code: 'TIMEOUT' } })
+        expect(await fast).toMatchObject({ ok: true, result: { text: 'fast' } })
+        expect(order).toEqual(['start slow', 'end slow', 'start fast', 'end fast'])
     })
 
     it('maps handler errors to error responses', async () => {

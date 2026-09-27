@@ -1,8 +1,12 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { describe, it, expect } from 'vitest'
 
-import { consoleLevel, consoleText, networkEntry, parseServiceLogLine, remoteValueText, responseStats } from '../../src/daemon/capture.js'
-import { requestMatches, mockBody } from '../../src/actions/network.js'
+import { consoleLevel, consoleText, ingestElectronLogs, networkEntry, parseServiceLogLine, remoteValueText, responseStats } from '../../src/daemon/capture.js'
 import { RingBuffer } from '../../src/daemon/events.js'
+import type { Session } from '../../src/session.js'
+import { requestMatches, mockBody } from '../../src/actions/network.js'
 
 describe('console text', () => {
     it('prefers the entry text and otherwise joins remote values', () => {
@@ -84,5 +88,31 @@ describe('RingBuffer', () => {
         expect(buffer.unread()).toEqual([])
         buffer.push({ text: 'd' })
         expect(buffer.unread().map((e) => e.text)).toEqual(['d'])
+    })
+})
+
+describe('ingestElectronLogs', () => {
+    it('reads only the tail of a large unread log', () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-electron-log-'))
+        try {
+            const file = path.join(dir, 'main.log')
+            const head = '2026-01-01T00:00:00.000Z INFO electron-service:service: [Electron:MainProcess] HEAD_ONLY\n'
+            const tail = '2026-01-01T00:00:01.000Z INFO electron-service:service: [Electron:MainProcess] TAIL_ONLY\n'
+            fs.writeFileSync(file, head + 'x'.repeat(300 * 1024) + '\n' + tail)
+            const logs = new RingBuffer<{ seq: number, text: string }>()
+            const store = new Map<string, unknown>()
+            const session = {
+                plan: { electron: { logDir: dir } },
+                logs,
+                get: (key: string) => store.get(key),
+                set: (key: string, value: unknown) => store.set(key, value)
+            } as unknown as Session
+            ingestElectronLogs(session)
+            const texts = logs.all().map((entry) => entry.text)
+            expect(texts).toContain('TAIL_ONLY')
+            expect(texts).not.toContain('HEAD_ONLY')
+        } finally {
+            fs.rmSync(dir, { recursive: true, force: true })
+        }
     })
 })

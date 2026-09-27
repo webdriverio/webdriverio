@@ -1,3 +1,5 @@
+import * as acorn from 'acorn'
+
 import type { HistoryEntry } from '../types.js'
 import { SessionError } from '../errors.js'
 
@@ -16,15 +18,26 @@ export interface GeneratedFile {
     contents: string
 }
 
-const SELECTOR = /\$\((['"])((?:\\.|(?!\1).)*)\1\)/g
+const RESERVED = new Set(['await', 'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default', 'delete', 'do', 'else', 'enum', 'export', 'extends', 'false', 'finally', 'for', 'function', 'if', 'implements', 'import', 'in', 'instanceof', 'interface', 'let', 'new', 'null', 'package', 'private', 'protected', 'public', 'return', 'static', 'super', 'switch', 'this', 'throw', 'true', 'try', 'typeof', 'var', 'void', 'while', 'with', 'yield'])
 
 export function pageClassName (pathname: string) {
     const segment = pathname.replace(/\/+$/, '').split('/').filter(Boolean).pop() || ''
     const base = segment.replace(/\.[a-z0-9]+$/i, '')
-    const name = base.split(/[^a-zA-Z0-9]+/).filter(Boolean)
+    let name = base.split(/[^a-zA-Z0-9]+/).filter(Boolean)
         .map((part) => part[0].toUpperCase() + part.slice(1))
         .join('')
-    return name || 'Home'
+    if (!name) {
+        name = 'Home'
+    }
+    if (/^[0-9]/.test(name) || RESERVED.has(name.toLowerCase())) {
+        name = `Page${name}`
+    }
+    return name
+}
+
+export function pageInstanceName (page: string) {
+    const raw = page[0].toLowerCase() + page.slice(1)
+    return RESERVED.has(raw) ? `${raw}Page` : raw
 }
 
 /**
@@ -69,8 +82,96 @@ interface SelectorUse {
     getter: string
 }
 
-function unescapeSelector (raw: string) {
-    return raw.replace(/\\(['"\\])/g, '$1')
+interface ProgramNode {
+    type: string
+    start: number
+    end: number
+    body?: ProgramNode[]
+    callee?: ProgramNode
+    name?: string
+    arguments?: ProgramNode[]
+    value?: unknown
+    [key: string]: unknown
+}
+
+function parseProgram (code: string): ProgramNode | undefined {
+    try {
+        return acorn.parse(code, {
+            ecmaVersion: 'latest',
+            sourceType: 'module',
+            allowAwaitOutsideFunction: true
+        }) as unknown as ProgramNode
+    } catch {
+        return undefined
+    }
+}
+
+function walk (node: ProgramNode | undefined, visit: (node: ProgramNode) => void) {
+    if (!node || typeof node !== 'object' || typeof node.type !== 'string') {
+        return
+    }
+    visit(node)
+    for (const value of Object.values(node)) {
+        if (Array.isArray(value)) {
+            for (const child of value) {
+                if (child && typeof child === 'object' && typeof (child as ProgramNode).type === 'string') {
+                    walk(child as ProgramNode, visit)
+                }
+            }
+        } else if (value && typeof value === 'object' && typeof (value as ProgramNode).type === 'string') {
+            walk(value as ProgramNode, visit)
+        }
+    }
+}
+
+function splitImports (code: string) {
+    const ast = parseProgram(code)
+    if (!ast?.body) {
+        return { imports: [] as string[], body: code }
+    }
+    const ranges = ast.body.filter((node) => node.type === 'ImportDeclaration')
+    let body = code
+    const imports: string[] = []
+    for (const node of [...ranges].reverse()) {
+        imports.unshift(code.slice(node.start, node.end).trim())
+        body = `${body.slice(0, node.start)}${body.slice(node.end)}`
+    }
+    return { imports, body: body.trim() }
+}
+
+interface SelectorEdit {
+    start: number
+    end: number
+    selector: string
+}
+
+function selectorEdits (code: string) {
+    const ast = parseProgram(code)
+    const edits: SelectorEdit[] = []
+    let needsDollar = false
+    let needsDollarDollar = false
+    if (!ast) {
+        return { edits, needsDollar: /(?<!\$)\$\(/.test(code), needsDollarDollar: /\$\$\(/.test(code) }
+    }
+    walk(ast, (node) => {
+        if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier') {
+            return
+        }
+        if (node.callee.name === '$$') {
+            needsDollarDollar = true
+            return
+        }
+        if (node.callee.name !== '$') {
+            return
+        }
+        const arg = node.arguments?.[0]
+        if (!arg || node.arguments?.length !== 1 || arg.type !== 'Literal' || typeof arg.value !== 'string') {
+            needsDollar = true
+            return
+        }
+        edits.push({ start: node.start, end: node.end, selector: arg.value })
+    })
+    return { edits, needsDollar, needsDollarDollar }
 }
 
 export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): GeneratedFile[] {
@@ -85,6 +186,9 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
     const base = opts.baseUrl?.replace(/\/$/, '')
     const uses = new Map<string, SelectorUse>()
     const taken = new Map<string, Set<string>>()
+    const hoisted: string[] = []
+    let needsDollar = false
+    let needsDollarDollar = false
     const rendered = steps.map((entry) => {
         let code = entry.kind === 'marker'
             ? entry.code.split('\n').map((line) => line.startsWith('//') ? line : `// ${line}`).join('\n')
@@ -92,17 +196,25 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
         if (entry.kind === 'open') {
             code = relativizeUrl(code, base)
         }
+        if (entry.kind !== 'marker') {
+            const split = splitImports(code)
+            hoisted.push(...split.imports)
+            code = split.body
+        }
         if (!opts.pageObjects || entry.kind === 'marker') {
             return code
         }
         const page = pageClassName(entry.path || '/')
-        return code.replace(SELECTOR, (match, _q, raw) => {
-            const selector = unescapeSelector(raw)
-            const key = `${page}\0${selector}`
+        const found = selectorEdits(code)
+        needsDollar = needsDollar || found.needsDollar
+        needsDollarDollar = needsDollarDollar || found.needsDollarDollar
+        const ordered = [...found.edits].sort((a, b) => b.start - a.start)
+        for (const edit of ordered) {
+            const key = `${page}\0${edit.selector}`
             let use = uses.get(key)
             if (!use) {
                 const names = taken.get(page) || new Set<string>()
-                let getter = getterName(selector)
+                let getter = getterName(edit.selector)
                 const baseName = getter
                 let n = 2
                 while (names.has(getter)) {
@@ -110,20 +222,25 @@ export function generateSpec (entries: HistoryEntry[], opts: ExportOptions): Gen
                 }
                 names.add(getter)
                 taken.set(page, names)
-                use = { selector, page, getter }
+                use = { selector: edit.selector, page, getter }
                 uses.set(key, use)
             }
-            const instance = use.page[0].toLowerCase() + use.page.slice(1)
-            return `${instance}.${use.getter}`
-        })
+            const instance = pageInstanceName(use.page)
+            code = `${code.slice(0, edit.start)}${instance}.${use.getter}${code.slice(edit.end)}`
+        }
+        return code
     })
 
     const pages = [...new Set([...uses.values()].map((use) => use.page))]
+    const dollars = opts.pageObjects
+        ? [needsDollar ? '$' : '', needsDollarDollar ? '$$' : ''].filter(Boolean)
+        : ['$']
     const imports = [
-        `import { browser${opts.pageObjects ? '' : ', $'}, expect } from '@wdio/globals'`,
+        `import { browser${dollars.length ? `, ${dollars.join(', ')}` : ''}, expect } from '@wdio/globals'`,
+        ...[...new Set(hoisted)],
         ...pages.map((page) => `import ${page}Page from './pageobjects/${page}.page.ts'`)
     ]
-    const instances = pages.map((page) => `const ${page[0].toLowerCase()}${page.slice(1)} = new ${page}Page()`)
+    const instances = pages.map((page) => `const ${pageInstanceName(page)} = new ${page}Page()`)
     const body = [
         ...instances,
         ...rendered

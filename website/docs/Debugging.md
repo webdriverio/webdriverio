@@ -54,7 +54,7 @@ To proceed with the tests after debugging, in the shell use `^C` shortcut or the
 Paused in cart.e2e.ts › adds a blue t-shirt. Inspect with `wdio session -s debug-0-0 snapshot`, continue with `wdio session -s debug-0-0 resume`.
 ```
 
-Inspect the paused browser with [`wdio session`](/docs/session) (`snapshot`, `exec`, …), then `wdio session -s debug-0-0 resume` to continue. `wdio session -s debug-0-0 close` fails the paused test with `Session closed from wdio session`. The session name is `debug-<cid>` (`debug-0-0` for the first worker).
+Inspect the paused browser with [`wdio session`](/docs/session/debug) (`snapshot`, `exec`, …), then `wdio session -s debug-0-0 resume` to continue. `wdio session -s debug-0-0 close` fails the paused test with `Session closed from wdio session`. The session name is `debug-<cid>` (`debug-0-0` for the first worker). The rest of that workflow is in the [WebdriverIO Session](/docs/session) section.
 ## Dynamic configuration
 
 Note that `wdio.conf.js` can contain Javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable.

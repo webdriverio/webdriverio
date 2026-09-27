@@ -183,7 +183,7 @@ export const testFrameworkFnWrapper = async function (
      * `wdio run --debug=agent` pauses a failed test before user `afterTest`
      * hooks. `close` from that session fails the test.
      */
-    if (type === 'Test' && error && !skip) {
+    if ((type === 'Test' || type === 'Step') && error && !skip) {
         const pause = getDebugAgentPause()
         if (pause) {
             const identity = runnableFrom(afterArgs[0])

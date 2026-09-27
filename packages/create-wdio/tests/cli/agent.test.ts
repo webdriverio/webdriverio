@@ -41,6 +41,10 @@ describe('agent support', () => {
             expect(agents).toContain('## End-to-end tests (WebdriverIO v10)')
             expect(agents).toContain('.agents/skills/wdio-session/SKILL.md')
             expect(fs.readFileSync(path.join(tmp, '.gitignore'), 'utf-8')).toContain('.wdio/session/')
+            const skillPath = path.join(tmp, '.agents', 'skills', 'wdio-session', 'SKILL.md')
+            fs.writeFileSync(skillPath, 'local skill\n')
+            writeAgentSupport(tmp)
+            expect(fs.readFileSync(skillPath, 'utf-8')).toBe('local skill\n')
         } finally {
             fs.rmSync(tmp, { recursive: true, force: true })
         }

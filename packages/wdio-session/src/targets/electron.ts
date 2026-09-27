@@ -24,8 +24,7 @@ interface ElectronModule {
 }
 
 function appArgs (args: OpenArgs) {
-    const user = toArray(args.appArg)
-    return user.includes('--no-sandbox') ? user : ['--no-sandbox', ...user]
+    return toArray(args.appArg)
 }
 
 async function installedElectronVersion (cwd: string) {
@@ -96,7 +95,9 @@ export async function electronPlan (args: OpenArgs, ctx: ElectronContext): Promi
     capabilities.webSocketUrl = false
     const version = typeof args.electronVersion === 'string' && args.electronVersion
         ? args.electronVersion
-        : await installedElectronVersion(ctx.cwd)
+        : entry
+            ? await installedElectronVersion(ctx.cwd)
+            : undefined
     if (version) {
         capabilities.browserVersion = version
     }
@@ -105,7 +106,7 @@ export async function electronPlan (args: OpenArgs, ctx: ElectronContext): Promi
     }
     const display = host === 'linux' && !hasDisplay(env)
     if (display) {
-        checkDisplayServer('open an Electron session', env)
+        checkDisplayServer('open an Electron session', env, host)
     }
     return {
         capabilities,

@@ -35,6 +35,9 @@ export const exportSpec: ActionFn = async (session, args) => {
     const written: string[] = []
     for (const file of files) {
         const target = file.path === 'spec.ts' ? out : path.join(path.dirname(out), file.path)
+        if (file.path !== 'spec.ts' && fs.existsSync(target)) {
+            throw usage(`Page object ${target} already exists.`, 'Choose another --out directory, or remove that file first.')
+        }
         fs.mkdirSync(path.dirname(target), { recursive: true })
         fs.writeFileSync(target, file.contents)
         written.push(target)

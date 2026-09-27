@@ -59,10 +59,12 @@ export function readSessionSkill (start = path.dirname(fileURLToPath(import.meta
  * Write the skill, the AGENTS.md section and `.wdio/session/` in `.gitignore`.
  */
 export function writeAgentSupport (root: string) {
-    const markdown = readSessionSkill()
     const skillDest = path.join(root, '.agents', 'skills', 'wdio-session', 'SKILL.md')
-    fs.mkdirSync(path.dirname(skillDest), { recursive: true })
-    fs.writeFileSync(skillDest, markdown)
+    if (!fs.existsSync(skillDest)) {
+        const markdown = readSessionSkill()
+        fs.mkdirSync(path.dirname(skillDest), { recursive: true })
+        fs.writeFileSync(skillDest, markdown)
+    }
 
     const agentsPath = path.join(root, 'AGENTS.md')
     const agents = readIfExists(agentsPath) || ''

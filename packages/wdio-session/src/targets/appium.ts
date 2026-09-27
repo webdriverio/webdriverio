@@ -101,8 +101,11 @@ export async function startAppium (plan: OpenPlan, opts: { spawn?: typeof spawn,
         stdio: 'ignore',
         windowsHide: true
     })
+    const spawnError = new Promise<never>((_, reject) => {
+        child.once('error', (err) => reject(err))
+    })
     try {
-        await waitForStatus(port, opts.timeoutMs)
+        await Promise.race([waitForStatus(port, opts.timeoutMs), spawnError])
     } catch (err) {
         await stopChild(child, 1000)
         throw err

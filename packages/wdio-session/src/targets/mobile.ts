@@ -22,7 +22,7 @@ const DRIVERS: Record<AppiumTarget, { automationName: string, label: string }> =
 }
 
 function appPath (cwd: string, value: string) {
-    if (/^https?:\/\//.test(value)) {
+    if (/^(https?:|bs:|lt:|sauce-storage:|storage:)/i.test(value)) {
         return value
     }
     const resolved = path.resolve(cwd, value)

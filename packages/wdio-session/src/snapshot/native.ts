@@ -4,6 +4,8 @@ import { nativeCandidates, type SelectorNode } from './selectors.js'
 import type { XmlNode } from './xml.js'
 import { parseXml } from './xml.js'
 import type { SnapshotOptions, TakenSnapshot } from '../actions/observe.js'
+import { usage } from '../errors.js'
+import { isRef } from './refs.js'
 import type { Session } from '../session.js'
 import type { SnapshotRef } from './format.js'
 
@@ -236,9 +238,15 @@ function selectorInfo (platform: NativePlatform, tag: string, attrs: Record<stri
     }
 }
 
+interface Located {
+    node: SnapshotNode
+    candidates: string[]
+}
+
 interface Built {
     node: SnapshotNode
     refs: SnapshotRef[]
+    located: Located[]
 }
 
 function build (xml: XmlNode, platform: NativePlatform, opts: { all?: boolean }, allocate: (candidates: string[]) => string): Built | undefined {
@@ -247,7 +255,8 @@ function build (xml: XmlNode, platform: NativePlatform, opts: { all?: boolean },
         const children = xml.children.map((child) => build(child, platform, opts, allocate)).filter((child): child is Built => Boolean(child))
         return {
             node: { role: 'document', children: children.map((child) => child.node) },
-            refs: children.flatMap((child) => child.refs)
+            refs: children.flatMap((child) => child.refs),
+            located: children.flatMap((child) => child.located)
         }
     }
     const box = boundsOf(xml.attrs)
@@ -267,19 +276,22 @@ function build (xml: XmlNode, platform: NativePlatform, opts: { all?: boolean },
         ...(children.length ? { children: children.map((child) => child.node) } : {})
     }
     const refs = children.flatMap((child) => child.refs)
+    const located = children.flatMap((child) => child.located)
+    const candidates = nativeCandidates(selectorInfo(platform, xml.name, xml.attrs, name))
     if (wantsRef(platform, xml.name, xml.attrs, role, name)) {
-        const candidates = nativeCandidates(selectorInfo(platform, xml.name, xml.attrs, name))
         const id = allocate(candidates)
         node.ref = id
         node.interactive = true
         refs.push({ id, role, name: name || undefined, candidates })
     }
-    return { node, refs }
+    located.push({ node, candidates })
+    return { node, refs, located }
 }
 
 export interface ParsedNative {
     tree: SnapshotNode
     refs: SnapshotRef[]
+    located: Located[]
     counter: number
 }
 
@@ -287,7 +299,49 @@ export function parseNativeSource (xml: string, platform: NativePlatform, opts: 
     let counter = opts.counter || 0
     const built = build(parseXml(xml), platform, opts, () => `e${++counter}`)
     const tree = built?.node || { role: 'document' }
-    return { tree, refs: built?.refs || [], counter }
+    return { tree, refs: built?.refs || [], located: built?.located || [], counter }
+}
+
+function resourceIdOf (selector: string) {
+    const plain = /^id=(.+)$/.exec(selector)
+    if (plain) {
+        return plain[1]
+    }
+    const ui = /resourceId\((['"])(.*?)\1\)/.exec(selector)
+    return ui?.[2]
+}
+
+/** `id=save` and `id=com.example:id/save` name the same Android resource. */
+function sameResource (left: string, right: string) {
+    const a = resourceIdOf(left)
+    const b = resourceIdOf(right)
+    if (!a || !b) {
+        return false
+    }
+    return a === b || resourceSuffix(a) === resourceSuffix(b)
+}
+
+function matchingLocated (located: Located[], scope: string) {
+    const exact = located.filter((entry) => entry.candidates.includes(scope))
+    if (exact.length) {
+        return exact
+    }
+    return located.filter((entry) => entry.candidates.some((candidate) => sameResource(candidate, scope)))
+}
+
+function scopeNativeTree (tree: SnapshotNode, located: Located[], scope: string): SnapshotNode {
+    const hits = isRef(scope)
+        ? located.filter((entry) => entry.node.ref === scope)
+        : matchingLocated(located, scope)
+    if (hits.length !== 1) {
+        throw usage(
+            hits.length > 1 ? `Scope ${scope} matches ${hits.length} elements.` : `Scope ${scope} is not in this snapshot.`,
+            hits.length > 1
+                ? 'Pass a ref for a control, or a selector with text or a resource id for a container.'
+                : 'Run `wdio session snapshot` and pass a ref or a selector from that tree.'
+        )
+    }
+    return { role: 'document', name: tree.name, children: [hits[0].node] }
 }
 
 /**
@@ -298,8 +352,10 @@ export async function takeNativeSnapshot (session: Session, opts: SnapshotOption
     const platform = nativePlatform(session.browser.capabilities as Record<string, unknown>, session.plan.target)
     const parsed = parseNativeSource(xml, platform, { all: opts.all, counter: session.refs.counter })
     const remap = new Map<string, string>()
+    const identity = (candidates: string[]) => candidates.join('\n')
     for (const ref of parsed.refs) {
-        const previous = session.refs.all().find((entry) => entry.kind === 'native' && entry.candidates[0] === ref.candidates[0])
+        const key = identity(ref.candidates)
+        const previous = session.refs.all().find((entry) => entry.kind === 'native' && identity(entry.candidates) === key)
         if (previous && previous.id !== ref.id) {
             remap.set(ref.id, previous.id)
         }
@@ -311,11 +367,14 @@ export async function takeNativeSnapshot (session: Session, opts: SnapshotOption
         node.children?.forEach(apply)
     }
     apply(parsed.tree)
+    const refs = parsed.refs.map((ref) => ({ ...ref, id: remap.get(ref.id) || ref.id }))
+    if (opts.scope) {
+        parsed.tree = scopeNativeTree(parsed.tree, parsed.located, String(opts.scope))
+    }
     session.refs.counter = parsed.counter
     session.refs.generation++
-    for (const ref of parsed.refs) {
-        const id = remap.get(ref.id) || ref.id
-        session.refs.set({ ...ref, id, kind: 'native', generation: session.refs.generation })
+    for (const ref of refs) {
+        session.refs.set({ ...ref, kind: 'native', generation: session.refs.generation })
     }
     const text = formatSnapshot(parsed.tree, { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes, compact: opts.compact })
     session.lastSnapshot = text

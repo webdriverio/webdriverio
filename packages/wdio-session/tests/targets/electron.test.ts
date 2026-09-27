@@ -48,7 +48,7 @@ describe('electron targets', () => {
         const plan = await electronPlan({ target: 'electron', url: 'app/main.js', appArg: '--debug' }, ctx(dir))
         expect(plan.electron).toMatchObject({
             appEntryPoint: entry,
-            appArgs: ['--no-sandbox', '--debug'],
+            appArgs: ['--debug'],
             logDir: path.join(dir, 'artifacts', 'electron-logs')
         })
         expect(plan.capabilities).toMatchObject({
@@ -59,7 +59,7 @@ describe('electron targets', () => {
                 appEntryPoint: entry,
                 logDir: path.join(dir, 'artifacts', 'electron-logs'),
                 captureMainProcessLogs: true,
-                appArgs: ['--no-sandbox', '--debug']
+                appArgs: ['--debug']
             }
         })
         expect(plan).toMatchObject({ platform: 'electron', mode: 'electron', headless: false, display: false, bidi: false })
@@ -83,10 +83,20 @@ describe('electron targets', () => {
         expect(plan.capabilities).toMatchObject({
             browserVersion: '30.0.0',
             'wdio:chromedriverOptions': { binary: path.join(dir, 'drivers', 'chromedriver') },
-            'goog:chromeOptions': { binary, args: ['--no-sandbox'] }
+            'goog:chromeOptions': { binary, args: [] }
         })
         expect(plan.capabilities).not.toHaveProperty('webSocketUrl', true)
         expect((plan.capabilities as Record<string, unknown>).webSocketUrl).toBe(false)
+    })
+
+    it('does not pin browserVersion from the electron package for a packaged binary', async () => {
+        const dir = tempDir()
+        installElectron(dir)
+        const binary = write(dir, 'dist/my-app')
+        const plan = await electronPlan({ target: 'electron', url: binary }, ctx(dir))
+        expect(plan.capabilities).not.toHaveProperty('browserVersion')
+        expect(plan.electron).not.toHaveProperty('electronVersion')
+        expect((plan.capabilities as Record<string, unknown>)['goog:chromeOptions']).toMatchObject({ args: [] })
     })
 
     it('requires the electron package for an entry point', async () => {
@@ -105,7 +115,10 @@ describe('electron targets', () => {
     it('asks for a virtual display on Linux without one', async () => {
         const dir = tempDir()
         const binary = write(dir, 'MyApp')
-        const plan = await electronPlan({ target: 'electron', url: binary }, ctx(dir, { PATH: process.env.PATH }))
+        const bin = path.join(dir, 'bin')
+        fs.mkdirSync(bin)
+        fs.writeFileSync(path.join(bin, 'Xvfb'), '#!/bin/sh\n', { mode: 0o755 })
+        const plan = await electronPlan({ target: 'electron', url: binary }, ctx(dir, { PATH: bin }))
         expect(plan.display).toBe(true)
     })
 })

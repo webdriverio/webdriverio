@@ -14,11 +14,17 @@ npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio session close
 ```
 
-The session is named `default`. Pass `-s <name>` only when you need two sessions at once. Every action and flag is listed in [wdio session commands](/docs/session-commands).
+The session is named `default`. Pass `-s <name>` only when you need two sessions at once.
 
 ## Install
 
-`wdio session` is installed with the CLI. You do not install a separate package.
+`wdio session` is part of the WebdriverIO CLI. `npx wdio` installs the unscoped [`wdio`](https://www.npmjs.com/package/wdio) package and runs that CLI. You do not install `@wdio/session` yourself.
+
+```sh
+npx wdio session --help
+```
+
+Scaffold a project with:
 
 ```sh
 npm init wdio@latest
@@ -32,9 +38,7 @@ npx wdio session skill --install .
 
 `npx wdio session doctor` checks Node.js, the browser, Appium, SDKs and cloud credentials. `doctor <target>` checks only what that target needs. The process exits 1 when a check fails.
 
-## Walkthrough
-
-### Web
+## Open a page and act on it
 
 Open headless Chrome (add `--headed` to show the window) and read the page before clicking:
 
@@ -110,21 +114,21 @@ Put assertions in `exec` with `expect-webdriverio`. Use `visual check <tag>` (ne
 ```sh
 npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio run wdio.conf.ts --spec test/specs/cart.e2e.ts
+npx wdio session close
 ```
 
-`--page-objects` writes a page object next to the spec. Add helpers under `.wdio/helpers/` when a step is too long for `exec`. Helpers become custom commands in the exported test.
+`open firefox`, `open edge` and `open safari` take the same URL. Other targets, snapshots, `exec`, export and a paused test run are separate pages in this section.
 
-## Debugging a failing test
+## This section
 
-`wdio run --debug=agent` pauses the worker on `await browser.debug()` and after a failed test, and raises the framework timeout to 24 hours. The run prints the session name (`debug-0-0` for the first worker):
-
-```sh
-npx wdio run wdio.conf.ts --debug=agent
-npx wdio session -s debug-0-0 snapshot
-npx wdio session -s debug-0-0 resume
-```
-
-`close` on that session fails the paused test with `Session closed from wdio session`. Attach a REPL to any running session with `wdio repl --session <name>`.
+| Page | Use it for |
+| --- | --- |
+| [Targets](/docs/session/targets) | Browsers, Android, iOS, desktop, Electron, Tauri, Dioxus and cloud devices |
+| [Snapshots and refs](/docs/session/snapshots) | What is on screen, and the refs you click |
+| [Run code](/docs/session/exec) | `exec`, assertions and visual checks |
+| [Export a test](/docs/session/export) | Specs, page objects and `.wdio/helpers` |
+| [Debug a test](/docs/session/debug) | `wdio run --debug=agent` and `wdio repl --session` |
+| [Commands](/docs/session-commands) | Every action and flag |
 
 ## Troubleshooting
 
@@ -141,7 +145,6 @@ Exit codes: 0 success, 1 the action failed, 2 usage, 3 a missing dependency or c
 
 ## Next steps
 
-- [wdio session commands](/docs/session-commands) — every action and flag
+- [Targets](/docs/session/targets) — open something other than Chrome
 - [WebdriverIO for Coding Agents](/docs/ai-agents) — skill, docs and project rules
-- [Debugging](/docs/debugging) — `--debug=agent` and `browser.debug()`
-- [REPL](/docs/repl) — `wdio repl --session`
+- [wdio session commands](/docs/session-commands) — every action and flag
