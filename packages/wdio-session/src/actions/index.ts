@@ -3,6 +3,8 @@ import * as lifecycle from './lifecycle.js'
 import { exec } from './exec.js'
 import * as observe from './observe.js'
 import * as interact from './interact.js'
+import * as contexts from './contexts.js'
+import { emulate, geolocation } from './emulate.js'
 
 /**
  * Arguments of an action as parsed by the CLI (camelCase keys) plus `$cwd`,
@@ -35,5 +37,12 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     drag: interact.drag,
     scroll: interact.scroll,
     swipe: interact.swipe,
-    'long-press': interact.longPress
+    'long-press': interact.longPress,
+    tabs: contexts.tabs,
+    windows: contexts.windows,
+    frame: contexts.frame,
+    contexts: contexts.contexts,
+    dialog: contexts.dialog,
+    emulate,
+    geolocation
 }

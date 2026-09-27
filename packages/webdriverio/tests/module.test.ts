@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 
 import detectBackend from '../src/utils/detectBackend.js'
-import { remote, multiRemote, attach, Key, SevereServiceError } from '../src/index.js'
+import { remote, multiRemote, attach, Key, SevereServiceError, deviceDescriptorsSource } from '../src/index.js'
 import { registerSessionManager } from '../src/session/index.js'
 
 vi.mock('../src/utils/detectBackend', () => ({ default: vi.fn() }))
@@ -79,6 +79,7 @@ describe('WebdriverIO module interface', () => {
         expect(typeof multiRemote).toBe('function')
         expect(typeof Key).toBe('object')
         expect(typeof SevereServiceError).toBe('function')
+        expect(deviceDescriptorsSource['iPhone 15'].viewport).toEqual({ width: 393, height: 659 })
     })
 
     describe('remote function', () => {

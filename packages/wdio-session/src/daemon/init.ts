@@ -28,6 +28,9 @@ export async function initSession (session: Session) {
     const { startEventCapture } = await import('./capture.js')
     await startEventCapture(session).catch((err) => log.warn(`Event capture unavailable: ${err.message}`))
 
+    const { trackDialogs } = await import('../actions/contexts.js')
+    await trackDialogs(session).catch((err) => log.warn(`Dialog tracking unavailable: ${err.message}`))
+
     const { loadHelpers } = await import('../helpers.js')
     await loadHelpers(session, { watch: true }).catch((err) => log.warn(`Helpers failed to load: ${err.message}`))
 
