@@ -162,13 +162,14 @@ export const mock: ActionFn = async (session, args) => {
         }
         headers[header.slice(0, split).trim()] = header.slice(split + 1).trim()
     }
-    const created = await session.browser.mock(pattern, method ? { method } : undefined)
     const map = mocks(session)
     for (const [id, stored] of map) {
         if (stored.pattern === pattern) {
+            await stored.mock.restore()
             map.delete(id)
         }
     }
+    const created = await session.browser.mock(pattern, method ? { method } : undefined)
     const id = `m${(session.get<number>('mockCounter') || 0) + 1}`
     session.set('mockCounter', (session.get<number>('mockCounter') || 0) + 1)
     map.set(id, { id, pattern, mock: created })

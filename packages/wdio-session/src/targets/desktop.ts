@@ -18,7 +18,7 @@ export function macosCapabilities (args: OpenArgs): Record<string, unknown> {
 
 export function windowsCapabilities (args: OpenArgs, cwd: string): Record<string, unknown> {
     const given = typeof args.app === 'string' ? args.app : ''
-    const app = !given || given === 'Root' ? 'Root' : path.resolve(cwd, given)
+    const app = windowsApp(given, cwd)
     const caps: Record<string, unknown> = {
         platformName: 'windows',
         'appium:automationName': 'Windows',
@@ -29,6 +29,20 @@ export function windowsCapabilities (args: OpenArgs, cwd: string): Record<string
         caps['appium:appArguments'] = toArray(args.appArg).join(' ')
     }
     return caps
+}
+
+/**
+ * Installed Windows apps are named by an application id, not a file.
+ * Only paths and executables are resolved against the working directory.
+ */
+export function windowsApp (given: string, cwd: string) {
+    if (!given || given === 'Root') {
+        return 'Root'
+    }
+    if (!/[\\/]/.test(given) && !given.toLowerCase().endsWith('.exe')) {
+        return given
+    }
+    return path.resolve(cwd, given)
 }
 
 export function desktopLabel (target: 'macos' | 'windows') {

@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
 
+import path from 'node:path'
+
+import { windowsApp } from '../../src/targets/desktop.js'
 import { buildPlan } from '../../src/targets/index.js'
 
 const ctx = {
@@ -25,6 +28,12 @@ describe('desktop targets', () => {
 
         const win = await buildPlan({ target: 'windows', appiumUrl: 'http://localhost:4723/' }, { ...ctx, platform: 'win32' })
         expect(win.capabilities).toMatchObject({ platformName: 'windows', 'appium:automationName': 'Windows', 'appium:app': 'Root' })
+
+        const calc = await buildPlan({ target: 'windows', appiumUrl: 'http://localhost:4723/', app: 'Microsoft.WindowsCalculator' }, { ...ctx, platform: 'win32' })
+        expect(calc.capabilities).toMatchObject({ 'appium:app': 'Microsoft.WindowsCalculator' })
+        expect(windowsApp('Microsoft.WindowsCalculator', '/repo')).toBe('Microsoft.WindowsCalculator')
+        expect(windowsApp('Root', '/repo')).toBe('Root')
+        expect(windowsApp('dist/app.exe', '/repo')).toBe(path.resolve('/repo', 'dist/app.exe'))
     })
 
     it('refuses macos off macOS and windows off Windows', async () => {

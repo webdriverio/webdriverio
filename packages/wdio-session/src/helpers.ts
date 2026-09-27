@@ -21,17 +21,122 @@ export function helpersDir (cwd: string) {
     return path.join(cwd, '.wdio', 'helpers')
 }
 
+function isRelativeSpecifier (spec: string) {
+    return spec.startsWith('./') || spec.startsWith('../')
+}
+
 /**
- * Point relative imports at the helper's directory. A data-URL module has no
- * location of its own, and a query string keeps a reloaded file out of the
- * module cache.
+ * `from '…'`, `import '…'` or `import('…')` immediately before this quote.
+ * Strings and comments are copied as-is, so a mention inside them is ignored.
  */
-export function rewriteRelativeImports (code: string, dir: string, stamp = Date.now()) {
-    const abs = (spec: string) => `${pathToFileURL(path.resolve(dir, spec)).href}?v=${stamp}`
-    return code
-        .replace(/\bfrom\s+(['"])(\.[^'"]*)\1/g, (_, q, spec) => `from ${q}${abs(spec)}${q}`)
-        .replace(/\bimport\s*\(\s*(['"])(\.[^'"]*)\1/g, (_, q, spec) => `import(${q}${abs(spec)}${q}`)
-        .replace(/\bimport\s+(['"])(\.[^'"]*)\1/g, (_, q, spec) => `import ${q}${abs(spec)}${q}`)
+function importKeyword (code: string, quoteAt: number) {
+    let i = quoteAt
+    while (i > 0 && /\s/.test(code[i - 1])) {
+        i--
+    }
+    if (i >= 4 && code.slice(i - 4, i) === 'from' && (i === 4 || !/[\w$]/.test(code[i - 5]))) {
+        return 'from' as const
+    }
+    if (code[i - 1] === '(') {
+        let j = i - 1
+        while (j > 0 && /\s/.test(code[j - 1])) {
+            j--
+        }
+        if (j >= 6 && code.slice(j - 6, j) === 'import' && (j === 6 || !/[\w$]/.test(code[j - 7]))) {
+            return 'call' as const
+        }
+    }
+    if (i >= 6 && code.slice(i - 6, i) === 'import' && (i === 6 || !/[\w$]/.test(code[i - 7]))) {
+        return 'import' as const
+    }
+    return undefined
+}
+
+function scanQuoted (code: string, start: number) {
+    const quote = code[start]
+    let i = start + 1
+    let interpolated = false
+    while (i < code.length) {
+        if (code[i] === '\\') {
+            i += 2
+            continue
+        }
+        if (quote === '`' && code[i] === '$' && code[i + 1] === '{') {
+            interpolated = true
+            i += 2
+            let depth = 1
+            while (i < code.length && depth > 0) {
+                if (code[i] === '\'' || code[i] === '"' || code[i] === '`') {
+                    i = scanQuoted(code, i).end
+                    continue
+                }
+                if (code[i] === '\\') {
+                    i += 2
+                    continue
+                }
+                if (code[i] === '{') {
+                    depth++
+                } else if (code[i] === '}') {
+                    depth--
+                }
+                if (depth > 0) {
+                    i++
+                }
+            }
+            if (code[i] === '}') {
+                i++
+            }
+            continue
+        }
+        if (code[i] === quote) {
+            return { end: i + 1, interpolated }
+        }
+        i++
+    }
+    return { end: code.length, interpolated }
+}
+
+/**
+ * Point relative imports at the helper's directory. A query string keeps a
+ * reloaded file out of the module cache. Package specifiers stay bare so
+ * Node can resolve them from the project that owns the helper.
+ */
+export function rewriteRelativeImports (code: string, dir: string, stamp: number | ((spec: string) => string) = Date.now()) {
+    const abs = typeof stamp === 'function'
+        ? stamp
+        : (spec: string) => `${pathToFileURL(path.resolve(dir, spec)).href}?v=${stamp}`
+    let out = ''
+    let i = 0
+    while (i < code.length) {
+        const ch = code[i]
+        if (ch === '/' && code[i + 1] === '/') {
+            const end = code.indexOf('\n', i)
+            const stop = end === -1 ? code.length : end
+            out += code.slice(i, stop)
+            i = stop
+            continue
+        }
+        if (ch === '/' && code[i + 1] === '*') {
+            const end = code.indexOf('*/', i + 2)
+            const stop = end === -1 ? code.length : end + 2
+            out += code.slice(i, stop)
+            i = stop
+            continue
+        }
+        if (ch === '\'' || ch === '"' || ch === '`') {
+            const scanned = scanQuoted(code, i)
+            const literal = code.slice(i, scanned.end)
+            const keyword = importKeyword(code, i)
+            const spec = literal.slice(1, -1)
+            const relative = keyword && !scanned.interpolated && isRelativeSpecifier(spec) && literal.endsWith(ch)
+            out += relative ? `${ch}${abs(spec)}${ch}` : literal
+            i = scanned.end
+            continue
+        }
+        out += ch
+        i++
+    }
+    return out
 }
 
 export function helperSources (cwd: string) {
@@ -59,13 +164,37 @@ function forget (session: Session, names: string[]) {
     }
 }
 
+/**
+ * Copy a helper and its relative imports into fresh `.mjs` files. A new
+ * path on every reload keeps Node (and the test runner) from serving the
+ * previous module, and the files live in the project so bare specifiers
+ * resolve from its `node_modules`.
+ */
+function materialize (file: string, cacheDir: string, stamp: number, seen = new Map<string, string>()) {
+    const abs = path.resolve(file)
+    const cached = seen.get(abs)
+    if (cached) {
+        return cached
+    }
+    const dest = path.join(cacheDir, `${stamp}-${seen.size}.mjs`)
+    const href = pathToFileURL(dest).href
+    seen.set(abs, href)
+    const raw = fs.readFileSync(abs, 'utf-8')
+    const stripped = abs.endsWith('.ts') ? stripTypes(raw) : raw
+    const source = rewriteRelativeImports(stripped, path.dirname(abs), (spec) => {
+        return materialize(path.resolve(path.dirname(abs), spec), cacheDir, stamp, seen)
+    })
+    fs.writeFileSync(dest, source)
+    return href
+}
+
 async function importHelper (session: Session, file: string): Promise<LoadedHelper> {
     const names: string[] = []
     try {
-        const raw = fs.readFileSync(file, 'utf-8')
-        const stripped = file.endsWith('.ts') ? stripTypes(raw) : raw
-        const source = rewriteRelativeImports(stripped, path.dirname(file))
-        const mod = await import(`data:text/javascript;charset=utf-8,${encodeURIComponent(source)}`)
+        const cacheDir = path.join(path.dirname(file), '.cache')
+        fs.mkdirSync(cacheDir, { recursive: true })
+        const href = materialize(file, cacheDir, Date.now())
+        const mod = await import(href)
         const setup = mod.default
         if (typeof setup !== 'function') {
             throw new Error(`${path.basename(file)} must export a default function (browser) => void`)
@@ -90,6 +219,7 @@ async function importHelper (session: Session, file: string): Promise<LoadedHelp
 }
 
 async function reloadNow (session: Session) {
+    fs.rmSync(path.join(helpersDir(session.cwd), '.cache'), { recursive: true, force: true })
     const previous = session.get<LoadedHelper[]>('helpers') || []
     forget(session, previous.flatMap((helper) => helper.commands))
     const loaded: LoadedHelper[] = []
@@ -110,30 +240,55 @@ export function reloadHelpers (session: Session) {
     return run
 }
 
+function armWatcher (session: Session, dir: string, onChange: () => void) {
+    let timer: NodeJS.Timeout | undefined
+    let closed = false
+    const watcher = fs.watch(dir, () => {
+        if (closed) {
+            return
+        }
+        if (timer) {
+            clearTimeout(timer)
+        }
+        timer = setTimeout(onChange, DEBOUNCE_MS)
+    })
+    const close = () => {
+        if (closed) {
+            return
+        }
+        closed = true
+        if (timer) {
+            clearTimeout(timer)
+        }
+        watcher.close()
+    }
+    watcher.on('error', (err) => log.warn(`Helper watch failed: ${errorLine(err)}`))
+    session.disposers.push(close)
+    return { close }
+}
+
 function watchHelpers (session: Session) {
     if (session.get('helpersWatch')) {
         return
     }
     const dir = helpersDir(session.cwd)
+    session.set('helpersWatch', true)
     if (!fs.existsSync(dir)) {
+        const parent = path.dirname(dir)
+        fs.mkdirSync(parent, { recursive: true })
+        const parentWatcher = armWatcher(session, parent, () => {
+            if (!fs.existsSync(dir)) {
+                return
+            }
+            parentWatcher.close()
+            session.set('helpersWatch', false)
+            watchHelpers(session)
+            reloadHelpers(session).catch((err) => log.warn(`Helpers failed to reload: ${errorLine(err)}`))
+        })
         return
     }
-    let timer: NodeJS.Timeout | undefined
-    const watcher = fs.watch(dir, () => {
-        if (timer) {
-            clearTimeout(timer)
-        }
-        timer = setTimeout(() => {
-            reloadHelpers(session).catch((err) => log.warn(`Helpers failed to reload: ${errorLine(err)}`))
-        }, DEBOUNCE_MS)
-    })
-    watcher.on('error', (err) => log.warn(`Helper watch failed: ${errorLine(err)}`))
-    session.set('helpersWatch', true)
-    session.disposers.push(() => {
-        if (timer) {
-            clearTimeout(timer)
-        }
-        watcher.close()
+    armWatcher(session, dir, () => {
+        reloadHelpers(session).catch((err) => log.warn(`Helpers failed to reload: ${errorLine(err)}`))
     })
 }
 

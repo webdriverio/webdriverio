@@ -167,7 +167,10 @@ export const state: ActionFn = async (session, args) => {
             sessionStorage: await readStorage(session, true)
         }
         fs.mkdirSync(path.dirname(file), { recursive: true })
-        fs.writeFileSync(file, JSON.stringify(saved, null, 2) + '\n')
+        fs.writeFileSync(file, JSON.stringify(saved, null, 2) + '\n', { mode: 0o600 })
+        if (process.platform !== 'win32') {
+            fs.chmodSync(file, 0o600)
+        }
         return {
             text: `Saved ${saved.cookies.length} cookies, ${Object.keys(saved.localStorage).length} localStorage, ${Object.keys(saved.sessionStorage).length} sessionStorage → ${file}`,
             data: { file, ...saved },
@@ -191,6 +194,7 @@ export const state: ActionFn = async (session, args) => {
     if (origin !== saved.origin) {
         await session.browser.url(saved.url)
     }
+    await session.browser.deleteCookies()
     if (saved.cookies.length) {
         await session.browser.setCookies(saved.cookies.map((cookie) => cookieOptions({
             name: cookie.name,
@@ -204,6 +208,8 @@ export const state: ActionFn = async (session, args) => {
         })))
     }
     await session.browser.execute((local, sessionValues) => {
+        localStorage.clear()
+        sessionStorage.clear()
         for (const [key, value] of Object.entries(local)) {
             localStorage.setItem(key, value)
         }
