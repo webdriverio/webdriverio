@@ -11,6 +11,11 @@ import type { Session } from './session.js'
 const log = logger('@wdio/session:helpers')
 
 const DEBOUNCE_MS = 200
+/**
+ * macOS can drop a watch event, including one that lands before `fs.watch`
+ * is active. A quiet directory only pays for a stat.
+ */
+const POLL_MS = 500
 
 export interface LoadedHelper {
     file: string
@@ -357,11 +362,23 @@ function armWatcher (session: Session, dir: string, onChange: (names: ReadonlySe
             }
         }, DEBOUNCE_MS)
     })
+    const poll = setInterval(() => {
+        if (closed) {
+            return
+        }
+        try {
+            onChange(new Set(), false)
+        } catch (err) {
+            log.warn(`Helper watch failed: ${errorLine(err)}`)
+        }
+    }, POLL_MS)
+    poll.unref()
     const close = () => {
         if (closed) {
             return
         }
         closed = true
+        clearInterval(poll)
         if (timer) {
             clearTimeout(timer)
         }
