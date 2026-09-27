@@ -7,6 +7,7 @@ import * as contexts from './contexts.js'
 import { emulate, geolocation } from './emulate.js'
 import * as network from './network.js'
 import * as state from './state.js'
+import { exportSpec, history } from './export.js'
 
 /**
  * Arguments of an action as parsed by the CLI (camelCase keys) plus `$cwd`,
@@ -53,5 +54,7 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     unmock: network.unmock,
     cookies: state.cookies,
     storage: state.storage,
-    state: state.state
+    state: state.state,
+    history,
+    export: exportSpec
 }
