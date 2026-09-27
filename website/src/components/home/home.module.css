@@ -916,3 +916,487 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     .grid4 { grid-template-columns: minmax(0, 1fr); }
     .platformPanel { padding: 1.25rem; }
 }
+
+/* wdio session demo */
+.sessionLinks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.75rem;
+    margin: -1.35rem 0 2rem;
+}
+
+.visuallyHidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.sessionDemo {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.82fr) minmax(0, 1.18fr);
+    gap: 20px;
+    align-items: stretch;
+}
+
+.sessionTerminal {
+    display: flex;
+    flex-direction: column;
+    min-height: 440px;
+    border: 1px solid var(--wdio-border-strong);
+    border-radius: 14px;
+    background: #0e0e11;
+    color: #e4e4e7;
+    font-family: var(--ifm-font-family-monospace);
+    font-size: 0.78rem;
+    line-height: 1.45;
+    box-shadow: 0 30px 60px -30px rgb(0 0 0 / 55%), 0 0 0 6px var(--wdio-glow);
+    overflow: hidden;
+}
+
+.sessionTermBody {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 0.85rem 1rem 1rem;
+}
+
+.termCmd,
+.termOut {
+    margin: 0 0 0.35rem;
+}
+
+.termPrompt {
+    margin-right: 0.45rem;
+    color: var(--ifm-color-primary-light);
+}
+
+.termOut {
+    padding-left: 1rem;
+    color: #9a9aa3;
+}
+
+.sessionStage {
+    position: relative;
+    min-height: 440px;
+    aspect-ratio: 5 / 4;
+    overflow: hidden;
+    border: 1px solid var(--wdio-border);
+    border-radius: 16px;
+    background:
+        radial-gradient(420px 220px at 55% 45%, var(--wdio-glow), transparent 70%),
+        var(--wdio-surface);
+}
+
+.sessionWires {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.sessionWire {
+    fill: none;
+    stroke: url(#session-wire);
+    stroke-width: 2;
+    stroke-dasharray: 4 6;
+    opacity: 0.28;
+}
+
+.sessionWireOn {
+    opacity: 0.95;
+}
+
+.sessionWireFan {
+    animation: wirePulse 0.9s ease forwards;
+}
+
+@keyframes wirePulse {
+    0% { opacity: 0.25; }
+    45% { opacity: 1; }
+    100% { opacity: 0.9; }
+}
+
+.device {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--wdio-bg);
+    border: 1px solid var(--wdio-border-strong);
+    box-shadow: 0 18px 40px -24px rgb(0 0 0 / 55%);
+    transition: transform 480ms ease, opacity 480ms ease, left 480ms ease, top 480ms ease, width 480ms ease, height 480ms ease, right 480ms ease;
+}
+
+.deviceBrowser {
+    left: 8%;
+    top: 9%;
+    width: 64%;
+    height: 70%;
+    border-radius: 12px;
+    z-index: 2;
+}
+
+.devicePhone {
+    right: 5%;
+    top: 11%;
+    width: 30%;
+    height: 78%;
+    border-radius: 22px;
+    z-index: 3;
+}
+
+.deviceDesktop {
+    left: 16%;
+    bottom: 4%;
+    width: 60%;
+    height: 56%;
+    border-radius: 12px;
+    z-index: 1;
+}
+
+.sessionStage[data-focus="browser"] .deviceBrowser,
+.sessionStage[data-focus="phone"] .devicePhone,
+.sessionStage[data-focus="desktop"] .deviceDesktop {
+    z-index: 5;
+    opacity: 1;
+    transform: none;
+}
+
+.sessionStage[data-focus="browser"] .devicePhone {
+    transform: translate(6%, 4%) scale(0.94);
+    opacity: 0.72;
+}
+
+.sessionStage[data-focus="browser"] .deviceDesktop {
+    transform: translate(0, 8%) scale(0.94);
+    opacity: 0.5;
+}
+
+.sessionStage[data-focus="phone"] .deviceBrowser {
+    transform: translate(-8%, 0) scale(0.9);
+    opacity: 0.48;
+}
+
+.sessionStage[data-focus="phone"] .devicePhone {
+    right: 16%;
+    width: 40%;
+    height: 86%;
+    top: 7%;
+}
+
+.sessionStage[data-focus="phone"] .deviceDesktop {
+    opacity: 0.4;
+    transform: scale(0.92);
+}
+
+.sessionStage[data-focus="desktop"] .deviceDesktop {
+    left: 8%;
+    bottom: 8%;
+    width: 76%;
+    height: 70%;
+}
+
+.sessionStage[data-focus="desktop"] .deviceBrowser {
+    opacity: 0.42;
+    transform: translate(-4%, -10%) scale(0.86);
+}
+
+.sessionStage[data-focus="desktop"] .devicePhone {
+    opacity: 0.42;
+    transform: translate(12%, 8%) scale(0.84);
+}
+
+.sessionStage[data-focus="all"] .device {
+    top: 14%;
+    bottom: auto;
+    height: 72%;
+    opacity: 1;
+    transform: none;
+    z-index: 2;
+}
+
+.sessionStage[data-focus="all"] .deviceBrowser {
+    left: 3%;
+    width: 34%;
+}
+
+.sessionStage[data-focus="all"] .devicePhone {
+    left: 37%;
+    right: auto;
+    width: 24%;
+    top: 7%;
+    height: 86%;
+}
+
+.sessionStage[data-focus="all"] .deviceDesktop {
+    left: 63%;
+    width: 34%;
+}
+
+.deviceChrome {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: none;
+    padding: 0.4rem 0.65rem;
+    border-bottom: 1px solid var(--wdio-border);
+    background: var(--wdio-surface);
+    color: var(--wdio-text-muted);
+    font-family: var(--ifm-font-family-monospace);
+    font-size: 0.68rem;
+}
+
+.deviceChrome span,
+.phoneNotch {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--wdio-border-strong);
+}
+
+.deviceChrome em {
+    margin-left: 0.35rem;
+    font-style: normal;
+}
+
+.phoneNotch {
+    width: 28%;
+    height: 5px;
+    margin: 0.45rem auto 0;
+    border-radius: 999px;
+}
+
+.shop {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-height: 0;
+    padding: 0.75rem 0.8rem 0.85rem;
+}
+
+.shopBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--wdio-text);
+    font-size: 0.82rem;
+}
+
+.cartBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.28rem;
+    border-radius: 999px;
+    background: var(--wdio-surface-2);
+    color: var(--wdio-text-muted);
+    font-family: var(--ifm-font-family-monospace);
+    font-size: 0.68rem;
+}
+
+.shopAdded .cartBadge {
+    background: var(--ifm-color-primary);
+    color: #fff;
+}
+
+.product {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.swatch {
+    flex: none;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 8px;
+    background: linear-gradient(160deg, #60a5fa, #1d4ed8);
+}
+
+.productName,
+.productPrice {
+    margin: 0;
+    color: var(--wdio-text);
+    font-size: 0.82rem;
+    line-height: 1.3;
+}
+
+.productPrice {
+    color: var(--wdio-text-muted);
+    font-size: 0.75rem;
+}
+
+.addButton {
+    position: relative;
+    margin-top: auto;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ifm-color-primary);
+    color: #fff;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.4rem 0.7rem;
+    cursor: default;
+}
+
+.addRipple::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 0 0 rgb(234 89 6 / 45%);
+    animation: sessionRipple 0.6s ease-out;
+}
+
+@keyframes sessionRipple {
+    to { box-shadow: 0 0 0 10px rgb(234 89 6 / 0%); }
+}
+
+.refBadge {
+    display: inline-block;
+    margin-left: 0.3rem;
+    padding: 0 0.22rem;
+    border-radius: 4px;
+    background: var(--ifm-color-primary);
+    color: #fff;
+    font-family: var(--ifm-font-family-monospace);
+    font-size: 0.62rem;
+    font-style: normal;
+    line-height: 1.35;
+    vertical-align: 1px;
+}
+
+.scanLine {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #22c55e, transparent);
+    animation: sessionScan 0.8s ease-out;
+    pointer-events: none;
+}
+
+@keyframes sessionScan {
+    from { top: 0; opacity: 1; }
+    to { top: 100%; opacity: 0; }
+}
+
+.deviceCheck {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    display: flex;
+}
+
+.devicePhone .shop {
+    padding-top: 0.45rem;
+}
+
+.devicePhone .productName,
+.devicePhone .shopBar {
+    font-size: 0.72rem;
+}
+
+.devicePhone .addButton {
+    font-size: 0.68rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .refBadge {
+        animation: refPop 180ms ease both;
+    }
+}
+
+@keyframes refPop {
+    from { transform: scale(0.6); }
+    to { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .device,
+    .sessionWireFan,
+    .addRipple::after,
+    .scanLine,
+    .refBadge {
+        animation: none;
+        transition: none;
+    }
+
+    .sessionPacket { display: none; }
+}
+
+@media (max-width: 996px) {
+    .sessionDemo {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sessionTerminal,
+    .sessionStage {
+        min-height: 0;
+    }
+
+    .sessionTerminal {
+        height: 220px;
+    }
+
+    .sessionStage {
+        aspect-ratio: 4 / 3;
+    }
+
+    .sessionStage .device {
+        display: none;
+    }
+
+    .sessionStage[data-focus="browser"] .deviceBrowser,
+    .sessionStage[data-focus="phone"] .devicePhone,
+    .sessionStage[data-focus="desktop"] .deviceDesktop {
+        display: flex;
+        inset: 8%;
+        width: auto;
+        height: auto;
+        right: 8%;
+        bottom: 8%;
+        transform: none;
+        opacity: 1;
+    }
+
+    .sessionStage[data-focus="all"] .device {
+        display: flex;
+        inset: auto;
+        opacity: 1;
+        transform: none;
+        height: 78%;
+        top: 11%;
+    }
+
+    .sessionStage[data-focus="all"] .deviceBrowser {
+        left: 2%;
+        width: 34%;
+    }
+
+    .sessionStage[data-focus="all"] .devicePhone {
+        left: 36%;
+        width: 26%;
+        top: 6%;
+        height: 88%;
+    }
+
+    .sessionStage[data-focus="all"] .deviceDesktop {
+        left: 63%;
+        width: 34%;
+    }
+}
