@@ -1,6 +1,7 @@
 import type { ActionFn } from '../session.js'
 import * as lifecycle from './lifecycle.js'
 import { exec } from './exec.js'
+import * as observe from './observe.js'
 
 /**
  * Arguments of an action as parsed by the CLI (camelCase keys) plus `$cwd`,
@@ -12,5 +13,10 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     info: lifecycle.info,
     close: lifecycle.close,
     resume: lifecycle.resume,
-    exec
+    exec,
+    snapshot: observe.snapshot,
+    find: observe.find,
+    diff: observe.diff,
+    screenshot: observe.screenshot,
+    source: observe.source
 }

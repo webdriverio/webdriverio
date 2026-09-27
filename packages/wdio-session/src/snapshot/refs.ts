@@ -20,7 +20,7 @@ export interface RefEntry {
     generation: number
 }
 
-export const isRef = (value: unknown): value is string => typeof value === 'string' && REF_PATTERN.test(value)
+export const isRef = (value: unknown): boolean => typeof value === 'string' && REF_PATTERN.test(value)
 
 export const refFunction = (id: string) => new Function(`return (window.__wdioSession && window.__wdioSession.refs.get(${JSON.stringify(id)}) || { deref: function () { return null } }).deref() || null`) as () => HTMLElement
 
