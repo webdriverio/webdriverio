@@ -20,7 +20,16 @@ export interface RefEntry {
     generation: number
 }
 
-export const isRef = (value: unknown): boolean => typeof value === 'string' && REF_PATTERN.test(value)
+/**
+ * `e12` and `@e12` are the same ref. The `@` form is what other agent
+ * browsers print; snapshots from this CLI print `e12`.
+ */
+export function refId (value: string): string | undefined {
+    const id = value.startsWith('@') ? value.slice(1) : value
+    return REF_PATTERN.test(id) ? id : undefined
+}
+
+export const isRef = (value: unknown): value is string => typeof value === 'string' && refId(value) !== undefined
 
 export const refFunction = (id: string) => new Function(`return (window.__wdioSession && window.__wdioSession.refs.get(${JSON.stringify(id)}) || { deref: function () { return null } }).deref() || null`) as () => HTMLElement
 
