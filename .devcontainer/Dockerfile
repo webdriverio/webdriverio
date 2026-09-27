@@ -20,7 +20,7 @@ RUN if [[ $(dpkg --print-architecture) == "amd64" ]]; then \
 	fi
 
 RUN corepack enable \
-	&& corepack prepare pnpm@10.34.5 --activate \
+	&& corepack prepare pnpm@11.27.1 --activate \
 	&& npm i -g http-server diff-so-fancy
 
 COPY welcome-message.txt /usr/local/etc/vscode-dev-containers/first-run-notice.txt

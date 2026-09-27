@@ -13,5 +13,13 @@ packages:
   - 'examples/appium/**'
   - 'test-headless-flag'
 
-onlyBuiltDependencies:
-  - sharp
+# only sharp runs its install script; the rest work without theirs
+allowBuilds:
+  sharp: true
+  '@swc/core': false
+  appium: false
+  core-js: false
+  edgedriver: false
+  esbuild: false
+  geckodriver: false
+  nx: false

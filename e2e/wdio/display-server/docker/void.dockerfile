@@ -28,7 +28,7 @@ RUN xbps-install -Suy xbps && \
         chromium && \
     xbps-install -Scc
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@11.27.1
 
 RUN useradd -m -s /bin/bash testuser && \
     echo 'testuser ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
