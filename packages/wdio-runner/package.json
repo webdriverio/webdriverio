@@ -36,6 +36,7 @@
     "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
+    "@wdio/session": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^8.0.0",

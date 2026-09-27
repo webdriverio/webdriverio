@@ -18,6 +18,10 @@ export type AfterSessionArgs = Parameters<Required<Services.HookFunctions>['afte
 interface Args extends Partial<WebdriverIO.Config> {
     ignoredWorkerServices?: string[]
     watch?: boolean
+    /**
+     * `wdio run --debug=agent`
+     */
+    debug?: 'agent'
 }
 
 export type RunParams = {
