@@ -50,4 +50,7 @@ jobs:
         shell: bash
 
       - name: Check Git Context
+        # currently fails in Windows: the Linux build archive is unzipped over a CRLF checkout,
+        # so every file not pinned to LF in .gitattributes shows up as modified
+        if: matrix.os != 'windows-latest'
         uses: ./.github/workflows/actions/check-git-context
