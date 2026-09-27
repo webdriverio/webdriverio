@@ -292,12 +292,20 @@ describe('loadHelpers', () => {
         ].join('\n')
         fs.writeFileSync(main, source('a'))
         fs.writeFileSync(note, 'same\n')
-        let listener: ((event: string, filename: string | null) => void) | undefined
+        let emit: ((event: string, filename: string | null) => void) | undefined
+        let allowReal = true
         const originalWatch = fs.watch
         const watchSpy = vi.spyOn(fs, 'watch').mockImplementation((...args: Parameters<typeof fs.watch>) => {
             const cbIndex = args.findIndex((arg) => typeof arg === 'function')
-            listener = args[cbIndex] as (event: string, filename: string | null) => void
-            return originalWatch(...args)
+            const cb = args[cbIndex] as (event: string, filename: string | null) => void
+            emit = cb
+            const next = args.slice() as Parameters<typeof fs.watch>
+            next[cbIndex] = ((event: string, filename: string | null) => {
+                if (allowReal) {
+                    cb(event, filename)
+                }
+            }) as Parameters<typeof fs.watch>[number]
+            return originalWatch(...next)
         })
         const originalRead = fs.readFileSync
         let readSpy: ReturnType<typeof vi.spyOn> | undefined
@@ -306,10 +314,12 @@ describe('loadHelpers', () => {
             await loadHelpers(session, { watch: true })
             const read = () => (session.browser as unknown as { mark: () => string }).mark()
             expect(read()).toBe('a')
-            await new Promise((resolve) => setTimeout(resolve, 500))
+            allowReal = false
             let blocked = true
+            let denied = 0
             readSpy = vi.spyOn(fs, 'readFileSync').mockImplementation((...args: Parameters<typeof fs.readFileSync>) => {
                 if (blocked && String(args[0]) === main) {
+                    denied += 1
                     const err = new Error(`EACCES: permission denied, open '${main}'`) as NodeJS.ErrnoException
                     err.code = 'EACCES'
                     throw err
@@ -317,10 +327,16 @@ describe('loadHelpers', () => {
                 return originalRead(...(args as [fs.PathLike]))
             })
             fs.writeFileSync(main, source('b'))
-            await new Promise((resolve) => setTimeout(resolve, 500))
+            expect(emit).toBeTypeOf('function')
+            emit!('change', 'main.js')
+            const failedAt = Date.now()
+            while (denied === 0 && Date.now() - failedAt < 3000) {
+                await new Promise((resolve) => setTimeout(resolve, 20))
+            }
+            expect(denied).toBeGreaterThan(0)
             expect(read()).toBe('a')
             blocked = false
-            listener?.('change', 'note.txt')
+            emit!('change', 'note.txt')
             const started = Date.now()
             let mark = 'a'
             while (Date.now() - started < 3000 && mark !== 'b') {
