@@ -15,13 +15,15 @@ const PNPM_SCRIPT = /(?:^|[\\/])pnpm(?:\.cjs|\.js|\.mjs)?$/i
  * Windows setup puts it in `node_modules` beside `node.exe`; nvm and fnm
  * put it under `lib`. Call this only when pnpm did not launch the test.
  */
-function corepackJs (): string {
-    const nodeDir = dirname(process.execPath)
+function corepackJs (
+    nodeDir = dirname(process.execPath),
+    fileExists: (candidate: string) => boolean = existsSync
+): string {
     const candidates = [
         resolve(nodeDir, 'node_modules', 'corepack', 'dist', 'corepack.js'),
         resolve(nodeDir, '..', 'lib', 'node_modules', 'corepack', 'dist', 'corepack.js')
     ]
-    const found = candidates.find((candidate) => existsSync(candidate))
+    const found = candidates.find((candidate) => fileExists(candidate))
     if (!found) {
         throw new Error('Could not find corepack. Run this test with pnpm so npm_execpath points at the pnpm script.')
     }
@@ -75,6 +77,30 @@ describe('wdio package', () => {
         const argv = pnpmArgv(['pack'], 'C:\\Program Files\\nodejs\\pnpm.cmd', corepack)
         expect(argv[0]).toBe('/opt/corepack/dist/corepack.js')
         expect(argv[1]).toBe('pnpm')
+    })
+
+    it('finds Corepack beside node and under an nvm lib directory', () => {
+        const nodeDir = resolve('/opt/node')
+        const besideNode = resolve(nodeDir, 'node_modules', 'corepack', 'dist', 'corepack.js')
+        expect(corepackJs(nodeDir, (candidate) => candidate === besideNode)).toBe(besideNode)
+
+        const nvmBin = resolve('/home/user/.nvm/versions/node/v24/bin')
+        const underLib = resolve(nvmBin, '..', 'lib', 'node_modules', 'corepack', 'dist', 'corepack.js')
+        expect(corepackJs(nvmBin, (candidate) => candidate === underLib)).toBe(underLib)
+        expect(corepackJs(nodeDir, () => true)).toBe(besideNode)
+    })
+
+    it('fails clearly when Corepack is not installed', () => {
+        expect(() => corepackJs(resolve('/opt/node-without-corepack'), () => false)).toThrow(/corepack/i)
+    })
+
+    it('resolves the Corepack script when this Node ships one', () => {
+        try {
+            expect(existsSync(corepackJs())).toBe(true)
+        } catch (err) {
+            expect(err).toBeInstanceOf(Error)
+            expect((err as Error).message).toMatch(/corepack/i)
+        }
     })
 
     it('is the public unscoped CLI published with the monorepo', () => {
