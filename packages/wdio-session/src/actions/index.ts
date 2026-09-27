@@ -1,5 +1,6 @@
 import type { ActionFn } from '../session.js'
 import * as lifecycle from './lifecycle.js'
+import { exec } from './exec.js'
 
 /**
  * Arguments of an action as parsed by the CLI (camelCase keys) plus `$cwd`,
@@ -10,5 +11,6 @@ export type ActionArgs = Record<string, unknown> & { $cwd: string }
 export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     info: lifecycle.info,
     close: lifecycle.close,
-    resume: lifecycle.resume
+    resume: lifecycle.resume,
+    exec
 }
