@@ -2,7 +2,7 @@ import { execFileSync, spawn } from 'node:child_process'
 import { once } from 'node:events'
 import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, resolve } from 'node:path'
+import { basename, dirname, resolve, win32 } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
@@ -51,6 +51,22 @@ function pnpm (args: string[], cwd: string) {
     return execFileSync(process.execPath, pnpmArgv(args), { cwd, encoding: 'utf8' })
 }
 
+/**
+ * Windows tar treats `C:\...` as a remote archive on host `C` and fails with
+ * `Cannot connect to C`. Read the member by filename from the archive directory.
+ */
+function tarballRead (archive: string, member: string, pathApi: { basename: (p: string) => string, dirname: (p: string) => string } = { basename, dirname }) {
+    return {
+        cwd: pathApi.dirname(archive),
+        args: ['-xOf', pathApi.basename(archive), member]
+    }
+}
+
+function readTarball (archive: string, member: string) {
+    const read = tarballRead(archive, member)
+    return execFileSync('tar', read.args, { cwd: read.cwd, encoding: 'utf8' })
+}
+
 describe('wdio package', () => {
     const corepack = () => '/opt/corepack/dist/corepack.js'
 
@@ -92,6 +108,13 @@ describe('wdio package', () => {
 
     it('fails clearly when Corepack is not installed', () => {
         expect(() => corepackJs(resolve('/opt/node-without-corepack'), () => false)).toThrow(/corepack/i)
+    })
+
+    it('gives tar a filename so a Windows drive letter is not a remote host', () => {
+        const archive = 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\wdio-pack\\wdio-9.32.0.tgz'
+        const read = tarballRead(archive, 'package/package.json', win32)
+        expect(read.args).toEqual(['-xOf', 'wdio-9.32.0.tgz', 'package/package.json'])
+        expect(read.cwd).toBe('C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\wdio-pack')
     })
 
     it('resolves the Corepack script when this Node ships one', () => {
@@ -144,14 +167,12 @@ describe('wdio package', () => {
         const dest = mkdtempSync(resolve(tmpdir(), 'wdio-pack-'))
         const packed = pnpm(['pack', '--pack-destination', dest], packageDir).trim().split('\n').pop()
         expect(packed).toBeTruthy()
-        // Windows tar treats `C:\...` as a remote host named C. `--force-local`
-        // keeps the drive path as a local archive on bsdtar and GNU tar.
         const archive = resolve(dest, packed!)
-        const listing = execFileSync('tar', ['--force-local', '-xOf', archive, 'package/package.json'], { encoding: 'utf8' })
+        const listing = readTarball(archive, 'package/package.json')
         const published = JSON.parse(listing) as { dependencies: Record<string, string>, bin: { wdio: string } }
         expect(published.bin.wdio).toBe('./bin/wdio.js')
         expect(published.dependencies['@wdio/cli']).toMatch(/^\d+\.\d+\.\d+/)
-        const bin = execFileSync('tar', ['--force-local', '-xOf', archive, 'package/bin/wdio.js'], { encoding: 'utf8' })
+        const bin = readTarball(archive, 'package/bin/wdio.js')
         expect(bin).toContain("import('@wdio/cli')")
     })
 })
