@@ -138,6 +138,7 @@ function remoteFrom (config: Record<string, unknown>, args: OpenArgs): RemoteOpt
 }
 
 async function loadConfig (configPath: string) {
+    // Importing tsx registers its loader, so only TypeScript configs should load it.
     if (/\.(c|m)?tsx?$/.test(configPath)) {
         await import(pathToFileURL(require.resolve('tsx')).href)
     }

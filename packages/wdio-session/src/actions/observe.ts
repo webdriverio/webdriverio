@@ -2,10 +2,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { SessionError, notSupported } from '../errors.js'
-import { quote } from '../daemon/init.js'
+import { quote } from '../quote.js'
 import { collectWeb } from '../snapshot/web.js'
 import { countRefs, formatSnapshot, type SnapshotNode } from '../snapshot/format.js'
 import { unifiedDiff } from '../snapshot/diff.js'
+import { takeNativeSnapshot } from '../snapshot/native.js'
 import { resolveTarget } from '../snapshot/target.js'
 import type { ActionFn, Session } from '../session.js'
 
@@ -31,7 +32,6 @@ export interface TakenSnapshot {
  */
 export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}): Promise<TakenSnapshot> {
     if (!session.isWeb || (session.applies.includes('M') && !session.applies.includes('W'))) {
-        const { takeNativeSnapshot } = await import('../snapshot/native.js')
         const native = await takeNativeSnapshot(session, opts)
         session.lastSnapshot = native.text
         return native

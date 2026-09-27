@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { usage } from '../errors.js'
-import { quote } from '../daemon/init.js'
+import { quote } from '../quote.js'
 import type { ActionFn } from '../session.js'
 
 const done = (text: string, code: string) => ({ text, code, history: code })

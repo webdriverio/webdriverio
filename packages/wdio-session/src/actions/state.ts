@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { SessionError, usage } from '../errors.js'
-import { quote } from '../daemon/init.js'
+import { quote } from '../quote.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
 type SessionCookie = Awaited<ReturnType<WebdriverIO.Browser['getCookies']>>[number]

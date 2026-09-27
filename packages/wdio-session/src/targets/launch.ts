@@ -1,6 +1,12 @@
+import { startDisplayDaemonFromConfig } from '@wdio/display-server'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
+import { remote } from 'webdriverio'
 
+import { startAppium } from './appium.js'
+import { startCloudTunnel } from './cloud.js'
+import { launchElectron } from './electron.js'
+import { launchWebview, startDriver } from './webview.js'
 import type { OpenPlan } from '../types.js'
 
 const log = logger('@wdio/session:launch')
@@ -37,7 +43,6 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
 
     try {
         if (plan.display) {
-            const { startDisplayDaemonFromConfig } = await import('@wdio/display-server')
             const daemon = await startDisplayDaemonFromConfig(
                 { displayServer: 'auto' } as WebdriverIO.Config,
                 [plan.capabilities] as Capabilities.TestrunnerCapabilities
@@ -49,13 +54,11 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
         }
 
         if (plan.tunnel) {
-            const { startCloudTunnel } = await import('./cloud.js')
             const stop = await startCloudTunnel(plan)
             cleanups.push(stop)
         }
 
         if (plan.appium?.main) {
-            const { startAppium } = await import('./appium.js')
             const appium = await startAppium(plan)
             pids.push(appium.pid)
             cleanups.push(() => appium.stop())
@@ -64,10 +67,8 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
         let browser: WebdriverIO.Browser
         let end: (died?: boolean) => Promise<void>
         if (plan.mode === 'electron') {
-            const { launchElectron } = await import('./electron.js')
             ;({ browser, end } = await launchElectron(plan))
         } else if (plan.platform === 'tauri' || plan.platform === 'dioxus') {
-            const { launchWebview } = await import('./webview.js')
             const launched = await launchWebview(plan)
             browser = launched.browser
             end = launched.end
@@ -76,12 +77,10 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
             }
         } else {
             if (plan.driver) {
-                const { startDriver } = await import('./webview.js')
                 const driver = await startDriver(plan.driver)
                 pids.push(driver.pid)
                 cleanups.push(() => driver.stop())
             }
-            const { remote } = await import('webdriverio')
             browser = await remote({
                 ...plan.remote,
                 logLevel: plan.remote.logLevel as 'warn',

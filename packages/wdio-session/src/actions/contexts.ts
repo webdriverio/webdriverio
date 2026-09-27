@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 
 import { SessionError, usage } from '../errors.js'
-import { quote } from '../daemon/init.js'
+import { quote } from '../quote.js'
 import { resolveTarget } from '../snapshot/target.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 

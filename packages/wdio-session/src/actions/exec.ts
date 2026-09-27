@@ -10,7 +10,7 @@ import { getExecContext } from '../exec/context.js'
 import { hintFor } from '../exec/hints.js'
 import { isError, serialize, type ElementInfo } from '../exec/serialize.js'
 import { transform } from '../exec/transform.js'
-import { quote } from '../daemon/init.js'
+import { quote } from '../quote.js'
 import type { ActionFn, Session } from '../session.js'
 
 const log = logger('@wdio/session:exec')

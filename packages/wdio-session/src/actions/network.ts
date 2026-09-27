@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { SessionError, usage } from '../errors.js'
-import { quote } from '../daemon/init.js'
+import { quote } from '../quote.js'
 import { pollLogs } from '../daemon/capture.js'
 import { formatLog, formatRequest, formatTime, globToRegExp, parseDuration, type RingBuffer } from '../daemon/events.js'
 import type { ActionFn, ActionOutcome } from '../session.js'

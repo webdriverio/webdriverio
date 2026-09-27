@@ -1,6 +1,11 @@
 import logger from '@wdio/logger'
 
+import { trackDialogs } from '../actions/contexts.js'
+import { installNetworkProbe } from '../actions/wait.js'
+import { loadHelpers } from '../helpers.js'
+import { quote } from '../quote.js'
 import type { Session } from '../session.js'
+import { startEventCapture } from './capture.js'
 
 const log = logger('@wdio/session:init')
 
@@ -25,16 +30,9 @@ export async function initSession (session: Session) {
         log.warn(`Could not set viewport: ${(err as Error).message}`)
     }
 
-    const { startEventCapture } = await import('./capture.js')
     await startEventCapture(session).catch((err) => log.warn(`Event capture unavailable: ${err.message}`))
-
-    const { installNetworkProbe } = await import('../actions/wait.js')
     await installNetworkProbe(session).catch((err) => log.warn(`Network probe unavailable: ${(err as Error).message}`))
-
-    const { trackDialogs } = await import('../actions/contexts.js')
     await trackDialogs(session).catch((err) => log.warn(`Dialog tracking unavailable: ${err.message}`))
-
-    const { loadHelpers } = await import('../helpers.js')
     await loadHelpers(session, { watch: true }).catch((err) => log.warn(`Helpers failed to load: ${err.message}`))
 
     if (plan.keepHistory) {
@@ -44,8 +42,4 @@ export async function initSession (session: Session) {
         await session.browser.url(plan.url)
         session.history.append({ kind: 'open', code: `await browser.url(${quote(plan.url)})`, path: await session.currentPath() })
     }
-}
-
-export function quote (value: string) {
-    return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`
 }

@@ -5,6 +5,7 @@ import { spawn, type ChildProcess } from 'node:child_process'
 import type { AddressInfo } from 'node:net'
 
 import { importOptionalDependency } from '@wdio/utils/node'
+import { remote } from 'webdriverio'
 
 import { HINT_DOCTOR, checkBinary, checkDisplayServer, requirePackage } from '../deps.js'
 import { usage } from '../errors.js'
@@ -191,7 +192,6 @@ export async function launchWebview (plan: OpenPlan): Promise<{ browser: Webdriv
         throw usage(`No ${spec.binary} command was planned for this session.`)
     }
     const driver = startDriver(plan.driver)
-    const { remote } = await import('webdriverio')
     let browser: WebdriverIO.Browser
     try {
         await driver.ready

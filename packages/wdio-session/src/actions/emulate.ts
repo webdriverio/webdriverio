@@ -1,7 +1,8 @@
 import { deviceDescriptorsSource, type DeviceName } from 'webdriverio'
 
 import { notSupported, usage } from '../errors.js'
-import { applyViewport, quote } from '../daemon/init.js'
+import { applyViewport } from '../daemon/init.js'
+import { quote } from '../quote.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
 type Restore = () => Promise<unknown>

@@ -5,7 +5,12 @@ import { DEFAULT_IDLE_TIMEOUT, DEFAULT_LAUNCH_TIMEOUT } from '../constants.js'
 import { usage } from '../errors.js'
 import { parseDuration } from '../daemon/events.js'
 import { BROWSER_TARGETS, browserPlan, type BrowserTarget } from './browser.js'
+import { applyCloudProvider } from './cloud.js'
+import { configPlan } from './config.js'
+import { electronPlan } from './electron.js'
+import { appiumTargetPlan } from './mobile.js'
 import { deepMerge, parseCapabilitiesFlag, parseRemoteUrl, type OpenArgs } from './utils.js'
+import { nativeWebviewPlan } from './webview.js'
 import type { OpenPlan } from '../types.js'
 
 export const DESKTOP_APP_TARGETS = ['electron', 'tauri', 'dioxus'] as const
@@ -66,25 +71,20 @@ export async function buildPlan (args: OpenArgs, ctx: PlanContext): Promise<Open
     if ((BROWSER_TARGETS as readonly string[]).includes(target)) {
         plan = { ...base, ...browserPlan(target as BrowserTarget, args, { cwd: ctx.cwd, platform: ctx.platform, env }) }
         if (args.provider) {
-            const { applyCloudProvider } = await import('./cloud.js')
             plan = await applyCloudProvider(plan, args, env)
         }
     } else if ((APPIUM_TARGETS as readonly string[]).includes(target)) {
-        const { appiumTargetPlan } = await import('./mobile.js')
         const mobile = await appiumTargetPlan(target as typeof APPIUM_TARGETS[number], args, { ...ctx, env })
         plan = { ...base, url: undefined, ...mobile, remote: { ...base.remote, ...(mobile.remote || {}) } }
         if (target === 'android' || target === 'ios') {
             plan.url = args.browser && typeof args.url === 'string' ? args.url : undefined
         }
         if (args.provider) {
-            const { applyCloudProvider } = await import('./cloud.js')
             plan = await applyCloudProvider(plan, args, env)
         }
     } else if (target === 'electron') {
-        const { electronPlan } = await import('./electron.js')
         plan = { ...base, url: undefined, ...await electronPlan(args, { ...ctx, env }) }
     } else if (target === 'tauri' || target === 'dioxus') {
-        const { nativeWebviewPlan } = await import('./webview.js')
         const web = await nativeWebviewPlan(target, args, { ...ctx, env })
         plan = { ...base, url: undefined, ...web, remote: { ...base.remote, ...(web.remote || {}) } }
     } else if (isConfigTarget(target)) {
@@ -92,7 +92,6 @@ export async function buildPlan (args: OpenArgs, ctx: PlanContext): Promise<Open
         if (!fs.existsSync(configPath)) {
             throw usage(`Config file ${configPath} does not exist.`)
         }
-        const { configPlan } = await import('./config.js')
         plan = { ...base, url: undefined, ...await configPlan(configPath, args, { ...ctx, env }) }
     } else {
         throw usage(`Unknown target "${target}".`, `Use one of ${ALL_TARGETS.join(', ')} or a path to a wdio config file.`)

@@ -5,7 +5,11 @@ import yargs, { type Argv, type Options } from 'yargs'
 
 import { ACTIONS, ACTION_MAP, actionIsMutation, actionTimeout, type ActionSpec } from '../actions/specs.js'
 import { DEFAULT_SESSION, SESSION_NAME_PATTERN } from '../constants.js'
+import { checkVisualDependency } from '../deps.js'
+import { runDoctor } from '../doctor.js'
 import { SessionError, usage } from '../errors.js'
+import { skill } from '../skill.js'
+import { buildPlan } from '../targets/index.js'
 import { getArtifactsDir, getRuntimeDir, isPidAlive, listStates, readState, removeStaleState } from '../daemon/state.js'
 import { getLiveState, send } from './client.js'
 import { printError, printResult, useColor, type OutputOptions } from './output.js'
@@ -222,19 +226,14 @@ async function runAction (spec: ActionSpec, args: Record<string, unknown>, ctx: 
         return status(ctx)
     case 'restart':
         return restart(ctx)
-    case 'doctor': {
-        const { runDoctor } = await import('../doctor.js')
+    case 'doctor':
         return runDoctor(args, ctx)
-    }
-    case 'skill': {
-        const { skill } = await import('../skill.js')
+    case 'skill':
         return skill(args, ctx)
-    }
     case 'exec':
         return send(ctx.name, 'exec', await execArgs(args, ctx), { runtimeDir: ctx.runtimeDir, timeout: ctx.timeout ?? actionTimeout('exec'), cwd: ctx.cwd })
     default:
         if (spec.name === 'visual') {
-            const { checkVisualDependency } = await import('../deps.js')
             await checkVisualDependency(ctx.cwd, getLiveState(ctx.name, ctx.runtimeDir).cwd)
         }
         return send(ctx.name, spec.name, args, { runtimeDir: ctx.runtimeDir, timeout: ctx.timeout ?? actionTimeout(spec.name), cwd: ctx.cwd })
@@ -272,7 +271,6 @@ function describe (state: StateFile) {
 }
 
 async function open (args: Record<string, unknown>, ctx: RunContext): Promise<ActionResult> {
-    const { buildPlan } = await import('../targets/index.js')
     const plan = await buildPlan(args as { target: string }, {
         name: ctx.name,
         cwd: ctx.cwd,

@@ -1,5 +1,5 @@
 import { SessionError, usage } from '../errors.js'
-import { quote } from '../daemon/init.js'
+import { quote } from '../quote.js'
 import { refId } from './refs.js'
 import type { Session } from '../session.js'
 
