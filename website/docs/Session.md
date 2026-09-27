@@ -18,7 +18,13 @@ The session is named `default`. Pass `-s <name>` only when you need two sessions
 
 ## Install
 
-`wdio session` is installed with the CLI. You do not install a separate package.
+`wdio session` is part of the WebdriverIO CLI. `npx wdio` installs the unscoped [`wdio`](https://www.npmjs.com/package/wdio) package and runs that CLI. You do not install `@wdio/session` yourself.
+
+```sh
+npx wdio session --help
+```
+
+Scaffold a project with:
 
 ```sh
 npm init wdio@latest
