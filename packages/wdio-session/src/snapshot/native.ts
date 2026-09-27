@@ -321,24 +321,12 @@ function sameResource (left: string, right: string) {
     return a === b || resourceSuffix(a) === resourceSuffix(b)
 }
 
-/** `//android.widget.FrameLayout`, with no predicate. */
-function classFallback (scope: string) {
-    return scope.startsWith('//') && !scope.includes('[') && !scope.includes('(')
-}
-
 function matchingLocated (located: Located[], scope: string) {
     const exact = located.filter((entry) => entry.candidates.includes(scope))
-    const hits = exact.length
-        ? exact
-        : located.filter((entry) => entry.candidates.some((candidate) => sameResource(candidate, scope)))
-    if (hits.length < 2 || !classFallback(scope)) {
-        return hits
+    if (exact.length) {
+        return exact
     }
-    // A bare class xpath is the fallback for every node of that class. Prefer
-    // the control that has a ref; a plain container shares the same xpath and
-    // has nothing else to select it by.
-    const interactive = hits.filter((entry) => entry.node.ref)
-    return interactive.length ? interactive : hits
+    return located.filter((entry) => entry.candidates.some((candidate) => sameResource(candidate, scope)))
 }
 
 function scopeNativeTree (tree: SnapshotNode, located: Located[], scope: string): SnapshotNode {
@@ -349,7 +337,7 @@ function scopeNativeTree (tree: SnapshotNode, located: Located[], scope: string)
         throw usage(
             hits.length > 1 ? `Scope ${scope} matches ${hits.length} elements.` : `Scope ${scope} is not in this snapshot.`,
             hits.length > 1
-                ? 'Pass a ref from `wdio session snapshot`.'
+                ? 'Pass a ref for a control, or a selector with text or a resource id for a container.'
                 : 'Run `wdio session snapshot` and pass a ref or a selector from that tree.'
         )
     }

@@ -109,11 +109,13 @@ describe('native snapshots', () => {
         expect(scoped.text).not.toContain('[ref=')
     })
 
-    it('scopes a bare class xpath to the clickable control', async () => {
+    it('rejects a class xpath that matches a container and a control', async () => {
         const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <hierarchy>
-  <android.widget.FrameLayout clickable="true" displayed="true" bounds="[0,0][10,10]" />
-  <android.widget.FrameLayout displayed="true" bounds="[0,20][10,30]" />
+  <android.widget.FrameLayout displayed="true" bounds="[0,0][40,40]">
+    <android.widget.FrameLayout clickable="true" displayed="true" bounds="[0,0][10,10]" />
+    <android.widget.TextView text="Inside" displayed="true" bounds="[0,10][10,20]" />
+  </android.widget.FrameLayout>
 </hierarchy>`
         const session = {
             browser: {
@@ -123,8 +125,9 @@ describe('native snapshots', () => {
             plan: { target: 'android' },
             refs: new RefRegistry()
         } as unknown as Session
-        const scoped = await takeNativeSnapshot(session, { scope: '//android.widget.FrameLayout' })
-        expect(scoped.text).toContain('[ref=e1]')
-        expect(scoped.text).not.toContain('group')
+        await expect(takeNativeSnapshot(session, { scope: '//android.widget.FrameLayout' })).rejects.toThrow(/matches 2 elements/)
+        const byRef = await takeNativeSnapshot(session, { scope: 'e1' })
+        expect(byRef.text).toContain('[ref=e1]')
+        expect(byRef.text).not.toContain('Inside')
     })
 })
