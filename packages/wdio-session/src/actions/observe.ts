@@ -140,15 +140,28 @@ export const diff: ActionFn = async (session, args) => {
     return { text: result || 'No changes', data: { changed: Boolean(result), diff: result } }
 }
 
+/** PNG width and height sit in the IHDR chunk, 24 bytes from the start. */
+const PNG_HEADER_BYTES = 24
+
 export function pngSize (file: string) {
+    let fd: number | undefined
     try {
-        const size = imageSize(fs.readFileSync(file))
-        if (size.type !== 'png') {
+        fd = fs.openSync(file, 'r')
+        const header = Buffer.alloc(PNG_HEADER_BYTES)
+        if (fs.readSync(fd, header, 0, PNG_HEADER_BYTES, 0) < PNG_HEADER_BYTES) {
+            return undefined
+        }
+        const size = imageSize(header)
+        if (size.type !== 'png' || size.width === undefined || size.height === undefined) {
             return undefined
         }
         return { width: size.width, height: size.height }
     } catch {
         return undefined
+    } finally {
+        if (fd !== undefined) {
+            fs.closeSync(fd)
+        }
     }
 }
 
