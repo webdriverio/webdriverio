@@ -10,6 +10,7 @@ import * as state from './state.js'
 import { exportSpec, history } from './export.js'
 import { helpers } from './helpers.js'
 import { visual } from './visual.js'
+import { record, trace } from './evidence.js'
 
 /**
  * Arguments of an action as parsed by the CLI (camelCase keys) plus `$cwd`,
@@ -60,5 +61,7 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     state: state.state,
     history,
     export: exportSpec,
-    visual
+    visual,
+    trace,
+    record
 }
