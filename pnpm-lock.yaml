@@ -534,6 +534,12 @@ importers:
         specifier: ^8.54.0
         version: 8.56.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)
 
+  packages/wdio:
+    dependencies:
+      '@wdio/cli':
+        specifier: workspace:*
+        version: link:../wdio-cli
+
   packages/wdio-allure-reporter:
     dependencies:
       '@types/node':

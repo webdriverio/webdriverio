@@ -14,6 +14,8 @@ Install it like this:
 npm install @wdio/cli
 ```
 
+`npx wdio` runs the same CLI when `@wdio/cli` is not installed yet. npm installs the unscoped [`wdio`](https://www.npmjs.com/package/wdio) package, and that package starts `@wdio/cli`.
+
 To see the command line interface help, type the following command in your terminal:
 
 ```sh
