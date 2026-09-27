@@ -15,16 +15,20 @@ const DEBOUNCE_MS = 200
  * macOS can drop a watch event, including one that lands before `fs.watch`
  * is active. The poll stats every file. It re-reads a file when the size or
  * modification time changed, and it also re-reads small files so a same-size
- * edit that keeps its modification time is still visible. Larger files are
- * hashed on a stream between turns of the event loop, so a same-size edit is
- * still noticed without holding the daemon on a synchronous read.
+ * edit that keeps its modification time is still visible. A large helper
+ * source is hashed on a stream, at most once every few seconds. Other large
+ * files stay on their previous hash until a stat or a named event changes.
  */
 const POLL_MS = 500
 /**
  * A quiet poll re-reads unchanged files synchronously only up to this size.
- * Larger files are hashed on a stream between event-loop turns.
  */
 export const CONTENT_POLL_BYTES = 64 * 1024
+/**
+ * How often a large helper source is hashed when its size and modification
+ * time have not changed. Auxiliary files are not hashed on this cadence.
+ */
+const LARGE_POLL_MS = 5000
 
 export interface LoadedHelper {
     file: string
@@ -164,13 +168,17 @@ export function rewriteRelativeImports (code: string, dir: string, stamp: number
     return out
 }
 
+function isHelperSource (name: string) {
+    return /\.(js|mjs|ts)$/.test(name) && !name.endsWith('.d.ts')
+}
+
 export function helperSources (cwd: string) {
     const dir = helpersDir(cwd)
     if (!fs.existsSync(dir)) {
         return []
     }
     return fs.readdirSync(dir)
-        .filter((name) => /\.(js|mjs|ts)$/.test(name) && !name.endsWith('.d.ts'))
+        .filter(isHelperSource)
         .sort()
         .map((name) => path.join(dir, name))
 }
@@ -289,8 +297,9 @@ interface HashedFile {
  * Hash of every file in the helpers directory. A named edit re-reads those
  * files. An event with no filename re-reads the directory, because the size
  * and modification time can stay the same. A poll re-reads small files for
- * the same reason. Larger unchanged files keep their previous hash here and
- * are listed in `deferred` so the caller can hash them without blocking.
+ * the same reason. A larger unchanged helper source is listed in `deferred`
+ * so the caller can hash it without blocking. Other large files keep their
+ * previous hash.
  * A file that could not be read keeps its previous hash and is read again on
  * the next pass.
  */
@@ -328,7 +337,7 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
         let content: string
         if (unchanged && prior) {
             content = prior.hash
-            if (unchangedReadLimit > 0 && stat.size > unchangedReadLimit) {
+            if (unchangedReadLimit > 0 && stat.size > unchangedReadLimit && isHelperSource(name)) {
                 deferred.push(name)
             }
         } else {
@@ -449,6 +458,7 @@ function watchHelpers (session: Session) {
     let epoch = 0
     let scanning = false
     let disposed = false
+    let lastLargeScan = 0
     session.disposers.push(() => {
         disposed = true
         epoch += 1
@@ -467,6 +477,11 @@ function watchHelpers (session: Session) {
         if (apply(next) || unchangedReadLimit === 0 || next.deferred.length === 0 || scanning || disposed) {
             return
         }
+        const now = Date.now()
+        if (now - lastLargeScan < LARGE_POLL_MS) {
+            return
+        }
+        lastLargeScan = now
         const gen = epoch
         const pending = next.deferred
         scanning = true

@@ -465,15 +465,19 @@ describe('loadHelpers', () => {
                 }
             } as unknown as fs.FSWatcher
         })
+        const readSpy = vi.spyOn(fs, 'readFileSync')
+        const streamSpy = vi.spyOn(fs, 'createReadStream')
         try {
             const session = tracked(dir)
             await loadHelpers(session, { watch: true })
-            const spy = vi.spyOn(fs, 'readFileSync')
-            await new Promise((resolve) => setTimeout(resolve, 700))
-            const reread = spy.mock.calls.some((args) => String(args[0]) === data)
-            spy.mockRestore()
-            expect(reread).toBe(false)
+            readSpy.mockClear()
+            streamSpy.mockClear()
+            await new Promise((resolve) => setTimeout(resolve, 1200))
+            const saw = (calls: unknown[][]) => calls.some((args) => String(args[0]) === data)
+            expect(saw(readSpy.mock.calls) || saw(streamSpy.mock.calls)).toBe(false)
         } finally {
+            readSpy.mockRestore()
+            streamSpy.mockRestore()
             watchSpy.mockRestore()
         }
     })
