@@ -126,6 +126,11 @@ export interface OpenPlan {
     keepHistory?: boolean
 }
 
+/**
+ * the target specific part of an `OpenPlan`
+ */
+export type TargetPlan = Omit<OpenPlan, 'name' | 'cwd' | 'runtimeDir' | 'artifactsDir' | 'target' | 'remote' | 'bidi' | 'idleTimeout' | 'launchTimeout' | 'argv'> & Partial<Pick<OpenPlan, 'remote' | 'bidi'>>
+
 export interface StateFile {
     version: number
     name: string
