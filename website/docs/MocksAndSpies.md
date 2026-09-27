@@ -87,7 +87,7 @@ mock.respond({ ... }, {
 })
 ```
 
-Firefox's WebDriver BiDi implementation only supports providing a response body at `beforeRequestSent`. For static mock responses without response-based filters, WebdriverIO therefore returns the mock before sending the request to the origin. In this Firefox case, `fetchResponse` is ignored even when omitted or set to `true`, so the origin is not called. Response-based filters and dynamic response values that depend on the origin response cannot be evaluated before the request is sent; if such a mock tries to provide a body at `responseStarted`, WebdriverIO fails the intercepted request when Firefox rejects it.
+Firefox's WebDriver BiDi implementation only supports providing a response body at `beforeRequestSent`. For static mock responses without response-based filters or queued request rewrites, WebdriverIO therefore returns the mock before sending the request to the origin. In this Firefox case, `fetchResponse` is ignored even when omitted or set to `true`, so the origin is not called. Response-based filters, dynamic response values that depend on the origin response, and queued `mock.request()` or `mock.redirect()` rewrites prevent this early response. If a mock then tries to provide a body at `responseStarted`, WebdriverIO fails the intercepted request when Firefox rejects it.
 
 It is recommend to store custom responses in fixture files so you can just require them in your test as follows:
 
