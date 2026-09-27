@@ -94,11 +94,11 @@ export async function nativeWebviewPlan (target: WebviewTarget, args: OpenArgs, 
     const standalone = typeof loaded.startWdioSession === 'function'
     const binary = standalone
         ? undefined
-        : checkBinary(spec.binary, { feature: spec.feature, install: spec.install, env, hint: HINT_DOCTOR(target) })
+        : checkBinary(spec.binary, { feature: spec.feature, install: spec.install, env, platform: host, hint: HINT_DOCTOR(target) })
     const port = await freePort()
     const display = host === 'linux' && !hasDisplay(env)
     if (display) {
-        checkDisplayServer(spec.feature, env)
+        checkDisplayServer(spec.feature, env, host)
     }
     const remote: Partial<RemoteOptions> = { hostname: 'localhost', port, path: '/' }
     const driver: DriverPlan | undefined = binary ? { binary, args: driverArgs(port), port } : undefined

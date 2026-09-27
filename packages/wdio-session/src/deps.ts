@@ -211,8 +211,8 @@ export function findBinary (name: string, env = process.env, platform = process.
     return undefined
 }
 
-export function checkBinary (name: string, opts: { feature: string, install: string[], hint?: string, env?: NodeJS.ProcessEnv }) {
-    const found = findBinary(name, opts.env)
+export function checkBinary (name: string, opts: { feature: string, install: string[], hint?: string, env?: NodeJS.ProcessEnv, platform?: NodeJS.Platform }) {
+    const found = findBinary(name, opts.env, opts.platform)
     if (!found) {
         throw new SessionError('MISSING_BINARY', `Cannot ${opts.feature}: ${name} was not found on PATH.`, {
             package: name,
@@ -227,8 +227,8 @@ export function checkBinary (name: string, opts: { feature: string, install: str
  * Linux desktop targets without a display need Xvfb (or weston) for
  * `@wdio/display-server`.
  */
-export function checkDisplayServer (feature: string, env = process.env) {
-    if (findBinary('Xvfb', env) || findBinary('weston', env)) {
+export function checkDisplayServer (feature: string, env = process.env, platform: NodeJS.Platform = process.platform) {
+    if (findBinary('Xvfb', env, platform) || findBinary('weston', env, platform)) {
         return
     }
     throw new SessionError('MISSING_BINARY', `Cannot ${feature}: no display is available and neither Xvfb nor weston is installed.`, {

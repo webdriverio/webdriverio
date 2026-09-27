@@ -46,7 +46,13 @@ describe('appium server', () => {
         })
         const started = Date.now()
         await stopChild(child, 300)
-        expect(Date.now() - started).toBeGreaterThanOrEqual(250)
+        /**
+         * Windows has no POSIX signals: `kill('SIGTERM')` ends the process
+         * immediately, so the grace period only elapses on other platforms.
+         */
+        if (process.platform !== 'win32') {
+            expect(Date.now() - started).toBeGreaterThanOrEqual(250)
+        }
         expect(child.signalCode === 'SIGKILL' || child.exitCode !== null || !child.pid).toBe(true)
     })
 

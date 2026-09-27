@@ -115,7 +115,10 @@ describe('electron targets', () => {
     it('asks for a virtual display on Linux without one', async () => {
         const dir = tempDir()
         const binary = write(dir, 'MyApp')
-        const plan = await electronPlan({ target: 'electron', url: binary }, ctx(dir, { PATH: process.env.PATH }))
+        const bin = path.join(dir, 'bin')
+        fs.mkdirSync(bin)
+        fs.writeFileSync(path.join(bin, 'Xvfb'), '#!/bin/sh\n', { mode: 0o755 })
+        const plan = await electronPlan({ target: 'electron', url: binary }, ctx(dir, { PATH: bin }))
         expect(plan.display).toBe(true)
     })
 })

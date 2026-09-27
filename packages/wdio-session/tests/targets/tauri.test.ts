@@ -93,9 +93,8 @@ describe('tauri targets', () => {
     })
 
     it('stops the driver process it started', async () => {
-        const dir = tempDir()
-        const bin = installBinary(dir, 'tauri-driver')
-        const driver = startDriver({ binary: path.join(bin, 'tauri-driver'), args: ['--port', '9'], port: 9 })
+        const driver = startDriver({ binary: process.execPath, args: ['-e', 'setInterval(() => {}, 1000)'], port: 9 })
+        await driver.ready
         expect(isAlive(driver.pid)).toBe(true)
         await driver.stop()
         expect(isAlive(driver.pid)).toBe(false)
