@@ -280,6 +280,62 @@ describe('loadHelpers', () => {
         }
     })
 
+    it('retries a helper that was unreadable during its edit', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const main = path.join(helpers, 'main.js')
+        const note = path.join(helpers, 'note.txt')
+        const source = (mark: string) => [
+            'export default function (browser) {',
+            `    browser.addCommand('mark', () => ${JSON.stringify(mark)})`,
+            '}'
+        ].join('\n')
+        fs.writeFileSync(main, source('a'))
+        fs.writeFileSync(note, 'same\n')
+        let listener: ((event: string, filename: string | null) => void) | undefined
+        const originalWatch = fs.watch
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation((...args: Parameters<typeof fs.watch>) => {
+            const cbIndex = args.findIndex((arg) => typeof arg === 'function')
+            listener = args[cbIndex] as (event: string, filename: string | null) => void
+            return originalWatch(...args)
+        })
+        const originalRead = fs.readFileSync
+        let readSpy: ReturnType<typeof vi.spyOn> | undefined
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const read = () => (session.browser as unknown as { mark: () => string }).mark()
+            expect(read()).toBe('a')
+            await new Promise((resolve) => setTimeout(resolve, 500))
+            let blocked = true
+            readSpy = vi.spyOn(fs, 'readFileSync').mockImplementation((...args: Parameters<typeof fs.readFileSync>) => {
+                if (blocked && String(args[0]) === main) {
+                    const err = new Error(`EACCES: permission denied, open '${main}'`) as NodeJS.ErrnoException
+                    err.code = 'EACCES'
+                    throw err
+                }
+                return originalRead(...(args as [fs.PathLike]))
+            })
+            fs.writeFileSync(main, source('b'))
+            await new Promise((resolve) => setTimeout(resolve, 500))
+            expect(read()).toBe('a')
+            blocked = false
+            listener?.('change', 'note.txt')
+            const started = Date.now()
+            let mark = 'a'
+            while (Date.now() - started < 3000 && mark !== 'b') {
+                mark = read()
+                if (mark !== 'b') {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            expect(mark).toBe('b')
+        } finally {
+            readSpy?.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
     it('reloads when a helper reads a sibling file that changes', async () => {
         const dir = project()
         const helpers = path.join(dir, '.wdio', 'helpers')

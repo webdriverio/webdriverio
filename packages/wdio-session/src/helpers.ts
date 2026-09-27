@@ -267,12 +267,16 @@ interface HashedFile {
     mtimeMs: number
     size: number
     hash: string
+    /** The last read failed, so a later event must try this file again. */
+    unread?: boolean
 }
 
 /**
  * Hash of every file in the helpers directory. A named edit re-reads those
  * files. An event with no filename re-reads the directory, because the size
- * and modification time can stay the same. Other files keep their hash.
+ * and modification time can stay the same. A file that could not be read
+ * keeps its previous hash and is read again on the next pass. Other files
+ * keep their hash.
  */
 function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: ReadonlySet<string>, rereadAll = false) {
     const hash = crypto.createHash('sha1')
@@ -301,7 +305,7 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
             continue
         }
         const prior = previous.get(name)
-        const unchanged = !rereadAll && prior !== undefined && prior.mtimeMs === stat.mtimeMs && prior.size === stat.size && !reread.has(name)
+        const unchanged = !rereadAll && prior !== undefined && !prior.unread && prior.mtimeMs === stat.mtimeMs && prior.size === stat.size && !reread.has(name)
         let content: string
         if (unchanged && prior) {
             content = prior.hash
@@ -311,6 +315,10 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
             } catch (err) {
                 log.warn(`Helper file could not be read: ${errorLine(err)}`)
                 content = prior?.hash ?? 'unreadable'
+                files.set(name, { mtimeMs: stat.mtimeMs, size: stat.size, hash: content, unread: true })
+                hash.update(content)
+                hash.update('\0')
+                continue
             }
         }
         files.set(name, { mtimeMs: stat.mtimeMs, size: stat.size, hash: content })
