@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import logger from '@wdio/logger'
 
 import type { LogEntry, NetworkEntry } from './events.js'
@@ -118,11 +121,100 @@ const CHROME_LEVEL: Record<string, LogEntry['level']> = {
     DEBUG: 'debug'
 }
 
+const SERVICE_LOG = /^(\d{4}-\d{2}-\d{2}T[\d:.]+Z)\s+([A-Za-z]+)\s+\S+\s+(.*)$/
+const ELECTRON_TAG = /^\[Electron:(MainProcess|Renderer)(?::[^\]]*)?\]\s*(.*)$/
+
+/**
+ * One line of a native-service log file
+ * (`<iso> INFO electron-service:service: [Electron:MainProcess] …`).
+ */
+export function parseServiceLogLine (line: string): Omit<LogEntry, 'seq'> | undefined {
+    const match = SERVICE_LOG.exec(line.trim())
+    if (!match) {
+        return undefined
+    }
+    const tagged = ELECTRON_TAG.exec(match[3])
+    const text = (tagged ? tagged[2] : match[3]).trim()
+    if (!text) {
+        return undefined
+    }
+    const levelName = match[2].toLowerCase()
+    const level = levelName === 'debug' || levelName === 'info' || levelName === 'warn' || levelName === 'error' ? levelName : 'info'
+    const time = Date.parse(match[1])
+    return {
+        time: Number.isNaN(time) ? Date.now() : time,
+        level,
+        source: tagged?.[1] === 'MainProcess' ? 'main' : tagged ? 'console' : 'driver',
+        text
+    }
+}
+
+interface LogTail {
+    offset: number
+    rest: string
+}
+
+/**
+ * Electron main-process logs are written by `@wdio/electron-service` under
+ * `plan.electron.logDir`. Fold new lines into the ring buffer.
+ */
+export function ingestElectronLogs (session: Session) {
+    const logDir = session.plan.electron?.logDir
+    if (!logDir || !fs.existsSync(logDir)) {
+        return
+    }
+    const tails = session.get<Map<string, LogTail>>('electronLogTails') || new Map()
+    let names: string[] = []
+    try {
+        names = fs.readdirSync(logDir).filter((name) => name.endsWith('.log'))
+    } catch {
+        return
+    }
+    for (const name of names) {
+        const file = path.join(logDir, name)
+        let size = 0
+        try {
+            size = fs.statSync(file).size
+        } catch {
+            continue
+        }
+        const tail = tails.get(file) || { offset: 0, rest: '' }
+        if (size < tail.offset) {
+            tail.offset = 0
+            tail.rest = ''
+        }
+        if (size === tail.offset) {
+            tails.set(file, tail)
+            continue
+        }
+        const length = size - tail.offset
+        const buf = Buffer.alloc(length)
+        const fd = fs.openSync(file, 'r')
+        try {
+            fs.readSync(fd, buf, 0, length, tail.offset)
+        } finally {
+            fs.closeSync(fd)
+        }
+        tail.offset = size
+        const lines = (tail.rest + buf.toString('utf8')).split('\n')
+        tail.rest = lines.pop() ?? ''
+        tails.set(file, tail)
+        for (const line of lines) {
+            const entry = parseServiceLogLine(line)
+            if (entry) {
+                session.logs.push(entry)
+            }
+        }
+    }
+    session.set('electronLogTails', tails)
+}
+
 /**
  * Drivers without BiDi keep logs in a buffer that `getLogs` drains.
  * Called from `logs` so the ring buffer sees them.
  */
 export async function pollLogs (session: Session, source?: string) {
+    ingestElectronLogs(session)
     const { browser } = session
     if (session.applies.includes('M')) {
         const types = source === 'syslog' || source === 'logcat' ? [source] : ['logcat', 'syslog']

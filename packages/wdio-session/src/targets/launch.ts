@@ -60,6 +60,14 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
         if (plan.mode === 'electron') {
             const { launchElectron } = await import('./electron.js')
             ;({ browser, end } = await launchElectron(plan))
+        } else if (plan.platform === 'tauri' || plan.platform === 'dioxus') {
+            const { launchWebview } = await import('./webview.js')
+            const launched = await launchWebview(plan)
+            browser = launched.browser
+            end = launched.end
+            if (typeof launched.pid === 'number') {
+                pids.push(launched.pid)
+            }
         } else {
             if (plan.driver) {
                 const { startDriver } = await import('./webview.js')

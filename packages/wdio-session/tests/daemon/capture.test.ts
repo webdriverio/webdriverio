@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { consoleLevel, consoleText, networkEntry, remoteValueText, responseStats } from '../../src/daemon/capture.js'
+import { consoleLevel, consoleText, networkEntry, parseServiceLogLine, remoteValueText, responseStats } from '../../src/daemon/capture.js'
 import { requestMatches, mockBody } from '../../src/actions/network.js'
 import { RingBuffer } from '../../src/daemon/events.js'
 
@@ -41,6 +41,19 @@ describe('network entries', () => {
         expect(networkEntry({ request: { method: 'GET', url: 'http://127.0.0.1:9/x' }, errorText: 'refused' }, true))
             .toMatchObject({ failed: true, status: undefined, errorText: 'refused' })
         expect(networkEntry({}, false)).toBeUndefined()
+    })
+})
+
+describe('service log lines', () => {
+    it('reads Electron main-process lines', () => {
+        expect(parseServiceLogLine('2026-09-27T04:00:00.000Z INFO electron-service:service: [Electron:MainProcess] main ready')).toEqual({
+            time: Date.parse('2026-09-27T04:00:00.000Z'),
+            level: 'info',
+            source: 'main',
+            text: 'main ready'
+        })
+        expect(parseServiceLogLine('2026-09-27T04:00:00.000Z INFO electron-service:service: [Electron:Renderer:1] hi')).toMatchObject({ source: 'console', text: 'hi' })
+        expect(parseServiceLogLine('not a log line')).toBeUndefined()
     })
 })
 
