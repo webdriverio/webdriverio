@@ -9,6 +9,7 @@ import * as network from './network.js'
 import * as state from './state.js'
 import { exportSpec, history } from './export.js'
 import { helpers } from './helpers.js'
+import { visual } from './visual.js'
 
 /**
  * Arguments of an action as parsed by the CLI (camelCase keys) plus `$cwd`,
@@ -58,5 +59,6 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     storage: state.storage,
     state: state.state,
     history,
-    export: exportSpec
+    export: exportSpec,
+    visual
 }
