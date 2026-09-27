@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { check, focus, uncheck } from '../../src/actions/interact.js'
+import { check, click, focus, uncheck } from '../../src/actions/interact.js'
 import type { Session } from '../../src/session.js'
 
 function session (element: Record<string, unknown>) {
@@ -51,3 +51,20 @@ describe('check', () => {
     })
 })
 
+describe('click --new-tab', () => {
+    it('opens the link href in a new window', async () => {
+        const element: Record<string, unknown> = {
+            elementId: '1',
+            getAttribute: async () => '/guide'
+        }
+        const result = await click(session(element), { target: 'a', newTab: true, $cwd: '/' })
+        expect(element.opened).toBe('https://example.com/guide')
+        expect(result.text).toContain('https://example.com/guide')
+        expect(result.history).toContain('newWindow')
+    })
+
+    it('rejects an element with no href', async () => {
+        const element = { elementId: '1', getAttribute: async () => null }
+        await expect(click(session(element), { target: 'button', newTab: true, $cwd: '/' })).rejects.toThrow('no href')
+    })
+})

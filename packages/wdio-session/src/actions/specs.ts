@@ -214,7 +214,7 @@ export const ACTIONS: ActionSpec[] = [
             ['$0 session wait 500', 'Pause 500ms']
         ]
     },
-    { name: 'click', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Click an element', positionals: [target()], options: { double: { type: 'boolean', desc: 'Double click' }, right: { type: 'boolean', desc: 'Right click' } } },
+    { name: 'click', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Click an element', positionals: [target()], options: { double: { type: 'boolean', desc: 'Double click' }, right: { type: 'boolean', desc: 'Right click' }, 'new-tab': { type: 'boolean', desc: 'Open the link in a new tab' } } },
     { name: 'tap', group: 'Interaction', applies: ['M'], mutation: true, desc: 'Tap an element (mobile)', positionals: [target()] },
     { name: 'fill', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Replace the value of an input', positionals: [target(), { name: 'text', desc: 'Text', required: true }] },
     { name: 'type', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true, desc: 'Type into the focused element', positionals: [{ name: 'text', desc: 'Text', required: true }] },

@@ -392,6 +392,7 @@ Click an element. Applies to web, native mobile, native desktop.
 | --- | --- |
 | `--double` | Double click |
 | `--right` | Right click |
+| `--new-tab` | Open the link in a new tab |
 
 ## `tap`
 
