@@ -1,6 +1,7 @@
 ---
 id: driverbinaries
 title: Driver Binaries
+description: "Let WebdriverIO download and manage browser drivers automatically, or set up Chromedriver, Geckodriver, Edgedriver and Safaridriver manually."
 ---
 
 To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able to execute them in the browser.

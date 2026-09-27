@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Press a particular key on the device. The keycode values correspond to Android KeyEvent constants.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :pressKeyCode.js
@@ -38,14 +36,5 @@ export async function pressKeyCode(
         throw new Error('The `pressKeyCode` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: pressKey', { keycode, metastate, flags })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: pressKey', '/appium/device/press_keycode')
-        return browser.appiumPressKeyCode(keycode, metastate, flags)
-    }
+    return executeMobile(browser, 'mobile: pressKey', { keycode, metastate, flags })
 }

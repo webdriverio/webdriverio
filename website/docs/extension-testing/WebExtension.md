@@ -1,6 +1,7 @@
 ---
 id: web-extensions
 title: Web Extension Testing
+description: "Load a web extension into Chrome or Firefox during a WebdriverIO session and test its content scripts and popup end to end."
 ---
 
 WebdriverIO is the ideal tool to automate a browser. Web Extensions are a part of the browser and can be automated in the same way. Whenever your web extension uses content scripts to run JavaScript on websites or offer a popup modal, you can run an e2e test for that using WebdriverIO.

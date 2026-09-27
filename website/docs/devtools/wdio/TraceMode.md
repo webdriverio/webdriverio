@@ -1,6 +1,7 @@
 ---
 id: trace-mode
 title: Trace Mode
+description: "Capture headless trace artifacts with DevTools trace mode and configure format, granularity, retention, screenshots, video and assertions."
 ---
 
 Headless capture path — no DevTools UI window opens. At session end the adapter writes trace artifacts into a `test-results/` folder next to your spec / config directory. For `session` / `spec` granularity that's a `trace-<sessionId>.zip` (or a `trace-<sessionId>/` directory); for `test` granularity each test gets its own subfolder (see [Trace granularity](#trace-granularity--tracegranularity)). The artifact is portable and ships everything needed for offline replay, AI-agent diffing, or any consumer that prefers a file over a live UI.

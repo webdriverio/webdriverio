@@ -5,7 +5,7 @@ tasks:
   - name: Unit Test Coverage
     init: gp sync-await installation
     command: |
-      npm run test:unit
+      pnpm run test:unit
       cd coverage/lcov-report/
       http-server -p 8000 &
       cd ../../
@@ -49,5 +49,5 @@ vscode:
   extensions:
     - EditorConfig.EditorConfig
     - DigitalBrainstem.javascript-ejs-support
-    - dbaeumer.vscode-eslint
+    - oxc.oxc-vscode
     - eamodio.gitlens

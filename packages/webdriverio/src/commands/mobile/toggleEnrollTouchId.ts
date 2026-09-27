@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Toggle Touch ID enrollment on iOS Simulator.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * :::note
  * This command requires the `allowTouchIdEnroll` capability to be set to `true` in the session.
@@ -39,14 +37,5 @@ export async function toggleEnrollTouchId(
         throw new Error('The `toggleEnrollTouchId` command is only available for iOS.')
     }
 
-    try {
-        return await browser.execute('mobile: enrollBiometric', { enabled })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: enrollBiometric', '/appium/simulator/toggle_touch_id_enrollment')
-        return browser.appiumToggleEnrollTouchId(enabled)
-    }
+    return executeMobile(browser, 'mobile: enrollBiometric', { enabled })
 }

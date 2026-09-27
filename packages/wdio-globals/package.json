@@ -19,9 +19,9 @@
     }
   },
   "types": "./build/index.d.ts",
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22.19.0"
   },
   "repository": {
     "type": "git",
@@ -40,7 +40,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "expect-webdriverio": "^6.0.9",
+    "expect-webdriverio": "^6.1.0",
     "webdriverio": "^9.28.0"
   },
   "peerDependenciesMeta": {
@@ -50,5 +50,8 @@
     "webdriverio": {
       "optional": false
     }
+  },
+  "devDependencies": {
+    "webdriverio": "workspace:*"
   }
 }

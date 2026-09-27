@@ -1,6 +1,7 @@
 ---
 id: solid
 title: SolidJS
+description: "Set up the WebdriverIO browser runner for a SolidJS project with the solid preset and write component tests that render into the page."
 ---
 
 [SolidJS](https://www.solidjs.com/) is a framework to build user interfaces with simple and performant reactivity. You can test SolidJS components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).

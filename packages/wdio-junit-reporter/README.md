@@ -149,18 +149,23 @@ export const config = {
 The following options are supported:
 
 ### outputDir
+
+<Option type="String">
+
 Define a directory where your XML files should get stored. Ignored if either `logFile` or `setLogFile` are defined.
 
-Type: `String`
+</Option>
 
 ### outputFileFormat
+
+<Option type="Object" default={`(opts) => \`wdio-\${opts.cid}-junit-reporter.log\``}>
+
 Function for defining the filename format for the reporter log files. Ignored if either `logFile` or `setLogFile`
 are defined.
 
 The function accepts an object input parameter with the `cid` and `capabilities` keys.
 
-Type: `Object`<br />
-Default: ``(opts) => `wdio-${opts.cid}-junit-reporter.log` ``<br />
+</Option>
 Example:
 ```js
 // wdio.conf.js
@@ -175,10 +180,13 @@ export const config = {
 ```
 
 ### logFile
+
+<Option type="String">
+
 Path to the reporter log file relative to the current directory. Overrides `outputDir` and `outputFileFormat`.
 Ignored if `setLogFile` is defined.
 
-Type: `String`<br />
+</Option>
 Example:
 ```js
 // wdio.conf.js
@@ -192,11 +200,14 @@ export const config = {
 ```
 
 ### setLogFile
+
+<Option type="Object">
+
 Function for defining the path for the reporter log files. Overrides `outputDir`, `outputFileFormat`, and `logFile`.
 
 The function accepts two input parameters: `cid` and `name` (the reporter name, set to `junit`).
 
-Type: `Object`<br />
+</Option>
 Example:
 ```js
 // wdio.conf.js
@@ -210,25 +221,32 @@ export const config = {
 ```
 
 ### stdout
+
+<Option type="boolean" default="false">
+
 Output the generated XML to the console instead of creating a log file.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 ### writeStream
+
+<Option type="WriteStream">
+
 Set a stream to which the generated XML should be output, instead of creating a log file.
 
 Note: `logFile` must not be set, unless `stdout` is set to `true`.
 
-Type: `WriteStream`
+</Option>
 
 ### suiteNameFormat
+
+<Option type="Regex | Object" default="/[^a-zA-Z0-9@]+/">
+
 Format the generated name of a test suite, using custom regex or a function.
 
 The function accepts an object input parameter with the `name` and `suite` keys.
 
-Type: `Regex | Object`,<br />
-Default: `/[^a-zA-Z0-9@]+/`<br />
+</Option>
 Example with Regex:
 ```js
 // wdio.conf.js
@@ -255,12 +273,15 @@ export const config = {
 ```
 
 ### classNameFormat
+
+<Option type="Object">
+
 Format the generated classname of a test case.
 
 The function accepts an object input parameter with the [`packageName`](#packagename), `activeFeatureName`
 (Cucumber only), and `suite` (non-Cucumber only) keys.
 
-Type: `Object`<br />
+</Option>
 Default (Cucumber): ``(opts) => `${opts.packageName}${opts.activeFeatureName}` ``<br />
 Default (others): ``(opts) => `${opts.packageName}.${(opts.suite.fullTitle || opts.suite.title).replace(/\s/g, '_')}` ``<br />
 Example (Cucumber):
@@ -288,14 +309,14 @@ export const config = {
 };
 ```
 
-
 ### addFileAttribute
+
+<Option type="Boolean" default="false">
 
 Adds a `file` attribute to each testcase. The value of this attribute matches the filepath property of the parent test
 suite. This config is primarily for CircleCI, but may break on other CI platforms.
 
-Type: `Boolean`<br />
-Default: `false`<br />
+</Option>
 Example simplified XML:
 ```xml
 <testsuite>
@@ -310,9 +331,11 @@ Example simplified XML:
 
 ### packageName
 
+<Option type="String">
+
 You can break out packages by an additional level by setting `'packageName'`. For example, if you wanted to iterate over a test suite with a different environment variable set:
 
-Type: `String`<br />
+</Option>
 Default (Cucumber): `CucumberJUnitReport-${sanitizedCapabilities}`<br />
 Default (others): `${sanitizedCapabilities}`<br />
 Example:
@@ -331,6 +354,8 @@ export const config = {
 
 ### errorOptions
 
+<Option type="Object" default={`errorOptions: { error: "message" }`}>
+
 Allows to set various combinations of error notifications inside xml.<br />
 Given a Jasmine test like `expect(true).toBe(false, 'my custom message')` you will get this test error:
 
@@ -347,8 +372,7 @@ Given a Jasmine test like `expect(true).toBe(false, 'my custom message')` you wi
 
 Therefore you can choose *which* key will be used *where*, see the example below.
 
-Type: `Object`,<br />
-Default: `errorOptions: { error: "message" }`<br />
+</Option>
 Example:
 
 ```js
@@ -369,10 +393,11 @@ export const config = {
 
 ### addWorkerLogs
 
+<Option type="Boolean" default="false">
+
 Attach console logs from the test in the reporter.
 
-Type: `Boolean`<br />
-Default: `false`<br />
+</Option>
 Example:
 
 ```js
@@ -426,3 +451,5 @@ If there is no such post-build step in your CI system, there is probably a plugi
 ----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).
+
+

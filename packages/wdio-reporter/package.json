@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-reporter",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22.19.0"
   },
   "repository": {
     "type": "git",
@@ -35,12 +35,12 @@
       "require": "./build/index.cjs"
     }
   },
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.20.4",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
-    "diff": "^8.0.2",
+    "diff": "^8.0.4",
     "object-inspect": "^1.12.0"
   },
   "devDependencies": {
@@ -48,6 +48,6 @@
     "@types/object-inspect": "^1.8.1",
     "@types/supports-color": "^8.1.1",
     "@types/tmp": "^0.2.3",
-    "tmp": "^0.2.1"
+    "tmp": "^0.2.7"
   }
 }

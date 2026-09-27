@@ -1,6 +1,7 @@
 ---
 id: file-download
 title: File Download
+description: "Configure download directories for Chrome, Firefox and Edge, wait for downloads to finish and verify downloaded files across browsers."
 ---
 
 When automating file downloads in web testing, it's essential to handle them consistently across different browsers to ensure reliable test execution.

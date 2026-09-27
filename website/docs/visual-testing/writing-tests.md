@@ -1,6 +1,7 @@
 ---
 id: writing-tests
 title: Writing Tests
+description: "Write visual tests with Mocha, Jasmine or Cucumber that save screenshots or match them against baselines with custom matchers and check methods."
 ---
 
 import Tabs from '@theme/Tabs';

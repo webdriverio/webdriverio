@@ -58,6 +58,15 @@ export const config = {
      */
     logLevel: 'trace',
     framework: 'mocha',
+    /**
+     * these specs `render()` fixtures directly into `document.body` without
+     * cleaning up between tests, so generic selectors legitimately accumulate
+     * multiple matches across a spec file's lifetime. These suites are about
+     * component-framework integration, not selector strictness, so keep the
+     * pre-v10 first-match behavior here (same rationale as the unit test and
+     * smoke test suites).
+     */
+    strictSelectors: false,
     outputDir: path.join(__dirname, 'logs', process.env.WDIO_PRESET || 'misc'),
     reporters: ['spec', 'dot', 'junit'],
     runner: ['browser', {

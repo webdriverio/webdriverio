@@ -1,6 +1,7 @@
 ---
 id: introduction
 title: Introduction
+description: "Get an overview of end-to-end testing of Flutter apps on Android and iOS with WebdriverIO, Appium and the Appium Flutter Driver."
 ---
 
 This guide covers configuring, structuring, and running End-to-End (E2E) tests for **Flutter** applications using **WebdriverIO** and **Appium**.

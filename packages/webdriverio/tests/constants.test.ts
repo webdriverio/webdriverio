@@ -12,8 +12,9 @@ describe('WDIO_DEFAULTS', () => {
         // @ts-expect-error wrong parameter
         expect(() => WDIO_DEFAULTS.automationProtocol!.validate!(123)).toThrow()
 
-        WDIO_DEFAULTS.automationProtocol!.validate!('somethingelse')
-        WDIO_DEFAULTS.automationProtocol!.validate!('webdriver')
+        expect(() => WDIO_DEFAULTS.automationProtocol!.validate!('somethingelse'))
+            .toThrow('Couldn\'t find automation protocol "somethingelse"')
+        expect(() => WDIO_DEFAULTS.automationProtocol!.validate!('webdriver')).not.toThrow()
     })
 })
 

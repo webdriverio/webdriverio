@@ -1,6 +1,7 @@
 ---
 id: configurationfile
 title: Configuration File
+description: "Browse an annotated example wdio.conf.js that lists every supported testrunner option, capability and hook with explanations."
 ---
 
 The configuration file contains all necessary information to run your test suite. It’s a NodeJS module that exports a JSON.
@@ -82,8 +83,8 @@ export const config = {
     // ============
     // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
     // time. Depending on the number of capabilities, WebdriverIO launches several test
-    // sessions. Within your `capabilities`, you can overwrite the `spec` and `exclude`
-    // options in order to group specific specs to a specific capability.
+    // sessions. Within your `capabilities`, you can overwrite which files run with
+    // `wdio:specs` and `wdio:exclude` in order to group specific specs to a specific capability.
     //
     // First, you can define how many instances should be started at the same time. Let's
     // say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have
@@ -251,7 +252,7 @@ export const config = {
         snippets: true,     // <boolean> hide step definition snippets for pending steps
         source: true,       // <boolean> hide source URIs
         strict: false,      // <boolean> fail if there are any undefined or pending steps
-        tagExpression: '',  // <string> (expression) only execute the features or scenarios with tags matching the expression
+        tags: '',           // <string> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 20000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
         scenarioLevelReporter: false // Enable this to make webdriver.io behave as if scenarios and not steps were the tests.

@@ -1,6 +1,7 @@
 ---
 id: reference
 title: Configuration Reference
+description: "Look up every DevTools option for live mode and trace mode across the WebdriverIO, Selenium and Nightwatch adapters, with defaults."
 ---
 
 All DevTools options at a glance, across the three adapters. Option **names, types, and defaults are identical** on every adapter; where behaviour differs, it's noted. For the full explanation of each trace option see the linked section on the [Trace Mode](/docs/devtools/wdio/trace-mode) page.

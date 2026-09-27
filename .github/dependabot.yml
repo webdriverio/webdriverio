@@ -7,17 +7,9 @@ updates:
     time: "11:00"
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
-  ignore:
-    # requires manual upgrade as we use internal interfaces
-    - dependency-name: "lighthouse"
-    # Eslint v9 comes with breaking changes that require manual upgrade
-    - dependency-name: "eslint"
-    - dependency-name: "@typescript-eslint/eslint-plugin"
-    - dependency-name: "@typescript-eslint/parser"
-    - dependency-name: "@typescript-eslint/utils"
-    # updates to Node.js requires update to .nvmrc
-    - dependency-name: "@types/node"
-      update-types: ["version-update:semver-major"]
+  # pnpm rejects versions younger than its 1 day minimumReleaseAge
+  cooldown:
+    default-days: 2
   groups:
     patch-deps-updates-main:
       update-types:
@@ -26,47 +18,6 @@ updates:
       update-types:
         - "minor"
     major-deps-updates-main:
-      update-types:
-        - "major"
-- package-ecosystem: npm
-  directory: "/"
-  target-branch: v8
-  schedule:
-    interval: weekly
-    time: "11:00"
-  open-pull-requests-limit: 10
-  versioning-strategy: increase-if-necessary
-  ignore:
-    # requires manual upgrade and potential a lot of rewrites
-    - dependency-name: "@vitest/coverage-v8"
-    # requires manual upgrade as we use internal interfaces
-    - dependency-name: "lighthouse"
-    # doesn't support glob anymore in v4 (Windows)
-    - dependency-name: "rimraf"
-    # these packages don't support Node.js v16 anymore
-    - dependency-name: "got"
-    - dependency-name: "ky"
-    - dependency-name: "@octokit/rest"
-    - dependency-name: "@cucumber/cucumber"
-    - dependency-name: "jsdom"
-    - dependency-name: "pretty-ms"
-    - dependency-name: "@puppeteer/browsers"
-    - dependency-name: "inquirer"
-    - dependency-name: "read-pkg-up"
-    - dependency-name: "formdata-node"
-    # fails to update and requires investigations
-    - dependency-name: "vite"
-    - dependency-name: "puppeteer-core"
-    # requires manual upgrade
-    - dependency-name: "allure-js-commons"
-  groups:
-    patch-deps-updates-v8:
-      update-types:
-        - "patch"
-    minor-deps-updates-v8:
-      update-types:
-        - "minor"
-    major-deps-updates-v8:
       update-types:
         - "major"
 - package-ecosystem: github-actions
@@ -83,5 +34,21 @@ updates:
       update-types:
         - "minor"
     major-deps-updates:
+      update-types:
+        - "major"
+- package-ecosystem: docker
+  directory: "/e2e/wdio/display-server/docker"
+  schedule:
+    interval: weekly
+    time: "11:00"
+  open-pull-requests-limit: 10
+  groups:
+    docker-patch-updates:
+      update-types:
+        - "patch"
+    docker-minor-updates:
+      update-types:
+        - "minor"
+    docker-major-updates:
       update-types:
         - "major"

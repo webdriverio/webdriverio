@@ -1,6 +1,7 @@
 ---
 id: record
 title: Record Tests
+description: "Record user flows with the Chrome DevTools Recorder and export them as WebdriverIO tests."
 ---
 
 Chrome DevTools has a _Recorder_ panel that allows users to record and playback automated steps within Chrome. These steps can be [exported into WebdriverIO tests with an extension](https://chrome.google.com/webstore/detail/webdriverio-chrome-record/pllimkccefnbmghgcikpjkmmcadeddfn?hl=en) making writing test very easy.

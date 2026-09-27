@@ -31,10 +31,12 @@ module.exports = {
 
 ## Spec Reporter Options
 ### symbols
+
+<Option type="object" default={`{passed: '✓', skipped: '-', failed: '✖'}`}>
+
 Provide custom symbols for `passed`, `failed` and or `skipped` tests
 
-Type: `object`
-Default: `{passed: '✓', skipped: '-', failed: '✖'}`
+</Option>
 
 #### Example
 ```js
@@ -50,13 +52,15 @@ Default: `{passed: '✓', skipped: '-', failed: '✖'}`
 ```
 
 ### sauceLabsSharableLinks
+
+<Option type="boolean" default="true">
+
 By default the test results in Sauce Labs can only be viewed by a team member from the same team, not by a team member
 from a different team. This options will enable [sharable links](https://docs.saucelabs.com/test-results/sharing-test-results/#building-sharable-links)
 by default, which means that all tests that are executed in Sauce Labs can be viewed by everybody.
 Just add `sauceLabsSharableLinks: false`, as shown below, in the reporter options to disable this feature.
 
-Type: `boolean`
-Default: `true`
+</Option>
 
 #### Example
 ```js
@@ -69,10 +73,12 @@ Default: `true`
 ```
 
 ### onlyFailures
+
+<Option type="boolean" default="false">
+
 Print only failed specs results.
 
-Type: `boolean`
-Default: `false`
+</Option>
 
 #### Example
 ```js
@@ -85,11 +91,12 @@ Default: `false`
 ```
 
 ### addConsoleLogs
+
+<Option type="boolean" default="false">
+
 Set to `true` to show console logs from steps in final report
 
-Type: `boolean`
-Default: `false`
-
+</Option>
 ```js
 [
   "spec",
@@ -100,11 +107,12 @@ Default: `false`
 ```
 
 ### realtimeReporting
+
+<Option type="boolean" default="false">
+
 Set to `true` to display test status realtime than just at the end of the run
 
-Type: `boolean`
-Default: `false`
-
+</Option>
 ```js
 [
   "spec",
@@ -115,11 +123,12 @@ Default: `false`
 ```
 
 ### showPreface
+
+<Option type="boolean" default="true">
+
 Set to `false` to disable `[ MutliRemoteBrowser ... ]` preface in the reports.
 
-Type: `boolean`
-Default: `true`
-
+</Option>
 ```js
 [
   "spec",
@@ -165,11 +174,12 @@ and with `true` (default) each line will be prefixed with the preface:
 ```
 
 ### color
+
+<Option type="boolean" default="true">
+
 Set to `true` to display colored output in terminal
 
-Type: `boolean`
-Default: `true`
-
+</Option>
 ```js
 [
   "spec",
@@ -186,3 +196,5 @@ There are certain options you can set through environment variables:
 ### `FORCE_COLOR`
 
 If set to true, e.g. via `FORCE_COLOR=0 npx wdio run wdio.conf.js`, all terminal coloring will be disabled.
+
+

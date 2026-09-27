@@ -1,11 +1,9 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Set the network speed for the Android emulator. Valid values: 'full', 'gsm', 'edge', 'hscsd',
  * 'gprs', 'umts', 'hsdpa', 'lte', 'evdo'.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :toggleNetworkSpeed.js
@@ -32,14 +30,5 @@ export async function toggleNetworkSpeed(
         throw new Error('The `toggleNetworkSpeed` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: networkSpeed', { netspeed })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: networkSpeed', '/appium/device/network_speed')
-        return browser.appiumToggleNetworkSpeed(netspeed)
-    }
+    return executeMobile(browser, 'mobile: networkSpeed', { netspeed })
 }

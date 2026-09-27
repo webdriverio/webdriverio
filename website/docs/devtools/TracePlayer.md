@@ -1,6 +1,7 @@
 ---
 id: trace-player
 title: Trace Player
+description: "Open trace-mode artifacts in the show-trace player for offline replay and review, or load them into other trace viewers."
 ---
 
 The `show-trace` player opens any trace produced in [Trace Mode](/docs/devtools/wdio/trace-mode) in the WebdriverIO DevTools UI itself — a dedicated, read-only **player** mode for offline replay, review, and AI-agent diffing.

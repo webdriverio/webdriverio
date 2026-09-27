@@ -21,28 +21,31 @@ describe('deleteCookies', () => {
         it('should delete all cookies', async () => {
             await browser.deleteCookies()
 
-            expect(vi.mocked(fetch).mock.calls[1][1]!.method).toBe('DELETE')
-            // @ts-expect-error mock implementation
-            expect(vi.mocked(fetch).mock.calls[1][0]!.pathname)
-                .toBe('/session/foobar-123/cookie')
+            expect(fetch).toHaveBeenNthCalledWith(
+                1,
+                expect.objectContaining({ pathname: '/session/foobar-123/cookie' }),
+                expect.objectContaining({ method: 'DELETE' })
+            )
         })
 
         it('should support passing a string', async () => {
             await browser.deleteCookies('cookie1')
 
-            expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('DELETE')
-            // @ts-expect-error mock implementation
-            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
-                .toBe('/session/foobar-123/cookie/cookie1')
+            expect(fetch).toHaveBeenNthCalledWith(
+                1,
+                expect.objectContaining({ pathname: '/session/foobar-123/cookie/cookie1' }),
+                expect.objectContaining({ method: 'DELETE' })
+            )
         })
 
         it('should support passing a array with a string', async () => {
             await browser.deleteCookies(['cookie1'])
 
-            expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('DELETE')
-            // @ts-expect-error mock implementation
-            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
-                .toBe('/session/foobar-123/cookie/cookie1')
+            expect(fetch).toHaveBeenNthCalledWith(
+                1,
+                expect.objectContaining({ pathname: '/session/foobar-123/cookie/cookie1' }),
+                expect.objectContaining({ method: 'DELETE' })
+            )
         })
 
         it('should delete cookies that match by name', async () => {
@@ -50,10 +53,11 @@ describe('deleteCookies', () => {
             await browser.deleteCookies(cookieNames)
 
             cookieNames.forEach((name, i) => {
-                expect(vi.mocked(fetch).mock.calls[i][1]!.method).toBe('DELETE')
-                // @ts-expect-error mock implementation
-                expect(vi.mocked(fetch).mock.calls[i][0]!.pathname)
-                    .toBe(`/session/foobar-123/cookie/${name}`)
+                expect(fetch).toHaveBeenNthCalledWith(
+                    i + 1,
+                    expect.objectContaining({ pathname: `/session/foobar-123/cookie/${name}` }),
+                    expect.objectContaining({ method: 'DELETE' })
+                )
             })
         })
 
@@ -67,10 +71,11 @@ describe('deleteCookies', () => {
         it('should support remote.StorageCookieFilter in classic if name is used', async () => {
             await browser.deleteCookies([{ name: 'cookie123' }])
 
-            expect(vi.mocked(fetch).mock.calls[0][1]!.method).toBe('DELETE')
-            // @ts-expect-error mock implementation
-            expect(vi.mocked(fetch).mock.calls[0][0]!.pathname)
-                .toBe('/session/foobar-123/cookie/cookie123')
+            expect(fetch).toHaveBeenNthCalledWith(
+                1,
+                expect.objectContaining({ pathname: '/session/foobar-123/cookie/cookie123' }),
+                expect.objectContaining({ method: 'DELETE' })
+            )
         })
 
         it('should throw if remote.StorageCookieFilter in classic is used with other value than name', async () => {

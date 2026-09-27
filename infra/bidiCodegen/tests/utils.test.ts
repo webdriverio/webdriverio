@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { describe, it, expect, afterEach } from 'vitest'
 
-import { findGroupByName, validateZipEntryPath, writeFile } from '../src/utils.js'
+import { findGroupByName, stripStatementSemicolons, validateZipEntryPath, writeFile } from '../src/utils.js'
 import { GENERATED_FILE_COMMENT, BASE_PROTOCOL_SPEC } from '../src/constants.js'
 import type { Assignment } from 'cddl'
 
@@ -43,6 +43,13 @@ describe('findGroupByName', () => {
         ] as unknown as Assignment[]
         expect(findGroupByName(ast, 'session.NewParameters')?.Name).toBe('session.NewParameters')
         expect(findGroupByName(ast, 'missing')).toBeUndefined()
+    })
+})
+
+describe('stripStatementSemicolons', () => {
+    it('drops statement semicolons that oxlint cannot auto-fix', () => {
+        const source = 'export type Foo = Bar;\nexport const keep = 1;\n};\n'
+        expect(stripStatementSemicolons(source)).toBe('export type Foo = Bar\nexport const keep = 1;\n}\n')
     })
 })
 

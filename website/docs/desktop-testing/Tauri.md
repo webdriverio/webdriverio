@@ -1,6 +1,7 @@
 ---
 id: tauri
 title: Tauri
+description: "Test Tauri desktop apps on Windows, macOS and Linux with the WebdriverIO Tauri service, using the setup wizard or a manual configuration."
 ---
 
 [Tauri](https://tauri.app/) is a framework for building lightweight, secure cross-platform desktop applications using a Rust backend and the operating system's native webview. WebdriverIO's Tauri service automates the discovery, launch, and driving of Tauri apps on Windows (WebView2), macOS (WKWebView), and Linux (WebKitGTK) so the same test suite works everywhere.

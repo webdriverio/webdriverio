@@ -1,6 +1,7 @@
 ---
 id: testexecution
 title: Test Execution
+description: "Follow a flowchart of the test execution process and how @wdio/runner interacts with the other WebdriverIO packages."
 ---
 This flowchart explains the test execution process and the interaction between @wdio/runner and the most of the other WebdriverIO packages.
 

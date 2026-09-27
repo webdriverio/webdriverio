@@ -1,6 +1,7 @@
 ---
 id: protractor-migration
 title: From Protractor
+description: "Migrate a Protractor test suite to WebdriverIO step by step, including dependencies, configuration file and test files, with the help of a codemod."
 ---
 
 This tutorial is for people who are using Protractor and want to migrate their framework to WebdriverIO. It was initiated after the Angular team [has announced](https://github.com/angular/protractor/issues/5502) that Protractor won't be longer supported. WebdriverIO has been influenced by a lot of Protractors design decisions which is why it is probably the closest framework to migrate over. The WebdriverIO team appreciates the work of every single Protractor contributor and hopes that this tutorial makes the transition to WebdriverIO easy and straightforward.

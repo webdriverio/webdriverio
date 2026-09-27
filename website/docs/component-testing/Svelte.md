@@ -1,6 +1,7 @@
 ---
 id: svelte
 title: Svelte
+description: "Set up the WebdriverIO browser runner for a Svelte project with the svelte preset and write component tests with Testing Library."
 ---
 
 [Svelte](https://svelte.dev/) is a radical new approach to building user interfaces. Whereas traditional frameworks like React and Vue do the bulk of their work in the browser, Svelte shifts that work into a compile step that happens when you build your app. You can test Svelte components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).

@@ -1,6 +1,7 @@
 ---
 id: enterprise
 title: WebdriverIO for Enterprise
+description: "Get commercial support and maintenance for WebdriverIO and other open source dependencies through the Tidelift Subscription."
 ---
 
 ## Available as part of the Tidelift Subscription

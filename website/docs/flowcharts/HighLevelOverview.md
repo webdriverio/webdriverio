@@ -1,6 +1,7 @@
 ---
 id: highleveloverview
 title: High level overview
+description: "See a flowchart of how the WebdriverIO ecosystem and its core packages interact during a test run."
 ---
 Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
 

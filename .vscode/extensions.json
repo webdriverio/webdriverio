@@ -1,7 +1,7 @@
 {
   "recommendations": [
     // Linting / Formatting
-    "dbaeumer.vscode-eslint",
+    "oxc.oxc-vscode",
     "usernamehw.errorlens",
     "EditorConfig.EditorConfig",
 

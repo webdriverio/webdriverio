@@ -82,8 +82,7 @@ export async function isStable (this: WebdriverIO.Element) {
         throw new Error('The `isStable` command is only available for desktop and mobile browsers.')
     }
 
-    return await browser.executeAsync(isElementStable, {
-        [ELEMENT_KEY]: this.elementId, // w3c compatible
-        ELEMENT: this.elementId // jsonwp compatible
+    return await browser.execute(isElementStable, {
+        [ELEMENT_KEY]: this.elementId
     } as unknown as HTMLElement)
 }

@@ -1,6 +1,7 @@
 ---
 id: jenkins
 title: Jenkins
+description: "Run WebdriverIO tests in Jenkins and publish JUnit reporter results to debug failures and track test history."
 ---
 
 WebdriverIO offers a tight integration to CI systems like [Jenkins](https://jenkins-ci.org). With the `junit` reporter, you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.

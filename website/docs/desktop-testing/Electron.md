@@ -1,6 +1,7 @@
 ---
 id: electron
 title: Electron
+description: "Test Electron apps with the WebdriverIO Electron service, which sets up Chromedriver, detects your app binary and lets you mock Electron APIs."
 ---
 
 Electron is a framework for building desktop applications using JavaScript, HTML, and CSS. By embedding Chromium and Node.js into its binary, Electron allows you to maintain one JavaScript codebase and create cross-platform apps that work on Windows, macOS, and Linux — no native development experience is required.

@@ -1,6 +1,7 @@
 ---
 id: wdiocommands
 title: WDIO Commands
+description: "Follow flowcharts of how the @wdio/cli run, repl, install and config commands parse arguments and execute."
 ---
 This flowchart provides a high level overview of the @wdio/cli run, repl, config and install commands.
 

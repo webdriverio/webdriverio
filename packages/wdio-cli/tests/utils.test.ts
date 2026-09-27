@@ -3,7 +3,6 @@ import cp from 'node:child_process'
 import fs from 'node:fs/promises'
 
 import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
-import readDir from 'recursive-readdir'
 import { readPackageUp } from 'read-pkg-up'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config/node'
@@ -15,14 +14,10 @@ import {
     getRunnerName,
     findInConfig,
     getCapabilities,
+    shouldEnableTsx,
+    looksLikeTypeScriptPath,
 } from '../src/utils.js'
 
-vi.mock('recursive-readdir', () => ({
-    default: vi.fn().mockResolvedValue([
-        '/foo/bar/loo/page.js.ejs',
-        '/foo/bar/example.e2e.js'
-    ] as any)
-}))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => {
     const m = {
@@ -340,7 +335,7 @@ describe('getCapabilities', () => {
         expect(resolveMock).not.toHaveBeenCalled()
     })
 
-    it('should return driver with capabilities for multiremote config', async () => {
+    it('should return driver with capabilities for multi-remote config', async () => {
         const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
         getCapabilitiesMock.mockReturnValue({
             myChromeBrowser: {
@@ -360,9 +355,53 @@ describe('getCapabilities', () => {
     })
 })
 
+describe('shouldEnableTsx', () => {
+    it('detects TypeScript config files and tsConfigPath', () => {
+        expect(shouldEnableTsx('/tmp/wdio.conf.ts')).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', { tsConfigPath: './tsconfig.json' })).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js')).toBe(false)
+    })
+
+    it('detects TypeScript specs and require hooks on the config', () => {
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {
+            specs: ['./test/**/*.ts']
+        })).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {
+            mochaOpts: { require: ['./helpers/setup.ts'] }
+        })).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {
+            specs: ['./test/**/*.js']
+        })).toBe(false)
+    })
+
+    it('detects TypeScript specs declared on capabilities', () => {
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
+            browserName: 'chrome',
+            specs: ['./e2e/**/*.ts'],
+            exclude: ['./e2e/skip.spec.ts']
+        } as WebdriverIO.Capabilities])).toBe(false)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
+            browserName: 'chrome',
+            'wdio:specs': ['./e2e/app.spec.ts']
+        } as WebdriverIO.Capabilities])).toBe(true)
+        expect(shouldEnableTsx('/tmp/wdio.conf.js', {}, {}, [{
+            browserName: 'chrome',
+            'wdio:exclude': ['./e2e/skip.spec.ts']
+        } as WebdriverIO.Capabilities])).toBe(true)
+    })
+})
+
+describe('looksLikeTypeScriptPath', () => {
+    it('matches common TypeScript path forms', () => {
+        expect(looksLikeTypeScriptPath('./foo.ts')).toBe(true)
+        expect(looksLikeTypeScriptPath('./foo.tsx')).toBe(true)
+        expect(looksLikeTypeScriptPath('./foo/**/*.mts')).toBe(true)
+        expect(looksLikeTypeScriptPath('./foo.js')).toBe(false)
+    })
+})
+
 afterEach(() => {
     vi.mocked(console.log).mockRestore()
-    vi.mocked(readDir).mockClear()
     vi.mocked(fs.writeFile).mockClear()
     vi.mocked(cp.spawn).mockClear()
     vi.mocked(fs.mkdir).mockClear()

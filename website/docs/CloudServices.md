@@ -1,6 +1,7 @@
 ---
 id: cloudservices
 title: Using Cloud Services
+description: "Run WebdriverIO tests on Sauce Labs, BrowserStack, TestingBot, TestMu AI (formerly LambdaTest), Perfecto and other cloud providers."
 ---
 
 Using on-demand services like Sauce Labs, Browserstack, TestingBot, TestMu AI (Formerly LambdaTest) or Perfecto with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.
@@ -215,7 +216,7 @@ export const config = {
 }
 ```
 
-The grid additionally accepts credentials embedded in the URL (`https://user:token@host`) for other WebDriver clients, but that form cannot be used from WebdriverIO: it is fetch-based, and Node 18 and above reject URL-embedded credentials.
+The grid additionally accepts credentials embedded in the URL (`https://user:token@host`) for other WebDriver clients, but that form cannot be used from WebdriverIO: it is fetch-based, and Node.js rejects URL-embedded credentials.
 
 To run against a real device, pass the browser as an Appium capability alongside either connection style above:
 

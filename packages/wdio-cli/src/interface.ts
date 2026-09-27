@@ -9,7 +9,7 @@ import { HookError } from './utils.js'
 import { getRunnerName } from './utils.js'
 
 const log = logger('@wdio/cli')
-const EVENT_FILTER = ['sessionStarted', 'sessionEnded', 'finishedCommand', 'ready', 'workerResponse', 'workerEvent']
+const EVENT_FILTER = ['sessionStarted', 'sessionEnded', 'finishedCommand', 'ready', 'workerResponse', 'workerEvent', 'workerTimings']
 
 interface TestError {
     type: string
@@ -41,6 +41,16 @@ export default class WDIOCLInterface extends EventEmitter {
         retries: 0,
         failed: 0
     }
+    /**
+     * Worker wall-clock timings (seconds) aggregated from workerTimings messages.
+     */
+    public workerTimings: Array<{
+        cid?: string
+        setup?: number
+        execution?: number
+        teardown?: number
+        total?: number
+    }> = []
 
     private _jobs: Map<string, Workers.Job> = new Map()
     private _specFileRetries: number
@@ -98,6 +108,7 @@ export default class WDIOCLInterface extends EventEmitter {
             retries: 0,
             failed: 0
         }
+        this.workerTimings = []
 
         this._messages = {
             reporter: {},
@@ -268,6 +279,14 @@ export default class WDIOCLInterface extends EventEmitter {
             return snapshotResults.forEach((snapshotResult) => {
                 this.#snapshotManager.add(snapshotResult)
             })
+        }
+
+        if (event.name === 'workerTimings') {
+            this.workerTimings.push({
+                cid: event.cid,
+                ...(event.content || {})
+            })
+            return
         }
 
         if (event.name === 'error') {

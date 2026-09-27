@@ -1,6 +1,7 @@
 ---
 id: debugging
 title: Debugging
+description: "Debug WebdriverIO tests with browser.debug, VS Code or WebStorm breakpoints, strategies for flaky tests, and CPU and heap profiling."
 ---
 
 Debugging is significantly more difficult when several processes spawn dozens of tests in multiple browsers.

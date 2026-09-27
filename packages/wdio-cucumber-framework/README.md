@@ -1,7 +1,7 @@
 WDIO Cucumber Framework Adapter
 ===============================
 
-> A WebdriverIO plugin. Adapter for CucumberJS v5 testing framework.
+> A WebdriverIO plugin. Adapter for Cucumber.js.
 
 ## Installation
 
@@ -29,54 +29,75 @@ module.exports = {
 };
 ```
 
+## Upgrading to Cucumber 13
+
+This adapter depends on `@cucumber/cucumber` 13, which runs on Node.js 22, 24, or 26 and later. `cucumberOpts.tagExpression` has been removed; use [`tags`](#tags). Cucumber no longer exports `Cli`. See [Cucumber's upgrade guide](https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300) for the rest of the 13.0.0 breaks.
+
 ## `cucumberOpts` Options
 
 ### backtrace
+
+<Option type="Boolean" default="false">
+
 Show full backtrace for errors.
 
-Type: `Boolean`<br />
-Default: `false`
+</Option>
 
 ### requireModule
+
+<Option type="String[]" default="[]">
+
 Require modules prior to requiring any support files.
 
-Type: `String[]`<br />
-Default: `[]`<br />
+</Option>
 Example: `['@babel/register']` or `[['@babel/register', { rootMode: 'upward', ignore: ['node_modules'] }]]`
 
 ### failFast
+
+<Option type="Boolean" default="false">
+
 Abort the run on first failure.
 
-Type: `Boolean`<br />
-Default: `false`
+</Option>
 
 ### name
+
+<Option type="REGEXP[]" default="[]">
+
 Only execute the scenarios with name matching the expression (repeatable).
 
-Type: `REGEXP[]`<br />
-Default: `[]`
+</Option>
 
 ### require
+
+<Option type="String[]" default="[]">
+
 Require files containing your step definitions before executing features. You can also specify a glob to your step definitions.
 
-Type: `String[]`<br />
-Default: `[]`<br />
+</Option>
 Example: `[path.join(__dirname, 'step-definitions', 'my-steps.js')]`
 
 ### import
+
+<Option type="String[]" default="[]">
+
 Paths to where your support code is, for ESM.
 
-Type: `String[]`<br />
-Default: `[]`<br />
+</Option>
 Example: `[path.join(__dirname, 'step-definitions', 'my-steps.js')]`
 
 ### strict
+
+<Option type="Boolean" default="false">
+
 Fail if there are any undefined or pending steps
 
-Type: `Boolean`<br />
-Default: `false`
+</Option>
 
 ### tags
+
+<Option type="String" default="">
+
 Only execute the features or scenarios with tags matching the expression. Note that untagged
 features will still spawn a Selenium session (see issue [webdriverio/webdriverio#1247](https://github.com/webdriverio/webdriverio/issues/1247)).
 Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
@@ -84,92 +105,99 @@ If passing as a command-line argument, compound expressions may need to be enclo
 
 E.g.: `npx wdio wdio.config.js --cucumberOpts.tags """@Smoke and not @Pending"""`
 
-Type: `String`<br />
-Default: ``
+</Option>
 
 ### timeout
+
+<Option type="Number" default="30000">
+
 Timeout in milliseconds for step definitions.
 
-Type: `Number`<br />
-Default: `30000`
+</Option>
 
 ### retry
+
+<Option type="Number" default="0">
+
 Specify the number of times to retry failing test cases.
 
-Type: `Number`<br />
-Default: `0`
+</Option>
 
 ### retryTagFilter
+
+<Option type="RegExp">
+
 Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
 
-Type: `RegExp`
+</Option>
 
 ### language
+
+<Option type="String" default="en">
+
 Default language for your feature files
 
-Type: `String`<br />
-Default: `en`
+</Option>
 
 ### order
+
+<Option type="String" default="defined">
+
 Run tests in defined / random order
 
-Type: `String`<br />
-Default: `defined`
+</Option>
 
 ### format
+
+<Option type="string[]">
+
 Name and output file path of formatter to use.
 WebdriverIO primarily supports only the [Formatters](https://github.com/cucumber/cucumber-js/blob/main/docs/formatters.md) that writes output to a file.
 
-Type: `string[]`<br />
+</Option>
 
 ### formatOptions
+
+<Option type="object">
+
 Options to be provided to formatters
 
-Type: `object`<br />
+</Option>
 
 ### tagsInTitle
+
+<Option type="Boolean" default="false">
+
 Add cucumber tags to feature or scenario name
 
-Type: `Boolean`<br />
-Default: `false`
-
+</Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
 ### ignoreUndefinedDefinitions
+
+<Option type="Boolean" default="false">
+
 Treat undefined definitions as warnings.
 
-Type: `Boolean`<br />
-Default: `false`
-
+</Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
 ### failAmbiguousDefinitions
+
+<Option type="Boolean" default="false">
+
 Treat ambiguous definitions as errors.
 
-Type: `Boolean`<br />
-Default: `false`
-
+</Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-### tagExpression
-Only execute the features or scenarios with tags matching the expression. Note that untagged
-features will still spawn a Selenium session (see issue [webdriverio/webdriverio#1247](https://github.com/webdriverio/webdriverio/issues/1247)).
-Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
-If passing as a command-line argument, compound expressions may need to be enclosed in three sets of double quotes if WebdriverIO is invoked using `npx` on Windows.
-
-E.g.: `npx wdio wdio.config.js --cucumberOpts.tagExpression """@Smoke and not @Pending"""`
-
-Type: `String`<br />
-Default: ``
-
-***Please note that this option would be deprecated in future. Use [`tags`](#tags) config property instead***
-
 ### profile
+
+<Option type="string[]" default="[]">
+
 Specify the profile to use.
 
-Type: `string[]`<br />
-Default: `[]`
-
+</Option>
 ***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
 
 ## Publishing Report
@@ -210,3 +238,5 @@ Please note that `./reports/` is the directory where `cucumber message` reports 
 ----
 
 For more information on WebdriverIO see the [homepage](http://webdriver.io).
+
+

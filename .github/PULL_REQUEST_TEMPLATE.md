@@ -2,6 +2,14 @@
 
 [//]: # (Describe the big picture of your changes here to communicate to the maintainers why we should accept this pull request. If it fixes a bug or resolves a feature request, be sure to link to that issue.)
 
+## How you tested
+
+[//]: # (Name the smallest commands you ran, e.g. `pnpm run test:package webdriverio` or `pnpm run test:smoke mochaTestrunner`. Agents: see AGENTS.md.)
+
+- [ ] Unit tests for the touched package(s)
+- [ ] Type definition tests (if the public API / command types changed)
+- [ ] Smoke or e2e (only if the testrunner, launcher, or a real browser path changed)
+
 ## Types of changes
 
 [//]: # (What types of changes does your code introduce to WebdriverIO?)

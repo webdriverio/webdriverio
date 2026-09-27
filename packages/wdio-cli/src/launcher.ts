@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises'
 import exitHook from 'async-exit-hook'
-import { resolve } from 'import-meta-resolve'
 
 import logger from '@wdio/logger'
 import { validateConfig, DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE } from '@wdio/config'
@@ -10,7 +9,7 @@ import { setupDriver, setupBrowser } from '@wdio/utils/node'
 import type { Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
-import { runLauncherHook, runOnCompleteHook, runServiceHook, nodeVersion, type HookError } from './utils.js'
+import { runLauncherHook, runOnCompleteHook, runServiceHook, type HookError, shouldEnableTsx, enableTsx } from './utils.js'
 import { TESTRUNNER_DEFAULTS, TS_FILE_EXTENSIONS, WORKER_GROUPLOGS_MESSAGES } from './constants.js'
 import type { RunCommandArguments } from './types.js'
 const log = logger('@wdio/cli:launcher')
@@ -45,8 +44,8 @@ class Launcher {
     #isInitialized: boolean = false
 
     public configParser: ConfigParser
-    public isMultiremote = false
-    public isParallelMultiremote = false
+    public isMultiRemote = false
+    public isParallelMultiRemote = false
     public runner?: Services.RunnerInstance
     public interface?: CLInterface
 
@@ -78,10 +77,10 @@ class Launcher {
         const config = this.configParser.getConfig()
 
         const capabilities = this.configParser.getCapabilities()
-        this.isParallelMultiremote = Array.isArray(capabilities) &&
+        this.isParallelMultiRemote = Array.isArray(capabilities) &&
             capabilities.length > 0 &&
             capabilities.every(cap => Object.values(cap).length > 0 && Object.values(cap).every(c => typeof c === 'object' && (c as { capabilities: WebdriverIO.Capabilities }).capabilities))
-        this.isMultiremote = this.isParallelMultiremote || !Array.isArray(capabilities)
+        this.isMultiRemote = this.isParallelMultiRemote || !Array.isArray(capabilities)
         validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
 
         await enableFileLogging(config.outputDir)
@@ -118,14 +117,14 @@ class Launcher {
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
 
             /**
-             * For Parallel-Multiremote, only get the specs and excludes from the first object
+             * For parallel multi-remote, only get the specs and excludes from the first object
              */
             const totalWorkerCnt = Array.isArray(capabilities)
                 ? capabilities
                     .map((c) => {
-                        if (this.isParallelMultiremote) {
-                            const keys = Object.keys(c as Capabilities.RequestedMultiremoteCapabilities)
-                            const caps = (c as Capabilities.RequestedMultiremoteCapabilities)[keys[0]].capabilities as WebdriverIO.Capabilities
+                        if (this.isParallelMultiRemote) {
+                            const keys = Object.keys(c as Capabilities.RequestedMultiRemoteCapabilities)
+                            const caps = (c as Capabilities.RequestedMultiRemoteCapabilities)[keys[0]].capabilities as WebdriverIO.Capabilities
                             return this.configParser.getSpecs(caps['wdio:specs'], caps['wdio:exclude']).length
                         }
                         const standaloneCaps = c as Capabilities.RequestedStandaloneCapabilities
@@ -174,7 +173,7 @@ class Launcher {
     }
 
     /**
-     * initialize launcher by loading `tsx` if needed
+     * initialize launcher by loading `tsx` only when TypeScript is involved
      */
     async initialize() {
         /**
@@ -185,34 +184,48 @@ class Launcher {
         }
 
         /**
-         * add tsx to process NODE_OPTIONS so it will be passed along the worker process
+         * Load tsx before parsing a TypeScript config (or when a custom
+         * tsconfig path was provided). For plain JS configs, wait until after
+         * config load so we can inspect specs / require hooks.
          */
-        const tsxPath = resolve('tsx', import.meta.url)
-        if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes(tsxPath)) {
-            /**
-             * The `--import` flag is only available in Node 20.6.0 / 18.19.0 and later.
-             * This switching can be removed once the minimum supported version of Node exceeds 20.6.0 / 18.19.0
-             * see https://nodejs.org/api/module.html#customization-hooks and https://tsx.is/dev-api/node-cli#module-mode-only
-             */
-            const moduleLoaderFlag = nodeVersion('major') >= 21 ||
-                (nodeVersion('major') === 20 && nodeVersion('minor') >= 6) ||
-                (nodeVersion('major') === 18 && nodeVersion('minor') >= 19) ? '--import' : '--loader'
-            process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} ${moduleLoaderFlag} ${tsxPath}`
-        }
-
-        /**
-         * load tsx in the main process if config file is a .ts file to allow config parser to load it
-         */
-        if (TS_FILE_EXTENSIONS.some((ext) => this._configFilePath.endsWith(ext))) {
-            await import(tsxPath)
+        if (shouldEnableTsx(this._configFilePath, this._args)) {
+            const tsxPath = await enableTsx()
+            if (TS_FILE_EXTENSIONS.some((ext) => this._configFilePath.endsWith(ext))) {
+                await import(tsxPath)
+            }
         }
 
         this.#isInitialized = true
 
         /**
-         * initialize config parser
+         * initialize config parser — a JS config may still import TypeScript
+         * helpers, so retry once with tsx if the first load fails.
          */
-        await this.configParser.initialize(this._args)
+        try {
+            await this.configParser.initialize(this._args)
+        } catch (err) {
+            const alreadyHasTsx = Boolean(process.env.NODE_OPTIONS?.includes('tsx'))
+            if (alreadyHasTsx) {
+                throw err
+            }
+            log.info('Config load failed without tsx; enabling tsx and retrying once')
+            const tsxPath = await enableTsx()
+            await import(tsxPath)
+            await this.configParser.initialize(this._args)
+        }
+
+        /**
+         * Specs or framework require entries may still need tsx in workers
+         * even when the config file itself is JavaScript.
+         */
+        if (shouldEnableTsx(
+            this._configFilePath,
+            this._args,
+            this.configParser.getConfig(),
+            this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
+        )) {
+            await enableTsx()
+        }
     }
 
     /**
@@ -254,7 +267,7 @@ class Launcher {
              */
             (Array.isArray(caps) && caps.length === 0) ||
             /**
-             * user wants to use multiremote but capability object is empty
+             * user wants to use multi-remote but capability object is empty
              */
             (!Array.isArray(caps) && Object.keys(caps).length === 0)
         ) {
@@ -274,26 +287,26 @@ class Launcher {
          * schedule test runs
          */
         let cid = 0
-        if (this.isMultiremote && !this.isParallelMultiremote) {
+        if (this.isMultiRemote && !this.isParallelMultiRemote) {
             /**
-             * Multiremote mode
+             * Multi-remote mode
              */
             this._schedule.push({
                 cid: cid++,
-                caps: caps as Capabilities.RequestedMultiremoteCapabilities,
-                specs: this._formatSpecs(caps as Capabilities.RequestedMultiremoteCapabilities, specFileRetries),
+                caps: caps as Capabilities.RequestedMultiRemoteCapabilities,
+                specs: this._formatSpecs(caps as Capabilities.RequestedMultiRemoteCapabilities, specFileRetries),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
         } else {
             /**
-             * Regular mode & Parallel Multiremote
+             * Regular mode & parallel multi-remote
              */
             for (const capabilities of caps as Capabilities.RequestedStandaloneCapabilities[]) {
                 /**
                  * when using browser runner we only allow one session per browser
                  */
-                const availableInstances = this.isParallelMultiremote ? config.maxInstances || 1 : config.runner === 'browser'
+                const availableInstances = this.isParallelMultiRemote ? config.maxInstances || 1 : config.runner === 'browser'
                     ? 1
                     : (capabilities as WebdriverIO.Capabilities)['wdio:maxInstances'] || config.maxInstancesPerCapability || DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE
 
@@ -336,25 +349,17 @@ class Launcher {
     /**
      * Format the specs into an array of objects with files and retries
      */
-    private _formatSpecs(capabilities: (Capabilities.RequestedMultiremoteCapabilities | Capabilities.RequestedStandaloneCapabilities), specFileRetries: number) {
+    private _formatSpecs(capabilities: (Capabilities.RequestedMultiRemoteCapabilities | Capabilities.RequestedStandaloneCapabilities), specFileRetries: number) {
         let caps: WebdriverIO.Capabilities
         if ('alwaysMatch' in capabilities) {
             caps = capabilities.alwaysMatch as WebdriverIO.Capabilities
-        } else if (typeof Object.keys(capabilities)[0] === 'object' && 'capabilities' in (capabilities as Capabilities.RequestedMultiremoteCapabilities)[Object.keys(capabilities)[0]]) {
+        } else if (typeof Object.keys(capabilities)[0] === 'object' && 'capabilities' in (capabilities as Capabilities.RequestedMultiRemoteCapabilities)[Object.keys(capabilities)[0]]) {
             caps = {} as WebdriverIO.Capabilities
         } else {
             caps = capabilities as WebdriverIO.Capabilities
         }
-        const specs = (
-            // @ts-expect-error deprecated
-            caps.specs ||
-            caps['wdio:specs']
-        )
-        const excludes = (
-            // @ts-expect-error deprecated
-            caps.exclude ||
-            caps['wdio:exclude']
-        )
+        const specs = caps['wdio:specs']
+        const excludes = caps['wdio:exclude']
         const files = this.configParser.getSpecs(specs, excludes)
 
         return files.map((file: string | string[]) => {

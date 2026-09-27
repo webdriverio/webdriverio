@@ -1,6 +1,7 @@
 ---
 id: axe-core
 title: Axe Core
+description: "Run automated accessibility checks in your tests with the open-source Axe adapter from Deque, in standalone or testrunner mode."
 ---
 
 You can include accessibility tests within your WebdriverIO test suite using the open-source accessibility tools [from Deque called Axe](https://www.deque.com/axe/). The setup is very easy, all you need to do is to install the WebdriverIO Axe adapter via:

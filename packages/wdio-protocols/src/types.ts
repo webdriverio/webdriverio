@@ -144,6 +144,10 @@ export interface CommandEndpoint {
      */
     deprecated?: string
     /**
+     * protocol command kept for internal callers and omitted from public types and docs
+     */
+    internal?: boolean
+    /**
      * supported command parameters
      */
     parameters: CommandParameters[]

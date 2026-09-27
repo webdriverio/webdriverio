@@ -1,4 +1,4 @@
-import { capabilitiesEnvironmentDetector } from '@wdio/utils'
+import { capabilitiesEnvironmentDetector, resolveCustomCommandOptions } from '@wdio/utils'
 import type { Capabilities } from '@wdio/types'
 
 const NOOP = () => {}
@@ -10,24 +10,36 @@ const NOOP = () => {}
 export default class ProtocolStub {
     static async newSession (options: Capabilities.RemoteConfig) {
         const capabilities = emulateSessionCapabilities(options.capabilities)
+        const customCommands: unknown[] = []
+        const overwrittenCommands: unknown[] = []
 
         const browser = {
             options,
             capabilities,
             requestedCapabilities: capabilities,
-            customCommands: [] as unknown[], // internally used to transfer custom commands to the actual protocol instance
-            overwrittenCommands: [] as unknown[], // internally used to transfer overwritten commands to the actual protocol instance
-            commandList: [],
+            customCommands, // internally used to transfer custom commands to the actual protocol instance
+            overwrittenCommands, // internally used to transfer overwritten commands to the actual protocol instance
+            commandList: [] as string[],
             getWindowHandle: NOOP,
             on: NOOP,
             off: NOOP,
-            addCommand: NOOP,
-            overwriteCommand: NOOP,
+            addCommand(name: string, fn: unknown, commandOptions?: unknown) {
+                customCommands.push([
+                    name,
+                    fn,
+                    resolveCustomCommandOptions('addCommand', commandOptions)
+                ])
+            },
+            overwriteCommand(name: string, fn: unknown, commandOptions?: unknown) {
+                overwrittenCommands.push([
+                    name,
+                    fn,
+                    resolveCustomCommandOptions('overwriteCommand', commandOptions)
+                ])
+            },
             ...capabilitiesEnvironmentDetector(capabilities)
         }
 
-        browser.addCommand = (...args: unknown[]) => browser.customCommands.push(args)
-        browser.overwriteCommand = (...args: unknown[]) => browser.overwrittenCommands.push(args)
         return browser as unknown as WebdriverIO.Browser
     }
 
@@ -44,7 +56,7 @@ export default class ProtocolStub {
         }
 
         /**
-         * MultiRemote is needed
+         * Multi-remote is needed
          */
         return modifier({
             commandList: []

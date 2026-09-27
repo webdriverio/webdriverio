@@ -45,8 +45,9 @@ tests/typings/**/dist
 # Optional npm cache directory
 .npm
 
-# Optional eslint cache
+# Optional lint cache
 .eslintcache
+.oxlintcache
 
 # Optional REPL history
 .node_repl_history
@@ -60,6 +61,9 @@ tests/typings/**/dist
 # dotenv environment variables file
 .env
 
+# local MCP config
+.mcp.json
+
 # lerna changelog cachedir
 .changelog
 
@@ -70,9 +74,8 @@ packages/**/cjs/
 /*.js
 /*.mjs
 /*.ts
-!.eslintrc.js
 !vitest.config.ts
-!eslint.config.mjs
+!.oxlintrc.json
 packages/**/package-lock.json
 .DS_Store
 e2e/screenshot.pdf
@@ -104,6 +107,9 @@ website/docs/_*.md
 wallaby.conf.js
 tags
 tests/.retry_succeeded
+tests/benchmark/results/
+.agents/verify-artifacts/
+tests/benchmark/.tmp/
 *.tsbuildinfo
 website/docs/Contribute.md
 website/community/Resources.md

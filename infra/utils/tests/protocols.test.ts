@@ -21,7 +21,7 @@ describe('protocol metadata', () => {
     })
 
     it('classifies mobile and vendor protocols', () => {
-        expect(MOBILE_PROTOCOLS).toEqual(['appium', 'mjsonwp'])
+        expect(MOBILE_PROTOCOLS).toEqual(['appium'])
         expect(VENDOR_PROTOCOLS).toEqual(['chromium'])
     })
 

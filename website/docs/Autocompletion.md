@@ -1,6 +1,7 @@
 ---
 id: autocompletion
 title: Autocompletion
+description: "Get autocompletion and inline API documentation for WebdriverIO commands in IntelliJ, WebStorm and Visual Studio Code."
 ---
 
 ## IntelliJ

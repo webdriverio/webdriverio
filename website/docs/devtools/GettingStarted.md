@@ -1,6 +1,7 @@
 ---
 id: getting-started
 title: Getting Started
+description: "Install WebdriverIO DevTools and run your first test in live mode or trace mode to replay the DOM, screenshots, network and console output."
 ---
 
 import Tabs from '@theme/Tabs';

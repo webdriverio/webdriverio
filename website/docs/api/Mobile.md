@@ -120,8 +120,6 @@ This metadata helps identify and resolve issues faster, improving the overall de
 
 By enhancing mobile commands, WebdriverIO not only makes automation easier but also aligns with its mission to provide developers with tools that are powerful, reliable, and intuitive to use.
 
----
-
 ## Hybrid Apps
 
 Hybrid apps combine web content with native functionality and require specialized handling during automation. These apps use webviews to render web content within a native application. WebdriverIO provides enhanced methods for working with hybrid apps effectively.

@@ -24,13 +24,13 @@ function mapCapabilities (
     taskItemLabel: string) {
     const capabilitiesToRequireSetup = (
         Array.isArray(caps)
-            ? caps.map((cap: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiremoteCapabilities) => {
+            ? caps.map((cap: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities) => {
                 const w3cCaps = cap as Capabilities.W3CCapabilities
-                const multiremoteCaps = cap as Capabilities.RequestedMultiremoteCapabilities
-                const multiremoteInstanceNames = Object.keys(multiremoteCaps)
+                const multiRemoteCaps = cap as Capabilities.RequestedMultiRemoteCapabilities
+                const multiRemoteInstanceNames = Object.keys(multiRemoteCaps)
 
-                if (typeof multiremoteCaps[multiremoteInstanceNames[0]] === 'object' && 'capabilities' in multiremoteCaps[multiremoteInstanceNames[0]]) {
-                    return Object.values(multiremoteCaps).map((c: Capabilities.WithRequestedCapabilities) => (
+                if (typeof multiRemoteCaps[multiRemoteInstanceNames[0]] === 'object' && 'capabilities' in multiRemoteCaps[multiRemoteInstanceNames[0]]) {
+                    return Object.values(multiRemoteCaps).map((c: Capabilities.WithRequestedCapabilities) => (
                         'alwaysMatch' in c.capabilities
                             ? c.capabilities.alwaysMatch
                             : c.capabilities
@@ -42,7 +42,7 @@ function mapCapabilities (
                 }
                 return cap as WebdriverIO.Capabilities
             }).flat()
-            : Object.values(caps as Capabilities.WithRequestedMultiremoteCapabilities['capabilities']).map((mrOpts) => {
+            : Object.values(caps as Capabilities.WithRequestedMultiRemoteCapabilities['capabilities']).map((mrOpts) => {
                 const w3cCaps = mrOpts.capabilities as Capabilities.W3CCapabilities
                 if (w3cCaps.alwaysMatch) {
                     return w3cCaps.alwaysMatch

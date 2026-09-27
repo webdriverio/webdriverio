@@ -1,6 +1,7 @@
 ---
 id: mocksandspies
 title: Request Mocks and Spies
+description: "Mock network requests and responses in your tests with browser.mock, abort requests and inspect calls with spies."
 ---
 
 WebdriverIO comes with built-in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. You can define custom responses for web resources like REST API requests in your test and modify them dynamically.
@@ -194,3 +195,31 @@ expect(mock.calls[0].body).toEqual({ success: true })
 ```
 
 If you need to wait until a matching request has responded, use `mock.waitForResponse(options)`. See the API reference: [waitForResponse](/docs/api/mock/waitForResponse).
+
+## Multi-remote
+
+On a [multi-remote](/docs/multiremote) browser, `mock()` returns a `MultiRemoteMock` rather than one `Mock`. Methods such as `respond()` and `restore()` run on every instance. `waitForResponse()` waits until every instance has a matching response. Captured requests stay on the mock for that browser:
+
+```ts
+const mock = await browser.mock('**/user', { method: 'post' })
+mock.respond({ success: true })
+
+// register a user in every browser so each session sends the request
+await browser.$('#username').setValue('randomUser')
+await browser.$('#password').setValue('password123')
+await browser.$('#password_repeat').setValue('password123')
+await browser.$('button[type="submit"]').click()
+
+await mock.waitForResponse()
+
+expect(mock.getInstance('myChromeBrowser').calls).toHaveLength(1)
+expect(mock.getInstance('myFirefoxBrowser').calls).toHaveLength(1)
+```
+
+`mock.instances` lists those names in the order the mocks were created. `getInstance` throws `Multi-remote object has no instance named "<name>"` when the name is not in that list. A mock created from `browser.select('myFirefoxBrowser', 'myChromeBrowser')` lists Firefox first, which can differ from `browser.instances`.
+
+To stub one browser only, call `mock()` on that instance:
+
+```ts
+const chromeOnly = await browser.getInstance('myChromeBrowser').mock('**/user')
+```

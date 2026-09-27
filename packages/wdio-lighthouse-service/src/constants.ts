@@ -1,14 +1,3 @@
-import InstallableManifest from 'lighthouse/lighthouse-core/audits/installable-manifest.js'
-import ServiceWorker from 'lighthouse/lighthouse-core/audits/service-worker.js'
-import SplashScreen from 'lighthouse/lighthouse-core/audits/splash-screen.js'
-import ThemedOmnibox from 'lighthouse/lighthouse-core/audits/themed-omnibox.js'
-import ContentWidth from 'lighthouse/lighthouse-core/audits/content-width.js'
-import Viewport from 'lighthouse/lighthouse-core/audits/viewport.js'
-import AppleTouchIcon from 'lighthouse/lighthouse-core/audits/apple-touch-icon.js'
-import MaskableIcon from 'lighthouse/lighthouse-core/audits/maskable-icon.js'
-
-import { throttling } from 'lighthouse/lighthouse-core/config/constants.js'
-
 /**
  * performance tracing categories
  */
@@ -45,14 +34,10 @@ export const DEFAULT_TRACING_CATEGORIES = [
     // This doesn't add its own events, but adds a `stackTrace` property to devtools.timeline events
     'disabled-by-default-devtools.timeline.stack',
 
-    // Additional categories used by devtools. Not used by Lighthouse, but included to facilitate
+    // Additional categories used by DevTools. Not used by Lighthouse, but included to facilitate
     // loading traces from Lighthouse into the Performance panel.
     'disabled-by-default-devtools.timeline.frame',
     'latencyInfo',
-
-    // CPU sampling profiler data only enabled for debugging purposes
-    // 'disabled-by-default-v8.cpu_profiler',
-    // 'disabled-by-default-v8.cpu_profiler.hires',
 ]
 
 /**
@@ -65,8 +50,6 @@ export const IGNORED_URLS = [
 ] as const
 
 export const FRAME_LOAD_START_TIMEOUT = 2000
-export const TRACING_TIMEOUT = 15000
-export const MAX_TRACE_WAIT_TIME = 45000
 export const DEFAULT_NETWORK_THROTTLING_STATE = 'online' as const
 export const DEFAULT_FORM_FACTOR = 'desktop' as const
 export const UNSUPPORTED_ERROR_MESSAGE = (
@@ -75,6 +58,10 @@ export const UNSUPPORTED_ERROR_MESSAGE = (
     'running tests locally or through a Selenium Grid (https://www.selenium.dev/documentation/grid/) v4 or higher.'
 )
 
+/**
+ * Lighthouse throttling constants (core/config/constants.js).
+ * Regular 3G uses `mobileRegular3G`, Good 3G uses `mobileSlow4G`.
+ */
 export const NETWORK_STATES = {
     offline: {
         offline: true,
@@ -102,17 +89,15 @@ export const NETWORK_STATES = {
     },
     'Regular 3G': {
         offline: false,
-        latency: throttling.mobileRegular3G.requestLatencyMs,
-        // DevTools expects throughput in bytes per second rather than kbps
-        downloadThroughput: Math.floor(throttling.mobileRegular3G.downloadThroughputKbps * 1024 / 8),
-        uploadThroughput: Math.floor(throttling.mobileRegular3G.uploadThroughputKbps * 1024 / 8)
+        latency: 300 * 3.75,
+        downloadThroughput: Math.floor(700 * 1024 / 8),
+        uploadThroughput: Math.floor(700 * 1024 / 8)
     },
     'Good 3G': {
         offline: false,
-        latency: throttling.mobileSlow4G.requestLatencyMs,
-        // DevTools expects throughput in bytes per second rather than kbps
-        downloadThroughput: Math.floor(throttling.mobileSlow4G.downloadThroughputKbps * 1024 / 8),
-        uploadThroughput: Math.floor(throttling.mobileSlow4G.uploadThroughputKbps * 1024 / 8)
+        latency: 150 * 3.75,
+        downloadThroughput: Math.floor(1.6 * 1024 * 1024 / 8),
+        uploadThroughput: Math.floor(750 * 1024 / 8)
     },
     'Regular 4G': {
         offline: false,
@@ -158,13 +143,20 @@ export const NETWORK_RECORDER_EVENTS = [
     'Network.resourceChangedPriority'
 ] as const
 
-export const PWA_AUDITS = {
-    isInstallable: InstallableManifest,
-    serviceWorker: ServiceWorker,
-    splashScreen: SplashScreen,
-    themedOmnibox: ThemedOmnibox,
-    contentWith: ContentWidth,
-    viewport: Viewport,
-    appleTouchIcon: AppleTouchIcon,
-    maskableIcon: MaskableIcon
-} as const
+/**
+ * PWA checks preserved from the original Lighthouse PWA category.
+ * Lighthouse 12+ removed that category, so the service implements these checks
+ * with Chrome DevTools Protocol and page inspection.
+ */
+export const PWA_AUDIT_NAMES = [
+    'isInstallable',
+    'serviceWorker',
+    'splashScreen',
+    'themedOmnibox',
+    'contentWith',
+    'viewport',
+    'appleTouchIcon',
+    'maskableIcon'
+] as const
+
+export const TRACE_COMMANDS = ['click', 'navigateTo', 'url'] as const

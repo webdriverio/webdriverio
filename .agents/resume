@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Fast sanity check after setup or when attaching to an existing checkout.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+if ! command -v node >/dev/null 2>&1 || ! command -v pnpm >/dev/null 2>&1; then
+    echo "Missing node or pnpm. Run .agents/setup" >&2
+    exit 1
+fi
+
+EXPECTED_NODE="$(tr -d 'v[:space:]' < .nvmrc)"
+ACTUAL_NODE="$(node -p "process.versions.node")"
+if (( ${ACTUAL_NODE%%.*} < 18 )); then
+    echo "Node $ACTUAL_NODE is too old. Run .agents/setup" >&2
+    exit 1
+fi
+if [[ "${ACTUAL_NODE%%.*}" != "${EXPECTED_NODE%%.*}" ]]; then
+    echo "Warning: Node $ACTUAL_NODE; CI uses .nvmrc ($EXPECTED_NODE)." >&2
+fi
+
+if [[ ! -d node_modules ]]; then
+    echo "node_modules missing. Run .agents/setup" >&2
+    exit 1
+fi
+
+if [[ ! -d packages/webdriverio/build ]]; then
+    echo "packages/webdriverio/build missing. Compile with: pnpm run setup" >&2
+    exit 1
+fi
+
+HEAD="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+STAMP="packages/webdriverio/build/.agent-rev"
+if [[ ! -f "$STAMP" ]] || [[ "$(cat "$STAMP")" != "$HEAD" ]]; then
+    echo "Checkout moved since last .agents/setup (stale node_modules or packages/*/build). Run .agents/setup" >&2
+    exit 1
+fi
+
+echo "Ready. Node $ACTUAL_NODE, pnpm $(pnpm --version)."
+echo "Next: read AGENTS.md, then the scoped AGENTS.md for the tree you will edit."

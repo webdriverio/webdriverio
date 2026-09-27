@@ -154,8 +154,7 @@ export async function scrollIntoView (
                 isPainted
             }
         }, {
-            [ELEMENT_KEY]: this.elementId, // w3c compatible
-            ELEMENT: this.elementId, // jsonwp compatible
+            [ELEMENT_KEY]: this.elementId
         } as unknown as HTMLElement)
 
         /**
@@ -293,37 +292,35 @@ export async function scrollIntoView (
          * against ever changes) while the container's own inertial scroll is still
          * animating underneath.
          */
-        // `execute` doesn't await promises under the classic WebDriver protocol, only Bidi,
-        // so `executeAsync` is still required here to reliably wait under both protocols
-        // @ts-ignore `executeAsync` is deprecated in favor of `execute`, see comment above
-        await browser.executeAsync((elem: HTMLElement, done: () => void) => {
+        await browser.execute(async (elem: HTMLElement) => {
             try {
                 let last = elem.getBoundingClientRect()
                 let stableFrames = 0
                 let totalFrames = 0
                 const maxFrames = 60
 
-                const check = () => {
-                    totalFrames++
-                    const current = elem.getBoundingClientRect()
-                    if (current.top === last.top && current.left === last.left) {
-                        stableFrames++
-                    } else {
-                        stableFrames = 0
-                        last = current
-                    }
-                    if (stableFrames >= 2 || totalFrames >= maxFrames) {
-                        return done()
+                await new Promise<void>((resolve) => {
+                    const check = () => {
+                        totalFrames++
+                        const current = elem.getBoundingClientRect()
+                        if (current.top === last.top && current.left === last.left) {
+                            stableFrames++
+                        } else {
+                            stableFrames = 0
+                            last = current
+                        }
+                        if (stableFrames >= 2 || totalFrames >= maxFrames) {
+                            return resolve()
+                        }
+                        requestAnimationFrame(check)
                     }
                     requestAnimationFrame(check)
-                }
-                requestAnimationFrame(check)
+                })
             } catch {
-                done()
+                // element can disappear between the scroll and the settle check
             }
         }, {
-            [ELEMENT_KEY]: this.elementId, // w3c compatible
-            ELEMENT: this.elementId, // jsonwp compatible
+            [ELEMENT_KEY]: this.elementId
         } as unknown as HTMLElement)
 
         /**
@@ -457,8 +454,7 @@ function scrollIntoViewWeb (
     return browser.execute(
         (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options),
         {
-            [ELEMENT_KEY]: this.elementId, // w3c compatible
-            ELEMENT: this.elementId, // jsonwp compatible
+            [ELEMENT_KEY]: this.elementId
         } as unknown as HTMLElement,
         options,
     )

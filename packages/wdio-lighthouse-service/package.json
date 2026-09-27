@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-lighthouse-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22.19.0"
   },
   "repository": {
     "type": "git",
@@ -38,30 +38,21 @@
       "import": "./build/index.js"
     }
   },
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
-    "@babel/core": "^7.18.0",
     "@tracerbench/trace-event": "^8.0.0",
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.20.4",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
-    "babel-plugin-istanbul": "^7.0.0",
-    "devtools-protocol": "^0.0.1646372",
-    "istanbul-lib-coverage": "^3.2.0",
-    "istanbul-lib-report": "^3.0.0",
-    "istanbul-reports": "^3.1.4",
-    "lighthouse": "8.6.0",
-    "puppeteer-core": "^24.12.1",
+    "devtools-protocol": "^0.0.1701330",
+    "lighthouse": "13.4.1",
+    "puppeteer-core": "^25.11.0",
     "webdriverio": "workspace:*"
   },
   "publishConfig": {
     "access": "public"
   },
   "devDependencies": {
-    "@types/babel__core": "^7.1.19",
-    "@types/istanbul-lib-coverage": "^2.0.6",
-    "@types/istanbul-lib-report": "^3.0.0",
-    "@types/istanbul-reports": "^3.0.4",
     "@wdio/globals": "workspace:*"
   }
 }

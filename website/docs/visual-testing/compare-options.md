@@ -1,6 +1,7 @@
 ---
 id: compare-options
 title: Compare Options
+description: "Tune how screenshots are compared with visual sensitivity, pixelmatch, mobile block-out and reporting options for the visual service."
 ---
 
 Compare options are options that influence the way the comparison is being executed.
@@ -8,7 +9,6 @@ Compare options are options that influence the way the comparison is being execu
 :::info NOTE
 All compare options can be used during service instantiation or for each single `checkElement`,`checkScreen` and `checkFullPageScreen`. If a method option has the same key as an option that has been set during the instantiation of the service, then the method compare option will override the service compare option value.
 :::
-
 
 ## Visual sensitivity
 
@@ -28,9 +28,8 @@ The `ignore*` presets changed behavior once, as a breaking change, when the comp
 
 ### `ignoreColors`
 
--   **Type:** `boolean`
--   **Default:** `false`
--   **Mandatory:** no
+<Option type="boolean" default="false" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 -   **Since:** `v10.1.0`: brightness-only comparison using resemble luma weights (`0.3/0.59/0.11`).
 
@@ -38,11 +37,11 @@ Compares brightness only, ignoring hue/color differences. Preset: strict thresho
 
 **Use this when** color itself is expected to vary (e.g. themeable UI, images that recolor per environment) but you still want to catch layout or brightness changes.
 
+</Option>
 ### `ignoreAlpha`
 
--   **Type:** `boolean`
--   **Default:** `false`
--   **Mandatory:** no
+<Option type="boolean" default="false" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 -   **Since:** `v10.1.0`: applies its own threshold/AA rule independently of other `ignore*` flags.
 
@@ -50,11 +49,11 @@ Compare images and discard alpha-channel differences. Preset: strict threshold (
 
 **Use this when** transparency/opacity rendering is flaky (e.g. overlays, semi-transparent elements) but the actual pixel colors underneath matter.
 
+</Option>
 ### `ignoreAntialiasing`
 
--   **Type:** `boolean`
--   **Default:** `true`
--   **Mandatory:** no
+<Option type="boolean" default="true" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 -   **Since:** `v10`: default changed to `true` (was `false` in v9 and below).
 
@@ -62,11 +61,11 @@ Forgives anti-aliased pixels during comparison (relaxed threshold ~32/255). This
 
 **Use this to** solve the most common source of visual-test flakiness: text and shape edges that render with slightly different anti-aliasing between machines/browsers even though nothing actually changed.
 
+</Option>
 ### `ignoreLess`
 
--   **Type:** `boolean`
--   **Default:** `false`
--   **Mandatory:** no
+<Option type="boolean" default="false" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 -   **Since:** `v10.1.0`: applies its own threshold/AA rule independently of other `ignore*` flags.
 
@@ -74,11 +73,11 @@ Compare images using a relaxed RGB tolerance (~16/255 per channel in YIQ space).
 
 **Use this when** you want a little breathing room for minor rendering noise (JPEG-style compression artifacts, slight color rounding) without forgiving anti-aliasing.
 
+</Option>
 ### `ignoreNothing`
 
--   **Type:** `boolean`
--   **Default:** `false`
--   **Mandatory:** no
+<Option type="boolean" default="false" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 -   **Since:** `v10.1.0`: applies its own threshold/AA rule independently of other `ignore*` flags.
 
@@ -86,16 +85,16 @@ Use zero tolerance: any pixel difference counts as a mismatch, including anti-al
 
 **Use this when** you need pixel-perfect proof nothing changed at all, e.g. verifying a fix didn't introduce any regression, however small.
 
+</Option>
 ### `scaleImagesToSameSize`
 
--   **Type:** `boolean`
--   **Default:** `false`
--   **Mandatory:** no
+<Option type="boolean" default="false" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 Scales 2 images to the same size before execution of comparison. Highly recommended to enable `ignoreAntialiasing` and `ignoreAlpha`
 
-
+</Option>
 ## Direct pixelmatch control
 
 ---
@@ -106,9 +105,8 @@ Scales 2 images to the same size before execution of comparison. Highly recommen
 
 ### `compareOptions.pixelmatch`
 
--   **Type:** `object`
--   **Default:** `undefined`
--   **Mandatory:** no
+<Option type="object" default="undefined" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting for that specific used method_
 -   **Added in:** `v10.1.0`
 
@@ -177,75 +175,75 @@ compareOptions: {
 
 See the [pixelmatch documentation](https://github.com/mapbox/pixelmatch) for full option semantics.
 
-
+</Option>
 ## Mobile block-outs
 
 ---
 
 ### `blockOutStatusBar`
 
--   **Type:** `boolean`
--   **Default:** `true`
--   **Mandatory:** no
+<Option type="boolean" default="true" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting. This is **Mobile only**_
 
 Automatically block out the status and address bar during comparisons. This prevents failures on time, wifi or battery status.
 
+</Option>
 ### `blockOutToolBar`
 
--   **Type:** `boolean`
--   **Default:** `true`
--   **Mandatory:** no
+<Option type="boolean" default="true" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting. This is **Mobile only**_
 
 Automatically block out the toolbar.
 
+</Option>
 ### `blockOutSideBar`
 
--   **Type:** `boolean`
--   **Default:** `true`
--   **Mandatory:** no
+<Option type="boolean" default="true" required="no">
+
 -   **Remark:** _Can only be used for `checkScreen()`. It will override the plugin setting. This is **iPad only**_
 
 Automatically block out the sidebar for iPads in landscape mode during comparisons. This prevents failures on the tab/private/bookmark native component.
 
-
+</Option>
 ## Results & reporting
 
 ---
 
 ### `rawMisMatchPercentage`
 
--   **Type:** `boolean`
--   **Default:** `false`
--   **Mandatory:** no
+<Option type="boolean" default="false" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 If true the return percentage will be like `0.12345678`, default is `0.12`
 
+</Option>
 ### `returnAllCompareData`
 
--   **Type:** `boolean`
--   **Default:** `false`
--   **Mandatory:** no
+<Option type="boolean" default="false" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 This will return all compare data, not only the mismatch percentage
 
+</Option>
 ### `saveAboveTolerance`
 
--   **Type:** `number`
--   **Default:** `0`
--   **Mandatory:** no
+<Option type="number" default="0" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. It will override the plugin setting_
 
 Allowable value of `misMatchPercentage` that prevents saving images with differences
 
+</Option>
 ### `diffPixelBoundingBoxProximity`
 
--   **Type:** `number`
--   **Default:** `5`
--   **Mandatory:** no
+<Option type="number" default="5" required="no">
+
 -   **Remark:** _Can also be used for `checkElement`, `checkScreen()` and `checkFullPageScreen()`. Only relevant when [`createJsonReportFiles`](/docs/visual-testing/service-options#createjsonreportfiles) is enabled._
 
 The pixel proximity used to group diff pixels together in JSON reports. Higher values group more pixels into fewer bounding boxes; lower values produce more accurate but more numerous boxes.
+
+</Option>

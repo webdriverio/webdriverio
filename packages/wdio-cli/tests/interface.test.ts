@@ -75,6 +75,24 @@ describe('cli interface', () => {
         expect(wdioClInterface.result.failed).toBe(1)
     })
 
+    it('should collect workerTimings messages', () => {
+        wdioClInterface.onMessage({
+            origin: 'worker',
+            name: 'workerTimings',
+            cid: '0-0',
+            content: { setup: 0.1, execution: 0.5, teardown: 0.05, total: 0.65 }
+        } as any)
+        expect(wdioClInterface.workerTimings).toEqual([{
+            cid: '0-0',
+            setup: 0.1,
+            execution: 0.5,
+            teardown: 0.05,
+            total: 0.65
+        }])
+        wdioClInterface.setup()
+        expect(wdioClInterface.workerTimings).toEqual([])
+    })
+
     it('should mark jobs as skipped', () => {
         wdioClInterface.emit('job:start', { cid: '0-0', hasTests: false })
         expect(wdioClInterface.result.finished).toBe(0)

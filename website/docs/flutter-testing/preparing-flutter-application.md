@@ -1,6 +1,7 @@
 ---
 id: preparing-flutter-application
 title: Preparing the Flutter App
+description: "Enable the flutter_driver extension in a Flutter app and produce a test build so WebdriverIO and Appium can interact with its widgets."
 ---
 
 For WebdriverIO and Appium to inspect and interact with internal elements inside the Flutter canvas, the application must expose a communication channel. This is achieved by enabling Flutter's test extension in the application's source code.

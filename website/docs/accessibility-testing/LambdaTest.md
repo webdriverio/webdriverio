@@ -1,6 +1,7 @@
 ---
 id: testmuai
 title: TestMu AI (Formerly LambdaTest) Accessibility Testing
+description: "Enable TestMu AI (formerly LambdaTest) accessibility testing in your WebdriverIO suite, configure scan options and view the accessibility reports."
 ---
 
 # TestMu AI Accessibility Testing

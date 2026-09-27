@@ -104,7 +104,7 @@ describe('acceptDialog - iOS', () => {
     it('should accept a dialog by button label on iOS', async () => {
         await browser.acceptDialog('Allow')
 
-        expect(browser.$).toHaveBeenCalledWith('~Allow')
+        expect(browser.$).toHaveBeenCalledWith('~Allow', { strict: false })
         expect(clickSpy).toHaveBeenCalledOnce()
         expect(acceptAlertSpy).not.toHaveBeenCalled()
         expect(executeSpy).toHaveBeenNthCalledWith(3, 'mobile: activateApp', { bundleId: 'com.example.app' })
@@ -170,7 +170,7 @@ describe('acceptDialog - Android', () => {
     it('should accept a dialog by button text on Android', async () => {
         await browser.acceptDialog('Allow')
 
-        expect(browser.$).toHaveBeenCalledWith("//android.widget.Button[@text='Allow']")
+        expect(browser.$).toHaveBeenCalledWith("//android.widget.Button[@text='Allow']", { strict: false })
         expect(clickSpy).toHaveBeenCalledOnce()
         expect(acceptAlertSpy).not.toHaveBeenCalled()
     })
@@ -178,7 +178,7 @@ describe('acceptDialog - Android', () => {
     it('should use a valid XPath for button labels containing apostrophes', async () => {
         await browser.acceptDialog("Don't Allow")
 
-        expect(browser.$).toHaveBeenCalledWith('//android.widget.Button[@text="Don\'t Allow"]')
+        expect(browser.$).toHaveBeenCalledWith('//android.widget.Button[@text="Don\'t Allow"]', { strict: false })
         expect(clickSpy).toHaveBeenCalledOnce()
     })
 

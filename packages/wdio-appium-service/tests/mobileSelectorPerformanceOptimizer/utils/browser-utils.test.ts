@@ -26,7 +26,7 @@ describe('browser-utils', () => {
             expect(isNativeContext(browser)).toBe(false)
         })
 
-        test('should return false for MultiRemote browser', () => {
+        test('should return false for multi-remote browser', () => {
             const browser = {
                 instances: ['browser1', 'browser2'],
                 isNativeContext: true

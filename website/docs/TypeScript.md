@@ -1,6 +1,7 @@
 ---
 id: typescript
 title: TypeScript Setup
+description: "Write WebdriverIO tests in TypeScript with tsx, set up tsconfig.json and add type definitions for frameworks, services and custom commands."
 ---
 
 You can write tests using [TypeScript](http://www.typescriptlang.org) to get auto-completion and type safety.

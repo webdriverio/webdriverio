@@ -17,7 +17,7 @@ const log = logger('webdriverio')
             {name: 'test', value: '123'},
             {name: 'test2', value: '456'}
         ])
-        const testCookie = await browser.getCookies(['test'])
+        const testCookie = await browser.getCookies({ name: 'test' })
         console.log(testCookie); // outputs: [{ name: 'test', value: '123' }]
 
         const allCookies = await browser.getCookies()
@@ -43,19 +43,14 @@ const log = logger('webdriverio')
  */
 export async function getCookies(
     this: WebdriverIO.Browser,
-    filter?: string | string[] | remote.StorageCookieFilter,
+    filter?: remote.StorageCookieFilter,
     sourceOrigin?: string | null
 ): Promise<Cookie[]> {
-    /**
-     * check if filter is a string array and let users know that this feature
-     * is deprecated and will be removed in an upcoming version of WebdriverIO
-     */
-    const usesMultipleFilter = Array.isArray(filter) && filter.length > 1
-    if (!this.isBidi || usesMultipleFilter) {
+    assertObjectCookieFilter(filter)
+
+    if (!this.isBidi) {
         return getCookiesClassic.call(this, filter)
     }
-
-    const cookieFilter = getCookieFilter(filter)
 
     let url: URL
     try {
@@ -77,8 +72,8 @@ export async function getCookies(
             }
         }
 
-    if (typeof cookieFilter !== 'undefined') {
-        params.filter = cookieFilter
+    if (typeof filter !== 'undefined') {
+        params.filter = filter
     }
 
     try {
@@ -102,41 +97,47 @@ export async function getCookies(
     }
 }
 
+const REMOVED_COOKIE_FILTER =
+    'Passing a string or string array to `getCookies` was removed in WebdriverIO v10. ' +
+    'Use an object filter, for example `await browser.getCookies({ name: \'session\' })`.'
+
+function assertObjectCookieFilter(filter: unknown): asserts filter is remote.StorageCookieFilter | undefined {
+    if (typeof filter === 'undefined') {
+        return
+    }
+
+    if (typeof filter === 'string' || Array.isArray(filter)) {
+        throw new Error(REMOVED_COOKIE_FILTER)
+    }
+
+    if (typeof filter !== 'object' || filter === null) {
+        throw new Error('`getCookies` only accepts a cookie filter object.')
+    }
+}
+
 /**
- * Legacy WebDriver Classic way to fetch cookies
+ * WebDriver Classic way to fetch cookies. BiDi sessions fall back to this
+ * when the browsing context has no origin or the BiDi call cannot be used.
  */
 async function getCookiesClassic(
     this: WebdriverIO.Browser,
-    names?: string | string[] | remote.StorageCookieFilter
+    filter?: remote.StorageCookieFilter
 ): Promise<Cookie[]> {
-    if (!names) {
+    if (!filter) {
         return this.getAllCookies()
     }
 
-    const usesMultipleFilter = Array.isArray(names) && names.length > 1
-    if (usesMultipleFilter) {
-        log.warn(
-            'Passing a string array as filter for `getCookies` is deprecated and its ' +
-            'support will be removed in an upcoming version of WebdriverIO!'
-        )
-        const allCookies = await this.getAllCookies()
-        return allCookies.filter(cookie => names.includes(cookie.name))
-    }
-
-    const filter = getCookieFilter(names)
     const allCookies = await this.getAllCookies()
-    const filterValue = typeof filter === 'object' ? getCookieValue(filter.value) : undefined
+    const filterValue = getCookieValue(filter.value)
     return allCookies.filter(cookie => (
-        !filter || (typeof filter === 'object' && (
-            (filter.name === undefined || filter.name === cookie.name) &&
-            (filter.value === undefined || filterValue === cookie.value) &&
-            (filter.path === undefined || filter.path === cookie.path) &&
-            (filter.domain === undefined || filter.domain === cookie.domain) &&
-            (filter.sameSite === undefined || filter.sameSite === cookie.sameSite) &&
-            (filter.expiry === undefined || filter.expiry === cookie.expiry) &&
-            (filter.httpOnly === undefined || filter.httpOnly === cookie.httpOnly) &&
-            (filter.secure === undefined || filter.secure === cookie.secure)
-        ))
+        (filter.name === undefined || filter.name === cookie.name) &&
+        (filter.value === undefined || filterValue === cookie.value) &&
+        (filter.path === undefined || filter.path === cookie.path) &&
+        (filter.domain === undefined || filter.domain === cookie.domain) &&
+        (filter.sameSite === undefined || filter.sameSite === cookie.sameSite) &&
+        (filter.expiry === undefined || filter.expiry === cookie.expiry) &&
+        (filter.httpOnly === undefined || filter.httpOnly === cookie.httpOnly) &&
+        (filter.secure === undefined || filter.secure === cookie.secure)
     ))
 }
 
@@ -150,20 +151,3 @@ function getCookieValue(value?: remote.NetworkBytesValue | null): string | undef
         : value.value
 }
 
-function getCookieFilter (names?: string | string[] | remote.StorageCookieFilter) {
-    if (!names) {
-        return
-    }
-
-    if (Array.isArray(names) && names.length > 1) {
-        throw new Error('Multiple cookie name filters are not supported')
-    }
-
-    return (Array.isArray(names) ? names : [names]).map((filter) => {
-        if (typeof filter === 'string') {
-            log.warn('Passing string values into `getCookie` is deprecated and its support will be removed in an upcoming version of WebdriverIO!')
-            return { name: filter } as remote.StorageCookieFilter
-        }
-        return filter
-    })[0]
-}

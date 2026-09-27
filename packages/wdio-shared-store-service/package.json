@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-shared-store-service",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22.19.0"
   },
   "repository": {
     "type": "git",
@@ -34,7 +34,7 @@
     }
   },
   "types": "./build/index.d.ts",
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@polka/parse": "^1.0.0-next.0",
     "@wdio/logger": "workspace:*",

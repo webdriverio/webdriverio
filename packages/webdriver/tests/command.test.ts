@@ -73,9 +73,9 @@ vi.mock('../src/request/request', () => {
     const capturedRequestEventHandler = vi.fn<() => RequestEventHandler>()
 
     // Mock the constructor
-    const WebDriverRequest = vi.fn().mockImplementation((
+    const WebDriverRequest = vi.fn().mockImplementation(function (
         _method, _endpoint, _body, _abortSignal, _isHubCommand, requestEventHandler: RequestEventHandler
-    ) => {
+    ) {
         capturedRequestEventHandler.mockReturnValue(requestEventHandler)
         return { makeRequest: makeRequestMock }
     })
@@ -91,7 +91,6 @@ vi.mock('../src/request/request', () => {
 })
 
 class FakeClient extends EventEmitter {
-    isW3C = false
     isChromium = false
     isAndroid = false
     isMobile = false

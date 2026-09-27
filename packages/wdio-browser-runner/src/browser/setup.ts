@@ -31,7 +31,8 @@ globalThis.prompt = showPopupWarning('prompt', null, 'your value')
 const browser = await remote({
     automationProtocol: automationProtocolPath as any,
     capabilities: window.__wdioEnv__.capabilities,
-    bidiResponseTimeout: window.__wdioEnv__.config.bidiResponseTimeout
+    bidiResponseTimeout: window.__wdioEnv__.config.bidiResponseTimeout,
+    strictSelectors: window.__wdioEnv__.config.strictSelectors
 })
 _setGlobal('browser', browser, window.__wdioEnv__.injectGlobals)
 _setGlobal('driver', browser, window.__wdioEnv__.injectGlobals)

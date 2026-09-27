@@ -8,7 +8,9 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 vi.mock('../src/launcher', () => ({
     default: class MockLauncher {
-        constructor (public path: string, public params: any) {}
+        constructor (configPath: string, public params: any) {
+            this.configPath = configPath
+        }
         run () {
             return ({
                 then: () => ({
@@ -50,7 +52,6 @@ describe('framework parameter conversion', () => {
             '--cucumberOpts.tagsInTitle', 'true',
             '--cucumberOpts.ignoreUndefinedDefinitions', 'true',
             '--cucumberOpts.failAmbiguousDefinitions', 'true',
-            '--cucumberOpts.tagExpression', 'foo',
             '--cucumberOpts.profiles', 'foo',
             '--cucumberOpts.file', 'foo'
         )
@@ -93,7 +94,6 @@ describe('framework parameter conversion', () => {
             "retry": 123,
             "scenarioLevelReporter": true,
             "strict": true,
-            "tagExpression": "foo",
             "tags": "foo",
             "tagsInTitle": true,
             "timeout": 123,
@@ -108,12 +108,12 @@ describe('framework parameter conversion', () => {
         process.argv.push(
             path.resolve(__dirname, '__fixtures__', 'wdio.conf.js'),
             '--mochaOpts.require', 'foo',
-            '--mochaOpts.compilers', 'foo',
             '--no-mochaOpts.allowUncaught',
             '--mochaOpts.asyncOnly', 'true',
             '--mochaOpts.bail',
             '--mochaOpts.checkLeaks', 'false',
             '--mochaOpts.delay', 'true',
+            '--mochaOpts.failHookAffectedTests', 'false',
             '--mochaOpts.fgrep', 'foo',
             '--mochaOpts.forbidOnly', 'false',
             '--mochaOpts.forbidPending', 'true',
@@ -132,10 +132,8 @@ describe('framework parameter conversion', () => {
             "asyncOnly": true,
             "bail": true,
             "checkLeaks": false,
-            "compilers": [
-              "foo",
-            ],
             "delay": true,
+            "failHookAffectedTests": false,
             "fgrep": "foo",
             "forbidOnly": false,
             "forbidPending": true,
@@ -170,7 +168,6 @@ describe('framework parameter conversion', () => {
             '--jasmineOpts.invertGrep', 'true',
             '--jasmineOpts.cleanStack', 'true',
             '--jasmineOpts.stopOnSpecFailure', 'true',
-            '--jasmineOpts.stopSpecOnExpectationFailure', 'true',
             '--jasmineOpts.requireModule', 'foo'
         )
         const { params } = await run() as any
@@ -195,7 +192,6 @@ describe('framework parameter conversion', () => {
             ],
             "seed": "foo",
             "stopOnSpecFailure": true,
-            "stopSpecOnExpectationFailure": true,
           }
         `)
     })

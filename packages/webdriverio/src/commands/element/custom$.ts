@@ -65,9 +65,13 @@ export async function custom$ (
         res = res[0]
     }
 
+    /**
+     * `custom$` never counts matches itself, so a refetch (implicit wait, stale
+     * element) must not suddenly apply the global strict `$` default either
+     */
     if (res && typeof res[ELEMENT_KEY] === 'string') {
-        return await getElement.call(this, strategyRef, res)
+        return await getElement.call(this, strategyRef, res, { strict: false })
     }
 
-    return await getElement.call(this, strategyRef, new Error('no such element'))
+    return await getElement.call(this, strategyRef, new Error('no such element'), { strict: false })
 }

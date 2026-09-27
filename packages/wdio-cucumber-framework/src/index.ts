@@ -20,7 +20,7 @@ import {
     supportCodeLibraryBuilder,
     Status,
 } from '@cucumber/cucumber'
-import Gherkin from '@cucumber/gherkin'
+import * as Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import type { Feature, GherkinDocument } from '@cucumber/messages'
 import type Cucumber from '@cucumber/cucumber'
@@ -88,6 +88,15 @@ export class CucumberAdapter {
         }
 
         /**
+         * Cucumber replaced this flag with `tags`. Do not alias it: a silent
+         * fallback would run a different set of scenarios than the user asked for.
+         */
+        const legacyTagExpression = (this._config.cucumberOpts as (CucumberOptions & { tagExpression?: string }) | undefined)?.tagExpression
+        if (legacyTagExpression) {
+            throw new Error('The option "tagExpression" was removed. Use "tags" instead. See https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300')
+        }
+
+        /**
          * Including the `cucumberFormatter` here allows you to use cucumber formatting in addition to other formatting options.
          */
         this._cucumberOpts.format.push([this._cucumberFormatter])
@@ -128,13 +137,6 @@ export class CucumberAdapter {
         this._specs = this._specs.map((spec) =>
             spec.startsWith(FILE_PROTOCOL) ? url.fileURLToPath(spec) : spec
         )
-
-        // backwards compatibility for tagExpression usage
-        this._cucumberOpts.tags = this._cucumberOpts.tags || this._cucumberOpts.tagExpression
-
-        if (this._cucumberOpts.tagExpression) {
-            log.warn("'tagExpression' is deprecated. Use 'tags' instead.")
-        }
     }
 
     readFiles(

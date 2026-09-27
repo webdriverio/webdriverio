@@ -377,14 +377,15 @@ async function switchToFrameUsingElement (browser: WebdriverIO.Browser, element:
 }
 
 /**
- * While we deprecated the `switchToFrame` command for users, we still
- * have to use it internally to enable support for WebDriver Classic.
- * In order to avoid unnecessary deprecation warnings, we disable the
- * deprecation message by setting a flag in the environment variable.
+ * `switchToFrame` stays on the WebDriver client for Classic sessions, but it is
+ * not part of the public browser type. `switchFrame` is the user-facing command.
  */
 function switchToFrame (browser: WebdriverIO.Browser, frame: ElementReference | number | null) {
+    const classicBrowser = browser as WebdriverIO.Browser & {
+        switchToFrame: (id: ElementReference | number | null) => Promise<void>
+    }
     toggleDisableDeprecationWarning()
-    return browser.switchToFrame(frame).finally(toggleDisableDeprecationWarning)
+    return classicBrowser.switchToFrame(frame).finally(toggleDisableDeprecationWarning)
 }
 
 /**

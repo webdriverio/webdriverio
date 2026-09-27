@@ -1,32 +1,33 @@
 ---
 id: multiremote
-title: Multiremote
+title: Multi-remote
+description: "Control multiple browser or device sessions from a single test with multi-remote, in standalone mode or with the WDIO testrunner."
 ---
 
 WebdriverIO allows you to run multiple automated sessions in a single test. This becomes handy when you’re testing features that require multiple users (for example, chat or WebRTC applications).
 
-Instead of creating a couple of remote instances where you need to execute common commands like [`newSession`](/docs/api/webdriver#newsession) or [`url`](/docs/api/browser/url) on each instance, you can simply create a **multiremote** instance and control all browsers at the same time.
+Instead of creating a couple of remote instances where you need to execute common commands like [`newSession`](/docs/api/webdriver#newsession) or [`url`](/docs/api/browser/url) on each instance, you can simply create a **multi-remote** instance and control all browsers at the same time.
 
-To do so, just use the `multiremote()` function, and pass in an object with names keyed to `capabilities` for values. By giving each capability a name, you can easily select and access that single instance when executing commands on a single instance.
+To do so, just use the `multiRemote()` function, and pass in an object with names keyed to `capabilities` for values. By giving each capability a name, you can easily select and access that single instance when executing commands on a single instance.
 
 :::info
 
-Multiremote is _not_ meant to execute all your tests in parallel.
+MultiRemote is _not_ meant to execute all your tests in parallel.
 It is intended to help coordinate multiple browsers and/or mobile devices for special integration tests (e.g. chat applications).
 
 :::
 
-All multiremote instances return an array of results. The first result represents the capability defined first in the capability object the second result the second capability and so on.
+Most multi-remote commands return an array of results. The first result represents the capability defined first in the capability object, the second result the second capability, and so on. `mock()` returns a `MultiRemoteMock` instead of an array. See [What mock() returns](#what-mock-returns).
 
 ## Using Standalone Mode
 
-Here is an example of how to create a multiremote instance in __standalone mode__:
+Here is an example of how to create a multi-remote instance in __standalone mode__:
 
 ```js
-import { multiremote } from 'webdriverio'
+import { multiRemote } from 'webdriverio'
 
 (async () => {
-    const browser = await multiremote({
+    const browser = await multiRemote({
         myChromeBrowser: {
             capabilities: {
                 browserName: 'chrome'
@@ -57,7 +58,7 @@ import { multiremote } from 'webdriverio'
 
 ## Using WDIO Testrunner
 
-In order to use multiremote in the WDIO testrunner, just define the `capabilities` object in your `wdio.conf.js` as an object with the browser names as keys (instead of a list of capabilities):
+In order to use multi-remote in the WDIO testrunner, just define the `capabilities` object in your `wdio.conf.js` as an object with the browser names as keys (instead of a list of capabilities):
 
 ```js
 export const config = {
@@ -80,7 +81,7 @@ export const config = {
 
 This will create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io) or one mobile device and one browser.
 
-You can also run multiremote in parallel by putting the browser capabilities object in an array. Please make sure to have `capabilities` field included in each browser, as this is how we tell each mode apart.
+You can also run multi-remote in parallel by putting the browser capabilities object in an array. Please make sure to have `capabilities` field included in each browser, as this is how we tell each mode apart.
 
 ```js
 export const config = {
@@ -185,7 +186,65 @@ assert.true(
 
 In this example, the `myFirefoxBrowser` instance will start waiting on a message once the `myChromeBrowser` instance has clicked on `#send` button.
 
-Multiremote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
+MultiRemote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
+
+### What `$$` returns
+
+On a multi-remote browser, `$$` (and `custom$$` / `react$$`) returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`:
+
+```js
+const messages = await $$('.messages')
+
+messages.length      // how many elements were found
+messages[0]          // a MultiRemoteElement, addressing all instances
+messages.selector    // '.messages'
+messages.foundWith   // '$$'
+messages.parent      // the multi-remote browser or element it was fetched from
+messages.isMultiRemote // true, so it can be told apart from a plain ElementArray
+
+// the async array helpers are available, as on a single browser
+await messages.map((m) => m.getText())
+await messages.filter(async (m) => await m.isDisplayed())
+```
+
+:::info
+
+Before v10 this returned a plain array unless `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY=true` was set. The array is now the default and the environment variable has been removed. Index access is unchanged, so code that only read `elements[0]` keeps working.
+
+:::
+
+### What mock() returns {#what-mock-returns}
+
+On a multi-remote browser, `mock()` returns a `MultiRemoteMock`. It is not an array. `respond()`, `restore()`, and the other mock methods run on every instance. Captured requests stay on the mock for one browser, so read them with `getInstance`:
+
+```ts
+const mock = await browser.mock('**/users/list')
+
+mock.instances // ['myChromeBrowser', 'myFirefoxBrowser']
+mock.respond([{ id: 1 }])
+
+const chromeCalls = mock.getInstance('myChromeBrowser').calls
+const firefoxCalls = mock.getInstance('myFirefoxBrowser').calls
+```
+
+`examples/bidi/multiremote-mock.js` runs this against two headless Chrome sessions.
+
+`instances` follows the order the mocks were created. After `select()`, that order can differ from `browser.instances`:
+
+```ts
+const selected = await browser.select('myFirefoxBrowser', 'myChromeBrowser').mock('**/users/list')
+
+selected.instances // ['myFirefoxBrowser', 'myChromeBrowser']
+selected.getInstance('myChromeBrowser') // the Chrome mock, whatever the order
+```
+
+`getInstance` throws `Multi-remote object has no instance named "<name>"` when `name` is not in `instances`.
+
+To mock one browser only, call `mock()` on that instance:
+
+```ts
+const chromeOnly = await browser.getInstance('myChromeBrowser').mock('**/users/list')
+```
 
 ## Accessing browser instances using strings via the browser object
 In addition to accessing the browser instance via their global variables (e.g. `myChromeBrowser`, `myFirefoxBrowser`), you can also access them via the `browser` object, e.g. `browser["myChromeBrowser"]` or `browser["myFirefoxBrowser"]`. You can get a list of all your instances via `browser.instances`. This is especially useful when writing re-usable test steps that can be performed in either browser, e.g.:
@@ -219,39 +278,18 @@ When(/^User (.) types a message into the chat/, async (userId) => {
 })
 ```
 
-## Extending TypeScript Types
+## Accessing one instance
 
-If you are using TypeScript and like to access the driver instance from the multiremote object directly, you can also extend the multiremote types to do so. For example, given the following capabilities:
-
-```ts title=wdio.conf.ts
-export const config: WebdriverIO.MultiremoteConfig = {
-    // ...
-    capabilities: {
-        myAppiumDriver: {
-            // ...
-        },
-        myChromeDriver: {
-            // ...
-        }
-    }
-    // ...
-}
-```
-
-You can extend the multiremote instance by adding your custom driver names, e.g.:
-
-```ts title=wdio.d.ts
-declare namespace WebdriverIO {
-    interface MultiRemoteBrowser {
-        myAppiumDriver: WebdriverIO.Browser
-        myChromeDriver: WebdriverIO.Browser
-    }
-}
-```
-
-Now you can access the drivers directly via, e.g.:
+Instance names are not properties of the multi-remote browser or of a multi-remote element. `browser.myChromeBrowser` and `elem.myChromeDriver` are not set. Ask for the session with `getInstance`, or narrow the multi-remote object with `select`:
 
 ```ts
-multiRemoteBrowser.myAppiumDriver.$$(...)
-multiRemoteBrowser.myChromeDriver.$(...)
+const myChromeBrowser = browser.getInstance('myChromeBrowser')
+await myChromeBrowser?.$$('button')
+
+const myChromeElement = (await browser.$('button')).getInstance('myChromeBrowser')
+await myChromeElement.click()
+
+await browser.select('myChromeBrowser').url('https://webdriver.io')
 ```
+
+The testrunner still assigns each instance name as its own global when `injectGlobals` is left on, so a test can call `myChromeBrowser.$('button')` without going through `browser`. That global is the single session from `getInstance`, not a field on the multi-remote object.

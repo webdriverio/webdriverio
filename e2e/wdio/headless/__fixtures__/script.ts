@@ -6,13 +6,12 @@ export default {
 
         return 'Hello World! ' + foo()
     },
-    someAsyncScript: (param: string, cb: (res: string) => void) => {
+    someAsyncScript: async (param: string) => {
         function foo() {
             return param
         }
 
-        setTimeout(() => {
-            cb('Hello World! ' + foo())
-        }, 1000)
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        return 'Hello World! ' + foo()
     }
 }

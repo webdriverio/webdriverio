@@ -1,6 +1,7 @@
 ---
 id: vue
 title: Vue.js
+description: "Set up the WebdriverIO browser runner for Vue.js, write component tests with Testing Library and test async components and Nuxt apps."
 ---
 
 [Vue.js](https://vuejs.org/) is an approachable, performant and versatile framework for building web user interfaces. You can test Vue.js components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).

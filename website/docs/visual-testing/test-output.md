@@ -1,6 +1,7 @@
 ---
 id: test-output
 title: Test Output
+description: "Understand the output and images produced by the save and check methods of the visual service, including layout testing and block-outs."
 ---
 
 :::info

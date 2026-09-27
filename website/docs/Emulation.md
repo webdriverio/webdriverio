@@ -1,6 +1,7 @@
 ---
 id: emulation
 title: Emulation
+description: "Emulate geolocation, color scheme, user agent, online state, clock and devices in the browser with the emulate command."
 ---
 
 With WebdriverIO you can emulate Web APIs using the [`emulate`](/docs/api/browser/emulate) command to return custom values that help you emulate certain browser behaviors. Note that this requires your application to explicitly use these APIs.

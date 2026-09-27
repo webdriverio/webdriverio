@@ -3,7 +3,7 @@
 import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { getEnvironmentVars, initiateBidi, parseBidiMessage } from 'webdriver'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { MESSAGE_TYPES, browserChannelMessage, isBrowserChannelMessage, parseRunnerToBrowserMessage, type Workers } from '@wdio/types'
 import safeStringify from 'safe-stringify'
 
 /**
@@ -19,7 +19,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
 const CONSOLE_METHODS = ['log', 'info', 'warn', 'error', 'debug'] as const
 interface CommandMessagePromise {
     resolve: (value: unknown) => void
-    reject: (err: Error) => void
+    reject: (err: Error | Workers.ChannelError) => void
     commandName: string
     commandTimeout?: NodeJS.Timeout
 }
@@ -47,9 +47,13 @@ export default class ProxyDriver {
         /**
          * listen on socket events from testrunner
          */
-        import.meta.hot?.on(WDIO_EVENT_NAME, (payload: Workers.SocketMessage) => {
+        import.meta.hot?.on(WDIO_EVENT_NAME, (payload: unknown) => {
+            const message = parseRunnerToBrowserMessage(payload)
+            if (!message) {
+                return
+            }
             try {
-                this.#handleServerMessage(payload)
+                this.#handleServerMessage(message)
             } catch (err) {
                 console.error(`Error in handling message: ${(err as Error).stack}`)
             }
@@ -152,10 +156,7 @@ export default class ProxyDriver {
          * otherwise the browser instance will not be registered in `@wdio/globals` at
          * the time we get a response for this message.
          */
-        import.meta.hot?.send(WDIO_EVENT_NAME, {
-            type: MESSAGE_TYPES.initiateBrowserStateRequest,
-            value: { cid }
-        })
+        import.meta.hot?.send(WDIO_EVENT_NAME, browserChannelMessage(MESSAGE_TYPES.initiateBrowserStateRequest, { cid }))
 
         browser = client
         return client
@@ -208,11 +209,14 @@ export default class ProxyDriver {
         }
     }
 
-    static #handleServerMessage (payload: Workers.SocketMessage) {
-        if (payload.type === MESSAGE_TYPES.commandResponseMessage) {
+    static #handleServerMessage (payload: ReturnType<typeof parseRunnerToBrowserMessage>) {
+        if (!payload) {
+            return
+        }
+        if (isBrowserChannelMessage(payload, MESSAGE_TYPES.commandResponseMessage)) {
             return this.#handleCommandResponse(payload.value)
         }
-        if (payload.type === MESSAGE_TYPES.initiateBrowserStateResponse) {
+        if (isBrowserChannelMessage(payload, MESSAGE_TYPES.initiateBrowserStateResponse)) {
             return this.#handleBrowserInitiation(payload.value)
         }
     }
@@ -280,17 +284,11 @@ export default class ProxyDriver {
         }
     }
 
-    static #commandRequest (value: Workers.CommandRequestEvent): Workers.SocketMessage {
-        return {
-            type: MESSAGE_TYPES.commandRequestMessage,
-            value
-        }
+    static #commandRequest (value: Workers.CommandRequestEvent) {
+        return browserChannelMessage(MESSAGE_TYPES.commandRequestMessage, value)
     }
 
-    static #consoleMessage (value: Workers.ConsoleEvent): Workers.SocketMessage {
-        return {
-            type: MESSAGE_TYPES.consoleMessage,
-            value
-        }
+    static #consoleMessage (value: Workers.ConsoleEvent) {
+        return browserChannelMessage(MESSAGE_TYPES.consoleMessage, value)
     }
 }

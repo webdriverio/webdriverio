@@ -1,6 +1,7 @@
 ---
 id: browserstack
 title: BrowserStack Accessibility Testing
+description: "Add automated accessibility scans to WebdriverIO tests running on BrowserStack Automate and review the issues found in BrowserStack reports."
 ---
 
 # BrowserStack Accessibility Testing

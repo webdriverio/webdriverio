@@ -1,6 +1,7 @@
 ---
 id: resources
 title: Resources
+description: "Read live session state, session history and cloud provider setup details through the read-only wdio:// resources of the WebdriverIO MCP server."
 ---
 
 MCP resources provide read-only access to live session state. Unlike tools, resources are pulled by the AI model at will; they don't execute actions. All resources use the `wdio://` URI scheme.
@@ -11,8 +12,6 @@ MCP resources provide read-only access to live session state. Unlike tools, reso
 - **Tools** — actions that change state: click, navigate, set value.
 
 Prefer `wdio://session/current/elements` over `get_screenshot` for element discovery; it returns ready-to-use selectors and costs far fewer tokens.
-
----
 
 ## Session History
 
@@ -58,8 +57,6 @@ Step log for a specific session by ID. URI template — replace `{sessionId}` wi
 ### `wdio://session/{sessionId}/code`
 
 Generated WebdriverIO JavaScript for a specific session by ID. URI template — replace `{sessionId}` with the ID from `wdio://sessions`.
-
----
 
 ## Live Page State (Current Session)
 
@@ -211,8 +208,6 @@ Session logs for the current session. Returns browser console messages and JavaS
 ### `wdio://session/current/capabilities`
 
 Raw capabilities returned by the WebDriver or Appium server for the current session. Use for debugging; shows the actual values the driver accepted, including defaults applied by the cloud provider or Appium.
-
----
 
 ## Cloud Providers
 

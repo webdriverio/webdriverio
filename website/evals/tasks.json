@@ -1,0 +1,156 @@
+[
+    {
+        "id": "android-native",
+        "task": "Set up a WebdriverIO test for a native Android app on an emulator",
+        "query": "android native app emulator appium",
+        "pages": ["/docs/platforms/mobile", "/docs/appium", "/docs/appium-service"],
+        "mustInclude": ["appium:automationName", "UiAutomator2"]
+    },
+    {
+        "id": "hybrid-webview",
+        "task": "Switch from the native context to the webview in a hybrid mobile app",
+        "query": "switch context webview hybrid app",
+        "pages": ["/docs/api/mobile/switchContext", "/docs/platforms/mobile"],
+        "mustInclude": ["switchContext"]
+    },
+    {
+        "id": "mock-network",
+        "task": "Mock the JSON response of a REST API request in a browser test",
+        "query": "mock network request response",
+        "pages": ["/docs/mocksandspies", "/docs/api/browser/mock", "/docs/api/mock"],
+        "mustInclude": ["browser.mock(", "respond("]
+    },
+    {
+        "id": "visual-element",
+        "task": "Visually compare a single element against a baseline screenshot",
+        "query": "visual regression compare element screenshot baseline",
+        "pages": ["/docs/visual-testing/methods", "/docs/visual-testing", "/docs/visual-testing/writing-tests"],
+        "mustInclude": ["checkElement"]
+    },
+    {
+        "id": "vscode-extension",
+        "task": "Write an end-to-end test for a VS Code extension",
+        "query": "vscode extension testing",
+        "pages": ["/docs/extension-testing/vscode-extensions", "/docs/wdio-vscode-service", "/docs/platforms/apps-and-extensions"],
+        "mustInclude": ["vscode"]
+    },
+    {
+        "id": "electron",
+        "task": "Test an Electron app and call an API in the main process",
+        "query": "electron app testing main process",
+        "pages": ["/docs/desktop-testing/electron", "/docs/wdio-electron-service", "/docs/platforms/desktop", "/docs/desktop-testing/electron/api"],
+        "mustInclude": ["browser.electron.execute"]
+    },
+    {
+        "id": "macos-app",
+        "task": "Automate a native macOS application",
+        "query": "macos native app mac2",
+        "pages": ["/docs/desktop-testing/macos", "/docs/platforms/desktop"],
+        "mustInclude": ["Mac2"]
+    },
+    {
+        "id": "wait-displayed",
+        "task": "Wait until an element becomes visible before interacting with it",
+        "query": "wait for element displayed",
+        "pages": ["/docs/api/element/waitForDisplayed", "/docs/autowait"],
+        "mustInclude": ["waitForDisplayed"]
+    },
+    {
+        "id": "single-spec",
+        "task": "Run only one spec file from the command line",
+        "query": "run single spec file command line",
+        "pages": ["/docs/organizingsuites", "/docs/testrunner", "/docs/runner"],
+        "mustInclude": ["--spec"]
+    },
+    {
+        "id": "retry-flaky",
+        "task": "Automatically retry flaky tests",
+        "query": "retry flaky tests",
+        "pages": ["/docs/retry"],
+        "mustInclude": ["retries"]
+    },
+    {
+        "id": "screenshot",
+        "task": "Save a screenshot of the current page to a file",
+        "query": "save screenshot",
+        "pages": ["/docs/api/browser/saveScreenshot"],
+        "mustInclude": ["saveScreenshot"]
+    },
+    {
+        "id": "sharding",
+        "task": "Split a test suite across multiple CI machines",
+        "query": "shard tests across machines",
+        "pages": ["/docs/sharding"],
+        "mustInclude": ["--shard"]
+    },
+    {
+        "id": "cucumber",
+        "task": "Use Cucumber with Gherkin feature files",
+        "query": "cucumber framework feature files",
+        "pages": ["/docs/frameworks"],
+        "mustInclude": ["cucumberOpts"]
+    },
+    {
+        "id": "axe",
+        "task": "Run accessibility checks with axe-core",
+        "query": "accessibility axe",
+        "pages": ["/docs/accessibility-testing/axe-core"],
+        "mustInclude": ["axe"]
+    },
+    {
+        "id": "headless",
+        "task": "Run Chrome headless in CI",
+        "query": "headless chrome",
+        "pages": ["/docs/headless-and-xvfb", "/docs/capabilities"],
+        "mustInclude": ["headless"]
+    },
+    {
+        "id": "shadow-dom",
+        "task": "Query an element inside a shadow root",
+        "query": "shadow dom element",
+        "pages": ["/docs/selectors", "/docs/api/element/shadow$", "/docs/api/element/shadow$$"],
+        "mustInclude": ["shadow$"]
+    },
+    {
+        "id": "trace",
+        "task": "Record a trace of a failing test so an agent can debug it",
+        "query": "trace failing test debug",
+        "pages": ["/docs/devtools/wdio/trace-mode", "/docs/ai-agents"],
+        "mustInclude": ["mode: 'trace'"]
+    },
+    {
+        "id": "upgrade",
+        "task": "Upgrade a project from WebdriverIO v9 to v10",
+        "query": "upgrade v9 to v10 migration",
+        "pages": ["/docs/v10-migration"],
+        "mustInclude": ["v10"]
+    },
+    {
+        "id": "react-component",
+        "task": "Write a component test for a React component in the browser",
+        "query": "react component testing",
+        "pages": ["/docs/component-testing/react", "/docs/component-testing"],
+        "mustInclude": ["runner: 'browser'"]
+    },
+    {
+        "id": "mcp-setup",
+        "task": "Let Claude Code drive a browser through the WebdriverIO MCP server",
+        "query": "mcp server claude",
+        "pages": ["/docs/mcp", "/docs/ai-agents", "/docs/mcp/configuration"],
+        "mustInclude": ["@wdio/mcp"]
+    },
+    {
+        "id": "cloud",
+        "task": "Run the tests on a cloud device farm instead of locally",
+        "query": "cloud services run tests",
+        "pages": ["/docs/cloudservices"],
+        "mustInclude": ["user", "key"]
+    },
+    {
+        "id": "selector-text",
+        "task": "Select a button by its visible text",
+        "query": "select element by text",
+        "pages": ["/docs/selectors"],
+        "mustInclude": ["button="]
+    }
+]

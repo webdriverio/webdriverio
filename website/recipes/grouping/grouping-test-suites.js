@@ -7,12 +7,12 @@ export const config = defineConfig({
     'capabilities': [
         {
             platformName: 'Android',
-            specs: ['tests/android/**/*.js'],
+            'wdio:specs': ['tests/android/**/*.js'],
             //...
         },
         {
             platformName: 'iOS',
-            specs: ['tests/ios/**/*.js'],
+            'wdio:specs': ['tests/ios/**/*.js'],
             //...
         },
         {

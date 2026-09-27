@@ -1,5 +1,5 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
-import { MESSAGE_TYPES, type Workers } from '@wdio/types'
+import { MESSAGE_TYPES, browserChannelMessage, isBrowserChannelMessage, parseRunnerToBrowserMessage, type Workers } from '@wdio/types'
 import { $ } from '@wdio/globals'
 import type { ChainablePromiseElement, ChainablePromiseArray } from 'webdriverio'
 
@@ -155,7 +155,7 @@ function createMatcher (matcherName: string) {
                 .replace('/@fs/', '/')
         }
 
-        import.meta.hot.send(WDIO_EVENT_NAME, { type: MESSAGE_TYPES.expectRequestMessage, value: expectRequest })
+        import.meta.hot.send(WDIO_EVENT_NAME, browserChannelMessage(MESSAGE_TYPES.expectRequestMessage, expectRequest))
         const contextString = isContextObject
             ? 'elementId' in context
                 ? 'WebdriverIO.Element'
@@ -176,12 +176,17 @@ function createMatcher (matcherName: string) {
 /**
  * request all available matchers from the testrunner
  */
-import.meta.hot?.send(WDIO_EVENT_NAME, { type: MESSAGE_TYPES.expectMatchersRequest })
+import.meta.hot?.send(WDIO_EVENT_NAME, browserChannelMessage(MESSAGE_TYPES.expectMatchersRequest, {}))
 
 /**
  * listen on assertion results from testrunner
  */
-import.meta.hot?.on(WDIO_EVENT_NAME, (message: Workers.SocketMessage) => {
+import.meta.hot?.on(WDIO_EVENT_NAME, (data: unknown) => {
+    const message = parseRunnerToBrowserMessage(data)
+    if (!message) {
+        return
+    }
+
     /**
      * Set up `expect-webdriverio` matchers for the browser environment.
      * Every assertion is send to the testrunner via a websocket connection
@@ -192,7 +197,7 @@ import.meta.hot?.on(WDIO_EVENT_NAME, (message: Workers.SocketMessage) => {
      * The testrunner will send a list of available matchers to the browser
      * since there might services or other hooks that add custom matchers.
      */
-    if (message.type === MESSAGE_TYPES.expectMatchersResponse) {
+    if (isBrowserChannelMessage(message, MESSAGE_TYPES.expectMatchersResponse)) {
         const matchers = message.value.matchers.reduce((acc, matcherName) => {
             acc[matcherName] = createMatcher(matcherName)
             return acc
@@ -200,7 +205,7 @@ import.meta.hot?.on(WDIO_EVENT_NAME, (message: Workers.SocketMessage) => {
         expect.extend(matchers)
     }
 
-    if (message.type !== MESSAGE_TYPES.expectResponseMessage) {
+    if (!isBrowserChannelMessage(message, MESSAGE_TYPES.expectResponseMessage)) {
         return
     }
 

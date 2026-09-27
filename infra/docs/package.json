@@ -2,27 +2,23 @@
   "name": "@wdio/docs",
   "private": true,
   "type": "module",
-  "description": "Generate and deploy the WebdriverIO documentation website",
+  "description": "Generate the WebdriverIO documentation website",
   "scripts": {
     "generate": "tsx ./src/index.ts",
-    "deploy": "tsx ./src/deploy.ts"
+    "generate:en": "tsx ./src/index.ts --en",
+    "check": "tsx ./src/checkDocs.ts",
+    "eval": "tsx ./src/evalDocs.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudfront": "^3.840.0",
-    "@aws-sdk/client-s3": "^3.840.0",
-    "@aws-sdk/lib-storage": "^3.840.0",
-    "@octokit/rest": "^22.0.0",
+    "@octokit/rest": "^22.0.1",
+    "@vercel/routing-utils": "^6.6.0",
     "@wdio/repo-utils": "workspace:*",
-    "comment-parser": "^1.4.1",
-    "eta": "^3.5.0",
-    "mime-types": "^3.0.1",
-    "recursive-readdir": "^2.2.3",
-    "tsx": "^4.17.0",
-    "unzipper": "^0.12.3"
+    "comment-parser": "^1.4.9",
+    "eta": "^4.6.0",
+    "tsx": "^4.23.15",
+    "unzipper": "^0.12.5"
   },
   "devDependencies": {
-    "@types/mime-types": "^3.0.1",
-    "@types/recursive-readdir": "^2.2.4",
     "@types/unzipper": "^0.10.11"
   }
 }

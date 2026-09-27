@@ -1,6 +1,7 @@
 ---
 id: interactive-test-rerunning
 title: Interactive Test Rerunning & Visualization
+description: "Watch tests run with live browser previews and per-command screenshots, then rerun single tests or suites from the DevTools UI."
 ---
 
 Watch your tests execute in real-time with live browser previews and automatic screenshots captured after each WebDriver command. The UI displays a complete visual timeline of your test execution, showing the exact browser state at each step.

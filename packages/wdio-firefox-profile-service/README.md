@@ -30,8 +30,7 @@ export const config = {
                 '/path/to/extensionB' // or path to unpacked Firefox extension
             ],
             'xpinstall.signatures.required': false,
-            'browser.startup.homepage': 'https://webdriver.io',
-            legacy: true // only use for firefox <= 55
+            'browser.startup.homepage': 'https://webdriver.io'
         }]
     ],
     // ...
@@ -48,19 +47,23 @@ Contains all settings as key-value pair. You can find all available settings on 
 
 ### extensions
 
+<Option type="String[]" default="[]">
+
 Add one or multiple extensions to the browser session. All entries can be either an absolute path to the `.xpi` file or the path to an unpacked Firefox extension directory.
 
-Type: `String[]`<br />
-Default: `[]`
+</Option>
 
 ### profileDirectory
 
+<Option type="String" default="null">
+
 Create Firefox profile based on an existing one by setting an absolute path to that profile.
 
-Type: `String`<br />
-Default: `null`
+</Option>
 
 ### proxy
+
+<Option type="Object" default="null">
 
 Set network proxy settings. The parameter `proxy` is a hash whose structure depends on the value of the mandatory `proxyType` key, which takes one of the following string values:
 
@@ -69,8 +72,7 @@ Set network proxy settings. The parameter `proxy` is a hash whose structure depe
  * `pac` - use an automatic proxy configuration set based on the value of `autoconfigUrl` key
  * `manual` - manual proxy settings defined separately for different protocols using values from the following keys: `ftpProxy`, `httpProxy`, `sslProxy`, `socksProxy`
 
-Type: `Object`<br />
-Default: `null`<br />
+</Option>
 Example:
 
 - Automatic Proxy:
@@ -125,13 +127,8 @@ Example:
     };
     ```
 
-### legacy
-
-Please set this flag to `true` if you use Firefox v55 or lower.
-
-Type: `Boolean`<br />
-Default: `false`
-
 ----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).
+
+

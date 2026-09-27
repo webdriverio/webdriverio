@@ -1,6 +1,7 @@
 ---
 id: frameworks
 title: Frameworks
+description: "Configure Mocha, Jasmine or Cucumber.js as the test framework for the WDIO testrunner, or integrate third-party frameworks like Serenity/JS."
 ---
 
 WebdriverIO Runner has built-in support for [Mocha](http://mochajs.org/), [Jasmine](http://jasmine.github.io/), and [Cucumber.js](https://cucumber.io/). You can also integrate it with 3rd-party open-source frameworks, such as [Serenity/JS](#using-serenityjs).
@@ -35,7 +36,7 @@ describe('my awesome website', () => {
 })
 ```
 
-WebdriverIO supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces).
+WebdriverIO v10 ships [Mocha 12](https://mochajs.org/) and supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces).
 
 If you like to write your specs in TDD style, set the `ui` property in your `mochaOpts` config to `tdd`. Now your test files should be written like this:
 
@@ -60,7 +61,7 @@ it('should test something', (done) => {
 
 ### Mocha Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. You can pass these framework options as arguments, e.g.:
+The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all Mocha options are supported. `parallel` still belongs to Mocha's own worker pool and will error here — the WDIO testrunner already parallelizes specs across capabilities and workers. Mocha 12's CLI also moved off yargs onto Node's `util.parseArgs`; that only affects a direct `mocha` invocation, not `mochaOpts` passed through `wdio`. You can pass these framework options as arguments, e.g.:
 
 ```sh
 wdio run wdio.conf.ts --mochaOpts.grep "my test" --mochaOpts.bail --no-mochaOpts.checkLeaks
@@ -79,94 +80,124 @@ This will pass along the following Mocha options:
 The following Mocha options are supported:
 
 #### require
+
+<Option type="string|string[]" default="[]">
+
 The `require` option is useful when you want to add or extend some basic functionality (WebdriverIO framework option).
 
-Type: `string|string[]`<br />
-Default: `[]`
-
-#### compilers
-Use the given module(s) to compile files. Compilers will be included before requires (WebdriverIO framework option).
-
-Type: `string[]`<br />
-Default: `[]`
+</Option>
 
 #### allowUncaught
+
+<Option type="boolean" default="false">
+
 Propagate uncaught errors.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 #### bail
+
+<Option type="boolean" default="false">
+
 Bail after first test failure.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 #### checkLeaks
+
+<Option type="boolean" default="false">
+
 Check for global variable leaks.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 #### delay
+
+<Option type="boolean" default="false">
+
 Delay root suite execution.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
+
+#### failHookAffectedTests
+
+<Option type="boolean" default="true">
+
+Report each test skipped by a failing `before` or `beforeEach` hook as a failure. WebdriverIO enables this so a broken setup hook is visible on every spec it skipped. Set it to `false` to report only the hook.
+
+</Option>
 
 #### fgrep
+
+<Option type="string" default="null">
+
 Test filter given string.
 
-Type: `string`<br />
-Default: `null`
+</Option>
 
 #### forbidOnly
+
+<Option type="boolean" default="false">
+
 Tests marked `only` fail the suite.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 #### forbidPending
+
+<Option type="boolean" default="false">
+
 Pending tests fail the suite.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 #### fullTrace
+
+<Option type="boolean" default="false">
+
 Full stacktrace upon failure.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 #### global
+
+<Option type="string[]" default="[]">
+
 Variables expected in global scope.
 
-Type: `string[]`<br />
-Default: `[]`
+</Option>
 
 #### grep
-Test filter given regular expression.
 
-Type: `RegExp|string`<br />
-Default: `null`
+<Option type="RegExp|string" default="null">
+
+Test filter given regular expression. Mocha 12 accepts modern RegExp flags in this filter (for example `s` or `d`).
+
+</Option>
 
 #### invert
+
+<Option type="boolean" default="false">
+
 Invert test filter matches.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 #### retries
+
+<Option type="number" default="0">
+
 Number of times to retry failed tests.
 
-Type: `number`<br />
-Default: `0`
+</Option>
 
 #### timeout
+
+<Option type="number" default="30000">
+
 Timeout threshold value (in ms).
 
-Type: `number`<br />
-Default: `30000`
+</Option>
 
 ## Using Jasmine
 
@@ -199,64 +230,84 @@ This will pass along the following Mocha options:
 The following Jasmine options are supported:
 
 #### defaultTimeoutInterval
+
+<Option type="number" default="60000">
+
 Default Timeout Interval for Jasmine operations.
 
-Type: `number`<br />
-Default: `60000`
+</Option>
 
 #### helpers
+
+<Option type="string[]" default="[]">
+
 Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
 
-Type: `string[]`<br />
-Default: `[]`
+</Option>
 
 #### requires
+
+<Option type="string[]" default="[]">
+
 The `requires` option is useful when you want to add or extend some basic functionality.
 
-Type: `string[]`<br />
-Default: `[]`
+</Option>
 
 #### random
+
+<Option type="boolean" default="true">
+
 Whether to randomize spec execution order.
 
-Type: `boolean`<br />
-Default: `true`
+</Option>
 
 #### seed
+
+<Option type="Function" default="null">
+
 Seed to use as the basis of randomization. Null causes the seed to be determined randomly at the start of execution.
 
-Type: `Function`<br />
-Default: `null`
+</Option>
 
 #### failSpecWithNoExpectations
+
+<Option type="boolean" default="false">
+
 Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 #### oneFailurePerSpec
+
+<Option type="boolean" default="false">
+
 Whether to cause specs to only have one expectation failure.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 #### specFilter
+
+<Option type="Function" default="(spec) => true">
+
 Function to use to filter specs.
 
-Type: `Function`<br />
-Default: `(spec) => true`
+</Option>
 
 #### grep
+
+<Option type="string|Regexp" default="null">
+
 Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set)
 
-Type: `string|Regexp`<br />
-Default: `null`
+</Option>
 
 #### invertGrep
+
+<Option type="boolean" default="false">
+
 If true it inverts the matching tests and only runs tests that don't match with the expression used in `grep`. (Only applicable if no custom `specFilter` function is set)
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 ## Using Cucumber
 
@@ -268,7 +319,7 @@ npm install @wdio/cucumber-framework --save-dev
 
 If you want to use Cucumber, set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](configurationfile) .
 
-Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
+Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options). The adapter uses Cucumber 13. `tagExpression` has been removed; filter with `tags`. See the [v10 migration guide](v10-migration#cucumber).
 
 To get up and running quickly with Cucumber, have a look on our [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all the step definitions you need to get stared, and you'll be writing feature files right away.
 
@@ -292,16 +343,20 @@ This command sets the `tags` option in `cucumberOpts` to `@smoke`, ensuring that
 :::
 
 #### backtrace
+
+<Option type="Boolean" default="true">
+
 Show full backtrace for errors.
 
-Type: `Boolean`<br />
-Default: `true`
+</Option>
 
 #### requireModule
+
+<Option type="string[]" default="[]">
+
 Require modules prior to requiring any support files.
 
-Type: `string[]`<br />
-Default: `[]`<br />
+</Option>
 Example:
 
 ```js
@@ -321,22 +376,28 @@ cucumberOpts: {
  ```
 
 #### failFast
+
+<Option type="boolean" default="false">
+
 Abort the run on first failure.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 #### name
+
+<Option type="RegExp[]" default="[]">
+
 Only execute the scenarios with name matching the expression (repeatable).
 
-Type: `RegExp[]`<br />
-Default: `[]`
+</Option>
 
 #### require
+
+<Option type="string[]" default="[]">
+
 Require files containing your step definitions before executing features. You can also specify a glob to your step definitions.
 
-Type: `string[]`<br />
-Default: `[]`
+</Option>
 Example:
 
 ```js
@@ -346,10 +407,12 @@ cucumberOpts: {
 ```
 
 #### import
+
+<Option type="String[]" default="[]">
+
 Paths to where your support code is, for ESM.
 
-Type: `String[]`<br />
-Default: `[]`
+</Option>
 Example:
 
 ```js
@@ -359,97 +422,113 @@ cucumberOpts: {
 ```
 
 #### strict
+
+<Option type="boolean" default="false">
+
 Fail if there are any undefined or pending steps.
 
-Type: `boolean`<br />
-Default: `false`
+</Option>
 
 #### tags
+
+<Option type="String" default="">
+
 Only execute the features or scenarios with tags matching the expression.
 Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
 
-Type: `String`<br />
-Default: ``
+</Option>
 
 #### timeout
+
+<Option type="Number" default="30000">
+
 Timeout in milliseconds for step definitions.
 
-Type: `Number`<br />
-Default: `30000`
+</Option>
 
 #### retry
+
+<Option type="Number" default="0">
+
 Specify the number of times to retry failing test cases.
 
-Type: `Number`<br />
-Default: `0`
+</Option>
 
 #### retryTagFilter
+
+<Option type="RegExp">
+
 Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
 
-Type: `RegExp`
+</Option>
 
 #### language
+
+<Option type="String" default="en">
+
 Default language for your feature files
 
-Type: `String`<br />
-Default: `en`
+</Option>
 
 #### order
+
+<Option type="String" default="defined">
+
 Run tests in defined / random order
 
-Type: `String`<br />
-Default: `defined`
+</Option>
 
 #### format
+
+<Option type="string[]">
+
 Name and output file path of formatter to use.
 WebdriverIO primarily supports only the [Formatters](https://github.com/cucumber/cucumber-js/blob/main/docs/formatters.md) that writes output to a file.
 
-Type: `string[]`<br />
+</Option>
 
 #### formatOptions
+
+<Option type="object">
+
 Options to be provided to formatters
 
-Type: `object`<br />
+</Option>
 
 #### tagsInTitle
+
+<Option type="Boolean" default="false">
+
 Add cucumber tags to feature or scenario name
 
-Type: `Boolean`<br />
-Default: `false`
-
+</Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
 #### ignoreUndefinedDefinitions
+
+<Option type="Boolean" default="false">
+
 Treat undefined definitions as warnings.
 
-Type: `Boolean`<br />
-Default: `false`
-
+</Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
 #### failAmbiguousDefinitions
+
+<Option type="Boolean" default="false">
+
 Treat ambiguous definitions as errors.
 
-Type: `Boolean`<br />
-Default: `false`
-
+</Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
-#### tagExpression
-Only execute the features or scenarios with tags matching the expression.
-Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
-
-Type: `String`<br />
-Default: ``
-
-***Please note that this option would be deprecated in future. Use [`tags`](#tags) config property instead***
-
 #### profile
+
+<Option type="string[]" default="[]">
+
 Specify the profile to use.
 
-Type: `string[]`<br />
-Default: `[]`
-
+</Option>
 ***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
 
 ### Skipping tests in cucumber
@@ -460,7 +539,7 @@ Note that if you want to skip a test using regular cucumber test filtering capab
 
 were condition is an optional combination of capabilities properties with their values that when **all** matched with cause the tagged scenario or feature to be skipped. Of course you can add several tags to scenarios and features to skip a tests under several different conditions.
 
-You can also use the '@skip' annotation to skip tests without changing `tagExpression'. In this case the skipped tests will be displayed in the test report.
+You can also use the '@skip' annotation to skip tests without changing `tags`. In this case the skipped tests will be displayed in the test report.
 
 Here you have some examples of this syntax:
 - `@skip` or `@skip()`: will always skip the tagged item
@@ -592,7 +671,6 @@ export const config: WebdriverIOConfig = {
         // see Cucumber configuration options below
     },
 
-
     // ... or Jasmine runner
     jasmineOpts: {
         // see Jasmine configuration options below
@@ -638,7 +716,6 @@ export const config = {
     cucumberOpts: {
         // see Cucumber configuration options below
     },
-
 
     // ... or Jasmine runner
     jasmineOpts: {
@@ -739,3 +816,5 @@ To learn more about the Screenplay Pattern, check out:
 - [The Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
 - [Web testing with Serenity/JS](https://serenity-js.org/handbook/web-testing/?pk_campaign=wdio8&pk_source=webdriver.io)
 - ["BDD in Action, Second Edition"](https://www.manning.com/books/bdd-in-action-second-edition)
+
+

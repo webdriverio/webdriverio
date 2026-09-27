@@ -1,0 +1,16 @@
+{
+  "name": "@wdio/repo-tools",
+  "private": true,
+  "type": "module",
+  "description": "Typed monorepo helpers for docs discovery, scoped tests, and CI lane selection",
+  "scripts": {
+    "docs:list": "tsx ./src/docs-list.ts",
+    "test:package": "tsx ./src/test-package.ts",
+    "changed:lanes": "tsx ./src/changed-lanes.ts",
+    "test:changed": "tsx ./src/check-changed.ts",
+    "test:smoke:list": "tsx ./src/smoke-list.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.20.3"
+  }
+}

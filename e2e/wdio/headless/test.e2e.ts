@@ -5,7 +5,7 @@ import path from 'node:path'
 import { createServer } from 'node:http'
 import { once } from 'node:events'
 import type { AddressInfo } from 'node:net'
-import { browser, $, expect } from '@wdio/globals'
+import { browser, $, $$, expect } from '@wdio/globals'
 
 import { imageSize } from 'image-size'
 import type { InputOptions } from 'webdriverio'
@@ -44,14 +44,14 @@ describe('main suite 1', () => {
 
     it('supports snapshot testing', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
-        await expect($('.findme')).toMatchSnapshot()
-        await expect($('.findme')).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
+        await expect($$('.findme')[0]).toMatchSnapshot()
+        await expect($$('.findme')[0]).toMatchInlineSnapshot('"<h1 class="findme">Test CSS Attributes</h1>"')
     })
 
     it('should support input value with sensitive information', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
 
-        const firstInput = await $('input')
+        const firstInput = await $$('input')[0]
         await firstInput.setValue('mySecretPassword', { mask: true } satisfies InputOptions)
 
         // Note: Doing the below will expose the password in the logs, check to support this command one day!
@@ -67,9 +67,9 @@ describe('main suite 1', () => {
             disableElementImplicitWait: true
         })
 
-        browser.addCommand('myElementLegacyCustomCommand', async function () {
-            return 'myElementLegacyCommandResult'
-        }, true)
+        browser.addCommand('myElementCustomCommand', async function () {
+            return 'myElementCommandResult'
+        }, { attachToElement: true })
 
         browser.addCommand('myBrowserCustomCommand', async function () {
             return 'myBrowserCommandResult'
@@ -96,11 +96,11 @@ describe('main suite 1', () => {
             expect(globalCmdResult).toBe('myElementGlobalCommandResult')
         })
 
-        it('should support legacy custom element command on existing elements', async () => {
+        it('should support a custom element command on existing elements', async () => {
             // @ts-expect-error
-            const legacyCmdResult = await $('input').myElementLegacyCustomCommand()
+            const commandResult = await $$('input')[0].myElementCustomCommand()
 
-            expect(legacyCmdResult).toBe('myElementLegacyCommandResult')
+            expect(commandResult).toBe('myElementCommandResult')
         })
 
         it('should support browser custom command', async () => {
@@ -230,7 +230,9 @@ describe('main suite 1', () => {
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo without iframe with 0 offsets', async () => {
+        it('moveTo without iframe with 0 offsets', async function () {
+            // Unstable on Windows: expected "center", received "center\nout"
+            this.retries(3)
             await browser.$('#parent').moveTo({ xOffset: 0, yOffset: 0 })
             await expect(browser.$('#text')).toHaveValue('center')
         })
@@ -457,7 +459,7 @@ describe('main suite 1', () => {
              * in case the alert is not automatically accepted
              * the following line would time out
              */
-            await browser.$('div').click()
+            await browser.$$('div')[0].click()
         })
 
         it('should be able to handle dialogs manually with `browser.on`', async () => {
@@ -492,7 +494,7 @@ describe('main suite 1', () => {
              * in case the alert is not automatically accepted
              * the following line would time out
              */
-            await browser.$('div').click()
+            await browser.$$('div')[0].click()
         })
 
         it('should be able to handle dialogs manually with `browser.once`', async () => {
@@ -526,7 +528,7 @@ describe('main suite 1', () => {
              * in case the alert is not automatically accepted
              * the following line would time out
              */
-            await browser.$('div').click()
+            await browser.$$('div')[0].click()
         })
     })
 
@@ -712,7 +714,7 @@ describe('main suite 1', () => {
 
         it('can switch to a frame via element', async () => {
             await browser.url('https://the-internet.herokuapp.com/nested_frames')
-            await browser.switchFrame($('frame'))
+            await browser.switchFrame($$('frame')[0])
             expect(await browser.execute(() => document.URL))
                 .toBe('https://the-internet.herokuapp.com/frame_top')
         })
@@ -970,7 +972,7 @@ describe('main suite 1', () => {
                 { name: 'test1-2', value: '789' }
             ])
 
-            const testCookie = await browser.getCookies(['test1-0'])
+            const testCookie = await browser.getCookies({ name: 'test1-0' })
             expect(testCookie).toEqual([
                 expect.objectContaining({
                     'domain': 'guinea-pig.webdriver.io',
@@ -980,7 +982,7 @@ describe('main suite 1', () => {
                 })
             ])
 
-            const testCookie2 = await browser.getCookies(['test1-1'])
+            const testCookie2 = await browser.getCookies({ name: 'test1-1' })
             expect(testCookie2).toEqual([
                 expect.objectContaining({
                     'domain': 'guinea-pig.webdriver.io',
@@ -989,7 +991,7 @@ describe('main suite 1', () => {
                     'value': '456',
                 })
             ])
-            const testCookie3 = await browser.getCookies(['test1-2'])
+            const testCookie3 = await browser.getCookies({ name: 'test1-2' })
             expect(testCookie3).toEqual([
                 expect.objectContaining({
                     'domain': 'guinea-pig.webdriver.io',

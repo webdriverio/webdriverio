@@ -1,6 +1,7 @@
 ---
 id: faq
 title: FAQ
+description: "Find answers to common visual testing questions, such as updating baselines, fixing canvas installation errors and upgrading to v10."
 ---
 
 ### Do I need to use a `save(Screen/Element/FullPageScreen)` methods when I want to run `check(Screen/Element/FullPageScreen)`?

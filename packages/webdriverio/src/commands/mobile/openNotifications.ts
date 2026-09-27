@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Open Android notifications.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :openNotifications.js
@@ -28,14 +26,5 @@ export async function openNotifications(
         throw new Error('The `openNotifications` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: openNotifications', {})
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: openNotifications', '/appium/device/open_notifications')
-        return browser.appiumOpenNotifications()
-    }
+    return executeMobile(browser, 'mobile: openNotifications', {})
 }

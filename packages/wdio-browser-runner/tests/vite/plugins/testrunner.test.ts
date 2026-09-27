@@ -103,12 +103,33 @@ test('configureServer continues if no url given', async () => {
     expect(next).toBeCalledWith()
     next.mockClear()
 
+    SESSIONS.set('1-2', {} as any)
+    middleware({
+        ...req,
+        headers: { cookie: 'WDIO_CID=1-2; WDIO_SPEC=/spec.tsx' },
+        originalUrl: '/?html-proxy&index=0.js'
+    }, {}, next)
+    expect(getTemplate).toBeCalledTimes(0)
+    expect(next).toBeCalledWith()
+    next.mockClear()
+
+    vi.mocked(getTemplate).mockResolvedValue('some html')
+    await middleware({
+        ...req,
+        originalUrl: 'http://localhost:1234/?cid=1-2&spec=/tests/html-proxy/example.ts'
+    }, res, next)
+    expect(getTemplate).toBeCalledTimes(1)
+    expect(next).not.toBeCalled()
+    next.mockClear()
+    res.end.mockClear()
+    vi.mocked(getTemplate).mockClear()
+
     vi.mocked(getTemplate).mockResolvedValue('some html')
     await middleware({ ...req, originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, res, next)
     expect(getTemplate).toBeCalledTimes(1)
-    expect(next).toBeCalledWith()
+    expect(next).not.toBeCalled()
     expect(res.end).toBeCalledWith([
-        'http://localhost:1234/?cid=1-2&spec=foobar',
+        '/wdio/headless/__fixtures__/test.html',
         'some html'
     ])
     next.mockClear()
@@ -119,9 +140,9 @@ test('configureServer continues if no url given', async () => {
     await middleware({ ...req, originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, res, next)
     expect(getTemplate).toBeCalledTimes(1)
     expect(getErrorTemplate).toBeCalledTimes(1)
-    expect(next).toBeCalledWith()
+    expect(next).not.toBeCalled()
     expect(res.end).toBeCalledWith([
-        'http://localhost:1234/?cid=1-2&spec=foobar',
+        '/wdio/headless/__fixtures__/test.html',
         'some error html'
     ])
 })

@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { downloadFromGitHub, getRootDir } from '@wdio/repo-utils'
 import { buildLinkRewriter, type PageProps } from './docsUtils.js'
+import { formatOptionDocs } from './optionDocs.js'
 
 export interface DesktopDocsConfig {
     allDocs: Record<string, PageProps>
@@ -97,7 +98,7 @@ export async function generateDesktopServiceDocs (config: DesktopDocsConfig, roo
             }
         }
 
-        const transformed = applyDesktopTransforms(raw, config, helpers)
+        const transformed = formatOptionDocs(applyDesktopTransforms(raw, config, helpers))
 
         await fs.writeFile(newDocsPath, `${buildDesktopFrontMatter(id, title, config.githubRepo, remotePath)}
 ${transformed}`)

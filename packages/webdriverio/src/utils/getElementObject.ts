@@ -12,6 +12,11 @@ import type { Selector, AddCommandFn, ExtendedElementReference } from '../types.
 interface GetElementProps {
     isReactElement?: boolean
     isShadowElement?: boolean
+    /**
+     * whether the element was queried with strict selector semantics, so that
+     * re-fetching the element keeps the same behavior
+     */
+    strict?: boolean
 }
 
 interface WebDriverErrorResponse {
@@ -44,8 +49,9 @@ export function getElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector?: Selector,
     res?: ElementReference | ExtendedElementReference | Error,
-    props: GetElementProps = { isReactElement: false, isShadowElement: false }
+    propsParam: GetElementProps = {}
 ): WebdriverIO.Element {
+    const props: GetElementProps = { isReactElement: false, isShadowElement: false, ...propsParam }
     const browser = getBrowserObject(this)
     const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject: PropertyDescriptorMap = {
@@ -94,6 +100,9 @@ export function getElement(
         client.parent = this
         client.isReactElement = props.isReactElement
         client.isShadowElement = props.isShadowElement
+        if (typeof props.strict === 'boolean') {
+            client.strict = props.strict
+        }
 
         return client
     }, propertiesObject)
@@ -183,6 +192,11 @@ export const getElements = function getElements(
             client.index = i
             client.isReactElement = props.isReactElement
             client.isShadowElement = props.isShadowElement
+            /**
+             * multi element queries are never strict, remember that so that
+             * re-fetching one of these elements doesn't suddenly become strict
+             */
+            client.strict = false
 
             return client
         }, propertiesObject)

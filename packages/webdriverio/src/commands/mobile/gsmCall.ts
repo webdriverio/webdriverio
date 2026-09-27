@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Make a GSM call on the Android emulator. Valid actions: 'call', 'accept', 'cancel', 'hold'.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :gsmCall.js
@@ -36,14 +34,5 @@ export async function gsmCall(
         throw new Error('The `gsmCall` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: gsmCall', { phoneNumber, action })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: gsmCall', '/appium/device/gsm_call')
-        return browser.appiumGsmCall(phoneNumber, action)
-    }
+    return executeMobile(browser, 'mobile: gsmCall', { phoneNumber, action })
 }

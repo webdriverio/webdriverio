@@ -1,6 +1,7 @@
 ---
 id: ocr-faq
 title: Frequently Asked Questions
+description: "Find answers to common questions about slow OCR tests, text that is not found and combining OCR commands with regular selectors."
 ---
 
 ## My tests are very slow

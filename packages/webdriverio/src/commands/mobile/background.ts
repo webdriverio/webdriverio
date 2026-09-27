@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Send the currently running app for this session to the background.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * Pass `-1` to keep the app in the background indefinitely, or `null` to send the app to the
  * background without restoring it.
@@ -34,14 +32,5 @@ export async function background(
         throw new Error('The `background` command is only available for mobile platforms.')
     }
 
-    try {
-        return await browser.execute('mobile: backgroundApp', { seconds })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: backgroundApp', '/appium/app/background')
-        return browser.appiumBackground(seconds)
-    }
+    return executeMobile(browser, 'mobile: backgroundApp', { seconds })
 }

@@ -11,14 +11,19 @@ export default async function refetchElement (
 ): Promise<WebdriverIO.Element> {
     const selectors: {
         selector: Selector
-        index: number
+        index?: number
+        strict?: boolean
     }[] = []
 
     /**
      * Crawl back to the browser object, and cache all selectors
      */
     while (currentElement.elementId && currentElement.parent) {
-        selectors.push({ selector: currentElement.selector, index: currentElement.index || 0 })
+        selectors.push({
+            selector: currentElement.selector,
+            index: currentElement.index,
+            strict: currentElement.strict
+        })
         currentElement = currentElement.parent as WebdriverIO.Element
     }
     selectors.reverse()
@@ -28,10 +33,20 @@ export default async function refetchElement (
     /**
      * Beginning with the browser object, re-chain
      */
-    return selectors.reduce(async (elementPromise, { selector, index }, currentIndex) => {
+    return selectors.reduce(async (elementPromise, { selector, index, strict }, currentIndex) => {
         const resolvedElement = await elementPromise
-        let nextElement = index > 0 ? await resolvedElement.$$(selector as string)[index]?.getElement() : null
-        nextElement = nextElement || await resolvedElement.$(selector).getElement()
+        /**
+         * an element that came from `$$` is re-fetched at its own index, everything
+         * else through `$`. Falling back from a missing index to the first `$` match
+         * would silently re-chain onto a different element.
+         */
+        const nextElement = index !== undefined
+            ? await resolvedElement.$$(selector as string)[index]?.getElement()
+            : await resolvedElement.$(selector, { strict }).getElement()
+
+        if (!nextElement) {
+            throw new Error(`element with selector "${selector}" has no match at index ${index}`)
+        }
         /**
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array

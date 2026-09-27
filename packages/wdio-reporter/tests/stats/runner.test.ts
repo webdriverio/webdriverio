@@ -14,7 +14,7 @@ test('should get initialized', () => {
         sessionId: 'some-sessionId',
         config,
         specs,
-        isMultiremote: false
+        isMultiRemote: false
     })
 
     expect(runner.type).toBe('runner')

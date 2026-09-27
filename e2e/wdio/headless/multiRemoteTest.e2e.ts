@@ -1,11 +1,8 @@
 import { multiRemoteBrowser, expect } from '@wdio/globals'
-import type { ElementArray } from 'webdriverio'
-import { Key, multiremote } from 'webdriverio'
+import { Key, multiRemote } from 'webdriverio'
 
 let browserA: WebdriverIO.Browser
 let browserB: WebdriverIO.Browser
-
-process.env.WDIO_ENABLE_MULTI_REMOTE_SELECT = 'true'
 
 describe('multi remote test', () => {
     before(() => {
@@ -187,10 +184,10 @@ describe('multi remote test', () => {
                 expect(elementTextFromChainedParentSelected).toEqual(['WebdriverJS Testpage'])
             })
 
-            describe('Dynamically created multiremote browser', () => {
+            describe('Dynamically created multi-remote browser', () => {
                 let customMultiRemoteBrowser: WebdriverIO.MultiRemoteBrowser
                 before(async () => {
-                    customMultiRemoteBrowser = await multiremote({
+                    customMultiRemoteBrowser = await multiRemote({
                         browserA: {
                             capabilities: {
                                 browserName: 'chrome',
@@ -224,7 +221,7 @@ describe('multi remote test', () => {
                     expect(selected.instances).toEqual(['browserA', 'browserB'])
                     expect(selected.getInstance('browserA')).toBeDefined()
                     expect(selected.getInstance('browserB')).toBeDefined()
-                    expect(() => selected.getInstance('browserC')).toThrow('Multiremote object has no instance named "browserC"')
+                    expect(() => selected.getInstance('browserC')).toThrow('Multi-remote object has no instance named "browserC"')
                 })
 
                 it('should be able to chain select', async () => {
@@ -232,7 +229,7 @@ describe('multi remote test', () => {
 
                     expect(selected.instances).toEqual(['browserA'])
                     expect(selected.getInstance('browserA')).toBeDefined()
-                    expect(() => selected.getInstance('browserB')).toThrow('Multiremote object has no instance named "browserB"')
+                    expect(() => selected.getInstance('browserB')).toThrow('Multi-remote object has no instance named "browserB"')
                 })
 
                 it('should be able to select 2 instances on the element', async () => {
@@ -267,7 +264,7 @@ describe('multi remote test', () => {
                 })
 
                 it('should have custom commands on queried element from original multiRemoteBrowser', async () => {
-                    const selectedElement = await multiRemoteBrowser.$('h1')
+                    const selectedElement = await multiRemoteBrowser.$('header h1')
 
                     // @ts-expect-error custom element command is not part of the default type
                     expect(await selectedElement.customElementCommand()).toEqual(['WebdriverJS Testpage', 'WebdriverJS Testpage', 'WebdriverJS Testpage'])
@@ -292,7 +289,7 @@ describe('multi remote test', () => {
                 it('preserve overridden elements commands on multiRemoteBrowser', async () => {
                     multiRemoteBrowser.overwriteCommand('getValue', async function (_originalCommand) {
                         return 'getValue (overwritten)'
-                    }, true)
+                    }, { attachToElement: true })
 
                     expect(await multiRemoteBrowser.$('header').$('h1').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)', 'getValue (overwritten)'])
                     expect(await multiRemoteBrowser.select('browserA', 'browserB').$('header').$('h1').getValue()).toEqual(['getValue (overwritten)', 'getValue (overwritten)'])
@@ -323,7 +320,6 @@ describe('multi remote test', () => {
                     const selected = multiRemoteBrowser.select('browserA', 'browserB')
 
                     expect(browserA.strategies).toBeInstanceOf(Map)
-                    expect(browserA.isW3C).toBe(true)
                     expect(browserA.isMobile).toBe(false)
                     expect(browserA.isIOS).toBe(false)
                     expect(browserA.isAndroid).toBe(false)
@@ -337,10 +333,9 @@ describe('multi remote test', () => {
                     expect(browserA.puppeteer).toBeDefined()
                     expect(browserA.isNativeContext).toBe(false)
                     expect(browserA.mobileContext).toBe(undefined)
-                    expect(browserA.isMultiremote).toBe(undefined)
+                    expect(browserA.isMultiRemote).toBe(undefined)
 
                     expect(multiRemoteBrowser.strategies).toBeInstanceOf(Map)
-                    expect(multiRemoteBrowser.isW3C).toBe(true)
                     expect(multiRemoteBrowser.isMobile).toBe(false)
                     expect(multiRemoteBrowser.isIOS).toBe(false)
                     expect(multiRemoteBrowser.isAndroid).toBe(false)
@@ -354,10 +349,9 @@ describe('multi remote test', () => {
                     expect(multiRemoteBrowser.puppeteer).toBeDefined()
                     expect(multiRemoteBrowser.isNativeContext).toBe(false)
                     expect(multiRemoteBrowser.mobileContext).toBe(undefined)
-                    expect(multiRemoteBrowser.isMultiremote).toBe(true)
+                    expect(multiRemoteBrowser.isMultiRemote).toBe(true)
 
                     expect(selected.strategies).toEqual(multiRemoteBrowser.strategies)
-                    expect(selected.isW3C).toBe(multiRemoteBrowser.isW3C)
                     expect(selected.isMobile).toBe(multiRemoteBrowser.isMobile)
                     expect(selected.isIOS).toBe(multiRemoteBrowser.isIOS)
                     expect(selected.isAndroid).toBe(multiRemoteBrowser.isAndroid)
@@ -371,7 +365,7 @@ describe('multi remote test', () => {
                     expect(selected.puppeteer).toBe(multiRemoteBrowser.puppeteer)
                     expect(selected.isNativeContext).toBe(multiRemoteBrowser.isNativeContext)
                     expect(selected.mobileContext).toBe(multiRemoteBrowser.mobileContext)
-                    expect(selected.isMultiremote).toBe(multiRemoteBrowser.isMultiremote)
+                    expect(selected.isMultiRemote).toBe(multiRemoteBrowser.isMultiRemote)
                 })
             })
         })
@@ -389,39 +383,30 @@ describe('multi remote test', () => {
             expect(elements[1].selector).toBe('h1')
         })
 
-        describe('when enabling process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY', () => {
-            before(() => {
-                process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY = 'true'
-            })
+        it('should return a MultiRemoteElementArray at runtime', async () => {
+            await multiRemoteBrowser.getInstance('browserA').url('about:blank')
+            await multiRemoteBrowser.getInstance('browserB').url('about:blank')
+            await multiRemoteBrowser.getInstance('browserC').url('about:blank')
 
-            after(() => {
-                process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY = 'false'
-            })
+            const elements = await multiRemoteBrowser.$$('h1')
 
-            it('should return an ElementArray at runtime', async () => {
-                await multiRemoteBrowser.getInstance('browserA').url('about:blank')
-                await multiRemoteBrowser.getInstance('browserB').url('about:blank')
-                await multiRemoteBrowser.getInstance('browserC').url('about:blank')
-
-                const elements = await multiRemoteBrowser.$$('h1')
-
-                expect(elements).toHaveLength(0)
-                expect(elements).toHaveProperty('selector')
-                expect((elements as unknown as ElementArray).selector).toBe('h1')
-                expect((elements as unknown as ElementArray).foundWith).toBe('$$')
-                expect((elements as unknown as ElementArray).parent).toBeDefined()
-                expect((elements as unknown as ElementArray).getElements).toBeDefined()
-                expect(Array.isArray(elements)).toBe(true)
-            })
+            expect(elements).toHaveLength(0)
+            expect(elements).toHaveProperty('selector')
+            expect(elements.selector).toBe('h1')
+            expect(elements.foundWith).toBe('$$')
+            expect(elements.parent).toBeDefined()
+            expect(elements.getElements).toBeDefined()
+            expect(elements.isMultiRemote).toBe(true)
+            expect(Array.isArray(elements)).toBe(true)
         })
 
         it('should be able to query isDisplayed on element no longer existing', async () => {
             await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/')
 
-            const h1 = multiRemoteBrowser.$('h1')
-            const browserAH1 = multiRemoteBrowser.getInstance('browserA').$('h1')
-            const browserBH1 = multiRemoteBrowser.getInstance('browserB').$('h1')
-            const browserCH1 = multiRemoteBrowser.getInstance('browserC').$('h1')
+            const h1 = multiRemoteBrowser.$('header h1')
+            const browserAH1 = multiRemoteBrowser.getInstance('browserA').$('header h1')
+            const browserBH1 = multiRemoteBrowser.getInstance('browserB').$('header h1')
+            const browserCH1 = multiRemoteBrowser.getInstance('browserC').$('header h1')
             await multiRemoteBrowser.getInstance('browserA').url('about:blank')
 
             expect(await browserAH1.isDisplayed()).toBe(false)

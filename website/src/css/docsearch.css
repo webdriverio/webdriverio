@@ -1,10 +1,14 @@
 .navbar .DocSearch-Button {
     height: 30px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 500;
 }
 
 .navbar .DocSearch-Button-Placeholder {
-    font-size: 1.1rem;
-    font-family: 'IBM Plex Mono';
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: inherit;
     color: #999
 }
 
@@ -18,4 +22,6 @@ body .navbar .DocSearch-Search-Icon {
     width: 18px;
     height: 16px;
     top: 0px;
+    font-family: inherit;
+    font-weight: 500;
 }

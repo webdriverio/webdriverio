@@ -1,6 +1,7 @@
 ---
 id: more-test-optimization
 title: Test execution time
+description: "Speed up OCR-based tests by cropping the search area of the screen and using a local Tesseract installation."
 ---
 
 By default, this module will check if you have a local installation of Tesseract on your machine/in your pipeline. If you don't have a local installation it will automatically use a [NodeJS](https://github.com/naptha/tesseract.js) version. This might cause some slowness because the image processing will be done by Node.js. NodeJS is not the best system to do

@@ -1,8 +1,8 @@
 # Orchestrates the WebdriverIO test pipeline.
 #
 # Pull requests detect which areas changed and skip expensive suites that
-# cannot be affected (Xvfb distro matrix, component tests, docs site build,
-# etc.). PRs also use a reduced OS × Node matrix. Pushes to main (and PRs
+# cannot be affected (display-server distro matrix, component tests, docs site build,
+# etc.). PRs also use a reduced OS × Node matrix. Pushes to main/v10 (and PRs
 # that touch CI config) still run the full matrix so merge coverage stays
 # complete.
 #
@@ -13,8 +13,7 @@ on:
   push:
     branches:
       - main
-      - v7
-      - v8
+      - v10
       - '!l10n_main'
     paths-ignore:
       - '**/*.md'
@@ -39,7 +38,7 @@ jobs:
       docs: ${{ github.event_name != 'pull_request' || steps.filter.outputs.docs == 'true' }}
       code: ${{ github.event_name != 'pull_request' || steps.filter.outputs.code == 'true' }}
       component: ${{ github.event_name != 'pull_request' || steps.filter.outputs.component == 'true' }}
-      xvfb: ${{ github.event_name != 'pull_request' || steps.filter.outputs.xvfb == 'true' }}
+      display_server: ${{ github.event_name != 'pull_request' || steps.filter.outputs.display_server == 'true' }}
     steps:
       - name: 🔎 Filter changed paths
         if: github.event_name == 'pull_request'
@@ -56,26 +55,26 @@ jobs:
               - 'lerna.json'
               - 'tsconfig.json'
               - 'vitest.config.ts'
-              - 'eslint.config.mjs'
+              - '.oxlintrc.json'
             docs:
               - 'website/**'
               - 'infra/docs/**'
             component:
               - 'packages/wdio-browser-runner/**'
               - 'e2e/browser-runner/**'
-            xvfb:
-              - 'packages/wdio-xvfb/**'
+            display_server:
+              - 'packages/wdio-display-server/**'
               - 'packages/wdio-local-runner/**'
-              - 'e2e/wdio/xvfb/**'
-            # Core product / test code. Xvfb and browser-runner trees are
+              - 'e2e/wdio/display-server/**'
+            # Core product / test code. Display-server and browser-runner trees are
             # excluded so those dedicated suites can run on their own.
             code:
               - 'packages/**'
-              - '!packages/wdio-xvfb/**'
+              - '!packages/wdio-display-server/**'
               - '!packages/wdio-browser-runner/**'
               - 'tests/**'
               - 'e2e/**'
-              - '!e2e/wdio/xvfb/**'
+              - '!e2e/wdio/display-server/**'
               - '!e2e/browser-runner/**'
               - 'infra/**'
               - '!infra/docs/**'
@@ -86,7 +85,7 @@ jobs:
   build_core:
     name: Build
     needs: [changes]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.xvfb == 'true'
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.display_server == 'true'
     uses: ./.github/workflows/build.yml
 
   static_code_analysis:
@@ -114,7 +113,7 @@ jobs:
   unit_tests:
     name: Unit Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.xvfb == 'true'
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.display_server == 'true'
     uses: ./.github/workflows/test-unit.yml
     with:
       full_matrix: ${{ needs.changes.outputs.run-all == 'true' }}
@@ -144,7 +143,7 @@ jobs:
   cloud_tests:
     name: Cloud E2E Tests
     needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
-    if: github.ref == 'refs/heads/main' && (needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true')
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v10') && (needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true')
     uses: ./.github/workflows/test-cloud.yml
     secrets: inherit
 
@@ -154,8 +153,8 @@ jobs:
     if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-testrunner.yml
 
-  multiremote_tests:
-    name: Multiremote E2E Tests
+  multi_remote_tests:
+    name: Multi-remote E2E Tests
     needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
     if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-multiremote.yml
@@ -166,13 +165,11 @@ jobs:
     if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-standalone.yml
 
-  xvfb_tests:
-    name: XVFB E2E Tests
+  display_server_tests:
+    name: Display Server E2E Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.xvfb == 'true'
-    uses: ./.github/workflows/test-xvfb-e2e.yml
-    with:
-      full_matrix: ${{ needs.changes.outputs.run-all == 'true' }}
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.display_server == 'true'
+    uses: ./.github/workflows/test-display-server.yml
 
   # Stable required check. Individual matrix cells are skipped on most PRs;
   # this job succeeds when every job that *did* run succeeded (skipped is OK).
@@ -192,9 +189,9 @@ jobs:
       - launch_tests
       - cloud_tests
       - testrunner_tests
-      - multiremote_tests
+      - multi_remote_tests
       - standalone_tests
-      - xvfb_tests
+      - display_server_tests
     runs-on: ubuntu-latest
     permissions: {}
     steps:

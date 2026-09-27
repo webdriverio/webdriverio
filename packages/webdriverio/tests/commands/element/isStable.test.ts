@@ -3,6 +3,7 @@ import { ELEMENT_KEY } from 'webdriver'
 import { expect, describe, it, beforeAll, beforeEach, afterEach, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import isElementStable from '../../../src/scripts/isElementStable.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -27,21 +28,22 @@ describe('isStable test', () => {
 
     it('should allow to check if element is stable', async () => {
         await elem.isStable()
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0]!.pathname)
-            .toBe('/session/foobar-123/execute/async')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).script)
-            .toEqual(expect.stringContaining('return (function isElementStable(elem, done) {'))
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).args)
+        expect(fetch).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({ pathname: '/session/foobar-123/execute/async' }),
+            expect.anything()
+        )
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as any).script)
+            .toEqual(expect.stringContaining('async function isElementStable'))
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as any).args)
             .toEqual([{
-                ELEMENT: elem.elementId,
                 [ELEMENT_KEY]: elem.elementId,
             }])
     })
 
     it('should throw if used on an inactive tab', async () => {
         global.document = { visibilityState: 'hidden' } as any
-        await expect(elem.isStable()).rejects.toThrowError('You are checking for animations on an inactive tab, animations do not run for inactive tabs')
+        await expect(isElementStable({} as HTMLElement)).rejects.toThrowError('You are checking for animations on an inactive tab, animations do not run for inactive tabs')
     })
 
     it('should throw an error if in native context', async () => {

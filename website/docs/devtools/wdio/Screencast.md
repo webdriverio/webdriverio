@@ -1,6 +1,7 @@
 ---
 id: screencast
 title: Session Screencast
+description: "Record browser sessions as .webm videos with DevTools screencast, configure capture options and find the output files."
 ---
 
 Records browser sessions as `.webm` videos. Videos are displayed in the DevTools UI alongside the snapshot and DOM mutation views.

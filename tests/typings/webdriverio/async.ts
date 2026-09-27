@@ -1,8 +1,8 @@
 import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, SevereServiceError, Key } from 'webdriverio'
-import type { ClickOptions, TouchAction, Selector, Action } from 'webdriverio'
+import { remote, multiRemote, SevereServiceError, Key } from 'webdriverio'
+import type { ClickOptions, Selector, Action } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
 
 declare global {
@@ -32,8 +32,8 @@ const actions: Action[] = [{
 }]
 
 async function bar() {
-    // multiremote
-    const mr = await multiremote({
+    // Multi-remote
+    const mr = await multiRemote({
         myBrowserInstance: {
             capabilities: { browserName: 'chrome' }
         }
@@ -49,11 +49,23 @@ async function bar() {
     const url = await multiRemoteBrowser.getUrl()
     expectType<string[]>(url)
 
-    multiremote({
+    multiRemote({
         myBrowserInstance: {
             capabilities: { browserName: 'chrome' }
         }
     }).then(() => {}, () => {})
+
+    // $$ on a multi-remote browser resolves to a MultiRemoteElementArray
+    const mrElems = await mr.$$('foobar')
+    expectType<true>(mrElems.isMultiRemote)
+    expectType<Selector>(mrElems.selector)
+    expectType<string>(mrElems.foundWith)
+    expectType<WebdriverIO.MultiRemoteElement>(mrElems[0])
+
+    // the async iterators keep the multi-remote element type
+    expectType<string[][]>(await mrElems.map((el) => el.instances))
+    expectType<WebdriverIO.MultiRemoteElement[]>(await mrElems.filter(async () => true))
+    await mrElems.forEach((el) => el.click())
 
     // interact with specific instance
     const mrSingleElem = await mr.getInstance('myBrowserInstance').$('')
@@ -65,6 +77,30 @@ async function bar() {
 
     // instances array
     expectType<string[]>(mr.instances)
+
+    // mock() names each instance instead of returning a plain array
+    const mrMock = await mr.mock('**/image.jpg')
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock)
+    expectType<true>(mrMock.isMultiRemote)
+    expectType<string[]>(mrMock.instances)
+    expectType<WebdriverIO.Mock>(mrMock.getInstance('myBrowserInstance'))
+    expectType<number>(mrMock.getInstance('myBrowserInstance').calls.length)
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.respond({ ok: true }))
+    expectType<WebdriverIO.MultiRemoteMock>(await mrMock.restore())
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.on('request', (request) => {
+        expectType<boolean>(request.isBlocked)
+        // @ts-expect-error before-request payloads are not overwrite responses
+        request.statusCode
+    }))
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.on('match', () => undefined))
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.on('continue', () => undefined))
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.on('fail', () => undefined))
+    expectType<WebdriverIO.MultiRemoteMock>(mrMock.on('overwrite', () => undefined))
+    expectType<WebdriverIO.MultiRemoteMock>(await mr.select('myBrowserInstance').mock('**/image.jpg'))
+    // @ts-expect-error calls belong to one instance, not the multi-remote mock
+    mrMock.calls
+    // @ts-expect-error request ids belong to one session
+    mrMock.getBinaryResponse('req')
 
     const elements = await browser.$$('foo').getElements()
     expectType<string>(elements.foundWith)
@@ -108,12 +144,14 @@ async function bar() {
             await this.waitForClickable().catch()
         }
         return clickFn.call(this, opts).catch()
-    }, true)
+    }, { attachToElement: true })
+
+    // @ts-expect-error boolean third argument was removed in v10
+    browser.addCommand('legacyElementCommand', async function () { return this.getAttribute('class') }, true)
 
     // browser
-    browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
-        return pause(ms).catch()
-    }, false)
+    // @ts-expect-error boolean third argument was removed in v10
+    browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) { return pause(ms) }, false)
 
     browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
         return pause(ms).catch()
@@ -124,9 +162,10 @@ async function bar() {
     // browser
     await browser.pause(1)
     await browser.newWindow('https://webdriver.io', {
-        windowName: 'some name',
-        windowFeatures: 'some features'
+        type: 'window'
     })
+    // @ts-expect-error windowName and windowFeatures were removed in v10
+    await browser.newWindow('https://webdriver.io', { windowName: 'some name', windowFeatures: 'some features' })
 
     await browser.createWindow('tab')
     await browser.createWindow('window')
@@ -150,8 +189,41 @@ async function bar() {
     expectType<WebdriverIO.ElementArray>(waitUntilElems)
 
     await browser.getCookies()
+    await browser.getCookies({ name: 'foobar' })
+    // @ts-expect-error string filters were removed in v10
     await browser.getCookies('foobar')
+    // @ts-expect-error string filters were removed in v10
     await browser.getCookies(['foobar'])
+
+    const htmlElement = await browser.$('h1')
+    await htmlElement.getHTML({ includeSelectorTag: false })
+    // @ts-expect-error boolean argument was removed in v10
+    await htmlElement.getHTML(false)
+
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity'
+    })
+    // @ts-expect-error positional arguments were removed in v10
+    await browser.startActivity('com.example.app', '.MainActivity')
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity',
+        // @ts-expect-error appWaitPackage was removed in v10
+        appWaitPackage: 'com.example.app',
+    })
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity',
+        // @ts-expect-error appWaitActivity was removed in v10
+        appWaitActivity: '.MainActivity',
+    })
+    await browser.startActivity({
+        appPackage: 'com.example.app',
+        appActivity: '.MainActivity',
+        // @ts-expect-error optionalIntentArguments was removed in v10
+        optionalIntentArguments: '--ez extra true',
+    })
     await browser.setCookies({
         name: '',
         value: ''
@@ -175,9 +247,9 @@ async function bar() {
     expectType<number>(executeResult)
 
     expectType<number>(
-        await browser.executeAsync((arg: number, cb: (arg: number) => void) => {
+        await browser.execute(async (arg: number) => {
             arg.toFixed()
-            cb(123)
+            return 123
         }, 456)
     )
 
@@ -194,9 +266,9 @@ async function bar() {
         (await browser.getContexts()) as DetailedContext[]
     )
 
-    expectType<undefined>(
-        await browser.executeAsync((done) => {
-            done()
+    expectType<void>(
+        await browser.execute(async () => {
+            await Promise.resolve()
         })
     )
 
@@ -315,6 +387,8 @@ async function bar() {
     const iteratorResult = await $$('').map((el) => el.getText())
     expectType<string[]>(iteratorResult)
     expectType<string[]>(await elems.map((el) => el.getText()))
+    expectType<WebdriverIO.Element[]>(await elems.filter(async () => true))
+    expectType<WebdriverIO.Element>(await elems.find(async () => true))
 
     // An examples of addValue command with enabled/disabled translation to Unicode
     const elem = await $('')
@@ -375,24 +449,8 @@ async function bar() {
     })
     await reactElements[0].click()
 
-    // touchAction
-    const ele = await $('')
-    const touchAction: TouchAction = {
-        action: 'longPress',
-        element: await $('').getElement(),
-        ms: 0,
-        x: 0,
-        y: 0
-    }
-    await ele.touchAction(touchAction)
-    await browser.touchAction(touchAction)
-    await browser.touchAction([
-        { action: 'press', x: 200, y: 200 },
-        { action: 'moveTo', x: 200, y: 300 },
-        'release'
-    ])
-
     // dragAndDrop
+    const ele = await $('')
     await ele.dragAndDrop(ele, { duration: 0 })
     await ele.dragAndDrop({ x: 1, y: 2 })
 
@@ -607,6 +665,20 @@ async function bar() {
     browser.addInitScript((param, param2, param3, emit) => {
         emit('hello' + param.toFixed() + param2.charAt(1) + param3.charAt(1))
     }, 123, 'hello', 'true')
+}
+
+async function strictSelectors() {
+    const browser = await remote({ capabilities: {} })
+
+    // strict mode can be toggled per call, on the browser and on an element
+    expectType<string>(await browser.$('button', { strict: false }).getTagName())
+    expectType<string>(await browser.$('button', { strict: true }).getTagName())
+    expectType<string>(await browser.$('div').$('button', { strict: false }).getTagName())
+
+    // @ts-expect-error unknown option
+    await browser.$('button', { strictly: false })
+    // @ts-expect-error strict needs to be a boolean
+    await browser.$('button', { strict: 'nope' })
 }
 
 function testSevereServiceError_noParameters() {

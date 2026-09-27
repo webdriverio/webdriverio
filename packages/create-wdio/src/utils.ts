@@ -3,7 +3,6 @@ import path from 'node:path'
 import util, { promisify } from 'node:util'
 import fs from 'node:fs/promises'
 import { execSync } from 'node:child_process'
-import readDir from 'recursive-readdir'
 
 import { $ } from 'execa'
 import { readPackageUp } from 'read-pkg-up'
@@ -576,15 +575,17 @@ function getPreset(parsedAnswers: ParsedAnswers) {
 }
 export function addServiceDeps(names: SupportedPackage[], packages: string[], update = false) {
     /**
-     * install Appium if it is not installed globally if `@wdio/appium-service`
-     * was selected for install
+     * Install Appium 3+ when `@wdio/appium-service` is selected. Reuse a global
+     * Appium binary only when it is already major 3 or newer.
      */
     if (names.some(({ short }) => short === 'appium')) {
         const result = execSync('appium --version || echo APPIUM_MISSING', { stdio: 'pipe' }).toString().trim()
-        if (result === 'APPIUM_MISSING') {
-            packages.push('appium')
-        } else if (update) {
+        const major = Number.parseInt(result.replace(/^v/i, '').split('.')[0] || '', 10)
+        const hasAppium3 = result !== 'APPIUM_MISSING' && !Number.isNaN(major) && major >= 3
 
+        if (!hasAppium3) {
+            packages.push('appium@^3')
+        } else if (update) {
             console.log(
                 '\n=======',
                 '\nUsing globally installed appium', result,
@@ -798,6 +799,14 @@ export async function generateTestFiles(answers: ParsedAnswers) {
     return generateBrowserRunnerTestFiles(answers)
 }
 
+/**
+ * list all files below a directory, recursively
+ */
+async function readDir (dir: string) {
+    const entries = await fs.readdir(dir, { recursive: true, withFileTypes: true })
+    return entries.filter((entry) => entry.isFile()).map((entry) => path.join(entry.parentPath, entry.name))
+}
+
 /* c8 ignore start */
 async function generateSerenityExamples(answers: ParsedAnswers): Promise<void> {
     const templateDirectories = Object.entries({
@@ -835,10 +844,9 @@ async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
         testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))
     }
 
-    const files = (await Promise.all(testFiles.map((dirPath) => readDir(
-        dirPath,
-        [(file, stats) => !stats.isDirectory() && !(file.endsWith('.ejs') || file.endsWith('.feature'))]
-    )))).reduce((cur, acc) => [...acc, ...(cur)], [])
+    const files = (await Promise.all(testFiles.map(readDir)))
+        .flat()
+        .filter((file) => file.endsWith('.ejs') || file.endsWith('.feature'))
 
     await Promise.all(files.map(async (file) => {
         const renderedTpl = await renderFile(file, { answers })

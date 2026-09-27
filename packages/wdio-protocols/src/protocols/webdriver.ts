@@ -345,7 +345,7 @@ export default {
     '/session/:sessionId/frame': {
         POST: {
             command: 'switchToFrame',
-            deprecated: 'This command is deprecated and we encourage everyone to use `switchFrame` instead for switching into frames. Read more about this command at https://webdriver.io/docs/api/browser/switchFrame.',
+            internal: true,
             description:
                 'The Switch To Frame command is used to select the current top-level browsing context or a child browsing context of the current browsing context to use as the current browsing context for subsequent commands.',
             ref: 'https://w3c.github.io/webdriver/#dfn-switch-to-frame',
@@ -1087,7 +1087,7 @@ export default {
                 description:
                     "Either the return value of your script, the fulfillment of the Promise returned by your script, or the error which was the reason for your script's returned Promise's rejection.",
             },
-            alternativeCommands: ['browser/executeAsync'],
+            alternativeCommands: ['browser/execute'],
             exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/api/webdriver/examples.js#L430-L434']
         },
     },

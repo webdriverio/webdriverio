@@ -1,6 +1,7 @@
 ---
 id: timeouts
 title: Timeouts
+description: "Configure WebDriver session timeouts, WebdriverIO waitfor timeouts and test framework timeouts to keep tests reliable."
 ---
 
 Each command in WebdriverIO is an asynchronous operation. A request is fired to the Selenium server (or a cloud service like [Sauce Labs](https://saucelabs.com)), and its response contains the result once the action has completed or failed.
@@ -20,9 +21,9 @@ A session has an associated session script timeout that specifies a time to wait
 
 ```js
 await browser.setTimeout({ 'script': 60000 })
-await browser.executeAsync((done) => {
+await browser.execute(async () => {
     console.log('this should not fail')
-    setTimeout(done, 59000)
+    await new Promise((resolve) => setTimeout(resolve, 59000))
 })
 ```
 
@@ -36,7 +37,7 @@ You can set this timeout like so:
 await browser.setTimeout({ 'pageLoad': 10000 })
 ```
 
-> The `pageLoad` keyword is a part of the official WebDriver [specification](https://www.w3.org/TR/webdriver/#set-timeouts), but might not be [supported](https://github.com/seleniumhq/selenium-google-code-issue-archive/issues/687) for your browser (the previous name is `page load`).
+> `pageLoad` is the WebDriver [timeouts](https://www.w3.org/TR/webdriver/#set-timeouts) name. WebdriverIO v10 accepts that key only.
 
 ### Session Implicit Wait Timeout
 

@@ -1,6 +1,7 @@
 ---
 id: cloud-providers
 title: Cloud Providers
+description: "Run WebdriverIO MCP browser and mobile sessions on cloud device farms, including credentials, app uploads, tunnels and reporting."
 ---
 
 The WebdriverIO MCP server has native support for running browser and mobile automation sessions on cloud device farms. No local drivers, emulators, or simulators required. Four providers are supported:
@@ -34,20 +35,18 @@ export TESTINGBOT_KEY="your_key"
 export TESTINGBOT_SECRET="your_secret"
 ```
 
-| Provider | Username Variable | Access Key Variable | Where to find |
-|----------|-------------------|---------------------|---------------|
+| Provider     | Username Variable       | Access Key Variable       | Where to find                                                      |
+| ------------ | ----------------------- | ------------------------- | ------------------------------------------------------------------ |
 | BrowserStack | `BROWSERSTACK_USERNAME` | `BROWSERSTACK_ACCESS_KEY` | [Account settings](https://www.browserstack.com/accounts/settings) |
-| Sauce Labs | `SAUCE_USERNAME` | `SAUCE_ACCESS_KEY` | [User settings](https://app.saucelabs.com/user-settings) |
-| TestMu | `TESTMU_USERNAME` | `TESTMU_ACCESS_KEY` | [Account settings](https://accounts.lambdatest.com/detail/profile) |
-| TestingBot | `TESTINGBOT_KEY` | `TESTINGBOT_SECRET` | [Account settings](https://testingbot.com/membership) |
-
----
+| Sauce Labs   | `SAUCE_USERNAME`        | `SAUCE_ACCESS_KEY`        | [User settings](https://app.saucelabs.com/user-settings)           |
+| TestMu       | `TESTMU_USERNAME`       | `TESTMU_ACCESS_KEY`       | [Account settings](https://accounts.lambdatest.com/detail/profile) |
+| TestingBot   | `TESTINGBOT_KEY`        | `TESTINGBOT_SECRET`       | [Account settings](https://testingbot.com/membership)              |
 
 ## Browser Automation
 
 Run a browser session on any cloud provider by setting `provider` in `start_session`:
 
-```
+```js
 // BrowserStack — Windows + Chrome
 start_session({
   provider: "browserstack",
@@ -94,7 +93,7 @@ All providers support `browser`: `"chrome"`, `"firefox"`, `"edge"`, `"safari"`. 
 
 Sauce Labs supports multiple data center regions. Set the `region` parameter in `start_session`:
 
-```
+```js
 start_session({
   provider: "saucelabs",
   platform: "browser",
@@ -105,15 +104,13 @@ start_session({
 
 Supported values: `"us-west-1"`, `"eu-central-1"` (default), `"apac-southeast-1"`.
 
----
-
 ## Mobile App Automation
 
 The mobile workflow has three steps, identical across all providers:
 
 ### Step 1: Upload your app
 
-```
+```js
 upload_app({ provider: "browserstack", path: "/absolute/path/to/app.apk" })
 upload_app({ provider: "saucelabs", path: "/path/to/app.ipa" })
 upload_app({ provider: "testmu", path: "/path/to/app.apk" })
@@ -128,7 +125,7 @@ Each returns an app reference you'll use in `start_session`:
 
 You can optionally set a `customId` for stable references across uploads:
 
-```
+```js
 upload_app({ provider: "saucelabs", path: "/path/to/app.ipa", customId: "MyApp-v2.1" })
 ```
 
@@ -136,7 +133,7 @@ For Sauce Labs, add `region` to match your storage region (default `"eu-central-
 
 ### Step 2: List available apps
 
-```
+```js
 list_apps({ provider: "browserstack" })
 list_apps({ provider: "saucelabs" })
 list_apps({ provider: "testmu" })
@@ -153,7 +150,7 @@ BrowserStack also supports `organizationWide: true` to list all org uploads. Sau
 
 Use the app reference from `upload_app`, or a `customId`:
 
-```
+```js
 // BrowserStack — Android
 start_session({
   provider: "browserstack",
@@ -191,8 +188,6 @@ start_session({
 })
 ```
 
----
-
 ## Local Tunnel
 
 All three providers support a local tunnel so cloud sessions can reach servers on your machine (localhost, staging environments, internal services).
@@ -203,7 +198,7 @@ The MCP server uses a **unified `tunnel` parameter** that works identically acro
 
 The MCP server starts and stops the tunnel automatically:
 
-```
+```js
 start_session({
   provider: "browserstack",
   platform: "browser",
@@ -225,7 +220,7 @@ The tunnel stops automatically when you close the session.
 
 If you're already running the tunnel in a separate process:
 
-```
+```js
 start_session({
   provider: "saucelabs",
   platform: "browser",
@@ -241,7 +236,7 @@ start_session({
 
 If you prefer to run the tunnel manually, read the setup instructions from the MCP resource for your provider and platform. For example:
 
-```
+```text
 // Read setup instructions (from your AI client)
 wdio://saucelabs/local-binary
 wdio://testingbot/local-binary
@@ -249,13 +244,11 @@ wdio://testingbot/local-binary
 
 Each resource returns the download URL, platform-specific commands, and daemon instructions.
 
----
-
 ## Reporting
 
 Tag sessions with project, build, and session labels for the provider's dashboard. This works identically across all three providers:
 
-```
+```js
 start_session({
   provider: "browserstack",
   platform: "browser",
@@ -273,8 +266,6 @@ Sessions appear in the provider's dashboard under the specified project and buil
 - Sauce Labs: [Test results](https://app.saucelabs.com/dashboard/builds)
 - TestMu: [Automation dashboard](https://automation.lambdatest.com)
 - TestingBot: [Test results](https://testingbot.com/members)
-
----
 
 ## Provider-Specific Notes
 

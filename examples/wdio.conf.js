@@ -61,8 +61,8 @@ exports.config = {
     // ============
     // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
     // time. Depending on the number of capabilities, WebdriverIO launches several test
-    // sessions. Within your capabilities you can overwrite the spec and exclude options in
-    // order to group specific specs to a specific capability.
+    // sessions. Within your capabilities you can overwrite which files run with
+    // `wdio:specs` and `wdio:exclude` in order to group specific specs to a specific capability.
     //
     // First, you can define how many instances should be started at the same time. Let's
     // say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have
@@ -93,7 +93,7 @@ exports.config = {
         // 5 instances get started at a time.
         maxInstances: 5,
         browserName: 'firefox',
-        specs: [
+        'wdio:specs': [
             'test/ffOnly/*'
         ]
     }],
@@ -190,7 +190,7 @@ exports.config = {
         snippets: true,     // <boolean> hide step definition snippets for pending steps
         source: true,       // <boolean> hide source uris
         strict: false,      // <boolean> fail if there are any undefined or pending steps
-        tagExpression: '',  // <string> (expression) only execute the features or scenarios with tags matching the expression
+        tags: '',           // <string> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 20000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },

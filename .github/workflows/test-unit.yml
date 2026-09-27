@@ -18,12 +18,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Full: 4 Node versions × 3 OS. PR: Linux on current + previous LTS,
+        # Full: 3 Node versions × 3 OS. PR: Linux on current + previous LTS,
         # plus a single Windows and macOS cell on the current LTS.
-        node: ${{ fromJSON(inputs.full_matrix && '["20","22","24","26"]' || '["20","24"]') }}
+        node: ${{ fromJSON(inputs.full_matrix && '["22.19.0","24","26"]' || '["22.19.0","24"]') }}
         os: ${{ fromJSON(inputs.full_matrix && '["ubuntu-latest","windows-latest","macos-latest"]' || '["ubuntu-latest"]') }}
-        # Redundant ubuntu/20 entry when full_matrix is true — include cannot be [].
-        include: ${{ fromJSON(inputs.full_matrix && '[{"os":"ubuntu-latest","node":"20"}]' || '[{"os":"windows-latest","node":"24"},{"os":"macos-latest","node":"24"}]') }}
+        # Redundant ubuntu/22.19.0 entry when full_matrix is true — include cannot be [].
+        include: ${{ fromJSON(inputs.full_matrix && '[{"os":"ubuntu-latest","node":"22.19.0"}]' || '[{"os":"windows-latest","node":"24"},{"os":"macos-latest","node":"24"}]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout Code
@@ -50,7 +50,7 @@ jobs:
         shell: bash
 
       - name: Check Git Context
-        # currently fails in Windows due to changes to snapshots
-        # in packages/wdio-browser-runner/tests/vite/__snapshots__/utils.test.ts.snap
+        # currently fails in Windows: the Linux build archive is unzipped over a CRLF checkout,
+        # so every file not pinned to LF in .gitattributes shows up as modified
         if: matrix.os != 'windows-latest'
         uses: ./.github/workflows/actions/check-git-context

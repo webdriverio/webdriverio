@@ -140,9 +140,9 @@ describe('launcher', () => {
             expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
         })
 
-        it('should start instance in multiremote', () => {
+        it('should start instance in multi-remote', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = true
+            launcher.isMultiRemote = true
             launcher['_runMode'](
                 { specs: ['./'], specFileRetries: 2 } as any,
                 { foo: { capabilities: { browserName: 'chrome' } } }
@@ -155,10 +155,10 @@ describe('launcher', () => {
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
         })
 
-        it('should start instances with parallel multiremote', () => {
+        it('should start instances with parallel multi-remote', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = true
-            launcher.isParallelMultiremote = true
+            launcher.isMultiRemote = true
+            launcher.isParallelMultiRemote = true
             launcher['_runMode'](
                 { specs: ['./'], specFileRetries: 2 } as any,
                 [
@@ -177,7 +177,7 @@ describe('launcher', () => {
 
         it('should start instance with grouped specs', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = false
+            launcher.isMultiRemote = false
             launcher['_runMode'](
                 { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
                 [caps]
@@ -190,9 +190,9 @@ describe('launcher', () => {
             expect(launcher['_runSpecs']).toBeCalledTimes(1)
         })
 
-        it('should start instance in multiremote with grouped specs', () => {
+        it('should start instance in multi-remote with grouped specs', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.isMultiremote = true
+            launcher.isMultiRemote = true
             launcher['_runMode'](
                 { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
                 { foo: { capabilities: { browserName: 'chrome' } } }
@@ -465,24 +465,36 @@ describe('launcher', () => {
 
     describe('formatSpecs', () => {
         it('should return correctly formatted specs', () => {
-            // Define a capabilities that is sent to formatSpecs
-            // - only used in function call
-            const capabilities = { specs: ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js'] }
+            const capabilities = {
+                'wdio:specs': ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js'],
+                'wdio:exclude': ['/skip.js']
+            }
             const specFileRetries = 17
-            // Define the golden result
             const expected = [
                 { 'files': ['/a.js'], 'retries': 17 },
                 { 'files': ['/b.js', '/c.js', '/d.js'], 'retries': 17 },
                 { 'files': ['/e.js'], 'retries': 17 },
             ]
-            // Mock the return value of getSpecs so we are not doing cross
-            // module testing
-            launcher.configParser = {
-                getSpecs: vi.fn().mockReturnValue(
-                    ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js']
-                )
-            } as any
+            const getSpecs = vi.fn().mockReturnValue(
+                ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js']
+            )
+            launcher.configParser = { getSpecs } as any
             expect(launcher['_formatSpecs'](capabilities as any, specFileRetries)).toStrictEqual(expected)
+            expect(getSpecs).toHaveBeenCalledWith(capabilities['wdio:specs'], capabilities['wdio:exclude'])
+        })
+
+        it('should ignore unprefixed specs and exclude on a capability', () => {
+            const capabilities = {
+                browserName: 'chrome',
+                specs: ['/legacy.js'],
+                exclude: ['/legacy-skip.js']
+            }
+            const getSpecs = vi.fn().mockReturnValue(['/from-config.js'])
+            launcher.configParser = { getSpecs } as any
+            expect(launcher['_formatSpecs'](capabilities as any, 0)).toStrictEqual([
+                { files: ['/from-config.js'], retries: 0 }
+            ])
+            expect(getSpecs).toHaveBeenCalledWith(undefined, undefined)
         })
     })
 
@@ -889,8 +901,8 @@ describe('launcher', () => {
             expect(launcher.runner!.shutdown).toBeCalled()
             expect(enableFileLogging).toHaveBeenCalledWith('tempDir')
 
-            expect(launcher.configParser.getCapabilities).toBeCalledTimes(2)
-            expect(launcher.configParser.getConfig).toBeCalledTimes(1)
+            expect(launcher.configParser.getCapabilities).toBeCalledTimes(3)
+            expect(launcher.configParser.getConfig).toBeCalledTimes(2)
             expect(launcher.runner!.initialize).toBeCalledTimes(1)
             // @ts-ignore
             expect(config.onPrepare![0]).toBeCalledTimes(1)

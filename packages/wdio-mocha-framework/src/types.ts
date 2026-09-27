@@ -7,11 +7,6 @@ export interface MochaOpts {
      */
     require?: string[],
     /**
-     * Use the given module(s) to compile files. Compilers will be included
-     * before requires (WebdriverIO framework option).
-     */
-    compilers?: string[],
-    /**
      * Propagate uncaught errors?
      */
     allowUncaught?: boolean;
@@ -31,6 +26,11 @@ export interface MochaOpts {
      * Delay root suite execution?
      */
     delay?: boolean;
+    /**
+     * Report tests skipped by a failing `before` or `beforeEach` hook as failed.
+     * WebdriverIO defaults this to `true`.
+     */
+    failHookAffectedTests?: boolean;
     /**
      * Test filter given string.
      */

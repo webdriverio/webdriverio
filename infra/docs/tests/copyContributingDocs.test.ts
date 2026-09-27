@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { describe, it, expect, afterEach } from 'vitest'
 
-import { renderContributePage, copyContributingDocs } from '../src/copyContributingDocs.js'
+import { renderContributePage, copyContributingDocs, rewriteRepoRootMarkdownLinks } from '../src/copyContributingDocs.js'
 import { renderResourcesPage } from '../src/downloadAwesomeResources.js'
 
 const tempDirs: string[] = []
@@ -12,6 +12,14 @@ afterEach(() => {
     for (const dir of tempDirs.splice(0)) {
         fs.rmSync(dir, { recursive: true, force: true })
     }
+})
+
+describe('rewriteRepoRootMarkdownLinks', () => {
+    it('points repo-root markdown links at the GitHub blob', () => {
+        const rewritten = rewriteRepoRootMarkdownLinks('See [agents](./AGENTS.md#setup) and [site](/docs/foo).')
+        expect(rewritten).toContain('](https://github.com/webdriverio/webdriverio/blob/main/AGENTS.md#setup)')
+        expect(rewritten).toContain('](/docs/foo)')
+    })
 })
 
 describe('renderContributePage', () => {

@@ -1,15 +1,16 @@
-import logger from '@wdio/logger'
-
 import type { PinchAndZoomOptions } from '../types.js'
 
-const log = logger('webdriver')
+const APPIUM3_UPGRADE_HINT =
+    'WebdriverIO 10 requires Appium 3 and a current official driver. ' +
+    'Install or upgrade with `npm i -D appium@^3`, then run `appium driver update installed`. ' +
+    'Stay on WebdriverIO 9 if you cannot upgrade the server.'
 
 /**
  * Returns true if the error indicates that the driver does not know about the
- * requested `mobile:` execute method (old Appium 2 driver). Any other error
- * (wrong params, device disconnected, etc.) should be re-thrown by the caller.
+ * requested `mobile:` execute method (Appium 1/2, an outdated driver, or a
+ * current driver that simply does not implement this extension).
  */
-export function isUnknownMethodError(err: unknown): boolean {
+function isUnknownMethodError(err: unknown): boolean {
     if (!(err instanceof Error)) {
         return false
     }
@@ -18,19 +19,34 @@ export function isUnknownMethodError(err: unknown): boolean {
 }
 
 /**
- * Log a deprecation warning when a mobile command falls back to the legacy
- * Appium protocol endpoint because the driver is too old to support the
- * modern `mobile:` execute replacement.
- *
- * @param mobileCommand   e.g. `'mobile: lock'`
- * @param protocolEndpoint  e.g. `'/appium/device/lock'`
+ * Run a `mobile:` / platform execute script over classic WebDriver
+ * `executeScript` so Appium extensions are not routed through BiDi
+ * `scriptCallFunction`. Unknown-method errors become a hard error that
+ * names both the upgrade path and the possibility that the current
+ * driver simply does not implement the extension.
  */
-export function logAppiumDeprecationWarning(mobileCommand: string, protocolEndpoint: string): void {
-    log.warn(
-        `The \`${mobileCommand}\` execute method is not supported by your Appium driver. ` +
-        `Falling back to the deprecated \`${protocolEndpoint}\` protocol endpoint. ` +
-        `Please upgrade your Appium driver to a version that supports \`${mobileCommand}\`.`
-    )
+export async function executeMobile<T = unknown>(
+    browser: WebdriverIO.Browser,
+    script: string,
+    args?: unknown
+): Promise<T> {
+    try {
+        return await browser.executeScript(
+            script,
+            args === undefined ? [] : [args]
+        ) as T
+    } catch (err: unknown) {
+        if (!isUnknownMethodError(err)) {
+            throw err
+        }
+
+        const original = err instanceof Error ? err.message : String(err)
+        throw new Error(
+            `The \`${script}\` execute method is not supported by your Appium driver ` +
+            `(${original}). ${APPIUM3_UPGRADE_HINT} ` +
+            `If you are already on Appium 3 with current drivers, this platform may not implement \`${script}\`.`
+        )
+    }
 }
 
 export function getNativeContext({ capabilities, isMobile }:

@@ -1,6 +1,7 @@
 ---
 id: docker
 title: Docker
+description: "Run your WebdriverIO test suite inside a Docker container with a preinstalled browser for consistent results across machines."
 ---
 
 Docker is a powerful containerization technology that allows to encapsulate your test suite into a container that behaves the same on every system. This can avoid flakiness due to different browser or platform versions. In order to run your tests within a container, create a `Dockerfile` in your project directory, e.g.:

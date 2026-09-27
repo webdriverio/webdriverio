@@ -14,7 +14,8 @@ import type {
     SpecFunction,
     BeforeHookParam,
     AfterHookParam,
-    SpecArguments
+    SpecArguments,
+    FrameworkResult
 } from './types.js'
 
 const MOCHA_COMMANDS: ['skip', 'only'] = ['skip', 'only']
@@ -109,7 +110,8 @@ export const runSpec = function (
     afterFnArgs: HookFnArgs<unknown>,
     cid: string,
     repeatTest: number,
-    timeout: number
+    timeout: number,
+    frameworkResult?: () => FrameworkResult | undefined
 ) {
     const wrappedFn = function (
         this: unknown,
@@ -122,13 +124,17 @@ export const runSpec = function (
             number
         ]
     ) {
+        const spec: SpecFunction = {
+            specFn,
+            specFnArgs: filterSpecArgs(specFnArgs)
+        }
+        if (frameworkResult) {
+            spec.frameworkResult = frameworkResult
+        }
         return testFnWrapper.call(
             this,
             'Test',
-            {
-                specFn,
-                specFnArgs: filterSpecArgs(specFnArgs)
-            },
+            spec,
             {
                 beforeFn,
                 beforeFnArgs
@@ -171,7 +177,8 @@ export const wrapTestFunction = function (
     beforeArgsFn: HookFnArgs<unknown>,
     afterFn: Function | Function[],
     afterArgsFn: HookFnArgs<unknown>,
-    cid: string
+    cid: string,
+    frameworkResult?: () => FrameworkResult | undefined
 ) {
     return function (...specArguments: SpecArguments) {
         /**
@@ -217,7 +224,8 @@ export const wrapTestFunction = function (
                     afterArgsFn,
                     cid,
                     retryCnt as number,
-                    timeout
+                    timeout,
+                    frameworkResult
                 )
             }
 
@@ -264,7 +272,8 @@ export const wrapGlobalTestMethod = function (
     afterArgsFn: HookFnArgs<unknown>,
     fnName: string,
     cid: string,
-    scope = globalThis
+    scope = globalThis,
+    frameworkResult?: () => FrameworkResult | undefined
 ) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const origFn = (scope as any)[fnName];
@@ -276,7 +285,8 @@ export const wrapGlobalTestMethod = function (
         beforeArgsFn,
         afterFn,
         afterArgsFn,
-        cid
+        cid,
+        frameworkResult
     )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     addMochaCommands(origFn, (scope as any)[fnName])

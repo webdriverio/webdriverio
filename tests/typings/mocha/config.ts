@@ -3,13 +3,14 @@ import { some } from "expect-webdriverio/api"
 const config: WebdriverIO.Config = {
     mochaOpts: {
         ui: 'qunit',
+        failHookAffectedTests: false,
         // @ts-expect-error
         fullTrace: 'wrong param'
     },
     capabilities: [{}]
 }
 
-const mrconfig: WebdriverIO.MultiremoteConfig = {
+const mrconfig: WebdriverIO.MultiRemoteConfig = {
     mochaOpts: {
         ui: 'qunit',
         // @ts-expect-error
@@ -18,7 +19,7 @@ const mrconfig: WebdriverIO.MultiremoteConfig = {
     capabilities: {}
 }
 
-const mrconfig2: WebdriverIO.MultiremoteConfig = {
+const mrconfig2: WebdriverIO.MultiRemoteConfig = {
     mochaOpts: {
         ui: 'qunit',
         // @ts-expect-error

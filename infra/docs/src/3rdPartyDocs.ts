@@ -40,18 +40,26 @@ export const docsFixes: Record<string, ((docs: string) => string)> = {
         .replace(/Promise<void>/g, 'Promise\\<void\\>')
 }
 
+/**
+ * `category` is the docs folder the pages are written to, `sidebar` the
+ * sidebar they are listed in. Plugin pages keep their `/docs/<id>` URLs but
+ * are listed in the Ecosystem section instead of the guides.
+ */
 const plugins = [{
     category: 'docs',
-    namePlural: 'Reporter',
+    sidebar: 'ecosystem',
+    namePlural: 'Reporters',
     nameSingular: 'Reporter',
     packages3rdParty: reporters3rdParty
 }, {
     category: 'docs',
+    sidebar: 'ecosystem',
     namePlural: 'Services',
     nameSingular: 'Service',
     packages3rdParty: services3rdParty
 }, {
     category: 'api',
+    sidebar: 'api',
     namePlural: 'Testrunner',
     nameSingular: '',
     packages3rdParty: api3rdParty
@@ -75,10 +83,10 @@ export async function generate3rdPartyDocs (sidebars: any, options: ThirdPartyDo
     const rootDir = options.rootDir ?? getRootDir()
     const docsRootDir = path.join(rootDir, 'website', 'docs')
 
-    for (const { category, namePlural, nameSingular, packages3rdParty } of plugins) {
+    for (const { category, sidebar: sidebarName, namePlural, nameSingular, packages3rdParty } of plugins) {
         const categoryDir = path.join(docsRootDir, category === 'api' ? 'api' : '')
         await fs.mkdir(categoryDir, { recursive: true })
-        const sidebar = sidebars[category]
+        const sidebar = sidebars[sidebarName]
 
         const items: string[] = []
         for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'main' } of packages3rdParty as Plugin[]) {

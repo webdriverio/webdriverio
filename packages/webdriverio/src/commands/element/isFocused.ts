@@ -32,7 +32,6 @@ import isFocusedScript from '../../scripts/isFocused.js'
 export async function isFocused (this: WebdriverIO.Element) {
     const browser = await getBrowserObject(this)
     return browser.execute(isFocusedScript, {
-        [ELEMENT_KEY]: this.elementId, // w3c compatible
-        ELEMENT: this.elementId // jsonwp compatible
+        [ELEMENT_KEY]: this.elementId
     } as unknown as HTMLElement)
 }

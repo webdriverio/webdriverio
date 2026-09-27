@@ -4,6 +4,7 @@ import path from 'node:path'
 import { describe, it, expect, afterEach } from 'vitest'
 
 import { writeSidebars, print } from '../src/output.js'
+import { englishOnly } from '../src/generateDocs.js'
 
 const tempDirs: string[] = []
 
@@ -20,6 +21,14 @@ describe('writeSidebars', () => {
         writeSidebars({ docs: ['gettingstarted'] }, websiteDir)
         expect(JSON.parse(fs.readFileSync(path.join(websiteDir, 'sidebars.json'), 'utf-8')))
             .toEqual({ docs: ['gettingstarted'] })
+    })
+})
+
+describe('englishOnly', () => {
+    it('is set by --en or DOCS_ENGLISH_ONLY=1', () => {
+        expect(englishOnly(['node', 'index.ts'], {})).toBe(false)
+        expect(englishOnly(['node', 'index.ts', '--en'], {})).toBe(true)
+        expect(englishOnly(['node', 'index.ts'], { DOCS_ENGLISH_ONLY: '1' })).toBe(true)
     })
 })
 

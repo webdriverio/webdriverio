@@ -28,9 +28,14 @@ describe('getSubPackages', () => {
         const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-packages-'))
         tempDirs.push(dir)
         fs.mkdirSync(path.join(dir, 'wdio-logger'))
+        fs.writeFileSync(path.join(dir, 'wdio-logger', 'package.json'), '{}')
         fs.mkdirSync(path.join(dir, 'webdriverio'))
+        fs.writeFileSync(path.join(dir, 'webdriverio', 'package.json'), '{}')
         fs.mkdirSync(path.join(dir, 'node_modules'))
+        fs.writeFileSync(path.join(dir, 'node_modules', 'package.json'), '{}')
         fs.mkdirSync(path.join(dir, 'wdio-smoke-test-service'))
+        fs.writeFileSync(path.join(dir, 'wdio-smoke-test-service', 'package.json'), '{}')
+        fs.mkdirSync(path.join(dir, 'notes'))
         fs.writeFileSync(path.join(dir, 'README.md'), 'not a package')
 
         expect(getSubPackages(['wdio-smoke-test-service'], dir).sort()).toEqual([
@@ -58,6 +63,17 @@ describe('buildPreface', () => {
             'import Tabs from \'@theme/Tabs\';',
             'import TabItem from \'@theme/TabItem\';\n'
         ])
+    })
+
+    it('includes a JSON description when one is provided', () => {
+        const preface = buildPreface(
+            'allure-reporter',
+            'Allure',
+            'Reporter',
+            'https://example.com/edit',
+            'A "quoted" description'
+        )
+        expect(preface).toContain('description: "A \\"quoted\\" description"')
     })
 })
 

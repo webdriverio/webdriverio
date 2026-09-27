@@ -12,7 +12,7 @@
       "cwd": "${workspaceRoot}",
       "console": "integratedTerminal",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["run-s", "test:eslint", "test:ejslint"]
+      "runtimeArgs": ["run-s", "test:oxlint", "test:ejslint"]
     }, {
       "type": "node",
       "request": "launch",

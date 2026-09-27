@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browser-runner",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22.19.0"
   },
   "repository": {
     "type": "git",
@@ -70,10 +70,10 @@
     "build:copy:css": "cp ./node_modules/mocha/mocha.css ./build/third_party/mocha.css",
     "build:copy:js": "sed '$d' ./node_modules/mocha/mocha.js > ./build/third_party/mocha.js"
   },
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",
-    "@vitest/spy": "^3.2.7",
+    "@vitest/spy": "^5.0.2",
     "@wdio/globals": "workspace:*",
     "@wdio/local-runner": "workspace:*",
     "@wdio/logger": "workspace:*",
@@ -95,13 +95,13 @@
     "recast": "^0.23.6",
     "safe-stringify": "^1.1.0",
     "source-map-support": "^0.5.21",
-    "vite": "^6.4.3",
-    "vite-plugin-istanbul": "^6.0.0",
+    "vite": "^7.3.6",
+    "vite-plugin-istanbul": "^7.2.1",
     "vite-plugin-top-level-await": "^1.4.1",
     "webdriver": "workspace:*"
   },
   "peerDependencies": {
-    "expect-webdriverio": "^6.0.9",
+    "expect-webdriverio": "^6.1.0",
     "webdriver": "^9.0.0",
     "webdriverio": "^9.28.0"
   },
@@ -117,14 +117,14 @@
     }
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^5.1.1",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-lib-source-maps": "^4.0.4",
     "@types/istanbul-reports": "^3.0.4",
     "esbuild": "^0.28.1",
-    "geckodriver": "^6.1.1",
-    "mocha": "^10.8.2",
+    "geckodriver": "^7.0.0",
+    "mocha": "^12.0.2",
     "webdriverio": "workspace:*"
   },
   "optionalDependencies": {

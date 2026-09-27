@@ -27,15 +27,20 @@ export const getSubPackages = (ignorePackages: string[] = [], packagesDir = path
          */
         return pkg !== 'node_modules' &&
             fs.statSync(pkgPath).isDirectory() &&
-            !ignorePackages.includes(pkg)
+            !ignorePackages.includes(pkg) &&
+            /**
+             * ignore non-package directories and files such as packages/AGENTS.md
+             */
+            fs.existsSync(path.join(pkgPath, 'package.json'))
     })
 )
 
-export function buildPreface(id: string, title: string, titleSuffix: string, editUrl: string) {
+export function buildPreface(id: string, title: string, titleSuffix: string, editUrl: string, description?: string) {
     return [
         '---',
         `id: ${id}`,
         `title: ${title} ${titleSuffix}`,
+        ...(description ? [`description: ${JSON.stringify(description)}`] : []),
         `custom_edit_url: ${editUrl}`,
         '---\n',
         'import Tabs from \'@theme/Tabs\';',

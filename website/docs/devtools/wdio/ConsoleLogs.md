@@ -1,6 +1,7 @@
 ---
 id: console-logs
 title: Console Logs
+description: "Capture and inspect browser console messages and WebdriverIO framework logs recorded by DevTools during test execution."
 ---
 
 Capture and inspect all browser console output during test execution. DevTools records console messages from your application (`console.log()`, `console.warn()`, `console.error()`, `console.info()`, `console.debug()`) as well as WebDriverIO framework logs based on the `logLevel` configured in your `wdio.conf.ts`.

@@ -39,7 +39,8 @@ export default defineConfig({
             }
         },
         setupFiles: [
-            '__mocks__/fetch.ts'
+            '__mocks__/fetch.ts',
+            'tests/setup/strictSelectors.ts'
         ],
         testTimeout: 30000
     }

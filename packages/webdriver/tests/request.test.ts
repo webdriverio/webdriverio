@@ -16,8 +16,8 @@ vi.mock('fetch')
 vi.mock('undici', () => {
     return {
         fetch: vi.fn(async () => ({ ok: true, status: 200, json: async () => ({}) })),
-        Agent: vi.fn().mockImplementation(() => ({ close: vi.fn() })),
-        ProxyAgent: vi.fn().mockImplementation(() => ({ close: vi.fn() })),
+        Agent: vi.fn().mockImplementation(function () { return { close: vi.fn() } }),
+        ProxyAgent: vi.fn().mockImplementation(function () { return { close: vi.fn() } }),
         getGlobalDispatcher: vi.fn(),
         setGlobalDispatcher: vi.fn()
     }
@@ -742,7 +742,7 @@ describe('webdriver request', () => {
         it('should fall back to environment variables if no global dispatcher is set', async () => {
             // Mock getGlobalDispatcher to return a default Agent (meaning no custom global dispatcher)
             const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
-            vi.mocked(Agent).mockReturnValue(defaultAgent as any)
+            vi.mocked(Agent).mockImplementation(function () { return defaultAgent as any })
             vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
 
             // Set proxy environment variable
@@ -762,7 +762,7 @@ describe('webdriver request', () => {
         it('should use environment proxy unless excluded by NO_PROXY', async () => {
             // Mock getGlobalDispatcher to return a default Agent
             const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
-            vi.mocked(Agent).mockReturnValue(defaultAgent as any)
+            vi.mocked(Agent).mockImplementation(function () { return defaultAgent as any })
             vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
 
             environment.value.variables.PROXY_URL = 'http://proxy.example.com:8080'
@@ -811,7 +811,7 @@ describe('webdriver request', () => {
         it('should not use proxy if neither global dispatcher nor env vars are set', async () => {
             // Mock getGlobalDispatcher to return a default Agent
             const defaultAgent = { type: 'default-agent', close: vi.fn(), constructor: { name: 'Agent' } }
-            vi.mocked(Agent).mockReturnValue(defaultAgent as any)
+            vi.mocked(Agent).mockImplementation(function () { return defaultAgent as any })
             vi.mocked(getGlobalDispatcher).mockReturnValue(defaultAgent as any)
 
             // Ensure no proxy environment variables are set

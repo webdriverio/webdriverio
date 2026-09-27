@@ -172,16 +172,6 @@ export async function addTag(tagName: string) {
 }
 
 /**
- * Add environment value
- * @name addEnvironment
- * @deprecated addEnvironment is deprecated. Use reportedEnvironmentVars in config instead.
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function addEnvironment (name: string, value: string) {
-    console.warn('⚠️ addEnvironment is deprecated and has no longer any functionality. Use reportedEnvironmentVars in wdio config instead. Read more in https://webdriver.io/docs/allure-reporter.')
-}
-
-/**
  * Assign test description to test
  * @name addDescription
  * @param {string} descriptionText - description for test
@@ -367,7 +357,6 @@ export default {
     addEpic,
     addOwner,
     addTag,
-    addEnvironment,
     addDescription,
     addAttachment,
     addGlobalError,

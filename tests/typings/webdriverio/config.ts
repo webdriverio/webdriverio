@@ -20,6 +20,17 @@ declare global {
     }
 }
 
+const configStrictSelectors: WebdriverIO.Config = {
+    capabilities: [],
+    strictSelectors: false
+}
+
+const configStrictSelectorsWrongType: WebdriverIO.Config = {
+    capabilities: [],
+    // @ts-expect-error strictSelectors needs to be a boolean
+    strictSelectors: 'yes'
+}
+
 const configA: WebdriverIO.Config = {
     // @ts-expect-error should not be available
     beforeFeature () {
@@ -62,6 +73,12 @@ const config: WebdriverIO.Config = {
             coverageReporter: {
                 enable: true,
                 type: 'foo'
+            }
+        }],
+        ['lighthouse', {
+            coverageReporter: {
+                enable: true,
+                type: 'json'
             }
         }],
         ['firefox-profile', {

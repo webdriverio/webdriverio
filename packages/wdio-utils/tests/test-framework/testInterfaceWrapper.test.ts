@@ -29,7 +29,7 @@ describe('runHook', () => {
             { afterFn: 'afterFn', afterFnArgs },
             'cid',
             0,
-            'bound spy',
+            'bound Mock',
             0
         )
         expect(hookFunction.mock.calls[0][0].toString()).toBe('hookFn')
@@ -52,6 +52,23 @@ describe('runSpec', () => {
             0
         )
         expect(testFunction.mock.calls[0][0].toString()).toBe('test title')
+    })
+
+    it('should pass a framework result reader through to the spec wrapper', () => {
+        const beforeFnArgs = (context: any) => [context.foo]
+        const afterFnArgs = (context: any) => [context.foo]
+        const frameworkResult = () => ({ result: { id: 'spec' } })
+        runSpec('test title', 'specFn' as any, testFunction.bind({ foo: 'bar' }), 'beforeFn' as any, beforeFnArgs as any, 'afterFn' as any, afterFnArgs as any, 'cid', 0, 0, frameworkResult)
+        expect(testFnWrapper).toBeCalledWith(
+            'Test',
+            { specFn: 'specFn', specFnArgs: ['foo', 'bar'], frameworkResult },
+            { beforeFn: 'beforeFn', beforeFnArgs },
+            { afterFn: 'afterFn', afterFnArgs },
+            'cid',
+            0,
+            undefined,
+            0
+        )
     })
 })
 
@@ -83,7 +100,7 @@ describe('wrapTestFunction', () => {
             { afterFn: 'afterFn', afterFnArgs: expect.any(Function) },
             'cid',
             4,
-            'spy',
+            'Mock',
             123
         )
         expect(hookFunction).toBeCalledWith(expect.any(Function), 123)
@@ -144,7 +161,7 @@ describe('wrapGlobalTestMethod', () => {
             { afterFn: 'afterFn', afterFnArgs: expect.any(Function) },
             'cid',
             0,
-            'spy',
+            'Mock',
             0
         )
     })

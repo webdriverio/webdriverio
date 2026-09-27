@@ -9,7 +9,7 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const isLinux = os.platform() === 'linux'
 
-export const config: WebdriverIO.MultiremoteConfig = {
+export const config: WebdriverIO.MultiRemoteConfig = {
     ...baseConfig,
 
     specs: [path.resolve(__dirname, 'headless', 'multiRemoteTest.e2e.ts')],

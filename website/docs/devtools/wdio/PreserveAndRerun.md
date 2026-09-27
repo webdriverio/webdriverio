@@ -1,6 +1,7 @@
 ---
 id: preserve-and-rerun
 title: Preserve & Rerun (Compare)
+description: "Snapshot a failing run and rerun the test in one click with Preserve & Rerun, then compare both runs to find what changed."
 ---
 
 When a test fails, the usual debugging loop is: rerun it, then compare two walls of logs to work out what changed. Preserve & Rerun collapses that into a single click. It **snapshots the failing run and re-executes the test in one action**, then shows both runs side-by-side in a **Compare** view aligned command-by-command - so you can see exactly where the two diverged without re-reading anything.

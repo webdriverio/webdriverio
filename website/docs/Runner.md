@@ -1,6 +1,7 @@
 ---
 id: runner
 title: Runner
+description: "Choose between the local runner and the browser runner, and configure browser runner options such as presets, Vite config and coverage."
 ---
 
 import CodeBlock from '@theme/CodeBlock';

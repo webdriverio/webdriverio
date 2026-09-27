@@ -10,6 +10,12 @@ import {
     isAbsolute
 } from '../src/utils.js'
 
+vi.mock('node:fs/promises', () => ({
+    default: {
+        mkdir: vi.fn(),
+    }
+}))
+
 describe('utils', () => {
     it('commandCallStructure', () => {
         const stringFunction = 'return (function () => { })()'
@@ -295,12 +301,6 @@ describe('getBrowserObject', () => {
 
 describe('enableFileLogging', () => {
     beforeEach(() => {
-        vi.mock('node:fs/promises', () => ({
-            default: {
-                mkdir: vi.fn(),
-            }
-        }))
-
         delete process.env.WDIO_LOG_PATH
     })
 
@@ -331,16 +331,16 @@ describe('isAppiumCapability', () => {
         expect(isAppiumCapability({})).toBe(false)
         expect(isAppiumCapability({ browserName: 'chrome' })).toBe(false)
         // @ts-expect-error outdated jsonwp cap
-        expect(isAppiumCapability({ automationName: 'android' })).toBe(true)
+        expect(isAppiumCapability({ automationName: 'android' })).toBe(false)
         expect(isAppiumCapability({ 'appium:automationName': 'android' })).toBe(true)
         expect(isAppiumCapability({ 'appium:options': { automationName: 'android' } })).toBe(true)
         // @ts-expect-error outdated jsonwp cap
-        expect(isAppiumCapability({ deviceName: 'android' })).toBe(true)
+        expect(isAppiumCapability({ deviceName: 'android' })).toBe(false)
         expect(isAppiumCapability({ 'appium:deviceName': 'android' })).toBe(true)
         expect(isAppiumCapability({ 'appium:options': { deviceName: 'android' } })).toBe(true)
         expect(isAppiumCapability({ 'lt:options': { deviceName: 'android' } })).toBe(true)
         // @ts-expect-error outdated jsonwp cap
-        expect(isAppiumCapability({ appiumVersion: 'android' })).toBe(true)
+        expect(isAppiumCapability({ appiumVersion: 'android' })).toBe(false)
         expect(isAppiumCapability({ 'appium:appiumVersion': 'android' })).toBe(true)
         expect(isAppiumCapability({ 'appium:options': { appiumVersion: 'android' } })).toBe(true)
         expect(isAppiumCapability({ 'lt:options': { appiumVersion: 'android' } })).toBe(true)

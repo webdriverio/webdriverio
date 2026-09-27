@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { vi, describe, it, beforeAll, afterAll, expect } from 'vitest'
-import { showPopupWarning, sanitizeConsoleArgs } from '../../src/browser/utils.js'
+import { showPopupWarning, sanitizeConsoleArgs, toViteFsUrl } from '../../src/browser/utils.js'
 
 describe('browser utils', () => {
     const consoleWarn = console.warn.bind(console)
@@ -17,6 +17,13 @@ describe('browser utils', () => {
         expect(prompt('test')).toBeNull()
         expect(confirm('test')).toBe(false)
         expect(console.warn).toBeCalledTimes(3)
+    })
+
+    it('toViteFsUrl', () => {
+        expect(toViteFsUrl('/Users/dev/spec.tsx')).toBe('/@fs/Users/dev/spec.tsx')
+        expect(toViteFsUrl('C:\\repo\\spec.tsx')).toBe('/@fs/C:/repo/spec.tsx')
+        expect(toViteFsUrl('/@fs/Users/dev/spec.tsx')).toBe('/@fs/Users/dev/spec.tsx')
+        expect(toViteFsUrl('http://localhost:3000/spec.js')).toBe('http://localhost:3000/spec.js')
     })
 
     it('sanitizeConsoleArgs', () => {

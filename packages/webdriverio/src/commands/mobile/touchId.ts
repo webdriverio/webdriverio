@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Simulate a Touch ID or Face ID biometric match event on iOS Simulator.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * :::note
  * This command requires the `allowTouchIdEnroll` capability to be set to `true` in the session.
@@ -47,14 +45,5 @@ export async function touchId(
         throw new Error('The `touchId` command is only available for iOS. For Android, use `fingerPrint` instead.')
     }
 
-    try {
-        return await browser.execute('mobile: sendBiometricMatch', { match, type })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: sendBiometricMatch', '/appium/simulator/touch_id')
-        return browser.appiumTouchId(match)
-    }
+    return executeMobile(browser, 'mobile: sendBiometricMatch', { match, type })
 }

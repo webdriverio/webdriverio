@@ -1,6 +1,7 @@
 ---
 id: transport
 title: Transport
+description: "Run the WebdriverIO MCP server over the default stdio transport or over Streamable HTTP, and pick the right mode for your client."
 ---
 
 The WebdriverIO MCP server supports two transport modes: **stdio** (default) and **HTTP**.
@@ -21,8 +22,6 @@ stdio is the standard MCP transport. The AI client launches the server as a chil
 ```
 
 Use stdio for local setups with Claude Desktop, Claude Code, Cursor, and similar clients that manage the server lifecycle themselves.
-
----
 
 ## HTTP (Streamable HTTP)
 
@@ -50,11 +49,11 @@ npx @wdio/mcp --http \
   --allowedOrigins "http://localhost:5173,https://myapp.example.com"
 ```
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--http` | — | Enable HTTP transport mode |
-| `--port` | `3000` | Port to listen on |
-| `--allowedHosts` | `localhost,127.0.0.1,::1` | Comma-separated allowed `Host` header values (DNS rebinding protection) |
+| Flag               | Default                     | Description                                                                     |
+| ------------------ | --------------------------- | ------------------------------------------------------------------------------- |
+| `--http`           | —                           | Enable HTTP transport mode                                                      |
+| `--port`           | `3000`                      | Port to listen on                                                               |
+| `--allowedHosts`   | `localhost,127.0.0.1,::1`   | Comma-separated allowed `Host` header values (DNS rebinding protection)         |
 | `--allowedOrigins` | _(none — browsers blocked)_ | Comma-separated allowed `Origin` values for CORS. Use `*` to allow all origins. |
 
 ### Security
@@ -64,8 +63,6 @@ npx @wdio/mcp --http \
 **`--allowedOrigins`** — Controls which browser origins can make cross-origin requests (CORS). By default, no browser origins are allowed. This blocks access from arbitrary websites while still allowing non-browser clients (CLI tools, API clients). Set to `*` to allow all origins, or list specific origins.
 
 Requests from non-browser clients (no `Origin` header) are not subject to the CORS check; only `--allowedHosts` applies.
-
----
 
 ## Use Cases
 

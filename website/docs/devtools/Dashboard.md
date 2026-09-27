@@ -1,6 +1,7 @@
 ---
 id: dashboard
 title: The Dashboard
+description: "Watch test runs live in the DevTools dashboard, rerun single tests or suites, and configure the dashboard window and backend."
 ---
 
 Live mode opens the DevTools UI in an external browser window and streams your test run in real time. It's the interactive counterpart to [Trace Mode](/docs/devtools/wdio/trace-mode), which skips the UI and writes a portable offline artifact instead. Live mode is enabled by default (`mode: 'live'`), so simply running your WebdriverIO tests launches the dashboard.

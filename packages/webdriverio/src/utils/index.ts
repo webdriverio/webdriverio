@@ -96,16 +96,6 @@ export const getElementFromResponse = (res?: ElementReference) => {
         return null
     }
 
-    /**
-     * deprecated JSONWireProtocol response
-     */
-    if ((res as unknown as { ELEMENT: string }).ELEMENT) {
-        return (res as unknown as { ELEMENT: string }).ELEMENT
-    }
-
-    /**
-     * W3C WebDriver response
-     */
     if (res[ELEMENT_KEY]) {
         return res[ELEMENT_KEY]
     }
@@ -541,7 +531,7 @@ export async function findDeepElement(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    let { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
+    let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -691,7 +681,7 @@ export async function findDeepElements(
         context,
         (this as WebdriverIO.Element).elementId
     )
-    let { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile, this.isBidi)
+    let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -815,6 +805,33 @@ function returnUniqueNodes(nodes: ExtendedElementReference[]): ExtendedElementRe
 }
 
 /**
+ * build a selector-type-specific "element not found" error, mirroring the
+ * messages `findElement` produces below for each selector shape. Shared with
+ * `findStrictElement` (strictMode.ts) so a zero-match strict `$` surfaces the
+ * same level of detail as the non-strict lookup instead of a generic message.
+ */
+export function buildNotFoundError(selector: Selector): Error {
+    if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
+        return new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
+    }
+
+    if (selector && typeof selector === 'object' && typeof (selector as CustomStrategyReference).strategy === 'function') {
+        const { strategyName } = selector as CustomStrategyReference
+        return new Error(`Custom Strategy "${strategyName}" did not return an HTMLElement`)
+    }
+
+    if (typeof selector === 'function') {
+        return new Error(`Function selector "${selector.toString()}" did not return an HTMLElement`)
+    }
+
+    if (isElement(selector)) {
+        return new Error('DOM Node couldn\'t be found anymore')
+    }
+
+    return new Error(`Couldn't find element with selector "${String(selector)}"`)
+}
+
+/**
  * logic to find an element
  * Note: the order of if statements matters
  */
@@ -869,7 +886,7 @@ export async function findElement(
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+        const { using, value } = findStrategy(selector as string, this.isMobile)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
             ? this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference
@@ -953,7 +970,7 @@ export async function findElements(
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
-        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+        const { using, value } = findStrategy(selector as string, this.isMobile)
         return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
             ? this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as unknown as ElementReference[]
@@ -973,7 +990,7 @@ export async function findElements(
 }
 
 /**
- * Strip element object and return w3c and jsonwp compatible keys
+ * Strip an element down to its W3C element reference.
  */
 export function verifyArgsAndStripIfElement(args: unknown) {
     function verify(arg: unknown) {
@@ -984,8 +1001,7 @@ export function verifyArgsAndStripIfElement(args: unknown) {
             }
 
             return {
-                [ELEMENT_KEY]: elem.elementId,
-                ELEMENT: elem.elementId
+                [ELEMENT_KEY]: elem.elementId
             }
         }
 
@@ -1092,11 +1108,11 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
         scope.strategies.set(name, func)
 
         /**
-         * multiremote dispatches commands to each instance individually, so
+         * Multi-remote dispatches commands to each instance individually, so
          * `custom$` / `custom$$` resolve strategies on the instances rather
          * than on the wrapper client — propagate the strategy to all of them
          */
-        if ((scope as WebdriverIO.MultiRemoteBrowser).isMultiremote) {
+        if ((scope as WebdriverIO.MultiRemoteBrowser).isMultiRemote) {
             const multiRemoteScope = scope as WebdriverIO.MultiRemoteBrowser
             for (const instanceName of multiRemoteScope.instances) {
                 const instance = multiRemoteScope.getInstance(instanceName)
@@ -1119,13 +1135,32 @@ type Entries<T> = {
  * @param   {Array}             props       additional properties required to fetch elements again
  * @returns {object[]}  elements
  */
-export const enhanceElementsArray = (
+export function enhanceElementsArray(
     elements: WebdriverIO.Element[],
     parent: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
+    foundWith?: string,
+    props?: unknown[]
+): WebdriverIO.ElementArray
+/**
+ * On a multi-remote browser every entry is a `MultiRemoteElement`, so the array
+ * that comes back is a `MultiRemoteElementArray`. The body is the same; only the
+ * element and parent types differ.
+ */
+export function enhanceElementsArray(
+    elements: WebdriverIO.MultiRemoteElement[],
+    parent: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement,
+    selector: Selector,
+    foundWith?: string,
+    props?: unknown[]
+): WebdriverIO.MultiRemoteElementArray
+export function enhanceElementsArray(
+    elements: WebdriverIO.Element[] | WebdriverIO.MultiRemoteElement[],
+    parent: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement,
+    selector: Selector | ElementReference[] | WebdriverIO.Element[],
     foundWith = '$$',
     props: unknown[] = []
-) => {
+): WebdriverIO.ElementArray | WebdriverIO.MultiRemoteElementArray {
     /**
      * as we enhance the element array in this method we need to cast its
      * type as well
@@ -1159,7 +1194,7 @@ export const enhanceElementsArray = (
         elementArray[name] = fn.bind(null, elementArray as unknown)
     }
 
-    elementArray.parent = parent
+    elementArray.parent = parent as WebdriverIO.ElementArray['parent']
     elementArray.foundWith = foundWith
     elementArray.props = props
     elementArray.getElements = async () => elementArray

@@ -2,7 +2,7 @@ import path from 'node:path'
 
 const TEST_ROOT = path.join(__dirname, '..')
 
-export const config: WebdriverIO.MultiremoteConfig = {
+export const config: WebdriverIO.MultiRemoteConfig = {
     user: 'foobar',
     key: '50fa142c-3121-4gb0-9p07-8q326vvbq7b0',
     specs: [

@@ -1,6 +1,7 @@
 ---
 id: sharding
 title: Sharding
+description: "Split your test suite across multiple machines with the --shard option to run tests faster, for example on GitHub Actions."
 ---
 
 By default, WebdriverIO runs tests in parallel and strives for optimal utilization of CPU cores on your machine. In order to achieve even greater parallelisation, you can further scale WebdriverIO test execution by running tests on multiple machines simultaneously. We call this mode of operation "sharding".

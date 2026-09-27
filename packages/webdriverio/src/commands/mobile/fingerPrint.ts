@@ -1,11 +1,9 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Authenticate users by using their fingerprint scan on supported Android emulators. The
  * fingerprintId must be between 1 and 10.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :fingerPrint.js
@@ -32,14 +30,5 @@ export async function fingerPrint(
         throw new Error('The `fingerPrint` command is only available for Android. For iOS, use `touchId` instead.')
     }
 
-    try {
-        return await browser.execute('mobile: fingerprint', { fingerprintId })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: fingerprint', '/appium/device/finger_print')
-        return browser.appiumFingerPrint(fingerprintId)
-    }
+    return executeMobile(browser, 'mobile: fingerprint', { fingerprintId })
 }

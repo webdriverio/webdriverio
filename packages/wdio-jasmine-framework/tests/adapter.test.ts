@@ -105,7 +105,7 @@ test('should properly set up jasmine', async () => {
     expect(result).toBe(0)
     expect(vi.mocked(adapter['_jrunner']!.addSpecFile).mock.calls[0][0]).toEqual('/foo/bar.test.js')
     // @ts-ignore outdated types
-    expect(vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls).toHaveLength(2)
+    expect(adapter['_jrunner']!.jasmine.addReporter).toHaveBeenCalledTimes(1)
     expect(vi.mocked(executeHooksWithArgs).mock.calls).toHaveLength(1)
 
     // @ts-expect-error
@@ -122,8 +122,6 @@ test('should properly set up jasmine', async () => {
     expect(adapter['_jrunner']!.configureDefaultReporter.name).toBe('noop')
     // @ts-ignore outdated types
     adapter['_jrunner']!.configureDefaultReporter()
-
-    expect(globalThis.jasmine.addAsyncMatchers).toBeCalledTimes(1)
 })
 
 test('should propery wrap interfaces', async () => {
@@ -183,7 +181,7 @@ test('emitHookEvent: should emit events for beforeAll and afterAll hooks', async
 test('should properly configure the jasmine environment', async () => {
     const stopOnSpecFailure = false
     const failSpecWithNoExpectations = false
-    const stopSpecOnExpectationFailure = false
+    const oneFailurePerSpec = false
     const random = false
     const failFast = false
     const seed = false
@@ -191,7 +189,7 @@ test('should properly configure the jasmine environment', async () => {
     const adapter = adapterFactory({
         jasmineOpts: {
             stopOnSpecFailure,
-            stopSpecOnExpectationFailure,
+            oneFailurePerSpec,
             random,
             failFast,
         }
@@ -202,12 +200,56 @@ test('should properly configure the jasmine environment', async () => {
     expect(adapter['_jrunner']!.jasmine.getEnv().configure).toBeCalledWith({
         specFilter: expect.any(Function),
         failSpecWithNoExpectations,
-        oneFailurePerSpec: stopSpecOnExpectationFailure,
+        oneFailurePerSpec,
         stopOnSpecFailure,
         random,
         seed,
         failFast,
     })
+})
+
+test('rejects removed jasmine config aliases', () => {
+    expect(() => adapterFactory({ jasmineNodeOpts: { grep: '@smoke' } })).toThrow(
+        /jasmineNodeOpts/
+    )
+    expect(() => adapterFactory({
+        jasmineOpts: { stopSpecOnExpectationFailure: true }
+    })).toThrow(/oneFailurePerSpec/)
+})
+
+test('hands the spec result to the wrapped spec once', async () => {
+    const adapter = adapterFactory()
+    await adapter.init()
+
+    const calls = vi.mocked(wrapGlobalTestMethod).mock.calls
+    const specCall = calls.find((call) => call[5] === 'it')
+    const hookCall = calls.find((call) => call[5] === 'beforeEach')
+    const readResult = specCall?.[8] as (() => { result: unknown, errors?: unknown[] } | undefined) | undefined
+
+    expect(readResult).toEqual(expect.any(Function))
+    expect(hookCall?.[8]).toBeUndefined()
+    expect(readResult!()).toBeUndefined()
+
+    adapter['_reporter'].specStarted({
+        id: 'test1',
+        description: 'test',
+        fullName: 'test',
+        failedExpectations: [{ stack: 'at spec', matcherName: 'toBe' }],
+        passedExpectations: [],
+        deprecationWarnings: [],
+        pendingReason: '',
+        duration: null,
+        properties: null,
+        debugLogs: null,
+        status: 'failed',
+        filename: '/foo/bar.test.js'
+    } as any)
+
+    expect(readResult!()).toEqual({
+        result: adapter['_lastTest'],
+        errors: [{ stack: 'at spec', matcherName: 'toBe' }]
+    })
+    expect(readResult!()).toBeUndefined()
 })
 
 test('set custom ', async () => {
@@ -455,6 +497,37 @@ test('expectationResultHandler failing', () => {
             error: err
         }
     )
+})
+
+test('expectationResultHandler records a thrown handler as a failure', () => {
+    const origHandler = vi.fn()
+    const err = new Error('uuups')
+    const config = { jasmineOpts: { expectationResultHandler: () => {
+        throw err
+    } } }
+    const adapter = adapterFactory(config)
+    const lastTest = {
+        failedExpectations: [] as { passed?: boolean, message?: string }[],
+        passedExpectations: [] as unknown[],
+        [Symbol.for('wdio.jasmine.recordedExpectations')]: true
+    }
+    adapter['_lastTest'] = lastTest as any
+    adapter['_jrunner'] = {
+        jasmine: {
+            private: {
+                buildExpectationResult: (options: { message?: string, passed?: boolean }) => options
+            }
+        }
+    } as any
+
+    const resultHandler = adapter.expectationResultHandler(origHandler)
+    // @ts-ignore mock feature
+    resultHandler(true, { message: 'ok' })
+    expect(lastTest.passedExpectations).toHaveLength(0)
+    expect(lastTest.failedExpectations).toEqual([expect.objectContaining({
+        passed: false,
+        message: 'expectationResultHandlerError: uuups'
+    })])
 })
 
 test('expectationResultHandler failing with failing test', () => {

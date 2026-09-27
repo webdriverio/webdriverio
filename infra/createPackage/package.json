@@ -8,12 +8,11 @@
   },
   "dependencies": {
     "@wdio/repo-utils": "workspace:*",
-    "inquirer": "^12.6.3",
+    "inquirer": "^14.2.2",
     "shelljs": "^0.10.0",
-    "tsx": "^4.17.0"
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
-    "@types/inquirer": "^9.0.8",
     "@types/shelljs": "^0.10.0"
   }
 }

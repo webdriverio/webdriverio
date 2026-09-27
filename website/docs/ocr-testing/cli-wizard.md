@@ -1,6 +1,7 @@
 ---
 id: cli-wizard
 title: CLI Wizard
+description: "Check which text the OCR service can find in an image without running a test by using the OCR CLI wizard."
 ---
 
 You can validate which text can be found in an image without running a test by using the OCR CLI Wizard. The only thing that are needed are:

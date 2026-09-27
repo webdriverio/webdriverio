@@ -79,7 +79,11 @@ async function interactWithDialog(
 ): Promise<void> {
     if (buttonText) {
         const selector = isIOS ? `~${buttonText}` : androidButtonSelector(buttonText)
-        await browser.$(selector).click()
+        /**
+         * native dialogs can render several nodes matching the button text,
+         * tapping the first one is the expected behavior here
+         */
+        await browser.$(selector, { strict: false }).click()
         return
     }
 

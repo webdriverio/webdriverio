@@ -54,7 +54,10 @@ function generate () {
 
         for (const methods of Object.values(definition)) {
             for (const description of Object.values(methods)) {
-                const { command, parameters = [], variables = [], returns, ref, deprecated, examples } = description
+                const { command, parameters = [], variables = [], returns, ref, deprecated, examples, internal } = description
+                if (internal) {
+                    continue
+                }
                 if (!ref) {
                     throw new Error(`missing ref for command ${command} in ${protocolName}`)
                 }

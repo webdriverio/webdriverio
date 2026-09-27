@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Strict Selectors</title>
+</head>
+<body>
+    <h1 id="unique">Strict Selectors</h1>
+
+    <div id="scope">
+        <button class="in-scope">One</button>
+        <button class="in-scope">Two</button>
+        <span class="only-one-in-scope">only me</span>
+    </div>
+
+    <button class="multiple">A</button>
+    <button class="multiple">B</button>
+    <button class="multiple">C</button>
+
+    <div id="host"></div>
+
+    <script>
+        const host = document.querySelector('#host')
+        const root = host.attachShadow({ mode: 'open' })
+        root.innerHTML = '<p class="shadow-multiple">a</p><p class="shadow-multiple">b</p><p class="shadow-unique">c</p>'
+
+        /**
+         * appended late so a `waitForExist` has something to wait for
+         */
+        setTimeout(() => {
+            const el = document.createElement('div')
+            el.id = 'appears-late'
+            el.textContent = 'here'
+            document.body.appendChild(el)
+        }, 1000)
+    </script>
+</body>
+</html>

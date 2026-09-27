@@ -31,6 +31,11 @@
 *  await browser.$('.aux-input').getValue()
 * ```
  *
+ * As of v10 this command is __strict__: if the selector resolves to more than one element within this
+ * element it throws a `StrictSelectorError` rather than silently returning the first match. Use `$$` when
+ * you expect multiple elements, pass `{ strict: false }` to opt out for a single call, or set
+ * `strictSelectors: false` in your config to opt out globally.
+ *
  * :::info
  *
  * For more information on how to select specific elements, check out the [Selectors](/docs/selectors) guide.
@@ -57,6 +62,8 @@
  *
  * @alias $
  * @param {String|Function|Matcher} selector  selector, JS Function, or Matcher object to fetch a certain element
+ * @param {Object=}                 options          command options
+ * @param {Boolean=}                options.strict   throw if the selector matches more than one element within this element (default: the `strictSelectors` config option, which defaults to `true`)
  * @return {WebdriverIO.Element}
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/example.html
  * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/singleElements.js#L9-L10

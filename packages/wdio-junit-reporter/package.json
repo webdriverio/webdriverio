@@ -6,7 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-junit-reporter",
   "license": "MIT",
   "engines": {
-    "node": ">=18.20.0"
+    "node": ">=22.19.0"
   },
   "repository": {
     "type": "git",
@@ -33,12 +33,12 @@
       "require": "./build/index.cjs"
     }
   },
-  "typeScriptVersion": "3.8.3",
+  "typeScriptVersion": "5.9.3",
   "dependencies": {
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
     "json-stringify-safe": "^5.0.1",
-    "junit-report-builder": "^5.1.1"
+    "junit-report-builder": "^5.1.2"
   },
   "devDependencies": {
     "@types/json-stringify-safe": "^5.0.0"

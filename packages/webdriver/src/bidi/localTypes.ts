@@ -385,16 +385,19 @@ export interface BrowsingContextUserPromptOpenedParameters {
     defaultValue?: string;
 }
 
-export type EmulationResult = EmulationSetForcedColorsModeThemeOverrideResult | EmulationSetGeolocationOverrideResult | EmulationSetLocaleOverrideResult | EmulationSetScreenOrientationOverrideResult | EmulationSetScriptingEnabledResult | EmulationSetScrollbarTypeOverrideResult | EmulationSetTimezoneOverrideResult | EmulationSetTouchOverrideResult | EmulationSetUserAgentOverrideResult
+export type EmulationResult = EmulationSetForcedColorsModeThemeOverrideResult | EmulationSetGeolocationOverrideResult | EmulationSetLocaleOverrideResult | EmulationSetMediaFeaturesOverrideResult | EmulationSetScreenOrientationOverrideResult | EmulationSetScriptingEnabledResult | EmulationSetScrollbarTypeOverrideResult | EmulationSetTextLayoutModeOverrideResult | EmulationSetTimezoneOverrideResult | EmulationSetTouchOverrideResult | EmulationSetUserAgentOverrideResult | EmulationSetViewportMetaOverrideResult
 export type EmulationSetForcedColorsModeThemeOverrideResult = EmptyResult
 export type EmulationSetGeolocationOverrideResult = EmptyResult
 export type EmulationSetLocaleOverrideResult = EmptyResult
+export type EmulationSetMediaFeaturesOverrideResult = EmptyResult
 export type EmulationSetNetworkConditionsResult = EmptyResult
 export type EmulationSetScreenSettingsOverrideResult = EmptyResult
 export type EmulationSetScreenOrientationOverrideResult = EmptyResult
 export type EmulationSetUserAgentOverrideResult = EmptyResult
+export type EmulationSetViewportMetaOverrideResult = EmptyResult
 export type EmulationSetScriptingEnabledResult = EmptyResult
 export type EmulationSetScrollbarTypeOverrideResult = EmptyResult
+export type EmulationSetTextLayoutModeOverrideResult = EmptyResult
 export type EmulationSetTimezoneOverrideResult = EmptyResult
 export type EmulationSetTouchOverrideResult = EmptyResult
 export type NetworkResult = NetworkAddDataCollectorResult | NetworkAddInterceptResult | NetworkContinueRequestResult | NetworkContinueResponseResult | NetworkContinueWithAuthResult | NetworkDisownDataResult | NetworkFailRequestResult | NetworkGetDataResult | NetworkProvideResponseResult | NetworkRemoveDataCollectorResult | NetworkRemoveInterceptResult | NetworkSetCacheBehaviorResult | NetworkSetExtraHeadersResult

@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@types/jasmine": "^5.1.4",
+    "@types/jasmine": "^6.0.0",
     "@wdio/globals": "workspace:*",
     "@wdio/utils": "workspace:*",
     "@wdio/types": "workspace:*",
@@ -24,7 +24,7 @@
     "@wdio/static-server-service": "workspace:*",
     "@wdio/sumologic-reporter": "workspace:*",
     "@wdio/testingbot-service": "workspace:*",
-    "expect-webdriverio": "^6.0.9",
+    "expect-webdriverio": "^6.1.0",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   }

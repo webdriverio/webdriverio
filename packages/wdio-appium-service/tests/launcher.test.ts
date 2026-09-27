@@ -3,7 +3,7 @@ import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import treeKill from 'tree-kill'
-import { spawn, type ChildProcessByStdio } from 'node:child_process'
+import { spawn, execFileSync, type ChildProcessByStdio } from 'node:child_process'
 import type cp from 'node:child_process'
 import getPort from 'get-port'
 import { Readable, type Writable } from 'node:stream'
@@ -19,7 +19,9 @@ const log = logger('@wdio/appium-service')
 
 vi.mock('node:fs', () => ({
     default: {
-        createWriteStream: vi.fn()
+        createWriteStream: vi.fn(),
+        existsSync: vi.fn().mockReturnValue(true),
+        readFileSync: vi.fn().mockReturnValue(JSON.stringify({ name: 'appium', version: '3.1.0' }))
     }
 }))
 
@@ -40,7 +42,13 @@ vi.mock('node:fs/promises', () => ({
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => ({
     spawn: vi.fn(),
-    exec: vi.fn()
+    exec: vi.fn(),
+    execFileSync: vi.fn().mockReturnValue('3.0.0\n')
+}))
+vi.mock('node:child_process', () => ({
+    spawn: vi.fn(),
+    exec: vi.fn(),
+    execFileSync: vi.fn().mockReturnValue('3.0.0\n')
 }))
 vi.mock('import-meta-resolve', () => ({
     resolve: vi.fn().mockResolvedValue(
@@ -196,7 +204,8 @@ describe('Appium launcher', () => {
         })
 
         test('windows: should set correct config properties', async () => {
-            vi.mocked(os.platform).mockReturnValueOnce('win32')
+            // version check and spawn both call os.platform()
+            vi.mocked(os.platform).mockReturnValue('win32')
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -231,13 +240,13 @@ describe('Appium launcher', () => {
             expect(capabilities[0].path).toBe('/')
         })
 
-        test('should set correct config properties using multiremote', async () => {
+        test('should set correct config properties using multi-remote', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities = {
                 browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
@@ -253,13 +262,13 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.path).toBe('/')
         })
 
-        test('should set correct config properties of mixed browser and device using multiremote', async () => {
+        test('should set correct config properties of mixed browser and device using multi-remote', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities = {
                 browserA: { port: 1234, capabilities: { browserName: 'chrome' } },
                 browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
@@ -275,13 +284,13 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.path).toBe('/')
         })
 
-        test('should set correct config properties using parallel multiremote', async () => {
+        test('should set correct config properties using parallel multi-remote', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities[] = [{
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities[] = [{
                 browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }, {
@@ -308,13 +317,13 @@ describe('Appium launcher', () => {
             expect(capabilities[1].browserD.path).toBe('/')
         })
 
-        test('should not override cloud config using multiremote', async () => {
+        test('should not override cloud config using multi-remote', async () => {
             const options = {
                 logPath: './',
                 args: { address: 'foo' },
                 installArgs: { bar: 'bar' },
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities = {
                 browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
@@ -363,7 +372,8 @@ describe('Appium launcher', () => {
         })
 
         test('win: should respect custom Appium port', async () => {
-            vi.mocked(os.platform).mockReturnValueOnce('win32')
+            // version check and spawn both call os.platform()
+            vi.mocked(os.platform).mockReturnValue('win32')
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -453,7 +463,8 @@ describe('Appium launcher', () => {
         })
 
         test('should set correct config properties for Windows', async () => {
-            vi.mocked(os.platform).mockReturnValueOnce('win32')
+            // version check and spawn both call os.platform()
+            vi.mocked(os.platform).mockReturnValue('win32')
             const launcher = new AppiumLauncher({
                 logPath: './',
                 command: 'path/to/my_custom_appium',
@@ -619,13 +630,13 @@ describe('Appium launcher', () => {
             expect(launcher['_process']).toEqual(undefined)
         })
 
-        test('should not set host, port and path for non Appium capabilities using multiremote', async () => {
+        test('should not set host, port and path for non Appium capabilities using multi-remote', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities = {
                 browserA: { capabilities: { browserName: 'baz' } },
                 browserB: { capabilities: { 'appium:deviceName': 'baz' } }
             }
@@ -641,13 +652,13 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.path).toBe('/')
         })
 
-        test('should not set host, port and path for non Appium capabilities using parallel multiremote', async () => {
+        test('should not set host, port and path for non Appium capabilities using parallel multi-remote', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities[] = [{
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities[] = [{
                 browserA: { port: 1234, capabilities: { 'appium:deviceName': 'baz' } },
                 browserB: { capabilities: { browserName: 'baz' } }
             }, {
@@ -674,13 +685,13 @@ describe('Appium launcher', () => {
             expect(capabilities[1].browserD.path).toBe('/')
         })
 
-        test('should set host and port capabilities for normal multiremote capabilities', async () => {
+        test('should set host and port capabilities for normal multi-remote capabilities', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { address: 'bar' }
             }
-            const capabilities: Capabilities.RequestedMultiremoteCapabilities = {
+            const capabilities: Capabilities.RequestedMultiRemoteCapabilities = {
                 chromiumDriver: {
                     capabilities: {
                         browserName: 'chrome',
@@ -891,6 +902,50 @@ describe('Appium launcher', () => {
         test('should throw if appium is not installed', async () => {
             vi.mocked(resolve).mockRejectedValue(new Error('Not found'))
             await expect(AppiumLauncher['_getAppiumCommand']('appium')).rejects.toThrow()
+        })
+    })
+
+    describe('ensureAppiumVersion', () => {
+        beforeEach(() => {
+            vi.mocked(resolve).mockResolvedValue(
+                url.pathToFileURL(path.resolve(process.cwd(), '/', 'foo', 'bar', 'appium'))
+            )
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            vi.mocked(fs.readFileSync).mockReturnValue(
+                JSON.stringify({ name: 'appium', version: '3.1.0' })
+            )
+            vi.mocked(execFileSync).mockReturnValue('3.0.0\n')
+        })
+
+        test('accepts a local Appium 3 package', async () => {
+            await expect(AppiumLauncher.ensureAppiumVersion()).resolves.toBeUndefined()
+        })
+
+        test('rejects a local Appium 2 package', async () => {
+            vi.mocked(fs.readFileSync).mockReturnValue(
+                JSON.stringify({ name: 'appium', version: '2.19.0' })
+            )
+            await expect(AppiumLauncher.ensureAppiumVersion()).rejects.toThrow(/requires Appium 3/)
+        })
+
+        test('accepts an explicit command reporting Appium 3', async () => {
+            vi.mocked(os.platform).mockReturnValue('Darwin')
+            vi.mocked(execFileSync).mockReturnValue('3.0.2\n')
+            await expect(AppiumLauncher.ensureAppiumVersion('appium')).resolves.toBeUndefined()
+            expect(execFileSync).toHaveBeenCalledWith('appium', ['--version'], expect.any(Object))
+        })
+
+        test('rejects an explicit command reporting Appium 2', async () => {
+            vi.mocked(os.platform).mockReturnValue('Darwin')
+            vi.mocked(execFileSync).mockReturnValue('2.5.4\n')
+            await expect(AppiumLauncher.ensureAppiumVersion('appium')).rejects.toThrow(/Detected Appium 2\.5\.4/)
+        })
+
+        test('reads version through cmd /c on Windows', async () => {
+            vi.mocked(os.platform).mockReturnValue('win32')
+            vi.mocked(execFileSync).mockReturnValue('3.1.0\n')
+            await expect(AppiumLauncher.ensureAppiumVersion('appium')).resolves.toBeUndefined()
+            expect(execFileSync).toHaveBeenCalledWith('cmd', ['/c', 'appium', '--version'], expect.any(Object))
         })
     })
 

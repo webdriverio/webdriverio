@@ -1,6 +1,7 @@
 ---
 id: allure
 title: Allure Integration
+description: "Attach DevTools trace-mode artifacts such as trace zips, screenshots and videos to your Allure report automatically."
 ---
 
 Trace-mode artifacts — the trace zip and each test's per-test screenshot and video — attach to an Allure report automatically, so you can open them straight from the report. See [Trace Mode](/docs/devtools/wdio/trace-mode) for how to enable trace mode and produce these artifacts.

@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Toggle the state of the location service.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :toggleLocationServices.js
@@ -28,14 +26,5 @@ export async function toggleLocationServices(
         throw new Error('The `toggleLocationServices` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: toggleGps', {})
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: toggleGps', '/appium/device/toggle_location_services')
-        return browser.appiumToggleLocationServices()
-    }
+    return executeMobile(browser, 'mobile: toggleGps', {})
 }

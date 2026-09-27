@@ -243,7 +243,7 @@ const jasmineAfterAll = async () => {
         'spec did not execute the expected describe'
     )
     assert.ok(
-        specLogs.includes('actual expected') && specLogs.includes('truefalse'),
+        specLogs.includes('Expected true to be false.'),
         'spec did not fail with the expected check'
     )
     assert.ok(
@@ -602,10 +602,10 @@ const wdioHooks = async () => {
 }
 
 /**
- * multiremote wdio testrunner tests
+ * Multi-remote wdio testrunner tests
  */
-const multiremote = async () => {
-    await launch('multiremote', baseConfig, {
+const multiRemote = async () => {
+    await launch('multi-remote', baseConfig, {
         specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
         capabilities: {
             browserA: {
@@ -617,7 +617,7 @@ const multiremote = async () => {
         }
     })
 
-    const { skippedSpecs, passed, failed } = await launch('multiremote', baseConfig, {
+    const { skippedSpecs, passed, failed } = await launch('multi-remote', baseConfig, {
         specs: [
             path.resolve(__dirname, 'multiremote', 'test-filter1.js'),
             path.resolve(__dirname, 'multiremote', 'test-filter2.js')
@@ -642,11 +642,11 @@ const multiremote = async () => {
 }
 
 /**
- * parallel multiremote wdio testrunner tests
+ * parallel multi-remote wdio testrunner tests
  */
-const parallelMultiremote = async () => {
+const parallelMultiRemote = async () => {
     console.log(parallelMultiRemoteBaseConfig)
-    await launch('parallelMultiremote', parallelMultiRemoteBaseConfig, {
+    await launch('parallelMultiRemote', parallelMultiRemoteBaseConfig, {
         specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
     })
 }
@@ -1151,12 +1151,58 @@ const jasmineAfterHookArgsValidation = async () => {
 }
 // *** END - Tests for Jasmine ***
 
+/**
+ * Verifies @wdio/display-server's built artifacts load cleanly and honour the
+ * platform contract on every OS the smoke matrix exercises. Catches:
+ *   - stale build/ dirs that emit CJS code under "type": "module"
+ *   - missing exports / subpath misconfigurations
+ *   - shouldRun() drift across platforms
+ */
+const displayServerSmoke = async () => {
+    const savedDisplay = process.env.DISPLAY
+    const savedWayland = process.env.WAYLAND_DISPLAY
+    delete process.env.DISPLAY
+    delete process.env.WAYLAND_DISPLAY
+    try {
+        const pkg = await import('@wdio/display-server')
+        assert.ok(pkg.DisplayServerManager, 'DisplayServerManager export missing')
+        assert.ok(pkg.WaylandDisplayServer, 'WaylandDisplayServer export missing')
+        assert.ok(pkg.XvfbDisplayServer, 'XvfbDisplayServer export missing')
+        assert.ok(pkg.displayServer, 'displayServer singleton proxy missing')
+        assert.strictEqual(typeof pkg.startDisplayDaemonFromConfig, 'function',
+            'startDisplayDaemonFromConfig export missing — runner integration uses this')
+        assert.strictEqual(typeof pkg.optionsFromConfig, 'function',
+            'optionsFromConfig export missing')
+
+        const mgr = new pkg.DisplayServerManager()
+        const should = mgr.shouldRun()
+        if (process.platform === 'linux') {
+            assert.strictEqual(should, true,
+                'On Linux without DISPLAY/WAYLAND_DISPLAY, shouldRun() must be true')
+        } else {
+            assert.strictEqual(should, false,
+                `On ${process.platform}, shouldRun() must be false`)
+        }
+
+        const disabled = new pkg.DisplayServerManager({ enabled: false })
+        assert.strictEqual(disabled.shouldRun(), false,
+            'enabled:false must override platform/env')
+
+        // Lazy singleton proxy must not throw on access
+        assert.strictEqual(typeof pkg.displayServer.shouldRun, 'function')
+    } finally {
+        if (savedDisplay === undefined) { delete process.env.DISPLAY } else { process.env.DISPLAY = savedDisplay }
+        if (savedWayland === undefined) { delete process.env.WAYLAND_DISPLAY } else { process.env.WAYLAND_DISPLAY = savedWayland }
+    }
+}
+
 (async () => {
     const smokeTests = [
+        displayServerSmoke,
         mochaTestrunner,
         jasmineTestrunner,
-        multiremote,
-        parallelMultiremote,
+        multiRemote,
+        parallelMultiRemote,
         wdioHooks,
         cjsTestrunner,
         sharedStoreServiceTest,

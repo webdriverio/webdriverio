@@ -1,6 +1,7 @@
 ---
 id: wdio
 title: WebDriverIO DevTools
+description: "Install and configure the WebdriverIO DevTools service to debug tests with DOM replay, screenshots, network and console capture and screencasts."
 ---
 
 A WebdriverIO service that provides a developer tools UI for running, debugging, and inspecting browser automation tests. Features include DOM mutation replay, per-command screenshots, network request inspection, console log capture, and session screencast recording.

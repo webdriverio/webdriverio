@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Set the content of the system clipboard.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * The `content` must be provided as a base64-encoded string. Android only supports the `plaintext`
  * content type.
@@ -36,14 +34,5 @@ export async function setClipboard(
         throw new Error('The `setClipboard` command is only available for mobile platforms.')
     }
 
-    try {
-        return await browser.execute('mobile: setClipboard', { content, contentType, label })
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: setClipboard', '/appium/device/set_clipboard')
-        return browser.appiumSetClipboard(content, contentType, label)
-    }
+    return executeMobile(browser, 'mobile: setClipboard', { content, contentType, label })
 }

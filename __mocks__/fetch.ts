@@ -60,7 +60,7 @@ const transformPropertyWithMockFunction = (collection: any[]) => {
     })
 }
 
-const requestMock: any = vi.fn().mockImplementation((uri, params) => {
+const requestMock: any = vi.fn().mockImplementation(async (uri, params) => {
     let value: any = {}
     let jsonwpMode = false
     let sessionResponse: any = {
@@ -311,7 +311,7 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     case `/session/${sessionId}/execute`:
     case `/session/${sessionId}/execute/sync`: {
         const script = Function(body.script)
-        const args = transformPropertyWithMockFunction(body.args.map((arg: any) => (arg && (arg.ELEMENT || arg[ELEMENT_KEY])) || arg))
+        const args = transformPropertyWithMockFunction(body.args.map((arg: any) => (arg && arg[ELEMENT_KEY]) || arg))
         let result: any = null
         if (body.script.includes('resq')) {
             if (body.script.includes('react$$')) {
@@ -378,9 +378,15 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         break
     } case `/session/${sessionId}/execute/async`: {
         const script = Function(body.script)
-        let result
-        script.call(this, ...body.args, (_result: any) => result = _result)
-        value = result ?? {}
+        const pending = Symbol('pending')
+        let result: any = pending
+        script.call(this, ...body.args, (_result: any) => { result = _result })
+        // An async script can `await` several times before calling the callback.
+        // Drain microtasks until it does, and stop if it is waiting on a timer.
+        for (let i = 0; i < 20 && result === pending; i++) {
+            await Promise.resolve()
+        }
+        value = result === pending ? {} : (result ?? {})
         break
     } case `${path}/${sessionId}/element/${genericElementId}/elements`:
         value = [

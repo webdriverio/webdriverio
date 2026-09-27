@@ -1,6 +1,7 @@
 ---
 id: methods
 title: Methods
+description: "Use the save and check methods of the visual service to capture screenshots and compare screens, elements and full pages against baselines."
 ---
 
 The following methods are added to the global WebdriverIO [`browser`](/docs/api/browser)-object.

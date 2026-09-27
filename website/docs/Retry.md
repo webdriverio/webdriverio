@@ -1,6 +1,7 @@
 ---
 id: retry
 title: Retry Flaky Tests
+description: "Retry flaky tests in Mocha, Jasmine or Cucumber, rerun whole spec files and run a specific test multiple times to detect flakiness."
 ---
 
 You can rerun certain tests with the WebdriverIO testrunner that turn out to be unstable due to things like a flaky network or race conditions. (However, it is not recommended to simply increase the rerun rate if tests become unstable!)

@@ -11,6 +11,6 @@ exports.config = {
         browserName: 'chrome'
     }, {
         browserName: 'firefox',
-        specs: [path.join(TEST_ROOT, 'test2.js')]
+        'wdio:specs': [path.join(TEST_ROOT, 'test2.js')]
     }]
 }

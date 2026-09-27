@@ -138,6 +138,14 @@ describe('CucumberAdapter', () => {
         }))
     })
 
+    it('throws if tagExpression is set', async () => {
+        await expect(
+            CucumberAdapter.init!('0-0', { cucumberOpts: { tagExpression: '@smoke' } }, [], {}, {}, {}, false, ['progress'])
+        ).rejects.toEqual(expect.objectContaining({
+            message: 'The option "tagExpression" was removed. Use "tags" instead. See https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300'
+        }))
+    })
+
     it('should not initiated with no tests', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, [], {}, {}, {}, false, ['progress'])
         expect(executeHooksWithArgs).toBeCalledTimes(0)

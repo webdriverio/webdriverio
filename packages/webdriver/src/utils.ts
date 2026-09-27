@@ -4,7 +4,7 @@ import { deepmergeCustom } from 'deepmerge-ts'
 import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
 import type { CommandEndpoint, Protocol } from '@wdio/protocols'
 import {
-    WebDriverProtocol, MJsonWProtocol, AppiumProtocol, ChromiumProtocol,
+    WebDriverProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@wdio/protocols'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
@@ -292,28 +292,23 @@ export function isSuccessfulResponse (statusCode?: number, body?: unknown) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ProtocolCommands = deepmerge<any>(
         /**
-         * if mobile apply JSONWire and WebDriver protocol because
-         * some legacy JSONWire commands are still used in Appium
-         * (e.g. set/get geolocation)
+         * if mobile also apply Appium protocol (geolocation, orientation,
+         * context, settings, and other endpoints current Appium 3 drivers still expose)
          */
         isMobile
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ? deepmerge<any>(AppiumProtocol as Protocol, WebDriverProtocol as Protocol) as Protocol
             : WebDriverProtocol,
         /**
-         * enable Bidi protocol for W3C sessions
+         * v10 sessions are W3C, so the BiDi command set is always present.
+         * A live BiDi connection still depends on `webSocketUrl`.
          */
-        isW3C ? WebDriverBidiProtocol : {},
-        /**
-         * only apply mobile protocol if session is actually for mobile
-         */
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        isMobile ? deepmerge<any>(MJsonWProtocol, AppiumProtocol) : {},
+        WebDriverBidiProtocol,
         /**
          * only apply special Chromium commands if session is using Chrome or Edge
          */
@@ -349,9 +344,8 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, isWindowsApp, isMacApp }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, isWindowsApp, isMacApp }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
-        isW3C: { value: isW3C },
         isMobile: { value: isMobile },
         isIOS: { value: isIOS },
         isAndroid: { value: isAndroid },

@@ -1,6 +1,7 @@
 ---
 id: pageobjects
 title: Page Object Pattern
+description: "Structure your tests with the page object pattern by moving selectors and page-specific actions into reusable page classes."
 ---
 
 Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle, it is now possible to build up large test suites using this pattern.

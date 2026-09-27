@@ -7,31 +7,34 @@ Internal package that builds the content of [webdriver.io](https://webdriver.io)
 - protocol API pages from `@wdio/protocols`
 - WebdriverIO command pages from JSDoc comments in `packages/webdriverio/src/commands`
 - reporter and service pages from package READMEs
+- the ecosystem directory of official and community plugins
 - 3rd-party plugin pages listed in [`src/3rd-party`](./src/3rd-party)
 - community event pages from `https://events.webdriver.io`
 - Electron / Tauri / Dioxus desktop-testing docs from `webdriverio/desktop-mobile`
 - contributing guidelines and awesome-resources pages
 - translated docs from `webdriverio/i18n`
 
-After generation it can upload the Docusaurus build to the `webdriver.io` S3 bucket and invalidate CloudFront.
+The built site is deployed to Vercel by `.github/workflows/deploy.yml`.
 
 ## Workflow
 
 From the repo root:
 
 ```sh
-# generate markdown into website/
+# generate markdown into website/ (includes translation download)
 pnpm run docs:generate
-# equivalent:
-pnpm -r --filter=@wdio/docs run generate
 
-# upload website/build to S3 (used by .github/workflows/deploy.yml)
-pnpm run docs:deploy
-# equivalent:
-pnpm -r --filter=@wdio/docs run deploy
+# English only, for local preview
+pnpm run docs:generate:en
+
+# sidebar coverage, preserved URLs, and llms.txt links
+pnpm run docs:check
+
+# retrieval eval against a built site
+pnpm run docs:eval
 ```
 
-`docs:generate` requires `GITHUB_AUTH` so translations can be downloaded from `webdriverio/i18n`. `docs:deploy` additionally needs AWS credentials and a CloudFront `DISTRIBUTION_ID`.
+`docs:generate` requires `GITHUB_AUTH` so translations can be downloaded from `webdriverio/i18n`.
 
 ## Adding a 3rd-party plugin
 

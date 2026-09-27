@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Get the display density from the device.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :getDisplayDensity.js
@@ -29,14 +27,5 @@ export async function getDisplayDensity(
         throw new Error('The `getDisplayDensity` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: getDisplayDensity', {})
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: getDisplayDensity', '/appium/device/display_density')
-        return browser.appiumGetDisplayDensity()
-    }
+    return executeMobile(browser, 'mobile: getDisplayDensity', {})
 }

@@ -1,10 +1,8 @@
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { executeMobile } from '../../utils/mobile.js'
 
 /**
  *
  * Retrieve visibility and bounds information of the status and navigation bars.
- *
- * > **Note:** Falls back to the deprecated Appium 2 protocol endpoint if the driver does not support the `mobile:` execute method.
  *
  * <example>
     :getSystemBars.js
@@ -30,14 +28,5 @@ export async function getSystemBars(
         throw new Error('The `getSystemBars` command is only available for Android.')
     }
 
-    try {
-        return await browser.execute('mobile: getSystemBars', {})
-    } catch (err: unknown) {
-        if (!isUnknownMethodError(err)) {
-            throw err
-        }
-
-        logAppiumDeprecationWarning('mobile: getSystemBars', '/appium/device/system_bars')
-        return browser.appiumGetSystemBars()
-    }
+    return executeMobile(browser, 'mobile: getSystemBars', {})
 }

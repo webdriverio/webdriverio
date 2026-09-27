@@ -95,7 +95,7 @@ describe('setupDriver', () => {
         expect(setupGeckodriver).toBeCalledWith('/foo/bar', '0.36.0')
     })
 
-    test('with multiremote capabilities', async () => {
+    test('with multi-remote capabilities', async () => {
         await setupDriver({}, {
             browserA: {
                 capabilities: {
@@ -193,7 +193,7 @@ describe('setupDriver', () => {
         expect(setupGeckodriver).toBeCalledWith('/foo/bar', '0.36.0')
     })
 
-    test('with multiremote capabilities series', async () => {
+    test('with multi-remote capabilities series', async () => {
         await setupDriver({}, [{
             browserA: {
                 capabilities: {
@@ -332,7 +332,7 @@ describe('setupBrowser', () => {
         })
     })
 
-    test('with multiremote capabilities', async () => {
+    test('with multi-remote capabilities', async () => {
         await setupBrowser({}, {
             browserA: {
                 capabilities: {
@@ -428,7 +428,7 @@ describe('setupBrowser', () => {
         })
     })
 
-    test('with multiremote capabilities series', async () => {
+    test('with multi-remote capabilities series', async () => {
         await setupBrowser({}, [{
             browserA: {
                 capabilities: {

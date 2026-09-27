@@ -18,13 +18,13 @@ const INTERNALS_TO_IGNORE = [
 
 const b = types.builders
 const MOCK_PREFIX = '/@mock'
-export function mockHoisting(mockHandler: MockHandler): Plugin[] {
+export function mockHoisting(mockHandler: MockHandler): Plugin[] & { prime: (specPath: string) => void } {
     let spec: string | null = null
     let isTestDependency = false
     const sessionMocks = new Set<string>()
     const importMap = new Map<string, string>()
 
-    return [{
+    const plugins: Plugin[] = [{
         name: 'wdio:mockHoisting:pre',
         enforce: 'pre',
         resolveId: mockHandler.resolveId.bind(mockHandler),
@@ -44,9 +44,6 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
         enforce: 'post',
         transform(code, id) {
             const isSpecFile = id === spec
-            if (isSpecFile) {
-                isTestDependency = true
-            }
 
             /**
              * only transform files:
@@ -323,6 +320,17 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 return mc
             }))
 
+            /**
+             * Reprinting a spec that never calls `mock()` changes the module
+             * Vite already transformed. Safari then loads that page and never
+             * starts the tests. Leave those files untouched.
+             */
+            if (sessionMocks.size === 0) {
+                return { code }
+            }
+
+            isTestDependency = true
+
             try {
                 const newCode = print(ast, { sourceMapName: id })
                 log.trace(`Transformed file for mocking: ${id} in ${Date.now() - start}ms`)
@@ -333,25 +341,46 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
             }
         },
         configureServer(server) {
-            return () => {
-                server.middlewares.use('/', async (req, res, next) => {
-                    if (!req.originalUrl) {
-                        return next()
-                    }
-
-                    const urlParsed = url.parse(req.originalUrl)
-                    const urlParamString = new URLSearchParams(urlParsed.query || '')
-                    const specParam = urlParamString.get('spec')
-
-                    if (specParam) {
-                        mockHandler.resetMocks()
-                        isTestDependency = false
-                        spec = os.platform() === 'win32' ? specParam.slice(1) : specParam
-                    }
-
+            /**
+             * Record the spec before Vite transforms the page. This has to run
+             * ahead of the test-page middleware: Vite 7 pre-transforms imported
+             * modules while rendering HTML, and a post hook would see that
+             * happen before `spec` is set, so mocks never rewrite the imports.
+             */
+            const captureSpec = async (req: { originalUrl?: string }, _res: unknown, next: () => void) => {
+                if (!req.originalUrl) {
                     return next()
-                })
+                }
+
+                const urlParsed = url.parse(req.originalUrl)
+                const urlParamString = new URLSearchParams(urlParsed.query || '')
+                const specParam = urlParamString.get('spec')
+
+                if (specParam) {
+                    mockHandler.resetMocks()
+                    isTestDependency = false
+                    spec = os.platform() === 'win32' ? specParam.slice(1) : specParam
+                }
+
+                return next()
+            }
+            server.middlewares.use('/', captureSpec)
+            return () => {
+                server.middlewares.use('/', captureSpec)
             }
         }
     }]
+
+    return Object.assign(plugins, {
+        prime(specPath: string) {
+            if (spec === specPath) {
+                return
+            }
+            mockHandler.resetMocks()
+            isTestDependency = false
+            sessionMocks.clear()
+            importMap.clear()
+            spec = specPath
+        }
+    })
 }

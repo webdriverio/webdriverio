@@ -1,6 +1,7 @@
 ---
 id: boilerplates
 title: Boilerplate Projects
+description: "Browse community boilerplate projects for WebdriverIO with Mocha, Jasmine, Cucumber, Electron and mobile setups to bootstrap your own test suite."
 ---
 
 Over time, our community has developed several projects that you can use as inspiration to set up your own test suite.
@@ -16,7 +17,7 @@ Our very own boilerplate for Cucumber test suites. We created over 150 predefine
     - WebdriverIO
 - Features:
     - Over 150 predefined steps that cover almost everything you need
-    - Integrates WebdriverIO's Multiremote functionality
+    - Integrates WebdriverIO's multi-remote functionality
     - Own demo app
 
 ## [webdriverio/jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate)
@@ -379,7 +380,7 @@ Read more at: [Medium Blog](https://praveendavidmathew.medium.com/winappdriver-f
 ## [praveendvd/appium-chromedriver-multiremote-wdio-boilerplate/](https://github.com/praveendvd/appium-chromedriver-multiremote-wdio-boilerplate)
 
 
-This a template project to help you show how you can run webdriverio multiremote capability with latest WebdriverIO, and Jasmine framework. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO tests in docker
+This a template project to help you show how you can run webdriverio multi-remote capability with latest WebdriverIO, and Jasmine framework. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO tests in docker
 
 This project uses:
      - chromedriver
@@ -392,7 +393,7 @@ Template project to run appium tests on real Roku devices using mocha with page 
 
 - Frameworks
     - WebdriverIO Async v7
-    - Appium 2.0
+    - Appium 3.0
     - Mocha v7
     - Allure Reporting
 
@@ -404,7 +405,7 @@ Template project to run appium tests on real Roku devices using mocha with page 
 
 ## [krishnapollu/wdio-cucumber-poc](https://github.com/krishnapollu/wdio-cucumber-poc)
 
-PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha tests
+PoC project for E2E multi-remote Cucumber tests as well as Data driven Mocha tests
 
 - Framework:
     - Cucumber (v8)
@@ -416,7 +417,7 @@ PoC project for E2E Multiremote Cucumber tests as well as Data driven Mocha test
     - Mocha based Data Driven Tests
     - Web only Tests - in Local as well as cloud platforms
     - Mobile Only tests - local as well as remote cloud emulators (or devices)
-    - Web + Mobile Tests - Multiremote - local as well as cloud platforms
+    - Web + Mobile Tests - multi-remote - local as well as cloud platforms
     - Multiple Reports integrated including Allure
     - Test Data ( JSON / XLSX ) handled globally so as to write the data (created on the fly) to a file post test execution
     - Github workflow to run the test and upload the allure report
@@ -433,7 +434,7 @@ This is a boilerplate project to help show how to run webdriverio multi-remote u
 - Features
   - [Page Object](pageobjects) Model
   - Typescript
-  - Web + Mobile Tests - Multiremote
+  - Web + Mobile Tests - multi-remote
   - Native Android and iOS apps
   - Appium
   - Chromedriver

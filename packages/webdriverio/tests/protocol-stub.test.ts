@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import ProtocolStub from '../src/protocol-stub.js'
-import Multiremote from '../src/multiremote.js'
+import MultiRemote from '../src/multiRemote.js'
 
 describe('reloadSession', () => {
     it('should throw', () => {
@@ -38,8 +38,52 @@ describe('newSession', () => {
     })
 })
 
+describe('recording custom commands', () => {
+    const newSession = () => ProtocolStub.newSession({ capabilities: { browserName: 'chrome' } })
+    const recorded = (session: WebdriverIO.Browser) =>
+        (session as unknown as { customCommands: unknown[] }).customCommands
+
+    it('records the options object as given', async () => {
+        const session = await newSession()
+        const fn = () => {}
+        const options = { attachToElement: true, disableElementImplicitWait: true }
+
+        session.addCommand('myCommand', fn, options)
+
+        expect(recorded(session)).toEqual([['myCommand', fn, options]])
+    })
+
+    it('rejects the removed positional boolean form', async () => {
+        const session = await newSession()
+        const fn = () => {}
+
+        expect(() => {
+            // @ts-expect-error removed positional signature
+            session.addCommand('myCommand', fn, true)
+        }).toThrow('Passing a boolean as the third argument to `addCommand` was removed in WebdriverIO v10.')
+
+        expect(() => {
+            // @ts-expect-error removed positional signature
+            session.overwriteCommand('click', fn, false)
+        }).toThrow('Passing a boolean as the third argument to `overwriteCommand` was removed in WebdriverIO v10.')
+    })
+
+    it('records an options object even when only a name and a function are given', async () => {
+        const session = await newSession()
+        const fn = () => {}
+
+        session.addCommand('myCommand', fn)
+
+        const [command] = recorded(session) as [[string, unknown, unknown]]
+        expect(command).toHaveLength(3)
+        expect(command[0]).toBe('myCommand')
+        expect(command[1]).toBe(fn)
+        expect(typeof command[2]).toBe('object')
+    })
+})
+
 describe('attachToSession', () => {
-    it('should throw if not multiremote', async () => {
+    it('should throw if not multi-remote', async () => {
         const modifier = vi.fn()
         expect(() => ProtocolStub.attachToSession({
             sessionId: '1234',
@@ -53,20 +97,21 @@ describe('attachToSession', () => {
             .toThrow()
     })
 
-    it('should call modifier if multiremote', async () => {
-        const multiremote = new Multiremote()
-        // @ts-ignore test scenario
-        multiremote.instances.instanceName = 'instance'
+    it('should call modifier if multi-remote', async () => {
+        const multiRemote = new MultiRemote()
+        multiRemote.instances.set('instanceName', 'instance' as unknown as WebdriverIO.Browser)
 
         const session = await ProtocolStub.attachToSession(
             // @ts-expect-error
             undefined,
-            multiremote.modifier.bind(multiremote)
+            multiRemote.modifier.bind(multiRemote)
         )
 
         expect(session.capabilities).toBeUndefined()
         expect(session.commandList).toHaveLength(0)
-        expect(session.instanceName).toBe('instance')
+        expect(session.instances).toEqual(['instanceName'])
+        expect(session.getInstance('instanceName')).toBe('instance')
+        expect(Object.hasOwn(session, 'instanceName')).toBe(false)
         expect(() => session.addCommand()).toThrow()
         expect(() => session.overwriteCommand()).toThrow()
     })
