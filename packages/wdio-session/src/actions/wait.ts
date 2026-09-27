@@ -61,7 +61,10 @@ export async function installNetworkProbe (session: Session) {
         return
     }
     if (session.isBidi && typeof session.browser.addInitScript === 'function') {
-        await session.browser.addInitScript(pageNetworkState).catch(() => {})
+        // The probe returns the current counts for `browser.execute`. An init
+        // script ignores that return value, and the same function has to be
+        // passed through so its body is what gets installed in the page.
+        await session.browser.addInitScript(pageNetworkState as unknown as () => void).catch(() => {})
     }
     await session.browser.execute(pageNetworkState).catch(() => {})
 }
@@ -104,7 +107,7 @@ async function waiter (session: Session, target: string) {
         const resolved = await resolveTarget(session, target)
         return resolved
     }
-    const element = await session.browser.$(target)
+    const element = await session.browser.$(target).getElement()
     return { element, code: `$(${quote(target)})`, label: JSON.stringify(target) }
 }
 

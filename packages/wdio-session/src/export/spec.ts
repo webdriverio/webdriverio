@@ -90,6 +90,12 @@ interface SelectorUse {
     getter: string
 }
 
+interface SourceNode {
+    value: unknown
+    start: number
+    end: number
+}
+
 interface ProgramNode {
     type: string
     start: number
@@ -98,6 +104,7 @@ interface ProgramNode {
     callee?: ProgramNode
     name?: string
     arguments?: ProgramNode[]
+    source?: SourceNode
     value?: unknown
     [key: string]: unknown
 }

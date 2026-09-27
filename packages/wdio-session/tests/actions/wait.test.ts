@@ -91,9 +91,11 @@ describe('wait', () => {
         let reverse = false
         const browser = {
             $: () => ({
-                waitForDisplayed: async (opts: { reverse?: boolean }) => {
-                    reverse = Boolean(opts.reverse)
-                }
+                getElement: async () => ({
+                    waitForDisplayed: async (opts: { reverse?: boolean }) => {
+                        reverse = Boolean(opts.reverse)
+                    }
+                })
             })
         }
         const result = await wait({ browser } as unknown as Session, { target: '#spinner', state: 'hidden', $cwd: '/' })
