@@ -59,7 +59,12 @@ describe('wdio session electron', () => {
             private: true,
             dependencies: { electron: '44.4.5' }
         }))
-        const opened = await project.run(['open', 'electron', app], { timeout: 120_000 })
+        const opened = await project.run([
+            'open', 'electron', app,
+            // GitHub-hosted Linux rejects the Electron sandbox and exits Chrome immediately.
+            '--app-arg=--no-sandbox',
+            '--app-arg=--disable-dev-shm-usage'
+        ], { timeout: 120_000 })
         expect(opened.code, `${opened.stderr}\n${opened.stdout}`).toBe(0)
     }, 150_000)
 

@@ -49,9 +49,11 @@ describe('wdio package', () => {
 
     it('packs a bin that imports @wdio/cli at its published version', () => {
         const dest = mkdtempSync(resolve(tmpdir(), 'wdio-pack-'))
+        // Windows installs pnpm as pnpm.cmd, which execFile cannot spawn unless a shell resolves it.
         const packed = execFileSync('pnpm', ['pack', '--pack-destination', dest], {
             cwd: packageDir,
-            encoding: 'utf8'
+            encoding: 'utf8',
+            shell: process.platform === 'win32'
         }).trim().split('\n').pop()
         expect(packed).toBeTruthy()
         const listing = execFileSync('tar', ['-xOf', resolve(dest, packed!), 'package/package.json'], { encoding: 'utf8' })

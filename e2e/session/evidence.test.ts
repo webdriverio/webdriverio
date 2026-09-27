@@ -60,7 +60,7 @@ describe('wdio session trace and record', () => {
         const video = stopped.stdout.split('\n')[0].replace(/^Recorded /, '').trim()
         expect(fs.statSync(video).size, stopped.stdout).toBeGreaterThan(0)
         expect(stopped.stdout, stopped.stdout).toContain('frames in')
-        const framesDir = stopped.stdout.split('frames in ')[1].trim()
+        const framesDir = stopped.stdout.split('frames in ')[1]?.split('\n')[0]?.trim()
         const frames = fs.readdirSync(framesDir).filter((name) => name.endsWith('.png'))
         expect(frames.length).toBeGreaterThanOrEqual(2)
         const duration = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', video], { encoding: 'utf-8' })

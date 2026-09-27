@@ -28,13 +28,16 @@ jobs:
           filename: webdriverio-build.zip
 
       # Electron sessions are not headless. With no DISPLAY, the daemon starts
-      # @wdio/display-server, which needs Xvfb. Hosted Ubuntu images usually
-      # already have it.
-      - name: Ensure Xvfb
+      # @wdio/display-server, which needs Xvfb. Recording encodes with ffmpeg.
+      # Hosted Ubuntu images usually already have Xvfb and not ffmpeg.
+      - name: Ensure Xvfb and ffmpeg
         run: |
-          if ! command -v Xvfb >/dev/null; then
+          missing=()
+          command -v Xvfb >/dev/null || missing+=(xvfb)
+          command -v ffmpeg >/dev/null || missing+=(ffmpeg)
+          if [ "${#missing[@]}" -gt 0 ]; then
             sudo apt-get update
-            sudo apt-get install -y xvfb
+            sudo apt-get install -y "${missing[@]}"
           fi
 
       # pnpm runs dependency build scripts only for `sharp`, so Electron's
