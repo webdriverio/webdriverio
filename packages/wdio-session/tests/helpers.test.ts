@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 
 import { helpers } from '../src/actions/helpers.js'
-import { formatHelpers, loadHelpers, reloadHelpers, rewriteRelativeImports, type LoadedHelper } from '../src/helpers.js'
+import { CONTENT_POLL_BYTES, formatHelpers, loadHelpers, reloadHelpers, rewriteRelativeImports, type LoadedHelper } from '../src/helpers.js'
 import type { Session } from '../src/session.js'
 
 const dirs: string[] = []
@@ -395,9 +395,23 @@ describe('loadHelpers', () => {
         fs.writeFileSync(main, source('a'))
         const session = tracked(dir)
         /**
-         * The poll re-reads every helper file. This assertion is about the
-         * named watch event, so hold that poll off.
+         * The poll re-reads small files. This assertion is about the named
+         * watch event, so hold that poll off and deliver the event here.
+         * A dropped operating-system event must not fail the test.
          */
+        let emit: ((event: string, filename: string | null) => void) | undefined
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation((...args: Parameters<typeof fs.watch>) => {
+            const cbIndex = args.findIndex((arg) => typeof arg === 'function')
+            emit = args[cbIndex] as (event: string, filename: string | null) => void
+            return {
+                on() {
+                    return this
+                },
+                close() {
+                    return undefined
+                }
+            } as unknown as fs.FSWatcher
+        })
         const originalInterval = global.setInterval
         const intervalSpy = vi.spyOn(global, 'setInterval').mockImplementation(((fn: TimerHandler, ms?: number, ...args: unknown[]) => {
             if (ms === 500) {
@@ -409,9 +423,10 @@ describe('loadHelpers', () => {
             await loadHelpers(session, { watch: true })
             const read = () => (session.browser as unknown as { mark: () => string }).mark()
             expect(read()).toBe('a')
-            await new Promise((resolve) => setTimeout(resolve, 500))
+            expect(emit).toBeTypeOf('function')
             const spy = vi.spyOn(fs, 'readFileSync')
             fs.writeFileSync(main, source('b'))
+            emit!('change', 'main.js')
             const started = Date.now()
             let mark = 'a'
             while (Date.now() - started < 3000 && mark !== 'b') {
@@ -426,6 +441,40 @@ describe('loadHelpers', () => {
             expect(reread).toBe(false)
         } finally {
             intervalSpy.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
+    it('does not reread a large unchanged file on the poll', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const data = path.join(helpers, 'payload.bin')
+        fs.writeFileSync(data, Buffer.alloc(CONTENT_POLL_BYTES + 1, 7))
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            'export default function (browser) {',
+            "    browser.addCommand('mark', () => 'a')",
+            '}'
+        ].join('\n'))
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation(() => {
+            return {
+                on() {
+                    return this
+                },
+                close() {
+                    return undefined
+                }
+            } as unknown as fs.FSWatcher
+        })
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const spy = vi.spyOn(fs, 'readFileSync')
+            await new Promise((resolve) => setTimeout(resolve, 700))
+            const reread = spy.mock.calls.some((args) => String(args[0]) === data)
+            spy.mockRestore()
+            expect(reread).toBe(false)
+        } finally {
+            watchSpy.mockRestore()
         }
     })
 

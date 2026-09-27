@@ -13,10 +13,17 @@ const log = logger('@wdio/session:helpers')
 const DEBOUNCE_MS = 200
 /**
  * macOS can drop a watch event, including one that lands before `fs.watch`
- * is active. The poll re-reads file contents, because a same-size edit can
- * keep its modification time and a stat would still look unchanged.
+ * is active. The poll stats every file. It re-reads a file when the size or
+ * modification time changed, and it also re-reads small files so a same-size
+ * edit that keeps its modification time is still visible. Larger files keep
+ * their previous hash until a stat or a named event says they changed.
  */
 const POLL_MS = 500
+/**
+ * A quiet poll re-reads unchanged files only up to this size. A large
+ * auxiliary file is not hashed on every pass.
+ */
+export const CONTENT_POLL_BYTES = 64 * 1024
 
 export interface LoadedHelper {
     file: string
@@ -280,11 +287,12 @@ interface HashedFile {
 /**
  * Hash of every file in the helpers directory. A named edit re-reads those
  * files. An event with no filename re-reads the directory, because the size
- * and modification time can stay the same. A file that could not be read
- * keeps its previous hash and is read again on the next pass. Other files
- * keep their hash.
+ * and modification time can stay the same. A poll re-reads small files for
+ * the same reason and leaves larger unchanged files on their previous hash.
+ * A file that could not be read keeps its previous hash and is read again on
+ * the next pass.
  */
-function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: ReadonlySet<string>, rereadAll = false) {
+function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: ReadonlySet<string>, rereadAll = false, unchangedReadLimit = 0) {
     const hash = crypto.createHash('sha1')
     const files = new Map<string, HashedFile>()
     let names: string[]
@@ -311,7 +319,9 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
             continue
         }
         const prior = previous.get(name)
-        const unchanged = !rereadAll && prior !== undefined && !prior.unread && prior.mtimeMs === stat.mtimeMs && prior.size === stat.size && !reread.has(name)
+        const statSame = prior !== undefined && prior.mtimeMs === stat.mtimeMs && prior.size === stat.size
+        const pollContent = unchangedReadLimit > 0 && stat.size <= unchangedReadLimit
+        const unchanged = !rereadAll && prior !== undefined && !prior.unread && statSame && !reread.has(name) && !pollContent
         let content: string
         if (unchanged && prior) {
             content = prior.hash
@@ -334,7 +344,7 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
     return { stamp: hash.digest('hex'), files }
 }
 
-function armWatcher (session: Session, dir: string, onChange: (names: ReadonlySet<string>, rereadAll: boolean) => void) {
+function armWatcher (session: Session, dir: string, onChange: (names: ReadonlySet<string>, rereadAll: boolean, unchangedReadLimit?: number) => void) {
     let timer: NodeJS.Timeout | undefined
     let closed = false
     let pending = new Set<string>()
@@ -368,7 +378,7 @@ function armWatcher (session: Session, dir: string, onChange: (names: ReadonlySe
             return
         }
         try {
-            onChange(new Set(), true)
+            onChange(new Set(), false, CONTENT_POLL_BYTES)
         } catch (err) {
             log.warn(`Helper watch failed: ${errorLine(err)}`)
         }
@@ -411,8 +421,8 @@ function watchHelpers (session: Session) {
         return
     }
     let tracked = digestHelpers(dir, new Map(), new Set())
-    armWatcher(session, dir, (names, rereadAll) => {
-        const next = digestHelpers(dir, tracked.files, names, rereadAll)
+    armWatcher(session, dir, (names, rereadAll, unchangedReadLimit = 0) => {
+        const next = digestHelpers(dir, tracked.files, names, rereadAll, unchangedReadLimit)
         const changed = next.stamp !== tracked.stamp
         tracked = next
         if (!changed) {
