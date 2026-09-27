@@ -1,5 +1,6 @@
 import { SessionError } from '../errors.js'
 import type { ActionFn } from '../session.js'
+import { openDialog } from './contexts.js'
 
 export const info: ActionFn = async (s) => {
     const caps = s.browser.capabilities as Record<string, unknown>
@@ -16,7 +17,10 @@ export const info: ActionFn = async (s) => {
         artifactsDir: s.artifactsDir,
         headless: s.plan.headless
     }
-    if (s.isWeb && !s.applies.includes('M')) {
+    const dialog = openDialog(s)
+    if (dialog) {
+        data.dialog = `${dialog.type} ${JSON.stringify(dialog.message)}`
+    } else if (s.isWeb && !s.applies.includes('M')) {
         data.url = await s.browser.getUrl().catch(() => undefined)
         data.title = await s.browser.getTitle().catch(() => undefined)
         data.windowSize = await s.browser.getWindowSize().catch(() => undefined)

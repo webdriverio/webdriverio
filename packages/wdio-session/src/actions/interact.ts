@@ -82,6 +82,11 @@ export const navigate: ActionFn = async (session, args) => {
     if (!url) {
         throw usage('No URL given.')
     }
+    if (session.get('frame')) {
+        await session.browser.switchFrame(null)
+        session.set('frame', undefined)
+        session.set('frameStack', [])
+    }
     await session.browser.url(url)
     const title = await session.browser.getTitle().catch(() => '')
     const current = await session.currentUrl()

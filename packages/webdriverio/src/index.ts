@@ -28,6 +28,10 @@ export const SevereServiceError = SevereServiceErrorImport
  * is enabled, see https://webdriver.io/docs/selectors#strict-mode
  */
 export { StrictSelectorError } from './utils/strictMode.js'
+/**
+ * Device descriptors used by `browser.emulate('device', name)`
+ */
+export { deviceDescriptorsSource, type DeviceName } from './deviceDescriptorsSource.js'
 
 /**
  * A method to create a new session with WebdriverIO.

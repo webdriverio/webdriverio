@@ -9,6 +9,7 @@ import { SessionError, usage } from './errors.js'
 import { History } from './history.js'
 import { RingBuffer, type LogEntry, type NetworkEntry } from './daemon/events.js'
 import { RefRegistry } from './snapshot/refs.js'
+import { dialogOpenError, openDialog } from './actions/contexts.js'
 import type { ActionResult, Applies, OpenPlan, PlatformKind, Request } from './types.js'
 
 const log = logger('@wdio/session')
@@ -24,6 +25,11 @@ const DEAD_SESSION_PATTERNS = [
     /A session is either terminated or not started/i,
     /browsing context has been discarded/i
 ]
+
+/**
+ * actions that do not touch the page and keep working while a dialog blocks it
+ */
+const DIALOG_SAFE_ACTIONS = new Set(['dialog', 'info', 'close', 'resume', 'logs', 'requests', 'history', 'export', 'helpers', 'trace', 'record'])
 
 export function isDeadSessionError (err: unknown) {
     const message = (err as Error)?.message || String(err)
@@ -178,11 +184,18 @@ export class Session {
     async dispatch (req: Pick<Request, 'action' | 'args' | 'cwd'>): Promise<ActionResult> {
         const spec = ACTION_MAP.get(req.action)
         const impl = IMPLEMENTATIONS[req.action]
-        if (!spec || !impl) {
+        if (!spec) {
             throw usage(`Unknown action "${req.action}".`, 'Run `wdio session --help` for the list of actions.')
         }
         if (spec.applies && !spec.applies.some((a) => this.applies.includes(a))) {
             throw new SessionError('NOT_SUPPORTED', `"${req.action}" is not supported for ${this.plan.label} sessions.`)
+        }
+        if (!impl) {
+            throw new SessionError('NOT_SUPPORTED', `"${req.action}" is not available in this version of @wdio/session.`)
+        }
+        const dialog = openDialog(this)
+        if (dialog && !DIALOG_SAFE_ACTIONS.has(req.action)) {
+            throw dialogOpenError(dialog)
         }
         const args: ActionArgs = { ...req.args, $cwd: req.cwd || this.cwd }
         const trace = this.get<{ before: (a: string, args: ActionArgs) => Promise<void>, after: (a: string, args: ActionArgs, r?: ActionOutcome, e?: SessionError) => Promise<void> }>('trace')
