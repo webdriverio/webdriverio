@@ -1,7 +1,5 @@
 import http from 'node:http'
-import net from 'node:net'
 import { spawn, type ChildProcess } from 'node:child_process'
-import type { AddressInfo } from 'node:net'
 
 import logger from '@wdio/logger'
 
@@ -12,22 +10,6 @@ const log = logger('@wdio/session:appium')
 
 export function appiumServerArgs (port: number, logFile: string) {
     return ['--port', String(port), '--base-path', '/', '--log', logFile, '--log-no-colors']
-}
-
-export function freePort (): Promise<number> {
-    return new Promise((resolve, reject) => {
-        const server = net.createServer()
-        server.once('error', reject)
-        server.listen(0, '127.0.0.1', () => {
-            const address = server.address() as AddressInfo | null
-            if (!address || typeof address === 'string') {
-                server.close()
-                reject(new Error('Could not allocate a port'))
-                return
-            }
-            server.close(() => resolve(address.port))
-        })
-    })
 }
 
 export function waitForStatus (port: number, timeoutMs = 60_000): Promise<void> {

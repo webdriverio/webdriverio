@@ -1,9 +1,8 @@
 import fs from 'node:fs'
-import net from 'node:net'
 import path from 'node:path'
 import { spawn, type ChildProcess } from 'node:child_process'
-import type { AddressInfo } from 'node:net'
 
+import getPort from 'get-port'
 import { importOptionalDependency } from '@wdio/utils/node'
 import { remote } from 'webdriverio'
 
@@ -44,22 +43,6 @@ interface ServiceModule {
     cleanupWdioSession?: (browser: WebdriverIO.Browser) => Promise<void>
 }
 
-export function freePort (): Promise<number> {
-    return new Promise((resolve, reject) => {
-        const server = net.createServer()
-        server.once('error', reject)
-        server.listen(0, '127.0.0.1', () => {
-            const address = server.address() as AddressInfo | null
-            if (!address || typeof address === 'string') {
-                server.close()
-                reject(new Error('Could not allocate a port'))
-                return
-            }
-            server.close(() => resolve(address.port))
-        })
-    })
-}
-
 export function driverArgs (port: number) {
     return ['--port', String(port)]
 }
@@ -96,7 +79,7 @@ export async function nativeWebviewPlan (target: WebviewTarget, args: OpenArgs, 
     const binary = standalone
         ? undefined
         : checkBinary(spec.binary, { feature: spec.feature, install: spec.install, env, platform: host, hint: HINT_DOCTOR(target) })
-    const port = await freePort()
+    const port = await getPort()
     const display = host === 'linux' && !hasDisplay(env)
     if (display) {
         checkDisplayServer(spec.feature, env, host)

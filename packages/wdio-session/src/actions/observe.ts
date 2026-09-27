@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { imageSize } from 'image-size'
+
 import { SessionError, notSupported } from '../errors.js'
 import { quote } from '../quote.js'
 import { collectWeb } from '../snapshot/web.js'
@@ -139,16 +141,14 @@ export const diff: ActionFn = async (session, args) => {
 }
 
 export function pngSize (file: string) {
-    const fd = fs.openSync(file, 'r')
     try {
-        const header = Buffer.alloc(24)
-        fs.readSync(fd, header, 0, 24, 0)
-        if (header.readUInt32BE(12) !== 0x49484452) {
+        const size = imageSize(fs.readFileSync(file))
+        if (size.type !== 'png') {
             return undefined
         }
-        return { width: header.readUInt32BE(16), height: header.readUInt32BE(20) }
-    } finally {
-        fs.closeSync(fd)
+        return { width: size.width, height: size.height }
+    } catch {
+        return undefined
     }
 }
 

@@ -1,10 +1,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import getPort from 'get-port'
+
 import { checkAppium, type AppiumTarget } from '../deps.js'
 import { usage, notSupported } from '../errors.js'
 import { parseRemoteUrl, type OpenArgs } from './utils.js'
-import { freePort } from './appium.js'
 import { macosCapabilities, windowsCapabilities, desktopLabel } from './desktop.js'
 import type { PlanContext } from './index.js'
 import type { TargetPlan } from '../types.js'
@@ -109,7 +110,7 @@ export async function appiumTargetPlan (target: AppiumTarget, args: OpenArgs, ct
         remote = parseRemoteUrl(args.appiumUrl)
         appium = { driver: DRIVERS[target].automationName.toLowerCase() }
     } else if (checked) {
-        const port = await freePort()
+        const port = await getPort()
         remote = { hostname: '127.0.0.1', port, path: '/' }
         appium = { main: checked.cli, driver: DRIVERS[target].automationName.toLowerCase(), port }
     }

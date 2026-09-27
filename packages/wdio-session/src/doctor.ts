@@ -3,6 +3,8 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { execFile } from 'node:child_process'
 
+import semver from 'semver'
+
 import { installCommand, resolveOptionalDependency } from '@wdio/utils/node'
 
 import { MIN_NODE_VERSION } from './constants.js'
@@ -75,17 +77,9 @@ function fail (id: string, message: string, fix?: string) {
  * True when `version` is older than `minimum` (numeric major.minor.patch).
  */
 export function versionBelow (version: string, minimum: string) {
-    const parse = (value: string) => value.replace(/^v/, '').split('.').slice(0, 3).map((part) => parseInt(part, 10) || 0)
-    const left = parse(version)
-    const right = parse(minimum)
-    for (let i = 0; i < 3; i++) {
-        const a = left[i] || 0
-        const b = right[i] || 0
-        if (a !== b) {
-            return a < b
-        }
-    }
-    return false
+    const current = semver.coerce(version)
+    const floor = semver.coerce(minimum)
+    return Boolean(current && floor && semver.lt(current, floor))
 }
 
 function format (checks: DoctorCheck[]) {

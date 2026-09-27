@@ -1,10 +1,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import picomatch from 'picomatch'
+
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
 import { pollLogs } from '../daemon/capture.js'
-import { formatLog, formatRequest, formatTime, globToRegExp, parseDuration, type RingBuffer } from '../daemon/events.js'
+import { formatLog, formatRequest, formatTime, parseDuration, type RingBuffer } from '../daemon/events.js'
 import type { ActionFn, ActionOutcome } from '../session.js'
 
 const DEFAULT_LIMIT = 50
@@ -48,7 +50,8 @@ function take<T extends { seq: number, time: number }>(buffer: RingBuffer<T>, op
 
 export function requestMatches (url: string, filter: string) {
     if (/[*?]/.test(filter)) {
-        return globToRegExp(filter).test(url)
+        // URLs use `/` on every platform. picomatch otherwise treats `\` as a separator on Windows.
+        return picomatch.isMatch(url, filter, { windows: false })
     }
     return url.includes(filter)
 }

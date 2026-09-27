@@ -97,11 +97,3 @@ export function parseDuration (value: string | number | undefined, fallback?: nu
     const unit = match[2] || 'ms'
     return Math.round(n * ({ ms: 1, s: 1000, m: 60_000, h: 3_600_000 } as const)[unit as 'ms'])
 }
-
-export function globToRegExp (glob: string) {
-    const escaped = glob.replace(/[.+^${}()|[\]\\]/g, '\\$&')
-        .split('**')
-        .map((part) => part.replace(/\*/g, '[^/]*').replace(/\?/g, '.'))
-        .join('.*')
-    return new RegExp(escaped)
-}
