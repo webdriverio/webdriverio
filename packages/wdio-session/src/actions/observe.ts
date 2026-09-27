@@ -17,6 +17,7 @@ export interface SnapshotOptions {
     interactive?: boolean
     all?: boolean
     boxes?: boolean
+    compact?: boolean
 }
 
 export interface TakenSnapshot {
@@ -45,7 +46,7 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
     for (const ref of result.refs) {
         session.refs.set({ ...ref, kind: 'web', generation: session.refs.generation })
     }
-    const text = formatSnapshot(result.tree, { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes })
+    const text = formatSnapshot(result.tree, { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes, compact: opts.compact })
     session.lastSnapshot = text
     return { text, tree: result.tree }
 }
@@ -56,7 +57,8 @@ function snapshotOptions (args: Record<string, unknown>): SnapshotOptions {
         scope: typeof args.scope === 'string' ? args.scope : undefined,
         interactive: Boolean(args.interactive),
         all: Boolean(args.all),
-        boxes: Boolean(args.boxes)
+        boxes: Boolean(args.boxes),
+        compact: Boolean(args.compact)
     }
 }
 

@@ -185,6 +185,7 @@ Accessibility snapshot with refs. Applies to web, native mobile, native desktop.
 | `--interactive`, `-i` | Only interactive elements |
 | `--all` | Include hidden elements |
 | `--boxes` | Append bounding boxes |
+| `--compact` | Drop unnamed nodes that have no content |
 | `--file-only` | Only write the file |
 | `--max-chars` | Print inline up to this many characters (default 8000) |
 

@@ -134,6 +134,7 @@ export const ACTIONS: ActionSpec[] = [
             interactive: { type: 'boolean', alias: 'i', desc: 'Only interactive elements' },
             all: { type: 'boolean', desc: 'Include hidden elements' },
             boxes: { type: 'boolean', desc: 'Append bounding boxes' },
+            compact: { type: 'boolean', desc: 'Drop unnamed nodes that have no content' },
             'file-only': { type: 'boolean', desc: 'Only write the file' },
             'max-chars': { type: 'number', desc: 'Print inline up to this many characters (default 8000)' }
         }

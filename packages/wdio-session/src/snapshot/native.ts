@@ -317,7 +317,7 @@ export async function takeNativeSnapshot (session: Session, opts: SnapshotOption
         const id = remap.get(ref.id) || ref.id
         session.refs.set({ ...ref, id, kind: 'native', generation: session.refs.generation })
     }
-    const text = formatSnapshot(parsed.tree, { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes })
+    const text = formatSnapshot(parsed.tree, { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes, compact: opts.compact })
     session.lastSnapshot = text
     return { text, tree: parsed.tree }
 }
