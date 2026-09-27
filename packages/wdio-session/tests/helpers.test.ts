@@ -421,6 +421,8 @@ describe('loadHelpers', () => {
                 }
                 return stat
             }) as typeof fs.statSync)
+            const readSpy = vi.spyOn(fs, 'readFileSync')
+            const streamSpy = vi.spyOn(fs, 'createReadStream')
             fs.writeFileSync(data, fill(8))
             const started = Date.now()
             let mark = 7
@@ -430,7 +432,13 @@ describe('loadHelpers', () => {
                     await new Promise((resolve) => setTimeout(resolve, 50))
                 }
             }
+            const streamOrder = streamSpy.mock.invocationCallOrder.filter((_, index) => String(streamSpy.mock.calls[index][0]) === data)
+            const readOrder = readSpy.mock.invocationCallOrder.filter((_, index) => String(readSpy.mock.calls[index][0]) === data)
+            readSpy.mockRestore()
+            streamSpy.mockRestore()
             expect(mark).toBe(8)
+            expect(streamOrder.length).toBeGreaterThan(0)
+            expect(readOrder[0]).toBeGreaterThan(streamOrder[0])
         } finally {
             statSpy?.mockRestore()
             watchSpy.mockRestore()

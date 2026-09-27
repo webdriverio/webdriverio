@@ -305,8 +305,9 @@ interface HashedFile {
  * files. An event with no filename re-reads the directory, because the size
  * and modification time can stay the same. A poll re-reads small files for
  * the same reason. A larger unchanged helper source is listed in `deferred`
- * so the caller can hash it without blocking. A large data file is re-read
- * when its status-change time changes and otherwise keeps its previous hash.
+ * so the caller can hash it without blocking. A large data file whose
+ * status-change time changed is hashed the same way, not with a synchronous
+ * read. It keeps its previous hash while its size and times are unchanged.
  * A file that could not be read keeps its previous hash and is read again on
  * the next pass.
  */
@@ -314,11 +315,12 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
     const hash = crypto.createHash('sha1')
     const files = new Map<string, HashedFile>()
     const deferred: string[] = []
+    let urgent = false
     let names: string[]
     try {
         names = fs.readdirSync(dir).sort()
     } catch {
-        return { stamp: hash.digest('hex'), files, deferred }
+        return { stamp: hash.digest('hex'), files, deferred, urgent }
     }
     for (const name of names) {
         const file = path.join(dir, name)
@@ -340,13 +342,20 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
         const prior = previous.get(name)
         const statSame = prior !== undefined && prior.mtimeMs === stat.mtimeMs && prior.ctimeMs === stat.ctimeMs && prior.size === stat.size
         const pollContent = unchangedReadLimit > 0 && stat.size <= unchangedReadLimit
-        const unchanged = !rereadAll && prior !== undefined && !prior.unread && statSame && !reread.has(name) && !pollContent
+        const overLimit = unchangedReadLimit > 0 && stat.size > unchangedReadLimit
+        const forced = rereadAll || prior === undefined || prior.unread || reread.has(name)
+        const unchanged = !forced && statSame && !pollContent
         let content: string
-        if (unchanged && prior) {
+        if (prior && overLimit && !forced) {
             content = prior.hash
-            if (unchangedReadLimit > 0 && stat.size > unchangedReadLimit && isHelperSource(name)) {
+            if (!statSame) {
+                deferred.push(name)
+                urgent = true
+            } else if (isHelperSource(name)) {
                 deferred.push(name)
             }
+        } else if (unchanged && prior) {
+            content = prior.hash
         } else {
             try {
                 content = crypto.createHash('sha1').update(fs.readFileSync(file)).digest('hex')
@@ -363,12 +372,12 @@ function digestHelpers (dir: string, previous: Map<string, HashedFile>, reread: 
         hash.update(content)
         hash.update('\0')
     }
-    return { stamp: hash.digest('hex'), files, deferred }
+    return { stamp: hash.digest('hex'), files, deferred, urgent }
 }
 
 /**
  * Hash a file one chunk at a time, yielding between chunks so a large
- * helper does not stall session commands.
+ * helper or data file does not stall session commands.
  */
 async function hashFileYielding (file: string) {
     const hash = crypto.createHash('sha1')
@@ -481,11 +490,12 @@ function watchHelpers (session: Session) {
     armWatcher(session, dir, (names, rereadAll, unchangedReadLimit = 0) => {
         epoch += 1
         const next = digestHelpers(dir, tracked.files, names, rereadAll, unchangedReadLimit)
-        if (apply(next) || unchangedReadLimit === 0 || next.deferred.length === 0 || scanning || disposed) {
+        apply(next)
+        if (unchangedReadLimit === 0 || next.deferred.length === 0 || scanning || disposed) {
             return
         }
         const now = Date.now()
-        if (now - lastLargeScan < LARGE_POLL_MS) {
+        if (!next.urgent && now - lastLargeScan < LARGE_POLL_MS) {
             return
         }
         lastLargeScan = now
