@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import net from 'node:net'
-import { spawn } from 'node:child_process'
+import { execFileSync, spawn } from 'node:child_process'
 import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
 
 import { createProject, descendants, isAlive, readState, startServer, waitFor, type FixtureServer, type Project } from './helpers.js'
@@ -200,7 +200,18 @@ describe('wdio session lifecycle', () => {
 
     it('uses a remote WebDriver endpoint and leaves it running on close', async () => {
         project = createProject('lifecycle')
-        const chromedriver = fs.globSync(path.join(os.tmpdir(), 'chromedriver', '*', 'chromedriver-*', 'chromedriver'))[0]
+        const downloaded = fs.globSync(path.join(os.tmpdir(), 'chromedriver', '*', 'chromedriver-*', 'chromedriver'))
+        const chromeVersion = ['/usr/local/bin/google-chrome', '/usr/local/bin/chrome', '/usr/bin/google-chrome']
+            .map((bin) => {
+                try {
+                    return execFileSync(bin, ['--version'], { encoding: 'utf-8' })
+                } catch {
+                    return ''
+                }
+            })
+            .join(' ')
+            .match(/(\d+\.\d+\.\d+\.\d+)/)?.[1]
+        const chromedriver = (chromeVersion && downloaded.find((bin) => bin.includes(chromeVersion))) || downloaded[0]
         expect(chromedriver, 'chromedriver downloaded by the tests above').toBeDefined()
         const port = 9515 + Math.floor(Math.random() * 1000)
         const driver = spawn(chromedriver, [`--port=${port}`], { stdio: 'ignore' })

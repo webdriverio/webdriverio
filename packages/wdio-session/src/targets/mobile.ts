@@ -90,6 +90,12 @@ export async function appiumTargetPlan (target: AppiumTarget, args: OpenArgs, ct
     if (required && host !== required.platform && !args.provider && !args.appiumUrl) {
         throw notSupported(`"${target}" sessions require ${required.label}.`)
     }
+    // A missing Appium install is the error to show first. Capability checks
+    // (the app file exists, a bundle id was passed) run after that.
+    let checked: Awaited<ReturnType<typeof checkAppium>> | undefined
+    if (!(typeof args.appiumUrl === 'string' && args.appiumUrl) && !args.provider) {
+        checked = await checkAppium(target, { cwd: ctx.cwd, env: ctx.env })
+    }
     const capabilities = target === 'macos'
         ? macosCapabilities(args)
         : target === 'windows'
@@ -102,8 +108,7 @@ export async function appiumTargetPlan (target: AppiumTarget, args: OpenArgs, ct
     if (typeof args.appiumUrl === 'string' && args.appiumUrl) {
         remote = parseRemoteUrl(args.appiumUrl)
         appium = { driver: DRIVERS[target].automationName.toLowerCase() }
-    } else if (!args.provider) {
-        const checked = await checkAppium(target, { cwd: ctx.cwd, env: ctx.env })
+    } else if (checked) {
         const port = await freePort()
         remote = { hostname: '127.0.0.1', port, path: '/' }
         appium = { main: checked.cli, driver: DRIVERS[target].automationName.toLowerCase(), port }
