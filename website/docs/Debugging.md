@@ -45,6 +45,16 @@ jasmineOpts: {
 See [timeouts](timeouts) for more information on how to do that using other frameworks.
 
 To proceed with the tests after debugging, in the shell use `^C` shortcut or the `.exit` command.
+
+### Pause for a coding agent (`--debug=agent`)
+
+`wdio run --debug=agent` raises the framework timeout to 24 hours and pauses the worker when a spec calls `await browser.debug()` or when a test fails. The run prints a line like:
+
+```text
+Paused in cart.e2e.ts › adds a blue t-shirt. Inspect with `wdio session -s debug-0-0 snapshot`, continue with `wdio session -s debug-0-0 resume`.
+```
+
+Inspect the paused browser with [`wdio session`](/docs/session) (`snapshot`, `exec`, …), then `wdio session -s debug-0-0 resume` to continue. `wdio session -s debug-0-0 close` fails the paused test with `Session closed from wdio session`. The session name is `debug-<cid>` (`debug-0-0` for the first worker).
 ## Dynamic configuration
 
 Note that `wdio.conf.js` can contain Javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable.

@@ -14,9 +14,11 @@ npx wdio session click e3
 npx wdio session <<'JS'
 await expect($('aria/Cart (1)')).toBeDisplayed()
 JS
-npx wdio session export > test/specs/cart.e2e.ts
+npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio session close
 ```
 
 The command is part of `@wdio/cli`. For the full guide, see
 [webdriver.io/docs/session](https://webdriver.io/docs/session).
+Check a machine with `npx wdio session doctor`. Agents install the skill with
+`npx wdio session skill --install .`.

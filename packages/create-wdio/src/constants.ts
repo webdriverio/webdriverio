@@ -796,6 +796,11 @@ export const QUESTIONNAIRE = [{
     },
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && usesSerenity(answers)
 }, {
+    type: 'confirm',
+    name: 'agentSupport',
+    message: 'Set up coding agent support (AGENTS.md section and wdio-session skill)?',
+    default: true
+}, {
     type: 'checkbox',
     name: 'reporters',
     message: 'Which reporter do you want to use?',

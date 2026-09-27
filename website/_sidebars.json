@@ -400,6 +400,8 @@
           ]
         },
         "repl",
+        "session",
+        "session/session-commands",
         "record",
         "autocompletion"
       ]
