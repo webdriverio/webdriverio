@@ -144,11 +144,14 @@ describe('wdio package', () => {
         const dest = mkdtempSync(resolve(tmpdir(), 'wdio-pack-'))
         const packed = pnpm(['pack', '--pack-destination', dest], packageDir).trim().split('\n').pop()
         expect(packed).toBeTruthy()
-        const listing = execFileSync('tar', ['-xOf', resolve(dest, packed!), 'package/package.json'], { encoding: 'utf8' })
+        // Windows tar treats `C:\...` as a remote host named C. `--force-local`
+        // keeps the drive path as a local archive on bsdtar and GNU tar.
+        const archive = resolve(dest, packed!)
+        const listing = execFileSync('tar', ['--force-local', '-xOf', archive, 'package/package.json'], { encoding: 'utf8' })
         const published = JSON.parse(listing) as { dependencies: Record<string, string>, bin: { wdio: string } }
         expect(published.bin.wdio).toBe('./bin/wdio.js')
         expect(published.dependencies['@wdio/cli']).toMatch(/^\d+\.\d+\.\d+/)
-        const bin = execFileSync('tar', ['-xOf', resolve(dest, packed!), 'package/bin/wdio.js'], { encoding: 'utf8' })
+        const bin = execFileSync('tar', ['--force-local', '-xOf', archive, 'package/bin/wdio.js'], { encoding: 'utf8' })
         expect(bin).toContain("import('@wdio/cli')")
     })
 })
