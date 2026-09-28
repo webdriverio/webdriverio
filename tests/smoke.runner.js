@@ -21,6 +21,7 @@ const ansiColorRegex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0
 process.env.WDIO_UNIT_TESTS = '1'
 
 import launch from './helpers/launch.js'
+import { headlessCapsLog } from './helpers/headless.conf.js'
 import {
     SERVICE_LOGS,
     LAUNCHER_LOGS,
@@ -883,6 +884,54 @@ const runSpecsWithFlagNoArg = async () => {
     assert.strictEqual(skippedSpecs, 0)
 }
 
+/**
+ * `--headless` / `--headless=false` rewrite browser args before the session
+ * starts. The mock driver does not return those args, so the config records
+ * the capabilities the worker is about to send.
+ */
+const headlessFlag = async () => {
+    const spec = path.resolve(__dirname, 'mocha', 'service.js')
+    const config = path.resolve(__dirname, 'helpers', 'headless.conf.js')
+
+    await fs.rm(headlessCapsLog, { force: true })
+    await launch('headlessFlag', config, {
+        specs: [spec],
+        capabilities: [{
+            browserName: 'chrome',
+            'goog:chromeOptions': {
+                args: ['--no-sandbox', '--disable-dev-shm-usage']
+            }
+        }],
+        headless: true
+    })
+    const forced = JSON.parse(await fs.readFile(headlessCapsLog, 'utf8'))
+    assert.deepStrictEqual(forced['goog:chromeOptions'].args, [
+        '--no-sandbox',
+        '--disable-dev-shm-usage',
+        '--headless',
+        '--disable-gpu'
+    ])
+
+    await fs.rm(headlessCapsLog, { force: true })
+    await launch('headlessFlag', config, {
+        specs: [spec],
+        capabilities: [{
+            browserName: 'chrome',
+            'goog:chromeOptions': {
+                args: ['--no-sandbox', '--disable-dev-shm-usage', '--headless=new', '--disable-gpu']
+            }
+        }],
+        headless: false
+    })
+    const stripped = JSON.parse(await fs.readFile(headlessCapsLog, 'utf8'))
+    assert.deepStrictEqual(stripped['goog:chromeOptions'].args, [
+        '--no-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu'
+    ])
+    await fs.rm(headlessCapsLog, { force: true })
+}
+
 const cliExcludeParamValidationAllExcludedByKeyword = async () => {
     const { passed, skippedSpecs, failed } = await launch(
         'cliExcludeParamValidationAllExcludedByKeyword',
@@ -1191,6 +1240,7 @@ const jasmineAfterHookArgsValidation = async () => {
         runSpecsWithFlagSeveralPassed,
         runSpecsWithFlagDirectPath,
         runSpecsWithFlagNoArg,
+        headlessFlag,
         jasmineHooksTestrunner,
         jasmineAfterHookArgsValidation,
         cliExcludeParamValidationAllExcludedByKeyword,
