@@ -50,6 +50,22 @@ html[data-theme=dark] {
     --ifm-toc-link-color: #fff;
 }
 
+/*
+ * The announcement bar's border sits on top of the navbar edge, which reads as
+ * a double rule. The navbar background is the separator.
+ */
+.theme-announcement-bar {
+    border-bottom: none;
+}
+
+.ukraine-flag {
+    display: inline-block;
+    width: 1.15em;
+    height: 0.78em;
+    margin: 0 0.2em;
+    vertical-align: -0.12em;
+}
+
 @media (max-width: 996px) {
     :root {
         --wdio-spacing-vertical: 20px;
