@@ -250,10 +250,11 @@ function face(id: DeviceId, mark: Mark): Phase | 'idle' {
  * when the command is finished so the stage reacts as if Enter was pressed.
  * Typing state stays here so the device frames do not re-render per character.
  */
-function Terminal({ step, onEnter }: { step: number, onEnter: (index: number) => void }) {
+function Terminal({ step, running, onEnter }: { step: number, running: boolean, onEnter: (index: number) => void }) {
     const bodyRef = useRef<HTMLDivElement>(null)
     const onEnterRef = useRef(onEnter)
     const started = useRef(false)
+    const enteredStep = useRef<number | null>(null)
     const seenStep = useRef(step)
     const mark = SESSION_MARKS[Math.min(step, SESSION_MARKS.length - 1)]
     const lines = SESSION_MARKS.slice(0, step + 1)
@@ -286,7 +287,17 @@ function Terminal({ step, onEnter }: { step: number, onEnter: (index: number) =>
         if (reduced) {
             setCount(cmd.length)
             setShowOut(true)
+            enteredStep.current = step
             onEnterRef.current(step)
+            return
+        }
+        // Scrolling away or hiding the tab pauses the storyboard. Leave the
+        // line where it is, and type it again when the visitor comes back,
+        // so the device reaction plays while they can see it.
+        if (!running) {
+            return
+        }
+        if (enteredStep.current === step) {
             return
         }
         setCount(0)
@@ -299,6 +310,7 @@ function Terminal({ step, onEnter }: { step: number, onEnter: (index: number) =>
             if (i >= cmd.length) {
                 timer = setTimeout(() => {
                     setShowOut(true)
+                    enteredStep.current = step
                     onEnterRef.current(step)
                 }, ENTER_PAUSE)
                 return
@@ -307,7 +319,7 @@ function Terminal({ step, onEnter }: { step: number, onEnter: (index: number) =>
         }
         timer = setTimeout(typeNext, TYPE_LEAD + charDelay(cmd[0], 0))
         return () => clearTimeout(timer)
-    }, [step, mark.cmd])
+    }, [step, mark.cmd, running])
 
     return (
         <div className={styles.sessionTerminal} aria-hidden="true">
@@ -341,7 +353,7 @@ function Terminal({ step, onEnter }: { step: number, onEnter: (index: number) =>
  * description next to it is what assistive tech reads.
  */
 export default function SessionDemo() {
-    const { ref, step } = useTimeline<HTMLDivElement>(SESSION_TIMES, LOOP_MS)
+    const { ref, step, running } = useTimeline<HTMLDivElement>(SESSION_TIMES, LOOP_MS)
     // The stage follows the command that was just entered, so the UI reacts after the typing.
     const [committed, setCommitted] = useState(step)
     const typing = SESSION_MARKS[Math.min(step, SESSION_MARKS.length - 1)]
@@ -415,7 +427,7 @@ export default function SessionDemo() {
 
     return (
         <div className={styles.sessionDemo} ref={ref} data-session-step={typing.at}>
-            <Terminal step={Math.min(step, SESSION_MARKS.length - 1)} onEnter={setCommitted} />
+            <Terminal step={Math.min(step, SESSION_MARKS.length - 1)} running={running} onEnter={setCommitted} />
             <div className={styles.sessionStage} ref={stageRef} aria-hidden="true" data-focus={mark.device} data-phase={mark.phase}>
                 <svg className={styles.sessionWires} viewBox="0 0 500 400">
                     <defs>

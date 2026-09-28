@@ -10,6 +10,7 @@ export function useTimeline<T extends HTMLElement> (marks: readonly number[], lo
     const ref = useRef<T>(null)
     const finalStep = Math.max(0, marks.length - 1)
     const [step, setStep] = useState(finalStep)
+    const [running, setRunning] = useState(false)
 
     useEffect(() => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !ref.current || marks.length === 0) {
@@ -17,7 +18,7 @@ export function useTimeline<T extends HTMLElement> (marks: readonly number[], lo
         }
         let timer: ReturnType<typeof setTimeout> | undefined
         let index = 0
-        let running = false
+        let active = false
         let intersecting = false
 
         const clear = () => {
@@ -38,12 +39,14 @@ export function useTimeline<T extends HTMLElement> (marks: readonly number[], lo
         }
         const sync = () => {
             const onScreen = intersecting && document.visibilityState !== 'hidden'
-            if (onScreen && !running) {
-                running = true
+            if (onScreen && !active) {
+                active = true
+                setRunning(true)
                 setStep(index)
                 arm()
-            } else if (!onScreen && running) {
-                running = false
+            } else if (!onScreen && active) {
+                active = false
+                setRunning(false)
                 clear()
             }
         }
@@ -60,5 +63,5 @@ export function useTimeline<T extends HTMLElement> (marks: readonly number[], lo
         }
     }, [marks, loopMs])
 
-    return { ref, step }
+    return { ref, step, running }
 }
