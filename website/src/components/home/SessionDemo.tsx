@@ -260,6 +260,8 @@ function Terminal({ step, running, onEnter }: { step: number, running: boolean, 
     const lines = SESSION_MARKS.slice(0, step + 1)
     const [count, setCount] = useState(mark.cmd.length)
     const [showOut, setShowOut] = useState(true)
+    const countRef = useRef(count)
+    countRef.current = count
     onEnterRef.current = onEnter
 
     // Reset in render so a new command never flashes fully typed before the effect runs.
@@ -291,33 +293,47 @@ function Terminal({ step, running, onEnter }: { step: number, running: boolean, 
             onEnterRef.current(step)
             return
         }
-        // Scrolling away or hiding the tab pauses the storyboard. Leave the
-        // line where it is, and type it again when the visitor comes back,
-        // so the device reaction plays while they can see it.
+        // Scrolling away or hiding the tab pauses the storyboard. Keep the
+        // characters already typed and continue from there, so Enter still
+        // lands before the next beat.
         if (!running) {
             return
         }
         if (enteredStep.current === step) {
             return
         }
-        setCount(0)
-        setShowOut(false)
-        let i = 0
+        let i = countRef.current
+        if (i > cmd.length) {
+            i = 0
+        }
+        if (i === 0) {
+            setCount(0)
+            setShowOut(false)
+        }
         let timer: ReturnType<typeof setTimeout>
+        const finish = () => {
+            timer = setTimeout(() => {
+                setShowOut(true)
+                enteredStep.current = step
+                onEnterRef.current(step)
+            }, ENTER_PAUSE)
+        }
         const typeNext = () => {
             i += 1
             setCount(i)
             if (i >= cmd.length) {
-                timer = setTimeout(() => {
-                    setShowOut(true)
-                    enteredStep.current = step
-                    onEnterRef.current(step)
-                }, ENTER_PAUSE)
+                finish()
                 return
             }
             timer = setTimeout(typeNext, charDelay(cmd[i], i))
         }
-        timer = setTimeout(typeNext, TYPE_LEAD + charDelay(cmd[0], 0))
+        if (i >= cmd.length) {
+            finish()
+        } else if (i === 0) {
+            timer = setTimeout(typeNext, TYPE_LEAD + charDelay(cmd[0], 0))
+        } else {
+            timer = setTimeout(typeNext, charDelay(cmd[i], i))
+        }
         return () => clearTimeout(timer)
     }, [step, mark.cmd, running])
 
