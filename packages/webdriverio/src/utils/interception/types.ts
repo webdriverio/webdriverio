@@ -31,6 +31,7 @@ export interface RequestWithOptions extends BaseOverwriteOptions<local.NetworkBe
 
 export interface RespondWithOptions extends BaseOverwriteOptions<local.NetworkResponseCompletedParameters> {
     statusCode?: Overwrite<number, local.NetworkResponseCompletedParameters>
+    fetchResponse?: boolean
 }
 
 export interface MockRequestOptions {
