@@ -1,78 +1,71 @@
 ---
 id: headless-and-xvfb
 title: Headless & Xvfb with the Testrunner
-description: How WebdriverIO uses Xvfb for headless testing on Linux, configuration options, CI recipes, and troubleshooting.
+description: How the WebdriverIO testrunner starts a Wayland or Xvfb display server for headless testing on Linux, configuration options, CI recipes, and troubleshooting.
 ---
 
-This page explains how the WebdriverIO testrunner supports headless execution on Linux using Xvfb (X Virtual Framebuffer). It covers when Xvfb is useful, how to configure it, and how it behaves in CI and Docker.
+This page explains how the WebdriverIO testrunner provides a display server for headless execution on Linux. It starts Wayland (Weston headless) or Xvfb (X Virtual Framebuffer) once for the run, and every worker uses it. It covers when a display server is useful, how to configure it, and how it behaves in CI and Docker.
 
-## When to use Xvfb vs native headless
+## When to use a display server vs native headless
 
 - Use native headless (e.g., Chrome `--headless=...`) when possible for minimal overhead.
-- Use Xvfb when:
+- Use a display server when:
   - Testing Electron or apps that require a window manager or desktop environment
   - You rely on GLX or window-manager dependent behaviors
-  - Your tooling expects a display server (`DISPLAY`)
+  - Your tooling expects a display (`DISPLAY` or `WAYLAND_DISPLAY`)
   - You run into Chromium errors such as:
     - `session not created: probably user data directory is already in use ...`
     - `Chrome failed to start: exited abnormally. (DevToolsActivePort file doesn't exist)`
-    The user data directory collision error can be misleading as it is often the result of a browser crash and immediate restart that reuses the same profile directory from the prior instance. Ensuring a stable display (e.g., via Xvfb) often resolves it - if not, you should pass a unique `--user-data-dir` per worker.
+    The user data directory collision error can be misleading as it is often the result of a browser crash and immediate restart that reuses the same profile directory from the prior instance. Ensuring a stable display often resolves it - if not, you should pass a unique `--user-data-dir` per worker.
+
+## How it works
+
+- `@wdio/local-runner` starts the display server in its `initialize()` step, before any service's `onPrepare`, and stops it when the run ends. Workers, and the drivers that services start, inherit `DISPLAY` or `WAYLAND_DISPLAY` from the environment.
+- It starts only on Linux, only when `displayServerEnabled` is not `false`, and only when neither `DISPLAY` nor `WAYLAND_DISPLAY` is set. An existing display is always used as is.
+- In `'auto'` mode it tries Wayland first and falls back to Xvfb. Xvfb is skipped on CentOS Stream 10, which does not ship it.
+- Chrome and Edge capabilities, and Electron `appArgs` when `wdio:electronServiceOptions` is set, get the `--ozone-platform` flag for the display server (plus `--enable-features=UseOzonePlatform` on Wayland). If you already pass a `--ozone-platform=` flag, none of these flags are added.
+- Startup makes up to 3 attempts, with a longer delay before each retry. If every attempt fails, the run stops with the error.
+- If neither Weston nor Xvfb is available, and auto-install is off or fails, the runner logs a warning and runs without a display server.
 
 ## Configuration
 
-Four runner options control Xvfb behavior:
+These runner options control the display server:
 
-- `autoXvfb` (boolean, default: true)
-  - Authoritative toggle for usage. If `false`, the runner never uses Xvfb.
-  - If `true`, the runner may use Xvfb when needed.
+- `displayServerEnabled` (boolean, default: true)
+  - Authoritative toggle. If `false`, the runner never starts a display server.
 
-- `xvfbAutoInstall` (boolean, default: false)
-  - Enable automatic installation of `xvfb-run` if missing
-  - When false, the runner will warn and continue without installing
+- `displayServer` ('auto' | 'wayland' | 'xvfb', default: 'auto')
+  - `'auto'` tries Wayland first and falls back to Xvfb. `'wayland'` and `'xvfb'` use only that backend.
 
-- `xvfbAutoInstallMode` ('root' | 'sudo', default: 'sudo')
+- `displayServerAutoInstall` (boolean, default: false)
+  - Install the backend if it is missing.
+  - When false, the runner warns and continues without installing.
+
+- `displayServerAutoInstallMode` ('root' | 'sudo', default: 'sudo')
   - 'root': install only if running as root (no sudo)
-  - 'sudo': allow non-interactive sudo (`sudo -n`) if not root; skip if sudo missing
+  - 'sudo': use non-interactive sudo (`sudo -n`) if not root; without sudo, try the install unprivileged
+  - Applies to the built-in package manager installs only.
 
-- `xvfbAutoInstallCommand` (string | string[], optional)
-  - Custom command to use for installation instead of built-in package manager detection
-  - When provided, this command is executed as-is and overrides the built-in installation logic
+- `displayServerAutoInstallCommand` (string | string[], optional)
+  - Custom command to use for installation instead of built-in package manager detection. It runs as is, without `sudo` being added.
+  - It runs for whichever backend is being installed, and a zero exit code counts as a successful install. In `'auto'` mode that is Wayland first, so a command that installs Xvfb needs `displayServer: 'xvfb'`.
 
-- `xvfbMaxRetries` (number, default: 3)
-  - Number of retry attempts for xvfb process failures.
-  - Useful for flaky CI environments where Xvfb startup may occasionally fail.
+- `displayServerWidth`, `displayServerHeight` (number, default: 1920 and 1080)
+  - Screen size of the display server.
 
-- `xvfbRetryDelay` (number, default: 1000)
-  - Base delay between retries in milliseconds for xvfb process failures.
-  - Uses progressive delay: delay × attempt number (e.g., 1000ms, 2000ms, 3000ms, etc.).
+- `displayServerDepth` (number, default: 24)
+  - Color depth. Xvfb only, ignored by Wayland.
 
 Examples:
 
 ```ts
 export const config: WebdriverIO.Config = {
-  // Use Xvfb when needed
-  autoXvfb: true,
+  // Wayland first, Xvfb as a fallback
+  displayServer: 'auto',
 
-  // Auto-install Xvfb packages using sudo
-  xvfbAutoInstall: true,
-  xvfbAutoInstallMode: 'sudo',
-
-  capabilities: [{
-    browserName: 'chrome',
-    'goog:chromeOptions': { args: ['--headless=new', '--no-sandbox'] }
-  }]
-}
-```
-
-```ts
-export const config: WebdriverIO.Config = {
-  // Use Xvfb when needed
-  autoXvfb: true,
-
-  // Auto-install Xvfb packages using a custom command and sudo
-  xvfbAutoInstall: true,
-  xvfbAutoInstallMode: 'sudo',
-  xvfbAutoInstallCommand: 'curl -L https://github.com/X11/xvfb/releases/download/v1.20.14/xvfb-linux-x64.tar.gz | tar -xz -C /usr/local/bin/',
+  // Auto-install the display server using sudo
+  displayServerAutoInstall: true,
+  displayServerAutoInstallMode: 'sudo',
 
   capabilities: [{
     browserName: 'chrome',
@@ -83,16 +76,12 @@ export const config: WebdriverIO.Config = {
 
 ```ts
 export const config: WebdriverIO.Config = {
-  // Use Xvfb when needed
-  autoXvfb: true,
+  // The custom command below installs Xvfb, so keep it on Xvfb
+  displayServer: 'xvfb',
 
-  // Auto-install Xvfb packages using sudo
-  xvfbAutoInstall: true,
-  xvfbAutoInstallMode: 'sudo',
-
-  // Configure retry behavior for flaky CI environments
-  xvfbMaxRetries: 5,
-  xvfbRetryDelay: 1500,
+  // Auto-install using a custom command, which runs as is
+  displayServerAutoInstall: true,
+  displayServerAutoInstallCommand: 'sudo -n apt-get install -y xvfb',
 
   capabilities: [{
     browserName: 'chrome',
@@ -101,28 +90,14 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
-## Detection logic
+## Using an existing display in CI
 
-- The runner considers Xvfb when:
+If your CI sets up its own display (e.g., `Xvfb :99` with a window manager, or a Wayland compositor), either:
 
-  - Running on Linux
-  - No `DISPLAY` is set (headless environment), or headless browser flags are passed
+- Export `DISPLAY` or `WAYLAND_DISPLAY` before the runner starts. The runner uses it and does not start its own display server.
+- Or set `displayServerEnabled: false` to turn the runner's display server off.
 
-- If `DISPLAY` is set, the runner won’t force Xvfb by default and will honor your existing X server/window manager.
-
-Notes:
-- `autoXvfb: false` disables Xvfb usage entirely (no wrapping with `xvfb-run`).
-- `xvfbAutoInstall` only affects installation if `xvfb-run` is missing; it does not turn usage on/off.
-- `xvfbAutoInstallMode` controls the installation method: 'root' for root-only installs, 'sudo' for sudo-based installs (default: 'sudo').
-- Built-in package installs are always non-interactive. Root-only unless you opt into 'sudo' mode.
-- The retry mechanism uses progressive delays: `xvfbRetryDelay × attempt number` (e.g., 1000ms, 2000ms, 3000ms, etc.).
-
-## Using an existing DISPLAY in CI
-
-If your CI sets up its own X server/window manager (e.g., with `Xvfb :99` and a WM), either:
-
-- Leave `autoXvfb: true` and ensure `DISPLAY` is exported; the runner will honor it and avoid wrapping.
-- Or set `autoXvfb: false` to explicitly disable any Xvfb behavior from the runner.
+Wrapping the run in `xvfb-run -a npx wdio run ./wdio.conf.ts` works the same way, since `xvfb-run` sets `DISPLAY`.
 
 ## CI and Docker recipes
 
@@ -133,58 +108,52 @@ GitHub Actions (using native headless):
   run: npx wdio run ./wdio.conf.ts
 ```
 
-GitHub Actions (virtual display via Xvfb if missing and opted in):
+GitHub Actions (display server installed if missing and opted in):
 
 ```ts
 // wdio.conf.ts
 export const config = {
-  autoXvfb: true,
-  xvfbAutoInstall: true
+  displayServerAutoInstall: true
 }
 ```
 
-Docker (Ubuntu/Debian example – preinstall xvfb):
+Docker (Ubuntu/Debian example – preinstall Weston or Xvfb):
 
 ```Dockerfile
-RUN apt-get update -qq && apt-get install -y xvfb
+RUN apt-get update -qq && apt-get install -y weston
 ```
 
-For other distributions, adjust the package manager and package name accordingly (e.g., `dnf install xorg-x11-server-Xvfb` on Fedora/RHEL-based, `zypper install xvfb-run` on openSUSE/SLE).
+For other distributions, adjust the package manager and package name accordingly, see the table below.
 
-## Automatic installation support (xvfbAutoInstall)
+## Automatic installation support (displayServerAutoInstall)
 
-When `xvfbAutoInstall` is enabled, WebdriverIO attempts to install `xvfb` using your system package manager. The following managers and packages are supported:
+When `displayServerAutoInstall` is enabled, WebdriverIO installs the backend it is trying with your system package manager. The following managers and packages are supported:
 
-| Package Manager | Command         | Distributions (examples)                                   | Package Name(s)                 |
-|-----------------|-----------------|-------------------------------------------------------------|----------------------------------|
-| apt             | `apt-get`       | Ubuntu, Debian, Pop!_OS, Mint, Elementary, Zorin, etc.      | `xvfb`                           |
-| dnf             | `dnf`           | Fedora, Rocky Linux, AlmaLinux, Nobara, Bazzite, etc.       | `xorg-x11-server-Xvfb`           |
-| yum             | `yum`           | CentOS, RHEL (legacy)                                       | `xorg-x11-server-Xvfb`           |
-| zypper          | `zypper`        | openSUSE, SUSE Linux Enterprise                             | `xvfb-run`                       |
-| pacman          | `pacman`        | Arch Linux, Manjaro, EndeavourOS, CachyOS, etc.             | `xorg-server-xvfb`               |
-| apk             | `apk`           | Alpine Linux, PostmarketOS                                  | `xvfb-run`                       |
-| xbps-install    | `xbps-install`  | Void Linux                                                  | `xvfb`                           |
+| Package Manager | Command         | Distributions (examples)                                   | Wayland package | Xvfb package(s)                                   |
+|-----------------|-----------------|-------------------------------------------------------------|-----------------|---------------------------------------------------|
+| apt             | `apt-get`       | Ubuntu, Debian, Pop!_OS, Mint, Elementary, Zorin, etc.      | `weston`        | `xvfb`                                            |
+| dnf             | `dnf`           | Fedora, Rocky Linux, AlmaLinux, Nobara, Bazzite, etc.       | `weston`        | `xorg-x11-server-Xvfb`, `xorg-x11-server-utils`   |
+| yum             | `yum`           | CentOS, RHEL (legacy)                                       | `weston`        | `xorg-x11-server-Xvfb`, `xorg-x11-server-utils`   |
+| zypper          | `zypper`        | openSUSE, SUSE Linux Enterprise                             | `weston`        | `xvfb-run`                                        |
+| pacman          | `pacman`        | Arch Linux, Manjaro, EndeavourOS, CachyOS, etc.             | `weston`        | `xorg-server-xvfb`                                |
+| apk             | `apk`           | Alpine Linux, PostmarketOS                                  | `weston`        | `xvfb-run`                                        |
+| xbps-install    | `xbps-install`  | Void Linux                                                  | `weston`        | `xvfb-run`                                        |
 
 Notes:
-- If your environment uses a different package manager, the install will fail with an error; install `xvfb` manually.
+- If your environment uses a different package manager, the install fails and the run continues without a display server; install `weston` or Xvfb manually.
 - Package names are distro-specific; the table reflects the common names per family.
+- On CentOS Stream 10, Weston comes from EPEL. WebdriverIO does not enable CRB or EPEL for you, so enable them before installing it.
 
 ## Troubleshooting
 
-- “xvfb-run failed to start”
-  - The runner automatically retries Xvfb-related failures with progressive backoff. If failures persist, increase `xvfbMaxRetries` and `xvfbRetryDelay` for flaky environments.
+- The display server fails to start
+  - The runner tries startup up to 3 times with a growing delay. If it still fails, check the `@wdio/display-server` log output for the backend and the error.
 
-- Xvfb wrapped unexpectedly in CI
-  - If you have a custom `DISPLAY` / WM setup, set `autoXvfb: false` or ensure `DISPLAY` is exported before the runner starts.
+- A display server starts unexpectedly in CI
+  - If you have a custom display setup, export `DISPLAY` or `WAYLAND_DISPLAY` before the runner starts, or set `displayServerEnabled: false`.
 
-- Missing `xvfb-run`
-  - Keep `xvfbAutoInstall: false` to avoid modifying the environment; install via your base image or set `xvfbAutoInstall: true` to opt in.
+- Neither Weston nor Xvfb is installed
+  - Keep `displayServerAutoInstall: false` to avoid modifying the environment and install one via your base image, or set `displayServerAutoInstall: true` to opt in.
 
-- Frequent Xvfb startup failures in CI
-  - Increase `xvfbMaxRetries` (e.g., to 5-10) and `xvfbRetryDelay` (e.g., to 2000ms) for more resilient behavior in unstable environments.
-
-## Advanced
-
-- The runner creates processes via a factory that wraps the node worker with `xvfb-run` if Xvfb is needed and available.
-- Headless browser flags (Chrome/Edge/Firefox) signal headless usage and can trigger Xvfb in environments without a `DISPLAY`.
-
+- A custom install command installs Xvfb, but the runner tries Wayland
+  - Set `displayServer: 'xvfb'`. In `'auto'` mode the command runs for Wayland first, and a zero exit code counts as a successful install.

@@ -290,14 +290,41 @@ capabilities: [{
 
 A leftover bare list does not select files for that capability. The capability then uses the top-level `specs` and `exclude`.
 
+## Display server
+
+`@wdio/xvfb` is replaced by `@wdio/display-server`, which runs Wayland (Weston headless) or Xvfb for headless testing on Linux. The `autoXvfb` and `xvfb*` options are renamed or removed. WebdriverIO no longer reads the old keys, so a leftover `autoXvfb: false` no longer turns the display server off.
+
+| v9 | v10 |
+| --- | --- |
+| `autoXvfb` | `displayServerEnabled` |
+| `xvfbAutoInstall` | `displayServerAutoInstall` |
+| `xvfbAutoInstallMode` | `displayServerAutoInstallMode` |
+| `xvfbAutoInstallCommand` | `displayServerAutoInstallCommand` |
+| `xvfbMaxRetries`, `xvfbRetryDelay` | Removed. Startup makes up to 3 attempts, with a longer delay before each retry. |
+
+```diff
+- autoXvfb: true,
+- xvfbAutoInstall: true,
++ displayServerEnabled: true,
++ displayServerAutoInstall: true,
+```
+
+`displayServer` picks the backend: `'auto'` (the default) tries Wayland first and falls back to Xvfb, `'wayland'` and `'xvfb'` force one. With `displayServerAutoInstall`, `'auto'` tries to install Weston first and Xvfb only if that fails. A custom `displayServerAutoInstallCommand` runs for whichever backend is being installed, and a zero exit code counts as a successful install. A v9 `xvfbAutoInstallCommand` can therefore pass as the Wayland install. The Xvfb fallback then never runs, Weston fails to start, and the run stops with an error. Set `displayServer: 'xvfb'` to keep that command on Xvfb.
+
+`displayServerWidth` and `displayServerHeight` set the screen size (default 1920×1080). `displayServerDepth` sets the color depth (default 24, Xvfb only).
+
+Code that imported `XvfbManager` or the `xvfb` instance from `@wdio/xvfb` imports `DisplayServerManager` or `displayServer` from `@wdio/display-server`.
+
 ## Removed commands
 
-`browser.throttle` and the deprecated `touchAction` commands have been removed.
+`browser.throttle`, `executeAsync`, and the deprecated `touchAction` commands have been removed. `switchToFrame` is no longer part of the public types or API docs.
 
 | v9 | v10 |
 | --- | --- |
 | `browser.throttle('Regular3G')` | [`browser.throttleNetwork('Regular3G')`](/docs/api/browser/throttleNetwork) |
 | `browser.touchAction(...)` / `element.touchAction(...)` | The [Actions API](/docs/api/browser/action) with a touch pointer, or the mobile commands [`tap`](/docs/api/mobile/tap) and [`swipe`](/docs/api/mobile/swipe) |
+| `browser.executeAsync(...)` / `element.executeAsync(...)` | [`execute`](/docs/api/browser/execute) with an `async` function |
+| `browser.switchToFrame(...)` | [`browser.switchFrame(...)`](/docs/api/browser/switchFrame) |
 
 A touch gesture with the Actions API:
 
@@ -308,6 +335,25 @@ await browser.action('pointer', { parameters: { pointerType: 'touch' } })
     .move({ x: 100, y: 100, duration: 300 })
     .up()
     .perform()
+```
+
+Return the result from an `async` function instead of calling the `done` callback:
+
+```diff
+- const result = await browser.executeAsync((a, done) => {
+-     setTimeout(() => done(a + 1), 100)
+- }, 1)
++ const result = await browser.execute(async (a) => {
++     await new Promise((resolve) => setTimeout(resolve, 100))
++     return a + 1
++ }, 1)
+```
+
+`switchFrame` takes the frame element, or `null` for the top-level frame. With WebDriver BiDi it also takes a URL, a context id, or a function. It does not take a frame index, so select the frame element instead:
+
+```diff
+- await browser.switchToFrame(0)
++ await browser.switchFrame($$('iframe')[0])
 ```
 
 ## `setTimeout`
