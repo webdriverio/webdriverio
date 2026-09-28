@@ -115,13 +115,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
-        const runnerEnv = Object.assign({
-            /**
-             * Source maps help debug stack traces but add worker boot cost.
-             * Enable them for verbose logging or when the user opts in.
-             */
-            ...(this.shouldEnableSourceMaps() ? { NODE_OPTIONS: '--enable-source-maps' } : {}),
-        }, process.env, this.config.runnerEnv, {
+        const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
             WDIO_WORKER_ID: cid,
             NODE_ENV: process.env.NODE_ENV || 'test'
         })
@@ -136,9 +130,24 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         /**
-         * propagate node flags to child process, e.g. `--import tsx`
+         * Propagate node flags to the worker, e.g. `--import tsx`.
+         * `runnerEnv.NODE_OPTIONS` is the resolved value (`config.runnerEnv`
+         * takes precedence over the parent `process.env`). Append
+         * `--enable-source-maps` as a whole token only when this worker
+         * should map stack traces and the flag is not already present.
+         * Do not concatenate `process.env.NODE_OPTIONS` again: that duplicated
+         * parent flags and leaked the string `"undefined"` when it was unset.
          */
-        runnerEnv.NODE_OPTIONS = process.env.NODE_OPTIONS + ' ' + (runnerEnv.NODE_OPTIONS || '')
+        const nodeOptions = (runnerEnv.NODE_OPTIONS ?? '').trim()
+        const hasSourceMaps = nodeOptions.split(' ').includes('--enable-source-maps')
+        const merged = this.shouldEnableSourceMaps() && !hasSourceMaps
+            ? `${nodeOptions} --enable-source-maps`.trim()
+            : nodeOptions
+        if (merged) {
+            runnerEnv.NODE_OPTIONS = merged
+        } else {
+            delete runnerEnv.NODE_OPTIONS
+        }
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
 

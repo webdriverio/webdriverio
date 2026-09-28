@@ -3,6 +3,20 @@ import type { ChildProcess } from 'node:child_process'
 import { WritableStreamBuffer } from 'stream-buffers'
 import { describe, expect, it, vi } from 'vitest'
 
+const forkMock = vi.hoisted(() => vi.fn(() => ({
+    on: vi.fn(),
+    stdout: null,
+    stderr: null,
+})))
+
+vi.mock('node:child_process', async () => {
+    const actual = await vi.importActual<Record<string, unknown>>('node:child_process')
+    return {
+        ...actual,
+        fork: forkMock,
+    }
+})
+
 import logger from '@wdio/logger'
 import type { Workers } from '@wdio/types'
 
@@ -307,5 +321,78 @@ describe('postMessage', () => {
 
         // and no unhandled rejection — the send is safely skipped
         await worker.isReady
+    })
+})
+
+describe('startProcess NODE_OPTIONS', () => {
+    const runStartProcess = async (
+        parentNodeOptions: string | undefined,
+        config: Record<string, unknown> = {}
+    ) => {
+        const originalNodeOptions = process.env.NODE_OPTIONS
+        const originalSourceMaps = process.env.WDIO_SOURCE_MAPS
+        delete process.env.WDIO_SOURCE_MAPS
+        if (parentNodeOptions === undefined) {
+            delete process.env.NODE_OPTIONS
+        } else {
+            process.env.NODE_OPTIONS = parentNodeOptions
+        }
+
+        forkMock.mockClear()
+        try {
+            const worker = new Worker(
+                config as any,
+                workerConfig,
+                new WritableStreamBuffer(),
+                new WritableStreamBuffer()
+            )
+            await worker.startProcess()
+            const options = forkMock.mock.calls[0][2] as { env: NodeJS.ProcessEnv }
+            return options.env.NODE_OPTIONS
+        } finally {
+            if (originalNodeOptions === undefined) {
+                delete process.env.NODE_OPTIONS
+            } else {
+                process.env.NODE_OPTIONS = originalNodeOptions
+            }
+            if (originalSourceMaps === undefined) {
+                delete process.env.WDIO_SOURCE_MAPS
+            } else {
+                process.env.WDIO_SOURCE_MAPS = originalSourceMaps
+            }
+        }
+    }
+
+    it('does not leak a literal "undefined" when the parent has no NODE_OPTIONS', async () => {
+        const nodeOptions = await runStartProcess(undefined)
+        expect(nodeOptions).toBeUndefined()
+    })
+
+    it('preserves parent node flags without duplicating them', async () => {
+        const nodeOptions = await runStartProcess('--import tsx')
+        expect(nodeOptions).toBe('--import tsx')
+    })
+
+    it('appends source maps for verbose workers without dropping parent flags', async () => {
+        const nodeOptions = await runStartProcess('--import tsx', { logLevel: 'debug' })
+        expect(nodeOptions).toBe('--import tsx --enable-source-maps')
+    })
+
+    it('does not duplicate --enable-source-maps when the parent already set it', async () => {
+        const nodeOptions = await runStartProcess('--enable-source-maps --import tsx', { logLevel: 'trace' })
+        expect(nodeOptions).toBe('--enable-source-maps --import tsx')
+    })
+
+    it('preserves worker NODE_OPTIONS set via config.runnerEnv', async () => {
+        const nodeOptions = await runStartProcess(undefined, {
+            logLevel: 'debug',
+            runnerEnv: { NODE_OPTIONS: '--import tsx' }
+        })
+        expect(nodeOptions).toBe('--import tsx --enable-source-maps')
+    })
+
+    it('keeps repeated option/value pairs intact', async () => {
+        const nodeOptions = await runStartProcess('--require a.js --require b.js', { logLevel: 'debug' })
+        expect(nodeOptions).toBe('--require a.js --require b.js --enable-source-maps')
     })
 })
