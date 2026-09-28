@@ -22,13 +22,6 @@ describe('utils', () => {
         expect(isSuccessfulResponse(404, { value: {
             message: 'An element could not be located on the page using the given search parameters.' }
         })).toBe(true)
-        expect(isSuccessfulResponse(200, { status: 7, value: {} })).toBe(false)
-        expect(isSuccessfulResponse(undefined, { status: 7, value: {} })).toBe(false)
-        expect(isSuccessfulResponse(undefined, { status: 0, value: {} })).toBe(true)
-        expect(isSuccessfulResponse(
-            undefined,
-            { status: 7, value: { message: 'no such element: foobar' } }
-        )).toBe(true)
         expect(isSuccessfulResponse(
             200,
             { value: { message: 'Unable to find element with xpath == //foobar' } }
@@ -369,7 +362,7 @@ describe('utils', () => {
             expect(error.message).toContain('Invalid URL')
         })
 
-        it('should break if JSONWire and WebDriver caps are mixed together', async () => {
+        it('should reject vendor capabilities mixed with unknown keys', async () => {
             const params: RemoteConfig = {
                 hostname: 'localhost',
                 port: 4444,

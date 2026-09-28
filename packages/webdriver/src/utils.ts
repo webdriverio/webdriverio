@@ -15,7 +15,7 @@ import command from './command.js'
 import { environment } from './environment.js'
 import { BidiHandler } from './bidi/handler.js'
 import type { Event } from './bidi/localTypes.js'
-import type { Client, JSONWPCommandError, SessionFlags, RemoteConfig, CommandRuntimeOptions } from './types.js'
+import type { Client, SessionRequestError, SessionFlags, RemoteConfig, CommandRuntimeOptions } from './types.js'
 
 const log = logger('webdriver')
 const deepmerge = deepmergeCustom({ mergeArrays: false })
@@ -48,11 +48,10 @@ const BROWSER_DRIVER_ERRORS = [
 ]
 
 interface SessionInitializationResponse {
-    value: {
-        sessionId?: string,
+    value?: {
+        sessionId?: string
         capabilities?: WebdriverIO.Capabilities
-    },
-    sessionId: string
+    }
 }
 
 /**
@@ -60,19 +59,11 @@ interface SessionInitializationResponse {
  */
 export async function startWebDriverSession (params: RemoteConfig): Promise<{ sessionId: string, capabilities: WebdriverIO.Capabilities }> {
     /**
-     * the user could have passed in either w3c style or jsonwp style caps
-     * and we want to pass both styles to the server, which means we need
-     * to check what style the user sent in so we know how to construct the
-     * object for the other style
+     * Accept a W3C capabilities object (`alwaysMatch` / `firstMatch`) or a
+     * flat capability map, which is wrapped into `alwaysMatch`.
      */
     const capabilities = params.capabilities && 'alwaysMatch' in params.capabilities
-        /**
-         * in case W3C compliant capabilities are provided
-         */
         ? params.capabilities
-        /**
-         * otherwise assume they passed in jsonwp-style caps (flat object)
-         */
         : { alwaysMatch: params.capabilities, firstMatch: [{}] }
 
     /**
@@ -164,14 +155,21 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
         const message = getSessionError(err as Error, params)
         throw new Error(message)
     }
-    const sessionId = response.value.sessionId || response.sessionId
+    const sessionId = response.value?.sessionId
+    const sessionCapabilities = response.value?.capabilities
+    if (!sessionId || !sessionCapabilities) {
+        throw new Error(
+            'WebDriver new session response is missing a session id or capabilities. ' +
+            'WebdriverIO requires a W3C WebDriver server.'
+        )
+    }
 
     /**
      * save actual received session details
      */
-    params.capabilities = (response.value.capabilities || response.value) as WebdriverIO.Capabilities
+    params.capabilities = sessionCapabilities
 
-    return { sessionId, capabilities: params.capabilities }
+    return { sessionId, capabilities: sessionCapabilities }
 }
 
 /**
@@ -190,8 +188,8 @@ export function validateCapabilities (capabilities: WebdriverIO.Capabilities) {
     }
 
     /**
-     * validate capabilities to check if there are no obvious mix between
-     * JSONWireProtocol and WebDriver protocol, e.g.
+     * Reject a mix of vendor-prefixed capabilities and keys that are not
+     * part of the W3C WebDriver capability set.
      */
     if (capabilities) {
         const extensionCaps = Object.keys(capabilities).filter((cap) => cap.includes(':'))
@@ -227,32 +225,6 @@ export function isSuccessfulResponse (statusCode?: number, body?: unknown) {
      */
     if (!body || typeof body !== 'object' || !('value' in body) || typeof body.value === 'undefined') {
         log.debug('request failed due to missing body')
-        return false
-    }
-
-    /**
-     * ignore failing element request to enable lazy loading capability
-     */
-    if (
-        'status' in body && body.status === 7 && body.value && typeof body.value === 'object' &&
-        'message' in body.value && body.value.message && typeof body.value.message === 'string' &&
-        (
-            body.value.message.toLowerCase().startsWith('no such element') ||
-            // Appium
-            body.value.message === 'An element could not be located on the page using the given search parameters.' ||
-            // Internet Explorer
-            body.value.message.toLowerCase().startsWith('unable to find element')
-        )
-    ) {
-        return true
-    }
-
-    /**
-     * if it has a status property, it should be 0
-     * (just here to stay backwards compatible to the jsonwire protocol)
-     */
-    if ('status' in body && body.status && body.status !== 0) {
-        log.debug(`request failed due to status ${body.status}`)
         return false
     }
 
@@ -397,7 +369,7 @@ export function setupDirectConnect(client: Client) {
  * @param {Error} err response error
  * @param params
  */
-export const getSessionError = (err: JSONWPCommandError, params: Partial<Options.WebDriver> = {}) => {
+export const getSessionError = (err: SessionRequestError, params: Partial<Options.WebDriver> = {}) => {
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
         return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +

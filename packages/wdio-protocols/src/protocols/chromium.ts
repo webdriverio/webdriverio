@@ -534,7 +534,7 @@ export default {
         GET: {
             command: 'getLogTypes',
             description: 'Get available log types.',
-            ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidlogtypes',
+            ref: 'https://www.selenium.dev/documentation/webdriver/troubleshooting/logging/',
             parameters: [],
             returns: {
                 type: 'String[]',
@@ -549,7 +549,7 @@ export default {
             command: 'getLogs',
             description:
                 'Get the log for a given log type. Log buffer is reset after each request.',
-            ref: 'https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidlog',
+            ref: 'https://www.selenium.dev/documentation/webdriver/troubleshooting/logging/',
             parameters: [
                 {
                     name: 'type',

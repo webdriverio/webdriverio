@@ -674,19 +674,19 @@ export default class SpecReporter extends WDIOReporter {
         /**
          * fallback to different capability types:
          * browserVersion: W3C format
-         * version: JSONWP format
+         * version: legacy capability name
          * platformVersion: mobile format
-         * browser_version: invalid BS capability
+         * browser_version: BrowserStack capability
          */
-        // @ts-expect-error outdated JSONWP capabilities
+        // @ts-expect-error legacy capability names
         const version = caps.browserVersion || caps.version || caps['appium:platformVersion'] || caps.browser_version
         /**
          * fallback to different capability types:
          * platformName: W3C format
-         * platform: JSONWP format
-         * os, os_version: invalid BS capability
+         * platform: legacy capability name
+         * os, os_version: BrowserStack capabilities
          */
-        // @ts-expect-error outdated JSONWP capabilities
+        // @ts-expect-error legacy capability names
         const platform = caps.platformName || caps['appium:platformName'] || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
 
         // Mobile capabilities
