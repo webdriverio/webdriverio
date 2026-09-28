@@ -407,10 +407,9 @@ export default class Runner extends EventEmitter {
             })
 
             /**
-             * attach browser to `multiremotebrowser` so user have better typing support
+             * attach browser to `multiRemoteBrowser` so user have better typing support
              */
             if (this._isMultiRemote) {
-                _setGlobal('multiremotebrowser', this._browser, config.injectGlobals)
                 _setGlobal('multiRemoteBrowser', this._browser, config.injectGlobals)
             }
         } catch (error: any) {
