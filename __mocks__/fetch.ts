@@ -62,8 +62,7 @@ const transformPropertyWithMockFunction = (collection: any[]) => {
 
 const requestMock: any = vi.fn().mockImplementation(async (uri, params) => {
     let value: any = {}
-    let jsonwpMode = false
-    let sessionResponse: any = {
+    const sessionResponse: any = {
         sessionId,
         capabilities: {
             browserName: 'mockBrowser',
@@ -93,18 +92,6 @@ const requestMock: any = vi.fn().mockImplementation(async (uri, params) => {
             status: 422,
             statusText: 'Unprocessable Entity'
         })
-    }
-
-    if (
-        body &&
-        body.capabilities &&
-        body.capabilities.alwaysMatch.jsonwpMode
-    ) {
-        jsonwpMode = true
-        sessionResponse = {
-            sessionId,
-            browserName: 'mockBrowser'
-        }
     }
 
     if (
@@ -603,9 +590,6 @@ const requestMock: any = vi.fn().mockImplementation(async (uri, params) => {
     }
 
     let response: any = { value }
-    if (jsonwpMode) {
-        response = { value, sessionId, status: 0 }
-    }
 
     if (uri.pathname.startsWith('/grid')) {
         response = response.value

@@ -3,6 +3,7 @@ import { getHighResTime } from './timing.js'
 import { LOG_PREFIX } from './constants.js'
 
 const log = logger('@wdio/appium-service:selector-optimizer')
+const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
 /**
  * Extracts matching elements from page source for debugging.
@@ -157,7 +158,7 @@ export async function testOptimizedSelector(
             duration = getHighResTime() - startTime
 
             const isError = result && typeof result === 'object' && 'error' in result
-            const isValidElement = result && !isError && (('ELEMENT' in result) || ('element-6066-11e4-a52e-4f735466cecf' in result))
+            const isValidElement = result && !isError && (ELEMENT_KEY in result)
 
             elementRefs = isValidElement ? [result as { [key: string]: string }] : []
 
@@ -213,7 +214,7 @@ export async function testOptimizedSelector(
                             const retryDuration = getHighResTime() - retryStartTime
 
                             const isError = retryResult && typeof retryResult === 'object' && 'error' in retryResult
-                            const isValidElement = retryResult && !isError && (('ELEMENT' in retryResult) || ('element-6066-11e4-a52e-4f735466cecf' in retryResult))
+                            const isValidElement = retryResult && !isError && (ELEMENT_KEY in retryResult)
                             const retryElementRefs = isValidElement ? [retryResult as { [key: string]: string }] : []
 
                             if (retryElementRefs.length > 0) {

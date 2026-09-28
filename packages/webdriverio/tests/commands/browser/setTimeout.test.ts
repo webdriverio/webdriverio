@@ -102,15 +102,15 @@ describe('setTimeout', () => {
             .rejects
             .toEqual(invalidTimeoutValueError)
         const removedPageLoadKeyError = new Error('The `page load` timeout key was removed in WebdriverIO v10. Use `{ pageLoad: ... }`.')
-        // @ts-expect-error removed JSONWP key
+        // @ts-expect-error removed page load key
         await expect(browser.setTimeout({ 'page load': null }))
             .rejects
             .toEqual(removedPageLoadKeyError)
-        // @ts-expect-error removed JSONWP key
+        // @ts-expect-error removed page load key
         await expect(browser.setTimeout({ 'page load': 10000 }))
             .rejects
             .toEqual(removedPageLoadKeyError)
-        // @ts-expect-error removed JSONWP key
+        // @ts-expect-error removed page load key
         await expect(browser.setTimeout({ pageLoad: 10000, 'page load': 10000 }))
             .rejects
             .toEqual(removedPageLoadKeyError)

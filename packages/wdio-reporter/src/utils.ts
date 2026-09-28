@@ -34,20 +34,20 @@ export function sanitizeCaps (caps?: WebdriverIO.Capabilities) {
     /**
      * mobile caps
      */
-    // @ts-expect-error outdated JSONWP capabilities
+    // @ts-expect-error legacy capability names
     result = caps['appium:deviceName'] || caps.deviceName
         ? [
             sanitizeString(caps.platformName),
-            // @ts-expect-error outdated JSONWP capabilities
+            // @ts-expect-error legacy capability names
             sanitizeString(caps['appium:deviceName'] || caps.deviceName),
             sanitizeString(caps['appium:platformVersion']),
             sanitizeString(caps['appium:app'])
         ]
         : [
             sanitizeString(caps.browserName),
-            // @ts-expect-error outdated JSONWP capabilities
+            // @ts-expect-error legacy capability names
             sanitizeString(caps.version || caps.browserVersion),
-            // @ts-expect-error outdated JSONWP capabilities
+            // @ts-expect-error legacy capability names
             sanitizeString(caps.platform || caps.platformName),
             sanitizeString(caps['appium:app'])
         ]

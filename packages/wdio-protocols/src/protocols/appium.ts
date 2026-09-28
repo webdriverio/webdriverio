@@ -27,7 +27,7 @@ export default {
     '/session/:sessionId/context': {
         GET: {
             command: 'getAppiumContext',
-            ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#getcurrentcontext',
+            ref: 'https://appium.io/docs/en/latest/guides/context/',
             parameters: [],
             returns: {
                 type: 'Context',
@@ -38,7 +38,7 @@ export default {
         },
         POST: {
             command: 'switchAppiumContext',
-            ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#setcontext',
+            ref: 'https://appium.io/docs/en/latest/guides/context/',
             parameters: [
                 {
                     name: 'name',
@@ -52,7 +52,7 @@ export default {
     '/session/:sessionId/contexts': {
         GET: {
             command: 'getAppiumContexts',
-            ref: 'https://appium.io/docs/en/latest/reference/api/mjsonwp/#getcontexts',
+            ref: 'https://appium.io/docs/en/latest/guides/context/',
             parameters: [],
             returns: {
                 type: 'Context[]',

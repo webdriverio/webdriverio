@@ -9,12 +9,6 @@ export interface WebDriverResponse<T = unknown> {
     error?: string
     message?: string
     stacktrace?: string
-
-    /**
-     * JSONWP property
-     */
-    status?: number
-    sessionId?: string
 }
 
 export type RequestLibResponse = Options.RequestLibResponse

@@ -15,14 +15,14 @@ describe('selector-testing utils', () => {
     describe('testOptimizedSelector', () => {
         test('should find single element successfully', async () => {
             const mockBrowser = {
-                findElement: vi.fn().mockResolvedValue({ ELEMENT: 'element-123' })
+                findElement: vi.fn().mockResolvedValue({ 'element-6066-11e4-a52e-4f735466cecf': 'element-123' })
             } as any
 
             const result = await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', false)
 
             expect(result).toBeDefined()
             expect(result?.elementRefs).toHaveLength(1)
-            expect(result?.elementRefs[0]).toEqual({ ELEMENT: 'element-123' })
+            expect(result?.elementRefs[0]).toEqual({ 'element-6066-11e4-a52e-4f735466cecf': 'element-123' })
             expect(result?.duration).toBeGreaterThanOrEqual(0)
             expect(mockBrowser.findElement).toHaveBeenCalledWith('accessibility id', 'test')
         })
@@ -30,8 +30,8 @@ describe('selector-testing utils', () => {
         test('should find multiple elements successfully', async () => {
             const mockBrowser = {
                 findElements: vi.fn().mockResolvedValue([
-                    { ELEMENT: 'element-1' },
-                    { ELEMENT: 'element-2' }
+                    { 'element-6066-11e4-a52e-4f735466cecf': 'element-1' },
+                    { 'element-6066-11e4-a52e-4f735466cecf': 'element-2' }
                 ])
             } as any
 
@@ -102,7 +102,7 @@ describe('selector-testing utils', () => {
 
         test('should log debug info when debug is true', async () => {
             const mockBrowser = {
-                findElement: vi.fn().mockResolvedValue({ ELEMENT: 'element-123' })
+                findElement: vi.fn().mockResolvedValue({ 'element-6066-11e4-a52e-4f735466cecf': 'element-123' })
             } as any
 
             await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', false, true)
@@ -114,7 +114,7 @@ describe('selector-testing utils', () => {
 
         test('should log debug info for multiple elements when debug is true', async () => {
             const mockBrowser = {
-                findElements: vi.fn().mockResolvedValue([{ ELEMENT: 'element-1' }])
+                findElements: vi.fn().mockResolvedValue([{ 'element-6066-11e4-a52e-4f735466cecf': 'element-1' }])
             } as any
 
             await testOptimizedSelector(mockBrowser, 'accessibility id', 'test', true, true)
@@ -161,7 +161,7 @@ describe('selector-testing utils', () => {
             const mockBrowser = {
                 findElement: vi.fn()
                     .mockResolvedValueOnce({ error: 'no such element' })
-                    .mockResolvedValueOnce({ ELEMENT: 'element-found' }),
+                    .mockResolvedValueOnce({ 'element-6066-11e4-a52e-4f735466cecf': 'element-found' }),
                 getPageSource: vi.fn().mockResolvedValue(
                     '<XCUIElementTypeButton name="test" label="Test Button"></XCUIElementTypeButton>'
                 )
@@ -196,7 +196,7 @@ describe('selector-testing utils', () => {
             const mockBrowser = {
                 findElement: vi.fn()
                     .mockResolvedValueOnce({ error: 'no such element' })
-                    .mockResolvedValueOnce({ ELEMENT: 'element-found' }),
+                    .mockResolvedValueOnce({ 'element-6066-11e4-a52e-4f735466cecf': 'element-found' }),
                 getPageSource: vi.fn().mockResolvedValue(
                     '<XCUIElementTypeButton name="test"></XCUIElementTypeButton>'
                 )
@@ -237,7 +237,7 @@ describe('selector-testing utils', () => {
             const mockBrowser = {
                 findElements: vi.fn()
                     .mockResolvedValueOnce([])
-                    .mockResolvedValueOnce([{ ELEMENT: 'element-1' }]),
+                    .mockResolvedValueOnce([{ 'element-6066-11e4-a52e-4f735466cecf': 'element-1' }]),
                 getPageSource: vi.fn().mockResolvedValue(
                     '<XCUIElementTypeButton name="test"></XCUIElementTypeButton>'
                 )
@@ -442,7 +442,7 @@ describe('selector-testing utils', () => {
             const mockBrowser = {
                 findElement: vi.fn()
                     .mockResolvedValueOnce({ error: 'no such element' })
-                    .mockResolvedValueOnce({ ELEMENT: 'element-found' }),
+                    .mockResolvedValueOnce({ 'element-6066-11e4-a52e-4f735466cecf': 'element-found' }),
                 getPageSource: vi.fn().mockResolvedValue(
                     '<XCUIElementTypeButton></XCUIElementTypeButton>'
                 )

@@ -16,16 +16,13 @@ const log = logger('webdriver')
  * @param {Number=}        options.xOffset  X offset to move to, relative to the center of the element. If not specified, the mouse will move to the center of the element.
  * @param {Number=}        options.yOffset  Y offset to move to, relative to the center of the element. If not specified, the mouse will move to the center of the element.
  *
- * @see  https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
+ * @see https://w3c.github.io/webdriver/#pointer-actions
  * @type protocol
  */
 export async function moveTo (
     this: WebdriverIO.Element,
     { xOffset, yOffset }: MoveToOptions = {},
 ) {
-    /**
-     * W3C way of handle the mouse move actions
-     */
     const browser = getBrowserObject(this)
     if (xOffset || yOffset) {
         const { width, height } = await browser.getElementRect(this.elementId)

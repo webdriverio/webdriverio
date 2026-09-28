@@ -300,7 +300,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print link to Sauce Labs job details page if run with Sauce Connect (jsonwp)', () => {
+            it('should print link to Sauce Labs job details page if run with Sauce Connect (legacy hostname)', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
                         tunnelName: 'foobar',
