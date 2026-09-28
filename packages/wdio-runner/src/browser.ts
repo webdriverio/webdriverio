@@ -19,7 +19,7 @@ import {
     type Workers,
 } from '@wdio/types'
 
-import { transformExpectArgs } from './utils.js'
+import { continueSourceMapRequests, transformExpectArgs } from './utils.js'
 import type BaseReporter from './reporter.js'
 import type { TestFramework, WorkerResponseMessage } from './types.js'
 
@@ -106,11 +106,17 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     async #loop () {
         let failures = 0
 
+        const stopSourceMapRequests = browser.isBidi ? await continueSourceMapRequests(browser) : undefined
+
         /**
          * start tests in a single browser session, hence we use a for...of instead of using Promise concurrency
          */
-        for (const spec of this._specs) {
-            failures += await this.#runSpec(spec)
+        try {
+            for (const spec of this._specs) {
+                failures += await this.#runSpec(spec)
+            }
+        } finally {
+            await stopSourceMapRequests?.()
         }
 
         return failures

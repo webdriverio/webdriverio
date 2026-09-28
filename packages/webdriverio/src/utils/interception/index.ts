@@ -48,8 +48,15 @@ function toStringBody(payload: Exclude<RespondBodyValue, Buffer>) {
     return serialized
 }
 
+/**
+ * `Buffer` is not defined when mocks are created inside the browser runner
+ */
+function isBuffer(payload: RespondBodyValue): payload is Buffer {
+    return typeof Buffer !== 'undefined' && Buffer.isBuffer(payload)
+}
+
 function toNetworkBody(payload: RespondBodyValue) {
-    if (Buffer.isBuffer(payload)) {
+    if (isBuffer(payload)) {
         return { type: 'base64' as const, value: payload.toString('base64') }
     }
 
@@ -193,9 +200,12 @@ export default class WebDriverInterception {
              * if request is not matching pattern but blocked by this mock (due to catch-all),
              * we need to continue the request
              */
-            if (request.intercepts?.includes(this.#mockId)) {
+            if (request.intercepts?.includes(this.#mockId) && !this.#isClaimedByOtherMock(request)) {
                 return this.#browser.networkContinueRequest({
                     request: request.request.request
+                }).catch((err: Error) => {
+                    // someone else (e.g. the browser runner) may have continued it already
+                    log.debug(`Failed to continue request ${request.request.url}: ${err.message}`)
                 })
             }
             return
@@ -279,7 +289,7 @@ export default class WebDriverInterception {
              * if request is not matching pattern but blocked by this mock (due to catch-all),
              * we need to continue the request
              */
-            if (isHandledByThisMock && request.isBlocked) {
+            if (isHandledByThisMock && request.isBlocked && !this.#isClaimedByOtherMock(request)) {
                 return this.#browser.networkProvideResponse({
                     request: request.request.request
                 }).catch(this.#handleNetworkProvideResponseError)
@@ -438,7 +448,7 @@ export default class WebDriverInterception {
      * @param err Bidi message error
      */
     #handleNetworkProvideResponseError(err: Error) {
-        if (err.message.endsWith('no such request')) {
+        if (err.message.includes('no such request')) {
             return
         }
 
@@ -526,6 +536,18 @@ export default class WebDriverInterception {
     #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T) {
         const matches = this.#pattern && this.#pattern.test(request.request.url)
         return request.isBlocked && matches
+    }
+
+    /**
+     * a request blocked by several intercepts is handled by the mock whose pattern
+     * matches it, so a catch-all mock must not continue it on that mock's behalf
+     */
+    #isClaimedByOtherMock(request: local.NetworkBeforeRequestSentParameters | Response) {
+        return Object.values(SESSION_MOCKS).some((mocks) => [...mocks].some((mock) => (
+            mock !== this &&
+            request.intercepts?.includes(mock.#mockId) &&
+            mock.#pattern.test(request.request.url)
+        )))
     }
 
     #matchesPostDataFilter<T extends local.NetworkBeforeRequestSentParameters | Response>(request: RequestWithPostData<T>) {
@@ -659,7 +681,6 @@ export default class WebDriverInterception {
         const handle = await this.#browser.getWindowHandle()
 
         log.trace(`Restoring mock for ${handle}`)
-        SESSION_MOCKS[handle].delete(this as WebDriverInterception)
 
         // Continue any in-flight blocked requests before removing the intercept
         // to prevent them from hanging
@@ -679,7 +700,9 @@ export default class WebDriverInterception {
             await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
         }
 
-        // Now it's safe to mark as restored
+        // Now it's safe to mark as restored; until then this mock still handles
+        // (and claims) requests blocked by its intercept
+        SESSION_MOCKS[handle].delete(this)
         this.#restored = true
 
         return this
@@ -837,6 +860,12 @@ export function parseUrlPattern(url: string | URLPattern) {
     if (typeof url === 'object') {
         return url
     }
+
+    /**
+     * a single `*` already matches across `/`, and adjacent wildcards like `**` make
+     * URLPattern backtrack catastrophically on long URLs that don't match
+     */
+    url = url.replace(/\\.|(\*{2,})/g, (match, wildcards) => wildcards ? '*' : match)
 
     /**
      * parse URLPattern from absolute URL

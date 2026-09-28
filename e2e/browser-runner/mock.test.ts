@@ -19,6 +19,21 @@ describe('WebdriverIO mock command', () => {
         expect(await textAPI.text()).toBe('Hello World')
     })
 
+    it('keeps fetches to loaded scripts under mock control while the page is busy', async () => {
+        const scriptMock = await browser.mock(import.meta.url)
+        scriptMock.respond('mocked script')
+
+        try {
+            const response = fetch(import.meta.url)
+            // Node receives the BiDi event while the page cannot handle it yet.
+            const deadline = performance.now() + 200
+            while (performance.now() < deadline) { /* keep the page busy */ }
+            expect(await (await response).text()).toBe('mocked script')
+        } finally {
+            await scriptMock.restore()
+        }
+    })
+
     let imgMock: WebdriverIO.Mock
     it('can redirect images', async () => {
         imgMock = await browser.mock('https://placehold.co/**')

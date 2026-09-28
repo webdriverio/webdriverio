@@ -1,4 +1,38 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+// eslint-disable-next-line unicorn/prefer-node-protocol
+import EventEmitter from 'events'
+import { isSourceMapRequest } from '@wdio/utils'
+import type { local } from 'webdriver'
+
+export function createBrowserEventEmitter() {
+    const emitter = new EventEmitter()
+    const emit = emitter.emit.bind(emitter)
+    const sourceMapRequests = new Set<string>()
+    emitter.emit = (event, ...args) => {
+        if (
+            event === 'network.beforeRequestSent' ||
+            event === 'network.responseStarted' ||
+            event === 'network.responseCompleted' ||
+            event === 'network.fetchError'
+        ) {
+            // SAFETY: parseBidiMessage emits network events with NetworkBaseParameters.
+            const params = args[0] as local.NetworkBeforeRequestSentParameters
+            if (event === 'network.beforeRequestSent' && isSourceMapRequest(params.initiator)) {
+                sourceMapRequests.add(params.request.request)
+            }
+            if (sourceMapRequests.has(params.request.request)) {
+                if (event === 'network.responseCompleted' || event === 'network.fetchError') {
+                    sourceMapRequests.delete(params.request.request)
+                }
+                // Node owns these synchronous requests; the page receives them after they finish.
+                return false
+            }
+        }
+        return emit(event, ...args)
+    }
+    return emitter
+}
+
 /**
  * Absolute files are imported through Vite's `/@fs/` prefix so the browser
  * requests a module URL rather than a bare filesystem path.

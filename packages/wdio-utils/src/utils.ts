@@ -12,6 +12,10 @@ const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
 export const SLASH = '/'
 export const REG_EXP_WINDOWS_ABS_PATH = /^[A-Za-z]:\\/
 
+export function isSourceMapRequest(initiator?: { stackTrace?: { callFrames: { url: string }[] } }) {
+    return Boolean(initiator?.stackTrace?.callFrames[0]?.url.endsWith('/source-map-support/browser-source-map-support.js'))
+}
+
 function assertPath(path?: unknown) {
     if (typeof path !== 'string') {
         throw new TypeError('Path must be a string. Received ' + JSON.stringify(path))

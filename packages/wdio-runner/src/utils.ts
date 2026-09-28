@@ -1,11 +1,11 @@
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import { remote, multiRemote, attach, type AttachOptions } from 'webdriverio'
-import { DEFAULTS } from 'webdriver'
+import { DEFAULTS, type local } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { AsymmetricMatchers, InverseAsymmetricMatchers } from 'expect-webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
-import { enableFileLogging } from '@wdio/utils'
+import { enableFileLogging, isSourceMapRequest } from '@wdio/utils'
 
 const log = logger('@wdio/runner')
 
@@ -244,4 +244,49 @@ export function transformExpectArgs(arg: unknown): unknown {
     }
 
     return matcher(transformedSample)
+}
+
+/**
+ * source-map-support loads files synchronously while formatting stack traces.
+ * The page cannot handle intercepted requests until that load returns, so Node
+ * must continue them. Other requests, even to the same URL, belong to the mocks.
+ */
+export async function continueSourceMapRequests (browser: WebdriverIO.Browser) {
+    const requests = new Set<string>()
+    const { subscription } = await browser.sessionSubscribe({
+        events: ['network.beforeRequestSent', 'network.responseStarted', 'network.fetchError']
+    })
+    const onBeforeRequest = ({ request, isBlocked, initiator }: local.NetworkBeforeRequestSentParameters) => {
+        if (!isSourceMapRequest(initiator)) {
+            return
+        }
+        requests.add(request.request)
+        if (isBlocked) {
+            browser.networkContinueRequest({ request: request.request }).catch((err: Error) => {
+                // The request may have finished or been canceled before the command arrived.
+                log.debug(`Failed to continue request to ${request.url}: ${err.message}`)
+            })
+        }
+    }
+    const onResponseStarted = ({ request, isBlocked }: local.NetworkResponseStartedParameters) => {
+        if (requests.delete(request.request) && isBlocked) {
+            browser.networkProvideResponse({ request: request.request }).catch((err: Error) => {
+                // The response may have finished or been canceled before the command arrived.
+                log.debug(`Failed to continue response of ${request.url}: ${err.message}`)
+            })
+        }
+    }
+    const onFetchError = ({ request }: local.NetworkFetchErrorParameters) => {
+        requests.delete(request.request)
+    }
+    browser.on('network.beforeRequestSent', onBeforeRequest)
+    browser.on('network.responseStarted', onResponseStarted)
+    browser.on('network.fetchError', onFetchError)
+
+    return async () => {
+        browser.off('network.beforeRequestSent', onBeforeRequest)
+        browser.off('network.responseStarted', onResponseStarted)
+        browser.off('network.fetchError', onFetchError)
+        await browser.sessionUnsubscribe({ subscriptions: [subscription] })
+    }
 }

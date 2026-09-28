@@ -6,13 +6,7 @@ import { getEnvironmentVars, initiateBidi, parseBidiMessage } from 'webdriver'
 import { MESSAGE_TYPES, browserChannelMessage, isBrowserChannelMessage, parseRunnerToBrowserMessage, type Workers } from '@wdio/types'
 import safeStringify from 'safe-stringify'
 
-/**
- * this is a polyfill to use event emitter in browser
- */
-// eslint-disable-next-line unicorn/prefer-node-protocol
-import EventEmitter from 'events'
-
-import { getCID, sanitizeConsoleArgs } from './utils.js'
+import { createBrowserEventEmitter, getCID, sanitizeConsoleArgs } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
@@ -91,7 +85,7 @@ export default class ProxyDriver {
         /**
          * event prototype polyfill for the browser
          */
-        const ee = new EventEmitter()
+        const ee = createBrowserEventEmitter()
         const eventPrototype = {
             emit: { value: ee.emit.bind(ee) },
             on: { value: ee.on.bind(ee) },

@@ -16,12 +16,7 @@ if (
      * see https://github.com/testing-library/vue-testing-library/issues/292
      * Please ignore and remove this in your project!
      */
-    (process.env.CI && process.env.WDIO_PRESET === 'vue') ||
-    /**
-     * We are running network mocking tests on Safari in CI where Safari has no support for
-     * Bidi just yet.
-     */
-    (process.env.CI && isMac && process.argv.includes('mock.test.ts'))
+    (process.env.CI && process.env.WDIO_PRESET === 'vue')
 ) {
     process.exit(0)
 }
@@ -40,7 +35,8 @@ export const config = {
      * capabilities
      */
     capabilities: [
-        isMac
+        // Network mocking requires BiDi, which Safari does not support yet.
+        isMac && !process.argv.includes('mock.test.ts')
             ? {
                 browserName: 'safari'
             }

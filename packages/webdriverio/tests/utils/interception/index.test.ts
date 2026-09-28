@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { type local } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
-import WebDriverInterception from '../../../src/utils/interception/index.js'
+import WebDriverInterception, { parseUrlPattern } from '../../../src/utils/interception/index.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 
 type WebDriverInterceptionClass = typeof WebDriverInterception
@@ -483,6 +483,24 @@ describe('WebDriverInterception', () => {
             request: 'req-123',
             body: { type: 'string', value: '{"requestId":"req-123","foo":"bar"}' },
             statusCode: 200
+        })
+    })
+
+    it('should respond where Buffer is not defined, e.g. in the browser runner', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        vi.stubGlobal('Buffer', undefined)
+        try {
+            mock.respond({ foo: 'bar' })
+        } finally {
+            vi.unstubAllGlobals()
+        }
+        browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            body: { type: 'string', value: '{"foo":"bar"}' }
         })
     })
 
@@ -1221,9 +1239,105 @@ describe('WebDriverInterception', () => {
             resolveProvideResponse!()
             delete SESSION_MOCKS['handle-1']
         })
+
+        it('should keep the mock registered until its intercept is removed', async () => {
+            let resolveRemoveIntercept: () => void
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkRemoveIntercept: vi.fn().mockReturnValue(new Promise<void>((resolve) => {
+                    resolveRemoveIntercept = resolve
+                })),
+                getWindowHandle: vi.fn().mockResolvedValue('handle-1'),
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            SESSION_MOCKS['handle-1'] = new Set([mock])
+
+            const restorePromise = mock.restore()
+            await waitForAsyncHandlers()
+            // other mocks must still see this one as the owner of requests its intercept blocks
+            expect(SESSION_MOCKS['handle-1'].has(mock)).toBe(true)
+
+            resolveRemoveIntercept!()
+            await restorePromise
+            expect(SESSION_MOCKS['handle-1'].has(mock)).toBe(false)
+            delete SESSION_MOCKS['handle-1']
+        })
+    })
+
+    describe('catch-all mocks', () => {
+        const emitRequest = (browser: WebdriverIO.Browser, event: string, url: string, intercepts: string[]) => browser.emit(event, {
+            ...getResponseCollectionRequestStub(),
+            request: { request: 'req-1', url, method: 'GET', headers: [] },
+            intercepts
+        })
+
+        const initiateMocks = async (browser: WebdriverIO.Browser) => {
+            const catchAll = await WebDriverInterception.initiate('**/api/**', {}, browser)
+            const image = await WebDriverInterception.initiate('https://placehold.co/*', {}, browser)
+            SESSION_MOCKS['handle-1'] = new Set([catchAll, image])
+            return { catchAll, image }
+        }
+
+        const getBrowser = (overrides: Partial<WebdriverIO.Browser> = {}) => getResponseCollectionBrowserMock({}, {
+            networkAddIntercept: vi.fn()
+                .mockResolvedValueOnce({ intercept: 'catch-all' })
+                .mockResolvedValueOnce({ intercept: 'image' }),
+            ...overrides
+        })
+
+        beforeEach(() => {
+            delete SESSION_MOCKS['handle-1']
+        })
+
+        it('should leave requests matched by another mock to that mock', async () => {
+            const browser = getBrowser()
+            await initiateMocks(browser)
+
+            emitRequest(browser, 'network.beforeRequestSent', 'https://placehold.co/400x400', ['catch-all', 'image'])
+            emitRequest(browser, 'network.responseStarted', 'https://placehold.co/400x400', ['catch-all', 'image'])
+            await waitForAsyncHandlers()
+
+            // only the image mock continues, the catch-all mock would race its overwrites
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        })
+
+        it('should continue requests no other mock matches', async () => {
+            const browser = getBrowser()
+            await initiateMocks(browser)
+
+            emitRequest(browser, 'network.beforeRequestSent', 'https://example.com/index.js', ['catch-all'])
+            emitRequest(browser, 'network.responseStarted', 'https://example.com/index.js', ['catch-all'])
+            await waitForAsyncHandlers()
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-1' })
+            expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 'req-1' })
+        })
+
+        it('should ignore failures for requests continued by someone else', async () => {
+            const browser = getBrowser({
+                networkContinueRequest: vi.fn().mockRejectedValue(new Error('unknown error - Invalid state for continueInterceptedRequest')),
+                networkProvideResponse: vi.fn().mockRejectedValue(new Error('no such request - No blocked request found for network id \'1.2\''))
+            })
+            await initiateMocks(browser)
+
+            emitRequest(browser, 'network.beforeRequestSent', 'https://example.com/index.js', ['catch-all'])
+            emitRequest(browser, 'network.responseStarted', 'https://example.com/index.js', ['catch-all'])
+            await waitForAsyncHandlers()
+
+            expect(loggerMock.debug).toHaveBeenCalledWith(expect.stringContaining('Invalid state for continueInterceptedRequest'))
+        })
     })
 
     describe('url pattern matching', () => {
+        it.each([
+            String.raw`/files/\**`,
+            String.raw`https://example.com/files/\**`
+        ])('preserves an escaped star followed by a wildcard in %s', (pattern) => {
+            const parsed = parseUrlPattern(pattern)
+            expect(parsed.test('https://example.com/files/*suffix')).toBe(true)
+            expect(parsed.test('https://example.com/files/suffix')).toBe(false)
+        })
+
         const emitBlockedRequest = (browser: WebdriverIO.Browser, url: string) => browser.emit('network.beforeRequestSent', {
             isBlocked: true,
             request: {
@@ -1242,6 +1356,17 @@ describe('WebDriverInterception', () => {
             emitBlockedRequest(browser, 'https://foobar.com/api/users/123')
 
             expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+        })
+
+        it('should not hang on long urls that do not match a `**` glob', async () => {
+            const browser = getResponseCollectionBrowserMock()
+            const mock = await WebDriverInterception.initiate('**/api/**', {}, browser)
+
+            mock.abort()
+            emitBlockedRequest(browser, `http://localhost:5173/@fs/${'very-long-directory-name/'.repeat(4)}build/index.js`)
+            emitBlockedRequest(browser, 'https://foobar.com/v1/api/users')
+
+            expect(browser.networkFailRequest).toHaveBeenCalledTimes(1)
         })
 
         it('should accept a URLPattern', async () => {

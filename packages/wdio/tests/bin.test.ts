@@ -8,7 +8,8 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const PNPM_SCRIPT = /(?:^|[\\/])pnpm(?:\.cjs|\.js|\.mjs)?$/i
+const PNPM_SCRIPT = /(?:^|[\\/])pnpm\.(?:cjs|js|mjs)$/i
+const PNPM_EXECUTABLE = /(?:^|[\\/])pnpm(?:\.exe)?$/i
 
 /**
  * Node 22 and 24 ship corepack next to the executable. Node 26 does not.
@@ -25,30 +26,34 @@ function corepackJs (
     ]
     const found = candidates.find((candidate) => fileExists(candidate))
     if (!found) {
-        throw new Error('Could not find corepack. Run this test with pnpm so npm_execpath points at the pnpm script.')
+        throw new Error('Could not find corepack. Run this test with pnpm so npm_execpath points at the pnpm entry.')
     }
     return found
 }
 
 /**
- * Argv after `node`. Run pnpm's JavaScript entry so a destination such as
- * `C:\Users\Ada Lovelace\AppData\Local\Temp\wdio-pack` stays one argument.
+ * Run JavaScript entries through Node and native pnpm executables directly.
+ * Keep arguments separate so destinations containing spaces remain one argument.
  * `npm_execpath` is pnpm's entry when pnpm launched the test, and npm's
  * entry when npm did, so ignore anything that is not pnpm.
  */
-function pnpmArgv (
+function pnpmCommand (
     args: string[],
     execpath = process.env.npm_execpath,
     resolveCorepack: () => string = corepackJs
-): string[] {
+): [string, ...string[]] {
     if (execpath && PNPM_SCRIPT.test(execpath)) {
+        return [process.execPath, execpath, ...args]
+    }
+    if (execpath && PNPM_EXECUTABLE.test(execpath)) {
         return [execpath, ...args]
     }
-    return [resolveCorepack(), 'pnpm', ...args]
+    return [process.execPath, resolveCorepack(), 'pnpm', ...args]
 }
 
 function pnpm (args: string[], cwd: string) {
-    return execFileSync(process.execPath, pnpmArgv(args), { cwd, encoding: 'utf8' })
+    const [command, ...argv] = pnpmCommand(args)
+    return execFileSync(command, argv, { cwd, encoding: 'utf8' })
 }
 
 /**
@@ -71,28 +76,33 @@ describe('wdio package', () => {
     const corepack = () => '/opt/corepack/dist/corepack.js'
 
     it('packs with pnpm when npm launched the test', () => {
-        const argv = pnpmArgv(
+        const argv = pnpmCommand(
             ['pack', '--pack-destination', 'C:\\Users\\Ada Lovelace\\AppData\\Local\\Temp\\wdio-pack'],
             '/usr/lib/node_modules/npm/bin/npm-cli.js',
             corepack
         )
-        expect(argv[0]).toBe('/opt/corepack/dist/corepack.js')
-        expect(argv[1]).toBe('pnpm')
+        expect(argv.slice(0, 3)).toEqual([process.execPath, '/opt/corepack/dist/corepack.js', 'pnpm'])
         expect(argv.at(-1)).toBe('C:\\Users\\Ada Lovelace\\AppData\\Local\\Temp\\wdio-pack')
     })
 
     it('uses the pnpm script pnpm already put on npm_execpath', () => {
         const entry = '/home/user/.cache/node/corepack/v1/pnpm/11.27.1/bin/pnpm.mjs'
-        const argv = pnpmArgv(['pack'], entry, () => {
+        const argv = pnpmCommand(['pack'], entry, () => {
             throw new Error('corepack should not be required when pnpm launched the test')
         })
-        expect(argv[0]).toBe(entry)
+        expect(argv).toEqual([process.execPath, entry, 'pack'])
+    })
+
+    it.each(['/opt/pnpm/pnpm', 'C:\\Program Files\\pnpm\\pnpm.exe'])('runs the native executable %s without Node or Corepack', (entry) => {
+        const args = ['pack', '--pack-destination', '/tmp/package destination']
+        expect(pnpmCommand(args, entry, () => {
+            throw new Error('native pnpm does not need Corepack')
+        })).toEqual([entry, ...args])
     })
 
     it('does not execute a Windows pnpm.cmd shim', () => {
-        const argv = pnpmArgv(['pack'], 'C:\\Program Files\\nodejs\\pnpm.cmd', corepack)
-        expect(argv[0]).toBe('/opt/corepack/dist/corepack.js')
-        expect(argv[1]).toBe('pnpm')
+        const argv = pnpmCommand(['pack'], 'C:\\Program Files\\nodejs\\pnpm.cmd', corepack)
+        expect(argv).toEqual([process.execPath, '/opt/corepack/dist/corepack.js', 'pnpm', 'pack'])
     })
 
     it('finds Corepack beside node and under an nvm lib directory', () => {
