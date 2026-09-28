@@ -95,7 +95,7 @@ A unit test is not that proof.
 | Testrunner, CLI, reporter, service, framework wiring | `pnpm run test:smoke:list` then `pnpm run test:smoke <suite>` (see [tests/AGENTS.md](tests/AGENTS.md)) |
 | `@wdio/browser-runner` / `e2e/browser-runner` | `pnpm run test:component` |
 | `@wdio/session` / `e2e/session` | `pnpm run test:e2e:session` |
-| `@wdio/display-server` / display-server e2e | `pnpm run test:e2e:display-server` |
+| `@wdio/display-server` / `@wdio/local-runner` / `e2e/wdio/display-server` | `pnpm run test:e2e:display-server` (Linux with no display only; elsewhere rely on CI) |
 | Docs-only (`website/docs`, JSDoc, package README) | `pnpm run docs:list` then `pnpm run docs:generate` |
 | Root CI / toolchain files | treat as `run-all`; run `pnpm run test:local` |
 

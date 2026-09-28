@@ -151,15 +151,24 @@ class Launcher {
         } catch (err) {
             error = err as HookError
         } finally {
-            if (!this._hasTriggeredExitRoutine) {
-                this._hasTriggeredExitRoutine = true
-                const passesCodeCoverage = await this.runner.shutdown()
-                if (!passesCodeCoverage) {
-                    exitCode = exitCode || 1
+            try {
+                if (!this._hasTriggeredExitRoutine) {
+                    this._hasTriggeredExitRoutine = true
+                    const passesCodeCoverage = await this.runner.shutdown()
+                    if (!passesCodeCoverage) {
+                        exitCode = exitCode || 1
+                    }
+                }
+
+                exitCode = await this.#runOnCompleteHook(config, caps, exitCode)
+            } finally {
+                // A failing dispose must not replace the run's own error or exit code.
+                try {
+                    await this.runner.dispose?.()
+                } catch (err) {
+                    log.warn('Failed to dispose the runner:', err)
                 }
             }
-
-            exitCode = await this.#runOnCompleteHook(config, caps, exitCode)
         }
 
         if (error) {
@@ -724,7 +733,7 @@ class Launcher {
 
         this._hasTriggeredExitRoutine = true
         this.interface.sigintTrigger()
-        return this.runner.shutdown().then(callback)
+        return this.runner.shutdown().then(callback) // no dispose(): the process exits next, and that kills the display server
     }
 
     /**

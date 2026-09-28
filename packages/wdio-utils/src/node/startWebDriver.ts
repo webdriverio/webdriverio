@@ -63,6 +63,22 @@ async function spawnDriver (command: string, args: readonly string[], options: c
     throw lastError
 }
 
+/**
+ * Chrome and Edge ignore XDG_SESSION_TYPE before 140 (Chrome for Testing before 135),
+ * and later versions fall back to X11 unless it is `wayland`
+ */
+function addWaylandFlag(browserOptions: { args?: string[] }) {
+    const args = browserOptions.args || []
+    if (
+        process.platform !== 'linux' || !process.env.WAYLAND_DISPLAY || process.env.DISPLAY ||
+        args.some((arg) => /^(--)?(ozone-platform|headless)(=|$)/.test(arg)) // the user chose a platform, or headless needs none
+    ) {
+        return
+    }
+    log.info('Wayland but no X server, adding --ozone-platform=wayland to the browser args')
+    browserOptions.args = [...args, '--ozone-platform=wayland']
+}
+
 export async function startWebDriver(options: Capabilities.RemoteConfig) {
     /**
      * in case we are running unit tests, just return
@@ -140,6 +156,8 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
                     caps['goog:chromeOptions'].args = [...existingArgs, `--user-data-dir=${userDataDir}`]
                 }
             }
+
+            addWaylandFlag(caps['goog:chromeOptions'])
         }
 
         const { executablePath: chromedriverExcecuteablePath } = chromedriverBinary
@@ -227,6 +245,8 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
             caps['ms:edgeOptions'].binary = findEdgePath()
             log.info(`Found Edge binary at ${caps['ms:edgeOptions'].binary}`)
         }
+
+        addWaylandFlag(caps['ms:edgeOptions'])
     } else {
         throw new Error(
             `Unknown browser name "${caps.browserName}". Make sure to pick from one of the following ` +

@@ -1,75 +1,51 @@
 import os from 'node:os'
 import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
-import type { DisplayServer, DisplayServerOptions } from './types.js'
-import { WaylandDisplayServer, WAYLAND_CHROME_FLAGS } from './WaylandDisplayServer.js'
+import type { Options } from '@wdio/types'
+import type { DisplayDaemon, DisplayDaemonOptions, DisplayServer, DisplayServerOptions } from './types.js'
+import { WaylandDisplayServer } from './WaylandDisplayServer.js'
 import { XvfbDisplayServer } from './XvfbDisplayServer.js'
-import { executeWithRetry } from './utils.js'
 
-// WDIO capabilities come in four shapes: single ({ browserName }), vendor-keyed
-// ({ 'goog:chromeOptions' }), parallel (array), and multi-remote ({ browserA: {...} }).
+// v9 config keys, still honored so existing configs keep working.
+const RENAMED_KEYS = {
+    autoXvfb: 'displayServerEnabled',
+    xvfbAutoInstall: 'displayServerAutoInstall',
+    xvfbAutoInstallMode: 'displayServerAutoInstallMode',
+    xvfbAutoInstallCommand: 'displayServerAutoInstallCommand',
+} as const
+type RenamedKey = keyof typeof RENAMED_KEYS
+const IGNORED_KEYS = ['xvfbMaxRetries', 'xvfbRetryDelay'] as const
+const MIGRATION_GUIDE = 'https://webdriver.io/docs/v10-migration#virtual-displays-on-linux'
 
-type CapsRoot = WebdriverIO.Capabilities | Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }>
-
-function isSingleCapability(caps: CapsRoot): caps is WebdriverIO.Capabilities {
-    return Boolean(
-        (caps as WebdriverIO.Capabilities)['goog:chromeOptions'] ||
-        (caps as WebdriverIO.Capabilities)['ms:edgeOptions'] ||
-        (caps as WebdriverIO.Capabilities)['moz:firefoxOptions'] ||
-        'browserName' in caps
-    )
-}
-
-function isMultiRemoteCapability(caps: CapsRoot): caps is Record<string, WebdriverIO.Capabilities | { capabilities: WebdriverIO.Capabilities }> {
-    return !isSingleCapability(caps) && !Array.isArray(caps) && typeof caps === 'object' && caps !== null
-}
-
-function extractCapabilitiesFromBrowserConfig(
-    browserConfig: { capabilities: WebdriverIO.Capabilities } | WebdriverIO.Capabilities
-): WebdriverIO.Capabilities {
-    if (browserConfig && typeof browserConfig === 'object' && 'capabilities' in browserConfig && browserConfig.capabilities) {
-        return browserConfig.capabilities
-    }
-    return browserConfig as WebdriverIO.Capabilities
-}
-
-function forEachBrowserCapability(
-    capabilities: CapsRoot | WebdriverIO.Config['capabilities'] | undefined,
-    visit: (cap: WebdriverIO.Capabilities) => void
-): void {
-    if (!capabilities) {
-        return
-    }
-    // Explicit branch — Object.entries would otherwise walk the array as a multi-remote map.
-    if (Array.isArray(capabilities)) {
-        for (const entry of capabilities) {
-            forEachBrowserCapability(entry as CapsRoot, visit)
-        }
-        return
-    }
-    const caps = capabilities as CapsRoot
-    if (isSingleCapability(caps)) {
-        visit(caps)
-    } else if (isMultiRemoteCapability(caps)) {
-        for (const [, browserConfig] of Object.entries(caps)) {
-            visit(extractCapabilitiesFromBrowserConfig(browserConfig))
+function warnAboutXvfbKeys(config: Options.Testrunner, preferringXvfb: boolean): void {
+    const log = logger('@wdio/display-server')
+    for (const [xvfbKey, key] of Object.entries(RENAMED_KEYS)) {
+        if (config[xvfbKey as RenamedKey] !== undefined) {
+            log.warn(`\`${xvfbKey}\` is deprecated, use \`${key}\` instead. See ${MIGRATION_GUIDE}`)
         }
     }
-}
-
-export function optionsFromConfig(config: WebdriverIO.Config): DisplayServerOptions {
-    return {
-        enabled: config.displayServerEnabled,
-        displayServer: config.displayServer,
-        autoInstall: config.displayServerAutoInstall,
-        autoInstallMode: config.displayServerAutoInstallMode,
-        autoInstallCommand: config.displayServerAutoInstallCommand,
+    for (const xvfbKey of IGNORED_KEYS) {
+        if (config[xvfbKey] !== undefined) {
+            log.warn(`\`${xvfbKey}\` is deprecated and has no effect, since display-server startup is not retried. See ${MIGRATION_GUIDE}`)
+        }
+    }
+    if (preferringXvfb) {
+        log.warn(`Preferring Xvfb, as v9 did, because the config sets v9 display keys; set \`displayServer\` to choose. See ${MIGRATION_GUIDE}`)
     }
 }
 
-// Daemon startup can flake transiently (spawn/socket races); retry a few times.
-const DAEMON_START_MAX_RETRIES = 3
-const DAEMON_START_RETRY_DELAY_MS = 1000
+export function optionsFromConfig(config: Options.Testrunner): DisplayServerOptions {
+    const usesRenamedKeys = Object.entries(RENAMED_KEYS)
+        .some(([xvfbKey, key]) => config[xvfbKey as RenamedKey] !== undefined && config[key] === undefined)
+    const options: DisplayServerOptions = {
+        enabled: config.displayServerEnabled ?? config.autoXvfb,
+        displayServer: config.displayServer ?? (usesRenamedKeys ? 'xvfb' : undefined),
+        autoInstall: config.displayServerAutoInstall ?? config.xvfbAutoInstall,
+        autoInstallMode: config.displayServerAutoInstallMode ?? config.xvfbAutoInstallMode,
+        autoInstallCommand: config.displayServerAutoInstallCommand ?? config.xvfbAutoInstallCommand,
+    }
+    warnAboutXvfbKeys(config, usesRenamedKeys && config.displayServer === undefined && options.enabled !== false)
+    return options
+}
 
 export class DisplayServerManager {
     #enabled: boolean
@@ -80,7 +56,8 @@ export class DisplayServerManager {
     #force: boolean
     #log: ReturnType<typeof logger>
     #displayServer: DisplayServer | null = null
-    #initialized = false
+    #wayland = new WaylandDisplayServer()
+    #xvfb = new XvfbDisplayServer()
 
     constructor(options: DisplayServerOptions = {}) {
         this.#enabled = options.enabled ?? true
@@ -92,261 +69,109 @@ export class DisplayServerManager {
         this.#log = logger('@wdio/display-server')
     }
 
-    shouldRun(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): boolean {
-        if (!this.#enabled) {
-            return false
-        }
-        if (this.#force) {
-            return true
-        }
-
-        if (os.platform() !== 'linux') {
-            return false
-        }
-
-        // Once init() has run on this instance we know a display is active and
-        // workers must use it, regardless of what process.env now shows.
-        if (this.#enabled && this.#initialized) {
-            return true
-        }
-
-        const hasDisplay = process.env.DISPLAY || process.env.WAYLAND_DISPLAY
-        const inHeadlessEnvironment = !hasDisplay
-
-        // The cast bridges the resolved→requested capability shapes; the traversal is read-only so it's safe.
-        const hasHeadlessFlag = this.#detectHeadlessMode(capabilities as unknown as WebdriverIO.Config['capabilities'])
-
-        return inHeadlessEnvironment || hasHeadlessFlag
+    shouldRun(): boolean {
+        return this.#skipReason() === undefined
     }
 
-    async init(capabilities?: Capabilities.ResolvedTestrunnerCapabilities): Promise<boolean> {
+    // Why no display server is needed, or undefined when one is.
+    #skipReason(): string | undefined {
+        if (!this.#enabled) {
+            return 'displayServerEnabled is false'
+        }
+        if (this.#force) {
+            return undefined
+        }
+        if (os.platform() !== 'linux') {
+            return 'not on Linux'
+        }
+        if (process.env.DISPLAY || process.env.WAYLAND_DISPLAY) {
+            return 'DISPLAY or WAYLAND_DISPLAY is already set'
+        }
+        return undefined
+    }
+
+    async init(): Promise<boolean> {
         this.#log.info('DisplayServerManager.init() called')
 
         // Idempotent: a second init() must not re-select and overwrite
         // #displayServer, which may already back a running daemon.
-        if (this.#initialized && this.#displayServer) {
+        if (this.#displayServer) {
             return true
         }
 
-        if (!this.shouldRun(capabilities)) {
-            this.#log.info('Display server not needed on current platform')
+        const skipReason = this.#skipReason()
+        if (skipReason) {
+            this.#log.info(`No display server needed: ${skipReason}`)
             return false
         }
 
-        this.#log.info('Display server should run, selecting implementation...')
-
-        try {
-            const displayServer = await this.#selectDisplayServer()
-
-            if (displayServer) {
-                this.#displayServer = displayServer
-                this.#initialized = true
-                this.#log.info(`${displayServer.name} display server is ready for use`)
-                return true
-            }
-
-            this.#log.warn('No display server available; continuing without virtual display')
-            return false
-        } catch (error) {
-            this.#log.error('Failed to setup display server:', error)
-            throw error
-        }
-    }
-
-    async #selectDisplayServer(): Promise<DisplayServer | null> {
-        const wayland = new WaylandDisplayServer()
-        const xvfb = new XvfbDisplayServer()
-
-        if (this.#displayServerPreference === 'wayland') {
-            this.#log.info('Wayland display server requested')
-            return this.#tryDisplayServer(wayland)
-        }
-
-        if (this.#displayServerPreference === 'xvfb') {
-            this.#log.info('Xvfb display server requested')
-            return this.#tryDisplayServer(xvfb)
-        }
-
-        this.#log.info('Auto mode: Trying Wayland first...')
-        const selected = await this.#tryDisplayServer(wayland)
-        if (selected) {
-            return selected
-        }
-
-        this.#log.info('Wayland not available, trying Xvfb fallback...')
-        return this.#tryDisplayServer(xvfb)
-    }
-
-    // One place for the try/return that the four selection branches share.
-    async #tryDisplayServer(displayServer: DisplayServer): Promise<DisplayServer | null> {
-        if (await this.#ensureDisplayServerAvailable(displayServer)) {
-            return displayServer
-        }
-        return null
-    }
-
-    async #ensureDisplayServerAvailable(displayServer: DisplayServer): Promise<boolean> {
-        if (await displayServer.isAvailable()) {
-            this.#log.info(`${displayServer.name} is already available`)
+        for await (const displayServer of this.#serverCandidates()) {
+            this.#displayServer = displayServer
+            this.#log.info(`${displayServer.name} display server is ready for use`)
             return true
         }
-
-        if (!this.#autoInstall) {
-            this.#log.warn(
-                `${displayServer.name} not found. Skipping automatic installation. To enable auto-install, set 'displayServerAutoInstall: true' in your WDIO config.`
-            )
-            return false
-        }
-
-        this.#log.info(`Auto-installing ${displayServer.name}...`)
-        return await displayServer.install({
-            mode: this.#autoInstallMode,
-            command: this.#autoInstallCommand
-        })
-    }
-
-    #injectDisplayServerFlags(
-        capabilities: Capabilities.ResolvedTestrunnerCapabilities,
-        flags: string[],
-    ): void {
-        if (flags.length === 0) {
-            return
-        }
-        forEachBrowserCapability(capabilities as never, (cap) => this.#addFlagsToCapability(cap, flags))
-    }
-
-    #addFlagsToCapability(caps: WebdriverIO.Capabilities, flags: string[]): void {
-        let chromeOptions = caps['goog:chromeOptions'] || (caps as Record<string, unknown>).chromeOptions as { args?: string[] }
-        let edgeOptions = caps['ms:edgeOptions'] || (caps as Record<string, unknown>).edgeOptions as { args?: string[] }
-        const electronOptions = (caps as Record<string, unknown>)['wdio:electronServiceOptions'] as { appArgs?: string[] } | undefined
-
-        // Create options objects for bare caps like { browserName: 'chrome' }
-        if (!chromeOptions && (caps.browserName === 'chrome' || caps.browserName === 'chromium')) {
-            caps['goog:chromeOptions'] = { args: [] }
-            chromeOptions = caps['goog:chromeOptions']
-        }
-        // Selenium accepts both 'MicrosoftEdge' and 'msedge'.
-        if (!edgeOptions && (caps.browserName === 'MicrosoftEdge' || caps.browserName === 'msedge')) {
-            caps['ms:edgeOptions'] = { args: [] }
-            edgeOptions = caps['ms:edgeOptions']
-        }
-
-        this.#applyFlags(chromeOptions, 'args', flags, 'Chrome capabilities')
-        this.#applyFlags(edgeOptions, 'args', flags, 'Edge capabilities')
-        // Electron needs the CLI --ozone-platform in appArgs; the env hint
-        // ELECTRON_OZONE_PLATFORM_HINT isn't authoritative enough on Wayland hosts.
-        this.#applyFlags(electronOptions, 'appArgs', flags, 'Electron appArgs')
-    }
-
-    // Add the ozone flags to one options bag, de-duplicated by the --ozone-platform=
-    // token so re-injection or a user's own flag doesn't double up.
-    #applyFlags(
-        options: { args?: string[] } | { appArgs?: string[] } | undefined,
-        key: 'args' | 'appArgs',
-        flags: string[],
-        label: string,
-    ): void {
-        if (!options) {
-            return
-        }
-        const opts = options as Record<'args' | 'appArgs', string[] | undefined>
-        opts[key] = opts[key] || []
-        const hasOzoneFlag = opts[key]!.some(arg => typeof arg === 'string' && arg.startsWith('--ozone-platform='))
-        if (!hasOzoneFlag) {
-            opts[key]!.push(...flags)
-            this.#log.info(`Added display-server flags to ${label}: ${flags.join(' ')}`)
-        }
-    }
-
-    #detectHeadlessMode(capabilities?: WebdriverIO.Config['capabilities']): boolean {
-        let isHeadless = false
-        forEachBrowserCapability(capabilities, (cap) => {
-            if (this.#checkCapabilityForHeadless(cap)) {
-                isHeadless = true
-            }
-        })
-        return isHeadless
-    }
-
-    #checkCapabilityForHeadless(caps: WebdriverIO.Capabilities): boolean {
-        if (!caps || typeof caps !== 'object') {
-            return false
-        }
-
-        const chromeFlags = ['--headless']
-        const firefoxFlags = ['--headless', '-headless']
-        const browsers: Array<['goog:chromeOptions' | 'ms:edgeOptions' | 'moz:firefoxOptions', string[], string]> = [
-            ['goog:chromeOptions', chromeFlags, 'Chrome'],
-            ['ms:edgeOptions', chromeFlags, 'Edge'],
-            ['moz:firefoxOptions', firefoxFlags, 'Firefox'],
-        ]
-
-        for (const [key, flags, label] of browsers) {
-            if (this.#hasHeadlessFlag(caps[key], flags)) {
-                this.#log.info(`Detected headless ${label} flag, forcing display server usage`)
-                return true
-            }
-        }
-
+        this.#log.warn('No display server available; continuing without virtual display')
         return false
     }
 
-    #hasHeadlessFlag(options: { args?: string[] } | undefined, headlessFlags: string[]): boolean {
-        if (!options?.args || !Array.isArray(options.args)) {
-            return false
+    /** Starts the first candidate that comes up and makes it the active server; null when none is needed or none starts. */
+    async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon | null> {
+        const skipReason = this.#skipReason()
+        if (skipReason) {
+            this.#log.info(`No display server needed: ${skipReason}`)
+            return null
         }
-
-        return options.args.some((arg: string) => {
-            if (typeof arg !== 'string') {
-                return false
+        for await (const displayServer of this.#serverCandidates()) {
+            try {
+                const daemon = await displayServer.startDaemon(options)
+                this.#displayServer = displayServer
+                this.#log.info(`${displayServer.name} display server started`)
+                return daemon
+            } catch (error) {
+                this.#log.warn(`${displayServer.name} failed to start: ${error instanceof Error ? error.message : String(error)}`)
             }
-            return headlessFlags.some(flag =>
-                arg === flag || (flag === '--headless' && arg.startsWith('--headless='))
-            )
-        })
+        }
+        this.#log.warn('No display server could be started; continuing without a virtual display')
+        return null
+    }
+
+    // Yielded lazily, so a server that starts means nothing later is probed or installed.
+    // Installed servers come first, so an existing Xvfb is used before Weston is installed.
+    async *#serverCandidates(): AsyncGenerator<DisplayServer> {
+        const all = [this.#wayland, this.#xvfb]
+        const preferred = all.filter((displayServer) => displayServer.name === this.#displayServerPreference)
+        const order = preferred.length > 0 ? preferred : all
+
+        const missing: DisplayServer[] = []
+        for (const displayServer of order) {
+            if (await displayServer.isAvailable()) {
+                yield displayServer
+            } else {
+                missing.push(displayServer)
+            }
+        }
+        for (const displayServer of missing) {
+            if (!this.#autoInstall) {
+                this.#log.warn(`${displayServer.name} not found. To enable auto-install, set 'displayServerAutoInstall: true' in your WDIO config.`)
+                continue
+            }
+            // Probe before and after: a custom install command is shared by both servers,
+            // so an earlier install may have provided this one, or provided the other instead.
+            if (!await displayServer.isAvailable()) {
+                this.#log.info(`Auto-installing ${displayServer.name}...`)
+                if (!await displayServer.install({ mode: this.#autoInstallMode, command: this.#autoInstallCommand })) {
+                    continue
+                }
+                if (!await displayServer.isAvailable()) {
+                    this.#log.warn(`${displayServer.name} still not found after installing`)
+                    continue
+                }
+            }
+            yield displayServer
+        }
     }
 
     getDisplayServer(): DisplayServer | null {
         return this.#displayServer
     }
-
-    // When no daemon was started but WAYLAND_DISPLAY is set externally, Chrome still
-    // needs --ozone-platform=wayland so it doesn't fall back to a missing X11 server.
-    // No equivalent for an externally-set DISPLAY: Chromium defaults to X11 anyway.
-    injectDisplayFlags(capabilities: Capabilities.ResolvedTestrunnerCapabilities): void {
-        if (!capabilities) {
-            return
-        }
-        if (this.#displayServer) {
-            this.#injectDisplayServerFlags(capabilities, this.#displayServer.getChromeFlags())
-            return
-        }
-        if (process.env.WAYLAND_DISPLAY) {
-            this.#injectDisplayServerFlags(capabilities, [...WAYLAND_CHROME_FLAGS])
-        }
-    }
-
-    async executeWithRetry<T>(
-        commandFn: () => Promise<T>,
-        context: string = 'display server operation'
-    ): Promise<T> {
-        return executeWithRetry({
-            fn: commandFn,
-            maxRetries: DAEMON_START_MAX_RETRIES,
-            retryDelay: DAEMON_START_RETRY_DELAY_MS,
-            log: this.#log,
-            context,
-        })
-    }
 }
-
-// Lazy singleton — avoids side-effects (logger init, option parsing) at import time.
-// Methods are bound to _defaultInstance so private-field access inside them works.
-let _defaultInstance: DisplayServerManager | undefined
-export const displayServer: DisplayServerManager = new Proxy({} as DisplayServerManager, {
-    get(_, prop) {
-        _defaultInstance ??= new DisplayServerManager()
-        const value = Reflect.get(_defaultInstance, prop, _defaultInstance)
-        return typeof value === 'function' ? (value as Function).bind(_defaultInstance) : value
-    }
-})

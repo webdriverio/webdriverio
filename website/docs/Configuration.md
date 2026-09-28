@@ -627,6 +627,70 @@ See the `tsx` docs: https://tsx.is/dev-api/node-cli#custom-tsconfig-json-path
 
 </Option>
 
+### displayServerEnabled
+
+<Option type="Boolean" default="true">
+
+Start a virtual display for the run on Linux when neither `DISPLAY` nor `WAYLAND_DISPLAY` is set. Set to `false` when you run headless or only on a cloud service or remote grid. It only controls whether a display server starts: with only `WAYLAND_DISPLAY` set, the testrunner still sets `XDG_SESSION_TYPE`, `GDK_BACKEND` and `ELECTRON_OZONE_PLATFORM_HINT` to `wayland` for the run. See [Headless & Display Servers](/docs/headless-and-display-servers).
+
+</Option>
+
+### displayServer
+
+<Option type="String" default="auto" values="auto | wayland | xvfb">
+
+Which display server to start. `auto` tries Weston and falls back to Xvfb when Weston is missing or fails to start. `wayland` and `xvfb` only try that server.
+
+</Option>
+
+### displayServerAutoInstall
+
+<Option type="Boolean" default="false">
+
+Install a missing display server with the system package manager when no installed one starts.
+
+</Option>
+
+### displayServerAutoInstallMode
+
+<Option type="String" default="sudo" values="root | sudo">
+
+How the built-in install runs: `root` installs only when running as root, `sudo` uses non-interactive `sudo -n` when not root, or installs without it when `sudo` isn't installed.
+
+</Option>
+
+### displayServerAutoInstallCommand
+
+<Option type="String | String[]">
+
+A command to run instead of the built-in install, as-is and without `sudo`. It only runs with `displayServerAutoInstall: true`. A string runs in a shell, an array runs without one. With `auto`, it runs for Weston first, and again for Xvfb only if Weston still isn't available or fails to start, and Xvfb is still missing. Set `displayServer` to the server it installs to skip the other server's attempt.
+
+</Option>
+
+### displayServerWidth
+
+<Option type="Number" default="1920">
+
+Screen width of the virtual display in pixels.
+
+</Option>
+
+### displayServerHeight
+
+<Option type="Number" default="1080">
+
+Screen height of the virtual display in pixels.
+
+</Option>
+
+### displayServerDepth
+
+<Option type="Number" default="24">
+
+Color depth of the virtual display. Xvfb only.
+
+</Option>
+
 ## Hooks
 
 The WDIO testrunner allows you to set hooks to be triggered at specific times of the test lifecycle. This allows custom actions (e.g. take screenshot if a test fails).

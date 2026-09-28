@@ -7,7 +7,6 @@ RUN dnf update -y && \
     dnf install -y \
         ca-certificates \
         sudo \
-        which \
         dnf-plugins-core && \
     dnf config-manager --set-enabled crb && \
     dnf install -y epel-release && \

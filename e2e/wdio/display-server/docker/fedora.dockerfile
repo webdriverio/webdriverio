@@ -9,7 +9,6 @@ RUN dnf update -y && \
         sudo \
         nodejs \
         npm \
-        which \
         weston && \
     dnf clean all
 

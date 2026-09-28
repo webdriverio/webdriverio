@@ -39,11 +39,11 @@
   },
   "typeScriptVersion": "5.9.3",
   "dependencies": {
-    "@wdio/logger": "workspace:*"
+    "@wdio/logger": "workspace:*",
+    "@wdio/types": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^22.20.4",
-    "@wdio/types": "workspace:*"
+    "@types/node": "^22.20.4"
   },
   "publishConfig": {
     "access": "public"

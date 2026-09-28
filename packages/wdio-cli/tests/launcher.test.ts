@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
-import { sleep, enableFileLogging } from '@wdio/utils'
+import { sleep, enableFileLogging, initializePlugin, initializeLauncherService } from '@wdio/utils'
 import Launcher from '../src/launcher.js'
 
 const caps: WebdriverIO.Capabilities = {
@@ -916,6 +916,47 @@ describe('launcher', () => {
             launcher['_hasTriggeredExitRoutine'] = true
             expect(await launcher.run()).toEqual(0)
             expect(launcher.runner!.shutdown).not.toBeCalled()
+        })
+
+        const mockRunner = (runner: { shutdown: () => Promise<unknown>, dispose: () => unknown }) =>
+            vi.mocked(initializePlugin).mockResolvedValueOnce({
+                default: class {
+                    initialize = vi.fn()
+                    shutdown = runner.shutdown
+                    dispose = runner.dispose
+                },
+            } as never)
+
+        it('disposes the runner even when shutdown fails', async () => {
+            const dispose = vi.fn()
+            mockRunner({ shutdown: vi.fn().mockRejectedValue(new Error('shutdown failed')), dispose })
+
+            await expect(launcher.run()).rejects.toThrow('shutdown failed')
+            expect(dispose).toBeCalledTimes(1)
+        })
+
+        it('warns instead of failing the run when the runner dispose rejects', async () => {
+            mockRunner({ shutdown: vi.fn().mockResolvedValue(true), dispose: vi.fn().mockRejectedValue(new Error('dispose failed')) })
+
+            expect(await launcher.run()).toEqual(0)
+            expect(vi.mocked(logger('@wdio/cli:launcher').warn)).toHaveBeenCalledWith('Failed to dispose the runner:', expect.any(Error))
+        })
+
+        it('disposes the runner after the onComplete hooks, including launcher services', async () => {
+            const dispose = vi.fn()
+            mockRunner({ shutdown: vi.fn().mockResolvedValue(true), dispose })
+            const serviceOnComplete = vi.fn()
+            vi.mocked(initializeLauncherService).mockReturnValueOnce({
+                launcherServices: [{ onComplete: serviceOnComplete }],
+                ignoredWorkerServices: [],
+            } as never)
+
+            expect(await launcher.run()).toEqual(0)
+
+            const onComplete = (config.onComplete as unknown as ReturnType<typeof vi.fn>[])[0]
+            expect(dispose).toBeCalledTimes(1)
+            expect(dispose.mock.invocationCallOrder[0]).toBeGreaterThan(onComplete.mock.invocationCallOrder[0])
+            expect(dispose.mock.invocationCallOrder[0]).toBeGreaterThan(serviceOnComplete.mock.invocationCallOrder[0])
         })
 
         it('onComplete error', async () => {

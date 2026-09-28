@@ -1,5 +1,6 @@
 import { rmSync } from 'node:fs'
-import { mkdir, rm } from 'node:fs/promises'
+import { mkdtemp, rm } from 'node:fs/promises'
+import path from 'node:path'
 import logger from '@wdio/logger'
 import type {
     DisplayDaemon,
@@ -9,18 +10,23 @@ import type {
 } from './types.js'
 import { commandExists, installViaPackageManager, resolveDaemonDimensions } from './utils.js'
 import { runDaemon } from './daemonProcess.js'
+import { sessionEnv } from './sessionEnv.js'
 
-// One source of truth: getChromeFlags() and DisplayServerManager's
-// externally-set-WAYLAND_DISPLAY fallback both use these and must not drift.
-export const WAYLAND_CHROME_FLAGS: string[] = [
-    '--ozone-platform=wayland',
-    '--enable-features=UseOzonePlatform',
-]
+// Exported so a test can run the dnf fallback through a real shell.
+export const WESTON_INSTALL_COMMANDS: Record<string, string> = {
+    apt: 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y weston',
+    // EL 10 has no Xvfb and ships Weston only in EPEL, so enable EPEL and CRB there, with the dnf-plugins-core
+    // that crb needs. Older EL gets Xvfb instead, so its repos are left alone.
+    dnf: 'dnf -y makecache && (dnf -y install weston || ([ "$(rpm -E "%{?rhel}")" -ge 10 ] 2>/dev/null && dnf -y install epel-release dnf-plugins-core && crb enable && dnf -y install weston))',
+    zypper: 'zypper --non-interactive refresh && zypper --non-interactive install -y weston',
+    pacman: 'pacman -Syu --noconfirm weston', // -Syu, not -Sy: Arch doesn't support partial upgrades, which can leave Weston needing a newer glibc
+    apk: 'apk add --no-cache weston weston-backend-headless weston-shell-desktop', // Alpine splits the headless backend and the default shell into subpackages
+    xbps: 'xbps-install -Suy xbps && xbps-install -y weston', // xbps refuses to install anything while xbps itself is outdated
+}
 
 export class WaylandDisplayServer implements DisplayServer {
     readonly name = 'wayland' as const
     private log = logger('@wdio/display-server:wayland')
-    private static daemonCounter = 0
 
     async isAvailable(): Promise<boolean> {
         if (await commandExists('weston')) {
@@ -34,54 +40,44 @@ export class WaylandDisplayServer implements DisplayServer {
     async install(options?: DisplayServerInstallOptions): Promise<boolean> {
         return installViaPackageManager({
             name: 'Weston',
-            packageCommands: {
-                apt: 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y weston',
-                dnf: 'dnf -y makecache && dnf -y install weston',
-                yum: 'yum -y makecache && yum -y install weston',
-                zypper: 'zypper --non-interactive refresh && zypper --non-interactive install -y weston',
-                pacman: 'pacman -Sy --noconfirm weston',
-                apk: 'apk update && apk add --no-cache weston',
-                xbps: 'xbps-install -Sy weston',
-            },
+            packageCommands: WESTON_INSTALL_COMMANDS,
             log: this.log,
             options,
         })
     }
 
-    getChromeFlags(): string[] {
-        return [...WAYLAND_CHROME_FLAGS]
-    }
-
     async startDaemon(options?: DisplayDaemonOptions): Promise<DisplayDaemon> {
         const { width, height } = resolveDaemonDimensions(options)
 
-        const id = ++WaylandDisplayServer.daemonCounter
-        const runtimeDir = `/tmp/wdio-wayland-${process.pid}-${id}`
-        const socketName = `wayland-${id}`
-        const socketPath = `${runtimeDir}/${socketName}`
+        const runtimeDir = await mkdtemp('/tmp/wdio-wayland-') // /tmp, not TMPDIR, keeps the socket path under the 107-byte limit
+        const socketName = 'wayland-0'
+        const socketPath = path.join(runtimeDir, socketName)
 
-        await mkdir(runtimeDir, { recursive: true, mode: 0o700 })
         this.log.info(`Starting Weston daemon on ${socketName} (${width}x${height}) in ${runtimeDir}`)
 
         return runDaemon({
             command: 'weston',
-            // --use-pixman forces software rendering on GPU-less CI containers. Deprecated
-            // for --renderer=pixman in weston 10+, but some distros in the e2e matrix ship
-            // weston < 10 without --renderer, so the portable flag stays.
-            args: ['--backend=headless', `--width=${width}`, `--height=${height}`, '--use-pixman', `--socket=${socketName}`],
-            socketPath,
+            args: [
+                '--backend=headless-backend.so', // Weston 10 (Debian 12) needs the pre-12 name, which later versions still accept
+                `--width=${width}`,
+                `--height=${height}`,
+                '--use-pixman', // CPU rendering, since headless renders nothing by default; pre-12 name for --renderer=pixman
+                '--idle-time=0', // Weston otherwise sleeps after 300s without input
+                '--no-config', // keeps a user's weston.ini out of the test compositor
+                `--socket=${socketName}`,
+            ],
+            ready: {
+                socketPath,
+                socketLabel: 'Wayland socket',
+                env: {
+                    WAYLAND_DISPLAY: socketName,
+                    XDG_RUNTIME_DIR: runtimeDir,
+                    ...sessionEnv('wayland'),
+                },
+            },
             spawnEnv: { ...process.env, XDG_RUNTIME_DIR: runtimeDir },
             label: 'Weston',
-            socketLabel: 'Wayland socket',
             log: this.log,
-            env: {
-                WAYLAND_DISPLAY: socketName,
-                XDG_RUNTIME_DIR: runtimeDir,
-                // Pin GTK to our weston compositor so an inherited GDK_BACKEND
-                // doesn't send GTK to a missing X11.
-                GDK_BACKEND: 'wayland',
-                ELECTRON_OZONE_PLATFORM_HINT: 'wayland',
-            },
             cleanup: () => rm(runtimeDir, { recursive: true, force: true }).catch(() => {}),
             cleanupSync: () => {
                 try {

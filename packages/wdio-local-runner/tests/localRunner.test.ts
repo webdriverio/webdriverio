@@ -2,7 +2,6 @@ import path from 'node:path'
 import type * as ChildProcessModule from 'node:child_process'
 import { expect, test, vi, beforeEach } from 'vitest'
 
-import type * as DisplayServerModule from '@wdio/display-server'
 import LocalRunner from '../src/index.js'
 
 const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -32,52 +31,9 @@ vi.mock('node:child_process', async (importOriginal) => {
     }
 })
 
-vi.mock('@wdio/display-server', async () => {
-    // Use the real optionsFromConfig so the mapping under test runs through;
-    // mock only the runtime classes that would otherwise pull in display-server
-    // side-effects.
-    const actual = await vi.importActual<typeof DisplayServerModule>('@wdio/display-server')
-    return {
-        ...actual,
-        DisplayServerManager: vi.fn().mockImplementation(function () {
-            return {
-                init: vi.fn().mockResolvedValue(true),
-                shouldRun: vi.fn().mockReturnValue(true),
-                injectDisplayFlags: vi.fn(),
-                getDisplayServer: vi.fn().mockReturnValue(null),
-            }
-        }),
-        // The daemon-start path lives in startDisplayDaemonFromConfig now.
-        // Default to "no daemon needed" (null) so non-daemon tests don't have
-        // to mock around the eager initialize().
-        startDisplayDaemonFromConfig: vi.fn().mockResolvedValue(null),
-        default: vi.fn()
-    }
-})
-
-test('should map new displayServer* options through to DisplayServerManager', async () => {
-    const displayServer = await import('@wdio/display-server')
-    new LocalRunner(
-        {} as never,
-        {
-            displayServer: 'wayland',
-            displayServerEnabled: true,
-            displayServerAutoInstall: true,
-            displayServerAutoInstallMode: 'sudo',
-            displayServerAutoInstallCommand: 'custom-cmd',
-        } as any
-    )
-
-    expect(vi.mocked(displayServer.DisplayServerManager)).toHaveBeenCalledWith(
-        expect.objectContaining({
-            displayServer: 'wayland',
-            enabled: true,
-            autoInstall: true,
-            autoInstallMode: 'sudo',
-            autoInstallCommand: 'custom-cmd',
-        })
-    )
-})
+vi.mock('@wdio/display-server', () => ({
+    startDisplayDaemonFromConfig: vi.fn().mockResolvedValue(null), // No daemon by default, so tests that don't need one can ignore initialize().
+}))
 
 test('should fork a new process', async () => {
     const runner = new LocalRunner(
@@ -308,10 +264,22 @@ test('starts a display-server daemon during initialize() when one is needed', as
     const stopSpy = vi.fn().mockResolvedValue(undefined)
     vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce({ stop: stopSpy })
 
-    const runner = new LocalRunner({} as never, { displayServerEnabled: true } as any)
+    const config = { displayServerEnabled: true } as WebdriverIO.Config
+    const runner = new LocalRunner({} as never, config)
     await runner.initialize()
 
     expect(displayServer.startDisplayDaemonFromConfig).toHaveBeenCalledTimes(1)
+    expect(displayServer.startDisplayDaemonFromConfig).toHaveBeenCalledWith(config)
+})
+
+test('continues without a display when starting the daemon throws', async () => {
+    const displayServer = await import('@wdio/display-server')
+    vi.mocked(displayServer.startDisplayDaemonFromConfig).mockRejectedValueOnce(new Error('mkdtemp ENOSPC'))
+
+    const runner = new LocalRunner({} as never, { displayServerEnabled: true } as WebdriverIO.Config)
+
+    await expect(runner.initialize()).resolves.toBeUndefined()
+    expect(runner['daemon']).toBeNull()
 })
 
 test('shuts down cleanly when startDisplayDaemonFromConfig returns null', async () => {
@@ -322,11 +290,10 @@ test('shuts down cleanly when startDisplayDaemonFromConfig returns null', async 
     await runner.initialize()
 
     expect(displayServer.startDisplayDaemonFromConfig).toHaveBeenCalledTimes(1)
-    // No daemon was started, so shutdown shouldn't try to stop anything.
     await runner.shutdown()
 })
 
-test('stops the daemon during shutdown() when one was started in initialize()', async () => {
+test('keeps the daemon through shutdown() and stops it in dispose()', async () => {
     const displayServer = await import('@wdio/display-server')
     const stopSpy = vi.fn().mockResolvedValue(undefined)
     vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce({ stop: stopSpy })
@@ -335,47 +302,9 @@ test('stops the daemon during shutdown() when one was started in initialize()', 
     await runner.initialize()
     await runner.shutdown()
 
+    expect(stopSpy).not.toHaveBeenCalled()
+
+    await runner.dispose()
+
     expect(stopSpy).toHaveBeenCalledTimes(1)
-})
-
-test('injects display flags into every spawned worker (independent of daemon state)', async () => {
-    const runner = new LocalRunner({} as never, { displayServerEnabled: true } as any)
-
-    const mockInject = vi.fn()
-    runner['displayServerManager'] = {
-        init: vi.fn().mockResolvedValue(true),
-        injectDisplayFlags: mockInject,
-        shouldRun: vi.fn().mockReturnValue(true),
-        getDisplayServer: vi.fn().mockReturnValue(null),
-    } as any
-
-    const caps1 = { browserName: 'chrome' }
-    const caps2 = { browserName: 'firefox' }
-
-    await runner.run({
-        cid: '0-a',
-        command: 'run',
-        configFile: '/path/to/wdio.conf.js',
-        args: {},
-        caps: caps1 as any,
-        specs: ['/foo/a.test.js'],
-        execArgv: [],
-        retries: 0,
-    })
-    await runner.run({
-        cid: '0-b',
-        command: 'run',
-        configFile: '/path/to/wdio.conf.js',
-        args: {},
-        caps: caps2 as any,
-        specs: ['/foo/b.test.js'],
-        execArgv: [],
-        retries: 0,
-    })
-
-    // injectDisplayFlags fires per worker so Chrome/Edge get
-    // --ozone-platform=wayland on every spec when Wayland is in play.
-    expect(mockInject).toHaveBeenCalledTimes(2)
-    expect(mockInject).toHaveBeenNthCalledWith(1, caps1)
-    expect(mockInject).toHaveBeenNthCalledWith(2, caps2)
 })

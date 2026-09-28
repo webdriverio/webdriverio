@@ -1,11 +1,7 @@
 /**
- * Test stub standing in for the `weston` compositor, driven by WDIO_STUB_MODE.
- * Used only by WaylandDisplayServer real-process lifecycle tests (it is placed on
- * PATH as `weston`); it is not shipped.
- *
- * Modes:
+ * Fake `weston` for the real-process tests. WDIO_STUB_MODE picks the behavior:
  * - 'ready' (default): create the socket the parent polls for, then idle until
- *   signalled (exit cleanly on SIGTERM/SIGINT).
+ *   signaled, exiting cleanly on SIGTERM/SIGINT.
  * - 'ignore-sigterm': create the socket and idle, but swallow SIGTERM so the
  *   caller must escalate to SIGKILL.
  * - 'crash': write to stderr and exit non-zero without creating the socket.
@@ -19,10 +15,8 @@ const socketName = socketArg?.slice('--socket='.length)
 const runtimeDir = process.env.XDG_RUNTIME_DIR
 
 if (mode === 'crash') {
-    process.stderr.write('weston: fatal: simulated startup failure\n')
-    // Delay the exit a touch so the parent reliably receives the stderr 'data'
-    // before the 'exit' event — the capture reads stderr at exit time.
-    setTimeout(() => process.exit(1), 50)
+    fs.writeSync(2, 'weston: fatal: simulated startup failure\n') // synchronous, so the line is written before the immediate exit
+    process.exit(1)
 } else {
     if (socketName && runtimeDir) {
         fs.writeFileSync(path.join(runtimeDir, socketName), '')

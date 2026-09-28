@@ -1,8 +1,14 @@
-FROM ubuntu:24.04
+ARG UBUNTU_VERSION=26.04
+FROM ubuntu:${UBUNTU_VERSION}
 
 # Avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CI=true
+
+# Set per CI matrix cell. BREAK_WESTON deletes Weston's headless backend so it exits at startup.
+ARG WESTON=
+ARG XVFB=
+ARG BREAK_WESTON=
 
 RUN apt-get update -qq && \
     apt-get install -y \
@@ -10,7 +16,9 @@ RUN apt-get update -qq && \
         ca-certificates \
         gnupg \
         sudo \
-        xvfb && \
+        ${WESTON:+weston} \
+        ${XVFB:+xvfb} && \
+    if [ -n "$BREAK_WESTON" ]; then test -n "$(find /usr/lib -name headless-backend.so -print -delete)"; fi && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

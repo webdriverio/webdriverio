@@ -4,24 +4,15 @@ import path from 'node:path'
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 /**
- * Exercises the full LocalRunner ↔ startDisplayDaemonFromConfig integration:
- * the runner starts a real Xvfb/Weston daemon in `initialize()`, publishes
- * DISPLAY / WAYLAND_DISPLAY on `process.env`, then forks a wdio worker that
- * launches Chrome *without* --headless — so the daemon-backed display is
- * required for the session to succeed.
- *
- * Distinct from wdio.conf.ts which runs the existing/base specs with
- * `displayServerEnabled: false` (those tests drive DisplayServerManager directly
- * and use a --headless Chrome that doesn't need the display).
+ * Runs runner.e2e.ts through the local runner, which starts a display server in
+ * `initialize()`, or only sets the session vars when a Wayland display exists.
  */
 export const config: WebdriverIO.Config = {
     specs: [
         path.join(__dirname, 'runner.e2e.ts')
     ],
 
-    /**
-     * No --headless: the worker actually needs the display the runner provisions.
-     */
+    /** No --headless, so the session needs the runner's display. */
     capabilities: [{
         browserName: 'chrome',
         'goog:chromeOptions': {
@@ -31,7 +22,7 @@ export const config: WebdriverIO.Config = {
             ],
             ...(process.env.CHROME_BIN && { binary: process.env.CHROME_BIN })
         },
-        // See wdio.conf.ts — same musl/glibc rationale.
+        // Images that use the distro's Chromium set this to the distro's chromedriver, which matches that Chromium.
         ...(process.env.CHROMEDRIVER_PATH && {
             'wdio:chromedriverOptions': { binary: process.env.CHROMEDRIVER_PATH }
         })
@@ -43,11 +34,9 @@ export const config: WebdriverIO.Config = {
 
     runner: 'local',
 
-    // Let the local runner manage the display server: with no DISPLAY /
-    // WAYLAND_DISPLAY in the container, it spins up Xvfb/Weston and the worker
-    // inherits the env Chrome needs.
+    // Let the local runner start Xvfb/Weston when the container has no display.
     displayServerEnabled: true,
-    displayServer: 'auto',
+    displayServer: (process.env.DISPLAY_SERVER_PREFERENCE || 'auto') as WebdriverIO.Config['displayServer'], // set per CI matrix cell
 
     reporters: ['spec'],
 
