@@ -287,6 +287,9 @@ export async function continueSourceMapRequests (browser: WebdriverIO.Browser) {
         browser.off('network.beforeRequestSent', onBeforeRequest)
         browser.off('network.responseStarted', onResponseStarted)
         browser.off('network.fetchError', onFetchError)
-        await browser.sessionUnsubscribe({ subscriptions: [subscription] })
+        await browser.sessionUnsubscribe({ subscriptions: [subscription] }).catch((err: Error) => {
+            // cleanup must not fail a finished run, e.g. when the browser already closed
+            log.debug(`Failed to unsubscribe from source-map requests: ${err.message}`)
+        })
     }
 }

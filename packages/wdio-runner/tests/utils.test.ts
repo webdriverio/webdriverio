@@ -340,6 +340,16 @@ describe('utils', () => {
             expect(browser.sessionUnsubscribe).toHaveBeenCalledWith({ subscriptions: ['subscription-1'] })
         })
 
+        it('should not fail the run when unsubscribing fails', async () => {
+            const browser = getBrowser({
+                sessionUnsubscribe: vi.fn().mockRejectedValue(new Error('invalid session id'))
+            })
+            logMock.debug.mockClear()
+            const stop = await continueSourceMapRequests(browser)
+            await expect(stop()).resolves.toBeUndefined()
+            expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('invalid session id'))
+        })
+
         it('should ignore requests the page continued already', async () => {
             const browser = getBrowser({
                 networkContinueRequest: vi.fn().mockRejectedValue(new Error('no such request')),
