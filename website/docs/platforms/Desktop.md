@@ -120,7 +120,7 @@ Both need a Rust-side addition to your app, so follow their quick starts:
 
 On Linux, WebdriverIO drives Electron, Tauri and Dioxus apps. Things to know:
 
-- Headless CI: these apps need a display server. The testrunner can wrap workers in Xvfb (`autoXvfb`, on by default, with optional `xvfbAutoInstall`). Alternatively, run `xvfb-run -a npx wdio run wdio.conf.ts`. See [Headless & Xvfb](/docs/headless-and-xvfb).
+- Headless CI: these apps need a display server. Unless `DISPLAY` or `WAYLAND_DISPLAY` is already set, the testrunner starts Wayland (Weston) for the run, with Xvfb as a fallback. It is on by default (`displayServerEnabled`), with optional `displayServerAutoInstall`. Alternatively, run `xvfb-run -a npx wdio run wdio.conf.ts`. See [Headless & Xvfb](/docs/headless-and-xvfb).
 - Tauri with the `official` provider needs WebKitWebDriver (`webkit2gtk-driver` package). The `embedded` provider needs no external driver.
 - Dioxus supports only the `embedded` provider on Linux, and building Dioxus apps requires the WebKitGTK development libraries.
 - Electron on Ubuntu 24.04+ and other AppArmor-enabled distributions: set the service option `apparmorAutoInstall` if Electron fails to start.
