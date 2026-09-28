@@ -253,9 +253,16 @@ export function transformExpectArgs(arg: unknown): unknown {
  */
 export async function continueSourceMapRequests (browser: WebdriverIO.Browser) {
     const requests = new Set<string>()
-    const { subscription } = await browser.sessionSubscribe({
+    const result = await browser.sessionSubscribe({
         events: ['network.beforeRequestSent', 'network.responseStarted', 'network.fetchError']
+    }).catch((err: Error) => {
+        // specs that don't mock the network must still run on remote ends without these events
+        log.warn(`Could not subscribe to network events, source-map requests won't be continued: ${err.message}`)
     })
+    if (!result) {
+        return async () => {}
+    }
+    const { subscription } = result
     const onBeforeRequest = ({ request, isBlocked, initiator }: local.NetworkBeforeRequestSentParameters) => {
         if (!isSourceMapRequest(initiator)) {
             return

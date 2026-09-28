@@ -350,6 +350,20 @@ describe('utils', () => {
             expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('invalid session id'))
         })
 
+        it('should not fail the run when the remote end rejects network events', async () => {
+            const browser = getBrowser({
+                sessionSubscribe: vi.fn().mockRejectedValue(new Error('unsupported event'))
+            })
+            logMock.warn.mockClear()
+            const stop = await continueSourceMapRequests(browser)
+
+            emit(browser, 'network.beforeRequestSent', scriptUrl, '', true, true)
+            await stop()
+            expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+            expect(browser.sessionUnsubscribe).not.toHaveBeenCalled()
+            expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('unsupported event'))
+        })
+
         it('should ignore requests the page continued already', async () => {
             const browser = getBrowser({
                 networkContinueRequest: vi.fn().mockRejectedValue(new Error('no such request')),

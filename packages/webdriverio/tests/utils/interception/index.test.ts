@@ -504,6 +504,30 @@ describe('WebDriverInterception', () => {
         })
     })
 
+    it('should match base64 header filters where Buffer is not defined', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const headers = [{ name: 'x-name', value: { type: 'base64', value: Buffer.from('Grüße').toString('base64') } }]
+        const requestHeaders = vi.fn(() => true)
+        await WebDriverInterception.initiate('http://test.com/**', {
+            requestHeaders,
+            responseHeaders: { 'x-name': 'Grüße' }
+        }, browser)
+
+        vi.stubGlobal('Buffer', undefined)
+        try {
+            browser.emit('network.responseStarted', {
+                ...getResponseCollectionRequestStub(),
+                request: { ...getResponseCollectionRequestStub().request, headers },
+                response: { ...getResponseCollectionRequestStub().response, headers }
+            })
+        } finally {
+            vi.unstubAllGlobals()
+        }
+
+        expect(requestHeaders).toHaveBeenCalledWith({ 'x-name': 'Grüße' })
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 'req-123' })
+    })
+
     it('should allow a dynamic respond payload to return a string or Buffer', async () => {
         const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
@@ -1261,6 +1285,20 @@ describe('WebDriverInterception', () => {
             expect(SESSION_MOCKS['handle-1'].has(mock)).toBe(false)
             delete SESSION_MOCKS['handle-1']
         })
+
+        it('should unregister the mock even if removing its intercept fails', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkRemoveIntercept: vi.fn().mockRejectedValue(new Error('no such intercept')),
+                getWindowHandle: vi.fn().mockResolvedValue('handle-1'),
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            SESSION_MOCKS['handle-1'] = new Set([mock])
+
+            await expect(mock.restore()).rejects.toThrow('no such intercept')
+            // so a later `browser.mock()` with the same definition creates a fresh mock
+            expect(SESSION_MOCKS['handle-1'].has(mock)).toBe(false)
+            delete SESSION_MOCKS['handle-1']
+        })
     })
 
     describe('catch-all mocks', () => {
@@ -1299,6 +1337,23 @@ describe('WebDriverInterception', () => {
             // only the image mock continues, the catch-all mock would race its overwrites
             expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
             expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        })
+
+        it('should not let a mock of another browser claim the request', async () => {
+            const browser = getBrowser()
+            const otherBrowser = getResponseCollectionBrowserMock({}, {
+                networkAddIntercept: vi.fn().mockResolvedValue({ intercept: 'image' })
+            })
+            const catchAll = await WebDriverInterception.initiate('**/api/**', {}, browser)
+            const otherImage = await WebDriverInterception.initiate('https://placehold.co/*', {}, otherBrowser)
+            SESSION_MOCKS['handle-1'] = new Set([catchAll])
+            SESSION_MOCKS['handle-2'] = new Set([otherImage])
+
+            emitRequest(browser, 'network.beforeRequestSent', 'https://placehold.co/400x400', ['catch-all', 'image'])
+            await waitForAsyncHandlers()
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-1' })
+            delete SESSION_MOCKS['handle-2']
         })
 
         it('should continue requests no other mock matches', async () => {

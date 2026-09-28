@@ -55,6 +55,16 @@ function isBuffer(payload: RespondBodyValue): payload is Buffer {
     return typeof Buffer !== 'undefined' && Buffer.isBuffer(payload)
 }
 
+/**
+ * decode a base64 BiDi header value as UTF-8 without `Buffer`, see `isBuffer`
+ */
+function decodeHeaderValue(value: remote.NetworkBytesValue) {
+    if (value.type === 'string') {
+        return value.value
+    }
+    return new TextDecoder().decode(Uint8Array.from(atob(value.value), (char) => char.charCodeAt(0)))
+}
+
 function toNetworkBody(payload: RespondBodyValue) {
     if (isBuffer(payload)) {
         return { type: 'base64' as const, value: payload.toString('base64') }
@@ -545,6 +555,7 @@ export default class WebDriverInterception {
     #isClaimedByOtherMock(request: local.NetworkBeforeRequestSentParameters | Response) {
         return Object.values(SESSION_MOCKS).some((mocks) => [...mocks].some((mock) => (
             mock !== this &&
+            mock.#browser === this.#browser &&
             request.intercepts?.includes(mock.#mockId) &&
             mock.#pattern.test(request.request.url)
         )))
@@ -575,7 +586,7 @@ export default class WebDriverInterception {
         if (isRequestMatching && this.#filterOptions.requestHeaders) {
             isRequestMatching = typeof this.#filterOptions.requestHeaders === 'function'
                 ? this.#filterOptions.requestHeaders(request.request.headers.reduce((acc, { name, value }) => {
-                    acc[name] = value.type === 'string' ? value.value : Buffer.from(value.value, 'base64').toString()
+                    acc[name] = decodeHeaderValue(value)
                     return acc
                 }, {} as Record<string, string>))
                 : Object.entries(this.#filterOptions.requestHeaders).every(([key, value]) => {
@@ -584,9 +595,7 @@ export default class WebDriverInterception {
                         return false
                     }
 
-                    return header.value.type === 'string'
-                        ? header.value.value === value
-                        : Buffer.from(header.value.value, 'base64').toString() === value
+                    return decodeHeaderValue(header.value) === value
                 })
         }
 
@@ -597,7 +606,7 @@ export default class WebDriverInterception {
         if (isRequestMatching && this.#filterOptions.responseHeaders && 'response' in request) {
             isRequestMatching = typeof this.#filterOptions.responseHeaders === 'function'
                 ? this.#filterOptions.responseHeaders(request.response.headers.reduce((acc, { name, value }) => {
-                    acc[name] = value.type === 'string' ? value.value : Buffer.from(value.value, 'base64').toString()
+                    acc[name] = decodeHeaderValue(value)
                     return acc
                 }, {} as Record<string, string>))
                 : Object.entries(this.#filterOptions.responseHeaders).every(([key, value]) => {
@@ -606,9 +615,7 @@ export default class WebDriverInterception {
                         return false
                     }
 
-                    return header.value.type === 'string'
-                        ? header.value.value === value
-                        : Buffer.from(header.value.value, 'base64').toString() === value
+                    return decodeHeaderValue(header.value) === value
                 })
         }
 
@@ -696,13 +703,16 @@ export default class WebDriverInterception {
 
         // Remove the network intercept BEFORE setting #restored flag
         // This prevents new requests from being blocked while we're cleaning up
-        if (this.#mockId) {
-            await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
+        // Until then this mock still handles (and claims) requests blocked by its intercept
+        try {
+            if (this.#mockId) {
+                await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
+            }
+        } finally {
+            SESSION_MOCKS[handle].delete(this)
         }
 
-        // Now it's safe to mark as restored; until then this mock still handles
-        // (and claims) requests blocked by its intercept
-        SESSION_MOCKS[handle].delete(this)
+        // Now it's safe to mark as restored
         this.#restored = true
 
         return this
