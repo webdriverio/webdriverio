@@ -298,6 +298,37 @@ describe('startWebDriver', () => {
         expect(logMock.warn).toHaveBeenCalled()
     })
 
+    it('downloads Chromedriver once when the same build is set up together', async () => {
+        let started = 0
+        let release!: () => void
+        const gate = new Promise<void>((resolve) => {
+            release = resolve
+        })
+        vi.mocked(install).mockImplementation(() => {
+            started += 1
+            return gate.then(() => ({} as never))
+        })
+
+        const pending = Promise.all([
+            setupChromedriver('/foo/bar/cache', '115.0.5790.171'),
+            setupChromedriver('/foo/bar/cache', '115.0.5790.171')
+        ])
+        await vi.waitFor(() => {
+            expect(started).toBe(1)
+        })
+        release()
+        await pending
+        expect(install).toHaveBeenCalledTimes(1)
+    })
+
+    it('still downloads a different requested Chromedriver version', async () => {
+        await Promise.all([
+            setupChromedriver('/foo/bar/cache', '115.0.5790.171'),
+            setupChromedriver('/foo/bar/cache', '120.0.0.0')
+        ])
+        expect(install).toHaveBeenCalledTimes(2)
+    })
+
     it('should download Chromedriver from the default CDN if no custom one is set', async () => {
         await setupChromedriver('/foo/bar/cache', '115.0.5790.171')
         expect(canDownload).toBeCalledWith(expect.objectContaining({ baseUrl: undefined }))

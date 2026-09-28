@@ -1,5 +1,6 @@
 import { logHookError } from './errorHandler.js'
 import { executeHooksWithArgs, executeAsync } from '../shim.js'
+import { getDebugAgentPause, runnableFrom, setCurrentRunnable } from './debugAgent.js'
 
 import type {
     WrapperMethods,
@@ -73,6 +74,9 @@ export const testFrameworkFnWrapper = async function (
 ) {
     const retries = { attempts: 0, limit: repeatTest }
     const beforeArgs = beforeFnArgs(this)
+    if (type === 'Test') {
+        setCurrentRunnable({ cid, ...runnableFrom(beforeArgs[0]) })
+    }
     if (type === 'Hook' && hookName) {
         beforeArgs.push(hookName)
     }
@@ -173,6 +177,28 @@ export const testFrameworkFnWrapper = async function (
 
     if (type === 'Hook' && hookName) {
         afterArgs.push(hookName)
+    }
+
+    /**
+     * `wdio run --debug=agent` pauses a failed test before user `afterTest`
+     * hooks. `close` from that session fails the test.
+     */
+    if ((type === 'Test' || type === 'Step') && error && !skip) {
+        const pause = getDebugAgentPause()
+        if (pause) {
+            const identity = runnableFrom(afterArgs[0])
+            try {
+                await pause({ cid, spec: identity.spec, test: identity.test })
+            } catch (closeErr) {
+                const closed = closeErr instanceof Error ? closeErr : new Error(String(closeErr))
+                error = closed
+                const report = afterArgs[afterArgs.length - 1] as { error?: unknown, passed?: boolean }
+                if (report && typeof report === 'object') {
+                    report.error = closed
+                    report.passed = false
+                }
+            }
+        }
     }
 
     await logHookError(`After${type}`, await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]), cid)

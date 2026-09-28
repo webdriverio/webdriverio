@@ -1,0 +1,7 @@
+body { font-family: sans-serif; margin: 0; padding: 16px; }
+header nav a { margin-right: 12px; }
+.hidden { display: none; }
+.hovered { outline: 3px solid orange; }
+#drop-zone { width: 200px; height: 100px; border: 2px dashed #888; margin-top: 12px; }
+#draggable { width: 80px; height: 40px; background: #36c; color: #fff; cursor: grab; user-select: none; }
+.spacer { height: 2000px; }

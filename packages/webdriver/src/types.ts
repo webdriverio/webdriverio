@@ -9,7 +9,7 @@ import type { CommandResponse } from './bidi/localTypes.js'
 
 import type { RequestStartEvent, RequestEndEvent, RequestPerformanceEvent, RequestRetryEvent } from './request/types.js'
 
-export interface JSONWPCommandError extends Error {
+export interface SessionRequestError extends Error {
     code?: string
     statusCode?: string
     statusMessage?: string

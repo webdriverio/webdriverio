@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Form Fixture</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <h1>Sign up</h1>
+    <form id="signup" onsubmit="event.preventDefault(); document.getElementById('status').textContent = 'Submitted ' + document.getElementById('email').value">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required placeholder="you@example.com">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" value="hunter2">
+      <label><input id="remember" name="remember" type="checkbox" checked> Remember me</label>
+      <fieldset>
+        <legend>Plan</legend>
+        <label><input type="radio" name="plan" value="free" checked> Free</label>
+        <label><input type="radio" name="plan" value="pro"> Pro</label>
+      </fieldset>
+      <label for="country">Country</label>
+      <select id="country" name="country">
+        <option value="de">Germany</option>
+        <option value="fr">France</option>
+        <option value="us">United States</option>
+      </select>
+      <label for="quantity">Quantity</label>
+      <input id="quantity" name="quantity" type="number" min="1" max="9" value="1">
+      <textarea id="message" name="message" placeholder="Your message"></textarea>
+      <label for="avatar">Avatar</label>
+      <input id="avatar" name="avatar" type="file">
+      <input id="readonly" aria-label="Account id" value="A-1" readonly>
+      <button type="button" disabled>Delete account</button>
+      <button type="submit" data-testid="submit">Submit</button>
+    </form>
+    <p id="status" role="status"></p>
+    <div id="hover-target" onmouseenter="this.classList.add('hovered'); this.dataset.hovered = 'yes'">Hover me</div>
+    <div id="draggable" role="button" aria-label="Drag me" tabindex="0">Drag me</div>
+    <div id="drop-zone" aria-label="Drop zone" role="region"></div>
+    <p id="drop-status"></p>
+    <input id="keys" aria-label="Key log" onkeydown="this.dataset.last = (event.ctrlKey ? 'Control+' : '') + event.key">
+    <div class="spacer"></div>
+    <button id="bottom" type="button">Bottom button</button>
+  </main>
+  <script>
+    const drag = document.getElementById('draggable')
+    const zone = document.getElementById('drop-zone')
+    let dragging = false
+    drag.addEventListener('pointerdown', () => { dragging = true })
+    document.addEventListener('pointerup', (e) => {
+      if (!dragging) return
+      dragging = false
+      const r = zone.getBoundingClientRect()
+      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+        zone.append(drag)
+        document.getElementById('drop-status').textContent = 'Dropped'
+      }
+    })
+  </script>
+</body>
+</html>

@@ -13,7 +13,7 @@ const IGNORED_ARGS = [
     'mochaOpts', 'jasmineOpts', 'cucumberOpts'
 ]
 
-export const command = 'repl <option> [capabilities]'
+export const command = 'repl [option] [capabilities]'
 export const desc = 'Run WebDriver session in command line'
 export const cmdArgs: { [k in keyof ReplCommandArguments]?: Options } = {
     platformVersion: {
@@ -30,6 +30,11 @@ export const cmdArgs: { [k in keyof ReplCommandArguments]?: Options } = {
         alias: 'u',
         desc: 'UDID of real mobile devices',
         type: 'string',
+    },
+    session: {
+        alias: 's',
+        desc: 'Attach to a running `wdio session` instead of starting a browser',
+        type: 'string'
     }
 } as const
 
@@ -43,11 +48,17 @@ export const builder = (yargs: Argv) => {
         .example('$0 repl ios -v 11.3 -d "iPhone 7" -u 123432abc', 'Run repl browser on iOS device with capabilities')
         .example('$0 repl "./path/to/wdio.config.js" 0 -p 9515', 'Run repl using the first capability from the capabilty array in wdio.config.js')
         .example('$0 repl "./path/to/wdio.config.js" "myChromeBrowser" -p 9515', 'Run repl using a named multi-remote capabilities in wdio.config.js')
+        .example('$0 repl --session default', 'Attach to a running `wdio session`')
         .epilogue(CLI_EPILOGUE)
         .help() as unknown
 }
 
 export const handler = async (argv: ReplCommandArguments) => {
+    if (argv.session) {
+        const { attachRepl } = await import('../replSession.js')
+        await attachRepl(argv.session)
+        return
+    }
     const caps = await getCapabilities(argv)
     const client = await remote({ ...argv, ...caps })
 

@@ -183,7 +183,6 @@ test('should properly configure the jasmine environment', async () => {
     const failSpecWithNoExpectations = false
     const oneFailurePerSpec = false
     const random = false
-    const failFast = false
     const seed = false
 
     const adapter = adapterFactory({
@@ -191,7 +190,6 @@ test('should properly configure the jasmine environment', async () => {
             stopOnSpecFailure,
             oneFailurePerSpec,
             random,
-            failFast,
         }
     })
     await adapter.init()
@@ -204,7 +202,6 @@ test('should properly configure the jasmine environment', async () => {
         stopOnSpecFailure,
         random,
         seed,
-        failFast,
     })
 })
 

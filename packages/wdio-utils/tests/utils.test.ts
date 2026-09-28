@@ -330,16 +330,16 @@ describe('isAppiumCapability', () => {
     it('should return true if it indicates an Appium capability', () => {
         expect(isAppiumCapability({})).toBe(false)
         expect(isAppiumCapability({ browserName: 'chrome' })).toBe(false)
-        // @ts-expect-error outdated jsonwp cap
+        // @ts-expect-error unprefixed capability
         expect(isAppiumCapability({ automationName: 'android' })).toBe(false)
         expect(isAppiumCapability({ 'appium:automationName': 'android' })).toBe(true)
         expect(isAppiumCapability({ 'appium:options': { automationName: 'android' } })).toBe(true)
-        // @ts-expect-error outdated jsonwp cap
+        // @ts-expect-error unprefixed capability
         expect(isAppiumCapability({ deviceName: 'android' })).toBe(false)
         expect(isAppiumCapability({ 'appium:deviceName': 'android' })).toBe(true)
         expect(isAppiumCapability({ 'appium:options': { deviceName: 'android' } })).toBe(true)
         expect(isAppiumCapability({ 'lt:options': { deviceName: 'android' } })).toBe(true)
-        // @ts-expect-error outdated jsonwp cap
+        // @ts-expect-error unprefixed capability
         expect(isAppiumCapability({ appiumVersion: 'android' })).toBe(false)
         expect(isAppiumCapability({ 'appium:appiumVersion': 'android' })).toBe(true)
         expect(isAppiumCapability({ 'appium:options': { appiumVersion: 'android' } })).toBe(true)

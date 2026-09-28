@@ -5,6 +5,7 @@ import { yargs } from 'yargs'
 import { remote } from 'webdriverio'
 
 import { handler, builder } from '../../src/commands/repl.js'
+import { attachRepl } from '../../src/replSession.js'
 
 vi.mock('@wdio/utils', () => {
     let syncSupport = false
@@ -23,6 +24,7 @@ vi.mock('@wdio/utils', () => {
 vi.mock('repl')
 vi.mock('yargs')
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
+vi.mock('../../src/replSession.js', () => ({ attachRepl: vi.fn(async () => {}) }))
 
 describe('repl commandDir', () => {
     it('should call debug command', async () => {
@@ -60,6 +62,12 @@ describe('Command: repl', () => {
         expect(global.$).not.toBeUndefined()
         expect(global.$$).not.toBeUndefined()
         expect(global.browser).not.toBeUndefined()
+    })
+
+    it('attaches to a session without starting a browser', async () => {
+        await handler({ session: 'default' } as any)
+        expect(remote).not.toHaveBeenCalled()
+        expect(attachRepl).toHaveBeenCalledWith('default')
     })
 
     it('should set the correct browser', async () => {

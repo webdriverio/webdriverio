@@ -6,7 +6,6 @@ describe('global usage', () => {
         expect(typeof global.$).toBe('undefined')
         expect(typeof global.$$).toBe('undefined')
         expect(typeof global.driver).toBe('undefined')
-        expect(typeof global.multiremotebrowser).toBe('undefined')
         expect(typeof global.multiRemoteBrowser).toBe('undefined')
     })
 

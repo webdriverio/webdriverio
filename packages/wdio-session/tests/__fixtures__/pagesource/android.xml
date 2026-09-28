@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hierarchy>
+  <android.widget.FrameLayout displayed="true" bounds="[0,0][1080,1920]">
+    <android.widget.TextView text="Hello" displayed="true" bounds="[0,0][200,40]" />
+    <android.widget.Button text="Save" content-desc="save" clickable="true" displayed="true" bounds="[0,40][200,80]" resource-id="com.example:id/save" />
+    <android.widget.EditText text="" hint="Email" focusable="true" displayed="true" bounds="[0,80][200,120]" resource-id="com.example:id/email" />
+    <android.widget.CheckBox text="Agree" checkable="true" checked="true" clickable="true" displayed="true" bounds="[0,120][200,160]" />
+    <android.widget.TextView text="Hidden" displayed="false" bounds="[0,0][0,0]" />
+    <android.widget.ScrollView displayed="true" scrollable="true" bounds="[0,160][1080,1920]" />
+  </android.widget.FrameLayout>
+</hierarchy>

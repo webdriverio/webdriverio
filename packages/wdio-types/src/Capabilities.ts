@@ -1347,28 +1347,12 @@ export interface SauceLabsCapabilities {
     tunnelName?: string
 
     /**
-     * Specify a Sauce Connect tunnel name to establish connectivity with a Sauce Labs test platform. This is an alias for tunnelName.
-     * @see https://docs.saucelabs.com/dev/test-configuration-options/#tunnelidentifier
-     * @deprecated
-     */
-    tunnelIdentifier?: string
-
-    /**
      * If the tunnelName you've specified to establish connectivity with a Sauce Labs test platform is a shared tunnel,
      * and you are not the user who created the tunnel, you must identify the Sauce Labs user who did create the tunnel in order to use it for your test.
      * @see https://docs.saucelabs.com/secure-connections/sauce-connect/setup-configuration/basic-setup/#using-tunnel-names
      * @see https://docs.saucelabs.com/dev/test-configuration-options/#tunnelowner
      */
     tunnelOwner?: string
-
-    /**
-     * If the tunnelName (or tunnelIdentifier) you've specified to establish connectivity with a Sauce Labs test platform is a shared tunnel,
-     * and you are not the user who created the tunnel, you must identify the Sauce Labs user who did create the tunnel in order to use it for your test.
-     * This is an alias for tunnelOwner.
-     * @see https://docs.saucelabs.com/dev/test-configuration-options/#parenttunnel
-     * @deprecated
-     */
-    parentTunnel?: string
 
     /**
      * Use this to disable video recording. By default, Sauce Labs records a video of every test you run.

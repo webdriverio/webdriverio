@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Dialogs Fixture</title>
+</head>
+<body>
+  <h1>Dialogs</h1>
+  <button type="button" onclick="setTimeout(() => { alert('Hello'); document.getElementById('result').textContent = 'accepted' })">Alert</button>
+  <button type="button" onclick="setTimeout(() => { document.getElementById('result').textContent = confirm('Sure?') ? 'confirmed' : 'cancelled' })">Confirm</button>
+  <button type="button" onclick="setTimeout(() => { const v = prompt('Name?'); document.getElementById('result').textContent = v === null ? 'no answer' : 'answer: ' + v })">Prompt</button>
+  <p id="result"></p>
+</body>
+</html>

@@ -19,7 +19,7 @@ import { expectType } from 'tsd'
                     name: 'foo'
                 },
                 'appium:autoWebview': true,
-                // @ts-expect-error no JSONWire caps allowed
+                // @ts-expect-error unprefixed capability
                 platform: 'foo'
             }],
             browserName: 'foo'

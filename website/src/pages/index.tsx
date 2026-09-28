@@ -8,6 +8,7 @@ import PlatformDiagram from '../components/home/PlatformDiagram.tsx'
 import InstallCommand from '../components/home/InstallCommand.tsx'
 import Platforms from '../components/home/Platforms.tsx'
 import AgentDemo from '../components/home/AgentDemo.tsx'
+import SessionDemo from '../components/home/SessionDemo.tsx'
 import DevToolsDemo from '../components/home/DevToolsDemo.tsx'
 import LogoCarousel from '../components/LogoCarousel.tsx'
 import Sponsors from '../components/Sponsors.tsx'
@@ -111,6 +112,30 @@ export default function Home () {
                     <Platforms />
                 </section>
 
+                <section id="wdio-session" className={clsx(styles.frame, styles.section)}>
+                    <SectionHeader
+                        eyebrow={translate({ id: 'homepage.session.eyebrow', message: 'wdio session' })}
+                        title={translate({ id: 'homepage.session.heading', message: 'How agents verify their own work.' })}>
+                        <Translate id="homepage.session.description">
+                            A software factory runs on verification loops. wdio session is how an agent runs that loop on the real app: it opens a browser, a phone, or a desktop app, sees what is there, acts on it, and checks the result. What passed becomes a test.
+                        </Translate>
+                    </SectionHeader>
+                    <p className={styles.sessionLinks}>
+                        <Link className={styles.textLink} to="/docs/session">
+                            <Translate id="homepage.session.guide">Read the guide</Translate>
+                        </Link>
+                        <Link className={styles.textLink} to="/docs/session-commands">
+                            <Translate id="homepage.session.commands">Commands</Translate>
+                        </Link>
+                    </p>
+                    <p className={styles.visuallyHidden}>
+                        <Translate id="homepage.session.demo">
+                            A looping demo of wdio session. It opens Chrome on a shop, snapshots the Add to cart button, clicks it, passes a visual check, repeats that on Android and Electron, then exports one test for all three.
+                        </Translate>
+                    </p>
+                    <SessionDemo />
+                </section>
+
                 <section className={clsx(styles.frame, styles.section, styles.split)}>
                     <div>
                         <SectionHeader
@@ -121,6 +146,9 @@ export default function Home () {
                             </Translate>
                         </SectionHeader>
                         <div className={styles.featureList}>
+                            <Feature to="/docs/session" title={translate({ id: 'homepage.agents.session.title', message: 'wdio session' })}>
+                                <Translate id="homepage.agents.session.text">Let agents drive any app from the shell and turn the session into a test.</Translate>
+                            </Feature>
                             <Feature to="/docs/mcp" title={translate({ id: 'homepage.agents.mcp.title', message: 'WebdriverIO MCP' })}>
                                 <Translate id="homepage.agents.mcp.text">Let agents drive browsers and mobile apps to explore your UI and find robust selectors.</Translate>
                             </Feature>

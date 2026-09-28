@@ -85,7 +85,7 @@ describe('WebDriver', () => {
             logMock.debug.mockRestore()
         })
 
-        it('should allow to create a new session using jsonwire caps', async () => {
+        it('should wrap flat capabilities into a W3C capabilities object', async () => {
             const testDirPath = './logs'
             await WebDriver.newSession({
                 path: '/',
@@ -166,7 +166,12 @@ describe('WebDriver', () => {
         it('attaches bidi handler if socket url is given', async () => {
             const wid = process.env.WDIO_UNIT_TESTS
             delete process.env.WDIO_UNIT_TESTS
-            vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl: 'ws://foo/bar' } }))
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+                value: {
+                    sessionId: 'bidi-session',
+                    capabilities: { webSocketUrl: 'ws://foo/bar' }
+                }
+            }))
             await WebDriver.newSession({
                 path: '/',
                 capabilities: { browserName: 'firefox' }
@@ -181,7 +186,12 @@ describe('WebDriver', () => {
             const headers = { 'Authorization': 'OAuth 12345' }
 
             vi.spyOn(utils, 'initiateBidi')
-            vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl } }))
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+                value: {
+                    sessionId: 'bidi-session',
+                    capabilities: { webSocketUrl }
+                }
+            }))
             await WebDriver.newSession({
                 path: '/',
                 capabilities: { browserName: 'firefox' },
@@ -201,7 +211,12 @@ describe('WebDriver', () => {
             const webSocketUrl = 'ws://foo/bar'
 
             vi.spyOn(utils, 'initiateBidi')
-            vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl } }))
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+                value: {
+                    sessionId: 'bidi-session',
+                    capabilities: { webSocketUrl }
+                }
+            }))
             await WebDriver.newSession({
                 path: '/',
                 capabilities: { browserName: 'firefox' },
@@ -347,7 +362,12 @@ describe('WebDriver', () => {
                 capabilities: { browserName: 'firefox' }
             })
             vi.mocked(startWebDriver).mockClear()
-            vi.mocked(fetch).mockResolvedValueOnce(Response.json({ value: { webSocketUrl: 'ws://foo/bar' } }))
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+                value: {
+                    sessionId: 'bidi-session',
+                    capabilities: { webSocketUrl: 'ws://foo/bar' }
+                }
+            }))
             const reconnect = vi.fn().mockResolvedValue(undefined)
             ;(session as any)._bidiHandler = { reconnect, socket: { on: vi.fn() } }
             session.options.strictSSL = false

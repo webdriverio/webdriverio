@@ -37,9 +37,8 @@ export function addValue (
     options?: InputOptions
 ) {
     /**
-     * The JSONWireProtocol allowed array values and use of special characters when adding a value to an input.
-     * With the W3C protocol this was not possible anymore. This is a type check to ensure users are aware of
-     * this transition.
+     * `elementSendKeys` accepts a string. Reject other types so callers use
+     * the `keys` command for special characters.
      */
     if (!VALID_TYPES.includes(typeof value)) {
         throw new Error(

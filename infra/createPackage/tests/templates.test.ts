@@ -21,6 +21,13 @@ describe('getPackageNames', () => {
             fullScopedPackageName: '@wdio/video-reporter'
         })
     })
+
+    it('omits the type suffix for tools', () => {
+        expect(getPackageNames('session', 'tool')).toEqual({
+            fullPackageName: 'wdio-session',
+            fullScopedPackageName: '@wdio/session'
+        })
+    })
 })
 
 describe('buildPackageScaffold', () => {

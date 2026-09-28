@@ -286,7 +286,6 @@ class JasmineAdapter {
             specFilter: this._jasmineOpts.specFilter || this.customSpecFilter.bind(this),
             stopOnSpecFailure: Boolean(this._jasmineOpts.stopOnSpecFailure),
             failSpecWithNoExpectations: Boolean(this._jasmineOpts.failSpecWithNoExpectations),
-            failFast: this._jasmineOpts.failFast,
             random: Boolean(this._jasmineOpts.random),
             seed: Boolean(this._jasmineOpts.seed),
             oneFailurePerSpec: Boolean(this._jasmineOpts.oneFailurePerSpec)

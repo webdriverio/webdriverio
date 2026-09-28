@@ -1,6 +1,4 @@
-import { resolve } from 'node:path'
-import url from 'node:url'
-import { resolve as resolveModule } from 'import-meta-resolve'
+import { resolveOptionalDependency } from '@wdio/utils/node'
 import { execSync, spawn, exec, type ChildProcessByStdio } from 'node:child_process'
 import { type Readable } from 'node:stream'
 import os from 'node:os'
@@ -63,39 +61,10 @@ export function removePortFromArgs(args: string[]): void {
     }
 }
 
-async function tryResolveModule(command: string, from: string): Promise<string | null> {
-    try {
-        const entryPath = await resolveModule(command, from)
-
-        return url.fileURLToPath(entryPath)
-    } catch {
-        return null
-    }
-}
-
 export async function determineAppiumCliCommand(command = 'appium'): Promise<string> {
-    const localNodeModules = resolve(process.cwd(), 'node_modules')
-    const localPath = await tryResolveModule(command, url.pathToFileURL(localNodeModules).toString())
-
-    if (localPath) {
-        return localPath
-    }
-
-    const packagePath = await tryResolveModule(command, import.meta.url)
-
-    if (packagePath) {
-        return packagePath
-    }
-
-    try {
-        const npmPrefix = execSync('npm config get prefix', { encoding: 'utf-8' }).trim()
-        const globalNodeModules = resolve(npmPrefix, 'lib', 'node_modules')
-        const globalPath = await tryResolveModule(command, url.pathToFileURL(globalNodeModules).toString())
-        if (globalPath) {
-            return globalPath
-        }
-    } catch {
-        // npm config get prefix failed, continue to throw error below
+    const resolved = await resolveOptionalDependency(command, { from: import.meta.url, global: true })
+    if (resolved) {
+        return resolved
     }
 
     throw new Error(

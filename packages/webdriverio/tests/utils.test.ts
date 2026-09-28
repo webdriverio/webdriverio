@@ -43,13 +43,13 @@ describe('utils', () => {
             expect(getElementFromResponse()).toBe(null)
         })
 
-        it('ignores a JSON Wire Protocol element id', () => {
+        it('ignores a legacy element id field', () => {
             expect(getElementFromResponse({ ELEMENT: 'foobar' } as unknown as ElementReference)).toBe(null)
         })
 
-        it('uses the W3C element id when a JSONWP key is also present', () => {
+        it('uses the W3C element id when a legacy element id field is also present', () => {
             expect(getElementFromResponse({
-                ELEMENT: 'jsonwp',
+                ELEMENT: 'legacy',
                 'element-6066-11e4-a52e-4f735466cecf': 'w3c'
             } as unknown as ElementReference)).toBe('w3c')
         })

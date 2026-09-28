@@ -377,7 +377,36 @@ export function getMajorVersionFromString(fullVersion:string) {
     return prefix && prefix.length > 0 ? prefix[0] : ''
 }
 
-export async function setupChromedriver (cacheDir: string, driverVersion?: string) {
+const setupsInFlight = new Map<string, Promise<unknown>>()
+
+/**
+ * Chrome and Chromium both ask for the same ChromeDriver. The launcher starts
+ * those downloads together, and a second install then sees the first one's
+ * unfinished cache directory and gives up. Share one setup for the same
+ * cache and requested version.
+ */
+function shareSetup<T>(key: string, run: () => Promise<T>): Promise<T> {
+    const current = setupsInFlight.get(key) as Promise<T> | undefined
+    if (current) {
+        return current
+    }
+    const pending = run().finally(() => {
+        if (setupsInFlight.get(key) === pending) {
+            setupsInFlight.delete(key)
+        }
+    })
+    setupsInFlight.set(key, pending)
+    return pending
+}
+
+export function setupChromedriver (cacheDir: string, driverVersion?: string) {
+    return shareSetup(
+        `chromedriver\0${cacheDir}\0${driverVersion ?? ''}`,
+        () => installChromedriver(cacheDir, driverVersion)
+    )
+}
+
+async function installChromedriver (cacheDir: string, driverVersion?: string) {
     const platform = detectBrowserPlatform()
     if (!platform) {
         throw new Error('The current platform is not supported.')

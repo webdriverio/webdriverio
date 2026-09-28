@@ -35,6 +35,18 @@ The documentation is also available as a remote MCP server at `https://webdriver
 
 For Claude Code, run `claude mcp add --transport http webdriverio-docs https://webdriver.io/mcp`.
 
+## Let your agent use `wdio session`
+
+[`wdio session`](/docs/session) keeps a WebdriverIO session alive between shell commands. An agent can open a browser, phone or desktop app, snapshot what is on screen, act on refs, and export the steps that worked as a test. That is the default way to drive an app from a coding agent. The [MCP server](/docs/mcp) in the next section is the alternative when the agent should call tools instead of the shell.
+
+Install the skill into the project:
+
+```sh
+npx wdio session skill --install .
+```
+
+That writes `.agents/skills/wdio-session/SKILL.md`. `npm init wdio` writes the same file when you accept coding agent support, and adds the project rules below. The [WebdriverIO Session](/docs/session) section covers targets, snapshots, `exec`, export and debugging. Command reference: [wdio session commands](/docs/session-commands).
+
 ### Add the docs to your agent
 
 To make the docs available in every chat, add the index to your agent:
@@ -82,6 +94,7 @@ Agents follow the conventions of a project much more reliably when they are writ
 - Prefer user-facing selectors: accessibility name or text (`$('aria/Submit')`, `$('button=Submit')`), then `data-testid`. Avoid XPath and generated CSS classes.
 - Rely on auto-waiting and `expect-webdriverio` matchers (`await expect($('h1')).toHaveText('Welcome')`) instead of `browser.pause()`.
 - To explore the app or verify a selector, use the `wdio-mcp` MCP server.
+- To drive the app from the shell, follow `.agents/skills/wdio-session/SKILL.md` (`npx wdio session`).
 - When a test fails, read the DevTools trace in `test-results/` (see `transcript.md`) before changing code.
 ````
 

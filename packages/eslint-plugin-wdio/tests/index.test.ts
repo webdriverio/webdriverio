@@ -100,7 +100,6 @@ test('should export proper plugin configuration', () => {
         'mocha': false,
         'module': false,
         'multiRemoteBrowser': false,
-        'multiremotebrowser': false,
         'navigator': false,
         'performance': false,
         'process': false,

@@ -28,6 +28,10 @@ export const SevereServiceError = SevereServiceErrorImport
  * is enabled, see https://webdriver.io/docs/selectors#strict-mode
  */
 export { StrictSelectorError } from './utils/strictMode.js'
+/**
+ * Device descriptors used by `browser.emulate('device', name)`
+ */
+export { deviceDescriptorsSource, type DeviceName } from './deviceDescriptorsSource.js'
 
 /**
  * A method to create a new session with WebdriverIO.
@@ -153,12 +157,18 @@ export const multiRemote = async function (
     /**
      * create all instance sessions, then register them in capability order.
      * `Promise.all` keeps result order even when the sessions resolve out of order.
-     * A later failure must still close sessions that already started, including
-     * ones still in flight when the first error is reported.
+     * The first failure closes sessions that already started and rejects
+     * immediately. A session that is still connecting closes itself when it
+     * starts, so a live browser is not left open for the rest of that retry.
      */
     const started: WebdriverIO.Browser[] = []
+    let startupFailed = false
     const pending = browserNames.map(async (browserName) => {
         const instance = await remote(params[browserName])
+        if (startupFailed) {
+            await instance.deleteSession()
+            return [browserName, instance] as const
+        }
         started.push(instance)
         return [browserName, instance] as const
     })
@@ -166,10 +176,12 @@ export const multiRemote = async function (
     try {
         sessions = await Promise.all(pending)
     } catch (err) {
-        await Promise.allSettled(pending)
-        await Promise.allSettled(started.map(async (instance) => {
-            await instance.deleteSession()
-        }))
+        startupFailed = true
+        const orphaned = started.splice(0)
+        void Promise.allSettled(pending).then(() => {
+            return Promise.allSettled(started.splice(0).map((instance) => instance.deleteSession()))
+        })
+        await Promise.allSettled(orphaned.map((instance) => instance.deleteSession()))
         throw err
     }
     for (const [browserName, instance] of sessions) {

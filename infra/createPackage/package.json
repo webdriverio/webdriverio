@@ -2,7 +2,7 @@
   "name": "@wdio/create-package",
   "private": true,
   "type": "module",
-  "description": "Scaffold a new WebdriverIO reporter, service, runner, or framework package",
+  "description": "Scaffold a new WebdriverIO reporter, service, runner, framework, or tool package",
   "scripts": {
     "create": "tsx ./src/cli.ts"
   },

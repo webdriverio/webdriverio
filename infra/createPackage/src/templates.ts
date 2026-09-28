@@ -1,4 +1,4 @@
-export const PACKAGE_TYPES = ['reporter', 'service', 'runner', 'framework'] as const
+export const PACKAGE_TYPES = ['reporter', 'service', 'runner', 'framework', 'tool'] as const
 export type PackageType = typeof PACKAGE_TYPES[number]
 
 export interface PackageScaffold {
@@ -10,9 +10,13 @@ export interface PackageScaffold {
 }
 
 export function getPackageNames(packageName: string, packageType: PackageType) {
+    /**
+     * tools (e.g. `@wdio/session`) have no type suffix in their name
+     */
+    const nameSuffix = packageType === 'tool' ? '' : `-${packageType}`
     return {
-        fullPackageName: `wdio-${packageName}-${packageType}`,
-        fullScopedPackageName: `@wdio/${packageName}-${packageType}`
+        fullPackageName: `wdio-${packageName}${nameSuffix}`,
+        fullScopedPackageName: `@wdio/${packageName}${nameSuffix}`
     }
 }
 

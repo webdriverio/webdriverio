@@ -1,0 +1,784 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { Readable } from 'node:stream'
+import { pathToFileURL } from 'node:url'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+
+import { helpers } from '../src/actions/helpers.js'
+import { CONTENT_POLL_BYTES, formatHelpers, loadHelpers, reloadHelpers, rewriteRelativeImports, type LoadedHelper } from '../src/helpers.js'
+import type { Session } from '../src/session.js'
+
+const dirs: string[] = []
+const sessions: Session[] = []
+
+function project () {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-helpers-'))
+    dirs.push(dir)
+    fs.mkdirSync(path.join(dir, '.wdio', 'helpers'), { recursive: true })
+    return dir
+}
+
+function fakeSession (cwd: string) {
+    const proto: Record<string, unknown> = {}
+    const browser = Object.create(proto) as WebdriverIO.Browser & { calls: string[] }
+    browser.calls = []
+    browser.addCommand = ((name: string, fn: (...args: unknown[]) => unknown) => {
+        proto[name] = fn
+    }) as WebdriverIO.Browser['addCommand']
+    const store = new Map<string, unknown>()
+    return {
+        cwd,
+        browser,
+        store,
+        disposers: [] as (() => unknown)[],
+        get: (key: string) => store.get(key),
+        set: (key: string, value: unknown) => store.set(key, value)
+    } as unknown as Session
+}
+
+function tracked (cwd: string) {
+    const session = fakeSession(cwd)
+    sessions.push(session)
+    return session
+}
+
+afterEach(async () => {
+    for (const session of sessions.splice(0)) {
+        for (const dispose of session.disposers.splice(0).reverse()) {
+            await dispose()
+        }
+    }
+    for (const dir of dirs.splice(0)) {
+        fs.rmSync(dir, { recursive: true, force: true })
+    }
+})
+
+describe('rewriteRelativeImports', () => {
+    it('rewrites relative specifiers and leaves packages alone', () => {
+        const dir = '/proj/.wdio/helpers'
+        const out = rewriteRelativeImports([
+            "import { x } from './util.js'",
+            "import './side.js'",
+            "const y = import('./dyn.js')",
+            "import fs from 'node:fs'"
+        ].join('\n'), dir, 5)
+        const file = (name: string) => `${pathToFileURL(path.join(dir, name)).href}?v=5`
+        expect(out).toContain(`from '${file('util.js')}'`)
+        expect(out).toContain(`import '${file('side.js')}'`)
+        expect(out).toContain(`import('${file('dyn.js')}'`)
+        expect(out).toContain("from 'node:fs'")
+    })
+
+    it('leaves specifiers inside strings and comments unchanged', () => {
+        const dir = '/proj/.wdio/helpers'
+        const out = rewriteRelativeImports([
+            "const note = \"from './util.js'\"",
+            "// import './skip.js'",
+            "/* import('./nope.js') */",
+            "import { x } from './util.js'"
+        ].join('\n'), dir, 5)
+        expect(out).toContain("const note = \"from './util.js'\"")
+        expect(out).toContain("// import './skip.js'")
+        expect(out).toContain("/* import('./nope.js') */")
+        expect(out).not.toContain('skip.js?v=')
+        expect(out).not.toContain('nope.js?v=')
+        expect(out).toContain(`from '${pathToFileURL(path.join(dir, 'util.js')).href}?v=5'`)
+    })
+})
+
+describe('loadHelpers', () => {
+    it('registers commands, reports a broken file, and picks up edits', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        fs.writeFileSync(path.join(helpers, 'util.js'), 'export const mark = "v1"\n')
+        fs.writeFileSync(path.join(helpers, 'login.ts'), [
+            "import { mark } from './util.js'",
+            'export default function (browser: { addCommand: Function }) {',
+            "    browser.addCommand('fillLogin', async (email: string) => email + mark)",
+            '}'
+        ].join('\n'))
+        fs.writeFileSync(path.join(helpers, 'broken.ts'), 'export default function ( {\n')
+        const session = fakeSession(dir)
+        await loadHelpers(session)
+        const loaded = session.get<LoadedHelper[]>('helpers')!
+        expect(loaded.find((h) => h.file.endsWith('login.ts'))?.commands).toEqual(['fillLogin'])
+        expect(loaded.find((h) => h.file.endsWith('broken.ts'))?.error).toMatch(/SyntaxError|Unexpected|invalid JS syntax/)
+        expect(formatHelpers(loaded)).toContain('fillLogin (login.ts)')
+        expect(formatHelpers(loaded)).toContain('broken.ts:')
+        const fill = (session.browser as unknown as { fillLogin: (email: string) => Promise<string> }).fillLogin
+        expect(await fill('a')).toBe('av1')
+
+        fs.writeFileSync(path.join(helpers, 'util.js'), 'export const mark = "v2"\n')
+        await reloadHelpers(session)
+        const fill2 = (session.browser as unknown as { fillLogin: (email: string) => Promise<string> }).fillLogin
+        expect(await fill2('a')).toBe('av2')
+        expect(session.get<LoadedHelper[]>('helpers')!.find((h) => h.file.endsWith('broken.ts'))?.error).toBeTruthy()
+        expect(fs.readdirSync(helpers)).not.toContain('.cache')
+        expect(String(session.get('helperCache'))).toContain(`${path.sep}helper-cache${path.sep}`)
+    })
+
+    it('keeps a dynamic import alive and does not reload from its own cache', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        fs.writeFileSync(path.join(helpers, 'dyn.js'), 'export const mark = "d1"\n')
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            'export default function (browser) {',
+            "    browser.addCommand('loadDyn', () => import('./dyn.js').then((mod) => mod.mark))",
+            '}'
+        ].join('\n'))
+        const session = tracked(dir)
+        await loadHelpers(session, { watch: true })
+        const loadDyn = () => (session.browser as unknown as { loadDyn: () => Promise<string> }).loadDyn()
+        expect(await loadDyn()).toBe('d1')
+        const cache = session.get('helperCache')
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        expect(session.get('helperCache')).toBe(cache)
+        expect(await loadDyn()).toBe('d1')
+
+        fs.writeFileSync(path.join(helpers, 'dyn.js'), 'export const mark = "d2"\n')
+        const started = Date.now()
+        let mark = 'd1'
+        while (Date.now() - started < 3000 && mark !== 'd2') {
+            mark = await loadDyn()
+            if (mark !== 'd2') {
+                await new Promise((resolve) => setTimeout(resolve, 50))
+            }
+        }
+        expect(mark).toBe('d2')
+    })
+
+    it('reloads a same-size edit that keeps its modification time', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const file = path.join(helpers, 'dyn.js')
+        fs.writeFileSync(file, 'export const mark = "d1"\n')
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            'export default function (browser) {',
+            "    browser.addCommand('loadDyn', () => import('./dyn.js').then((mod) => mod.mark))",
+            '}'
+        ].join('\n'))
+        const frozen = new Date(Math.floor(Date.now() / 1000) * 1000)
+        fs.utimesSync(file, frozen, frozen)
+        const session = tracked(dir)
+        await loadHelpers(session, { watch: true })
+        const loadDyn = () => (session.browser as unknown as { loadDyn: () => Promise<string> }).loadDyn()
+        expect(await loadDyn()).toBe('d1')
+        const before = fs.statSync(file)
+        fs.writeFileSync(file, 'export const mark = "d9"\n')
+        fs.utimesSync(file, frozen, frozen)
+        const after = fs.statSync(file)
+        expect(after.size).toBe(before.size)
+        expect(after.mtimeMs).toBe(before.mtimeMs)
+
+        const started = Date.now()
+        let mark = 'd1'
+        while (Date.now() - started < 3000 && mark !== 'd9') {
+            mark = await loadDyn()
+            if (mark !== 'd9') {
+                await new Promise((resolve) => setTimeout(resolve, 50))
+            }
+        }
+        expect(mark).toBe('d9')
+    })
+
+    it('rereads helpers when the watcher omits the filename', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const file = path.join(helpers, 'dyn.js')
+        fs.writeFileSync(file, 'export const mark = "d1"\n')
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            'export default function (browser) {',
+            "    browser.addCommand('loadDyn', () => import('./dyn.js').then((mod) => mod.mark))",
+            '}'
+        ].join('\n'))
+        const frozen = new Date(Math.floor(Date.now() / 1000) * 1000)
+        fs.utimesSync(file, frozen, frozen)
+        const original = fs.watch
+        const spy = vi.spyOn(fs, 'watch').mockImplementation((...args: Parameters<typeof fs.watch>) => {
+            const cbIndex = args.findIndex((arg) => typeof arg === 'function')
+            const cb = args[cbIndex] as (event: string, filename: string | null) => void
+            const next = args.slice() as Parameters<typeof fs.watch>
+            next[cbIndex] = ((event: string) => cb(event, null)) as Parameters<typeof fs.watch>[number]
+            return original(...next)
+        })
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const loadDyn = () => (session.browser as unknown as { loadDyn: () => Promise<string> }).loadDyn()
+            expect(await loadDyn()).toBe('d1')
+            await new Promise((resolve) => setTimeout(resolve, 500))
+            const before = fs.statSync(file)
+            fs.writeFileSync(file, 'export const mark = "d9"\n')
+            fs.utimesSync(file, frozen, frozen)
+            const after = fs.statSync(file)
+            expect(after.size).toBe(before.size)
+            expect(after.mtimeMs).toBe(before.mtimeMs)
+            const started = Date.now()
+            let mark = 'd1'
+            while (Date.now() - started < 3000 && mark !== 'd9') {
+                mark = await loadDyn()
+                if (mark !== 'd9') {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            expect(mark).toBe('d9')
+        } finally {
+            spy.mockRestore()
+        }
+    })
+
+    it('keeps the session usable when an unnamed event rereads an unreadable file', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const data = path.join(helpers, 'payload.bin')
+        const main = path.join(helpers, 'main.js')
+        fs.writeFileSync(data, Buffer.alloc(32, 7))
+        const source = (mark: string) => [
+            'export default function (browser) {',
+            `    browser.addCommand('mark', () => ${JSON.stringify(mark)})`,
+            '}'
+        ].join('\n')
+        fs.writeFileSync(main, source('a'))
+        const originalWatch = fs.watch
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation((...args: Parameters<typeof fs.watch>) => {
+            const cbIndex = args.findIndex((arg) => typeof arg === 'function')
+            const cb = args[cbIndex] as (event: string, filename: string | null) => void
+            const next = args.slice() as Parameters<typeof fs.watch>
+            next[cbIndex] = ((event: string) => cb(event, null)) as Parameters<typeof fs.watch>[number]
+            return originalWatch(...next)
+        })
+        const originalRead = fs.readFileSync
+        let readSpy: ReturnType<typeof vi.spyOn> | undefined
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const read = () => (session.browser as unknown as { mark: () => string }).mark()
+            expect(read()).toBe('a')
+            await new Promise((resolve) => setTimeout(resolve, 500))
+            readSpy = vi.spyOn(fs, 'readFileSync').mockImplementation((...args: Parameters<typeof fs.readFileSync>) => {
+                if (String(args[0]) === data) {
+                    const err = new Error(`EACCES: permission denied, open '${data}'`) as NodeJS.ErrnoException
+                    err.code = 'EACCES'
+                    throw err
+                }
+                return originalRead(...(args as [fs.PathLike]))
+            })
+            fs.writeFileSync(main, source('b'))
+            const started = Date.now()
+            let mark = 'a'
+            while (Date.now() - started < 3000 && mark !== 'b') {
+                mark = read()
+                if (mark !== 'b') {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            expect(mark).toBe('b')
+            expect(read()).toBe('b')
+        } finally {
+            readSpy?.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
+    it('retries a helper that was unreadable during its edit', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const main = path.join(helpers, 'main.js')
+        const note = path.join(helpers, 'note.txt')
+        const source = (mark: string) => [
+            'export default function (browser) {',
+            `    browser.addCommand('mark', () => ${JSON.stringify(mark)})`,
+            '}'
+        ].join('\n')
+        fs.writeFileSync(main, source('a'))
+        fs.writeFileSync(note, 'same\n')
+        let emit: ((event: string, filename: string | null) => void) | undefined
+        let allowReal = true
+        const originalWatch = fs.watch
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation((...args: Parameters<typeof fs.watch>) => {
+            const cbIndex = args.findIndex((arg) => typeof arg === 'function')
+            const cb = args[cbIndex] as (event: string, filename: string | null) => void
+            emit = cb
+            const next = args.slice() as Parameters<typeof fs.watch>
+            next[cbIndex] = ((event: string, filename: string | null) => {
+                if (allowReal) {
+                    cb(event, filename)
+                }
+            }) as Parameters<typeof fs.watch>[number]
+            return originalWatch(...next)
+        })
+        const originalRead = fs.readFileSync
+        let readSpy: ReturnType<typeof vi.spyOn> | undefined
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const read = () => (session.browser as unknown as { mark: () => string }).mark()
+            expect(read()).toBe('a')
+            allowReal = false
+            let blocked = true
+            let denied = 0
+            readSpy = vi.spyOn(fs, 'readFileSync').mockImplementation((...args: Parameters<typeof fs.readFileSync>) => {
+                if (blocked && String(args[0]) === main) {
+                    denied += 1
+                    const err = new Error(`EACCES: permission denied, open '${main}'`) as NodeJS.ErrnoException
+                    err.code = 'EACCES'
+                    throw err
+                }
+                return originalRead(...(args as [fs.PathLike]))
+            })
+            fs.writeFileSync(main, source('b'))
+            expect(emit).toBeTypeOf('function')
+            emit!('change', 'main.js')
+            const failedAt = Date.now()
+            while (denied === 0 && Date.now() - failedAt < 3000) {
+                await new Promise((resolve) => setTimeout(resolve, 20))
+            }
+            expect(denied).toBeGreaterThan(0)
+            expect(read()).toBe('a')
+            blocked = false
+            emit!('change', 'note.txt')
+            const started = Date.now()
+            let mark = 'a'
+            while (Date.now() - started < 3000 && mark !== 'b') {
+                mark = read()
+                if (mark !== 'b') {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            expect(mark).toBe('b')
+        } finally {
+            readSpy?.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
+    it('reloads when a helper reads a sibling file that changes', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const settings = path.join(helpers, 'settings.json')
+        fs.writeFileSync(settings, '{"label":"one"}\n')
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            "import fs from 'node:fs'",
+            `const settings = ${JSON.stringify(settings)}`,
+            'const label = JSON.parse(fs.readFileSync(settings, "utf8")).label',
+            'export default function (browser) {',
+            "    browser.addCommand('label', () => label)",
+            '}'
+        ].join('\n'))
+        const session = tracked(dir)
+        await loadHelpers(session, { watch: true })
+        const read = () => (session.browser as unknown as { label: () => string }).label()
+        expect(read()).toBe('one')
+        fs.writeFileSync(settings, '{"label":"two"}\n')
+        const started = Date.now()
+        let label = 'one'
+        while (Date.now() - started < 3000 && label !== 'two') {
+            label = read()
+            if (label !== 'two') {
+                await new Promise((resolve) => setTimeout(resolve, 50))
+            }
+        }
+        expect(label).toBe('two')
+    })
+
+    it('reloads a large data file when its modification time stays the same', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const data = path.join(helpers, 'payload.bin')
+        const fill = (byte: number) => Buffer.alloc(CONTENT_POLL_BYTES + 1, byte)
+        fs.writeFileSync(data, fill(7))
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            "import fs from 'node:fs'",
+            `const data = ${JSON.stringify(data)}`,
+            'const mark = fs.readFileSync(data)[0]',
+            'export default function (browser) {',
+            "    browser.addCommand('mark', () => mark)",
+            '}'
+        ].join('\n'))
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation(() => {
+            return {
+                on() {
+                    return this
+                },
+                close() {
+                    return undefined
+                }
+            } as unknown as fs.FSWatcher
+        })
+        let statSpy: ReturnType<typeof vi.spyOn> | undefined
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const read = () => (session.browser as unknown as { mark: () => number }).mark()
+            expect(read()).toBe(7)
+            const frozen = fs.statSync(data)
+            const originalStat = fs.statSync.bind(fs)
+            statSpy = vi.spyOn(fs, 'statSync').mockImplementation(((file: fs.PathLike, opts?: fs.StatSyncOptions) => {
+                const stat = originalStat(file, opts as never)
+                if (String(file) === data) {
+                    stat.mtimeMs = frozen.mtimeMs
+                    stat.size = frozen.size
+                }
+                return stat
+            }) as typeof fs.statSync)
+            const readSpy = vi.spyOn(fs, 'readFileSync')
+            const streamSpy = vi.spyOn(fs, 'createReadStream')
+            fs.writeFileSync(data, fill(8))
+            const started = Date.now()
+            let mark = 7
+            while (Date.now() - started < 3000 && mark !== 8) {
+                mark = read()
+                if (mark !== 8) {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            const streamOrder = streamSpy.mock.invocationCallOrder.filter((_, index) => String(streamSpy.mock.calls[index][0]) === data)
+            const readOrder = readSpy.mock.invocationCallOrder.filter((_, index) => String(readSpy.mock.calls[index][0]) === data)
+            readSpy.mockRestore()
+            streamSpy.mockRestore()
+            expect(mark).toBe(8)
+            expect(streamOrder.length).toBeGreaterThan(0)
+            expect(readOrder[0]).toBeGreaterThan(streamOrder[0])
+        } finally {
+            statSpy?.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
+    it('reloads a large data file when the hash outlasts the next poll', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const data = path.join(helpers, 'payload.bin')
+        const fill = (byte: number) => Buffer.alloc(CONTENT_POLL_BYTES + 1, byte)
+        fs.writeFileSync(data, fill(7))
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            "import fs from 'node:fs'",
+            `const data = ${JSON.stringify(data)}`,
+            'const mark = fs.readFileSync(data)[0]',
+            'export default function (browser) {',
+            "    browser.addCommand('mark', () => mark)",
+            '}'
+        ].join('\n'))
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation(() => {
+            return {
+                on() {
+                    return this
+                },
+                close() {
+                    return undefined
+                }
+            } as unknown as fs.FSWatcher
+        })
+        const originalStream = fs.createReadStream.bind(fs)
+        let statSpy: ReturnType<typeof vi.spyOn> | undefined
+        let streamSpy: ReturnType<typeof vi.spyOn> | undefined
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const read = () => (session.browser as unknown as { mark: () => number }).mark()
+            expect(read()).toBe(7)
+            const frozen = fs.statSync(data)
+            const originalStat = fs.statSync.bind(fs)
+            statSpy = vi.spyOn(fs, 'statSync').mockImplementation(((file: fs.PathLike, opts?: fs.StatSyncOptions) => {
+                const stat = originalStat(file, opts as never)
+                if (String(file) === data) {
+                    stat.mtimeMs = frozen.mtimeMs
+                    stat.size = frozen.size
+                }
+                return stat
+            }) as typeof fs.statSync)
+            streamSpy = vi.spyOn(fs, 'createReadStream').mockImplementation(((file: fs.PathLike, opts?: fs.CreateReadStreamOptions) => {
+                if (String(file) !== data) {
+                    return originalStream(file, opts)
+                }
+                const readable = new Readable({ read() { /* pushed on a timer */ } })
+                setTimeout(() => {
+                    readable.push(fs.readFileSync(file))
+                    readable.push(null)
+                }, 700)
+                return readable as fs.ReadStream
+            }) as typeof fs.createReadStream)
+            fs.writeFileSync(data, fill(8))
+            const started = Date.now()
+            let mark = 7
+            while (Date.now() - started < 3000 && mark !== 8) {
+                mark = read()
+                if (mark !== 8) {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            expect(mark).toBe(8)
+        } finally {
+            statSpy?.mockRestore()
+            streamSpy?.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
+    it('does not reread an unchanged data file when a helper changes', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const data = path.join(helpers, 'payload.bin')
+        const main = path.join(helpers, 'main.js')
+        fs.writeFileSync(data, Buffer.alloc(1024, 7))
+        const source = (mark: string) => [
+            'export default function (browser) {',
+            `    browser.addCommand('mark', () => ${JSON.stringify(mark)})`,
+            '}'
+        ].join('\n')
+        fs.writeFileSync(main, source('a'))
+        const session = tracked(dir)
+        /**
+         * The poll re-reads small files. This assertion is about the named
+         * watch event, so hold that poll off and deliver the event here.
+         * A dropped operating-system event must not fail the test.
+         */
+        let emit: ((event: string, filename: string | null) => void) | undefined
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation((...args: Parameters<typeof fs.watch>) => {
+            const cbIndex = args.findIndex((arg) => typeof arg === 'function')
+            emit = args[cbIndex] as (event: string, filename: string | null) => void
+            return {
+                on() {
+                    return this
+                },
+                close() {
+                    return undefined
+                }
+            } as unknown as fs.FSWatcher
+        })
+        const originalInterval = global.setInterval
+        const intervalSpy = vi.spyOn(global, 'setInterval').mockImplementation(((fn: TimerHandler, ms?: number, ...args: unknown[]) => {
+            if (ms === 500) {
+                return originalInterval(() => undefined, 2 ** 30)
+            }
+            return originalInterval(fn as never, ms as number, ...(args as []))
+        }) as typeof setInterval)
+        try {
+            await loadHelpers(session, { watch: true })
+            const read = () => (session.browser as unknown as { mark: () => string }).mark()
+            expect(read()).toBe('a')
+            expect(emit).toBeTypeOf('function')
+            const spy = vi.spyOn(fs, 'readFileSync')
+            fs.writeFileSync(main, source('b'))
+            emit!('change', 'main.js')
+            const started = Date.now()
+            let mark = 'a'
+            while (Date.now() - started < 3000 && mark !== 'b') {
+                mark = read()
+                if (mark !== 'b') {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            const reread = spy.mock.calls.some((args) => String(args[0]) === data)
+            spy.mockRestore()
+            expect(mark).toBe('b')
+            expect(reread).toBe(false)
+        } finally {
+            intervalSpy.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
+    it('does not reread a large unchanged file on the poll', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const data = path.join(helpers, 'payload.bin')
+        fs.writeFileSync(data, Buffer.alloc(CONTENT_POLL_BYTES + 1, 7))
+        fs.writeFileSync(path.join(helpers, 'main.js'), [
+            'export default function (browser) {',
+            "    browser.addCommand('mark', () => 'a')",
+            '}'
+        ].join('\n'))
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation(() => {
+            return {
+                on() {
+                    return this
+                },
+                close() {
+                    return undefined
+                }
+            } as unknown as fs.FSWatcher
+        })
+        const readSpy = vi.spyOn(fs, 'readFileSync')
+        const streamSpy = vi.spyOn(fs, 'createReadStream')
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            readSpy.mockClear()
+            streamSpy.mockClear()
+            await new Promise((resolve) => setTimeout(resolve, 1200))
+            const saw = (calls: unknown[][]) => calls.some((args) => String(args[0]) === data)
+            expect(saw(readSpy.mock.calls) || saw(streamSpy.mock.calls)).toBe(false)
+        } finally {
+            readSpy.mockRestore()
+            streamSpy.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
+    it('reloads a same-size edit when the watch event never arrives', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const main = path.join(helpers, 'main.js')
+        const source = (mark: string) => [
+            'export default function (browser) {',
+            `    browser.addCommand('mark', () => ${JSON.stringify(mark)})`,
+            '}'
+        ].join('\n')
+        fs.writeFileSync(main, source('a'))
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation(() => {
+            return {
+                on() {
+                    return this
+                },
+                close() {
+                    return undefined
+                }
+            } as unknown as fs.FSWatcher
+        })
+        let statSpy: ReturnType<typeof vi.spyOn> | undefined
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const read = () => (session.browser as unknown as { mark: () => string }).mark()
+            expect(read()).toBe('a')
+            const frozen = fs.statSync(main)
+            const originalStat = fs.statSync.bind(fs)
+            statSpy = vi.spyOn(fs, 'statSync').mockImplementation(((file: fs.PathLike, opts?: fs.StatSyncOptions) => {
+                const stat = originalStat(file, opts as never)
+                if (String(file) === main) {
+                    stat.mtimeMs = frozen.mtimeMs
+                    stat.size = frozen.size
+                }
+                return stat
+            }) as typeof fs.statSync)
+            fs.writeFileSync(main, source('b'))
+            const started = Date.now()
+            let mark = 'a'
+            while (Date.now() - started < 3000 && mark !== 'b') {
+                mark = read()
+                if (mark !== 'b') {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            expect(mark).toBe('b')
+        } finally {
+            statSpy?.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
+    it('reloads a large same-size edit when the watch event never arrives', async () => {
+        const dir = project()
+        const helpers = path.join(dir, '.wdio', 'helpers')
+        const main = path.join(helpers, 'main.js')
+        const source = (mark: string) => {
+            const body = [
+                'export default function (browser) {',
+                `    browser.addCommand('mark', () => ${JSON.stringify(mark)})`,
+                '}',
+                ''
+            ].join('\n')
+            return body + '/*' + 'x'.repeat(CONTENT_POLL_BYTES) + '*/\n'
+        }
+        fs.writeFileSync(main, source('a'))
+        const watchSpy = vi.spyOn(fs, 'watch').mockImplementation(() => {
+            return {
+                on() {
+                    return this
+                },
+                close() {
+                    return undefined
+                }
+            } as unknown as fs.FSWatcher
+        })
+        let statSpy: ReturnType<typeof vi.spyOn> | undefined
+        try {
+            const session = tracked(dir)
+            await loadHelpers(session, { watch: true })
+            const read = () => (session.browser as unknown as { mark: () => string }).mark()
+            expect(read()).toBe('a')
+            const frozen = fs.statSync(main)
+            const originalStat = fs.statSync.bind(fs)
+            statSpy = vi.spyOn(fs, 'statSync').mockImplementation(((file: fs.PathLike, opts?: fs.StatSyncOptions) => {
+                const stat = originalStat(file, opts as never)
+                if (String(file) === main) {
+                    stat.mtimeMs = frozen.mtimeMs
+                    stat.size = frozen.size
+                }
+                return stat
+            }) as typeof fs.statSync)
+            fs.writeFileSync(main, source('b'))
+            const started = Date.now()
+            let mark = 'a'
+            while (Date.now() - started < 3000 && mark !== 'b') {
+                mark = read()
+                if (mark !== 'b') {
+                    await new Promise((resolve) => setTimeout(resolve, 50))
+                }
+            }
+            expect(mark).toBe('b')
+        } finally {
+            statSpy?.mockRestore()
+            watchSpy.mockRestore()
+        }
+    })
+
+    it('resolves a bare package import from the project', async () => {
+        const dir = project()
+        const dep = path.join(dir, 'node_modules', 'helper-dep')
+        fs.mkdirSync(dep, { recursive: true })
+        fs.writeFileSync(path.join(dep, 'package.json'), JSON.stringify({ name: 'helper-dep', type: 'module', main: 'index.js' }))
+        fs.writeFileSync(path.join(dep, 'index.js'), 'export const mark = "pkg"\n')
+        fs.writeFileSync(path.join(dir, '.wdio', 'helpers', 'pkg.js'), [
+            "import { mark } from 'helper-dep'",
+            'export default function (browser) {',
+            "    browser.addCommand('fromPkg', () => mark)",
+            '}'
+        ].join('\n'))
+        const session = tracked(dir)
+        await loadHelpers(session)
+        const fromPkg = (session.browser as unknown as { fromPkg: () => string }).fromPkg
+        expect(fromPkg()).toBe('pkg')
+    })
+
+    it('starts watching when the helpers directory appears after open', async () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-helpers-'))
+        dirs.push(dir)
+        const session = tracked(dir)
+        await loadHelpers(session, { watch: true })
+        expect(session.get<LoadedHelper[]>('helpers')).toEqual([])
+        const helpersDir = path.join(dir, '.wdio', 'helpers')
+        fs.mkdirSync(helpersDir, { recursive: true })
+        await new Promise((resolve) => setTimeout(resolve, 50))
+        fs.writeFileSync(path.join(helpersDir, 'cmd.js'), [
+            'export default function (browser) {',
+            "    browser.addCommand('ping', () => 'pong')",
+            '}'
+        ].join('\n'))
+        const started = Date.now()
+        let ping: (() => string) | undefined
+        while (Date.now() - started < 3000) {
+            ping = (session.browser as unknown as { ping?: () => string }).ping
+            if (ping) {
+                break
+            }
+            await new Promise((resolve) => setTimeout(resolve, 50))
+        }
+        expect(ping?.()).toBe('pong')
+    })
+
+    it('reload starts the watcher', async () => {
+        const dir = project()
+        const session = tracked(dir)
+        await helpers(session, { reload: true })
+        expect(session.get('helpersWatch')).toBe(true)
+    })
+
+    it('prints a placeholder when the directory is empty', async () => {
+        const session = fakeSession(project())
+        await loadHelpers(session)
+        expect(formatHelpers(session.get<LoadedHelper[]>('helpers')!)).toBe('No helpers.')
+    })
+})

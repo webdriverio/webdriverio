@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Session Fixture</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <nav aria-label="Main">
+      <a href="/index.html">Home</a>
+      <a href="/form.html">Form</a>
+      <a href="/cart.html">Cart</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Welcome</h1>
+    <p>This page is used by the wdio session end-to-end tests.</p>
+    <button id="hello" type="button" onclick="document.getElementById('greeting').textContent = 'Hello, agent!'">Say hello</button>
+    <p id="greeting"></p>
+    <div class="hidden">Secret text</div>
+    <div aria-hidden="true">Decorative text</div>
+  </main>
+</body>
+</html>

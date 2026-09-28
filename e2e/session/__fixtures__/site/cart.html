@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Shop · Cart</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <nav aria-label="Main">
+      <a href="/index.html">Home</a>
+      <a href="/cart.html" id="cart-link" aria-current="page">Cart (0)</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Products</h1>
+    <ul id="products">
+      <li>
+        <span>Blue T-Shirt</span>
+        <button type="button" data-testid="add-blue" onclick="add('Blue T-Shirt')">Add to cart</button>
+      </li>
+      <li>
+        <span>Red Hoodie</span>
+        <button type="button" data-testid="add-red" onclick="add('Red Hoodie')">Add to cart</button>
+      </li>
+    </ul>
+    <h2>Your cart</h2>
+    <ul id="cart" aria-label="Cart items"></ul>
+    <button id="checkout" type="button" disabled>Checkout</button>
+  </main>
+  <script>
+    const items = []
+    function render () {
+      const cart = document.getElementById('cart')
+      cart.innerHTML = ''
+      items.forEach((name, i) => {
+        const li = document.createElement('li')
+        const span = document.createElement('span')
+        span.textContent = name
+        const remove = document.createElement('button')
+        remove.type = 'button'
+        remove.textContent = 'Remove ' + name
+        remove.onclick = () => { items.splice(i, 1); render() }
+        li.append(span, remove)
+        cart.append(li)
+      })
+      document.getElementById('cart-link').textContent = `Cart (${items.length})`
+      document.getElementById('checkout').disabled = items.length === 0
+    }
+    function add (name) { items.push(name); render() }
+  </script>
+</body>
+</html>

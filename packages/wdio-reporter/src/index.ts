@@ -300,7 +300,7 @@ export default class WDIOReporter extends EventEmitter {
  * @returns {string} Browser name
  */
 function getBrowserName(caps: WebdriverIO.Capabilities) {
-    // @ts-expect-error outdated JSONWP capabilities
+    // @ts-expect-error legacy capability names
     const app = ((caps['appium:app'] || caps.app) || '').replace('sauce-storage:', '')
     const appName = (
         caps['appium:bundleId'] ||
@@ -308,7 +308,7 @@ function getBrowserName(caps: WebdriverIO.Capabilities) {
         caps['appium:appActivity'] ||
         (path.isAbsolute(app) ? path.basename(app) : app)
     )
-    // @ts-expect-error outdated JSONWP capabilities
+    // @ts-expect-error legacy capability names
     return caps.browserName || caps.browser || appName
 }
 

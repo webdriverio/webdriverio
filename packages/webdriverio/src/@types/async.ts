@@ -6,22 +6,14 @@
  */
 
 import type { Browser as BrowserImport } from '../types.js'
-import type { Element as ElementImport } from '../types.js'
-import type { MultiRemoteBrowser as MultiRemoteBrowserImport } from '../types.js'
 
 declare global {
     namespace WebdriverIO {
         interface Browser extends BrowserImport { }
-        interface Element extends ElementImport { }
-        interface MultiRemoteBrowser extends MultiRemoteBrowserImport { }
     }
 
     namespace NodeJS {
         interface Global {
-            /**
-             * @deprecated use `multiRemoteBrowser` instead
-             */
-            multiremotebrowser: WebdriverIO.MultiRemoteBrowser
             multiRemoteBrowser: WebdriverIO.MultiRemoteBrowser
             browser: WebdriverIO.Browser
             driver: WebdriverIO.Browser
@@ -32,10 +24,6 @@ declare global {
     function $$(...args: Parameters<WebdriverIO.Browser['$$']>): ReturnType<WebdriverIO.Browser['$$']>
     const browser: WebdriverIO.Browser
     const driver: WebdriverIO.Browser
-    /**
-     * @deprecated use `multiRemoteBrowser` instead
-     */
-    const multiremotebrowser: WebdriverIO.MultiRemoteBrowser
     const multiRemoteBrowser: WebdriverIO.MultiRemoteBrowser
 
     /**

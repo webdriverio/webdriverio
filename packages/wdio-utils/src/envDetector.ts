@@ -248,9 +248,8 @@ function isSeleniumStandalone(capabilities?: WebdriverIO.Capabilities) {
         return false
     }
     /**
-     * Selenium Grid 4 advertises a CDP endpoint. Selenium 3's
-     * `webdriver.remote.sessionid` is a JSONWP capability and does not
-     * select the Selenium command set.
+     * Selenium Grid 4 advertises a CDP endpoint via `se:cdp`.
+     * A Selenium 3 session id capability does not select the Selenium command set.
      */
     return Boolean(capabilities['se:cdp'])
 }

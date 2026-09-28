@@ -48,6 +48,10 @@ export interface Questionnair {
     reporters: string[]
     services: string[]
     serenityLibPath?: string
+    /**
+     * Write AGENTS.md rules, the wdio-session skill and a gitignore entry.
+     */
+    agentSupport?: boolean
     plugins: string[]
     outputDir?: string
     includeVisualTesting: boolean

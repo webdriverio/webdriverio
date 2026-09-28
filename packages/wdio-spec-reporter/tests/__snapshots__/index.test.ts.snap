@@ -486,7 +486,7 @@ exports[`SpecReporter > printReport > with normal setup > should print link to S
 ]
 `;
 
-exports[`SpecReporter > printReport > with normal setup > should print link to Sauce Labs job details page if run with Sauce Connect (jsonwp) 1`] = `
+exports[`SpecReporter > printReport > with normal setup > should print link to Sauce Labs job details page if run with Sauce Connect (legacy hostname) 1`] = `
 [
   [
     "------------------------------------------------------------------

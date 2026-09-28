@@ -9,7 +9,7 @@ import { PACKAGE_TYPES } from './templates.js'
 import { createPackage } from './index.js'
 
 const { packageName, packageType } = await inquirer.prompt([{
-    type: 'list',
+    type: 'select',
     name: 'packageType',
     message: 'Select sub package type:',
     choices: PACKAGE_TYPES,
