@@ -12,6 +12,7 @@ packages:
   - 'examples/bidi/**'
   - 'examples/appium/**'
   - 'test-headless-flag'
+  - '!e2e/session/__fixtures__/**'
 
 # only sharp runs its install script; the rest work without theirs
 allowBuilds:
@@ -23,3 +24,21 @@ allowBuilds:
   esbuild: false
   geckodriver: false
   nx: false
+
+# coverage-v8@5 accepts ^1.0.0. 1.0.2 was published inside pnpm's
+# minimumReleaseAge window, so stay on the previous release.
+overrides:
+  '@vitest/istanbul-lib-coverage': 1.0.1
+  '@vitest/istanbul-lib-report': 1.0.1
+
+# recast's declared @babel/parser range cannot parse the pipeline operator
+packageExtensions:
+  recast@0.23.11:
+    dependencies:
+      '@babel/parser': 7.29.8
+  recast@0.23.21:
+    dependencies:
+      '@babel/parser': 7.29.8
+  recast@0.24.0:
+    dependencies:
+      '@babel/parser': 7.29.8

@@ -42,6 +42,7 @@ The Markdown twin of a page is generated from its source. Anything that only exi
 | --- | --- |
 | Getting started, choosing a setup | `Get Started` |
 | Using WebdriverIO with agents, MCP | `AI Agents` |
+| Driving a browser or app from the shell (`wdio session`) | `WebdriverIO Session` |
 | How to write tests (selectors, waiting, assertions, mocking) | `Writing Tests` |
 | Platform specific setup (browsers, mobile, desktop, extensions) | `Platforms` |
 | Visual, accessibility, OCR testing | `Testing Types` |

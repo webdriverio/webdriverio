@@ -1,7 +1,6 @@
 import os from 'node:os'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
-import url from 'node:url'
 import path from 'node:path'
 import { execFileSync, spawn, type ChildProcessByStdio } from 'node:child_process'
 import { type Readable } from 'node:stream'
@@ -9,11 +8,11 @@ import { promisify } from 'node:util'
 
 import logger from '@wdio/logger'
 import getPort from 'get-port'
-import { resolve } from 'import-meta-resolve'
 import { isCloudCapability } from '@wdio/config'
 import { SevereServiceError } from 'webdriverio'
 import type { Services, Capabilities, Options } from '@wdio/types'
 import { isAppiumCapability } from '@wdio/utils'
+import { resolveOptionalDependency } from '@wdio/utils/node'
 
 import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
@@ -431,18 +430,16 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     }
 
     private static async _getAppiumCommand(command = 'appium') {
-        try {
-            const entryPath = await resolve(command, import.meta.url)
-            return url.fileURLToPath(entryPath)
-        } catch (err) {
-            const errorMessage = (
-                'Appium is not installed locally. Please install via e.g. `npm i --save-dev appium@^3`.\n' +
-                'If you use globally installed appium please add: `appium: { command: \'appium\' }`\n' +
-                'to your wdio.conf.js!\n\n' +
-                (err as Error).stack
-            )
-            log.error(errorMessage)
-            throw new SevereServiceError(errorMessage)
+        const entryPath = await resolveOptionalDependency(command, { from: import.meta.url })
+        if (entryPath) {
+            return entryPath
         }
+        const errorMessage = (
+            'Appium is not installed locally. Please install via e.g. `npm i --save-dev appium@^3`.\n' +
+            'If you use globally installed appium please add: `appium: { command: \'appium\' }`\n' +
+            'to your wdio.conf.js!'
+        )
+        log.error(errorMessage)
+        throw new SevereServiceError(errorMessage)
     }
 }

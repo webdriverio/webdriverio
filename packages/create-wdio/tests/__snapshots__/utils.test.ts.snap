@@ -2,6 +2,7 @@
 
 exports[`getAnswers 1`] = `
 {
+  "agentSupport": true,
   "backend": "On my local machine",
   "framework": "@wdio/mocha-framework$--$mocha",
   "generateTestFiles": true,

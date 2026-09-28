@@ -50,7 +50,7 @@ export function planChecks (
         return steps
     }
 
-    if (report.lanes.code || report.lanes.component || report.lanes.display_server) {
+    if (report.lanes.code || report.lanes.component || report.lanes.session || report.lanes.display_server) {
         steps.push({ name: 'test:oxlint', cmd: ['pnpm', 'run', 'test:oxlint'] })
     }
 
@@ -97,6 +97,14 @@ export function planChecks (
         }
     }
 
+    if (report.lanes.session) {
+        if (e2e) {
+            steps.push({ name: 'test:e2e:session', cmd: ['pnpm', 'run', 'test:e2e:session'] })
+        } else {
+            steps.push({ name: 'session', reason: 'pass --e2e to run pnpm run test:e2e:session' })
+        }
+    }
+
     if (report.lanes.display_server) {
         if (e2e) {
             steps.push({ name: 'test:e2e:display-server', cmd: ['pnpm', 'run', 'test:e2e:display-server'] })
@@ -105,7 +113,7 @@ export function planChecks (
         }
     }
 
-    if (report.lanes.docs && !report.lanes.code && !report.lanes.component && !report.lanes.display_server && !report.runAll) {
+    if (report.lanes.docs && !report.lanes.code && !report.lanes.component && !report.lanes.session && !report.lanes.display_server && !report.runAll) {
         steps.push({
             name: 'docs',
             reason: 'docs lane only; run pnpm run docs:list and regenerate if you changed JSDoc, protocols, or package READMEs'

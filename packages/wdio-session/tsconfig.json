@@ -1,0 +1,12 @@
+{
+    "extends": "../../tsconfig",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "outDir": "./build",
+        "rootDir": "./src",
+        "lib": ["es2023", "dom", "dom.iterable"]
+    },
+    "include": [
+        "src/**/*"
+    ]
+}

@@ -1,0 +1,54 @@
+name: Session E2E Tests
+
+on:
+  workflow_call:
+
+jobs:
+  check:
+    name: Session E2E Tests (ubuntu)
+    permissions:
+      contents: read
+      actions: write
+    # Local run is about 7 minutes. Cold driver and Electron downloads on a
+    # fresh runner need more room; files cannot share a browser.
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: Download Build Archive
+        uses: ./.github/workflows/actions/download-archive
+        with:
+          name: webdriverio
+          path: .
+          filename: webdriverio-build.zip
+
+      # Electron sessions are not headless. With no DISPLAY, the daemon starts
+      # @wdio/display-server, which needs Xvfb. Recording encodes with ffmpeg.
+      # Hosted Ubuntu images usually already have Xvfb and not ffmpeg.
+      - name: Ensure Xvfb and ffmpeg
+        run: |
+          missing=()
+          command -v Xvfb >/dev/null || missing+=(xvfb)
+          command -v ffmpeg >/dev/null || missing+=(ffmpeg)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            sudo apt-get update
+            sudo apt-get install -y "${missing[@]}"
+          fi
+
+      # pnpm runs dependency build scripts only for `sharp`, so Electron's
+      # postinstall never downloads dist/electron. electron.test.ts launches
+      # that binary.
+      - name: Install Electron
+        run: node e2e/node_modules/electron/install.js
+
+      - name: Session E2E Tests
+        run: pnpm run test:e2e:session
+        shell: bash
+
+      - name: Check Git Context
+        uses: ./.github/workflows/actions/check-git-context

@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 
 import detectBackend from '../src/utils/detectBackend.js'
-import { remote, multiRemote, attach, Key, SevereServiceError } from '../src/index.js'
+import { remote, multiRemote, attach, Key, SevereServiceError, deviceDescriptorsSource } from '../src/index.js'
 import { registerSessionManager } from '../src/session/index.js'
 import type * as DriverModule from '../src/utils/driver.js'
 
@@ -99,6 +99,7 @@ describe('WebdriverIO module interface', () => {
         expect(typeof multiRemote).toBe('function')
         expect(typeof Key).toBe('object')
         expect(typeof SevereServiceError).toBe('function')
+        expect(deviceDescriptorsSource['iPhone 15'].viewport).toEqual({ width: 393, height: 659 })
     })
 
     describe('remote function', () => {
@@ -271,6 +272,8 @@ describe('WebdriverIO module interface', () => {
                         capabilities: { browserName: 'firefox' }
                     }
                 })
+                // Startup can reject before the assertion below is attached.
+                void pending.catch(() => {})
                 await vi.waitFor(() => {
                     expect(calls).toBe(2)
                 })
@@ -279,6 +282,79 @@ describe('WebdriverIO module interface', () => {
                 await expect(pending).rejects.toThrow('second session failed')
                 expect(started.deleteSession).toHaveBeenCalledTimes(1)
             } finally {
+                vi.mocked(WebDriver.newSession).mockImplementation(original!)
+            }
+        })
+
+        it('closes a live session when another startup fails while a third is still connecting', async () => {
+            const live = {
+                sessionId: 'live-session',
+                options: { logLevel: 'error' },
+                capabilities: {},
+                addCommand: vi.fn(),
+                overwriteCommand: vi.fn(),
+                strategies: new Map(),
+                deleteSession: vi.fn().mockResolvedValue(undefined)
+            }
+            const slow = {
+                sessionId: 'slow-session',
+                options: { logLevel: 'error' },
+                capabilities: {},
+                addCommand: vi.fn(),
+                overwriteCommand: vi.fn(),
+                strategies: new Map(),
+                deleteSession: vi.fn().mockResolvedValue(undefined)
+            }
+            let releaseSlow = () => {}
+            const slowGate = new Promise<void>((resolve) => {
+                releaseSlow = resolve
+            })
+            const original = vi.mocked(WebDriver.newSession).getMockImplementation()
+            vi.mocked(WebDriver.newSession).mockImplementation((params: any, cb: any) => {
+                const browserName = params.capabilities?.browserName
+                if (browserName === 'safari') {
+                    return slowGate.then(() => {
+                        const result = cb(slow, params)
+                        result.options = { logLevel: 'error' }
+                        return result
+                    })
+                }
+                if (browserName === 'firefox') {
+                    return Promise.reject(new Error('second session failed'))
+                }
+                const result = cb(live, params)
+                result.options = { logLevel: 'error' }
+                return result
+            })
+
+            try {
+                const pending = multiRemote({
+                    browserA: {
+                        automationProtocol: 'webdriver',
+                        capabilities: { browserName: 'chrome' }
+                    },
+                    browserB: {
+                        automationProtocol: 'webdriver',
+                        capabilities: { browserName: 'firefox' }
+                    },
+                    browserC: {
+                        automationProtocol: 'webdriver',
+                        capabilities: { browserName: 'safari' }
+                    }
+                })
+                // Startup can reject before the assertion below is attached.
+                void pending.catch(() => {})
+                await vi.waitFor(() => {
+                    expect(live.deleteSession).toHaveBeenCalledTimes(1)
+                })
+                await expect(pending).rejects.toThrow('second session failed')
+                expect(slow.deleteSession).not.toHaveBeenCalled()
+                releaseSlow()
+                await vi.waitFor(() => {
+                    expect(slow.deleteSession).toHaveBeenCalledTimes(1)
+                })
+            } finally {
+                releaseSlow()
                 vi.mocked(WebDriver.newSession).mockImplementation(original!)
             }
         })

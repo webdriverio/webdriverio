@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window ControlType="Window" Name="Fixture" BoundingRectangle="0,0,800,600" IsOffscreen="False">
+  <Button ControlType="Button" Name="Save" AutomationId="save" BoundingRectangle="10,10,80,30" IsOffscreen="False" />
+  <Edit ControlType="Edit" Name="Email" BoundingRectangle="10,50,200,30" IsOffscreen="False" IsEnabled="False" />
+  <Text ControlType="Text" Name="Gone" BoundingRectangle="0,0,0,0" IsOffscreen="True" />
+</Window>

@@ -69,6 +69,7 @@
     "test:e2e:classic": "cd ./e2e && npx wdio run ./wdio/wdio.classic.conf.ts",
     "test:e2e:cloud": "cd ./e2e && npx wdio run ./wdio/wdio.sauce.conf.ts",
     "test:e2e:launch": "vitest --config ./e2e/vitest.config.ts --run launch",
+    "test:e2e:session": "vitest --config ./e2e/vitest.config.ts --run e2e/session/",
     "test:e2e:display-server": "cd ./e2e && npx wdio run ./wdio/display-server/wdio.conf.ts",
     "test:e2e": "run-s test:e2e:* ",
     "dev": "pnpm -r --filter=@wdio/compiler run build --watch",

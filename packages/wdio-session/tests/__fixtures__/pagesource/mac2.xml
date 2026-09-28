@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppiumAUT>
+  <XCUIElementTypeApplication elementType="2" title="TextEdit" visible="true" x="0" y="0" width="800" height="600">
+    <XCUIElementTypeButton elementType="9" title="Bold" label="Bold" visible="true" x="10" y="10" width="40" height="20" />
+    <XCUIElementTypeStaticText elementType="48" title="Hidden" visible="false" x="0" y="0" width="0" height="0" />
+  </XCUIElementTypeApplication>
+</AppiumAUT>

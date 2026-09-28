@@ -1,0 +1,6 @@
+- document "Shadow Fixture" url=http://localhost:PORT/shadow.html
+  - heading "Shadow DOM" [level=1]
+  - region "Card" [ref=e21]
+    - heading "Inside shadow" [level=2]
+    - textbox "Shadow input" [ref=e22]
+    - button "Shadow button" [ref=e23]
