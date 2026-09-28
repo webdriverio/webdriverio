@@ -40,6 +40,7 @@ export const config: WebdriverIO.Config = {
         {
             browserName: 'firefox',
             webSocketUrl: true,
+            specs: [path.join(__dirname, 'headless', 'mocking.firefox.e2e.ts')],
             'moz:firefoxOptions': {
                 args: ['-headless']
             }

@@ -125,6 +125,7 @@ export default class WebDriverInterception {
     #hasOneResponseCollected = false
     #blockedRequests = new Set<string>()
     #requestsRespondedWithoutFetch = new Set<string>()
+    #didWarnFirefoxFetchResponse = false
 
     constructor(
         pattern: URLPattern,
@@ -323,10 +324,23 @@ export default class WebDriverInterception {
                 )
             )
         ) {
+            if (
+                this.#browser.isFirefox &&
+                overwrite.fetchResponse !== false &&
+                !this.#didWarnFirefoxFetchResponse
+            ) {
+                this.#didWarnFirefoxFetchResponse = true
+                log.warn(
+                    'Firefox cannot use the origin response for this static mock. The early response defaults to status 200 and includes only headers supplied by the mock; `fetchResponse` is ignored and the origin request is skipped.'
+                )
+            }
+
             /**
              * Firefox only supports providing response bodies at `beforeRequestSent`.
              * For static responses without response-based filters, use that phase even
              * when `fetchResponse` is true. This necessarily skips the origin request.
+             * TODO: Remove this Firefox phase override when Gecko supports response bodies
+             * at `responseStarted` (https://bugzilla.mozilla.org/show_bug.cgi?id=1901055).
              */
             return this.#release(request, true, () => {
                 const { overwrite } = responseOverwrite.once
