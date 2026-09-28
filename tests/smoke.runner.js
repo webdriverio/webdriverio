@@ -887,17 +887,28 @@ const runSpecsWithFlagNoArg = async () => {
 
 /**
  * Run the `wdio` binary so yargs parses the flag the way a user types it.
- * `WDIO_UNIT_TESTS` stays set: the mock driver skips `getWindowHandle` during
- * session start, and the CLI skips `process.exit`. The child still ends once
- * its handles close; the timeout catches a hang.
+ *
+ * Stdin is ignored and stdout is a pipe. A TTY stdout with a non-TTY stdin
+ * makes the CLI wait for a spec list on stdin instead of launching. A pipe
+ * is not a TTY, so `wdio run` starts immediately, and the output is still
+ * forwarded here.
+ *
+ * `WDIO_UNIT_TESTS` is removed from this process so a failed run calls
+ * `process.exit` with the launcher status. The config puts that variable
+ * back on the worker via `runnerEnv`.
  */
 function runWdio (configPath, cliArgs) {
     const wdio = path.resolve(__dirname, '..', 'packages', 'wdio-cli', 'bin', 'wdio.js')
+    const env = { ...process.env }
+    delete env.WDIO_UNIT_TESTS
     return new Promise((resolve, reject) => {
         const child = spawn(process.execPath, [wdio, 'run', configPath, ...cliArgs], {
             cwd: __dirname,
-            stdio: 'inherit'
+            env,
+            stdio: ['ignore', 'pipe', 'pipe']
         })
+        child.stdout.on('data', (chunk) => process.stdout.write(chunk))
+        child.stderr.on('data', (chunk) => process.stderr.write(chunk))
         let settled = false
         const finish = (err) => {
             if (settled) {

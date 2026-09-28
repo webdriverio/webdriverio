@@ -22,6 +22,15 @@ export const config = Object.assign({}, baseConfig, {
         }
     }],
     strictSelectors: false,
+    /**
+     * The CLI process itself must not see `WDIO_UNIT_TESTS`, or a failed run
+     * exits 0. Workers still need it so session startup skips `getWindowHandle`,
+     * which the mock driver does not implement.
+     */
+    runnerEnv: {
+        ...(baseConfig.runnerEnv || {}),
+        WDIO_UNIT_TESTS: '1'
+    },
     beforeSession (_config, capabilities) {
         fs.writeFileSync(headlessCapsLog, JSON.stringify(capabilities))
     }
