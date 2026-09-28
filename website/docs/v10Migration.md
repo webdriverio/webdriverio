@@ -309,7 +309,7 @@ A leftover bare list does not select files for that capability. The capability t
 + displayServerAutoInstall: true,
 ```
 
-`displayServer` picks the backend: `'auto'` (the default) tries Wayland first and falls back to Xvfb, `'wayland'` and `'xvfb'` force one. With `displayServerAutoInstall`, `'auto'` tries to install Weston before Xvfb, and a custom `displayServerAutoInstallCommand` runs for that Wayland attempt. Set `displayServer: 'xvfb'` to keep the v9 behavior.
+`displayServer` picks the backend: `'auto'` (the default) tries Wayland first and falls back to Xvfb, `'wayland'` and `'xvfb'` force one. With `displayServerAutoInstall`, `'auto'` tries to install Weston first and Xvfb only if that fails. A custom `displayServerAutoInstallCommand` runs for whichever backend is being installed, and a zero exit code counts as a successful install. A v9 `xvfbAutoInstallCommand` can therefore pass as the Wayland install. The Xvfb fallback then never runs, Weston fails to start, and the run stops with an error. Set `displayServer: 'xvfb'` to keep that command on Xvfb.
 
 `displayServerWidth` and `displayServerHeight` set the screen size (default 1920×1080). `displayServerDepth` sets the color depth (default 24, Xvfb only).
 
