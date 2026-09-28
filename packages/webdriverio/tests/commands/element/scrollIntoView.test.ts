@@ -269,6 +269,100 @@ describe('scrollIntoView test', () => {
             })
         })
 
+        describe('element inside a nested scroll container', () => {
+            const nestedRect = {
+                // painted and fully inside the window - a window-relative "start" delta
+                // would be 682, which a wheel event would feed straight into the nested
+                // container instead of the window, scrolling the element out of it
+                elemRect: { x: 1529, y: 682, height: 24, width: 16 },
+                viewport: { width: 1907, height: 987 },
+                scroll: { x: 0, y: 0 },
+                isPainted: true,
+                hasScrollableAncestor: true
+            }
+            const parseBody = (requestOptions: unknown) => {
+                try {
+                    return JSON.parse((requestOptions as any)?.body)
+                } catch {
+                    return undefined
+                }
+            }
+            // native `Element.scrollIntoView()` + scroll-event quiet-period wait, run as one async script
+            const getNativeSettleCalls = () => vi.mocked(fetch).mock.calls.filter(([url, requestOptions]) =>
+                (url as URL).pathname?.endsWith('/execute/async') &&
+                parseBody(requestOptions)?.script?.includes('.scrollIntoView(') &&
+                parseBody(requestOptions)?.script?.includes('QUIET_MS'))
+            const getSyncWebApiCalls = () => vi.mocked(fetch).mock.calls.filter(([url, requestOptions]) =>
+                (url as URL).pathname?.endsWith('/execute/sync') &&
+                parseBody(requestOptions)?.script?.includes('elem.scrollIntoView(options2)'))
+            const hasWheelAction = () => vi.mocked(fetch).mock.calls.some(([url]) => (url as URL).pathname?.endsWith('/actions'))
+
+            it('uses native Element.scrollIntoView and waits for scrolling to finish, instead of a window-relative wheel action', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce(nestedRect)
+                // @ts-expect-error mock feature
+                elem.elementId = { scrollIntoView: 'mockFunction' }
+
+                await elem.scrollIntoView()
+
+                expect(hasWheelAction()).toBe(false)
+                const nativeCalls = getNativeSettleCalls()
+                expect(nativeCalls).toHaveLength(1)
+                expect(parseBody(nativeCalls[0][1]).args[1]).toEqual({ block: 'start', inline: 'nearest' })
+                // neither the rAF settle wait of the wheel path nor the sync Web API fallback
+                expect(vi.mocked(fetch).mock.calls.some(([, requestOptions]) =>
+                    parseBody(requestOptions)?.script?.includes('stableFrames'))).toBe(false)
+                expect(getSyncWebApiCalls()).toHaveLength(0)
+            })
+
+            it('passes smooth-scroll options through to the native call', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce(nestedRect)
+                // @ts-expect-error mock feature
+                elem.elementId = { scrollIntoView: 'mockFunction' }
+
+                await elem.scrollIntoView({ block: 'center', behavior: 'smooth' })
+
+                expect(parseBody(getNativeSettleCalls()[0][1]).args[1]).toEqual({ block: 'center', behavior: 'smooth' })
+            })
+
+            it('passes normalized boolean options through to the native call', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce(nestedRect)
+                // @ts-expect-error mock feature
+                elem.elementId = { scrollIntoView: 'mockFunction' }
+
+                await elem.scrollIntoView(false)
+
+                expect(parseBody(getNativeSettleCalls()[0][1]).args[1]).toEqual({ block: 'end', inline: 'nearest' })
+            })
+
+            it('hands off even when the window-relative delta is zero', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce({
+                    ...nestedRect,
+                    elemRect: { ...nestedRect.elemRect, x: 0, y: 0 }
+                })
+                // @ts-expect-error mock feature
+                elem.elementId = { scrollIntoView: 'mockFunction' }
+
+                await elem.scrollIntoView({ block: 'start', inline: 'start' })
+
+                expect(hasWheelAction()).toBe(false)
+                expect(getNativeSettleCalls()).toHaveLength(1)
+            })
+
+            it('falls back to the plain Web API call when the native call reports an error', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce(nestedRect)
+                const executeAsyncSpy = vi.spyOn(browser, 'executeAsync').mockResolvedValueOnce('TypeError: boom')
+                // @ts-expect-error mock feature
+                elem.elementId = { scrollIntoView: 'mockFunction' }
+
+                try {
+                    await elem.scrollIntoView()
+                    expect(getSyncWebApiCalls()).toHaveLength(1)
+                } finally {
+                    executeAsyncSpy.mockRestore()
+                }
+            })
+        })
+
         it('skips the origin probe when the element already starts within the viewport', async () => {
             await elem.scrollIntoView({ block: 'center', inline: 'center' })
             const scrollCalls = vi.mocked(fetch).mock.calls.filter(([, requestOptions]) => {

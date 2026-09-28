@@ -136,6 +136,31 @@ export async function scrollIntoView (
                 }
                 isPainted = deepElementsFromPoint(document).includes(elem)
             } catch { /* keep isPainted: false */ }
+            // A wheel event scrolls the innermost scrollable ancestor under the pointer
+            // first and only chains leftover delta up to the window - but the deltas below
+            // are computed against the window. Detect a nested (non-root) scroll container
+            // anywhere in the element's composed ancestor chain (crossing slots and shadow
+            // roots) so the caller can hand off to native `Element.scrollIntoView()`, which
+            // scrolls every container in the chain correctly.
+            let hasScrollableAncestor = false
+            try {
+                const rootScrollers = [document.scrollingElement, document.documentElement, document.body]
+                const canScroll = (overflow: string) => overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay'
+                let node: Element | null = elem
+                while (node && !hasScrollableAncestor) {
+                    const rootNode = node.getRootNode() as Document | ShadowRoot
+                    node = node.assignedSlot
+                        || node.parentElement
+                        || ((rootNode as ShadowRoot).host ?? null)
+                    if (!node || rootScrollers.includes(node)) {
+                        break
+                    }
+                    const { overflowX, overflowY } = window.getComputedStyle(node)
+                    hasScrollableAncestor =
+                        (canScroll(overflowY) && node.scrollHeight > node.clientHeight) ||
+                        (canScroll(overflowX) && node.scrollWidth > node.clientWidth)
+                }
+            } catch { /* keep hasScrollableAncestor: false */ }
             return {
                 elemRect: {
                     x: left + window.scrollX,
@@ -151,7 +176,8 @@ export async function scrollIntoView (
                     x: window.scrollX,
                     y: window.scrollY
                 },
-                isPainted
+                isPainted,
+                hasScrollableAncestor
             }
         }, {
             [ELEMENT_KEY]: this.elementId, // w3c compatible
@@ -232,6 +258,17 @@ export async function scrollIntoView (
         }
 
         const initialMeasurement = await measure()
+
+        // window-relative deltas would be consumed by the nested container instead of
+        // the window, overshooting it (e.g. scrolling a list's first row out of its own
+        // container). The actions-based post-check can't reliably catch that either: a
+        // virtual scroller recycles the same DOM node for a different row, which is then
+        // "painted" just fine. Let the browser's native algorithm handle the whole chain.
+        if (initialMeasurement.hasScrollableAncestor) {
+            await scrollIntoViewWebAndSettle.call(this, options)
+            return
+        }
+
         const initialDelta = computeDelta(initialMeasurement)
 
         // element is already positioned as requested, nothing to scroll - but only trust
@@ -447,6 +484,97 @@ await elem.scrollIntoView({
 });
 
         `)
+}
+
+/**
+ * Native `Element.scrollIntoView()` that only resolves once scrolling has finished.
+ *
+ * With `behavior: 'smooth'` (or a container styled with `scroll-behavior: smooth`) the
+ * native call returns immediately while the scroll is still animating - and not every
+ * driver blocks until it's done (chromedriver does, geckodriver doesn't). A "rect
+ * unchanged for N frames" check isn't enough here: a smooth scroll can take a couple
+ * of frames to start and its ease-out tail repeats frames, both of which read as
+ * "settled". Instead, trigger the scroll and, only if it's a smooth one, listen for
+ * `scroll` events (captured on the document and every shadow root in the element's
+ * ancestor chain, so nested containers are covered too) in the same script - so none
+ * can be missed between two round-trips - and resolve after a quiet period.
+ */
+async function scrollIntoViewWebAndSettle (
+    this: WebdriverIO.Element,
+    options: ScrollIntoViewOptions | boolean
+) {
+    const browser = getBrowserObject(this)
+    // `execute` doesn't await promises under the classic WebDriver protocol, only Bidi,
+    // so `executeAsync` is still required here to reliably wait under both protocols
+    // @ts-ignore `executeAsync` is deprecated in favor of `execute`, see comment above
+    const error: unknown = await browser.executeAsync((
+        elem: HTMLElement,
+        options: ScrollIntoViewOptions | boolean,
+        done: (error?: string) => void
+    ) => {
+        try {
+            elem.scrollIntoView(options)
+        } catch (err) {
+            return done(String(err))
+        }
+        try {
+            // an instant scroll (the default, unless a scroller in the chain opts into
+            // `scroll-behavior: smooth`) has already completed synchronously - done
+            const behavior = typeof options === 'object' ? options.behavior : undefined
+            let isSmooth = behavior === 'smooth'
+            // `scroll` events aren't composed, so they never leave the shadow root the
+            // scroller lives in - collect every root in the chain to listen on
+            const eventRoots = new Set<Document | ShadowRoot>([document])
+            let node: Element | null = elem
+            while (node) {
+                const rootNode = node.getRootNode() as Document | ShadowRoot
+                eventRoots.add(rootNode)
+                node = node.assignedSlot
+                    || node.parentElement
+                    || ((rootNode as ShadowRoot).host ?? null)
+                if (node && !isSmooth && behavior !== 'instant') {
+                    isSmooth = window.getComputedStyle(node).scrollBehavior === 'smooth'
+                }
+            }
+            if (!isSmooth) {
+                return done()
+            }
+
+            // a smooth scroll can take a while to start (~250ms on a cold Chrome
+            // renderer), so allow longer for the first `scroll` event than for the
+            // quiet period after the last one
+            const START_MS = 500
+            const QUIET_MS = 100
+            const MAX_MS = 3000
+            const start = performance.now()
+            let lastScroll: number | undefined
+            const onScroll = () => { lastScroll = performance.now() }
+            eventRoots.forEach((root) => root.addEventListener('scroll', onScroll, { capture: true, passive: true }))
+            // `setTimeout` rather than `requestAnimationFrame`, which is paused in a
+            // hidden/background tab and would never reach the quiet period
+            const check = () => {
+                const now = performance.now()
+                const isSettled = lastScroll === undefined
+                    ? now - start >= START_MS
+                    : now - lastScroll >= QUIET_MS
+                if (isSettled || now - start >= MAX_MS) {
+                    eventRoots.forEach((root) => root.removeEventListener('scroll', onScroll, { capture: true }))
+                    return done()
+                }
+                setTimeout(check, 16)
+            }
+            setTimeout(check, 16)
+        } catch {
+            done()
+        }
+    }, {
+        [ELEMENT_KEY]: this.elementId, // w3c compatible
+        ELEMENT: this.elementId, // jsonwp compatible
+    } as unknown as HTMLElement, options)
+
+    if (typeof error === 'string') {
+        throw new Error(error)
+    }
 }
 
 function scrollIntoViewWeb (

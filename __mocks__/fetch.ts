@@ -335,6 +335,19 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
                 { [ELEMENT_KEY]: 'some-elem-456' },
                 { [ELEMENT_KEY]: 'some-elem-789' },
             ]
+        } else if (body.script.includes('getBoundingClientRect') && body.script.includes('scrollX')) {
+            // scrollIntoView: combined rect + viewport + scroll metrics. Checked before the
+            // `parentElement` & co. branches below, since its ancestor walk uses those too. `scroll`
+            // reflects any wheel actions simulated so far (see the `/actions` case)
+            // so a post-scroll re-measurement doesn't look identical to the first.
+            result = {
+                elemRect: { x: 15, y: 20, height: 30, width: 50 },
+                viewport: { width: 600, height: 800 },
+                scroll: { ...simulatedScroll },
+                // this default fixture models a simple, unobstructed page: the element is
+                // always genuinely visible/painted, matching the pre-`isPainted` mock behavior
+                isPainted: true
+            }
         } else if (body.script.includes('previousElementSibling')) {
             result = body.args[0][ELEMENT_KEY] === genericSubElementId
                 ? { [ELEMENT_KEY]: 'some-previous-elem' }
@@ -347,18 +360,6 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
             result = body.args[0][ELEMENT_KEY] === genericElementId
                 ? { [ELEMENT_KEY]: 'some-next-elem' }
                 : {}
-        } else if (body.script.includes('getBoundingClientRect') && body.script.includes('scrollX')) {
-            // scrollIntoView: combined rect + viewport + scroll metrics. `scroll`
-            // reflects any wheel actions simulated so far (see the `/actions` case)
-            // so a post-scroll re-measurement doesn't look identical to the first.
-            result = {
-                elemRect: { x: 15, y: 20, height: 30, width: 50 },
-                viewport: { width: 600, height: 800 },
-                scroll: { ...simulatedScroll },
-                // this default fixture models a simple, unobstructed page: the element is
-                // always genuinely visible/painted, matching the pre-`isPainted` mock behavior
-                isPainted: true
-            }
         } else if (body.script.includes('scrollX')) {
             result = [0, 0]
         } else if (body.script.includes('function isFocused')) {
@@ -378,8 +379,13 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         break
     } case `/session/${sessionId}/execute/async`: {
         const script = Function(body.script)
+        // a test that sets `elem.elementId = { someMethod: 'mockFunction' }` gets that
+        // object (with a real `vi.fn()`) as the element, like the `execute/sync` case;
+        // plain element references are passed through untouched
+        const args = transformPropertyWithMockFunction(body.args.map((arg: any) =>
+            (arg && typeof arg[ELEMENT_KEY] === 'object' && arg[ELEMENT_KEY]) || arg))
         let result
-        script.call(this, ...body.args, (_result: any) => result = _result)
+        script.call(this, ...args, (_result: any) => result = _result)
         value = result ?? {}
         break
     } case `${path}/${sessionId}/element/${genericElementId}/elements`:
