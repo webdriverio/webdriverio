@@ -278,8 +278,8 @@ export async function getCapabilities(arg: ReplCommandArguments) {
         ...(arg.deviceName && { 'appium:deviceName': arg.deviceName })
     }
     /**
-     * Parsing of option property and constructing desiredCapabilities
-     * for Appium session. Could be application(1) or browser(2-3) session.
+     * Build capabilities for an Appium session from the repl argument.
+     * The target is an application, or a mobile browser.
      */
     if (/.*\.(apk|app|ipa)$/.test(arg.option)) {
         return {

@@ -1,7 +1,7 @@
 ---
 id: v10-migration
 title: From v9 to v10
-description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, multi-remote network mocks, and element references.
+description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, multi-remote network mocks, element references, and the WebDriver protocol.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
@@ -358,20 +358,65 @@ Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript ver
 
 ## WebDriver protocol
 
-Every session is a W3C session. `browser.isW3C` is removed, including the value previously forwarded on the worker `sessionStarted` message. Passing `isW3C` to `attach` is ignored. The BiDi command set stays on the client. A live BiDi connection still depends on `webSocketUrl`.
+Every session is a [W3C WebDriver](https://w3c.github.io/webdriver/) session. WebdriverIO does not speak the JSON Wire Protocol or the Mobile JSON Wire Protocol. v9 removed those commands. v10 also drops the response envelope those protocols used, so a server that still returns it cannot start a session.
+
+`browser.isW3C` is removed, including the value previously forwarded on the worker `sessionStarted` message. Passing `isW3C` to `attach` is ignored. The BiDi command set stays on the client. A live BiDi connection still depends on `webSocketUrl`.
+
+### New session response
+
+Create Session must return the W3C body. WebdriverIO reads `value.sessionId` and `value.capabilities`:
+
+```json
+{
+  "value": {
+    "sessionId": "8e8a5c2e",
+    "capabilities": {
+      "browserName": "chrome",
+      "browserVersion": "131.0.6778.85"
+    }
+  }
+}
+```
+
+A JSON Wire Protocol body is rejected. That body puts `sessionId` and `status` next to `value`, and puts the capabilities in `value` itself:
+
+```json
+{
+  "sessionId": "8e8a5c2e",
+  "status": 0,
+  "value": {
+    "browserName": "chrome",
+    "version": "131.0"
+  }
+}
+```
+
+Session creation then throws `WebDriver new session response is missing a session id or capabilities. WebdriverIO requires a W3C WebDriver server.` The same error is raised when `value.capabilities` is missing, even if `value.sessionId` is present.
+
+A flat capability object in your config is still valid. WebdriverIO wraps `{ browserName: 'chrome' }` into `alwaysMatch` before it sends the request. Vendor-prefixed keys mixed with keys outside the W3C capability set are still rejected. Put vendor settings in `sauce:options`, `bstack:options`, `appium:options`, or another prefixed key.
+
+### Command responses
+
+A command result is `{ "value": … }`. HTTP 200 with no `error` in `value` is success. A missing element is HTTP 404 with `value.error` set to `"no such element"`, which still allows a lazy element lookup. A numeric `status` on the body is ignored, including `status: 0` and the old `status: 7` ("no such element") code. Send the W3C error object instead.
+
+The exported error type `JSONWPCommandError` is now `SessionRequestError`.
+
+### Servers
 
 The drivers WebdriverIO runs against already speak W3C on the client connection:
 
 - ChromeDriver has been W3C by default since Chrome 75. Chromium-based Edge matches it. Current ChromeDriver still accepts `goog:chromeOptions.w3c: false`, which switches that one session back to the legacy protocol. WebdriverIO does not support that switch.
 - geckodriver and Apple's safaridriver are W3C-only. A Safari response that omits `platformName` or `browserVersion` is still W3C.
-- Selenium 4 and Grid 4 speak W3C. Grid stopped translating JSONWP in 4.9.
-- Appium 2 dropped JSONWP and MJSONWP. Appium 3 also dropped the leftover JSONWP parameter shapes. v10 requires Appium 3, covered below. A mobile session that omits `setWindowRect` is still W3C; that capability means the device cannot resize a window.
+- Selenium 4 and Grid 4 speak W3C. Grid stopped translating the JSON Wire Protocol in 4.9.
+- Appium 2 dropped the JSON Wire Protocol and the Mobile JSON Wire Protocol. Appium 3 also dropped the leftover parameter shapes. v10 requires Appium 3, covered below. A mobile session that omits `setWindowRect` is still W3C; that capability means the device cannot resize a window.
 
-These servers still speak JSONWP and are not supported: Selenium 3, PhantomJS, EdgeHTML (`--jwp`), and WinAppDriver connected to directly. The Appium Windows driver stays supported as a W3C client. It translates commands to WinAppDriver, including Get Element Property to the attribute endpoint. Point WebdriverIO at Appium, not at WinAppDriver's port.
+These servers still speak the JSON Wire Protocol and are not supported: Selenium 3, PhantomJS, EdgeHTML (`--jwp`), and WinAppDriver connected to directly. The Appium Windows driver stays supported as a W3C client. It translates commands to WinAppDriver, including Get Element Property to the attribute endpoint. Point WebdriverIO at Appium, not at WinAppDriver's port.
+
+[`@wdio/jsonwp-service`](https://www.npmjs.com/package/@wdio/jsonwp-service) does not make those servers work with v10. Session startup still requires the W3C body above, and command results still ignore a numeric `status`. Stay on WebdriverIO 9 if that server is still required.
 
 `webdriver.remote.sessionid` no longer marks a Selenium standalone session. Selenium Grid 4 is still detected from `se:cdp`.
 
-On desktop, `[name="..."]` is a CSS selector. The `name` locator strategy remains for mobile sessions.
+The `page load` timeout key is covered under [`setTimeout`](#settimeout). Element ids are covered under [Element references](#element-references). On desktop, `[name="..."]` is a CSS selector. The `name` locator strategy remains for mobile sessions.
 
 ## Appium
 
