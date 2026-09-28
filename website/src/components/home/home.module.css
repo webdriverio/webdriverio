@@ -945,8 +945,7 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
 }
 
 .sessionTerminal {
-    display: flex;
-    flex-direction: column;
+    position: relative;
     min-height: 440px;
     border: 1px solid var(--wdio-border-strong);
     border-radius: 14px;
@@ -957,6 +956,16 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     line-height: 1.45;
     box-shadow: 0 30px 60px -30px rgb(0 0 0 / 55%), 0 0 0 6px var(--wdio-glow);
     overflow: hidden;
+}
+
+/* The transcript is taken out of flow so the last commands scroll
+   inside the terminal instead of stretching the stage. */
+.sessionTermFill {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .sessionTermBody {
@@ -976,6 +985,20 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     color: var(--ifm-color-primary-light);
 }
 
+.termCaret {
+    display: inline-block;
+    width: 7px;
+    height: 0.95em;
+    margin-left: 1px;
+    background: currentColor;
+    vertical-align: text-bottom;
+    animation: termBlink 1.05s steps(1) infinite;
+}
+
+@keyframes termBlink {
+    50% { opacity: 0; }
+}
+
 .termOut {
     padding-left: 1rem;
     color: #9a9aa3;
@@ -983,6 +1006,8 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
 
 .sessionStage {
     position: relative;
+    align-self: start;
+    width: 100%;
     min-height: 440px;
     aspect-ratio: 5 / 4;
     overflow: hidden;
@@ -996,6 +1021,8 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
 .sessionWires {
     position: absolute;
     inset: 0;
+    /* Above the dimmed windows (z-index 1–3) and below the focused frame (z-index 5),
+       so the cable stays solid until it meets the device in front. */
     z-index: 4;
     width: 100%;
     height: 100%;
@@ -1003,17 +1030,7 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
 }
 
 .sessionWireOn {
-    opacity: 0.95;
-}
-
-.sessionWireFan {
-    animation: wirePulse 0.9s ease forwards;
-}
-
-@keyframes wirePulse {
-    0% { opacity: 0.25; }
-    45% { opacity: 1; }
-    100% { opacity: 0.9; }
+    opacity: 1;
 }
 
 .device {
@@ -1027,12 +1044,22 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     transition: transform 480ms ease, opacity 480ms ease, left 480ms ease, top 480ms ease, width 480ms ease, height 480ms ease, right 480ms ease;
 }
 
+.deviceScale {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+}
+
 .deviceBrowser {
     left: 8%;
     top: 9%;
     width: 64%;
     height: 70%;
-    border-radius: 12px;
+    border-radius: 10px;
+    border-color: #c4c7cc;
+    background: #fff;
     z-index: 2;
 }
 
@@ -1041,7 +1068,14 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     top: 11%;
     width: 30%;
     height: 78%;
-    border-radius: 22px;
+    padding: 7px 6px 8px;
+    overflow: visible;
+    border-radius: 28px;
+    border-color: #3a3a40;
+    background: #0c0c0e;
+    box-shadow:
+        inset 0 0 0 1px #4a4a52,
+        0 22px 40px -22px rgb(0 0 0 / 65%);
     z-index: 3;
 }
 
@@ -1050,7 +1084,9 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     bottom: 4%;
     width: 60%;
     height: 56%;
-    border-radius: 12px;
+    border-radius: 10px;
+    border-color: #c8c8c8;
+    background: #fff;
     z-index: 1;
 }
 
@@ -1078,10 +1114,14 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
 }
 
 .sessionStage[data-focus="phone"] .devicePhone {
-    right: 16%;
-    width: 40%;
-    height: 86%;
-    top: 7%;
+    top: 6%;
+    bottom: auto;
+    left: 0;
+    right: 0;
+    width: auto;
+    height: 88%;
+    aspect-ratio: 390 / 844;
+    margin-inline: auto;
 }
 
 .sessionStage[data-focus="phone"] .deviceDesktop {
@@ -1106,64 +1146,267 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     transform: translate(12%, 8%) scale(0.84);
 }
 
+/* Fan: stack the three platforms so each chrome stays readable.
+   Desktop sits at the back, the browser covers its page, and the phone
+   overlaps the right edge. */
 .sessionStage[data-focus="all"] .device {
-    top: 14%;
+    right: auto;
     bottom: auto;
-    height: 72%;
     opacity: 1;
     transform: none;
-    z-index: 2;
-}
-
-.sessionStage[data-focus="all"] .deviceBrowser {
-    left: 3%;
-    width: 34%;
-}
-
-.sessionStage[data-focus="all"] .devicePhone {
-    left: 37%;
-    right: auto;
-    width: 24%;
-    top: 7%;
-    height: 86%;
+    transition: opacity 480ms ease, left 480ms ease, top 480ms ease, width 480ms ease, height 480ms ease;
 }
 
 .sessionStage[data-focus="all"] .deviceDesktop {
-    left: 63%;
-    width: 34%;
+    left: 6%;
+    top: 4%;
+    width: 78%;
+    height: 62%;
+    z-index: 5;
 }
 
-.deviceChrome {
+.sessionStage[data-focus="all"] .deviceBrowser {
+    left: 15%;
+    top: 13%;
+    width: 74%;
+    height: 72%;
+    z-index: 6;
+    box-shadow:
+        -10px 0 14px rgb(0 0 0 / 42%),
+        -22px 14px 32px rgb(0 0 0 / 34%),
+        0 20px 40px rgb(0 0 0 / 32%);
+}
+
+.sessionStage[data-focus="all"] .devicePhone {
+    left: auto;
+    right: 5%;
+    top: 8%;
+    bottom: auto;
+    width: auto;
+    height: 84%;
+    aspect-ratio: 390 / 844;
+    z-index: 7;
+    box-shadow:
+        inset 0 0 0 1px #4a4a52,
+        -12px 0 16px rgb(0 0 0 / 48%),
+        -24px 16px 36px rgb(0 0 0 / 40%),
+        0 22px 44px rgb(0 0 0 / 42%);
+}
+
+.traffic {
+    display: inline-flex;
+    gap: 4px;
+    flex: none;
+}
+
+.traffic i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.traffic i:nth-child(1) { background: #ff5f57; }
+.traffic i:nth-child(2) { background: #febc2e; }
+.traffic i:nth-child(3) { background: #28c840; }
+
+.browserChrome,
+.desktopChrome {
+    flex: none;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.browserChrome {
+    background: #dee1e6;
+}
+
+.browserTabs {
+    position: relative;
     display: flex;
+    align-items: flex-end;
+    height: 26px;
+    padding: 0 8px 0 44px;
+}
+
+.browserTabs .traffic {
+    position: absolute;
+    top: 50%;
+    left: 8px;
+    transform: translateY(-50%);
+}
+
+.browserTab {
+    display: inline-flex;
     align-items: center;
     gap: 5px;
+    max-width: 46%;
+    padding: 3px 10px 4px;
+    border-radius: 8px 8px 0 0;
+    background: #fff;
+    color: #202124;
+    font-size: 10px;
+    line-height: 1.2;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.tabFavicon {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: #2563eb;
+}
+
+.browserToolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px 6px;
+    background: #fff;
+    border-bottom: 1px solid #e6e6e6;
+}
+
+.browserNav {
+    display: inline-flex;
+    gap: 2px;
+    color: #5f6368;
+}
+
+.browserNav svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.omnibox {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: 10px;
+    background: #f1f3f4;
+    color: #202124;
+    font-size: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.omnibox svg {
     flex: none;
-    padding: 0.4rem 0.65rem;
-    border-bottom: 1px solid var(--wdio-border);
-    background: var(--wdio-surface);
-    color: var(--wdio-text-muted);
-    font-family: var(--ifm-font-family-monospace);
-    font-size: 0.68rem;
+    width: 9px;
+    height: 9px;
+    fill: #188038;
+    stroke: #188038;
+    stroke-width: 1;
 }
 
-.deviceChrome span,
-.phoneNotch {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--wdio-border-strong);
+.omnibox svg path {
+    fill: none;
 }
 
-.deviceChrome em {
-    margin-left: 0.35rem;
+.desktopChrome {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 28px;
+    padding: 0 10px;
+    background: linear-gradient(#f3f3f3, #e6e6e6);
+    border-bottom: 1px solid #d0d0d0;
+}
+
+.desktopChrome em {
+    position: absolute;
+    left: 0;
+    right: 0;
+    color: #3c3c3c;
+    font-size: 11px;
     font-style: normal;
+    font-weight: 600;
+    text-align: center;
+    pointer-events: none;
 }
 
-.phoneNotch {
-    width: 28%;
-    height: 5px;
-    margin: 0.45rem auto 0;
-    border-radius: 999px;
+.phoneScreen {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 20px;
+    background: #f6f4f0;
+}
+
+.phoneStatus {
+    position: relative;
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    height: 20px;
+    padding: 0 7px 0 8px;
+    background: #f6f4f0;
+    color: #1c1917;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.phoneRadios {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.phoneRadios svg {
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.phoneWifi,
+.phoneSignal {
+    width: 11px;
+    height: 11px;
+}
+
+.phoneSignal path,
+.phoneWifi path:first-child,
+.phoneBattery rect:last-child {
+    fill: currentColor;
+    stroke: none;
+}
+
+.phoneBattery {
+    width: 15px;
+    height: 10px;
+}
+
+.phoneHome {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    height: 12px;
+    background: #f6f4f0;
+}
+
+.phoneHome::before {
+    content: '';
+    width: 34%;
+    height: 3px;
+    border-radius: 99px;
+    background: #1c1917;
 }
 
 .shop {
@@ -1171,76 +1414,147 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: 0.65rem;
+    gap: 0.4rem;
     min-height: 0;
-    padding: 0.75rem 0.8rem 0.85rem;
+    padding: 0.55rem 0.65rem 0.6rem;
+    background: #f6f4f0;
+    color: #1c1917;
+    font-family: ui-sans-serif, system-ui, sans-serif;
 }
 
 .shopBar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: var(--wdio-text);
-    font-size: 0.82rem;
+    color: #1c1917;
+    font-size: 0.78rem;
+}
+
+.shopMark {
+    font-size: 0.78rem;
+    letter-spacing: -0.02em;
+}
+
+.cart {
+    position: relative;
+    display: inline-flex;
+    color: #1c1917;
+}
+
+.cart svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.cart svg circle {
+    fill: currentColor;
+    stroke: none;
 }
 
 .cartBadge {
+    position: absolute;
+    top: -5px;
+    right: -6px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 1.15rem;
-    height: 1.15rem;
-    padding: 0 0.28rem;
-    border-radius: 999px;
-    background: var(--wdio-surface-2);
-    color: var(--wdio-text-muted);
-    font-family: var(--ifm-font-family-monospace);
-    font-size: 0.68rem;
-}
-
-.shopAdded .cartBadge {
-    background: var(--ifm-color-primary);
+    min-width: 12px;
+    height: 12px;
+    padding: 0 2px;
+    border-radius: 99px;
+    background: #ea5906;
     color: #fff;
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1;
 }
 
-.product {
+.productPhoto {
+    display: grid;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #3a2418;
+}
+
+.shirt {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 28%;
+}
+
+.productCopy {
     display: flex;
-    gap: 0.6rem;
-    align-items: center;
+    flex-direction: column;
+    gap: 0;
 }
 
-.swatch {
-    flex: none;
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 8px;
-    background: linear-gradient(160deg, #60a5fa, #1d4ed8);
-}
-
+.productKicker,
 .productName,
 .productPrice {
     margin: 0;
-    color: var(--wdio-text);
-    font-size: 0.82rem;
-    line-height: 1.3;
+    line-height: 1.25;
+}
+
+.productKicker {
+    color: #78716c;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.productName {
+    color: #1c1917;
+    font-size: 0.78rem;
+    font-weight: 650;
 }
 
 .productPrice {
-    color: var(--wdio-text-muted);
-    font-size: 0.75rem;
+    color: #44403c;
+    font-size: 0.72rem;
+}
+
+.sizes {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.sizes span {
+    min-width: 1.25rem;
+    padding: 0.05rem 0.28rem;
+    border: 1px solid #d6d3d1;
+    border-radius: 5px;
+    background: #fff;
+    color: #44403c;
+    font-size: 0.58rem;
+    text-align: center;
+}
+
+.sizeOn {
+    border-color: #1c1917;
+    background: #1c1917;
+    color: #fff;
 }
 
 .addButton {
     position: relative;
-    margin-top: auto;
+    margin-top: 0.1rem;
     border: 0;
-    border-radius: 999px;
-    background: var(--ifm-color-primary);
+    border-radius: 8px;
+    background: #ea5906;
     color: #fff;
-    font: inherit;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.4rem 0.7rem;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 650;
+    padding: 0.42rem 0.6rem;
     cursor: default;
 }
 
@@ -1277,7 +1591,7 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     right: 0;
     height: 2px;
     background: linear-gradient(90deg, transparent, #22c55e, transparent);
-    animation: sessionScan 0.8s ease-out;
+    animation: sessionScan 0.8s ease-out forwards;
     pointer-events: none;
 }
 
@@ -1294,17 +1608,29 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     display: flex;
 }
 
+.devicePhone .deviceCheck {
+    top: -5px;
+    right: -5px;
+}
+
 .devicePhone .shop {
-    padding-top: 0.45rem;
+    padding: 0.35rem 0.45rem 0.4rem;
+    gap: 0.28rem;
+}
+
+.devicePhone .sizes,
+.devicePhone .productKicker {
+    display: none;
 }
 
 .devicePhone .productName,
 .devicePhone .shopBar {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
 }
 
 .devicePhone .addButton {
-    font-size: 0.68rem;
+    font-size: 0.62rem;
+    padding: 0.32rem 0.4rem;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1320,15 +1646,17 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
 
 @media (prefers-reduced-motion: reduce) {
     .device,
-    .sessionWireFan,
     .addRipple::after,
     .scanLine,
-    .refBadge {
+    .refBadge,
+    .termCaret {
         animation: none;
         transition: none;
     }
 
     .sessionPacket { display: none; }
+
+    .scanLine { display: none; }
 }
 
 @media (max-width: 996px) {
@@ -1354,10 +1682,9 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     }
 
     .sessionStage[data-focus="browser"] .deviceBrowser,
-    .sessionStage[data-focus="phone"] .devicePhone,
     .sessionStage[data-focus="desktop"] .deviceDesktop {
         display: flex;
-        inset: 8%;
+        inset: 18% 8% 8%;
         width: auto;
         height: auto;
         right: 8%;
@@ -1366,54 +1693,15 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
         opacity: 1;
     }
 
-    .sessionStage[data-focus="all"] .deviceBrowser,
-    .sessionStage[data-focus="all"] .devicePhone,
-    .sessionStage[data-focus="all"] .deviceDesktop {
+    .sessionStage[data-focus="phone"] .devicePhone {
         display: flex;
+        top: 18%;
+        height: 74%;
         opacity: 1;
-        transform: none;
-        top: 10%;
-        right: auto;
-        bottom: auto;
-        height: 80%;
     }
 
-    .sessionStage[data-focus="all"] .deviceBrowser {
-        left: 2%;
-        width: 31%;
+    .sessionStage[data-focus="all"] .device {
+        display: flex;
     }
 
-    .sessionStage[data-focus="all"] .devicePhone {
-        left: 34%;
-        width: 30%;
-        top: 5%;
-        height: 90%;
-    }
-
-    .sessionStage[data-focus="all"] .deviceDesktop {
-        left: 66%;
-        width: 32%;
-    }
-
-    .sessionStage[data-focus="all"] .shop {
-        gap: 0.35rem;
-        padding: 0.4rem;
-    }
-
-    .sessionStage[data-focus="all"] .swatch {
-        width: 1.3rem;
-        height: 1.3rem;
-    }
-
-    .sessionStage[data-focus="all"] .productName,
-    .sessionStage[data-focus="all"] .shopBar,
-    .sessionStage[data-focus="all"] .addButton {
-        font-size: 0.62rem;
-    }
-
-    .sessionStage[data-focus="all"] .addButton {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
 }

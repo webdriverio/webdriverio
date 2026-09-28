@@ -115,9 +115,9 @@ export default function Home () {
                 <section id="wdio-session" className={clsx(styles.frame, styles.section)}>
                     <SectionHeader
                         eyebrow={translate({ id: 'homepage.session.eyebrow', message: 'wdio session' })}
-                        title={translate({ id: 'homepage.session.heading', message: 'One command line. Every screen.' })}>
+                        title={translate({ id: 'homepage.session.heading', message: 'How agents verify their own work.' })}>
                         <Translate id="homepage.session.description">
-                            Open a browser, a phone or a desktop app and drive it from your terminal or your coding agent. Snapshot what is on screen, click by ref, check it visually, and export what worked as a test.
+                            A software factory runs on verification loops. wdio session is how an agent runs that loop on the real app: it opens a browser, a phone, or a desktop app, sees what is there, acts on it, and checks the result. What passed becomes a test.
                         </Translate>
                     </SectionHeader>
                     <p className={styles.sessionLinks}>
