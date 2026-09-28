@@ -189,7 +189,7 @@ export default class Runner extends EventEmitter {
             isMultiRemote,
             instanceOptions: isMultiRemote
                 ? multiRemoteBrowser.instances.reduce((prev: any, browserName: string) => {
-                    prev[multiRemoteBrowser.getInstance(browserName)!.sessionId] = multiRemoteBrowser.getInstance(browserName)!.options as Options.WebdriverIO
+                    prev[multiRemoteBrowser.getInstance(browserName).sessionId] = multiRemoteBrowser.getInstance(browserName).options as Options.WebdriverIO
                     return prev
                 }, {} as Record<string, Options.WebdriverIO>)
                 : {
@@ -198,8 +198,8 @@ export default class Runner extends EventEmitter {
             sessionId: browser.sessionId,
             capabilities: isMultiRemote
                 ? multiRemoteBrowser.instances.reduce((caps: any, browserName: string) => {
-                    caps[browserName] = multiRemoteBrowser.getInstance(browserName)!.capabilities
-                    caps[browserName].sessionId = multiRemoteBrowser.getInstance(browserName)!.sessionId
+                    caps[browserName] = multiRemoteBrowser.getInstance(browserName).capabilities
+                    caps[browserName].sessionId = multiRemoteBrowser.getInstance(browserName).sessionId
                     return caps
                 }, {} as Capabilities.RequestedMultiRemoteCapabilities)
                 : { ...browser.capabilities, sessionId: browser.sessionId },
@@ -500,7 +500,7 @@ export default class Runner extends EventEmitter {
              */
             ? !multiRemoteBrowser.instances.some((browserName: string) => (
                 multiRemoteBrowser.getInstance(browserName) &&
-                !multiRemoteBrowser.getInstance(browserName)!.sessionId)
+                !multiRemoteBrowser.getInstance(browserName).sessionId)
             )
 
             /**
@@ -534,7 +534,7 @@ export default class Runner extends EventEmitter {
         if (this._isMultiRemote) {
             const multiRemoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
             multiRemoteBrowser.instances.forEach((browserName: string) => {
-                (capabilities as Capabilities.RequestedMultiRemoteCapabilities)[browserName] = multiRemoteBrowser.getInstance(browserName)!.capabilities as any
+                (capabilities as Capabilities.RequestedMultiRemoteCapabilities)[browserName] = multiRemoteBrowser.getInstance(browserName).capabilities as any
             })
         }
 
