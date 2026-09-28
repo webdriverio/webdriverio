@@ -14,6 +14,14 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 export const headlessCapsLog = path.resolve(__dirname, 'headless-caps.log')
 
 export const config = Object.assign({}, baseConfig, {
+    specs: [path.resolve(__dirname, '..', 'mocha', 'service.js')],
+    capabilities: [{
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+            args: ['--no-sandbox', '--disable-dev-shm-usage']
+        }
+    }],
+    strictSelectors: false,
     beforeSession (_config, capabilities) {
         fs.writeFileSync(headlessCapsLog, JSON.stringify(capabilities))
     }

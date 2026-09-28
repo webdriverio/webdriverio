@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import { spawn } from 'node:child_process'
 import url from 'node:url'
 import path from 'node:path'
 import assert from 'node:assert'
@@ -885,51 +886,75 @@ const runSpecsWithFlagNoArg = async () => {
 }
 
 /**
+ * Run the `wdio` binary so yargs parses the flag the way a user types it.
+ * `WDIO_UNIT_TESTS` stays set: the mock driver skips `getWindowHandle` during
+ * session start, and the CLI skips `process.exit`. The child still ends once
+ * its handles close; the timeout catches a hang.
+ */
+function runWdio (configPath, cliArgs) {
+    const wdio = path.resolve(__dirname, '..', 'packages', 'wdio-cli', 'bin', 'wdio.js')
+    return new Promise((resolve, reject) => {
+        const child = spawn(process.execPath, [wdio, 'run', configPath, ...cliArgs], {
+            cwd: __dirname,
+            stdio: 'inherit'
+        })
+        let settled = false
+        const finish = (err) => {
+            if (settled) {
+                return
+            }
+            settled = true
+            clearTimeout(timer)
+            if (err) {
+                reject(err)
+                return
+            }
+            resolve()
+        }
+        const timer = setTimeout(() => {
+            child.kill()
+            finish(new Error(`wdio run ${path.basename(configPath)} ${cliArgs.join(' ')} timed out`))
+        }, 30000)
+        child.on('error', finish)
+        child.on('exit', (code) => {
+            finish(code === 0
+                ? undefined
+                : new Error(`wdio run ${path.basename(configPath)} ${cliArgs.join(' ')} exited with ${code}`))
+        })
+    })
+}
+
+/**
  * `--headless` / `--headless=false` rewrite browser args before the session
  * starts. The mock driver does not return those args, so the config records
  * the capabilities the worker is about to send.
  */
 const headlessFlag = async () => {
-    const spec = path.resolve(__dirname, 'mocha', 'service.js')
-    const config = path.resolve(__dirname, 'helpers', 'headless.conf.js')
+    const injectConfig = path.resolve(__dirname, 'helpers', 'headless.conf.js')
+    const stripConfig = path.resolve(__dirname, 'helpers', 'headless-strip.conf.js')
 
-    await fs.rm(headlessCapsLog, { force: true })
-    await launch('headlessFlag', config, {
-        specs: [spec],
-        capabilities: [{
-            browserName: 'chrome',
-            'goog:chromeOptions': {
-                args: ['--no-sandbox', '--disable-dev-shm-usage']
-            }
-        }],
-        headless: true
-    })
-    const forced = JSON.parse(await fs.readFile(headlessCapsLog, 'utf8'))
-    assert.deepStrictEqual(forced['goog:chromeOptions'].args, [
-        '--no-sandbox',
-        '--disable-dev-shm-usage',
-        '--headless',
-        '--disable-gpu'
-    ])
+    try {
+        await fs.rm(headlessCapsLog, { force: true })
+        await runWdio(injectConfig, ['--headless'])
+        const forced = JSON.parse(await fs.readFile(headlessCapsLog, 'utf8'))
+        assert.deepStrictEqual(forced['goog:chromeOptions'].args, [
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--headless',
+            '--disable-gpu'
+        ])
 
-    await fs.rm(headlessCapsLog, { force: true })
-    await launch('headlessFlag', config, {
-        specs: [spec],
-        capabilities: [{
-            browserName: 'chrome',
-            'goog:chromeOptions': {
-                args: ['--no-sandbox', '--disable-dev-shm-usage', '--headless=new', '--disable-gpu']
-            }
-        }],
-        headless: false
-    })
-    const stripped = JSON.parse(await fs.readFile(headlessCapsLog, 'utf8'))
-    assert.deepStrictEqual(stripped['goog:chromeOptions'].args, [
-        '--no-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu'
-    ])
-    await fs.rm(headlessCapsLog, { force: true })
+        await fs.rm(headlessCapsLog, { force: true })
+        await runWdio(stripConfig, ['--headless=false'])
+        const stripped = JSON.parse(await fs.readFile(headlessCapsLog, 'utf8'))
+        assert.deepStrictEqual(stripped['goog:chromeOptions'].args, [
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu'
+        ])
+    } finally {
+        await fs.rm(headlessCapsLog, { force: true })
+    }
 }
 
 const cliExcludeParamValidationAllExcludedByKeyword = async () => {
