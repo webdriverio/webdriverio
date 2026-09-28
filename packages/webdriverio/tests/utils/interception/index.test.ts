@@ -859,6 +859,44 @@ describe('WebDriverInterception', () => {
         expect(mock.calls[0].postData).toBe('request-body')
     })
 
+    it('does not ask Chrome for an empty request body', async () => {
+        const browser = getResponseCollectionBrowserMock()
+
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        const request = getResponseCollectionRequestStub()
+        request.request.bodySize = 0
+
+        browser.emit('network.responseStarted', request)
+        browser.emit('network.responseCompleted', { ...request, isBlocked: false })
+
+        await waitForAsyncHandlers()
+
+        expect(vi.mocked(browser.networkGetData).mock.calls.filter(([params]) => params.dataType === 'request')).toEqual([])
+        expect(browser.networkGetData).toHaveBeenCalledWith({
+            request: 'req-123',
+            dataType: 'response'
+        })
+        expect(mock.calls[0].postData).toBeUndefined()
+    })
+
+    it('serializes a json mock body when Buffer is not a global', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        const buffer = globalThis.Buffer
+        delete (globalThis as { Buffer?: unknown }).Buffer
+        try {
+            expect(() => mock.respond({ foo: 'bar' })).not.toThrow()
+        } finally {
+            globalThis.Buffer = buffer
+        }
+
+        browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith(expect.objectContaining({
+            body: { type: 'string', value: '{"foo":"bar"}' }
+        }))
+    })
+
     it('should skip request postData lookup when cheaper responseCompleted filters do not match', async () => {
         const browser = getResponseCollectionBrowserMock()
 
@@ -1324,6 +1362,27 @@ describe('WebDriverInterception', () => {
             }
         })
 
+        it('does not install a scheme-less intercept for a protocol wildcard', async () => {
+            const browser = getResponseCollectionBrowserMock()
+            const order: string[] = []
+            const originalOn = browser.on.bind(browser)
+            browser.on = ((event: string, listener: (...args: unknown[]) => void) => {
+                order.push('listen')
+                return originalOn(event, listener)
+            }) as typeof browser.on
+            vi.mocked(browser.networkAddIntercept).mockImplementation(async () => {
+                order.push('intercept')
+                return { intercept: 'mock-id' }
+            })
+
+            await WebDriverInterception.initiate('**/api/**', {}, browser)
+
+            const patterns = vi.mocked(browser.networkAddIntercept).mock.calls[0][0].urlPatterns
+            expect(patterns?.map((pattern) => pattern.type === 'pattern' ? pattern.protocol : pattern.type)).toEqual(['http', 'https'])
+            expect(order.indexOf('listen')).toBeGreaterThanOrEqual(0)
+            expect(order.indexOf('listen')).toBeLessThan(order.indexOf('intercept'))
+        })
+
         it('should match a glob pattern without leading slash', async () => {
             const browser = getResponseCollectionBrowserMock()
             const mock = await WebDriverInterception.initiate('**/api/users*', {}, browser)
@@ -1332,6 +1391,86 @@ describe('WebDriverInterception', () => {
             emitBlockedRequest(browser, 'https://foobar.com/api/users/123')
 
             expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+        })
+
+        it('matches globs with the platform URLPattern so long paths stay responsive', async () => {
+            const tested: string[] = []
+            class NativeURLPattern {
+                protocol = '*'
+                username = '*'
+                password = '*'
+                hostname = '*'
+                port = '*'
+                search = '*'
+                hash = '*'
+                hasRegExpGroups = false
+                pathname: string
+                constructor(init: string | { pathname: string }) {
+                    this.pathname = typeof init === 'string' ? init : init.pathname
+                }
+                test(url: string) {
+                    tested.push(url)
+                    return url.includes('/api/')
+                }
+                exec() {
+                    return null
+                }
+            }
+            vi.stubGlobal('URLPattern', NativeURLPattern)
+
+            try {
+                const browser = getResponseCollectionBrowserMock()
+                const mock = await WebDriverInterception.initiate('**/api/**', {}, browser)
+                const longUrl = 'http://localhost:5173/@fs/workspace/packages/webdriverio/build/index.js'
+                browser.emit('network.beforeRequestSent', {
+                    isBlocked: true,
+                    intercepts: ['mock-id'],
+                    request: {
+                        request: 'vite-1',
+                        url: longUrl,
+                        method: 'GET',
+                        headers: []
+                    }
+                })
+
+                expect(tested).toEqual([])
+                expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'vite-1' })
+                expect(browser.networkFailRequest).not.toHaveBeenCalled()
+
+                mock.abort()
+                browser.emit('network.beforeRequestSent', {
+                    isBlocked: true,
+                    intercepts: ['mock-id'],
+                    request: {
+                        request: 'api-1',
+                        url: 'https://api.webdriver.io/api/foo',
+                        method: 'GET',
+                        headers: []
+                    }
+                })
+                expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'api-1' })
+            } finally {
+                vi.unstubAllGlobals()
+            }
+        })
+
+        it('does not hang the polyfill on a long path that cannot match', async () => {
+            const browser = getResponseCollectionBrowserMock()
+            await WebDriverInterception.initiate('**/api/**', {}, browser)
+            const longUrl = `http://localhost:5173/@fs/${'segment/'.repeat(40)}index.js`
+            const started = Date.now()
+            browser.emit('network.beforeRequestSent', {
+                isBlocked: true,
+                intercepts: ['mock-id'],
+                request: {
+                    request: 'vite-1',
+                    url: longUrl,
+                    method: 'GET',
+                    headers: []
+                }
+            })
+            expect(Date.now() - started).toBeLessThan(1000)
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'vite-1' })
         })
 
         it('should accept a URLPattern', async () => {

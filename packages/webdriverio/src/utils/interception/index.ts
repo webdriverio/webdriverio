@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import type { JsonCompatible } from '@wdio/types'
 import { type local, type remote } from 'webdriver'
-import { URLPattern } from 'urlpattern-polyfill'
+import { URLPattern as URLPatternPolyfill, type URLPattern } from 'urlpattern-polyfill'
 
 import Timer from '../Timer.js'
 import { parseOverwrite, getPatternParam } from './utils.js'
@@ -93,12 +93,22 @@ function claim(event: InterceptedEvent) {
     return true
 }
 
+/**
+ * The browser bundle references `Buffer` as a free global. Node has it; the page
+ * does not, unless a polyfill installed one. Resolve it from `globalThis` so a
+ * missing binding does not throw while a component test is setting up a mock.
+ */
+function nodeBuffer() {
+    return (globalThis as { Buffer?: typeof Buffer }).Buffer
+}
+
 function toNetworkBody(payload: RespondBodyValue) {
-    if (Buffer.isBuffer(payload)) {
+    const buffer = nodeBuffer()
+    if (typeof buffer?.isBuffer === 'function' && buffer.isBuffer(payload)) {
         return { type: 'base64' as const, value: payload.toString('base64') }
     }
 
-    return { type: 'string' as const, value: toStringBody(payload) }
+    return { type: 'string' as const, value: toStringBody(payload as Exclude<RespondBodyValue, Buffer>) }
 }
 
 /**
@@ -182,21 +192,33 @@ export default class WebDriverInterception {
         }
 
         /**
-         * register network intercept
+         * Listen before the intercept exists. A catch-all pattern pauses the
+         * runner's own HTTP traffic as soon as it is installed, and those
+         * requests have to be continued before `addIntercept` resolves.
          */
-        const interception = await browser.networkAddIntercept({
+        const interception = new WebDriverInterception(pattern, 'pending', filterOptions, browser, isCollectingNetworkData)
+        const registered = await browser.networkAddIntercept({
             phases: ['beforeRequestSent', 'responseStarted'],
-            urlPatterns: [{
-                type: 'pattern',
-                protocol: getPatternParam(pattern, 'protocol'),
-                hostname: getPatternParam(pattern, 'hostname'),
-                pathname: getPatternParam(pattern, 'pathname'),
-                port: getPatternParam(pattern, 'port'),
-                search: getPatternParam(pattern, 'search')
-            }]
+            urlPatterns: toBidiUrlPatterns(pattern)
         })
+        interception.#mockId = registered.intercept
+        return interception
+    }
 
-        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData)
+    /**
+     * The intercept id is not known until `network.addIntercept` resolves.
+     * Requests paused in that window are released so the page can keep loading.
+     */
+    #releaseWhilePending(request: { isBlocked?: boolean, request: { request: string } }, phase: 'beforeRequestSent' | 'responseStarted') {
+        if (this.#mockId !== 'pending' || !request.isBlocked) {
+            return false
+        }
+
+        const networkCall = phase === 'beforeRequestSent'
+            ? this.#browser.networkContinueRequest({ request: request.request.request })
+            : this.#browser.networkProvideResponse({ request: request.request.request })
+        networkCall.catch(() => { /* request may already have been released */ })
+        return true
     }
 
     #emit(event: string, args: unknown) {
@@ -251,6 +273,9 @@ export default class WebDriverInterception {
     }
 
     #handleBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
+        if (this.#releaseWhilePending(request, 'beforeRequestSent')) {
+            return
+        }
         if (this.#restored) {
             // If restored during in-flight request, continue it to prevent hanging
             if (request.intercepts?.includes(this.#mockId)) {
@@ -383,6 +408,9 @@ export default class WebDriverInterception {
     }
 
     #handleResponseStarted(request: Response) {
+        if (this.#releaseWhilePending(request, 'responseStarted')) {
+            return
+        }
         if (this.#restored) {
             // If restored during in-flight request, provide response to prevent hanging
             if (request.intercepts?.includes(this.#mockId)) {
@@ -397,7 +425,7 @@ export default class WebDriverInterception {
          * different mock is responsible for this request
          */
         const isHandledByThisMock = request.intercepts?.includes(this.#mockId)
-        const urlMatches = this.#pattern && this.#pattern.test(request.request.url)
+        const urlMatches = this.#urlMatches(request.request.url)
         if (!urlMatches) {
             /**
              * if request is not matching pattern but blocked by this mock (due to catch-all),
@@ -526,7 +554,7 @@ export default class WebDriverInterception {
          */
         if (
             this.#browser.options.maxSpyCollectedBodySize === 0 ||
-            !this.#pattern.test(response.request.url) ||
+            !this.#urlMatches(response.request.url) ||
             !this.#matchesFilterOptions(response, { includePostData: false })
         ) {
             return
@@ -592,7 +620,11 @@ export default class WebDriverInterception {
             log.warn(`Invalid base64 data for request ${requestId}`)
             return null
         }
-        return Buffer.from(body.value, 'base64')
+        const buffer = nodeBuffer()
+        if (!buffer) {
+            return null
+        }
+        return buffer.from(body.value, 'base64')
     }
 
     #attachPostData<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T): RequestWithPostData<T> {
@@ -606,9 +638,18 @@ export default class WebDriverInterception {
 
     async #populateRequestPostData<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T): Promise<RequestWithPostData<T>> {
         const requestWithPostData = this.#attachPostData(request)
+        /**
+         * Chrome rejects `network.getData` for an empty request body with
+         * "No post data available for the request". A getData command in that
+         * state overlaps the next intercepted request, and Chrome then never
+         * answers `network.continueRequest`, so the page fetch never settles.
+         */
+        const bodySize = request.request.bodySize
         if (
             requestWithPostData.postData !== undefined ||
-            this.#browser.options.maxSpyCollectedBodySize === 0
+            this.#browser.options.maxSpyCollectedBodySize === 0 ||
+            bodySize === 0 ||
+            bodySize === null
         ) {
             return requestWithPostData
         }
@@ -657,8 +698,27 @@ export default class WebDriverInterception {
     }
 
     #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T) {
-        const matches = this.#pattern && this.#pattern.test(request.request.url)
-        return request.isBlocked && matches
+        return request.isBlocked && this.#urlMatches(request.request.url)
+    }
+
+    /**
+     * `urlpattern-polyfill` compiles a leading `**` to nested `(?:.*)*`. Testing
+     * that expression against a long non-match (Vite's `/@fs/...` URLs) blocks
+     * the page thread, and a catch-all intercept delivers exactly those URLs.
+     * A pure glob's literals are a necessary condition, so they can reject a
+     * URL before the polyfill runs. A slash directly in front of `**` is not
+     * required: a final double-wildcard may match an empty suffix.
+     */
+    #urlMatches(url: string) {
+        if (!this.#pattern) {
+            return false
+        }
+
+        if (globRulesOut(this.#pattern.pathname, url)) {
+            return false
+        }
+
+        return this.#pattern.test(url)
     }
 
     #matchesPostDataFilter<T extends local.NetworkBeforeRequestSentParameters | Response>(request: RequestWithPostData<T>) {
@@ -809,7 +869,7 @@ export default class WebDriverInterception {
 
         // Remove the network intercept BEFORE setting #restored flag
         // This prevents new requests from being blocked while we're cleaning up
-        if (this.#mockId) {
+        if (this.#mockId && this.#mockId !== 'pending') {
             await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
         }
 
@@ -964,6 +1024,92 @@ export default class WebDriverInterception {
     }
 }
 
+/**
+ * A pure glob's literals are a necessary condition for a match. Rejecting on
+ * them avoids `pattern.test()` for long non-matches such as Vite `/@fs/...`
+ * URLs. The polyfill compiles a leading `**` to nested `(?:.*)*`, and testing
+ * that expression blocks the page thread. A slash directly in front of `**`
+ * is not required: a final double-wildcard may match an empty suffix.
+ */
+function globRulesOut(pathnamePattern: string, url: string) {
+    if (!pathnamePattern.includes('**') || /[:(){}+?\\]/.test(pathnamePattern)) {
+        return false
+    }
+
+    let pathname: string
+    try {
+        pathname = new URL(url).pathname
+    } catch {
+        return false
+    }
+
+    const literals = pathnamePattern.split(/\*+/).filter((part) => part.length > 0)
+    return literals.some((literal) => {
+        if (pathname.includes(literal)) {
+            return false
+        }
+
+        const withoutTrailingSlash = literal.endsWith('/') ? literal.slice(0, -1) : literal
+        return withoutTrailingSlash.length === 0 || !pathname.includes(withoutTrailingSlash)
+    })
+}
+
+function toBidiUrlPatterns(pattern: URLPattern): remote.NetworkUrlPatternPattern[] {
+    const shared = {
+        hostname: getPatternParam(pattern, 'hostname'),
+        pathname: getPatternParam(pattern, 'pathname'),
+        port: getPatternParam(pattern, 'port'),
+        search: getPatternParam(pattern, 'search')
+    }
+    const protocol = getPatternParam(pattern, 'protocol')
+    /**
+     * An omitted protocol matches every scheme, including the `ws` connection
+     * the browser runner uses to talk to the driver. Pausing that socket
+     * deadlocks `browser.mock()`. Limit a wildcard protocol to http(s).
+     */
+    const protocols = protocol ? [protocol] : ['http', 'https']
+    return protocols.map((scheme) => ({
+        type: 'pattern' as const,
+        protocol: scheme,
+        ...shared
+    }))
+}
+
+/**
+ * The polyfill assigns itself to `globalThis.URLPattern` only when the
+ * platform has none. Prefer the native matcher when the two differ so the
+ * browser uses a linear match and Node keeps the polyfill.
+ */
+function createURLPattern(init: string | { pathname: string }): URLPattern {
+    const NativeURLPattern = (globalThis as { URLPattern?: unknown }).URLPattern
+    if (typeof NativeURLPattern === 'function' && NativeURLPattern !== URLPatternPolyfill) {
+        return new (NativeURLPattern as new (pattern: string | { pathname: string }) => URLPattern)(init)
+    }
+
+    return createLinearPolyfillPattern(init)
+}
+
+/**
+ * The polyfill compiles a leading `**` to `(?:.*)*`, which backtracks forever
+ * on a long non-match. Rewrite that group to a linear `.*` while the pattern
+ * is constructed. Native `URLPattern` does not go through this path.
+ */
+function createLinearPolyfillPattern(init: string | { pathname: string }): URLPattern {
+    const OriginalRegExp = globalThis.RegExp
+    function LinearRegExp(pattern: string | RegExp, flags?: string) {
+        const source = typeof pattern === 'string' ? pattern : pattern.source
+        return new OriginalRegExp(source.replaceAll('(?:.*)*', '.*'), flags)
+    }
+    Object.setPrototypeOf(LinearRegExp, OriginalRegExp)
+    LinearRegExp.prototype = OriginalRegExp.prototype
+    globalThis.RegExp = LinearRegExp as unknown as typeof RegExp
+    try {
+        return new URLPatternPolyfill(init)
+    } finally {
+        globalThis.RegExp = OriginalRegExp
+    }
+}
+
 export function parseUrlPattern(url: string | URLPattern) {
     /**
      * return early if it's already a URLPattern
@@ -976,13 +1122,13 @@ export function parseUrlPattern(url: string | URLPattern) {
      * parse URLPattern from absolute URL
      */
     if (url.startsWith('http')) {
-        return new URLPattern(url)
+        return createURLPattern(url)
     }
 
     /**
      * parse URLPattern from relative URL
      */
-    return new URLPattern({
+    return createURLPattern({
         pathname: url
     })
 }

@@ -46,9 +46,12 @@ export const config = {
             }
             : {
                 browserName: 'chrome',
-                browserVersion: 'canary',
+                // Unset in CI, which keeps Chrome Canary. Set locally to run this spec
+                // against another Chrome build.
+                browserVersion: process.env.WDIO_BROWSER_VERSION || 'canary',
                 'goog:chromeOptions': {
-                    args: ['--headless', '--disable-gpu']
+                    args: ['--headless', '--disable-gpu', ...(process.env.WDIO_CHROME_ARGS || '').split(' ').filter(Boolean)],
+                    ...(process.env.WDIO_BROWSER_BINARY ? { binary: process.env.WDIO_BROWSER_BINARY } : {})
                 }
             }
     ],
