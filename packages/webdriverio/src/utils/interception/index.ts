@@ -15,6 +15,43 @@ const DEFAULT_SPY_COLLECTED_BODY_SIZE = 10 * 1024 * 1024
 
 let hasSubscribedToEvents = false
 
+/**
+ * A request paused by the driver is released exactly once, however many mocks
+ * intercepted it. Every mock registers its own `network.addIntercept` and its own
+ * event listener, so when two mocks match the same request they both try to
+ * release it and the driver rejects the second attempt with "Invalid state for
+ * continueInterceptedRequest" / "Invalid InterceptionId.". Nobody awaits an event
+ * handler, so that rejection escapes as an unhandled rejection.
+ *
+ * The listeners of one BiDi event all receive the same parameter object, so the
+ * event itself carries the mark. `beforeRequestSent` and `responseStarted` are
+ * separate pause points that arrive as separate objects, which is what keeps a
+ * request releasable once per phase. The event also reports which intercepts
+ * blocked it, so a request that only one intercept blocked takes no mark at all
+ * and behaves exactly as before.
+ */
+const RELEASED = Symbol('wdio.interception.released')
+
+type InterceptedEvent = { intercepts?: string[] }
+
+function isContested(event: InterceptedEvent) {
+    return Boolean(event.intercepts && event.intercepts.length > 1)
+}
+
+function isClaimed(event: InterceptedEvent) {
+    return Boolean((event as { [RELEASED]?: true })[RELEASED])
+}
+
+function claim(event: InterceptedEvent) {
+    const claimable = event as { [RELEASED]?: true }
+    if (claimable[RELEASED]) {
+        return false
+    }
+
+    claimable[RELEASED] = true
+    return true
+}
+
 type RespondBodyValue = string | JsonCompatible | Buffer
 type RespondBody = RespondBodyValue | ((request: local.NetworkResponseCompletedParameters) => RespondBodyValue)
 interface Overwrite {
@@ -173,13 +210,44 @@ export default class WebDriverInterception {
         handlers?.push(handler)
     }
 
+    /**
+     * Release a paused request, unless another mock listening to the same event
+     * has already released it.
+     *
+     * `handling` says whether this mock is the one the request belongs to. A mock
+     * that only releases because the request does *not* match it must not take the
+     * release away from a mock that does, and while the event is still being
+     * dispatched it cannot know whether such a mock exists. So it waits for the
+     * dispatch to finish - the listeners of one event run synchronously - and
+     * releases only if nobody claimed the request in the meantime.
+     */
+    #release<T>(event: InterceptedEvent, handling: boolean, call: () => T): T | undefined {
+        if (!isContested(event)) {
+            return call()
+        }
+
+        if (handling) {
+            return claim(event) ? call() : undefined
+        }
+
+        if (!isClaimed(event)) {
+            queueMicrotask(() => {
+                if (claim(event)) {
+                    call()
+                }
+            })
+        }
+
+        return undefined
+    }
+
     #handleBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
         if (this.#restored) {
             // If restored during in-flight request, continue it to prevent hanging
             if (request.intercepts?.includes(this.#mockId)) {
-                return this.#browser.networkContinueRequest({
+                return this.#release(request, false, () => this.#browser.networkContinueRequest({
                     request: request.request.request
-                }).catch(() => { /* ignore errors for restored mocks */ })
+                }).catch(() => { /* ignore errors for restored mocks */ }))
             }
             return
         }
@@ -194,9 +262,9 @@ export default class WebDriverInterception {
              * we need to continue the request
              */
             if (request.intercepts?.includes(this.#mockId)) {
-                return this.#browser.networkContinueRequest({
+                return this.#release(request, false, () => this.#browser.networkContinueRequest({
                     request: request.request.request
-                })
+                }))
             }
             return
         }
@@ -218,9 +286,9 @@ export default class WebDriverInterception {
          * check if request matches filter option and do nothing if not
          */
         if (!this.#matchesFilterOptions(request)) {
-            return this.#browser.networkContinueRequest({
+            return this.#release(request, false, () => this.#browser.networkContinueRequest({
                 request: request.request.request
-            })
+            }))
         }
 
         const requestId = request.request.request
@@ -233,38 +301,38 @@ export default class WebDriverInterception {
 
             if (abort) {
                 this.#emit('fail', requestId)
-                return this.#withBlockedRequestTracking(
+                return this.#release(request, true, () => this.#withBlockedRequestTracking(
                     requestId,
                     this.#browser.networkFailRequest({ request: requestId })
-                )
+                ))
             }
 
             this.#emit('overwrite', request)
-            return this.#withBlockedRequestTracking(
+            return this.#release(request, true, () => this.#withBlockedRequestTracking(
                 requestId,
                 this.#browser.networkContinueRequest({
                     request: requestId,
                     ...(overwrite ? parseOverwrite(overwrite, request) : {})
                 })
-            )
+            ))
         }
 
         this.#emit('continue', requestId)
-        return this.#withBlockedRequestTracking(
+        return this.#release(request, true, () => this.#withBlockedRequestTracking(
             requestId,
             this.#browser.networkContinueRequest({
                 request: requestId
             })
-        )
+        ))
     }
 
     #handleResponseStarted(request: Response) {
         if (this.#restored) {
             // If restored during in-flight request, provide response to prevent hanging
             if (request.intercepts?.includes(this.#mockId)) {
-                return this.#browser.networkProvideResponse({
+                return this.#release(request, false, () => this.#browser.networkProvideResponse({
                     request: request.request.request
-                }).catch(() => { /* ignore errors for restored mocks */ })
+                }).catch(() => { /* ignore errors for restored mocks */ }))
             }
             return
         }
@@ -280,9 +348,9 @@ export default class WebDriverInterception {
              * we need to continue the request
              */
             if (isHandledByThisMock && request.isBlocked) {
-                return this.#browser.networkProvideResponse({
+                return this.#release(request, false, () => this.#browser.networkProvideResponse({
                     request: request.request.request
-                }).catch(this.#handleNetworkProvideResponseError)
+                }).catch(this.#handleNetworkProvideResponseError))
             }
             return
         }
@@ -313,9 +381,9 @@ export default class WebDriverInterception {
          */
         if (!filterMatches) {
             this.#emit('continue', request.request.request)
-            return this.#browser.networkProvideResponse({
+            return this.#release(request, false, () => this.#browser.networkProvideResponse({
                 request: request.request.request
-            }).catch(this.#handleNetworkProvideResponseError)
+            }).catch(this.#handleNetworkProvideResponseError))
         }
 
         const requestId = request.request.request
@@ -328,12 +396,12 @@ export default class WebDriverInterception {
             !this.#respondOverwrites[0].overwrite
         ) {
             this.#emit('continue', requestId)
-            return this.#withBlockedRequestTracking(
+            return this.#release(request, true, () => this.#withBlockedRequestTracking(
                 requestId,
                 this.#browser.networkProvideResponse({
                     request: requestId
                 }).catch(this.#handleNetworkProvideResponseError)
-            )
+            ))
         }
 
         const { overwrite } = this.#respondOverwrites[0].once
@@ -350,13 +418,13 @@ export default class WebDriverInterception {
                 if (responseData.body) {
                     this.#overwrittenResponseBodies.set(requestId, responseData.body)
                 }
-                return this.#withBlockedRequestTracking(
+                return this.#release(request, true, () => this.#withBlockedRequestTracking(
                     requestId,
                     this.#browser.networkProvideResponse({
                         request: requestId,
                         ...responseData,
                     }).catch(this.#handleNetworkProvideResponseError)
-                )
+                ))
             } catch (err) {
                 /**
                  * BiDi event dispatch swallows listener exceptions, which would leave the
@@ -364,12 +432,12 @@ export default class WebDriverInterception {
                  * mock error is visible instead of stalling the test.
                  */
                 log.error(`Failed to apply mock.respond() overwrite: ${(err as Error).message}`)
-                return this.#withBlockedRequestTracking(
+                return this.#release(request, true, () => this.#withBlockedRequestTracking(
                     requestId,
                     this.#browser.networkFailRequest({
                         request: requestId
                     }).catch(this.#handleNetworkProvideResponseError)
-                )
+                ))
             }
         }
 
@@ -377,12 +445,12 @@ export default class WebDriverInterception {
          * continue request as is
          */
         this.#emit('continue', requestId)
-        return this.#withBlockedRequestTracking(
+        return this.#release(request, true, () => this.#withBlockedRequestTracking(
             requestId,
             this.#browser.networkProvideResponse({
                 request: requestId
             }).catch(this.#handleNetworkProvideResponseError)
-        )
+        ))
     }
 
     async #handleResponseCompleted(response: Response) {
