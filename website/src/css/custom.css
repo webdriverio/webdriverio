@@ -31,6 +31,8 @@
     --wdio-radius: 12px;
     --wdio-radius-sm: 8px;
     --wdio-spacing-vertical: 96px;
+    --wdio-announcement-bar-height: 0px;
+    --wdio-chat-dialog-top-margin: max(64px, calc(var(--wdio-announcement-bar-height) + 5px));
 
     --ifm-background-color: var(--wdio-bg);
     --ifm-background-surface-color: var(--wdio-bg);

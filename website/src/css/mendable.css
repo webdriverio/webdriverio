@@ -2,6 +2,11 @@
  * Overrides for third-party AI assistant widget (@mendable/search)
  */
 
+/* Keep the modal, including its backdrop, above the sticky navbar. */
+div[id^="headlessui-dialog-"][role="dialog"] {
+    z-index: calc(var(--ifm-z-index-fixed) + 1) !important;
+}
+
 /* 1. Prevent top-right controls (Reset button) from overlapping the message scrollbar (scoped to Mendable) */
 div[id^="headlessui-dialog-panel-"][class*="ms-"] .top-right-menu,
 div[id^="headlessui-dialog-panel-"]:has(#ms-reset-button) .top-right-menu,
@@ -23,6 +28,26 @@ div[id^="headlessui-dialog-panel-"][class*="ms-"] .ms-max-h-\[550px\],
 div[id^="headlessui-dialog-panel-"][class*="ms-"] div[class*="ms-max-h-[550px]"],
 div[id^="headlessui-dialog-panel-"]:has(#ms-reset-button) .ms-max-h-\[550px\],
 div[id^="headlessui-dialog-panel-"]:has(#ms-reset-button) div[class*="ms-max-h-[550px]"] {
-    max-height: min(550px, calc(100vh - 320px)) !important;
-    max-height: min(550px, calc(100dvh - 320px)) !important;
+    max-height: min(550px, calc(100vh - 256px - var(--wdio-chat-dialog-top-margin))) !important;
+    max-height: min(550px, calc(100dvh - 256px - var(--wdio-chat-dialog-top-margin))) !important;
+}
+
+@media (min-width: 640px) {
+    /* Allow source labels to shrink inside their desktop pills so ms-truncate can render an ellipsis. */
+    div[id^="headlessui-dialog-panel-"] nav[class*="sm:ms-flex-row"] > a[class*="sm:ms-max-w-[225px]"] > div,
+    div[id^="headlessui-dialog-panel-"] nav[class*="sm:ms-flex-row"] > a[class*="sm:ms-max-w-[225px]"] > div > div {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    div[id^="headlessui-dialog-panel-"]
+        nav[class*="sm:ms-flex-row"]
+        > a[class*="sm:ms-max-w-[225px]"]
+        span[class~="ms-truncate"] {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
 }
