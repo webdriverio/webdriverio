@@ -15,7 +15,7 @@ complete examples, no content hidden in UI components).
 | `packages/<reporter-or-service>/README.md` | That plugin's docs page |
 | JSDoc on `webdriverio` commands | `website/docs/api` command pages |
 | `@wdio/protocols` specs | Protocol API pages |
-| `scripts/docs-generation/3rd-party/` | Community plugin docs |
+| `infra/docs/src/3rd-party/` | Community plugin docs |
 
 Generated / gitignored: `website/docs/api/**` (except a few hand-written
 files listed in `.gitignore`), `website/docs/_*.md`, `website/sidebars.json`,

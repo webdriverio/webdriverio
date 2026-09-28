@@ -22,7 +22,12 @@ packages/@wdio/local-runner
 packages/@wdio/*-framework | *-reporter | *-service
 infra/compiler           esbuild + protocol type generation
 infra/repo-tools         docs index, scoped tests, CI lane helpers
-scripts/                 docs generation, BiDi CDDL, release helpers
+infra/utils              protocol metadata and shared helpers
+infra/bidiCodegen        BiDi CDDL type generation
+infra/docs               documentation website generation
+infra/release            changelog, tags, and backports
+infra/createPackage      scaffold a new workspace package
+infra/depcheck           dependency checks
 tests/                   smoke suites (mock driver, no real browser)
 e2e/                     real-browser / component / display-server suites
 website/                 Docusaurus site (many pages are generated)
@@ -132,7 +137,7 @@ User docs come from several sources. Update the source, then regenerate:
 - Service / reporter pages: that package's `README.md`
 - Protocol API: `@wdio/protocols` specs
 - WDIO command API: JSDoc on the command implementation
-- Third-party plugins: `scripts/docs-generation/3rd-party/`
+- Third-party plugins: `infra/docs/src/3rd-party/`
 
 `pnpm run docs:list` prints a path + title index. Config examples are copied
 through the repo; search for every occurrence before renaming a key.
@@ -188,7 +193,8 @@ Read the matching guide in full before editing that tree.
 - **Reporters:** [packages/wdio-reporter/AGENTS.md](packages/wdio-reporter/AGENTS.md)
 - **Compiler / types:** [infra/compiler/AGENTS.md](infra/compiler/AGENTS.md)
 - **Repo helpers:** [infra/repo-tools/AGENTS.md](infra/repo-tools/AGENTS.md)
-- **Scripts:** [scripts/AGENTS.md](scripts/AGENTS.md)
+- **Infra packages:** [infra/AGENTS.md](infra/AGENTS.md)
+- **Docs generation:** [infra/docs/AGENTS.md](infra/docs/AGENTS.md)
 - **Smoke tests:** [tests/AGENTS.md](tests/AGENTS.md)
 - **E2E / component:** [e2e/AGENTS.md](e2e/AGENTS.md)
 - **Docs site:** [website/AGENTS.md](website/AGENTS.md)

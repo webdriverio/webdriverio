@@ -1,0 +1,24 @@
+{
+  "name": "@wdio/docs",
+  "private": true,
+  "type": "module",
+  "description": "Generate the WebdriverIO documentation website",
+  "scripts": {
+    "generate": "tsx ./src/index.ts",
+    "generate:en": "tsx ./src/index.ts --en",
+    "check": "tsx ./src/checkDocs.ts",
+    "eval": "tsx ./src/evalDocs.ts"
+  },
+  "dependencies": {
+    "@octokit/rest": "^22.0.1",
+    "@vercel/routing-utils": "^6.6.0",
+    "@wdio/repo-utils": "workspace:*",
+    "comment-parser": "^1.4.9",
+    "eta": "^4.6.0",
+    "tsx": "^4.23.15",
+    "unzipper": "^0.12.5"
+  },
+  "devDependencies": {
+    "@types/unzipper": "^0.10.11"
+  }
+}

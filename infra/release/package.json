@@ -1,0 +1,24 @@
+{
+  "name": "@wdio/release",
+  "private": true,
+  "type": "module",
+  "description": "Changelog generation, GitHub releases, annotated tags, and PR backports",
+  "scripts": {
+    "changelog": "tsx ./src/changelog.cli.ts",
+    "push-tags": "tsx ./src/pushTags.cli.ts",
+    "backport": "tsx ./src/backport.cli.ts"
+  },
+  "dependencies": {
+    "@wdio/repo-utils": "workspace:*",
+    "@octokit/rest": "^22.0.1",
+    "chalk": "^5.6.2",
+    "cli-highlight": "^2.1.11",
+    "inquirer": "^14.2.2",
+    "lerna-changelog": "^2.2.0",
+    "shelljs": "^0.10.0",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@types/shelljs": "^0.10.0"
+  }
+}

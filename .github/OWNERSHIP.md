@@ -41,7 +41,7 @@ published as user docs — do not add developer footers there.
 | Type generation / esbuild | `@wdio/compiler` | `infra/compiler` |
 | Docs index / scoped tests / CI lanes | `@wdio/repo-tools` | `infra/repo-tools` |
 | Mock driver for smoke tests | `@wdio/webdriver-mock-service` | Not `@wdio/smoke-test-service` |
-| Docs site | `website/` + `scripts/docs-generation/` | See [website/AGENTS.md](../website/AGENTS.md) |
+| Docs site | `website/` + `infra/docs/` | See [website/AGENTS.md](../website/AGENTS.md) |
 
 ## Developing a package
 

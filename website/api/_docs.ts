@@ -1,6 +1,6 @@
 /**
  * Docs corpus shared by the MCP server (`api/mcp.ts`) and the docs eval
- * (`scripts/docs-generation/evalDocs.ts`). Files prefixed with `_` in `api/`
+ * (`infra/docs/src/evalDocs.ts`). Files prefixed with `_` in `api/`
  * are not deployed as functions.
  */
 import fs from 'node:fs'

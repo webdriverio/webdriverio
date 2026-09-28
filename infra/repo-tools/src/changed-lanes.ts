@@ -27,8 +27,7 @@ export const LANE_FILTERS: LaneFilters = {
     ],
     docs: [
         'website/**',
-        'scripts/docs-generation/**',
-        'scripts/updateDocs.ts'
+        'infra/docs/**'
     ],
     component: [
         'packages/wdio-browser-runner/**',
@@ -53,9 +52,8 @@ export const LANE_FILTERS: LaneFilters = {
         '!e2e/wdio/display-server/**',
         '!e2e/browser-runner/**',
         '!e2e/session/**',
-        'scripts/**',
-        '!scripts/docs-generation/**',
         'infra/**',
+        '!infra/docs/**',
         'test-headless-flag/**',
         '@types/**',
         '__mocks__/**'

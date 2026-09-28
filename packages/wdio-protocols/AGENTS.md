@@ -11,7 +11,7 @@ command types under `src/commands/` — that directory is generated and gitignor
 ## Do not edit
 
 - `src/commands/` — produced by `infra/compiler` type generation
-- website protocol API pages — produced by `scripts/docs-generation/protocolDocs.ts`
+- website protocol API pages — produced by `infra/docs/src/protocolDocs.ts`
 
 ## Adding a command
 
@@ -22,7 +22,7 @@ command types under `src/commands/` — that directory is generated and gitignor
 4. If `webdriverio` wraps the command, add the wrapper + JSDoc + typings
    usage there too.
 
-Register a brand-new protocol file in `scripts/protocols.ts`.
+Register a brand-new protocol file in `infra/utils/src/protocols.ts`.
 
 See [type generation](../../website/docs/flowcharts/TypeGeneration.md) for the
 spec → compiler → `src/commands` → typings path.

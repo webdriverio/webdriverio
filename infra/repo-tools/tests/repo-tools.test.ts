@@ -92,7 +92,7 @@ describe('classify', () => {
     })
 
     it('does not treat docs-generation as code', () => {
-        const report = classify(['scripts/docs-generation/generateDocs.ts'])
+        const report = classify(['infra/docs/src/generateDocs.ts'])
         expect(report.lanes.docs).toBe(true)
         expect(report.lanes.code).toBe(false)
     })
@@ -108,7 +108,8 @@ describe('packageFromFile', () => {
     it('returns the workspace directory name', () => {
         expect(packageFromFile('packages/wdio-cli/src/index.ts')).toBe('wdio-cli')
         expect(packageFromFile('infra/repo-tools/src/docs-list.ts')).toBe('repo-tools')
-        expect(packageFromFile('scripts/generateSubPackage.ts')).toBeUndefined()
+        expect(packageFromFile('website/docs/GettingStarted.md')).toBeUndefined()
+        expect(packageFromFile('infra/docs/src/generateDocs.ts')).toBe('docs')
     })
 })
 
@@ -137,6 +138,12 @@ describe('planChecks', () => {
         expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:package webdriverio')).toBe(true)
         expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:typings:webdriverio')).toBe(true)
         expect(steps.some((step) => step.name === 'smoke')).toBe(false)
+    })
+
+    it('runs the docs package unit tests for an infra/docs change', () => {
+        const steps = planChecks(classify(['infra/docs/src/generateDocs.ts']))
+        expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:package docs')).toBe(true)
+        expect(steps.some((step) => step.cmd?.join(' ') === 'pnpm run test:smoke')).toBe(false)
     })
 
     it('does not run the full local suite for a docs-only change', () => {

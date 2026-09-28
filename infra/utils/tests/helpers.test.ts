@@ -1,0 +1,96 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { describe, it, expect, afterEach } from 'vitest'
+
+import { getRootDir, getSubPackages, buildPreface, toFileUrl } from '../src/helpers.js'
+import { organizationName, projectName, branch, repoUrl } from '../src/constants.js'
+
+const tempDirs: string[] = []
+
+afterEach(() => {
+    for (const dir of tempDirs.splice(0)) {
+        fs.rmSync(dir, { recursive: true, force: true })
+    }
+})
+
+describe('getRootDir', () => {
+    it('resolves the monorepo root from infra/utils', () => {
+        const root = getRootDir()
+        expect(fs.existsSync(path.join(root, 'lerna.json'))).toBe(true)
+        expect(fs.existsSync(path.join(root, 'packages'))).toBe(true)
+        expect(fs.existsSync(path.join(root, 'infra', 'utils'))).toBe(true)
+    })
+})
+
+describe('toFileUrl', () => {
+    it('keeps a hash in the path instead of treating it as a URL fragment', () => {
+        const href = toFileUrl(path.join('/tmp/repo#1', 'lerna.json'))
+        expect(href.startsWith('file:')).toBe(true)
+        expect(href).toContain('repo%231')
+        expect(href.includes('#')).toBe(false)
+    })
+})
+
+describe('getSubPackages', () => {
+    it('lists package directories and skips ignored names and files', () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-packages-'))
+        tempDirs.push(dir)
+        fs.mkdirSync(path.join(dir, 'wdio-logger'))
+        fs.writeFileSync(path.join(dir, 'wdio-logger', 'package.json'), '{}')
+        fs.mkdirSync(path.join(dir, 'webdriverio'))
+        fs.writeFileSync(path.join(dir, 'webdriverio', 'package.json'), '{}')
+        fs.mkdirSync(path.join(dir, 'node_modules'))
+        fs.writeFileSync(path.join(dir, 'node_modules', 'package.json'), '{}')
+        fs.mkdirSync(path.join(dir, 'wdio-smoke-test-service'))
+        fs.writeFileSync(path.join(dir, 'wdio-smoke-test-service', 'package.json'), '{}')
+        fs.mkdirSync(path.join(dir, 'notes'))
+        fs.writeFileSync(path.join(dir, 'README.md'), 'not a package')
+
+        expect(getSubPackages(['wdio-smoke-test-service'], dir).sort()).toEqual([
+            'wdio-logger',
+            'webdriverio'
+        ])
+    })
+
+    it('returns real monorepo packages when called without overrides', () => {
+        const packages = getSubPackages()
+        expect(packages).toContain('webdriverio')
+        expect(packages).toContain('wdio-logger')
+        expect(packages).not.toContain('node_modules')
+    })
+})
+
+describe('buildPreface', () => {
+    it('renders docusaurus front matter and tab imports', () => {
+        expect(buildPreface('allure-reporter', 'Allure', 'Reporter', 'https://example.com/edit')).toEqual([
+            '---',
+            'id: allure-reporter',
+            'title: Allure Reporter',
+            'custom_edit_url: https://example.com/edit',
+            '---\n',
+            'import Tabs from \'@theme/Tabs\';',
+            'import TabItem from \'@theme/TabItem\';\n'
+        ])
+    })
+
+    it('includes a JSON description when one is provided', () => {
+        const preface = buildPreface(
+            'allure-reporter',
+            'Allure',
+            'Reporter',
+            'https://example.com/edit',
+            'A "quoted" description'
+        )
+        expect(preface).toContain('description: "A \\"quoted\\" description"')
+    })
+})
+
+describe('constants', () => {
+    it('describes the public GitHub repository', () => {
+        expect(organizationName).toBe('webdriverio')
+        expect(projectName).toBe('webdriverio')
+        expect(branch).toBe('main')
+        expect(repoUrl).toBe('https://github.com/webdriverio/webdriverio')
+    })
+})

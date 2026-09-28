@@ -424,11 +424,45 @@ importers:
         specifier: ^2.0.17
         version: 2.2.10(typescript@5.9.3)
 
+  infra/bidiCodegen:
+    dependencies:
+      '@octokit/rest':
+        specifier: ^22.0.1
+        version: 22.0.1
+      '@wdio/repo-utils':
+        specifier: workspace:*
+        version: link:../utils
+      camelcase:
+        specifier: ^9.0.0
+        version: 9.0.0
+      cddl:
+        specifier: ^0.23.0
+        version: 0.23.0
+      cddl2ts:
+        specifier: ^0.13.0
+        version: 0.13.0
+      recast:
+        specifier: ^0.23.21
+        version: 0.23.21
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
+      unzipper:
+        specifier: ^0.12.5
+        version: 0.12.5
+    devDependencies:
+      '@types/unzipper':
+        specifier: ^0.10.11
+        version: 0.10.11
+
   infra/compiler:
     dependencies:
+      '@wdio/repo-utils':
+        specifier: workspace:*
+        version: link:../utils
       camelcase:
-        specifier: ^8.0.0
-        version: 8.0.0
+        specifier: ^9.0.0
+        version: 9.0.0
       esbuild:
         specifier: ^0.28.1
         version: 0.28.1
@@ -439,19 +473,111 @@ importers:
         specifier: ^1.3.0
         version: 1.3.1(typescript@5.9.3)
       tsx:
-        specifier: ^4.17.0
-        version: 4.21.0
+        specifier: ^4.23.15
+        version: 4.23.15
       type-fest:
         specifier: ^4.24.0
         version: 4.41.0
 
+  infra/createPackage:
+    dependencies:
+      '@wdio/repo-utils':
+        specifier: workspace:*
+        version: link:../utils
+      inquirer:
+        specifier: ^14.2.2
+        version: 14.2.2(@types/node@22.20.4)
+      shelljs:
+        specifier: ^0.10.0
+        version: 0.10.0
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
+    devDependencies:
+      '@types/shelljs':
+        specifier: ^0.10.0
+        version: 0.10.0
+
+  infra/depcheck:
+    dependencies:
+      '@wdio/repo-utils':
+        specifier: workspace:*
+        version: link:../utils
+      depcheck:
+        specifier: ^1.4.7
+        version: 1.4.7(supports-color@11.0.0)
+      tsx:
+        specifier: ^4.17.0
+        version: 4.23.15
+
+  infra/docs:
+    dependencies:
+      '@octokit/rest':
+        specifier: ^22.0.1
+        version: 22.0.1
+      '@vercel/routing-utils':
+        specifier: ^6.6.0
+        version: 6.6.0
+      '@wdio/repo-utils':
+        specifier: workspace:*
+        version: link:../utils
+      comment-parser:
+        specifier: ^1.4.9
+        version: 1.4.9
+      eta:
+        specifier: ^4.6.0
+        version: 4.6.0
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
+      unzipper:
+        specifier: ^0.12.5
+        version: 0.12.5
+    devDependencies:
+      '@types/unzipper':
+        specifier: ^0.10.11
+        version: 0.10.11
+
   infra/lernaPatch: {}
+
+  infra/release:
+    dependencies:
+      '@octokit/rest':
+        specifier: ^22.0.1
+        version: 22.0.1
+      '@wdio/repo-utils':
+        specifier: workspace:*
+        version: link:../utils
+      chalk:
+        specifier: ^5.6.2
+        version: 5.6.2
+      cli-highlight:
+        specifier: ^2.1.11
+        version: 2.1.11
+      inquirer:
+        specifier: ^14.2.2
+        version: 14.2.2(@types/node@22.20.4)
+      lerna-changelog:
+        specifier: ^2.2.0
+        version: 2.2.0(bluebird@3.7.2)(supports-color@11.0.0)
+      shelljs:
+        specifier: ^0.10.0
+        version: 0.10.0
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
+    devDependencies:
+      '@types/shelljs':
+        specifier: ^0.10.0
+        version: 0.10.0
 
   infra/repo-tools:
     dependencies:
       tsx:
         specifier: ^4.20.3
         version: 4.21.0
+
+  infra/utils: {}
 
   packages/create-wdio:
     dependencies:
@@ -7932,10 +8058,6 @@ packages:
   camelcase@7.0.1:
     resolution: {integrity: sha512-xlx1yCK2Oc1APsPXDL2LdlNP6+uu8OCDdhOBSVT279M/S+y75O30C2VuD8T2ogdePBBl7PfPF4504tnLgX3zfw==}
     engines: {node: '>=14.16'}
-
-  camelcase@8.0.0:
-    resolution: {integrity: sha512-8WB3Jcas3swSvjIeA2yvCJ+Miyz5l1ZmB6HFb9R1317dt9LCQoswg/BGrmAmkWVEszSrrg4RwmO46qIm2OEnSA==}
-    engines: {node: '>=16'}
 
   camelcase@9.0.0:
     resolution: {integrity: sha512-TO9xmyXTZ9HUHI8M1OnvExxYB0eYVS/1e5s7IDMTAoIcwUd+aNcFODs6Xk83mobk0velyHFQgA1yIrvYc6wclw==}
@@ -22946,8 +23068,6 @@ snapshots:
   camelcase@6.3.0: {}
 
   camelcase@7.0.1: {}
-
-  camelcase@8.0.0: {}
 
   camelcase@9.0.0: {}
 

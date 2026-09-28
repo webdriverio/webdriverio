@@ -3,7 +3,7 @@
   "plugins": ["eslint", "typescript", "unicorn"],
   "jsPlugins": [
     "@stylistic/eslint-plugin",
-    "./scripts/oxlint-wdio-plugin.mjs"
+    "./infra/oxlint-wdio-plugin.mjs"
   ],
   "env": {
     "node": true

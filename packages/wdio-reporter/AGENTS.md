@@ -22,7 +22,7 @@ pnpm run test:smoke reporterTestrunner
 ```
 
 User-facing reporter docs are the package `README.md`, ingested by
-`scripts/docs-generation/packagesDocs.ts`.
+`infra/docs/src/packagesDocs.ts`.
 
 ## Guardrails
 

@@ -22,7 +22,7 @@ Then edit the *source*, not the generated page:
 | Command API (`browser.url`, `$().click`, …) | JSDoc on `packages/webdriverio/src/commands/**` |
 | Protocol API | `packages/wdio-protocols/src/protocols/*.ts` |
 | Built-in service or reporter | that package's `README.md` |
-| Community plugin | `scripts/docs-generation/3rd-party/` |
+| Community plugin | `infra/docs/src/3rd-party/` |
 | Contributing page on the site | `CONTRIBUTING.md` (copied during generate) |
 
 Do not edit `website/docs/api/**` (except the few hand-written files in

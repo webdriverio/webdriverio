@@ -31,7 +31,7 @@ cite a unit test as that proof.
 | `packages/wdio-session/**` or `e2e/session/**` | `pnpm run test:e2e:session` |
 | `packages/wdio-display-server/**` or `e2e/wdio/display-server/**` | `pnpm run test:e2e:display-server` |
 | Session launch / real WebDriver path not stubbed by the mock service | the specific `test:e2e:*` script, not `test:e2e` |
-| `website/**` or `scripts/docs-generation/**` only | docs skill; no unit/smoke |
+| `website/**` or `infra/docs/**` only | docs skill; no unit/smoke |
 | `.github/workflows/**`, root `package.json`, lockfile, `vitest.config.ts`, `.oxlintrc.json` | `pnpm run test:local` |
 
 Never start with `pnpm test` or `pnpm run ci`.

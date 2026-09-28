@@ -1,0 +1,18 @@
+{
+  "name": "@wdio/create-package",
+  "private": true,
+  "type": "module",
+  "description": "Scaffold a new WebdriverIO reporter, service, runner, framework, or tool package",
+  "scripts": {
+    "create": "tsx ./src/cli.ts"
+  },
+  "dependencies": {
+    "@wdio/repo-utils": "workspace:*",
+    "inquirer": "^14.2.2",
+    "shelljs": "^0.10.0",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@types/shelljs": "^0.10.0"
+  }
+}

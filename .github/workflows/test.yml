@@ -59,7 +59,7 @@ jobs:
               - '.oxlintrc.json'
             docs:
               - 'website/**'
-              - 'scripts/docs-generation/**'
+              - 'infra/docs/**'
             component:
               - 'packages/wdio-browser-runner/**'
               - 'e2e/browser-runner/**'
@@ -82,9 +82,10 @@ jobs:
               - '!e2e/wdio/display-server/**'
               - '!e2e/browser-runner/**'
               - '!e2e/session/**'
-              - 'scripts/**'
-              - '!scripts/docs-generation/**'
               - 'infra/**'
+              # @wdio/docs unit tests run in the docs workflow. Leaving this
+              # package out of the code lane keeps smoke and e2e off a docs-only PR.
+              - '!infra/docs/**'
               - 'test-headless-flag/**'
               - '@types/**'
               - '__mocks__/**'
