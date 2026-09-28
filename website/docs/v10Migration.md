@@ -1,12 +1,26 @@
 ---
 id: v10-migration
 title: From v9 to v10
-description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, multi-remote network mocks, element references, the WebDriver protocol, and virtual displays on Linux.
+description: Update a WebdriverIO v9 project to v10, including every breaking change and a coding-agent skill that applies this guide.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
 
 Unlike previous majors, most of these changes cannot be applied by the WebdriverIO [codemod](https://github.com/webdriverio/codemod), because they depend on what your tests actually mean. The [legacy command signatures](#legacy-command-signatures) below are mechanical replacements. Each other section describes how to find the affected places in your suite.
+
+## Migrate with a coding agent
+
+Give your agent the v10 migration skill and ask it to migrate the suite to WebdriverIO v10, following this page. The skill is the procedure: what to search for, which codemod to run, and when to stop. This page is the source of truth for each break.
+
+Install it from the project you are upgrading. The [skills CLI](https://skills.sh) reads [`.agents/skills/wdio-v10-migration/SKILL.md`](https://github.com/webdriverio/webdriverio/blob/main/.agents/skills/wdio-v10-migration/SKILL.md) from this repository and writes it into the skill directory of the agents you pick:
+
+```sh
+npx skills add webdriverio/webdriverio --skill wdio-v10-migration
+```
+
+`--skill wdio-v10-migration` installs this skill. Skills for working on the WebdriverIO repository are marked internal and are not offered. The CLI asks which agents to install for and writes the skill into each agent's project directory. You can also attach that file to the chat.
+
+Strict selectors and bare capability `specs` / `exclude` lists only show up when the suite runs. The skill cannot decide those from the source alone.
 
 ## Node.js
 
@@ -14,7 +28,7 @@ WebdriverIO v10 requires Node.js 22.19.0 or later. Node.js 18 and 20 are no long
 
 ## Mocha
 
-`@wdio/mocha-framework` and `@wdio/browser-runner` depend on [Mocha 12](https://mochajs.org/blog/mocha-12-rc-1/). Mocha 12 needs Node.js `^20.19.0 || >=22.12.0`, which is covered by the v10 floor of 22.19.0.
+`@wdio/mocha-framework` and `@wdio/browser-runner` depend on [Mocha 12](https://mochajs.org/blog/mocha-12-stable/). Mocha 12 needs Node.js `^20.19.0 || >=22.12.0`, which is covered by the v10 floor of 22.19.0.
 
 ```diff
 - mochaOpts: { compilers: ['ts:ts-node/register'] }
@@ -54,18 +68,35 @@ Other Cucumber 13 breaks (ambiguous formatter paths, parallel workers, `BeforeAl
 
 ## Jasmine
 
-The legacy `jasmineNodeOpts` option is no longer read. Move its settings to `jasmineOpts`, otherwise they are ignored.
+`@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 is tested on Node.js 20, 22, and 24. The v10 floor of 22.19.0 already covers that range.
+
+`jasmineNodeOpts` was removed. Configure Jasmine with `jasmineOpts`. Setting `jasmineNodeOpts` throws:
+
+```text
+The option "jasmineNodeOpts" was removed in WebdriverIO v10. Use "jasmineOpts" instead.
+```
 
 ```diff
 - jasmineNodeOpts: { defaultTimeoutInterval: 60000 }
 + jasmineOpts: { defaultTimeoutInterval: 60000 }
 ```
 
-The deprecated `jasmineOpts.failFast` option was removed. Use `stopOnSpecFailure` instead.
+`jasmineOpts.failFast` is no longer read. Use `jasmineOpts.stopOnSpecFailure`. A leftover `failFast` does not stop the suite. Cucumber's `failFast` is a different option and still works.
 
 ```diff
 - jasmineOpts: { failFast: true }
 + jasmineOpts: { stopOnSpecFailure: true }
+```
+
+`jasmineOpts.stopSpecOnExpectationFailure` was removed. Use `jasmineOpts.oneFailurePerSpec`. Setting the old key throws:
+
+```text
+The option "jasmineOpts.stopSpecOnExpectationFailure" was removed in WebdriverIO v10. Use "jasmineOpts.oneFailurePerSpec" instead.
+```
+
+```diff
+- jasmineOpts: { stopSpecOnExpectationFailure: true }
++ jasmineOpts: { oneFailurePerSpec: true }
 ```
 
 ## Multi-remote Global
@@ -91,6 +122,8 @@ The lowercase `multiremotebrowser` global was removed, from `@wdio/globals` and 
   }]
 ```
 
+The top-level config keys stay `specs` and `exclude`. A leftover bare list on a capability does not select files for that capability. The capability then uses the top-level `specs` and `exclude`.
+
 The `tunnelIdentifier` and `parentTunnel` aliases were removed from the Sauce Labs options types. Use `tunnelName` and `tunnelOwner`.
 
 ## TypeScript
@@ -103,9 +136,11 @@ The `Element`, `MultiRemoteBrowser` and `MultiRemoteElement` types exported by `
 + const elem: WebdriverIO.Element = await $('#foo')
 ```
 
+Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript version this repository compiles with.
+
 ## Reporters
 
-The command `result` event and the `AfterCommandArgs` type no longer have a `name` property. Read `command` instead.
+The browser `result` event is forwarded to reporters as `client:afterCommand`. That payload and the `AfterCommandArgs` type no longer have a `name` property. Read `command` instead. Custom commands already sent `command`.
 
 ```diff
   onAfterCommand(args) {
@@ -114,7 +149,9 @@ The command `result` event and the `AfterCommandArgs` type no longer have a `nam
   }
 ```
 
-The `addEnvironment` function of `@wdio/allure-reporter` was removed. It already did nothing. Use the [`reportedEnvironmentVars`](/docs/allure-reporter) reporter option instead.
+### Allure
+
+`addEnvironment(name, value)` on `@wdio/allure-reporter` was removed. It had no effect. Set environment rows with [`reportedEnvironmentVars`](/docs/allure-reporter) in the Allure reporter options.
 
 ## `$` is strict
 
@@ -274,22 +311,6 @@ Only the options object is accepted. `appWaitPackage`, `appWaitActivity`, and `o
 + })
 ```
 
-## Capability spec filters
-
-Spec and exclude lists on a capability use the `wdio:` prefix. Bare `specs` and `exclude` on a capability are ignored. The top-level config keys stay `specs` and `exclude`.
-
-```diff
-capabilities: [{
-    browserName: 'firefox',
--   specs: ['test/ffOnly/*'],
--   exclude: ['test/ffOnly/skip.js'],
-+   'wdio:specs': ['test/ffOnly/*'],
-+   'wdio:exclude': ['test/ffOnly/skip.js'],
-}]
-```
-
-A leftover bare list does not select files for that capability. The capability then uses the top-level `specs` and `exclude`.
-
 ## Removed commands
 
 `browser.throttle` and the deprecated `touchAction` commands have been removed.
@@ -310,6 +331,32 @@ await browser.action('pointer', { parameters: { pointerType: 'touch' } })
     .perform()
 ```
 
+## `executeAsync`
+
+`browser.executeAsync` and `element.executeAsync` are removed. Pass an `async` function to [`execute`](/docs/api/browser/execute). The function's return value, including a returned promise, is the command result. The `script` timeout still applies.
+
+```ts
+const result = await browser.execute(async (a, b) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    return a + b
+}, 1, 2)
+```
+
+Drop the WebDriver `done` callback. A string script that expected that callback as its last argument has to return a promise instead. At runtime, `executeAsync` is not a function.
+
+## `switchToFrame`
+
+`browser.switchToFrame` is no longer a public command. It is omitted from the TypeScript types and the docs. Call [`switchFrame`](/docs/api/browser/switchFrame).
+
+```diff
+- await browser.switchToFrame(await $('iframe'))
+- await browser.switchToFrame(null)
++ await browser.switchFrame($('iframe'))
++ await browser.switchFrame(null)
+```
+
+Pass an element, or `null` for the top frame. On a BiDi session a string can be a frame url or a context id. Do not pass a numeric frame index. A BiDi session rejects it.
+
 ## `setTimeout`
 
 The JSON Wire Protocol key `page load` is rejected. Use `pageLoad`.
@@ -320,14 +367,6 @@ The JSON Wire Protocol key `page load` is rejected. Use `pageLoad`.
 ```
 
 `implicit` and `script` are unchanged.
-
-## Reporters
-
-`client:afterCommand` no longer includes `name`. Read `command` for the command name. Custom commands already sent `command`.
-
-## Allure
-
-`addEnvironment(name, value)` is removed. It had no effect. Set environment rows with `reportedEnvironmentVars` in the Allure reporter options.
 
 ## Multi-remote instance access
 
@@ -345,6 +384,10 @@ A TypeScript augmentation that adds `myChromeBrowser: WebdriverIO.Browser` to `W
 With the testrunner and `injectGlobals` left on, the instance name is still a global (`myChromeBrowser.url(...)`). That global is the single session. It is not `browser.myChromeBrowser`.
 
 Command results stay in capability order: the first entry belongs to the first key in the capabilities object.
+
+`browser.$$()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteElementArray`, not a plain `MultiRemoteElement[]`. It is still an array, so an index read such as `elements[0]` keeps working. `custom$$` and `react$$` still return one result per instance. They are not zipped into one array.
+
+`WDIO_ENABLE_MULTI_REMOTE_SELECT` and `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY` have been removed. `select()` is always available, and `$$()` always returns the element array above. Delete both variables.
 
 ## Multi-remote network mocks
 
@@ -381,14 +424,6 @@ A find-element body that contains only `{ ELEMENT: '...' }` is not an element. I
 
 Jasmine prints a chained `$()` result through `toJSON`. That value is the same W3C reference, `{ 'element-6066-11e4-a52e-4f735466cecf': elementId }`.
 
-## Jasmine
-
-`@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 needs Node.js 20, 22, or 24, which the v10 floor of 22.19.0 already covers.
-
-`jasmineNodeOpts` was removed. Configure Jasmine with `jasmineOpts`. Setting `jasmineNodeOpts` throws.
-
-`jasmineOpts.stopSpecOnExpectationFailure` was removed. Use `jasmineOpts.oneFailurePerSpec`. Setting the old key throws.
-
 ## Component testing
 
 `@wdio/browser-runner` re-exports `fn`, `spyOn` and the mock types from `@vitest/spy` 5 (previously 3). A mock that your code calls with `new` needs a `function` or `class` implementation. An arrow function throws `is not a constructor`, and `mockReturnValue` throws when the mock is called with `new`.
@@ -416,9 +451,13 @@ export default [
 ]
 ```
 
-## TypeScript
+## Custom frameworks
 
-Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript version this repository compiles with.
+`setupExpect` on a custom framework adapter no longer accepts a `Map` of matchers, and the runner no longer adds an `entries` method to the matchers object. Iterate with `Object.entries(wdioMatchers)`.
+
+## Firefox profile
+
+`@wdio/firefox-profile-service` no longer treats `legacy` as a service option. That flag only applied to Firefox 55 and older. Delete it. A leftover `legacy: true` is written into the profile as a preference named `legacy`.
 
 ## WebDriver protocol
 
@@ -524,9 +563,7 @@ Appium 3 requires a driver or `*` scope prefix on `--allow-insecure` features, f
 
 ### `getValue` on mobile reads the element property
 
-`element.getValue()` calls Get Element Property, including on Appium 3. It previously called Get Element Attribute for every mobile session.
-
-On a W3C session, including Appium 3, `element.getValue()` calls Get Element Property. It previously called Get Element Attribute for every mobile session. A non-W3C session still reads the attribute.
+`element.getValue()` calls Get Element Property on every session, including Appium 3. On a mobile session it previously called Get Element Attribute.
 
 ## Multi-remote naming
 
@@ -599,3 +636,9 @@ Other changes you may notice:
       await daemon?.stop()
   }
   ```
+
+## Next steps
+
+- Copy the [migration skill](#migrate-with-a-coding-agent) into the project and ask an agent to apply it.
+- [WebdriverIO for Coding Agents](/docs/ai-agents) for writing new v10 tests.
+- [Headless and Display Servers](/docs/headless-and-display-servers) when the suite runs on Linux.

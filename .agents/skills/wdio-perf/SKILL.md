@@ -6,6 +6,8 @@ description: >-
   performance, latency, startup time, skip-path cost, tsx/loader overhead,
   mock-driver wall-clock, or when the user asks to bench, profile, or verify a
   perf win.
+metadata:
+  internal: true
 ---
 
 # WDIO hot-path performance
