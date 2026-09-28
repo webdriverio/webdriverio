@@ -361,6 +361,146 @@ describe('scrollIntoView test', () => {
                     executeAsyncSpy.mockRestore()
                 }
             })
+
+            /**
+             * The mocked `execute/async` endpoint reads the script's result synchronously, so it
+             * can't tell whether the script waits for a smooth scroll to finish. Grab the
+             * browser-side function itself and drive it with fake timers and a fake DOM instead.
+             */
+            describe('settle script', () => {
+                type SettleScript = (elem: unknown, options: ScrollIntoViewOptions | boolean, done: (error?: string) => void) => void
+                let settleScript: SettleScript
+                let scrollListeners: Set<() => void>
+                let scrollBehavior: string
+                const fakeElem = {
+                    scrollIntoView: vi.fn(),
+                    getRootNode: () => globalThis.document,
+                    assignedSlot: null,
+                    parentElement: { assignedSlot: null, parentElement: null, getRootNode: () => globalThis.document }
+                }
+                const fireScroll = () => scrollListeners.forEach((listener) => listener())
+
+                beforeAll(async () => {
+                    vi.spyOn(browser, 'execute').mockResolvedValueOnce(nestedRect)
+                    const executeAsyncSpy = vi.spyOn(browser, 'executeAsync').mockImplementationOnce((script: unknown) => {
+                        settleScript = script as SettleScript
+                        return Promise.resolve(undefined)
+                    })
+                    // @ts-expect-error mock feature
+                    elem.elementId = { scrollIntoView: 'mockFunction' }
+                    await elem.scrollIntoView()
+                    executeAsyncSpy.mockRestore()
+                })
+
+                beforeEach(() => {
+                    vi.useFakeTimers({ toFake: ['setTimeout', 'performance'] })
+                    scrollListeners = new Set()
+                    scrollBehavior = 'auto'
+                    fakeElem.scrollIntoView.mockReset()
+                    // not `vi.stubGlobal`: `vi.unstubAllGlobals()` would also drop the global `fetch` mock
+                    Object.assign(globalThis, {
+                        document: {
+                            addEventListener: (_: string, listener: () => void) => scrollListeners.add(listener),
+                            removeEventListener: (_: string, listener: () => void) => scrollListeners.delete(listener)
+                        },
+                        window: { getComputedStyle: () => ({ scrollBehavior }) }
+                    })
+                })
+
+                afterEach(() => {
+                    // @ts-expect-error not defined in a Node.js test environment
+                    delete globalThis.document
+                    // @ts-expect-error not defined in a Node.js test environment
+                    delete globalThis.window
+                    vi.useRealTimers()
+                })
+
+                it('resolves right away for an instant scroll', () => {
+                    const done = vi.fn()
+                    settleScript(fakeElem, { block: 'start' }, done)
+                    expect(fakeElem.scrollIntoView).toHaveBeenCalledWith({ block: 'start' })
+                    expect(done).toHaveBeenCalledWith()
+                    expect(scrollListeners.size).toBe(0)
+                })
+
+                it('treats a container with `scroll-behavior: smooth` as a smooth scroll', () => {
+                    scrollBehavior = 'smooth'
+                    const done = vi.fn()
+                    settleScript(fakeElem, { block: 'start' }, done)
+                    expect(done).not.toHaveBeenCalled()
+                    vi.advanceTimersByTime(600)
+                    expect(done).toHaveBeenCalledOnce()
+                })
+
+                it('ignores `scroll-behavior: smooth` when `behavior: "instant"` is requested', () => {
+                    scrollBehavior = 'smooth'
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'instant' }, done)
+                    expect(done).toHaveBeenCalledOnce()
+                })
+
+                it('waits for a quiet period after the last scroll event of a smooth scroll', () => {
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'smooth' }, done)
+
+                    // a scroll that keeps animating for 400ms must not resolve early
+                    for (let t = 0; t < 400; t += 20) {
+                        vi.advanceTimersByTime(20)
+                        fireScroll()
+                        expect(done).not.toHaveBeenCalled()
+                    }
+                    // still within the quiet period after the last event
+                    vi.advanceTimersByTime(80)
+                    expect(done).not.toHaveBeenCalled()
+                    vi.advanceTimersByTime(40)
+                    expect(done).toHaveBeenCalledOnce()
+                    expect(scrollListeners.size).toBe(0)
+                })
+
+                it('allows a slow smooth scroll up to 500ms to start', () => {
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'smooth' }, done)
+
+                    // no event yet: longer than the quiet period, but still in the start window
+                    vi.advanceTimersByTime(300)
+                    expect(done).not.toHaveBeenCalled()
+                    fireScroll()
+                    vi.advanceTimersByTime(80)
+                    expect(done).not.toHaveBeenCalled()
+                    vi.advanceTimersByTime(40)
+                    expect(done).toHaveBeenCalledOnce()
+                })
+
+                it('resolves after the start window if a smooth scroll never starts', () => {
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'smooth' }, done)
+                    vi.advanceTimersByTime(480)
+                    expect(done).not.toHaveBeenCalled()
+                    vi.advanceTimersByTime(40)
+                    expect(done).toHaveBeenCalledOnce()
+                    expect(scrollListeners.size).toBe(0)
+                })
+
+                it('gives up after 3s if scroll events never stop', () => {
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'smooth' }, done)
+                    for (let t = 0; t < 2960; t += 20) {
+                        vi.advanceTimersByTime(20)
+                        fireScroll()
+                    }
+                    expect(done).not.toHaveBeenCalled()
+                    vi.advanceTimersByTime(60)
+                    expect(done).toHaveBeenCalledOnce()
+                    expect(scrollListeners.size).toBe(0)
+                })
+
+                it('reports an error thrown by the native call', () => {
+                    fakeElem.scrollIntoView.mockImplementationOnce(() => { throw new TypeError('boom') })
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'smooth' }, done)
+                    expect(done).toHaveBeenCalledWith('TypeError: boom')
+                })
+            })
         })
 
         it('skips the origin probe when the element already starts within the viewport', async () => {

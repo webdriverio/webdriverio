@@ -145,6 +145,9 @@ export async function scrollIntoView (
             let hasScrollableAncestor = false
             try {
                 const rootScrollers = [document.scrollingElement, document.documentElement, document.body]
+                // `overflow: hidden` is deliberately excluded: a wheel event can't scroll such a
+                // container, so it never consumes the window-relative delta. If the element is
+                // clipped by one, it isn't painted and the origin pre-scroll below reveals it natively
                 const canScroll = (overflow: string) => overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay'
                 let node: Element | null = elem
                 while (node && !hasScrollableAncestor) {
