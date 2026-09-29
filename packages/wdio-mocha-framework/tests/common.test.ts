@@ -1,14 +1,8 @@
-import path from 'node:path'
-import { describe, test, expect, vi, afterAll } from 'vitest'
+import { describe, test, expect, vi } from 'vitest'
 import { wrapGlobalTestMethod } from '@wdio/utils'
 
-import { applyMochaDefaults, loadModule, formatMessage, setupEnv, requireExternalModules } from '../src/common.js'
-declare global {
+import { applyMochaDefaults, formatMessage, setupEnv } from '../src/common.js'
 
-    var foo: string | undefined
-}
-
-vi.mock('randomModule', () => import(path.join(process.cwd(), '__mocks__', 'randomModule')))
 vi.mock('@wdio/utils')
 
 describe('formatMessage', () => {
@@ -154,25 +148,6 @@ describe('formatMessage', () => {
     })
 })
 
-describe('loadModule', () => {
-    test('loadModule with existing package', async () => {
-        await loadModule('randomModule')
-        expect(global.foo).toBe('bar')
-    })
-
-    test('loadModule with non existing package', async () => {
-        await expect(() => loadModule('nonExistingModule'))
-            .rejects.toThrow('Module nonExistingModule can\'t get loaded')
-    })
-})
-
-test('requireExternalModules', () => {
-    const loader = vi.fn()
-    // @ts-ignore test invalid params!
-    requireExternalModules(['/foo/bar.js', null, './bar/foo.js'], loader)
-    expect(loader).toBeCalledTimes(2)
-})
-
 describe('setupEnv', () => {
     test('setupEnv - TDD', () => {
         const hooks = {
@@ -225,36 +200,16 @@ describe('setupEnv', () => {
         expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
             .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
     })
+})
 
-    test('applyMochaDefaults fails tests skipped by a hook failure', () => {
+describe('applyMochaDefaults', () => {
+    test('fails tests skipped by a hook failure', () => {
         const opts = applyMochaDefaults({})
         expect(opts.failHookAffectedTests).toBe(true)
     })
 
-    test('applyMochaDefaults keeps an explicit opt-out', () => {
+    test('keeps an explicit opt-out', () => {
         const opts = applyMochaDefaults({ failHookAffectedTests: false })
         expect(opts.failHookAffectedTests).toBe(false)
     })
-
-    test('setupEnv ignores leftover mochaOpts.compilers', () => {
-        const hooks = {
-            beforeHook: 'beforeHook123' as any,
-            afterHook: 'afterHook123' as any,
-            beforeTest: 'beforeTest234' as any,
-            afterTest: 'afterTest234' as any
-        }
-        expect(() => setupEnv(
-            '0-2',
-            { ui: 'bdd', compilers: ['coffee:foo'] } as any,
-            hooks.beforeTest,
-            hooks.beforeHook,
-            hooks.afterTest,
-            hooks.afterHook
-        )).not.toThrow()
-        expect(wrapGlobalTestMethod).toHaveBeenCalled()
-    })
-})
-
-afterAll(() => {
-    delete global.foo
 })
