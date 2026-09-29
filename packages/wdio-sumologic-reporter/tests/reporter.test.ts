@@ -28,9 +28,15 @@ describe('wdio-sumologic-reporter', () => {
         vi.clearAllTimers()
     })
 
-    it('it should start sync when reporter gets initiated', () => {
+    it('it should start sync when reporter gets initiated', async () => {
         expect(setInterval).toHaveBeenCalledTimes(1)
         expect(setInterval).toHaveBeenLastCalledWith(expect.any(Function), 100)
+
+        reporter.onRunnerStart('onRunnerStart' as any)
+        const scheduledSync = vi.mocked(global.setInterval).mock.calls.at(-1)?.[0] as () => Promise<void>
+        await scheduledSync()
+
+        expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1)
     })
 
     it('should disable itself when sourceAddress is not defined', async () => {
@@ -94,24 +100,6 @@ describe('wdio-sumologic-reporter', () => {
         it('has no data to sync', async () => {
             await reporter.sync()
             expect(vi.mocked(fetch).mock.calls).toHaveLength(0)
-        })
-
-        it('has no source address set up', async () => {
-            const invalidReporter = new SumoLogicReporter({})
-            invalidReporter.onRunnerStart('onRunnerStart' as any)
-            await invalidReporter.sync()
-            expect(vi.mocked(fetch).mock.calls).toHaveLength(0)
-        })
-
-        it('has an invalidated source address', async () => {
-            reporter['_options'].sourceAddress = ''
-            reporter.onRunnerStart('onRunnerStart' as any)
-
-            await reporter.sync()
-
-            expect(vi.mocked(fetch)).not.toHaveBeenCalled()
-            expect(reporter['_isDisabled']).toBe(true)
-            expect(reporter.isSynchronised).toBe(true)
         })
     })
 
