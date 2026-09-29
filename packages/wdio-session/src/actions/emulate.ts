@@ -224,14 +224,31 @@ function geolocationSource (latitude: number, longitude: number, accuracy: numbe
         const permissions = navigator.permissions
         const current = permissions && permissions.query
         if (current && !current.__wdioGeolocationQuery) {
-            const query = current.bind(permissions)
+            const own = Object.getOwnPropertyDescriptor(permissions, 'query')
             const wrapped = function (descriptor) {
                 if (descriptor && descriptor.name === 'geolocation') {
-                    return Promise.resolve({ state: 'granted', name: 'geolocation', onchange: null })
+                    const target = new EventTarget()
+                    let handler = null
+                    Object.defineProperties(target, {
+                        state: { enumerable: true, value: 'granted' },
+                        name: { enumerable: true, value: 'geolocation' },
+                        onchange: {
+                            enumerable: true,
+                            get () { return handler },
+                            set (fn) {
+                                if (handler) target.removeEventListener('change', handler)
+                                handler = typeof fn === 'function' ? fn : null
+                                if (handler) target.addEventListener('change', handler)
+                            }
+                        }
+                    })
+                    return Promise.resolve(target)
                 }
-                return query(descriptor)
+                return current.call(permissions, descriptor)
             }
-            wrapped.__wdioGeolocationQuery = query
+            wrapped.__wdioGeolocationQuery = true
+            wrapped.__wdioGeolocationOwn = Boolean(own)
+            if (own) wrapped.__wdioOriginalQuery = current
             try {
                 permissions.query = wrapped
             } catch (err) {
@@ -250,15 +267,14 @@ const GEOLOCATION_RESTORE_SOURCE = `(() => {
     }
     const permissions = navigator.permissions;
     const wrapped = permissions && permissions.query;
-    const query = wrapped && wrapped.__wdioGeolocationQuery;
-    if (query) {
+    if (wrapped && wrapped.__wdioGeolocationQuery) {
         try {
-            permissions.query = query;
-        } catch (err) {
-            try {
-                Object.defineProperty(permissions, 'query', { configurable: true, writable: true, value: query });
-            } catch (err2) {}
-        }
+            if (wrapped.__wdioGeolocationOwn && wrapped.__wdioOriginalQuery) {
+                permissions.query = wrapped.__wdioOriginalQuery;
+            } else {
+                delete permissions.query;
+            }
+        } catch (err) {}
     }
 })()`
 

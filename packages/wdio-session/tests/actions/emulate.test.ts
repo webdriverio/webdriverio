@@ -184,12 +184,14 @@ describe('classic chromium emulation', () => {
         await geolocation(session, { lat: '35.6762', lon: '139.6503' })
         const script = String(executed.find((entry) => typeof entry === 'string'))
         expect(script).toContain("descriptor.name === 'geolocation'")
-        expect(script).toContain("state: 'granted'")
+        expect(script).toContain("value: 'granted'")
+        expect(script).toContain('new EventTarget()')
+        expect(script).toContain("addEventListener('change', handler)")
         await emulate(session, { sub: 'reset' })
         expect(commands).toContain('Browser.setPermission')
         expect(commands).not.toContain('Browser.grantPermissions')
         expect(commands).not.toContain('Browser.resetPermissions')
-        expect(executed.some((entry) => String(entry).includes('permissions.query = query'))).toBe(true)
+        expect(executed.some((entry) => String(entry).includes('delete permissions.query'))).toBe(true)
     })
 
     it('advances the classic clock without installing BiDi fake timers', async () => {
