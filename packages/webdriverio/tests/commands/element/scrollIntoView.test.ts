@@ -269,6 +269,240 @@ describe('scrollIntoView test', () => {
             })
         })
 
+        describe('element inside a nested scroll container', () => {
+            const nestedRect = {
+                // painted and fully inside the window - a window-relative "start" delta
+                // would be 682, which a wheel event would feed straight into the nested
+                // container instead of the window, scrolling the element out of it
+                elemRect: { x: 1529, y: 682, height: 24, width: 16 },
+                viewport: { width: 1907, height: 987 },
+                scroll: { x: 0, y: 0 },
+                isPainted: true,
+                hasScrollableAncestor: true
+            }
+            const parseBody = (requestOptions: unknown) => {
+                try {
+                    return JSON.parse((requestOptions as any)?.body)
+                } catch {
+                    return undefined
+                }
+            }
+            // native `Element.scrollIntoView()` + scroll-event quiet-period wait, run as one async script
+            const getNativeSettleCalls = () => vi.mocked(fetch).mock.calls.filter(([url, requestOptions]) =>
+                (url as URL).pathname?.endsWith('/execute/async') &&
+                parseBody(requestOptions)?.script?.includes('.scrollIntoView(') &&
+                parseBody(requestOptions)?.script?.includes('QUIET_MS'))
+            const getSyncWebApiCalls = () => vi.mocked(fetch).mock.calls.filter(([url, requestOptions]) =>
+                (url as URL).pathname?.endsWith('/execute/sync') &&
+                parseBody(requestOptions)?.script?.includes('elem.scrollIntoView(options2)'))
+            const hasWheelAction = () => vi.mocked(fetch).mock.calls.some(([url]) => (url as URL).pathname?.endsWith('/actions'))
+
+            it('uses native Element.scrollIntoView and waits for scrolling to finish, instead of a window-relative wheel action', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce(nestedRect)
+                // @ts-expect-error mock feature
+                elem.elementId = { scrollIntoView: 'mockFunction' }
+
+                await elem.scrollIntoView()
+
+                expect(hasWheelAction()).toBe(false)
+                const nativeCalls = getNativeSettleCalls()
+                expect(nativeCalls).toHaveLength(1)
+                expect(parseBody(nativeCalls[0][1]).args[1]).toEqual({ block: 'start', inline: 'nearest' })
+                // neither the rAF settle wait of the wheel path nor the sync Web API fallback
+                expect(vi.mocked(fetch).mock.calls.some(([, requestOptions]) =>
+                    parseBody(requestOptions)?.script?.includes('stableFrames'))).toBe(false)
+                expect(getSyncWebApiCalls()).toHaveLength(0)
+            })
+
+            it('passes smooth-scroll options through to the native call', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce(nestedRect)
+                // @ts-expect-error mock feature
+                elem.elementId = { scrollIntoView: 'mockFunction' }
+
+                await elem.scrollIntoView({ block: 'center', behavior: 'smooth' })
+
+                expect(parseBody(getNativeSettleCalls()[0][1]).args[1]).toEqual({ block: 'center', behavior: 'smooth' })
+            })
+
+            it('passes normalized boolean options through to the native call', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce(nestedRect)
+                // @ts-expect-error mock feature
+                elem.elementId = { scrollIntoView: 'mockFunction' }
+
+                await elem.scrollIntoView(false)
+
+                expect(parseBody(getNativeSettleCalls()[0][1]).args[1]).toEqual({ block: 'end', inline: 'nearest' })
+            })
+
+            it('hands off even when the window-relative delta is zero', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce({
+                    ...nestedRect,
+                    elemRect: { ...nestedRect.elemRect, x: 0, y: 0 }
+                })
+                // @ts-expect-error mock feature
+                elem.elementId = { scrollIntoView: 'mockFunction' }
+
+                await elem.scrollIntoView({ block: 'start', inline: 'start' })
+
+                expect(hasWheelAction()).toBe(false)
+                expect(getNativeSettleCalls()).toHaveLength(1)
+            })
+
+            it('falls back to the plain Web API call when the native call reports an error', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce(nestedRect)
+                const executeAsyncSpy = vi.spyOn(browser, 'executeAsync').mockResolvedValueOnce('TypeError: boom')
+                // @ts-expect-error mock feature
+                elem.elementId = { scrollIntoView: 'mockFunction' }
+
+                try {
+                    await elem.scrollIntoView()
+                    expect(getSyncWebApiCalls()).toHaveLength(1)
+                } finally {
+                    executeAsyncSpy.mockRestore()
+                }
+            })
+
+            /**
+             * The mocked `execute/async` endpoint reads the script's result synchronously, so it
+             * can't tell whether the script waits for a smooth scroll to finish. Grab the
+             * browser-side function itself and drive it with fake timers and a fake DOM instead.
+             */
+            describe('settle script', () => {
+                type SettleScript = (elem: unknown, options: ScrollIntoViewOptions | boolean, done: (error?: string) => void) => void
+                let settleScript: SettleScript
+                let scrollListeners: Set<() => void>
+                let scrollBehavior: string
+                const fakeElem = {
+                    scrollIntoView: vi.fn(),
+                    getRootNode: () => globalThis.document,
+                    assignedSlot: null,
+                    parentElement: { assignedSlot: null, parentElement: null, getRootNode: () => globalThis.document }
+                }
+                const fireScroll = () => scrollListeners.forEach((listener) => listener())
+
+                beforeAll(async () => {
+                    vi.spyOn(browser, 'execute').mockResolvedValueOnce(nestedRect)
+                    const executeAsyncSpy = vi.spyOn(browser, 'executeAsync').mockImplementationOnce((script: unknown) => {
+                        settleScript = script as SettleScript
+                        return Promise.resolve(undefined)
+                    })
+                    // @ts-expect-error mock feature
+                    elem.elementId = { scrollIntoView: 'mockFunction' }
+                    await elem.scrollIntoView()
+                    executeAsyncSpy.mockRestore()
+                })
+
+                beforeEach(() => {
+                    vi.useFakeTimers({ toFake: ['setTimeout', 'performance'] })
+                    scrollListeners = new Set()
+                    scrollBehavior = 'auto'
+                    fakeElem.scrollIntoView.mockReset()
+                    // not `vi.stubGlobal`: `vi.unstubAllGlobals()` would also drop the global `fetch` mock
+                    Object.assign(globalThis, {
+                        document: {
+                            addEventListener: (_: string, listener: () => void) => scrollListeners.add(listener),
+                            removeEventListener: (_: string, listener: () => void) => scrollListeners.delete(listener)
+                        },
+                        window: { getComputedStyle: () => ({ scrollBehavior }) }
+                    })
+                })
+
+                afterEach(() => {
+                    // @ts-expect-error not defined in a Node.js test environment
+                    delete globalThis.document
+                    // @ts-expect-error not defined in a Node.js test environment
+                    delete globalThis.window
+                    vi.useRealTimers()
+                })
+
+                it('resolves right away for an instant scroll', () => {
+                    const done = vi.fn()
+                    settleScript(fakeElem, { block: 'start' }, done)
+                    expect(fakeElem.scrollIntoView).toHaveBeenCalledWith({ block: 'start' })
+                    expect(done).toHaveBeenCalledWith()
+                    expect(scrollListeners.size).toBe(0)
+                })
+
+                it('treats a container with `scroll-behavior: smooth` as a smooth scroll', () => {
+                    scrollBehavior = 'smooth'
+                    const done = vi.fn()
+                    settleScript(fakeElem, { block: 'start' }, done)
+                    expect(done).not.toHaveBeenCalled()
+                    vi.advanceTimersByTime(600)
+                    expect(done).toHaveBeenCalledOnce()
+                })
+
+                it('ignores `scroll-behavior: smooth` when `behavior: "instant"` is requested', () => {
+                    scrollBehavior = 'smooth'
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'instant' }, done)
+                    expect(done).toHaveBeenCalledOnce()
+                })
+
+                it('waits for a quiet period after the last scroll event of a smooth scroll', () => {
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'smooth' }, done)
+
+                    // a scroll that keeps animating for 400ms must not resolve early
+                    for (let t = 0; t < 400; t += 20) {
+                        vi.advanceTimersByTime(20)
+                        fireScroll()
+                        expect(done).not.toHaveBeenCalled()
+                    }
+                    // still within the quiet period after the last event
+                    vi.advanceTimersByTime(80)
+                    expect(done).not.toHaveBeenCalled()
+                    vi.advanceTimersByTime(40)
+                    expect(done).toHaveBeenCalledOnce()
+                    expect(scrollListeners.size).toBe(0)
+                })
+
+                it('allows a slow smooth scroll up to 500ms to start', () => {
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'smooth' }, done)
+
+                    // no event yet: longer than the quiet period, but still in the start window
+                    vi.advanceTimersByTime(300)
+                    expect(done).not.toHaveBeenCalled()
+                    fireScroll()
+                    vi.advanceTimersByTime(80)
+                    expect(done).not.toHaveBeenCalled()
+                    vi.advanceTimersByTime(40)
+                    expect(done).toHaveBeenCalledOnce()
+                })
+
+                it('resolves after the start window if a smooth scroll never starts', () => {
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'smooth' }, done)
+                    vi.advanceTimersByTime(480)
+                    expect(done).not.toHaveBeenCalled()
+                    vi.advanceTimersByTime(40)
+                    expect(done).toHaveBeenCalledOnce()
+                    expect(scrollListeners.size).toBe(0)
+                })
+
+                it('gives up after 3s if scroll events never stop', () => {
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'smooth' }, done)
+                    for (let t = 0; t < 2960; t += 20) {
+                        vi.advanceTimersByTime(20)
+                        fireScroll()
+                    }
+                    expect(done).not.toHaveBeenCalled()
+                    vi.advanceTimersByTime(60)
+                    expect(done).toHaveBeenCalledOnce()
+                    expect(scrollListeners.size).toBe(0)
+                })
+
+                it('reports an error thrown by the native call', () => {
+                    fakeElem.scrollIntoView.mockImplementationOnce(() => { throw new TypeError('boom') })
+                    const done = vi.fn()
+                    settleScript(fakeElem, { behavior: 'smooth' }, done)
+                    expect(done).toHaveBeenCalledWith('TypeError: boom')
+                })
+            })
+        })
+
         it('skips the origin probe when the element already starts within the viewport', async () => {
             await elem.scrollIntoView({ block: 'center', inline: 'center' })
             const scrollCalls = vi.mocked(fetch).mock.calls.filter(([, requestOptions]) => {
