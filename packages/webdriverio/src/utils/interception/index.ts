@@ -15,6 +15,76 @@ const DEFAULT_SPY_COLLECTED_BODY_SIZE = 10 * 1024 * 1024
 
 let hasSubscribedToEvents = false
 
+/**
+ * A request paused by the driver is released exactly once, however many mocks
+ * intercepted it. Every mock registers its own `network.addIntercept` and its own
+ * event listener, so when two mocks match the same request they both try to
+ * release it and the driver rejects the second attempt with "Invalid state for
+ * continueInterceptedRequest" / "Invalid InterceptionId.". Nobody awaits an event
+ * handler, so that rejection escapes as an unhandled rejection.
+ *
+ * The listeners of one BiDi event all receive the same parameter object, so the
+ * event itself carries the mark. `beforeRequestSent` and `responseStarted` are
+ * separate pause points that arrive as separate objects, which is what keeps a
+ * request releasable once per phase. The event also reports which intercepts
+ * blocked it, so a request that only one intercept blocked takes no mark at all
+ * and behaves exactly as before.
+ *
+ * A `postData` filter cannot decide until `network.getData` returns. That read
+ * is recorded on the same event, and a mock that declines waits for it. A
+ * microtask is too early: it runs before the body arrives and would continue
+ * the request out from under the mock that still means to abort or overwrite it.
+ */
+const RELEASED = Symbol('wdio.interception.released')
+const PENDING = Symbol('wdio.interception.pending')
+
+type InterceptedEvent = { intercepts?: string[] }
+type MarkedEvent = InterceptedEvent & {
+    [RELEASED]?: true
+    [PENDING]?: Promise<void>[]
+}
+
+function isContested(event: InterceptedEvent) {
+    return Boolean(event.intercepts && event.intercepts.length > 1)
+}
+
+function isClaimed(event: InterceptedEvent) {
+    return Boolean((event as MarkedEvent)[RELEASED])
+}
+
+function claim(event: InterceptedEvent) {
+    const claimable = event as MarkedEvent
+    if (claimable[RELEASED]) {
+        return false
+    }
+
+    claimable[RELEASED] = true
+    return true
+}
+
+/**
+ * Remember a decision that yields before it knows whether it owns the request.
+ * A declining mock waits for these before it releases. The rejection is
+ * swallowed here so a failed body lookup still lets someone else release.
+ */
+function trackPending(event: InterceptedEvent, decision: Promise<unknown>) {
+    const marked = event as MarkedEvent
+    const pending = marked[PENDING] ?? (marked[PENDING] = [])
+    const settled = decision.then(() => undefined, () => undefined)
+    pending.push(settled)
+    void settled.finally(() => {
+        const index = pending.indexOf(settled)
+        if (index !== -1) {
+            pending.splice(index, 1)
+        }
+    })
+}
+
+function pendingDecisions(event: InterceptedEvent) {
+    const pending = (event as MarkedEvent)[PENDING]
+    return pending ? pending.slice() : []
+}
+
 type RespondBodyValue = string | JsonCompatible | Buffer
 type RespondBody = RespondBodyValue | ((request: local.NetworkResponseCompletedParameters) => RespondBodyValue)
 interface Overwrite {
@@ -173,13 +243,54 @@ export default class WebDriverInterception {
         handlers?.push(handler)
     }
 
+    /**
+     * Release a paused request, unless another mock listening to the same event
+     * has already released it.
+     *
+     * `handling` says whether this mock is the one the request belongs to. A mock
+     * that only releases because the request does *not* match it must not take the
+     * release away from a mock that does. Listeners of one event run synchronously,
+     * so it waits until that dispatch finishes. A `postData` match also has to
+     * read the body first, and that decision is recorded on the event before the
+     * listener yields. The declining mock waits for those decisions too, then
+     * releases only if nobody claimed the request.
+     */
+    #release<T>(event: InterceptedEvent, handling: boolean, call: () => T): T | undefined {
+        if (!isContested(event)) {
+            return call()
+        }
+
+        if (handling) {
+            return claim(event) ? call() : undefined
+        }
+
+        if (!isClaimed(event)) {
+            queueMicrotask(() => {
+                const release = () => {
+                    if (claim(event)) {
+                        call()
+                    }
+                }
+                const pending = pendingDecisions(event)
+                if (pending.length === 0) {
+                    release()
+                    return
+                }
+
+                void Promise.all(pending).then(release)
+            })
+        }
+
+        return undefined
+    }
+
     #handleBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
         if (this.#restored) {
             // If restored during in-flight request, continue it to prevent hanging
             if (request.intercepts?.includes(this.#mockId)) {
-                return this.#browser.networkContinueRequest({
+                return this.#release(request, false, () => this.#browser.networkContinueRequest({
                     request: request.request.request
-                }).catch(() => { /* ignore errors for restored mocks */ })
+                }).catch(() => { /* ignore errors for restored mocks */ }))
             }
             return
         }
@@ -194,15 +305,31 @@ export default class WebDriverInterception {
              * we need to continue the request
              */
             if (request.intercepts?.includes(this.#mockId)) {
-                return this.#browser.networkContinueRequest({
+                return this.#release(request, false, () => this.#browser.networkContinueRequest({
                     request: request.request.request
-                })
+                }))
             }
             return
         }
 
         if (this.#filterOptions.postData) {
-            return this.#handleBeforeRequestSentWithPostData(request)
+            /**
+             * method and request headers are known before the body. A miss there
+             * declines the request, so reading the body would only delay the
+             * release — and, when another mock is waiting on this decision, stall
+             * it for as long as `network.getData` takes.
+             */
+            if (!this.#matchesFilterOptions(request, { includePostData: false })) {
+                return this.#release(request, false, () => this.#browser.networkContinueRequest({
+                    request: request.request.request
+                }))
+            }
+
+            const decision = this.#handleBeforeRequestSentWithPostData(request)
+            if (isContested(request)) {
+                trackPending(request, decision)
+            }
+            return decision
         }
 
         return this.#continueBeforeRequestSent(request)
@@ -210,17 +337,29 @@ export default class WebDriverInterception {
 
     async #handleBeforeRequestSentWithPostData(request: local.NetworkBeforeRequestSentParameters) {
         await this.#populateRequestPostData(request)
-        return this.#continueBeforeRequestSent(request)
+        /**
+         * method and requestHeaders already ran before the body lookup.
+         * Evaluating them again would call a function filter twice, so a
+         * stateful filter could accept the request and then reject it.
+         */
+        return this.#continueBeforeRequestSent(request, { requestFiltersMatch: true })
     }
 
-    #continueBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
+    #continueBeforeRequestSent(
+        request: local.NetworkBeforeRequestSentParameters,
+        { requestFiltersMatch = false }: { requestFiltersMatch?: boolean } = {}
+    ) {
         /**
-         * check if request matches filter option and do nothing if not
+         * check if request matches filter option and do nothing if not.
+         * When the cheaper filters already matched, only the body is left.
          */
-        if (!this.#matchesFilterOptions(request)) {
-            return this.#browser.networkContinueRequest({
+        const matches = requestFiltersMatch
+            ? this.#matchesPostDataFilter(request as RequestWithPostData<local.NetworkBeforeRequestSentParameters>)
+            : this.#matchesFilterOptions(request)
+        if (!matches) {
+            return this.#release(request, false, () => this.#browser.networkContinueRequest({
                 request: request.request.request
-            })
+            }))
         }
 
         const requestId = request.request.request
@@ -233,38 +372,38 @@ export default class WebDriverInterception {
 
             if (abort) {
                 this.#emit('fail', requestId)
-                return this.#withBlockedRequestTracking(
+                return this.#release(request, true, () => this.#withBlockedRequestTracking(
                     requestId,
                     this.#browser.networkFailRequest({ request: requestId })
-                )
+                ))
             }
 
             this.#emit('overwrite', request)
-            return this.#withBlockedRequestTracking(
+            return this.#release(request, true, () => this.#withBlockedRequestTracking(
                 requestId,
                 this.#browser.networkContinueRequest({
                     request: requestId,
                     ...(overwrite ? parseOverwrite(overwrite, request) : {})
                 })
-            )
+            ))
         }
 
         this.#emit('continue', requestId)
-        return this.#withBlockedRequestTracking(
+        return this.#release(request, true, () => this.#withBlockedRequestTracking(
             requestId,
             this.#browser.networkContinueRequest({
                 request: requestId
             })
-        )
+        ))
     }
 
     #handleResponseStarted(request: Response) {
         if (this.#restored) {
             // If restored during in-flight request, provide response to prevent hanging
             if (request.intercepts?.includes(this.#mockId)) {
-                return this.#browser.networkProvideResponse({
+                return this.#release(request, false, () => this.#browser.networkProvideResponse({
                     request: request.request.request
-                }).catch(() => { /* ignore errors for restored mocks */ })
+                }).catch(() => { /* ignore errors for restored mocks */ }))
             }
             return
         }
@@ -280,9 +419,9 @@ export default class WebDriverInterception {
              * we need to continue the request
              */
             if (isHandledByThisMock && request.isBlocked) {
-                return this.#browser.networkProvideResponse({
+                return this.#release(request, false, () => this.#browser.networkProvideResponse({
                     request: request.request.request
-                }).catch(this.#handleNetworkProvideResponseError)
+                }).catch(this.#handleNetworkProvideResponseError))
             }
             return
         }
@@ -313,9 +452,9 @@ export default class WebDriverInterception {
          */
         if (!filterMatches) {
             this.#emit('continue', request.request.request)
-            return this.#browser.networkProvideResponse({
+            return this.#release(request, false, () => this.#browser.networkProvideResponse({
                 request: request.request.request
-            }).catch(this.#handleNetworkProvideResponseError)
+            }).catch(this.#handleNetworkProvideResponseError))
         }
 
         const requestId = request.request.request
@@ -328,12 +467,12 @@ export default class WebDriverInterception {
             !this.#respondOverwrites[0].overwrite
         ) {
             this.#emit('continue', requestId)
-            return this.#withBlockedRequestTracking(
+            return this.#release(request, true, () => this.#withBlockedRequestTracking(
                 requestId,
                 this.#browser.networkProvideResponse({
                     request: requestId
                 }).catch(this.#handleNetworkProvideResponseError)
-            )
+            ))
         }
 
         const { overwrite } = this.#respondOverwrites[0].once
@@ -350,13 +489,13 @@ export default class WebDriverInterception {
                 if (responseData.body) {
                     this.#overwrittenResponseBodies.set(requestId, responseData.body)
                 }
-                return this.#withBlockedRequestTracking(
+                return this.#release(request, true, () => this.#withBlockedRequestTracking(
                     requestId,
                     this.#browser.networkProvideResponse({
                         request: requestId,
                         ...responseData,
                     }).catch(this.#handleNetworkProvideResponseError)
-                )
+                ))
             } catch (err) {
                 /**
                  * BiDi event dispatch swallows listener exceptions, which would leave the
@@ -364,12 +503,12 @@ export default class WebDriverInterception {
                  * mock error is visible instead of stalling the test.
                  */
                 log.error(`Failed to apply mock.respond() overwrite: ${(err as Error).message}`)
-                return this.#withBlockedRequestTracking(
+                return this.#release(request, true, () => this.#withBlockedRequestTracking(
                     requestId,
                     this.#browser.networkFailRequest({
                         request: requestId
                     }).catch(this.#handleNetworkProvideResponseError)
-                )
+                ))
             }
         }
 
@@ -377,12 +516,12 @@ export default class WebDriverInterception {
          * continue request as is
          */
         this.#emit('continue', requestId)
-        return this.#withBlockedRequestTracking(
+        return this.#release(request, true, () => this.#withBlockedRequestTracking(
             requestId,
             this.#browser.networkProvideResponse({
                 request: requestId
             }).catch(this.#handleNetworkProvideResponseError)
-        )
+        ))
     }
 
     async #handleResponseCompleted(response: Response) {
