@@ -11,17 +11,18 @@ Clone the app and start Expo on port 8081. `CI` must be unset or Metro does not 
 ```sh
 git clone --branch v2.2.0 --depth 1 https://github.com/webdriverio/native-demo-app.git
 cd native-demo-app
+git apply /path/to/webdriverio/examples/session/native-demo-web.patch
 npm install
 unset CI
 npx expo start --web --port 8081 --host lan
 ```
 
-Stock `v2.2.0` does not complete this demo on web. These local edits were applied in that checkout and were not committed back to WebdriverIO:
+Stock `v2.2.0` does not complete this demo on web. [`native-demo-web.patch`](native-demo-web.patch) is the diff applied to that tag. It is not part of the native-demo-app repository. The patch does the following:
 
 - `react-native-webview` is a stub on web. The WebView component was changed to render an iframe for `source.uri` (`flex: 1`, `minHeight: 640`) so the Webview tab shows `https://webdriver.io/`.
 - `react-native-web`'s `Alert.alert` does nothing. It was pointed at `window.alert` so `wdio session dialog` can see `Success` / `You are logged in!`. On Linux, Electron's native alert bubble stays on screen after `acceptAlert` and is missing from page screenshots, so a click cannot dismiss it. The Electron recording, after `reload`, replaces `window.alert` with an in-page dialog whose button is `aria/OK`. `npx wdio session -s electron click "aria/OK"` dismisses that dialog. Chrome still uses `dialog accept`.
 - Dropping a puzzle piece calls `setNativeProps`, which throws on web after the piece is already over the right zone, so the counter never moves. The opacity update now uses `setNativeProps` only when that function exists, and otherwise sets `opacity` on the element whose `aria-label` is the piece id. The drop zone id is the piece id with `drag-` replaced by `drop-`. `updateCounter` has to be `setCounter((value) => value + 1)`. A stale `counter + 1` closes over the first render and stops at one piece.
-- A real pointer swipe does not page `react-native-reanimated-carousel` on web: the gesture handler reports velocity 0 and springs back. `src/screens/Swipe.tsx` listens for `pointerup` on `[data-testid=Carousel]` and, when the horizontal travel is at least 48px, calls `ref.current.next()` or `prev()` inside `setTimeout(..., 60)`. Calling `next()` in the `pointerup` handler itself updates the index and then the gesture resets the card.
+- A real pointer swipe does not page `react-native-reanimated-carousel` on web: the gesture handler reports velocity 0 and springs back. `src/screens/Swipe.tsx` listens on `document`. `pointerdown` on `[data-testid=Carousel]` starts the gesture, and `pointerup` anywhere, including the `Next card` target, pages the carousel when the horizontal travel is at least 48px. The page change runs inside `setTimeout(..., 60)`. Calling `next()` in the `pointerup` handler itself updates the index and then the gesture resets the card.
 - The same screen listens for `wheel` and adds `deltaY` to the element labelled `Swipe-screen`, then calls `preventDefault()`. A WebDriver wheel does not move that React Native scroll view on its own. With the listener, `scroll down --px 560` reveals the robot and the caption "You found me!!!".
 - On web the tab bar is a left sidebar. `app/(tabs)/_layout.tsx` sets `tabBarPosition: 'left'`, and `CustomBottomTabBar` renders the WebdriverIO logo (the orange mark from [webdriver.io/community/materials](https://webdriver.io/community/materials)) at the top left, then Home, Weather, Web, Login, Forms, Swipe, Drag, Perms and Data. The accessibility labels stay `Weather`, `Webview`, `Login`, `Swipe` and `Drag`.
 - Weather (`app/(tabs)/weather.tsx`) is a card that polls `navigator.geolocation` and `Date` with the `setInterval` captured when the module loads. `emulate clock` can replace `setInterval` with fake timers that do not advance, so a timer started after that patch never fires. The captured one keeps reading `Date`. Nearest of Reykjavík, Berlin, New York, Tokyo, Singapore and Sydney wins. Hour 7–19 is day. Tokyo is `geolocation 35.6762 139.6503`. `emulate clock 2026-06-21T23:30:00Z` is night (11:30 PM).
@@ -30,7 +31,7 @@ Stock `v2.2.0` does not complete this demo on web. These local edits were applie
 
 These layout edits are web-only. The Android apk and the iOS simulator app are the stock v2.2.0 binaries.
 
-`swipe` is mobile-only. The carousel pages when a pointer drag on `[data-testid=Carousel]` travels at least 48px horizontally. `npx wdio session drag "[data-testid=Carousel]" "aria/Next card"` is that drag. Run it twice, then `npx wdio session scroll down --px 560`. The image labelled `WebdriverIO logo` also has an `img` with that alt text, so `scroll "aria/WebdriverIO logo"` fails strict mode. The puzzle commands are `npx wdio session drag "aria/drag-l2" "aria/drop-l2"` and the same shape for `r3`, `r1`, `c1`, `c3`, `r2`, `c2`, `l1`, `l3`.
+`swipe` is mobile-only. The carousel pages when a pointer drag starts on `[data-testid=Carousel]` and travels at least 48px horizontally. The pointer can be released on `aria/Next card`, which sits outside the carousel: the `pointerup` listener is on `document`, not on the carousel element. `npx wdio session drag "[data-testid=Carousel]" "aria/Next card"` is that drag. Run it twice, then `npx wdio session scroll down --px 560`. The image labelled `WebdriverIO logo` also has an `img` with that alt text, so `scroll "aria/WebdriverIO logo"` fails strict mode. The puzzle commands are `npx wdio session drag "aria/drag-l2" "aria/drop-l2"` and the same shape for `r3`, `r1`, `c1`, `c3`, `r2`, `c2`, `l1`, `l3`.
 
 Weather, after `open`:
 
@@ -49,7 +50,11 @@ Chrome:
 npx wdio session open chrome http://127.0.0.1:8081 --headed --viewport 1280x800
 ```
 
-Electron is a separate session so it can stay open beside Chrome. From a directory that depends on `electron` and `@wdio/electron-service`:
+Electron is a separate session so it can stay open beside Chrome. Install both packages in the directory you open, then start from `main.js`:
+
+```sh
+npm install electron @wdio/electron-service
+```
 
 ```js
 import { app, BrowserWindow, screen } from 'electron'
@@ -57,14 +62,14 @@ import { app, BrowserWindow, screen } from 'electron'
 app.commandLine.appendSwitch('no-sandbox')
 
 app.whenReady().then(() => {
-    const width = 1280
-    const height = 800
-    const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().bounds
+    const area = screen.getPrimaryDisplay().workArea
+    const width = Math.min(1280, area.width)
+    const height = Math.min(800, area.height)
     const win = new BrowserWindow({
         width,
         height,
-        x: Math.round((screenWidth - width) / 2),
-        y: Math.round((screenHeight - height) / 2),
+        x: area.x + Math.max(0, Math.round((area.width - width) / 2)),
+        y: area.y + Math.max(0, Math.round((area.height - height) / 2)),
         autoHideMenuBar: true,
         webPreferences: {
             contextIsolation: true
@@ -82,7 +87,7 @@ The native alert is centered on the screen, not in the page. The window is cente
 
 ## Android
 
-Android uses the v2.2.0 release apk (`com.wdiodemoapp` / `com.wdiodemoapp.MainActivity`), not the web shims. The targets page player is that apk on an Android 14 `google_apis` `x86_64` emulator at 720×1280, one CPU, software graphics, and `-accel off`. A 1080×2400 skin with two CPUs ANRs `system_server` (`Process system isn't responding`) and the home screen never draws. Nested KVM (`-accel on`) sits at 0% CPU and never exposes an adb device. A `wdio session` open used to die at 120s: WebDriver's `connectionRetryTimeout` aborted `POST /session` while Appium was installing `io.appium.uiautomator2.server`, and the retry started a second session that uninstalled the server again. The instrumentation that did start was force-stopped at Appium's 30s launch limit while it was still verifying classes. Android and iOS sessions now wait 300s, send that first request once, allow 180s to install the server and 240s to launch it.
+Android uses the v2.2.0 release apk (`com.wdiodemoapp` / `com.wdiodemoapp.MainActivity`), not the web shims. The targets page player is that apk on an Android 14 `google_apis` `x86_64` emulator at 720×1280, one CPU, software graphics, and `-accel off`. A 1080×2400 skin with two CPUs ANRs `system_server` (`Process system isn't responding`) and the home screen never draws. Nested KVM (`-accel on`) sits at 0% CPU and never exposes an adb device. A `wdio session` open used to die at 120s: WebDriver's `connectionRetryTimeout` aborted `POST /session` while Appium was installing `io.appium.uiautomator2.server`, and the retry started a second session that uninstalled the server again. The instrumentation that did start was force-stopped at Appium's 30s launch limit while it was still verifying classes. Android and iOS sessions now wait 480s, send that first request once, allow 180s to install the server and 240s to launch it. The 480s covers both of those allowances plus the handshake around them.
 
 The recording starts on the home screen of a session that was already open. `tap "~Login"`, the two `fill`s, a `scrollGesture` on `~Login-screen`, `tap "~button-LOGIN"` and `dialog accept` produce the alert `Success` / `You are logged in!`. The fingerprint button is absent until a fingerprint is enrolled, so the player does not call `fingerPrint`. `tap "~Webview"` shows LOADING, then the WebView renderer dies with `SIGTRAP` (`SI_KERNEL`) in `libmonochrome` and the frontpage never paints, so the player does not open that tab.
 
@@ -94,9 +99,11 @@ Enroll one fingerprint on the emulator before opening the session, or the login 
 adb -s emulator-5554 emu finger touch 1
 ```
 
-Install and open, with `--no-reset` so the fingerprint stays enrolled:
+Download [android.wdio.native.app.v2.2.0.apk](https://github.com/webdriverio/native-demo-app/releases/download/v2.2.0/android.wdio.native.app.v2.2.0.apk) from the v2.2.0 release. `--no-reset` keeps an enrolled fingerprint:
 
 ```sh
+curl -fsSL -o android.wdio.native.app.v2.2.0.apk \
+    https://github.com/webdriverio/native-demo-app/releases/download/v2.2.0/android.wdio.native.app.v2.2.0.apk
 adb install -r android.wdio.native.app.v2.2.0.apk
 npx wdio session -s android open android \
     --package com.wdiodemoapp \

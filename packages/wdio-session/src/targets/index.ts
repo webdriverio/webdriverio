@@ -8,7 +8,7 @@ import { BROWSER_TARGETS, browserPlan, type BrowserTarget } from './browser.js'
 import { applyCloudProvider } from './cloud.js'
 import { configPlan } from './config.js'
 import { electronPlan } from './electron.js'
-import { appiumTargetPlan } from './mobile.js'
+import { MOBILE_SESSION_START_TIMEOUT, appiumTargetPlan } from './mobile.js'
 import { deepMerge, parseCapabilitiesFlag, parseRemoteUrl, type OpenArgs } from './utils.js'
 import { nativeWebviewPlan } from './webview.js'
 import type { OpenPlan } from '../types.js'
@@ -84,10 +84,10 @@ export async function buildPlan (args: OpenArgs, ctx: PlanContext): Promise<Open
             // A retry of that POST starts a second session on the same
             // device, so the first attempt is the only one.
             if (typeof args.launchTimeout !== 'number') {
-                plan.launchTimeout = 300_000
+                plan.launchTimeout = MOBILE_SESSION_START_TIMEOUT
             }
             if (plan.remote.connectionRetryTimeout === undefined) {
-                plan.remote = { ...plan.remote, connectionRetryTimeout: 300_000 }
+                plan.remote = { ...plan.remote, connectionRetryTimeout: MOBILE_SESSION_START_TIMEOUT }
             }
             if (plan.remote.connectionRetryCount === undefined) {
                 plan.remote = { ...plan.remote, connectionRetryCount: 0 }

@@ -102,33 +102,58 @@ function isChromium (session: Session) {
  * widget that polls `Date` and `navigator.geolocation` in sync without
  * freezing `setInterval` the way fake timers do.
  */
-async function installClassicClock (browser: WebdriverIO.Browser, fixed: number) {
-    await browser.execute((now: number) => {
-        const host = window as Window & { __wdioNativeDate?: DateConstructor }
+/**
+ * Raw page script. `browser.execute` runs it as-is, and
+ * `Page.addScriptToEvaluateOnNewDocument` runs the same text in the next
+ * document so a reload does not fall back to the real clock.
+ */
+export function clockInstallSource (fixed: number) {
+    return `(() => {
+        const now = ${fixed};
+        const host = window;
         if (!host.__wdioNativeDate) {
-            host.__wdioNativeDate = Date
+            host.__wdioNativeDate = Date;
         }
-        const Native = host.__wdioNativeDate
-        const ClockDate = new Proxy(Native, {
+        const Native = host.__wdioNativeDate;
+        window.Date = new Proxy(Native, {
             construct (target, args, newTarget) {
-                return Reflect.construct(target, args.length === 0 ? [now] : args, newTarget)
+                return Reflect.construct(target, args.length === 0 ? [now] : args, newTarget);
             },
             apply (target, thisArg, args) {
-                if (args.length === 0) {
-                    return new Native(now).toString()
-                }
-                return Reflect.apply(target, thisArg, args)
+                return args.length === 0 ? new Native(now).toString() : Reflect.apply(target, thisArg, args);
             },
             get (target, prop, receiver) {
                 if (prop === 'now') {
-                    return () => now
+                    return () => now;
                 }
-                const value = Reflect.get(target, prop, receiver)
-                return typeof value === 'function' ? value.bind(target) : value
+                const value = Reflect.get(target, prop, receiver);
+                return typeof value === 'function' ? value.bind(target) : value;
             }
-        })
-        window.Date = ClockDate as DateConstructor
-    }, fixed)
+        });
+    })()`
+}
+
+const CLOCK_RESTORE_SOURCE = `(() => {
+    const host = window;
+    if (host.__wdioNativeDate) {
+        window.Date = host.__wdioNativeDate;
+    }
+})()`
+
+function executeSource (source: string) {
+    return `await browser.execute(${JSON.stringify(source)})`
+}
+
+async function preload (browser: WebdriverIO.Browser, source: string) {
+    const added = await browser.sendCommand('Page.addScriptToEvaluateOnNewDocument', { source }).catch(() => undefined) as { identifier?: string } | undefined
+    return added?.identifier
+}
+
+async function dropPreload (browser: WebdriverIO.Browser, identifier: string | undefined) {
+    if (!identifier) {
+        return
+    }
+    await browser.sendCommand('Page.removeScriptToEvaluateOnNewDocument', { identifier }).catch(() => {})
 }
 
 function geolocationSource (latitude: number, longitude: number, accuracy: number) {
@@ -146,7 +171,7 @@ function geolocationSource (latitude: number, longitude: number, accuracy: numbe
     })()`
 }
 
-async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude: number, longitude: number, accuracy: number) {
+async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude: number, longitude: number, accuracy: number): Promise<Restore> {
     const source = geolocationSource(latitude, longitude, accuracy)
     await browser.sendCommand('Emulation.setGeolocationOverride', { latitude, longitude, accuracy }).catch(() => {})
     const url = await browser.getUrl().catch(() => '')
@@ -159,8 +184,28 @@ async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude
     if (origin) {
         await browser.sendCommand('Browser.grantPermissions', { origin, permissions: ['geolocation'] }).catch(() => {})
     }
-    await browser.sendCommand('Page.addScriptToEvaluateOnNewDocument', { source }).catch(() => {})
+    const identifier = await preload(browser, source)
     await browser.execute(source)
+    return async () => {
+        await dropPreload(browser, identifier)
+        await browser.sendCommand('Emulation.clearGeolocationOverride', {}).catch(() => {})
+        if (origin) {
+            const prompted = await browser.sendCommand('Browser.setPermission', {
+                permission: { name: 'geolocation' },
+                setting: 'prompt',
+                origin
+            }).then(() => true, () => false)
+            if (!prompted) {
+                await browser.sendCommand('Browser.resetPermissions', {}).catch(() => {})
+            }
+        }
+        await browser.execute(`(() => {
+            const desc = Object.getOwnPropertyDescriptor(navigator, 'geolocation');
+            if (desc && desc.configurable) {
+                delete navigator.geolocation;
+            }
+        })()`)
+    }
 }
 
 export function findDevice (name: string): DeviceName | undefined {
@@ -284,19 +329,18 @@ export const emulate: ActionFn = async (session, args) => {
             if (Number.isNaN(now.getTime())) {
                 throw usage(`Invalid date "${value}".`, 'Use an ISO date like 2030-01-01T00:00:00Z.')
             }
-            // Restore any previous clock before installing. Doing it after
-            // would put Date back and undo the time we just set.
-            await remember(session, 'clock', async () => {
-                await browser.execute(() => {
-                    const host = window as Window & { __wdioNativeDate?: DateConstructor }
-                    if (host.__wdioNativeDate) {
-                        window.Date = host.__wdioNativeDate
-                    }
-                })
+            const source = clockInstallSource(now.getTime())
+            // swap restores the previous clock before this one is installed.
+            // Restoring afterwards would put Date back and undo the new time.
+            await swap(session, 'clock', async () => {
+                const identifier = await preload(browser, source)
+                await browser.execute(source)
+                return async () => {
+                    await dropPreload(browser, identifier)
+                    await browser.execute(CLOCK_RESTORE_SOURCE)
+                }
             })
-            await installClassicClock(browser, now.getTime())
-            return done(`Clock set to ${now.toISOString()}`,
-                `await browser.execute((now) => { /* Date returns ${quote(now.toISOString())} */ }, ${now.getTime()})`)
+            return done(`Clock set to ${now.toISOString()}`, executeSource(source))
         }
         // Chromium's BiDi clock installs fake timers. That bundle calls
         // `require` in current Chrome, and the init script it leaves behind
@@ -390,12 +434,20 @@ export const geolocation: ActionFn = async (session, args) => {
             session.requireBidi('Geolocation emulation')
         }
         const accuracyMeters = accuracy ?? 1
-        await remember(session, 'geolocation', async () => {
-            await browser.sendCommand('Emulation.clearGeolocationOverride', {}).catch(() => {})
-        })
-        await installClassicGeolocation(browser, latitude, longitude, accuracyMeters)
-        return done(`Location set to ${latitude}, ${longitude}`,
-            `await browser.sendCommand('Emulation.setGeolocationOverride', { latitude: ${latitude}, longitude: ${longitude}, accuracy: ${accuracyMeters} })`)
+        const source = geolocationSource(latitude, longitude, accuracyMeters)
+        await swap(session, 'geolocation', () => installClassicGeolocation(browser, latitude, longitude, accuracyMeters))
+        const shown = `await browser.sendCommand('Emulation.setGeolocationOverride', { latitude: ${latitude}, longitude: ${longitude}, accuracy: ${accuracyMeters} })`
+        return {
+            text: `Location set to ${latitude}, ${longitude}`,
+            code: shown,
+            // The override alone does not survive a reload. The exported step
+            // also installs the page script for this document and the next one.
+            history: [
+                shown,
+                `await browser.sendCommand('Page.addScriptToEvaluateOnNewDocument', { source: ${JSON.stringify(source)} })`,
+                executeSource(source)
+            ].join('\n')
+        }
     }
     session.requireBidi('Geolocation emulation')
     const coords = { latitude, longitude, ...(accuracy !== undefined ? { accuracy } : {}) }

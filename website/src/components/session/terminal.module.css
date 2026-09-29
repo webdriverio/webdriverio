@@ -80,7 +80,8 @@
 }
 
 .cmd,
-.out {
+.out,
+.arrow {
     margin: 0 0 0.35rem;
 }
 

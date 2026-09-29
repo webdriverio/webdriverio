@@ -52,6 +52,7 @@ const DEMOS: Record<string, { video: string, label: string, cues: readonly Cue[]
         video: '/img/session/android.mp4',
         label: 'Android emulator running the WebdriverIO demo app',
         cues: [
+            { t: 0, cmd: 'npx wdio session -s android open android --package com.wdiodemoapp --activity com.wdiodemoapp.MainActivity --no-reset', out: 'Session "android" ready: android (UiAutomator2)' },
             { t: 5, cmd: 'npx wdio session -s android tap "~Login"', out: 'Tapped "~Login"\n→ await $(\'~Login\').tap()' },
             { t: 8, cmd: 'npx wdio session -s android fill "~input-email" "alice@webdriver.io"', out: 'Filled "~input-email"\n→ await $(\'~input-email\').setValue(\'alice@webdriver.io\')' },
             { t: 11, cmd: 'npx wdio session -s android fill "~input-password" "supersecret"', out: 'Filled "~input-password"\n→ await $(\'~input-password\').setValue(\'supersecret\')' },
@@ -273,6 +274,9 @@ export default function SessionTarget ({ id }: { id: string }) {
         }
         const next = Math.max(0, Math.min(cues.length - 1, index))
         const t = cues[next].t
+        // Stepping is for reading the command. Leave playback paused on that frame.
+        userPaused.current = true
+        video.pause()
         video.currentTime = t
         setTime(t)
     }

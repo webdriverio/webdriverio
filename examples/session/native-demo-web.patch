@@ -1,0 +1,941 @@
+diff --git a/app/(tabs)/_layout.tsx b/app/(tabs)/_layout.tsx
+index e748f0f..6acfebd 100644
+--- a/app/(tabs)/_layout.tsx
++++ b/app/(tabs)/_layout.tsx
+@@ -1,3 +1,4 @@
++import {Platform} from 'react-native';
+ import {Tabs} from 'expo-router';
+ import {MaterialCommunityIcons as Icon} from '@expo/vector-icons';
+ import CustomBottomTabBar from '../../src/components/CustomBottomTabBar';
+@@ -12,6 +13,7 @@ export default function TabsLayout() {
+           screenOptions={{
+             headerShown: false,
+             tabBarHideOnKeyboard: true,
++            ...(Platform.OS === 'web' ? {tabBarPosition: 'left' as const} : {}),
+           }}>
+           <Tabs.Screen
+             name="index"
+@@ -24,6 +26,17 @@ export default function TabsLayout() {
+               ),
+             }}
+           />
++          <Tabs.Screen
++            name="weather"
++            options={{
++              title: 'Weather',
++              tabBarLabel: 'Weather',
++              tabBarAccessibilityLabel: 'Weather',
++              tabBarIcon: ({color}) => (
++                <Icon color={color} name="weather-partly-cloudy" size={26} />
++              ),
++            }}
++          />
+           <Tabs.Screen
+             name="webview"
+             options={{
+diff --git a/app/(tabs)/weather.tsx b/app/(tabs)/weather.tsx
+new file mode 100644
+index 0000000..3961556
+--- /dev/null
++++ b/app/(tabs)/weather.tsx
+@@ -0,0 +1 @@
++export {default} from '../../src/screens/Weather';
+diff --git a/src/components/Button.tsx b/src/components/Button.tsx
+index 995a426..b3b05e5 100644
+--- a/src/components/Button.tsx
++++ b/src/components/Button.tsx
+@@ -47,10 +47,11 @@ const Button = ({
+       <View
+         style={[
+           styles.content,
+-          disabled ? styles.disabledContent : {backgroundColor},
++          {backgroundColor},
++          disabled && !loading ? styles.disabledContent : null,
+         ]}>
+         {loading ? (
+-          <ActivityIndicator size="small" color="#ea5906" />
++          <ActivityIndicator size="small" color={Colors.white} />
+         ) : (
+           childComponent || <Text style={buttonTextStyle}>{text}</Text>
+         )}
+@@ -64,7 +65,10 @@ const styles = StyleSheet.create({
+     minHeight: 40,
+   },
+   content: {
+-    flex: 1,
++    flexGrow: 1,
++    flexShrink: 0,
++    minHeight: 40,
++    width: '100%',
+     flexDirection: 'row',
+     paddingHorizontal: 15,
+     justifyContent: 'center',
+diff --git a/src/components/CustomBottomTabBar.tsx b/src/components/CustomBottomTabBar.tsx
+index bcfa98e..2c289cb 100644
+--- a/src/components/CustomBottomTabBar.tsx
++++ b/src/components/CustomBottomTabBar.tsx
+@@ -1,6 +1,7 @@
+ import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
+ import React from 'react';
+ import {
++  Image,
+   Platform,
+   Pressable,
+   StyleSheet,
+@@ -8,6 +9,10 @@ import {
+   useColorScheme,
+   View,
+ } from 'react-native';
++
++/** Official mark from https://webdriver.io/community/materials */
++const WDIO_LOGO =
++  'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iNjRweCIgaGVpZ2h0PSI2NHB4IiB2aWV3Qm94PSIwIDAgNjQgNjQiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8dGl0bGU+TG9nbyBSZWd1bGFyPC90aXRsZT4KICAgIDxnIGlkPSJMb2dvLVJlZ3VsYXIiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPgogICAgICAgIDxyZWN0IGlkPSJSZWN0YW5nbGUiIGZpbGw9IiNFQTU5MDYiIHg9IjAiIHk9IjAiIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjUiPjwvcmVjdD4KICAgICAgICA8cGF0aCBkPSJNOCwxNiBMOCw0OCBMNiw0OCBMNiwxNiBMOCwxNiBaIE00MywxNiBDNTEuODM2NTU2LDE2IDU5LDIzLjE2MzQ0NCA1OSwzMiBDNTksNDAuODM2NTU2IDUxLjgzNjU1Niw0OCA0Myw0OCBDMzQuMTYzNDQ0LDQ4IDI3LDQwLjgzNjU1NiAyNywzMiBDMjcsMjMuMTYzNDQ0IDM0LjE2MzQ0NCwxNiA0MywxNiBaIE0yNywxNiBMMTQuMTA2LDQ3Ljk5OTIwNzggTDExLjk5OSw0Ny45OTkyMDc4IEwyNC44OTQsMTYgTDI3LDE2IFogTTQzLDE4IEMzNS4yNjgwMTM1LDE4IDI5LDI0LjI2ODAxMzUgMjksMzIgQzI5LDM5LjczMTk4NjUgMzUuMjY4MDEzNSw0NiA0Myw0NiBDNTAuNzMxOTg2NSw0NiA1NywzOS43MzE5ODY1IDU3LDMyIEM1NywyNC4yNjgwMTM1IDUwLjczMTk4NjUsMTggNDMsMTggWiIgaWQ9IkNvbWJpbmVkLVNoYXBlIiBmaWxsPSIjRkZGRkZGIj48L3BhdGg+CiAgICA8L2c+Cjwvc3ZnPg==';
+ import {MaterialCommunityIcons as Icon} from '@expo/vector-icons';
+ import {
+   TOGGLABLE_TAB_ORDER,
+@@ -31,6 +36,18 @@ function getTabBarLabelText(
+   return fallback;
+ }
+ 
++const WEB_NAV = [
++  'index',
++  'weather',
++  'webview',
++  'login',
++  'forms',
++  'swipe',
++  'drag',
++  'permissions',
++  'data-management',
++];
++
+ export default function CustomBottomTabBar({
+   state,
+   descriptors,
+@@ -38,8 +55,56 @@ export default function CustomBottomTabBar({
+   insets,
+ }: BottomTabBarProps) {
+   const isDarkMode = useColorScheme() === 'dark';
++  const isWeb = Platform.OS === 'web';
+   const isIOS = Platform.OS === 'ios';
+   const {pinnedInTabBar, setMenuOpen, menuOpen} = useTabBarMenu();
++
++  if (isWeb) {
++    return (
++      <View style={styles.sidebar}>
++        <Image
++          accessibilityLabel="WebdriverIO"
++          source={{uri: WDIO_LOGO}}
++          style={styles.brandLogo}
++        />
++        <View style={styles.sidebarNav}>
++          {WEB_NAV.map(routeName => {
++            const route = state.routes.find(r => r.name === routeName);
++            if (!route) {
++              return null;
++            }
++            const {options} = descriptors[route.key];
++            const routeIndex = state.routes.findIndex(r => r.key === route.key);
++            const focused = state.index === routeIndex;
++            const color = focused ? Colors.orange : Colors.white;
++            const label = getTabBarLabelText(options, routeName);
++            return (
++              <Pressable
++                key={route.key}
++                accessibilityRole="button"
++                accessibilityState={{selected: focused}}
++                accessibilityLabel={
++                  (options.tabBarAccessibilityLabel as string | undefined) ??
++                  label
++                }
++                onPress={() => navigation.navigate(route.name as never)}
++                style={({pressed}) => [
++                  styles.sidebarItem,
++                  focused && styles.sidebarItemFocused,
++                  pressed && styles.tabPressed,
++                ]}>
++                {options.tabBarIcon?.({focused, color, size: 22})}
++                <Text numberOfLines={1} style={[styles.sidebarLabel, {color}]}>
++                  {label}
++                </Text>
++              </Pressable>
++            );
++          })}
++        </View>
++      </View>
++    );
++  }
++
+   const getTabBarHeight = () => {
+     if (isIOS && HAS_IOS_NOTCH) {
+       return 90;
+@@ -200,4 +265,39 @@ const styles = StyleSheet.create({
+     paddingBottom: Platform.OS === 'ios' ? 4 : 6,
+     textAlign: 'center',
+   },
++  sidebar: {
++    width: 232,
++    alignSelf: 'stretch',
++    backgroundColor: Colors.black,
++    borderRightWidth: 4,
++    borderRightColor: Colors.orange,
++    paddingTop: 28,
++    paddingHorizontal: 14,
++    // @ts-expect-error RN web accepts viewport units
++    height: '100vh',
++  },
++  brandLogo: {
++    width: 48,
++    height: 48,
++    marginLeft: 14,
++    marginBottom: 28,
++  },
++  sidebarNav: {
++    gap: 4,
++  },
++  sidebarItem: {
++    flexDirection: 'row',
++    alignItems: 'center',
++    gap: 12,
++    paddingVertical: 12,
++    paddingHorizontal: 14,
++    borderRadius: 8,
++  },
++  sidebarItemFocused: {
++    backgroundColor: '#24160f',
++  },
++  sidebarLabel: {
++    fontSize: 15,
++    fontWeight: '400',
++  },
+ });
+diff --git a/src/components/Draggable.tsx b/src/components/Draggable.tsx
+index 072594a..a7866bf 100644
+--- a/src/components/Draggable.tsx
++++ b/src/components/Draggable.tsx
+@@ -31,8 +31,19 @@ const Draggable = ({
+   const pan = useRef(new Animated.ValueXY());
+   const animatedView = useRef<View | null>(null);
+   let opacity = 1;
+-  const setOpacity = (elementOpacity: number) =>
+-    animatedView.current?.setNativeProps({style: {opacity: elementOpacity}});
++  const setOpacity = (elementOpacity: number) => {
++    const node = animatedView.current as {setNativeProps?: (props: object) => void} | null;
++    if (typeof node?.setNativeProps === 'function') {
++      node.setNativeProps({style: {opacity: elementOpacity}});
++      return;
++    }
++    if (typeof document !== 'undefined') {
++      const el = document.querySelector(`[aria-label="${testID}"]`);
++      if (el instanceof HTMLElement) {
++        el.style.opacity = String(elementOpacity);
++      }
++    }
++  };
+   const panResponder = useMemo(
+     () =>
+       PanResponder.create({
+@@ -52,7 +63,15 @@ const Draggable = ({
+             // Set opacity to 0 for all matching elements and put element back
+             setOpacity(0);
+             pan.current.setValue({x: 0, y: 0});
+-            dropZone.current.setNativeProps({style: {opacity: 0}});
++            const zone = dropZone.current as {setNativeProps?: (props: object) => void} | null;
++            if (typeof zone?.setNativeProps === 'function') {
++              zone.setNativeProps({style: {opacity: 0}});
++            } else if (typeof document !== 'undefined') {
++              const el = document.querySelector(`[aria-label="${testID.replace('drag-', 'drop-')}"]`);
++              if (el instanceof HTMLElement) {
++                el.style.opacity = '0';
++              }
++            }
+             updateCounter();
+           } else {
+             Animated.spring(pan.current, {
+diff --git a/src/components/LoginForm.tsx b/src/components/LoginForm.tsx
+index 687ffde..e4b5bb9 100644
+--- a/src/components/LoginForm.tsx
++++ b/src/components/LoginForm.tsx
+@@ -19,7 +19,7 @@ import {
+ import {Input} from 'react-native-elements';
+ import {MaterialCommunityIcons as Icon} from '@expo/vector-icons';
+ import * as LocalAuthentication from 'expo-local-authentication';
+-import {IS_IOS, WINDOW_WIDTH} from '../config/Constants';
++import {IS_IOS, IS_WEB, WINDOW_HEIGHT, WINDOW_WIDTH} from '../config/Constants';
+ import {testProperties} from '../config/TestProperties';
+ import Button from './Button';
+ import TitleDivider from './TitleDivider';
+@@ -203,7 +203,7 @@ const LoginForm = () => {
+   });
+ 
+   return (
+-    <View style={styles.contentContainer}>
++    <View style={[styles.contentContainer, IS_WEB && styles.contentContainerWeb]}>
+       <KeyboardAvoidingView
+         contentContainerStyle={styles.loginContainer}
+         behavior="position">
+@@ -350,6 +350,7 @@ const LoginForm = () => {
+               />
+             )}
+             <Button
++              backgroundColor={Colors.orange}
+               containerStyle={[
+                 styles.button,
+                 isBiometricAvailable && isLoginPage ? styles.buttonSmaller : {},
+@@ -372,6 +373,10 @@ const styles = StyleSheet.create({
+     alignItems: 'center',
+     justifyContent: 'center',
+   },
++  contentContainerWeb: {
++    minHeight: Math.max(WINDOW_HEIGHT - 48, 640),
++    paddingVertical: 32,
++  },
+   titleContainer: {
+     height: 150,
+     backgroundColor: 'transparent',
+@@ -415,7 +420,7 @@ const styles = StyleSheet.create({
+   },
+   formContainer: {
+     borderRadius: 20,
+-    width: WINDOW_WIDTH - 30,
++    width: IS_WEB ? Math.min(440, WINDOW_WIDTH - 280) : WINDOW_WIDTH - 30,
+     paddingTop: 32,
+     paddingBottom: 32,
+     alignItems: 'center',
+@@ -444,12 +449,19 @@ const styles = StyleSheet.create({
+   button: {
+     height: 50,
+     width: 200,
++    minWidth: 200,
++    maxWidth: 200,
+     borderRadius: 5,
+     backgroundColor: Colors.orange,
+     borderColor: Colors.orange,
+     borderWidth: 5,
+     marginTop: 32,
+-    flex: 0,
++    alignSelf: 'center',
++    // flex:0 becomes flex-basis 0% on web, so the button collapses to the
++    // spinner while LOGIN is submitting.
++    ...(IS_WEB
++      ? {flexGrow: 0, flexShrink: 0, flexBasis: 200}
++      : {flex: 0}),
+   },
+   buttonSmaller: {
+     width: 150,
+diff --git a/src/components/SliderEntry.tsx b/src/components/SliderEntry.tsx
+index 4e40213..d8aca7d 100644
+--- a/src/components/SliderEntry.tsx
++++ b/src/components/SliderEntry.tsx
+@@ -1,13 +1,15 @@
+ import {ComponentProps} from 'react';
+ import {View, Text, StyleSheet, useColorScheme} from 'react-native';
+ import {MaterialCommunityIcons as Icon} from '@expo/vector-icons';
+-import {IS_IOS, WINDOW_HEIGHT, WINDOW_WIDTH} from '../config/Constants';
++import {IS_IOS, IS_WEB, WINDOW_HEIGHT, WINDOW_WIDTH} from '../config/Constants';
+ import {testProperties} from '../config/TestProperties';
+ import Colors from '../config/Colors';
+ 
+ const itemHorizontalMargin = Math.round(WINDOW_WIDTH * 0.02);
+-export const SLIDE_WIDTH =
+-  Math.round(WINDOW_WIDTH * 0.75) + itemHorizontalMargin * 2;
++export const SLIDE_WIDTH = IS_WEB
++  ? Math.min(640, Math.max(360, WINDOW_WIDTH - 320))
++  : Math.round(WINDOW_WIDTH * 0.75) + itemHorizontalMargin * 2;
++const SLIDE_HEIGHT = IS_WEB ? 320 : Math.round(WINDOW_HEIGHT * 0.35);
+ 
+ const SliderEntry = ({
+   icon,
+@@ -28,7 +30,7 @@ const SliderEntry = ({
+       ]}
+       {...testProperties('card', true)}>
+       <View style={styles.slideIconContainer}>
+-        <Icon name={icon} size={150} style={styles.slideIcon} />
++        <Icon name={icon} size={IS_WEB ? 96 : 150} style={styles.slideIcon} />
+       </View>
+       <View
+         style={styles.slideTextContainer}
+@@ -61,7 +63,7 @@ const styles = StyleSheet.create({
+     borderWidth: 5,
+     alignItems: 'center',
+     width: SLIDE_WIDTH,
+-    height: Math.round(WINDOW_HEIGHT * 0.35),
++    height: SLIDE_HEIGHT,
+     paddingHorizontal: itemHorizontalMargin,
+     paddingTop: 18,
+   },
+diff --git a/src/config/Constants.ts b/src/config/Constants.ts
+index e571a71..686f55a 100644
+--- a/src/config/Constants.ts
++++ b/src/config/Constants.ts
+@@ -1,6 +1,7 @@
+ import {Platform, Dimensions} from 'react-native';
+ 
+ export const IS_IOS = Platform.OS === 'ios';
++export const IS_WEB = Platform.OS === 'web';
+ export const {width: WINDOW_WIDTH, height: WINDOW_HEIGHT} =
+   Dimensions.get('window');
+ // Default to true on iOS for layout calculations (SafeAreaProvider handles actual insets)
+diff --git a/src/screens/Drag.tsx b/src/screens/Drag.tsx
+index 96027d4..91bc99e 100644
+--- a/src/screens/Drag.tsx
++++ b/src/screens/Drag.tsx
+@@ -15,7 +15,7 @@ import {STATUS_BAR_HEIGHT} from '../components/StatusBar';
+ import Colors from '../config/Colors';
+ import TitleDivider from '../components/TitleDivider';
+ import Draggable from '../components/Draggable';
+-import {HAS_IOS_NOTCH, WINDOW_HEIGHT, WINDOW_WIDTH} from '../config/Constants';
++import {HAS_IOS_NOTCH, IS_WEB, WINDOW_HEIGHT, WINDOW_WIDTH} from '../config/Constants';
+ import Button from '../components/Button';
+ 
+ const DragScreen = () => {
+@@ -146,12 +146,17 @@ const DragScreen = () => {
+       testID: 'drag-l3',
+     },
+   ];
+-  const updateCounter = () => setCounter(counter + 1);
++  const updateCounter = () => setCounter((value) => value + 1);
+   const resetPuzzle = () => {
+     setResetOpacity(true);
+-    dropZones.forEach(dropZone =>
+-      dropZone.current?.setNativeProps({style: {opacity: 1}}),
+-    );
++    dropZones.forEach(dropZone => {
++      const zone = dropZone.current as {setNativeProps?: (props: object) => void; style?: {opacity: number}} | null;
++      if (typeof zone?.setNativeProps === 'function') {
++        zone.setNativeProps({style: {opacity: 1}});
++      } else if (zone?.style) {
++        zone.style.opacity = 1;
++      }
++    });
+     setCounter(0);
+     setTimeout(() => setResetOpacity(false), 1);
+   };
+@@ -295,11 +300,10 @@ const styles = StyleSheet.create({
+     alignItems: 'center',
+   },
+   successContainer: {
+-    // backgroundColor: Colors.dark,
+     alignItems: 'center',
+     justifyContent: 'center',
+-    height: WINDOW_HEIGHT - (HAS_IOS_NOTCH ? 100 : 55),
+-    width: WINDOW_WIDTH,
++    height: IS_WEB ? '100%' : WINDOW_HEIGHT - (HAS_IOS_NOTCH ? 100 : 55),
++    width: IS_WEB ? '100%' : WINDOW_WIDTH,
+     position: 'absolute',
+     left: 0,
+     top: 0,
+@@ -359,10 +363,11 @@ const styles = StyleSheet.create({
+   dragZone: {
+     flexDirection: 'row',
+     flexWrap: 'wrap',
+-    position: 'absolute',
+-    bottom: 10,
+-    left: 10,
+-    width: '100%',
++    position: IS_WEB ? 'relative' : 'absolute',
++    bottom: IS_WEB ? undefined : 10,
++    left: IS_WEB ? undefined : 10,
++    width: IS_WEB ? 430 : '100%',
++    marginTop: IS_WEB ? 28 : 0,
+     justifyContent: 'center',
+     alignItems: 'center',
+     alignContent: 'center',
+diff --git a/src/screens/Home.tsx b/src/screens/Home.tsx
+index b4d16ce..b7c2469 100644
+--- a/src/screens/Home.tsx
++++ b/src/screens/Home.tsx
+@@ -1,6 +1,7 @@
+ import React from 'react';
+ import {
+   Image,
++  Platform,
+   ScrollView,
+   StyleSheet,
+   Text,
+@@ -14,6 +15,7 @@ import Colors from '../config/Colors';
+ 
+ const HomeScreen = () => {
+   const isDarkMode = useColorScheme() === 'dark';
++  const isWeb = Platform.OS === 'web';
+ 
+   return (
+     <ScrollView
+@@ -24,7 +26,7 @@ const HomeScreen = () => {
+       {...testProperties('Home-screen')}>
+       <View style={styles.contentContainer}>
+         <Image
+-          style={styles.logo}
++          style={[styles.logo, isWeb && styles.logoWeb]}
+           source={require('../assets/webdriverio.png')}
+         />
+         <View style={styles.logoTextContainer}>
+@@ -42,14 +44,22 @@ const HomeScreen = () => {
+             styles.regularFont,
+             {color: isDarkMode ? Colors.white : Colors.black},
+           ]}>
+-          Demo app for the appium-boilerplate
++          {isWeb
++            ? 'The same demo in the browser, on desktop, and on mobile'
++            : 'Demo app for the appium-boilerplate'}
+         </Text>
+       </View>
+       <View style={styles.contentContainer}>
+         <View>
+           <View style={styles.platformIconContainer}>
+-            <Icon name={'apple'} size={90} style={styles.orangeColor} />
+-            <Icon name={'android'} size={90} style={styles.orangeColor} />
++            <Icon name={'apple'} size={isWeb ? 64 : 90} style={styles.orangeColor} />
++            <Icon name={'android'} size={isWeb ? 64 : 90} style={styles.orangeColor} />
++            {isWeb ? (
++              <>
++                <Icon name={'google-chrome'} size={64} style={styles.orangeColor} />
++                <Icon name={'monitor'} size={64} style={styles.orangeColor} />
++              </>
++            ) : null}
+           </View>
+         </View>
+         <Text
+@@ -57,7 +67,7 @@ const HomeScreen = () => {
+             styles.regularFont,
+             {color: isDarkMode ? Colors.white : Colors.black},
+           ]}>
+-          Support
++          {isWeb ? 'Browser, desktop and mobile' : 'Support'}
+         </Text>
+       </View>
+     </ScrollView>
+@@ -82,6 +92,11 @@ const styles = StyleSheet.create({
+     height: 250,
+     width: 250,
+   },
++  logoWeb: {
++    marginTop: 48,
++    height: 180,
++    width: 180,
++  },
+   io: {
+     height: 50,
+     width: 50,
+@@ -104,6 +119,8 @@ const styles = StyleSheet.create({
+   },
+   platformIconContainer: {
+     flexDirection: 'row',
++    alignItems: 'center',
++    gap: 28,
+     paddingTop: 10,
+     paddingBottom: 10,
+   },
+diff --git a/src/screens/Swipe.tsx b/src/screens/Swipe.tsx
+index 8c4c19d..7c8bb38 100644
+--- a/src/screens/Swipe.tsx
++++ b/src/screens/Swipe.tsx
+@@ -1,6 +1,7 @@
+-import {memo, useCallback, useMemo, useRef, ComponentProps} from 'react';
++import {memo, useCallback, useEffect, useMemo, useRef, ComponentProps} from 'react';
+ import {
+   Image,
++  Platform,
+   ScrollView,
+   StyleSheet,
+   Text,
+@@ -62,15 +63,75 @@ const Item = memo(({item}: {item: SliderEntries}) => {
+   return <SliderEntry {...item} />;
+ });
+ 
++const IS_WEB = Platform.OS === 'web';
++const CAROUSEL_WIDTH = IS_WEB
++  ? Math.min(640, Math.max(360, WINDOW_WIDTH - 320))
++  : WINDOW_WIDTH * 0.85;
++const CAROUSEL_HEIGHT = IS_WEB ? 320 : Math.round(WINDOW_HEIGHT * 0.35);
++
+ const SwipeScreen = () => {
+   const isDarkMode = useColorScheme() === 'dark';
+ 
+   const ref = useRef<ICarouselInstance>(null);
+ 
++  // Webdriver pointer actions reach the DOM, but the carousel gesture handler
++  // drops them when the reported velocity is 0. Page from the pointer delta.
++  useEffect(() => {
++    if (typeof document === 'undefined') {
++      return;
++    }
++    let startX = 0;
++    let startY = 0;
++    let tracking = false;
++    const down = (event: PointerEvent) => {
++      const target = event.target;
++      if (!(target instanceof Element) || !target.closest('[data-testid="Carousel"]')) {
++        return;
++      }
++      tracking = true;
++      startX = event.clientX;
++      startY = event.clientY;
++    };
++    const up = (event: PointerEvent) => {
++      if (!tracking) {
++        return;
++      }
++      tracking = false;
++      const dx = event.clientX - startX;
++      const dy = event.clientY - startY;
++      if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy)) {
++        return;
++      }
++      window.setTimeout(() => {
++        if (dx < 0) {
++          ref.current?.next();
++        } else {
++          ref.current?.prev();
++        }
++      }, 60);
++    };
++    const wheel = (event: WheelEvent) => {
++      const scroller = document.querySelector('[aria-label="Swipe-screen"]');
++      if (!(scroller instanceof HTMLElement) || event.deltaY === 0) {
++        return;
++      }
++      scroller.scrollTop += event.deltaY;
++      event.preventDefault();
++    };
++    document.addEventListener('pointerdown', down, true);
++    document.addEventListener('pointerup', up, true);
++    document.addEventListener('wheel', wheel, true);
++    return () => {
++      document.removeEventListener('pointerdown', down, true);
++      document.removeEventListener('pointerup', up, true);
++      document.removeEventListener('wheel', wheel, true);
++    };
++  }, []);
++
+   const baseOptions = useMemo(
+     () => ({
+       vertical: false,
+-      width: WINDOW_WIDTH * 0.85,
++      width: CAROUSEL_WIDTH,
+     }),
+     [],
+   );
+@@ -96,17 +157,27 @@ const SwipeScreen = () => {
+           ]}>
+           Or swipe vertical to find what I'm hiding.
+         </Text>
+-        <Carousel
+-          {...baseOptions}
+-          loop={false}
+-          ref={ref}
+-          style={styles.sliderContainer}
+-          data={ENTRIES1}
+-          pagingEnabled
+-          renderItem={renderItem}
+-          height={Math.round(WINDOW_HEIGHT * 0.35)}
+-          testID="Carousel"
+-        />
++        <View style={IS_WEB ? styles.carouselRow : undefined}>
++          {IS_WEB ? (
++            <View style={styles.nextSlide} {...testProperties('Next card')}>
++              <Icon name="arrow-left" size={28} color={Colors.orange} />
++              <Text style={styles.nextLabel}>Next</Text>
++            </View>
++          ) : null}
++          <View style={IS_WEB ? styles.carouselFrame : undefined}>
++            <Carousel
++              {...baseOptions}
++              loop={false}
++              ref={ref}
++              style={styles.sliderContainer}
++              data={ENTRIES1}
++              pagingEnabled
++              renderItem={renderItem}
++              height={CAROUSEL_HEIGHT}
++              testID="Carousel"
++            />
++          </View>
++        </View>
+       </View>
+       <View style={styles.logoContainer}>
+         <Image
+@@ -133,23 +204,51 @@ const styles = StyleSheet.create({
+     paddingBottom: 40,
+   },
+   horizontalContainer: {
+-    height: WINDOW_HEIGHT - (HAS_IOS_NOTCH ? 100 : 55),
++    height: IS_WEB ? undefined : WINDOW_HEIGHT - (HAS_IOS_NOTCH ? 100 : 55),
+     flexDirection: 'column',
+     justifyContent: 'flex-start',
+-    paddingTop: 100,
++    paddingTop: IS_WEB ? 36 : 100,
+   },
+   subText: {
+     textAlign: 'center',
+   },
++  carouselRow: {
++    marginTop: 28,
++    flexDirection: 'row',
++    alignItems: 'center',
++    justifyContent: 'center',
++    gap: 18,
++  },
++  nextSlide: {
++    width: 96,
++    height: 96,
++    borderRadius: 18,
++    borderWidth: 2,
++    borderColor: Colors.orange,
++    backgroundColor: '#fff7f2',
++    alignItems: 'center',
++    justifyContent: 'center',
++  },
++  nextLabel: {
++    marginTop: 4,
++    color: Colors.orange,
++    fontSize: 14,
++    fontWeight: '600',
++  },
++  carouselFrame: {
++    width: CAROUSEL_WIDTH,
++    alignSelf: 'center',
++  },
+   sliderContainer: {
+     width: '100%',
+-    marginTop: 100,
++    marginTop: IS_WEB ? 0 : 100,
+   },
+   logoContainer: {
+     flex: 1,
+     alignSelf: 'center',
+     marginBottom: 20,
+-    paddingTop: 500,
++    paddingTop: IS_WEB ? 220 : 500,
++    paddingBottom: IS_WEB ? 480 : 0,
+   },
+   logoText: {
+     fontStyle: 'italic',
+diff --git a/src/screens/Weather.tsx b/src/screens/Weather.tsx
+new file mode 100644
+index 0000000..dd05f17
+--- /dev/null
++++ b/src/screens/Weather.tsx
+@@ -0,0 +1,222 @@
++import {useEffect, useState, type ComponentProps} from 'react';
++import {Platform, StyleSheet, Text, View} from 'react-native';
++import {MaterialCommunityIcons as Icon} from '@expo/vector-icons';
++import {STATUS_BAR_HEIGHT} from '../components/StatusBar';
++import Colors from '../config/Colors';
++import {testProperties} from '../config/TestProperties';
++
++/**
++ * Captured before `emulate clock` replaces window.setInterval. Fake timers
++ * do not advance on their own, so a timer started after that patch never
++ * fires. This one keeps reading the (possibly faked) Date.
++ */
++const nativeSetInterval =
++  typeof window !== 'undefined' ? window.setInterval.bind(window) : setInterval;
++const nativeClearInterval =
++  typeof window !== 'undefined'
++    ? window.clearInterval.bind(window)
++    : clearInterval;
++
++type Place = {
++  name: string;
++  lat: number;
++  lon: number;
++  temp: number;
++  condition: string;
++  icon: ComponentProps<typeof Icon>['name'];
++};
++
++const PLACES: Place[] = [
++  {name: 'Reykjavík', lat: 64.1466, lon: -21.9426, temp: -2, condition: 'Snow', icon: 'weather-snowy'},
++  {name: 'Berlin', lat: 52.52, lon: 13.405, temp: 11, condition: 'Cloudy', icon: 'weather-cloudy'},
++  {name: 'New York', lat: 40.7128, lon: -74.006, temp: 18, condition: 'Clear', icon: 'weather-sunny'},
++  {name: 'Tokyo', lat: 35.6762, lon: 139.6503, temp: 21, condition: 'Rain', icon: 'weather-rainy'},
++  {name: 'Singapore', lat: 1.3521, lon: 103.8198, temp: 31, condition: 'Humid', icon: 'weather-pouring'},
++  {name: 'Sydney', lat: -33.8688, lon: 151.2093, temp: 23, condition: 'Clear', icon: 'weather-sunny'},
++];
++
++function nearest(lat: number, lon: number) {
++  let best = PLACES[0];
++  let bestDistance = Infinity;
++  for (const place of PLACES) {
++    const distance = (place.lat - lat) ** 2 + (place.lon - lon) ** 2;
++    if (distance < bestDistance) {
++      best = place;
++      bestDistance = distance;
++    }
++  }
++  return best;
++}
++
++function formatCoord(value: number, positive: string, negative: string) {
++  const hemisphere = value >= 0 ? positive : negative;
++  return `${Math.abs(value).toFixed(2)}° ${hemisphere}`;
++}
++
++const WeatherScreen = () => {
++  const [now, setNow] = useState(() => new Date());
++  const [coords, setCoords] = useState<{lat: number; lon: number} | null>(null);
++
++  useEffect(() => {
++    let stop = false;
++    const read = () => {
++      if (stop) {
++        return;
++      }
++      setNow(new Date());
++      const geo = typeof navigator !== 'undefined' ? navigator.geolocation : undefined;
++      if (!geo?.getCurrentPosition) {
++        return;
++      }
++      geo.getCurrentPosition(
++        position => {
++          if (stop) {
++            return;
++          }
++          setCoords({
++            lat: position.coords.latitude,
++            lon: position.coords.longitude,
++          });
++        },
++        () => {},
++        {maximumAge: 0, timeout: 4000, enableHighAccuracy: false},
++      );
++    };
++    read();
++    const id = nativeSetInterval(read, 400);
++    return () => {
++      stop = true;
++      nativeClearInterval(id);
++    };
++  }, []);
++
++  const hour = now.getHours();
++  const isDay = hour >= 7 && hour < 19;
++  const place = coords ? nearest(coords.lat, coords.lon) : null;
++  const time = now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
++  const sky = isDay ? styles.daySky : styles.nightSky;
++  const ink = isDay ? '#16324F' : '#F4F1DE';
++  const iconName = isDay ? place?.icon ?? 'weather-sunny' : 'weather-night';
++
++  return (
++    <View style={styles.screen} {...testProperties('Weather-screen')}>
++      <View style={[styles.widget, sky]} accessibilityLabel={isDay ? 'day' : 'night'}>
++        <View style={styles.skyRow}>
++          <View style={[styles.orb, isDay ? styles.sun : styles.moon]} />
++          {!isDay && (
++            <>
++              <View style={[styles.star, {top: 18, left: 150}]} />
++              <View style={[styles.star, {top: 58, left: 210}]} />
++              <View style={[styles.star, {top: 22, left: 250}]} />
++            </>
++          )}
++          <Icon name={iconName} size={42} color={ink} />
++        </View>
++        <Text style={[styles.temp, {color: ink}]}>
++          {place ? `${place.temp}°` : '--°'}
++        </Text>
++        <Text style={[styles.city, {color: ink}]} {...testProperties('weather-city')}>
++          {place ? place.name : 'Set a location'}
++        </Text>
++        <Text style={[styles.condition, {color: ink}]}>
++          {place ? place.condition : 'Waiting for geolocation'}
++        </Text>
++        <Text style={[styles.time, {color: ink}]} {...testProperties('weather-time')}>
++          {time}
++        </Text>
++        <Text style={[styles.coords, {color: ink}]}>
++          {coords
++            ? `${formatCoord(coords.lat, 'N', 'S')}   ${formatCoord(coords.lon, 'E', 'W')}`
++            : 'No coordinates yet'}
++        </Text>
++      </View>
++    </View>
++  );
++};
++
++const styles = StyleSheet.create({
++  screen: {
++    flex: 1,
++    marginTop: STATUS_BAR_HEIGHT,
++    alignItems: 'center',
++    justifyContent: 'center',
++    backgroundColor: Colors.lighter,
++    padding: 24,
++  },
++  widget: {
++    width: Platform.OS === 'web' ? 420 : '100%',
++    maxWidth: 440,
++    minHeight: 460,
++    borderRadius: 28,
++    paddingHorizontal: 28,
++    paddingVertical: 36,
++    overflow: 'hidden',
++    alignItems: 'flex-start',
++    justifyContent: 'flex-end',
++  },
++  daySky: {
++    backgroundColor: '#7EC8E3',
++  },
++  nightSky: {
++    backgroundColor: '#0B1D36',
++  },
++  skyRow: {
++    position: 'absolute',
++    top: 28,
++    left: 28,
++    right: 28,
++    height: 120,
++    flexDirection: 'row',
++    justifyContent: 'flex-end',
++    alignItems: 'flex-start',
++  },
++  orb: {
++    position: 'absolute',
++    top: 8,
++    left: 8,
++    width: 86,
++    height: 86,
++    borderRadius: 43,
++  },
++  sun: {
++    backgroundColor: '#F6C445',
++  },
++  moon: {
++    backgroundColor: '#F4F1DE',
++  },
++  star: {
++    position: 'absolute',
++    width: 6,
++    height: 6,
++    borderRadius: 3,
++    backgroundColor: '#F4F1DE',
++  },
++  temp: {
++    fontSize: 84,
++    fontWeight: '200',
++    lineHeight: 92,
++  },
++  city: {
++    fontSize: 32,
++    fontWeight: '500',
++    marginTop: 4,
++  },
++  condition: {
++    fontSize: 20,
++    marginTop: 4,
++    opacity: 0.85,
++  },
++  time: {
++    fontSize: 28,
++    fontWeight: '300',
++    marginTop: 18,
++  },
++  coords: {
++    fontSize: 14,
++    marginTop: 8,
++    letterSpacing: 0.4,
++    opacity: 0.8,
++  },
++});
++
++export default WeatherScreen;

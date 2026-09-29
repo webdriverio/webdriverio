@@ -62,6 +62,9 @@ describe('classic chromium emulation', () => {
                 },
                 sendCommand: async (command: string) => {
                     commands.push(command)
+                    if (command === 'Page.addScriptToEvaluateOnNewDocument') {
+                        return { identifier: `script-${commands.length}` }
+                    }
                 },
                 getUrl: async () => 'http://127.0.0.1:8081/'
             },
@@ -75,10 +78,15 @@ describe('classic chromium emulation', () => {
     }
 
     it('sets the clock through the page when BiDi is absent', async () => {
-        const { session, executed } = classicSession()
+        const { session, executed, commands } = classicSession()
         const result = await emulate(session, { sub: 'clock', value: '2026-06-21T23:30:00.000Z' })
         expect(result.text).toContain('2026-06-21T23:30:00.000Z')
         expect(executed).toHaveLength(1)
+        expect(String(executed[0])).toContain('new Proxy')
+        expect(result.code).toContain('new Proxy')
+        expect(result.code).not.toContain('/*')
+        expect(result.history).toBe(result.code)
+        expect(commands).toContain('Page.addScriptToEvaluateOnNewDocument')
     })
 
     it('patches Date on Chromium instead of installing BiDi fake timers', async () => {
@@ -106,7 +114,24 @@ describe('classic chromium emulation', () => {
         const result = await geolocation(session, { lat: '35.6762', lon: '139.6503' })
         expect(result.text).toContain('35.6762, 139.6503')
         expect(commands).toContain('Emulation.setGeolocationOverride')
+        expect(commands).toContain('Page.addScriptToEvaluateOnNewDocument')
+        expect(result.code).toContain('setGeolocationOverride')
+        expect(result.code).not.toContain('addScriptToEvaluateOnNewDocument')
+        expect(result.history).toContain('addScriptToEvaluateOnNewDocument')
+        expect(result.history).toContain('navigator')
         expect(executed).toHaveLength(1)
+    })
+
+    it('drops the classic clock and geolocation when the session resets', async () => {
+        const { session, commands, executed } = classicSession()
+        await emulate(session, { sub: 'clock', value: '2026-06-21T23:30:00.000Z' })
+        await geolocation(session, { lat: '35.6762', lon: '139.6503' })
+        await emulate(session, { sub: 'reset' })
+        expect(commands).toContain('Page.removeScriptToEvaluateOnNewDocument')
+        expect(commands).toContain('Emulation.clearGeolocationOverride')
+        expect(commands).toContain('Browser.setPermission')
+        expect(executed.some((script) => String(script).includes('__wdioNativeDate'))).toBe(true)
+        expect(executed.some((script) => String(script).includes('delete navigator.geolocation'))).toBe(true)
     })
 })
 
