@@ -228,19 +228,33 @@ function geolocationSource (latitude: number, longitude: number, accuracy: numbe
             const live = permissions.__wdioGeolocationLive || { state: 'granted', statuses: [] }
             if (!permissions.__wdioGeolocationLive) permissions.__wdioGeolocationLive = live
             /**
+             * Statuses are weak. A page that drops one can be collected, and
+             * change events go only to statuses it still holds.
+             */
+            const held = () => {
+                const kept = []
+                for (const ref of live.statuses) {
+                    const status = ref && ref.deref ? ref.deref() : ref
+                    if (status) kept.push(ref && ref.deref ? ref : new WeakRef(status))
+                }
+                live.statuses = kept
+                return kept.map((ref) => ref.deref()).filter(Boolean)
+            }
+            /**
              * A second \`geolocation\` restores the previous state before this
              * script runs again. Put \`granted\` back, including on statuses the
              * page kept from the earlier call.
              */
             if (live.state !== 'granted') {
                 live.state = 'granted'
-                for (const status of live.statuses) status.dispatchEvent(new Event('change'))
+                for (const status of held()) status.dispatchEvent(new Event('change'))
             }
             const wrapped = function (descriptor) {
                 if (descriptor && descriptor.name === 'geolocation') {
                     const target = new EventTarget()
                     let handler = null
-                    live.statuses.push(target)
+                    held()
+                    live.statuses.push(new WeakRef(target))
                     Object.defineProperties(target, {
                         state: { enumerable: true, get () { return live.state } },
                         name: { enumerable: true, value: 'geolocation' },
@@ -283,9 +297,14 @@ function geolocationRestoreSource (setting: PermissionSetting) {
     const live = permissions && permissions.__wdioGeolocationLive;
     if (live && live.state !== ${next}) {
         live.state = ${next};
-        for (const status of live.statuses || []) {
+        const kept = [];
+        for (const ref of live.statuses || []) {
+            const status = ref && ref.deref ? ref.deref() : ref;
+            if (!status) continue;
+            kept.push(ref && ref.deref ? ref : new WeakRef(status));
             status.dispatchEvent(new Event('change'));
         }
+        live.statuses = kept;
     }
     const wrapped = permissions && permissions.query;
     if (wrapped && wrapped.__wdioGeolocationQuery) {
