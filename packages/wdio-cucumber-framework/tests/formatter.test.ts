@@ -55,10 +55,7 @@ const cid = '0-1'
 const specs = ['/foobar.js']
 
 const gherkinDocEvent = gherkinDocument
-const gherkinDocEventNoLine = gherkinDocument
 const relativeGherkinDocPath = `.${gherkinDocument.uri}`
-// @ts-expect-error
-delete gherkinDocEventNoLine.feature?.location?.line
 
 const loadGherkin = (eventBroadcaster: EventEmitter) =>
     eventBroadcaster.emit('envelope', { gherkinDocument })
@@ -66,10 +63,6 @@ const loadRelativeGherkinPath = (eventBroadcaster: EventEmitter) =>
     eventBroadcaster.emit('envelope', { gherkinDocument: { ...gherkinDocument, uri: relativeGherkinDocPath } })
 const acceptPickle = (eventBroadcaster: EventEmitter) =>
     eventBroadcaster.emit('envelope', { pickle })
-const loadGherkinNoLine = (eventBroadcaster: EventEmitter) =>
-    eventBroadcaster.emit('envelope', {
-        gherkinDocument: gherkinDocEventNoLine,
-    })
 const prepareSuite = (eventBroadcaster: EventEmitter) =>
     eventBroadcaster.emit('envelope', { testCase })
 const startSuite = (eventBroadcaster: EventEmitter) =>
@@ -77,14 +70,13 @@ const startSuite = (eventBroadcaster: EventEmitter) =>
 
 describe('CucumberFormatter', () => {
     describe('emits messages for certain cucumber events', () => {
-        let cucumberFormatter: CucumberFormatter
         let eventBroadcaster: EventEmitter
 
         beforeEach(() => {
             wdioReporter.emit.mockClear()
             _eventEmitter.emit.mockClear()
             eventBroadcaster = new EventEmitter()
-            cucumberFormatter = new CucumberFormatter({
+            new CucumberFormatter({
                 eventBroadcaster: eventBroadcaster,
                 parsedArgvOptions: {
                     _reporter: wdioReporter,
@@ -101,20 +93,15 @@ describe('CucumberFormatter', () => {
 
         it('should not send any data on `gherkin-document` event', () => {
             loadGherkin(eventBroadcaster)
-            // @ts-ignore accessing private property
-            expect(cucumberFormatter._gherkinDocEvents).toEqual([
-                gherkinDocument,
-            ])
             expect(wdioReporter.emit).not.toHaveBeenCalled()
         })
 
         it('should return absolute uri on `gherkin-document` event', () => {
             loadRelativeGherkinPath(eventBroadcaster)
-            // @ts-ignore accessing private property
-            expect(cucumberFormatter._gherkinDocEvents[0].uri).toEqual(
-                path.resolve(relativeGherkinDocPath)
-            )
-            expect(wdioReporter.emit).not.toHaveBeenCalled()
+            eventBroadcaster.emit('envelope', { testRunStarted: {} })
+            expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({
+                file: path.resolve(relativeGherkinDocPath),
+            }))
         })
 
         it('should send proper data on `test-run-started` event', () => {
@@ -126,13 +113,6 @@ describe('CucumberFormatter', () => {
 
         it('should not send any data on `pickle-accepted` event', () => {
             loadGherkin(eventBroadcaster)
-            wdioReporter.emit.mockClear()
-            acceptPickle(eventBroadcaster)
-            expect(wdioReporter.emit).not.toHaveBeenCalled()
-        })
-
-        it('should not be ok if line is missing', () => {
-            loadGherkinNoLine(eventBroadcaster)
             wdioReporter.emit.mockClear()
             acceptPickle(eventBroadcaster)
             expect(wdioReporter.emit).not.toHaveBeenCalled()
@@ -245,13 +225,12 @@ describe('CucumberFormatter', () => {
     })
 
     describe('emits messages for certain cucumber events when executed in scenarioLeverReporter', () => {
-        let cucumberFormatter: CucumberFormatter
         let eventBroadcaster: EventEmitter
 
         beforeEach(() => {
             wdioReporter.emit.mockClear()
             eventBroadcaster = new EventEmitter()
-            cucumberFormatter = new CucumberFormatter({
+            new CucumberFormatter({
                 eventBroadcaster: eventBroadcaster,
                 parsedArgvOptions: {
                     _reporter: wdioReporter,
@@ -266,36 +245,11 @@ describe('CucumberFormatter', () => {
             } as any)
         })
 
-        it('should not send any data on `gherkin-document` event', () => {
-            loadGherkin(eventBroadcaster)
-            // @ts-ignore accessing private property
-            expect(cucumberFormatter._gherkinDocEvents).toEqual([
-                gherkinDocEvent,
-            ])
-            expect(wdioReporter.emit).not.toHaveBeenCalled()
-        })
-
         it('should send proper data on `test-run-started` event', () => {
             loadGherkin(eventBroadcaster)
             wdioReporter.emit.mockClear()
             eventBroadcaster.emit('envelope', { testRunStarted })
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
-        })
-
-        it('should not send any data on `pickle-accepted` event', () => {
-            loadGherkin(eventBroadcaster)
-            wdioReporter.emit.mockClear()
-            acceptPickle(eventBroadcaster)
-
-            expect(wdioReporter.emit).not.toHaveBeenCalled()
-        })
-
-        it('should not be ok if line is missing', () => {
-            loadGherkinNoLine(eventBroadcaster)
-            wdioReporter.emit.mockClear()
-            acceptPickle(eventBroadcaster)
-
-            expect(wdioReporter.emit).not.toHaveBeenCalled()
         })
 
         it("should send accepted pickle's data on `test-case-started` event", () => {
@@ -350,22 +304,21 @@ describe('CucumberFormatter', () => {
     })
 
     describe('provides a fail counter', () => {
-        let cucumberFormatter: CucumberFormatter
-        let eventBroadcaster: EventEmitter
-
-        beforeEach(() => {
-            wdioReporter.emit.mockClear()
-            eventBroadcaster = new EventEmitter()
-            cucumberFormatter = new CucumberFormatter({
-                eventBroadcaster: eventBroadcaster,
+        function reportedFailedCount (status: TestStepResultStatus, ignoreUndefinedDefinitions = false) {
+            const eventBroadcaster = new EventEmitter()
+            const events = new EventEmitter()
+            const counts: unknown[] = []
+            events.on('getFailedCount', (count) => counts.push(count))
+            new CucumberFormatter({
+                eventBroadcaster,
                 parsedArgvOptions: {
                     _reporter: wdioReporter,
                     _cid: cid,
                     _specs: specs,
-                    _eventEmitter: new EventEmitter(),
+                    _eventEmitter: events,
                     _scenarioLevelReporter: false,
                     _tagsInTitle: false,
-                    _ignoreUndefinedDefinitions: false,
+                    _ignoreUndefinedDefinitions: ignoreUndefinedDefinitions,
                     _failAmbiguousDefinitions: true,
                 },
             } as any)
@@ -374,66 +327,31 @@ describe('CucumberFormatter', () => {
             acceptPickle(eventBroadcaster)
             prepareSuite(eventBroadcaster)
             startSuite(eventBroadcaster)
-        })
+
+            const step: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            step.testStepResult = {
+                ...step.testStepResult,
+                status,
+            }
+            eventBroadcaster.emit('envelope', { testStepFinished: step })
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            return counts
+        }
 
         it('should increment failed counter on `failed` status', () => {
-            const failedStep: TestStepFinished = JSON.parse(
-                JSON.stringify(testStepFinished)
-            )
-            failedStep.testStepResult = {
-                ...failedStep.testStepResult,
-                status: TestStepResultStatus.FAILED,
-            }
-            eventBroadcaster.emit('envelope', { testStepFinished: failedStep })
-            // @ts-ignore accessing private property
-            expect(cucumberFormatter.failedCount).toBe(1)
+            expect(reportedFailedCount(TestStepResultStatus.FAILED)).toEqual([1])
         })
 
         it('should increment failed counter on `ambiguous` status', () => {
-            const ambiguousStep: TestStepFinished = JSON.parse(
-                JSON.stringify(testStepFinished)
-            )
-            ambiguousStep.testStepResult = {
-                ...ambiguousStep.testStepResult,
-                status: TestStepResultStatus.AMBIGUOUS,
-            }
-            eventBroadcaster.emit('envelope', {
-                testStepFinished: ambiguousStep,
-            })
-            // @ts-ignore accessing private property
-            expect(cucumberFormatter.failedCount).toBe(1)
+            expect(reportedFailedCount(TestStepResultStatus.AMBIGUOUS)).toEqual([1])
         })
 
         it('should increment failed counter on `undefined` status', () => {
-            const undefinedStep: TestStepFinished = JSON.parse(
-                JSON.stringify(testStepFinished)
-            )
-            undefinedStep.testStepResult = {
-                ...undefinedStep.testStepResult,
-                status: TestStepResultStatus.UNDEFINED,
-            }
-            eventBroadcaster.emit('envelope', {
-                testStepFinished: undefinedStep,
-            })
-            // @ts-ignore accessing private property
-            expect(cucumberFormatter.failedCount).toBe(1)
+            expect(reportedFailedCount(TestStepResultStatus.UNDEFINED)).toEqual([1])
         })
 
         it('should not increment failed counter on `undefined` status if ignoreUndefinedDefinitions set to true', () => {
-            // @ts-ignore accessing private property
-            cucumberFormatter.ignoreUndefinedDefinitions = true
-            const undefinedStep: TestStepFinished = JSON.parse(
-                JSON.stringify(testStepFinished)
-            )
-            undefinedStep.testStepResult = {
-                ...undefinedStep.testStepResult,
-                status: TestStepResultStatus.UNDEFINED,
-            }
-            eventBroadcaster.emit('envelope', {
-                testStepFinished: undefinedStep,
-            })
-            // @ts-ignore accessing private property
-            expect(cucumberFormatter.failedCount).toBe(0)
+            expect(reportedFailedCount(TestStepResultStatus.UNDEFINED, true)).toEqual([0])
         })
     })
 
