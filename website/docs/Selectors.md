@@ -49,7 +49,7 @@ The rule applies to every step of a [chain](#chain-selectors) and to every selec
 
 ### What is not affected
 
-- `$$` keeps returning zero or many elements.
+- `$$` keeps returning zero or many elements, as an [`ElementArray`](/docs/api/browser/$$). Await the list (or its `.length`) before you read the count or use `for...of`. `for await` works on the list directly.
 - The dedicated helper commands `custom$`, `shadow$` and `react$` are not strict — they still return their first match, as do their `$$` counterparts.
 - A selector that matches nothing still returns a lazily-resolved element, so [`waitForExist`](/docs/api/element/waitForExist) and the [auto-waiting](/docs/autowait) behavior are unchanged.
 - Passing an element reference, e.g. `$(await browser.getActiveElement())`, always refers to a single node and is never checked.

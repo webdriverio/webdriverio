@@ -7,6 +7,8 @@ import type { CustomStrategyFunction, CustomStrategyReference } from '../../type
 /**
  *
  * The `customs$$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`.
+ * It returns a [`WebdriverIO.ElementArray`](/docs/api/browser/$$), the same list as [`$$`](/docs/api/browser/$$):
+ * await it, or use `for await` and the async array methods before it resolves.
  * Read more on custom selector strategies in the [Selector docs](../../selectors#custom-selector-strategies).
  *
  * <example>

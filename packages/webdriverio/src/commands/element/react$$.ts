@@ -10,7 +10,8 @@ import type { ReactSelectorOptions } from '../../types.js'
 /**
  *
  * The `react$$` command is a useful command to query multiple React Components
- * by their actual name and filter them by props and state.
+ * by their actual name and filter them by props and state. It returns a
+ * [`WebdriverIO.ElementArray`](/docs/api/browser/$$), the same list as [`$$`](/docs/api/browser/$$).
  *
  * :::info
  *

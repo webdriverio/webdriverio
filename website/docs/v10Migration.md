@@ -174,7 +174,7 @@ The rule applies to every step of a chain (`$('form').$('input')`) and to every 
 
 ### What did not change
 
-- `$$` still returns zero or many elements.
+- `$$` still returns zero or many elements. Since v10 that list is an [`ElementArray`](/docs/api/browser/$$): a real array you can `await`, with `for await` and async `map` / `filter` available before it resolves. `await $$('button').length` is the count. `$$('button').length > 0` is not, because `length` is a promise until the list resolves. `for (const el of $$('button'))` throws until you have awaited the list; use `for await`, or `for...of` after `await`.
 - The dedicated helper commands `custom$`, `shadow$` and `react$` are not strict — they still return their first match, as do their `$$` counterparts.
 - A selector that matches nothing still returns a lazily-resolved element, so `waitForExist` and [auto-waiting](/docs/autowait) behave as before.
 - Passing an element reference, e.g. `$(await browser.getActiveElement())`, always refers to a single node and is never checked.

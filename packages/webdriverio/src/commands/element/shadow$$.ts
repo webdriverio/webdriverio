@@ -12,8 +12,9 @@ const log = logger('webdriverio')
 
 /**
  *
- * Access elements inside a given element's shadowRoot. If you are working
- * with lots of nested shadow roots, an alternative approach to `shadow$$`
+ * Access elements inside a given element's shadowRoot. The result is a
+ * [`WebdriverIO.ElementArray`](/docs/api/browser/$$), the same list as [`$$`](/docs/api/browser/$$).
+ * If you are working with lots of nested shadow roots, an alternative approach to `shadow$$`
  * is to use the [deep selector](https://webdriver.io/docs/selectors#deep-selectors).
  *
  * :::info
