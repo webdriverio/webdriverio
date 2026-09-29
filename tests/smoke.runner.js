@@ -23,7 +23,8 @@ process.env.WDIO_UNIT_TESTS = '1'
 
 import launch from './helpers/launch.js'
 import { headlessCapsLog } from './helpers/headless.conf.js'
-import watchMode from './watch-mode/run.js'
+import watchMode from './watch-mode/spec-change/run.js'
+import watchFilesToWatch from './watch-mode/files-to-watch/run.js'
 import {
     SERVICE_LOGS,
     LAUNCHER_LOGS,
@@ -1240,6 +1241,7 @@ const jasmineAfterHookArgsValidation = async () => {
 (async () => {
     const smokeTests = [
         watchMode,
+        watchFilesToWatch,
         mochaTestrunner,
         jasmineTestrunner,
         multiRemote,

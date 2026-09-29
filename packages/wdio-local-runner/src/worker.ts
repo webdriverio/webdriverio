@@ -230,9 +230,19 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             if (payload.content.isMultiRemote) {
                 Object.assign(this, payload.content)
             } else {
+                const { capabilities, ...connection } = payload.content
                 this.sessionId = payload.content.sessionId
-                this.capabilities = payload.content.capabilities
-                Object.assign(this.config, payload.content)
+                this.capabilities = capabilities
+                /**
+                 * Workers are constructed with the runner's config object.
+                 * Copy connection data onto a new object so one worker cannot
+                 * overwrite another's session id. The payload's capabilities
+                 * are the session's returned set, so they stay on the worker
+                 * and the requested capability list on the config is left as is.
+                 * Watch-mode shutdown reads the session id back to delete the
+                 * retained session.
+                 */
+                this.config = { ...this.config, ...connection }
             }
         }
 

@@ -93,7 +93,13 @@ export default class LocalRunner {
              */
             if (config && config.watch && (sessionId || isMultiRemote)) {
                 payload = {
-                    config: { ...server, sessionId, ...config },
+                    /**
+                     * The worker's own session id wins over any id stored on
+                     * config. Workers used to share one config object, so the
+                     * last session started would otherwise be deleted twice
+                     * and the others left open.
+                     */
+                    config: { ...server, ...config, ...(sessionId ? { sessionId } : {}) },
                     capabilities,
                     watch: true,
                     isMultiRemote,
