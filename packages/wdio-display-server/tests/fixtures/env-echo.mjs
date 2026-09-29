@@ -1,5 +1,5 @@
 /**
- * Worker-side shim for the integration test: reads a fixed set of env vars,
+ * Worker-side shim for the daemon test: reads a fixed set of env vars,
  * writes them to stdout as one-line JSON, then exits. The test forks it after
  * startDisplayDaemonFromConfig and asserts the daemon env propagated to the child.
  */
