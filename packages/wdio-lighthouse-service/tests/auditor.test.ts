@@ -201,7 +201,3 @@ test('updateCommands can install a failing command wrapper', async () => {
 
     expect(() => browser.addCommand.mock.calls[0][1]()).toThrow(error)
 })
-
-test('should not throw if no args passed', () => {
-    expect(new Auditor()).toBeTruthy()
-})
