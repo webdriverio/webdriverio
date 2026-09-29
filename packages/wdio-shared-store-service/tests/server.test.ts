@@ -1,172 +1,150 @@
-import { describe, expect, vi, beforeAll, afterAll, afterEach, it } from 'vitest'
-import { startServer, __store, __resourcePoolStore } from '../src/server.js'
-
-const errHandler = vi.fn()
+import { describe, expect, vi, beforeAll, afterEach, it } from 'vitest'
+import { startServer } from '../src/server.js'
 
 const headers = {
     'Content-Type': 'application/json'
 }
 
-describe('WdioSharedStoreService exports', () => {
-    let setUrl: string
-    let getUrl: string
-    let result: {
-        port: number;
-        app: PolkaInstance;
-    } | undefined
-    let setResourcePoolUrl: string
-    let getValueFromPoolUrl: string
-    let addValueToPoolUrl: string
+describe('shared store server', () => {
+    let baseUrl = ''
+    let closeServer: (() => Promise<void>) | undefined
 
-    beforeAll(async () => {
+    beforeAll(() => {
         vi.unstubAllGlobals()
-        result = await startServer()
-        const baseUrl = `http://127.0.0.1:${result.port}`
-        setUrl = `${baseUrl}/`
-        getUrl = `${baseUrl}`
-        setResourcePoolUrl = `${baseUrl}/pool/`
-        getValueFromPoolUrl = `${baseUrl}/pool`
-        addValueToPoolUrl = `${baseUrl}/pool`
     })
 
+    afterEach(async () => {
+        await closeServer?.()
+        closeServer = undefined
+    })
+
+    async function listen() {
+        const result = await startServer()
+        baseUrl = `http://127.0.0.1:${result.port}`
+        closeServer = () => new Promise((resolve) => {
+            if (result.app.server.close) {
+                result.app.server.close(() => resolve())
+                return
+            }
+            resolve()
+        })
+    }
+
+    function post(path: string, body: unknown) {
+        return fetch(`${baseUrl}${path}`, {
+            method: 'post',
+            body: JSON.stringify(body),
+            headers
+        })
+    }
+
     it('should not fail if payload has no key/value', async () => {
-        await fetch(setUrl, { method: 'post', body: JSON.stringify({}), headers })
-        await fetch(getUrl, { method: 'post', body: JSON.stringify({}), headers })
-        expect(__store).toEqual({})
+        await listen()
+        const response = await post('/', {})
+        expect(response.status).toBe(200)
+        const stored = await fetch(`${baseUrl}/*`, { method: 'get', headers })
+        expect(await stored.json()).toEqual({ value: {} })
     })
 
     it('should handle non json type', async () => {
-        const response = await fetch(getUrl, { method: 'post', body: 'foobar', headers })
+        await listen()
+        const response = await fetch(baseUrl, { method: 'post', body: 'foobar', headers })
         expect(response.status).toBe(422)
         expect(response.statusText).toBe('Unprocessable Entity')
-        expect(response.url).toContain('/')
         expect(await response.text()).toBe('Invalid JSON')
     })
 
     it('should handle 404', async () => {
-        const response = await fetch(`${getUrl}/foo/bar`, { method: 'get', headers })
+        await listen()
+        const response = await fetch(`${baseUrl}/foo/bar`, { method: 'get', headers })
         expect(response.status).toBe(404)
     })
 
-    describe('setting/getting entries', () => {
-        it('should set entry', async () => {
-            await fetch(setUrl, {
-                method: 'post',
-                body: JSON.stringify({ key: 'foo', value: 'bar' }),
-                headers
-            })
-            expect(__store).toEqual({ foo: 'bar' })
-        })
-
-        it('should get entry', async () => {
-            __store.foobar = 'barfoo'
-            const res = await fetch(`${getUrl}/foobar`, { method: 'get', headers })
-            expect((await res.json()).value).toEqual('barfoo')
-        })
+    it('should set and get an entry', async () => {
+        await listen()
+        const response = await post('/', { key: 'foo', value: 'bar' })
+        expect(response.status).toBe(200)
+        const res = await fetch(`${baseUrl}/foo`, { method: 'get', headers })
+        expect(await res.json()).toEqual({ value: 'bar' })
     })
 
     describe('resource pools', () => {
-        describe('when calling setResourcePool with an array', () => {
-            it('should initialize that value in the store', async () => {
-                const response = await fetch(setResourcePoolUrl, { method: 'post', body: JSON.stringify({ key: 'foo', value: ['bar'] }), headers })
-                expect(response.status).toBe(200)
-                expect(Array.from(__resourcePoolStore.entries())).toEqual([['foo', ['bar']]])
-            })
+        it('should store an array and return its values in order', async () => {
+            await listen()
+            const response = await post('/pool', { key: 'foo', value: ['bar', 'baz'] })
+            expect(response.status).toBe(200)
+            const first = await fetch(`${baseUrl}/pool/foo`, { method: 'get', headers })
+            expect(first.status).toBe(200)
+            expect(await first.json()).toEqual({ value: 'bar' })
+            const second = await fetch(`${baseUrl}/pool/foo`, { method: 'get', headers })
+            expect(await second.json()).toEqual({ value: 'baz' })
         })
 
-        describe('when calling setResourcePool without an array', () => {
-            it('should throw an error', async () => {
-                const response = await fetch(setResourcePoolUrl, { method: 'post', body: JSON.stringify({ key: 'foo', value: 'bar' }), headers })
-                expect(response.status).toBe(500)
-                expect((await response.text())).toBe('Resource pool must be an array of values')
-            })
+        it('should reject a resource pool that is not an array', async () => {
+            await listen()
+            const response = await post('/pool', { key: 'foo', value: 'bar' })
+            expect(response.status).toBe(500)
+            expect(await response.text()).toBe('Resource pool must be an array of values')
         })
 
-        describe('when calling setResourcePool with an already existing key', () => {
-            it('should should override it', async () => {
-                await fetch(setResourcePoolUrl, { method: 'post', body: JSON.stringify({ key: 'foo', value: [] }), headers })
-                await fetch(setResourcePoolUrl, { method: 'post', body: JSON.stringify({ key: 'foo', value: ['bar'] }), headers })
-                expect(Array.from(__resourcePoolStore.entries())).toEqual([['foo', ['bar']]])
-            })
+        it('should replace an existing resource pool', async () => {
+            await listen()
+            await post('/pool', { key: 'foo', value: ['old'] })
+            const response = await post('/pool', { key: 'foo', value: ['bar'] })
+            expect(response.status).toBe(200)
+            const first = await fetch(`${baseUrl}/pool/foo`, { method: 'get', headers })
+            expect(await first.json()).toEqual({ value: 'bar' })
+            const leftover = await fetch(`${baseUrl}/pool/foo?timeout=50`, { method: 'get', headers })
+            expect(leftover.status).toBe(500)
+            expect(await leftover.text()).toBe("'foo' resource pool is empty. Set values to it first using 'setResourcePool' or 'addValueToPool'")
         })
 
-        describe('when calling getValueFromPool with the name of an existing pool', () => {
-            it('should return the first element and update the store', async () => {
-                __resourcePoolStore.set('foo', ['bar'])
-                const response = await fetch(`${getValueFromPoolUrl}/foo`, { method: 'get', headers })
-                expect((await response.json()).value).toEqual('bar')
-                expect(Array.from(__resourcePoolStore.entries())).toEqual([['foo', []]])
-            })
-
-            describe('and the pool will receive values after calling', () => {
-                describe('and the timeout has a specified value', () => {
-                    it('should return a value within the specified timeout', async () => {
-                        __resourcePoolStore.set('foo', [])
-                        const promise = fetch(`${getValueFromPoolUrl}/foo?timeout=200`, { method: 'get', headers })
-                        await new Promise(resolve => setTimeout(resolve, 10))
-                        __resourcePoolStore.set('foo', ['bar'])
-                        const response = await promise
-                        expect(response.status).toBe(200)
-                        expect((await response.json()).value).toEqual('bar')
-                        expect(Array.from(__resourcePoolStore.entries())).toEqual([['foo', []]])
-                    })
-                })
-
-                describe('and the timeout is not specified', () => {
-                    it('should return a value within the default timeout', async () => {
-                        __resourcePoolStore.set('foo', [])
-                        const promise = fetch(`${getValueFromPoolUrl}/foo`, { method: 'get', headers })
-                        await new Promise(resolve => setTimeout(resolve, 10))
-                        __resourcePoolStore.set('foo', ['bar'])
-                        const response = await promise
-                        expect(response.status).toBe(200)
-                        expect((await response.json()).value).toEqual('bar')
-                        expect(Array.from(__resourcePoolStore.entries())).toEqual([['foo', []]])
-                    })
-                })
-            })
+        it('should return a value within the specified timeout', async () => {
+            await listen()
+            await post('/pool', { key: 'foo', value: [] })
+            const promise = fetch(`${baseUrl}/pool/foo?timeout=200`, { method: 'get', headers })
+            await new Promise((resolve) => setTimeout(resolve, 10))
+            expect((await post('/pool/foo', { value: 'bar' })).status).toBe(200)
+            const response = await promise
+            expect(response.status).toBe(200)
+            expect(await response.json()).toEqual({ value: 'bar' })
+            const leftover = await fetch(`${baseUrl}/pool/foo?timeout=50`, { method: 'get', headers })
+            expect(leftover.status).toBe(500)
         })
 
-        describe('when calling getValueFromPool with the name of a non existing pool', () => {
-            it('should throw an error', async () => {
-                const response = await fetch(`${getValueFromPoolUrl}/foo`, { method: 'get', headers })
-                expect(response.status).toBe(500)
-                expect(response.statusText).toBe('Internal Server Error')
-                expect(await response.text()).toBe("'foo' resource pool does not exist. Set it first using 'setResourcePool'")
-                expect(Array.from(__resourcePoolStore.entries())).toEqual([])
-            })
+        it('should return a value within the default timeout', async () => {
+            await listen()
+            await post('/pool', { key: 'foo', value: [] })
+            const promise = fetch(`${baseUrl}/pool/foo`, { method: 'get', headers })
+            await new Promise((resolve) => setTimeout(resolve, 10))
+            expect((await post('/pool/foo', { value: 'bar' })).status).toBe(200)
+            const response = await promise
+            expect(response.status).toBe(200)
+            expect(await response.json()).toEqual({ value: 'bar' })
         })
 
-        describe('when calling addValueToPool with a value and valid pool name', () => {
-            it('should add that value to the pool', async () => {
-                __resourcePoolStore.set('foo', [])
-                const response = await fetch(addValueToPoolUrl + '/foo', { method: 'post', body: JSON.stringify({ value: 'bar' }), headers })
-                expect(response.status).toBe(200)
-                expect(Array.from(__resourcePoolStore.entries())).toEqual([['foo', ['bar']]])
-            })
+        it('should fail when the pool does not exist', async () => {
+            await listen()
+            const response = await fetch(`${baseUrl}/pool/foo`, { method: 'get', headers })
+            expect(response.status).toBe(500)
+            expect(response.statusText).toBe('Internal Server Error')
+            expect(await response.text()).toBe("'foo' resource pool does not exist. Set it first using 'setResourcePool'")
         })
 
-        describe('when calling addValueToPool with an invalid pool name', () => {
-            it('should throw an error', async () => {
-                const response = await fetch(addValueToPoolUrl + '/foo', { method: 'post', body: JSON.stringify({ value: 'bar' }), headers })
-                expect(response.status).toBe(500)
-                expect(await response.text()).toBe("'foo' resource pool does not exist. Set it first using 'setResourcePool'")
-            })
+        it('should add a value to an existing pool', async () => {
+            await listen()
+            await post('/pool', { key: 'foo', value: [] })
+            const response = await post('/pool/foo', { value: 'bar' })
+            expect(response.status).toBe(200)
+            const got = await fetch(`${baseUrl}/pool/foo`, { method: 'get', headers })
+            expect(await got.json()).toEqual({ value: 'bar' })
         })
-    })
 
-    afterEach(() => {
-        Object.keys(__store).forEach(key => { delete __store[key] })
-        __resourcePoolStore.clear()
-        errHandler.mockClear()
-    })
-
-    afterAll(async () => {
-        return new Promise((resolve) => {
-            if (result?.app.server.close) {
-                return result?.app.server.close(() => resolve())
-            }
-            resolve()
+        it('should fail when adding to a missing pool', async () => {
+            await listen()
+            const response = await post('/pool/foo', { value: 'bar' })
+            expect(response.status).toBe(500)
+            expect(await response.text()).toBe("'foo' resource pool does not exist. Set it first using 'setResourcePool'")
         })
     })
 })
