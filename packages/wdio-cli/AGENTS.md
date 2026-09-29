@@ -28,3 +28,4 @@ Launcher / retry / spec-filter changes usually need a named smoke suite
 - Config examples are duplicated across `examples/`, `tests/helpers/`, and
   docs. Search the string before renaming a key.
 - Do not start a real browser from unit tests; smoke uses the mock service.
+- Config scaffolding, `wdio install`, and onboarding templates belong to `create-wdio`. Do not keep a second copy of those helpers, tests, or snapshots here. `findInConfig` is owned by `create-wdio`.
