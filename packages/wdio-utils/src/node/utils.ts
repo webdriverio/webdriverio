@@ -429,7 +429,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     )
 }
 
-async function installChromedriver (cacheDir: string, platform: BrowserPlatform, version: string, buildId: string) {
+async function installChromedriver (cacheDir: string, platform: BrowserPlatform, version: string, buildId: string): Promise<{ executablePath: string }> {
     let executablePath = computeExecutablePath({
         browser: Browser.CHROMEDRIVER,
         buildId,
