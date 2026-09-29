@@ -2,7 +2,6 @@ import { Readable } from 'node:stream'
 import { test, expect } from 'vitest'
 
 import runnerTransformStream from '../src/transformStream.js'
-import { DEBUGGER_MESSAGES } from '../src/constants.js'
 
 function read(stream: Readable): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -27,7 +26,12 @@ test('should add cid at the beginning of each line for multi-line message', asyn
 })
 
 test('should ignore debugger messages', async () => {
-    const input = Readable.from(DEBUGGER_MESSAGES.map(m => `${m} foobar`))
+    const input = Readable.from([
+        'Debugger listening on ws://127.0.0.1:9229/abc\n',
+        'Debugger attached\n',
+        'Waiting for the debugger to disconnect...\n',
+        'suite started\n',
+    ])
     const output = await read(runnerTransformStream('0-5', input))
-    expect(output).toEqual('')
+    expect(output).toEqual('[0-5] suite started\n')
 })
