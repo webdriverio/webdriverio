@@ -31,6 +31,18 @@ Use `@wdio/webdriver-mock-service` scenarios for runner-level command checks
 (`pnpm run test:smoke standaloneTest`). Do not launch a real browser in unit
 tests.
 
+## Test ownership
+
+One primary test owner per contract:
+
+- Package exports (`remote`, `attach`, `multiRemote`, `Key`, `SevereServiceError`)
+  belong to `tests/module.test.ts`. Do not add a second file that only checks
+  those exports are defined.
+- Selector parsing belongs to `tests/findStrategy.test.ts`. Do not replay the
+  same `findStrategy(...)` input from `tests/utils/`.
+- `browser.react$` / `browser.react$$` flag assertions stay in the browser
+  command tests. Element files should call `element.react$` / `element.react$$`.
+
 ## Guardrails
 
 - Add user-facing behavior here, not in `webdriver`, unless it is a raw
