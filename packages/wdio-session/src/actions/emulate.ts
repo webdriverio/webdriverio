@@ -232,13 +232,12 @@ async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude
     const previous = origin ? await readGeolocationPermission(browser) : undefined
     if (origin) {
         /**
-         * `grantPermissions` grants geolocation and denies every other permission
-         * for the origin. `setPermission` changes only geolocation.
+         * `grantPermissions` would deny every other permission for the origin,
+         * and the only way back is `resetPermissions`, which clears every origin.
+         * `setPermission` changes only geolocation. A failed write leaves the
+         * previous permissions in place.
          */
-        const granted = await writeGeolocationPermission(browser, origin, 'granted')
-        if (!granted) {
-            await browser.sendCommand('Browser.grantPermissions', { origin, permissions: ['geolocation'] }).catch(() => {})
-        }
+        await writeGeolocationPermission(browser, origin, 'granted')
     }
     const identifier = await preload(browser, source)
     await browser.execute(source)
@@ -248,14 +247,10 @@ async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude
         if (origin) {
             /**
              * An unreadable previous state still has to drop the grant. `prompt`
-             * is that origin only. `resetPermissions` is the fallback when the
-             * per-origin write fails, because that is what clears a
-             * `grantPermissions` override.
+             * is that origin only. A failed write is left as-is: `resetPermissions`
+             * has no origin and would clear overrides for every other origin.
              */
-            const restored = await writeGeolocationPermission(browser, origin, previous ?? 'prompt')
-            if (!restored) {
-                await browser.sendCommand('Browser.resetPermissions', {}).catch(() => {})
-            }
+            await writeGeolocationPermission(browser, origin, previous ?? 'prompt')
         }
         await browser.execute(`(() => {
             const desc = Object.getOwnPropertyDescriptor(navigator, 'geolocation');

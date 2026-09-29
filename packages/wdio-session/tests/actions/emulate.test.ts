@@ -177,13 +177,14 @@ describe('classic chromium emulation', () => {
         expect(commands).not.toContain('Browser.resetPermissions')
     })
 
-    it('resets permissions when the per-origin restore fails', async () => {
+    it('does not clear other origins when the per-origin permission write fails', async () => {
         const { session, commands, store } = classicSession()
         store.set('fail-permission', true)
         await geolocation(session, { lat: '35.6762', lon: '139.6503' })
         await emulate(session, { sub: 'reset' })
         expect(commands).toContain('Browser.setPermission')
-        expect(commands).toContain('Browser.resetPermissions')
+        expect(commands).not.toContain('Browser.grantPermissions')
+        expect(commands).not.toContain('Browser.resetPermissions')
     })
 
     it('advances the classic clock without installing BiDi fake timers', async () => {
