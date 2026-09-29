@@ -9,6 +9,13 @@ import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PAT
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
 const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
+/**
+ * minimum length for a string to be considered a base64 encoded screenshot,
+ * see `limit` in `@wdio/junit-reporter` which applies the same threshold.
+ * Short strings like "tomsmith" or "test" are valid base64 by charset and
+ * length but are never screenshots, replacing them only obscures the log.
+ */
+const SCREENSHOT_MIN_LENGTH = 100
 export const SLASH = '/'
 export const REG_EXP_WINDOWS_ABS_PATH = /^[A-Za-z]:\\/
 
@@ -105,6 +112,13 @@ export function commandCallStructure (commandName: string, args: unknown[], unfu
              * why we should include a command check in here.
              */
             !commandName.startsWith('switch') &&
+            /**
+             * the isBase64 method returns for short values like "tomsmith"
+             * a true value as they satisfy the base64 charset and are
+             * divisible by 4, which is why we only consider strings that are
+             * long enough to actually be a screenshot.
+             */
+            arg.length > SCREENSHOT_MIN_LENGTH &&
             isBase64(arg)
         ) {
             arg = SCREENSHOT_REPLACEMENT

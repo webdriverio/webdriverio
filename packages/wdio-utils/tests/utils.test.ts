@@ -33,11 +33,11 @@ describe('utils', () => {
                 shortStringFunction,
                 null,
                 undefined,
-                (Buffer.from('some screenshot')).toString('base64')
+                (Buffer.from('some screenshot'.repeat(10))).toString('base64')
             ]
         )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
         expect(commandCallStructure('foobar', ['/html/body/a']))
-            .toBe('foobar("<Screenshot[base64]>")')
+            .toBe('foobar("/html/body/a")')
         expect(commandCallStructure('findElement', ['/html/body/a']))
             .toBe('findElement("/html/body/a")')
         expect(commandCallStructure('findElements', ['/html/body/a']))
@@ -50,6 +50,28 @@ describe('utils', () => {
             .toBe('switchToWindow("9A562133B0552E0ECB7628F2E8A09E86")')
         expect(commandCallStructure('switchFrame', ['9A562133B0552E0ECB7628F2E8A09E86']))
             .toBe('switchFrame("9A562133B0552E0ECB7628F2E8A09E86")')
+    })
+
+    it('commandCallStructure does not treat short strings as screenshots', () => {
+        /**
+         * these are valid base64 by charset and length but are far too short
+         * to be a screenshot
+         */
+        expect(commandCallStructure('elementSendKeys', ['elem-123', 'tomsmith']))
+            .toBe('elementSendKeys("elem-123", "tomsmith")')
+        expect(commandCallStructure('elementSendKeys', ['elem-123', 'password']))
+            .toBe('elementSendKeys("elem-123", "password")')
+        expect(commandCallStructure('elementSendKeys', ['elem-123', 'test']))
+            .toBe('elementSendKeys("elem-123", "test")')
+        expect(commandCallStructure('elementSendKeys', ['elem-123', 'user']))
+            .toBe('elementSendKeys("elem-123", "user")')
+    })
+
+    it('commandCallStructure still masks actual screenshots', () => {
+        const screenshot = (Buffer.from('a'.repeat(1024))).toString('base64')
+        expect(screenshot.length).toBeGreaterThan(100)
+        expect(commandCallStructure('takeScreenshot', [screenshot]))
+            .toBe('takeScreenshot("<Screenshot[base64]>")')
     })
 
     it('transformCommandLogResult', () => {
