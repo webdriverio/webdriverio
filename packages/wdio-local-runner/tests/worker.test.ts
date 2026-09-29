@@ -412,6 +412,20 @@ describe('startProcess NODE_OPTIONS', () => {
         expect(nodeOptions).toBe('--import tsx --max-old-space-size=4096 --enable-source-maps')
     })
 
+    it('keeps the launcher import when runner NODE_OPTIONS only shares that text', async () => {
+        const nodeOptions = await runStartProcess('--import tsx', {
+            runnerEnv: { NODE_OPTIONS: '--import tsx/register' }
+        })
+        expect(nodeOptions).toBe('--import tsx --import tsx/register')
+    })
+
+    it('lets runnerEnv replace a parent option without dropping --import', async () => {
+        const nodeOptions = await runStartProcess('--max-old-space-size=2048 --import tsx', {
+            runnerEnv: { NODE_OPTIONS: '--max-old-space-size=4096' }
+        })
+        expect(nodeOptions).toBe('--max-old-space-size=4096 --import tsx')
+    })
+
     it('appends source maps when WDIO_SOURCE_MAPS opts in', async () => {
         const nodeOptions = await runStartProcess('--import tsx', {}, '1')
         expect(nodeOptions).toBe('--import tsx --enable-source-maps')

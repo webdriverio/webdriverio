@@ -44,6 +44,70 @@ function getExitCodeForSignal (signal: NodeJS.Signals | null) {
 }
 
 /**
+ * Flags whose next token is the operand (`--import tsx`, `--require a.js`).
+ * Other flags are one token, including `--max-old-space-size=4096`.
+ */
+const NODE_OPTIONS_WITH_VALUE = new Set([
+    '-r',
+    '--require',
+    '--import',
+    '--experimental-loader',
+    '--loader',
+])
+
+function nodeOptionName (group: string) {
+    return group.split(' ')[0].split('=')[0]
+}
+
+function parseNodeOptionGroups (value: string) {
+    const parts = value.trim().split(/\s+/).filter(Boolean)
+    const groups: string[] = []
+    for (let i = 0; i < parts.length; i++) {
+        const token = parts[i]
+        const next = parts[i + 1]
+        if (!token.includes('=') && NODE_OPTIONS_WITH_VALUE.has(token) && next && !next.startsWith('-')) {
+            groups.push(`${token} ${next}`)
+            i++
+            continue
+        }
+        groups.push(token)
+    }
+    return groups
+}
+
+/**
+ * Keep parent flags (including the launcher's `--import tsx`) and append
+ * `config.runnerEnv.NODE_OPTIONS`. Repeatable loader flags are unioned, so a
+ * runner value that merely contains the parent text cannot drop them. A runner
+ * flag replaces the parent value when both set the same non-repeatable option.
+ */
+function mergeWorkerNodeOptions (parent: string, runner: string | undefined) {
+    const merged = parseNodeOptionGroups(parent)
+    if (typeof runner !== 'string') {
+        return merged.join(' ')
+    }
+
+    for (const group of parseNodeOptionGroups(runner)) {
+        const name = nodeOptionName(group)
+        if (NODE_OPTIONS_WITH_VALUE.has(name)) {
+            if (!merged.includes(group)) {
+                merged.push(group)
+            }
+            continue
+        }
+
+        const existing = merged.findIndex((item) => nodeOptionName(item) === name)
+        if (existing === -1) {
+            merged.push(group)
+        } else {
+            merged[existing] = group
+        }
+    }
+
+    return merged.join(' ')
+}
+
+/**
  * WorkerInstance
  * responsible for spawning a sub process to run the framework in and handle its
  * session lifetime.
@@ -131,23 +195,18 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         /**
          * Propagate node flags to the worker, e.g. `--import tsx`.
-         * `config.runnerEnv.NODE_OPTIONS` replaces the parent value, but the
-         * launcher may already have added `--import tsx` there. Keep those
-         * parent flags, then append the runner value so its flags win when
-         * both set the same option. Append `--enable-source-maps` as a whole
-         * token only when this worker should map stack traces and the flag is
-         * not already present. Do not concatenate the parent value when it is
-         * already the resolved value: that duplicated flags and leaked the
-         * string `"undefined"` when it was unset.
+         * `Object.assign` lets `config.runnerEnv.NODE_OPTIONS` replace the
+         * parent value, which would drop the loader the launcher added for
+         * TypeScript. Merge the two instead. Append `--enable-source-maps` as
+         * a whole token only when this worker should map stack traces and the
+         * flag is not already present. Never concatenate an unset parent:
+         * that leaked the string `"undefined"`.
          */
-        const parentNodeOptions = (process.env.NODE_OPTIONS ?? '').trim()
         const runnerOverride = this.config.runnerEnv?.NODE_OPTIONS
-        const configuredNodeOptions = (typeof runnerOverride === 'string' ? runnerOverride : parentNodeOptions).trim()
-        const nodeOptions = parentNodeOptions &&
-            configuredNodeOptions !== parentNodeOptions &&
-            !configuredNodeOptions.includes(parentNodeOptions)
-            ? `${parentNodeOptions} ${configuredNodeOptions}`.trim()
-            : configuredNodeOptions
+        const nodeOptions = mergeWorkerNodeOptions(
+            process.env.NODE_OPTIONS ?? '',
+            typeof runnerOverride === 'string' ? runnerOverride : undefined
+        )
         const hasSourceMaps = nodeOptions.split(' ').includes('--enable-source-maps')
         const merged = this.shouldEnableSourceMaps() && !hasSourceMaps
             ? `${nodeOptions} --enable-source-maps`.trim()
