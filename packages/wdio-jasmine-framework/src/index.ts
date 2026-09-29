@@ -288,7 +288,8 @@ class JasmineAdapter {
             failSpecWithNoExpectations: Boolean(this._jasmineOpts.failSpecWithNoExpectations),
             random: Boolean(this._jasmineOpts.random),
             seed: Boolean(this._jasmineOpts.seed),
-            oneFailurePerSpec: Boolean(this._jasmineOpts.oneFailurePerSpec)
+            // Jasmine 6 has no "oneFailurePerSpec" option and ignores unknown keys
+            stopSpecOnExpectationFailure: Boolean(this._jasmineOpts.oneFailurePerSpec)
         })
 
         /**
