@@ -602,8 +602,12 @@ div[role="tabpanel"] .margin-vert--md,
     }
 }
 
-/* announcement bar */
-div[class*='announcementBar'] {
+/*
+ * Only the outer bar. The placeholder, content, and close button class names
+ * also contain "announcementBar", so a substring match gave them this border:
+ * a second rule under the text, and a line through the centered left spacer.
+ */
+.theme-announcement-bar {
     background: var(--wdio-surface) !important;
     color: var(--wdio-text-muted) !important;
     border-bottom: 1px solid var(--wdio-border);

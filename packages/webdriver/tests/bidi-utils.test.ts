@@ -155,10 +155,6 @@ describe('bidi utils', () => {
 
             const invalidAtEndExact = 'A'.repeat(4053843) + '?'
             expect(isBase64Safe(invalidAtEndExact)).toBe(false)
-
-            expect(isBase64Safe(exactSizeValidString)).toBe(true)
-            expect(isBase64Safe(exactSizeValidString)).toBe(true)
-            expect(isBase64Safe(invalidAtMiddleExact)).toBe(false)
         })
 
         it('should validate random valid base64 strings of various lengths', {

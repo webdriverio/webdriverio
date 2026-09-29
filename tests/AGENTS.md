@@ -47,7 +47,7 @@ Jasmine extras: `jasmineSpecFiltering`, `jasmineReporter`, `jasmineTimeout`,
 
 CLI / specs: `mochaSpecGrouping`, `mochaSpecFiltering`, `mochaHooksTestrunner`,
 `runSpecsWithFlagAllPassed`, `runSpecsWithFlagSeveralPassed`,
-`runSpecsWithFlagDirectPath`, `runSpecsWithFlagNoArg`,
+`runSpecsWithFlagDirectPath`, `runSpecsWithFlagNoArg`, `headlessFlag`,
 `cliExcludeParamValidation*`, `cliSpecsWithWildCard*`, `cliExclude*WithWildCard*`
 
 Plugins: `customService`, `customCJSService`, `customReporterString`,
