@@ -216,8 +216,51 @@ function geolocationSource (latitude: number, longitude: number, accuracy: numbe
         try {
             Object.defineProperty(navigator, 'geolocation', { configurable: true, value: geo })
         } catch (err) {}
+        /**
+         * \`Browser.setPermission\` can fail. Apps that ask \`permissions.query\`
+         * before calling \`getCurrentPosition\` would otherwise keep the old state
+         * and ignore the coordinates this command just installed.
+         */
+        const permissions = navigator.permissions
+        const current = permissions && permissions.query
+        if (current && !current.__wdioGeolocationQuery) {
+            const query = current.bind(permissions)
+            const wrapped = function (descriptor) {
+                if (descriptor && descriptor.name === 'geolocation') {
+                    return Promise.resolve({ state: 'granted', name: 'geolocation', onchange: null })
+                }
+                return query(descriptor)
+            }
+            wrapped.__wdioGeolocationQuery = query
+            try {
+                permissions.query = wrapped
+            } catch (err) {
+                try {
+                    Object.defineProperty(permissions, 'query', { configurable: true, writable: true, value: wrapped })
+                } catch (err2) {}
+            }
+        }
     })()`
 }
+
+const GEOLOCATION_RESTORE_SOURCE = `(() => {
+    const desc = Object.getOwnPropertyDescriptor(navigator, 'geolocation');
+    if (desc && desc.configurable) {
+        delete navigator.geolocation;
+    }
+    const permissions = navigator.permissions;
+    const wrapped = permissions && permissions.query;
+    const query = wrapped && wrapped.__wdioGeolocationQuery;
+    if (query) {
+        try {
+            permissions.query = query;
+        } catch (err) {
+            try {
+                Object.defineProperty(permissions, 'query', { configurable: true, writable: true, value: query });
+            } catch (err2) {}
+        }
+    }
+})()`
 
 async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude: number, longitude: number, accuracy: number): Promise<Restore> {
     const source = geolocationSource(latitude, longitude, accuracy)
@@ -232,10 +275,9 @@ async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude
     const previous = origin ? await readGeolocationPermission(browser) : undefined
     if (origin) {
         /**
-         * `grantPermissions` would deny every other permission for the origin,
-         * and the only way back is `resetPermissions`, which clears every origin.
-         * `setPermission` changes only geolocation. A failed write leaves the
-         * previous permissions in place.
+         * `setPermission` changes only geolocation. If it fails, the page script
+         * still reports the permission as granted. `grantPermissions` would deny
+         * every other permission, and `resetPermissions` would clear every origin.
          */
         await writeGeolocationPermission(browser, origin, 'granted')
     }
@@ -252,12 +294,7 @@ async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude
              */
             await writeGeolocationPermission(browser, origin, previous ?? 'prompt')
         }
-        await browser.execute(`(() => {
-            const desc = Object.getOwnPropertyDescriptor(navigator, 'geolocation');
-            if (desc && desc.configurable) {
-                delete navigator.geolocation;
-            }
-        })()`)
+        await browser.execute(GEOLOCATION_RESTORE_SOURCE)
     }
 }
 

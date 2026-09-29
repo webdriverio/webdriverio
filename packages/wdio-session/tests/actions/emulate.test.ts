@@ -147,6 +147,7 @@ describe('classic chromium emulation', () => {
         expect(commands).not.toContain('Browser.resetPermissions')
         expect(executed.some((script) => String(script).includes('__wdioNativeDate'))).toBe(true)
         expect(executed.some((script) => String(script).includes('delete navigator.geolocation'))).toBe(true)
+        expect(executed.some((script) => String(script).includes('__wdioGeolocationQuery'))).toBe(true)
     })
 
     it('puts the previous geolocation permission back', async () => {
@@ -178,13 +179,17 @@ describe('classic chromium emulation', () => {
     })
 
     it('does not clear other origins when the per-origin permission write fails', async () => {
-        const { session, commands, store } = classicSession()
+        const { session, commands, executed, store } = classicSession()
         store.set('fail-permission', true)
         await geolocation(session, { lat: '35.6762', lon: '139.6503' })
+        const script = String(executed.find((entry) => typeof entry === 'string'))
+        expect(script).toContain("descriptor.name === 'geolocation'")
+        expect(script).toContain("state: 'granted'")
         await emulate(session, { sub: 'reset' })
         expect(commands).toContain('Browser.setPermission')
         expect(commands).not.toContain('Browser.grantPermissions')
         expect(commands).not.toContain('Browser.resetPermissions')
+        expect(executed.some((entry) => String(entry).includes('permissions.query = query'))).toBe(true)
     })
 
     it('advances the classic clock without installing BiDi fake timers', async () => {
