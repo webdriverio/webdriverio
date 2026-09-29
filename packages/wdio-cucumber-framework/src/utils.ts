@@ -18,10 +18,7 @@ import type { ReporterStep, TestHookDefinitionConfig, Payload } from './types.js
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 const log = logger('@wdio/cucumber-framework:utils')
 
-/**
- * NOTE: this function is exported for testing only
- */
-export function createStepArgument ({ argument }: PickleStep) {
+function createStepArgument ({ argument }: PickleStep) {
     if (!argument) {
         return undefined
     }
@@ -88,7 +85,7 @@ export function getFeatureId (uri: string, feature: Feature) {
  * @param {string} text
  * @param {string} type
  */
-export function getTestStepTitle (keyword:string = '', text:string = '', type:string) {
+function getTestStepTitle (keyword:string = '', text:string = '', type:string) {
     const title = (!text && type.toLowerCase() !== 'hook') ? 'Undefined Step' : text
     return `${keyword.trim()} ${title.trim()}`.trim()
 }

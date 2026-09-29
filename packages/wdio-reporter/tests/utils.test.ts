@@ -1,7 +1,7 @@
-import { describe, expect, vi, it, afterAll } from 'vitest'
+import { describe, expect, vi, it } from 'vitest'
 
 import supportsColor from '../src/supportsColor.js'
-import { sanitizeString, sanitizeCaps, pad, color, colorLines } from '../src/utils.js'
+import { sanitizeString, sanitizeCaps, pad, color } from '../src/utils.js'
 
 vi.mock('../src/supportsColor.js', () => {
     return {
@@ -58,16 +58,5 @@ describe('utils', () => {
         // @ts-ignore
         supportsColor.set(true)
         expect(color('fast', 'foobar')).toBe('\u001b[90mfoobar\u001b[0m')
-    })
-
-    it('colorLines', () => {
-        // @ts-ignore
-        supportsColor.set(false)
-        expect(colorLines('fast', 'foo\nbar\nloo')).toBe('foo\nbar\nloo')
-    })
-
-    afterAll(() => {
-        // @ts-ignore
-        supportsColor.set(true)
     })
 })

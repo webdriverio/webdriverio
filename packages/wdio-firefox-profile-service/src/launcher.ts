@@ -40,31 +40,26 @@ export default class FirefoxProfileLauncher {
      * Sets any preferences and proxy
      */
     _setPreferences() {
-        if (!this._profile) {
-            return
-        }
+        const profile = this._profile!
 
         for (const [preference, value] of Object.entries(this._options)) {
             if (['extensions', 'proxy', 'profileDirectory'].includes(preference)) {
                 continue
             }
 
-            this._profile.setPreference(preference, value as string)
+            profile.setPreference(preference, value as string)
         }
 
         if (this._options.proxy) {
-            this._profile.setProxy(this._options.proxy)
+            profile.setProxy(this._options.proxy)
         }
 
-        this._profile.updatePreferences()
+        profile.updatePreferences()
     }
 
     async _buildExtension(capabilities: Capabilities.TestrunnerCapabilities) {
-        if (!this._profile) {
-            return
-        }
-
-        const zippedProfile = await promisify(this._profile.encoded.bind(this._profile))()
+        const profile = this._profile!
+        const zippedProfile = await promisify(profile.encoded.bind(profile))()
 
         if (Array.isArray(capabilities)) {
             (capabilities as Capabilities.RequestedStandaloneCapabilities[] | Capabilities.RequestedMultiRemoteCapabilities[])

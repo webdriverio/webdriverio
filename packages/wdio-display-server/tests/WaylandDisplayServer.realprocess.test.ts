@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
-import { spawnSync } from 'node:child_process'
 import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
@@ -11,13 +10,13 @@ import { installStubOnPath } from './realprocess-helpers.js'
 /**
  * Real-process coverage for WaylandDisplayServer, the bits mocks cannot prove: the
  * startDaemon()/stop() lifecycle against a controllable `weston` stub on PATH, and the
- * dnf install command run through a real shell. POSIX-only, so skipped on Windows.
+ * dnf install command `install()` runs through a real shell. POSIX-only, so skipped on Windows.
  */
 vi.mock('@wdio/logger', () => ({
     default: () => ({ info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() }),
 }))
 
-const { WaylandDisplayServer, WESTON_INSTALL_COMMANDS } = await import('../src/WaylandDisplayServer.js')
+const { WaylandDisplayServer } = await import('../src/WaylandDisplayServer.js')
 
 const stubPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', 'wayland-daemon-stub.mjs')
 const exists = (p: string) => access(p).then(() => true, () => false)
@@ -93,40 +92,62 @@ describe.skipIf(process.platform === 'win32')('dnf install command (real shell)'
 
     async function runDnfInstall(env: { RHEL: string, WESTON_IN_BASE?: string }) {
         const dir = await mkdtemp(path.join(os.tmpdir(), 'wdio-dnf-stub-'))
+        const previousPath = process.env.PATH
+        const previous = {
+            LOG: process.env.LOG,
+            STATE: process.env.STATE,
+            RHEL: process.env.RHEL,
+            WESTON_IN_BASE: process.env.WESTON_IN_BASE,
+        }
         try {
             for (const [name, script] of [['dnf', DNF], ['rpm', RPM], ['crb', CRB]]) {
                 await writeFile(path.join(dir, name), script, { mode: 0o755 })
             }
             const log = path.join(dir, 'calls.log')
             await writeFile(log, '')
-            const { status } = spawnSync('/bin/sh', ['-c', WESTON_INSTALL_COMMANDS.dnf], {
-                env: { PATH: dir, LOG: log, STATE: dir, WESTON_IN_BASE: '', ...env }, // the stubs use only shell builtins, so the host's dnf never runs
-                timeout: 10_000,
-            })
-            return { status, calls: (await readFile(log, 'utf8')).trim().split('\n') }
+            // PATH is only the stubs, so install() detects dnf and the host's dnf never runs.
+            process.env.PATH = dir
+            process.env.LOG = log
+            process.env.STATE = dir
+            process.env.WESTON_IN_BASE = ''
+            Object.assign(process.env, env)
+            const ok = await new WaylandDisplayServer().install()
+            return { ok, calls: (await readFile(log, 'utf8')).trim().split('\n') }
         } finally {
+            if (previousPath === undefined) {
+                delete process.env.PATH
+            } else {
+                process.env.PATH = previousPath
+            }
+            for (const [key, value] of Object.entries(previous)) {
+                if (value === undefined) {
+                    delete process.env[key]
+                } else {
+                    process.env[key] = value
+                }
+            }
             await rm(dir, { recursive: true, force: true })
         }
     }
 
     it('installs Weston from the base repos when it is there', async () => {
         expect(await runDnfInstall({ RHEL: '', WESTON_IN_BASE: '1' })).toEqual({
-            status: 0,
+            ok: true,
             calls: ['dnf -y makecache', 'dnf -y install weston'],
         })
     })
 
     it('enables EPEL and CRB on Enterprise Linux 10', async () => {
         expect(await runDnfInstall({ RHEL: '10' })).toEqual({
-            status: 0,
+            ok: true,
             calls: ['dnf -y makecache', 'dnf -y install weston', 'dnf -y install epel-release dnf-plugins-core', 'crb enable', 'dnf -y install weston'],
         })
     })
 
     it.each([['older Enterprise Linux', '9'], ['Fedora', '']])('leaves the repos alone on %s', async (_, rhel) => {
-        const { status, calls } = await runDnfInstall({ RHEL: rhel })
+        const { ok, calls } = await runDnfInstall({ RHEL: rhel })
 
-        expect(status).not.toBe(0)
+        expect(ok).toBe(false)
         expect(calls).toEqual(['dnf -y makecache', 'dnf -y install weston'])
     })
 })

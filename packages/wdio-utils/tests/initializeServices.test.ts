@@ -139,7 +139,7 @@ describe('initializeLauncherService', () => {
         expect(globalThis.test).toBe(undefined)
     })
 
-    it('should not fail if service is borked', async () => {
+    it('should wrap a constructor failure from a launcher service', async () => {
         vi.mocked(safeImport).mockResolvedValue({
             launcher: class {
                 constructor () {
@@ -203,7 +203,7 @@ describe('initializeWorkerService', () => {
         expect(log.error).toHaveBeenCalledTimes(0)
     })
 
-    it('should not fail if service is borked', async () => {
+    it('should wrap a constructor failure from a worker service', async () => {
         vi.mocked(safeImport).mockResolvedValue({
             default: class {
                 constructor () {

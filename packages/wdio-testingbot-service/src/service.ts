@@ -16,7 +16,7 @@ export default class TestingBotService implements Services.ServiceInstance {
     private _testCnt = 0
 
     constructor (
-        private _options: TestingbotOptions,
+        _options: TestingbotOptions,
         private _capabilities: Capabilities.ResolvedTestrunnerCapabilities,
         private _config: Options.Testrunner
     ) {

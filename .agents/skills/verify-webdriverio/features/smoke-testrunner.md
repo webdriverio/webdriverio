@@ -10,12 +10,13 @@ A user runs `wdio` and the testrunner loads config, starts workers, runs a frame
 - `smoke-cli` runs spec and exclude selection from the CLI.
 - `smoke-plugin` runs a custom service and a custom reporter through the launcher.
 - `smoke-standalone` runs `remote`, `attach`, and `multiRemote` inside a worker with the mock driver.
+- `smoke-watch` runs the testrunner with `--watch` and checks that a spec change reruns in the same session, including a failing rerun and a `filesToWatch` rerun of every spec.
 
 ## How to get to it (user POV)
 
 - List suite names: `pnpm run test:smoke:list`
 - Run one suite by its function name in `tests/smoke.runner.js`: `pnpm run test:smoke <suite>`
-- Common names: `mochaTestrunner`, `jasmineTestrunner`, `cucumberTestrunner`, `standaloneTest`, `customService`, `customReporterString`, `retryFail`, `mochaSpecFiltering`
+- Common names: `mochaTestrunner`, `jasmineTestrunner`, `cucumberTestrunner`, `standaloneTest`, `customService`, `customReporterString`, `retryFail`, `mochaSpecFiltering`, `watchMode`, `watchFilesToWatch`
 - The full name list is the `smokeTests` array at the bottom of `tests/smoke.runner.js` and in [tests/AGENTS.md](../../../../tests/AGENTS.md).
 
 ## Driving it with the WebdriverIO harness
@@ -29,6 +30,8 @@ Preconditions:
 - **Mocha session.** Run `pnpm run test:smoke mochaTestrunner`. Exit 0, stdout contains `All smoke tests passed!`, and the suite assertion requires `passed` 4 and `skippedSpecs` 1. On Windows the suite returns before those counts; do not treat that early return as the count check.
 - **Standalone client.** Run `pnpm run test:smoke standaloneTest`. Exit 0 and stdout contains `All smoke tests passed!`. The spec expects the mock title `Mock Page Title`.
 - **Plugin.** Run `pnpm run test:smoke customService` or `pnpm run test:smoke customReporterString`. Exit 0 and stdout contains `All smoke tests passed!`.
+- **Watch mode.** Run `pnpm run test:smoke watchMode`. Exit 0 and stdout contains `All smoke tests passed!`. The suite reruns a changed spec in the same WebDriver session, including one failing rerun.
+- **filesToWatch.** Run `pnpm run test:smoke watchFilesToWatch`. Exit 0 and stdout contains `All smoke tests passed!`. Changing a watched file reruns every spec, each spec keeps its own session, and shutdown deletes every retained session.
 - **Unknown name.** Run `pnpm run test:smoke notARealSuite`. Exit 1 and stdout names the suite and lists valid names. The runner prints that error with `console.log`.
 - **Proof.** Save output to `.agents/verify-artifacts/smoke-testrunner/`. `result.txt` records the suite name, exit code, and the passed or skipped count the suite asserts when it prints them.
 

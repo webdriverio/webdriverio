@@ -178,6 +178,7 @@ describe('WaylandDisplayServer', () => {
             expect(daemon.env.GDK_BACKEND).toBe('wayland')
             expect(daemon.env.XDG_SESSION_TYPE).toBe('wayland')
             expect(daemon.env.ELECTRON_OZONE_PLATFORM_HINT).toBe('wayland')
+            expect(mockAccess).toHaveBeenCalledWith(path.join(RUNTIME_DIR, 'wayland-0'))
         })
 
         it('uses default dimensions when options omitted', async () => {
@@ -264,22 +265,6 @@ describe('WaylandDisplayServer', () => {
                 // stop() short-circuits after stopSync — no redundant async rm.
                 expect(mockRm).not.toHaveBeenCalled()
             })
-        })
-    })
-
-    describe('waitForSocket (via startDaemon)', () => {
-        it('polls until the socket appears', async () => {
-            arrangeSpawn(mockSpawn)
-            mockAccess
-                .mockRejectedValueOnce(new Error('ENOENT'))
-                .mockRejectedValueOnce(new Error('ENOENT'))
-                .mockResolvedValueOnce(undefined)
-
-            const server = new WaylandDisplayServer()
-            const daemon = await server.startDaemon()
-
-            expect(daemon.env.WAYLAND_DISPLAY).toBeTruthy()
-            expect(mockAccess).toHaveBeenCalled()
         })
     })
 })

@@ -8,8 +8,6 @@ const log = logger('@wdio/jasmine-framework')
 const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|@wdio\/sync\/(build|src)|- - - - -)/g
 
 export default class JasmineReporter {
-    public startedSuite?: SuiteEvent
-
     private _cid: string
     private _specs: string[]
     private _jasmineOpts: JasmineOpts
@@ -36,8 +34,6 @@ export default class JasmineReporter {
             start: this._suiteStart,
             ...suite
         }
-
-        this.startedSuite = newSuite
 
         let fullName = suite.description
         for (const parent of [...this._parent].reverse()) {
@@ -181,7 +177,6 @@ export default class JasmineReporter {
 
         this._parent.pop()
         this.emit('suite:end', newSuite)
-        delete this.startedSuite
     }
 
     emit (event: string, payload: SuiteEvent | TestEvent) {

@@ -1,51 +1,11 @@
 import { describe, expect, test } from 'vitest'
 import {
-    isElementFindCommand,
     extractSelectorFromArgs,
     isXPathSelector,
     parseOptimizedSelector
 } from '../../../src/mobileSelectorPerformanceOptimizer/utils/selector-utils.js'
 
 describe('selector-utils', () => {
-    describe('isElementFindCommand', () => {
-        test('should return true for $ command', () => {
-            expect(isElementFindCommand('$')).toBe(true)
-        })
-
-        test('should return true for $$ command', () => {
-            expect(isElementFindCommand('$$')).toBe(true)
-        })
-
-        test('should return true for findElement commands', () => {
-            expect(isElementFindCommand('findElement')).toBe(true)
-            expect(isElementFindCommand('findElements')).toBe(true)
-        })
-
-        test('should return true for custom commands', () => {
-            expect(isElementFindCommand('custom$')).toBe(true)
-            expect(isElementFindCommand('custom$$')).toBe(true)
-        })
-
-        test('should return true for shadow commands', () => {
-            expect(isElementFindCommand('shadow$')).toBe(true)
-            expect(isElementFindCommand('shadow$$')).toBe(true)
-        })
-
-        test('should return true for element traversal commands', () => {
-            expect(isElementFindCommand('getElement')).toBe(true)
-            expect(isElementFindCommand('getElements')).toBe(true)
-            expect(isElementFindCommand('nextElement')).toBe(true)
-            expect(isElementFindCommand('previousElement')).toBe(true)
-            expect(isElementFindCommand('parentElement')).toBe(true)
-        })
-
-        test('should return false for non-find commands', () => {
-            expect(isElementFindCommand('click')).toBe(false)
-            expect(isElementFindCommand('getText')).toBe(false)
-            expect(isElementFindCommand('setValue')).toBe(false)
-        })
-    })
-
     describe('extractSelectorFromArgs', () => {
         test('should extract string selector from first argument', () => {
             expect(extractSelectorFromArgs(['//button'])).toBe('//button')

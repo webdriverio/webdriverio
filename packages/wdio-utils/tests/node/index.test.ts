@@ -10,7 +10,7 @@ import waitPort from 'wait-port'
 import { start as startSafaridriver } from 'safaridriver'
 import { start as startGeckodriver } from 'geckodriver'
 import { start as startEdgedriver, download as downloadEdgedriver } from 'edgedriver'
-import { install, canDownload } from '@puppeteer/browsers'
+import { install, canDownload, resolveBuildId } from '@puppeteer/browsers'
 
 import { startWebDriver } from '../../src/node/index.js'
 import { DEFAULT_EDGEDRIVER_CDN_URL, setupChromedriver, setupEdgedriver } from '../../src/node/utils.js'
@@ -107,6 +107,8 @@ describe('startWebDriver', () => {
          */
         vi.mocked(install).mockReset()
         vi.mocked(install).mockResolvedValue({} as never)
+        vi.mocked(resolveBuildId).mockReset()
+        vi.mocked(resolveBuildId).mockReturnValue('115.0.5790.171')
         vi.mocked(logMock.error).mockClear()
         vi.mocked(logMock.warn).mockClear()
         vi.mocked(fsp.access).mockClear()
@@ -324,6 +326,11 @@ describe('startWebDriver', () => {
     })
 
     it('still downloads a different requested Chromedriver version', async () => {
+        /**
+         * Sharing is keyed on the resolved build, not the raw request. These two
+         * versions resolve to different builds, so each one is installed.
+         */
+        vi.mocked(resolveBuildId).mockImplementation((_browser, _platform, version) => version)
         await Promise.all([
             setupChromedriver('/foo/bar/cache', '115.0.5790.171'),
             setupChromedriver('/foo/bar/cache', '120.0.0.0')
@@ -637,7 +644,7 @@ describe('startWebDriver', () => {
         expect(waitPort).toBeCalledWith(expect.objectContaining({ timeout: 10 * 1000 }))
     })
 
-    it('should find last known good version for chromedriver', async () => {
+    it('should install Chromedriver for the resolved build id', async () => {
         const options = {
             capabilities: {
                 browserName: 'chrome',

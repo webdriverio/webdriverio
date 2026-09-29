@@ -484,7 +484,8 @@ async function bar() {
     mock.respond('/other/resource.jpg')
     mock.respond('/other/resource.jpg', {
         statusCode: 100,
-        headers: { foo: 'bar' }
+        headers: { foo: 'bar' },
+        fetchResponse: false
     })
     mock.respond(Buffer.from('foobar'))
     mock.respond({ foo: 'bar' })
@@ -494,7 +495,8 @@ async function bar() {
     mock.respondOnce('/other/resource.jpg')
     mock.respondOnce('/other/resource.jpg', {
         statusCode: 100,
-        headers: { foo: 'bar' }
+        headers: { foo: 'bar' },
+        fetchResponse: false
     })
     mock.restore()
     const match = mock.calls[0]
@@ -573,7 +575,7 @@ async function bar() {
     }
     const panels = await browser.$$('foo')
     for (const panel of panels) {
-        await expect(panel).toHaveAttr('class', 'false')
+        await expect(panel).toHaveAttribute('class', 'false')
     }
 
     type Random = {

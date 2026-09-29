@@ -22,7 +22,7 @@ type PolkaResponse = {
 };
 
 interface PolkaInstance {
-    use: (use: any, cb: NextFn) => PolkaInstance;
+    use: (...handlers: any[]) => PolkaInstance;
     post: (
         path: string,
         cb: (req: PolkaRequest, res: PolkaResponse, next: Function) => void
@@ -34,8 +34,3 @@ interface PolkaInstance {
     listen: Function;
     server: Partial<import("http").Server> & { address(): { post: string } };
 }
-type NextFn = (
-    req: PolkaRequest,
-    res: PolkaResponse,
-    next: Function
-) => PolkaInstance;

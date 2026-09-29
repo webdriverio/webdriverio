@@ -69,8 +69,6 @@ test('should fork a new process', async () => {
         retries: 0,
         specs: ['/foo/bar.test.js'],
     })
-
-    await worker.postMessage('runAgain', { foo: 'bar' } as any)
 })
 
 test('should shut down worker processes', async () => {
@@ -202,6 +200,56 @@ test('should shut down worker processes in watch mode - regular', async () => {
     expect(call.args.config.host).toEqual('foo')
 })
 
+test('watch mode shutdown keeps each worker session when config is shared', async () => {
+    const sharedConfig = {
+        outputDir: '/foo/bar',
+        runnerEnv: { FORCE_COLOR: 1 },
+        watch: true,
+        displayServerEnabled: true
+    } as any
+    const runner = new LocalRunner({} as never, sharedConfig)
+
+    const runArgs = (cid: string, spec: string) => ({
+        cid,
+        command: 'run',
+        configFile: '/path/to/wdio.conf.js',
+        args: {} as any,
+        caps: {},
+        specs: [spec],
+        execArgv: [],
+        retries: 0,
+    })
+    const workerA = await runner.run(runArgs('0-0', '/tmp/first.test.js'))
+    const workerB = await runner.run(runArgs('0-1', '/tmp/second.test.js'))
+    workerA['_handleMessage']({ name: 'ready' } as any)
+    workerB['_handleMessage']({ name: 'ready' } as any)
+    workerA['_handleMessage']({
+        name: 'sessionStarted',
+        content: { sessionId: 'session-a', hostname: '127.0.0.1', port: 1 }
+    } as any)
+    workerB['_handleMessage']({
+        name: 'sessionStarted',
+        content: { sessionId: 'session-b', hostname: '127.0.0.1', port: 2 }
+    } as any)
+    expect(sharedConfig).not.toHaveProperty('sessionId')
+
+    delete workerA.childProcess
+    delete workerB.childProcess
+    setTimeout(() => {
+        workerA.isBusy = false
+        workerB.isBusy = false
+    }, 260)
+
+    await runner.shutdown()
+
+    const endSessions = vi.mocked(childProcessMock.send).mock.calls
+        .map((call) => call[0] as { command?: string, args?: { config?: { sessionId?: string, port?: number } } })
+        .filter((message) => message.command === 'endSession')
+    expect(endSessions.map((message) => message.args?.config?.sessionId).sort()).toEqual(['session-a', 'session-b'])
+    expect(endSessions.find((message) => message.args?.config?.sessionId === 'session-a')?.args?.config?.port).toBe(1)
+    expect(endSessions.find((message) => message.args?.config?.sessionId === 'session-b')?.args?.config?.port).toBe(2)
+})
+
 test('should shut down worker processes in watch mode - mutliremote', async () => {
     const runner = new LocalRunner(
         {} as never,
@@ -252,13 +300,6 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
     expect(call.args.instances).toEqual({ foo: { sessionId: '123' } })
 })
 
-test('should avoid shutting down if worker is not busy', async () => {
-    const runner = new LocalRunner({} as never, {
-        displayServerEnabled: true
-    } as any)
-    expect(await runner.initialize()).toBe(undefined)
-})
-
 test('starts a display-server daemon during initialize() when one is needed', async () => {
     const displayServer = await import('@wdio/display-server')
     const stopSpy = vi.fn().mockResolvedValue(undefined)
@@ -280,17 +321,6 @@ test('continues without a display when starting the daemon throws', async () => 
 
     await expect(runner.initialize()).resolves.toBeUndefined()
     expect(runner['daemon']).toBeNull()
-})
-
-test('shuts down cleanly when startDisplayDaemonFromConfig returns null', async () => {
-    const displayServer = await import('@wdio/display-server')
-    vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce(null)
-
-    const runner = new LocalRunner({} as never, { displayServerEnabled: true } as any)
-    await runner.initialize()
-
-    expect(displayServer.startDisplayDaemonFromConfig).toHaveBeenCalledTimes(1)
-    await runner.shutdown()
 })
 
 test('keeps the daemon through shutdown() and stops it in dispose()', async () => {

@@ -29,8 +29,6 @@ export function refId (value: string): string | undefined {
     return REF_PATTERN.test(id) ? id : undefined
 }
 
-export const isRef = (value: unknown): value is string => typeof value === 'string' && refId(value) !== undefined
-
 export const refFunction = (id: string) => new Function(`return (window.__wdioSession && window.__wdioSession.refs.get(${JSON.stringify(id)}) || { deref: function () { return null } }).deref() || null`) as () => HTMLElement
 
 export class RefRegistry {

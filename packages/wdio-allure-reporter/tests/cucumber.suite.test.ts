@@ -11,7 +11,6 @@ import { temporaryDirectory } from 'tempy'
 import { clean, getResults, mapBy } from './helpers/wdio-allure-helper'
 
 import AllureReporter from '../src/reporter.js'
-import { linkPlaceholder } from '../src/constants.js'
 import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
 import * as cucumberHelper from './__fixtures__/cucumber.js'
 import * as attachmentHelper from './__fixtures__/attachment.js'
@@ -45,8 +44,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
                     outputDir,
                     useCucumberStepReporter: true,
                     disableWebdriverStepsReporting: true,
-                    issueLinkTemplate: `https://github.com/webdriverio/webdriverio/issues/${linkPlaceholder}`,
-                    tmsLinkTemplate: `https://webdriver.io/${linkPlaceholder}`
+                    issueLinkTemplate: 'https://github.com/webdriverio/webdriverio/issues/{}',
+                    tmsLinkTemplate: 'https://webdriver.io/{}'
                 })
 
                 reporter.onRunnerStart(runnerStart())

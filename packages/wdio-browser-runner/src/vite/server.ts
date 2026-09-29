@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import getPort from 'get-port'
 import logger from '@wdio/logger'
@@ -123,7 +123,7 @@ export class ViteServer extends EventEmitter {
         if (this.#options.viteConfig) {
             const { plugins, ...configToMerge } = typeof this.#options.viteConfig === 'string'
                 ? (
-                    await import(path.resolve(this.#config.rootDir || process.cwd(), this.#options.viteConfig))
+                    await import(pathToFileURL(path.resolve(this.#config.rootDir || process.cwd(), this.#options.viteConfig)).href)
                 ).default as InlineConfig
                 : typeof this.#options.viteConfig === 'function'
                     ? await this.#options.viteConfig(DEFAULT_CONFIG_ENV)

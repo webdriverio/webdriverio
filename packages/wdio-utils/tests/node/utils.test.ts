@@ -4,12 +4,13 @@ import url from 'node:url'
 import cp from 'node:child_process'
 import fs from 'node:fs'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { canDownload, resolveBuildId, detectBrowserPlatform } from '@puppeteer/browsers'
+import { canDownload, resolveBuildId, detectBrowserPlatform, install } from '@puppeteer/browsers'
 import { locateChrome, locateApp } from 'locate-app'
+import { download as downloadGeckodriver } from 'geckodriver'
 
 import {
     parseParams, getBuildIdByChromePath, getBuildIdByFirefoxPath, setupPuppeteerBrowser,
-    canAccess, getCacheDir
+    canAccess, getCacheDir, setupChromedriver, setupGeckodriver, setupEdgedriver
 } from '../../src/node/utils.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -64,8 +65,16 @@ vi.mock('node:child_process', () => ({
     }
 }))
 
+vi.mock('geckodriver', () => ({
+    download: vi.fn().mockResolvedValue({ executablePath: '/path/to/geckodriver' })
+}))
+
+vi.mock('edgedriver', () => ({
+    download: vi.fn().mockResolvedValue({ executablePath: '/path/to/edgedriver' })
+}))
+
 vi.mock('@puppeteer/browsers', () => ({
-    Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium' },
+    Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium', CHROMEDRIVER: 'chrome' },
     ChromeReleaseChannel: { STABLE: 'stable' },
     detectBrowserPlatform: vi.fn(),
     resolveBuildId: vi.fn().mockReturnValue('116.0.5845.110'),
@@ -73,6 +82,241 @@ vi.mock('@puppeteer/browsers', () => ({
     computeExecutablePath: vi.fn().mockReturnValue('/foo/bar/executable'),
     install: vi.fn().mockResolvedValue({})
 }))
+
+describe('setupChromedriver', () => {
+    /**
+     * `chrome` and `chromium` are both in the Chrome browser family, so a config with
+     * both asks for Chromedriver twice at the same time. The two installs used to race
+     * on one cache directory and the loser saw a folder that existed but had no
+     * executable in it yet (#15676).
+     */
+    it('shares one install between concurrent setups of the same driver', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        try {
+            await Promise.all([
+                setupChromedriver('/some/cache', '116.0.5845.110'),
+                setupChromedriver('/some/cache', '116.0.5845.110')
+            ])
+
+            expect(install).toBeCalledTimes(1)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+
+    it('shares one install between version requests that resolve to the same build', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        try {
+            /**
+             * `resolveBuildId` maps both of these onto the same build, so keying on the
+             * raw version string would let them race even though they want one download
+             */
+            await Promise.all([
+                setupChromedriver('/some/cache', 'stable'),
+                setupChromedriver('/some/cache', '116')
+            ])
+
+            expect(install).toBeCalledTimes(1)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+
+    it('lets a later call retry after a shared install failed', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockRejectedValue(new Error('network is down'))
+
+        try {
+            await expect(setupChromedriver('/retry/cache', '116.0.5845.110')).rejects.toThrow()
+            const callsAfterFailure = vi.mocked(install).mock.calls.length
+            expect(callsAfterFailure).toBeGreaterThan(0)
+
+            /**
+             * the rejected promise must not stay in the map, otherwise every later
+             * setup for the same driver would fail without ever downloading again
+             */
+            vi.mocked(install).mockResolvedValue({} as never)
+            await setupChromedriver('/retry/cache', '116.0.5845.110')
+
+            expect(vi.mocked(install).mock.calls.length).toBeGreaterThan(callsAfterFailure)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+
+    it('does not share an install between different cache directories', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        try {
+            await Promise.all([
+                setupChromedriver('/cache/one', '116.0.5845.110'),
+                setupChromedriver('/cache/two', '116.0.5845.110')
+            ])
+
+            expect(install).toBeCalledTimes(2)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+
+    it('shares an install when cache paths differ only by a trailing slash', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        try {
+            await Promise.all([
+                setupChromedriver('/tmp/cache', '116.0.5845.110'),
+                setupChromedriver('/tmp/cache/', '116.0.5845.110')
+            ])
+
+            expect(install).toBeCalledTimes(1)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+
+    it('falls back with the resolved build major when the request version has none', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(canDownload).mockResolvedValue(false)
+        vi.mocked(resolveBuildId).mockImplementation(((_browser: string, _platform: string, version: string) => {
+            if (version === '116') {
+                return '116.0.5845.96'
+            }
+            return '116.0.5845.110'
+        }) as never)
+        vi.mocked(install).mockClear()
+        vi.mocked(resolveBuildId).mockClear()
+
+        try {
+            await setupChromedriver('/some/cache', 'stable')
+
+            expect(resolveBuildId).toHaveBeenCalledWith('chrome', 'linux', '116')
+            expect(install).toHaveBeenCalledWith(expect.objectContaining({ buildId: '116.0.5845.96' }))
+        } finally {
+            vi.mocked(resolveBuildId).mockReset()
+            vi.mocked(resolveBuildId).mockReturnValue('116.0.5845.110' as never)
+            vi.mocked(canDownload).mockResolvedValue(true)
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+
+    it('shares one fallback install when two missing builds resolve to the same known build', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(canDownload).mockResolvedValue(false)
+        vi.mocked(resolveBuildId).mockImplementation(((_browser: string, _platform: string, version: string) => {
+            if (version === '116.0.1') {
+                return '116.0.1'
+            }
+            if (version === '116.0.2') {
+                return '116.0.2'
+            }
+            return '116.0.0'
+        }) as never)
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 20))
+        )
+
+        try {
+            await Promise.all([
+                setupChromedriver('/some/cache', '116.0.1'),
+                setupChromedriver('/some/cache', '116.0.2')
+            ])
+
+            expect(install).toBeCalledTimes(1)
+            expect(install).toHaveBeenCalledWith(expect.objectContaining({ buildId: '116.0.0' }))
+        } finally {
+            vi.mocked(resolveBuildId).mockReset()
+            vi.mocked(resolveBuildId).mockReturnValue('116.0.5845.110' as never)
+            vi.mocked(canDownload).mockResolvedValue(true)
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+})
+
+describe('setupGeckodriver and setupEdgedriver', () => {
+    it('shares one geckodriver install between concurrent setups and retries after failure', async () => {
+        vi.mocked(downloadGeckodriver).mockClear()
+        vi.mocked(downloadGeckodriver).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        await Promise.all([
+            setupGeckodriver('/tmp/cache', '0.35.0'),
+            setupGeckodriver('/tmp/cache/', '0.35.0')
+        ])
+        expect(downloadGeckodriver).toBeCalledTimes(1)
+
+        vi.mocked(downloadGeckodriver).mockReset()
+        vi.mocked(downloadGeckodriver).mockRejectedValueOnce(new Error('download failed'))
+        await expect(setupGeckodriver('/retry/gecko', '0.35.0')).rejects.toThrow('download failed')
+
+        vi.mocked(downloadGeckodriver).mockResolvedValue({ executablePath: '/path/to/geckodriver' } as never)
+        await setupGeckodriver('/retry/gecko', '0.35.0')
+        expect(downloadGeckodriver).toBeCalledTimes(2)
+    })
+
+    it('shares one edgedriver install between concurrent setups and retries after failure', async () => {
+        const { download: downloadEdgedriver } = await import('edgedriver')
+        vi.mocked(downloadEdgedriver).mockClear()
+        vi.mocked(downloadEdgedriver).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        await Promise.all([
+            setupEdgedriver('/tmp/cache', '120.0.0'),
+            setupEdgedriver('/tmp/cache/', '120.0.0')
+        ])
+        expect(downloadEdgedriver).toBeCalledTimes(1)
+
+        vi.mocked(downloadEdgedriver).mockReset()
+        vi.mocked(downloadEdgedriver).mockRejectedValueOnce(new Error('download failed'))
+        await expect(setupEdgedriver('/retry/edge', '120.0.0')).rejects.toThrow('download failed')
+
+        vi.mocked(downloadEdgedriver).mockResolvedValue({ executablePath: '/path/to/edgedriver' } as never)
+        await setupEdgedriver('/retry/edge', '120.0.0')
+        expect(downloadEdgedriver).toBeCalledTimes(2)
+    })
+})
 
 describe('driver utils', () => {
     beforeEach(() => {

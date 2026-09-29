@@ -54,12 +54,8 @@ export default class DevToolsService implements Services.ServiceInstance {
             throw new Error(`CPU throttling rate needs to be typeof number but was "${typeof cpuThrottling}"`)
         }
 
-        if (this._command.length === 1) {
-            this._command[0].enablePerformanceAudits({ networkThrottling, cpuThrottling, cacheEnabled, formFactor })
-        } else {
-            for (const c of this._command) {
-                c.enablePerformanceAudits({ networkThrottling, cpuThrottling, cacheEnabled, formFactor })
-            }
+        for (const c of this._command) {
+            c.enablePerformanceAudits({ networkThrottling, cpuThrottling, cacheEnabled, formFactor })
         }
     }
 
@@ -67,12 +63,8 @@ export default class DevToolsService implements Services.ServiceInstance {
      * custom command to disable performance audits
      */
     _disablePerformanceAudits () {
-        if (this._command.length === 1) {
-            this._command[0].disablePerformanceAudits()
-        } else {
-            for (const c of this._command) {
-                c.disablePerformanceAudits()
-            }
+        for (const c of this._command) {
+            c.disablePerformanceAudits()
         }
     }
 
@@ -81,12 +73,8 @@ export default class DevToolsService implements Services.ServiceInstance {
         cpuThrottling: number = DEFAULT_THROTTLE_STATE.cpuThrottling,
         cacheEnabled: boolean = DEFAULT_THROTTLE_STATE.cacheEnabled
     ) {
-        if (this._command.length === 1) {
-            this._command[0].setThrottlingProfile(networkThrottling, cpuThrottling, cacheEnabled)
-        } else {
-            for (const c of this._command) {
-                c.setThrottlingProfile(networkThrottling, cpuThrottling, cacheEnabled)
-            }
+        for (const c of this._command) {
+            c.setThrottlingProfile(networkThrottling, cpuThrottling, cacheEnabled)
         }
     }
 
@@ -112,7 +100,7 @@ export default class DevToolsService implements Services.ServiceInstance {
          */
         const browsers = Object.keys(this._browser).includes('sessionId') ?
             [this._browser] :
-            (this._browser as WebdriverIO.MultiRemoteBrowser).instances.map(i => (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(i)!)
+            (this._browser as WebdriverIO.MultiRemoteBrowser).instances.map(i => (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(i))
 
         for (const browser of browsers) {
             const puppeteer = await (browser as WebdriverIO.Browser).getPuppeteer().catch(() => undefined) as unknown as PuppeteerBrowser

@@ -147,14 +147,9 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isSauce', () => {
         const capabilities = { browserName: 'chrome' }
-        let requestedCapabilities: WebdriverIO.Capabilities = {}
+        const requestedCapabilities: WebdriverIO.Capabilities = {}
 
         expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isSauce).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
-
-        requestedCapabilities['sauce:options'] = { extendedDebugging: true }
-        expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
-        requestedCapabilities = {}
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
 
         requestedCapabilities['sauce:options'] = { extendedDebugging: true }
@@ -200,48 +195,27 @@ describe('sessionEnvironmentDetector', () => {
             expect(isAndroid).toEqual(true)
         })
 
-        it('should detect Android by device name in bstack:options using sessionEnvironmentDetector', () => {
+        /**
+         * Both public detectors pass capabilities through to the same `isAndroid`
+         * check. One table covers the regex and the wrapper wiring together.
+         */
+        const expectAndroidDevice = (deviceName: string, isAndroid: boolean) => {
+            const capabilities = { 'bstack:options': { deviceName } }
             expect(sessionEnvironmentDetector({
-                capabilities: { 'bstack:options': { deviceName: 'Samsung Galaxy S21' } },
+                capabilities,
                 requestedCapabilities: {}
-            }).isAndroid).toBe(true)
+            }).isAndroid).toBe(isAndroid)
+            expect(capabilitiesEnvironmentDetector(capabilities).isAndroid).toBe(isAndroid)
+        }
 
-            expect(sessionEnvironmentDetector({
-                capabilities: { 'bstack:options': { deviceName: 'Google Pixel 7' } },
-                requestedCapabilities: {}
-            }).isAndroid).toBe(true)
-
-            expect(sessionEnvironmentDetector({
-                capabilities: { 'bstack:options': { deviceName: 'OnePlus 9 Pro' } },
-                requestedCapabilities: {}
-            }).isAndroid).toBe(true)
-
-            expect(sessionEnvironmentDetector({
-                capabilities: { 'bstack:options': { deviceName: 'Nexus 5X' } },
-                requestedCapabilities: {}
-            }).isAndroid).toBe(true)
+        it('should detect Android by device name in bstack:options', () => {
+            for (const deviceName of ['Samsung Galaxy S21', 'Google Pixel 7', 'OnePlus 9 Pro', 'Nexus 5X']) {
+                expectAndroidDevice(deviceName, true)
+            }
         })
 
-        it('should detect Android by device name in bstack:options using capabilitiesEnvironmentDetector', () => {
-            expect(capabilitiesEnvironmentDetector({
-                'bstack:options': { deviceName: 'Samsung Galaxy S21' }
-            }).isAndroid).toBe(true)
-
-            expect(capabilitiesEnvironmentDetector({
-                'bstack:options': { deviceName: 'Google Pixel 7' }
-            }).isAndroid).toBe(true)
-
-            expect(capabilitiesEnvironmentDetector({
-                'bstack:options': { deviceName: 'OnePlus 9 Pro' }
-            }).isAndroid).toBe(true)
-
-            expect(capabilitiesEnvironmentDetector({
-                'bstack:options': { deviceName: 'Nexus 5X' }
-            }).isAndroid).toBe(true)
-        })
-
-        it('should detect Android by various manufacturer device names with sessionEnvironmentDetector', () => {
-            const androidDevices = [
+        it('should detect Android by manufacturer device names', () => {
+            for (const deviceName of [
                 'LG G8',
                 'HTC One',
                 'Motorola Edge',
@@ -252,72 +226,24 @@ describe('sessionEnvironmentDetector', () => {
                 'Xiaomi Mi 11',
                 'Redmi Note 10',
                 'Realme GT',
-                'Samsung Galaxy Note'
-            ]
-
-            androidDevices.forEach(deviceName => {
-                expect(sessionEnvironmentDetector({
-                    capabilities: { 'bstack:options': { deviceName } },
-                    requestedCapabilities: {}
-                }).isAndroid).toBe(true)
-            })
+                'Samsung Galaxy Note',
+                'Samsung SM-A515F'
+            ]) {
+                expectAndroidDevice(deviceName, true)
+            }
         })
 
-        it('should detect Android by various manufacturer device names with capabilitiesEnvironmentDetector', () => {
-            const androidDevices = [
-                'LG G8',
-                'HTC One',
-                'Motorola Edge',
-                'Sony Xperia',
-                'Huawei P30',
-                'Vivo V21',
-                'Oppo Find X3',
-                'Xiaomi Mi 11',
-                'Redmi Note 10',
-                'Realme GT',
-                'Samsung Galaxy Note'
-            ]
-
-            androidDevices.forEach(deviceName => {
-                expect(capabilitiesEnvironmentDetector({
-                    'bstack:options': { deviceName }
-                }).isAndroid).toBe(true)
-            })
-        })
-
-        it('should not detect Android for non-Android device names with sessionEnvironmentDetector', () => {
-            const nonAndroidDevices = [
+        it('should not detect Android for non-Android device names', () => {
+            for (const deviceName of [
                 'iPhone 13',
                 'iPad Pro',
                 'iPhone SE',
                 'iPad Mini',
                 'Desktop Chrome',
                 'MacBook Pro'
-            ]
-
-            nonAndroidDevices.forEach(deviceName => {
-                expect(sessionEnvironmentDetector({
-                    capabilities: { 'bstack:options': { deviceName } },
-                    requestedCapabilities: {}
-                }).isAndroid).toBe(false)
-            })
-        })
-
-        it('should not detect Android for non-Android device names with capabilitiesEnvironmentDetector', () => {
-            const nonAndroidDevices = [
-                'iPhone 13',
-                'iPad Pro',
-                'iPhone SE',
-                'iPad Mini',
-                'Desktop Chrome',
-                'MacBook Pro'
-            ]
-
-            nonAndroidDevices.forEach(deviceName => {
-                expect(capabilitiesEnvironmentDetector({
-                    'bstack:options': { deviceName }
-                }).isAndroid).toBe(false)
-            })
+            ]) {
+                expectAndroidDevice(deviceName, false)
+            }
         })
 
         it('should detect Android case-insensitively by device name with both detectors', () => {

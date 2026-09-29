@@ -12,8 +12,7 @@ import { commandExists, installViaPackageManager, resolveDaemonDimensions } from
 import { runDaemon } from './daemonProcess.js'
 import { sessionEnv } from './sessionEnv.js'
 
-// Exported so a test can run the dnf fallback through a real shell.
-export const WESTON_INSTALL_COMMANDS: Record<string, string> = {
+const WESTON_INSTALL_COMMANDS: Record<string, string> = {
     apt: 'DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y weston',
     // EL 10 has no Xvfb and ships Weston only in EPEL, so enable EPEL and CRB there, with the dnf-plugins-core
     // that crb needs. Older EL gets Xvfb instead, so its repos are left alone.

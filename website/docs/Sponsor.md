@@ -139,6 +139,15 @@ Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silv
     width="150"
 />
 
+<ImageSwitcher
+    lightImageSrc="/img/sponsors/rapidproxy.png"
+    darkImageSrc="/img/sponsors/rapidproxy.png"
+    alt="Rapidproxy"
+    target="_blank"
+    link="https://www.rapidproxy.io/"
+    width="200"
+/>
+
 Become a [Bronze Sponsor](https://opencollective.com/webdriverio/contribute/bronze-sponsor-69224/checkout?interval=month&amount=100&contributeAs=me).
 
 <br />

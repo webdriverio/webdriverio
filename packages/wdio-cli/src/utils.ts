@@ -260,17 +260,6 @@ export function getRunnerName(caps: WebdriverIO.Capabilities = {}) {
     return runner
 }
 
-export function findInConfig(config: string, type: string) {
-    let regexStr = `[\\/\\/]*[\\s]*${type}s: [\\s]*\\[([\\s]*['|"]\\w*['|"],*)*[\\s]*\\]`
-
-    if (type === 'framework') {
-        regexStr = `[\\/\\/]*[\\s]*${type}: ([\\s]*['|"]\\w*['|"])`
-    }
-
-    const regex = new RegExp(regexStr, 'gmi')
-    return config.match(regex)
-}
-
 export async function getCapabilities(arg: ReplCommandArguments) {
     const optionalCapabilites = {
         'appium:platformVersion': arg.platformVersion,

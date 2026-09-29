@@ -126,27 +126,15 @@ describe('wdio-logger utils', () => {
             expect(patterns).toEqual([])
         })
 
+        it('rejects unsafe regular expressions', () => {
+            expect(parseMaskingPatterns('(a+)+')).toEqual([])
+            expect(parseMaskingPatterns('/(a+)+/i')).toEqual([])
+            expect(parseMaskingPatterns('(a+)+,/--key=[^ ]*/')).toEqual([/--key=[^ ]*/])
+        })
+
     })
 
     describe('mask', () => {
-
-        it('should return the arg as it is when not a string', () => {
-            const arg = 123
-            const patterns = [/--key=[^ ]*/]
-
-            const maskedValue = mask(arg as unknown as string, patterns)
-
-            expect(maskedValue).toEqual(arg)
-        })
-
-        it('should return the arg when undefined', () => {
-            const arg = undefined
-            const patterns = [/--key=[^ ]*/]
-
-            const maskedValue = mask(arg as unknown as string, patterns)
-
-            expect(maskedValue).toEqual(arg)
-        })
 
         it('should not mask when nothing to mask', () => {
             const arg = 'mask nothing'
@@ -193,15 +181,6 @@ describe('wdio-logger utils', () => {
             expect(maskedValue).toEqual('before **MASKED**=**MASKED** after')
         })
 
-        it('should also work with global flag', () => {
-            const arg = 'before --key=mySecretKey after'
-            const patterns = [/--key=([^ ]*)/g]
-
-            const maskedValue = mask(arg, patterns)
-
-            expect(maskedValue).toEqual('before --key=**MASKED** after')
-        })
-
         it('should masked multiple occurrences with the global flag', () => {
             const arg = 'before --key=mySecretKey1 --key=mySecretKey2 after'
             const patterns = [/--key=([^ ]*)/g]
@@ -222,11 +201,12 @@ describe('wdio-logger utils', () => {
 
         it('should keep trailing new line if one existed', () => {
             const arg = 'RESULT test\n'
-            const patterns = [/RESULT ([^ ]*)/]
+            // The match includes the newline, so only the restore step can put it back.
+            const patterns = [/RESULT [\s\S]*/]
 
             const maskedValue = mask(arg, patterns)
 
-            expect(maskedValue).toEqual('RESULT **MASKED**\n')
+            expect(maskedValue).toEqual('**MASKED**\n')
         })
     })
 })

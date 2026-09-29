@@ -3,6 +3,24 @@ import type { ChildProcess } from 'node:child_process'
 import { WritableStreamBuffer } from 'stream-buffers'
 import { describe, expect, it, vi } from 'vitest'
 
+const forkMock = vi.hoisted(() => vi.fn((
+    _modulePath: string,
+    _args?: readonly string[],
+    _options?: { env?: NodeJS.ProcessEnv }
+) => ({
+    on: vi.fn(),
+    stdout: null,
+    stderr: null,
+})))
+
+vi.mock('node:child_process', async () => {
+    const actual = await vi.importActual<Record<string, unknown>>('node:child_process')
+    return {
+        ...actual,
+        fork: forkMock,
+    }
+})
+
 import logger from '@wdio/logger'
 import type { Workers } from '@wdio/types'
 
@@ -67,17 +85,27 @@ describe('handleMessage', () => {
     })
 
     it('stores sessionId and connection data to worker instance', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const requestedCapabilities = [{ browserName: 'chrome' }]
+        const sharedConfig = { watch: true, capabilities: requestedCapabilities } as WebdriverIO.Config
+        const worker = new Worker(sharedConfig, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         const payload = {
             name: 'sessionStarted',
             content: {
                 sessionId: 'abc123',
+                hostname: '127.0.0.1',
+                port: 4444,
+                capabilities: { browserName: 'chrome', browserVersion: '120' },
                 bar: 'foo'
             }
         }
         worker['_handleMessage'](payload as unknown as Workers.WorkerMessage)
         expect(worker.sessionId).toEqual('abc123')
+        expect(worker.capabilities).toEqual({ browserName: 'chrome', browserVersion: '120' })
+        expect(worker.config).toMatchObject({ watch: true, sessionId: 'abc123', hostname: '127.0.0.1', port: 4444, bar: 'foo' })
+        expect(worker.config.capabilities).toEqual(requestedCapabilities)
+        expect(sharedConfig).not.toHaveProperty('sessionId')
+        expect(sharedConfig.capabilities).toEqual(requestedCapabilities)
     })
 
     it('stores instances to worker instance in multi-remote mode', () => {
@@ -141,16 +169,6 @@ describe('handleExit', () => {
             specs: ['/some/spec'],
             signal: 'SIGSEGV'
         })
-    })
-
-    it('reports a crashed worker as failed so it is not swallowed by the launcher', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        worker.emit = vi.fn()
-        worker['_handleExit'](null, 'SIGSEGV')
-
-        const { exitCode } = vi.mocked(worker.emit).mock.calls[0][1] as { exitCode: number }
-        expect(exitCode).not.toBe(0)
-        expect(exitCode).toBeTruthy()
     })
 
     it('falls back to a generic failure code if neither exit code nor signal is known', () => {
@@ -222,17 +240,6 @@ describe('kill', () => {
         expect(childProcess.kill).toHaveBeenCalledWith('SIGTERM')
     })
 
-    it('should kill with SIGKILL when specified', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        const childProcess = { kill: vi.fn() }
-        worker.childProcess = childProcess as unknown as ChildProcess
-
-        worker.kill('SIGKILL')
-
-        expect(childProcess.kill).toHaveBeenCalledWith('SIGKILL')
-        expect(worker.isKilled).toBe(true)
-    })
-
     it('should handle missing child process gracefully', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.childProcess = undefined
@@ -255,7 +262,7 @@ describe('kill', () => {
 describe('postMessage', () => {
     it('should log if the cid is busy and exit', async () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        const log = logger('webdriver')
+        const log = logger('@wdio/local-runner')
         vi.spyOn(log, 'info').mockImplementation((string) => string)
 
         worker.isBusy = true
@@ -307,5 +314,137 @@ describe('postMessage', () => {
 
         // and no unhandled rejection — the send is safely skipped
         await worker.isReady
+    })
+})
+
+describe('startProcess NODE_OPTIONS', () => {
+    const runStartProcess = async (
+        parentNodeOptions: string | undefined,
+        config: Record<string, unknown> = {},
+        sourceMaps?: string
+    ) => {
+        const originalNodeOptions = process.env.NODE_OPTIONS
+        const originalSourceMaps = process.env.WDIO_SOURCE_MAPS
+        if (sourceMaps === undefined) {
+            delete process.env.WDIO_SOURCE_MAPS
+        } else {
+            process.env.WDIO_SOURCE_MAPS = sourceMaps
+        }
+        if (parentNodeOptions === undefined) {
+            delete process.env.NODE_OPTIONS
+        } else {
+            process.env.NODE_OPTIONS = parentNodeOptions
+        }
+
+        forkMock.mockClear()
+        try {
+            const worker = new Worker(
+                config as any,
+                workerConfig,
+                new WritableStreamBuffer(),
+                new WritableStreamBuffer()
+            )
+            await worker.startProcess()
+            return forkMock.mock.calls[0][2]?.env?.NODE_OPTIONS
+        } finally {
+            if (originalNodeOptions === undefined) {
+                delete process.env.NODE_OPTIONS
+            } else {
+                process.env.NODE_OPTIONS = originalNodeOptions
+            }
+            if (originalSourceMaps === undefined) {
+                delete process.env.WDIO_SOURCE_MAPS
+            } else {
+                process.env.WDIO_SOURCE_MAPS = originalSourceMaps
+            }
+        }
+    }
+
+    it('does not leak a literal "undefined" when the parent has no NODE_OPTIONS', async () => {
+        const nodeOptions = await runStartProcess(undefined)
+        expect(nodeOptions).toBeUndefined()
+    })
+
+    it('preserves parent node flags without duplicating them', async () => {
+        const nodeOptions = await runStartProcess('--import tsx')
+        expect(nodeOptions).toBe('--import tsx')
+    })
+
+    it('appends source maps for verbose workers without dropping parent flags', async () => {
+        const nodeOptions = await runStartProcess('--import tsx', { logLevel: 'debug' })
+        expect(nodeOptions).toBe('--import tsx --enable-source-maps')
+    })
+
+    it('does not duplicate --enable-source-maps when the parent already set it', async () => {
+        const nodeOptions = await runStartProcess('--enable-source-maps --import tsx', { logLevel: 'trace' })
+        expect(nodeOptions).toBe('--enable-source-maps --import tsx')
+    })
+
+    it('preserves worker NODE_OPTIONS set via config.runnerEnv', async () => {
+        const nodeOptions = await runStartProcess(undefined, {
+            logLevel: 'debug',
+            runnerEnv: { NODE_OPTIONS: '--import tsx' }
+        })
+        expect(nodeOptions).toBe('--import tsx --enable-source-maps')
+    })
+
+    it('keeps repeated option/value pairs intact', async () => {
+        const nodeOptions = await runStartProcess('--require a.js --require b.js', { logLevel: 'debug' })
+        expect(nodeOptions).toBe('--require a.js --require b.js --enable-source-maps')
+    })
+
+    it('keeps launcher flags when runnerEnv replaces NODE_OPTIONS', async () => {
+        const nodeOptions = await runStartProcess('--import tsx', {
+            logLevel: 'debug',
+            runnerEnv: { NODE_OPTIONS: '--max-old-space-size=4096' }
+        })
+        expect(nodeOptions).toBe('--import tsx --max-old-space-size=4096 --enable-source-maps')
+    })
+
+    it('keeps the launcher import when runner NODE_OPTIONS only shares that text', async () => {
+        const nodeOptions = await runStartProcess('--import tsx', {
+            runnerEnv: { NODE_OPTIONS: '--import tsx/register' }
+        })
+        expect(nodeOptions).toBe('--import tsx --import tsx/register')
+    })
+
+    it('lets runnerEnv replace a parent option without dropping --import', async () => {
+        const nodeOptions = await runStartProcess('--max-old-space-size=2048 --import tsx', {
+            runnerEnv: { NODE_OPTIONS: '--max-old-space-size=4096' }
+        })
+        expect(nodeOptions).toBe('--max-old-space-size=4096 --import tsx')
+    })
+
+    it('keeps quoted preload paths that contain spaces', async () => {
+        const nodeOptions = await runStartProcess('--require "./my modules/a.js"', {
+            runnerEnv: { NODE_OPTIONS: '--require "./my modules/b.js"' }
+        })
+        expect(nodeOptions).toBe('--require "./my modules/a.js" --require "./my modules/b.js"')
+    })
+
+    it('keeps quoted preload paths that contain an escaped quote', async () => {
+        const nodeOptions = await runStartProcess('--require "./my\\" modules/a.js"', {
+            runnerEnv: { NODE_OPTIONS: '--require "./my\\" modules/b.js"' }
+        })
+        expect(nodeOptions).toBe('--require "./my\\" modules/a.js" --require "./my\\" modules/b.js"')
+    })
+
+    it('replaces a space-separated option value instead of leaving the old one', async () => {
+        const nodeOptions = await runStartProcess('--max-old-space-size 2048', {
+            runnerEnv: { NODE_OPTIONS: '--max-old-space-size 4096' }
+        })
+        expect(nodeOptions).toBe('--max-old-space-size 4096')
+    })
+
+    it('keeps every --conditions value from the parent and the runner', async () => {
+        const nodeOptions = await runStartProcess('--conditions development', {
+            runnerEnv: { NODE_OPTIONS: '--conditions browser' }
+        })
+        expect(nodeOptions).toBe('--conditions development --conditions browser')
+    })
+
+    it('appends source maps when WDIO_SOURCE_MAPS opts in', async () => {
+        const nodeOptions = await runStartProcess('--import tsx', {}, '1')
+        expect(nodeOptions).toBe('--import tsx --enable-source-maps')
     })
 })

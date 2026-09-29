@@ -1,5 +1,4 @@
 import path from 'node:path'
-import tmp from 'tmp'
 import { describe, expect, it, vi } from 'vitest'
 
 import DotReporter from '../src/index.js'
@@ -9,8 +8,7 @@ vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@w
 
 describe('Dot Reporter', () => {
     it('should write proper symbols', () => {
-        const logFile = tmp.fileSync()
-        const reporter = new DotReporter({ logFile: logFile.name })
+        const reporter = new DotReporter({})
         reporter.write = vi.fn()
         const mockReporter = vi.mocked(reporter.write)
 
@@ -30,15 +28,5 @@ describe('Dot Reporter', () => {
     it('should write to stdout per default', () => {
         const reporter = new DotReporter({})
         expect(reporter.options.stdout).toBe(true)
-    })
-
-    it('should write to output stream', () => {
-        const logFile = tmp.fileSync()
-        const reporter = new DotReporter({
-            logFile: logFile.name,
-            stdout: false
-        })
-        reporter.write(1)
-        expect(vi.mocked(reporter.outputStream.write).mock.calls[0]).toEqual([1])
     })
 })

@@ -50,10 +50,3 @@ export function nativeCandidates (node: SelectorNode): string[] {
     }
     return out
 }
-
-/**
- * The first candidate that occurs once in `occurrences`.
- */
-export function uniqueCandidate (candidates: string[], occurrences: Map<string, number>) {
-    return candidates.find((candidate) => occurrences.get(candidate) === 1)
-}
