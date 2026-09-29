@@ -41,3 +41,11 @@ client method.
 - Session / request middleware changes affect every command. Cover them with
   unit tests around the request pipeline, not one test per command.
 - Interop: CJS consumers are checked by `pnpm run test:interop`.
+- BiDi unit tests deliver bytes through the socket `message` listener registered
+  by `BidiCore.connect`. Do not add a test-only response accessor.
+- `deleteSession` skips `logger.clearLogger()` only when
+  `environment.value.variables.WDIO_WORKER_ID` is set. Unit tests must set that
+  field. `process.env.WDIO_WORKER_ID` is not read here.
+- Base64 summarization of command arguments belongs to `@wdio/utils`
+  `transformCommandLogResult`. Tests in this package only check that a string
+  result from that helper is copied into the WebDriver error.

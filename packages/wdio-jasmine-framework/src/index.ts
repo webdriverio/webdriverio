@@ -36,14 +36,14 @@ const log = logger('@wdio/jasmine-framework')
 
 /**
  * Jasmine 6 removed Spec, Suite, and the built-in matchers from the public
- * namespace. They still exist on `jasmine.private`, which is what this adapter
- * has to patch. Older Jasmine versions expose them directly.
+ * namespace. They still exist on `jasmine.private`. Older Jasmine versions
+ * expose them directly. This adapter patches Spec and Expector on whichever
+ * shape is present.
  */
 interface JasmineInternals {
     Spec: {
         prototype: {
             addExpectationResult: Function
-            execute?: (...args: unknown[]) => unknown
         }
     }
     Suite: {
@@ -171,7 +171,6 @@ class JasmineAdapter {
     private _totalTests = 0
     private _hasTests = true
     private _lastTest?: unknown
-    private _lastSpec?: unknown
     /**
      * Set when a spec starts so the wrapped `it` can read failures after the
      * body. Cleared on that read so later hooks do not inherit the spec result.
@@ -378,27 +377,6 @@ class JasmineAdapter {
          */
         Jasmine.prototype.configureDefaultReporter = NOOP
 
-        /**
-         * wrap Suite and Spec prototypes to get access to their data
-         */
-        const beforeAllMock = internals.Suite.prototype.beforeAll
-        internals.Suite.prototype.beforeAll = function (this: { result: unknown }, ...args: unknown[]) {
-            self._lastSpec = this.result
-            beforeAllMock.apply(this, args)
-        }
-        const executeMock = internals.Spec.prototype.execute
-        if (typeof executeMock === 'function') {
-            internals.Spec.prototype.execute = function (this: { result: jasmine.SpecResult }, ...args: unknown[]) {
-                self._lastTest = this.result
-                // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
-                self._lastTest.start = new Date().getTime()
-                // @ts-ignore needs to be set to be compatible with what WebdriverIO expects
-                self._lastTest.file = this.result.filename
-                self._frameworkResultPending = true
-                executeMock.apply(this, args)
-            }
-        }
-
         return this
     }
 
@@ -539,9 +517,9 @@ class JasmineAdapter {
         switch (hookName) {
         case 'beforeSuite':
         case 'afterSuite':
-            params.payload = Object.assign({
+            params.payload = {
                 file: this._jrunner?.specFiles[0]
-            }, this._lastSpec)
+            }
             break
         case 'beforeTest':
         case 'afterTest':
@@ -570,7 +548,6 @@ class JasmineAdapter {
             }
 
             if (params.payload.id && params.payload.id.startsWith('spec')) {
-                message.parent = (this._lastSpec as jasmine.Spec)?.description
                 message.passed = params.payload.failedExpectations.length === 0
             }
 

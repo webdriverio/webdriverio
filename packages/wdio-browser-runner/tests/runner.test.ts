@@ -9,6 +9,13 @@ import reports from 'istanbul-reports'
 
 import BrowserRunner from '../src/index.js'
 
+const { viteServers } = vi.hoisted(() => ({
+    viteServers: [] as {
+        start: ReturnType<typeof vi.fn>
+        close: ReturnType<typeof vi.fn>
+    }[]
+}))
+
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/local-runner')
@@ -25,6 +32,9 @@ vi.mock('../src/vite/server.js', () => ({
         onBrowserEvent = vi.fn()
         config = { server: { port: 1234 } }
         on = vi.fn()
+        constructor () {
+            viteServers.push(this)
+        }
     }
 }))
 vi.mock('istanbul-lib-coverage', () => ({
@@ -50,6 +60,7 @@ vi.mock('node:fs/promises', async () => {
 describe('BrowserRunner', () => {
     beforeEach(() => {
         delete process.env.CI
+        viteServers.length = 0
     })
 
     it('should throw if framework is not Mocha', () => {
@@ -92,8 +103,8 @@ describe('BrowserRunner', () => {
             caps: { browserName: 'chrome' },
             command: 'run'
         })
-        expect(runner['_servers'].size).toBe(1)
-        expect(runner['_servers'].values().next().value!.start).toHaveBeenCalledTimes(1)
+        expect(viteServers).toHaveLength(1)
+        expect(viteServers[0].start).toHaveBeenCalledTimes(1)
     })
 
     it('modifies runArgs to set allowOrigins', async () => {
@@ -115,11 +126,13 @@ describe('BrowserRunner', () => {
             rootDir: '/foo/bar',
             framework: 'mocha'
         } as any)
-        runner['_generateCoverageReports'] = vi.fn()
         await runner.initialize()
-        await runner.shutdown()
+        vi.mocked(LocalRunner.prototype.run).mockReturnValue({ on: vi.fn() } as any)
+        await runner.run({ caps: { browserName: 'chrome' }, command: 'run', args: {} } as any)
+        expect(await runner.shutdown()).toBe(true)
         expect(LocalRunner.prototype.shutdown).toBeCalledTimes(1)
-        expect(runner['_generateCoverageReports']).toBeCalledTimes(1)
+        expect(viteServers).toHaveLength(1)
+        expect(viteServers[0].close).toHaveBeenCalledTimes(1)
     })
 
     describe('_generateCoverageReports', async () => {

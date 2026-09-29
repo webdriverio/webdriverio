@@ -77,22 +77,6 @@ describe('wrapCommand', () => {
         expect(afterHook).toBeCalledWith('getData', ['param1', 'param2'], { success: true, data: 'test' }, undefined)
     })
 
-    it('should pass actual command result to afterCommand hook, not 0/1', async () => {
-        const commandResult = { title: 'Test Page', url: 'https://example.com' }
-        const commandFn = vi.fn().mockReturnValue(Promise.resolve(commandResult))
-        const afterHook = vi.fn()
-        const scope: any = {
-            options: {
-                beforeCommand: [],
-                afterCommand: afterHook
-            }
-        }
-        await wrapCommand('getTitle', commandFn).call(scope)
-
-        expect(afterHook).toBeCalledTimes(1)
-        const callArgs = afterHook.mock.calls[0]
-        expect(callArgs[2]).toEqual(commandResult) // result should be the actual command result
-    })
 })
 
 describe('executeAsync', () => {

@@ -4,34 +4,18 @@ import { json } from '@polka/parse'
 
 import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'
 
-const store: JsonObject = {}
-const resourcePoolStore: Map<string, JsonArray> = new Map()
-/**
- * @private
- */
-export const __store = store
-export const __resourcePoolStore = resourcePoolStore
-
-const validateBody: NextFn = (req, res, next) => {
-    if (!req.path.endsWith('/get') && !req.path.endsWith('/set')) {
-        return next()
-    }
-    if (req.method === 'POST' && typeof req.body.key !== 'string') {
-        res.end(JSON.stringify({ error: 'Invalid payload, key is required.' }))
-    }
-    next()
-}
-
 const MAX_TIMEOUT = 15000
 const DEFAULT_TIMEOUT = 1000
 
 export const startServer = () => new Promise<{ port: number, app: PolkaInstance }>((resolve, reject) => {
+    const store: JsonObject = {}
+    const resourcePoolStore: Map<string, JsonArray> = new Map()
     const app = polka()
         /**
          * middleware
          * `json` middleware transforms body to json for every request or returns empty object
          */
-        .use(json(), validateBody)
+        .use(json())
 
         // routes
         .post('/', (req, res) => {

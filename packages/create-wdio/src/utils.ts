@@ -260,12 +260,8 @@ export async function createPackageJSON(parsedAnswers: ParsedAnswers) {
 
     // If a user said no to creating a package.json, but it doesn't exist, abort.
     if (parsedAnswers.createPackageJSON === false) {
-        /* istanbul ignore if */
-        if (!packageJsonExists) {
-            console.log(`No WebdriverIO configuration found in "${parsedAnswers.wdioConfigPath}"`)
-            return !process.env.WDIO_UNIT_TESTS && process.exit(0)
-        }
-        return
+        console.log(`No WebdriverIO configuration found in "${parsedAnswers.wdioConfigPath}"`)
+        process.exit(0)
     }
 
     // Only create if the user gave explicit permission to

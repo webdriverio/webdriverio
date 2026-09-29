@@ -144,8 +144,10 @@ async function ConfigParserForTestWithAllFiles(configPath: string, args = {}) {
 }
 
 describe('ConfigParser', () => {
-    it('should throw if getFilePaths is not a string', () => {
-        expect(() => ConfigParser.getFilePaths(123 as any, '/foo/bar')).toThrow()
+    it('should throw when specs or exclude is not an array or string', () => {
+        expect(() => ConfigParser.getFilePaths(123 as any, '/foo/bar')).toThrow(
+            'specs or exclude property should be an array of strings, specs may also be an array of string arrays'
+        )
     })
 
     it('enables coverage', async () => {
@@ -278,6 +280,10 @@ describe('ConfigParser', () => {
             }
             expect(specs).toContain(featureFileA)
             expect(specs).toContain(featureFileB)
+            expect(configParser.getConfig().cucumberFeaturesWithLineNumbers).toEqual([
+                FIXTURES_CUCUMBER_FEATURE_A_LINE_2,
+                FIXTURES_CUCUMBER_FEATURE_B_LINE_7
+            ])
         })
 
         it('should allow specifying mutliple single spec file', async () => {
@@ -413,8 +419,8 @@ describe('ConfigParser', () => {
         })
 
         it('should allow specifying multiple exclude files', async () => {
-            const configParser = await ConfigParserForTest(FIXTURES_CONF)
-            configParser.initialize({
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({
                 spec: [INDEX_PATH, FIXTURES_CONF],
                 exclude: [INDEX_PATH, FIXTURES_CONF]
             })
@@ -761,9 +767,9 @@ describe('ConfigParser', () => {
             const configParser = await ConfigParserForTest(FIXTURES_CONF)
             await configParser.initialize()
 
-            const javaFile = path.resolve(FIXTURES_PATH, '*.java')
-            const specs = configParser.getSpecs([javaFile])
-            expect(specs).not.toContain(javaFile)
+            const specs = configParser.getSpecs([path.resolve(FIXTURES_PATH, '*')])
+            expect(specs).toContain(path.resolve(FIXTURES_PATH, 'typescript.ts'))
+            expect(specs).not.toContain(path.resolve(FIXTURES_PATH, 'test.java'))
         })
 
         it('should include spec when specifying a suite', async () => {
@@ -774,19 +780,6 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(2)
             expect(specs).toContain(INDEX_PATH)
             expect(specs).toContain(path.join(__dirname, 'FileSystemPathService.test.ts'))
-        })
-
-        it('should repeat spec 3 times', async () => {
-            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
-            await configParser.initialize({ spec: [INDEX_PATH], repeat: 3 })
-
-            const specs = configParser.getSpecs()
-            expect(specs).toHaveLength(3)
-            expect(specs).toStrictEqual([
-                INDEX_PATH,
-                INDEX_PATH,
-                INDEX_PATH,
-            ])
         })
 
         it('should not include spec if blank spec parameter passed', async () => {

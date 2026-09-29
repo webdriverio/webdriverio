@@ -1,7 +1,6 @@
 import {
     UNMAPPABLE_XPATH_AXES,
-    UNMAPPABLE_XPATH_FUNCTIONS,
-    COMPLEX_XPATH_PATTERNS
+    UNMAPPABLE_XPATH_FUNCTIONS
 } from './xpath-constants.js'
 
 /**
@@ -73,36 +72,4 @@ function containsUnionOperator(xpath: string): boolean {
     }
 
     return false
-}
-
-/**
- * Checks if an XPath is complex (contains OR, AND, contains, etc.).
- * Used to determine if we should skip accessibility ID conversion.
- *
- * @param xpath - The XPath selector to check
- * @returns True if XPath contains complex patterns
- */
-export function isComplexXPath(xpath: string): boolean {
-    return COMPLEX_XPATH_PATTERNS.some(pattern => pattern.test(xpath))
-}
-
-/**
- * Extracts the element type from an XPath selector.
- *
- * @param xpath - The XPath selector
- * @returns The element type (e.g., 'XCUIElementTypeButton') or null
- */
-export function extractElementTypeFromXPath(xpath: string): string | null {
-    const elementTypeMatch = xpath.match(/\/\/XCUIElementType(\w+)/)
-    return elementTypeMatch ? `XCUIElementType${elementTypeMatch[1]}` : null
-}
-
-/**
- * Checks if an XPath uses a wildcard selector.
- *
- * @param xpath - The XPath selector
- * @returns True if the XPath starts with //*
- */
-export function isWildcardXPath(xpath: string): boolean {
-    return xpath.startsWith('//*')
 }

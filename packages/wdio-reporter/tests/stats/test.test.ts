@@ -96,28 +96,34 @@ describe('TestStats', () => {
     })
 
     it('should not diff if error is already diffed', () => {
-        stat.fail([new AssertionError({ message: 'foobar\nExpected: foo\nReceived: bar42', actual: 'true', expected: 'false' })])
-        expect(stat.error?.message).toContain('bar42')
+        const error = new AssertionError({ message: 'foobar\nExpected: foo\nReceived: bar42', actual: 'true', expected: 'false' })
+        const message = error.message
+        stat.fail([error])
+        expect(stat.error?.message).toBe(message)
     })
 
-    it('should not call stringifyDiffObjs if actual is a Proxy', () => {
-        const TestStatsSpy = vi.spyOn(TestStats.prototype as any, '_stringifyDiffObjs')
-        stat.fail([new AssertionError({
+    it('does not diff assertion errors whose actual value is a Proxy', () => {
+        const error = new AssertionError({
             message: 'Expect $(`#flash`) to be existing\n\nExpected \u001b[32m"existing"\u001b[39m\nReceived \u001b[31m"\u001b[7mnot \u001b[27mexisting"\u001b[39m',
             expected: 'hi',
             actual: new Proxy(new Promise(()=>{}), {})
-        })])
-        expect(TestStatsSpy).not.toHaveBeenCalled()
+        })
+        const message = error.message
+        stat.fail([error])
+        expect(stat.error?.message).toBe(message)
     })
 
-    it('should call stringifyDiffObjs if actual is not a Proxy', () => {
-        const TestStatsSpy = vi.spyOn(TestStats.prototype as any, '_stringifyDiffObjs')
-        stat.fail([new AssertionError({
+    it('still diffs WebdriverIO expect errors that are not already formatted', () => {
+        const error = new AssertionError({
             message: 'Expect $(`#flash`) to be existing\n\nExpected \u001b[32m"existing"\u001b[39m\nReceived \u001b[31m"\u001b[7mnot \u001b[27mexisting"\u001b[39m',
             expected: 'hi',
             actual: 'false'
-        })])
-        expect(TestStatsSpy).toHaveBeenCalled()
+        })
+        const message = error.message
+        stat.fail([error])
+        expect(stat.error?.message).not.toBe(message)
+        expect(stat.error?.message).toContain(message)
+        expect(stat.error?.message).toContain('actual')
     })
 
 })

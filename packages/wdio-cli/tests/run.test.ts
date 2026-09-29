@@ -5,7 +5,7 @@ import Launcher from '../src/launcher.js'
 vi.mock('../src/launcher', () => ({
     default: vi.fn().mockImplementation(function (conf, result) {
         return {
-            run: () => Number.isInteger(result) ? Promise.resolve(result) : Promise.reject(result)
+            run: vi.fn(() => Number.isInteger(result) ? Promise.resolve(result) : Promise.reject(result))
         }
     })
 }))
@@ -15,18 +15,12 @@ describe('launch', () => {
         vi.spyOn(console, 'error').mockImplementation(() => { })
     })
 
-    it('should exit with code 0', async () => {
+    it('forwards the config path and params to the launcher and runs it', async () => {
         // @ts-ignore mock feature
         await launch('configFile', 0)
         expect(Launcher).toBeCalledWith('configFile', 0)
-        expect(vi.mocked(Launcher).mock.instances).toHaveLength(1)
-    })
-
-    it('should exit with code 1', async () => {
-        // @ts-ignore mock feature
-        await launch('configFile', 1)
-        expect(Launcher).toBeCalledWith('configFile', 1)
-        expect(vi.mocked(Launcher).mock.instances).toHaveLength(1)
+        const launched = vi.mocked(Launcher).mock.results[0].value as { run: ReturnType<typeof vi.fn> }
+        expect(launched.run).toHaveBeenCalledTimes(1)
     })
 
     it('should catch errors', async () => {

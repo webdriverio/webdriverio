@@ -1,7 +1,5 @@
 import { vi } from 'vitest'
 
-export const beforeAllHook = vi.fn()
-export const executeHook = vi.fn()
 export const jasmine = {
     addReporter: vi.fn(),
     specFilter: vi.fn(),
@@ -9,13 +7,12 @@ export const jasmine = {
     getEnv: vi.fn().mockImplementation(() => jasmine),
     Spec: {
         prototype: {
-            addExpectationResult: vi.fn(),
-            execute: executeHook
+            addExpectationResult: vi.fn()
         }
     },
     Suite: {
         prototype: {
-            beforeAll: beforeAllHook
+            beforeAll: vi.fn()
         }
     },
     matchers: {
@@ -39,8 +36,6 @@ export const jasmine = {
 }
 export default class JasmineMock {
     args: unknown[]
-    beforeAllHook = beforeAllHook
-    executeHook = executeHook
     jasmine = jasmine
     env = {
         beforeAll: vi.fn(),
