@@ -1,5 +1,4 @@
 import path from 'node:path'
-import { vi } from 'vitest'
 import { Minimatch } from 'minimatch'
 
 import type { FilePathAndContent } from './MockFileContentBuilder.js'
@@ -19,28 +18,9 @@ export default class MockPathService implements PathService {
     private cwd : MockSystemFolderPath
     private files : FilePathsAndContents
 
-    getcwdMock = vi.spyOn(this, 'getcwd' as any)
-    loadFileMock = vi.spyOn(this, 'loadFile' as any)
-    isFileMock = vi.spyOn(this, 'isFile' as any)
-    globMock = vi.spyOn(this, 'glob' as any)
-
     private constructor({ cwd, files } : { cwd: MockSystemFolderPath, files: FilePathsAndContents }) {
         this.cwd = cwd
         this.files = files
-    }
-
-    /**
-     * Use the mocks if interested in low-level calls being made.
-     *
-     * A mock for each aspect of PathService is provided.
-     */
-    getMocks() {
-        return {
-            getcwdMock: this.getcwdMock as unknown as Function,
-            loadFileMock: this.loadFileMock as unknown as Function,
-            isFileMock: this.isFileMock as unknown as Function,
-            globMock: this.globMock as unknown as Function
-        }
     }
 
     withCwd(newCwd: MockSystemFolderPath) {
@@ -55,10 +35,6 @@ export default class MockPathService implements PathService {
 
     static inWorkingDirectoryWithFiles({ cwd, files } : { cwd: MockSystemFolderPath, files: FilePathsAndContents }) : MockPathService {
         return new MockPathService({ cwd, files })
-    }
-
-    getcwd(): MockSystemFolderPath {
-        return this.cwd
     }
 
     loadFile<T>(filePath: string): T {

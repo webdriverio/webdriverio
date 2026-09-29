@@ -29,12 +29,6 @@ export default class ConfigParserBuilder {
         return this
     }
 
-    getMocks() {
-        return {
-            finder: this.#f
-        }
-    }
-
     build(): ConfigParser {
         return new ConfigParser(
             this.#configPath,
