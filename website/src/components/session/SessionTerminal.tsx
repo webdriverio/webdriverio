@@ -45,7 +45,9 @@ export default function SessionTerminal ({ lines, active, typed, showOut, contro
                                 <span className={styles.prompt}>$</span> {text}
                                 {current && typed < line.cmd.length && <span className={styles.caret} />}
                             </p>
-                            {line.out && (!current || showOut) && <p className={styles.out}>{line.out}</p>}
+                            {line.out && (!current || showOut) && line.out.split('\n').map((row) => (
+                                <p key={row} className={row.startsWith('→ ') ? styles.arrow : styles.out}>{row}</p>
+                            ))}
                         </div>
                     )
                 })}

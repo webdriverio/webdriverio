@@ -4,7 +4,13 @@ import SessionTerminal from './SessionTerminal.tsx'
 import styles from './target.module.css'
 import term from './terminal.module.css'
 
-type Cue = { t: number, cmd: string }
+type Cue = { t: number, cmd: string, out?: string }
+
+/**
+ * `out` is what the command prints: the status line, then `→` and the
+ * generated code. Browser versions, artifact paths and window URLs change
+ * per machine, so those are left off.
+ */
 
 /**
  * Effect times are seconds in the cropped video. The command is typed
@@ -15,37 +21,37 @@ const DEMOS: Record<string, { video: string, label: string, cues: readonly Cue[]
         video: '/img/session/browser.mp4',
         label: 'Headed Chrome running the postcard demo',
         cues: [
-            { t: 0, cmd: 'npx wdio session open chrome http://127.0.0.1:4173 --headed' },
-            { t: 4.2, cmd: 'npx wdio session geolocation 35.6762 139.6503' },
-            { t: 5.4, cmd: 'npx wdio session emulate color-scheme dark' },
-            { t: 6.5, cmd: 'npx wdio session reload' },
-            { t: 8.2, cmd: 'npx wdio session click "aria/Stamp the card"' },
-            { t: 10.0, cmd: 'npx wdio session emulate clock 2026-12-31T15:00:00Z' },
-            { t: 11.4, cmd: 'npx wdio session mock "**/api/weather" --body \'{"condition":"snow"}\'' },
-            { t: 12.6, cmd: 'npx wdio session click "aria/Look outside"' },
-            { t: 15.6, cmd: 'npx wdio session fill "aria/Message" "Wish you were here"' },
-            { t: 17.4, cmd: 'npx wdio session click "aria/Send the card"' },
+            { t: 0, cmd: 'npx wdio session open chrome http://127.0.0.1:4173 --headed', out: 'Session "default" ready: chrome (headed) · http://127.0.0.1:4173/' },
+            { t: 4.2, cmd: 'npx wdio session geolocation 35.6762 139.6503', out: 'Location set to 35.6762, 139.6503. Reload the page to apply (`wdio session reload`).\n→ await browser.emulate(\'geolocation\', { latitude: 35.6762, longitude: 139.6503 })' },
+            { t: 5.4, cmd: 'npx wdio session emulate color-scheme dark', out: 'Color scheme dark. Reload the page to apply (`wdio session reload`).\n→ await browser.emulate(\'colorScheme\', \'dark\')' },
+            { t: 6.5, cmd: 'npx wdio session reload', out: 'Reloaded → http://127.0.0.1:4173/\n→ await browser.refresh()' },
+            { t: 8.2, cmd: 'npx wdio session click "aria/Stamp the card"', out: 'Clicked "aria/Stamp the card"\n→ await $(\'aria/Stamp the card\').click()' },
+            { t: 10.0, cmd: 'npx wdio session emulate clock 2026-12-31T15:00:00Z', out: 'Clock set to 2026-12-31T15:00:00.000Z\n→ const clock = await browser.emulate(\'clock\', { now: new Date(\'2026-12-31T15:00:00.000Z\') })' },
+            { t: 11.4, cmd: 'npx wdio session mock "**/api/weather" --body \'{"condition":"snow"}\'', out: 'Mocked **/api/weather (id m1)\n→ const m1 = await browser.mock(\'**/api/weather\')\nm1.respond({"condition":"snow"}, { statusCode: 200 })' },
+            { t: 12.6, cmd: 'npx wdio session click "aria/Look outside"', out: 'Clicked "aria/Look outside"\n→ await $(\'aria/Look outside\').click()' },
+            { t: 15.6, cmd: 'npx wdio session fill "aria/Message" "Wish you were here"', out: 'Filled "aria/Message"\n→ await $(\'aria/Message\').setValue(\'Wish you were here\')' },
+            { t: 17.4, cmd: 'npx wdio session click "aria/Send the card"', out: 'Clicked "aria/Send the card"\n→ await $(\'aria/Send the card\').click()' },
         ],
     },
     android: {
         video: '/img/session/android.mp4',
         label: 'Android boarding pass',
         cues: [
-            { t: 0, cmd: 'npx wdio session open android --app app/build/outputs/apk/debug/app-debug.apk' },
-            { t: 2.8, cmd: 'npx wdio session tap "~Board"' },
-            { t: 5.6, cmd: 'npx wdio session swipe left' },
-            { t: 8.4, cmd: 'npx wdio session rotate landscape' },
-            { t: 11.4, cmd: 'npx wdio session deeplink "boardingpass://aurora" --package io.webdriver.boardingpass' },
+            { t: 0, cmd: 'npx wdio session open android --app app/build/outputs/apk/debug/app-debug.apk', out: 'Session "default" ready: android (UiAutomator2)' },
+            { t: 2.8, cmd: 'npx wdio session tap "~Board"', out: 'Tapped "~Board"\n→ await $(\'~Board\').tap()' },
+            { t: 5.6, cmd: 'npx wdio session swipe left', out: 'Swiped left\n→ await browser.swipe({ direction: \'left\' })' },
+            { t: 8.4, cmd: 'npx wdio session rotate landscape', out: 'Rotated to landscape\n→ await browser.setOrientation(\'LANDSCAPE\')' },
+            { t: 11.4, cmd: 'npx wdio session deeplink "boardingpass://aurora" --package io.webdriver.boardingpass', out: 'Opened boardingpass://aurora\n→ await browser.deepLink(\'boardingpass://aurora\', \'io.webdriver.boardingpass\')' },
         ],
     },
     electron: {
         video: '/img/session/electron.mp4',
         label: 'Electron launch console',
         cues: [
-            { t: 0, cmd: 'npx wdio session open electron ./main.js --app-arg=--no-sandbox' },
-            { t: 6.8, cmd: 'npx wdio session click "aria/Arm"' },
-            { t: 7.6, cmd: 'npx wdio session press Space' },
-            { t: 9.2, cmd: 'npx wdio session windows switch 1' },
+            { t: 0, cmd: 'npx wdio session open electron ./main.js --app-arg=--no-sandbox', out: 'Electron sessions use the classic WebDriver protocol.\nSession "default" ready: electron' },
+            { t: 6.8, cmd: 'npx wdio session click "aria/Arm"', out: 'Clicked "aria/Arm"\n→ await $(\'aria/Arm\').click()' },
+            { t: 7.6, cmd: 'npx wdio session press Space', out: 'Pressed Space\n→ await browser.keys(\'Space\')' },
+            { t: 9.2, cmd: 'npx wdio session windows switch 1', out: 'Switched to tab [1] Telemetry' },
         ],
     },
 }
@@ -251,7 +257,7 @@ export default function SessionTarget ({ id }: { id: string }) {
                     lines={lines}
                     active={active}
                     typed={typed}
-                    showOut={inspect ? false : frame.showOut}
+                    showOut={inspect || frame.showOut}
                     controls={(
                         <div className={term.controls}>
                             <button type="button" aria-label="Previous command" disabled={prevDisabled} onClick={() => jump(-1)}>

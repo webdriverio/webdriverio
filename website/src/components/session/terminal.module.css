@@ -99,9 +99,16 @@
     animation: caretBlink 1.05s steps(1) infinite;
 }
 
-.out {
+.out,
+.arrow {
     padding-left: 1rem;
     color: #9a9aa3;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.arrow {
+    color: #7dcea0;
 }
 
 @keyframes caretBlink {
