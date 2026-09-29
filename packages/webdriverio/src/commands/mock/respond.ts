@@ -49,7 +49,7 @@
  * @param {MockResponseParams=} params                  additional respond parameters to overwrite
  * @param {Object=}             params.header           overwrite specific headers
  * @param {Number=}             params.statusCode       overwrite response status code
- * @param {Boolean=}            params.fetchResponse    fetch real response before responding with mocked data
+ * @param {Boolean=}            params.fetchResponse    fetch real response before responding with mocked data; Firefox can only provide a response body before the request is sent, so static Firefox mock responses skip the origin request even when this is true
  * @skipAwait
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception
