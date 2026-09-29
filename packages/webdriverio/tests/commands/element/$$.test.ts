@@ -114,6 +114,30 @@ describe('element', () => {
         ])
     })
 
+    it('chains $$ from an element query before that query is awaited', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const elems = await browser.$('#foo').$$('#subfoo')
+        expect(Array.isArray(elems)).toBe(true)
+        expect(elems).toHaveLength(3)
+        expect(elems[0].elementId).toBe('some-sub-elem-321')
+        expect(elems[1].elementId).toBe('some-elem-456')
+        expect(elems.foundWith).toBe('$$')
+        expect(elems.selector).toBe('#subfoo')
+
+        const ids: string[] = []
+        for await (const element of browser.$('#foo').$$('#subfoo')) {
+            ids.push(element.elementId)
+        }
+        expect(ids).toEqual(['some-sub-elem-321', 'some-elem-456', 'some-elem-789'])
+        expect(await browser.$('#foo').$$('#subfoo')[1].elementId).toBe('some-elem-456')
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
     })

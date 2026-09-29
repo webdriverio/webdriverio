@@ -6,7 +6,8 @@ import type { ProtocolCommands } from '@wdio/protocols'
 
 import { multiRemoteHandler } from './middlewares.js'
 import { MultiRemoteMock } from './multiRemoteMock.js'
-import { addLocatorStrategyHandler, enhanceElementsArray, getPrototype } from './utils/index.js'
+import { ElementArray } from './element/array.js'
+import { addLocatorStrategyHandler, getPrototype } from './utils/index.js'
 import type { BrowserCommandsType, Selector, WebdriverIOEventMap } from './types.js'
 
 import * as BrowserCommands from './commands/browser.js'
@@ -220,62 +221,81 @@ export default class MultiRemote {
         const instances = this.instances
         const self: MultiRemote = this
 
-        return wrapCommand(commandName, async function (this: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement, ...args: unknown[]) {
-            const thisElement = this as WebdriverIO.MultiRemoteElement
-            const isElementScope = Boolean(thisElement.selector)
-            const scopeEntries: [string, WebdriverIO.Browser | WebdriverIO.Element][] = isElementScope
-                ? thisElement.instances.map((instanceName) => [instanceName, thisElement.getInstance(instanceName)])
-                : [...instances.entries()]
+        return wrapCommand(commandName, function (this: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement, ...args: unknown[]) {
+            const execute = async () => {
+                const thisElement = this as WebdriverIO.MultiRemoteElement
+                const isElementScope = Boolean(thisElement.selector)
+                const scopeEntries: [string, WebdriverIO.Browser | WebdriverIO.Element][] = isElementScope
+                    ? thisElement.instances.map((instanceName) => [instanceName, thisElement.getInstance(instanceName)])
+                    : [...instances.entries()]
 
-            const result = await Promise.all(
-                scopeEntries.map(([, instance]) => {
-                    const command = (instance as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>)[commandName as string]
-                    return command.call(instance, ...args)
-                })
-            )
+                const result = await Promise.all(
+                    scopeEntries.map(([, instance]) => {
+                        const command = (instance as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>)[commandName as string]
+                        return command.call(instance, ...args)
+                    })
+                )
 
-            // Narrow instances to only those actually used in this command call
-            const activeInstances = isElementScope
-                ? new Map(thisElement.instances.map((instanceName) => {
-                    const browserInstance = instances.get(instanceName)
-                    if (!browserInstance) {
-                        throw new Error(`Multi-remote object has no instance named "${instanceName}"`)
-                    }
-                    return [instanceName, browserInstance] as const
-                }))
-                : instances
+                // Narrow instances to only those actually used in this command call
+                const activeInstances = isElementScope
+                    ? new Map(thisElement.instances.map((instanceName) => {
+                        const browserInstance = instances.get(instanceName)
+                        if (!browserInstance) {
+                            throw new Error(`Multi-remote object has no instance named "${instanceName}"`)
+                        }
+                        return [instanceName, browserInstance] as const
+                    }))
+                    : instances
+
+                return { result, activeInstances, scopeEntries }
+            }
 
             /**
-             * return element object to call commands directly
+             * `$$` has to return the element list synchronously. An async
+             * function would unwrap the thenable list before the caller can
+             * iterate it.
              */
-            if (commandName === '$') {
-                return MultiRemote.elementWrapper(activeInstances, result, this.__propertiesObject__, self)
-            } else if (commandName === '$$') {
+            if (commandName === '$$') {
                 const selector = args[0] as Selector
-                const zippedResult = zip(...(result as unknown[][]))
-                const wrappedResult = zippedResult.map((singleResult) => MultiRemote.elementWrapper(activeInstances, singleResult, this.__propertiesObject__, self, typeof selector === 'string' ? selector : undefined))
-
-                const elementArray = enhanceElementsArray(
-                    wrappedResult,
-                    this,
+                return ElementArray.fromAsyncCallback(async () => {
+                    const { result, activeInstances } = await execute()
+                    const zippedResult = zip(...(result as unknown[][]))
+                    return zippedResult.map((singleResult) => MultiRemote.elementWrapper(
+                        activeInstances,
+                        singleResult,
+                        this.__propertiesObject__,
+                        self,
+                        typeof selector === 'string' ? selector : undefined
+                    ))
+                }, {
                     selector,
-                    commandName
-                )
-
-                elementArray.isMultiRemote = true
-                return elementArray
-            } else if (commandName === 'mock') {
-                /**
-                 * A plain array cannot say which browser a mock belongs to, and
-                 * `select()` can reorder instances relative to `browser.instances`
-                 * (#15726).
-                 */
-                return new MultiRemoteMock(
-                    scopeEntries.map(([instanceName]) => instanceName),
-                    result as WebdriverIO.Mock[]
-                )
+                    foundWith: '$$',
+                    parent: this,
+                    props: [],
+                    isMultiRemote: true
+                })
             }
-            return result
+
+            return (async () => {
+                const { result, activeInstances, scopeEntries } = await execute()
+                /**
+                 * return element object to call commands directly
+                 */
+                if (commandName === '$') {
+                    return MultiRemote.elementWrapper(activeInstances, result, this.__propertiesObject__, self)
+                } else if (commandName === 'mock') {
+                    /**
+                     * A plain array cannot say which browser a mock belongs to, and
+                     * `select()` can reorder instances relative to `browser.instances`
+                     * (#15726).
+                     */
+                    return new MultiRemoteMock(
+                        scopeEntries.map(([instanceName]) => instanceName),
+                        result as WebdriverIO.Mock[]
+                    )
+                }
+                return result
+            })()
         })
     }
 }

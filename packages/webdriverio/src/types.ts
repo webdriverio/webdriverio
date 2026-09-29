@@ -33,7 +33,7 @@ type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
 type ChainablePrototype = {
     [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement
 } & {
-    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray
+    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => WebdriverIO.ElementArray
 }
 
 type AsyncElementProto = {
@@ -272,6 +272,11 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
      * get the `WebdriverIO.Element[]` list
      */
     getElements(): Promise<WebdriverIO.ElementArray>
+    /**
+     * Async iterator so `for await (const el of $$('...'))` yields each element
+     * whether or not the list has been awaited yet.
+     */
+    [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
 }
 export type ElementArray = ElementArrayExport
 
@@ -309,6 +314,10 @@ interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemo
      * get the `WebdriverIO.MultiRemoteElement[]` list
      */
     getElements(): Promise<WebdriverIO.MultiRemoteElementArray>
+    /**
+     * Async iterator over the multi-remote elements in this list.
+     */
+    [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.MultiRemoteElement>
 }
 export type MultiRemoteElementArray = MultiRemoteElementArrayExport
 
