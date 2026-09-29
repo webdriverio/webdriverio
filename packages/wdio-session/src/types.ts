@@ -81,6 +81,7 @@ export interface RemoteOptions {
     baseUrl?: string
     waitforTimeout?: number
     connectionRetryTimeout?: number
+    connectionRetryCount?: number
 }
 
 export interface OpenPlan {
