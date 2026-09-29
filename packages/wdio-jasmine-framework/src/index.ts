@@ -9,6 +9,7 @@ import type { Services, Capabilities } from '@wdio/types'
 import type { expect as wdioExpectImport, wdioCustomMatchers as wdioMatchersImport, getDefaultOptions as wdioGetOptions } from 'expect-webdriverio'
 
 import JasmineReporter from './reporter.js'
+import { createHybridExpect } from './expect.js'
 import { jestResultToJasmine } from './utils.js'
 import type {
     JasmineOpts as JasmineOptions, ResultHandlerPayload, FrameworkMessage, FormattedMessage
@@ -399,11 +400,12 @@ class JasmineAdapter {
         const jasmineEnv = jasmine.getEnv()
 
         /**
-         * set up WebdriverIO matchers with Jasmine
+         * set up WebdriverIO matchers with Jasmine. Only the WDIO matchers are async,
+         * Jasmine sync matchers stay on `jasmineEnv.expect`.
          */
-        const expect = jasmineEnv.expectAsync
-        const matchers = this.#setupMatchers(jasmine, wdioMatchers, getConfig)
+        const matchers = this.#setupMatchers(wdioMatchers, getConfig)
         jasmineEnv.beforeAll(() => jasmineEnv.addAsyncMatchers(matchers))
+        const expect = createHybridExpect(jasmineEnv, new Set(Object.keys(wdioMatchers))) as ReturnType<typeof createHybridExpect> & Record<string, unknown>
 
         /**
          * make Jasmine and WebdriverIOs expect global more compatible by attaching
@@ -603,36 +605,11 @@ class JasmineAdapter {
         }
     }
 
-    #transformMatchers (matchers: jasmine.CustomMatcherFactories) {
-        return Object.entries(matchers).reduce((prev, [name, fn]) => {
-            prev[name] = (util) => ({
-                compare: async <T>(actual: T, expected: T, ...args: unknown[]) => fn(util).compare(actual, expected, ...args),
-                negativeCompare: async <T>(actual: T, expected: T, ...args: unknown[]) => {
-                    const { pass, message } = fn(util).compare(actual, expected, ...args)
-                    return {
-                        pass: !pass,
-                        message
-                    }
-                }
-            })
-            return prev
-        }, {} as jasmine.CustomAsyncMatcherFactories)
-    }
-
     #setupMatchers (
-        jasmine: jasmine.Jasmine,
         wdioCustomMatchers: typeof wdioMatchersImport,
         getOptions: typeof wdioGetOptions
     ): jasmine.CustomAsyncMatcherFactories {
-        /**
-         * overwrite "jasmine.addMatchers" to be always async since the `expect` global we
-         * have is the `expectAsync` from Jasmine, so we need to ensure that synchronous
-         * matchers are added to `expectAsync`
-         */
-        globalThis.jasmine.addMatchers = (matchers) => globalThis.jasmine.addAsyncMatchers(this.#transformMatchers(matchers))
-
-        const syncMatchers: jasmine.CustomAsyncMatcherFactories = this.#transformMatchers(jasmineInternals(jasmine).matchers)
-        const wdioMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(wdioCustomMatchers).reduce((prev, [name, fn]) => {
+        return Object.entries(wdioCustomMatchers).reduce((prev, [name, fn]) => {
             prev[name] = () => ({
                 async compare (...args: unknown[]) {
                     const context = getOptions()
@@ -648,7 +625,6 @@ class JasmineAdapter {
             })
             return prev
         }, {} as jasmine.CustomAsyncMatcherFactories)
-        return { ...wdioMatchers, ...syncMatchers }
     }
 }
 

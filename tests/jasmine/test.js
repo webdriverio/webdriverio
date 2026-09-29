@@ -39,6 +39,16 @@ describe('Jasmine smoke test', () => {
         expect(test).toBe(123)
     })
 
+    it('should keep Jasmine sync matchers synchronous', () => {
+        expect(expect(1).toBe(1)).toBeUndefined()
+
+        const spy = jasmine.createSpy('spy')
+        spy()
+        expect(spy).toHaveBeenCalled()
+        // eslint-disable-next-line wdio/await-expect -- Jasmine's sync toHaveSize on an array
+        expect([1, 2]).toHaveSize(2)
+    })
+
     let hasRun = false
     it('should retry', function () {
         if (!hasRun) {
@@ -67,7 +77,7 @@ describe('Jasmine smoke test', () => {
             const customMatcher = expect(1).testMatcher
             expect(customMatcher).toBeDefined()
             expect(customMatcher).toBeInstanceOf(Function)
-            expect(1).testMatcher()
+            expect(expect(1).testMatcher()).toBeUndefined()
         })
     })
 

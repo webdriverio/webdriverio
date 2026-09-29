@@ -73,28 +73,15 @@ test('comes with a factory', async () => {
     )
     instance.setupExpect(expect as any, wdioCustomMatchers, vi.fn())
 
-    // verify the WDIO matcher bridge fired
+    // verify the WDIO matcher bridge fired, with WDIO matchers only
     const asyncMatchersArg = vi.mocked(jasmine.addAsyncMatchers).mock.calls[0]?.[0]
-    expect(asyncMatchersArg).toHaveProperty('toHaveTitle')
+    expect(Object.keys(asyncMatchersArg)).toEqual(['toHaveTitle'])
 
     const result = await instance.run()
     expect(result).toBe(0)
 
-    globalThis.jasmine.addAsyncMatchers = vi.fn()
-    globalThis.jasmine.addMatchers({
-        testMatcher: function testMatcher(/*matcherUtils*/) {
-            return {
-                compare: function compare(/*actual, expected*/) {
-                    return { pass: true, message: 'Just good vibes.' }
-                }
-            }
-        }
-    })
-    expect(jasmine.addAsyncMatchers).toBeCalledTimes(1)
-    const testMatcher = vi.mocked(globalThis.jasmine.addAsyncMatchers).mock.calls[0][0].testMatcher
-    const { compare, negativeCompare } = testMatcher({} as any)
-    expect(compare.constructor.name).toBe('AsyncFunction')
-    expect(negativeCompare?.constructor.name).toBe('AsyncFunction')
+    // user sync matchers stay sync
+    expect(globalThis.jasmine.addMatchers).toBe('addMatchers')
 })
 
 test('should properly set up jasmine', async () => {

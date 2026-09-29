@@ -99,6 +99,15 @@ The option "jasmineOpts.stopSpecOnExpectationFailure" was removed in WebdriverIO
 + jasmineOpts: { oneFailurePerSpec: true }
 ```
 
+Jasmine's sync matchers are synchronous again. In v9, the global `expect` was Jasmine's `expectAsync`, so `expect(1).toBe(1)` returned a promise. In v10, Jasmine's built-in matchers and the matchers you add with `jasmine.addMatchers` return `undefined`, and `oneFailurePerSpec` stops the spec at the first failed sync assertion. WebdriverIO matchers, Jasmine's async matchers and `jasmine.addAsyncMatchers` matchers still return a promise, so continue to `await` them. `await expect(1).toBe(1)` continues to work.
+
+`toHaveSize` has two meanings. On a WebdriverIO element, element array or browser, it is the WebdriverIO matcher and checks the size of the element. On any other value, it is Jasmine's matcher and checks the length. In v9, Jasmine's matcher always ran.
+
+```js
+expect([1, 2]).toHaveSize(2)                                   // Jasmine, sync
+await expect($('#logo')).toHaveSize({ width: 32, height: 32 }) // WebdriverIO, async
+```
+
 ## Multi-remote Global
 
 The lowercase `multiremotebrowser` global was removed, from `@wdio/globals` and from the globals of `eslint-plugin-wdio` too. Use `multiRemoteBrowser`.
