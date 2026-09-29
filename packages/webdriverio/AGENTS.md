@@ -39,4 +39,4 @@ tests.
 - JSDoc parameter / return types must match the implementation. Docs are
   generated from these comments, not rewritten by hand in `website/docs/api`.
 - Multi-remote and browser-runner both consume this package. Prefer
-  `browser` / `multiremotebrowser` helpers over assuming a single session.
+  `browser` / `multiRemoteBrowser` helpers over assuming a single session.
