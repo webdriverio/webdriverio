@@ -392,51 +392,41 @@ describe('WebDriverInterception', () => {
         })
     })
 
-    it('should fetch when fetchResponse is false but the mock filters on the response', async () => {
+    it('should reject fetchResponse false when the mock filters on the response', async () => {
         const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://test.com/**', { statusCode: 404 }, browser)
 
-        mock.respond('missing', { fetchResponse: false })
-        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
-
-        expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
-        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
-
-        browser.emit('network.responseStarted', {
-            ...getBlockedRequestStub(),
-            response: { status: 200, headers: [] }
-        })
-        expect(browser.networkProvideResponse).toHaveBeenCalledWith({ request: 'req-123' })
-        expect(browser.networkProvideResponse).not.toHaveBeenCalledWith(expect.objectContaining({
-            body: { type: 'string', value: 'missing' }
-        }))
-
-        vi.mocked(browser.networkProvideResponse).mockClear()
-        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-404'))
-        browser.emit('network.responseStarted', {
-            ...getBlockedRequestStub('req-404'),
-            response: { status: 404, headers: [] }
-        })
-
-        expect(browser.networkProvideResponse).toHaveBeenCalledWith(expect.objectContaining({
-            request: 'req-404',
-            body: { type: 'string', value: 'missing' }
-        }))
-        expect(mock.calls).toHaveLength(1)
+        expect(() => mock.respond('missing', { fetchResponse: false }))
+            .toThrow(/fetchResponse: false cannot be used when the mock filters on statusCode or responseHeaders/)
+        expect(() => mock.respondOnce('missing', { fetchResponse: false }))
+            .toThrow(/fetchResponse: false cannot be used when the mock filters on statusCode or responseHeaders/)
     })
 
-    it('should fetch when fetchResponse is false but the mock filters on response headers', async () => {
+    it('should reject fetchResponse false when the mock filters on response headers', async () => {
         const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://test.com/**', {
-            responseHeaders: { 'x-mock': 'yes' }
+            responseHeaders: (headers) => headers['x-mock'] === 'yes'
         }, browser)
 
-        mock.respond('header match', { fetchResponse: false })
+        expect(() => mock.respond('header match', { fetchResponse: false }))
+            .toThrow(/fetchResponse: false cannot be used when the mock filters on statusCode or responseHeaders/)
+    })
+
+    it('should still skip the backend when fetchResponse is false and the mock filters on the request', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {
+            method: 'GET'
+        }, browser)
+
+        mock.respond('mocked response', { fetchResponse: false })
         browser.emit('network.beforeRequestSent', getBlockedRequestStub())
 
-        expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
-        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
-        expect(mock.calls).toHaveLength(0)
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
     })
 
     it('should let a fetchResponse callback read a response', async () => {

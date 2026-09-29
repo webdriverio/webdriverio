@@ -88,6 +88,8 @@ mock.respond({ ... }, {
 })
 ```
 
+`fetchResponse: false` never calls the backend. A mock created with a `statusCode` or `responseHeaders` filter needs that response to decide whether it matches, so `respond()` and `respondOnce()` throw if you combine them. Drop the response filter, or leave `fetchResponse` unset so the mock can read the backend response and then replace it.
+
 It is recommend to store custom responses in fixture files so you can just require them in your test as follows:
 
 ```js

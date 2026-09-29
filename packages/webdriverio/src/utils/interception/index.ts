@@ -263,18 +263,14 @@ export default class WebDriverInterception {
 
         const responseOverwrite = this.#respondOverwrites[0]
         /**
-         * A status or response-header filter can only be decided after the
-         * backend responds. `fetchResponse: false` would otherwise match every
-         * request, because `beforeRequestSent` has no response to filter on.
+         * `fetchResponse: false` answers here and does not continue the request.
+         * `respond()` rejects this option when the mock filters on the response,
+         * because that filter can only be decided by calling the backend.
          */
-        const filtersOnResponse = this.#filterOptions.statusCode !== undefined ||
-            this.#filterOptions.responseHeaders !== undefined
-
         if (
             responseOverwrite?.overwrite &&
             'fetchResponse' in responseOverwrite.overwrite &&
-            responseOverwrite.overwrite.fetchResponse === false &&
-            !filtersOnResponse
+            responseOverwrite.overwrite.fetchResponse === false
         ) {
             const { overwrite } = responseOverwrite.once
                 ? this.#respondOverwrites.shift() || {}
@@ -807,6 +803,7 @@ export default class WebDriverInterception {
      */
     respond(payload: RespondBody, params: Omit<RespondWithOptions, 'body'> = {}, once?: boolean) {
         this.#ensureNotRestored()
+        this.#assertCanSkipFetch(params)
         const body = typeof payload === 'function'
             ? (request: local.NetworkResponseCompletedParameters) => toNetworkBody(payload(request))
             : toNetworkBody(payload)
@@ -874,6 +871,28 @@ export default class WebDriverInterception {
         if (this.#restored) {
             throw new Error('This can\'t be done on restored mock')
         }
+    }
+
+    /**
+     * A status or response-header filter matches the backend response.
+     * `fetchResponse: false` never calls the backend, so the filter cannot
+     * be decided and must not be silently ignored or bypassed by fetching.
+     */
+    #assertCanSkipFetch(params: Omit<RespondWithOptions, 'body'>) {
+        if (params.fetchResponse !== false) {
+            return
+        }
+
+        const filtersOnResponse = this.#filterOptions.statusCode !== undefined ||
+            this.#filterOptions.responseHeaders !== undefined
+        if (!filtersOnResponse) {
+            return
+        }
+
+        throw new Error(
+            'fetchResponse: false cannot be used when the mock filters on statusCode or responseHeaders. ' +
+            'Those filters need the backend response, and this option does not call the backend.'
+        )
     }
 
     /**

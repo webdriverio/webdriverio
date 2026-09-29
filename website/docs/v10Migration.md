@@ -361,6 +361,19 @@ Command results stay in capability order: the first entry belongs to the first k
 
 `getInstance` throws `Multi-remote object has no instance named "<name>"` when the name is not one of `instances`. A mock from `browser.select('myFirefoxBrowser', 'myChromeBrowser')` lists those instances in that order, which can differ from `browser.instances`. Do not assume `mocks[0]` is a particular browser.
 
+## Mock responses that skip the backend
+
+`mock.respond(..., { fetchResponse: false })` does not call the backend. In v9, a mock that also filtered on `statusCode` or `responseHeaders` ignored that filter and still answered every matching request. In v10, `respond()` and `respondOnce()` throw, because those filters can only be decided from the backend response.
+
+```diff
+- const mock = await browser.mock('**/users', { statusCode: 200 })
+- mock.respond({ name: 'Ada' }, { fetchResponse: false })
++ const mock = await browser.mock('**/users')
++ mock.respond({ name: 'Ada' }, { fetchResponse: false })
+```
+
+To keep the filter, omit `fetchResponse` so the mock fetches the response, checks the status or headers, and then replaces the body.
+
 ## Element references
 
 Element ids use the W3C WebDriver key `element-6066-11e4-a52e-4f735466cecf` and the `elementId` property. The JSON Wire Protocol field `ELEMENT` is no longer part of the element contract.
