@@ -6,10 +6,11 @@ import fs from 'node:fs'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { canDownload, resolveBuildId, detectBrowserPlatform, install } from '@puppeteer/browsers'
 import { locateChrome, locateApp } from 'locate-app'
+import { download as downloadGeckodriver } from 'geckodriver'
 
 import {
     parseParams, getBuildIdByChromePath, getBuildIdByFirefoxPath, setupPuppeteerBrowser,
-    canAccess, getCacheDir, setupChromedriver
+    canAccess, getCacheDir, setupChromedriver, setupGeckodriver, setupEdgedriver
 } from '../../src/node/utils.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -62,6 +63,14 @@ vi.mock('node:child_process', () => ({
         execSync: vi.fn(),
         spawnSync: vi.fn()
     }
+}))
+
+vi.mock('geckodriver', () => ({
+    download: vi.fn().mockResolvedValue({ executablePath: '/path/to/geckodriver' })
+}))
+
+vi.mock('edgedriver', () => ({
+    download: vi.fn().mockResolvedValue({ executablePath: '/path/to/edgedriver' })
 }))
 
 vi.mock('@puppeteer/browsers', () => ({
@@ -175,6 +184,137 @@ describe('setupChromedriver', () => {
             vi.mocked(fsp.access).mockResolvedValue(undefined as never)
             vi.mocked(install).mockResolvedValue({} as never)
         }
+    })
+
+    it('shares an install when cache paths differ only by a trailing slash', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        try {
+            await Promise.all([
+                setupChromedriver('/tmp/cache', '116.0.5845.110'),
+                setupChromedriver('/tmp/cache/', '116.0.5845.110')
+            ])
+
+            expect(install).toBeCalledTimes(1)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+
+    it('falls back with the resolved build major when the request version has none', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(canDownload).mockResolvedValue(false)
+        vi.mocked(resolveBuildId).mockImplementation(((_browser: string, _platform: string, version: string) => {
+            if (version === '116') {
+                return '116.0.5845.96'
+            }
+            return '116.0.5845.110'
+        }) as never)
+        vi.mocked(install).mockClear()
+        vi.mocked(resolveBuildId).mockClear()
+
+        try {
+            await setupChromedriver('/some/cache', 'stable')
+
+            expect(resolveBuildId).toHaveBeenCalledWith('chrome', 'linux', '116')
+            expect(install).toHaveBeenCalledWith(expect.objectContaining({ buildId: '116.0.5845.96' }))
+        } finally {
+            vi.mocked(resolveBuildId).mockReset()
+            vi.mocked(resolveBuildId).mockReturnValue('116.0.5845.110' as never)
+            vi.mocked(canDownload).mockResolvedValue(true)
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+
+    it('shares one fallback install when two missing builds resolve to the same known build', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(canDownload).mockResolvedValue(false)
+        vi.mocked(resolveBuildId).mockImplementation(((_browser: string, _platform: string, version: string) => {
+            if (version === '116.0.1') {
+                return '116.0.1'
+            }
+            if (version === '116.0.2') {
+                return '116.0.2'
+            }
+            return '116.0.0'
+        }) as never)
+        vi.mocked(install).mockClear()
+        vi.mocked(install).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 20))
+        )
+
+        try {
+            await Promise.all([
+                setupChromedriver('/some/cache', '116.0.1'),
+                setupChromedriver('/some/cache', '116.0.2')
+            ])
+
+            expect(install).toBeCalledTimes(1)
+            expect(install).toHaveBeenCalledWith(expect.objectContaining({ buildId: '116.0.0' }))
+        } finally {
+            vi.mocked(resolveBuildId).mockReset()
+            vi.mocked(resolveBuildId).mockReturnValue('116.0.5845.110' as never)
+            vi.mocked(canDownload).mockResolvedValue(true)
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+            vi.mocked(install).mockResolvedValue({} as never)
+        }
+    })
+})
+
+describe('setupGeckodriver and setupEdgedriver', () => {
+    it('shares one geckodriver install between concurrent setups and retries after failure', async () => {
+        vi.mocked(downloadGeckodriver).mockClear()
+        vi.mocked(downloadGeckodriver).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        await Promise.all([
+            setupGeckodriver('/tmp/cache', '0.35.0'),
+            setupGeckodriver('/tmp/cache/', '0.35.0')
+        ])
+        expect(downloadGeckodriver).toBeCalledTimes(1)
+
+        vi.mocked(downloadGeckodriver).mockReset()
+        vi.mocked(downloadGeckodriver).mockRejectedValueOnce(new Error('download failed'))
+        await expect(setupGeckodriver('/retry/gecko', '0.35.0')).rejects.toThrow('download failed')
+
+        vi.mocked(downloadGeckodriver).mockResolvedValue({ executablePath: '/path/to/geckodriver' } as never)
+        await setupGeckodriver('/retry/gecko', '0.35.0')
+        expect(downloadGeckodriver).toBeCalledTimes(2)
+    })
+
+    it('shares one edgedriver install between concurrent setups and retries after failure', async () => {
+        const { download: downloadEdgedriver } = await import('edgedriver')
+        vi.mocked(downloadEdgedriver).mockClear()
+        vi.mocked(downloadEdgedriver).mockImplementation(
+            () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+        )
+
+        await Promise.all([
+            setupEdgedriver('/tmp/cache', '120.0.0'),
+            setupEdgedriver('/tmp/cache/', '120.0.0')
+        ])
+        expect(downloadEdgedriver).toBeCalledTimes(1)
+
+        vi.mocked(downloadEdgedriver).mockReset()
+        vi.mocked(downloadEdgedriver).mockRejectedValueOnce(new Error('download failed'))
+        await expect(setupEdgedriver('/retry/edge', '120.0.0')).rejects.toThrow('download failed')
+
+        vi.mocked(downloadEdgedriver).mockResolvedValue({ executablePath: '/path/to/edgedriver' } as never)
+        await setupEdgedriver('/retry/edge', '120.0.0')
+        expect(downloadEdgedriver).toBeCalledTimes(2)
     })
 })
 

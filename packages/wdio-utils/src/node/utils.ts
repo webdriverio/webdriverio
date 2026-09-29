@@ -399,6 +399,18 @@ function shareDriverSetup<T> (key: string, setup: () => Promise<T>): Promise<T> 
     return setupPromise
 }
 
+/**
+ * `/tmp/cache` and `/tmp/cache/` are one directory. Key on the resolved path
+ * so those requests share one install.
+ */
+function driverCacheKey (cacheDir: string) {
+    return path.resolve(cacheDir)
+}
+
+function chromedriverSetupKey (cacheDir: string, platform: string, buildId: string) {
+    return `chromedriver:${driverCacheKey(cacheDir)}:${platform}:${buildId}`
+}
+
 export async function setupChromedriver (cacheDir: string, driverVersion?: string) {
     const platform = detectBrowserPlatform()
     if (!platform) {
@@ -412,7 +424,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
      */
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
     return shareDriverSetup(
-        `chromedriver:${cacheDir}:${platform}:${buildId}`,
+        chromedriverSetupKey(cacheDir, platform, buildId),
         () => installChromedriver(cacheDir, platform, version, buildId)
     )
 }
@@ -451,12 +463,29 @@ async function installChromedriver (cacheDir: string, platform: BrowserPlatform,
                 `Chromedriver v${buildId} don't exist, trying to find known good version...` +
                 (cdnUrl ? ` (checked ${redactCredentials(cdnUrl)} from CHROMEDRIVER_CDNURL, a failed request is reported the same way as a missing version)` : '')
             )
-            knownBuild = await resolveBuildId(Browser.CHROMEDRIVER, platform, getMajorVersionFromString(version))
+            /**
+             * `stable` has no numeric major. The resolved build id does, and it
+             * is the same for every request that shared this install, so the
+             * fallback does not depend on whichever raw version started it.
+             */
+            const fallbackVersion = getMajorVersionFromString(version) || getMajorVersionFromString(buildId)
+            knownBuild = await resolveBuildId(Browser.CHROMEDRIVER, platform, fallbackVersion)
+            if (knownBuild && knownBuild !== buildId) {
+                /**
+                 * Two missing patch builds of one major fall back to the same
+                 * known-good build. Their original build ids are different keys,
+                 * so share the fallback download on the build that is installed.
+                 */
+                return shareDriverSetup(
+                    chromedriverSetupKey(cacheDir, platform, knownBuild),
+                    () => installChromedriver(cacheDir, platform, fallbackVersion || knownBuild, knownBuild)
+                )
+            }
             if (knownBuild) {
                 await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
                 log.info(`Download of Chromedriver v${knownBuild} was successful`)
             } else {
-                throw new Error(`Couldn't download any known good version from Chromedriver major v${getMajorVersionFromString(version)}, requested full version - v${version}`)
+                throw new Error(`Couldn't download any known good version from Chromedriver major v${fallbackVersion}, requested full version - v${version}`)
             }
         }
         executablePath = computeExecutablePath({
@@ -473,14 +502,14 @@ async function installChromedriver (cacheDir: string, platform: BrowserPlatform,
 
 export function setupGeckodriver (cacheDir: string, driverVersion?: string) {
     return shareDriverSetup(
-        `geckodriver:${cacheDir}:${driverVersion ?? ''}`,
+        `geckodriver:${driverCacheKey(cacheDir)}:${driverVersion ?? ''}`,
         () => downloadGeckodriver(driverVersion, cacheDir)
     )
 }
 
 export function setupEdgedriver (cacheDir: string, driverVersion?: string) {
     return shareDriverSetup(
-        `edgedriver:${cacheDir}:${driverVersion ?? ''}`,
+        `edgedriver:${driverCacheKey(cacheDir)}:${driverVersion ?? ''}`,
         () => installEdgedriver(cacheDir, driverVersion)
     )
 }
