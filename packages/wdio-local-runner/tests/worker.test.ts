@@ -433,6 +433,13 @@ describe('startProcess NODE_OPTIONS', () => {
         expect(nodeOptions).toBe('--require "./my modules/a.js" --require "./my modules/b.js"')
     })
 
+    it('keeps quoted preload paths that contain an escaped quote', async () => {
+        const nodeOptions = await runStartProcess('--require "./my\\" modules/a.js"', {
+            runnerEnv: { NODE_OPTIONS: '--require "./my\\" modules/b.js"' }
+        })
+        expect(nodeOptions).toBe('--require "./my\\" modules/a.js" --require "./my\\" modules/b.js"')
+    })
+
     it('replaces a space-separated option value instead of leaving the old one', async () => {
         const nodeOptions = await runStartProcess('--max-old-space-size 2048', {
             runnerEnv: { NODE_OPTIONS: '--max-old-space-size 4096' }

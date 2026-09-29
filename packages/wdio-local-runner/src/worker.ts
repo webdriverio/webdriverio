@@ -81,6 +81,7 @@ function nodeOptionName (group: string) {
 /**
  * Split on whitespace, but keep a quoted operand intact. `--require "./my modules/a.js"`
  * is two tokens, and the path stays quoted so joining the result does not break it.
+ * A backslash inside quotes is an escape, so `\"` does not end the string.
  */
 function tokenizeNodeOptions (value: string) {
     const tokens: string[] = []
@@ -92,8 +93,14 @@ function tokenizeNodeOptions (value: string) {
             current = ''
         }
     }
-    for (const char of value) {
+    for (let i = 0; i < value.length; i++) {
+        const char = value[i]
         if (quote) {
+            if (char === '\\' && i + 1 < value.length) {
+                current += char + value[i + 1]
+                i++
+                continue
+            }
             current += char
             if (char === quote) {
                 quote = undefined
