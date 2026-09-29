@@ -160,12 +160,14 @@ npx wdio session click e2
 
 `open tauri ./my-app` and `open dioxus ./my-app` need their driver on `PATH` unless the service package starts the session itself. On Linux without `DISPLAY` or `WAYLAND_DISPLAY`, install Xvfb or weston. Electron stays on the classic WebDriver protocol. Pass `--app-arg` to forward a flag to the app, including `--app-arg=--no-sandbox` when the environment requires it. A value that starts with `-` has to use `=`, because the strict parser otherwise treats it as its own option.
 
-Install `electron` and `@wdio/electron-service` in the directory you open. Size the window to the work area so a smaller display does not place the title bar off screen:
+Install `electron` and `@wdio/electron-service` in the directory you open. `main.js` uses `import`, so that directory's `package.json` needs `"type": "module"` (or name the file `main.mjs`). Size the window to the work area so a smaller display does not place the title bar off screen:
+
+```json
+{ "type": "module" }
+```
 
 ```js
 import { app, BrowserWindow, screen } from 'electron'
-
-app.commandLine.appendSwitch('no-sandbox')
 
 app.whenReady().then(() => {
     const area = screen.getPrimaryDisplay().workArea
@@ -177,16 +179,16 @@ app.whenReady().then(() => {
         x: area.x + Math.max(0, Math.round((area.width - width) / 2)),
         y: area.y + Math.max(0, Math.round((area.height - height) / 2)),
         autoHideMenuBar: true,
-        webPreferences: { contextIsolation: true }
+        webPreferences: { contextIsolation: true, sandbox: true }
     })
     win.loadURL('http://127.0.0.1:8081/')
 })
 ```
 
-The Electron player loads the same Expo URL in a 1280×800 window with no address bar. The logo, sidebar, weather card, login card, carousel and puzzle match the browser. `-s electron` is the session name used beside the browser demo. Electron stays on the classic protocol, so `geolocation` and `emulate clock` go through Chromedriver instead of BiDi. The commands match Chrome, including `reload` before Weather, except the success dialog. On Linux, `dialog accept` accepts the native alert and the bubble stays painted. That bubble is not part of the page, so a later click cannot reach it. The recording replaces `window.alert` with an in-page dialog and runs `click "aria/OK"`. The LOGIN button stays a 200×50 orange control while it waits. The carousel, the scroll and the puzzle use the same commands as Chrome.
+The open command below does not disable the renderer sandbox. Add `--app-arg=--no-sandbox` only when the environment cannot start Electron with the sandbox, such as some Linux containers. The Electron player loads the same Expo URL in a 1280×800 window with no address bar. The logo, sidebar, weather card, login card, carousel and puzzle match the browser. `-s electron` is the session name used beside the browser demo. Electron stays on the classic protocol, so `geolocation` and `emulate clock` go through Chromedriver instead of BiDi. The commands match Chrome, including `reload` before Weather, except the success dialog. On Linux, `dialog accept` accepts the native alert and the bubble stays painted. That bubble is not part of the page, so a later click cannot reach it. The recording replaces `window.alert` with an in-page dialog and runs `click "aria/OK"`. The LOGIN button stays a 200×50 orange control while it waits. The carousel, the scroll and the puzzle use the same commands as Chrome.
 
 ```sh
-npx wdio session -s electron open electron ./main.js --app-arg=--no-sandbox
+npx wdio session -s electron open electron ./main.js
 npx wdio session -s electron geolocation 35.6762 139.6503
 npx wdio session -s electron reload
 npx wdio session -s electron click "aria/Weather"

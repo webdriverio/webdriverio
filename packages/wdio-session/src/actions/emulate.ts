@@ -170,8 +170,31 @@ async function readGeolocationPermission (browser: WebdriverIO.Browser): Promise
 }
 
 async function preload (browser: WebdriverIO.Browser, source: string) {
-    const added = await browser.sendCommand('Page.addScriptToEvaluateOnNewDocument', { source }).catch(() => undefined) as { identifier?: string } | undefined
-    return added?.identifier
+    /**
+     * `sendCommand` does not return the DevTools result, so the script id was
+     * always missing and `emulate reset` could not remove the preload. A reload
+     * then installed the clock again.
+     */
+    const cdp = browser as WebdriverIO.Browser & {
+        sendCommandAndGetResult?: (command: string, params?: object) => Promise<{ identifier?: string } | undefined>
+    }
+    const added = cdp.sendCommandAndGetResult
+        ? await cdp.sendCommandAndGetResult('Page.addScriptToEvaluateOnNewDocument', { source }).catch(() => undefined)
+        : await browser.sendCommand('Page.addScriptToEvaluateOnNewDocument', { source }).catch(() => undefined) as { identifier?: string } | undefined
+    return typeof added?.identifier === 'string' ? added.identifier : undefined
+}
+
+async function writeGeolocationPermission (browser: WebdriverIO.Browser, origin: string, setting: PermissionSetting) {
+    try {
+        await browser.sendCommand('Browser.setPermission', {
+            permission: { name: 'geolocation' },
+            setting,
+            origin
+        })
+        return true
+    } catch {
+        return false
+    }
 }
 
 async function dropPreload (browser: WebdriverIO.Browser, identifier: string | undefined) {
@@ -208,19 +231,31 @@ async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude
     }
     const previous = origin ? await readGeolocationPermission(browser) : undefined
     if (origin) {
-        await browser.sendCommand('Browser.grantPermissions', { origin, permissions: ['geolocation'] }).catch(() => {})
+        /**
+         * `grantPermissions` grants geolocation and denies every other permission
+         * for the origin. `setPermission` changes only geolocation.
+         */
+        const granted = await writeGeolocationPermission(browser, origin, 'granted')
+        if (!granted) {
+            await browser.sendCommand('Browser.grantPermissions', { origin, permissions: ['geolocation'] }).catch(() => {})
+        }
     }
     const identifier = await preload(browser, source)
     await browser.execute(source)
     return async () => {
         await dropPreload(browser, identifier)
         await browser.sendCommand('Emulation.clearGeolocationOverride', {}).catch(() => {})
-        if (origin && previous) {
-            await browser.sendCommand('Browser.setPermission', {
-                permission: { name: 'geolocation' },
-                setting: previous,
-                origin
-            }).catch(() => {})
+        if (origin) {
+            /**
+             * An unreadable previous state still has to drop the grant. `prompt`
+             * is that origin only. `resetPermissions` is the fallback when the
+             * per-origin write fails, because that is what clears a
+             * `grantPermissions` override.
+             */
+            const restored = await writeGeolocationPermission(browser, origin, previous ?? 'prompt')
+            if (!restored) {
+                await browser.sendCommand('Browser.resetPermissions', {}).catch(() => {})
+            }
         }
         await browser.execute(`(() => {
             const desc = Object.getOwnPropertyDescriptor(navigator, 'geolocation');
@@ -338,34 +373,41 @@ export const emulate: ActionFn = async (session, args) => {
          * BiDi installs Sinon fake timers. That bundle calls `require` in
          * some Chromium builds, and fake timers also freeze `setInterval`,
          * so a widget that polls the clock never repaints. A Date patch
-         * leaves timers running. Use it when BiDi is missing or the install
-         * fails. `--tick` still needs the BiDi clock.
+         * leaves timers running. Chromium uses it for an absolute time and
+         * for `--tick`, which moves that same patched `Date`.
          */
         const classicClock = async () => {
             if (!isChromium(session)) {
                 session.requireBidi('Clock emulation')
             }
-            if (tick !== undefined) {
-                throw usage('Advancing the clock needs WebDriver BiDi.', 'Set an ISO time with `emulate clock <iso>`, or reopen the session in Chrome, Edge or Firefox.')
+            const previousNow = session.get<number>('classic-clock-now')
+            let nowMs: number
+            if (tick !== undefined && !value && previousNow !== undefined) {
+                nowMs = previousNow + tick
+            } else {
+                const now = value ? new Date(value) : new Date()
+                if (Number.isNaN(now.getTime())) {
+                    throw usage(`Invalid date "${value}".`, 'Use an ISO date like 2030-01-01T00:00:00Z.')
+                }
+                nowMs = now.getTime() + (tick ?? 0)
             }
-            const now = value ? new Date(value) : new Date()
-            if (Number.isNaN(now.getTime())) {
-                throw usage(`Invalid date "${value}".`, 'Use an ISO date like 2030-01-01T00:00:00Z.')
-            }
-            const source = clockInstallSource(now.getTime())
+            const source = clockInstallSource(nowMs)
             // swap restores the previous clock before this one is installed.
             // Restoring afterwards would put Date back and undo the new time.
             await swap(session, 'clock', async () => {
                 const identifier = await preload(browser, source)
                 await browser.execute(source)
+                session.set('classic-clock-now', nowMs)
                 return async () => {
+                    session.set('classic-clock-now', undefined)
                     await dropPreload(browser, identifier)
                     await browser.execute(CLOCK_RESTORE_SOURCE)
                 }
             })
             const shown = executeSource(source)
+            const advancedOnly = tick !== undefined && !value && previousNow !== undefined
             return {
-                text: `Clock set to ${now.toISOString()}`,
+                text: advancedOnly ? `Clock advanced by ${tick}ms` : `Clock set to ${new Date(nowMs).toISOString()}`,
                 code: shown,
                 // The page script alone is gone after a reload. The exported
                 // step also installs it for the next document.
@@ -376,7 +418,7 @@ export const emulate: ActionFn = async (session, args) => {
         // `require` in current Chrome, and the init script it leaves behind
         // freezes `setInterval`, so a widget that polls `Date` never repaints.
         // An absolute time uses a Date patch instead. `--tick` still needs BiDi.
-        if (isChromium(session) && tick === undefined) {
+        if (isChromium(session)) {
             return classicClock()
         }
         if (!session.isBidi) {

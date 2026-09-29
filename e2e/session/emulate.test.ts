@@ -47,10 +47,12 @@ describe('wdio session emulation', () => {
     })
 
     it('emulates the clock and advances it', async () => {
-        expect((await run('emulate', 'clock', '2030-01-01T00:00:00Z')).stdout)
-            .toBe("Clock set to 2030-01-01T00:00:00.000Z\n→ const clock = await browser.emulate('clock', { now: new Date('2030-01-01T00:00:00.000Z') })\n")
+        const set = await run('emulate', 'clock', '2030-01-01T00:00:00Z')
+        expect(set.stdout).toContain('Clock set to 2030-01-01T00:00:00.000Z')
+        expect(set.stdout).toContain('1893456000000')
         expect(await read('new Date().toISOString()')).toBe('2030-01-01T00:00:00.000Z')
-        expect((await run('emulate', 'clock', '--tick', '60000')).stdout).toBe('Clock advanced by 60000ms\n→ await clock.tick(60000)\n')
+        const tick = await run('emulate', 'clock', '--tick', '60000')
+        expect(tick.stdout).toContain('Clock advanced by 60000ms')
         expect(await read('new Date().toISOString()')).toBe('2030-01-01T00:01:00.000Z')
     })
 

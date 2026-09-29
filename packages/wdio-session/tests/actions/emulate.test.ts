@@ -64,12 +64,16 @@ describe('classic chromium emulation', () => {
                         return store.get('geo-permission') ?? 'prompt'
                     }
                 },
-                sendCommand: async (command: string, params?: unknown) => {
+                sendCommandAndGetResult: async (command: string, params?: unknown) => {
                     commands.push(command)
                     sent.push({ command, params })
                     if (command === 'Page.addScriptToEvaluateOnNewDocument') {
                         return { identifier: `script-${commands.length}` }
                     }
+                },
+                sendCommand: async (command: string, params?: unknown) => {
+                    commands.push(command)
+                    sent.push({ command, params })
                     if (command === 'Browser.setPermission' && store.get('fail-permission')) {
                         throw new Error('setPermission failed')
                     }
@@ -159,13 +163,43 @@ describe('classic chromium emulation', () => {
         expect(commands).not.toContain('Browser.resetPermissions')
     })
 
-    it('leaves other origins alone when setPermission fails', async () => {
+    it('restores prompt when the previous geolocation permission cannot be read', async () => {
+        const { session, commands, sent, store } = classicSession()
+        store.set('geo-permission', '')
+        await geolocation(session, { lat: '35.6762', lon: '139.6503' })
+        await emulate(session, { sub: 'reset' })
+        const restores = sent.filter((entry) => entry.command === 'Browser.setPermission')
+        expect(restores.at(-1)?.params).toMatchObject({
+            setting: 'prompt',
+            origin: 'http://127.0.0.1:8081',
+            permission: { name: 'geolocation' }
+        })
+        expect(commands).not.toContain('Browser.resetPermissions')
+    })
+
+    it('resets permissions when the per-origin restore fails', async () => {
         const { session, commands, store } = classicSession()
         store.set('fail-permission', true)
         await geolocation(session, { lat: '35.6762', lon: '139.6503' })
         await emulate(session, { sub: 'reset' })
         expect(commands).toContain('Browser.setPermission')
-        expect(commands).not.toContain('Browser.resetPermissions')
+        expect(commands).toContain('Browser.resetPermissions')
+    })
+
+    it('advances the classic clock without installing BiDi fake timers', async () => {
+        const { session, executed } = classicSession()
+        await emulate(session, { sub: 'clock', value: '2030-01-01T00:00:00.000Z' })
+        const result = await emulate(session, { sub: 'clock', tick: 60000 })
+        expect(result.text).toBe('Clock advanced by 60000ms')
+        expect(String(executed.at(-1))).toContain(String(Date.parse('2030-01-01T00:00:00.000Z') + 60000))
+    })
+
+    it('removes the preloaded clock script on reset', async () => {
+        const { session, sent } = classicSession()
+        await emulate(session, { sub: 'clock', value: '2030-01-01T00:00:00.000Z' })
+        await emulate(session, { sub: 'reset' })
+        const removed = sent.find((entry) => entry.command === 'Page.removeScriptToEvaluateOnNewDocument')
+        expect(removed?.params).toEqual({ identifier: 'script-1' })
     })
 })
 
