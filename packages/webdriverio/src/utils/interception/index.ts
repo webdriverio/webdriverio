@@ -337,14 +337,26 @@ export default class WebDriverInterception {
 
     async #handleBeforeRequestSentWithPostData(request: local.NetworkBeforeRequestSentParameters) {
         await this.#populateRequestPostData(request)
-        return this.#continueBeforeRequestSent(request)
+        /**
+         * method and requestHeaders already ran before the body lookup.
+         * Evaluating them again would call a function filter twice, so a
+         * stateful filter could accept the request and then reject it.
+         */
+        return this.#continueBeforeRequestSent(request, { requestFiltersMatch: true })
     }
 
-    #continueBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
+    #continueBeforeRequestSent(
+        request: local.NetworkBeforeRequestSentParameters,
+        { requestFiltersMatch = false }: { requestFiltersMatch?: boolean } = {}
+    ) {
         /**
-         * check if request matches filter option and do nothing if not
+         * check if request matches filter option and do nothing if not.
+         * When the cheaper filters already matched, only the body is left.
          */
-        if (!this.#matchesFilterOptions(request)) {
+        const matches = requestFiltersMatch
+            ? this.#matchesPostDataFilter(request as RequestWithPostData<local.NetworkBeforeRequestSentParameters>)
+            : this.#matchesFilterOptions(request)
+        if (!matches) {
             return this.#release(request, false, () => this.#browser.networkContinueRequest({
                 request: request.request.request
             }))

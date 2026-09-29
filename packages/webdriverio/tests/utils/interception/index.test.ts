@@ -1443,6 +1443,27 @@ describe('WebDriverInterception', () => {
             expect(browser.networkFailRequest).not.toHaveBeenCalled()
         })
 
+        it('evaluates a function method filter once when the mock also filters postData', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            let methodChecks = 0
+            const handling = await WebDriverInterception.initiate(TARGET_URL, {
+                method: () => {
+                    methodChecks += 1
+                    return methodChecks === 1
+                },
+                postData: 'request-body'
+            }, browser)
+            handling.abort()
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1']))
+            await flushMicrotasks()
+
+            expect(methodChecks).toBe(1)
+            expect(browser.networkFailRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        })
+
         it('still releases a request that every mock declines', async () => {
             const browser = getBrowserMockWithUniqueIntercepts()
             await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)
