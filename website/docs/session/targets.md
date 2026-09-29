@@ -6,9 +6,9 @@ description: Open a browser, mobile app, desktop app, Electron app or a cloud de
 
 `wdio session open` starts the session. The first argument is the target. Reuse the `default` session. Pass `-s <name>` only when you need two sessions at once. Run `npx wdio session doctor <target>` first when the target needs Appium, a desktop driver or cloud credentials.
 
-The Chrome and Electron players drive the same [WebdriverIO demo app](https://github.com/webdriverio/native-demo-app) (the Expo guinea pig) from a local Expo web server, in a normal desktop window. Android installs the v2.2.0 release apk (`com.wdiodemoapp`) and uses `tap`, `swipe` and `fingerPrint`. iOS installs the v2.2.0 simulator app (`org.wdiodemoapp`) and uses `touchId`. The players on this page are Chrome and Electron. Each player types the command, then the window shows the result. Pause, or step to the previous or next command, to read the line that changed the window. How that app was started, including the web and Electron layout, is in [`examples/session`](https://github.com/webdriverio/webdriverio/tree/main/examples/session).
+The Chrome, Android and Electron players drive the same [WebdriverIO demo app](https://github.com/webdriverio/native-demo-app) (the Expo guinea pig). Chrome and Electron use a local Expo web server in a normal desktop window. Android installs the v2.2.0 release apk (`com.wdiodemoapp`). iOS installs the v2.2.0 simulator app (`org.wdiodemoapp`) and uses `touchId`. Each player types the command, then the window shows the result. Pause, or step to the previous or next command, to read the line that changed the window. How that app was started, including the web and Electron layout, is in [`examples/session`](https://github.com/webdriverio/webdriverio/tree/main/examples/session).
 
-The shared path is: open the app, open the in-app WebView of the WebdriverIO frontpage, log in as `alice@webdriver.io` / `supersecret`, swipe the carousel twice to the left, scroll or swipe up to the robot logo, then finish the 9-piece puzzle. Android also logs in with the fingerprint sensor. `export` writes a Mocha spec of whichever session you just drove.
+The shared path is: open the app, log in as `alice@webdriver.io` / `supersecret`, reach the robot logo ("You found me!!!"), then finish the 9-piece puzzle. Chrome and Electron also open the in-app WebView of the WebdriverIO frontpage and page the carousel. The Android player scrolls the native swipe screen to that robot. `export` writes a Mocha spec of whichever session you just drove.
 
 ## Browsers
 
@@ -42,36 +42,39 @@ iOS: `open ios --bundle-id com.example.shop`. An installed Android package uses 
 
 ### Native demo app
 
-On an emulator or a device the same guinea pig is the v2.2.0 apk. `open` waits up to five minutes. UiAutomator2 installs a server and starts instrumentation before the app is usable, and that is slower than launching a browser. The first request is not retried: a retry starts a second Appium session on the same device while the first is still installing. `tap "~Webview"` opens the WebdriverIO frontpage in the native WebView. `tap "~Login"`, then `fill` and `tap "~button-LOGIN"`, logs in with the same email and password. The fingerprint button is `~button-biometric`. It is on the login form only after a fingerprint is enrolled. `exec -e "await browser.fingerPrint(1)"` answers the system prompt (`fingerPrint` is Android-only; there is no `wdio session` subcommand for it). `dialog accept` closes the success alert, and it has to run after that alert is on screen. `swipe left` pages the carousel. A second `swipe left`, then `swipe up`, reveals the robot. `drag "~drag-l2" "~drop-l2"` (and the other eight pairs, in tray order) finishes the puzzle.
+On an emulator or a device the same guinea pig is the v2.2.0 apk. `open` waits up to five minutes. UiAutomator2 installs a server and starts instrumentation before the app is usable, and that is slower than launching a browser. The first request is not retried: a retry starts a second Appium session on the same device while the first is still installing. `tap "~Login"`, `fill`, then `tap "~button-LOGIN"` logs in with the same email and password. On a short screen the LOGIN button sits below the fold, so scroll the `~Login-screen` before that tap. `dialog accept` closes the success alert, and it has to run after that alert is on screen. The alert text is `Success` / `You are logged in!`.
 
-`-s android` keeps this session beside the browser one. Drop `-s android` when it is the only session. `open` uses the package and activity already installed by the apk, with `--no-reset` so the enrolled fingerprint stays. `"~Webview"` is the tab's accessibility label. `swipe` is the mobile command, so Android does not use `swipe-left.js`. `wait` does not apply to a native session.
+The fingerprint button is `~button-biometric`. It is on the login form only after a fingerprint is enrolled, so this player does not tap it. `exec -e "await browser.fingerPrint(1)"` answers the system prompt (`fingerPrint` is Android-only; there is no `wdio session` subcommand for it).
+
+`tap "~Webview"` is the in-app WebView of `https://webdriver.io/`. On a one-CPU software emulator the WebView renderer dies with `SIGTRAP` in `libmonochrome` after the LOADING label, and the page never paints. The player leaves that tab alone.
+
+`tap "~Swipe"` opens the carousel. `swipe left` does not page it: the carousel is `react-native-reanimated-carousel`, and a UIAutomator swipe springs back to the first card. An `exec` of `mobile: swipeGesture` on the scroll view, repeated, is what brings up the robot and the caption "You found me!!!". A full-screen `swipe up` from the bottom edge opens Android's screenshot UI instead. `drag "~drag-l2" "~drop-l2"` (and the other eight pairs, in tray order) finishes the puzzle. The last frame is the assembled robot and the retry control.
+
+`-s android` keeps this session beside the browser one. Drop `-s android` when it is the only session. `open` uses the package and activity already installed by the apk, with `--no-reset` so an enrolled fingerprint stays. `"~Login"` is the tab's accessibility label. `wait` does not apply to a native session.
 
 ```sh
 npx wdio session -s android open android --package com.wdiodemoapp --activity com.wdiodemoapp.MainActivity --no-reset
-npx wdio session -s android tap "~Webview"
 npx wdio session -s android tap "~Login"
 npx wdio session -s android fill "~input-email" "alice@webdriver.io"
 npx wdio session -s android fill "~input-password" "supersecret"
+npx wdio session -s android exec -e 'await browser.execute("mobile: scrollGesture", { elementId: (await $("~Login-screen")).elementId, direction: "down", percent: 0.75 }); return "scrolled the login form"'
 npx wdio session -s android tap "~button-LOGIN"
 npx wdio session -s android dialog accept
-npx wdio session -s android tap "~button-biometric"
-npx wdio session -s android exec -e "await browser.fingerPrint(1)"
-npx wdio session -s android dialog accept
 npx wdio session -s android tap "~Swipe"
-npx wdio session -s android swipe left
-npx wdio session -s android swipe left
-npx wdio session -s android swipe up
+npx wdio session -s android exec -e 'for (let i = 0; i < 6; i++) { await browser.execute("mobile: swipeGesture", { left: 80, top: 180, width: 560, height: 320, direction: "up", percent: 0.95 }) } for (let i = 0; i < 4; i++) { await browser.execute("mobile: swipeGesture", { left: 40, top: 700, width: 640, height: 280, direction: "up", percent: 0.9 }) } return "revealed the robot"'
 npx wdio session -s android tap "~Drag"
 npx wdio session -s android drag "~drag-l2" "~drop-l2"
 ```
 
 Repeat `drag` for `r3`, `r1`, `c1`, `c3`, `r2`, `c2`, `l1` and `l3`.
 
+<SessionTarget id="android" />
+
 ### iOS simulator
 
 The same screens are in the v2.2.0 simulator build, [ios.simulator.wdio.native.app.v2.2.0.zip](https://github.com/webdriverio/native-demo-app/releases/download/v2.2.0/ios.simulator.wdio.native.app.v2.2.0.zip). Unzip it and install `wdiodemoapp.app` on a booted simulator (`xcrun simctl install booted`). The bundle id is `org.wdiodemoapp`. That binary is an iPhone Simulator app (arm64, iOS 15.1 or newer). It needs macOS and Xcode. There is no iOS player on this page.
 
-`tap` and `swipe` match the Android flow. The biometric call is `browser.touchId(true)`, not `fingerPrint`. `touchId` needs the capability `appium:allowTouchIdEnroll` set to `true` (pass it with `--capabilities`). Enroll Touch ID on the simulator before opening the login form, or the biometric button stays hidden.
+Login, swipe and drag use the same accessibility labels as Android. `swipe left` was not run on the simulator. On the Android apk it does not page this carousel. The biometric call is `browser.touchId(true)`, not `fingerPrint`. `touchId` needs the capability `appium:allowTouchIdEnroll` set to `true` (pass it with `--capabilities`). Enroll Touch ID on the simulator before opening the login form, or the biometric button stays hidden.
 
 ```sh
 npx wdio session -s ios open ios --bundle-id org.wdiodemoapp --capabilities '{"appium:allowTouchIdEnroll":true}'

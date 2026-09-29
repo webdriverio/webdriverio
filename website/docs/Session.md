@@ -123,7 +123,7 @@ npx wdio session close
 
 | Page | Use it for |
 | --- | --- |
-| [Targets](/docs/session/targets) | Browsers, Android, iOS, desktop, Electron, Tauri, Dioxus and cloud devices, including the demo app in Chrome and Electron |
+| [Targets](/docs/session/targets) | Browsers, Android, iOS, desktop, Electron, Tauri, Dioxus and cloud devices, including the demo app in Chrome, Android and Electron |
 | [Snapshots and refs](/docs/session/snapshots) | What is on screen, and the refs you click |
 | [Run code](/docs/session/exec) | `exec`, assertions and visual checks |
 | [Export a test](/docs/session/export) | Specs, page objects and `.wdio/helpers` |

@@ -83,11 +83,13 @@ The native alert is centered on the screen, not in the page. The window is cente
 
 ## Android
 
-Android uses the v2.2.0 release apk (`com.wdiodemoapp` / `com.wdiodemoapp.MainActivity`), not the web shims. There is no Android player on the targets page.
+Android uses the v2.2.0 release apk (`com.wdiodemoapp` / `com.wdiodemoapp.MainActivity`), not the web shims. The targets page player is that apk on an Android 14 `google_apis` `x86_64` emulator at 720×1280, one CPU, software graphics, and `-accel off`. A 1080×2400 skin with two CPUs ANRs `system_server` (`Process system isn't responding`) and the home screen never draws. Nested KVM (`-accel on`) sits at 0% CPU and never exposes an adb device. A `wdio session` open used to die at 120s: WebDriver's `connectionRetryTimeout` aborted `POST /session` while Appium was installing `io.appium.uiautomator2.server`, and the retry started a second session that uninstalled the server again. The instrumentation that did start was force-stopped at Appium's 30s launch limit while it was still verifying classes. Android and iOS sessions now wait 300s, send that first request once, allow 180s to install the server and 240s to launch it.
 
-The apk does reach the home screen on an Android 14 `google_apis` `x86_64` image at 720×1280, one CPU, software graphics, and `-accel off`. A 1080×2400 skin with two CPUs ANRs `system_server` (`Process system isn't responding`) and the home screen never draws. Nested KVM (`-accel on`) sits at 0% CPU and never exposes an adb device. After that lighter image was up, a `wdio session` open still died at 120s: WebDriver's `connectionRetryTimeout` aborted `POST /session` while Appium was installing `io.appium.uiautomator2.server`, and the retry started a second session that uninstalled the server again. The instrumentation that did start was force-stopped at Appium's 30s launch limit while it was still verifying classes. Android and iOS sessions now wait 300s, send that first request once, allow 180s to install the server and 240s to launch it. With those limits, and with the server packages already installed, a session became ready and `tap`, `fill` and `acceptAlert` drove the login form. A later software-GPU fault (`Failed to find ColorBuffer`) turned the framebuffer black, so there is still no recording of that run.
+The recording starts on the home screen of a session that was already open. `tap "~Login"`, the two `fill`s, a `scrollGesture` on `~Login-screen`, `tap "~button-LOGIN"` and `dialog accept` produce the alert `Success` / `You are logged in!`. The fingerprint button is absent until a fingerprint is enrolled, so the player does not call `fingerPrint`. `tap "~Webview"` shows LOADING, then the WebView renderer dies with `SIGTRAP` (`SI_KERNEL`) in `libmonochrome` and the frontpage never paints, so the player does not open that tab.
 
-The carousel and the puzzle work with `swipe` and `drag`. Enroll one fingerprint on the emulator before opening the session, or the login form does not show the fingerprint button. A pin is required before Android will enroll a fingerprint. While the enrollment UI is waiting for a touch:
+`swipe left` returns success and leaves the first carousel card in place. The carousel is `react-native-reanimated-carousel`; a UIAutomator or `adb input swipe` springs back. The robot comes from `mobile: swipeGesture` on the vertical scroll view: six upward swipes from the title area, then four from the area under the cards. A swipe that starts at the bottom edge opens Android's screenshot UI. `drag` then places `l2`, `r3`, `r1`, `c1`, `c3`, `r2`, `c2`, `l1`, `l3`. The window crop is the emulator framebuffer only (360×608), with the mouse omitted.
+
+Enroll one fingerprint on the emulator before opening the session, or the login form does not show the fingerprint button. A pin is required before Android will enroll a fingerprint. While the enrollment UI is waiting for a touch:
 
 ```sh
 adb -s emulator-5554 emu finger touch 1
@@ -103,7 +105,7 @@ npx wdio session -s android open android \
     --no-reset
 ```
 
-Then: `tap "~Webview"`, `tap "~Login"`, `fill "~input-email" "alice@webdriver.io"`, `fill "~input-password" "supersecret"`, `tap "~button-LOGIN"`, `dialog accept`, `tap "~button-biometric"`, `exec -e "await browser.fingerPrint(1)"`, `dialog accept`, `tap "~Swipe"`, `swipe left`, `swipe left`, `swipe up`, `tap "~Drag"`, and `drag "~drag-…" "~drop-…"` for the nine pieces in tray order.
+Then the same commands as the Android player: `tap "~Login"`, both `fill`s, the login `scrollGesture`, `tap "~button-LOGIN"`, `dialog accept`, `tap "~Swipe"`, the `swipeGesture` loop that reveals the robot, `tap "~Drag"`, and `drag "~drag-…" "~drop-…"` for the nine pieces in tray order. After a fingerprint is enrolled, `tap "~button-biometric"` and `exec -e "await browser.fingerPrint(1)"` are the extra login.
 
 `browser.fingerPrint(1)` is the Android command behind that `exec`. It calls Appium `mobile: fingerprint`. The id has to be the one enrolled above.
 
@@ -115,4 +117,4 @@ The v2.2.0 simulator app is [ios.simulator.wdio.native.app.v2.2.0.zip](https://g
 npx wdio session -s ios open ios --bundle-id org.wdiodemoapp --capabilities '{"appium:allowTouchIdEnroll":true}'
 ```
 
-The taps match Android. After the biometric button is on screen, `exec -e "await browser.touchId(true)"` answers Touch ID. `browser.touchId` is iOS Simulator only and needs `appium:allowTouchIdEnroll`.
+Login, swipe and drag use the same accessibility labels as Android. After the biometric button is on screen, `exec -e "await browser.touchId(true)"` answers Touch ID. `browser.touchId` is iOS Simulator only and needs `appium:allowTouchIdEnroll`.
