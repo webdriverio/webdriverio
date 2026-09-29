@@ -1,5 +1,4 @@
 import fs from 'node:fs/promises'
-import * as cp from 'node:child_process'
 import { vi, test, expect, beforeEach, afterEach, describe, it } from 'vitest'
 import ejs from 'ejs'
 import { $ } from 'execa'
@@ -16,7 +15,6 @@ import { runProgram, getPackageVersion,
     npmInstall,
     setupTypeScript,
     createWDIOConfig,
-    createWDIOScript,
     runAppiumInstaller,
     detectCompiler,
     findInConfig,
@@ -39,6 +37,7 @@ vi.mock('node:fs/promises', () => ({
         access: vi.fn().mockRejectedValue(new Error('ENOENT')),
         mkdir: vi.fn(),
         readdir: vi.fn(),
+        readFile: vi.fn(),
         writeFile: vi.fn().mockReturnValue(Promise.resolve())
     }
 }))
@@ -92,8 +91,9 @@ test('runProgram', async () => {
     expect(process.exit).toBeCalledTimes(2)
 })
 
-test('getPackageVersion', async () => {
-    expect(await getPackageVersion()).toEqual(expect.any(String))
+test('getPackageVersion prefixes the version from package.json', async () => {
+    vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify({ version: '1.2.3' }) as any)
+    expect(await getPackageVersion()).toBe('v1.2.3')
 })
 
 describe('convertPackageHashToObject', () => {
@@ -197,38 +197,6 @@ describe('generateTestFiles', () => {
         expect((vi.mocked(fs.writeFile).mock.calls[1][0] as string)
             .endsWith(`${path.sep}example.e2e.js`))
             .toBe(true)
-    })
-
-    it('Jasmine with page generation and no pageObjects', async () => {
-        vi.mocked(fs.readdir).mockResolvedValue(listing([]))
-        const answers = {
-            runner: 'local',
-            specs: './tests/e2e/**/*.js',
-            framework: 'jasmine',
-            generateTestFiles: false,
-            usePageObjects: false
-        }
-
-        await generateTestFiles(answers as any)
-
-        expect(fs.readdir).toBeCalledTimes(1)
-        expect(ejs.renderFile).toBeCalledTimes(0)
-    })
-
-    it('Cucumber with page generation and no pageObjects', async () => {
-        vi.mocked(fs.readdir).mockResolvedValue(listing([]))
-        const answers = {
-            runner: 'local',
-            specs: './tests/e2e/**/*.js',
-            framework: 'cucumber',
-            generateTestFiles: false,
-            usePageObjects: false,
-        }
-
-        await generateTestFiles(answers as any)
-
-        expect(fs.readdir).toBeCalledTimes(1)
-        expect(ejs.renderFile).toBeCalledTimes(0)
     })
 
     it('Cucumber without page objects', async () => {
@@ -677,22 +645,6 @@ test('setupTypeScript extends the root config with a relative path from a nested
     expect(writtenContent.include).toEqual(['.', '../wdio.conf.ts'])
 })
 
-describe.skip('createWDIOScript', () => {
-    it('can run with success', async () => {
-        const promise = createWDIOScript({ wdioConfigPath: '/foo/bar/wdio.conf.js' } as any)
-        expect(await promise)
-            .toBe(true)
-        expect(cp.spawn).toBeCalledTimes(1)
-    })
-
-    it('does not fail the process if spawn errors out', async () => {
-        vi.mocked(cp.spawn).mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(1)) } as any)
-        expect(await createWDIOScript({ wdioConfigPath: '/foo/bar/wdio.conf.js' } as any))
-            .toBe(false)
-        expect(cp.spawn).toBeCalledTimes(1)
-    })
-})
-
 test('createWDIOConfig', async () => {
     const answers = await parseAnswers(true)
     answers.destSpecRootPath = '/tests/specs'
@@ -736,6 +688,5 @@ afterEach(()=>{
     vi.mocked(ejs.renderFile).mockClear()
     vi.mocked(fs.writeFile).mockClear()
     vi.mocked(fs.mkdir).mockClear()
-    vi.mocked(cp.spawn).mockClear()
     vi.mocked(installPackages).mockClear()
 })

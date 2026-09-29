@@ -88,7 +88,7 @@ describe('Bidi Node.js implementation', () => {
             ])
         })
 
-        it('should return an empty array if the hostname is not resolvable', async () => {
+        it('returns the original url when the hostname cannot be resolved', async () => {
             vi.mocked(dns.lookup).mockRejectedValueOnce(new Error('ESERVFAIL'))
             const candidateUrls = await listWebsocketCandidateUrls('ws://foo/bar')
             expect(candidateUrls).toEqual(['ws://foo/bar'])

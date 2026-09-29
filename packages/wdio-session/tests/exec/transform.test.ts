@@ -2,7 +2,7 @@ import path from 'node:path'
 import vm from 'node:vm'
 import { describe, it, expect } from 'vitest'
 
-import { transform, boundNames } from '../../src/exec/transform.js'
+import { transform } from '../../src/exec/transform.js'
 
 /**
  * run transformed code the way the exec action does
@@ -95,14 +95,5 @@ describe('exec transform', () => {
         for (const code of ["await $('a').click()", 'await browser.url("/")', "const t = await $('h1').getText()", "await $('h1').getText()\nawait $('a').click()", 'await foo.getBar()']) {
             expect(transform(code).readOnly, code).toBe(false)
         }
-    })
-
-    it('boundNames collects identifiers from patterns', () => {
-        const pattern = { type: 'ObjectPattern', properties: [
-            { type: 'Property', value: { type: 'Identifier', name: 'a' } },
-            { type: 'Property', value: { type: 'AssignmentPattern', left: { type: 'Identifier', name: 'b' } } },
-            { type: 'RestElement', argument: { type: 'Identifier', name: 'c' } }
-        ] }
-        expect(boundNames(pattern as never)).toEqual(['a', 'b', 'c'])
     })
 })

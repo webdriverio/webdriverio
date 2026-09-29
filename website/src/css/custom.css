@@ -31,6 +31,8 @@
     --wdio-radius: 12px;
     --wdio-radius-sm: 8px;
     --wdio-spacing-vertical: 96px;
+    --wdio-announcement-bar-height: 0px;
+    --wdio-chat-dialog-top-margin: max(64px, calc(var(--wdio-announcement-bar-height) + 5px));
 
     --ifm-background-color: var(--wdio-bg);
     --ifm-background-surface-color: var(--wdio-bg);
@@ -602,8 +604,12 @@ div[role="tabpanel"] .margin-vert--md,
     }
 }
 
-/* announcement bar */
-div[class*='announcementBar'] {
+/*
+ * Only the outer bar. The placeholder, content, and close button class names
+ * also contain "announcementBar", so a substring match gave them this border:
+ * a second rule under the text, and a line through the centered left spacer.
+ */
+.theme-announcement-bar {
     background: var(--wdio-surface) !important;
     color: var(--wdio-text-muted) !important;
     border-bottom: 1px solid var(--wdio-border);

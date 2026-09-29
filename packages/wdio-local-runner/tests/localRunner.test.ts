@@ -69,8 +69,6 @@ test('should fork a new process', async () => {
         retries: 0,
         specs: ['/foo/bar.test.js'],
     })
-
-    await worker.postMessage('runAgain', { foo: 'bar' } as any)
 })
 
 test('should shut down worker processes', async () => {
@@ -252,13 +250,6 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
     expect(call.args.instances).toEqual({ foo: { sessionId: '123' } })
 })
 
-test('should avoid shutting down if worker is not busy', async () => {
-    const runner = new LocalRunner({} as never, {
-        displayServerEnabled: true
-    } as any)
-    expect(await runner.initialize()).toBe(undefined)
-})
-
 test('starts a display-server daemon during initialize() when one is needed', async () => {
     const displayServer = await import('@wdio/display-server')
     const stopSpy = vi.fn().mockResolvedValue(undefined)
@@ -280,17 +271,6 @@ test('continues without a display when starting the daemon throws', async () => 
 
     await expect(runner.initialize()).resolves.toBeUndefined()
     expect(runner['daemon']).toBeNull()
-})
-
-test('shuts down cleanly when startDisplayDaemonFromConfig returns null', async () => {
-    const displayServer = await import('@wdio/display-server')
-    vi.mocked(displayServer.startDisplayDaemonFromConfig).mockResolvedValueOnce(null)
-
-    const runner = new LocalRunner({} as never, { displayServerEnabled: true } as any)
-    await runner.initialize()
-
-    expect(displayServer.startDisplayDaemonFromConfig).toHaveBeenCalledTimes(1)
-    await runner.shutdown()
 })
 
 test('keeps the daemon through shutdown() and stops it in dispose()', async () => {

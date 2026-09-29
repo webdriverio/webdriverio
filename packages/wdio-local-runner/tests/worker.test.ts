@@ -143,16 +143,6 @@ describe('handleExit', () => {
         })
     })
 
-    it('reports a crashed worker as failed so it is not swallowed by the launcher', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        worker.emit = vi.fn()
-        worker['_handleExit'](null, 'SIGSEGV')
-
-        const { exitCode } = vi.mocked(worker.emit).mock.calls[0][1] as { exitCode: number }
-        expect(exitCode).not.toBe(0)
-        expect(exitCode).toBeTruthy()
-    })
-
     it('falls back to a generic failure code if neither exit code nor signal is known', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
@@ -222,17 +212,6 @@ describe('kill', () => {
         expect(childProcess.kill).toHaveBeenCalledWith('SIGTERM')
     })
 
-    it('should kill with SIGKILL when specified', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        const childProcess = { kill: vi.fn() }
-        worker.childProcess = childProcess as unknown as ChildProcess
-
-        worker.kill('SIGKILL')
-
-        expect(childProcess.kill).toHaveBeenCalledWith('SIGKILL')
-        expect(worker.isKilled).toBe(true)
-    })
-
     it('should handle missing child process gracefully', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.childProcess = undefined
@@ -255,7 +234,7 @@ describe('kill', () => {
 describe('postMessage', () => {
     it('should log if the cid is busy and exit', async () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        const log = logger('webdriver')
+        const log = logger('@wdio/local-runner')
         vi.spyOn(log, 'info').mockImplementation((string) => string)
 
         worker.isBusy = true

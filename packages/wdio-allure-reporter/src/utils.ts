@@ -1,11 +1,10 @@
 import stripAnsi from 'strip-ansi'
 import type { CommandArgs, HookStats, Tag, TestStats } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
-import type { FixtureResult, Label, StatusDetails, TestResult } from 'allure-js-commons'
-import { Status, Status as AllureStatus } from 'allure-js-commons'
+import type { Label, StatusDetails } from 'allure-js-commons'
+import { Status as AllureStatus } from 'allure-js-commons'
 import CompoundError from './compoundError.js'
-import { allHooks, DEFAULT_CID, eachHooks, linkPlaceholder } from './constants.js'
-import type { WDIORunnable } from './types.js'
+import { DEFAULT_CID } from './constants.js'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import process from 'node:process'
@@ -54,51 +53,6 @@ export const getTestStatus = (
 }
 
 /**
- * Check is object is empty
- * @param object {Object}
- * @private
- */
-export const isEmpty = (object: never) =>
-
-    !object || Object.keys(object).length === 0
-
-/**
- * Is mocha/jasmine beforeEach hook
- * @param title {String} - hook title
- * @returns {boolean}
- * @private
- */
-export const isBeforeEachTypeHook = (title: string) =>
-    title.includes(eachHooks[0])
-
-/**
- * Is mocha/jasmine beforeAll / beforeEach hook
- * @param title {String} - hook title
- * @returns {boolean}
- * @private
- */
-export const isBeforeTypeHook = (title: string) =>
-    title.includes(allHooks[0]) || title.includes(eachHooks[0])
-
-/**
- * Is mocha/jasmine beforeEach / afterEach hook
- * @param title {String} - hook title
- * @returns {boolean}
- * @private
- */
-export const isEachTypeHooks = (title: string) =>
-    eachHooks.some((hook) => title.includes(hook))
-
-/**
- * Is mocha/jasmine beforeAll / afterAll hook
- * @param title {String} - hook title
- * @returns {boolean}
- * @private
- */
-export const isAllTypeHooks = (title: string) =>
-    allHooks.some((hook) => title.includes(hook))
-
-/**
  * Properly format error from different test runners
  * @param {object} test - TestStat object
  * @returns {Object} - error object
@@ -144,48 +98,6 @@ export const getStatusDetailsFromFailedTest = (test: TestStats | HookStats): Sta
         message: error.message,
         trace: error.stack,
     }
-}
-
-export const cleanCucumberHooks = (hook: FixtureResult | TestResult) => {
-    const currentStep = hook.steps[hook.steps.length - 1]
-    if (
-        currentStep &&
-        currentStep.steps.length === 0 &&
-        currentStep.attachments.length === 0 &&
-        hook.attachments.length === 0 &&
-        currentStep.status === Status.PASSED
-    ) {
-        hook.steps.pop()
-    }
-}
-
-/**
- * Substitute task id to link template
- * @param {string} template - link template
- * @param {string} id - task id
- * @returns {string} - link after substitution
- * @private
- */
-export const getLinkByTemplate = (template: string | undefined, id: string) => {
-    if (typeof template !== 'string') {
-        return id
-    }
-
-    if (!template.includes(linkPlaceholder)) {
-        throw Error(
-            `The link template "${template}" must contain ${linkPlaceholder} substring.`
-        )
-    }
-
-    return template.replace(linkPlaceholder, id)
-}
-
-export const getRunnablePath = (runnable: WDIORunnable): string[] => {
-    if (runnable.parent) {
-        return [...getRunnablePath(runnable.parent), runnable.title]
-    }
-
-    return [runnable.title]
 }
 
 export const findLast = <T>(

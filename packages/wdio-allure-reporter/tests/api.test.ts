@@ -28,19 +28,10 @@ beforeEach(() => {
 })
 
 describe('event listeners', () => {
-    new AllureReporter({})
-
-    const registeredEvents = [
-        events.addTestInfo,
-        events.startStep,
-        events.endStep,
-        events.runtimeMessage
-    ]
-
-    registeredEvents.forEach((eventName: any) => {
-        it(`${eventName} should have listener defined`, () => {
-            expect(process.listeners(eventName).length).toBeGreaterThanOrEqual(1)
-        })
+    it('registers an allure:addTestInfo listener', () => {
+        const before = process.listeners(events.addTestInfo).length
+        new AllureReporter({})
+        expect(process.listeners(events.addTestInfo).length).toBe(before + 1)
     })
 })
 

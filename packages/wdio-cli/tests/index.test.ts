@@ -61,22 +61,6 @@ describe('index', () => {
         vi.mocked(yargsMock.epilogue).mockClear()
     })
 
-    /**
-     * fails after updating yargs usage
-     * for some reason the `cb` variable is not the callback passed in
-     */
-    it.skip('should gracefully fail', async () => {
-        vi.mocked(yargsMock.parse).mockImplementation((str: never, cb: Function) => {
-            cb(null, null, 'test')
-            return yargsMock.argv
-        })
-        vi.mocked(handler).mockRejectedValue(new Error('ups'))
-        vi.spyOn(console, 'error')
-
-        await run()
-        expect(console.error).toHaveBeenCalled()
-    })
-
     it('should do nothing if command was called', async () => {
         vi.mocked(yargsMock.parse).mockReturnValue({ ...yargsMock.argv, _: ['run'] }) as any
         expect(typeof (await run())).toBe('undefined')

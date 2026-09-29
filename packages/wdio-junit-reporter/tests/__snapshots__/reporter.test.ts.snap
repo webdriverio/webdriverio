@@ -77,5 +77,3 @@ exports[`wdio-junit-reporter > should prepare name 1`] = `"Skipped test"`;
 exports[`wdio-junit-reporter > should prepare name 2`] = `"Chrome something odd foobar"`;
 
 exports[`wdio-junit-reporter > should prepare name 3`] = `"Chrome @something odd foobar"`;
-
-exports[`wdio-junit-reporter > should write to output stream on runnerEnd 1`] = `undefined`;

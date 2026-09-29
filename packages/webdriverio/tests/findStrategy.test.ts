@@ -47,12 +47,6 @@ describe('selector strategies helper', () => {
         expect(element.value).toBe('[name="searchinput"]')
     })
 
-    it('should find an element using "name" method through WC3', () => {
-        const element = findStrategy('[name="searchinput"]')
-        expect(element.using).toBe('css selector')
-        expect(element.value).toBe('[name="searchinput"]')
-    })
-
     it.each([
         {
             selector: '[name="search.with.dot"]',
@@ -322,6 +316,12 @@ describe('selector strategies helper', () => {
         expect(element.using).toBe('xpath')
         element = findStrategy('../')
         expect(element.using).toBe('xpath')
+        element = findStrategy('./following-sibling::div')
+        expect(element.using).toBe('xpath')
+        expect(element.value).toBe('./following-sibling::div')
+        element = findStrategy('../parent-element')
+        expect(element.using).toBe('xpath')
+        expect(element.value).toBe('../parent-element')
     })
 
     it('should find an element by ui automator strategy (android only)', () => {
@@ -386,12 +386,6 @@ describe('selector strategies helper', () => {
     it('should find an element by css selector with id and pseudo class', () => {
         const element = findStrategy('#purplebox:before')
         expect(element.using).toBe('css selector')
-    })
-
-    it('should find an element using "css selector" strategy if isMobile is false and w3c is used', () => {
-        const element = findStrategy('[name="searchinput"]')
-        expect(element.using).toBe('css selector')
-        expect(element.value).toBe('[name="searchinput"]')
     })
 
     it('should find an element by android accessibility id', () => {
@@ -485,16 +479,6 @@ describe('selector strategies helper', () => {
     })
 
     it('should allow mobile selector strategies if isMobile is used', () => {
-        let element = findStrategy('android=foo', true)
-        expect(element.using).toBe('-android uiautomator')
-        expect(element.value).toBe('foo')
-
-        element = findStrategy('ios=foo', true)
-        expect(element.using).toBe('-ios uiautomation')
-        expect(element.value).toBe('foo')
-    })
-
-    it('should allow mobile selector strategies if isMobile is used even when w3c is used', () => {
         let element = findStrategy('android=foo', true)
         expect(element.using).toBe('-android uiautomator')
         expect(element.value).toBe('foo')

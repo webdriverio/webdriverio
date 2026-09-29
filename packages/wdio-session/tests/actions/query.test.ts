@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { get, is } from '../../src/actions/query.js'
 import type { Session } from '../../src/session.js'
@@ -58,6 +58,7 @@ describe('get', () => {
     it('counts a ref as the one element it names', async () => {
         const s = session()
         const element = { elementId: '1' }
+        const queryAll = vi.fn(async () => [])
         Object.assign(s, {
             refs: {
                 resolve: async () => element,
@@ -65,10 +66,11 @@ describe('get', () => {
                 get: () => ({ role: 'button', name: 'Go' })
             }
         })
+        Object.assign(s.browser, { $$: queryAll })
         const counted = await get(s, { sub: 'count', target: '@e12', $cwd: '/' })
         expect(counted.text).toBe('1')
         expect(counted.data).toEqual({ count: 1 })
-        expect(s.browser.$$).toBeTypeOf('function')
+        expect(queryAll).not.toHaveBeenCalled()
     })
 
     it('rejects a missing attribute name', async () => {

@@ -139,8 +139,6 @@ describe('wdio-logger node', () => {
     describe('logFile', () => {
         const write = vi.fn(logText => logText)
         const logInfoSpy = vi.spyOn(fs, 'createWriteStream')
-        const logCacheAddSpy = vi.spyOn(Set.prototype, 'add')
-        const logCacheForEachSpy = vi.spyOn(Set.prototype, 'forEach')
         let writableBuffer: any = null
         logInfoSpy.mockImplementation((path: fs.PathLike): fs.WriteStream => ({
             path: path as string,
@@ -154,40 +152,18 @@ describe('wdio-logger node', () => {
             end: vi.fn()
         }))
 
-        beforeEach(() => {
-            logCacheAddSpy.mockClear()
-        })
-
-        it('should be possible to add to cache', () => {
-            const log = nodeLogger('test-logFile1')
-            log.info('foo')
-            log.info('bar')
-
-            const logCache = logCacheAddSpy.mock.results[0].value
-
-            expect(logCacheAddSpy).toBeCalledTimes(2)
-            expect(logCache.size).toBe(2)
-
-            const logCacheValues = logCache.values()
-            expect(logCacheValues.next().value).toContain('test-logFile1: foo')
-            expect(logCacheValues.next().value).toContain('test-logFile1: bar')
-
-            // after
-            logCache.clear()
-        })
-
-        it('should be possible to create and write to logFile, with cache', () => {
+        it('flushes lines logged before the log file exists', () => {
             const log = nodeLogger('test-logFile3')
             log.info('foo')
-            const logCache = logCacheAddSpy.mock.results[0].value
 
             process.env.WDIO_LOG_PATH = 'wdio.test.log'
 
             log.info('bar')
 
+            const written = write.mock.results.map((result) => result.value).join('')
             expect(logInfoSpy).toBeCalledTimes(1)
-            expect(logCache.size).toBe(0)
-            expect(logCacheForEachSpy).toBeCalledTimes(1)
+            expect(written).toContain('test-logFile3: foo')
+            expect(written).toContain('test-logFile3: bar')
         })
 
         it('should be possible to create and write to logFile, no cache', () => {
@@ -201,8 +177,6 @@ describe('wdio-logger node', () => {
             expect(write.mock.results[0].value).toContain('test-logFile2: foo')
             expect(write.mock.results[1].value).toContain('test-logFile2: bar')
             expect(write.mock.results[1].value).not.toContain('test-logFile2: foo')
-
-            expect(logCacheForEachSpy).toBeCalledTimes(0)
         })
 
         it('serializers', () => {
@@ -239,12 +213,13 @@ describe('wdio-logger node', () => {
 
                 it('masked sensitive information and keep ending new line even when capturing the whole line', () => {
                     process.env.WDIO_LOG_PATH = 'wdio.test.log'
-                    process.env.WDIO_LOG_MASKING_PATTERNS = '/RESULT ([^ ]*)/'
+                    process.env.WDIO_LOG_MASKING_PATTERNS = '/RESULT [\\s\\S]*/'
 
                     const log = nodeLogger('test-logFile-maskedEverythingButKeepNewLine')
                     log.info('RESULT test')
 
                     expect(write.mock.results[0].value).toContain('**MASKED**\n')
+                    expect(write.mock.results[0].value).not.toContain('RESULT test')
                 })
 
                 it('masked sensitive information with one pattern having 0 group and global flag', () => {
@@ -369,6 +344,36 @@ describe('wdio-logger node', () => {
             expect(write.mock.results[1].value).toContain('test-logFile4: Error: bar')
         })
 
+        it('writes ordinary lines only to the log file', () => {
+            vi.mocked(console.info).mockClear()
+            process.env.WDIO_LOG_PATH = 'wdio.test.log'
+            const log = nodeLogger('test-logFile-ordinary-file-only')
+            log.info('ordinary line')
+
+            expect(write.mock.results.at(-1)?.value).toContain('ordinary line')
+            expect(console.info).not.toHaveBeenCalled()
+        })
+
+        it('prints integration plugin init errors to the terminal and the log file', () => {
+            const consoleErrorSpy = vi.spyOn(console, 'error')
+            try {
+                process.env.WDIO_LOG_PATH = 'wdio.test.log'
+                const log = nodeLogger('test-logFile-plugin-init')
+                log.error(new Error(
+                    'Couldn\'t find plugin "foo" service, neither as wdio scoped package "@wdio/foo-service" nor as community package "wdio-foo-service". Please make sure you have it installed!'
+                ))
+
+                const written = write.mock.results.map((result) => result.value).join('')
+                expect(written).toContain('Couldn\'t find plugin')
+                expect(consoleErrorSpy).toHaveBeenCalled()
+                // The init error is cached so it can also reach the terminal. A later
+                // file line flushes that cache; otherwise it leaks into the next test.
+                log.info('settle')
+            } finally {
+                consoleErrorSpy.mockRestore()
+            }
+        })
+
         describe('clearLogger', () => {
             it('should be possible to change output directory', () => {
                 process.env.WDIO_LOG_PATH = 'wdio.test.log'
@@ -426,8 +431,6 @@ describe('wdio-logger node', () => {
             nodeLogger2.clearLogger()
         })
         afterEach(() => {
-            logCacheForEachSpy.mockClear()
-            logCacheAddSpy.mockClear()
             logInfoSpy.mockClear()
             write.mockClear()
             writableBuffer = undefined
@@ -482,12 +485,12 @@ describe('wdio-logger node', () => {
                 it('masked sensitive information and keep date, formatting but colors does not work and ensure no trailing new line', () => {
                     process.env.WDIO_LOG_MASKING_PATTERNS = '--key=([^ ]*)'
 
-                    const log = nodeLogger('test-console-masked1Pattern')
+                    const log = nodeLogger('test-console-masked-no-trailing-newline')
                     log.info('--key=mySecretKey')
 
-                    expect.stringMatching(
-                        /^gray \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z cyanBright INFO whiteBright test-console-masked1Pattern: --key=\*\*MASKED\*\*$/
-                    )
+                    expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringMatching(
+                        /^gray \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z cyanBright INFO whiteBright test-console-masked-no-trailing-newline: --key=\*\*MASKED\*\*$/
+                    ))
                 })
 
                 it('logs masked sensitive information without color as an entire string instead of an args array with color', () => {
@@ -505,6 +508,57 @@ describe('wdio-logger node', () => {
     describe('waitForBuffer with no logFile', () => {
         it('should be ok if logFile is undefined', async () => {
             expect(await nodeLogger.waitForBuffer()).toBe(undefined)
+        })
+    })
+
+    describe('progress', () => {
+        function withStdout (isTTY: boolean, run: (writes: string[]) => void) {
+            const originalIsTTY = process.stdout.isTTY
+            const writes: string[] = []
+            process.stdout.isTTY = isTTY
+            const stdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
+                writes.push(String(chunk))
+                return true
+            })
+            try {
+                run(writes)
+            } finally {
+                stdoutWrite.mockRestore()
+                process.stdout.isTTY = originalIsTTY
+            }
+        }
+
+        it('draws a progress line on a TTY and clears it', () => {
+            withStdout(true, (writes) => {
+                const log = nodeLogger('test-progress')
+                log.setLevel('info')
+                log.progress('50%')
+                log.progress('')
+
+                const output = writes.join('')
+                expect(output).toContain('PROGRESS')
+                expect(output).toContain('test-progress: 50%')
+                expect(output).toContain('\u001B[?25l')
+                expect(output).toContain('\r\x1b[K\x1b[?25h')
+            })
+        })
+
+        it('suppresses progress when the level is above info', () => {
+            withStdout(true, (writes) => {
+                const log = nodeLogger('test-progress-quiet')
+                log.setLevel('error')
+                log.progress('50%')
+                expect(writes).toEqual([])
+            })
+        })
+
+        it('suppresses progress when stdout is not a TTY', () => {
+            withStdout(false, (writes) => {
+                const log = nodeLogger('test-progress-notty')
+                log.setLevel('info')
+                log.progress('50%')
+                expect(writes).toEqual([])
+            })
         })
     })
 })

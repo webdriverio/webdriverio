@@ -379,7 +379,7 @@ class JunitReporter extends WDIOReporter {
         specFileName: string,
         type: string,
         isCucumberFrameworkRunner: boolean,
-        assignedSuiteKeys: Set<string> = new Set()
+        assignedSuiteKeys: Set<string>
     ) {
         const suiteKeys = Object.keys(this.suites)
 

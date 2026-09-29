@@ -97,21 +97,9 @@ export class AllureReportState {
         }
     }
 
-    get hasPendingSuite(): boolean {
-        const s = findLastIndex(this.messages, ({ type }) => type === 'allure:suite:start')
-        const e = findLastIndex(this.messages, ({ type }) => type === 'allure:suite:end')
-        return s > e
-    }
-
     get hasPendingTest(): boolean {
         const s = findLastIndex(this.messages, ({ type }) => type === 'allure:test:start')
         const e = findLastIndex(this.messages, ({ type }) => type === 'allure:test:end')
-        return s > e
-    }
-
-    get hasPendingStep(): boolean {
-        const s = findLastIndex(this.messages, ({ type }) => type === 'step_start')
-        const e = findLastIndex(this.messages, ({ type }) => type === 'step_stop')
         return s > e
     }
 

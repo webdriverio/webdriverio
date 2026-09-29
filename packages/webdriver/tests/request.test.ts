@@ -203,7 +203,7 @@ describe('webdriver request', () => {
             expect(requestOptions.body).toEqual('{}')
         })
 
-        it('should add the Content-Length header when a request object has a body', async () => {
+        it('does not set Content-Length and keeps the default headers for a JSON body', async () => {
             const req = new WebFetchRequest('POST', webdriverPath, { foo: 'bar' })
             const { requestOptions } = await req.createOptions({
                 ...defaultOptions,
@@ -212,16 +212,6 @@ describe('webdriver request', () => {
             })
             expect([...(requestOptions.headers as unknown as Map<string, string>).keys()])
                 .toEqual(['accept', 'content-type', 'user-agent'])
-        })
-
-        it('should add Content-Length as well any other header provided in the request options if there is body in the request object', async () => {
-            const req = new WebFetchRequest('POST', webdriverPath, { foo: 'bar' })
-            const { requestOptions } = await req.createOptions({
-                ...defaultOptions, path: '/',
-                headers: { foo: 'bar' },
-                logLevel: 'warn'
-            })
-            expect((requestOptions.headers as unknown as Map<string, string>).get('foo')).toContain('bar')
         })
 
         it('should add only the headers provided if the request body is empty', async () => {

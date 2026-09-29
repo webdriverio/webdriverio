@@ -53,6 +53,19 @@ const anonymousFn = `function anonymous(
 }`
 const otherFn = '(() => { ... }))()'
 
+/**
+ * Deliver a socket payload through the listener `BidiCore.connect` registers.
+ * That is the production path; there is no test-only response hook.
+ */
+function deliverBidiMessage (handler: BidiCore, data: Buffer) {
+    const registration = vi.mocked(handler.socket?.on)?.mock.calls.find(([event]) => event === 'message')
+    if (!registration) {
+        throw new Error('BidiCore did not register a socket "message" listener')
+    }
+    const listener = registration[1] as (payload: Buffer) => void
+    listener(data)
+}
+
 describe('BidiCore', () => {
     describe('can connect', () => {
         beforeAll(() => {
@@ -97,38 +110,26 @@ describe('BidiCore', () => {
         it('sends and waits for result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
-            cb.call(this as any)
-
-            vi.mocked(handler.socket?.on)?.mockClear()
             const promise = handler.send({ method: 'session.new', params: {} })
-            await new Promise((resolve) => setTimeout(resolve, 100))
 
-            handler.__handleResponse.call(this as any, Buffer.from('{somewrongmessage'))
-            handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
-            const result = await promise
-            expect(result).toEqual({ id: 1, result: 'foobar' })
+            deliverBidiMessage(handler, Buffer.from('{somewrongmessage'))
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
+            await expect(promise).resolves.toEqual({ id: 1, result: 'foobar' })
         })
 
         it('has a proper error stack that contains the line where the command is called', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
-            cb.call(this as any)
-
             const promise = handler.send({ method: 'session.new', params: {} })
-            setTimeout(
-                () => handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({
-                    id: 1,
-                    error: 'foobar',
-                    message: 'I am an error!'
-                }))),
-                100
-            )
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({
+                id: 1,
+                error: 'foobar',
+                message: 'I am an error!'
+            })))
 
             const error = await promise.catch((err) => err)
             const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
-            expect(error.stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:119:/)
+            expect(error.stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:123:/)
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
         })
@@ -146,7 +147,7 @@ describe('BidiCore', () => {
             /**
              * a late response should not resolve the already rejected command
              */
-            handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
             vi.useRealTimers()
         })
 
@@ -157,7 +158,7 @@ describe('BidiCore', () => {
 
             const promise = handler.send({ method: 'session.new', params: {} })
             await vi.advanceTimersByTimeAsync(90000)
-            handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
             await expect(promise).resolves.toEqual({ id: 1, result: 'foobar' })
             vi.useRealTimers()
         })
@@ -190,8 +191,6 @@ describe('BidiCore', () => {
         it('can send without getting an result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
-            cb.call(this as any)
 
             expect(handler.sendAsync({ method: 'session.new', params: {} }))
                 .toEqual(1)
