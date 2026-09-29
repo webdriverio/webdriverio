@@ -94,6 +94,7 @@ describe('ViteServer', () => {
 
         expect(viteServer.listen).toBeCalledTimes(1)
         expect(createServer).toBeCalledWith({
+            base: '/from-file',
             plugins: ['testrunner plugin', 'mock hoisting plugin', 'worker plugin', 'foobar'],
             root: expect.any(String),
             server: {
@@ -104,9 +105,14 @@ describe('ViteServer', () => {
     })
 
     it('start with a preset and custom viteConfig as object', async () => {
+        const userPlugin = { name: 'user-plugin' }
         const server = new ViteServer({
             preset: 'lit',
-            viteConfig: { server: { port: 3210 } }
+            viteConfig: {
+                base: '/from-object',
+                plugins: [userPlugin],
+                server: { port: 3210 }
+            }
         }, { rootDir: __dirname } as any, {})
         const viteServer = { listen: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
@@ -114,7 +120,8 @@ describe('ViteServer', () => {
 
         expect(viteServer.listen).toBeCalledTimes(1)
         expect(createServer).toBeCalledWith({
-            plugins: ['testrunner plugin', 'mock hoisting plugin', 'worker plugin', 'foobar'],
+            base: '/from-object',
+            plugins: [userPlugin, 'testrunner plugin', 'mock hoisting plugin', 'worker plugin', 'foobar'],
             root: expect.any(String),
             server: {
                 port: 1234
