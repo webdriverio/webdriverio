@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import os from 'node:os'
 import path from 'node:path'
 
 import type { Plugin } from 'vite'
@@ -74,6 +76,19 @@ test('optimizeForStencil', async () => {
     ).toEqual({
         code: "import { Component, Prop, h } from 'something else'"
     })
+})
+
+test('optimizeForStencil rejects an existing config that fails to import', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-stencil-'))
+    const configPath = path.join(root, 'stencil.config.ts')
+    await fs.writeFile(configPath, 'throw new Error("broken stencil config")\n')
+    vi.mocked(hasFileByExtensions).mockResolvedValueOnce(configPath)
+
+    try {
+        await expect(optimizeForStencil(root)).rejects.toThrow('broken stencil config')
+    } finally {
+        await fs.rm(root, { recursive: true, force: true })
+    }
 })
 
 test('optimizeForStencil without a Stencil config', async () => {

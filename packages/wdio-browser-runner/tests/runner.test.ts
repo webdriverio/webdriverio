@@ -8,6 +8,7 @@ import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
 
 import BrowserRunner from '../src/index.js'
+import updateViteConfig from '../src/vite/frameworks/index.js'
 
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -18,6 +19,10 @@ vi.mock('../src/communicator.js', () => ({
         register = vi.fn()
     }
 }))
+vi.mock('../src/vite/frameworks/index.js', () => ({
+    default: vi.fn().mockResolvedValue({})
+}))
+
 vi.mock('../src/vite/server.js', () => ({
     ViteServer: class {
         start = vi.fn().mockResolvedValue(1234)
@@ -74,6 +79,15 @@ describe('BrowserRunner', () => {
             path.join('/foo/bar', 'coverage'),
             { recursive: true }
         )
+    })
+
+    it('initialize rejects when Vite optimization fails', async () => {
+        vi.mocked(updateViteConfig).mockRejectedValueOnce(new Error('broken stencil config'))
+        const runner = new BrowserRunner({}, {
+            rootDir: '/foo/bar',
+            framework: 'mocha'
+        } as any)
+        await expect(runner.initialize()).rejects.toThrow('broken stencil config')
     })
 
     it('run', async () => {
