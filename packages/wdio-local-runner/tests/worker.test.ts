@@ -85,17 +85,27 @@ describe('handleMessage', () => {
     })
 
     it('stores sessionId and connection data to worker instance', () => {
-        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const requestedCapabilities = [{ browserName: 'chrome' }]
+        const sharedConfig = { watch: true, capabilities: requestedCapabilities } as WebdriverIO.Config
+        const worker = new Worker(sharedConfig, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         const payload = {
             name: 'sessionStarted',
             content: {
                 sessionId: 'abc123',
+                hostname: '127.0.0.1',
+                port: 4444,
+                capabilities: { browserName: 'chrome', browserVersion: '120' },
                 bar: 'foo'
             }
         }
         worker['_handleMessage'](payload as unknown as Workers.WorkerMessage)
         expect(worker.sessionId).toEqual('abc123')
+        expect(worker.capabilities).toEqual({ browserName: 'chrome', browserVersion: '120' })
+        expect(worker.config).toMatchObject({ watch: true, sessionId: 'abc123', hostname: '127.0.0.1', port: 4444, bar: 'foo' })
+        expect(worker.config.capabilities).toEqual(requestedCapabilities)
+        expect(sharedConfig).not.toHaveProperty('sessionId')
+        expect(sharedConfig.capabilities).toEqual(requestedCapabilities)
     })
 
     it('stores instances to worker instance in multi-remote mode', () => {
