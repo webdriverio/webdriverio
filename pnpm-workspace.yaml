@@ -27,16 +27,7 @@ allowBuilds:
 # expect-webdriverio v8 alpha was published inside pnpm's minimumReleaseAge
 # window; allow it until the stable release lands.
 minimumReleaseAgeExclude:
-  - expect-webdriverio@8.0.0-alpha.0
-
-# coverage-v8@5 accepts ^1.0.0. 1.0.2 was published inside pnpm's
-# minimumReleaseAge window, so stay on the previous release.
-overrides:
-  '@vitest/istanbul-lib-coverage': 1.0.1
-  '@vitest/istanbul-lib-report': 1.0.1
-  # expect-webdriverio types import @wdio/types. The npm copy has the same version
-  # as the workspace one, so tsc dedupes them to the npm copy without the v10 types.
-  'expect-webdriverio>@wdio/types': 'workspace:*'
+  - expect-webdriverio@8.0.0-alpha.0 || 8.0.0-alpha.1
 
 # recast's declared @babel/parser range cannot parse the pipeline operator
 packageExtensions:
