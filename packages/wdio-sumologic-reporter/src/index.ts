@@ -46,6 +46,7 @@ export default class SumoLogicReporter extends WDIOReporter {
     private _shutdownTimer?: NodeJS.Timeout
     private _requestController?: AbortController
 
+    private _sourceAddress = ''
     private _unsynced: string[] = []
     private _isSynchronising = false
     private _isDisabled = false
@@ -70,6 +71,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
+        this._sourceAddress = this._options.sourceAddress
         this._interval = global.setInterval(this.sync.bind(this), this._options.syncInterval)
     }
 
@@ -219,12 +221,6 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
-        const sourceAddress = this._options.sourceAddress
-        if (typeof sourceAddress !== 'string' || sourceAddress.trim() === '') {
-            this._disable('Sumo Logic reporter disabled: a non-empty "sourceAddress" is required')
-            return
-        }
-
         const logLines = this._unsynced.slice(0, MAX_LINES).join('\n')
 
         /**
@@ -237,7 +233,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         const requestTimer = setTimeout(() => controller.abort(), this._getRequestTimeout())
 
         try {
-            const resp = await fetch(sourceAddress, {
+            const resp = await fetch(this._sourceAddress, {
                 method: 'POST',
                 body: JSON.stringify(logLines),
                 signal: controller.signal
