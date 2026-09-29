@@ -6,7 +6,7 @@ describe('smoke test multi-remote', () => {
             JSON.stringify(await browser.getTitle()),
             JSON.stringify(['Mock Page Title', 'Mock Page Title']))
 
-        if (browser.getInstance('browserA')) {
+        if (browser.instances.includes('browserA')) {
             assert.equal(await browser.getInstance('browserB').getTitle(), 'Mock Page Title')
             assert.equal(await browser.getInstance('browserA').getTitle(), 'Mock Page Title')
         } else {
@@ -41,7 +41,7 @@ describe('smoke test multi-remote', () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
             let browserObj = global.browserA,
                 anotherBrowserObj  = global.browserB
-            if (browser.getInstance('browserC')) {
+            if (browser.instances.includes('browserC')) {
                 browserObj = global.browserC
                 anotherBrowserObj  = global.browserD
             }
@@ -96,7 +96,7 @@ describe('smoke test multi-remote', () => {
             await browser.customCommandScenario(Object.keys(browser.instances).length)
             let browserObj = global.browserA,
                 anotherBrowserObj  = global.browserB
-            if (browser.getInstance('browserC')) {
+            if (browser.instances.includes('browserC')) {
                 browserObj = global.browserC
                 anotherBrowserObj  = global.browserD
             }
