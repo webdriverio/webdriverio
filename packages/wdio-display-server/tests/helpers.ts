@@ -3,9 +3,6 @@ import { EventEmitter } from 'node:events'
 import path from 'node:path'
 import { PassThrough } from 'node:stream'
 
-import type { DisplayDaemon, DisplayDaemonOptions, DisplayServer } from '../src/types.js'
-import type { DisplayServerManager } from '../src/DisplayServerManager.js'
-
 /**
  * Minimal stand-in for a spawned child process. Backend tests drive its
  * lifecycle by emitting 'exit'/'error' and asserting on the spied `kill`.
@@ -103,23 +100,3 @@ export const runAsUser = (uid = 1000) => {
     })
 }
 export const runAsRoot = () => runAsUser(0)
-
-export const makeDaemonHandle = (overrides: Partial<DisplayDaemon> = {}): DisplayDaemon => ({
-    env: {},
-    stop: vi.fn().mockResolvedValue(undefined),
-    stopSync: vi.fn(),
-    ...overrides,
-} as DisplayDaemon)
-
-export const makeDisplayServer = (overrides: Partial<DisplayServer> = {}): DisplayServer => ({
-    name: 'xvfb',
-    isAvailable: async () => true,
-    install: async () => true,
-    startDaemon: async () => makeDaemonHandle(),
-    ...overrides,
-} as DisplayServer)
-
-/** Mock manager whose startDaemon() starts `server`. */
-export const makeManager = (server: DisplayServer): DisplayServerManager => ({
-    startDaemon: vi.fn(async (options?: DisplayDaemonOptions) => server.startDaemon(options)),
-}) as unknown as DisplayServerManager
