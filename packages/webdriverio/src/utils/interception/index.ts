@@ -209,6 +209,21 @@ export default class WebDriverInterception {
         return this.#continueBeforeRequestSent(request)
     }
 
+    /**
+     * `fetchResponse: false` answers before a response exists. Callbacks are
+     * typed to receive one, so give them the status this mock sends by default.
+     * A callback can still replace that status.
+     */
+    #eventForEarlyResponse(request: local.NetworkBeforeRequestSentParameters) {
+        return {
+            ...request,
+            response: {
+                status: 200,
+                headers: []
+            }
+        }
+    }
+
     async #handleBeforeRequestSentWithPostData(request: local.NetworkBeforeRequestSentParameters) {
         await this.#populateRequestPostData(request)
         return this.#continueBeforeRequestSent(request)
@@ -226,12 +241,40 @@ export default class WebDriverInterception {
 
         const requestId = request.request.request
         this.#emit('request', request)
+
+        /**
+         * `abort()` fails the request before a response exists. An early mock
+         * response must not skip that, or an `abortOnce()` would stay queued
+         * and the request would succeed.
+         */
+        if (this.#requestOverwrites[0]?.abort) {
+            const { abort } = this.#requestOverwrites[0].once
+                ? this.#requestOverwrites.shift() || {}
+                : this.#requestOverwrites[0]
+
+            if (abort) {
+                this.#emit('fail', requestId)
+                return this.#withBlockedRequestTracking(
+                    requestId,
+                    this.#browser.networkFailRequest({ request: requestId })
+                )
+            }
+        }
+
         const responseOverwrite = this.#respondOverwrites[0]
+        /**
+         * A status or response-header filter can only be decided after the
+         * backend responds. `fetchResponse: false` would otherwise match every
+         * request, because `beforeRequestSent` has no response to filter on.
+         */
+        const filtersOnResponse = this.#filterOptions.statusCode !== undefined ||
+            this.#filterOptions.responseHeaders !== undefined
 
         if (
             responseOverwrite?.overwrite &&
             'fetchResponse' in responseOverwrite.overwrite &&
-            responseOverwrite.overwrite.fetchResponse === false
+            responseOverwrite.overwrite.fetchResponse === false &&
+            !filtersOnResponse
         ) {
             const { overwrite } = responseOverwrite.once
                 ? this.#respondOverwrites.shift() || {}
@@ -243,7 +286,10 @@ export default class WebDriverInterception {
 
             this.#emit('overwrite', request)
             try {
-                const responseData = parseOverwrite(overwrite as RespondWithOptions, request)
+                const responseData = parseOverwrite(
+                    overwrite as RespondWithOptions,
+                    this.#eventForEarlyResponse(request)
+                )
                 if (responseData.body) {
                     this.#overwrittenResponseBodies.set(requestId, responseData.body)
                 }
@@ -273,17 +319,9 @@ export default class WebDriverInterception {
 
         const hasRequestOverwrites = this.#requestOverwrites.length > 0
         if (hasRequestOverwrites) {
-            const { overwrite, abort } = this.#requestOverwrites[0].once
+            const { overwrite } = this.#requestOverwrites[0].once
                 ? this.#requestOverwrites.shift() || {}
                 : this.#requestOverwrites[0]
-
-            if (abort) {
-                this.#emit('fail', requestId)
-                return this.#withBlockedRequestTracking(
-                    requestId,
-                    this.#browser.networkFailRequest({ request: requestId })
-                )
-            }
 
             this.#emit('overwrite', request)
             return this.#withBlockedRequestTracking(
