@@ -26,23 +26,6 @@ export const UNMAPPABLE_XPATH_FUNCTIONS = [
 ] as const
 
 /**
- * Patterns that indicate a complex XPath requiring predicate/class chain conversion
- * (not suitable for simple accessibility ID conversion).
- */
-export const COMPLEX_XPATH_PATTERNS = [
-    /\s+or\s+/i,
-    /\s+and\s+/i,
-    /contains\(/i,
-    /starts-with\(/i,
-    /ends-with\(/i,
-    /text\(\)/i,
-    /substring\(/i,
-    /\[.*\[/,
-    /@\w+\s*[!=<>]+\s*["'][^"']+["']\s+or\s+@\w+\s*[!=<>]+\s*["'][^"']+["']/i,
-    /@\w+\s*[!=<>]+\s*["'][^"']+["']\s+and\s+@\w+\s*[!=<>]+\s*["'][^"']+["']/i,
-] as const
-
-/**
  * Priority order of attributes for building unique selectors.
  * Meaningful attributes first, then boolean attributes.
  */

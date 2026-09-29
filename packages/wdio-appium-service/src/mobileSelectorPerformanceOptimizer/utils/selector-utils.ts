@@ -1,22 +1,4 @@
 /**
- * Checks if a command is an element find command ($, $$, custom$, etc.).
- * These commands return elements and should NOT be tracked as element actions.
- * Based on WebdriverIO source: packages/webdriverio/src/commands/element/
- * - $, $$, custom$, custom$$, shadow$, shadow$$ are marked as @type utility
- * - getElement, getElements, nextElement, previousElement, parentElement are also @type utility
- */
-export function isElementFindCommand(commandName: string): boolean {
-    const elementFindCommands = [
-        '$', '$$', 'findElement', 'findElements',
-        'custom$', 'custom$$',
-        'shadow$', 'shadow$$',
-        'getElement', 'getElements',
-        'nextElement', 'previousElement', 'parentElement',
-    ]
-    return elementFindCommands.includes(commandName)
-}
-
-/**
  * Extracts a selector string from command arguments.
  */
 export function extractSelectorFromArgs(args: unknown[]): string | null {

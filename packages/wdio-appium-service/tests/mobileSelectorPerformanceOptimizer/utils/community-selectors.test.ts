@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from 'vitest'
-import { convertXPathToClassChain } from '../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-class-chain.js'
 import { convertXPathToOptimizedSelector } from '../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-converter.js'
 
 vi.mock('@wdio/logger', () => ({
@@ -9,58 +8,11 @@ vi.mock('@wdio/logger', () => ({
 }))
 
 /**
- * Tests for community-provided iOS XPath selectors.
- * These represent real-world usage patterns from the WDIO/Appium community.
+ * Community iOS XPath selectors exercised through page-source conversion,
+ * which is the path the optimizer calls.
  */
 describe('Community iOS XPath Selectors', () => {
-    describe('Multi-segment hierarchical XPaths (now supported)', () => {
-        test('1. //*[@name="valueId"]/*[contains(@name, "valueName")] - parent with child containing', () => {
-            const xpath = '//*[@name="valueId"]/*[contains(@name, "valueName")]'
-            const result = convertXPathToClassChain(xpath)
-
-            expect(result).toMatchSnapshot()
-        })
-
-        test('4. //*[contains(@name, "value")]//XCUIElementTypeText[2] - descendant with index', () => {
-            const xpath = '//*[contains(@name, "value")]//XCUIElementTypeText[2]'
-            const result = convertXPathToClassChain(xpath)
-
-            expect(result).toMatchSnapshot()
-        })
-
-        test('7. //XCUIElementTypeButton//*[@label="value"] - element type with descendant', () => {
-            const xpath = '//XCUIElementTypeButton//*[@label="value"]'
-            const result = convertXPathToClassChain(xpath)
-
-            expect(result).toMatchSnapshot()
-        })
-
-        test('10. //XCUIElementTypeNavigationBar[@name="SELECT ADDRESS"]/XCUIElementTypeStaticText[@name="SELECT ADDRESS"] - two element types', () => {
-            const xpath = '//XCUIElementTypeNavigationBar[@name="SELECT ADDRESS"]/XCUIElementTypeStaticText[@name="SELECT ADDRESS"]'
-            const result = convertXPathToClassChain(xpath)
-
-            expect(result).toMatchSnapshot()
-        })
-
-        test('13. (//XCUIElementTypeSwitch[@name=" SMS"])[1]/XCUIElementTypeSwitch - grouped with index then child', () => {
-            const xpath = '(//XCUIElementTypeSwitch[@name=" SMS"])[1]/XCUIElementTypeSwitch'
-            const result = convertXPathToClassChain(xpath)
-
-            expect(result).toMatchSnapshot()
-        })
-    })
-
-    describe('Single-segment XPaths (already supported)', () => {
-        test('8. (//XCUIElementTypeButton[@name="Pizza" or @name="Choose a pizza"])[1] - OR conditions with index', () => {
-            const xpath = '(//XCUIElementTypeButton[@name="Pizza" or @name="Choose a pizza"])[1]'
-            const result = convertXPathToClassChain(xpath)
-
-            expect(result?.selector).toContain('-ios class chain:**/XCUIElementTypeButton')
-            expect(result?.selector).toContain('Pizza')
-            expect(result?.selector).toContain('Choose a pizza')
-            expect(result?.selector).toContain('[1]')
-        })
-
+    describe('Single-segment XPaths', () => {
         test('9. //XCUIElementTypeButton[@name="T&Cs"] - simple element with name', async () => {
             const xpath = '//XCUIElementTypeButton[@name="T&Cs"]'
             const mockBrowser = {
