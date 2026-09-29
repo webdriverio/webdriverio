@@ -186,7 +186,7 @@ test('createWebdriverIO with bun', async () => {
     expect(fs.writeFile).toBeCalledTimes(0)
 })
 
-test('creates a directory if it does not exist', async () => {
+test('createWebdriverIO with dev true installs @wdio/cli as a devDependency', async () => {
     vi.stubEnv('npm_config_user_agent', 'npm/10.2.4 node/v20.11.0 darwin arm64 workspaces/false')
     await createWebdriverIO({ npmTag: 'latest', dev: true } as ProgramOpts)
     expect(runProgram).toBeCalledWith(
