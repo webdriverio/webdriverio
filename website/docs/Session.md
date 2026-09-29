@@ -14,7 +14,7 @@ npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio session close
 ```
 
-The session is named `default`. Pass `-s <name>` only when you need two sessions at once.
+The session is named `default`. Pass `-s <name>` only when you need two sessions at once. Three short demos — a browser postcard, a phone boarding pass and an Electron launch console — are on the [demos](/docs/session/demos) page.
 
 ## Install
 
@@ -123,6 +123,7 @@ npx wdio session close
 
 | Page | Use it for |
 | --- | --- |
+| [Demos](/docs/session/demos) | A postcard, a boarding pass and a launch console you can run |
 | [Targets](/docs/session/targets) | Browsers, Android, iOS, desktop, Electron, Tauri, Dioxus and cloud devices |
 | [Snapshots and refs](/docs/session/snapshots) | What is on screen, and the refs you click |
 | [Run code](/docs/session/exec) | `exec`, assertions and visual checks |
@@ -145,6 +146,7 @@ Exit codes: 0 success, 1 the action failed, 2 usage, 3 a missing dependency or c
 
 ## Next steps
 
+- [Demos](/docs/session/demos) — run a browser, a phone page and an Electron app
 - [Targets](/docs/session/targets) — open something other than Chrome
 - [WebdriverIO for Coding Agents](/docs/ai-agents) — skill, docs and project rules
 - [wdio session commands](/docs/session-commands) — every action and flag

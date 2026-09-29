@@ -1,0 +1,10 @@
+{
+  "name": "wdio-session-launch-demo",
+  "private": true,
+  "type": "module",
+  "main": "main.js",
+  "description": "Electron launch console driven by wdio session.",
+  "dependencies": {
+    "electron": "44.4.5"
+  }
+}

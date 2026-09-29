@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boarding pass</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <div class="scene">
+      <article class="pass" id="pass" data-flight="wd10" data-boarded="false" data-flipped="false">
+        <section class="face front">
+          <p class="airline">Fieldglass</p>
+          <h1><span id="from">Tokyo</span> <span class="arrow" aria-hidden="true">→</span> <span id="to">Reykjavík</span></h1>
+          <dl>
+            <div><dt>Flight</dt><dd id="code">WD 10</dd></div>
+            <div><dt>Seat</dt><dd id="seat">4A</dd></div>
+            <div><dt>Gate</dt><dd id="gate">—</dd></div>
+          </dl>
+          <p class="tear" aria-hidden="true"></p>
+        </section>
+        <section class="face back">
+          <p class="airline">Fieldglass</p>
+          <p class="barcode" aria-hidden="true"></p>
+          <p class="group">Group 1 · <span id="back-code">WD 10</span></p>
+        </section>
+      </article>
+    </div>
+    <p class="status" id="status" role="status">Ready to board.</p>
+    <p class="status" id="pose">The pass is face up.</p>
+    <p class="status" id="orient">The pass is upright.</p>
+    <div class="controls">
+      <button type="button" id="board">Board</button>
+      <button type="button" id="flip">Flip the pass</button>
+    </div>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

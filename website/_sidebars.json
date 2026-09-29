@@ -52,6 +52,7 @@
         "id": "session"
       },
       "items": [
+        "session/demos",
         "session/targets",
         "session/snapshots",
         "session/exec",

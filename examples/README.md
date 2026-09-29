@@ -12,6 +12,10 @@ pnpm run setup
 
 Then just follow the instructions and test it out. Have fun!
 
+# Session demos
+
+[examples/session](./session) is three short `wdio session` demos: a browser postcard, a phone boarding pass and an Electron launch console. The walkthrough is [Session demos](https://webdriver.io/docs/session/demos).
+
 > **Note**
 
 > The examples don't have any `dev-dependencies`. Use one of the [boilerplates](https://webdriver.io/docs/boilerplates) to set up you project including the `dev-dependencies` and integrate the examples in that project.

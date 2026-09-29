@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Launch console</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="panel">
+    <div class="lamp" id="lamp" data-state="hold" aria-hidden="true"></div>
+    <p class="readout" id="readout">HOLD</p>
+    <p class="status" id="status" role="status">Hold. Arm the console before launch.</p>
+    <div class="controls">
+      <button type="button" id="arm">Arm</button>
+      <button type="button" id="launch" disabled>Launch</button>
+    </div>
+    <p class="hint">Press Space to launch.</p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
