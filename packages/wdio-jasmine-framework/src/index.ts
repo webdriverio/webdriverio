@@ -26,6 +26,7 @@ const EXPECT_ASYMMETRIC_MATCHERS = [
     'objectContaining',
     'stringContaining',
     'stringMatching',
+    'oneOf',
     'not',
 ] as const
 const TEST_INTERFACES = ['it', 'fit', 'xit']
@@ -643,6 +644,21 @@ export * from './types.js'
 
 // eslint-disable-next-line no-unused-vars -- referenced as `jasmine.*` in the global augmentation below
 type jasmine = typeof Jasmine
+
+type WdioAsyncMatchers<T> = ExpectWebdriverIO.Matchers<Promise<void>, T>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- matches any matcher signature
+type MatcherArgs<Fn> = Fn extends (...args: any[]) => any ? Parameters<Fn> : never
+type JasmineAsyncMatcherName = 'toBePending' | 'toBeResolved' | 'toBeResolvedTo' | 'toBeRejected' | 'toBeRejectedWith' | 'toBeRejectedWithError'
+type JasmineAsyncMatchersFor<T> = T extends PromiseLike<infer V> ? jasmine.AsyncMatchers<V, unknown> : never
+
+/**
+ * Matchers that the global `expect` sends to `expectAsync` (see `./expect.ts`).
+ * They return a Promise, and only exist for the actual values that they accept.
+ */
+type WdioJasmineAsyncMatchers<T> = Omit<WdioAsyncMatchers<T>, 'toHaveSize'> & {
+    [K in JasmineAsyncMatcherName]: JasmineAsyncMatchersFor<T>[K]
+}
+
 declare global {
     /**
      * Define a single spec. A spec should contain one or more expectations that test the state of the code.
@@ -709,8 +725,45 @@ declare global {
     namespace WebdriverIO {
         interface JasmineOpts extends JasmineOptions {}
     }
+    /**
+     * The asymmetric matchers that the adapter copies from expect-webdriverio.
+     * They type `expect.stringContaining()` and the others when TypeScript uses
+     * the `expect` function of `@types/jasmine`.
+     */
+    namespace expect {
+        const any: ExpectWebdriverIO.Expect['any']
+        const anything: ExpectWebdriverIO.Expect['anything']
+        const arrayContaining: ExpectWebdriverIO.Expect['arrayContaining']
+        const objectContaining: ExpectWebdriverIO.Expect['objectContaining']
+        const stringContaining: ExpectWebdriverIO.Expect['stringContaining']
+        const stringMatching: ExpectWebdriverIO.Expect['stringMatching']
+        const oneOf: ExpectWebdriverIO.Expect['oneOf']
+        const not: ExpectWebdriverIO.Expect['not']
+    }
+    namespace jasmine {
+        /**
+         * Jasmine sync matchers stay sync and return `void`. WebdriverIO matchers
+         * and Jasmine async matchers go to `expectAsync` and return a Promise.
+         */
+        interface Matchers<T> extends WdioJasmineAsyncMatchers<T> {
+            /**
+             * WebdriverIO's `toHaveSize` for an element. Jasmine's `toHaveSize(number)`
+             * stays available for any other value.
+             */
+            toHaveSize(...args: MatcherArgs<WdioAsyncMatchers<T>['toHaveSize']>): Promise<void>
+        }
+    }
     namespace ExpectWebdriverIO {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        interface Matchers<R, T> extends jasmine.Matchers<R> {}
+        /**
+         * `@wdio/globals/types` and `@types/jasmine` both declare the global `expect`,
+         * and TypeScript uses the one it reads first. These signatures make both
+         * resolve to Jasmine's matchers, which is what the runtime `expect` gives.
+         */
+        interface Expect {
+            <T extends jasmine.Func>(spy: T | jasmine.Spy<T>): jasmine.FunctionMatchers<T>
+            (actual: string): jasmine.Matchers<string>
+            <T>(actual: ArrayLike<T>): jasmine.ArrayLikeMatchers<T>
+            <T>(actual: T): jasmine.Matchers<T>
+        }
     }
 }

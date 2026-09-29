@@ -188,6 +188,9 @@ importers:
       '@testing-library/vue':
         specifier: ^8.0.1
         version: 8.1.0(@vue/compiler-sfc@3.5.29)(vue@3.5.29(typescript@5.9.3))
+      '@types/jasmine':
+        specifier: ^6.0.0
+        version: 6.0.0
       '@types/mocha':
         specifier: ^10.0.10
         version: 10.0.10
@@ -218,6 +221,9 @@ importers:
       '@wdio/globals':
         specifier: workspace:*
         version: link:../packages/wdio-globals
+      '@wdio/jasmine-framework':
+        specifier: workspace:*
+        version: link:../packages/wdio-jasmine-framework
       '@wdio/junit-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-junit-reporter

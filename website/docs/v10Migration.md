@@ -108,6 +108,19 @@ expect([1, 2]).toHaveSize(2)                                   // Jasmine, sync
 await expect($('#logo')).toHaveSize({ width: 32, height: 32 }) // WebdriverIO, async
 ```
 
+The types follow the same rules. `@wdio/jasmine-framework` now types the global `expect` with Jasmine's matchers, plus the WebdriverIO matchers and the Jasmine async matchers, which return a promise. Remove `expect-webdriverio/jasmine-wdio-expect-async` from `types` in your `tsconfig.json`, because it types every matcher as async. Add `jasmine` if it is not there:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
+-        "types": ["node", "@wdio/globals/types", "expect-webdriverio/jasmine-wdio-expect-async", "@wdio/jasmine-framework"]
++        "types": ["node", "jasmine", "@wdio/globals/types", "@wdio/jasmine-framework"]
+     }
+ }
+```
+
+`expect.oneOf()` now also works in Jasmine specs. Before, it had a type but was not on the Jasmine `expect` at runtime.
+
 ## Multi-remote Global
 
 The lowercase `multiremotebrowser` global was removed, from `@wdio/globals` and from the globals of `eslint-plugin-wdio` too. Use `multiRemoteBrowser`.
