@@ -227,6 +227,15 @@ function geolocationSource (latitude: number, longitude: number, accuracy: numbe
             const own = Object.getOwnPropertyDescriptor(permissions, 'query')
             const live = permissions.__wdioGeolocationLive || { state: 'granted', statuses: [] }
             if (!permissions.__wdioGeolocationLive) permissions.__wdioGeolocationLive = live
+            /**
+             * A second \`geolocation\` restores the previous state before this
+             * script runs again. Put \`granted\` back, including on statuses the
+             * page kept from the earlier call.
+             */
+            if (live.state !== 'granted') {
+                live.state = 'granted'
+                for (const status of live.statuses) status.dispatchEvent(new Event('change'))
+            }
             const wrapped = function (descriptor) {
                 if (descriptor && descriptor.name === 'geolocation') {
                     const target = new EventTarget()
@@ -278,7 +287,6 @@ function geolocationRestoreSource (setting: PermissionSetting) {
             status.dispatchEvent(new Event('change'));
         }
     }
-    if (live) live.statuses = [];
     const wrapped = permissions && permissions.query;
     if (wrapped && wrapped.__wdioGeolocationQuery) {
         try {

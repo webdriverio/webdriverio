@@ -185,6 +185,7 @@ describe('classic chromium emulation', () => {
         const script = String(executed.find((entry) => typeof entry === 'string'))
         expect(script).toContain("descriptor.name === 'geolocation'")
         expect(script).toContain("state: 'granted'")
+        expect(script).toContain("live.state = 'granted'")
         expect(script).toContain('return live.state')
         expect(script).toContain('new EventTarget()')
         expect(script).toContain("addEventListener('change', handler)")
