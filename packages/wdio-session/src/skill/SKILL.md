@@ -61,7 +61,7 @@ JS
 WebdriverIO v10 rules:
 
 - Always `await` commands.
-- `$` returns exactly one element. A missing element throws.
+- `$` returns exactly one element. More than one match throws `StrictSelectorError`. A missing element stays unresolved until a command uses it.
 - There is no sync mode and no `browser.element`.
 
 ## 5. Verify
