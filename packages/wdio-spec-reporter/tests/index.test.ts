@@ -13,7 +13,7 @@ import {
 } from './__fixtures__/testdata.js'
 import { State } from '../src/types.js'
 import SpecReporter from '../src/index.js'
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner.js'
 
 vi.mock('chalk')
@@ -170,10 +170,6 @@ describe('SpecReporter', () => {
                 state:State.SKIPPED,
                 pendingReason: 'some random reason'
             } as any)
-        })
-
-        it('should have a pending reason', () => {
-            expect(reporter['_pendingReasons'][0]).toBe('some random reason')
         })
 
         it('should increase stateCounts.skipped by 1', () => {
@@ -339,27 +335,24 @@ describe('SpecReporter', () => {
         })
 
         describe('with disabled sharable Sauce report links', () => {
-            const options = { sauceLabsSharableLinks: false }
-            beforeEach(() => {
-                tmpReporter = new SpecReporter(options)
-                // tmpReporter.suiteUids = SUITE_UIDS
-                // tmpReporter.suites = SUITES
-                // tmpReporter.stateCounts = {
-                //     passed: 4,
-                //     failed: 1,
-                //     skipped: 1,
-                // }
-                tmpReporter.write = vi.fn()
-            })
-
-            it('should print the default Sauce Labs job details page link', () => {
-                const runner = getRunnerConfig({
-                    hostname: 'ondemand.saucelabs.com',
-                    user: 'foobar',
-                    key: '123',
-                })
-                tmpReporter.printReport(runner)
-                expect(vi.mocked(tmpReporter.write).mock.calls).toMatchSnapshot()
+            it('prints the Sauce Labs job url without an auth token', () => {
+                const printReporter = new SpecReporter({ sauceLabsSharableLinks: false })
+                printReporter.write = vi.fn()
+                printReporter.runnerStat = {
+                    instanceOptions: {
+                        [fakeSessionId]: {
+                            hostname: 'ondemand.saucelabs.com',
+                            user: 'foobar',
+                            key: '123'
+                        }
+                    }
+                } as any
+                printReporter['_suiteUids'] = SUITE_UIDS
+                printReporter.suites = SUITES
+                printReporter.printReport(getRunnerConfig({}))
+                const output = vi.mocked(printReporter.write).mock.calls.map((call) => String(call[0])).join('\n')
+                expect(output).toContain(`https://app.saucelabs.com/tests/${fakeSessionId}`)
+                expect(output).not.toContain('?auth=')
             })
         })
 
@@ -403,13 +396,6 @@ describe('SpecReporter', () => {
             expect(result).toMatchSnapshot()
         })
 
-        it('should list multiple specs', () => {
-            const config = getRunnerConfig() as any
-            config.specs.push('/foo/bar/loo.js', '/bar/foo/baz.js')
-            const result = reporter.getHeaderDisplay(config)
-            expect(result).toMatchSnapshot()
-        })
-
         it('should validate header output in multi-remote', () => {
             const result = tmpReporter.getHeaderDisplay(
                 getRunnerConfig({
@@ -443,7 +429,7 @@ describe('SpecReporter', () => {
             expect(result).toMatchSnapshot()
         })
 
-        it('should not print if argument is a single line doc string', () => {
+        it('prints a single line doc string', () => {
             tmpReporter.getOrderedSuites = vi.fn(() => {
                 const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
                 suites[0].hooksAndTests[0].argument = 'some different format'
@@ -580,15 +566,6 @@ describe('SpecReporter', () => {
             expect(tmpReporter['_orderedSuites'][1]).toEqual({ uid: 3 })
         })
 
-        it('should return the cached ordered suites', () => {
-            tmpReporter['_orderedSuites'] = ['foo', 'bar'] as any
-            const result = tmpReporter.getOrderedSuites()
-
-            expect(result.length).toBe(2)
-            expect(result[0]).toBe('foo')
-            expect(result[1]).toBe('bar')
-        })
-
         it('should return no suites', () => {
             expect(tmpReporter.getOrderedSuites().length).toBe(0)
         })
@@ -636,45 +613,29 @@ describe('SpecReporter', () => {
         })
     })
 
-    describe('getSymbol', () => {
-        it('should get the checkbox symbol', () => {
-            expect(tmpReporter.getSymbol(State.PASSED)).toBe('✓')
-        })
-
-        it('should get the x symbol', () => {
-            expect(tmpReporter.getSymbol(State.FAILED)).toBe('✖')
-        })
-
-        it('should get the - symbol', () => {
-            expect(tmpReporter.getSymbol(State.SKIPPED)).toBe('-')
-        })
-
-        it('should get the ? symbol', () => {
-            expect(tmpReporter.getSymbol()).toBe('?')
-        })
-    })
-
-    describe('custom getSymbol', () => {
-        const options = { symbols: { passed: 'Y', failed: 'N' } }
-        beforeEach(() => {
-            tmpReporter = new SpecReporter(options)
-        })
-
-        it('should get new passed symbol', () => {
-            expect(tmpReporter.getSymbol(State.PASSED)).toBe(options.symbols.passed)
-        })
-
-        it('should get new failed symbol', () => {
-            expect(tmpReporter.getSymbol(State.FAILED)).toBe(options.symbols.failed)
-        })
-
-        it('should get the skipped symbol that is not set', () => {
-            expect(tmpReporter.getSymbol(State.SKIPPED)).toBe('-')
+    describe('custom symbols', () => {
+        it('prints provided symbols and keeps the default skipped symbol', () => {
+            const printReporter = new SpecReporter({ symbols: { passed: 'Y', failed: 'N' } })
+            printReporter.write = vi.fn()
+            printReporter['_suiteUids'] = SUITE_UIDS
+            printReporter.suites = SUITES
+            printReporter.printReport(getRunnerConfig())
+            const output = vi.mocked(printReporter.write).mock.calls.map((call) => String(call[0])).join('\n')
+            expect(output).toContain('Y foo')
+            expect(output).toContain('N a failed test')
+            expect(output).toContain('- a skipped test')
+            expect(output).not.toContain('✓')
+            expect(output).not.toContain('✖')
         })
     })
 
     describe('add console logs', () => {
         const options = { addConsoleLogs: true }
+        const originalStdoutWrite = process.stdout.write.bind(process.stdout)
+
+        afterEach(() => {
+            process.stdout.write = originalStdoutWrite
+        })
 
         it('should add console log to report for passing test', () => {
             tmpReporter = new SpecReporter(options)
@@ -731,19 +692,28 @@ describe('SpecReporter', () => {
                 state:State.SKIPPED,
                 pendingReason:'some random Reasons'
             } as any)
-            expect(tmpReporter.getResultDisplay().toString()).toContain('Pending Reasons')
+            const result = tmpReporter.getResultDisplay().toString()
+            expect(result).toContain('Pending Reasons')
+            expect(result).toContain('some random Reasons')
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
 
-        it('should not add webdriver logs to report', () => {
+        it('omits webdriver logs and keeps other console output', () => {
             tmpReporter = new SpecReporter(options)
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='mwebdriver test log'
-            expect(tmpReporter.getResultDisplay().toString()).not.toContain('mwebdriver test log')
+            process.stdout.write('Printing to console spec\n')
+            process.stdout.write('mwebdriver test log\n')
+            tmpReporter.onTestPass({
+                title: 'test1',
+                state: State.PASSED
+            } as any)
+            const result = tmpReporter.getResultDisplay('').toString()
+            expect(result).toContain('Printing to console spec')
+            expect(result).not.toContain('mwebdriver test log')
             tmpReporter.onSuiteEnd()
-            tmpReporter.onRunnerEnd(runnerEnd())
         })
     })
 
@@ -763,7 +733,6 @@ describe('SpecReporter', () => {
                 runner.failures = 1
                 printReporter.printReport(runner)
 
-                expect(printReporter['_onlyFailures']).toBe(false)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
@@ -771,7 +740,6 @@ describe('SpecReporter', () => {
                 runner.failures = 0
                 printReporter.printReport(runner)
 
-                expect(printReporter['_onlyFailures']).toBe(false)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
         })
@@ -788,7 +756,6 @@ describe('SpecReporter', () => {
                 runner.failures = 1
                 printReporter.printReport(runner)
 
-                expect(printReporter['_onlyFailures']).toBe(true)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
@@ -796,7 +763,6 @@ describe('SpecReporter', () => {
                 runner.failures = 0
                 printReporter.printReport(runner)
 
-                expect(printReporter['_onlyFailures']).toBe(true)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
         })
@@ -846,45 +812,15 @@ describe('SpecReporter', () => {
     })
 
     describe('showPreface', () => {
-        let printReporter: SpecReporter = null as any
-        const runner = getRunnerConfig({ hostname: 'localhost' })
-        it('false', () => {
-            printReporter = new SpecReporter({ showPreface: false })
+        it('omits the browser preface when showPreface is false', () => {
+            const printReporter = new SpecReporter({ showPreface: false })
             printReporter.write = vi.fn()
             printReporter['_suiteUids'] = SUITE_UIDS
-            printReporter.printReport(runner)
-
-            expect(printReporter['_showPreface']).toBe(false)
-            expect(vi.mocked(printReporter.write).mock.calls).toMatchSnapshot()
-        })
-
-        it('true', () => {
-            printReporter = new SpecReporter({ showPreface: true })
-            printReporter.write = vi.fn()
-            printReporter['_suiteUids'] = SUITE_UIDS
-            printReporter.printReport(runner)
-
-            expect(printReporter['_showPreface']).toBe(true)
-            expect(vi.mocked(printReporter.write).mock.calls).toMatchSnapshot()
-        })
-    })
-
-    describe('getColor', () => {
-        it('should get green', () => {
-            expect(tmpReporter.getColor(State.PASSED)).toBe('green')
-        })
-
-        it('should get red', () => {
-            expect(tmpReporter.getColor(State.FAILED)).toBe('red')
-        })
-
-        it('should get cyan', () => {
-            expect(tmpReporter.getColor(State.SKIPPED)).toBe('cyan')
-            expect(tmpReporter.getColor(State.PENDING)).toBe('cyan')
-        })
-
-        it('should get null', () => {
-            expect(tmpReporter.getColor()).toBe('gray')
+            printReporter.suites = SUITES
+            printReporter.printReport(getRunnerConfig({ hostname: 'localhost' }))
+            const output = vi.mocked(printReporter.write).mock.calls.map((call) => String(call[0])).join('\n')
+            expect(output).toContain('Running: loremipsum (v50) on Windows 10')
+            expect(output).not.toContain('[loremipsum 50 Windows 10 #0-0]')
         })
     })
 
@@ -894,6 +830,7 @@ describe('SpecReporter', () => {
             expect(tmpReporter.setMessageColor('test', State.PASSED)).toEqual('green test')
             expect(tmpReporter.setMessageColor('test', State.FAILED)).toEqual('red test')
             expect(tmpReporter.setMessageColor('test', State.SKIPPED)).toEqual('cyan test')
+            expect(tmpReporter.setMessageColor('test', State.PENDING)).toEqual('cyan test')
         })
 
         it('should not give any color', () => {
@@ -970,15 +907,6 @@ describe('SpecReporter', () => {
                 ['appium:platformName']: 'iOS',
                 ['appium:app']: 'sauce-storage:myApp.app'
             })).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
-        })
-
-        it('should return preface mobile combo executing an app', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                ['appium:deviceName']: 'iPhone 6 Plus',
-                ['appium:platformVersion']: '9.2',
-                ['appium:platformName']: 'iOS',
-                ['appium:app']: 'sauce-storage:myApp.app'
-            }, true)).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
         })
 
         it('should return verbose mobile combo executing a browser', () => {
@@ -1115,83 +1043,79 @@ describe('SpecReporter', () => {
         })
     })
 
-    describe('add real time report', () => {
-        const options = { realtimeReporting: true }
+    describe('realtime reporting', () => {
+        function withRunnerSend(run: (sent: { name?: string, content?: string }[]) => void) {
+            const sent: { name?: string, content?: string }[] = []
+            const originalSend = process.send
+            const originalUnitTests = process.env.WDIO_UNIT_TESTS
+            delete process.env.WDIO_UNIT_TESTS
+            process.send = ((message: { name?: string, content?: string }) => {
+                sent.push(message)
+                return true
+            }) as typeof process.send
+            try {
+                run(sent)
+            } finally {
+                process.send = originalSend
+                if (originalUnitTests === undefined) {
+                    delete process.env.WDIO_UNIT_TESTS
+                } else {
+                    process.env.WDIO_UNIT_TESTS = originalUnitTests
+                }
+            }
+        }
 
-        it('should call printCurrentStats for passing test', () => {
-            tmpReporter = new SpecReporter(options)
-            vi.spyOn(tmpReporter, 'printCurrentStats')
-            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
-            tmpReporter.onTestStart()
-            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
-            tmpReporter.onTestPass({
-                title:'test1',
-                state:State.PASSED
-            } as any)
-            expect(tmpReporter.printCurrentStats).toBeCalledWith({
-                title:'test1',
-                state:State.PASSED
+        it('sends suite, test, and hook lines to the runner', () => {
+            withRunnerSend((sent) => {
+                const realtime = new SpecReporter({ realtimeReporting: true })
+                realtime.onRunnerStart(getRunnerConfig() as any)
+                realtime.onSuiteStart({
+                    uid: 'suite-1',
+                    title: 'Login',
+                    type: 'suite',
+                    file: `${process.cwd()}/specs/login.spec.js`
+                } as any)
+                realtime.onTestPass({
+                    type: 'test',
+                    title: 'accepts a valid password',
+                    state: State.PASSED,
+                    uid: 'test-1'
+                } as any)
+                realtime.onHookEnd({
+                    type: 'hook',
+                    title: '"after each" hook',
+                    state: State.PASSED
+                } as any)
+
+                const contents = sent.map((message) => message.content)
+                expect(sent.every((message) => message.name === 'reporterRealTime')).toBe(true)
+                expect(contents.some((line) => line?.includes('Suite started:') && line.includes('login.spec.js'))).toBe(true)
+                expect(contents.some((line) => line?.includes('✓') && line.includes('accepts a valid password'))).toBe(true)
+                expect(contents.some((line) => line?.includes('Hook executed: "after each" hook'))).toBe(true)
+
+                const beforeEmptyHook = sent.length
+                realtime.onHookEnd({ type: 'hook', title: '' } as any)
+                expect(sent.length).toBe(beforeEmptyHook)
             })
-            tmpReporter.onSuiteEnd()
-            tmpReporter.onRunnerEnd(runnerEnd())
         })
 
-        it('should call printCurrentStats for falling test', () => {
-            tmpReporter = new SpecReporter(options)
-            vi.spyOn(tmpReporter, 'printCurrentStats')
-            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
-            tmpReporter.onTestStart()
-            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
-            tmpReporter.onTestPass({
-                title:'test1',
-                state:State.FAILED
-            } as any)
-            expect(tmpReporter.printCurrentStats).toBeCalledWith({
-                title:'test1',
-                state:State.FAILED
+        it('does not send when realtime reporting is off', () => {
+            withRunnerSend((sent) => {
+                const realtime = new SpecReporter({ realtimeReporting: false })
+                realtime.onRunnerStart(getRunnerConfig() as any)
+                realtime.onSuiteStart({
+                    uid: 'suite-1',
+                    title: 'Login',
+                    type: 'suite',
+                    file: `${process.cwd()}/specs/login.spec.js`
+                } as any)
+                realtime.onTestPass({
+                    type: 'test',
+                    title: 'hidden',
+                    state: State.PASSED
+                } as any)
+                expect(sent).toEqual([])
             })
-            tmpReporter.onSuiteEnd()
-            tmpReporter.onRunnerEnd(runnerEnd())
         })
-
-        it('should call printCurrentStats skipped test', () => {
-            tmpReporter = new SpecReporter(options)
-            vi.spyOn(tmpReporter, 'printCurrentStats')
-            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
-            tmpReporter.onTestStart()
-            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
-            tmpReporter.onTestPass({
-                title:'test1',
-                state:State.SKIPPED
-            } as any)
-            expect(tmpReporter.printCurrentStats).toBeCalledWith({
-                title:'test1',
-                state:State.SKIPPED
-            })
-            tmpReporter.onSuiteEnd()
-            tmpReporter.onRunnerEnd(runnerEnd())
-        })
-    })
-
-    it('should call printCurrentStats on Hook complete', () => {
-        tmpReporter = new SpecReporter({ realtimeReporting : false })
-        vi.spyOn(tmpReporter, 'printCurrentStats')
-        tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
-        tmpReporter.onTestStart()
-        tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-        tmpReporter['_consoleOutput']='Printing to console spec'
-        tmpReporter.onHookEnd({
-            title:'test1',
-            state:State.FAILED
-        } as any)
-        expect(tmpReporter.printCurrentStats).toBeCalledWith({
-            title:'test1',
-            state:State.FAILED
-        })
-        tmpReporter.onSuiteEnd()
-        tmpReporter.onRunnerEnd(runnerEnd())
     })
 })

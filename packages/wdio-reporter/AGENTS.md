@@ -32,13 +32,24 @@ User-facing reporter docs are the package `README.md`, ingested by
 - Smoke tests are the right proof for constructor / CLI string vs object
   config; unit tests are enough for formatting helpers.
 
-## Test ownership
+## Spec reporter test ownership
 
-- Assertion diffs belong to `tests/stats/test.test.ts`. Prove them through
-  the error message reporters display. A skipped diff leaves that message
-  unchanged.
-- Listener behavior belongs to `tests/reporter.listeners.test.ts`.
-  `tests/reporter.test.ts` covers construction, the output stream, and the
-  event subscription list.
-- `tests/utils.test.ts` owns `color`, including the ANSI wrap when stdout
-  supports color.
+`packages/wdio-spec-reporter/tests/index.test.ts` owns spec formatting.
+Assert the written report. Do not lock private flags or `printCurrentStats`
+call shape.
+
+- `showPreface: false`, `onlyFailures`, and `sauceLabsSharableLinks: false`
+  must attach suites before asserting `write()`. Sauce job links also need
+  `runnerStat.instanceOptions`. An empty `write()` call list does not prove
+  the option. Default preface text belongs to the existing `printReport`
+  snapshots.
+- Console-log filtering goes through the patched `stdout.write`. Assigning
+  `_consoleOutput` does not exercise the `mwebdriver` exclusion.
+- Realtime reporting is the `reporterRealTime` payload on `process.send`.
+  The unit-test env var `WDIO_UNIT_TESTS` suppresses that send, so a test
+  of the payload has to unset it and restore it.
+- `getHeaderDisplay` does not print spec paths.
+- Default symbols and pass/fail/skip colors belong to the printed report.
+  Custom `symbols` belong on that same report. Keep the multi-remote
+  instance name `"app"`: combo formatting throws if that name is read as
+  an app capability.
