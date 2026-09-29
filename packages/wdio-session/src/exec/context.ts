@@ -5,7 +5,7 @@ import util from 'node:util'
 import module from 'node:module'
 
 import { resolveOptionalDependency } from '@wdio/utils/node'
-import { expect, setOptions } from 'expect-webdriverio'
+import { expect, setDefaultOptions } from 'expect-webdriverio'
 
 import { IMPORT_FN } from './transform.js'
 import type { Session } from '../session.js'
@@ -79,7 +79,7 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
     }
     const waitforTimeout = (session.browser.options as { waitforTimeout?: number }).waitforTimeout
     if (waitforTimeout) {
-        setOptions({ wait: waitforTimeout })
+        setDefaultOptions({ wait: waitforTimeout })
     }
     /**
      * some matchers read the global browser object

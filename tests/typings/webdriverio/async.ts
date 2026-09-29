@@ -567,7 +567,7 @@ async function bar() {
     }
     const panels = await browser.$$('foo')
     for (const panel of panels) {
-        await expect(panel).toHaveAttr('class', 'false')
+        await expect(panel).toHaveAttribute('class', 'false')
     }
 
     type Random = {

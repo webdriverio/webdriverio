@@ -50,7 +50,7 @@
     "@wdio/utils": "workspace:*",
     "acorn": "^8.15.0",
     "aria-query": "^5.3.0",
-    "expect-webdriverio": "^6.1.0",
+    "expect-webdriverio": "^8.0.0-alpha.0",
     "get-port": "^7.1.0",
     "image-size": "^2.0.4",
     "picomatch": "^4.0.7",
