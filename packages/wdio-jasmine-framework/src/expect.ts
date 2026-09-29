@@ -9,14 +9,20 @@ export interface ExpectEnv {
 type ExpectationFactory = () => Record<PropertyKey, unknown>
 
 /**
+ * Brand of the wrapper that expect-webdriverio's `some()` returns.
+ */
+const SOME_WRAPPER = Symbol.for('expect-webdriverio.some')
+
+/**
  * WebdriverIO objects that a WDIO matcher can assert on: an element, an
- * element array, a browser, or a chainable promise of one of them.
+ * element array, a browser, a chainable promise of one of them, or the
+ * `some()` wrapper of elements.
  */
 function isWebdriverIOObject (actual: unknown) {
     if (!actual || (typeof actual !== 'object' && typeof actual !== 'function')) {
         return false
     }
-    return 'selector' in actual || 'sessionId' in actual || typeof (actual as PromiseLike<unknown>).then === 'function'
+    return 'selector' in actual || 'sessionId' in actual || SOME_WRAPPER in actual || typeof (actual as PromiseLike<unknown>).then === 'function'
 }
 
 /**

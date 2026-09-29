@@ -55,6 +55,14 @@ describe('createHybridExpect', () => {
         expect(calls).toEqual(['sync:toHaveSize(2)', 'async:toHaveSize(elem)', 'async:toHaveSize(chain)'])
     })
 
+    it('uses the WDIO matcher for the some() wrapper when names collide', async () => {
+        const calls: string[] = []
+        const hybridExpect = createHybridExpect(fakeEnv(calls), wdioMatchers) as (actual: unknown) => any
+
+        await hybridExpect({ elements: [], [Symbol.for('expect-webdriverio.some')]: true }).toHaveSize('some')
+        expect(calls).toEqual(['async:toHaveSize(some)'])
+    })
+
     it('keeps the routing through not and withContext', async () => {
         const calls: string[] = []
         const hybridExpect = createHybridExpect(fakeEnv(calls), wdioMatchers) as (actual: unknown) => any
