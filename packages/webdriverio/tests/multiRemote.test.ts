@@ -213,6 +213,9 @@ describe('Multi-Remote tests', () => {
 
         expect(browser.getInstance('browserA')).toBeDefined()
         expect(browser.getInstance('browserB')).toBeDefined()
+        expect(() => browser.getInstance('missing')).toThrow(
+            'Multi-remote object has no instance named "missing"'
+        )
 
         const result = await browser.execute(() => 'foobar')
         expect(result).toEqual(['foobar', 'foobar'])
@@ -250,6 +253,12 @@ describe('Multi-Remote tests', () => {
         expect(elem.getInstance('browserB')).toBeDefined()
         expect(elem.getInstance('browserA').elementId).toBe('some-elem-123')
         expect(elem.getInstance('browserB').elementId).toBe('some-elem-123')
+        expect(() => elem.getInstance('selector')).toThrow(
+            'Multi-remote object has no instance named "selector"'
+        )
+        expect(() => elem.getInstance('click')).toThrow(
+            'Multi-remote object has no instance named "click"'
+        )
 
         // @ts-expect-error invalid params
         const result = await elem.getSize()

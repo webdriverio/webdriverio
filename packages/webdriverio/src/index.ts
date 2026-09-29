@@ -218,7 +218,7 @@ export const multiRemote = async function (
             const resolved = resolveCustomCommandOptions('addCommand', options)
 
             driver.instances.forEach(instanceName =>
-                driver.getInstance(instanceName)!.addCommand(name, fn, resolved)
+                driver.getInstance(instanceName).addCommand(name, fn, resolved)
             )
 
             return origAddCommand(
