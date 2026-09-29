@@ -14,7 +14,7 @@ npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio session close
 ```
 
-The session is named `default`. Pass `-s <name>` only when you need two sessions at once. The [targets](/docs/session/targets) page drives one Expo guinea pig in headed Chrome, on Android, and in an Electron window.
+The session is named `default`. Pass `-s <name>` only when you need two sessions at once. The [targets](/docs/session/targets) page drives one Expo guinea pig in a headed Chrome window and in an Electron window, both at a desktop size. Android and iOS commands for the same app are on that page.
 
 ## Install
 
@@ -123,7 +123,7 @@ npx wdio session close
 
 | Page | Use it for |
 | --- | --- |
-| [Targets](/docs/session/targets) | Browsers, Android, iOS, desktop, Electron, Tauri, Dioxus and cloud devices, including the demo app in Chrome, on Android and in Electron |
+| [Targets](/docs/session/targets) | Browsers, Android, iOS, desktop, Electron, Tauri, Dioxus and cloud devices, including the demo app in Chrome and Electron |
 | [Snapshots and refs](/docs/session/snapshots) | What is on screen, and the refs you click |
 | [Run code](/docs/session/exec) | `exec`, assertions and visual checks |
 | [Export a test](/docs/session/export) | Specs, page objects and `.wdio/helpers` |
@@ -145,6 +145,6 @@ Exit codes: 0 success, 1 the action failed, 2 usage, 3 a missing dependency or c
 
 ## Next steps
 
-- [Targets](/docs/session/targets) — open a browser, a phone, an Android app or an Electron window
+- [Targets](/docs/session/targets) — open a browser, an Android or iOS app, or an Electron window
 - [WebdriverIO for Coding Agents](/docs/ai-agents) — skill, docs and project rules
 - [wdio session commands](/docs/session-commands) — every action and flag
