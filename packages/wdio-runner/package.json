@@ -44,8 +44,8 @@
     "webdriverio": "workspace:*"
   },
   "peerDependencies": {
-    "expect-webdriverio": "^6.1.0",
-    "webdriverio": "^9.28.0"
+    "expect-webdriverio": "^8.0.0-alpha.1",
+    "webdriverio": "^9.32.0"
   },
   "peerDependenciesMeta": {
     "expect-webdriverio": {

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "expect-webdriverio": "^6.1.0",
+    "expect-webdriverio": "^8.0.0-alpha.1",
     "webdriver": "workspace:*",
     "webdriverio": "workspace:*",
     "@wdio/cli": "workspace:*",
@@ -35,6 +35,7 @@
     "@wdio/smoke-test-reporter": "workspace:*",
     "@wdio/smoke-test-service": "workspace:*",
     "@wdio/smoke-test-cjs-service": "workspace:*",
-    "@wdio/webdriver-mock-service": "workspace:*"
+    "@wdio/webdriver-mock-service": "workspace:*",
+    "@wdio/types": "workspace:*"
   }
 }
