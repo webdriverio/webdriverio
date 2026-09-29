@@ -48,6 +48,8 @@ describe('Jasmine expect', () => {
         expect(expect(1).not.toBe(2)).toBeUndefined()
         expect(expect(1).withContext('context').toBe(1)).toBeUndefined()
         expect(expect([1, 2]).toHaveSize(2)).toBeUndefined()
+        expect(expect([]).toHaveSize(0)).toBeUndefined()
+        expect(expect({ selector: '#item', length: 2 }).toHaveSize(2)).toBeUndefined()
         expect(expect({ a: 'x' }).toEqual(expect.objectContaining({ a: 'x' }))).toBeUndefined()
     })
 
@@ -68,8 +70,11 @@ describe('Jasmine expect', () => {
         await expect($$('.item')).toBeElementsArrayOfSize(2)
     })
 
-    it('uses the WebdriverIO toHaveSize for an element', async () => {
+    it('uses the WebdriverIO toHaveSize for elements', async () => {
         await expect($('#box')).toHaveSize({ width: 120, height: 40 })
+        await expect(await $('#box')).toHaveSize({ width: 120, height: 40 })
+        await expect(await $$('#box')).toHaveSize({ width: 120, height: 40 })
+        await expect(await $$('#box').filter(() => true)).toHaveSize({ width: 120, height: 40 })
     })
 
     it('runs Jasmine async matchers', async () => {

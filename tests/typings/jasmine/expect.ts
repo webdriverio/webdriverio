@@ -6,6 +6,7 @@ type Equals<A, B> = (<X>() => X extends A ? 1 : 2) extends (<X>() => X extends B
 function assertType<T extends true>(_: T) {}
 
 const spy = jasmine.createSpy('spy')
+declare const elements: WebdriverIO.Element[]
 
 /**
  * Jasmine sync matchers return void
@@ -18,6 +19,8 @@ function syncMatchers () {
         expect(1).withContext('context').toBe(1),
         expect('abc').toContain('b'),
         expect([1, 2]).toHaveSize(2),
+        expect([]).toHaveSize(0),
+        expect('abc').toHaveSize(3),
         expect(spy).toHaveBeenCalled(),
         expect({ a: 'x' }).toEqual(jasmine.objectContaining({ a: 'x' })),
         expect({ a: 'x' }).toEqual(expect.objectContaining({ a: expect.stringMatching(/x/) }))
@@ -33,6 +36,8 @@ function wdioMatchers () {
         expect($('foo')).toHaveText('bar'),
         expect($('foo')).not.toBeDisplayed(),
         expect($('foo')).toHaveSize({ width: 1, height: 1 }),
+        expect(elements).toHaveSize({ width: 1, height: 1 }),
+        expect(elements).toHaveText('bar'),
         expect($('foo')).toHaveText(expect.not.stringContaining('baz')),
         expect($$('foo')).toBeElementsArrayOfSize(2),
         expect(browser).withContext('context').toHaveTitle(expect.stringContaining('bar'))

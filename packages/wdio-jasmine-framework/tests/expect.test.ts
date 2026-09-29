@@ -50,9 +50,45 @@ describe('createHybridExpect', () => {
         const hybridExpect = createHybridExpect(fakeEnv(calls), wdioMatchers) as (actual: unknown) => any
 
         expect(hybridExpect([1, 2]).toHaveSize(2)).toBeUndefined()
-        await hybridExpect({ selector: 'div' }).toHaveSize('elem')
+        await hybridExpect({ parent: {}, selector: 'div', getElement () {} }).toHaveSize('elem')
         await hybridExpect(Promise.resolve({ selector: 'div' })).toHaveSize('chain')
         expect(calls).toEqual(['sync:toHaveSize(2)', 'async:toHaveSize(elem)', 'async:toHaveSize(chain)'])
+    })
+
+    it('identifies WebdriverIO values by the shape that expect-webdriverio uses', async () => {
+        const element = { parent: {}, selector: 'div', getElement () {} }
+        const wdioValues: Record<string, unknown> = {
+            'element': element,
+            'element without selector': { parent: {}, getElement () {} },
+            'empty element array': Object.assign([], { parent: {}, selector: 'li', foundWith: '$$' }),
+            'Element[]': [element],
+            'multiremote element': { isMultiRemote: true, selector: 'div' },
+            'multiremote element array': Object.assign([], { isMultiRemote: true, parent: {}, selector: 'li', foundWith: '$$' }),
+            'browser': new (class Browser { getTitle () {} })(),
+            'multiremote browser': new (class MultiRemoteDriver { getTitle () {} })()
+        }
+        for (const [name, value] of Object.entries(wdioValues)) {
+            const calls: string[] = []
+            const hybridExpect = createHybridExpect(fakeEnv(calls), wdioMatchers) as (actual: unknown) => any
+            await hybridExpect(value).toHaveSize(name)
+            expect(calls).toEqual([`async:toHaveSize(${name})`])
+        }
+    })
+
+    it('uses the Jasmine matcher for values that only look like WebdriverIO values', () => {
+        const jasmineValues: Record<string, unknown> = {
+            'object with selector': { selector: '#item', length: 2 },
+            'object with sessionId': { sessionId: '1', size: 1 },
+            'object with parent': { parent: {}, length: 2 },
+            'empty array': [],
+            'application class named Browser': new (class Browser { length = 1 })()
+        }
+        for (const [name, value] of Object.entries(jasmineValues)) {
+            const calls: string[] = []
+            const hybridExpect = createHybridExpect(fakeEnv(calls), wdioMatchers) as (actual: unknown) => any
+            expect(hybridExpect(value).toHaveSize(name)).toBeUndefined()
+            expect(calls).toEqual([`sync:toHaveSize(${name})`])
+        }
     })
 
     it('uses the WDIO matcher for the some() wrapper when names collide', async () => {

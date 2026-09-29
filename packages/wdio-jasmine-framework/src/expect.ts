@@ -7,22 +7,83 @@ export interface ExpectEnv {
 }
 
 type ExpectationFactory = () => Record<PropertyKey, unknown>
+type AnyObject = Record<PropertyKey, unknown>
 
 /**
  * Brand of the wrapper that expect-webdriverio's `some()` returns.
  */
 const SOME_WRAPPER = Symbol.for('expect-webdriverio.some')
 
-/**
- * WebdriverIO objects that a WDIO matcher can assert on: an element, an
- * element array, a browser, a chainable promise of one of them, or the
- * `some()` wrapper of elements.
+/*
+ * The guards below come from expect-webdriverio (`src/util/elementsUtil.ts`
+ * and `src/util/multiRemoteUtils.ts`), which does not export them. Changes:
+ * - A plain array must not be empty: `[]` is a Jasmine value, for example
+ *   `expect([]).toHaveSize(0)`. An empty `$$()` result is still found by
+ *   `isElementArray`.
+ * - A browser must also have a command, so that an application class named
+ *   `Browser` is not a WebdriverIO browser.
  */
-function isWebdriverIOObject (actual: unknown) {
-    if (!actual || (typeof actual !== 'object' && typeof actual !== 'function')) {
+const isObject = (value: unknown): value is AnyObject => (
+    !!value && (typeof value === 'object' || typeof value === 'function')
+)
+const hasMultiRemoteFlag = (value: AnyObject) => value.isMultiRemote === true || value.isMultiremote === true
+
+/**
+ * `selector` can be undefined, so `parent` identifies an element or an
+ * element array. A not found element is still an element.
+ */
+const isElement = (value: unknown) => (
+    isObject(value) && 'parent' in value && !Array.isArray(value) && 'getElement' in value && !hasMultiRemoteFlag(value)
+)
+const isElementArray = (value: unknown) => (
+    isObject(value) && 'parent' in value && 'foundWith' in value && !hasMultiRemoteFlag(value)
+)
+/**
+ * `Element[]`, for example the result of `$$().filter()`. `Array.prototype.every`
+ * skips the async iterators of a multiremote element array.
+ */
+const isArrayOfElements = (value: unknown) => (
+    Array.isArray(value) && value.length > 0 && !hasMultiRemoteFlag(value as unknown as AnyObject) &&
+    Array.prototype.every.call(value, isElement)
+)
+const isMultiRemoteElement = (value: unknown) => (
+    isObject(value) && hasMultiRemoteFlag(value) && !Array.isArray(value) && 'selector' in value
+)
+const isMultiRemoteElementArray = (value: unknown) => (
+    isObject(value) && hasMultiRemoteFlag(value) && 'parent' in value && 'foundWith' in value && 'selector' in value
+)
+const isArrayOfMultiRemoteElements = (value: unknown) => (
+    Array.isArray(value) && value.length > 0 && !isMultiRemoteElementArray(value) &&
+    Array.prototype.every.call(value, isMultiRemoteElement)
+)
+/**
+ * `@wdio/globals` binds every function that it returns, `constructor`
+ * included, so its name can start with `bound `.
+ */
+const isBrowser = (value: unknown) => {
+    if (!isObject(value)) {
         return false
     }
-    return 'selector' in actual || 'sessionId' in actual || SOME_WRAPPER in actual || typeof (actual as PromiseLike<unknown>).then === 'function'
+    const name = (value.constructor as { name?: string } | undefined)?.name?.replace(/^bound /, '')
+    return (name === 'Browser' || !!name?.endsWith('MultiRemoteDriver')) && typeof value.getTitle === 'function'
+}
+
+/**
+ * Values that a WDIO matcher can assert on: an element, an element array or
+ * `Element[]`, their multiremote versions, a browser, the `some()` wrapper of
+ * elements, or a promise. A chainable `$()` / `$$()` can only be found as a
+ * promise, and a Jasmine sync matcher cannot check a promise, so every
+ * promise goes to the WDIO matcher.
+ */
+function isWebdriverIOObject (actual: unknown) {
+    if (!isObject(actual)) {
+        return false
+    }
+    return typeof actual.then === 'function' ||
+        SOME_WRAPPER in actual ||
+        isElement(actual) || isElementArray(actual) || isArrayOfElements(actual) ||
+        isMultiRemoteElement(actual) || isMultiRemoteElementArray(actual) || isArrayOfMultiRemoteElements(actual) ||
+        isBrowser(actual)
 }
 
 /**

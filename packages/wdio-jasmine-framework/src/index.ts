@@ -645,7 +645,17 @@ export * from './types.js'
 // eslint-disable-next-line no-unused-vars -- referenced as `jasmine.*` in the global augmentation below
 type jasmine = typeof Jasmine
 
-type WdioAsyncMatchers<T> = ExpectWebdriverIO.Matchers<Promise<void>, T>
+/**
+ * `@types/jasmine` types `expect(array)` with `ArrayLike<T>`, so an `Element[]`
+ * (for example from `$$().filter()`) arrives here as `ArrayLike<Element>`.
+ * Give expect-webdriverio the `Element[]` that its matchers accept.
+ */
+type WdioActual<T> = [T] extends [readonly unknown[]]
+    ? T
+    : [T] extends [ArrayLike<infer E>]
+        ? [E] extends [WebdriverIO.Element | WebdriverIO.MultiRemoteElement] ? E[] : T
+        : T
+type WdioAsyncMatchers<T> = ExpectWebdriverIO.Matchers<Promise<void>, WdioActual<T>>
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- matches any matcher signature
 type MatcherArgs<Fn> = Fn extends (...args: any[]) => any ? Parameters<Fn> : never
 type JasmineAsyncMatcherName = 'toBePending' | 'toBeResolved' | 'toBeResolvedTo' | 'toBeRejected' | 'toBeRejectedWith' | 'toBeRejectedWithError'
