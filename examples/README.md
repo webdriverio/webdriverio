@@ -14,7 +14,7 @@ Then just follow the instructions and test it out. Have fun!
 
 # Session demos
 
-[examples/session](./session) is three short `wdio session` demos: a browser postcard, a phone boarding pass and an Electron launch console. The walkthrough is [Session demos](https://webdriver.io/docs/session/demos).
+[examples/session](./session) is a set of short `wdio session` demos: a browser postcard, a phone boarding pass, a native Android app and an Electron launch console. The walkthrough is [Session demos](https://webdriver.io/docs/session/demos).
 
 > **Note**
 

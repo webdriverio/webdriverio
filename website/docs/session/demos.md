@@ -1,10 +1,10 @@
 ---
 id: demos
 title: Session demos
-description: Run three short wdio session demos — a browser postcard, a phone boarding pass and an Electron launch console.
+description: Run short wdio session demos for a browser postcard, a phone boarding pass, a native Android app and an Electron launch console.
 ---
 
-Three short sessions, one for each kind of target. Each demo is a small page in this repository. You drive it with a handful of commands, watch one thing change per command, and export the steps as a test.
+Short sessions for a browser, a phone and a desktop app. The postcard, the boarding pass page and the launch console are files in this repository. The native boarding pass is an Android app, so `tap`, `swipe`, `rotate` and `deeplink` drive a real device. You run a handful of commands, watch one thing change per command, and export the steps as a test.
 
 Run the commands from a checkout of the WebdriverIO repository. The pages live in [`examples/session`](https://github.com/webdriverio/webdriverio/tree/main/examples/session).
 
@@ -60,7 +60,7 @@ To make it an aurora instead of snow, mock `{"condition":"aurora"}` and click Lo
 
 ## Boarding pass
 
-The page is one boarding pass. You board, flip it over, turn it sideways, then open a different flight. On a laptop the "phone" is Chrome emulating a Pixel 7. On a device it is Chrome through Appium. Both are browser sessions, so the command is `click`. `tap`, `swipe` and `rotate` are for a native app (`open android --app`). Those targets are on the [targets](/docs/session/targets) page.
+The page is one boarding pass. You board, flip it over, turn it sideways, then open a different flight. On a laptop the "phone" is Chrome emulating a Pixel 7. On a device it is Chrome through Appium. Both are browser sessions, so the command is `click`. `tap`, `swipe`, `rotate` and `deeplink` are for the [native boarding pass](#native-boarding-pass).
 
 The card also follows a finger: a sideways swipe flips it. From the shell you press the button, which is the same result.
 
@@ -107,7 +107,7 @@ npx wdio session close
 
 Replace `192.168.1.10` with an address from the server output. iOS uses `open ios --browser safari` and the same clicks. `doctor android` prints the install command when Appium or the driver is missing.
 
-`rotate` does not apply to a browser session, including Chrome on a device. `setOrientation` is the Appium call that turns the phone. If it is not a function, turn the device by hand: the pass uses the viewport's orientation and becomes a stub either way.
+`rotate` does not apply to a browser session, including Chrome on a device. `setOrientation` is the Appium call that turns the phone. If it is not a function, turn the device by hand: the pass uses the viewport's orientation and becomes a stub either way. On the native app, `rotate landscape` is the command that turns the device.
 
 | After | What you see |
 | --- | --- |
@@ -116,6 +116,47 @@ Replace `192.168.1.10` with an address from the server output. iOS uses `open io
 | Flip the pass | The card turns over and shows a barcode. |
 | `emulate viewport 863x360` | The same card becomes a wide stub. |
 | `?flight=aurora` | Reykjavík → Aurora, flight WD 01, on a green sky. |
+
+## Native boarding pass
+
+The Android app is the same pass, installed on an emulator or a device. This session is native. `tap` presses Board, `swipe left` flips the card, `rotate landscape` turns the device, and `deeplink` opens the aurora flight. `find` checks the status line. `wait` is for browser sessions, so it does not apply here.
+
+Build the apk from a machine that has the Android SDK (`ANDROID_HOME`) and a running emulator or device (`adb devices` lists it):
+
+```sh
+cd examples/session/android
+./gradlew assembleDebug
+```
+
+```sh
+npx wdio session doctor android
+npx wdio session open android --app app/build/outputs/apk/debug/app-debug.apk
+npx wdio session snapshot --interactive
+npx wdio session tap "~Board"
+npx wdio session find "Now boarding WD 10."
+npx wdio session swipe left
+npx wdio session find "The pass is flipped."
+npx wdio session rotate landscape
+npx wdio session find "The pass is a stub."
+npx wdio session deeplink "boardingpass://aurora" --package io.webdriver.boardingpass
+npx wdio session find "Flight WD 01 to Aurora."
+npx wdio session export --out test/specs/boarding-pass-native.e2e.ts
+npx wdio session close
+```
+
+Run the session commands from `examples/session/android`, which is where Gradle writes the apk. `doctor android` prints the install command when Appium or the UiAutomator2 driver is missing. `open` installs and launches `io.webdriver.boardingpass`.
+
+`snapshot --interactive` lists Board as a button. `"~Board"` is that button's accessibility id, so the tap pastes without copying the ref. After a snapshot, `tap e1` is the same tap when e1 is Board.
+
+`swipe` moves across the on-screen `ScrollView`. The pass listens for that sideways move and flips. `find` reads a fresh accessibility snapshot and exits with an error if the status line is missing. `boardingpass://aurora` is an intent the app handles. `--package io.webdriver.boardingpass` is the application id `deeplink` requires on Android.
+
+| After | What you see |
+| --- | --- |
+| `open` | A cream pass on a dark screen. Tokyo → Reykjavík, flight WD 10, gate —. The status reads "Ready to board." |
+| `tap "~Board"` | A red BOARDED stamp lands. The gate becomes 7. |
+| `swipe left` | The pass turns over and shows a barcode. |
+| `rotate landscape` | The same pass becomes a wide stub. |
+| `deeplink` | The sky turns green. Reykjavík → Aurora, flight WD 01, gate North. |
 
 ## Launch console
 
@@ -161,6 +202,10 @@ Electron sessions use the classic WebDriver protocol. `emulate` and `mock` belon
 | `MISSING_DEPENDENCY` | Install the package named in the error. For the launch console, `npm install` in `examples/session/desktop`. |
 | `Launched. The telemetry window was blocked.` | Open the console with `wdio session open electron`, not as a tab in Chrome. |
 | `setOrientation is not a function` | You are not in an Appium session. On the laptop, use `emulate viewport 863x360`. |
+| `"wait" is not supported for android (UiAutomator2) sessions.` | `wait` is for browser sessions. On the native pass, use `find "Now boarding WD 10."`. |
+| `Default scrollable element '//android.widget.ScrollView' was not found.` | `swipe` looks for a ScrollView. The native pass has one. Another app needs its own, or a swipe inside an element from `exec`. |
+| `App not found:` | Build the apk with `./gradlew assembleDebug` and pass that path to `--app`. |
+| `Pass --package <id>.` | `deeplink` needs `--package io.webdriver.boardingpass` on Android. |
 
 ## Next steps
 

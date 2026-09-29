@@ -14,7 +14,7 @@ npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio session close
 ```
 
-The session is named `default`. Pass `-s <name>` only when you need two sessions at once. Three short demos — a browser postcard, a phone boarding pass and an Electron launch console — are on the [demos](/docs/session/demos) page.
+The session is named `default`. Pass `-s <name>` only when you need two sessions at once. Short demos — a browser postcard, a phone boarding pass, a native Android app and an Electron launch console — are on the [demos](/docs/session/demos) page.
 
 ## Install
 
