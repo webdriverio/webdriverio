@@ -3,7 +3,11 @@ import type { ChildProcess } from 'node:child_process'
 import { WritableStreamBuffer } from 'stream-buffers'
 import { describe, expect, it, vi } from 'vitest'
 
-const forkMock = vi.hoisted(() => vi.fn(() => ({
+const forkMock = vi.hoisted(() => vi.fn((
+    _modulePath: string,
+    _args?: readonly string[],
+    _options?: { env?: NodeJS.ProcessEnv }
+) => ({
     on: vi.fn(),
     stdout: null,
     stderr: null,
@@ -327,11 +331,16 @@ describe('postMessage', () => {
 describe('startProcess NODE_OPTIONS', () => {
     const runStartProcess = async (
         parentNodeOptions: string | undefined,
-        config: Record<string, unknown> = {}
+        config: Record<string, unknown> = {},
+        sourceMaps?: string
     ) => {
         const originalNodeOptions = process.env.NODE_OPTIONS
         const originalSourceMaps = process.env.WDIO_SOURCE_MAPS
-        delete process.env.WDIO_SOURCE_MAPS
+        if (sourceMaps === undefined) {
+            delete process.env.WDIO_SOURCE_MAPS
+        } else {
+            process.env.WDIO_SOURCE_MAPS = sourceMaps
+        }
         if (parentNodeOptions === undefined) {
             delete process.env.NODE_OPTIONS
         } else {
@@ -347,8 +356,7 @@ describe('startProcess NODE_OPTIONS', () => {
                 new WritableStreamBuffer()
             )
             await worker.startProcess()
-            const options = forkMock.mock.calls[0][2] as { env: NodeJS.ProcessEnv }
-            return options.env.NODE_OPTIONS
+            return forkMock.mock.calls[0][2]?.env?.NODE_OPTIONS
         } finally {
             if (originalNodeOptions === undefined) {
                 delete process.env.NODE_OPTIONS
@@ -394,5 +402,18 @@ describe('startProcess NODE_OPTIONS', () => {
     it('keeps repeated option/value pairs intact', async () => {
         const nodeOptions = await runStartProcess('--require a.js --require b.js', { logLevel: 'debug' })
         expect(nodeOptions).toBe('--require a.js --require b.js --enable-source-maps')
+    })
+
+    it('keeps launcher flags when runnerEnv replaces NODE_OPTIONS', async () => {
+        const nodeOptions = await runStartProcess('--import tsx', {
+            logLevel: 'debug',
+            runnerEnv: { NODE_OPTIONS: '--max-old-space-size=4096' }
+        })
+        expect(nodeOptions).toBe('--import tsx --max-old-space-size=4096 --enable-source-maps')
+    })
+
+    it('appends source maps when WDIO_SOURCE_MAPS opts in', async () => {
+        const nodeOptions = await runStartProcess('--import tsx', {}, '1')
+        expect(nodeOptions).toBe('--import tsx --enable-source-maps')
     })
 })

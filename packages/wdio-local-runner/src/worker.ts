@@ -131,14 +131,23 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         /**
          * Propagate node flags to the worker, e.g. `--import tsx`.
-         * `runnerEnv.NODE_OPTIONS` is the resolved value (`config.runnerEnv`
-         * takes precedence over the parent `process.env`). Append
-         * `--enable-source-maps` as a whole token only when this worker
-         * should map stack traces and the flag is not already present.
-         * Do not concatenate `process.env.NODE_OPTIONS` again: that duplicated
-         * parent flags and leaked the string `"undefined"` when it was unset.
+         * `config.runnerEnv.NODE_OPTIONS` replaces the parent value, but the
+         * launcher may already have added `--import tsx` there. Keep those
+         * parent flags, then append the runner value so its flags win when
+         * both set the same option. Append `--enable-source-maps` as a whole
+         * token only when this worker should map stack traces and the flag is
+         * not already present. Do not concatenate the parent value when it is
+         * already the resolved value: that duplicated flags and leaked the
+         * string `"undefined"` when it was unset.
          */
-        const nodeOptions = (runnerEnv.NODE_OPTIONS ?? '').trim()
+        const parentNodeOptions = (process.env.NODE_OPTIONS ?? '').trim()
+        const runnerOverride = this.config.runnerEnv?.NODE_OPTIONS
+        const configuredNodeOptions = (typeof runnerOverride === 'string' ? runnerOverride : parentNodeOptions).trim()
+        const nodeOptions = parentNodeOptions &&
+            configuredNodeOptions !== parentNodeOptions &&
+            !configuredNodeOptions.includes(parentNodeOptions)
+            ? `${parentNodeOptions} ${configuredNodeOptions}`.trim()
+            : configuredNodeOptions
         const hasSourceMaps = nodeOptions.split(' ').includes('--enable-source-maps')
         const merged = this.shouldEnableSourceMaps() && !hasSourceMaps
             ? `${nodeOptions} --enable-source-maps`.trim()
