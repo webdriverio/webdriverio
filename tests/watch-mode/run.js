@@ -65,6 +65,7 @@ export default async function watchMode() {
     let child
     let exit
     let output = ''
+    let failure
 
     try {
         driver.server.listen(0, '127.0.0.1')
@@ -134,16 +135,26 @@ export default async function watchMode() {
         assert.equal(driver.sessions.size, 0)
         assert.deepEqual(driver.unexpected, [], 'The fixture received unexpected WebDriver commands')
     } catch (error) {
-        throw new Error(`Watch mode smoke test failed: ${error.message}\n${output}`, { cause: error })
+        failure = new Error(`Watch mode smoke test failed: ${error.message}\n${output}`, { cause: error })
     } finally {
         try {
             if (child) {
                 await stopWatchProcess(child, exit)
             }
-        } finally {
+        } catch (cleanupError) {
+            failure ??= cleanupError
+        }
+
+        try {
             driver.server.closeAllConnections()
             await new Promise((resolve) => driver.server.close(resolve))
             await fs.rm(temporaryDirectory, { recursive: true, force: true })
+        } catch (cleanupError) {
+            failure ??= cleanupError
         }
+    }
+
+    if (failure) {
+        throw failure
     }
 }
