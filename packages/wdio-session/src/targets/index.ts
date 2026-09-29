@@ -78,6 +78,20 @@ export async function buildPlan (args: OpenArgs, ctx: PlanContext): Promise<Open
         plan = { ...base, url: undefined, ...mobile, remote: { ...base.remote, ...(mobile.remote || {}) } }
         if (target === 'android' || target === 'ios') {
             plan.url = args.browser && typeof args.url === 'string' ? args.url : undefined
+            // UiAutomator2 installs a server and waits for io.appium.settings.
+            // That is slower than a browser launch, and the 120s WebDriver
+            // request timeout aborts it while Appium is still starting.
+            // A retry of that POST starts a second session on the same
+            // device, so the first attempt is the only one.
+            if (typeof args.launchTimeout !== 'number') {
+                plan.launchTimeout = 300_000
+            }
+            if (plan.remote.connectionRetryTimeout === undefined) {
+                plan.remote = { ...plan.remote, connectionRetryTimeout: 300_000 }
+            }
+            if (plan.remote.connectionRetryCount === undefined) {
+                plan.remote = { ...plan.remote, connectionRetryCount: 0 }
+            }
         }
         if (args.provider) {
             plan = await applyCloudProvider(plan, args, env)

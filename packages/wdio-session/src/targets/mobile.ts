@@ -40,7 +40,27 @@ function mobileCapabilities (target: 'android' | 'ios', args: OpenArgs, cwd: str
         'appium:automationName': DRIVERS[target].automationName,
         'appium:deviceName': typeof args.device === 'string' && args.device ? args.device : (target === 'android' ? 'Android Emulator' : 'iPhone 16'),
         'appium:newCommandTimeout': 3600,
-        ...(target === 'android' ? { 'appium:autoGrantPermissions': true } : { 'appium:autoAcceptAlerts': false })
+        ...(target === 'android'
+            ? {
+                'appium:autoGrantPermissions': true,
+                // A software emulator spends its one core on boot and dexopt.
+                // The hidden-API policy write, the settings app, and the
+                // UiAutomator2 instrumentation then miss Appium's shorter
+                // defaults, and the session dies before the app is on screen.
+                'appium:ignoreHiddenApiPolicyError': true,
+                'appium:disableWindowAnimation': true,
+                'appium:adbExecTimeout': 60_000,
+                // The server and the test apk are installed together. On a
+                // one-core emulator that pair takes longer than Appium's
+                // 20s default, and a short ceiling aborts the install while
+                // package manager is still writing it.
+                'appium:uiautomator2ServerInstallTimeout': 180_000,
+                // Cold dexopt on a slow emulator is still running when
+                // Appium's 30s default expires, and Appium then force-stops
+                // the server it just started.
+                'appium:uiautomator2ServerLaunchTimeout': 240_000
+            }
+            : { 'appium:autoAcceptAlerts': false })
     }
     if (typeof args.platformVersion === 'string' && args.platformVersion) {
         caps['appium:platformVersion'] = args.platformVersion

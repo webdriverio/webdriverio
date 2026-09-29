@@ -42,7 +42,7 @@ iOS: `open ios --bundle-id com.example.shop`. An installed Android package uses 
 
 ### Native demo app
 
-On an emulator or a device the same guinea pig is the v2.2.0 apk. `tap "~Webview"` opens the WebdriverIO frontpage in the native WebView. `tap "~Login"`, then `fill` and `tap "~button-LOGIN"`, logs in with the same email and password. The fingerprint button is `~button-biometric`. It is on the login form only after a fingerprint is enrolled. `exec -e "await browser.fingerPrint(1)"` answers the system prompt (`fingerPrint` is Android-only; there is no `wdio session` subcommand for it). `dialog accept` closes the success alert. `swipe left` pages the carousel. A second `swipe left`, then `swipe up`, reveals the robot. `drag "~drag-l2" "~drop-l2"` (and the other eight pairs, in tray order) finishes the puzzle.
+On an emulator or a device the same guinea pig is the v2.2.0 apk. `open` waits up to five minutes. UiAutomator2 installs a server and starts instrumentation before the app is usable, and that is slower than launching a browser. The first request is not retried: a retry starts a second Appium session on the same device while the first is still installing. `tap "~Webview"` opens the WebdriverIO frontpage in the native WebView. `tap "~Login"`, then `fill` and `tap "~button-LOGIN"`, logs in with the same email and password. The fingerprint button is `~button-biometric`. It is on the login form only after a fingerprint is enrolled. `exec -e "await browser.fingerPrint(1)"` answers the system prompt (`fingerPrint` is Android-only; there is no `wdio session` subcommand for it). `dialog accept` closes the success alert, and it has to run after that alert is on screen. `swipe left` pages the carousel. A second `swipe left`, then `swipe up`, reveals the robot. `drag "~drag-l2" "~drop-l2"` (and the other eight pairs, in tray order) finishes the puzzle.
 
 `-s android` keeps this session beside the browser one. Drop `-s android` when it is the only session. `open` uses the package and activity already installed by the apk, with `--no-reset` so the enrolled fingerprint stays. `"~Webview"` is the tab's accessibility label. `swipe` is the mobile command, so Android does not use `swipe-left.js`. `wait` does not apply to a native session.
 
@@ -144,7 +144,9 @@ npx wdio session open ./wdio.conf.ts 0
 | `MISSING_BINARY` | Put the named driver (`tauri-driver` or `wdio-dioxus-driver`) on `PATH`. |
 | `MISSING_CREDENTIALS` | Export the variables named in the error. |
 | `NOT_SUPPORTED` | `macos` is macOS-only and `windows` is Windows-only. `swipe` is mobile-only. On Chrome and Electron, run `exec swipe-left.js`. |
-| `No dialog open.` | The login alert already closed. On Electron, run `dialog accept` about a third of a second after `click "aria/button-LOGIN"` returns. |
+| `No dialog open.` | The alert is not open. On Android, wait until the success alert is visible before `dialog accept`. On Electron, run it about a third of a second after `click "aria/button-LOGIN"` returns. A later call finds the alert already closed. |
+| `The instrumentation process cannot be initialized` | UiAutomator2 did not start listening in time. The session already waits 240s for it. On a software emulator, one CPU and a 720×1280 skin gets the v2.2.0 apk to the home screen. A 1080×2400 image with two CPUs ANRs `system_server` and the server never listens. |
+| `Request timed out! Consider increasing the "connectionRetryTimeout" option.` | The client gave up while Appium was still creating the session. Android and iOS wait 300s for that first request and do not send it again. |
 | `"wait" is not supported for android (UiAutomator2) sessions.` | `wait` is for browser sessions. |
 | `The fingerPrint command is only available for Android.` | `browser.fingerPrint` is the Android call. iOS uses `browser.touchId`. |
 | `App not found:` | Pass an apk path that exists, or use `--package` and `--activity` for an app that is already installed. |

@@ -22,11 +22,16 @@ describe('mobile targets', () => {
             'appium:platformVersion': '14',
             'appium:app': 'https://example.com/app.apk',
             'appium:autoGrantPermissions': true,
+            'appium:ignoreHiddenApiPolicyError': true,
+            'appium:disableWindowAnimation': true,
+            'appium:adbExecTimeout': 60_000,
+            'appium:uiautomator2ServerInstallTimeout': 180_000,
+            'appium:uiautomator2ServerLaunchTimeout': 240_000,
             'appium:newCommandTimeout': 3600,
             'appium:orientation': 'PORTRAIT',
             'appium:fullReset': true
         })
-        expect(app).toMatchObject({ platform: 'mobile', applies: ['M'], label: 'android (UiAutomator2)', remote: { hostname: '127.0.0.1', port: 4723, path: '/' } })
+        expect(app).toMatchObject({ platform: 'mobile', applies: ['M'], label: 'android (UiAutomator2)', launchTimeout: 300_000, remote: { hostname: '127.0.0.1', port: 4723, path: '/', connectionRetryTimeout: 300_000, connectionRetryCount: 0 } })
         expect(app.appium?.main).toBeUndefined()
 
         const installed = await buildPlan({ target: 'android', appiumUrl: 'http://localhost:4723', package: 'com.example', activity: '.Main', reset: false }, ctx)

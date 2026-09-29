@@ -83,7 +83,11 @@ The native alert is centered on the screen, not in the page. The window is cente
 
 ## Android
 
-Android uses the v2.2.0 release apk (`com.wdiodemoapp` / `com.wdiodemoapp.MainActivity`), not the web shims. There is no Android player on the targets page. The carousel and the puzzle work with `swipe` and `drag`. Enroll one fingerprint on the emulator before opening the session, or the login form does not show the fingerprint button. A pin is required before Android will enroll a fingerprint. While the enrollment UI is waiting for a touch:
+Android uses the v2.2.0 release apk (`com.wdiodemoapp` / `com.wdiodemoapp.MainActivity`), not the web shims. There is no Android player on the targets page.
+
+The apk does reach the home screen on an Android 14 `google_apis` `x86_64` image at 720×1280, one CPU, software graphics, and `-accel off`. A 1080×2400 skin with two CPUs ANRs `system_server` (`Process system isn't responding`) and the home screen never draws. Nested KVM (`-accel on`) sits at 0% CPU and never exposes an adb device. After that lighter image was up, a `wdio session` open still died at 120s: WebDriver's `connectionRetryTimeout` aborted `POST /session` while Appium was installing `io.appium.uiautomator2.server`, and the retry started a second session that uninstalled the server again. The instrumentation that did start was force-stopped at Appium's 30s launch limit while it was still verifying classes. Android and iOS sessions now wait 300s, send that first request once, allow 180s to install the server and 240s to launch it. With those limits, and with the server packages already installed, a session became ready and `tap`, `fill` and `acceptAlert` drove the login form. A later software-GPU fault (`Failed to find ColorBuffer`) turned the framebuffer black, so there is still no recording of that run.
+
+The carousel and the puzzle work with `swipe` and `drag`. Enroll one fingerprint on the emulator before opening the session, or the login form does not show the fingerprint button. A pin is required before Android will enroll a fingerprint. While the enrollment UI is waiting for a touch:
 
 ```sh
 adb -s emulator-5554 emu finger touch 1
