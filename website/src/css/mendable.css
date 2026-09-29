@@ -28,8 +28,8 @@ div[id^="headlessui-dialog-panel-"][class*="ms-"] .ms-max-h-\[550px\],
 div[id^="headlessui-dialog-panel-"][class*="ms-"] div[class*="ms-max-h-[550px]"],
 div[id^="headlessui-dialog-panel-"]:has(#ms-reset-button) .ms-max-h-\[550px\],
 div[id^="headlessui-dialog-panel-"]:has(#ms-reset-button) div[class*="ms-max-h-[550px]"] {
-    max-height: min(550px, calc(100vh - 256px - var(--wdio-chat-dialog-top-margin))) !important;
-    max-height: min(550px, calc(100dvh - 256px - var(--wdio-chat-dialog-top-margin))) !important;
+    max-height: max(0px, min(550px, calc(100vh - 256px - var(--wdio-chat-dialog-top-margin)))) !important;
+    max-height: max(0px, min(550px, calc(100dvh - 256px - var(--wdio-chat-dialog-top-margin)))) !important;
 }
 
 @media (min-width: 640px) {
