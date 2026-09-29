@@ -11,16 +11,24 @@ const replConfig = {
     useColor: true
 }
 
-test('should parse error object', () => {
+test('should pass parsed errors to the result callback', () => {
     const childProcess = { send: vi.fn() }
+    const callback = vi.fn()
     const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
-    const err = repl['_getError']({
-        error: true,
+    repl.callback = callback
+
+    repl.onResult({
+        error: 'true',
         message: 'foobar',
-        stack: 'fooo:1:1\nbar:2:1'
+        stack: 'fooo:1:1\nbar:2:1',
+        result: 'ignored'
     })
+
+    const err = callback.mock.calls[0][0] as Error
     expect(err).toBeInstanceOf(Error)
-    expect(repl['_getError']({ foo: 'bar' })).toBe(null)
+    expect(err.message).toBe('foobar')
+    expect(err.stack).toBe('fooo:1:1\nbar:2:1')
+    expect(callback.mock.calls[0][1]).toBe('ignored')
 })
 
 test('should send child process message that debugger has started', () => {

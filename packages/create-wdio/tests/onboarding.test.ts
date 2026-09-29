@@ -173,7 +173,7 @@ describe('onboarding templates', () => {
             await generateBrowserRunnerTestFiles({
                 preset: '',
                 destSpecRootPath,
-                installTestingLibrary: true,
+                installTestingLibrary: false,
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)

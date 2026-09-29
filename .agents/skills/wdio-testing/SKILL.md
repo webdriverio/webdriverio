@@ -1,6 +1,8 @@
 ---
 name: wdio-testing
 description: Choose the smallest WebdriverIO proof for a code change (unit, typings, smoke, component, e2e).
+metadata:
+  internal: true
 ---
 
 # WDIO testing

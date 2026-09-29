@@ -68,15 +68,6 @@ export const SUITES = [
     }
 ]
 
-export const SUITES_NO_TESTS = [
-    {
-        uid: SUITE_UIDS[0],
-        title: SUITE_UIDS[0].slice(0, -1),
-        tests: [],
-        suites: []
-    },
-]
-
 export const REPORT = `yellow ========= Your concise report ==========
 chrome
 ❌ Test failed (1):

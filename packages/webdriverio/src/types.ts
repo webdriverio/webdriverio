@@ -547,7 +547,7 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
     /**
      * get a specific instance to run commands on it
      */
-    getInstance: (browserName: string) => WebdriverIO.Browser | undefined
+    getInstance: (browserName: string) => WebdriverIO.Browser
 
     /**
      * select one or multiple browsers always wrapped into a multi-remote to run commands on them.
@@ -925,9 +925,10 @@ declare global {
         interface MultiRemoteElement extends MultiRemoteElementType {}
         /**
          * WebdriverIO multi-remote element array
-         * What `$$`, `custom$$` and `react$$` return on a multi-remote browser. Like
-         * `ElementArray` it carries the selector, parent and properties of the fetched
-         * set, and `isMultiRemote` marks it as the multi-remote variant.
+         * What `$$` returns on a multi-remote browser. `custom$$` and `react$$`
+         * return one result per instance and are not this type. Like `ElementArray`
+         * it carries the selector, parent and properties of the fetched set, and
+         * `isMultiRemote` marks it as the multi-remote variant.
          *
          * @see https://webdriver.io/docs/multiremote/
          */

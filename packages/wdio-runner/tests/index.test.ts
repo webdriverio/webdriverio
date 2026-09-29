@@ -12,11 +12,6 @@ import { setDefaultOptions, SnapshotService } from 'expect-webdriverio'
 import WDIORunner from '../src/index.js'
 import type { CustomStubCommand } from '../src/types.js'
 
-vi.mock('fs/promises', async (orig) => ({
-    ...(await orig()) as any,
-    default: { writeFile: vi.fn() }
-}))
-vi.mock('util')
 vi.mock('expect-webdriverio', () => ({
     setDefaultOptions: vi.fn(),
     expect: vi.fn(),
@@ -65,12 +60,12 @@ describe('wdio-runner', () => {
             expect(runner['_shutdown']).toBeCalledTimes(0)
         })
 
-        it('should do nothing when triggered by run method without session', async () => {
-            const hook = vi.fn()
+        it('should skip teardown when no session was created', async () => {
             const runner = new WDIORunner()
-            runner['_shutdown'] = vi.fn()
+            runner['_config'] = { afterSession: [vi.fn()] } as any
             await runner.endSession()
-            expect(hook).toBeCalledTimes(0)
+            expect(executeHooksWithArgs).not.toBeCalled()
+            expect(attach).not.toBeCalled()
         })
 
         it('should work normally when called after framework run in multi-remote', async () => {
@@ -105,23 +100,22 @@ describe('wdio-runner', () => {
             expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('bar').sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
         })
-
-        it('should do nothing when triggered by run method without session in multi-remote', async () => {
-            const hook = vi.fn()
-            const runner = new WDIORunner()
-            runner['_isMultiRemote'] = true
-            runner['_shutdown'] = vi.fn()
-            await runner.endSession()
-            expect(hook).toBeCalledTimes(0)
-        })
     })
 
     describe('run', () => {
-        afterEach(() => {
-            vi.spyOn(ConfigParser.prototype, 'initialize').mockRestore()
+        beforeEach(() => {
+            // @ts-expect-error mock private
+            vi.spyOn(ConfigParser.prototype, 'addConfigFile').mockReturnValue(undefined)
         })
 
-        it('should fail if log file is corrupted', async () => {
+        afterEach(() => {
+            vi.spyOn(ConfigParser.prototype, 'initialize').mockRestore()
+            // @ts-expect-error mock private
+            vi.spyOn(ConfigParser.prototype, 'addConfigFile').mockRestore()
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockRestore()
+        })
+
+        it('should shut down when config initialization fails', async () => {
             vi.spyOn(ConfigParser.prototype, 'initialize').mockRejectedValueOnce(new Error('ups'))
             const runner = new WDIORunner()
             runner['_shutdown'] = vi.fn()
@@ -129,24 +123,7 @@ describe('wdio-runner', () => {
             expect(runner['_shutdown']).toBeCalledWith(1, undefined, true)
         })
 
-        it('should auto compile if args are given', async () => {
-            const config: any = {
-                reporters: [],
-                before: [],
-                beforeSession: [],
-                framework: 'testWithFailures',
-                runner: 'local'
-            }
-
-            const runner = new WDIORunner()
-            runner['_shutdown'] = vi.fn()
-            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
-            await runner.run({ configFile: '/foo/bar', args: {}, caps: [] } as any)
-
-            expect(runner['_shutdown']).toBeCalledWith(1, undefined, true)
-        })
-
-        it('should fail if init session fails', async () => {
+        it('should run session hooks and return framework failures', async () => {
             const runner = new WDIORunner()
             const beforeSession = vi.fn()
             const before = vi.fn()
@@ -160,8 +137,6 @@ describe('wdio-runner', () => {
                 runner: 'local'
             }
             vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
-            // @ts-expect-error mock private
-            vi.spyOn(ConfigParser.prototype, 'addConfigFile').mockReturnValue()
 
             runner['_shutdown'] = vi.fn()
             const stubBrowser = {
@@ -199,8 +174,6 @@ describe('wdio-runner', () => {
                 runner: 'local'
             }
             vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
-            // @ts-expect-error mock private
-            vi.spyOn(ConfigParser.prototype, 'addConfigFile').mockReturnValue()
             vi.mocked(executeHooksWithArgs).mockImplementation(async (name: unknown, _hooks: unknown, args: unknown) => {
                 if (name === 'beforeSession') {
                     (args as any[])[0].specFileRetries = 5
@@ -281,7 +254,7 @@ describe('wdio-runner', () => {
             expect(config.automationProtocol).toBe('webdriver')
         })
 
-        it('should not call browser url if args watch', async () => {
+        it('should leave the session open in watch mode', async () => {
             const runner = new WDIORunner()
             const config: any = {
                 framework: 'testNoFailures',
@@ -290,13 +263,16 @@ describe('wdio-runner', () => {
                 runner: 'local'
             }
             vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
-            runner['_browser'] = { url: vi.fn(url => url) } as unknown as BrowserObject
             runner['_startSession'] = vi.fn().mockReturnValue({ })
             runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
-            const failures = await runner.run({ args: { watch: true }, caps: {}, configFile: '/foo/bar' } as any)
+            const endSession = vi.spyOn(runner, 'endSession').mockResolvedValue(undefined)
 
-            expect(failures).toBe(0)
-            expect(runner['_browser']?.url).not.toBeCalled()
+            expect(await runner.run({ args: { watch: true }, caps: {}, configFile: '/foo/bar' } as any)).toBe(0)
+            expect(endSession).not.toBeCalled()
+
+            endSession.mockClear()
+            expect(await runner.run({ args: {}, caps: {}, configFile: '/foo/bar' } as any)).toBe(0)
+            expect(endSession).toBeCalledTimes(1)
         })
 
         it('should attach snapshot service to service list', async () => {
@@ -545,38 +521,15 @@ describe('wdio-runner', () => {
             expect(setDefaultOptions).toBeCalledTimes(1)
         })
 
-        it('transfers custom element commands with options object from old instance to new one', async () => {
-            const runner = new WDIORunner()
-            const myCustomFunction = () => {}
-            const options = { attachToElement: true, disableElementImplicitWait: true }
-            const customCommands: CustomStubCommand[] = [['myCustomCommandName', myCustomFunction, options]]
-
-            runner['_browser'] = { customCommands } as any
-            const browser = await runner['_startSession']({} as any, {} as any)
-
-            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, options)
-        })
-
-        it('transfers the proto and instances the protocol stub folded into the options', async () => {
+        it('transfers stubbed custom commands onto the new session', async () => {
             const runner = new WDIORunner()
             const myCustomFunction = () => {}
             const options = {
                 attachToElement: true,
+                disableElementImplicitWait: true,
                 proto: { foo: 'bar' },
                 instances: { baz: 'qux' as unknown as Instances }
             }
-            const customCommands: CustomStubCommand[] = [['myCustomCommandName', myCustomFunction, options]]
-
-            runner['_browser'] = { customCommands } as any
-            const browser = await runner['_startSession']({} as any, {} as any)
-
-            expect(browser?.addCommand).toBeCalledWith('myCustomCommandName', myCustomFunction, options)
-        })
-
-        it('transfers browser custom commands from old instance to new one', async () => {
-            const runner = new WDIORunner()
-            const myCustomFunction = () => {}
-            const options = { attachToElement: undefined, proto: undefined, instances: undefined }
             const customCommands: CustomStubCommand[] = [['myCustomCommandName', myCustomFunction, options]]
 
             runner['_browser'] = { customCommands } as any

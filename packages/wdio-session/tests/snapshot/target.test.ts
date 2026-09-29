@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { isRef, refId } from '../../src/snapshot/refs.js'
+import { refId } from '../../src/snapshot/refs.js'
 import { resolveTarget } from '../../src/snapshot/target.js'
 import type { Session } from '../../src/session.js'
 
@@ -8,10 +8,9 @@ describe('refId', () => {
     it('accepts snapshot refs and the @ form used by other agent CLIs', () => {
         expect(refId('e12')).toBe('e12')
         expect(refId('@e12')).toBe('e12')
-        expect(isRef('@e3')).toBe(true)
         expect(refId('@e')).toBeUndefined()
         expect(refId('aria/Sign in')).toBeUndefined()
-        expect(isRef('button')).toBe(false)
+        expect(refId('button')).toBeUndefined()
     })
 })
 

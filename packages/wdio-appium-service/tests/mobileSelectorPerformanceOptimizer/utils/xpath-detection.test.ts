@@ -1,10 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import {
-    detectUnmappableXPathFeatures,
-    isComplexXPath,
-    extractElementTypeFromXPath,
-    isWildcardXPath
-} from '../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-detection.js'
+import { detectUnmappableXPathFeatures } from '../../../src/mobileSelectorPerformanceOptimizer/utils/xpath-detection.js'
 
 describe('xpath-detection', () => {
     describe('detectUnmappableXPathFeatures', () => {
@@ -72,80 +67,14 @@ describe('xpath-detection', () => {
             expect(detectUnmappableXPathFeatures('//div[substring(text(), 1, 5)="test"]'))
                 .not.toContain('complex substring() function (not starting at position 1)')
         })
-    })
 
-    describe('isComplexXPath', () => {
-        test('should return false for simple XPath', () => {
-            expect(isComplexXPath('//XCUIElementTypeButton[@name="test"]')).toBe(false)
+        test('should detect a top-level union operator', () => {
+            expect(detectUnmappableXPathFeatures('//XCUIElementTypeButton | //XCUIElementTypeCell'))
+                .toContain('union operator (|)')
         })
 
-        test('should detect OR condition', () => {
-            expect(isComplexXPath('//div[@name="test" or @name="other"]')).toBe(true)
-        })
-
-        test('should detect AND condition', () => {
-            expect(isComplexXPath('//div[@name="test" and @id="test"]')).toBe(true)
-        })
-
-        test('should detect contains function', () => {
-            expect(isComplexXPath('//div[contains(@name, "test")]')).toBe(true)
-        })
-
-        test('should detect starts-with function', () => {
-            expect(isComplexXPath('//div[starts-with(@name, "test")]')).toBe(true)
-        })
-
-        test('should detect ends-with function', () => {
-            expect(isComplexXPath('//div[ends-with(@name, "test")]')).toBe(true)
-        })
-
-        test('should detect text() function', () => {
-            expect(isComplexXPath('//div[text()="test"]')).toBe(true)
-        })
-
-        test('should detect substring function', () => {
-            expect(isComplexXPath('//div[substring(@name, 1, 5)="test"]')).toBe(true)
-        })
-
-        test('should detect nested brackets', () => {
-            expect(isComplexXPath('//div[@name="test"][@id="test"]')).toBe(true)
-        })
-    })
-
-    describe('extractElementTypeFromXPath', () => {
-        test('should extract element type from XPath', () => {
-            expect(extractElementTypeFromXPath('//XCUIElementTypeButton[@name="test"]')).toBe('XCUIElementTypeButton')
-        })
-
-        test('should extract different element types', () => {
-            expect(extractElementTypeFromXPath('//XCUIElementTypeTextField[@name="test"]')).toBe('XCUIElementTypeTextField')
-            expect(extractElementTypeFromXPath('//XCUIElementTypeStaticText[@name="test"]')).toBe('XCUIElementTypeStaticText')
-        })
-
-        test('should return null when no element type found', () => {
-            expect(extractElementTypeFromXPath('//*[@name="test"]')).toBeNull()
-            expect(extractElementTypeFromXPath('//div[@name="test"]')).toBeNull()
-        })
-
-        test('should return null for empty string', () => {
-            expect(extractElementTypeFromXPath('')).toBeNull()
-        })
-    })
-
-    describe('isWildcardXPath', () => {
-        test('should return true for wildcard XPath', () => {
-            expect(isWildcardXPath('//*[@name="test"]')).toBe(true)
-            expect(isWildcardXPath('//*')).toBe(true)
-        })
-
-        test('should return false for non-wildcard XPath', () => {
-            expect(isWildcardXPath('//XCUIElementTypeButton[@name="test"]')).toBe(false)
-            expect(isWildcardXPath('//XCUIElementTypeButton')).toBe(false)
-            expect(isWildcardXPath('//div[@name="test"]')).toBe(false)
-        })
-
-        test('should return false for empty string', () => {
-            expect(isWildcardXPath('')).toBe(false)
+        test('should ignore a pipe inside a quoted attribute', () => {
+            expect(detectUnmappableXPathFeatures('//XCUIElementTypeButton[@name="a|b"]')).toEqual([])
         })
     })
 })

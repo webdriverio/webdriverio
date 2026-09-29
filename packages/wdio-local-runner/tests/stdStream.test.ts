@@ -1,18 +1,15 @@
-import type { SpyInstance } from 'vitest'
 import { describe, expect, test, beforeEach, vi, afterEach } from 'vitest'
 import RunnerStream from '../src/stdStream.js'
 
 describe('RunnerStream', () => {
     let stream: RunnerStream
-    let pushSpy: SpyInstance
 
     const cb = vi.fn()
     beforeEach(() => {
         stream = new RunnerStream()
-        pushSpy = vi.spyOn(stream, 'push')
     })
 
-    test('should have pipe listener', () => {
+    test('forwards chunks unchanged', () => {
         stream._transform('foobar', 'utf8', cb)
         expect(cb).toBeCalledWith(undefined, 'foobar')
     })
@@ -33,7 +30,6 @@ describe('RunnerStream', () => {
 
     afterEach(() => {
         cb.mockClear()
-        pushSpy.mockClear()
         return new Promise((resolve) => stream.end(() => resolve()))
     })
 })

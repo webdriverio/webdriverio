@@ -1131,10 +1131,6 @@ export default class AllureReporter extends WDIOReporter {
         }
     }
 
-    private get _hasPendingSuite(): boolean {
-        const current = this.allureStatesByCid.get(this._currentCid())
-        return Boolean(current?.hasPendingSuite)
-    }
     private get _hasPendingTest(): boolean {
         const current = this.allureStatesByCid.get(this._currentCid())
         return Boolean(current?.hasPendingTest)

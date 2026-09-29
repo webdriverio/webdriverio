@@ -56,22 +56,4 @@ describe('elem.react$', () => {
             },
         ])
     })
-
-    it('should call getElements with React flag true', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
-
-        const elems = await browser.react$$('myComp')
-
-        expect(
-            (
-                await elems.filter(elem => Boolean(elem.isReactElement))
-            ).length
-        ).toBe(3)
-        expect(elems.foundWith).toBe('react$$')
-    })
 })

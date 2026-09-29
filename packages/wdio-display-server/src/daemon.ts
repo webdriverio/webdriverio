@@ -45,14 +45,11 @@ function applyEnv(env: Readonly<Record<string, string>>): () => void {
  *
  * Intended to be called from a `Runner`'s `initialize()`, which runs before
  * any service `onPrepare`.
- *
- * @param manager Optional pre-constructed manager; tests inject one to avoid
- *   real Xvfb/Weston spawns.
  */
 export async function startDisplayDaemonFromConfig(
     config: Options.Testrunner,
-    manager: DisplayServerManager = new DisplayServerManager(optionsFromConfig(config)),
 ): Promise<RunningDaemon | null> {
+    const manager = new DisplayServerManager(optionsFromConfig(config))
     if (process.env.WAYLAND_DISPLAY && !process.env.DISPLAY) {
         const env = sessionEnv('wayland') // XDG_SESSION_TYPE may be tty, e.g. over SSH, which sends Chrome and GTK apps to X11
         log.info(`Existing Wayland display; setting ${JSON.stringify(env)}`)

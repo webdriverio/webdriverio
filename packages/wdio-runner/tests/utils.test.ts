@@ -244,10 +244,9 @@ describe('utils', () => {
             expect(result).toEqual(expect.objectContaining(expect.stringContaining('nested')))
         })
 
-        it('should throw when matcher is not supported by expect-webdriverio', () => {
-            const arg = { $$typeof: 'OneOf', sample: undefined, inverse: true }
-            vi.spyOn(wdioExpect, 'oneOf').mockReturnValueOnce(undefined as any)
-            expect(() => transformExpectArgs(arg)).toThrow('is not supported by expect-webdriverio')
+        it('should reject an inverse OneOf matcher because expect.not has no oneOf', () => {
+            const arg = { $$typeof: 'OneOf', sample: ['a', 'b'], inverse: true }
+            expect(() => transformExpectArgs(arg)).toThrow('Matcher "oneOf" is not supported by expect-webdriverio')
         })
     })
 })

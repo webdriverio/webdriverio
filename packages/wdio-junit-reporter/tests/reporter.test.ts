@@ -3,7 +3,7 @@ import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { TestStats } from '@wdio/reporter'
 
-import WDIOJunitReporter from '../src/index.js'
+import WDIOJunitReporter, { addProperty } from '../src/index.js'
 import type { SuiteStats } from '@wdio/reporter'
 
 const mochaRunnerLog = (await vi.importActual('./__fixtures__/mocha-runner.json') as any).default
@@ -63,10 +63,13 @@ describe('wdio-junit-reporter', () => {
     })
 
     it('should write to output stream on runnerEnd', () => {
-        reporter['_buildJunitXml'] = vi.fn().mockReturnValue(undefined)
+        reporter.suites = suiteEmpty as any
         reporter.write = vi.fn()
-        reporter.onRunnerEnd({} as any)
-        expect(vi.mocked(reporter.write).mock.calls[0][0]).toMatchSnapshot()
+        reporter.onRunnerEnd(mochaRunnerLog as any)
+        const written = vi.mocked(reporter.write).mock.calls[0][0] as string
+        expect(written).toContain('<?xml version="1.0" encoding="UTF-8"?>')
+        expect(written).toContain('<testsuites')
+        expect(written).not.toContain('<testcase')
     })
 
     it('should prepare name', () => {
@@ -381,19 +384,6 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '').replace(/file:\/\//g, '').replace(/C:\//g, '')).toMatchSnapshot()
     })
 
-    it('_buildOrderedReport', () => {
-        reporter = new WDIOJunitReporter({ stdout: true, suiteNameFormat: ({ name, suite }) => `foo-${name}-${suite.title}` })
-        reporter['_addCucumberFeatureToBuilder'] = () => '_addCucumberFeatureToBuilder'
-        reporter['_addSuiteToBuilder'] = () => '_addSuiteToBuilder'
-        const specFileName = os.platform() === 'win32' ? 'file:///C:/foo/bar' : 'file:///foo/bar'
-        const file = os.platform() === 'win32' ? 'C:\\foo\\bar' : '/foo/bar'
-        reporter.suites = {
-            foo: { type: 'feature' } as any,
-            bar: { type: 'feature', file } as any
-        }
-        expect(reporter['_buildOrderedReport'](null, null as any, specFileName, 'feature', true)).toBe('_addCucumberFeatureToBuilder')
-    })
-
     it('_sameFileName - case independent on win32', function (context) {
         if (os.platform() !== 'win32') {
             context.skip()
@@ -557,48 +547,52 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_suiteFileAssociation'](desktopSpec, 'other.js', [desktopSpec, mobileSpec])).toBe('none')
     })
 
-    const options = { stdout: true, addWorkerLogs: true }
-
     it('addWorkerLogs: should add worker console log to report for test if activated', () => {
-        reporter = new WDIOJunitReporter(options)
-        const suite = Object.values(suitesLog)[0] as SuiteStats
-        reporter.onSuiteStart(suite)
-        const test1 = suite.tests[0]
-        const test2 = suite.tests[1]
-        reporter.onTestStart(test1)
-        reporter['_appendConsoleLog']('0 - line 0', 'utf-8', () => {})
-        reporter['_appendConsoleLog']('0 - line 1', 'utf-8', () => {})
-        reporter.onTestPass(test1)
-        reporter.onTestStart(test2)
-        reporter['_appendConsoleLog']('1 - line 0', 'utf-8', () => {})
-        reporter['_appendConsoleLog']('1 - line 1', 'utf-8', () => {})
-        reporter.onTestPass(suite.tests[0])
-        expect(reporter['_getStandardOutput'](test1).toString()).toContain('0 - line 1')
-        expect(reporter['_getStandardOutput'](test2).toString()).toContain('1 - line 1')
+        const originalWrite = process.stdout.write
+        try {
+            reporter = new WDIOJunitReporter({ stdout: true, addWorkerLogs: true })
+            const suite = Object.values(suitesLog)[0] as SuiteStats
+            reporter.onSuiteStart(suite)
+            const test1 = suite.tests[0]
+            const test2 = suite.tests[1]
+            reporter.onTestStart(test1)
+            process.stdout.write('0 - line 0')
+            process.stdout.write('0 - line 1')
+            reporter.onTestPass(test1)
+            reporter.onTestStart(test2)
+            process.stdout.write('1 - line 0')
+            process.stdout.write('1 - line 1')
+            reporter.onTestPass(suite.tests[0])
+            expect(reporter['_getStandardOutput'](test1).toString()).toContain('0 - line 1')
+            expect(reporter['_getStandardOutput'](test2).toString()).toContain('1 - line 1')
 
-        expect(reporter['_getStandardOutput'](test1).toString()).not.toContain('1 - line 1')
-        expect(reporter['_getStandardOutput'](test2).toString()).not.toContain('0 - line 1')
+            expect(reporter['_getStandardOutput'](test1).toString()).not.toContain('1 - line 1')
+            expect(reporter['_getStandardOutput'](test2).toString()).not.toContain('0 - line 1')
+        } finally {
+            process.stdout.write = originalWrite
+        }
     })
 
     it('addProperty adds a property to currently running testcase', () => {
-        reporter = new WDIOJunitReporter(options)
+        reporter = new WDIOJunitReporter({ stdout: true })
         reporter.suites = suitesLog as any
         const suite = Object.values(suitesLog)[0] as SuiteStats
         reporter.onSuiteStart(suite)
         const test1 = suite.tests[0]
         const test2 = suite.tests[1]
         reporter.onTestStart(test1)
-        reporter['_addPropertyToCurrentTest']({ name: '0-prop1', value: '0-value' })
+        addProperty('0-prop1', '0-value')
         reporter.onTestPass(test1)
         reporter.onTestStart(test2)
-        reporter['_addPropertyToCurrentTest']({ name: '1-prop1', value: '1-value' })
+        addProperty('1-prop1', '1-value')
         reporter.onTestPass(suite.tests[0])
         const output = reporter['_buildJunitXml'](mochaRunnerLog).toString()
         expect(output).toContain('<property name="0-prop1" value="0-value"/>')
+        expect(output).toContain('<property name="1-prop1" value="1-value"/>')
     })
 
     it('addProperty adds properties to Cucumber steps in scenarios (Cucumber-style)', () => {
-        reporter = new WDIOJunitReporter(options)
+        reporter = new WDIOJunitReporter({ stdout: true })
         reporter.suites = featuresLog as any
 
         // Get the scenario suite which contains steps
@@ -612,17 +606,17 @@ describe('wdio-junit-reporter', () => {
 
         // Simulate adding properties to each step during test execution
         reporter.onTestStart(step1)
-        reporter['_addPropertyToCurrentTest']({ name: 'step1-prop', value: 'step1-value' })
-        reporter['_addPropertyToCurrentTest']({ name: 'common-prop', value: 'common-value-1' })
+        addProperty('step1-prop', 'step1-value')
+        addProperty('common-prop', 'common-value-1')
         reporter.onTestPass(step1)
 
         reporter.onTestStart(step2)
-        reporter['_addPropertyToCurrentTest']({ name: 'step2-prop', value: 'step2-value' })
+        addProperty('step2-prop', 'step2-value')
         reporter.onTestPass(step2)
 
         reporter.onTestStart(step3)
-        reporter['_addPropertyToCurrentTest']({ name: 'step3-prop', value: 'step3-value' })
-        reporter['_addPropertyToCurrentTest']({ name: 'common-prop', value: 'common-value-3' })
+        addProperty('step3-prop', 'step3-value')
+        addProperty('common-prop', 'common-value-3')
         reporter.onTestPass(step3)
 
         // Build the XML and verify all properties are included
@@ -639,7 +633,7 @@ describe('wdio-junit-reporter', () => {
     })
 
     it('handles undefined steps gracefully when adding properties (Cucumber-style)', () => {
-        reporter = new WDIOJunitReporter(options)
+        reporter = new WDIOJunitReporter({ stdout: true })
 
         // Create a modified feature log with an 'undefined' step
         const modifiedFeaturesLog = JSON.parse(JSON.stringify(featuresLog))
@@ -658,7 +652,7 @@ describe('wdio-junit-reporter', () => {
         // Add a property to a valid step
         const validStep = scenarioSuite.tests[0]
         reporter.onTestStart(validStep)
-        reporter['_addPropertyToCurrentTest']({ name: 'valid-prop', value: 'valid-value' })
+        addProperty('valid-prop', 'valid-value')
         reporter.onTestPass(validStep)
 
         // Build the XML - should not throw and should include the valid property

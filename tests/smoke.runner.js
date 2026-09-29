@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import { spawn } from 'node:child_process'
 import url from 'node:url'
 import path from 'node:path'
 import assert from 'node:assert'
@@ -21,6 +22,7 @@ const ansiColorRegex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0
 process.env.WDIO_UNIT_TESTS = '1'
 
 import launch from './helpers/launch.js'
+import { headlessCapsLog } from './helpers/headless.conf.js'
 import {
     SERVICE_LOGS,
     LAUNCHER_LOGS,
@@ -883,6 +885,89 @@ const runSpecsWithFlagNoArg = async () => {
     assert.strictEqual(skippedSpecs, 0)
 }
 
+/**
+ * Run the `wdio` binary so yargs parses the flag the way a user types it.
+ *
+ * Stdin is ignored and stdout is a pipe. A TTY stdout with a non-TTY stdin
+ * makes the CLI wait for a spec list on stdin instead of launching. A pipe
+ * is not a TTY, so `wdio run` starts immediately, and the output is still
+ * forwarded here.
+ *
+ * `WDIO_UNIT_TESTS` is removed from this process so a failed run calls
+ * `process.exit` with the launcher status. The config puts that variable
+ * back on the worker via `runnerEnv`.
+ */
+function runWdio (configPath, cliArgs) {
+    const wdio = path.resolve(__dirname, '..', 'packages', 'wdio-cli', 'bin', 'wdio.js')
+    const env = { ...process.env }
+    delete env.WDIO_UNIT_TESTS
+    return new Promise((resolve, reject) => {
+        const child = spawn(process.execPath, [wdio, 'run', configPath, ...cliArgs], {
+            cwd: __dirname,
+            env,
+            stdio: ['ignore', 'pipe', 'pipe']
+        })
+        child.stdout.on('data', (chunk) => process.stdout.write(chunk))
+        child.stderr.on('data', (chunk) => process.stderr.write(chunk))
+        let settled = false
+        const finish = (err) => {
+            if (settled) {
+                return
+            }
+            settled = true
+            clearTimeout(timer)
+            if (err) {
+                reject(err)
+                return
+            }
+            resolve()
+        }
+        const timer = setTimeout(() => {
+            child.kill()
+            finish(new Error(`wdio run ${path.basename(configPath)} ${cliArgs.join(' ')} timed out`))
+        }, 30000)
+        child.on('error', finish)
+        child.on('exit', (code) => {
+            finish(code === 0
+                ? undefined
+                : new Error(`wdio run ${path.basename(configPath)} ${cliArgs.join(' ')} exited with ${code}`))
+        })
+    })
+}
+
+/**
+ * `--headless` / `--headless=false` rewrite browser args before the session
+ * starts. The mock driver does not return those args, so the config records
+ * the capabilities the worker is about to send.
+ */
+const headlessFlag = async () => {
+    const injectConfig = path.resolve(__dirname, 'helpers', 'headless.conf.js')
+    const stripConfig = path.resolve(__dirname, 'helpers', 'headless-strip.conf.js')
+
+    try {
+        await fs.rm(headlessCapsLog, { force: true })
+        await runWdio(injectConfig, ['--headless'])
+        const forced = JSON.parse(await fs.readFile(headlessCapsLog, 'utf8'))
+        assert.deepStrictEqual(forced['goog:chromeOptions'].args, [
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--headless',
+            '--disable-gpu'
+        ])
+
+        await fs.rm(headlessCapsLog, { force: true })
+        await runWdio(stripConfig, ['--headless=false'])
+        const stripped = JSON.parse(await fs.readFile(headlessCapsLog, 'utf8'))
+        assert.deepStrictEqual(stripped['goog:chromeOptions'].args, [
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu'
+        ])
+    } finally {
+        await fs.rm(headlessCapsLog, { force: true })
+    }
+}
+
 const cliExcludeParamValidationAllExcludedByKeyword = async () => {
     const { passed, skippedSpecs, failed } = await launch(
         'cliExcludeParamValidationAllExcludedByKeyword',
@@ -1191,6 +1276,7 @@ const jasmineAfterHookArgsValidation = async () => {
         runSpecsWithFlagSeveralPassed,
         runSpecsWithFlagDirectPath,
         runSpecsWithFlagNoArg,
+        headlessFlag,
         jasmineHooksTestrunner,
         jasmineAfterHookArgsValidation,
         cliExcludeParamValidationAllExcludedByKeyword,

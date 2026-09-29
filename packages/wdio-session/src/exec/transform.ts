@@ -93,26 +93,6 @@ function walk (node: unknown, visit: (node: AnyNode, parent?: AnyNode) => void, 
 }
 
 /**
- * identifiers bound by a declaration pattern
- */
-export function boundNames (pattern: AnyNode): string[] {
-    switch (pattern.type) {
-    case 'Identifier':
-        return [pattern.name as string]
-    case 'ObjectPattern':
-        return (pattern.properties as AnyNode[]).flatMap((p) => boundNames((p.type === 'RestElement' ? p.argument : p.value) as AnyNode))
-    case 'ArrayPattern':
-        return (pattern.elements as (AnyNode | null)[]).flatMap((e) => e ? boundNames(e) : [])
-    case 'RestElement':
-        return boundNames(pattern.argument as AnyNode)
-    case 'AssignmentPattern':
-        return boundNames(pattern.left as AnyNode)
-    default:
-        return []
-    }
-}
-
-/**
  * Whether a call chain starts at `browser`/`driver` or a `$`/`$$` call.
  */
 function isWdioChain (node: AnyNode): boolean {

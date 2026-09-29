@@ -4,13 +4,11 @@ import {
     MESSAGE_TYPES,
     browserChannelMessage,
     isBrowserChannelMessage,
-    isBrowserRequestMessage,
     isWorkerProcessEvent,
     parseBrowserToRunnerMessage,
     parseRunnerToBrowserMessage,
     routeBrowserToRunnerMessage,
     workerProcessEvent,
-    type AnyBrowserToRunnerMessage,
 } from '../src/BrowserChannel.js'
 
 const consoleMessage = browserChannelMessage(MESSAGE_TYPES.consoleMessage, {
@@ -87,8 +85,23 @@ describe('browser channel messages', () => {
     })
 
     it('routes requests, one-way events, and local browser-state lookups', () => {
+        const hook = browserChannelMessage(MESSAGE_TYPES.hookTriggerMessage, { id: 1, cid: '0-0', name: 'before', args: [] })
+        const expectRequest = browserChannelMessage(MESSAGE_TYPES.expectRequestMessage, {
+            id: 1,
+            cid: '0-0',
+            matcherName: 'toExist',
+            args: [],
+            scope: {}
+        })
+        const matchersRequest = browserChannelMessage(MESSAGE_TYPES.expectMatchersRequest, { cid: '0-0' })
+        const testResult = browserChannelMessage(MESSAGE_TYPES.browserTestResult, { failures: 0, events: [] })
+
         expect(routeBrowserToRunnerMessage(commandRequest)).toEqual({ kind: 'request', message: commandRequest })
+        expect(routeBrowserToRunnerMessage(hook)).toEqual({ kind: 'request', message: hook })
+        expect(routeBrowserToRunnerMessage(expectRequest)).toEqual({ kind: 'request', message: expectRequest })
+        expect(routeBrowserToRunnerMessage(matchersRequest)).toEqual({ kind: 'request', message: matchersRequest })
         expect(routeBrowserToRunnerMessage(consoleMessage)).toEqual({ kind: 'event', message: consoleMessage })
+        expect(routeBrowserToRunnerMessage(testResult)).toEqual({ kind: 'event', message: testResult })
         expect(routeBrowserToRunnerMessage(browserChannelMessage(MESSAGE_TYPES.initiateBrowserStateRequest, { cid: '0-1' })))
             .toEqual({ kind: 'browserState', cid: '0-1' })
         expect(routeBrowserToRunnerMessage({ type: 'foobar' })).toEqual({ kind: 'drop' })
@@ -103,15 +116,5 @@ describe('browser channel messages', () => {
         expect(isWorkerProcessEvent(event, MESSAGE_TYPES.customCommand)).toBe(true)
         expect(isWorkerProcessEvent(event, MESSAGE_TYPES.coverageMap)).toBe(false)
         expect(isWorkerProcessEvent(commandRequest, MESSAGE_TYPES.customCommand)).toBe(false)
-
-        const requests: AnyBrowserToRunnerMessage[] = [
-            commandRequest,
-            browserChannelMessage(MESSAGE_TYPES.hookTriggerMessage, { id: 1, cid: '0-0', name: 'before', args: [] }),
-            browserChannelMessage(MESSAGE_TYPES.expectRequestMessage, { id: 1, cid: '0-0', matcherName: 'toExist', args: [], scope: {} }),
-            browserChannelMessage(MESSAGE_TYPES.expectMatchersRequest, { cid: '0-0' }),
-        ]
-        expect(requests.every((message) => isBrowserRequestMessage(message))).toBe(true)
-        expect(isBrowserRequestMessage(consoleMessage)).toBe(false)
-        expect(isBrowserRequestMessage(browserChannelMessage(MESSAGE_TYPES.browserTestResult, { failures: 0, events: [] }))).toBe(false)
     })
 })

@@ -60,11 +60,6 @@ export default class BrowserRunner extends LocalRunner {
     }
 
     /**
-     * for testing purposes
-     */
-    private _servers = this.#servers
-
-    /**
      * nothing to initialize when running locally
      */
     async initialize() {
