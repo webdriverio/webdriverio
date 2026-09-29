@@ -95,6 +95,8 @@ describe('startDisplayDaemonFromConfig', () => {
             vi.stubEnv('DISPLAY', undefined)
             vi.stubEnv('WAYLAND_DISPLAY', undefined)
             vi.stubEnv('XDG_RUNTIME_DIR', undefined)
+            vi.stubEnv('GDK_BACKEND', undefined)
+            vi.stubEnv('XDG_SESSION_TYPE', undefined)
             vi.stubEnv('ELECTRON_OZONE_PLATFORM_HINT', undefined)
             const stopSpy = vi.fn().mockResolvedValue(undefined)
             installDaemon({
