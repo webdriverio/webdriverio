@@ -163,6 +163,7 @@ const jasmineTestrunner = async () => {
             'expect(object).toBeUndefined(undefined)',
             'expect(object).toHaveBeenCalled(function)',
             'expect(number).toHaveSize(object)',
+            'expect(object).toBeUndefined(undefined)',
             'expect(number).toBe(number)',
             'expect(object).toBeDefined(function)',
             'expect(function).toBeInstanceOf(function)',

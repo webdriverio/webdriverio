@@ -45,8 +45,7 @@ describe('Jasmine smoke test', () => {
         const spy = jasmine.createSpy('spy')
         spy()
         expect(spy).toHaveBeenCalled()
-        // eslint-disable-next-line wdio/await-expect -- Jasmine's sync toHaveSize on an array
-        expect([1, 2]).toHaveSize(2)
+        expect(expect([1, 2]).toHaveSize(2)).toBeUndefined()
     })
 
     let hasRun = false
