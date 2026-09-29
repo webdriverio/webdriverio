@@ -1754,27 +1754,6 @@ importers:
         specifier: ^2.4.3
         version: 2.5.0
 
-  test-headless-flag:
-    devDependencies:
-      '@wdio/cli':
-        specifier: workspace:*
-        version: link:../packages/wdio-cli
-      '@wdio/local-runner':
-        specifier: workspace:*
-        version: link:../packages/wdio-local-runner
-      '@wdio/mocha-framework':
-        specifier: workspace:*
-        version: link:../packages/wdio-mocha-framework
-      '@wdio/spec-reporter':
-        specifier: workspace:*
-        version: link:../packages/wdio-spec-reporter
-      expect-webdriverio:
-        specifier: ^6.1.0
-        version: 6.1.0(@wdio/globals@9.31.3)(@wdio/logger@9.29.1)(webdriverio@packages+webdriverio)
-      webdriverio:
-        specifier: workspace:*
-        version: link:../packages/webdriverio
-
   tests:
     dependencies:
       '@wdio/allure-reporter':
