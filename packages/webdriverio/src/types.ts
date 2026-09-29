@@ -197,11 +197,11 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
     /**
      * Selector used to fetch this list. It is available immediately, before the
      * query resolves. It can be
-     * - undefined if the list was created via `$$([{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' }])`
+     * - undefined if the list was created via `$$([])`, raw element references, or elements that do not share one selector
      * - a string if `findElements` was used and a reference was found
      * - or a function if the elements were found via e.g. `$$(() => document.body)`
      */
-    selector: Selector
+    selector: Selector | undefined
     /**
      * Parent of the list if fetched via `$(parent).$$(child)`. Available
      * immediately, before the query resolves.
@@ -271,12 +271,12 @@ export type MultiRemoteProtocolCommandsType = {
 
 interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof AsyncIterators<WebdriverIO.Element>>, AsyncIterators<WebdriverIO.Element> {
     /**
-     * selector used to fetch this element, can be
-     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
-     * - a string if `findElement` was used and a reference was found
-     * - or a function if element was found via e.g. `$(() => document.body)`
+     * selector used to fetch this list, can be
+     * - undefined if the list was created via `$$([])`, raw element references, or elements that do not share one selector
+     * - a string if `findElements` was used and a reference was found
+     * - or a function if the elements were found via e.g. `$$(() => document.body)`
      */
-    selector: Selector
+    selector: Selector | undefined
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
@@ -312,9 +312,9 @@ export type ElementArray = ElementArrayExport
  */
 interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemoteElement>, keyof AsyncIterators<WebdriverIO.MultiRemoteElement>>, AsyncIterators<WebdriverIO.MultiRemoteElement> {
     /**
-     * selector used to fetch this element array
+     * selector used to fetch this element array. Undefined when the entries do not share one selector.
      */
-    selector: Selector
+    selector: Selector | undefined
     /**
      * parent of the element array, i.e. the multi-remote browser or element it was fetched from
      */
