@@ -79,6 +79,7 @@ export default class BrowserRunner extends LocalRunner {
             this.#viteOptimizations = await updateViteConfig(this.#options, this.#config)
         } catch (err) {
             log.error(`Failed to optimize Vite config: ${(err as Error).stack}`)
+            throw err
         }
 
         await super.initialize()
