@@ -6,7 +6,9 @@ description: Open a browser, mobile app, desktop app, Electron app or a cloud de
 
 `wdio session open` starts the session. The first argument is the target. Reuse the `default` session. Pass `-s <name>` only when you need two sessions at once. Run `npx wdio session doctor <target>` first when the target needs Appium, a desktop driver or cloud credentials.
 
-The postcard, the boarding pass and the launch console below are files in [`examples/session`](https://github.com/webdriverio/webdriverio/tree/main/examples/session). Each player types the command, then the window shows the result. Pause, or step to the previous or next command, to read the line that changed the window. Run the commands from a checkout of the WebdriverIO repository.
+The Chrome and Electron players drive the same [WebdriverIO demo app](https://github.com/webdriverio/native-demo-app) (the Expo guinea pig, package `com.wdiodemoapp`) from a local Expo web server. Android installs the v2.2.0 release apk and uses `tap`, `swipe` and `fingerPrint` for the same screens. Each player types the command, then the window shows the result. Pause, or step to the previous or next command, to read the line that changed the window. How that app was started, including the web and Electron shims, is in [`examples/session`](https://github.com/webdriverio/webdriverio/tree/main/examples/session).
+
+The shared path is: open the app, open the in-app WebView of the WebdriverIO frontpage, log in as `alice@webdriver.io` / `supersecret`, swipe the carousel twice to the left, scroll or swipe up to the robot logo, then finish the 9-piece puzzle. Android also logs in with the fingerprint sensor. `export` writes a Mocha spec of whichever session you just drove.
 
 ## Browsers
 
@@ -19,13 +21,7 @@ npx wdio session open safari http://localhost:3000
 
 Chrome opens headless. Add `--headed` to show the window. Chrome, Firefox and Edge are downloaded on first use when they are not installed. Safari requires macOS.
 
-A headed Chrome window keeps its tab strip and address bar, which is how you tell it from an Electron window. The postcard is a blank card. The city, the clock and the weather are not buttons. Start the page and leave it running:
-
-```sh
-node examples/session/serve.js browser
-```
-
-`geolocation` and `emulate color-scheme` apply on the next load, which is why `reload` comes before the stamp. `2026-12-31T15:00:00Z` is midnight in Tokyo. The page asks `GET /api/weather`. The server answers `{"condition":"clear"}` until the mock replaces it. The `aria/…` selectors are the controls `snapshot --interactive` prints, so the commands paste without copying refs. `export --out test/specs/postcard.e2e.ts` writes a Mocha spec of the steps. To make it an aurora instead of snow, mock `{"condition":"aurora"}` and click Look outside again.
+A headed Chrome window keeps its tab strip and address bar, which is how you tell it from an Electron window. `--viewport 430x900` is a phone-sized page. The WebView tab loads `https://webdriver.io/` inside the app. Login waits about 1.5 seconds, then opens a dialog whose text is `Success` and `You are logged in!`. `dialog accept` closes it. `swipe` is mobile-only, so the carousel move is `exec swipe-left.js` (a pointer drag across `[data-testid=Carousel]`). `scroll down --px 1400` brings the WebdriverIO robot into view. The caption under it is "You found me!!!". The puzzle pieces are `aria/drag-l2` through `aria/drag-l3`, dropped on the matching `aria/drop-…` target. The tray order is `l2`, `r3`, `r1`, `c1`, `c3`, `r2`, `c2`, `l1`, `l3`.
 
 <SessionTarget id="browser" />
 
@@ -44,54 +40,32 @@ npx wdio session tap e3
 
 iOS: `open ios --bundle-id com.example.shop`. An installed Android package uses `--package` and `--activity`. Mobile web uses `--browser chrome` or `--browser safari` instead of an app. `--appium-url http://127.0.0.1:4723/` attaches to a server that is already running. A cloud app URL such as `bs://…` is passed through as `--app` and is not treated as a local file.
 
-### Native boarding pass
+### Native demo app
 
-The Android app is the same pass, installed on an emulator or a device. `tap` presses Board, `swipe left` flips the card, `rotate landscape` turns the device, and `deeplink` opens the aurora flight. `find` checks the status line. `wait` is for browser sessions, so it does not apply here.
+On an emulator or a device the same guinea pig is the v2.2.0 apk. `tap "~Webview"` opens the WebdriverIO frontpage in the native WebView. `tap "~Login"`, then `fill` and `tap "~button-LOGIN"`, logs in with the same email and password. The fingerprint button is `~button-biometric`. It is on the login form only after a fingerprint is enrolled. `exec -e "await browser.fingerPrint(1)"` answers the system prompt (`fingerPrint` is Android-only; there is no `wdio session` subcommand for it). `dialog accept` closes the success alert. `swipe left` pages the carousel. A second `swipe left`, then `swipe up`, reveals the robot. `drag "~drag-l2" "~drop-l2"` (and the other eight pairs, in tray order) finishes the puzzle.
 
-Build the apk from a machine that has the Android SDK (`ANDROID_HOME`) and a running emulator or device (`adb devices` lists it):
-
-```sh
-cd examples/session/android
-./gradlew assembleDebug
-```
-
-Run the session commands from that directory, which is where Gradle writes the apk. `open` installs and launches `io.webdriver.boardingpass`. `"~Board"` is the button's accessibility id. `swipe` moves across the on-screen `ScrollView`. `boardingpass://aurora` is an intent the app handles, and `--package io.webdriver.boardingpass` is the application id `deeplink` requires on Android. `export --out test/specs/boarding-pass-native.e2e.ts` writes the spec.
-
-<SessionTarget id="android" />
-
-### Boarding pass in the browser
-
-The page is one boarding pass. You board, flip it over, turn it sideways, then open a different flight. On a laptop the "phone" is Chrome emulating a Pixel 7. On a device it is Chrome through Appium. Both are browser sessions, so the command is `click`. `tap`, `swipe`, `rotate` and `deeplink` are for the native app above.
-
-On a laptop, start the page with `node examples/session/serve.js mobile`:
+`-s android` keeps this session beside the browser one. Drop `-s android` when it is the only session. `open` uses the package and activity already installed by the apk, with `--no-reset` so the enrolled fingerprint stays. `"~Webview"` is the tab's accessibility label. `swipe` is the mobile command, so Android does not use `swipe-left.js`. `wait` does not apply to a native session.
 
 ```sh
-npx wdio session open chrome http://127.0.0.1:4174 --headed --viewport 412x839
-npx wdio session emulate device "Pixel 7"
-npx wdio session reload
-npx wdio session click "aria/Board"
-npx wdio session click "aria/Flip the pass"
-npx wdio session emulate viewport 863x360
-npx wdio session navigate "http://127.0.0.1:4174/?flight=aurora"
-npx wdio session close
+npx wdio session -s android open android --package com.wdiodemoapp --activity com.wdiodemoapp.MainActivity --no-reset
+npx wdio session -s android tap "~Webview"
+npx wdio session -s android tap "~Login"
+npx wdio session -s android fill "~input-email" "alice@webdriver.io"
+npx wdio session -s android fill "~input-password" "supersecret"
+npx wdio session -s android tap "~button-LOGIN"
+npx wdio session -s android dialog accept
+npx wdio session -s android tap "~button-biometric"
+npx wdio session -s android exec -e "await browser.fingerPrint(1)"
+npx wdio session -s android dialog accept
+npx wdio session -s android tap "~Swipe"
+npx wdio session -s android swipe left
+npx wdio session -s android swipe left
+npx wdio session -s android swipe up
+npx wdio session -s android tap "~Drag"
+npx wdio session -s android drag "~drag-l2" "~drop-l2"
 ```
 
-`emulate device` applies on the next load. `emulate viewport` changes the size immediately, so the boarded pass is still there when it becomes a stub. `863x360` is the landscape size of a Pixel 7. The aurora URL is a fresh page: the route changes to Reykjavík → Aurora.
-
-`127.0.0.1` on a phone is the phone itself. Serve on the machine's addresses, then open the URL the server prints. Replace `192.168.1.10` with an address from that output:
-
-```sh
-node examples/session/serve.js mobile --host 0.0.0.0
-npx wdio session doctor android
-npx wdio session open android --browser chrome http://192.168.1.10:4174
-npx wdio session click "aria/Board"
-npx wdio session click "aria/Flip the pass"
-npx wdio session exec -e "await browser.setOrientation('LANDSCAPE')"
-npx wdio session navigate "http://192.168.1.10:4174/?flight=aurora"
-npx wdio session close
-```
-
-iOS uses `open ios --browser safari` and the same clicks. `rotate` does not apply to a browser session, including Chrome on a device. `setOrientation` is the Appium call that turns the phone. If it is not a function, turn the device by hand: the pass uses the viewport's orientation and becomes a stub either way.
+Repeat `drag` for `r3`, `r1`, `c1`, `c3`, `r2`, `c2`, `l1` and `l3`.
 
 ## Desktop apps
 
@@ -112,7 +86,7 @@ npx wdio session click e2
 
 `open tauri ./my-app` and `open dioxus ./my-app` need their driver on `PATH` unless the service package starts the session itself. On Linux without `DISPLAY` or `WAYLAND_DISPLAY`, install Xvfb or weston. Electron stays on the classic WebDriver protocol. Pass `--app-arg` to forward a flag to the app, including `--app-arg=--no-sandbox` when the environment requires it. A value that starts with `-` has to use `=`, because the strict parser otherwise treats it as its own option.
 
-The launch console is an Electron window with a lamp. From `examples/session/desktop`, run `npm install`, then open `./main.js`. `--app-arg=--no-sandbox` is required on Linux. On macOS and Windows the session also starts without it. Arm it, press Space, and `windows switch` moves to the telemetry window that opens beside it. `windows` lists the open windows: launch console is index 0, telemetry is index 1. `emulate` and `mock` belong to the postcard, not to this window. `export --out test/specs/launch.e2e.ts` writes the spec.
+The Electron player loads the same Expo URL in a window with no address bar. `-s electron` is the session name used beside the browser demo. `dialog accept` has to run while the native alert is still open: Chromedriver drops it after about two seconds, and a late `dialog accept` reports `No dialog open.` The carousel, the scroll and the puzzle use the same commands as Chrome.
 
 <SessionTarget id="electron" />
 
@@ -138,20 +112,16 @@ npx wdio session open ./wdio.conf.ts 0
 
 | Message | What to do |
 | --- | --- |
-| `MISSING_DEPENDENCY` | Install the package named in the error. `doctor <target>` prints the same install line. For the launch console, `npm install` in `examples/session/desktop`. |
+| `MISSING_DEPENDENCY` | Install the package named in the error. `doctor <target>` prints the same install line. Electron needs `@wdio/electron-service` and `electron` in the directory you open. |
 | `MISSING_APPIUM_DRIVER` | Run the `npx appium driver install …` line from the error. |
 | `MISSING_BINARY` | Put the named driver (`tauri-driver` or `wdio-dioxus-driver`) on `PATH`. |
 | `MISSING_CREDENTIALS` | Export the variables named in the error. |
-| `NOT_SUPPORTED` | `macos` is macOS-only and `windows` is Windows-only. |
-| `The browser did not share a location.` | Run `geolocation` and `reload` before Stamp the card. |
-| `The sky did not answer.` | Open the postcard through `serve.js`. A `file://` URL has no `/api/weather`. |
-| `Text "…" did not appear` | The page status is the quoted line. `snapshot` shows the text that is actually there. |
-| `Launched. The telemetry window was blocked.` | Open the console with `wdio session open electron`, not as a tab in Chrome. |
-| `setOrientation is not a function` | You are not in an Appium session. On the laptop, use `emulate viewport 863x360`. |
-| `"wait" is not supported for android (UiAutomator2) sessions.` | `wait` is for browser sessions. On the native pass, use `find "Now boarding WD 10."`. |
-| `Default scrollable element '//android.widget.ScrollView' was not found.` | `swipe` looks for a ScrollView. The native pass has one. Another app needs its own, or a swipe inside an element from `exec`. |
-| `App not found:` | Build the apk with `./gradlew assembleDebug` and pass that path to `--app`. |
-| `Pass --package <id>.` | `deeplink` needs `--package io.webdriver.boardingpass` on Android. |
+| `NOT_SUPPORTED` | `macos` is macOS-only and `windows` is Windows-only. `swipe` is mobile-only. On Chrome and Electron, run `exec swipe-left.js`. |
+| `No dialog open.` | The login alert already closed. On Electron, run `dialog accept` within about two seconds of `click "aria/button-LOGIN"`. |
+| `"wait" is not supported for android (UiAutomator2) sessions.` | `wait` is for browser sessions. |
+| `The fingerPrint command is only available for Android.` | `browser.fingerPrint` is the Android call. iOS uses `browser.touchId`. |
+| `App not found:` | Pass an apk path that exists, or use `--package` and `--activity` for an app that is already installed. |
+| `Pass --package <id>.` | `deeplink` needs `--package` on Android. |
 
 ## Next steps
 

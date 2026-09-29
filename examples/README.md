@@ -14,7 +14,7 @@ Then just follow the instructions and test it out. Have fun!
 
 # Session demos
 
-[examples/session](./session) is a set of short `wdio session` demos: a browser postcard, a phone boarding pass, a native Android app and an Electron launch console. The walkthrough is [Session targets](https://webdriver.io/docs/session/targets).
+[examples/session](./session) documents how the [Session targets](https://webdriver.io/docs/session/targets) demos drove the [WebdriverIO native demo app](https://github.com/webdriverio/native-demo-app) in a browser, on Android and in Electron. The app itself is not vendored here.
 
 > **Note**
 
