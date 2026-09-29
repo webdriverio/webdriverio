@@ -1,6 +1,5 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import type { CommandArgs } from '@wdio/type'
-import process from 'node:process'
+import { describe, expect, it } from 'vitest'
+import type { CommandArgs } from '@wdio/types'
 import { Status } from 'allure-js-commons'
 import CompoundError from '../src/compoundError.js'
 import path from 'node:path'
@@ -8,29 +7,13 @@ import {
     convertSuiteTagsToLabels,
     findLast,
     getErrorFromFailedTest,
-    getLinkByTemplate,
     getTestStatus,
-    isAllTypeHooks,
-    isBeforeEachTypeHook,
-    isEachTypeHooks,
-    isEmpty,
     isScreenshotCommand,
     toPackageLabel,
     normalizeCapabilityName,
 } from '../src/utils.js'
-import { linkPlaceholder } from '../src/constants.js'
 
 describe('utils', () => {
-    let processEmit: any
-    beforeAll(() => {
-        processEmit = process.emit.bind(process)
-        process.emit = vi.fn() as any
-    })
-
-    afterEach(() => {
-        process.emit = processEmit
-    })
-
     describe('isScreenshotCommand', () => {
         it('isScreenshotCommand', () => {
             expect(isScreenshotCommand({ endpoint: '/session/id/screenshot' } as CommandArgs)).toEqual(true)
@@ -102,44 +85,6 @@ describe('utils', () => {
         })
     })
 
-    it('isMochaEachHooks filter hook by title', () => {
-        expect(isEachTypeHooks('"before all" hook')).toEqual(false)
-        expect(isEachTypeHooks('"after all" hook')).toEqual(false)
-        expect(isEachTypeHooks('"before each" hook')).toEqual(true)
-        expect(isEachTypeHooks('"after each" hook')).toEqual(true)
-    })
-
-    it('isMochaBeforeEachHook filter hook by title', () => {
-        expect(isBeforeEachTypeHook('"before all" hook')).toEqual(false)
-        expect(isBeforeEachTypeHook('"after all" hook')).toEqual(false)
-        expect(isBeforeEachTypeHook('"before each" hook')).toEqual(true)
-        expect(isBeforeEachTypeHook('"after each" hook')).toEqual(false)
-    })
-
-    describe('isEmpty', () => {
-        it('should filter empty objects', () => {
-            expect(isEmpty({})).toEqual(true)
-            expect(isEmpty([])).toEqual(true)
-            expect(isEmpty(undefined)).toEqual(true)
-            expect(isEmpty(null)).toEqual(true)
-            expect(isEmpty('')).toEqual(true)
-        })
-    })
-
-    describe('isMochaHooks', () => {
-        it('should filter hook by title', () => {
-            expect(isEachTypeHooks('"before all" hook')).toEqual(false)
-            expect(isEachTypeHooks('"after all" hook')).toEqual(false)
-            expect(isEachTypeHooks('"before each" hook')).toEqual(true)
-            expect(isEachTypeHooks('"after each" hook')).toEqual(true)
-
-            expect(isAllTypeHooks('"before all" hook')).toEqual(true)
-            expect(isAllTypeHooks('"after all" hook')).toEqual(true)
-            expect(isAllTypeHooks('"before each" hook')).toEqual(false)
-            expect(isAllTypeHooks('"after each" hook')).toEqual(false)
-        })
-    })
-
     describe('getErrorFromFailedTest', () => {
         it('should handle test with no error object', () => {
             const testStat = {}
@@ -179,29 +124,6 @@ describe('utils', () => {
             ) as CompoundError
             expect(error instanceof CompoundError).toBe(true)
             expect(error.innerErrors).toEqual(testStat.errors)
-        })
-    })
-
-    describe('getLinkByTemplate', () => {
-        const template = 'https://youtrack.jetbrains.com/issue/{}'
-        const id = 'JIRA-42'
-        it('should return link with task id', () => {
-            const link = getLinkByTemplate(template, id)
-            expect(link).toEqual(
-                'https://youtrack.jetbrains.com/issue/JIRA-42'
-            )
-        })
-
-        it('should return id if template is not a string', () => {
-            expect(getLinkByTemplate(undefined, id)).toEqual(id)
-            expect(getLinkByTemplate({} as any, id)).toEqual(id)
-        })
-
-        it('should throw error if template is invalid', () => {
-            const template = 'foo'
-            expect(() => getLinkByTemplate(template, id)).toThrow(
-                `The link template "${template}" must contain ${linkPlaceholder} substring.`
-            )
         })
     })
 

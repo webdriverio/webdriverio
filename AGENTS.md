@@ -193,6 +193,7 @@ Read the matching guide in full before editing that tree.
 - **Protocol specs:** [packages/wdio-protocols/AGENTS.md](packages/wdio-protocols/AGENTS.md)
 - **CLI / launcher:** [packages/wdio-cli/AGENTS.md](packages/wdio-cli/AGENTS.md)
 - **Session CLI:** [packages/wdio-session/AGENTS.md](packages/wdio-session/AGENTS.md)
+- **Local runner:** [packages/wdio-local-runner/AGENTS.md](packages/wdio-local-runner/AGENTS.md)
 - **Reporters:** [packages/wdio-reporter/AGENTS.md](packages/wdio-reporter/AGENTS.md)
 - **Compiler / types:** [infra/compiler/AGENTS.md](infra/compiler/AGENTS.md)
 - **Repo helpers:** [infra/repo-tools/AGENTS.md](infra/repo-tools/AGENTS.md)

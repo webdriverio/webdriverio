@@ -283,24 +283,6 @@ export function isBrowserChannelMessage<T extends BrowserChannelType> (
     return isRecord(message) && message.type === type && isRecord(message.value)
 }
 
-export function isBrowserRequestMessage (
-    message: AnyBrowserToRunnerMessage
-): message is BrowserChannelMessage<BrowserRequestType> {
-    switch (message.type) {
-    case MESSAGE_TYPES.commandRequestMessage:
-    case MESSAGE_TYPES.hookTriggerMessage:
-    case MESSAGE_TYPES.expectRequestMessage:
-    case MESSAGE_TYPES.expectMatchersRequest:
-        return true
-    case MESSAGE_TYPES.consoleMessage:
-    case MESSAGE_TYPES.browserTestResult:
-    case MESSAGE_TYPES.initiateBrowserStateRequest:
-        return false
-    default:
-        return assertNever(message)
-    }
-}
-
 export function isWorkerProcessEvent<T extends WorkerProcessEventType> (
     message: unknown,
     type: T

@@ -637,7 +637,7 @@ describe('startWebDriver', () => {
         expect(waitPort).toBeCalledWith(expect.objectContaining({ timeout: 10 * 1000 }))
     })
 
-    it('should find last known good version for chromedriver', async () => {
+    it('should install Chromedriver for the resolved build id', async () => {
         const options = {
             capabilities: {
                 browserName: 'chrome',

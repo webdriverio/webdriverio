@@ -6,26 +6,12 @@
  * respond to graceful shutdown requests within the timeout.
  */
 import path from 'node:path'
-import type { ChildProcess } from 'node:child_process'
 import type * as ChildProcessModule from 'node:child_process'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import LocalRunner from '../src/index.js'
 
 const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
-
-let childProcessMock: { on: any, send: any, kill: any, pid: number }
-
-beforeEach(async () => {
-    vi.clearAllMocks()
-    // Reset the mock for each test
-    childProcessMock = {
-        on: vi.fn(),
-        send: vi.fn(),
-        kill: vi.fn(),
-        pid: 12345,
-    }
-})
 
 vi.mock(
     '@wdio/logger',

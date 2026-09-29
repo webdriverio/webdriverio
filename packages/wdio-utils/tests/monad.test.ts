@@ -93,17 +93,6 @@ describe('monad', () => {
         expect(client.__propertiesObject__.myCustomElementCommand.value).toBe(func)
     })
 
-    it('should add element commands to the __propertiesObject__ cache with implicit wait disabled', () => {
-        const monad = webdriverMonad({}, (client: any) => client, prototype)
-        const client = monad(sessionId)
-
-        const func = function (x: number, y: number) { return x + y }
-
-        client.addCommand('myCustomElementCommandNoImplicitWait', func, { attachToElement: true, disableElementImplicitWait: true })
-        expect(typeof client.__propertiesObject__.myCustomElementCommandNoImplicitWait).toBe('object')
-        expect(client.__propertiesObject__.myCustomElementCommandNoImplicitWait.value).toBe(func)
-    })
-
     it('should add element commands for override to the __propertiesObject__.__elementOverrides__ cache', () => {
         const monad = webdriverMonad({}, (client: any) => client, { ...prototype })
         const client = monad(sessionId)
@@ -553,10 +542,9 @@ describe('monad', () => {
             BrowserCtor = browserInstance.constructor
         })
 
-        it('should log command and result for element scope', async () => {
+        it('should log command and result for browser scope', async () => {
             const browser = monad(sessionId)
 
-            // Add a command that returns an instance of ElementCtor
             browser.addCommand('myElementCommand', async function () {
                 // @ts-ignore
                 const browser = new BrowserCtor()

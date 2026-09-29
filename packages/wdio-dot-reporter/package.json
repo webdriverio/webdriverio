@@ -34,10 +34,6 @@
     "@wdio/types": "workspace:*",
     "chalk": "^5.0.1"
   },
-  "devDependencies": {
-    "@types/tmp": "^0.2.3",
-    "tmp": "^0.2.7"
-  },
   "publishConfig": {
     "access": "public"
   }
