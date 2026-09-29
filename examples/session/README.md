@@ -16,33 +16,32 @@ unset CI
 npx expo start --web --port 8081 --host lan
 ```
 
-Stock `v2.2.0` does not complete this demo on web. Four local edits were applied in that checkout and were not committed back to WebdriverIO:
+Stock `v2.2.0` does not complete this demo on web. These local edits were applied in that checkout and were not committed back to WebdriverIO:
 
 - `react-native-webview` is a stub on web. The WebView component was changed to render an iframe for `source.uri` (`flex: 1`, `minHeight: 640`) so the Webview tab shows `https://webdriver.io/`.
-- `react-native-web`'s `Alert.alert` does nothing. It was pointed at `window.alert` so `wdio session dialog` can see `Success` / `You are logged in!`.
+- `react-native-web`'s `Alert.alert` does nothing. It was pointed at `window.alert` so `wdio session dialog` can see `Success` / `You are logged in!`. On Linux, Electron's native alert bubble stays on screen after `acceptAlert` and is missing from page screenshots, so a click cannot dismiss it. The Electron recording, after `reload`, replaces `window.alert` with an in-page dialog whose button is `aria/OK`. `npx wdio session -s electron click "aria/OK"` dismisses that dialog. Chrome still uses `dialog accept`.
 - Dropping a puzzle piece calls `setNativeProps`, which throws on web after the piece is already over the right zone, so the counter never moves. The opacity update now uses `setNativeProps` only when that function exists, and otherwise sets `opacity` on the element whose `aria-label` is the piece id. The drop zone id is the piece id with `drag-` replaced by `drop-`. `updateCounter` has to be `setCounter((value) => value + 1)`. A stale `counter + 1` closes over the first render and stops at one piece.
 - A real pointer swipe does not page `react-native-reanimated-carousel` on web: the gesture handler reports velocity 0 and springs back. `src/screens/Swipe.tsx` listens for `pointerup` on `[data-testid=Carousel]` and, when the horizontal travel is at least 48px, calls `ref.current.next()` or `prev()` inside `setTimeout(..., 60)`. Calling `next()` in the `pointerup` handler itself updates the index and then the gesture resets the card.
 - The same screen listens for `wheel` and adds `deltaY` to the element labelled `Swipe-screen`, then calls `preventDefault()`. A WebDriver wheel does not move that React Native scroll view on its own. With the listener, `scroll down --px 560` reveals the robot and the caption "You found me!!!".
-- On web the tab bar is a left sidebar. `app/(tabs)/_layout.tsx` sets `tabBarPosition: 'left'`, and `CustomBottomTabBar` renders Home, Web, Login, Forms, Swipe, Drag, Perms and Data in a column. The accessibility labels stay `Webview`, `Login`, `Swipe` and `Drag`.
-- The home screen adds Chrome and desktop icons and the line "Browser, desktop and mobile". The login form is a centered card at most 440px wide. The carousel and each slide are 640px wide. The puzzle pieces sit under the board.
+- On web the tab bar is a left sidebar. `app/(tabs)/_layout.tsx` sets `tabBarPosition: 'left'`, and `CustomBottomTabBar` renders the WebdriverIO logo (the orange mark from [webdriver.io/community/materials](https://webdriver.io/community/materials)) at the top left, then Home, Weather, Web, Login, Forms, Swipe, Drag, Perms and Data. The accessibility labels stay `Weather`, `Webview`, `Login`, `Swipe` and `Drag`.
+- Weather (`app/(tabs)/weather.tsx`) is a card that polls `navigator.geolocation` and `Date` with the `setInterval` captured when the module loads. `emulate clock` can replace `setInterval` with fake timers that do not advance, so a timer started after that patch never fires. The captured one keeps reading `Date`. Nearest of Reykjavík, Berlin, New York, Tokyo, Singapore and Sydney wins. Hour 7–19 is day. Tokyo is `geolocation 35.6762 139.6503`. `emulate clock 2026-06-21T23:30:00Z` is night (11:30 PM).
+- The login button sets `flex: 0`. On web that becomes a flex basis of 0, so the control collapses to the spinner while LOGIN is submitting and the orange border looks like a thin vertical line. The web style uses a 200px basis instead, and the loading state keeps the orange fill.
+- The home screen adds Chrome and desktop icons and the line "Browser, desktop and mobile". The login form is a centered card at most 440px wide. The carousel and each slide are 640px wide. A target labelled `Next card` sits to the left of the carousel. The puzzle pieces sit under the board.
 
 These layout edits are web-only. The Android apk and the iOS simulator app are the stock v2.2.0 binaries.
 
-`swipe` is mobile-only, so Chrome and Electron run this file as `npx wdio session exec swipe-left.js`:
+`swipe` is mobile-only. The carousel pages when a pointer drag on `[data-testid=Carousel]` travels at least 48px horizontally. `npx wdio session drag "[data-testid=Carousel]" "aria/Next card"` is that drag. Run it twice, then `npx wdio session scroll down --px 560`. The image labelled `WebdriverIO logo` also has an `img` with that alt text, so `scroll "aria/WebdriverIO logo"` fails strict mode. The puzzle commands are `npx wdio session drag "aria/drag-l2" "aria/drop-l2"` and the same shape for `r3`, `r1`, `c1`, `c3`, `r2`, `c2`, `l1`, `l3`.
 
-```js
-const carousel = await $('[data-testid=Carousel]')
-await browser.action('pointer')
-    .move({ origin: carousel, x: 150, y: 10 })
-    .down()
-    .move({ origin: 'pointer', x: -240, y: 0, duration: 400 })
-    .up()
-    .perform()
-await browser.pause(650)
-console.log('Swiped the carousel left')
+Weather, after `open`:
+
+```sh
+npx wdio session geolocation 35.6762 139.6503
+npx wdio session reload
+npx wdio session click "aria/Weather"
+npx wdio session emulate clock 2026-06-21T23:30:00Z
 ```
 
-`exec` prints that `console.log` line and does not print a `→` code line. Run it twice, then `npx wdio session scroll down --px 560`. The image labelled `WebdriverIO logo` also has an `img` with that alt text, so `scroll "aria/WebdriverIO logo"` fails strict mode. The puzzle commands are `npx wdio session drag "aria/drag-l2" "aria/drop-l2"` and the same shape for `r3`, `r1`, `c1`, `c3`, `r2`, `c2`, `l1`, `l3`.
+Electron has no BiDi session. `geolocation` uses `Emulation.setGeolocationOverride` and patches `navigator.geolocation` for the current page and the next load. `emulate clock` fixes `Date` in the page. Chrome uses `browser.emulate` when BiDi can install the clock, and the same `Date` patch when that install fails. Both players run the commands above. `reload` is required for the Chrome geolocation preload.
 
 Chrome:
 
