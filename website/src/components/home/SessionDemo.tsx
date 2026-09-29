@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import Translate from '@docusaurus/Translate'
 
+import SessionTerminal from '../session/SessionTerminal.tsx'
 import { useTimeline } from './useTimeline'
 import styles from './home.module.css'
 
@@ -251,7 +252,6 @@ function face(id: DeviceId, mark: Mark): Phase | 'idle' {
  * Typing state stays here so the device frames do not re-render per character.
  */
 function Terminal({ step, running, onEnter }: { step: number, running: boolean, onEnter: (index: number) => void }) {
-    const bodyRef = useRef<HTMLDivElement>(null)
     const onEnterRef = useRef(onEnter)
     const started = useRef(false)
     const enteredStep = useRef<number | null>(null)
@@ -270,13 +270,6 @@ function Terminal({ step, running, onEnter }: { step: number, running: boolean, 
         setCount(0)
         setShowOut(false)
     }
-
-    useEffect(() => {
-        const el = bodyRef.current
-        if (el) {
-            el.scrollTop = el.scrollHeight
-        }
-    }, [count, showOut, step])
 
     useEffect(() => {
         const cmd = mark.cmd
@@ -339,27 +332,12 @@ function Terminal({ step, running, onEnter }: { step: number, running: boolean, 
 
     return (
         <div className={styles.sessionTerminal} aria-hidden="true">
-            <div className={styles.sessionTermFill}>
-                <div className={styles.windowBar}>
-                    <span /><span /><span />
-                    <em>terminal</em>
-                </div>
-                <div className={styles.sessionTermBody} ref={bodyRef}>
-                    {lines.map((line, index) => {
-                        const current = index === lines.length - 1
-                        const text = current ? line.cmd.slice(0, count) : line.cmd
-                        return (
-                            <div key={`${line.at}-${line.cmd}`}>
-                                <p className={styles.termCmd}>
-                                    <span className={styles.termPrompt}>$</span> {text}
-                                    {current && count < line.cmd.length && <span className={styles.termCaret} />}
-                                </p>
-                                {line.out && (!current || showOut) && <p className={styles.termOut}>{line.out}</p>}
-                            </div>
-                        )
-                    })}
-                </div>
-            </div>
+            <SessionTerminal
+                lines={lines}
+                active={lines.length - 1}
+                typed={count}
+                showOut={showOut}
+            />
         </div>
     )
 }

@@ -13,6 +13,7 @@ import { PhoneMock } from '../components/phoneMock.tsx'
 import Card from './card.tsx'
 import TierIcon from '../components/TierIcon.tsx'
 import Option from '../components/Option.tsx'
+import SessionTarget from '../components/session/SessionTarget.tsx'
 
 export default {
     // Re-use the default mapping
@@ -30,4 +31,5 @@ export default {
     PhoneMock,
     TierIcon,
     Option,
+    SessionTarget,
 }
