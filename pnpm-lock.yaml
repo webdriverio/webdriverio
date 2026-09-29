@@ -1251,9 +1251,6 @@ importers:
       '@types/node':
         specifier: ^22.20.4
         version: 22.20.4
-      '@wdio/logger':
-        specifier: workspace:*
-        version: link:../wdio-logger
       '@wdio/types':
         specifier: workspace:*
         version: link:../wdio-types
@@ -1270,9 +1267,6 @@ importers:
       '@types/object-inspect':
         specifier: ^1.8.1
         version: 1.13.0
-      '@types/supports-color':
-        specifier: ^8.1.1
-        version: 8.1.3
       '@types/tmp':
         specifier: ^0.2.3
         version: 0.2.6
@@ -6951,9 +6945,6 @@ packages:
 
   '@types/stream-buffers@3.0.8':
     resolution: {integrity: sha512-J+7VaHKNvlNPJPEJXX/fKa9DZtR/xPMwuIbe+yNOwp1YB+ApUOBv2aUpEoBJEi8nJgbgs1x8e73ttg0r1rSUdw==}
-
-  '@types/supports-color@8.1.3':
-    resolution: {integrity: sha512-Hy6UMpxhE3j1tLpl27exp1XqHD7n8chAiNPzWfz16LPZoMMoSc4dzLl6w9qijkEb/r5O1ozdu1CWGA2L83ZeZg==}
 
   '@types/testing-library__jest-dom@5.14.9':
     resolution: {integrity: sha512-FSYhIjFlfOpGSRyVoMBMuS3ws5ehFQODymf3vlI7U1K8c7PHwWwFY7VREfmsuzHSOnoKs/9/Y983ayOs7eRzqw==}
@@ -21682,8 +21673,6 @@ snapshots:
   '@types/stream-buffers@3.0.8':
     dependencies:
       '@types/node': 22.20.4
-
-  '@types/supports-color@8.1.3': {}
 
   '@types/testing-library__jest-dom@5.14.9':
     dependencies:

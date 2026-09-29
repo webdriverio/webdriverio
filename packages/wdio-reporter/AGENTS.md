@@ -31,3 +31,14 @@ User-facing reporter docs are the package `README.md`, ingested by
   documented event API only.
 - Smoke tests are the right proof for constructor / CLI string vs object
   config; unit tests are enough for formatting helpers.
+
+## Test ownership
+
+- Assertion diffs belong to `tests/stats/test.test.ts`. Prove them through
+  the error message reporters display. A skipped diff leaves that message
+  unchanged.
+- Listener behavior belongs to `tests/reporter.listeners.test.ts`.
+  `tests/reporter.test.ts` covers construction, the output stream, and the
+  event subscription list.
+- `tests/utils.test.ts` owns `color`, including the ANSI wrap when stdout
+  supports color.
