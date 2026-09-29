@@ -19,7 +19,6 @@ export {
     BROWSER_REQUEST_TYPES,
     browserChannelMessage,
     isBrowserChannelMessage,
-    isBrowserRequestMessage,
     isWorkerProcessEvent,
     parseBrowserToRunnerMessage,
     parseRunnerToBrowserMessage,
