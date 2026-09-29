@@ -2,7 +2,7 @@
 
 The [Session targets](https://webdriver.io/docs/session/targets) players drive the [WebdriverIO native demo app](https://github.com/webdriverio/native-demo-app) (Expo, package `com.wdiodemoapp`, activity `com.wdiodemoapp.MainActivity`). This directory does not vendor that app. The notes below are how the recordings were produced from tag `v2.2.0`.
 
-Chrome and Electron share one local Expo web server and a desktop-sized window. Android uses the release apk. iOS uses the simulator zip. The login that succeeds is `alice@webdriver.io` / `supersecret` (the email has to match the app's pattern, and the password has to be at least 8 characters). The success dialog says `Success` / `You are logged in!`. The fingerprint dialog says `You are logged in through Fingerprint!`. The iOS biometric dialog says `You are logged in through Touch ID!` or the sensor name the app reports.
+Chrome and Electron share one local Expo web server and a desktop-sized window. Android uses the release apk. iOS uses the simulator zip. The login that succeeds is `alice@webdriver.io` / `supersecret` (the email has to match the app's pattern, and the password has to be at least 8 characters). The success dialog says `Success` / `You are logged in!`. The fingerprint dialog says `You are logged in through Fingerprint!`. On iOS the biometric dialog says `You are logged in through TouchID!` or `You are logged in through FaceID!`.
 
 ## Web and Electron
 
