@@ -7,7 +7,6 @@ import { SessionError } from '../errors.js'
 
 export interface ExportOptions {
     title: string
-    framework?: 'mocha' | 'jasmine'
     pageObjects?: boolean
     /**
      * when set, `browser.url` calls under this origin become path-only

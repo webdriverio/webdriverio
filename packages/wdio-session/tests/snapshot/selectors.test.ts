@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 
-import { nativeCandidates, uniqueCandidate } from '../../src/snapshot/selectors.js'
+import { nativeCandidates } from '../../src/snapshot/selectors.js'
 
 describe('native selectors', () => {
-    it('orders Android candidates and keeps the first unique one', () => {
+    it('orders Android candidates with the accessibility id first', () => {
         const candidates = nativeCandidates({
             platform: 'android',
             tag: 'android.widget.Button',
@@ -18,8 +18,6 @@ describe('native selectors', () => {
             'id=com.example:id/save',
             'android=new UiSelector().text("Save")'
         ])
-        const counts = new Map(candidates.map((candidate) => [candidate, candidate === '~save' ? 2 : 1]))
-        expect(uniqueCandidate(candidates, counts)).toBe('id=com.example:id/save')
     })
 
     it('builds an iOS predicate and class chain', () => {

@@ -42,6 +42,7 @@ describe('generateSpec', () => {
         const [spec] = generateSpec(entries, { title: 'cart' })
         expect(spec.contents).toContain("import { browser, $, expect } from '@wdio/globals'")
         expect(spec.contents).toContain("describe('cart'")
+        expect(spec.contents).toContain("it('cart'")
         expect(spec.contents).toContain("await browser.url('http://localhost:3000/cart.html')")
         expect(spec.contents).toContain("await $('[data-testid=\"add-blue\"]').click()")
         expect(spec.contents).toContain("await expect($('aria/Checkout')).toBeDisplayed()")
@@ -120,11 +121,5 @@ describe('generateSpec', () => {
         expect(spec.contents).toContain("from '../../helpers/login.ts'")
         expect(spec.contents).toContain("import('../../helpers/extra.ts')")
         expect(spec.contents).not.toContain("from './helpers/login.ts'")
-    })
-
-    it('keeps the same structure for jasmine', () => {
-        const [spec] = generateSpec(entries, { title: 'cart', framework: 'jasmine' })
-        expect(spec.contents).toContain("describe('cart'")
-        expect(spec.contents).toContain("it('cart'")
     })
 })

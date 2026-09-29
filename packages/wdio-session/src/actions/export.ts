@@ -29,7 +29,6 @@ export const exportSpec: ActionFn = async (session, args) => {
         : session.artifact('export', `${session.name}.e2e.ts`))
     const files = generateSpec(entries, {
         title,
-        framework,
         pageObjects: Boolean(args.pageObjects),
         baseUrl: session.plan.remote.baseUrl,
         cwd,
