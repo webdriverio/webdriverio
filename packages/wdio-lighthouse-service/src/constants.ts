@@ -133,16 +133,6 @@ export const DEFAULT_THROTTLE_STATE = {
     formFactor: DEFAULT_FORM_FACTOR
 } as const
 
-export const NETWORK_RECORDER_EVENTS = [
-    'Network.requestWillBeSent',
-    'Network.requestServedFromCache',
-    'Network.responseReceived',
-    'Network.dataReceived',
-    'Network.loadingFinished',
-    'Network.loadingFailed',
-    'Network.resourceChangedPriority'
-] as const
-
 /**
  * PWA checks preserved from the original Lighthouse PWA category.
  * Lighthouse 12+ removed that category, so the service implements these checks

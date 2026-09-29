@@ -33,8 +33,6 @@ import type {
     LighthouseFlow,
     PWAAudits
 } from './types.js'
-import type { CDPSessionOnMessageObject } from './gatherer/devtools.js'
-import DevtoolsGatherer from './gatherer/devtools.js'
 import Auditor from './auditor.js'
 import PWAAuditor from './pwa.js'
 
@@ -42,7 +40,7 @@ const log = logger('@wdio/lighthouse-service:CommandHandler')
 
 function isCDPSessionOnMessageObject(
     data: unknown
-): data is CDPSessionOnMessageObject {
+): data is { method: string, params: unknown } {
     return (
         data !== null &&
         typeof data === 'object' &&
@@ -67,7 +65,6 @@ export default class CommandHandler {
     private _networkThrottling?: keyof typeof NETWORK_STATES
     private _formFactor?: FormFactor
 
-    private _devtoolsGatherer?: DevtoolsGatherer
     private _pwaAuditor: PWAAuditor
     private _flow?: LighthouseFlow
     private _flowInProgress = false
@@ -96,7 +93,6 @@ export default class CommandHandler {
             this[fnName as keyof CommandHandler].bind(this)
         ))
 
-        this._devtoolsGatherer = new DevtoolsGatherer()
         _session.on('*', this._propagateWSEvents.bind(this))
     }
 
@@ -214,7 +210,6 @@ export default class CommandHandler {
             return
         }
 
-        this._devtoolsGatherer?.onMessage(data)
         const method = data.method || 'event'
         try {
             // can fail due to "Cannot convert a Symbol value to a string"
