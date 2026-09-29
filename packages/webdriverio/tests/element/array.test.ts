@@ -114,6 +114,33 @@ describe('ElementArray', () => {
         expect(parent.waitUntil).toHaveBeenCalledOnce()
     })
 
+    it('does not refetch an index outside a pending slice', async () => {
+        const parent = {
+            options: { waitforTimeout: 50 },
+            $$: vi.fn(),
+            waitUntil: vi.fn(async () => {
+                throw new Error('slice must not refetch the original query')
+            })
+        }
+        const elements = ElementArray.fromAsyncCallback(async () => [
+            element('a'),
+            element('b'),
+            element('c'),
+            element('d')
+        ], {
+            selector: '.item',
+            foundWith: '$$',
+            parent: parent as unknown as WebdriverIO.Browser,
+            props: []
+        })
+
+        const sliced = elements.slice(0, 2)
+        await expect(sliced[3].getText()).rejects.toThrow(/could not be found/)
+        expect(parent.waitUntil).not.toHaveBeenCalled()
+        expect(parent.$$).not.toHaveBeenCalled()
+        expect(await sliced.map((el) => el.elementId)).toEqual(['a', 'b'])
+    })
+
     it('gives a resolved list from plain elements the same metadata', () => {
         const elements = ElementArray.fromResolved([element('a')], {
             selector: '.ready',

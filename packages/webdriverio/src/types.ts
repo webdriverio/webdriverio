@@ -33,7 +33,7 @@ type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
 type ChainablePrototype = {
     [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement
 } & {
-    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => WebdriverIO.ElementArray
+    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray
 }
 
 type AsyncElementProto = {
@@ -173,11 +173,25 @@ interface AsyncIterators<T> {
 }
 
 export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {
+    /**
+     * Awaiting the list yields the resolved `ElementArray`. Until then, `length`
+     * is a promise and each index is a chainable element.
+     */
+    then<TResult1 = WebdriverIO.ElementArray, TResult2 = never>(
+        onfulfilled?: ((value: WebdriverIO.ElementArray) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+        onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): Promise<TResult1 | TResult2>
+    catch<TResult = never>(
+        onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | undefined | null
+    ): Promise<WebdriverIO.ElementArray | TResult>
+    finally(onfinally?: (() => void) | undefined | null): Promise<WebdriverIO.ElementArray>
+
     [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
     [Symbol.iterator](): IterableIterator<WebdriverIO.Element>
 
     /**
-     * Amount of element fetched.
+     * Amount of elements fetched. This is a promise until the query resolves,
+     * so compare it only after awaiting the list or the property itself.
      */
     length: Promise<number>
     /**

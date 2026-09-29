@@ -1,4 +1,4 @@
-import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@wdio/utils'
+import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject, registerElementArrayFactory } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 import type { Selector } from '../types.js'
 
@@ -24,6 +24,11 @@ interface ElementArrayMetadata {
     parent?: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement
     props: unknown[]
     isMultiRemote?: boolean
+    /**
+     * Original queries refetch an out-of-range index. Derived lists (a `slice`)
+     * must not: their bounds are not the query's bounds.
+     */
+    refetch?: boolean
 }
 
 interface ElementArrayState {
@@ -87,6 +92,17 @@ function cloneMetadata (metadata: ElementArrayMetadata): ElementArrayMetadata {
     }
 }
 
+/**
+ * A slice is a window over a query, not the query itself. Dropping refetch
+ * keeps `$$('li').slice(0, 2)[3]` from resolving to the fourth match.
+ */
+function sliceMetadata (metadata: ElementArrayMetadata): ElementArrayMetadata {
+    return {
+        ...cloneMetadata(metadata),
+        refetch: false
+    }
+}
+
 function fill (array: ElementList, items: ElementList) {
     const state = stateOf(array)
     array.splice(0, array.length, ...items)
@@ -133,8 +149,8 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
         return items[index] as WebdriverIO.Element
     }
 
-    const { parent, foundWith, selector } = stateOf(array).metadata
-    if (!parent) {
+    const { parent, foundWith, selector, refetch } = stateOf(array).metadata
+    if (refetch === false || !parent) {
         return undefined
     }
 
@@ -234,12 +250,12 @@ const methods: Record<string, Function> = {
     slice (this: ElementList, start?: number, end?: number) {
         const state = stateOf(this)
         if (state.resolved) {
-            return fromResolved(Array.prototype.slice.call(this, start, end) as ElementList, cloneMetadata(state.metadata))
+            return fromResolved(Array.prototype.slice.call(this, start, end) as ElementList, sliceMetadata(state.metadata))
         }
         return fromAsyncCallback(async () => {
             const items = await load(this)
             return items.slice(start, end)
-        }, cloneMetadata(state.metadata))
+        }, sliceMetadata(state.metadata))
     },
     at (this: ElementList, index: number) {
         const state = stateOf(this)
@@ -429,3 +445,15 @@ function fromResolved (
 ): WebdriverIO.ElementArray {
     return ElementArray.fromResolved(elements, metadata)
 }
+
+/**
+ * Chained element queries (`$('parent').$$('child')`) are assembled in
+ * `@wdio/utils`, which cannot import this package. Register the constructor
+ * so those calls still return an element list.
+ */
+registerElementArrayFactory((loader, metadata) => {
+    return ElementArray.fromAsyncCallback(
+        loader as () => Promise<ElementList>,
+        metadata as ElementArrayMetadata
+    )
+})

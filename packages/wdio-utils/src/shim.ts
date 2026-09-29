@@ -25,7 +25,27 @@ const ELEMENT_RETURN_COMMANDS = ['getElement', 'getElements']
  * on it.
  */
 export const ELEMENT_ARRAY_WRAP = Symbol.for('webdriverio.elementArray.wrap')
-const ELEMENT_ARRAY_COMMANDS = ['$$', 'custom$$', 'react$$', 'shadow$$']
+export const ELEMENT_ARRAY_COMMANDS = ['$$', 'custom$$', 'react$$', 'shadow$$']
+
+/**
+ * `webdriverio` registers this so a chained call such as `$('parent').$$('child')`
+ * can return an element list immediately. The shim itself does not depend on that
+ * package. Without a factory, those calls keep the element-promise proxy.
+ */
+type ElementArrayFactory = (
+    loader: () => Promise<unknown[]>,
+    metadata: {
+        selector?: unknown
+        foundWith: string
+        parent?: unknown
+        props: unknown[]
+    }
+) => unknown
+let elementArrayFactory: ElementArrayFactory | undefined
+
+export function registerElementArrayFactory (factory: ElementArrayFactory) {
+    elementArrayFactory = factory
+}
 
 const TIME_BUFFER = 3
 
@@ -412,25 +432,48 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
          * the command on the proxy itself.
          */
         const isChainedPromise = typeof this?.then === 'function'
-        if (ELEMENT_ARRAY_COMMANDS.includes(commandName) && !isChainedPromise) {
-            const result = fn.apply(this, args)
-            if (result && typeof result[ELEMENT_ARRAY_WRAP] === 'function') {
-                attachElementArrayHooks.call(this, result, commandName, args)
-                return result
+        if (ELEMENT_ARRAY_COMMANDS.includes(commandName)) {
+            /**
+             * `$('parent').$$('child')` is called with the unresolved element as
+             * `this`. Build the list now and resolve the parent inside its loader,
+             * so the caller still receives an array rather than a promise proxy.
+             */
+            if (isChainedPromise && elementArrayFactory) {
+                const parent = this
+                const metadata = {
+                    selector: args[0],
+                    foundWith: commandName,
+                    parent,
+                    props: args.slice(1)
+                }
+                return elementArrayFactory(async () => {
+                    const element = await parent as { [key: string]: (...params: unknown[]) => Promise<unknown[]> }
+                    metadata.parent = element
+                    const queried = await element[commandName](...args)
+                    return Array.isArray(queried) ? queried : []
+                }, metadata)
             }
 
-            /**
-             * A command with an element-list name that does not return an
-             * ElementArray (test doubles, custom stubs) keeps the promise proxy.
-             */
-            return createElementPromiseProxy(
-                Promise.resolve(result),
-                function (this: unknown) {
-                    return this
-                },
-                [],
-                commandName
-            )
+            if (!isChainedPromise) {
+                const result = fn.apply(this, args)
+                if (result && typeof result[ELEMENT_ARRAY_WRAP] === 'function') {
+                    attachElementArrayHooks.call(this, result, commandName, args)
+                    return result
+                }
+
+                /**
+                 * A command with an element-list name that does not return an
+                 * ElementArray (test doubles, custom stubs) keeps the promise proxy.
+                 */
+                return createElementPromiseProxy(
+                    Promise.resolve(result),
+                    function (this: unknown) {
+                        return this
+                    },
+                    [],
+                    commandName
+                )
+            }
         }
 
         /**

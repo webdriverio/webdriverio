@@ -122,7 +122,16 @@ describe('element', () => {
             }
         })
 
-        const elems = await browser.$('#foo').$$('#subfoo')
+        const pending = browser.$('#foo').$$('#subfoo')
+        expect(Array.isArray(pending)).toBe(true)
+
+        const elem = await browser.$('#foo')
+        const fromElement = elem.$$('#subfoo')
+        expect(Array.isArray(fromElement)).toBe(true)
+        expect(await fromElement).toHaveLength(3)
+        expect(fromElement[0].elementId).toBe('some-sub-elem-321')
+
+        const elems = await pending
         expect(Array.isArray(elems)).toBe(true)
         expect(elems).toHaveLength(3)
         expect(elems[0].elementId).toBe('some-sub-elem-321')
