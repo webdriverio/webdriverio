@@ -127,27 +127,6 @@ export function formatMessage (params: FrameworkMessage) {
 }
 
 /**
- * require external modules
- * @param mods list of modules to load before the test starts
- * @param loader  function to import the module, optional and for testing purposes only
- */
-export function requireExternalModules (mods: string[], loader = loadModule) {
-    return mods.map((mod) => {
-        if (!mod) {
-            return Promise.resolve()
-        }
-
-        mod = mod.includes(':') ? mod.substring(mod.lastIndexOf(':') + 1) : mod
-
-        if (mod.startsWith('./') && globalThis.process) {
-            mod = `${globalThis.process.cwd()}/${mod.slice(2)}`
-        }
-
-        return loader(mod)
-    })
-}
-
-/**
  * Mocha skips tests after a failing `before` or `beforeEach` and reports only
  * the hook. Fail those tests unless the user turned the option off.
  */
@@ -181,14 +160,4 @@ export function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, bef
             cid
         )
     })
-}
-
-export async function loadModule (name: string) {
-    try {
-        return await import(/* @vite-ignore */name)
-    } catch {
-        throw new Error(`Module ${name} can't get loaded. Are you sure you have installed it?\n` +
-                        'Note: if you\'ve installed WebdriverIO globally you need to install ' +
-                        'these external modules globally too!')
-    }
 }

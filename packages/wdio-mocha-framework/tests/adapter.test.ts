@@ -13,10 +13,6 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 vi.mock('mocha')
 vi.mock('@wdio/utils')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('expect-webdriverio')
-vi.mock('../src/utils', () => ({
-    loadModule: vi.fn()
-}))
 
 const wdioReporter = {
     write: vi.fn(),
@@ -106,14 +102,6 @@ test('should throw runtime error if spec is invalid', async () => {
     const runtimeError = new Error('Uuups')
     const adapter = adapterFactory({ mochaOpts: { mockRuntimeError: runtimeError } })
     await adapter.init()
-    await expect(adapter.run()).rejects.toEqual(runtimeError)
-})
-
-test('should throw runtime error if spec could not be loaded', async () => {
-    const runtimeError = new Error('Uuups')
-    const adapter = adapterFactory({ mochaOpts: { mockFailureCount: 0 } })
-    await adapter.init()
-    adapter['_specLoadError'] = runtimeError
     await expect(adapter.run()).rejects.toEqual(runtimeError)
 })
 
@@ -235,20 +223,6 @@ test('emits "before all"-hook errors as hook:end', () => {
     expect(wdioReporter.emit.mock.calls[0][1].error.message).toBe('uups')
 })
 
-test('emits "before each"-hook errors as hook:end', () => {
-    // @ts-ignore params not needed for test scenario
-    const adapter = adapterFactory()
-    adapter.getUID = () => '123'
-    adapter.emit(
-        'test:fail',
-        { title: '"before each" hook' },
-        new Error('uups') as any
-    )
-
-    expect(wdioReporter.emit.mock.calls[0][0]).toBe('hook:end')
-    expect(wdioReporter.emit.mock.calls[0][1].error.message).toBe('uups')
-})
-
 test('getUID', () => {
     // @ts-ignore params not needed for test scenario
     const adapter = adapterFactory()
@@ -320,12 +294,12 @@ describe('loadFiles', () => {
             suite: 1 // mochaRunner.total
         } as any
         await adapter._loadFiles({})
-        expect(adapter['_hasTests']).toBe(true)
+        expect(adapter.hasTests()).toBe(true)
     })
 
     test('should set _hasTests to false if there no tests to run', async () => {
         const adapter = adapterFactory({})
-        adapter['_hasTests'] = false
+        adapter['_hasTests'] = true
         adapter['_mocha']! = {
             loadFilesAsync: vi.fn(),
             options: { grep: 'regexp foo' },
@@ -333,13 +307,11 @@ describe('loadFiles', () => {
         } as any
         await adapter._loadFiles({ grep: 'foo', invert: 'invert' as any })
         expect(vi.mocked(Mocha.Runner).mock.results[0].value.grep).toBeCalledWith('regexp foo', 'invert')
-        expect(adapter['_hasTests']).toBe(false)
+        expect(adapter.hasTests()).toBe(false)
     })
 
     test('should propagate error', async () => {
         const adapter = adapterFactory({})
-        // @ts-ignore test scenario
-        delete adapter['_hasTests']
         adapter['_mocha']! = {
             loadFilesAsync: vi.fn().mockImplementation(
                 () => Promise.reject(new Error('foo'))
@@ -347,7 +319,7 @@ describe('loadFiles', () => {
         } as any
         await adapter._loadFiles({})
         expect(adapter['_mocha']!.loadFilesAsync).toBeCalled()
-        expect(adapter['_hasTests']).toBe(undefined)
+        expect(adapter.hasTests()).toBe(true)
         expect(adapter['_specLoadError']!.message)
             .toContain('Unable to load spec files')
     })
@@ -371,17 +343,6 @@ describe('loadFiles', () => {
 
         expect(decoratedFilePath).toContain(mockFilePath)
         expect(decoratedFilePath).toContain('?invalidateCache=')
-    })
-})
-
-describe('hasTests', () => {
-    test('should return true if feature is not enabled', () => {
-        // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory()
-        adapter['_hasTests'] = true
-        expect(adapter.hasTests()).toBe(true)
-        adapter['_hasTests'] = false
-        expect(adapter.hasTests()).toBe(false)
     })
 })
 

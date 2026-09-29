@@ -3,8 +3,8 @@
 Default rules for workspace packages that do not have their own `AGENTS.md`.
 Read the package-specific file when it exists (`webdriverio`, `webdriver`,
 `wdio`, `wdio-protocols`, `wdio-cli`, `wdio-reporter`, `wdio-junit-reporter`,
-`wdio-local-runner`, `wdio-session`, `wdio-runner`). Concern → package:
-[.github/OWNERSHIP.md](../.github/OWNERSHIP.md).
+`wdio-local-runner`, `wdio-session`, `wdio-runner`, `wdio-mocha-framework`).
+Concern → package: [.github/OWNERSHIP.md](../.github/OWNERSHIP.md).
 
 Package READMEs are published as user docs. Keep contributor commands here
 and in the root `AGENTS.md`; do not add a "Developing this package" footer
