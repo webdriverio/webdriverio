@@ -83,20 +83,18 @@ function createMatcher (matcherName: string) {
             context = context.sample as WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray
         }
 
+        context = await awaitPendingAssertionContext(context)
+
         const isContextObject = typeof context === 'object'
 
         if (context && isContextObject) {
-            /**
-             * Check if context is a Chainable (ChainablePromiseElement or ChainablePromiseArray)
-             */
-            if ('then' in context && typeof (context as { selector?: string }).selector === 'object') {
-                expectRequest.element = await context
-            } else if ('selector' in context) {
+            if ('selector' in context) {
                 /**
                  * Check if context is an WebdriverIO.Element or WebdriverIO.ElementArray
                  */
                 expectRequest.element = context
-            } if (Array.isArray(context) && context.every((el) => 'selector' in el)) {
+            }
+            if (isArrayOfSelectorElements(context)) {
                 /**
                  * Check if context is an array of elements (WebdriverIO.Element[]) aka filtered ElementArray
                  */
@@ -221,6 +219,36 @@ import.meta.hot?.on(WDIO_EVENT_NAME, (data: unknown) => {
         message: () => message.value.message
     })
 })
+
+/**
+ * A pending element list is thenable and already exposes `selector`.
+ * Load it before the `in` checks. Otherwise the unresolved list is sent
+ * and the runner refetches an empty collection. A chainable whose
+ * selector is an object (a function or element list) is loaded too.
+ */
+export async function awaitPendingAssertionContext<T> (context: T): Promise<T> {
+    if (!context || typeof context !== 'object') {
+        return context
+    }
+    const candidate = context as { then?: unknown, selector?: unknown }
+    const pendingList = Array.isArray(candidate) && typeof candidate.then === 'function'
+    const chainableObjectSelector = 'then' in candidate && typeof candidate.selector === 'object'
+    if (pendingList || chainableObjectSelector) {
+        return await (context as unknown as PromiseLike<T>)
+    }
+    return context
+}
+
+/**
+ * Element-list `every` is async and returns a Promise. Using that return
+ * value as a boolean treats every list as an array of elements.
+ */
+export function isArrayOfSelectorElements (context: unknown): boolean {
+    return Array.isArray(context) && Array.prototype.every.call(
+        context,
+        (el: unknown) => Boolean(el) && typeof el === 'object' && 'selector' in (el as object)
+    )
+}
 
 function serializeAsymmetricMatchers(arg: unknown): unknown {
     if (!arg || typeof arg !== 'object') {
