@@ -1341,6 +1341,91 @@ describe('WebDriverInterception', () => {
             }))
         })
 
+        const deferredRequestBody = () => {
+            let resolveBody!: (body: string) => void
+            const lookup = new Promise<{ bytes: { type: 'string', value: string } }>((resolve) => {
+                resolveBody = (body) => resolve({ bytes: { type: 'string', value: body } })
+            })
+            return { lookup, resolveBody }
+        }
+
+        const flushMicrotasks = async () => {
+            await Promise.resolve()
+            await Promise.resolve()
+            await Promise.resolve()
+            await Promise.resolve()
+        }
+
+        it('does not let a declining mock release a request before a postData mock aborts it', async () => {
+            const { lookup, resolveBody } = deferredRequestBody()
+            const browser = getBrowserMockWithUniqueIntercepts()
+            vi.mocked(browser.networkGetData).mockReturnValue(lookup)
+            // registered first, and it declines a GET
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)
+            const handling = await WebDriverInterception.initiate(TARGET_URL, { postData: 'request-body' }, browser)
+            handling.abort()
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+            await Promise.resolve()
+
+            expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+            expect(browser.networkFailRequest).not.toHaveBeenCalled()
+
+            resolveBody('request-body')
+            await lookup
+            await flushMicrotasks()
+
+            expect(browser.networkFailRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        })
+
+        it('does not let a declining mock release a request before a postData mock overwrites it', async () => {
+            const { lookup, resolveBody } = deferredRequestBody()
+            const browser = getBrowserMockWithUniqueIntercepts()
+            vi.mocked(browser.networkGetData).mockReturnValue(lookup)
+            const handling = await WebDriverInterception.initiate(TARGET_URL, { postData: 'request-body' }, browser)
+            handling.request({ method: 'PUT' })
+            // registered second, so its microtask is queued after the body lookup starts
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+            await Promise.resolve()
+
+            expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+
+            resolveBody('request-body')
+            await lookup
+            await flushMicrotasks()
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith(expect.objectContaining({
+                request: 123,
+                method: 'PUT'
+            }))
+        })
+
+        it('still continues once when a postData mock declines after the body arrives', async () => {
+            const { lookup, resolveBody } = deferredRequestBody()
+            const browser = getBrowserMockWithUniqueIntercepts()
+            vi.mocked(browser.networkGetData).mockReturnValue(lookup)
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)
+            await WebDriverInterception.initiate(TARGET_URL, { postData: 'request-body' }, browser)
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+            await Promise.resolve()
+
+            expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+
+            resolveBody('other-body')
+            await lookup
+            await flushMicrotasks()
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkFailRequest).not.toHaveBeenCalled()
+        })
+
         it('still releases a request that every mock declines', async () => {
             const browser = getBrowserMockWithUniqueIntercepts()
             await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)

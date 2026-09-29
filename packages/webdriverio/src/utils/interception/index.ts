@@ -29,27 +29,60 @@ let hasSubscribedToEvents = false
  * request releasable once per phase. The event also reports which intercepts
  * blocked it, so a request that only one intercept blocked takes no mark at all
  * and behaves exactly as before.
+ *
+ * A `postData` filter cannot decide until `network.getData` returns. That read
+ * is recorded on the same event, and a mock that declines waits for it. A
+ * microtask is too early: it runs before the body arrives and would continue
+ * the request out from under the mock that still means to abort or overwrite it.
  */
 const RELEASED = Symbol('wdio.interception.released')
+const PENDING = Symbol('wdio.interception.pending')
 
 type InterceptedEvent = { intercepts?: string[] }
+type MarkedEvent = InterceptedEvent & {
+    [RELEASED]?: true
+    [PENDING]?: Promise<void>[]
+}
 
 function isContested(event: InterceptedEvent) {
     return Boolean(event.intercepts && event.intercepts.length > 1)
 }
 
 function isClaimed(event: InterceptedEvent) {
-    return Boolean((event as { [RELEASED]?: true })[RELEASED])
+    return Boolean((event as MarkedEvent)[RELEASED])
 }
 
 function claim(event: InterceptedEvent) {
-    const claimable = event as { [RELEASED]?: true }
+    const claimable = event as MarkedEvent
     if (claimable[RELEASED]) {
         return false
     }
 
     claimable[RELEASED] = true
     return true
+}
+
+/**
+ * Remember a decision that yields before it knows whether it owns the request.
+ * A declining mock waits for these before it releases. The rejection is
+ * swallowed here so a failed body lookup still lets someone else release.
+ */
+function trackPending(event: InterceptedEvent, decision: Promise<unknown>) {
+    const marked = event as MarkedEvent
+    const pending = marked[PENDING] ?? (marked[PENDING] = [])
+    const settled = decision.then(() => undefined, () => undefined)
+    pending.push(settled)
+    void settled.finally(() => {
+        const index = pending.indexOf(settled)
+        if (index !== -1) {
+            pending.splice(index, 1)
+        }
+    })
+}
+
+function pendingDecisions(event: InterceptedEvent) {
+    const pending = (event as MarkedEvent)[PENDING]
+    return pending ? pending.slice() : []
 }
 
 type RespondBodyValue = string | JsonCompatible | Buffer
@@ -216,10 +249,11 @@ export default class WebDriverInterception {
      *
      * `handling` says whether this mock is the one the request belongs to. A mock
      * that only releases because the request does *not* match it must not take the
-     * release away from a mock that does, and while the event is still being
-     * dispatched it cannot know whether such a mock exists. So it waits for the
-     * dispatch to finish - the listeners of one event run synchronously - and
-     * releases only if nobody claimed the request in the meantime.
+     * release away from a mock that does. Listeners of one event run synchronously,
+     * so it waits until that dispatch finishes. A `postData` match also has to
+     * read the body first, and that decision is recorded on the event before the
+     * listener yields. The declining mock waits for those decisions too, then
+     * releases only if nobody claimed the request.
      */
     #release<T>(event: InterceptedEvent, handling: boolean, call: () => T): T | undefined {
         if (!isContested(event)) {
@@ -232,9 +266,18 @@ export default class WebDriverInterception {
 
         if (!isClaimed(event)) {
             queueMicrotask(() => {
-                if (claim(event)) {
-                    call()
+                const release = () => {
+                    if (claim(event)) {
+                        call()
+                    }
                 }
+                const pending = pendingDecisions(event)
+                if (pending.length === 0) {
+                    release()
+                    return
+                }
+
+                void Promise.all(pending).then(release)
             })
         }
 
@@ -270,7 +313,11 @@ export default class WebDriverInterception {
         }
 
         if (this.#filterOptions.postData) {
-            return this.#handleBeforeRequestSentWithPostData(request)
+            const decision = this.#handleBeforeRequestSentWithPostData(request)
+            if (isContested(request)) {
+                trackPending(request, decision)
+            }
+            return decision
         }
 
         return this.#continueBeforeRequestSent(request)
