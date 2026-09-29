@@ -15,7 +15,7 @@ const tsRecommended = () => {
         rules: {
             ...plugin.rules,
             'no-floating-promise': noFloatingPromise
-        }
+        } satisfies Record<string, Rule.RuleModule>
     }
 
     return {
@@ -39,10 +39,5 @@ const tsRecommended = () => {
         ignores: ['eslint.config.js', 'eslint.config.cjs', 'eslint.config.mjs'],
     }
 }
-
-export const rules = {
-    ...plugin.rules,
-    'no-floating-promise': noFloatingPromise
-} satisfies Record<string, Rule.RuleModule>
 
 export default isTypeAware ? tsRecommended() :  undefined
