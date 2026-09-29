@@ -89,8 +89,6 @@ describe('cli interface', () => {
             teardown: 0.05,
             total: 0.65
         }])
-        wdioClInterface.setup()
-        expect(wdioClInterface.workerTimings).toEqual([])
     })
 
     it('should mark jobs as skipped', () => {
@@ -206,24 +204,28 @@ describe('cli interface', () => {
     })
 
     describe('setup', () => {
-        it('called within constructor', () => {
-            wdioClInterface.onStart = vi.fn()
+        it('resets jobs, results, timings, and stored messages', () => {
+            wdioClInterface.emit('job:start', { cid: '0-0', hasTests: true })
+            wdioClInterface.result.finished = 4
+            wdioClInterface.result.passed = 3
+            wdioClInterface.result.retries = 1
+            wdioClInterface.result.failed = 2
+            wdioClInterface.workerTimings.push({ cid: '0-0', total: 1 })
+            wdioClInterface['_messages'] = {
+                reporter: { spec: ['failed'] },
+                debugger: { start: ['paused'] }
+            }
+
+            wdioClInterface.setup()
+
+            expect(wdioClInterface['_jobs'].size).toBe(0)
             expect(wdioClInterface.result).toEqual({
                 finished: 0,
                 passed: 0,
                 retries: 0,
                 failed: 0
             })
-            expect(wdioClInterface['_messages']).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
-        })
-
-        it('called explicitly', () => {
-            wdioClInterface.onStart = vi.fn()
-            wdioClInterface['_messages'] = {
-                reporter: {},
-                debugger: {}
-            }
-            wdioClInterface.setup()
+            expect(wdioClInterface.workerTimings).toEqual([])
             expect(wdioClInterface['_messages']).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
         })
     })
@@ -302,7 +304,7 @@ describe('cli interface', () => {
             expect(wdioClInterface.getFilenames()).toEqual('')
         })
 
-        it('no args', () => {
+        it('joins spec filenames', () => {
             expect(wdioClInterface.getFilenames(['foo', 'bar'])).toEqual('- foo, bar')
         })
     })
@@ -441,13 +443,12 @@ describe('cli interface', () => {
         it('percentCompleted', () => {
             wdioClInterface.totalWorkerCnt = 31
             wdioClInterface.result.finished = 13
-            const result = Math.round(wdioClInterface.result.finished / wdioClInterface.totalWorkerCnt * 100)
-            expect(wdioClInterface.printSummary().some(x => x.includes(result))).toBe(true)
+            expect(wdioClInterface.printSummary().some(x => String(x).includes('42% completed'))).toBe(true)
         })
 
         it('percentCompleted without workers', () => {
             wdioClInterface.totalWorkerCnt = 0
-            expect(wdioClInterface.printSummary().some(x => x.includes(0))).toBe(true)
+            expect(wdioClInterface.printSummary().some(x => String(x).includes('(0% completed)'))).toBe(true)
         })
     })
 

@@ -11,13 +11,6 @@ import { config as configCmd } from 'create-wdio/config/cli'
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const fixturesPath = path.resolve(__dirname, '..', '__fixtures__')
 vi.mock('yargs')
-vi.mock('node:child_process', () => ({
-    default: {
-        spawn: vi.fn(),
-        exec: vi.fn()
-    },
-    exec: vi.fn()
-}))
 vi.mock('node:fs/promises', async (_orig) => ({
     // ...(await orig()) as any,
     default: {
