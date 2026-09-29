@@ -225,12 +225,15 @@ function geolocationSource (latitude: number, longitude: number, accuracy: numbe
         const current = permissions && permissions.query
         if (current && !current.__wdioGeolocationQuery) {
             const own = Object.getOwnPropertyDescriptor(permissions, 'query')
+            const live = permissions.__wdioGeolocationLive || { state: 'granted', statuses: [] }
+            if (!permissions.__wdioGeolocationLive) permissions.__wdioGeolocationLive = live
             const wrapped = function (descriptor) {
                 if (descriptor && descriptor.name === 'geolocation') {
                     const target = new EventTarget()
                     let handler = null
+                    live.statuses.push(target)
                     Object.defineProperties(target, {
-                        state: { enumerable: true, value: 'granted' },
+                        state: { enumerable: true, get () { return live.state } },
                         name: { enumerable: true, value: 'geolocation' },
                         onchange: {
                             enumerable: true,
@@ -260,12 +263,22 @@ function geolocationSource (latitude: number, longitude: number, accuracy: numbe
     })()`
 }
 
-const GEOLOCATION_RESTORE_SOURCE = `(() => {
+function geolocationRestoreSource (setting: PermissionSetting) {
+    const next = JSON.stringify(setting)
+    return `(() => {
     const desc = Object.getOwnPropertyDescriptor(navigator, 'geolocation');
     if (desc && desc.configurable) {
         delete navigator.geolocation;
     }
     const permissions = navigator.permissions;
+    const live = permissions && permissions.__wdioGeolocationLive;
+    if (live && live.state !== ${next}) {
+        live.state = ${next};
+        for (const status of live.statuses || []) {
+            status.dispatchEvent(new Event('change'));
+        }
+    }
+    if (live) live.statuses = [];
     const wrapped = permissions && permissions.query;
     if (wrapped && wrapped.__wdioGeolocationQuery) {
         try {
@@ -277,6 +290,7 @@ const GEOLOCATION_RESTORE_SOURCE = `(() => {
         } catch (err) {}
     }
 })()`
+}
 
 async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude: number, longitude: number, accuracy: number): Promise<Restore> {
     const source = geolocationSource(latitude, longitude, accuracy)
@@ -310,7 +324,7 @@ async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude
              */
             await writeGeolocationPermission(browser, origin, previous ?? 'prompt')
         }
-        await browser.execute(GEOLOCATION_RESTORE_SOURCE)
+        await browser.execute(geolocationRestoreSource(previous ?? 'prompt'))
     }
 }
 
