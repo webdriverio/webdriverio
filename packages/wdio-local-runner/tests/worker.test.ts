@@ -426,6 +426,27 @@ describe('startProcess NODE_OPTIONS', () => {
         expect(nodeOptions).toBe('--max-old-space-size=4096 --import tsx')
     })
 
+    it('keeps quoted preload paths that contain spaces', async () => {
+        const nodeOptions = await runStartProcess('--require "./my modules/a.js"', {
+            runnerEnv: { NODE_OPTIONS: '--require "./my modules/b.js"' }
+        })
+        expect(nodeOptions).toBe('--require "./my modules/a.js" --require "./my modules/b.js"')
+    })
+
+    it('replaces a space-separated option value instead of leaving the old one', async () => {
+        const nodeOptions = await runStartProcess('--max-old-space-size 2048', {
+            runnerEnv: { NODE_OPTIONS: '--max-old-space-size 4096' }
+        })
+        expect(nodeOptions).toBe('--max-old-space-size 4096')
+    })
+
+    it('keeps every --conditions value from the parent and the runner', async () => {
+        const nodeOptions = await runStartProcess('--conditions development', {
+            runnerEnv: { NODE_OPTIONS: '--conditions browser' }
+        })
+        expect(nodeOptions).toBe('--conditions development --conditions browser')
+    })
+
     it('appends source maps when WDIO_SOURCE_MAPS opts in', async () => {
         const nodeOptions = await runStartProcess('--import tsx', {}, '1')
         expect(nodeOptions).toBe('--import tsx --enable-source-maps')

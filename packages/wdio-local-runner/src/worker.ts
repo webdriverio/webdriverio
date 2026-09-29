@@ -44,8 +44,8 @@ function getExitCodeForSignal (signal: NodeJS.Signals | null) {
 }
 
 /**
- * Flags whose next token is the operand (`--import tsx`, `--require a.js`).
- * Other flags are one token, including `--max-old-space-size=4096`.
+ * Flags whose next token is the operand (`--import tsx`, `--require "./my modules/a.js"`,
+ * `--max-old-space-size 2048`). `--max-old-space-size=4096` stays one token.
  */
 const NODE_OPTIONS_WITH_VALUE = new Set([
     '-r',
@@ -53,19 +53,76 @@ const NODE_OPTIONS_WITH_VALUE = new Set([
     '--import',
     '--experimental-loader',
     '--loader',
+    '--conditions',
+    '-C',
+    '--max-old-space-size',
+    '--max-semi-space-size',
+])
+
+/**
+ * These may appear more than once. A runner value adds to the parent list.
+ * `--max-old-space-size` is not here: the runner value replaces the parent one,
+ * including a value that was a separate token.
+ */
+const REPEATABLE_NODE_OPTIONS = new Set([
+    '-r',
+    '--require',
+    '--import',
+    '--experimental-loader',
+    '--loader',
+    '--conditions',
+    '-C',
 ])
 
 function nodeOptionName (group: string) {
     return group.split(' ')[0].split('=')[0]
 }
 
+/**
+ * Split on whitespace, but keep a quoted operand intact. `--require "./my modules/a.js"`
+ * is two tokens, and the path stays quoted so joining the result does not break it.
+ */
+function tokenizeNodeOptions (value: string) {
+    const tokens: string[] = []
+    let current = ''
+    let quote: '"' | "'" | undefined
+    const push = () => {
+        if (current) {
+            tokens.push(current)
+            current = ''
+        }
+    }
+    for (const char of value) {
+        if (quote) {
+            current += char
+            if (char === quote) {
+                quote = undefined
+            }
+            continue
+        }
+        if (char === '"' || char === "'") {
+            quote = char
+            current += char
+            continue
+        }
+        if (/\s/.test(char)) {
+            push()
+            continue
+        }
+        current += char
+    }
+    push()
+    return tokens
+}
+
 function parseNodeOptionGroups (value: string) {
-    const parts = value.trim().split(/\s+/).filter(Boolean)
+    const parts = tokenizeNodeOptions(value)
     const groups: string[] = []
     for (let i = 0; i < parts.length; i++) {
         const token = parts[i]
+        const name = token.split('=')[0]
         const next = parts[i + 1]
-        if (!token.includes('=') && NODE_OPTIONS_WITH_VALUE.has(token) && next && !next.startsWith('-')) {
+        if (!token.includes('=') && NODE_OPTIONS_WITH_VALUE.has(name) && next && !next.startsWith('-')) {
             groups.push(`${token} ${next}`)
             i++
             continue
@@ -77,9 +134,10 @@ function parseNodeOptionGroups (value: string) {
 
 /**
  * Keep parent flags (including the launcher's `--import tsx`) and append
- * `config.runnerEnv.NODE_OPTIONS`. Repeatable loader flags are unioned, so a
- * runner value that merely contains the parent text cannot drop them. A runner
- * flag replaces the parent value when both set the same non-repeatable option.
+ * `config.runnerEnv.NODE_OPTIONS`. Repeatable flags (`--import`, `--require`,
+ * `--conditions`) are unioned, so a runner value that merely contains the parent
+ * text cannot drop them. A runner flag replaces the parent value when both set
+ * the same non-repeatable option, including a value that follows the flag.
  */
 function mergeWorkerNodeOptions (parent: string, runner: string | undefined) {
     const merged = parseNodeOptionGroups(parent)
@@ -89,7 +147,7 @@ function mergeWorkerNodeOptions (parent: string, runner: string | undefined) {
 
     for (const group of parseNodeOptionGroups(runner)) {
         const name = nodeOptionName(group)
-        if (NODE_OPTIONS_WITH_VALUE.has(name)) {
+        if (REPEATABLE_NODE_OPTIONS.has(name)) {
             if (!merged.includes(group)) {
                 merged.push(group)
             }
