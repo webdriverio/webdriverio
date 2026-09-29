@@ -32,14 +32,17 @@ export const ELEMENT_ARRAY_COMMANDS = ['$$', 'custom$$', 'react$$', 'shadow$$']
  * can return an element list immediately. The shim itself does not depend on that
  * package. Without a factory, those calls keep the element-promise proxy.
  */
+type ElementArrayMetadata = {
+    selector?: unknown
+    foundWith: string
+    parent?: unknown
+    props: unknown[]
+    isMultiRemote?: boolean
+}
+
 type ElementArrayFactory = (
     loader: () => Promise<unknown[]>,
-    metadata: {
-        selector?: unknown
-        foundWith: string
-        parent?: unknown
-        props: unknown[]
-    }
+    metadata: ElementArrayMetadata
 ) => unknown
 let elementArrayFactory: ElementArrayFactory | undefined
 
@@ -440,16 +443,38 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
              */
             if (isChainedPromise && elementArrayFactory) {
                 const parent = this
-                const metadata = {
+                const metadata: ElementArrayMetadata = {
                     selector: args[0],
                     foundWith: commandName,
                     parent,
                     props: args.slice(1)
                 }
                 return elementArrayFactory(async () => {
-                    const element = await parent as { [key: string]: (...params: unknown[]) => Promise<unknown[]> }
+                    const element = await parent as {
+                        isMultiRemote?: boolean
+                        [key: string]: unknown
+                    }
                     metadata.parent = element
-                    const queried = await element[commandName](...args)
+                    /**
+                     * The outer list is built before the parent element exists, so it
+                     * cannot see `isMultiRemote` yet. Copy it from the resolved element
+                     * and from the list that element returns.
+                     */
+                    if (element?.isMultiRemote) {
+                        metadata.isMultiRemote = true
+                    }
+                    const command = element?.[commandName]
+                    if (typeof command !== 'function') {
+                        return []
+                    }
+                    const query = command as (
+                        this: unknown,
+                        ...params: unknown[]
+                    ) => Promise<{ isMultiRemote?: boolean } & unknown[]>
+                    const queried = await query.call(element, ...args)
+                    if (queried?.isMultiRemote) {
+                        metadata.isMultiRemote = true
+                    }
                     return Array.isArray(queried) ? queried : []
                 }, metadata)
             }
