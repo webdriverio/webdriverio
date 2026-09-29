@@ -33,6 +33,11 @@ describe('ElementArray', () => {
         expect(elements.selector).toBe('.item')
         expect(elements.foundWith).toBe('$$')
         expect(await elements.getElements()).toBe(elements)
+        expect('selector' in elements).toBe(true)
+        expect('foundWith' in elements).toBe(true)
+        expect('parent' in elements).toBe(true)
+        expect('getElements' in elements).toBe(true)
+        expect('props' in elements).toBe(true)
     })
 
     it('supports for-await, async helpers and a resolved sync iterator', async () => {

@@ -360,6 +360,27 @@ function proxify (array: ElementList, state: ElementArrayState): WebdriverIO.Ele
             const value = Reflect.get(target, prop, receiver)
             return typeof value === 'function' ? value.bind(target) : value
         },
+        /**
+         * `parent`, `foundWith` and `getElements` live on the proxy, not the
+         * raw array. `in` does not use the get trap, and expect-webdriverio
+         * detects an element list with `'getElements' in elements`. Without
+         * this, a resolved list looks like a plain array of elements and
+         * `elements.map(fn).join()` calls the async map.
+         */
+        has (target, prop) {
+            if (
+                prop === 'selector' || prop === 'parent' || prop === 'foundWith' ||
+                prop === 'props' || prop === 'isMultiRemote' || prop === 'getElements'
+            ) {
+                return true
+            }
+            if (typeof prop === 'string' && (
+                RETURN_SELF.has(prop) || Object.prototype.hasOwnProperty.call(methods, prop)
+            )) {
+                return true
+            }
+            return Reflect.has(target, prop)
+        },
         set (target, prop, value) {
             if (prop === 'parent' || prop === 'selector' || prop === 'foundWith' || prop === 'props') {
                 (stateOf(target).metadata as unknown as Record<PropertyKey, unknown>)[prop] = value
