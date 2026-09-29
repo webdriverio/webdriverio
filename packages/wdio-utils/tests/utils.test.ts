@@ -67,11 +67,15 @@ describe('utils', () => {
             .toBe('elementSendKeys("elem-123", "user")')
     })
 
-    it('commandCallStructure still masks actual screenshots', () => {
-        const screenshot = (Buffer.from('a'.repeat(1024))).toString('base64')
-        expect(screenshot.length).toBeGreaterThan(100)
-        expect(commandCallStructure('takeScreenshot', [screenshot]))
-            .toBe('takeScreenshot("<Screenshot[base64]>")')
+    it('commandCallStructure still masks long base64 arguments', () => {
+        /**
+         * `file` receives a base64 encoded zip archive as argument, see
+         * `uploadFile`, and is long enough to be worth keeping out of the log
+         */
+        const zipArchive = (Buffer.from('a'.repeat(1024))).toString('base64')
+        expect(zipArchive.length).toBeGreaterThan(100)
+        expect(commandCallStructure('file', [zipArchive]))
+            .toBe('file("<Screenshot[base64]>")')
     })
 
     it('transformCommandLogResult', () => {
