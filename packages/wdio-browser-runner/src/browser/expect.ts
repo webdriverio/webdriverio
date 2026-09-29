@@ -83,7 +83,15 @@ function createMatcher (matcherName: string) {
             context = context.sample as WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray
         }
 
-        context = await awaitPendingAssertionContext(context)
+        /**
+         * Only await when the subject is a pending list or a chainable whose
+         * selector is an object. An unconditional await runs every assertion
+         * after a microtask, and Safari then reports the previous inline
+         * snapshot line.
+         */
+        if (shouldLoadAssertionContext(context)) {
+            context = await context
+        }
 
         const isContextObject = typeof context === 'object'
 
@@ -225,18 +233,16 @@ import.meta.hot?.on(WDIO_EVENT_NAME, (data: unknown) => {
  * Load it before the `in` checks. Otherwise the unresolved list is sent
  * and the runner refetches an empty collection. A chainable whose
  * selector is an object (a function or element list) is loaded too.
+ * Plain values stay synchronous so inline snapshots keep the caller's line.
  */
-export async function awaitPendingAssertionContext<T> (context: T): Promise<T> {
+export function shouldLoadAssertionContext (context: unknown): boolean {
     if (!context || typeof context !== 'object') {
-        return context
+        return false
     }
     const candidate = context as { then?: unknown, selector?: unknown }
     const pendingList = Array.isArray(candidate) && typeof candidate.then === 'function'
     const chainableObjectSelector = 'then' in candidate && typeof candidate.selector === 'object'
-    if (pendingList || chainableObjectSelector) {
-        return await (context as unknown as PromiseLike<T>)
-    }
-    return context
+    return pendingList || chainableObjectSelector
 }
 
 /**

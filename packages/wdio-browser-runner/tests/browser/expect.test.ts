@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { ElementArray } from '../../../webdriverio/src/element/array.js'
-import { awaitPendingAssertionContext, expect as browserExpect, isArrayOfSelectorElements } from '../../src/browser/expect.js'
+import { expect as browserExpect, isArrayOfSelectorElements, shouldLoadAssertionContext } from '../../src/browser/expect.js'
 
 describe('expect', () => {
     describe('expectWithHelpers', () => {
@@ -53,11 +53,14 @@ describe('expect', () => {
 
         expect('selector' in elements).toBe(true)
         expect(typeof elements.then).toBe('function')
+        expect(shouldLoadAssertionContext(elements)).toBe(true)
+        expect(shouldLoadAssertionContext({ foo: 'bar' })).toBe(false)
 
-        const loaded = await awaitPendingAssertionContext(elements)
+        const loaded = await elements
         expect(fetches).toBe(1)
         expect(loaded).toBe(elements)
         expect(elements).toHaveLength(1)
+        expect(shouldLoadAssertionContext(elements)).toBe(false)
         expect(isArrayOfSelectorElements(elements)).toBe(true)
     })
 
