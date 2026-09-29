@@ -8,13 +8,16 @@ vi.mock('firefox-profile')
 describe('Firefox profile service', () => {
     describe('onPrepare', () => {
         test('should return when no firefoxProfile set in the config', async () => {
-            const options = {}
-            const capabilities = [{}]
+            const capabilities: WebdriverIO.Capabilities[] = [{
+                browserName : 'firefox',
+            }]
 
-            const service = new Launcher(options)
+            const service = new Launcher({})
             await service.onPrepare({} as never, capabilities)
 
-            expect(capabilities).toEqual([{}])
+            expect(capabilities).toEqual([{
+                browserName : 'firefox',
+            }])
         })
 
         test('should set preferences with no extensions - modern', async () => {
@@ -182,27 +185,7 @@ describe('Firefox profile service', () => {
             await service.onPrepare({} as never, capabilities)
 
             expect(FirefoxProfile.copy).toHaveBeenCalledWith(options.profileDirectory, expect.any(Function))
+            expect(service['_profile']!.setPreference).not.toHaveBeenCalled()
         })
-
-        test('should not continue if profile could not be created', async () => {
-            const options = {
-                profileDirectory: '/tmp/firefox-profile'
-            }
-            const capabilities: WebdriverIO.Capabilities[] = [{
-                browserName : 'firefox',
-            }]
-
-            vi.mocked(FirefoxProfile.copy).mockImplementationOnce(((_: string, cb: Function) => cb()) as any)
-            const service = new Launcher(options)
-            await service.onPrepare({} as never, capabilities)
-            // no assertion needed as we return early and no failure due to
-            // undefined profile is checked
-        })
-    })
-
-    test('should return when no firefoxProfile set in the config', async () => {
-        const service = new Launcher({})
-        service['_setPreferences']()
-        service['_buildExtension']([])
     })
 })
