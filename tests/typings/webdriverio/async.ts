@@ -518,6 +518,12 @@ async function bar() {
         await browser.$('foo').$('bar').$$('loo').selector)
     expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
         await browser.$('foo').$('bar').$$('loo').parent)
+    expectType<Selector>(browser.$$('.item').selector)
+    expectType<string>(browser.$$('.item').foundWith)
+    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
+        browser.$$('.item').parent)
+    // @ts-expect-error selector is available immediately and is not a promise
+    browser.$$('.item').selector.then(() => undefined)
 
     // promise chain API
     expectType<string>(

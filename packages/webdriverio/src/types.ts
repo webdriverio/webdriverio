@@ -195,16 +195,27 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
      */
     length: Promise<number>
     /**
-     * selector used to fetch this element, can be
-     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
-     * - a string if `findElement` was used and a reference was found
-     * - or a function if element was found via e.g. `$(() => document.body)`
+     * Selector used to fetch this list. It is available immediately, before the
+     * query resolves. It can be
+     * - undefined if the list was created via `$$([{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' }])`
+     * - a string if `findElements` was used and a reference was found
+     * - or a function if the elements were found via e.g. `$$(() => document.body)`
      */
-    selector: Promise<Selector>
+    selector: Selector
     /**
-     * parent of the element if fetched via `$(parent).$(child)`
+     * Parent of the list if fetched via `$(parent).$$(child)`. Available
+     * immediately, before the query resolves.
      */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    /**
+     * Command name with which this list was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`.
+     * Available immediately, before the query resolves.
+     */
+    foundWith: string
+    /**
+     * Extra arguments of the query that fetched this list. Available immediately.
+     */
+    props: any[]
     /**
      * allow to access a specific index of the element set
      */
