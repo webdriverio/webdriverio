@@ -1,43 +1,24 @@
-import vm from 'node:vm'
-import replMock from 'node:repl'
-
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ReplConfig } from '../src/index.js'
 import WDIORepl from '../src/index.js'
 
-let runInContextFail = false
-vi.mock('vm', () => {
-    class VMMock {
-        createContext: () => any
-        runInContext: () => any
-
-        constructor () {
-            this.createContext = vi.fn()
-            this.runInContext = vi.fn().mockImplementation(() => {
-                if (runInContextFail) {
-                    throw new Error('boom!')
-                }
-
-                return 'someResult'
-            })
-        }
+const { createContext, replServer, runInContext, start } = vi.hoisted(() => {
+    const replServer = { on: vi.fn() }
+    return {
+        replServer,
+        createContext: vi.fn(),
+        runInContext: vi.fn<(command: string, context: unknown) => unknown>(() => 'someResult'),
+        start: vi.fn((_options?: object) => replServer)
     }
-
-    return { default: new VMMock() }
 })
 
-vi.mock('repl', () => {
-    const replInstance = {
-        on: vi.fn().mockImplementation(
-            (name, callback) => setTimeout(
-                () => callback(name),
-                100
-            )
-        )
-    }
+vi.mock('vm', () => ({
+    default: { createContext, runInContext }
+}))
 
-    return { default: { start: vi.fn().mockReturnValue(replInstance) } }
-})
+vi.mock('repl', () => ({
+    default: { start }
+}))
 
 const defaultArgs: ReplConfig = {
     commandTimeout: 5000,
@@ -47,175 +28,258 @@ const defaultArgs: ReplConfig = {
     eval: () => {}
 }
 
-interface SomeContext {
-    foo: string;
+function exitStartedRepl () {
+    const exit = replServer.on.mock.calls.find(([name]) => name === 'exit')?.[1] as (() => void) | undefined
+    if (!exit) {
+        throw new Error('expected the REPL to listen for exit')
+    }
+    exit()
 }
 
 describe('eval', () => {
+    beforeEach(() => {
+        runInContext.mockReset()
+        runInContext.mockReturnValue('someResult')
+        createContext.mockClear()
+        replServer.on.mockClear()
+        start.mockClear()
+    })
+
+    afterEach(() => {
+        vi.clearAllTimers()
+        vi.useRealTimers()
+    })
+
     it('should return predefined responses', () => {
         const repl = new WDIORepl(defaultArgs)
         const callback = vi.fn()
-        repl['_runCmd'] = vi.fn()
 
-        repl.eval('browser', {}, '/some/filname.js', callback)
-        expect(callback).toBeCalledWith(null, '[WebdriverIO REPL client]')
-        callback.mockClear()
+        for (const [command, response] of [
+            ['browser', '[WebdriverIO REPL client]'],
+            ['driver', '[WebdriverIO REPL client]'],
+            ['$', '[Function: findElement]'],
+            ['$$', '[Function: findElements]']
+        ] as const) {
+            repl.eval(command, {}, '/some/filename', callback)
+            expect(callback).toHaveBeenCalledWith(null, response)
+            callback.mockClear()
+        }
 
-        repl.eval('driver', {}, '/some/filname.js', callback)
-        expect(callback).toBeCalledWith(null, '[WebdriverIO REPL client]')
-        callback.mockClear()
-
-        repl.eval('$', {}, '/some/filname.js', callback)
-        expect(callback).toBeCalledWith(null, '[Function: findElement]')
-        callback.mockClear()
-
-        repl.eval('$$', {}, '/some/filname.js', callback)
-        expect(callback).toBeCalledWith(null, '[Function: findElements]')
-        callback.mockClear()
-
-        expect(repl['_runCmd']).toBeCalledTimes(0)
+        repl.eval(' browser ', {}, '/some/filename', callback)
+        expect(callback).toHaveBeenCalledWith(null, '[WebdriverIO REPL client]')
+        expect(runInContext).not.toHaveBeenCalled()
+        expect(createContext).not.toHaveBeenCalled()
     })
 
-    it('should call _runCmd', () => {
+    it('should execute a command and return its result', () => {
         const repl = new WDIORepl(defaultArgs)
-        repl['_runCmd'] = vi.fn()
+        const callback = vi.fn()
+        const context = { marker: 'ctx' }
+
+        repl.eval('1+1', context, '/some/filename', callback)
+        expect(createContext).toHaveBeenCalledWith(context)
+        expect(runInContext).toHaveBeenCalledWith('1+1', context)
+        expect(callback).toHaveBeenCalledWith(null, 'someResult')
+
+        callback.mockClear()
+        runInContext.mockReturnValueOnce('next')
+        repl.eval('2+2', context, '/some/filename', callback)
+        expect(callback).toHaveBeenCalledWith(null, 'next')
+    })
+
+    it('should ignore a second command while one is running', () => {
+        vi.useFakeTimers()
+        runInContext.mockReturnValueOnce(new Promise(() => {}))
+        const repl = new WDIORepl(defaultArgs)
+        const second = vi.fn()
+
         repl.eval('1+1', {}, '/some/filename', vi.fn())
-        expect(repl['_runCmd'])
-            .toBeCalledWith('1+1', expect.any(Object), expect.any(Function))
-        expect(repl['_isCommandRunning']).toBe(true)
+        repl.eval('2+2', {}, '/some/filename', second)
+
+        expect(runInContext).toHaveBeenCalledTimes(1)
+        expect(runInContext).toHaveBeenCalledWith('1+1', {})
+        expect(second).not.toHaveBeenCalled()
     })
 
-    it('should not be able to call a command twice', () => {
-        const repl = new WDIORepl(defaultArgs)
-        repl['_runCmd'] = vi.fn()
-        repl.eval('1+1', {}, '/some/filename', vi.fn())
-        repl.eval('2+2', {}, '/some/filename', vi.fn())
-        expect(repl['_runCmd']).toBeCalledTimes(1)
-    })
-})
-
-describe('runCmd', () => {
-    it('should call result handler', () => {
-        const repl = new WDIORepl(defaultArgs)
-        repl['_handleResult'] = vi.fn()
-        repl['_runCmd']('1+1', {}, vi.fn())
-        expect(vm.runInContext).toBeCalledWith('1+1', {})
-        expect(repl['_handleResult'])
-            .toBeCalledWith('someResult', expect.any(Function))
-    })
-
-    it('should call back if failed', () => {
+    it('should call back if command execution fails', () => {
+        const failure = new Error('boom!')
+        runInContext.mockImplementationOnce(() => {
+            throw failure
+        })
         const repl = new WDIORepl(defaultArgs)
         const callback = vi.fn()
 
-        runInContextFail = true
-        repl['_runCmd']('1+1', {}, callback)
-        expect(callback).toBeCalled()
-        expect(repl['_isCommandRunning']).toBe(false)
+        repl.eval('1+1', {}, '/some/filename', callback)
+        expect(callback).toHaveBeenCalledWith(failure, undefined)
+
+        callback.mockClear()
+        runInContext.mockReturnValueOnce('recovered')
+        repl.eval('2+2', {}, '/some/filename', callback)
+        expect(runInContext).toHaveBeenCalledTimes(2)
+        expect(callback).toHaveBeenCalledWith(null, 'recovered')
     })
 })
 
 describe('handleResult', () => {
+    beforeEach(() => {
+        runInContext.mockReset()
+        runInContext.mockReturnValue('someResult')
+        createContext.mockClear()
+    })
+
     it('should return basic result types directly', () => {
         const repl = new WDIORepl(defaultArgs)
         const callback = vi.fn()
-        repl['_isCommandRunning'] = true
 
-        // @ts-expect-error
-        repl['_handleResult'](null, callback)
-        expect(callback).toBeCalledWith(null, null)
-        expect(repl['_isCommandRunning']).toBe(false)
+        runInContext.mockReturnValueOnce(null)
+        repl.eval('null', {}, '/some/filename', callback)
+        expect(callback).toHaveBeenCalledWith(null, null)
+
         callback.mockClear()
-
-        // @ts-expect-error
-        repl['_handleResult'](1, callback)
-        expect(callback).toBeCalledWith(null, 1)
+        runInContext.mockReturnValueOnce(1)
+        repl.eval('1', {}, '/some/filename', callback)
+        expect(callback).toHaveBeenCalledWith(null, 1)
     })
 
     it('should handle resolved promises', async () => {
         const repl = new WDIORepl(defaultArgs)
         const callback = vi.fn()
-        const result = Promise.resolve('some result')
-        repl['_isCommandRunning'] = true
+        runInContext.mockReturnValueOnce(Promise.resolve('some result'))
 
-        repl['_handleResult'](result, callback)
-        await new Promise((resolve) => setTimeout(resolve, 10))
-        expect(callback).toBeCalledWith(null, 'some result')
-        expect(repl['_isCommandRunning']).toBe(false)
+        repl.eval('async', {}, '/some/filename', callback)
+        await vi.waitFor(() => {
+            expect(callback).toHaveBeenCalledWith(null, 'some result')
+        })
+
+        callback.mockClear()
+        runInContext.mockReturnValueOnce('after')
+        repl.eval('next', {}, '/some/filename', callback)
+        expect(callback).toHaveBeenCalledWith(null, 'after')
     })
 
     it('should handle rejected promises', async () => {
         const repl = new WDIORepl(defaultArgs)
         const callback = vi.fn()
-        const result = Promise.reject(new Error('boom'))
-        repl['_isCommandRunning'] = true
+        runInContext.mockReturnValueOnce(Promise.reject(new Error('boom')))
 
-        repl['_handleResult'](result, callback)
-        await new Promise((resolve) => setTimeout(resolve, 10))
-        expect(callback).toBeCalledWith(new Error('boom'), undefined)
-        expect(repl['_isCommandRunning']).toBe(false)
+        repl.eval('async', {}, '/some/filename', callback)
+        await vi.waitFor(() => {
+            expect(callback).toHaveBeenCalledWith(new Error('boom'), undefined)
+        })
+        expect((callback.mock.calls[0][0] as Error).stack).toBeUndefined()
+
+        callback.mockClear()
+        runInContext.mockReturnValueOnce('after')
+        repl.eval('next', {}, '/some/filename', callback)
+        expect(callback).toHaveBeenCalledWith(null, 'after')
     })
 
     it('should timeout if successful command takes too long', async () => {
         const repl = new WDIORepl({ ...defaultArgs, commandTimeout: 100 })
         const callback = vi.fn()
-        const result = new Promise((resolve) => setTimeout(resolve, 200))
-        repl['_isCommandRunning'] = true
+        runInContext.mockReturnValueOnce(new Promise((resolve) => setTimeout(() => resolve('late'), 200)))
 
-        repl['_handleResult'](result, callback)
+        repl.eval('slow', {}, '/some/filename', callback)
         await new Promise((resolve) => setTimeout(resolve, 300))
-        expect(callback).toBeCalledTimes(1)
-        expect(callback).toBeCalledWith(new Error('Command execution timed out'), undefined)
-        expect(repl['_isCommandRunning']).toBe(false)
+
+        expect(callback).toHaveBeenCalledTimes(1)
+        expect(callback).toHaveBeenCalledWith(new Error('Command execution timed out'), undefined)
+
+        const next = vi.fn()
+        runInContext.mockReturnValueOnce('next')
+        repl.eval('next', {}, '/some/filename', next)
+        expect(next).toHaveBeenCalledWith(null, 'next')
+        expect(callback).toHaveBeenCalledTimes(1)
     })
 
     it('should timeout if failing command takes too long', async () => {
         const repl = new WDIORepl({ ...defaultArgs, commandTimeout: 100 })
         const callback = vi.fn()
-        const result = new Promise((resolve, reject) => setTimeout(reject, 200))
-        repl['_isCommandRunning'] = true
+        runInContext.mockReturnValueOnce(new Promise((_resolve, reject) => setTimeout(() => reject(new Error('late')), 200)))
 
-        repl['_handleResult'](result, callback)
+        repl.eval('slow', {}, '/some/filename', callback)
         await new Promise((resolve) => setTimeout(resolve, 300))
-        expect(callback).toBeCalledTimes(1)
-        expect(callback).toBeCalledWith(new Error('Command execution timed out'), undefined)
-        expect(repl['_isCommandRunning']).toBe(false)
+
+        expect(callback).toHaveBeenCalledTimes(1)
+        expect(callback).toHaveBeenCalledWith(new Error('Command execution timed out'), undefined)
+
+        const next = vi.fn()
+        runInContext.mockReturnValueOnce('next')
+        repl.eval('next', {}, '/some/filename', next)
+        expect(next).toHaveBeenCalledWith(null, 'next')
+        expect(callback).toHaveBeenCalledTimes(1)
     })
 })
 
 describe('start', () => {
-    it('should throw repl server was already started', () => {
-        const repl = new WDIORepl(defaultArgs)
-        repl['_replServer'] = {} as replMock.REPLServer
-        expect(() => repl.start({})).toThrow()
+    beforeEach(() => {
+        runInContext.mockReset()
+        runInContext.mockReturnValue('someResult')
+        createContext.mockClear()
+        replServer.on.mockClear()
+        start.mockClear()
     })
 
-    it('should start and stop repl', async () => {
+    it('should throw if the repl server was already started', async () => {
         const repl = new WDIORepl(defaultArgs)
-        await repl.start({})
-        expect(replMock.start).toBeCalled()
-
-        expect((repl['_replServer'] as replMock.REPLServer).on).toBeCalled()
+        const pending = repl.start()
+        expect(() => repl.start()).toThrow('a repl was already initialized')
+        exitStartedRepl()
+        await pending
     })
 
-    it('should allow run eval with own context', async () => {
-        const config = {
+    it('should resolve when the repl exits and evaluate in the context passed to start', async () => {
+        const session = { browser: 'session' }
+        const replContext = { browser: 'repl' }
+        const repl = new WDIORepl()
+        let settled = false
+        const pending = repl.start(session).then(() => {
+            settled = true
+        })
+
+        await Promise.resolve()
+        expect(settled).toBe(false)
+        expect(replServer.on).toHaveBeenCalledWith('exit', expect.any(Function))
+
+        const options = start.mock.calls.at(-1)?.[0] as ReplConfig
+        const callback = vi.fn()
+        options.eval.call({ id: 'server' }, '1+1', replContext, '/some/filename', callback)
+        expect(runInContext).toHaveBeenCalledWith('1+1', session)
+        expect(callback).toHaveBeenCalledWith(null, 'someResult')
+
+        exitStartedRepl()
+        await pending
+        expect(settled).toBe(true)
+    })
+
+    it('should keep a custom eval bound to the repl server and the context from start', async () => {
+        const session = { browser: 'session' }
+        const replContext = { browser: 'repl' }
+        const server = { id: 'repl-server' }
+        let self: unknown
+        let seen: unknown
+        const config: ReplConfig = {
             ...defaultArgs,
-            eval: vi.fn().mockImplementation(function (this: SomeContext) {
-                this.foo = 'foobar'
+            eval: vi.fn(function (this: unknown, _cmd: string, ctx: unknown) {
+                self = this
+                seen = ctx
             })
         }
         const repl = new WDIORepl(config)
-        await repl.start({})
+        const pending = repl.start(session)
+        const options = start.mock.calls.at(-1)?.[0] as ReplConfig
 
-        const context = { foo: 'bar' } as SomeContext
-        repl['_config'].eval.call(context as unknown as replMock.REPLServer, '1+1', {}, '/some/filename', vi.fn())
-        expect(config.eval).toBeCalledWith(
+        options.eval.call(server, '1+1', replContext, '/some/filename', vi.fn())
+        expect(seen).toBe(session)
+        expect(self).toBe(server)
+        expect(config.eval).toHaveBeenCalledWith(
             '1+1',
-            expect.any(Object),
+            session,
             '/some/filename',
             expect.any(Function)
         )
-        expect(context.foo).toBe('foobar')
+
+        exitStartedRepl()
+        await pending
     })
 })
