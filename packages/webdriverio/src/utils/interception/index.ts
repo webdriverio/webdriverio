@@ -149,6 +149,7 @@ export default class WebDriverInterception {
     #isCollectingNetworkData: boolean
     #hasOneResponseCollected = false
     #blockedRequests = new Set<string>()
+    #requestsRespondedWithoutFetch = new Set<string>()
 
     constructor(
         pattern: URLPattern,
@@ -335,6 +336,21 @@ export default class WebDriverInterception {
         return this.#continueBeforeRequestSent(request)
     }
 
+    /**
+     * `fetchResponse: false` answers before a response exists. Callbacks are
+     * typed to receive one, so give them the status this mock sends by default.
+     * A callback can still replace that status.
+     */
+    #eventForEarlyResponse(request: local.NetworkBeforeRequestSentParameters) {
+        return {
+            ...request,
+            response: {
+                status: 200,
+                headers: []
+            }
+        }
+    }
+
     async #handleBeforeRequestSentWithPostData(request: local.NetworkBeforeRequestSentParameters) {
         await this.#populateRequestPostData(request)
         /**
@@ -364,9 +380,14 @@ export default class WebDriverInterception {
 
         const requestId = request.request.request
         this.#emit('request', request)
-        const hasRequestOverwrites = this.#requestOverwrites.length > 0
-        if (hasRequestOverwrites) {
-            const { overwrite, abort } = this.#requestOverwrites[0].once
+
+        /**
+         * `abort()` fails the request before a response exists. An early mock
+         * response must not skip that, or an `abortOnce()` would stay queued
+         * and the request would succeed.
+         */
+        if (this.#requestOverwrites[0]?.abort) {
+            const { abort } = this.#requestOverwrites[0].once
                 ? this.#requestOverwrites.shift() || {}
                 : this.#requestOverwrites[0]
 
@@ -377,6 +398,65 @@ export default class WebDriverInterception {
                     this.#browser.networkFailRequest({ request: requestId })
                 ))
             }
+        }
+
+        const responseOverwrite = this.#respondOverwrites[0]
+        /**
+         * `fetchResponse: false` answers here and does not continue the request.
+         * `respond()` rejects this option when the mock filters on the response,
+         * because that filter can only be decided by calling the backend.
+         */
+        if (
+            responseOverwrite?.overwrite &&
+            'fetchResponse' in responseOverwrite.overwrite &&
+            responseOverwrite.overwrite.fetchResponse === false
+        ) {
+            const { overwrite } = responseOverwrite.once
+                ? this.#respondOverwrites.shift() || {}
+                : responseOverwrite
+
+            if (!overwrite) {
+                return
+            }
+
+            this.#emit('overwrite', request)
+            try {
+                const responseData = parseOverwrite(
+                    overwrite as RespondWithOptions,
+                    this.#eventForEarlyResponse(request)
+                )
+                if (responseData.body) {
+                    this.#overwrittenResponseBodies.set(requestId, responseData.body)
+                }
+                this.#requestsRespondedWithoutFetch.add(requestId)
+                return this.#withBlockedRequestTracking(
+                    requestId,
+                    this.#browser.networkProvideResponse({
+                        request: requestId,
+                        statusCode: 200,
+                        ...responseData
+                    }).catch((err) => {
+                        this.#requestsRespondedWithoutFetch.delete(requestId)
+                        return this.#handleNetworkProvideResponseError(err)
+                    })
+                )
+            } catch (err) {
+                this.#requestsRespondedWithoutFetch.delete(requestId)
+                log.error(`Failed to apply mock.respond() overwrite: ${(err as Error).message}`)
+                return this.#withBlockedRequestTracking(
+                    requestId,
+                    this.#browser.networkFailRequest({
+                        request: requestId
+                    }).catch(this.#handleNetworkProvideResponseError)
+                )
+            }
+        }
+
+        const hasRequestOverwrites = this.#requestOverwrites.length > 0
+        if (hasRequestOverwrites) {
+            const { overwrite } = this.#requestOverwrites[0].once
+                ? this.#requestOverwrites.shift() || {}
+                : this.#requestOverwrites[0]
 
             this.#emit('overwrite', request)
             return this.#release(request, true, () => this.#withBlockedRequestTracking(
@@ -436,6 +516,15 @@ export default class WebDriverInterception {
              * resolve correctly
              */
             this.#calls.push(request)
+        }
+
+        /**
+         * A response provided during `beforeRequestSent` still causes Chrome to
+         * emit `responseStarted`, but there is no longer a paused request to
+         * release at this phase.
+         */
+        if (this.#requestsRespondedWithoutFetch.delete(request.request.request)) {
+            return
         }
 
         /**
@@ -768,6 +857,7 @@ export default class WebDriverInterception {
         this.#requestPostData.clear()
         this.#hasOneResponseCollected = false
         this.#blockedRequests.clear()
+        this.#requestsRespondedWithoutFetch.clear()
         return this
     }
 
@@ -852,6 +942,7 @@ export default class WebDriverInterception {
      */
     respond(payload: RespondBody, params: Omit<RespondWithOptions, 'body'> = {}, once?: boolean) {
         this.#ensureNotRestored()
+        this.#assertCanSkipFetch(params)
         const body = typeof payload === 'function'
             ? (request: local.NetworkResponseCompletedParameters) => toNetworkBody(payload(request))
             : toNetworkBody(payload)
@@ -919,6 +1010,28 @@ export default class WebDriverInterception {
         if (this.#restored) {
             throw new Error('This can\'t be done on restored mock')
         }
+    }
+
+    /**
+     * A status or response-header filter matches the backend response.
+     * `fetchResponse: false` never calls the backend, so the filter cannot
+     * be decided and must not be silently ignored or bypassed by fetching.
+     */
+    #assertCanSkipFetch(params: Omit<RespondWithOptions, 'body'>) {
+        if (params.fetchResponse !== false) {
+            return
+        }
+
+        const filtersOnResponse = this.#filterOptions.statusCode !== undefined ||
+            this.#filterOptions.responseHeaders !== undefined
+        if (!filtersOnResponse) {
+            return
+        }
+
+        throw new Error(
+            'fetchResponse: false cannot be used when the mock filters on statusCode or responseHeaders. ' +
+            'Those filters need the backend response, and this option does not call the backend.'
+        )
     }
 
     /**

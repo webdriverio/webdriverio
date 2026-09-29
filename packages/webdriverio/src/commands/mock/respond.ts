@@ -49,7 +49,7 @@
  * @param {MockResponseParams=} params                  additional respond parameters to overwrite
  * @param {Object=}             params.header           overwrite specific headers
  * @param {Number=}             params.statusCode       overwrite response status code
- * @param {Boolean=}            params.fetchResponse    fetch real response before responding with mocked data
+ * @param {Boolean=}            params.fetchResponse    fetch the real response before responding. `false` skips the backend and throws when the mock filters on `statusCode` or `responseHeaders`
  * @skipAwait
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception

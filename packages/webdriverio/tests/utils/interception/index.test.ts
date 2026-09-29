@@ -62,6 +62,17 @@ describe('WebDriverInterception', () => {
         isBlocked: true
     } satisfies Partial<local.NetworkResponseStartedParameters> as local.NetworkResponseStartedParameters)
 
+    const getBlockedRequestStub = (requestId = 'req-123') => ({
+        isBlocked: true,
+        intercepts: ['mock-id'],
+        request: {
+            request: requestId,
+            url: 'http://test.com/api',
+            method: 'GET',
+            headers: []
+        }
+    })
+
     beforeEach(() => {
         vi.clearAllMocks()
     })
@@ -277,6 +288,162 @@ describe('WebDriverInterception', () => {
                 type: 'base64',
                 value: Buffer.from(JSON.stringify(binaryBody)).toString('base64')
             }
+        })
+    })
+
+    it('should respond without fetching when fetchResponse is false', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response', { fetchResponse: false })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+
+        vi.mocked(browser.networkProvideResponse).mockClear()
+        browser.emit('network.responseStarted', {
+            ...getBlockedRequestStub(),
+            response: {
+                status: 200,
+                headers: []
+            }
+        })
+
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+        expect(mock.calls).toHaveLength(1)
+    })
+
+    it('should fetch the backend by default', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).toHaveBeenCalledWith({
+            request: 'req-123'
+        })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('should expose a binary response when fetchResponse is false', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        const binaryData = Buffer.from('binary data')
+
+        mock.respond(binaryData, { fetchResponse: false })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(mock.getBinaryResponse('req-123')).toEqual(binaryData)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: {
+                type: 'base64',
+                value: binaryData.toString('base64')
+            }
+        })
+    })
+
+    it('should only respond once without fetching when respondOnce is used', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respondOnce('mocked response', { fetchResponse: false })
+
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-1'))
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-1',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+
+        vi.mocked(browser.networkProvideResponse).mockClear()
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-2'))
+
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+        expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-2' })
+    })
+
+    it('should abort before answering with fetchResponse false', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.abortOnce()
+        mock.respond('mocked response', { fetchResponse: false })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-1'))
+
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-1' })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+
+        vi.mocked(browser.networkFailRequest).mockClear()
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-2'))
+
+        expect(browser.networkFailRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-2',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+    })
+
+    it('should reject fetchResponse false when the mock filters on the response', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', { statusCode: 404 }, browser)
+
+        expect(() => mock.respond('missing', { fetchResponse: false }))
+            .toThrow(/fetchResponse: false cannot be used when the mock filters on statusCode or responseHeaders/)
+        expect(() => mock.respondOnce('missing', { fetchResponse: false }))
+            .toThrow(/fetchResponse: false cannot be used when the mock filters on statusCode or responseHeaders/)
+    })
+
+    it('should reject fetchResponse false when the mock filters on response headers', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {
+            responseHeaders: (headers) => headers['x-mock'] === 'yes'
+        }, browser)
+
+        expect(() => mock.respond('header match', { fetchResponse: false }))
+            .toThrow(/fetchResponse: false cannot be used when the mock filters on statusCode or responseHeaders/)
+    })
+
+    it('should still skip the backend when fetchResponse is false and the mock filters on the request', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {
+            method: 'GET'
+        }, browser)
+
+        mock.respond('mocked response', { fetchResponse: false })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+    })
+
+    it('should let a fetchResponse callback read a response', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response', {
+            fetchResponse: false,
+            statusCode: (event) => event.response.status
+        })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkFailRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
         })
     })
 
