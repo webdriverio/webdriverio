@@ -1,60 +1,50 @@
 import type { ChildProcess } from 'node:child_process'
-import { expect, test, vi } from 'vitest'
+import { expect, test, vi, afterEach } from 'vitest'
 
 import ReplQueue from '../src/replQueue.js'
+import WDIORunnerRepl from '../src/repl.js'
 
-test('add', () => {
-    const queue = new ReplQueue()
-    queue.add(1 as unknown as ChildProcess, 2, 3 as unknown as Function, 4 as unknown as Function)
-    queue.add(5 as unknown as ChildProcess, 6, 7 as unknown as Function, 8 as unknown as Function)
-    expect(queue['_repls']).toEqual([
-        { childProcess: 1, options: 2, onStart: 3, onEnd: 4 },
-        { childProcess: 5, options: 6, onStart: 7, onEnd: 8 }
-    ] as any)
+afterEach(() => {
+    vi.restoreAllMocks()
 })
 
-test('isRunning', () => {
+test('runs debug sessions one at a time', async () => {
+    const start = vi.spyOn(WDIORunnerRepl.prototype, 'start').mockResolvedValue(undefined as never)
     const queue = new ReplQueue()
-    expect(queue.isRunning).toBe(false)
-    queue.runningRepl = true as any
-    expect(queue.isRunning).toBe(true)
-})
-
-test.skip('next', async () => {
-    const queue = new ReplQueue()
-    const startFn = vi.fn()
-    const endFn = vi.fn()
-    const startFn2 = vi.fn()
-    const endFn2 = vi.fn()
+    const onStart = vi.fn()
+    const onEnd = vi.fn()
+    const onStart2 = vi.fn()
+    const onEnd2 = vi.fn()
     const childProcess = { send: vi.fn() } as unknown as ChildProcess
     const childProcess2 = { send: vi.fn() } as unknown as ChildProcess
-    queue.add(childProcess, { some: 'option' }, startFn, endFn)
-    queue.add(childProcess2, { some: 'option' }, startFn2, endFn2)
-    queue.next()
 
-    expect(startFn).toHaveBeenCalledTimes(1)
+    queue.add(childProcess, { prompt: 'a' } as any, onStart, onEnd)
+    queue.add(childProcess2, { prompt: 'b' } as any, onStart2, onEnd2)
+
+    expect(queue.isRunning).toBe(false)
+    queue.next()
+    expect(queue.runningRepl?.childProcess).toBe(childProcess)
+    expect(onStart).toHaveBeenCalledTimes(1)
+    expect(onStart2).not.toHaveBeenCalled()
+    expect(queue.isRunning).toBe(true)
+    expect(start).toHaveBeenCalledTimes(1)
+
+    queue.next()
+    expect(onStart2).not.toHaveBeenCalled()
+
+    await Promise.resolve()
+    expect(childProcess.send).toHaveBeenCalledWith({ origin: 'debugger', name: 'stop' })
+    expect(onEnd).toHaveBeenCalledWith({ origin: 'debugger', name: 'stop' })
+    expect(onStart2).toHaveBeenCalledTimes(1)
+    expect(queue.runningRepl?.childProcess).toBe(childProcess2)
+    expect(onEnd2).not.toHaveBeenCalled()
     expect(queue.isRunning).toBe(true)
 
-    queue.next()
-    expect(startFn2).toHaveBeenCalledTimes(0)
-
-    // wait 100ms to let repl finish (see mock)
-    await new Promise((resolve) => setTimeout(resolve, 100))
-    expect(childProcess.send).toHaveBeenCalledWith({
-        origin: 'debugger',
-        name: 'stop'
-    })
-    expect(endFn).toHaveBeenCalledTimes(1)
-    expect(startFn2).toHaveBeenCalledTimes(1)
-    expect(endFn2).toHaveBeenCalledTimes(0)
-
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await Promise.resolve()
+    expect(childProcess2.send).toHaveBeenCalledWith({ origin: 'debugger', name: 'stop' })
+    expect(onEnd2).toHaveBeenCalledTimes(1)
     expect(queue.isRunning).toBe(false)
 
-    /**
-     * should not continue if repl is undefined
-     */
-    queue['_repls'].push(undefined as any)
-    delete queue.runningRepl
     queue.next()
+    expect(start).toHaveBeenCalledTimes(2)
 })
