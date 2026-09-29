@@ -1,6 +1,6 @@
 # Session demos
 
-Short `wdio session` demos for a browser, a phone page, a native Android app and an Electron window. The walkthrough, with every command, is [Session demos](https://webdriver.io/docs/session/demos) (`website/docs/session/demos.md`).
+Short `wdio session` demos for a browser, a phone page, a native Android app and an Electron window. The walkthrough is [Session targets](https://webdriver.io/docs/session/targets) (`website/docs/session/targets.md`).
 
 From the repository root:
 

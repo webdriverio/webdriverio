@@ -49,7 +49,8 @@
         { "source": "/docs/api/browser/executeAsync", "destination": "/docs/api/browser/execute", "permanent": true },
         { "source": "/docs/api/element/executeAsync", "destination": "/docs/api/element/execute", "permanent": true },
         { "source": "/docs/api/mjsonwp", "destination": "/docs/api/appium", "permanent": true },
-        { "source": "/docs/headless-and-xvfb", "destination": "/docs/headless-and-display-servers", "permanent": true }
+        { "source": "/docs/headless-and-xvfb", "destination": "/docs/headless-and-display-servers", "permanent": true },
+        { "source": "/docs/session/demos", "destination": "/docs/session/targets", "permanent": true }
     ],
     "headers": [
         {

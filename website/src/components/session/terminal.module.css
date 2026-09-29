@@ -33,6 +33,45 @@
     font-style: normal;
 }
 
+.controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.controls button {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 22px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #c8c8d0;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.controls button:hover:not(:disabled) {
+    background: #2a2a32;
+    color: #fff;
+}
+
+.controls button:focus-visible {
+    outline: 2px solid var(--ifm-color-primary);
+    outline-offset: 1px;
+}
+
+.controls button:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
 .body {
     flex: 1;
     min-height: 0;
