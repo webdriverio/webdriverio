@@ -144,6 +144,31 @@ function executeSource (source: string) {
     return `await browser.execute(${JSON.stringify(source)})`
 }
 
+function preloadSource (source: string) {
+    return `await browser.sendCommand('Page.addScriptToEvaluateOnNewDocument', { source: ${JSON.stringify(source)} })`
+}
+
+type PermissionSetting = 'granted' | 'denied' | 'prompt'
+
+/**
+ * Read the origin's geolocation permission before this command grants it.
+ * Reset puts that value back. Guessing `prompt`, or resetting every origin,
+ * would change a permission the test had already set.
+ */
+async function readGeolocationPermission (browser: WebdriverIO.Browser): Promise<PermissionSetting | undefined> {
+    const state = await browser.execute(() => {
+        const query = navigator.permissions?.query?.bind(navigator.permissions)
+        if (!query) {
+            return Promise.resolve('')
+        }
+        return query({ name: 'geolocation' }).then((status) => status.state).catch(() => '')
+    }).catch(() => '')
+    if (state === 'granted' || state === 'denied' || state === 'prompt') {
+        return state
+    }
+    return undefined
+}
+
 async function preload (browser: WebdriverIO.Browser, source: string) {
     const added = await browser.sendCommand('Page.addScriptToEvaluateOnNewDocument', { source }).catch(() => undefined) as { identifier?: string } | undefined
     return added?.identifier
@@ -181,6 +206,7 @@ async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude
     } catch {
         origin = ''
     }
+    const previous = origin ? await readGeolocationPermission(browser) : undefined
     if (origin) {
         await browser.sendCommand('Browser.grantPermissions', { origin, permissions: ['geolocation'] }).catch(() => {})
     }
@@ -189,15 +215,12 @@ async function installClassicGeolocation (browser: WebdriverIO.Browser, latitude
     return async () => {
         await dropPreload(browser, identifier)
         await browser.sendCommand('Emulation.clearGeolocationOverride', {}).catch(() => {})
-        if (origin) {
-            const prompted = await browser.sendCommand('Browser.setPermission', {
+        if (origin && previous) {
+            await browser.sendCommand('Browser.setPermission', {
                 permission: { name: 'geolocation' },
-                setting: 'prompt',
+                setting: previous,
                 origin
-            }).then(() => true, () => false)
-            if (!prompted) {
-                await browser.sendCommand('Browser.resetPermissions', {}).catch(() => {})
-            }
+            }).catch(() => {})
         }
         await browser.execute(`(() => {
             const desc = Object.getOwnPropertyDescriptor(navigator, 'geolocation');
@@ -340,7 +363,14 @@ export const emulate: ActionFn = async (session, args) => {
                     await browser.execute(CLOCK_RESTORE_SOURCE)
                 }
             })
-            return done(`Clock set to ${now.toISOString()}`, executeSource(source))
+            const shown = executeSource(source)
+            return {
+                text: `Clock set to ${now.toISOString()}`,
+                code: shown,
+                // The page script alone is gone after a reload. The exported
+                // step also installs it for the next document.
+                history: [preloadSource(source), shown].join('\n')
+            }
         }
         // Chromium's BiDi clock installs fake timers. That bundle calls
         // `require` in current Chrome, and the init script it leaves behind
@@ -444,7 +474,7 @@ export const geolocation: ActionFn = async (session, args) => {
             // also installs the page script for this document and the next one.
             history: [
                 shown,
-                `await browser.sendCommand('Page.addScriptToEvaluateOnNewDocument', { source: ${JSON.stringify(source)} })`,
+                preloadSource(source),
                 executeSource(source)
             ].join('\n')
         }
