@@ -191,19 +191,14 @@ describe('optional dependencies', () => {
         })
 
         it('uses the user agent and defaults to npm', () => {
-            const isolated = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-pm-'))
-            try {
-                const hasLockfileAbove = ['pnpm-lock.yaml', 'yarn.lock', 'package-lock.json', 'bun.lock', 'package.json']
-                    .some((f) => fs.existsSync(path.join(path.dirname(isolated), f)))
-                if (hasLockfileAbove) {
-                    return
-                }
-                expect(detectPackageManager(isolated, { npm_config_user_agent: 'yarn/4.0.0 npm/? node/v22' })).toBe('yarn')
-                expect(detectPackageManager(isolated, { npm_config_user_agent: 'bun/1.1.0' })).toBe('bun')
-                expect(detectPackageManager(isolated, {})).toBe('npm')
-            } finally {
-                fs.rmSync(isolated, { recursive: true, force: true })
-            }
+            /**
+             * The walk stops at the filesystem root. A temp directory under the
+             * repo would find this package's lockfile and never reach the agent.
+             */
+            const root = path.parse(process.cwd()).root
+            expect(detectPackageManager(root, { npm_config_user_agent: 'yarn/4.0.0 npm/? node/v22' })).toBe('yarn')
+            expect(detectPackageManager(root, { npm_config_user_agent: 'bun/1.1.0' })).toBe('bun')
+            expect(detectPackageManager(root, {})).toBe('npm')
         })
     })
 
