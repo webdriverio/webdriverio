@@ -1,5 +1,23 @@
 import fs from 'node:fs/promises'
+import { polyfillPath } from 'modern-node-polyfills'
 import type { Plugin, PluginBuild } from 'esbuild'
+
+/**
+ * Vite plugins do not run when dependencies are pre-bundled, so `path` there
+ * is Vite's empty browser stub. jest-message-util >= 30.5 (used by `expect`)
+ * calls `path.resolve()` when it loads, so give it the real polyfill.
+ */
+export function pathPolyfill () {
+    return <Plugin>{
+        name: 'wdio:pathPolyfill',
+        setup (build: PluginBuild) {
+            build.onResolve(
+                { filter: /^(node:)?path$/ },
+                async () => ({ path: await polyfillPath('path') })
+            )
+        }
+    }
+}
 
 export function codeFrameFix () {
     return <Plugin>{
