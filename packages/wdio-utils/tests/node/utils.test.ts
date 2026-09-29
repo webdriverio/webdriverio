@@ -74,7 +74,7 @@ vi.mock('edgedriver', () => ({
 }))
 
 vi.mock('@puppeteer/browsers', () => ({
-    Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium' },
+    Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium', CHROMEDRIVER: 'chrome' },
     ChromeReleaseChannel: { STABLE: 'stable' },
     detectBrowserPlatform: vi.fn(),
     resolveBuildId: vi.fn().mockReturnValue('116.0.5845.110'),
