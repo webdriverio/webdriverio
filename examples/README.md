@@ -12,14 +12,6 @@ pnpm run setup
 
 Then just follow the instructions and test it out. Have fun!
 
-# Session demos
-
-[examples/session](./session) documents how the [Session targets](https://webdriver.io/docs/session/targets) demos drove the [WebdriverIO native demo app](https://github.com/webdriverio/native-demo-app) in a browser, on Android and in Electron. The app itself is not vendored here.
-
-> **Note**
-
-> The examples don't have any `dev-dependencies`. Use one of the [boilerplates](https://webdriver.io/docs/boilerplates) to set up you project including the `dev-dependencies` and integrate the examples in that project.
-
 # Cloudservices
 
 Shows you how to use WebdriverIO using Sauce Labs, Browserstack, Testingbot or Kobiton. To run those tests make sure you have your credentials stored in your environment. Then change directory to the example folder:
