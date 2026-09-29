@@ -46,7 +46,6 @@ describe('WebDriverResponseError', () => {
         expect(error.name).toBe('stale element reference')
         expect(error.message).toBe('WebDriverError: stale element reference when running "url" with method "POST"')
         expect(error.stack).toMatch('stale element reference')
-        expect(error.stack).toMatch('stale element reference')
     })
 
     it('captures errors with message', () => {
@@ -136,21 +135,19 @@ describe('WebDriverResponseError', () => {
         )
     })
 
-    it('command args with base64 script', async () => {
+    it('uses a string returned by transformCommandLogResult as command args', () => {
         (transformCommandLogResult as MockedFunction<any>).mockReturnValueOnce('"<Script[base64]>"')
-
-        const cmdArgs = { script: Buffer.from('script').toString('base64') }
-        const reqOpts = { body: cmdArgs, method: 'POST' }
 
         const timeoutErr = new WebDriverResponseError(
             { body: { message: 'Timeout' } } as any,
             new URL('https://localhost:4445/default/method'),
-            reqOpts as any
+            { body: { script: 'ignored-by-helper' }, method: 'POST' } as any
         )
 
         expect(timeoutErr.message).toEqual(
             expect.stringMatching(/when running .+ with method .+ and args "<Script\[base64\]>"/)
         )
+        expect(transformCommandLogResult).toHaveBeenCalledWith({ script: 'ignored-by-helper' })
     })
 
     it('command args with function script without extra wrapper', async () => {
@@ -167,22 +164,6 @@ describe('WebDriverResponseError', () => {
         )
     })
 
-    it('command args with base64 screenshot', async () => {
-        (transformCommandLogResult as MockedFunction<any>).mockReturnValueOnce('"<Screenshot[base64]>"')
-
-        const cmdArgs = { file: Buffer.from('screen').toString('base64') }
-        const reqOpts = { body: cmdArgs, method: 'POST' }
-
-        const timeoutErr = new WebDriverResponseError(
-            { body: { message: 'Timeout' } } as any,
-            new URL('https://localhost:4445/default/method'),
-            reqOpts as any
-        )
-
-        expect(timeoutErr.message).toEqual(
-            expect.stringMatching(/when running .+ with method .+ and args "<Screenshot\[base64\]>"/)
-        )
-    })
 })
 
 describe('WebDriverRequestError', () => {
