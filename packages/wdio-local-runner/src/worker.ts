@@ -44,6 +44,135 @@ function getExitCodeForSignal (signal: NodeJS.Signals | null) {
 }
 
 /**
+ * Flags whose next token is the operand (`--import tsx`, `--require "./my modules/a.js"`,
+ * `--max-old-space-size 2048`). `--max-old-space-size=4096` stays one token.
+ */
+const NODE_OPTIONS_WITH_VALUE = new Set([
+    '-r',
+    '--require',
+    '--import',
+    '--experimental-loader',
+    '--loader',
+    '--conditions',
+    '-C',
+    '--max-old-space-size',
+    '--max-semi-space-size',
+])
+
+/**
+ * These may appear more than once. A runner value adds to the parent list.
+ * `--max-old-space-size` is not here: the runner value replaces the parent one,
+ * including a value that was a separate token.
+ */
+const REPEATABLE_NODE_OPTIONS = new Set([
+    '-r',
+    '--require',
+    '--import',
+    '--experimental-loader',
+    '--loader',
+    '--conditions',
+    '-C',
+])
+
+function nodeOptionName (group: string) {
+    return group.split(' ')[0].split('=')[0]
+}
+
+/**
+ * Split on whitespace, but keep a quoted operand intact. `--require "./my modules/a.js"`
+ * is two tokens, and the path stays quoted so joining the result does not break it.
+ * A backslash inside quotes is an escape, so `\"` does not end the string.
+ */
+function tokenizeNodeOptions (value: string) {
+    const tokens: string[] = []
+    let current = ''
+    let quote: '"' | "'" | undefined
+    const push = () => {
+        if (current) {
+            tokens.push(current)
+            current = ''
+        }
+    }
+    for (let i = 0; i < value.length; i++) {
+        const char = value[i]
+        if (quote) {
+            if (char === '\\' && i + 1 < value.length) {
+                current += char + value[i + 1]
+                i++
+                continue
+            }
+            current += char
+            if (char === quote) {
+                quote = undefined
+            }
+            continue
+        }
+        if (char === '"' || char === "'") {
+            quote = char
+            current += char
+            continue
+        }
+        if (/\s/.test(char)) {
+            push()
+            continue
+        }
+        current += char
+    }
+    push()
+    return tokens
+}
+
+function parseNodeOptionGroups (value: string) {
+    const parts = tokenizeNodeOptions(value)
+    const groups: string[] = []
+    for (let i = 0; i < parts.length; i++) {
+        const token = parts[i]
+        const name = token.split('=')[0]
+        const next = parts[i + 1]
+        if (!token.includes('=') && NODE_OPTIONS_WITH_VALUE.has(name) && next && !next.startsWith('-')) {
+            groups.push(`${token} ${next}`)
+            i++
+            continue
+        }
+        groups.push(token)
+    }
+    return groups
+}
+
+/**
+ * Keep parent flags (including the launcher's `--import tsx`) and append
+ * `config.runnerEnv.NODE_OPTIONS`. Repeatable flags (`--import`, `--require`,
+ * `--conditions`) are unioned, so a runner value that merely contains the parent
+ * text cannot drop them. A runner flag replaces the parent value when both set
+ * the same non-repeatable option, including a value that follows the flag.
+ */
+function mergeWorkerNodeOptions (parent: string, runner: string | undefined) {
+    const merged = parseNodeOptionGroups(parent)
+    if (typeof runner !== 'string') {
+        return merged.join(' ')
+    }
+
+    for (const group of parseNodeOptionGroups(runner)) {
+        const name = nodeOptionName(group)
+        if (REPEATABLE_NODE_OPTIONS.has(name)) {
+            if (!merged.includes(group)) {
+                merged.push(group)
+            }
+            continue
+        }
+
+        const existing = merged.findIndex((item) => nodeOptionName(item) === name)
+        if (existing === -1) {
+            merged.push(group)
+        } else {
+            merged[existing] = group
+        }
+    }
+
+    return merged.join(' ')
+}
+
+/**
  * WorkerInstance
  * responsible for spawning a sub process to run the framework in and handle its
  * session lifetime.
@@ -115,13 +244,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
-        const runnerEnv = Object.assign({
-            /**
-             * Source maps help debug stack traces but add worker boot cost.
-             * Enable them for verbose logging or when the user opts in.
-             */
-            ...(this.shouldEnableSourceMaps() ? { NODE_OPTIONS: '--enable-source-maps' } : {}),
-        }, process.env, this.config.runnerEnv, {
+        const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
             WDIO_WORKER_ID: cid,
             NODE_ENV: process.env.NODE_ENV || 'test'
         })
@@ -136,9 +259,28 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         /**
-         * propagate node flags to child process, e.g. `--import tsx`
+         * Propagate node flags to the worker, e.g. `--import tsx`.
+         * `Object.assign` lets `config.runnerEnv.NODE_OPTIONS` replace the
+         * parent value, which would drop the loader the launcher added for
+         * TypeScript. Merge the two instead. Append `--enable-source-maps` as
+         * a whole token only when this worker should map stack traces and the
+         * flag is not already present. Never concatenate an unset parent:
+         * that leaked the string `"undefined"`.
          */
-        runnerEnv.NODE_OPTIONS = process.env.NODE_OPTIONS + ' ' + (runnerEnv.NODE_OPTIONS || '')
+        const runnerOverride = this.config.runnerEnv?.NODE_OPTIONS
+        const nodeOptions = mergeWorkerNodeOptions(
+            process.env.NODE_OPTIONS ?? '',
+            typeof runnerOverride === 'string' ? runnerOverride : undefined
+        )
+        const hasSourceMaps = nodeOptions.split(' ').includes('--enable-source-maps')
+        const merged = this.shouldEnableSourceMaps() && !hasSourceMaps
+            ? `${nodeOptions} --enable-source-maps`.trim()
+            : nodeOptions
+        if (merged) {
+            runnerEnv.NODE_OPTIONS = merged
+        } else {
+            delete runnerEnv.NODE_OPTIONS
+        }
 
         log.info(`Start worker ${cid} with arg: ${argv.join(' ')}`)
 
