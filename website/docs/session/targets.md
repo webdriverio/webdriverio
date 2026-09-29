@@ -6,7 +6,7 @@ description: Open a browser, mobile app, desktop app, Electron app or a cloud de
 
 `wdio session open` starts the session. The first argument is the target. Reuse the `default` session. Pass `-s <name>` only when you need two sessions at once. Run `npx wdio session doctor <target>` first when the target needs Appium, a desktop driver or cloud credentials.
 
-The Chrome, Android and Electron players drive the same [WebdriverIO demo app](https://github.com/webdriverio/native-demo-app) (the Expo guinea pig). Chrome and Electron use a local Expo web server in a normal desktop window. Android installs the v2.2.0 release apk (`com.wdiodemoapp`). iOS installs the v2.2.0 simulator app (`org.wdiodemoapp`) and uses `touchId`. Each player types the command, then the window shows the result. Pause, or step to the previous or next command, to read the line that changed the window. How that app was started, including the web and Electron layout, is in [`examples/session`](https://github.com/webdriverio/webdriverio/tree/main/examples/session).
+The Chrome, Android and Electron players drive the same [WebdriverIO demo app](https://github.com/webdriverio/native-demo-app) (the Expo guinea pig, tag `v2.2.0`). Chrome and Electron use a local Expo web server in a normal desktop window. Android installs the [v2.2.0 release apk](https://github.com/webdriverio/native-demo-app/releases/download/v2.2.0/android.wdio.native.app.v2.2.0.apk) (`com.wdiodemoapp`). iOS installs the v2.2.0 simulator app (`org.wdiodemoapp`) and uses `touchId`. Each player types the command, then the window shows the result. Pause, or step to the previous or next command, to read the line that changed the window.
 
 The shared path is: open the app, log in as `alice@webdriver.io` / `supersecret`, reach the robot logo ("You found me!!!"), then finish the 9-piece puzzle. Chrome and Electron also set a location and a night clock on the Weather view, open the in-app WebView of the WebdriverIO frontpage, and drag the carousel. The Android player scrolls the native swipe screen to that robot. `export` writes a Mocha spec of whichever session you just drove.
 
@@ -27,7 +27,7 @@ A headed Chrome window keeps its tab strip and address bar, which is how you tel
 
 Weather reads `navigator.geolocation` and `Date`. `geolocation 35.6762 139.6503` is Tokyo. It applies on the next load, so run `reload` before `click "aria/Weather"`. The widget then shows Tokyo, 21° and rain. `emulate clock 2026-06-21T23:30:00Z` switches the same card from a day sky to a night sky and sets the clock to 11:30 PM. A second `emulate clock` replaces the first.
 
-The WebView tab loads `https://webdriver.io/` inside the app. Login waits about 1.5 seconds, then opens a dialog whose text is `Success` and `You are logged in!`. The LOGIN button stays a 200×50 orange control while that wait is on screen. `dialog accept` closes the dialog. `swipe` is mobile-only. Drag `[data-testid=Carousel]` onto `aria/Next card` twice to page the carousel. The web patch listens on `document`: the drag starts on the carousel and the pointer may be released on `Next card`. `scroll down --px 560` brings the WebdriverIO robot into view. The caption under it is "You found me!!!". The puzzle pieces are `aria/drag-l2` through `aria/drag-l3`, dropped on the matching `aria/drop-…` target. The tray order is `l2`, `r3`, `r1`, `c1`, `c3`, `r2`, `c2`, `l1`, `l3`.
+The WebView tab loads `https://webdriver.io/` inside the app. Login waits about 1.5 seconds, then opens a dialog whose text is `Success` and `You are logged in!`. The LOGIN button stays a 200×50 orange control while that wait is on screen. `dialog accept` closes the dialog. `swipe` is mobile-only. Drag `[data-testid=Carousel]` onto `aria/Next card` twice to page the carousel. The recorded web build listens for `pointerup` on `document`, so the drag can start on the carousel and the pointer can be released on `Next card`, which sits outside the carousel. `scroll down --px 560` brings the WebdriverIO robot into view. The caption under it is "You found me!!!". The puzzle pieces are `aria/drag-l2` through `aria/drag-l3`, dropped on the matching `aria/drop-…` target. The tray order is `l2`, `r3`, `r1`, `c1`, `c3`, `r2`, `c2`, `l1`, `l3`.
 
 ```sh
 npx wdio session open chrome http://127.0.0.1:8081 --headed --viewport 1280x800
@@ -76,7 +76,15 @@ iOS: `open ios --bundle-id com.example.shop`. An installed Android package uses 
 
 ### Native demo app
 
-On an emulator or a device the same guinea pig is the v2.2.0 apk. `open` waits up to eight minutes. UiAutomator2 installs a server and starts instrumentation before the app is usable, and that is slower than launching a browser. The first request is not retried: a retry starts a second Appium session on the same device while the first is still installing. `tap "~Login"`, `fill`, then `tap "~button-LOGIN"` logs in with the same email and password. On a short screen the LOGIN button sits below the fold, so scroll the `~Login-screen` before that tap. `dialog accept` closes the success alert, and it has to run after that alert is on screen. The alert text is `Success` / `You are logged in!`.
+On an emulator or a device the same guinea pig is the v2.2.0 apk:
+
+```sh
+curl -fsSL -o android.wdio.native.app.v2.2.0.apk \
+    https://github.com/webdriverio/native-demo-app/releases/download/v2.2.0/android.wdio.native.app.v2.2.0.apk
+adb install -r android.wdio.native.app.v2.2.0.apk
+```
+
+`open` waits up to eight minutes. UiAutomator2 installs a server and starts instrumentation before the app is usable, and that is slower than launching a browser. The first request is not retried: a retry starts a second Appium session on the same device while the first is still installing. `tap "~Login"`, `fill`, then `tap "~button-LOGIN"` logs in with the same email and password. On a short screen the LOGIN button sits below the fold, so scroll the `~Login-screen` before that tap. `dialog accept` closes the success alert, and it has to run after that alert is on screen. The alert text is `Success` / `You are logged in!`.
 
 The fingerprint button is `~button-biometric`. It is on the login form only after a fingerprint is enrolled, so this player does not tap it. `exec -e "await browser.fingerPrint(1)"` answers the system prompt (`fingerPrint` is Android-only; there is no `wdio session` subcommand for it).
 
@@ -151,6 +159,29 @@ npx wdio session click e2
 ```
 
 `open tauri ./my-app` and `open dioxus ./my-app` need their driver on `PATH` unless the service package starts the session itself. On Linux without `DISPLAY` or `WAYLAND_DISPLAY`, install Xvfb or weston. Electron stays on the classic WebDriver protocol. Pass `--app-arg` to forward a flag to the app, including `--app-arg=--no-sandbox` when the environment requires it. A value that starts with `-` has to use `=`, because the strict parser otherwise treats it as its own option.
+
+Install `electron` and `@wdio/electron-service` in the directory you open. Size the window to the work area so a smaller display does not place the title bar off screen:
+
+```js
+import { app, BrowserWindow, screen } from 'electron'
+
+app.commandLine.appendSwitch('no-sandbox')
+
+app.whenReady().then(() => {
+    const area = screen.getPrimaryDisplay().workArea
+    const width = Math.min(1280, area.width)
+    const height = Math.min(800, area.height)
+    const win = new BrowserWindow({
+        width,
+        height,
+        x: area.x + Math.max(0, Math.round((area.width - width) / 2)),
+        y: area.y + Math.max(0, Math.round((area.height - height) / 2)),
+        autoHideMenuBar: true,
+        webPreferences: { contextIsolation: true }
+    })
+    win.loadURL('http://127.0.0.1:8081/')
+})
+```
 
 The Electron player loads the same Expo URL in a 1280×800 window with no address bar. The logo, sidebar, weather card, login card, carousel and puzzle match the browser. `-s electron` is the session name used beside the browser demo. Electron stays on the classic protocol, so `geolocation` and `emulate clock` go through Chromedriver instead of BiDi. The commands match Chrome, including `reload` before Weather, except the success dialog. On Linux, `dialog accept` accepts the native alert and the bubble stays painted. That bubble is not part of the page, so a later click cannot reach it. The recording replaces `window.alert` with an in-page dialog and runs `click "aria/OK"`. The LOGIN button stays a 200×50 orange control while it waits. The carousel, the scroll and the puzzle use the same commands as Chrome.
 
