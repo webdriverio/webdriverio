@@ -1405,6 +1405,23 @@ describe('WebDriverInterception', () => {
             }))
         })
 
+        it('does not wait on a body lookup once a cheaper filter has declined', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            vi.mocked(browser.networkGetData).mockReturnValue(new Promise(() => {}))
+            await WebDriverInterception.initiate(TARGET_URL, {
+                method: 'post',
+                postData: 'request-body'
+            }, browser)
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'put' }, browser)
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+            await flushMicrotasks()
+
+            expect(browser.networkGetData).not.toHaveBeenCalled()
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
+        })
+
         it('still continues once when a postData mock declines after the body arrives', async () => {
             const { lookup, resolveBody } = deferredRequestBody()
             const browser = getBrowserMockWithUniqueIntercepts()

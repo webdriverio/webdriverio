@@ -313,6 +313,18 @@ export default class WebDriverInterception {
         }
 
         if (this.#filterOptions.postData) {
+            /**
+             * method and request headers are known before the body. A miss there
+             * declines the request, so reading the body would only delay the
+             * release — and, when another mock is waiting on this decision, stall
+             * it for as long as `network.getData` takes.
+             */
+            if (!this.#matchesFilterOptions(request, { includePostData: false })) {
+                return this.#release(request, false, () => this.#browser.networkContinueRequest({
+                    request: request.request.request
+                }))
+            }
+
             const decision = this.#handleBeforeRequestSentWithPostData(request)
             if (isContested(request)) {
                 trackPending(request, decision)
