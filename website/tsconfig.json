@@ -19,7 +19,7 @@
       "@docusaurus/module-type-aliases",
       "@docusaurus/theme-classic"
     ],
-    "baseUrl": null,
+    "baseUrl": ".",
     "paths": {
       "@site/*": [
         "./*"
