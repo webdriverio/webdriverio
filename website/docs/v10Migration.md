@@ -188,7 +188,9 @@ Published packages set `typeScriptVersion` to 6.0.3, matching the TypeScript ver
 
 `browser.mock()` accepts the `URLPattern` of `urlpattern-polyfill` and the native `URLPattern` (global in Node.js 24, and typed by the `dom` library of TypeScript 6).
 
-TypeScript 6 deprecates `"moduleResolution": "node"` and `"baseUrl"`, and makes `strict` the default. `create-wdio` now generates `"moduleResolution": "bundler"` for ESM projects and `"NodeNext"` for CommonJS projects. If you update TypeScript in an existing project, change these options in your `tsconfig.json`:
+TypeScript 6 deprecates `"moduleResolution": "node"` and `"baseUrl"`, and makes `strict` the default. `create-wdio` now generates `"moduleResolution": "bundler"` for ESM projects and `"NodeNext"` for CommonJS projects. If you update TypeScript in an existing project, change these options in your `tsconfig.json`.
+
+For an ESM project:
 
 ```diff title="tsconfig.json"
  {
@@ -196,6 +198,19 @@ TypeScript 6 deprecates `"moduleResolution": "node"` and `"baseUrl"`, and makes 
 -        "moduleResolution": "node",
 +        "moduleResolution": "bundler",
          "module": "ESNext"
+     }
+ }
+```
+
+For a CommonJS project, use `NodeNext` for both options, as `create-wdio` does:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
+-        "moduleResolution": "node",
+-        "module": "CommonJS"
++        "moduleResolution": "NodeNext",
++        "module": "NodeNext"
      }
  }
 ```

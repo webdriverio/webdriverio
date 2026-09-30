@@ -1420,6 +1420,32 @@ describe('WebDriverInterception', () => {
 
             expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
         })
+
+        /**
+         * Node.js 24 has a global `URLPattern`. On Node.js 22 the polyfill import
+         * above installs itself as the global, so there is no native one to test.
+         */
+        const NativeURLPattern = globalThis.URLPattern
+        it.skipIf(NativeURLPattern === URLPattern)('should accept a native URLPattern', async () => {
+            const polyfillBrowser = getResponseCollectionBrowserMock()
+            await WebDriverInterception.initiate(new URLPattern({ pathname: '/api/users/*' }), {}, polyfillBrowser)
+
+            const browser = getResponseCollectionBrowserMock()
+            const mock = await WebDriverInterception.initiate(new NativeURLPattern({ pathname: '/api/users/*' }), {}, browser)
+
+            expect(browser.networkAddIntercept).toHaveBeenCalledWith(
+                vi.mocked(polyfillBrowser.networkAddIntercept).mock.calls[0][0]
+            )
+            expect(mock.isSameDefinition('/api/users/*')).toBe(true)
+            expect(mock.isSameDefinition(new URLPattern({ pathname: '/api/users/*' }))).toBe(true)
+            expect(mock.isSameDefinition(new NativeURLPattern({ pathname: '/api/users/*' }))).toBe(true)
+            expect(mock.isSameDefinition(new NativeURLPattern({ pathname: '/api/posts/*' }))).toBe(false)
+
+            mock.abort()
+            emitBlockedRequest(browser, 'https://foobar.com/api/users/123')
+
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+        })
     })
 
     /**
