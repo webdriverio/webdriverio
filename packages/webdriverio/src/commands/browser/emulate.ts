@@ -182,39 +182,70 @@ async function emulateDevice (browser: WebdriverIO.Browser, name: unknown) {
     }
 
     const contexts = await topLevelContexts(browser)
-    await Promise.all([
-        browser.emulationSetUserAgentOverride({ userAgent: device.userAgent, contexts }),
-        browser.setViewport({
-            width: device.viewport.width,
-            height: device.viewport.height,
-            devicePixelRatio: device.deviceScaleFactor
-        }),
-        browser.emulationSetTouchOverride({
-            maxTouchPoints: device.hasTouch ? 1 : null,
-            contexts
-        }),
-        browser.emulationSetTextLayoutModeOverride({
-            textLayoutMode: device.isMobile ? 'mobile' : null,
-            contexts
-        }),
-        browser.emulationSetViewportMetaOverride({
-            viewportMeta: device.isMobile ? true : null,
-            contexts
-        })
-    ])
-
     const desktop = deviceDescriptorsSource['Desktop Chrome']
-    const restore = async () => Promise.all([
-        browser.emulationSetUserAgentOverride({ userAgent: null, contexts }),
-        browser.setViewport({
-            width: desktop.viewport.width,
-            height: desktop.viewport.height,
-            devicePixelRatio: desktop.deviceScaleFactor
-        }),
-        browser.emulationSetTouchOverride({ maxTouchPoints: null, contexts }),
-        browser.emulationSetTextLayoutModeOverride({ textLayoutMode: null, contexts }),
-        browser.emulationSetViewportMetaOverride({ viewportMeta: null, contexts })
-    ])
+    const steps: Array<{ apply: () => Promise<unknown>, clear: () => Promise<unknown> }> = [
+        {
+            apply: () => browser.emulationSetUserAgentOverride({ userAgent: device.userAgent, contexts }),
+            clear: () => browser.emulationSetUserAgentOverride({ userAgent: null, contexts })
+        },
+        {
+            apply: () => browser.setViewport({
+                width: device.viewport.width,
+                height: device.viewport.height,
+                devicePixelRatio: device.deviceScaleFactor
+            }),
+            clear: () => browser.setViewport({
+                width: desktop.viewport.width,
+                height: desktop.viewport.height,
+                devicePixelRatio: desktop.deviceScaleFactor
+            })
+        },
+        {
+            apply: () => browser.emulationSetTouchOverride({
+                maxTouchPoints: device.hasTouch ? 1 : null,
+                contexts
+            }),
+            clear: () => browser.emulationSetTouchOverride({ maxTouchPoints: null, contexts })
+        },
+        {
+            apply: () => browser.emulationSetTextLayoutModeOverride({
+                textLayoutMode: device.isMobile ? 'mobile' : null,
+                contexts
+            }),
+            clear: () => browser.emulationSetTextLayoutModeOverride({ textLayoutMode: null, contexts })
+        },
+        {
+            apply: () => browser.emulationSetViewportMetaOverride({
+                viewportMeta: device.isMobile ? true : null,
+                contexts
+            }),
+            clear: () => browser.emulationSetViewportMetaOverride({ viewportMeta: null, contexts })
+        }
+    ]
+
+    /**
+     * A browser can reject a later piece (`unknown command` or
+     * `unsupported operation`). Undo what already landed so the session is
+     * not left half-emulated with no restore function.
+     */
+    const applied: typeof steps = []
+    try {
+        for (const step of steps) {
+            await step.apply()
+            applied.push(step)
+        }
+    } catch (err) {
+        for (const step of applied.reverse()) {
+            await Promise.resolve(step.clear()).catch(() => {})
+        }
+        throw err
+    }
+
+    const restore = async () => {
+        for (const step of [...steps].reverse()) {
+            await step.clear()
+        }
+    }
     storeRestoreFunction(browser, 'device', restore)
     return restore
 }
@@ -276,8 +307,10 @@ export async function emulate(scope: 'forcedColors', theme: ColorScheme): Promis
  * mobile, otherwise cleared. Screen size and orientation are not inferred from
  * the device name.
  *
- * A browser that does not implement a command rejects it with `unsupported operation`.
- * WebdriverIO does not fall back to a preload script or to CDP.
+ * A browser that does not implement a command rejects the call with its own
+ * error (`unknown command` or `unsupported operation`). WebdriverIO does not
+ * fall back to a preload script or to CDP. `device` rolls back any piece that
+ * already applied when a later piece is rejected.
  *
  * :::info
  *

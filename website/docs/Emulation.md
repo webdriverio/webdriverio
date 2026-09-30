@@ -17,7 +17,7 @@ This feature requires WebDriver Bidi support for the browser. While recent versi
 
 To enable WebDriver Bidi for your test, make sure to have `webSocketUrl: true` set in your capabilities.
 
-A browser that does not implement a command rejects it with `unsupported operation`. WebdriverIO does not fall back to a preload script or to CDP.
+A browser that does not implement a command rejects the call with its own error, `unknown command` or `unsupported operation`. WebdriverIO returns that error. It does not fall back to a preload script or to CDP.
 
 :::
 
@@ -206,6 +206,8 @@ For a device, WebdriverIO:
 - sets mobile text layout and the viewport meta tag when the descriptor is mobile, and clears them otherwise
 
 It does not invent a screen size or an orientation from the device name. Viewport is not `screen.width`. Use the `screen` and `orientation` scopes for those.
+
+If the browser rejects one of those commands, the pieces that already applied are cleared and the error is returned. The device is not left half-applied.
 
 ```ts
 const restore = await browser.emulate('device', 'iPhone 15')

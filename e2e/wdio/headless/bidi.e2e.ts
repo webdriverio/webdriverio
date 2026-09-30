@@ -515,19 +515,20 @@ describe('bidi e2e test', () => {
         describe('emulate', () => {
             const unsupported = (err: unknown) => {
                 const message = err instanceof Error ? err.message : String(err)
-                return /unsupported operation/i.test(message)
+                return /unsupported operation|unknown command/i.test(message)
             }
 
             /**
-             * Chrome, Edge and Chromium implement these commands. Another browser
-             * may reject the command, which is the contract of `emulate`: surface
-             * that error, and skip the assertion here.
+             * A browser that has not implemented the command rejects it. Chrome
+             * reports `unknown command`; another browser may report
+             * `unsupported operation`. That is the `emulate` contract, so skip
+             * the page assertion. `invalid argument` still fails the test.
              */
             async function run (this: Mocha.Context, fn: () => Promise<void>) {
                 try {
                     await fn()
                 } catch (err) {
-                    if (!browser.isChromium && unsupported(err)) {
+                    if (unsupported(err)) {
                         return this.skip()
                     }
                     throw err

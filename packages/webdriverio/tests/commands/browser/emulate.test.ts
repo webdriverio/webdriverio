@@ -321,6 +321,18 @@ describe('emulate', () => {
         expect(fakeScope.emulationSetViewportMetaOverride).toBeCalledWith({ viewportMeta: null, contexts: CONTEXTS })
     })
 
+    it('should roll back a device when a later command is rejected', async () => {
+        const fakeScope = bidiBrowser()
+        fakeScope.emulationSetViewportMetaOverride = vi.fn().mockRejectedValue(new Error('unknown command'))
+
+        await expect(fakeScope.emulate('device', 'iPhone 8')).rejects.toThrow(/unknown command/)
+        expect(fakeScope.emulationSetUserAgentOverride).toHaveBeenLastCalledWith({ userAgent: null, contexts: CONTEXTS })
+        expect(fakeScope.setViewport).toHaveBeenLastCalledWith({ width: 1280, height: 720, devicePixelRatio: 1 })
+        expect(fakeScope.emulationSetTouchOverride).toHaveBeenLastCalledWith({ maxTouchPoints: null, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetTextLayoutModeOverride).toHaveBeenLastCalledWith({ textLayoutMode: null, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetViewportMetaOverride).toHaveBeenCalledTimes(1)
+    })
+
     it('should clear touch and mobile layout for a desktop device', async () => {
         const fakeScope = bidiBrowser()
         await fakeScope.emulate('device', 'Desktop Chrome')
