@@ -16,6 +16,8 @@ export class DialogManager extends SessionManager {
     #initialize: Promise<boolean>
     #autoHandleDialog = true
 
+    #prompts = new Map<string, string>()
+
     #handleUserPromptListener = this.#handleUserPrompt.bind(this)
 
     constructor(browser: WebdriverIO.Browser) {
@@ -54,11 +56,21 @@ export class DialogManager extends SessionManager {
         return this.#initialize
     }
 
+    promptMessage (context: string): string | undefined {
+        return this.#prompts.get(context)
+    }
+
+    clearPrompt (context: string) {
+        this.#prompts.delete(context)
+    }
+
     /**
      * capture shadow root elements propagated through console.debug
      */
     async #handleUserPrompt(log: local.BrowsingContextUserPromptOpenedParameters) {
+        this.#prompts.set(log.context, log.message)
         if (this.#autoHandleDialog) {
+            this.#prompts.delete(log.context)
             try {
                 return await this.#browser.browsingContextHandleUserPrompt({
                     accept: false,

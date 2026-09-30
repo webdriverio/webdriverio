@@ -101,7 +101,7 @@ export function $$ (
     const metadata: {
         selector: Selector | ElementReference[] | WebdriverIO.Element[]
         foundWith: string
-        parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement
+        parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement | WebdriverIO.BrowsingContext
         props: unknown[]
     } = {
         selector: selector as Selector,

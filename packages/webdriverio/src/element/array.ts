@@ -21,7 +21,7 @@ interface ElementArrayMetadata {
      */
     selector?: Selector | WebdriverIO.Element[] | ElementReference[] | HTMLElement[]
     foundWith: string
-    parent?: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement
+    parent?: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement | WebdriverIO.BrowsingContext
     props: unknown[]
     isMultiRemote?: boolean
     /**

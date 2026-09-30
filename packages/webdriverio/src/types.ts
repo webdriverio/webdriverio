@@ -54,7 +54,7 @@ interface ChainablePromiseBaseElement {
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext>
     /**
      * selector used to fetch this element, can be
      * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
@@ -206,7 +206,7 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
      * Parent of the list if fetched via `$(parent).$$(child)`. Available
      * immediately, before the query resolves.
      */
-    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext
     /**
      * Command name with which this list was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`.
      * Available immediately, before the query resolves.
@@ -280,7 +280,7 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext
     /**
      * command name with which this element was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`
      */
@@ -540,7 +540,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: WebdriverIO.Element | WebdriverIO.Browser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.BrowsingContext
     /**
      * true if element is a React component
      */
@@ -717,6 +717,11 @@ export type DragAndDropOptions = {
 
 export type NewWindowOptions = {
     type?: 'tab' | 'window'
+    /**
+     * Top-level browsing context the new tab or window is opened from.
+     * A frame is rejected. BiDi only.
+     */
+    referenceContext?: string | WebdriverIO.BrowsingContext
 }
 
 export type TapOptions = MobileScrollIntoViewOptions & {
@@ -1061,5 +1066,71 @@ declare global {
          * @see https://webdriver.io/docs/api/dialog
          */
         interface Dialog extends DialogImport {}
+        /**
+         * A tab, a window, or a frame. Commands on this object send the BiDi
+         * method with `contextId` and do not move the session's current context.
+         * `parent` is absent on a top-level context. `url` is the document URL.
+         * Navigate a held context with `navigate()`. `browser.url()` navigates
+         * the session's initial top-level context and returns it.
+         */
+        interface BrowsingContext {
+            isBidi: boolean
+            isMobile: boolean
+            capabilities: WebdriverIO.Capabilities
+            sessionId: string
+            options: Browser['options']
+            strategies: Map<string, unknown>
+            $(selector: Selector, options?: ElementQueryOptions): ChainablePromiseElement
+            $$(selector: Selector): ChainablePromiseArray
+            custom$: Browser['custom$']
+            custom$$: Browser['custom$$']
+            react$: Browser['react$']
+            react$$: Browser['react$$']
+            execute: Browser['execute']
+            action: Browser['action']
+            actions: Browser['actions']
+            keys: Browser['keys']
+            scroll: Browser['scroll']
+            saveScreenshot: Browser['saveScreenshot']
+            savePDF: Browser['savePDF']
+            getCookies: Browser['getCookies']
+            setCookies: Browser['setCookies']
+            deleteCookies: Browser['deleteCookies']
+            setViewport: Browser['setViewport']
+            addInitScript: Browser['addInitScript']
+            mock: Browser['mock']
+            mockClearAll: Browser['mockClearAll']
+            mockRestoreAll: Browser['mockRestoreAll']
+            emulate: Browser['emulate']
+            restore: Browser['restore']
+            waitUntil: Browser['waitUntil']
+            pause: Browser['pause']
+            frame(target: string | Element | ChainablePromiseElement | ((context: { context: string, url: string }) => boolean | Promise<boolean>)): Promise<BrowsingContext>
+            navigate(url: string, options?: {
+                wait?: 'none' | 'interactive' | 'networkIdle' | 'complete'
+                headers?: Record<string, string>
+                auth?: { user: string, pass: string }
+                timeout?: number
+                onBeforeLoad?: Function
+            }): Promise<BrowsingContext>
+            refresh(): Promise<void>
+            closeWindow(): Promise<void>
+            activate(): Promise<void>
+            getTitle(): Promise<string>
+            getUrl(): Promise<string>
+            back(): Promise<void>
+            forward(): Promise<void>
+            acceptAlert(text?: string): Promise<void>
+            dismissAlert(): Promise<void>
+            getAlertText(): Promise<string>
+            on: Browser['on']
+            off: Browser['off']
+            once: Browser['once']
+            emit: Browser['emit']
+            removeListener: Browser['removeListener']
+            removeAllListeners: Browser['removeAllListeners']
+            addCommand(...args: unknown[]): Promise<never>
+            overwriteCommand(...args: unknown[]): Promise<never>
+        }
     }
 }

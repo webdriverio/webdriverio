@@ -1,4 +1,7 @@
 import type { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index.js'
+import type { remote } from 'webdriver'
+
+import { isBrowsingContext } from '../../session/browsingContext.js'
 
 /**
  * Allows to run multiple action interactions at once, e.g. to simulate a pinch zoom or hold a modifier key while
@@ -28,9 +31,18 @@ import type { KeyAction, PointerAction, WheelAction } from '../../utils/actions/
  *
  */
 export async function actions (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     actions: (KeyAction | PointerAction | WheelAction)[],
 ): Promise<void> {
-    await this.performActions(actions.map((action) => action.toJSON()))
+    const payload = actions.map((action) => action.toJSON())
+    if (isBrowsingContext(this)) {
+        await this.browser.inputPerformActions({
+            context: this.contextId,
+            actions: payload as remote.InputSourceActions[]
+        })
+        await this.browser.inputReleaseActions({ context: this.contextId })
+        return
+    }
+    await this.performActions(payload)
     await this.releaseActions()
 }

@@ -16,6 +16,10 @@ import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy, getAriaXPathSelector } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
+import { contextIdOf, heldBrowsingContext } from '../session/browsingContext.js'
+import { createBidiFunctionDeclaration } from './bidi/serialize.js'
+import { LocalValue } from './bidi/value.js'
+import { parseScriptResult } from './bidi/index.js'
 import { ElementArray } from '../element/array.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
@@ -413,6 +417,90 @@ async function findElementsViaClassic(
     return unique
 }
 
+/**
+ * `browsingContext.locateNodes` does not search a child frame. A classic
+ * `findElement` would search the session pointer instead, so query the frame
+ * document directly.
+ */
+async function findInFrameByScript (
+    scope: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    using: string,
+    value: string,
+    index: number | null
+): Promise<ElementReference | number | undefined> {
+    const held = heldBrowsingContext(scope)
+    if (!held?.isFrame) {
+        return undefined
+    }
+
+    /**
+     * Return one node, or a count. An array of nodes loses its browsing-context
+     * identity on the way back, so later commands reject the shared id.
+     */
+    const query = function (strategy: string, selector: string, at: number | null) {
+        const nodes = strategy === 'xpath'
+            ? (() => {
+                const snapshot = document.evaluate(selector, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+                const found: Node[] = []
+                for (let i = 0; i < snapshot.snapshotLength; i++) {
+                    const node = snapshot.snapshotItem(i)
+                    if (node) {
+                        found.push(node)
+                    }
+                }
+                return found
+            })()
+            : strategy === 'link text' || strategy === 'partial link text'
+                ? Array.from(document.querySelectorAll('a')).filter((link) => (
+                    strategy === 'link text'
+                        ? link.textContent === selector
+                        : (link.textContent || '').includes(selector)
+                ))
+                : Array.from(document.querySelectorAll(selector))
+        if (at === null) {
+            return nodes.length
+        }
+        return nodes[at] || null
+    }
+    const params: remote.ScriptCallFunctionParameters = {
+        functionDeclaration: createBidiFunctionDeclaration(query as unknown as Function),
+        awaitPromise: true,
+        arguments: [
+            LocalValue.getArgument(using),
+            LocalValue.getArgument(value),
+            LocalValue.getArgument(index)
+        ] as remote.ScriptLocalValue[],
+        target: { context: held.contextId }
+    }
+    const parsed = parseScriptResult(params, await browser.scriptCallFunction(params))
+    if (typeof parsed === 'number') {
+        return parsed
+    }
+    if (parsed && typeof parsed === 'object' && ELEMENT_KEY in parsed) {
+        return parsed as ElementReference
+    }
+    return undefined
+}
+
+async function findAllInFrame (
+    scope: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    using: string,
+    value: string
+): Promise<ElementReference[]> {
+    const count = await findInFrameByScript(scope, browser, using, value, null)
+    const total = typeof count === 'number' ? count : 0
+    const nodes: ElementReference[] = []
+    for (let i = 0; i < total; i++) {
+        const node = await findInFrameByScript(scope, browser, using, value, i)
+        if (node && typeof node === 'object') {
+            nodes.push(node)
+        }
+    }
+    return nodes
+}
+
 type BidiStartNode = { sharedId: string }
 
 /**
@@ -529,14 +617,16 @@ export async function findDeepElement(
 ): Promise<ElementReference | undefined> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
-    const contextManager = getContextManager(browser)
-    const context = await contextManager.getCurrentContext()
+    const context = await contextIdOf(this)
 
     const shadowRoots = await shadowRootManager.getShadowElementsByContextId(
         context,
         (this as WebdriverIO.Element).elementId
     )
     let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
+    if (heldBrowsingContext(this)?.isFrame) {
+        return findInFrameByScript(this, browser, using, value, 0) as Promise<ElementReference | undefined>
+    }
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -660,6 +750,9 @@ export async function findDeepElement(
                 this, browser, using, value, context, startNodes, shadowRoots
             )
         }
+        if (heldBrowsingContext(this)?.isFrame) {
+            return findInFrameByScript(this, browser, using, value, 0) as Promise<ElementReference | undefined>
+        }
         return findElementViaClassic(this, browser, using, value, shadowRoots)
     })
 
@@ -679,14 +772,16 @@ export async function findDeepElements(
 ): Promise<ElementReference[]> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
-    const contextManager = getContextManager(browser)
-    const context = await contextManager.getCurrentContext()
+    const context = await contextIdOf(this)
 
     const shadowRoots = await shadowRootManager.getShadowElementsByContextId(
         context,
         (this as WebdriverIO.Element).elementId
     )
     let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
+    if (heldBrowsingContext(this)?.isFrame) {
+        return findAllInFrame(this, browser, using, value)
+    }
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -795,6 +890,9 @@ export async function findDeepElements(
             return findAriaElementsViaXPathFallback(
                 this, browser, using, value, context, startNodes, shadowRoots
             )
+        }
+        if (heldBrowsingContext(this)?.isFrame) {
+            return findAllInFrame(this, browser, using, value)
         }
         return findElementsViaClassic(this, browser, using, value, shadowRoots)
     })
@@ -1087,11 +1185,12 @@ export async function hasElementId(element: WebdriverIO.Element) {
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
     if (!element.elementId) {
+        const parent = element.parent as WebdriverIO.Element | WebdriverIO.Browser
         const command = element.isReactElement
-            ? element.parent.react$.bind(element.parent)
+            ? parent.react$.bind(parent)
             : element.isShadowElement
-                ? element.parent.shadow$.bind(element.parent)
-                : element.parent.$.bind(element.parent)
+                ? parent.shadow$.bind(parent)
+                : parent.$.bind(parent)
         element.elementId = (await command(element.selector as string).getElement()).elementId
     }
 

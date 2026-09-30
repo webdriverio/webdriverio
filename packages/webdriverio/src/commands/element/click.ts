@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 
 import { getBrowserObject } from '@wdio/utils'
 import { buttonValue } from '../../utils/actions/index.js'
+import { foreignContextId } from '../../session/browsingContext.js'
 import type { ClickOptions } from '../../types.js'
 
 const log = logger('webdriver')
@@ -130,6 +131,12 @@ async function workaround(element: WebdriverIO.Element) {
 }
 
 async function elementClick(element: WebdriverIO.Element) {
+    if (await foreignContextId(element)) {
+        await element.execute((el: HTMLElement) => {
+            el.click()
+        })
+        return
+    }
     try {
         return await element.elementClick(element.elementId)
     } catch (error) {
