@@ -379,6 +379,21 @@ await browser.action('pointer', { parameters: { pointerType: 'touch' } })
     .perform()
 ```
 
+## `uploadFile`
+
+`browser.uploadFile()` is removed. It zipped a local file and posted it to the Selenium `file` endpoint, which is not part of WebDriver or WebDriver BiDi. Set a file input with [`element.setFiles()`](/docs/api/element/setFiles).
+
+```diff
+- const remotePath = await browser.uploadFile('/path/to/file.png')
+- await $('#file-upload').setValue(remotePath)
++ await $('#file-upload').setFiles('/path/to/file.png')
++ await $('#file-upload').setFiles(['/path/to/a.png', '/path/to/b.png'])
+```
+
+`setFiles` needs a BiDi session. The paths are opened by the browser. A relative path is resolved against `process.cwd()`. Selenium Grid file staging is not part of v10. A suite that depended on `uploadFile` to push bytes to a node has to put the file where the browser can read it, then call `setFiles`.
+
+On a classic local session, `element.setValue('/local/path')` still types a path the local browser can already see. The raw Selenium endpoint remains `browser.file()` for Grid users who call it directly.
+
 ## `executeAsync`
 
 `browser.executeAsync` and `element.executeAsync` are removed. Pass an `async` function to [`execute`](/docs/api/browser/execute). The function's return value, including a returned promise, is the command result. The `script` timeout still applies.

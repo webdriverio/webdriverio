@@ -60,6 +60,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `newWindow` `windowName` / `windowFeatures` | delete them. `type: 'window'` or `type: 'tab'` remains. |
 | `startActivity('pkg', '.Activity')` | `startActivity({ appPackage, appActivity })`. Delete `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments`. |
 | `browser.throttle(` | `browser.throttleNetwork(` |
+| `browser.uploadFile(path)` then `setValue` | `element.setFiles(path)` or `element.setFiles([paths])`. Needs a BiDi session and a path the browser can read. Grid byte staging is gone. See below. |
 | `touchAction(` | `browser.action('pointer', { parameters: { pointerType: 'touch' } })`, or mobile `tap` / `swipe` |
 | `setTimeout({ 'page load': n })` | `setTimeout({ pageLoad: n })` |
 | `browser.chromeBrowser.url(...)` on a multi-remote browser | `browser.getInstance('chromeBrowser').url(...)`. The testrunner global `chromeBrowser` is the single session. |
@@ -80,6 +81,10 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 Search for `multiremote` and `Multiremote` case-sensitively. Leave the `id: multiremote` permalink, `/docs/multiremote` links, file names, and the Allure historyId key `'multiremote'`.
 
 `browser.$$()` on a multi-remote browser is still an array, so index access keeps working. Annotate it as `WebdriverIO.MultiRemoteElementArray`. `custom$$` and `react$$` still return one result per instance, not one zipped array.
+
+### `uploadFile`
+
+`browser.uploadFile` is removed. Replace `uploadFile` plus `setValue` with `element.setFiles`. `setFiles` does not upload bytes. A remote browser needs a path on that machine. On a classic local session, `setValue` with a path the browser can already see still works. `browser.file()` remains for a direct Selenium Grid call.
 
 ### `executeAsync`
 

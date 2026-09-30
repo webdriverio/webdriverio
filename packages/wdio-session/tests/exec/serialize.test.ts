@@ -45,6 +45,43 @@ describe('exec serialize', () => {
         expect((await serialize(elementArray([]))).text).toBe('ElementArray(0) []')
     })
 
+    it('prints an ElementArray without calling its async slice or map', async () => {
+        const items = [element('nav a', 'id1'), element('nav a', 'id2')]
+        /**
+         * `$$` returns a thenable array whose `slice` and `map` are async
+         * query helpers. Calling them from `serialize` rejects or returns a
+         * promise `Promise.all` cannot iterate.
+         */
+        const wdioList = (entries: ReturnType<typeof element>[], resolved = true) => new Proxy(resolved ? [...entries] : [], {
+            get (current, prop, receiver) {
+                if (prop === 'selector') {
+                    return 'nav a'
+                }
+                if (prop === 'foundWith') {
+                    return '$$'
+                }
+                if (prop === 'then') {
+                    if (resolved) {
+                        return undefined
+                    }
+                    return (onFulfilled?: (value: unknown) => unknown, onRejected?: (reason: unknown) => unknown) =>
+                        Promise.resolve(wdioList(entries, true)).then(onFulfilled, onRejected)
+                }
+                if (prop === 'map' || prop === 'slice') {
+                    return () => Promise.reject(new Error(`serialize must not call ElementArray ${String(prop)}`))
+                }
+                return Reflect.get(current, prop, receiver)
+            },
+            has (current, prop) {
+                return prop === 'selector' || prop === 'foundWith' || Reflect.has(current, prop)
+            }
+        })
+        const describeElement = async () => ({ tag: 'a', name: 'Home' })
+        const expected = 'ElementArray(2) [\n  <a "Home" selector="nav a">\n  <a "Home" selector="nav a">\n]'
+        expect((await serialize(wdioList(items), { describeElement })).text).toBe(expected)
+        expect((await serialize(wdioList(items, false), { describeElement })).text).toBe(expected)
+    })
+
     it('prints an element list whose map returns a promise', async () => {
         const items = [element('nav a', 'a1'), element('nav a', 'a2')]
         const list = Object.assign([...items], {
