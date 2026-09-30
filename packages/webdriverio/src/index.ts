@@ -32,6 +32,12 @@ export { StrictSelectorError } from './utils/strictMode.js'
  * Device descriptors used by `browser.emulate('device', name)`
  */
 export { deviceDescriptorsSource, type DeviceName } from './deviceDescriptorsSource.js'
+/**
+ * Tells which kind of WebdriverIO object a value is: a browser, an element, an
+ * element array, their multiremote versions, or a chainable `$()` / `$$()`.
+ * Other packages can also read `value[Symbol.for('wdio.kind')]` without an import.
+ */
+export { WDIO_KIND, getWdioKind, type WdioKind } from '@wdio/utils'
 
 /**
  * A method to create a new session with WebdriverIO.

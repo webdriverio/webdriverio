@@ -3,6 +3,7 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
+import { WDIO_KIND, type WdioKind } from './kind.js'
 
 const log = logger('@wdio/utils:shim')
 
@@ -51,6 +52,20 @@ export function registerElementArrayFactory (factory: ElementArrayFactory) {
 }
 
 const TIME_BUFFER = 3
+
+/**
+ * Kind of the chain that an element query command starts, see `kind.ts`.
+ * `select` returns a multiremote browser, not an element, so it gets no brand.
+ */
+function chainKind (commandName: string): WdioKind | undefined {
+    if (commandName.endsWith('$$')) {
+        return 'chainable-element-array'
+    }
+    if (commandName.endsWith('$') || ['nextElement', 'previousElement', 'parentElement'].includes(commandName)) {
+        return 'chainable-element'
+    }
+    return undefined
+}
 
 /**
  * we have to mock the WebdriverIO.Browser and WebdriverIO.MultiRemoteBrowser type
@@ -152,7 +167,9 @@ export function chainElementPromise<T> (promise: Promise<T | undefined>): T {
             return this
         },
         [],
-        '$'
+        '$',
+        undefined,
+        'chainable-element'
     ) as T
 }
 
@@ -161,12 +178,25 @@ function createElementPromiseProxy (
     cmd: Function,
     args: unknown[],
     commandName: string,
-    prevInnerArgs?: { prop: string | number, args: unknown[] }
+    prevInnerArgs?: { prop: string | number, args: unknown[] },
+    kind?: WdioKind
 ): unknown {
     return new Proxy(
         Promise.resolve(promise).then((ctx) => cmd.call(ctx, ...args)),
         {
+            /**
+             * the brand of the chain (see `kind.ts`), so `WDIO_KIND in $('foo')` is true
+             */
+            has: (target, prop) => (prop === WDIO_KIND && kind !== undefined) || Reflect.has(target, prop),
             get: (target, prop: string) => {
+                /**
+                 * return the brand before the symbol handling below, which
+                 * treats every other symbol as an async iterator
+                 */
+                if ((prop as string | symbol) === WDIO_KIND) {
+                    return kind
+                }
+
                 /**
                  * handle symbols, e.g. async iterators
                  */
@@ -229,7 +259,8 @@ function createElementPromiseProxy (
                         },
                         [prop],
                         commandName,
-                        { prop, args }
+                        { prop, args },
+                        'chainable-element'
                     )
                 }
 
@@ -415,7 +446,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
     }
 
     function wrapElementFn(promise: Promise<unknown>, cmd: Function, args: unknown[], prevInnerArgs?: { prop: string | number, args: unknown[] }): unknown {
-        return createElementPromiseProxy(promise, cmd, args, commandName, prevInnerArgs)
+        return createElementPromiseProxy(promise, cmd, args, commandName, prevInnerArgs, chainKind(commandName))
     }
 
     function chainElementQuery(this: Promise<WebdriverIO.Browser>, ...args: unknown[]): unknown {
@@ -496,7 +527,9 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                         return this
                     },
                     [],
-                    commandName
+                    commandName,
+                    undefined,
+                    chainKind(commandName)
                 )
             }
         }

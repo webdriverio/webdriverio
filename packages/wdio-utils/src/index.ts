@@ -17,6 +17,7 @@ import { getCurrentRunnable, setDebugAgentPause } from './test-framework/debugAg
 import { isBidi, capabilitiesEnvironmentDetector, sessionEnvironmentDetector } from './envDetector.js'
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
 import { TimingTracker, type TimingMetrics, type TimingPhase } from './profiler.js'
+import { WDIO_KIND, WDIO_KINDS, getWdioKind, setWdioKind, type WdioKind } from './kind.js'
 
 export {
     startWebDriver,
@@ -71,5 +72,14 @@ export {
      */
     TimingTracker,
     type TimingMetrics,
-    type TimingPhase
+    type TimingPhase,
+
+    /**
+     * WebdriverIO object brand
+     */
+    WDIO_KIND,
+    WDIO_KINDS,
+    getWdioKind,
+    setWdioKind,
+    type WdioKind
 }

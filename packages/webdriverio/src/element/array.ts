@@ -1,4 +1,4 @@
-import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject, registerElementArrayFactory } from '@wdio/utils'
+import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject, registerElementArrayFactory, WDIO_KIND } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 import type { Selector } from '../types.js'
 
@@ -310,6 +310,15 @@ function proxify (array: ElementList, state: ElementArrayState): WebdriverIO.Ele
                 return Reflect.get(target, prop)
             }
 
+            /**
+             * the brand of the list, see `@wdio/utils` `kind.ts`. It is read from the
+             * metadata, because a chained query learns `isMultiRemote` only when it loads.
+             * A pending and a resolved list are the same object, so they have the same kind.
+             */
+            if (prop === WDIO_KIND) {
+                return current.metadata.isMultiRemote ? 'multi-remote-element-array' : 'element-array'
+            }
+
             if (prop === 'then') {
                 if (current.resolved) {
                     return undefined
@@ -391,6 +400,7 @@ function proxify (array: ElementList, state: ElementArrayState): WebdriverIO.Ele
          */
         has (target, prop) {
             if (
+                prop === WDIO_KIND ||
                 prop === 'selector' || prop === 'parent' || prop === 'foundWith' ||
                 prop === 'props' || prop === 'isMultiRemote' || prop === 'getElements'
             ) {

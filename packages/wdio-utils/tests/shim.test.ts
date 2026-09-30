@@ -1,5 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { wrapCommand, executeAsync } from '../src/shim.js'
+import { WDIO_KIND, getWdioKind } from '../src/kind.js'
 
 const W3C_ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
@@ -11,6 +12,43 @@ describe('wrapCommand', () => {
 
         await expect(chained.toJSON()).resolves.toEqual({
             [W3C_ELEMENT_KEY]: 'abc-123'
+        })
+    })
+
+    describe('brand of the chainable promise', () => {
+        const scope = { options: { beforeCommand: [], afterCommand: [] } }
+
+        it('brands element and element array queries', () => {
+            const elements = [{ selector: 'li' }]
+            expect(getWdioKind(wrapCommand('$', vi.fn().mockResolvedValue({})).call(scope))).toBe('chainable-element')
+            expect(getWdioKind(wrapCommand('shadow$', vi.fn().mockResolvedValue({})).call(scope))).toBe('chainable-element')
+            expect(getWdioKind(wrapCommand('parentElement', vi.fn().mockResolvedValue({})).call(scope))).toBe('chainable-element')
+            expect(getWdioKind(wrapCommand('$$', vi.fn().mockResolvedValue(elements)).call(scope))).toBe('chainable-element-array')
+            expect(getWdioKind(wrapCommand('custom$$', vi.fn().mockResolvedValue(elements)).call(scope))).toBe('chainable-element-array')
+        })
+
+        it('brands an index on an element array as an element', () => {
+            const chain = wrapCommand('$$', vi.fn().mockResolvedValue([{ selector: 'li' }])).call(scope) as unknown as Record<string, unknown>
+
+            expect(getWdioKind(chain[0])).toBe('chainable-element')
+        })
+
+        it('supports `in` on the chain', () => {
+            const chain = wrapCommand('$', vi.fn().mockResolvedValue({})).call(scope) as object
+
+            expect(WDIO_KIND in chain).toBe(true)
+            expect('then' in chain).toBe(true)
+        })
+
+        it('does not brand results that are not elements', () => {
+            const chain = wrapCommand('$$', vi.fn().mockResolvedValue([])).call(scope) as unknown as { map: (fn: Function) => unknown }
+            const select = wrapCommand('select', vi.fn().mockResolvedValue({})).call(scope) as object
+            const command = wrapCommand('getTitle', vi.fn().mockResolvedValue('title')).call(scope)
+
+            expect(getWdioKind(chain.map(() => 1))).toBeUndefined()
+            expect(getWdioKind(select)).toBeUndefined()
+            expect(WDIO_KIND in select).toBe(false)
+            expect(getWdioKind(command)).toBeUndefined()
         })
     })
 
