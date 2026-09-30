@@ -61,20 +61,29 @@ describe.skipIf(process.platform === 'win32')('WaylandDisplayServer (real proces
     }, 15_000)
 
     it('escalates to SIGKILL when the daemon ignores SIGTERM', async () => {
+        const logDir = await mkdtemp(path.join(os.tmpdir(), 'wdio-wayland-signals-'))
+        const signalLog = path.join(logDir, 'signals.log')
         process.env.WDIO_STUB_MODE = 'ignore-sigterm'
+        process.env.WDIO_STUB_SIGNAL_LOG = signalLog
 
-        daemon = await new WaylandDisplayServer().startDaemon({ width: 100, height: 100 })
-        const runtimeDir = daemon.env.XDG_RUNTIME_DIR
+        try {
+            daemon = await new WaylandDisplayServer().startDaemon({ width: 100, height: 100 })
+            const runtimeDir = daemon.env.XDG_RUNTIME_DIR
 
-        const start = Date.now()
-        await daemon.stop()
-        const elapsed = Date.now() - start
-        daemon = undefined
+            const start = Date.now()
+            await daemon.stop()
+            const elapsed = Date.now() - start
+            daemon = undefined
 
-        // SIGTERM is swallowed, so stop() must wait out the ~1s grace period and
-        // then SIGKILL — proving the real escalation path, then clean up.
-        expect(elapsed).toBeGreaterThanOrEqual(900)
-        expect(await exists(runtimeDir)).toBe(false)
+            // The stub received SIGTERM and swallowed it, so stop() had to wait out the
+            // ~1s grace period and then SIGKILL: the real escalation path.
+            expect(await readFile(signalLog, 'utf8').catch(() => '')).toBe('SIGTERM\n')
+            expect(elapsed).toBeGreaterThanOrEqual(900)
+            expect(await exists(runtimeDir)).toBe(false)
+        } finally {
+            delete process.env.WDIO_STUB_SIGNAL_LOG
+            await rm(logDir, { recursive: true, force: true })
+        }
     }, 15_000)
 })
 
