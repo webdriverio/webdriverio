@@ -261,13 +261,15 @@ describe('installExtension', () => {
 
     it('explains how to enable webExtension.install on Chrome', async () => {
         const browser = await bidiBrowser()
-        vi.mocked(browser.webExtensionInstall).mockRejectedValue(new Error(
+        const cause = new Error(
             'WebDriver Bidi command "webExtension.install" failed with error: unknown error - Method not available.'
-        ))
-
-        await expect(browser.installExtension({ base64: 'Ynl0ZXM=' })).rejects.toThrow(
-            /Method not available[\s\S]*--enable-unsafe-extension-debugging[\s\S]*--remote-debugging-pipe[\s\S]*webExtension\.install/
         )
+        vi.mocked(browser.webExtensionInstall).mockRejectedValue(cause)
+
+        await expect(browser.installExtension({ base64: 'Ynl0ZXM=' })).rejects.toSatisfy((error: Error) => (
+            /Method not available[\s\S]*--enable-unsafe-extension-debugging[\s\S]*--remote-debugging-pipe[\s\S]*webExtension\.install/.test(error.message) &&
+            error.cause === cause
+        ))
     })
 
     it('throws when webExtension.install does not return an id', async () => {
