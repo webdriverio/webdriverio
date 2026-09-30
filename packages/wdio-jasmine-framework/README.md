@@ -17,8 +17,8 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 Following code shows the default wdio test runner configuration...
 
-```js
-// wdio.conf.js
+```ts
+// wdio.conf.ts
 export const config = {
     // ...
     framework: 'jasmine',
