@@ -1,8 +1,9 @@
 import path from 'node:path'
 import { inspect } from 'node:util'
-import { describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { WDIO_KIND, WDIO_CHAINABLE, attach, multiRemote, remote } from '../src/index.js'
+import refetchElement from '../src/utils/refetchElement.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -141,6 +142,10 @@ describe('WebdriverIO object brand matrix', () => {
         pending?: Brands
         awaited: Brands | 'rejects'
         isMultiRemote?: boolean
+        /**
+         * the awaited element has an `error` (it was not found)
+         */
+        hasError?: boolean
     }
 
     const B: Brands = { kind: 'browser' }
@@ -182,6 +187,9 @@ describe('WebdriverIO object brand matrix', () => {
         if (row.isMultiRemote !== undefined) {
             expect(Boolean((result as { isMultiRemote?: unknown }).isMultiRemote)).toBe(row.isMultiRemote)
         }
+        if (row.hasError !== undefined) {
+            expect(Boolean((result as { error?: unknown }).error)).toBe(row.hasError)
+        }
     }
 
     async function singleSession () {
@@ -199,6 +207,8 @@ describe('WebdriverIO object brand matrix', () => {
         browser.addCommand('count$$', function () { return 42 })
         browser.addCommand('price$', function () { return 42 })
         browser.addCommand('getHeader', function (this: WebdriverIO.Browser) { return this.$('#foo') })
+        browser.addCommand('boom$', function () { throw new Error('boom') })
+        browser.addCommand('boomAsync$$', async function () { throw new Error('boomAsync') })
         browser.addCommand('allBar$$', function (this: WebdriverIO.Element) {
             return this.$$('#bar')
         }, { attachToElement: true })
@@ -211,7 +221,7 @@ describe('WebdriverIO object brand matrix', () => {
             ['#2 attach()', { make: (b) => attach(b as unknown as WebdriverIO.Browser), awaited: B }],
             ['#3 $(s)', { make: (b) => b.$('#foo'), pending: E_CHAIN, awaited: E }],
             ['#4 $(elementReference)', { make: (b) => b.$({ [ELEMENT_KEY]: 'some-elem-123' }), pending: E_CHAIN, awaited: E }],
-            ['#5 $(s) not found', { make: (b) => b.$('#nonexisting'), pending: E_CHAIN, awaited: E }],
+            ['#5 $(s) not found', { make: (b) => b.$('#nonexisting'), pending: E_CHAIN, awaited: E, hasError: true }],
             ['#6 $$(s)', { make: (b) => b.$$('#foo'), pending: A, awaited: A }],
             ['#7 $$([]) empty', { make: (b) => b.$$([]), pending: A, awaited: A }],
             ['#8 custom$', { make: (b) => b.custom$('one', 'x'), pending: E_CHAIN, awaited: E }],
@@ -272,6 +282,106 @@ describe('WebdriverIO object brand matrix', () => {
             }]
         ])('%s', async (_, row) => {
             await check(await singleSession(), row)
+        })
+    })
+
+    /**
+     * Before `await` the brand comes from the command name only, so a failed query has the
+     * same brand as a found one. A not-found element is still an element (with `error`), and
+     * a query that fails rejects, so there is no object to brand.
+     */
+    describe('single session: errors', () => {
+        test.each<[string, Row]>([
+            /**
+             * the fetch mock finds a child of a not-found element, so only the brands are relevant here
+             */
+            ['#63 $(s).$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$('#bar'), pending: E_CHAIN, awaited: E }],
+            ['#64 $(s).$$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$$('#bar'), pending: A, awaited: A }],
+            ['#65 parentElement() of a not-found element', {
+                make: (b) => b.$('#nonexisting').parentElement(),
+                pending: E_CHAIN,
+                awaited: E,
+                hasError: true
+            }],
+            ['#66 a command on a not-found element', { make: (b) => b.$('#nonexisting').getTagName(), pending: NONE, awaited: 'rejects' }],
+            ['#67 custom$ with an unknown strategy', { make: (b) => b.custom$('nope', 'x'), pending: E_CHAIN, awaited: 'rejects' }],
+            ['#68 custom$$ with an unknown strategy', { make: (b) => b.custom$$('nope', 'x'), pending: A, awaited: 'rejects' }],
+            ['#69 react$ of a not-found component', { make: (b) => b.react$('myNonExistingComp'), pending: E_CHAIN, awaited: E, hasError: true }],
+            ['#70 custom boom$ that throws', { make: (b) => b.boom$(), pending: E_CHAIN, awaited: 'rejects' }],
+            ['#71 custom boomAsync$$ that rejects', { make: (b) => b.boomAsync$$(), pending: A, awaited: 'rejects' }]
+        ])('%s', async (_, row) => {
+            await check(await singleSession(), row)
+        })
+
+        test('#73 an unknown multi-remote instance throws, and returns no object', async () => {
+            const browser = await multiRemote(multiRemoteCapabilities)
+
+            expect(() => browser.getInstance('nope')).toThrow('Multi-remote object has no instance named "nope"')
+            expect(() => browser.select('nope')).toThrow('None of the following requested instances are valid: nope')
+        })
+    })
+
+    /**
+     * A command on a stale element refetches the element and its parents, then copies
+     * `elementId` and `parent` into the same object (see `middlewares.ts`).
+     */
+    describe('stale elements', () => {
+        const staleMock = fetch as unknown as { retryCnt: number }
+        const parentOf = (value: unknown) => (value as { parent?: unknown }).parent
+        beforeEach(() => {
+            staleMock.retryCnt = 0
+        })
+        afterEach(() => {
+            staleMock.retryCnt = 0
+        })
+
+        test('#74 a stale element keeps its brand after the refetch, and so does its new parent', async () => {
+            const browser = await remote({ waitforTimeout: 20, capabilities: { browserName: 'foobar' } })
+            const element = await (await (await browser.$('#foo')).$('#subfoo')).$('#subsubfoo')
+            const parentBefore = element.parent
+
+            /**
+             * the fetch mock answers the first click on this element with "stale element reference"
+             */
+            expect(await element.click()).toBeNull()
+            expect(element.parent).not.toBe(parentBefore)
+            expect({ element: brandsOf(element), inChainable: WDIO_CHAINABLE in element }).toEqual({ element: resolved('element'), inChainable: false })
+            expect(brandsOf(element.parent)).toEqual(resolved('element'))
+            expect(brandsOf(parentOf(element.parent))).toEqual(resolved('element'))
+            expect(brandsOf(parentOf(parentOf(element.parent)))).toEqual(resolved('browser'))
+        })
+
+        test('#75 a stale element in a pending chain is chainable, and its command succeeds', async () => {
+            const browser = await remote({ waitforTimeout: 20, capabilities: { browserName: 'foobar' } })
+            const chain = browser.$('#foo').$('#subfoo').$('#subsubfoo')
+
+            expect(brandsOf(chain)).toEqual(chainable('element'))
+            expect(await chain.click()).toBeNull()
+            expect(brandsOf(await chain)).toEqual(resolved('element'))
+        })
+
+        test('#76 refetchElement() returns branded elements, for an element and for a list item', async () => {
+            const browser = await remote({ waitforTimeout: 20, capabilities: { browserName: 'foobar' } })
+            const element = await (await browser.$('#foo')).$('#subfoo') as unknown as WebdriverIO.Element
+            const item = (await browser.$$('#foo'))[1]
+
+            const refetched = await refetchElement(element, 'click')
+            expect(brandsOf(refetched)).toEqual(resolved('element'))
+            expect(brandsOf(refetched.parent)).toEqual(resolved('element'))
+            expect(brandsOf(parentOf(refetched.parent))).toEqual(resolved('browser'))
+
+            const refetchedItem = await refetchElement(item, 'click')
+            expect({ ...brandsOf(refetchedItem), elementId: refetchedItem.elementId, index: refetchedItem.index })
+                .toEqual({ ...resolved('element'), elementId: 'some-elem-456', index: 1 })
+            expect(brandsOf(refetchedItem.parent)).toEqual(resolved('browser'))
+        })
+
+        test('#77 a refetch that finds no element rejects, and returns no object', async () => {
+            const browser = await remote({ waitforTimeout: 20, capabilities: { browserName: 'foobar' } })
+            const item = (await browser.$$('#foo'))[2]
+            item.index = 5
+
+            await expect(refetchElement(item, 'click')).rejects.toThrow()
         })
     })
 
@@ -342,7 +452,8 @@ describe('WebdriverIO object brand matrix', () => {
             ['#49 element getInstance()', { from: (mr) => mr.$('#foo'), make: (el) => el.getInstance('browserA'), pending: E, awaited: E, isMultiRemote: false }],
             ['#50 element select()', { from: (mr) => mr.$('#foo'), make: (el) => el.select('browserA'), pending: E, awaited: E, isMultiRemote: true }],
             ['#51 getInstance().$(s)', { make: (mr) => mr.getInstance('browserA').$('#foo'), pending: E_CHAIN, awaited: E, isMultiRemote: false }],
-            ['#52 custom allFoo$$', { make: (mr) => mr.allFoo$$(), pending: A, awaited: A, isMultiRemote: true }]
+            ['#52 custom allFoo$$', { make: (mr) => mr.allFoo$$(), pending: A, awaited: A, isMultiRemote: true }],
+            ['#72 $(s) not found', { make: (mr) => mr.$('#nonexisting'), pending: E_CHAIN, awaited: E, isMultiRemote: true }]
         ])('%s', async (_, row) => {
             const browser = await multiRemote(multiRemoteCapabilities)
             browser.addCommand('allFoo$$', function (this: WebdriverIO.MultiRemoteBrowser) { return this.$$('#foo') })
