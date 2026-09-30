@@ -30,7 +30,7 @@ export default [
 ];
 ```
 
-The eslintrc export `plugin:wdio/recommended` is gone. ESLint 9 flat config is the supported setup.
+The eslintrc export `plugin:wdio/recommended` is gone. Flat config is the supported setup.
 
 See [ESLint documentation](https://eslint.org/docs/latest/use/configure/configuration-files) for more information about extending configuration files.
 
@@ -43,6 +43,18 @@ To enable this, install the required dependencies:
 ```sh
 npm install --save-dev typescript typescript-eslint
 ```
+
+By default, ESLint lints only `.js`, `.mjs` and `.cjs` files. Add a `files` pattern so that it also lints your TypeScript specs:
+
+```js
+import { configs as wdioConfig } from "eslint-plugin-wdio";
+
+export default [
+    { files: ['**/*.ts'], ...wdioConfig['flat/recommended'] },
+];
+```
+
+`wdio/no-floating-promise` needs type information, so your spec files must be part of a `tsconfig.json`.
 
 ## List of supported rules
 
