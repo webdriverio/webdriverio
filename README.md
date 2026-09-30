@@ -207,7 +207,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 <p align="center">
     <a href="https://eslint.org/"><img src="https://eslint.org/assets/images/logo/eslint-logo-color.png" alt="Eslint" /></a>
     <a href="https://www.gridlastic.com/webdriverio.html"><img src="https://webdriver.io/img/sponsors/gridlastic.png" width="200" alt="Gridlastic" /></a>
-    <a href="https://www.rapidproxy.io/"><img src="https://webdriver.io/img/sponsors/rapidproxy.png" width="200" alt="Rapidproxy" /></a>
+    <a href="https://www.rapidproxy.io/?ref=webdriverio"><img src="https://webdriver.io/img/sponsors/rapidproxy.png" width="200" alt="Rapidproxy" /></a>
 </p>
 
 ## :page_facing_up: License

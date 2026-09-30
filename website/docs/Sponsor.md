@@ -144,7 +144,7 @@ Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silv
     darkImageSrc="/img/sponsors/rapidproxy.png"
     alt="Rapidproxy"
     target="_blank"
-    link="https://www.rapidproxy.io/"
+    link="https://www.rapidproxy.io/?ref=webdriverio"
     width="200"
 />
 
