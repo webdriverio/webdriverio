@@ -215,6 +215,16 @@ For a CommonJS project, use `NodeNext` for both options, as `create-wdio` does:
  }
 ```
 
+TypeScript 6 also changes the default of `types` to `[]`, so it no longer loads every installed `@types/*` package. If your `tsconfig.json` has no `types` list, globals such as Mocha's `describe` and `it` fail with `Cannot find name`. List the type packages that your tests use, as `create-wdio` does. For example, with Mocha:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
++        "types": ["node", "@wdio/globals/types", "@wdio/mocha-framework"]
+     }
+ }
+```
+
 ## Reporters
 
 The browser `result` event is forwarded to reporters as `client:afterCommand`. That payload and the `AfterCommandArgs` type no longer have a `name` property. Read `command` instead. Custom commands already sent `command`.

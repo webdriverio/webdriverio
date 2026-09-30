@@ -30,9 +30,10 @@ Stop when one of these is true. Do not pick a workaround on your own.
 4. With Appium, install `appium@^3` and run `appium driver update installed`.
 5. With `puppeteer-core`, use `>=24 <26`.
 6. With `eslint-plugin-wdio`, use `eslint@^10`. With TypeScript, install `typescript-eslint` 8.56.0 or later, not only `@typescript-eslint/eslint-plugin`, and scope the config with `files: ['**/*.{ts,mts,cts,tsx}']`. Widen it to JavaScript only when `tsconfig.json` has `allowJs` and includes those files.
-7. Apply the replacements below, then run the [codemod](#codemod) for the legacy command signatures.
-8. Run the suite. Strict `$` and bare capability `specs` / `exclude` only show up at runtime.
-9. Search the patterns again. A leftover `jasmineNodeOpts` or `tagExpression` throws.
+7. With TypeScript 6, replace `"moduleResolution": "node"` and remove `"baseUrl"` as the guide shows. If `tsconfig.json` has no `types` list, add one with the type packages the tests use: TypeScript 6 no longer loads `@types/*` by default.
+8. Apply the replacements below, then run the [codemod](#codemod) for the legacy command signatures.
+9. Run the suite. Strict `$` and bare capability `specs` / `exclude` only show up at runtime.
+10. Search the patterns again. A leftover `jasmineNodeOpts` or `tagExpression` throws.
 
 Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior.
 
