@@ -518,11 +518,23 @@ export default [
 ]
 ```
 
-The recommended config switches to the type-aware `wdio/no-floating-promise` rule, in place of `wdio/await-expect`, when the `typescript-eslint` package is installed. Apply this config only to TypeScript files unless JavaScript files such as `wdio.conf.js` are included in your TypeScript project. Installing only `@typescript-eslint/eslint-plugin` is not enough.
+The recommended config switches to the type-aware `wdio/no-floating-promise` rule, in place of `wdio/await-expect`, when the `typescript-eslint` package is installed. Installing only `@typescript-eslint/eslint-plugin` is not enough.
 
 ```sh
 npm install --save-dev typescript typescript-eslint
 ```
+
+In that mode, the config parses every file it matches with the TypeScript project service. Limit it to TypeScript files, and make sure they are part of a `tsconfig.json`:
+
+```js
+import { configs as wdioConfig } from 'eslint-plugin-wdio'
+
+export default [
+    { files: ['**/*.{ts,mts,cts,tsx}'], ...wdioConfig['flat/recommended'] },
+]
+```
+
+A matched JavaScript file that is not in the TypeScript project, such as `wdio.conf.js`, fails with "was not found by the project service". To lint JavaScript files too, set `"allowJs": true`, add them to `include` in `tsconfig.json`, and widen the pattern to `**/*.{js,mjs,cjs,ts,mts,cts,tsx}`.
 
 ## Custom frameworks
 
