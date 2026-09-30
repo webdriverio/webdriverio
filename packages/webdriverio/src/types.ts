@@ -879,10 +879,12 @@ export type RestoreMap = Map<SupportedScopes, (() => Promise<any>)[]>
  */
 export interface PDFPrintOptions {
     /**
-     * Page orientation.
+     * Page orientation. Accepted values are `portrait` and `landscape`.
+     * The property stays a `string` so an existing variable of that type can
+     * still be passed. Any other value is rejected when `savePDF` runs.
      * @default 'portrait'
      */
-    orientation?: 'portrait' | 'landscape'
+    orientation?: string
     /**
      * Page scale. The print protocols accept `0.1`–`2`.
      * @default 1

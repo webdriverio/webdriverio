@@ -8,8 +8,6 @@ import { getContextManager } from '../session/context.js'
 import type { PDFPrintOptions } from '../types.js'
 import { assertDirectoryExists } from './utils.js'
 
-const PDF_ORIENTATIONS = ['portrait', 'landscape'] as const
-
 /**
  * Command implementation of the `savePDF` command.
  *
@@ -21,7 +19,7 @@ const PDF_ORIENTATIONS = ['portrait', 'landscape'] as const
 export async function savePDF (
     this: WebdriverIO.Browser,
     filepath: string,
-    options?: PDFPrintOptions
+    options?: PDFPrintOptions | null
 ) {
     /**
      * type check
@@ -30,24 +28,33 @@ export async function savePDF (
         throw new Error('savePDF expects a filepath of type string and ".pdf" file ending')
     }
 
-    assertOrientation(options?.orientation)
+    /**
+     * A JavaScript caller can pass `null`. Default parameters only replace
+     * `undefined`, so normalize before either print path reads the object.
+     */
+    const printOptions: PDFPrintOptions = options ?? {}
+    assertOrientation(printOptions.orientation)
 
     const absoluteFilepath = path.resolve(filepath)
     await assertDirectoryExists(absoluteFilepath)
 
     const base64 = this.isBidi
-        ? await printBidi.call(this, options)
-        : await printClassic.call(this, options)
+        ? await printBidi.call(this, printOptions)
+        : await printClassic.call(this, printOptions)
     const page = Buffer.from(base64, 'base64')
     fs.writeFileSync(absoluteFilepath, page)
 
     return page
 }
 
-function assertOrientation (orientation: PDFPrintOptions['orientation']) {
-    if (orientation !== undefined && !(PDF_ORIENTATIONS as readonly string[]).includes(orientation)) {
-        throw new Error(`savePDF expects orientation to be "portrait" or "landscape", received "${String(orientation)}"`)
+function assertOrientation (orientation: string | undefined): 'portrait' | 'landscape' | undefined {
+    if (orientation === undefined) {
+        return undefined
     }
+    if (orientation !== 'portrait' && orientation !== 'landscape') {
+        throw new Error(`savePDF expects orientation to be "portrait" or "landscape", received "${orientation}"`)
+    }
+    return orientation
 }
 
 /**
@@ -105,55 +112,61 @@ async function topLevelBrowsingContext (browser: WebdriverIO.Browser) {
  */
 function toPrintParameters (
     context: string,
-    options: PDFPrintOptions = {}
+    options?: PDFPrintOptions | null
 ): remote.BrowsingContextPrintParameters {
+    /**
+     * `null` does not trigger the default parameter, and reading
+     * `options.orientation` would throw. Treat it as omitted options.
+     */
+    const printOptions: PDFPrintOptions = options ?? {}
     const params: remote.BrowsingContextPrintParameters = { context }
+    const orientation = assertOrientation(printOptions.orientation)
 
-    if (options.orientation !== undefined) {
-        params.orientation = options.orientation
+    if (orientation !== undefined) {
+        params.orientation = orientation
     }
-    if (options.scale !== undefined) {
-        params.scale = options.scale
+    if (printOptions.scale !== undefined) {
+        params.scale = printOptions.scale
     }
-    if (options.background !== undefined) {
-        params.background = options.background
+    if (printOptions.background !== undefined) {
+        params.background = printOptions.background
     }
-    if (options.shrinkToFit !== undefined) {
-        params.shrinkToFit = options.shrinkToFit
+    if (printOptions.shrinkToFit !== undefined) {
+        params.shrinkToFit = printOptions.shrinkToFit
     }
-    if (options.pageRanges !== undefined) {
-        params.pageRanges = options.pageRanges
+    if (printOptions.pageRanges !== undefined) {
+        params.pageRanges = printOptions.pageRanges
     }
 
     const page: remote.BrowsingContextPrintPageParameters = {}
-    if (options.width !== undefined) {
-        page.width = options.width
+    if (printOptions.width !== undefined) {
+        page.width = printOptions.width
     }
-    if (options.height !== undefined) {
-        page.height = options.height
+    if (printOptions.height !== undefined) {
+        page.height = printOptions.height
     }
-    if (options.width !== undefined || options.height !== undefined) {
+    if (printOptions.width !== undefined || printOptions.height !== undefined) {
         params.page = page
     }
 
     const margin: remote.BrowsingContextPrintMarginParameters = {}
-    if (options.top !== undefined) {
-        margin.top = options.top
+    if (printOptions.top !== undefined) {
+        margin.top = printOptions.top
     }
-    if (options.bottom !== undefined) {
-        margin.bottom = options.bottom
+    if (printOptions.bottom !== undefined) {
+        margin.bottom = printOptions.bottom
     }
-    if (options.left !== undefined) {
-        margin.left = options.left
+    if (printOptions.left !== undefined) {
+        margin.left = printOptions.left
     }
-    if (options.right !== undefined) {
-        margin.right = options.right
+    if (printOptions.right !== undefined) {
+        margin.right = printOptions.right
     }
     if (
-        options.top !== undefined ||
-        options.bottom !== undefined ||
-        options.left !== undefined ||
-        options.right !== undefined
+        printOptions.top !== undefined ||
+        printOptions.bottom !== undefined ||
+        printOptions.left !== undefined ||
+        printOptions.right !== undefined
     ) {
         params.margin = margin
     }

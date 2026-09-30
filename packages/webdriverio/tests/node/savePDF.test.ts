@@ -203,10 +203,22 @@ describe('savePDF', () => {
     it('rejects an orientation other than portrait or landscape', async () => {
         const browser = bidiBrowser()
         await expect(savePDF.call(browser, './page.pdf', {
-            // @ts-expect-error invalid orientation
             orientation: 'sideways'
         })).rejects.toThrow('savePDF expects orientation to be "portrait" or "landscape", received "sideways"')
         expect(browser.browsingContextPrint).not.toHaveBeenCalled()
         expect(browser.printPage).not.toHaveBeenCalled()
+    })
+
+    it('treats null options as omitted', async () => {
+        const bidi = bidiBrowser()
+        await savePDF.call(bidi, './page.pdf', null)
+        expect(bidi.browsingContextPrint).toHaveBeenCalledWith({ context: 'context-1' })
+
+        const classic = classicBrowser()
+        await savePDF.call(classic, './page.pdf', null)
+        expect(classic.printPage).toHaveBeenCalledWith(
+            undefined, undefined, undefined, undefined, undefined,
+            undefined, undefined, undefined, undefined, undefined, undefined
+        )
     })
 })

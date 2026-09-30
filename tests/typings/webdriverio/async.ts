@@ -292,6 +292,10 @@ async function bar() {
     }
     await browser.savePDF('./packages/bar.pdf', pdfOptions)
 
+    const orientation: string = 'portrait'
+    const stringOrientation: PDFPrintOptions = { orientation }
+    await browser.savePDF('./packages/bar.pdf', stringOrientation)
+
     await browser.savePDF('./packages/bar.pdf')
 
     // browser element command
