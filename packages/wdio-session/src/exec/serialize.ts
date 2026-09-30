@@ -155,12 +155,18 @@ export async function serialize (value: unknown, opts: SerializeOptions = {}): P
         return { text: `${value}n`, value: `${value}n` }
     }
     if (isElementArray(value)) {
-        const shown = await Promise.all(value.slice(0, MAX_ELEMENTS).map((el) => formatElement(el, opts)))
+        /**
+         * A resolved element list still owns async `slice` and `map`.
+         * Copy with the array prototype so printing walks the elements
+         * instead of treating that promise as the list.
+         */
+        const items = Array.prototype.slice.call(value, 0, MAX_ELEMENTS) as WebdriverIO.Element[]
+        const shown = await Promise.all(items.map((el) => formatElement(el, opts)))
         const more = value.length > MAX_ELEMENTS ? [`… ${value.length - MAX_ELEMENTS} more`] : []
         const lines = [...shown, ...more].map((l) => `  ${l}`)
         return {
             text: value.length ? `ElementArray(${value.length}) [\n${lines.join('\n')}\n]` : 'ElementArray(0) []',
-            value: toPlain([...value])
+            value: toPlain(Array.prototype.slice.call(value) as unknown[])
         }
     }
     if (isElement(value)) {
