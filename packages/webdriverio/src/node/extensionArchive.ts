@@ -81,7 +81,7 @@ function zipDirectory (dir: string): Promise<Buffer> {
         })
 
         try {
-            appendDirectory(archive, dir, '')
+            appendDirectory(archive, dir, '', new Set())
         } catch (err) {
             fail(err)
             return
@@ -94,14 +94,28 @@ function zipDirectory (dir: string): Promise<Buffer> {
 /**
  * Extension archives must contain `manifest.json` at the zip root, so the
  * directory contents are stored without an extra top-level folder.
+ * `stat` follows symbolic links so a linked script or asset is packed.
+ * `seen` stops a symlink cycle from walking the same directory forever.
  */
-function appendDirectory (archive: ZipArchive, dir: string, prefix: string) {
+function appendDirectory (archive: ZipArchive, dir: string, prefix: string, seen: Set<string>) {
+    const realDir = fs.realpathSync(dir)
+    if (seen.has(realDir)) {
+        return
+    }
+    seen.add(realDir)
+
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name)
         const name = prefix ? `${prefix}/${entry.name}` : entry.name
-        if (entry.isDirectory()) {
-            appendDirectory(archive, full, name)
-        } else if (entry.isFile()) {
+        let stat: fs.Stats
+        try {
+            stat = fs.statSync(full)
+        } catch (err) {
+            throw new Error(`installExtension could not read ${full}: ${errorMessage(err)}`)
+        }
+        if (stat.isDirectory()) {
+            appendDirectory(archive, full, name, seen)
+        } else if (stat.isFile()) {
             archive.append(fs.createReadStream(full), { name })
         }
     }

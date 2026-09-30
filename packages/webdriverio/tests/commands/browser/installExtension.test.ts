@@ -198,6 +198,31 @@ describe('installExtension', () => {
         expect(zip.file(`${path.basename(dir)}/manifest.json`)).toBeNull()
     })
 
+    it('packs symlinked files and directories for a remote session', async () => {
+        const browser = await bidiBrowser({ hostname: 'grid.example.com' })
+        const dir = tempDirectory()
+        const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-install-extension-link-'))
+        created.push(outside)
+        fs.mkdirSync(path.join(outside, 'scripts'))
+        fs.writeFileSync(path.join(outside, 'scripts', 'main.js'), 'console.log(1)')
+        fs.writeFileSync(path.join(outside, 'asset.txt'), 'outside')
+        fs.symlinkSync(path.join(outside, 'asset.txt'), path.join(dir, 'asset.txt'))
+        fs.symlinkSync(path.join(outside, 'scripts'), path.join(dir, 'scripts'))
+        fs.symlinkSync(dir, path.join(dir, 'loop'))
+
+        await browser.installExtension(dir)
+
+        const payload = vi.mocked(browser.webExtensionInstall).mock.calls[0][0].extensionData
+        expect(payload.type).toBe('base64')
+        if (payload.type !== 'base64') {
+            return
+        }
+        const zip = await JSZip.loadAsync(Buffer.from(payload.value, 'base64'))
+        expect(await zip.file('asset.txt')?.async('string')).toBe('outside')
+        expect(await zip.file('scripts/main.js')?.async('string')).toBe('console.log(1)')
+        expect(zip.file('loop/manifest.json')).toBeNull()
+    })
+
     it('explains how to enable webExtension.install on Chrome', async () => {
         const browser = await bidiBrowser()
         vi.mocked(browser.webExtensionInstall).mockRejectedValue(new Error(

@@ -13,9 +13,21 @@ const isWindows = os.platform() === 'win32'
  * Chrome and Edge implement `webExtension.install` only when these arguments
  * are set. `--remote-debugging-pipe` needs its own user-data-dir from Chrome 136.
  * Each capability gets a directory so parallel browsers do not share a profile.
+ * The directories are removed when this process finishes.
  */
+const profileDirs: string[] = []
+
+function removeProfileDirs () {
+    for (const dir of profileDirs.splice(0)) {
+        fs.rmSync(dir, { recursive: true, force: true })
+    }
+}
+
+process.on('exit', removeProfileDirs)
+
 function chromiumExtensionArgs (browser: string) {
     const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), `wdio-${browser}-`))
+    profileDirs.push(userDataDir)
     return [
         '--enable-unsafe-extension-debugging',
         '--remote-debugging-pipe',
@@ -109,5 +121,13 @@ export const config: WebdriverIO.Config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 60000
+    },
+
+    /**
+     * Remove Chromium profiles after the browsers have exited. `process.exit`
+     * also removes profiles created when a worker loads this file.
+     */
+    onComplete () {
+        removeProfileDirs()
     }
 }
