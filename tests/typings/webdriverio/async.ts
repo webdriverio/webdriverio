@@ -406,6 +406,12 @@ async function bar() {
     // An examples of setValue command with enabled/disabled translation to Unicode
     const elem1 = await $('')
     elem1.setValue('Delete')
+    await elem1.setFiles('/tmp/file.png')
+    await elem1.setFiles(['/tmp/a.png', '/tmp/b.png'])
+    // @ts-expect-error setFiles takes a path or a list of paths
+    await elem1.setFiles(123)
+    // @ts-expect-error uploadFile was removed in v10
+    await browser.uploadFile('/tmp/file.png')
 
     const selector$$: string | HTMLElement | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> | {strategy: Function; strategyName: string; strategyArguments: any[]} = elems.selector
     ;(elems.parent as WebdriverIO.Element).click()
