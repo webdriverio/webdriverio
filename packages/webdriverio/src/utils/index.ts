@@ -4,7 +4,7 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
 import { type remote, ELEMENT_KEY } from 'webdriver'
-import { UNICODE_CHARACTERS, getBrowserObject } from '@wdio/utils'
+import { UNICODE_CHARACTERS, WDIO_KIND, getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
@@ -47,7 +47,7 @@ const applyScopePrototype = (
  * enhances objects with element commands
  */
 export const getPrototype = (scope: 'browser' | 'element') => {
-    const prototype: Record<string, PropertyDescriptor> = {
+    const prototype: Record<string | symbol, PropertyDescriptor> = {
         /**
          * used to store the puppeteer instance in the browser scope
          */
@@ -80,6 +80,10 @@ export const getPrototype = (scope: 'browser' | 'element') => {
      */
     applyScopePrototype(prototype, scope)
     prototype.strategies = { value: new Map() }
+    /**
+     * brand the instance as a browser or an element, see `@wdio/utils` `kind.ts`
+     */
+    prototype[WDIO_KIND] = { value: scope, configurable: true }
 
     return prototype
 }

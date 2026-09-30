@@ -3,6 +3,7 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
+import { WDIO_KIND, WDIO_CHAINABLE, type WdioKind } from './kind.js'
 
 const log = logger('@wdio/utils:shim')
 
@@ -51,6 +52,39 @@ export function registerElementArrayFactory (factory: ElementArrayFactory) {
 }
 
 const TIME_BUFFER = 3
+
+/**
+ * Kind of the result of an element query command, see `kind.ts`. The proxy of the
+ * chain also gets the `WDIO_CHAINABLE` brand. `select` returns a multiremote
+ * browser, not an element, so it gets no brand.
+ */
+function chainKind (commandName: string): WdioKind | undefined {
+    if (commandName.endsWith('$$')) {
+        return 'element-array'
+    }
+    if (commandName.endsWith('$') || ['nextElement', 'previousElement', 'parentElement'].includes(commandName)) {
+        return 'element'
+    }
+    return undefined
+}
+
+/**
+ * Private flag of a chainable proxy: `true` when the chain started on a
+ * multi-remote browser, element or element list. A chained `$$` reads it, so
+ * its list knows `isMultiRemote` before it loads, like a direct `$$` does.
+ */
+const MULTI_REMOTE_ORIGIN = Symbol('wdio.multiRemoteOrigin')
+
+function isMultiRemoteOrigin (value: unknown): boolean {
+    if (!value || (typeof value !== 'object' && typeof value !== 'function')) {
+        return false
+    }
+    const source = value as { isMultiRemote?: unknown, [MULTI_REMOTE_ORIGIN]?: unknown }
+    /**
+     * read the flag first: on a chainable proxy, any other property is a command
+     */
+    return source[MULTI_REMOTE_ORIGIN] === true || source.isMultiRemote === true
+}
 
 /**
  * we have to mock the WebdriverIO.Browser and WebdriverIO.MultiRemoteBrowser type
@@ -145,14 +179,17 @@ export async function executeHooksWithArgs<T>(this: unknown, hookName: string, h
  * Proxy around a promise of an element (or element list) so commands and
  * properties can be chained before the promise resolves.
  */
-export function chainElementPromise<T> (promise: Promise<T | undefined>): T {
+export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRemote = false): T {
     return createElementPromiseProxy(
         promise,
         function (this: T) {
             return this
         },
         [],
-        '$'
+        '$',
+        undefined,
+        'element',
+        multiRemote
     ) as T
 }
 
@@ -161,12 +198,40 @@ function createElementPromiseProxy (
     cmd: Function,
     args: unknown[],
     commandName: string,
-    prevInnerArgs?: { prop: string | number, args: unknown[] }
+    prevInnerArgs?: { prop: string | number, args: unknown[] },
+    kind?: WdioKind,
+    multiRemote = false
 ): unknown {
+    /**
+     * only an unresolved element is chainable: a pending element list (for example
+     * a custom `$$` command) has the kind `'element-array'` and no chainable brand
+     */
+    const chainable = kind === 'element'
     return new Proxy(
         Promise.resolve(promise).then((ctx) => cmd.call(ctx, ...args)),
         {
+            /**
+             * the brands of the chain (see `kind.ts`), so `WDIO_KIND in $('foo')` is true
+             */
+            has: (target, prop) => (
+                (prop === WDIO_KIND && kind !== undefined) ||
+                (prop === WDIO_CHAINABLE && chainable)
+            ) || Reflect.has(target, prop),
             get: (target, prop: string) => {
+                /**
+                 * return the brand before the symbol handling below, which
+                 * treats every other symbol as an async iterator
+                 */
+                if ((prop as string | symbol) === WDIO_KIND) {
+                    return kind
+                }
+                if ((prop as string | symbol) === WDIO_CHAINABLE) {
+                    return chainable || undefined
+                }
+                if ((prop as string | symbol) === MULTI_REMOTE_ORIGIN) {
+                    return multiRemote
+                }
+
                 /**
                  * handle symbols, e.g. async iterators
                  */
@@ -229,7 +294,14 @@ function createElementPromiseProxy (
                         },
                         [prop],
                         commandName,
-                        { prop, args }
+                        { prop, args },
+                        /**
+                         * no `wdio.kind` brand: an ElementArray brands its own index
+                         * (`chainElementPromise`), so this proxy only wraps a value that
+                         * is not an ElementArray, and its item is unknown
+                         */
+                        undefined,
+                        multiRemote
                     )
                 }
 
@@ -415,7 +487,13 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
     }
 
     function wrapElementFn(promise: Promise<unknown>, cmd: Function, args: unknown[], prevInnerArgs?: { prop: string | number, args: unknown[] }): unknown {
-        return createElementPromiseProxy(promise, cmd, args, commandName, prevInnerArgs)
+        /**
+         * `promise` is the caller: a browser, an element, or the proxy of the
+         * previous link of the chain, so the multi-remote origin passes along
+         */
+        return createElementPromiseProxy(
+            promise, cmd, args, commandName, prevInnerArgs, chainKind(commandName), isMultiRemoteOrigin(promise)
+        )
     }
 
     function chainElementQuery(this: Promise<WebdriverIO.Browser>, ...args: unknown[]): unknown {
@@ -447,7 +525,12 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                     selector: args[0],
                     foundWith: commandName,
                     parent,
-                    props: args.slice(1)
+                    props: args.slice(1),
+                    /**
+                     * known before the parent resolves when the chain started on a
+                     * multi-remote browser, see `MULTI_REMOTE_ORIGIN`
+                     */
+                    ...(isMultiRemoteOrigin(parent) ? { isMultiRemote: true } : {})
                 }
                 return elementArrayFactory(async () => {
                     const element = await parent as {
@@ -489,6 +572,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                 /**
                  * A command with an element-list name that does not return an
                  * ElementArray (test doubles, custom stubs) keeps the promise proxy.
+                 * It gets no `wdio.kind` brand: the result is not an ElementArray.
                  */
                 return createElementPromiseProxy(
                     Promise.resolve(result),
@@ -496,7 +580,10 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                         return this
                     },
                     [],
-                    commandName
+                    commandName,
+                    undefined,
+                    undefined,
+                    isMultiRemoteOrigin(this)
                 )
             }
         }

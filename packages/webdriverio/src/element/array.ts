@@ -1,4 +1,4 @@
-import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject, registerElementArrayFactory } from '@wdio/utils'
+import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject, registerElementArrayFactory, WDIO_KIND } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 import type { Selector } from '../types.js'
 
@@ -158,8 +158,9 @@ function integerIndex (index: number) {
 function readIndex (array: ElementList, index: number) {
     const normalized = integerIndex(index)
     const state = stateOf(array)
+    const multiRemote = state.metadata.isMultiRemote === true
     if (!state.resolved) {
-        return chainElementPromise(elementAt(array, normalized))
+        return chainElementPromise(elementAt(array, normalized), multiRemote)
     }
     if (normalized < 0 || !Number.isFinite(normalized) || state.metadata.refetch === false) {
         return Array.prototype.at.call(array, normalized)
@@ -167,7 +168,7 @@ function readIndex (array: ElementList, index: number) {
     if (normalized < array.length) {
         return array[normalized]
     }
-    return chainElementPromise(elementAt(array, normalized))
+    return chainElementPromise(elementAt(array, normalized), multiRemote)
 }
 
 async function elementAt (array: ElementList, index: number): Promise<WebdriverIO.Element | undefined> {
@@ -310,6 +311,15 @@ function proxify (array: ElementList, state: ElementArrayState): WebdriverIO.Ele
                 return Reflect.get(target, prop)
             }
 
+            /**
+             * the brand of the list, see `@wdio/utils` `kind.ts`. A pending and a resolved list
+             * are the same object, so they have the same kind, and a pending list is not
+             * `WDIO_CHAINABLE`. Multi-remote is not part of the brand, read `isMultiRemote`.
+             */
+            if (prop === WDIO_KIND) {
+                return 'element-array'
+            }
+
             if (prop === 'then') {
                 if (current.resolved) {
                     return undefined
@@ -391,6 +401,7 @@ function proxify (array: ElementList, state: ElementArrayState): WebdriverIO.Ele
          */
         has (target, prop) {
             if (
+                prop === WDIO_KIND ||
                 prop === 'selector' || prop === 'parent' || prop === 'foundWith' ||
                 prop === 'props' || prop === 'isMultiRemote' || prop === 'getElements'
             ) {
