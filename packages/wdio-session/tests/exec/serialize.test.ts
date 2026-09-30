@@ -45,6 +45,16 @@ describe('exec serialize', () => {
         expect((await serialize(elementArray([]))).text).toBe('ElementArray(0) []')
     })
 
+    it('prints an element array whose slice and map are async', async () => {
+        const list = elementArray([element('nav a', 'id')])
+        Object.assign(list, {
+            slice: () => Promise.resolve([]),
+            map: async () => ['unused']
+        })
+        const text = (await serialize(list, { describeElement: async () => ({ tag: 'a', name: 'Home' }) })).text
+        expect(text).toBe('ElementArray(1) [\n  <a "Home" selector="nav a">\n]')
+    })
+
     it('prints buffers as a size', async () => {
         expect((await serialize(Buffer.alloc(12345))).text).toBe('<Buffer 12345 bytes>')
         expect((await serialize(new Uint8Array(3))).text).toBe('<Buffer 3 bytes>')

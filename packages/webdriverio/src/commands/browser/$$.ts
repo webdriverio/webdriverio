@@ -36,7 +36,8 @@ import type { Selector } from '../../types.js'
  *   Await the list first, or use `for await`.
  *
  * An index past the end of the list waits and refetches until `waitforTimeout`, the same way a
- * missing single element does. A [`slice`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice)
+ * missing single element does. That wait still happens after the list has resolved
+ * (`const items = await $$('li'); await items[items.length]`). A [`slice`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice)
  * does not: `$$('li').slice(0, 2)[3]` stays outside that window and does not resolve to the fourth `<li>`.
  *
  * Using the wdio testrunner this command is a global variable, see [Globals](https://webdriver.io/docs/api/globals)

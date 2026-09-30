@@ -140,6 +140,25 @@ function listForIteration (array: ElementList): ElementList {
     return (stateOf(array).self ?? array) as unknown as ElementList
 }
 
+/**
+ * An in-range index of a resolved list is that element. An index past the end
+ * of an original query still waits and refetches, which is what `$$('li')[5]`
+ * does before the list resolves. A slice, and a negative index, do not refetch.
+ */
+function readIndex (array: ElementList, index: number) {
+    const state = stateOf(array)
+    if (!state.resolved) {
+        return chainElementPromise(elementAt(array, index))
+    }
+    if (index < 0 || state.metadata.refetch === false) {
+        return Array.prototype.at.call(array, index)
+    }
+    if (index < array.length) {
+        return array[index]
+    }
+    return chainElementPromise(elementAt(array, index))
+}
+
 async function elementAt (array: ElementList, index: number): Promise<WebdriverIO.Element | undefined> {
     const items = await load(array)
     if (index < 0) {
@@ -258,11 +277,7 @@ const methods: Record<string, Function> = {
         }, sliceMetadata(state.metadata))
     },
     at (this: ElementList, index: number) {
-        const state = stateOf(this)
-        if (state.resolved) {
-            return Array.prototype.at.call(this, index)
-        }
-        return chainElementPromise(elementAt(this, index))
+        return readIndex(this, index)
     },
     async getElements (this: ElementList) {
         await load(this)
@@ -317,11 +332,7 @@ function proxify (array: ElementList, state: ElementArrayState): WebdriverIO.Ele
             }
 
             if (typeof prop === 'string' && /^\d+$/.test(prop)) {
-                const index = Number(prop)
-                if (current.resolved) {
-                    return target[index]
-                }
-                return chainElementPromise(elementAt(target, index))
+                return readIndex(target, Number(prop))
             }
 
             if (prop === Symbol.iterator) {
@@ -436,7 +447,8 @@ function create (elements: ElementList | undefined, loader: (() => Promise<Eleme
  *
  * Async array helpers (`map`, `filter`, `find`, and their `*Series` variants)
  * resolve the list themselves. Index access before the list has resolved
- * returns a chainable element.
+ * returns a chainable element. After it has resolved, an index past the end of
+ * an original query still waits and refetches. A slice does not.
  */
 export const ElementArray = {
     fromAsyncCallback (

@@ -119,6 +119,49 @@ describe('ElementArray', () => {
         expect(parent.waitUntil).toHaveBeenCalledOnce()
     })
 
+    it('refetches an out-of-range index after the list has resolved', async () => {
+        const late = element('late')
+        const parent = {
+            options: { waitforTimeout: 50 },
+            $$: vi.fn(),
+            waitUntil: vi.fn(async (condition: () => Promise<WebdriverIO.Element | false>) => {
+                const match = await condition()
+                if (!match) {
+                    throw new Error('timed out')
+                }
+                return match
+            })
+        }
+        parent.$$.mockResolvedValue(ElementArray.fromResolved([element('a'), late], {
+            selector: '.item',
+            foundWith: '$$',
+            parent: parent as unknown as WebdriverIO.Browser,
+            props: []
+        }))
+
+        const elements = ElementArray.fromAsyncCallback(async () => [element('a')], {
+            selector: '.item',
+            foundWith: '$$',
+            parent: parent as unknown as WebdriverIO.Browser,
+            props: []
+        })
+
+        await elements
+        expect(elements).toHaveLength(1)
+        expect(elements[0].elementId).toBe('a')
+        expect(elements.at(0).elementId).toBe('a')
+        expect(parent.waitUntil).not.toHaveBeenCalled()
+
+        await expect(elements[1].elementId).resolves.toBe('late')
+        await expect(elements.at(1).elementId).resolves.toBe('late')
+        expect(parent.waitUntil).toHaveBeenCalledTimes(2)
+
+        const sliced = elements.slice(0, 1)
+        expect(sliced[3]).toBeUndefined()
+        expect(sliced.at(3)).toBeUndefined()
+        expect(parent.waitUntil).toHaveBeenCalledTimes(2)
+    })
+
     it('does not refetch an index outside a pending slice', async () => {
         const parent = {
             options: { waitforTimeout: 50 },
