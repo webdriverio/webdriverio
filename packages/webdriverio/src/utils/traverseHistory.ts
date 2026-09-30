@@ -178,6 +178,50 @@ function readyStateSatisfies (readiness: HistoryReadiness, state: string | undef
     return state === 'complete'
 }
 
+interface DocumentSnapshot {
+    href: string
+    readyState: string
+    token: string
+}
+
+/**
+ * One script reads the URL, readiness, and document token together. Separate
+ * evaluations can observe the outgoing document and the restored one.
+ */
+function readDocumentSnapshot () {
+    return `(() => {
+    const root = document.documentElement
+    const token = root && typeof root.__wdioHistoryToken === 'string' ? root.__wdioHistoryToken : ''
+    return JSON.stringify({ href: location.href, readyState: document.readyState, token })
+})()`
+}
+
+function stampDocumentSnapshot (token: string) {
+    const key = JSON.stringify(token)
+    return `(() => {
+    const root = document.documentElement
+    const token = ${key}
+    if (root) root.__wdioHistoryToken = token
+    const seen = root && typeof root.__wdioHistoryToken === 'string' ? root.__wdioHistoryToken : ''
+    return JSON.stringify({ href: location.href, readyState: document.readyState, token: seen })
+})()`
+}
+
+function parseDocumentSnapshot (value: string | undefined): DocumentSnapshot | undefined {
+    if (!value) {
+        return undefined
+    }
+    try {
+        const parsed = JSON.parse(value) as Partial<DocumentSnapshot>
+        if (typeof parsed.href !== 'string' || typeof parsed.readyState !== 'string' || typeof parsed.token !== 'string') {
+            return undefined
+        }
+        return { href: parsed.href, readyState: parsed.readyState, token: parsed.token }
+    } catch {
+        return undefined
+    }
+}
+
 /**
  * Traverse the joint session history of the current top-level browsing context
  * by one entry and wait for the readiness `pageLoadStrategy` asks for.
@@ -203,7 +247,7 @@ export async function traverseTopLevelHistory (
     let subscription: string | undefined
     let historyMarker: 'installed' | 'unavailable' = 'unavailable'
     const markerId = historyMarkerId()
-    let urlBefore: string | undefined
+    let outgoing: DocumentSnapshot | undefined
     let armed = false
     let settled = false
     let crossDocument = false
@@ -251,28 +295,24 @@ export async function traverseTopLevelHistory (
          * A same-document traversal (fragment or `pushState`) does not.
          *
          * Firefox omits `navigationCommitted` and `load` when the entry is
-         * restored from the back-forward cache, so this event is the only
-         * signal. Wait until the document URL changes, then read readyState.
+         * restored from the back-forward cache. The restored document can
+         * also keep the same URL, so the outgoing document is marked and the
+         * wait ends when a different document is already ready.
          */
         crossDocument = true
-        if (urlBefore !== undefined) {
-            void watchTraversalReadyState(true)
-        }
+        void watchTraversalReadyState(true)
     }
     /**
      * A back-forward cache restore can commit a document that is already
      * complete and emit no `load`. A network navigation is still `loading`
      * at commit time, so a successful read does not skip that event.
-     * Pass `requireUrlChange` when the only event so far is `navigationStarted`:
-     * the outgoing document is already complete, and its URL has not moved.
+     * `requireNewDocument` waits until the marked outgoing document is gone.
+     * `navigationCommitted` is already that new document.
      */
-    const watchTraversalReadyState = async (requireUrlChange: boolean) => {
+    const watchTraversalReadyState = async (requireNewDocument: boolean) => {
         try {
             while (armed && !settled) {
-                const state = await evaluateString(browser, context, 'document.readyState')
-                const href = requireUrlChange
-                    ? await evaluateString(browser, context, 'location.href')
-                    : undefined
+                const sample = parseDocumentSnapshot(await evaluateString(browser, context, readDocumentSnapshot()))
                 if (!armed || settled) {
                     return
                 }
@@ -280,15 +320,15 @@ export async function traverseTopLevelHistory (
                  * `undefined` means the realm rejected the check. A cache
                  * restore has no later `load` event, so try again.
                  */
-                if (state === undefined || (requireUrlChange && href === undefined)) {
+                if (!sample) {
                     await delay(READY_STATE_RETRY_MS)
                     continue
                 }
-                if (requireUrlChange && href === urlBefore) {
+                if (requireNewDocument && (!outgoing || sample.token === outgoing.token)) {
                     await delay(READY_STATE_RETRY_MS)
                     continue
                 }
-                if (readyStateSatisfies(readiness, state)) {
+                if (readyStateSatisfies(readiness, sample.readyState)) {
                     resolveReady()
                 }
                 return
@@ -364,7 +404,16 @@ export async function traverseTopLevelHistory (
         if (await evaluateString(browser, context, installHistoryMarker(markerId)) === 'installed') {
             historyMarker = 'installed'
         }
-        urlBefore = await evaluateString(browser, context, 'location.href')
+        for (let attempt = 0; attempt < 5 && !outgoing && !settled; attempt++) {
+            const stamped = parseDocumentSnapshot(await evaluateString(browser, context, stampDocumentSnapshot(markerId)))
+            if (stamped?.token === markerId) {
+                outgoing = stamped
+                break
+            }
+            if (attempt < 4 && !settled) {
+                await delay(READY_STATE_RETRY_MS)
+            }
+        }
         /**
          * Arm only after the subscription exists and immediately before the
          * command. The spec returns before the traversal finishes, and the

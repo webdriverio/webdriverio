@@ -353,37 +353,67 @@ describe('back and forward', () => {
             vi.mocked(browser.scriptEvaluate).mockRestore()
         })
 
-        it('returns when navigation starts and the restored document is already complete', async () => {
-            let hrefReads = 0
+        it('returns when a restored document is ready even if the url is unchanged', async () => {
+            let reads = 0
+            let stampedToken = ''
             vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
                 const expression = params?.expression ?? ''
-                if (expression.includes('location.href')) {
-                    hrefReads += 1
-                    return scriptValue(hrefReads === 1
-                        ? 'https://example.test/second'
-                        : 'https://example.test/first')
+                if (!expression.includes('__wdioHistoryToken')) {
+                    return scriptValue('unsupported')
                 }
-                if (expression.includes('document.readyState')) {
-                    return scriptValue('complete')
+                reads += 1
+                if (expression.includes('__wdioHistoryToken = token')) {
+                    const stamped = expression.match(/const token = ("t[^"]*")/)
+                    stampedToken = stamped ? JSON.parse(stamped[1]) as string : ''
+                    return scriptValue(JSON.stringify({
+                        href: 'https://example.test/same',
+                        readyState: 'complete',
+                        token: stampedToken
+                    }))
                 }
-                return scriptValue('unsupported')
+                if (reads === 2) {
+                    return scriptValue(JSON.stringify({
+                        href: 'https://example.test/other',
+                        readyState: 'complete',
+                        token: stampedToken
+                    }))
+                }
+                return scriptValue(JSON.stringify({
+                    href: 'https://example.test/same',
+                    readyState: 'loading',
+                    token: ''
+                }))
             })
             vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
                 browser.emit('browsingContext.navigationStarted', navigationInfo('top-level'))
                 return {}
             })
 
-            await browser.back()
+            let resolved = false
+            const pending = browser.back().then(() => {
+                resolved = true
+            })
+            await vi.waitFor(() => {
+                expect(reads).toBeGreaterThanOrEqual(3)
+            })
+            await flush()
+            expect(resolved).toBe(false)
 
-            expect(hrefReads).toBeGreaterThan(1)
+            browser.emit('browsingContext.load', navigationInfo('top-level'))
+            await pending
             vi.mocked(browser.scriptEvaluate).mockRestore()
         })
 
         it('returns when a committed document is already complete', async () => {
-            vi.spyOn(browser, 'scriptEvaluate').mockResolvedValue({
-                type: 'success',
-                realm: 'realm-1',
-                result: { type: 'string', value: 'complete' }
+            vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
+                if ((params?.expression ?? '').includes('document.readyState')) {
+                    return scriptValue(JSON.stringify({
+                        href: 'https://example.test/',
+                        readyState: 'complete',
+                        token: 'restored'
+                    }))
+                }
+                return scriptValue('unsupported')
             })
             vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
                 browser.emit('browsingContext.navigationStarted', navigationInfo('top-level'))
@@ -394,7 +424,7 @@ describe('back and forward', () => {
             await browser.back()
 
             expect(browser.scriptEvaluate).toHaveBeenCalledWith(expect.objectContaining({
-                expression: 'document.readyState',
+                expression: expect.stringContaining('document.readyState'),
                 target: { context: 'top-level' }
             }))
             vi.mocked(browser.scriptEvaluate).mockRestore()
@@ -408,7 +438,11 @@ describe('back and forward', () => {
                     if (readyChecks === 1) {
                         throw new Error('realm not ready')
                     }
-                    return scriptValue('complete')
+                    return scriptValue(JSON.stringify({
+                        href: 'https://example.test/',
+                        readyState: 'complete',
+                        token: ''
+                    }))
                 }
                 return scriptValue('unsupported')
             })
