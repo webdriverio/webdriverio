@@ -1,3 +1,5 @@
+import { WDIO_KIND, WDIO_CHAINABLE } from '@wdio/utils'
+
 const MAX_DEPTH = 6
 const MAX_CHARS = 4000
 const MAX_ELEMENTS = 10
@@ -24,14 +26,22 @@ export interface Serialized {
     value?: unknown
 }
 
+type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
+
+/**
+ * A resolved element, see `@wdio/utils` `kind.ts`. A chainable $() is a promise, not a result.
+ */
 export function isElement (value: unknown): value is WebdriverIO.Element {
-    return Boolean(value) && typeof value === 'object' && 'selector' in (value as object) && 'elementId' in (value as object) &&
-        typeof (value as { getTagName?: unknown }).getTagName === 'function'
+    return Boolean(value) && typeof value === 'object' &&
+        (value as Branded)[WDIO_KIND] === 'element' && (value as Branded)[WDIO_CHAINABLE] !== true
 }
 
+/**
+ * An element list, or a copy of one (`[...list]`) whose items are all elements
+ */
 export function isElementArray (value: unknown): value is WebdriverIO.ElementArray {
     return Array.isArray(value) && (
-        ('selector' in value && 'foundWith' in value) ||
+        (value as Branded)[WDIO_KIND] === 'element-array' ||
         (value.length > 0 && value.every(isElement))
     )
 }

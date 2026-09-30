@@ -4,11 +4,11 @@ import { describe, it, expect } from 'vitest'
 import { serialize, toPlain, isError } from '../../src/exec/serialize.js'
 
 function element (selector: string, elementId?: string) {
-    return { selector, elementId, getTagName: async () => 'button' }
+    return { selector, elementId, getTagName: async () => 'button', [Symbol.for('wdio.kind')]: 'element' }
 }
 
 function elementArray (items: ReturnType<typeof element>[]) {
-    return Object.assign([...items], { selector: 'li', foundWith: '$$' })
+    return Object.assign([...items], { selector: 'li', foundWith: '$$', [Symbol.for('wdio.kind')]: 'element-array' })
 }
 
 describe('exec serialize', () => {
@@ -54,6 +54,12 @@ describe('exec serialize', () => {
          */
         const wdioList = (entries: ReturnType<typeof element>[], resolved = true) => new Proxy(resolved ? [...entries] : [], {
             get (current, prop, receiver) {
+                /**
+                 * a pending list has its brand before it loads
+                 */
+                if (prop === Symbol.for('wdio.kind')) {
+                    return 'element-array'
+                }
                 if (prop === 'selector') {
                     return 'nav a'
                 }
@@ -87,6 +93,7 @@ describe('exec serialize', () => {
         const list = Object.assign([...items], {
             selector: 'nav a',
             foundWith: '$$',
+            [Symbol.for('wdio.kind')]: 'element-array',
             slice (start?: number, end?: number) {
                 const sliced = Array.prototype.slice.call(this, start, end) as ReturnType<typeof element>[]
                 return Object.assign(sliced, {
