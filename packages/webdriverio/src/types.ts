@@ -869,6 +869,74 @@ export interface ExtendedElementReference {
 export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'media' | 'onLine' | 'locale' | 'timezone' | 'touch' | 'orientation' | 'screen' | 'viewportMeta' | 'textLayout' | 'scripting' | 'scrollbar' | 'forcedColors' | 'clock' | 'device'
 export type RestoreMap = Map<SupportedScopes, (() => Promise<any>)[]>
 
+/**
+ * Options for `browser.savePDF`. Lengths are centimeters.
+ *
+ * Defaults match WebDriver Classic `printPage` and WebDriver BiDi
+ * `browsingContext.print`: portrait, scale `1`, background `false`,
+ * shrink-to-fit `true`, page `21.59` × `27.94` cm, margins `1` cm.
+ * Omitted fields are left to the browser.
+ */
+export interface PDFPrintOptions {
+    /**
+     * Page orientation. Accepted values are `portrait` and `landscape`.
+     * The property stays a `string` so an existing variable of that type can
+     * still be passed. Any other value is rejected when `savePDF` runs.
+     * @default 'portrait'
+     */
+    orientation?: string
+    /**
+     * Page scale. The print protocols accept `0.1`–`2`.
+     * @default 1
+     */
+    scale?: number
+    /**
+     * Print the page background.
+     * @default false
+     */
+    background?: boolean
+    /**
+     * Page width in centimeters.
+     * @default 21.59
+     */
+    width?: number
+    /**
+     * Page height in centimeters.
+     * @default 27.94
+     */
+    height?: number
+    /**
+     * Top margin in centimeters.
+     * @default 1
+     */
+    top?: number
+    /**
+     * Bottom margin in centimeters.
+     * @default 1
+     */
+    bottom?: number
+    /**
+     * Left margin in centimeters.
+     * @default 1
+     */
+    left?: number
+    /**
+     * Right margin in centimeters.
+     * @default 1
+     */
+    right?: number
+    /**
+     * Shrink the content to fit the page.
+     * @default true
+     */
+    shrinkToFit?: boolean
+    /**
+     * Pages to include. Each entry is a page number or a range such as `'1-3'`.
+     * @default []
+     */
+    pageRanges?: Array<string | number>
+}
+
 export interface SaveScreenshotOptions {
     /**
      * Whether to take a screenshot of the full page or just the current viewport.

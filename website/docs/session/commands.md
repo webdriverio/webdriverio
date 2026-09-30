@@ -238,6 +238,8 @@ Save a PNG of the viewport, an element or the full page. Applies to web, native 
 
 Save the current page as a PDF. Applies to web.
 
+This calls `browser.savePDF`. A BiDi session renders the file with `browsingContext.print`. That is the print path for Chrome, Edge, and Firefox, headed and headless. A Classic session uses `printPage`. Chrome's Classic print endpoint was headless-only ([crbug 753118](https://bugs.chromium.org/p/chromium/issues/detail?id=753118)); current Chrome can also print from a headed Classic session, and older Chrome may still require headless.
+
 **Arguments**
 
 | Name | Required | Description |

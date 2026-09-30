@@ -45,14 +45,23 @@ describe('exec serialize', () => {
         expect((await serialize(elementArray([]))).text).toBe('ElementArray(0) []')
     })
 
-    it('prints an element array whose slice and map are async', async () => {
-        const list = elementArray([element('nav a', 'id')])
-        Object.assign(list, {
-            slice: () => Promise.resolve([]),
-            map: async () => ['unused']
+    it('prints an element list whose map returns a promise', async () => {
+        const items = [element('nav a', 'a1'), element('nav a', 'a2')]
+        const list = Object.assign([...items], {
+            selector: 'nav a',
+            foundWith: '$$',
+            slice (start?: number, end?: number) {
+                const sliced = Array.prototype.slice.call(this, start, end) as ReturnType<typeof element>[]
+                return Object.assign(sliced, {
+                    async map (cb: (el: ReturnType<typeof element>, index: number) => unknown) {
+                        return Promise.all(Array.prototype.map.call(this, cb) as Promise<unknown>[])
+                    }
+                })
+            }
         })
-        const text = (await serialize(list, { describeElement: async () => ({ tag: 'a', name: 'Home' }) })).text
-        expect(text).toBe('ElementArray(1) [\n  <a "Home" selector="nav a">\n]')
+        expect((await serialize(list, { describeElement: async () => ({ tag: 'a', name: 'Home' }) })).text).toBe(
+            'ElementArray(2) [\n  <a "Home" selector="nav a">\n  <a "Home" selector="nav a">\n]'
+        )
     })
 
     it('prints buffers as a size', async () => {

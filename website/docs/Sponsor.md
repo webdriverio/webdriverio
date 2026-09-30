@@ -73,16 +73,6 @@ You can also try to convince your employer to sponsor WebdriverIO as a business.
 ### Gold <TierIcon tier="gold" /> {#gold}
 
 <ImageSwitcher
-    lightImageSrc="/img/sponsors/jetify_black.png"
-    darkImageSrc="/img/sponsors/jetify_white.png"
-    alt="Jetify"
-    link="https://www.jetify.com/"
-    width="250"
-    target="_blank"
-    style={{ marginRight: '20px', position: 'relative', top: '8px' }}
-/>
-
-<ImageSwitcher
     lightImageSrc="/img/sponsors/testmu_ai_black.svg"
     darkImageSrc="/img/sponsors/testmu_ai_white.svg"
     alt="TestMu AI (Formerly LambdaTest)"
@@ -144,7 +134,7 @@ Become a [Silver Sponsor](https://opencollective.com/webdriverio/contribute/silv
     darkImageSrc="/img/sponsors/rapidproxy.png"
     alt="Rapidproxy"
     target="_blank"
-    link="https://www.rapidproxy.io/"
+    link="https://www.rapidproxy.io/?ref=webdriverio"
     width="200"
 />
 
