@@ -1,9 +1,9 @@
 import path from 'node:path'
 import { describe, it, expect, vi } from 'vitest'
-import { setWdioKind } from '@wdio/utils'
+import { isArrayOfElements, setWdioKind } from '@wdio/utils'
+import { remote } from 'webdriverio'
 import { ElementArray } from '../../../webdriverio/src/element/array.js'
-import { remote } from '../../../webdriverio/src/index.js'
-import { expect as browserExpect, isArrayOfElements, loadedKindOf, shouldLoadAssertionContext } from '../../src/browser/expect.js'
+import { expect as browserExpect, contextNameOf, loadedKindOf, shouldLoadAssertionContext } from '../../src/browser/expect.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -86,7 +86,7 @@ describe('expect', () => {
      */
     describe('loadedKindOf and isArrayOfElements read the wdio.kind brand', () => {
         it('gives the kind of loaded WebdriverIO objects', async () => {
-            const browser = await remote({ capabilities: { browserName: 'foobar' } })
+            const browser = await remote({ capabilities: { browserName: 'foobar' }, strictSelectors: false })
             const elem = await browser.$('#foo')
             const elems = await browser.$$('#foo')
 
@@ -99,7 +99,7 @@ describe('expect', () => {
         })
 
         it('gives no kind to a value that is still a promise', async () => {
-            const browser = await remote({ capabilities: { browserName: 'foobar' } })
+            const browser = await remote({ capabilities: { browserName: 'foobar' }, strictSelectors: false })
 
             expect(loadedKindOf(browser.$('#foo'))).toBeUndefined()
             expect(loadedKindOf(browser.$('#foo').$('#bar'))).toBeUndefined()
@@ -113,6 +113,23 @@ describe('expect', () => {
             expect(isArrayOfElements([{ selector: 'h1' }])).toBe(false)
             expect(loadedKindOf(null)).toBeUndefined()
             expect(loadedKindOf('h1')).toBeUndefined()
+        })
+
+        it('does not take an empty array for an array of elements', () => {
+            expect(isArrayOfElements([])).toBe(false)
+        })
+    })
+
+    describe('contextNameOf', () => {
+        it('names each assertion subject in the timeout message', async () => {
+            const browser = await remote({ capabilities: { browserName: 'foobar' }, strictSelectors: false })
+            const elems = await browser.$$('#foo')
+
+            expect(contextNameOf(browser)).toBe('WebdriverIO.Browser')
+            expect(contextNameOf(await browser.$('#foo'))).toBe('WebdriverIO.Element')
+            expect(contextNameOf(elems)).toBe('WebdriverIO.ElementArray')
+            expect(contextNameOf([...elems])).toBe('WebdriverIO.Element[]')
+            expect(contextNameOf('foo')).toBe('foo')
         })
     })
 })

@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
-import { executeHooksWithArgs, WDIO_KIND } from '@wdio/utils'
+import { executeHooksWithArgs, getWdioKind } from '@wdio/utils'
 import { wdioCustomMatchers } from 'expect-webdriverio'
 import { some } from 'expect-webdriverio/api'
 import { ELEMENT_KEY } from 'webdriver'
@@ -349,7 +349,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
              * the result is awaited, so its `wdio.kind` brand (see `@wdio/utils` `kind.ts`)
              * is the kind of a loaded object
              */
-            const kind = result?.[WDIO_KIND]
+            const kind = getWdioKind(result)
 
             /**
              * if result is an element, transform it into an element reference
@@ -424,21 +424,25 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                     : await browser.$(element.selector)
             }
 
-            if (received) {
-                if (Array.isArray(received)) {
-                    // ElementArray or array of WebdriverIO.Element, refetch all elements to get fresh references
-                    received = await ('parent' in received ? browser.$$(received) : Promise.all(received.map(refetchElement)))
-                } else if (typeof received === 'object' && ('elementId' in received || 'selector' in received)) {
-                    received = await refetchElement(received as WebdriverIO.Element)
-                } else {
-                    throw new Error(`Received value is not an element or array of elements: ${JSON.stringify(received)}`)
-                }
-            } else {
+            /**
+             * refetch the elements to get fresh references. The page sends the kind of
+             * the element, because JSON drops the properties of an element list.
+             */
+            if (!received) {
                 received = payload.context || browser
+            } else if (payload.elementKind === 'element-array') {
+                received = await browser.$$(received)
+            } else if (payload.elementKind === 'element') {
+                received = await refetchElement(received)
+            } else if (Array.isArray(received)) {
+                // a copy of an element list (WebdriverIO.Element[])
+                received = await Promise.all(received.map(refetchElement))
+            } else {
+                throw new Error(`Received value is not an element or array of elements: ${JSON.stringify(received)}`)
             }
 
             if (isSome) {
-                received = isSome ? some(received as WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray) : received
+                received = some(received as WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray)
             }
 
             const result = await matcher.apply(payload.scope, [received, ...payload.args.map(transformExpectArgs)])

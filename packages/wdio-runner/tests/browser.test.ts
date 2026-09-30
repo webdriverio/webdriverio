@@ -2,8 +2,8 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 import { MESSAGE_TYPES, browserChannelMessage, type Workers } from '@wdio/types'
+import { remote } from 'webdriverio'
 
-import { remote } from '../../webdriverio/src/index.js'
 import BrowserFramework from '../src/browser.js'
 import type BaseReporter from '../src/reporter.js'
 
@@ -45,7 +45,7 @@ describe('BrowserFramework command results', () => {
     let browser: WebdriverIO.Browser
 
     beforeEach(async () => {
-        browser = await remote({ capabilities: { browserName: 'foobar' } })
+        browser = await remote({ capabilities: { browserName: 'foobar' }, strictSelectors: false })
         globals.browser = browser
         process.send = vi.fn() as unknown as typeof process.send
 
@@ -88,5 +88,94 @@ describe('BrowserFramework command results', () => {
 
         expect(await runCommand(handler, 'getPlainList')).toEqual({ id: 1, result: value })
         expect(await runCommand(handler, 'getPlainElement')).toEqual({ id: 1, result: { elementId: 'foo' } })
+    })
+})
+
+/**
+ * Runs an assertion that the page sends to the worker. The page sends the
+ * message as JSON, so an element list arrives as a plain array.
+ */
+async function runExpect (handler: MessageHandler, request: Partial<Workers.ExpectRequestEvent>) {
+    const send = process.send as ReturnType<typeof vi.fn>
+    send.mockClear()
+    const value = JSON.parse(JSON.stringify({ id: 1, cid: '0-0', scope: {}, args: [], ...request }))
+    await handler({
+        command: 'workerRequest',
+        args: { id: 1, message: browserChannelMessage(MESSAGE_TYPES.expectRequestMessage, value) }
+    } as unknown as Workers.WorkerCommand)
+    return send.mock.calls[0][0].args.message.value
+}
+
+describe('BrowserFramework assertion subjects', () => {
+    const originalSend = process.send
+    let handler: MessageHandler
+    let browser: WebdriverIO.Browser
+
+    beforeEach(async () => {
+        browser = await remote({ capabilities: { browserName: 'foobar' }, strictSelectors: false })
+        globals.browser = browser
+        process.send = vi.fn() as unknown as typeof process.send
+
+        const on = vi.spyOn(process, 'on').mockImplementation(() => process)
+        new BrowserFramework('0-0', {} as WebdriverIO.Config, [], {} as BaseReporter)
+        handler = on.mock.calls.find(([event]) => event === 'message')![1] as MessageHandler
+        on.mockRestore()
+    })
+
+    afterEach(() => {
+        process.send = originalSend
+    })
+
+    it('loads an element list again as an element list', async () => {
+        const elems = await browser.$$('#foo')
+        const $$ = vi.spyOn(browser, '$$')
+
+        const response = await runExpect(handler, {
+            matcherName: 'toBeElementsArrayOfSize',
+            args: [elems.length],
+            element: elems,
+            elementKind: 'element-array'
+        })
+
+        expect(response).toEqual(expect.objectContaining({ id: 1, pass: true }))
+        expect($$).toHaveBeenCalledTimes(1)
+    })
+
+    it('loads an element again', async () => {
+        const elem = await browser.$('#foo')
+        const $ = vi.spyOn(browser, '$')
+
+        const response = await runExpect(handler, {
+            matcherName: 'toBeExisting',
+            element: elem,
+            elementKind: 'element'
+        })
+
+        expect(response).toEqual(expect.objectContaining({ id: 1, pass: true }))
+        expect($).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not take an object without a kind for an element', async () => {
+        const response = await runExpect(handler, {
+            matcherName: 'toBeExisting',
+            element: { elementId: 'foo', selector: '#foo' }
+        })
+
+        expect(response).toEqual(expect.objectContaining({ id: 1, pass: false }))
+        expect(response.message).toContain('Received value is not an element or array of elements')
+    })
+
+    it('loads a copy of an element list again item by item', async () => {
+        const elems = await browser.$$('#foo')
+        const $$ = vi.spyOn(browser, '$$')
+
+        const response = await runExpect(handler, {
+            matcherName: 'toBeElementsArrayOfSize',
+            args: [elems.length],
+            element: [...elems]
+        })
+
+        expect(response).toEqual(expect.objectContaining({ id: 1, pass: true }))
+        expect($$).not.toHaveBeenCalled()
     })
 })

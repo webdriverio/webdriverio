@@ -1,7 +1,7 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
 import { MESSAGE_TYPES, browserChannelMessage, isBrowserChannelMessage, parseRunnerToBrowserMessage, type Workers } from '@wdio/types'
 import { $ } from '@wdio/globals'
-import { WDIO_KIND, type WdioKind } from '@wdio/utils'
+import { getWdioKind, isArrayOfElements, type WdioKind } from '@wdio/utils'
 import type { ChainablePromiseElement, ChainablePromiseArray } from 'webdriverio'
 
 import { getCID } from './utils.js'
@@ -101,7 +101,10 @@ function createMatcher (matcherName: string) {
          * A loaded WebdriverIO.Element or WebdriverIO.ElementArray, or an array of
          * elements (WebdriverIO.Element[]) aka filtered ElementArray
          */
-        if (loadedKind === 'element' || loadedKind === 'element-array' || isArrayOfElements(context)) {
+        if (loadedKind === 'element' || loadedKind === 'element-array') {
+            expectRequest.element = context
+            expectRequest.elementKind = loadedKind
+        } else if (isArrayOfElements(context)) {
             expectRequest.element = context
         }
 
@@ -110,6 +113,7 @@ function createMatcher (matcherName: string) {
          */
         if (context instanceof Element) {
             expectRequest.element = await $(context as unknown as HTMLElement)
+            expectRequest.elementKind = 'element'
         } else if (context && isContextObject && loadedKind !== 'browser' && loadedKind !== 'element') {
             /**
              * check if context is an object or promise and resolve it
@@ -157,9 +161,7 @@ function createMatcher (matcherName: string) {
         }
 
         import.meta.hot.send(WDIO_EVENT_NAME, browserChannelMessage(MESSAGE_TYPES.expectRequestMessage, expectRequest))
-        const contextString = isContextObject
-            ? CONTEXT_NAMES[(context as { [WDIO_KIND]?: WdioKind } | null)?.[WDIO_KIND] ?? 'browser']
-            : context
+        const contextString = contextNameOf(context)
 
         return new Promise<SyncExpectationResult>((resolve, reject) => {
             const commandTimeout = setTimeout(
@@ -244,28 +246,27 @@ export function shouldLoadAssertionContext (context: unknown): boolean {
  * but it is sent as `context` and awaited, so it has no loaded kind.
  */
 export function loadedKindOf (value: unknown): WdioKind | undefined {
-    if (!value || (typeof value !== 'object' && typeof value !== 'function')) {
-        return undefined
-    }
-    const candidate = value as { [WDIO_KIND]?: WdioKind, then?: unknown }
-    return typeof candidate.then === 'function' ? undefined : candidate[WDIO_KIND]
-}
-
-/**
- * Element-list `every` is async and returns a Promise. Using that return
- * value as a boolean treats every list as an array of elements.
- */
-export function isArrayOfElements (context: unknown): boolean {
-    return Array.isArray(context) && Array.prototype.every.call(
-        context,
-        (el: unknown) => loadedKindOf(el) === 'element'
-    )
+    return typeof (value as { then?: unknown } | null)?.then === 'function' ? undefined : getWdioKind(value)
 }
 
 const CONTEXT_NAMES: Record<WdioKind, string> = {
     browser: 'WebdriverIO.Browser',
     element: 'WebdriverIO.Element',
     'element-array': 'WebdriverIO.ElementArray'
+}
+
+/**
+ * The name of the assertion subject in the timeout message
+ */
+export function contextNameOf (context: unknown): unknown {
+    if (typeof context !== 'object') {
+        return context
+    }
+    const kind = getWdioKind(context)
+    if (!kind && isArrayOfElements(context)) {
+        return 'WebdriverIO.Element[]'
+    }
+    return CONTEXT_NAMES[kind ?? 'browser']
 }
 
 function serializeAsymmetricMatchers(arg: unknown): unknown {
