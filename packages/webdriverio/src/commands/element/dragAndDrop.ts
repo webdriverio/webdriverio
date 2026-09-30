@@ -1,6 +1,6 @@
 import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
-import { getBrowserObject, WDIO_KIND } from '@wdio/utils'
+import { getBrowserObject, isLoadedElement } from '@wdio/utils'
 import type { ChainablePromiseElement, DragAndDropCoordinate, DragAndDropOptions } from '../../types.js'
 
 /**
@@ -45,7 +45,7 @@ export async function dragAndDrop (
      * allow to specify an element or an x/y vector. The target is awaited, so a
      * chainable `$()` is a loaded element here (see `@wdio/utils` `kind.ts`)
      */
-    const isMovingToElement = (moveToElement as { [WDIO_KIND]?: unknown } | undefined)?.[WDIO_KIND] === 'element'
+    const isMovingToElement = isLoadedElement(moveToElement)
 
     /**
      * fail if
