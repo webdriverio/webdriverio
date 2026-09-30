@@ -31,17 +31,14 @@ describe('wrapCommand', () => {
             }
         })
 
-        it('brands a $$-type command that does not return an ElementArray as a chainable element array', () => {
+        it('does not brand a $$-type command that does not return an ElementArray, or its items', () => {
             for (const command of ['$$', 'custom$$']) {
-                expect(brandsOf(wrapCommand(command, vi.fn().mockResolvedValue([{ selector: 'li' }])).call(scope)))
-                    .toEqual({ kind: 'element-array', chainable: true })
+                const chain = wrapCommand(command, vi.fn().mockResolvedValue([{ selector: 'li' }])).call(scope) as unknown as Record<string, unknown>
+
+                expect(brandsOf(chain)).toEqual({ kind: undefined, chainable: undefined })
+                expect(brandsOf(chain[0])).toEqual({ kind: undefined, chainable: undefined })
+                expect(WDIO_KIND in chain).toBe(false)
             }
-        })
-
-        it('brands an index on an element array as a chainable element', () => {
-            const chain = wrapCommand('$$', vi.fn().mockResolvedValue([{ selector: 'li' }])).call(scope) as unknown as Record<string, unknown>
-
-            expect(brandsOf(chain[0])).toEqual({ kind: 'element', chainable: true })
         })
 
         it('supports `in` on the chain', () => {

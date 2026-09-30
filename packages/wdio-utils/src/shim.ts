@@ -289,7 +289,12 @@ function createElementPromiseProxy (
                         [prop],
                         commandName,
                         { prop, args },
-                        'element',
+                        /**
+                         * no `wdio.kind` brand: an ElementArray brands its own index
+                         * (`chainElementPromise`), so this proxy only wraps a value that
+                         * is not an ElementArray, and its item is unknown
+                         */
+                        undefined,
                         multiRemote
                     )
                 }
@@ -561,6 +566,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                 /**
                  * A command with an element-list name that does not return an
                  * ElementArray (test doubles, custom stubs) keeps the promise proxy.
+                 * It gets no `wdio.kind` brand: the result is not an ElementArray.
                  */
                 return createElementPromiseProxy(
                     Promise.resolve(result),
@@ -570,7 +576,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                     [],
                     commandName,
                     undefined,
-                    chainKind(commandName),
+                    undefined,
                     isMultiRemoteOrigin(this)
                 )
             }
