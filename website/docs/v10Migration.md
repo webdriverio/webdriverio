@@ -613,7 +613,7 @@ In v9, many mobile helpers tried `browser.execute('mobile: …')` and, on an unk
 
 ### Removed protocol commands
 
-Appium 3 [removed many deprecated base-driver endpoints](https://appium.io/docs/en/3.0/guides/migrating-2-to-3/). WebdriverIO no longer exposes client methods for those routes (for example `appiumLock`, `touchPerform`, `startRecordingScreen` / `stopRecordingScreen`, and the Mobile JSON Wire Protocol map). Use W3C Actions, the corresponding mobile command, or a driver `mobile:` execute method instead. Screen recording replacements include `mobile: startXCTestScreenRecording` / `mobile: stopXCTestScreenRecording` (iOS), `mobile: startMediaProjectionRecording` / `mobile: stopMediaProjectionRecording` (Android), and the macOS / Windows driver equivalents. [`browser.saveRecordingScreen`](/docs/api/browser/saveRecordingScreen) now stops recording through those `mobile:` methods instead of the removed HTTP endpoints.
+Appium 3 [removed many deprecated base-driver endpoints](https://appium.io/docs/en/latest/guides/migrating-2-to-3/). WebdriverIO no longer exposes client methods for most of those routes (for example `appiumLock`, `touchPerform`, and the Mobile JSON Wire Protocol map). Use W3C Actions, the corresponding mobile command, or a driver `mobile:` execute method instead.
 
 ### Appium `--allow-insecure` scope
 
@@ -637,6 +637,15 @@ Appium 3 requires a driver or `*` scope prefix on `--allow-insecure` features, f
 ### `getValue` on mobile reads the element property
 
 `element.getValue()` calls Get Element Property on every session, including Appium 3. On a mobile session it previously called Get Element Attribute.
+
+### `stopRecordingScreen` signature aligned with `startRecordingScreen`
+
+`driver.stopRecordingScreen` now only accepts a single `options` argument, instead of the previous 4 arguments, aligning with `driver.startRecordingScreen`. Move the individual arguments inside `options`:
+
+```diff
+- driver.stopRecordingScreen(remotePath: 'webdriver.io', method: 'POST')
++ driver.stopRecordingScreen(options: {remotePath: 'webdriver.io', method: 'POST'})
+```
 
 ## Multi-remote naming
 
