@@ -253,6 +253,12 @@ describe('WebdriverIO object brand matrix', () => {
                 awaited: E
             }],
             ['#25 (await $$(s))[0]', { from: (b) => b.$$('#foo'), make: (list) => list[0], pending: E, awaited: E }],
+            /**
+             * an index past the end of a resolved query waits and refetches, a derived list does not
+             */
+            ['#25 (await $$(s))[5] refetches', { from: (b) => b.$$('#foo'), make: (list) => list[5], pending: E_CHAIN, awaited: 'rejects' }],
+            ['#25 (await $$(s)).at(-1)', { from: (b) => b.$$('#foo'), make: (list) => list.at(-1), pending: E, awaited: E }],
+            ['#25 (await $$(s).slice(0, 1))[5]', { from: (b) => b.$$('#foo').slice(0, 1), make: (list) => list[5], pending: NONE, awaited: NONE }],
             ['#26 [...await $$(s)]', { from: (b) => b.$$('#foo'), make: (list) => [...(list as unknown as unknown[])], pending: NONE, awaited: NONE }],
             ['#27 $(s).getElement()', { make: (b) => b.$('#foo').getElement(), pending: NONE, awaited: E }],
             ['#27 $$(s).getElements()', { make: (b) => b.$$('#foo').getElements(), pending: NONE, awaited: A }],
