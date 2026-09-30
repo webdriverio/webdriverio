@@ -165,7 +165,7 @@ export type BrowsingContextEvent = BrowsingContextContextCreated | BrowsingConte
 export type BrowsingContextBrowsingContext = string
 export type BrowsingContextInfoList = BrowsingContextInfo[]
 
-export interface BrowsingContextInfo {
+export interface BrowsingContextBaseInfo {
     children: BrowsingContextInfoList | null;
     clientWindow: BrowserClientWindow;
     context: BrowsingContextBrowsingContext;
@@ -175,6 +175,7 @@ export interface BrowsingContextInfo {
     parent?: BrowsingContextBrowsingContext | null;
 }
 
+export type BrowsingContextInfo = BrowsingContextBaseInfo
 export type BrowsingContextLocator = BrowsingContextAccessibilityLocator | BrowsingContextCssLocator | BrowsingContextContextLocator | BrowsingContextInnerTextLocator | BrowsingContextXPathLocator
 
 export interface BrowsingContextAccessibilityLocator {
@@ -275,7 +276,11 @@ export type BrowsingContextTraverseHistoryResult = EmptyResult
 
 export interface BrowsingContextContextCreated {
     method: 'browsingContext.contextCreated';
-    params: BrowsingContextInfo;
+    params: BrowsingContextContextCreatedParameters;
+}
+
+export type BrowsingContextContextCreatedParameters = BrowsingContextBaseInfo & {
+    hasPlannedNavigation: boolean;
 }
 
 export interface BrowsingContextContextDestroyed {

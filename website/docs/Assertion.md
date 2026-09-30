@@ -22,6 +22,12 @@ await expect(selectOptions).toHaveChildren({ gte: 1 })
 
 For the full list, see the [expect API doc](/docs/api/expect-webdriverio).
 
+:::info Jasmine
+
+With the Jasmine framework, `expect` combines Jasmine's matchers and the WebdriverIO matchers. Jasmine's sync matchers do not need `await`, and the Jest parts of `expect`, such as `expect.soft()`, are not available. See [Using Jasmine](/docs/frameworks#assertions).
+
+:::
+
 ## Soft Assertions
 
 WebdriverIO includes soft assertions by default from expect-webdriver(5.2.0). Soft assertions allow your tests to continue execution even when an assertion fails. All failures are collected and reported at the end of the test.

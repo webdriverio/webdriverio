@@ -268,14 +268,18 @@ describe('main suite 1', () => {
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo to parent frame with auto scrolling', async () => {
+        it('moveTo to parent frame with auto scrolling', async function () {
+            // Unstable on Windows: expected "center", received "center\nout"
+            this.retries(3)
             await browser.setWindowSize(500, 500)
             await browser.switchToParentFrame()
             await browser.$('#parent').moveTo()
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo to nested iframe with auto scrolling', async () => {
+        it('moveTo to nested iframe with auto scrolling', async function () {
+            // Unstable on Windows: expected "center", received "center\nout"
+            this.retries(3)
             const iframe = await browser.$('iframe.code-tabs__result')
             await browser.switchFrame(iframe)
             await browser.$('#parent').moveTo()
