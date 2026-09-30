@@ -23,7 +23,7 @@ const IMAGE_SIGNATURES = [
  */
 const BINARY_SIGNATURES = [
     [0x50, 0x4b, 0x03, 0x04], // zip, also used by apk, docx, xlsx
-    [0x1f, 0x8b], // gzip
+    [0x1f, 0x8b, 0x08], // gzip
     [0x25, 0x50, 0x44, 0x46] // pdf
 ]
 /**
@@ -35,7 +35,7 @@ const SIGNATURE_BASE64_LENGTH = Math.ceil(
 ) * 4
 /**
  * fallback for payloads without a known signature, e.g. a text file pushed
- * via `pushFile`, a command argument is never this long
+ * via `pushFile`, a command argument other than a selector is never this long
  */
 const BINARY_MAX_ARGUMENT_LENGTH = 1000
 export const SLASH = '/'
@@ -122,7 +122,12 @@ export function commandCallStructure (commandName: string, args: unknown[], unfu
             arg = '<fn>'
         } else if (typeof arg === 'string' && isScreenshot(arg)) {
             arg = SCREENSHOT_REPLACEMENT
-        } else if (typeof arg === 'string' && isBinary(arg)) {
+        } else if (
+            typeof arg === 'string' &&
+            // an xPath only uses base64 characters and can exceed the length fallback
+            !commandName.startsWith('findElement') &&
+            isBinary(arg)
+        ) {
             arg = BINARY_REPLACEMENT
         } else if (typeof arg === 'string') {
             arg = `"${arg}"`
@@ -350,7 +355,7 @@ export function isBase64(str: string) {
  * @return {boolean} `true` if the provided string is a Base64 encoded image
  */
 export function isScreenshot(str: string) {
-    return matchesSignature(str, IMAGE_SIGNATURES)
+    return typeof str === 'string' && isBase64(str) && matchesSignature(str, IMAGE_SIGNATURES)
 }
 
 /**
@@ -360,7 +365,7 @@ export function isScreenshot(str: string) {
  */
 export function isBinary(str: string) {
     // exclude images so both checks are mutually exclusive
-    if (typeof str !== 'string' || !isBase64(str) || isScreenshot(str)) {
+    if (typeof str !== 'string' || !isBase64(str) || matchesSignature(str, IMAGE_SIGNATURES)) {
         return false
     }
 
@@ -371,10 +376,6 @@ export function isBinary(str: string) {
  * matches the leading bytes of a Base64 string against the given signatures
  */
 function matchesSignature(str: string, signatures: number[][]) {
-    if (typeof str !== 'string' || !isBase64(str)) {
-        return false
-    }
-
     const header = Buffer.from(str.slice(0, SIGNATURE_BASE64_LENGTH), 'base64')
     return signatures.some((signature) => (
         signature.every((byte, i) => header[i] === byte)

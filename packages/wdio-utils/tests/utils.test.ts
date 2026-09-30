@@ -95,6 +95,19 @@ describe('utils', () => {
         ]) {
             expect(commandCallStructure(command, [xPath])).toBe(`${command}("${xPath}")`)
         }
+
+        /**
+         * deep enough to exceed the length fallback while only using base64
+         * characters, the commands receiving a selector are excluded from it
+         */
+        const deepXPath = '/html/body/a' + '/div'.repeat(248)
+        expect(deepXPath.length).toBeGreaterThan(1000)
+        expect(isBase64(deepXPath)).toBe(true)
+        for (const command of [
+            'findElement', 'findElements', 'findElementFromElement', 'findElementsFromElement'
+        ]) {
+            expect(commandCallStructure(command, [deepXPath])).toBe(`${command}("${deepXPath}")`)
+        }
     })
 
     it('commandCallStructure identifies an image by its signature', () => {
@@ -320,7 +333,7 @@ describe('utils:isBinary', () => {
         expect(zip.length).toBeLessThan(100)
         expect(isBinary(zip)).toBe(true)
         expect(isBinary(Buffer.concat([
-            Buffer.from([0x1f, 0x8b]), Buffer.from('a'.repeat(20))
+            Buffer.from([0x1f, 0x8b, 0x08]), Buffer.from('a'.repeat(20))
         ]).toString('base64'))).toBe(true)
         expect(isBinary(Buffer.concat([
             Buffer.from([0x25, 0x50, 0x44, 0x46]), Buffer.from('a'.repeat(20))
