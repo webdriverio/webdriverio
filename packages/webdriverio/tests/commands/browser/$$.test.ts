@@ -48,6 +48,63 @@ describe('elements', () => {
         expect(elems.parent).toBe(browser)
         expect(elems.selector).toBe('.foo')
         expect((await elems.getElements()).foundWith).toBe('$$')
+        expect(Array.isArray(elems)).toBe(true)
+        expect(elems.then).toBeUndefined()
+    })
+
+    it('iterates, maps and indexes the list without awaiting it first', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const callsBefore = vi.mocked(fetch).mock.calls.length
+        const pending = browser.$$('.foo')
+        expect(Array.isArray(pending)).toBe(true)
+        expect(vi.mocked(fetch).mock.calls.length).toBe(callsBefore)
+
+        const ids: string[] = []
+        for await (const element of browser.$$('.foo')) {
+            ids.push(element.elementId)
+        }
+        expect(ids).toEqual(['some-elem-123', 'some-elem-456', 'some-elem-789'])
+
+        await expect(browser.$$('.foo').map((element) => element.elementId)).resolves.toEqual(ids)
+        await expect(browser.$$('.foo').length).resolves.toBe(3)
+        await expect(browser.$$('.foo')[1].elementId).resolves.toBe('some-elem-456')
+
+        const filtered = await browser.$$('.foo').filter((element) => element.elementId !== 'some-elem-456')
+        expect(filtered).toHaveLength(2)
+        expect(filtered.selector).toBe('.foo')
+        expect(filtered.foundWith).toBe('$$')
+        expect([...filtered].map((element) => element.elementId)).toEqual(['some-elem-123', 'some-elem-789'])
+
+        expect(() => {
+            for (const _element of browser.$$('.foo')) {
+                // synchronous iteration has to wait until the list resolves
+            }
+        }).toThrow(/not resolved yet/)
+    })
+
+    it('runs before and after command hooks around the fetch', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const beforeCommand = vi.fn()
+        const afterCommand = vi.fn()
+        browser.options.beforeCommand = beforeCommand
+        browser.options.afterCommand = afterCommand
+
+        const elems = await browser.$$('.foo')
+
+        expect(beforeCommand).toHaveBeenCalledWith('$$', ['.foo'])
+        expect(afterCommand).toHaveBeenCalledWith('$$', ['.foo'], elems, undefined)
+        expect(elems).toHaveLength(3)
     })
 
     it('keeps prototype from browser object', async () => {

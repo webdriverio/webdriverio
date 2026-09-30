@@ -173,24 +173,49 @@ interface AsyncIterators<T> {
 }
 
 export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {
+    /**
+     * Awaiting the list yields the resolved `ElementArray`. Until then, `length`
+     * is a promise and each index is a chainable element.
+     */
+    then<TResult1 = WebdriverIO.ElementArray, TResult2 = never>(
+        onfulfilled?: ((value: WebdriverIO.ElementArray) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+        onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): Promise<TResult1 | TResult2>
+    catch<TResult = never>(
+        onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | undefined | null
+    ): Promise<WebdriverIO.ElementArray | TResult>
+    finally(onfinally?: (() => void) | undefined | null): Promise<WebdriverIO.ElementArray>
+
     [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
     [Symbol.iterator](): IterableIterator<WebdriverIO.Element>
 
     /**
-     * Amount of element fetched.
+     * Amount of elements fetched. This is a promise until the query resolves,
+     * so compare it only after awaiting the list or the property itself.
      */
     length: Promise<number>
     /**
-     * selector used to fetch this element, can be
-     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
-     * - a string if `findElement` was used and a reference was found
-     * - or a function if element was found via e.g. `$(() => document.body)`
+     * Selector used to fetch this list. It is available immediately, before the
+     * query resolves. It can be
+     * - undefined if the list was created via `$$([])`, raw element references, or elements that do not share one selector
+     * - a string if `findElements` was used and a reference was found
+     * - or a function if the elements were found via e.g. `$$(() => document.body)`
      */
-    selector: Promise<Selector>
+    selector: Selector | undefined
     /**
-     * parent of the element if fetched via `$(parent).$(child)`
+     * Parent of the list if fetched via `$(parent).$$(child)`. Available
+     * immediately, before the query resolves.
      */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    /**
+     * Command name with which this list was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`.
+     * Available immediately, before the query resolves.
+     */
+    foundWith: string
+    /**
+     * Extra arguments of the query that fetched this list. Available immediately.
+     */
+    props: any[]
     /**
      * allow to access a specific index of the element set
      */
@@ -246,12 +271,12 @@ export type MultiRemoteProtocolCommandsType = {
 
 interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof AsyncIterators<WebdriverIO.Element>>, AsyncIterators<WebdriverIO.Element> {
     /**
-     * selector used to fetch this element, can be
-     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
-     * - a string if `findElement` was used and a reference was found
-     * - or a function if element was found via e.g. `$(() => document.body)`
+     * selector used to fetch this list, can be
+     * - undefined if the list was created via `$$([])`, raw element references, or elements that do not share one selector
+     * - a string if `findElements` was used and a reference was found
+     * - or a function if the elements were found via e.g. `$$(() => document.body)`
      */
-    selector: Selector
+    selector: Selector | undefined
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
@@ -272,6 +297,11 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
      * get the `WebdriverIO.Element[]` list
      */
     getElements(): Promise<WebdriverIO.ElementArray>
+    /**
+     * Async iterator so `for await (const el of $$('...'))` yields each element
+     * whether or not the list has been awaited yet.
+     */
+    [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
 }
 export type ElementArray = ElementArrayExport
 
@@ -282,9 +312,9 @@ export type ElementArray = ElementArrayExport
  */
 interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemoteElement>, keyof AsyncIterators<WebdriverIO.MultiRemoteElement>>, AsyncIterators<WebdriverIO.MultiRemoteElement> {
     /**
-     * selector used to fetch this element array
+     * selector used to fetch this element array. Undefined when the entries do not share one selector.
      */
-    selector: Selector
+    selector: Selector | undefined
     /**
      * parent of the element array, i.e. the multi-remote browser or element it was fetched from
      */
@@ -309,6 +339,10 @@ interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemo
      * get the `WebdriverIO.MultiRemoteElement[]` list
      */
     getElements(): Promise<WebdriverIO.MultiRemoteElementArray>
+    /**
+     * Async iterator over the multi-remote elements in this list.
+     */
+    [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.MultiRemoteElement>
 }
 export type MultiRemoteElementArray = MultiRemoteElementArrayExport
 

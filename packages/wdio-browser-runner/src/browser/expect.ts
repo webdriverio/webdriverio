@@ -83,20 +83,26 @@ function createMatcher (matcherName: string) {
             context = context.sample as WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray
         }
 
+        /**
+         * Only await when the subject is a pending list or a chainable whose
+         * selector is an object. An unconditional await runs every assertion
+         * after a microtask, and Safari then reports the previous inline
+         * snapshot line.
+         */
+        if (shouldLoadAssertionContext(context)) {
+            context = await context
+        }
+
         const isContextObject = typeof context === 'object'
 
         if (context && isContextObject) {
-            /**
-             * Check if context is a Chainable (ChainablePromiseElement or ChainablePromiseArray)
-             */
-            if ('then' in context && typeof (context as { selector?: string }).selector === 'object') {
-                expectRequest.element = await context
-            } else if ('selector' in context) {
+            if ('selector' in context) {
                 /**
                  * Check if context is an WebdriverIO.Element or WebdriverIO.ElementArray
                  */
                 expectRequest.element = context
-            } if (Array.isArray(context) && context.every((el) => 'selector' in el)) {
+            }
+            if (isArrayOfSelectorElements(context)) {
                 /**
                  * Check if context is an array of elements (WebdriverIO.Element[]) aka filtered ElementArray
                  */
@@ -221,6 +227,34 @@ import.meta.hot?.on(WDIO_EVENT_NAME, (data: unknown) => {
         message: () => message.value.message
     })
 })
+
+/**
+ * A pending element list is thenable and already exposes `selector`.
+ * Load it before the `in` checks. Otherwise the unresolved list is sent
+ * and the runner refetches an empty collection. A chainable whose
+ * selector is an object (a function or element list) is loaded too.
+ * Plain values stay synchronous so inline snapshots keep the caller's line.
+ */
+export function shouldLoadAssertionContext (context: unknown): boolean {
+    if (!context || typeof context !== 'object') {
+        return false
+    }
+    const candidate = context as { then?: unknown, selector?: unknown }
+    const pendingList = Array.isArray(candidate) && typeof candidate.then === 'function'
+    const chainableObjectSelector = 'then' in candidate && typeof candidate.selector === 'object'
+    return pendingList || chainableObjectSelector
+}
+
+/**
+ * Element-list `every` is async and returns a Promise. Using that return
+ * value as a boolean treats every list as an array of elements.
+ */
+export function isArrayOfSelectorElements (context: unknown): boolean {
+    return Array.isArray(context) && Array.prototype.every.call(
+        context,
+        (el: unknown) => Boolean(el) && typeof el === 'object' && 'selector' in (el as object)
+    )
+}
 
 function serializeAsymmetricMatchers(arg: unknown): unknown {
     if (!arg || typeof arg !== 'object') {

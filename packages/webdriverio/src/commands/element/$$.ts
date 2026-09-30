@@ -1,6 +1,9 @@
 /**
- * The `$$` command is a short and handy way in order to fetch multiple elements on the page.
- * It returns a `ChainablePromiseArray` containing a set of WebdriverIO elements.
+ * The `$$` command fetches every element that matches a selector, starting from this element.
+ * It returns a `WebdriverIO.ElementArray`: a real array (`Array.isArray` is `true`) that stays
+ * thenable until the query finishes. Await it for a resolved list (`length` is then a number),
+ * or use it directly with `for await`, `await el.$$('.item').length`, and `el.$$('.item')[0]`.
+ * A synchronous `for...of` throws until the list has resolved.
  *
  * :::info
  *

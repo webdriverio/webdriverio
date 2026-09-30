@@ -2,12 +2,13 @@ import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
 
 import { getElements } from '../../utils/getElementObject.js'
-import { enhanceElementsArray } from '../../utils/index.js'
+import { ElementArray } from '../../element/array.js'
 import type { CustomStrategyFunction } from '../../types.js'
 
 /**
  *
  * The `customs$$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`.
+ * It returns a [`WebdriverIO.ElementArray`](/docs/api/browser/$$), the same list as [`$$`](/docs/api/browser/$$).
  * Read more on custom selector stratgies in the [Selector docs](../../selectors#custom-selector-strategies).
  *
  * <example>
@@ -30,42 +31,48 @@ import type { CustomStrategyFunction } from '../../types.js'
  * @param {*} strategyArguments
  * @return {WebdriverIO.ElementArray}
  */
-export async function custom$$ (
+export function custom$$ (
     this: WebdriverIO.Element,
     strategyName: string,
     ...strategyArguments: unknown[]
-): Promise<WebdriverIO.ElementArray> {
-    const browserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName) as CustomStrategyFunction
+): WebdriverIO.ElementArray {
+    return ElementArray.fromAsyncCallback(async () => {
+        const browserObject = getBrowserObject(this)
+        const strategy = browserObject.strategies.get(strategyName) as CustomStrategyFunction
 
-    if (!strategy) {
-        /* istanbul ignore next */
-        throw Error('No strategy found for ' + strategyName)
-    }
+        if (!strategy) {
+            /* istanbul ignore next */
+            throw new Error('No strategy found for ' + strategyName)
+        }
 
-    /**
-     * fail if root element is not found, similar to:
-     * $('.notExisting').$('.someElem')
-     */
-    if (!this.elementId) {
-        throw Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
-    }
+        /**
+         * fail if root element is not found, similar to:
+         * $('.notExisting').$('.someElem')
+         */
+        if (!this.elementId) {
+            throw new Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
+        }
 
-    const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
+        const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
 
-    let res = await browserObject.execute(strategy, ...strategyArguments, this)
+        let res = await browserObject.execute(strategy, ...strategyArguments, this)
 
-    /**
-     * if the user's script return just one element
-     * then we convert it to an array as this method
-     * should return multiple elements
-     */
-    if (!Array.isArray(res)) {
-        res = [res]
-    }
+        /**
+         * if the user's script return just one element
+         * then we convert it to an array as this method
+         * should return multiple elements
+         */
+        if (!Array.isArray(res)) {
+            res = [res]
+        }
 
-    res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
+        res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as WebdriverIO.Element[]
-    return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
+        return res.length ? await getElements.call(this, strategyRef, res) : [] as WebdriverIO.Element[]
+    }, {
+        selector: strategyName,
+        foundWith: 'custom$$',
+        parent: this,
+        props: strategyArguments
+    })
 }
