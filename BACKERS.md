@@ -24,8 +24,6 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 ### 🥇 Gold Sponsor
 
 <p align="center">
-    <a href="https://www.jetify.com/"><img src="https://webdriver.io/img/sponsors/jetify_black.png" width="250" alt="Jetify" /></a>
-    &nbsp; &nbsp; &nbsp;
     <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
 </p>
 
