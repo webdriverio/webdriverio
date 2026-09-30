@@ -37,7 +37,10 @@ export { deviceDescriptorsSource, type DeviceName } from './deviceDescriptorsSou
  * element array, their multiremote versions, or a chainable `$()` / `$$()`.
  * Other packages can also read `value[Symbol.for('wdio.kind')]` without an import.
  */
-export { WDIO_KIND, getWdioKind, type WdioKind } from '@wdio/utils'
+export {
+    WDIO_KIND, getWdioKind, isBrowserKind, isElementKind, isElementArrayKind, isMultiRemoteKind, isChainableKind,
+    type WdioKind
+} from '@wdio/utils'
 
 /**
  * A method to create a new session with WebdriverIO.

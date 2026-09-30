@@ -41,3 +41,46 @@ export function getWdioKind (value: unknown): WdioKind | undefined {
     const kind = (value as { [WDIO_KIND]?: unknown })[WDIO_KIND]
     return WDIO_KINDS.includes(kind as WdioKind) ? kind as WdioKind : undefined
 }
+
+const BROWSER_KINDS: readonly WdioKind[] = ['browser', 'multi-remote-browser']
+const ELEMENT_KINDS: readonly WdioKind[] = ['element', 'multi-remote-element', 'chainable-element']
+const ELEMENT_ARRAY_KINDS: readonly WdioKind[] = ['element-array', 'multi-remote-element-array', 'chainable-element-array']
+const MULTI_REMOTE_KINDS: readonly WdioKind[] = ['multi-remote-browser', 'multi-remote-element', 'multi-remote-element-array']
+const CHAINABLE_KINDS: readonly WdioKind[] = ['chainable-element', 'chainable-element-array']
+
+const hasKindIn = (kinds: readonly WdioKind[]) => (value: unknown): boolean => {
+    const kind = getWdioKind(value)
+    return kind !== undefined && kinds.includes(kind)
+}
+
+/**
+ * `true` for a browser or a multi-remote browser.
+ */
+export const isBrowserKind = hasKindIn(BROWSER_KINDS)
+
+/**
+ * `true` for an element, a multi-remote element, or a chainable `$()` that is
+ * not awaited yet. Use `getWdioKind()` to tell them apart.
+ */
+export const isElementKind = hasKindIn(ELEMENT_KINDS)
+
+/**
+ * `true` for an element list (`$$()`), a multi-remote element list, or a
+ * chainable element list. Use `getWdioKind()` to tell them apart.
+ */
+export const isElementArrayKind = hasKindIn(ELEMENT_ARRAY_KINDS)
+
+/**
+ * `true` for a multi-remote browser, element or element list.
+ */
+export const isMultiRemoteKind = hasKindIn(MULTI_REMOTE_KINDS)
+
+/**
+ * `true` for a chainable element promise, for example `$('foo')`, `$$('foo')[1]`
+ * or `$('foo').parentElement()` before `await`.
+ *
+ * It does not mean "not resolved yet": a pending `$$()` is an element list
+ * (`'element-array'`), not a chainable. To know if a value must be awaited,
+ * check `typeof value.then === 'function'`.
+ */
+export const isChainableKind = hasKindIn(CHAINABLE_KINDS)
