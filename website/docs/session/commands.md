@@ -725,13 +725,13 @@ Set the geolocation. Applies to web, native mobile.
 
 ## `emulate`
 
-Emulate a device, viewport, network, cpu, clock, color scheme or user agent. Applies to web.
+Emulate a device, viewport, network, cpu, clock or a BiDi emulation scope. Applies to web.
 
 **Arguments**
 
 | Name | Required | Description |
 | --- | --- | --- |
-| `sub` | yes | device \| viewport \| network \| cpu \| clock \| color-scheme \| user-agent \| reset Choices: device, viewport, network, cpu, clock, color-scheme, user-agent, reset. |
+| `sub` | yes | device \| viewport \| network \| cpu \| clock \| color-scheme \| user-agent \| media \| locale \| timezone \| touch \| orientation \| screen \| viewport-meta \| text-layout \| scripting \| scrollbar \| forced-colors \| reset Choices: device, viewport, network, cpu, clock, color-scheme, user-agent, media, locale, timezone, touch, orientation, screen, viewport-meta, text-layout, scripting, scrollbar, forced-colors, reset. |
 | `value` | no | Value for the emulation |
 
 **Flags**

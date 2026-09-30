@@ -36,8 +36,11 @@ import type { Selector } from '../../types.js'
  *   Await the list first, or use `for await`.
  *
  * An index past the end of the list waits and refetches until `waitforTimeout`, the same way a
- * missing single element does. A [`slice`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice)
- * does not: `$$('li').slice(0, 2)[3]` stays outside that window and does not resolve to the fourth `<li>`.
+ * missing single element does. That wait still happens after the list has resolved
+ * (`const items = await $$('li'); await items[items.length]`). A [`slice`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice)
+ * or a `filter` does not: `$$('li').slice(0, 2)[3]` stays outside that window, and an index past a
+ * filtered list does not resolve to an element the filter excluded. `.at()` uses the same index
+ * conversion as a plain array, so `.at(1.5)` is element 1 and `.at(NaN)` is element 0.
  *
  * Using the wdio testrunner this command is a global variable, see [Globals](https://webdriver.io/docs/api/globals)
  * for more information. Using WebdriverIO within a [standalone](https://webdriver.io/docs/setuptypes#standalone-mode)

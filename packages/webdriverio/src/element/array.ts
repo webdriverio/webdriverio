@@ -25,8 +25,8 @@ interface ElementArrayMetadata {
     props: unknown[]
     isMultiRemote?: boolean
     /**
-     * Original queries refetch an out-of-range index. Derived lists (a `slice`)
-     * must not: their bounds are not the query's bounds.
+     * Original queries refetch an out-of-range index. Derived lists (a `slice`
+     * or a `filter`) must not: their bounds are not the query's bounds.
      */
     refetch?: boolean
 }
@@ -93,10 +93,12 @@ function cloneMetadata (metadata: ElementArrayMetadata): ElementArrayMetadata {
 }
 
 /**
- * A slice is a window over a query, not the query itself. Dropping refetch
- * keeps `$$('li').slice(0, 2)[3]` from resolving to the fourth match.
+ * A derived list is not the query itself. Dropping refetch keeps an index past
+ * that list from running the original query: `$$('li').slice(0, 2)[3]` must
+ * not become the fourth match, and a filtered list must not return an element
+ * the filter excluded.
  */
-function sliceMetadata (metadata: ElementArrayMetadata): ElementArrayMetadata {
+function derivedMetadata (metadata: ElementArrayMetadata): ElementArrayMetadata {
     return {
         ...cloneMetadata(metadata),
         refetch: false
@@ -138,6 +140,34 @@ async function load (array: ElementList): Promise<ElementList> {
 
 function listForIteration (array: ElementList): ElementList {
     return (stateOf(array).self ?? array) as unknown as ElementList
+}
+
+/**
+ * Same conversion as `Array.prototype.at`: truncate toward zero, and treat NaN as 0.
+ */
+function integerIndex (index: number) {
+    const truncated = Math.trunc(index)
+    return Number.isNaN(truncated) ? 0 : truncated
+}
+
+/**
+ * An in-range index of a resolved list is that element. An index past the end
+ * of an original query still waits and refetches, which is what `$$('li')[5]`
+ * does before the list resolves. A slice, a filter, and a negative index do not refetch.
+ */
+function readIndex (array: ElementList, index: number) {
+    const normalized = integerIndex(index)
+    const state = stateOf(array)
+    if (!state.resolved) {
+        return chainElementPromise(elementAt(array, normalized))
+    }
+    if (normalized < 0 || !Number.isFinite(normalized) || state.metadata.refetch === false) {
+        return Array.prototype.at.call(array, normalized)
+    }
+    if (normalized < array.length) {
+        return array[normalized]
+    }
+    return chainElementPromise(elementAt(array, normalized))
 }
 
 async function elementAt (array: ElementList, index: number): Promise<WebdriverIO.Element | undefined> {
@@ -184,13 +214,13 @@ const methods: Record<string, Function> = {
         const state = stateOf(this)
         const items = await load(this)
         const matched = await asyncIterators.filter(listForIteration(items), callback as Function, thisArg) as WebdriverIO.Element[]
-        return fromResolved(matched, cloneMetadata(state.metadata))
+        return fromResolved(matched, derivedMetadata(state.metadata))
     },
     async filterSeries (this: ElementList, callback: (value: WebdriverIO.Element, index: number, array: WebdriverIO.Element[]) => unknown, thisArg?: unknown) {
         const state = stateOf(this)
         const items = await load(this)
         const matched = await asyncIterators.filterSeries(listForIteration(items), callback as Function, thisArg) as WebdriverIO.Element[]
-        return fromResolved(matched, cloneMetadata(state.metadata))
+        return fromResolved(matched, derivedMetadata(state.metadata))
     },
     async forEach (this: ElementList, callback: (value: WebdriverIO.Element, index: number, array: WebdriverIO.Element[]) => unknown, thisArg?: unknown) {
         const items = await load(this)
@@ -250,19 +280,15 @@ const methods: Record<string, Function> = {
     slice (this: ElementList, start?: number, end?: number) {
         const state = stateOf(this)
         if (state.resolved) {
-            return fromResolved(Array.prototype.slice.call(this, start, end) as ElementList, sliceMetadata(state.metadata))
+            return fromResolved(Array.prototype.slice.call(this, start, end) as ElementList, derivedMetadata(state.metadata))
         }
         return fromAsyncCallback(async () => {
             const items = await load(this)
             return items.slice(start, end)
-        }, sliceMetadata(state.metadata))
+        }, derivedMetadata(state.metadata))
     },
     at (this: ElementList, index: number) {
-        const state = stateOf(this)
-        if (state.resolved) {
-            return Array.prototype.at.call(this, index)
-        }
-        return chainElementPromise(elementAt(this, index))
+        return readIndex(this, index)
     },
     async getElements (this: ElementList) {
         await load(this)
@@ -317,11 +343,7 @@ function proxify (array: ElementList, state: ElementArrayState): WebdriverIO.Ele
             }
 
             if (typeof prop === 'string' && /^\d+$/.test(prop)) {
-                const index = Number(prop)
-                if (current.resolved) {
-                    return target[index]
-                }
-                return chainElementPromise(elementAt(target, index))
+                return readIndex(target, Number(prop))
             }
 
             if (prop === Symbol.iterator) {
@@ -436,7 +458,9 @@ function create (elements: ElementList | undefined, loader: (() => Promise<Eleme
  *
  * Async array helpers (`map`, `filter`, `find`, and their `*Series` variants)
  * resolve the list themselves. Index access before the list has resolved
- * returns a chainable element.
+ * returns a chainable element. After it has resolved, an index past the end of
+ * an original query still waits and refetches. A slice or a filter does not.
+ * `.at()` truncates its index the same way `Array.prototype.at` does.
  */
 export const ElementArray = {
     fromAsyncCallback (

@@ -866,7 +866,7 @@ export interface ExtendedElementReference {
     locator: remote.BrowsingContextLocator
 }
 
-export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine' | 'clock' | 'device'
+export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'media' | 'onLine' | 'locale' | 'timezone' | 'touch' | 'orientation' | 'screen' | 'viewportMeta' | 'textLayout' | 'scripting' | 'scrollbar' | 'forcedColors' | 'clock' | 'device'
 export type RestoreMap = Map<SupportedScopes, (() => Promise<any>)[]>
 
 /**

@@ -80,6 +80,10 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 
 Search for `multiremote` and `Multiremote` case-sensitively. Leave the `id: multiremote` permalink, `/docs/multiremote` links, file names, and the Allure historyId key `'multiremote'`.
 
+## Emulation
+
+`browser.emulate()` for geolocation, user agent, color scheme and online state no longer patches the page with a preload script, and those scopes no longer need a reload. `onLine: false` takes the browsing context offline. `colorScheme` and `media` share one media-feature map. Read the Emulation section of the migration guide before changing tests that depended on the old behavior.
+
 `browser.$$()` on a multi-remote browser is still an array, so index access keeps working. Annotate it as `WebdriverIO.MultiRemoteElementArray`. `custom$$` and `react$$` still return one result per instance, not one zipped array.
 
 ### `uploadFile`
