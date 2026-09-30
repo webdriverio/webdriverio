@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
-import { executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, WDIO_KIND } from '@wdio/utils'
 import { wdioCustomMatchers } from 'expect-webdriverio'
 import { some } from 'expect-webdriverio/api'
 import { ELEMENT_KEY } from 'webdriver'
@@ -346,9 +346,15 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             let result = await (scope[payload.commandName as keyof typeof scope] as Function)(...payload.args)
 
             /**
+             * the result is awaited, so its `wdio.kind` brand (see `@wdio/utils` `kind.ts`)
+             * is the kind of a loaded object
+             */
+            const kind = result?.[WDIO_KIND]
+
+            /**
              * if result is an element, transform it into an element reference
              */
-            if (result?.constructor?.name === 'Element') {
+            if (kind === 'element') {
                 result = result.elementId
                     ? { [ELEMENT_KEY]: result.elementId }
                     : result.error
@@ -357,7 +363,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             /**
              * if result is an array of elements, transform it into an array of element references
              */
-            } else if (result?.foundWith) {
+            } else if (kind === 'element-array') {
                 /**
                  * need await here since ElementArray functions return a promise
                  */
