@@ -1,5 +1,6 @@
 /// <reference path="../../types.ts" />
 import { getContextManager } from '../../session/context.js'
+import { rememberOverride } from '../../session/emulationState.js'
 
 const minWindowSize = 0
 const maxWindowSize = Number.MAX_SAFE_INTEGER
@@ -58,12 +59,20 @@ export async function setViewport(
     const contextManager = getContextManager(this)
     const context = await contextManager.getCurrentContext()
 
+    const devicePixelRatio = options.devicePixelRatio || 1
     await this.browsingContextSetViewport({
         context,
-        devicePixelRatio: options.devicePixelRatio || 1,
+        devicePixelRatio,
         viewport: {
             width: options.width,
             height: options.height
+        }
+    })
+    rememberOverride(this, context, {
+        viewport: {
+            width: options.width,
+            height: options.height,
+            devicePixelRatio
         }
     })
 }

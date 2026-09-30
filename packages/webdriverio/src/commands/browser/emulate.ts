@@ -5,6 +5,7 @@ import { ClockManager } from '../../clock.js'
 import { deviceDescriptorsSource, type DeviceName } from '../../deviceDescriptorsSource.js'
 import { restoreFunctions } from '../../constants.js'
 import { getContextManager } from '../../session/context.js'
+import { claimRestore, rememberOverride, rememberedOverride, type RememberedViewport } from '../../session/emulationState.js'
 import type { SupportedScopes } from '../../types.js'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,19 +64,45 @@ async function topLevelContexts (browser: WebdriverIO.Browser) {
 /**
  * Apply an override for the current top-level context and remember how to
  * clear that same context. A later `restore()` must not follow the user into
- * a different window.
+ * a different window. An older restore for the same scope and context does
+ * not clear an override a newer call has replaced.
  */
 async function install (
     browser: WebdriverIO.Browser,
     scope: SupportedScopes,
     apply: (contexts: string[]) => Promise<unknown>,
-    clear: (contexts: string[]) => Promise<unknown>
+    clear: (contexts: string[]) => Promise<unknown>,
+    memory?: {
+        apply: (context: string) => void
+        clear: (context: string) => void
+    }
 ) {
     const contexts = await topLevelContexts(browser)
     await apply(contexts)
-    const restore = async () => clear(contexts)
+    memory?.apply(contexts[0])
+    const current = claimRestore(browser, scope, contexts)
+    const restore = async () => {
+        if (!current()) {
+            return
+        }
+        await clear(contexts)
+        memory?.clear(contexts[0])
+    }
     storeRestoreFunction(browser, scope, restore)
     return restore
+}
+
+function setCapturedViewport (
+    browser: WebdriverIO.Browser,
+    context: string,
+    viewport: { width: number, height: number } | null,
+    devicePixelRatio: number | null
+) {
+    return browser.browsingContextSetViewport({
+        context,
+        viewport,
+        devicePixelRatio
+    })
 }
 
 /**
@@ -182,41 +209,62 @@ async function emulateDevice (browser: WebdriverIO.Browser, name: unknown) {
     }
 
     const contexts = await topLevelContexts(browser)
+    const context = contexts[0]
+    const previous = rememberedOverride(browser, context)
     const desktop = deviceDescriptorsSource['Desktop Chrome']
-    const steps: Array<{ apply: () => Promise<unknown>, clear: () => Promise<unknown> }> = [
+    const deviceViewport: RememberedViewport = {
+        width: device.viewport.width,
+        height: device.viewport.height,
+        devicePixelRatio: device.deviceScaleFactor
+    }
+    const deviceTouch = device.hasTouch ? 1 : null
+    const deviceTextLayout = device.isMobile ? 'mobile' as const : null
+    const deviceViewportMeta = device.isMobile ? true as const : null
+    const steps: Array<{ apply: () => Promise<unknown>, undo: () => Promise<unknown>, clear: () => Promise<unknown> }> = [
         {
             apply: () => browser.emulationSetUserAgentOverride({ userAgent: device.userAgent, contexts }),
+            undo: () => browser.emulationSetUserAgentOverride({
+                userAgent: previous.userAgent === undefined ? null : previous.userAgent,
+                contexts
+            }),
             clear: () => browser.emulationSetUserAgentOverride({ userAgent: null, contexts })
         },
         {
-            apply: () => browser.setViewport({
-                width: device.viewport.width,
-                height: device.viewport.height,
-                devicePixelRatio: device.deviceScaleFactor
-            }),
-            clear: () => browser.setViewport({
+            apply: () => setCapturedViewport(browser, context, {
+                width: deviceViewport.width,
+                height: deviceViewport.height
+            }, deviceViewport.devicePixelRatio),
+            undo: () => previous.viewport
+                ? setCapturedViewport(browser, context, {
+                    width: previous.viewport.width,
+                    height: previous.viewport.height
+                }, previous.viewport.devicePixelRatio)
+                : setCapturedViewport(browser, context, null, null),
+            clear: () => setCapturedViewport(browser, context, {
                 width: desktop.viewport.width,
-                height: desktop.viewport.height,
-                devicePixelRatio: desktop.deviceScaleFactor
-            })
+                height: desktop.viewport.height
+            }, desktop.deviceScaleFactor)
         },
         {
-            apply: () => browser.emulationSetTouchOverride({
-                maxTouchPoints: device.hasTouch ? 1 : null,
+            apply: () => browser.emulationSetTouchOverride({ maxTouchPoints: deviceTouch, contexts }),
+            undo: () => browser.emulationSetTouchOverride({
+                maxTouchPoints: previous.touch === undefined ? null : previous.touch,
                 contexts
             }),
             clear: () => browser.emulationSetTouchOverride({ maxTouchPoints: null, contexts })
         },
         {
-            apply: () => browser.emulationSetTextLayoutModeOverride({
-                textLayoutMode: device.isMobile ? 'mobile' : null,
+            apply: () => browser.emulationSetTextLayoutModeOverride({ textLayoutMode: deviceTextLayout, contexts }),
+            undo: () => browser.emulationSetTextLayoutModeOverride({
+                textLayoutMode: previous.textLayout === undefined ? null : previous.textLayout,
                 contexts
             }),
             clear: () => browser.emulationSetTextLayoutModeOverride({ textLayoutMode: null, contexts })
         },
         {
-            apply: () => browser.emulationSetViewportMetaOverride({
-                viewportMeta: device.isMobile ? true : null,
+            apply: () => browser.emulationSetViewportMetaOverride({ viewportMeta: deviceViewportMeta, contexts }),
+            undo: () => browser.emulationSetViewportMetaOverride({
+                viewportMeta: previous.viewportMeta === undefined ? null : previous.viewportMeta,
                 contexts
             }),
             clear: () => browser.emulationSetViewportMetaOverride({ viewportMeta: null, contexts })
@@ -225,8 +273,9 @@ async function emulateDevice (browser: WebdriverIO.Browser, name: unknown) {
 
     /**
      * A browser can reject a later piece (`unknown command` or
-     * `unsupported operation`). Undo what already landed so the session is
-     * not left half-emulated with no restore function.
+     * `unsupported operation`). Put back the previous override for each piece
+     * that already landed, on the context captured above, so a custom user
+     * agent or viewport is not discarded and another window is not resized.
      */
     const applied: typeof steps = []
     try {
@@ -236,15 +285,37 @@ async function emulateDevice (browser: WebdriverIO.Browser, name: unknown) {
         }
     } catch (err) {
         for (const step of applied.reverse()) {
-            await Promise.resolve(step.clear()).catch(() => {})
+            await Promise.resolve(step.undo()).catch(() => {})
         }
         throw err
     }
 
+    const current = claimRestore(browser, 'device', contexts)
+    rememberOverride(browser, context, {
+        userAgent: device.userAgent,
+        touch: deviceTouch,
+        textLayout: deviceTextLayout,
+        viewportMeta: deviceViewportMeta,
+        viewport: deviceViewport
+    })
     const restore = async () => {
+        if (!current()) {
+            return
+        }
         for (const step of [...steps].reverse()) {
             await step.clear()
         }
+        rememberOverride(browser, context, {
+            userAgent: null,
+            touch: null,
+            textLayout: null,
+            viewportMeta: null,
+            viewport: {
+                width: desktop.viewport.width,
+                height: desktop.viewport.height,
+                devicePixelRatio: desktop.deviceScaleFactor
+            }
+        })
     }
     storeRestoreFunction(browser, 'device', restore)
     return restore
@@ -301,16 +372,19 @@ export async function emulate(scope: 'forcedColors', theme: ColorScheme): Promis
  * the whole map, so the later call wins, and restoring either scope clears it.
  * `forcedColors` is the theme override, not the `forced-colors` media feature.
  *
- * `device` sets the descriptor's user agent, viewport, and device scale factor.
- * Touch is `maxTouchPoints: 1` when the descriptor has touch, otherwise cleared.
- * Mobile text layout and the viewport meta tag are set when the descriptor is
- * mobile, otherwise cleared. Screen size and orientation are not inferred from
- * the device name.
+ * `device` sets the descriptor's user agent, viewport, and device scale factor
+ * on the top-level context captured when the call starts. Touch is
+ * `maxTouchPoints: 1` when the descriptor has touch, otherwise cleared. Mobile
+ * text layout and the viewport meta tag are set when the descriptor is mobile,
+ * otherwise cleared. Screen size and orientation are not inferred from the
+ * device name. Restoring the device targets that same context.
  *
  * A browser that does not implement a command rejects the call with its own
  * error (`unknown command` or `unsupported operation`). WebdriverIO does not
- * fall back to a preload script or to CDP. `device` rolls back any piece that
- * already applied when a later piece is rejected.
+ * fall back to a preload script or to CDP. If `device` is rejected part way
+ * through, the previous user agent, viewport, touch, text layout and viewport
+ * meta are put back. Calling an older `restore()` does not clear an override
+ * that a newer call of the same scope has replaced.
  *
  * :::info
  *
@@ -390,7 +464,11 @@ export async function emulate<Scope extends SupportedScopes> (
             this,
             'userAgent',
             (contexts) => this.emulationSetUserAgentOverride({ userAgent: options, contexts }),
-            (contexts) => this.emulationSetUserAgentOverride({ userAgent: null, contexts })
+            (contexts) => this.emulationSetUserAgentOverride({ userAgent: null, contexts }),
+            {
+                apply: (context) => rememberOverride(this, context, { userAgent: options }),
+                clear: (context) => rememberOverride(this, context, { userAgent: null })
+            }
         )
     }
 
@@ -467,7 +545,11 @@ export async function emulate<Scope extends SupportedScopes> (
             this,
             'touch',
             (contexts) => this.emulationSetTouchOverride({ maxTouchPoints: options, contexts }),
-            (contexts) => this.emulationSetTouchOverride({ maxTouchPoints: null, contexts })
+            (contexts) => this.emulationSetTouchOverride({ maxTouchPoints: null, contexts }),
+            {
+                apply: (context) => rememberOverride(this, context, { touch: options }),
+                clear: (context) => rememberOverride(this, context, { touch: null })
+            }
         )
     }
 
@@ -499,7 +581,11 @@ export async function emulate<Scope extends SupportedScopes> (
             this,
             'viewportMeta',
             (contexts) => this.emulationSetViewportMetaOverride({ viewportMeta: true, contexts }),
-            (contexts) => this.emulationSetViewportMetaOverride({ viewportMeta: null, contexts })
+            (contexts) => this.emulationSetViewportMetaOverride({ viewportMeta: null, contexts }),
+            {
+                apply: (context) => rememberOverride(this, context, { viewportMeta: true }),
+                clear: (context) => rememberOverride(this, context, { viewportMeta: null })
+            }
         )
     }
 
@@ -511,7 +597,11 @@ export async function emulate<Scope extends SupportedScopes> (
             this,
             'textLayout',
             (contexts) => this.emulationSetTextLayoutModeOverride({ textLayoutMode: 'mobile', contexts }),
-            (contexts) => this.emulationSetTextLayoutModeOverride({ textLayoutMode: null, contexts })
+            (contexts) => this.emulationSetTextLayoutModeOverride({ textLayoutMode: null, contexts }),
+            {
+                apply: (context) => rememberOverride(this, context, { textLayout: 'mobile' }),
+                clear: (context) => rememberOverride(this, context, { textLayout: null })
+            }
         )
     }
 

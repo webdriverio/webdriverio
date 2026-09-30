@@ -382,9 +382,29 @@ const NUMERIC_MEDIA_FEATURES = new Set<string>([
 const ORIENTATION_NATURAL = ['portrait', 'landscape']
 const ORIENTATION_TYPES = ['portrait-primary', 'portrait-secondary', 'landscape-primary', 'landscape-secondary']
 
+function mediaFeatureValue (key: string, raw: unknown): string | number | null {
+    if (!MEDIA_FEATURES.includes(key as typeof MEDIA_FEATURES[number])) {
+        throw usage(`Unknown media feature "${key}".`, 'Use a name such as prefersReducedMotion, hover or prefersColorScheme.')
+    }
+    if (raw === null) {
+        return null
+    }
+    if (NUMERIC_MEDIA_FEATURES.has(key)) {
+        if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 0) {
+            throw usage(`Media feature "${key}" needs a non-negative integer.`)
+        }
+        return raw
+    }
+    if (typeof raw !== 'string' || raw.length === 0) {
+        throw usage(`Invalid value for media feature "${key}".`)
+    }
+    return raw
+}
+
 /**
  * `key=value` pairs use the generated camelCase feature names. A JSON object
- * is accepted for the same map.
+ * is accepted for the same map. Numeric features must be non-negative integers
+ * on both paths.
  */
 export function parseMediaFeatures (value: string) {
     const trimmed = value.trim()
@@ -400,13 +420,7 @@ export function parseMediaFeatures (value: string) {
             throw usage('Media features must be an object.', 'Use key=value, for example prefersReducedMotion=reduce.')
         }
         for (const [key, raw] of Object.entries(parsed)) {
-            if (!MEDIA_FEATURES.includes(key as typeof MEDIA_FEATURES[number])) {
-                throw usage(`Unknown media feature "${key}".`, 'Use a name such as prefersReducedMotion, hover or prefersColorScheme.')
-            }
-            if (raw !== null && typeof raw !== 'string' && typeof raw !== 'number') {
-                throw usage(`Invalid value for media feature "${key}".`)
-            }
-            features[key] = raw as string | number | null
+            features[key] = mediaFeatureValue(key, raw)
         }
     } else {
         for (const part of trimmed.split(',')) {
@@ -416,19 +430,12 @@ export function parseMediaFeatures (value: string) {
             }
             const key = part.slice(0, eq).trim()
             const raw = part.slice(eq + 1).trim()
-            if (!MEDIA_FEATURES.includes(key as typeof MEDIA_FEATURES[number])) {
-                throw usage(`Unknown media feature "${key}".`, 'Use a name such as prefersReducedMotion, hover or prefersColorScheme.')
-            }
             if (raw === 'null') {
-                features[key] = null
+                features[key] = mediaFeatureValue(key, null)
             } else if (NUMERIC_MEDIA_FEATURES.has(key)) {
-                const numeric = Number(raw)
-                if (!Number.isInteger(numeric) || numeric < 0) {
-                    throw usage(`Media feature "${key}" needs a non-negative integer.`)
-                }
-                features[key] = numeric
+                features[key] = mediaFeatureValue(key, Number(raw))
             } else {
-                features[key] = raw
+                features[key] = mediaFeatureValue(key, raw)
             }
         }
     }

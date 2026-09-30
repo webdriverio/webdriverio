@@ -207,7 +207,9 @@ For a device, WebdriverIO:
 
 It does not invent a screen size or an orientation from the device name. Viewport is not `screen.width`. Use the `screen` and `orientation` scopes for those.
 
-If the browser rejects one of those commands, the pieces that already applied are cleared and the error is returned. The device is not left half-applied.
+The viewport change is sent to the top-level context that was current when `emulate` was called. Restoring the device resizes that context, including after a switch to another window.
+
+If the browser rejects one of those commands, the previous user agent, viewport, touch, text layout and viewport meta are put back and the error is returned. A custom user agent or `setViewport` size is not replaced with a default.
 
 ```ts
 const restore = await browser.emulate('device', 'iPhone 15')

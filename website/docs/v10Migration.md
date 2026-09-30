@@ -717,7 +717,7 @@ A reload is no longer required for the BiDi scopes.
 - `colorScheme` and `media` share one media-feature map. The later call replaces the whole map, and restoring either scope clears it.
 - `device` sets the user agent, viewport, touch, mobile text layout and viewport meta from the device descriptor. It does not change `screen` or `orientation`.
 
-New scopes are `media`, `locale`, `timezone`, `touch`, `orientation`, `screen`, `viewportMeta`, `textLayout`, `scripting`, `scrollbar` and `forcedColors`. A browser that does not implement a command rejects the call with its own error (`unknown command` or `unsupported operation`). WebdriverIO does not fall back to a preload script or to CDP. `device` clears any piece that already applied when a later piece is rejected.
+New scopes are `media`, `locale`, `timezone`, `touch`, `orientation`, `screen`, `viewportMeta`, `textLayout`, `scripting`, `scrollbar` and `forcedColors`. A browser that does not implement a command rejects the call with its own error (`unknown command` or `unsupported operation`). WebdriverIO does not fall back to a preload script or to CDP. If `device` is rejected part way through, the previous user agent, viewport, touch, text layout and viewport meta are put back.
 
 `wdio session emulate` accepts the same scopes. It no longer tells you to reload for an override that applies immediately. `emulate network` presets and `emulate cpu` are unchanged and remain Chromium-only. See [Emulation](/docs/emulation).
 

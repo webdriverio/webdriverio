@@ -259,6 +259,8 @@ describe('bidi emulation scopes', () => {
             hover: 'none'
         })
         expect(parseMediaFeatures('{"color":8,"forcedColors":null}')).toEqual({ color: 8, forcedColors: null })
+        expect(() => parseMediaFeatures('{"color":"8"}')).toThrow(/non-negative integer/)
+        expect(() => parseMediaFeatures('{"grid":-1}')).toThrow(/non-negative integer/)
         expect(() => parseMediaFeatures('nope')).toThrow(/Invalid media feature/)
         expect(parseOrientation('landscape:landscape-primary')).toEqual({
             natural: 'landscape',

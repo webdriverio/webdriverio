@@ -2,11 +2,14 @@ import path from 'node:path'
 
 import { expect, describe, it, vi, beforeEach } from 'vitest'
 
+import { setViewport } from '../../../src/commands/browser/setViewport.js'
+
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../../src/session/context.js', () => ({
     getContextManager () {
         return {
             initialize: async () => '',
+            getCurrentContext: async () => 'ctx-1',
             getCurrentTopLevelContext: async () => 'ctx-1'
         }
     }
@@ -40,6 +43,7 @@ function bidiBrowser () {
         emulationSetScriptingEnabled: vi.fn(),
         emulationSetScrollbarTypeOverride: vi.fn(),
         emulationSetForcedColorsModeThemeOverride: vi.fn(),
+        browsingContextSetViewport: vi.fn(),
         setViewport: vi.fn(),
         scriptAddPreloadScript: vi.fn().mockResolvedValue({ script: 'foobar' }),
         scriptRemovePreloadScript: vi.fn(),
@@ -306,7 +310,11 @@ describe('emulate', () => {
             userAgent: expect.stringContaining('iPhone'),
             contexts: CONTEXTS
         })
-        expect(fakeScope.setViewport).toBeCalledWith({ width: 375, height: 667, devicePixelRatio: 2 })
+        expect(fakeScope.browsingContextSetViewport).toBeCalledWith({
+            context: 'ctx-1',
+            viewport: { width: 375, height: 667 },
+            devicePixelRatio: 2
+        })
         expect(fakeScope.emulationSetTouchOverride).toBeCalledWith({ maxTouchPoints: 1, contexts: CONTEXTS })
         expect(fakeScope.emulationSetTextLayoutModeOverride).toBeCalledWith({ textLayoutMode: 'mobile', contexts: CONTEXTS })
         expect(fakeScope.emulationSetViewportMetaOverride).toBeCalledWith({ viewportMeta: true, contexts: CONTEXTS })
@@ -315,22 +323,48 @@ describe('emulate', () => {
 
         await restore()
         expect(fakeScope.emulationSetUserAgentOverride).toBeCalledWith({ userAgent: null, contexts: CONTEXTS })
-        expect(fakeScope.setViewport).toBeCalledWith({ width: 1280, height: 720, devicePixelRatio: 1 })
+        expect(fakeScope.browsingContextSetViewport).toBeCalledWith({
+            context: 'ctx-1',
+            viewport: { width: 1280, height: 720 },
+            devicePixelRatio: 1
+        })
         expect(fakeScope.emulationSetTouchOverride).toBeCalledWith({ maxTouchPoints: null, contexts: CONTEXTS })
         expect(fakeScope.emulationSetTextLayoutModeOverride).toBeCalledWith({ textLayoutMode: null, contexts: CONTEXTS })
         expect(fakeScope.emulationSetViewportMetaOverride).toBeCalledWith({ viewportMeta: null, contexts: CONTEXTS })
     })
 
-    it('should roll back a device when a later command is rejected', async () => {
+    it('should put back the previous viewport and user agent when device emulation is rejected', async () => {
         const fakeScope = bidiBrowser()
+        await setViewport.call(fakeScope, { width: 1000, height: 800, devicePixelRatio: 1.5 })
+        await fakeScope.emulate('userAgent', 'Previous-UA')
+        await fakeScope.emulate('touch', 4)
         fakeScope.emulationSetViewportMetaOverride = vi.fn().mockRejectedValue(new Error('unknown command'))
 
         await expect(fakeScope.emulate('device', 'iPhone 8')).rejects.toThrow(/unknown command/)
-        expect(fakeScope.emulationSetUserAgentOverride).toHaveBeenLastCalledWith({ userAgent: null, contexts: CONTEXTS })
-        expect(fakeScope.setViewport).toHaveBeenLastCalledWith({ width: 1280, height: 720, devicePixelRatio: 1 })
-        expect(fakeScope.emulationSetTouchOverride).toHaveBeenLastCalledWith({ maxTouchPoints: null, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetUserAgentOverride).toHaveBeenLastCalledWith({
+            userAgent: 'Previous-UA',
+            contexts: CONTEXTS
+        })
+        expect(fakeScope.browsingContextSetViewport).toHaveBeenLastCalledWith({
+            context: 'ctx-1',
+            viewport: { width: 1000, height: 800 },
+            devicePixelRatio: 1.5
+        })
+        expect(fakeScope.emulationSetTouchOverride).toHaveBeenLastCalledWith({ maxTouchPoints: 4, contexts: CONTEXTS })
         expect(fakeScope.emulationSetTextLayoutModeOverride).toHaveBeenLastCalledWith({ textLayoutMode: null, contexts: CONTEXTS })
         expect(fakeScope.emulationSetViewportMetaOverride).toHaveBeenCalledTimes(1)
+    })
+
+    it('should keep a newer override when an older restore runs', async () => {
+        const fakeScope = bidiBrowser()
+        const older = await fakeScope.emulate('userAgent', 'A')
+        await fakeScope.emulate('userAgent', 'B')
+        await older()
+        expect(fakeScope.emulationSetUserAgentOverride).not.toHaveBeenCalledWith({ userAgent: null, contexts: CONTEXTS })
+
+        const newer = await fakeScope.emulate('userAgent', 'C')
+        await newer()
+        expect(fakeScope.emulationSetUserAgentOverride).toHaveBeenCalledWith({ userAgent: null, contexts: CONTEXTS })
     })
 
     it('should clear touch and mobile layout for a desktop device', async () => {
