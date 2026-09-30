@@ -50,7 +50,7 @@ By default, ESLint lints only `.js`, `.mjs` and `.cjs` files. Add a `files` patt
 import { configs as wdioConfig } from "eslint-plugin-wdio";
 
 export default [
-    { files: ['**/*.ts'], ...wdioConfig['flat/recommended'] },
+    { files: ['**/*.{ts,mts,cts,tsx}'], ...wdioConfig['flat/recommended'] },
 ];
 ```
 
