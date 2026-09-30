@@ -29,7 +29,7 @@ Stop when one of these is true. Do not pick a workaround on your own.
 3. With Mocha, use `expect-webdriverio` 6.1.0 or newer.
 4. With Appium, install `appium@^3` and run `appium driver update installed`.
 5. With `puppeteer-core`, use `>=24 <26`.
-6. With `eslint-plugin-wdio`, use `eslint@^10`. With TypeScript, install `typescript-eslint` 8.56.0 or later, not only `@typescript-eslint/eslint-plugin`.
+6. With `eslint-plugin-wdio`, use `eslint@^10`. With TypeScript, install `typescript-eslint` 8.56.0 or later, not only `@typescript-eslint/eslint-plugin`, and scope the config with `files: ['**/*.{ts,mts,cts,tsx}']`. Widen it to JavaScript only when `tsconfig.json` has `allowJs` and includes those files.
 7. Apply the replacements below, then run the [codemod](#codemod) for the legacy command signatures.
 8. Run the suite. Strict `$` and bare capability `specs` / `exclude` only show up at runtime.
 9. Search the patterns again. A leftover `jasmineNodeOpts` or `tagExpression` throws.
