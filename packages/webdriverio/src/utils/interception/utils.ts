@@ -1,3 +1,4 @@
+import type { URLPattern } from 'urlpattern-polyfill'
 import type { local, remote } from 'webdriver'
 import type { RequestWithOptions, RespondWithOptions } from './types.js'
 
