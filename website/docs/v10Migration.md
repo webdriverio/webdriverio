@@ -518,7 +518,7 @@ export default [
 ]
 ```
 
-The recommended config switches to the type-aware `wdio/no-floating-promise` rule, in place of `wdio/await-expect`, when the `typescript-eslint` package is installed. Installing only `@typescript-eslint/eslint-plugin` is not enough.
+The recommended config switches to the type-aware `wdio/no-floating-promise` rule, in place of `wdio/await-expect`, when the `typescript-eslint` package is installed. Apply this config only to TypeScript files unless JavaScript files such as `wdio.conf.js` are included in your TypeScript project. Installing only `@typescript-eslint/eslint-plugin` is not enough.
 
 ```sh
 npm install --save-dev typescript typescript-eslint
