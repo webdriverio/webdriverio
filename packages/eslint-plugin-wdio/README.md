@@ -4,7 +4,7 @@ ESLint rules for [WebdriverIO](https://webdriver.io)
 
 ## Installation
 
-You'll first need to install [ESLint](https://eslint.org):
+You'll first need to install [ESLint](https://eslint.org) 10:
 
 ```sh
 npm i eslint --save-dev
@@ -36,12 +36,12 @@ See [ESLint documentation](https://eslint.org/docs/latest/use/configure/configur
 
 ## TypeScript Support
 
-When `typescript` and `@typescript-eslint/eslint-plugin` are detected, the recommended configuration automatically replaces `wdio/await-expect` with `wdio/no-floating-promise` for stricter, type-aware promise handling.
+When `typescript-eslint` is installed, the recommended configuration automatically replaces `wdio/await-expect` with `wdio/no-floating-promise` for stricter, type-aware promise handling.
 
 To enable this, install the required dependencies:
 
 ```sh
-npm install --save-dev typescript @typescript-eslint/eslint-plugin
+npm install --save-dev typescript typescript-eslint
 ```
 
 ## List of supported rules

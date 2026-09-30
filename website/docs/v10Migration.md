@@ -502,6 +502,12 @@ For other spy changes, see the [Vitest migration guide](https://vitest.dev/guide
 
 ## ESLint
 
+`eslint-plugin-wdio` requires ESLint 10. ESLint 9 reached [end of life](https://eslint.org/version-support/) on 2026-08-06 and is no longer supported. With TypeScript, use `typescript-eslint` 8.56.0 or later.
+
+```sh
+npm install --save-dev eslint@10 eslint-plugin-wdio
+```
+
 `eslint-plugin-wdio` exports only the flat config `flat/recommended`. The eslintrc name `plugin:wdio/recommended` is removed.
 
 ```js
@@ -510,6 +516,12 @@ import { configs as wdioConfig } from 'eslint-plugin-wdio'
 export default [
     wdioConfig['flat/recommended'],
 ]
+```
+
+The recommended config switches to the type-aware `wdio/no-floating-promise` rule, in place of `wdio/await-expect`, when the `typescript-eslint` package is installed. Installing only `@typescript-eslint/eslint-plugin` is not enough.
+
+```sh
+npm install --save-dev typescript typescript-eslint
 ```
 
 ## Custom frameworks
