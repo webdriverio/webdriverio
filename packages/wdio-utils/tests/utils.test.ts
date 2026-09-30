@@ -5,10 +5,24 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter, definesRemoteDriver,
-    getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult,
+    getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, isScreenshot, isBinary, transformCommandLogResult,
     userImport, getBrowserObject, enableFileLogging, isAppiumCapability,
     isAbsolute
 } from '../src/utils.js'
+
+/**
+ * a valid 1x1 pixel PNG, 96 base64 characters and therefore shorter than the
+ * threshold applied to generic binary payloads
+ */
+const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk' +
+    '+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+/**
+ * a base64 encoded zip archive as `uploadFile` sends it via `file`
+ */
+const ZIP_ARCHIVE = Buffer.concat([
+    Buffer.from([0x50, 0x4b, 0x03, 0x04]),
+    Buffer.from('a'.repeat(1024))
+]).toString('base64')
 
 describe('utils', () => {
     it('commandCallStructure', () => {
@@ -33,7 +47,7 @@ describe('utils', () => {
                 shortStringFunction,
                 null,
                 undefined,
-                (Buffer.from('some screenshot'.repeat(10))).toString('base64')
+                PNG
             ]
         )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
         expect(commandCallStructure('foobar', ['/html/body/a']))
@@ -67,21 +81,49 @@ describe('utils', () => {
             .toBe('elementSendKeys("elem-123", "user")')
     })
 
-    it('commandCallStructure still masks long base64 arguments', () => {
+    it('commandCallStructure does not replace long xPath values', () => {
         /**
-         * `file` receives a base64 encoded zip archive as argument, see
-         * `uploadFile`, and is long enough to be worth keeping out of the log
+         * an xPath consists of base64 characters only, it carries no payload
+         * signature and is therefore kept in the log no matter which command
+         * receives it or how long it is
          */
-        const zipArchive = (Buffer.from('a'.repeat(1024))).toString('base64')
-        expect(zipArchive.length).toBeGreaterThan(100)
-        expect(commandCallStructure('file', [zipArchive]))
-            .toBe('file("<Screenshot[base64]>")')
+        const xPath = '/html/body' + '/div'.repeat(24) + 'ab'
+        expect(isBase64(xPath)).toBe(true)
+        for (const command of [
+            'findElement', 'findElements', 'findElementFromElement',
+            'findElementsFromElement', 'elementSendKeys', 'executeScript'
+        ]) {
+            expect(commandCallStructure(command, [xPath])).toBe(`${command}("${xPath}")`)
+        }
+    })
+
+    it('commandCallStructure identifies an image by its signature', () => {
+        /**
+         * `compareImages` receives images as argument, a 1x1 pixel PNG is
+         * shorter than the threshold for generic binary payloads and is still
+         * recognised through its signature
+         */
+        expect(PNG.length).toBeLessThan(100)
+        expect(commandCallStructure('compareImages', ['matchFeatures', PNG, PNG]))
+            .toBe('compareImages("matchFeatures", "<Screenshot[base64]>", "<Screenshot[base64]>")')
+    })
+
+    it('commandCallStructure replaces binary payloads that are not images', () => {
+        /**
+         * `file` receives a base64 encoded zip archive, see `uploadFile`, which
+         * should be kept out of the log without being labelled a screenshot
+         */
+        expect(ZIP_ARCHIVE.length).toBeGreaterThan(100)
+        expect(commandCallStructure('file', [ZIP_ARCHIVE]))
+            .toBe('file("<Binary[base64]>")')
     })
 
     it('transformCommandLogResult', () => {
         expect(transformCommandLogResult({ file: 'bar' })).toEqual({ file: 'bar' })
-        expect(transformCommandLogResult({ file: (Buffer.from('some screenshot')).toString('base64') }))
+        expect(transformCommandLogResult({ file: PNG }))
             .toBe('"<Screenshot[base64]>"')
+        expect(transformCommandLogResult({ file: ZIP_ARCHIVE }))
+            .toBe('"<Binary[base64]>"')
 
         expect(transformCommandLogResult({ script: 'foo' })).toEqual({ script: 'foo' })
         expect(transformCommandLogResult({ script: (Buffer.from('some script payload')).toString('base64') }))
@@ -267,6 +309,68 @@ describe('utils:isBase64', () => {
     it('should throw if input type not a string', () => {
         // @ts-ignore
         expect(() => isBase64(null)).toThrow('Expected string but received invalid type.')
+    })
+})
+
+describe('utils:isBinary', () => {
+    it('should identify a payload by its signature, regardless of length', () => {
+        const zip = Buffer.concat([
+            Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.from('a'.repeat(20))
+        ]).toString('base64')
+        expect(zip.length).toBeLessThan(100)
+        expect(isBinary(zip)).toBe(true)
+        expect(isBinary(Buffer.concat([
+            Buffer.from([0x1f, 0x8b]), Buffer.from('a'.repeat(20))
+        ]).toString('base64'))).toBe(true)
+        expect(isBinary(Buffer.concat([
+            Buffer.from([0x25, 0x50, 0x44, 0x46]), Buffer.from('a'.repeat(20))
+        ]).toString('base64'))).toBe(true)
+    })
+    it('should not identify an unrecognised payload by its length', () => {
+        expect(isBinary('a'.repeat(104))).toBe(false)
+    })
+    it('should not identify short command arguments as a payload', () => {
+        for (const value of ['tomsmith', 'password', 'test', 'user']) {
+            expect(isBinary(value)).toBe(false)
+        }
+    })
+    it('should be mutually exclusive with isScreenshot', () => {
+        const image = Buffer.concat([
+            Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+            Buffer.from('a'.repeat(5000))
+        ]).toString('base64')
+        expect(image.length).toBeGreaterThan(100)
+        expect(isScreenshot(image)).toBe(true)
+        expect(isBinary(image)).toBe(false)
+    })
+    it('should not throw for an invalid type', () => {
+        // @ts-ignore
+        expect(isBinary(null)).toBe(false)
+        // @ts-ignore
+        expect(isBinary(undefined)).toBe(false)
+    })
+})
+
+describe('utils:isScreenshot', () => {
+    it('should return true for a base64 encoded image', () => {
+        expect(isScreenshot(PNG)).toBe(true)
+        expect(isScreenshot((Buffer.from([0xff, 0xd8, 0xff, 0xe0])).toString('base64'))).toBe(true)
+        expect(isScreenshot((Buffer.from([0x47, 0x49, 0x46, 0x38])).toString('base64'))).toBe(true)
+    })
+    it('should return false for base64 that is not an image', () => {
+        expect(isScreenshot(ZIP_ARCHIVE)).toBe(false)
+        expect(isScreenshot('tomsmith')).toBe(false)
+        expect(isScreenshot((Buffer.from('some text payload')).toString('base64'))).toBe(false)
+    })
+    it('should return false for a string that is not base64', () => {
+        expect(isScreenshot('SuperSecretPassword!')).toBe(false)
+        expect(isScreenshot('')).toBe(false)
+    })
+    it('should not throw for an invalid type', () => {
+        // @ts-ignore
+        expect(isScreenshot(null)).toBe(false)
+        // @ts-ignore
+        expect(isScreenshot(undefined)).toBe(false)
     })
 })
 
