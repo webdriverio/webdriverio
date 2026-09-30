@@ -326,8 +326,9 @@ describe('utils:isBinary', () => {
             Buffer.from([0x25, 0x50, 0x44, 0x46]), Buffer.from('a'.repeat(20))
         ]).toString('base64'))).toBe(true)
     })
-    it('should not identify an unrecognised payload by its length', () => {
-        expect(isBinary('a'.repeat(104))).toBe(false)
+    it('should identify an unrecognised payload once it is too long for an argument', () => {
+        expect(isBinary('a'.repeat(1000))).toBe(false)
+        expect(isBinary('a'.repeat(1004))).toBe(true)
     })
     it('should not identify short command arguments as a payload', () => {
         for (const value of ['tomsmith', 'password', 'test', 'user']) {

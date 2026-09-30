@@ -11,9 +11,7 @@ const BINARY_REPLACEMENT = '"<Binary[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
 const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
 /**
- * leading bytes identifying an image format, a screenshot returned by
- * WebDriver is always a PNG while commands like Appium's `compareImages`
- * accept other formats as argument
+ * image signatures (magic bytes)
  */
 const IMAGE_SIGNATURES = [
     [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], // PNG
@@ -21,8 +19,7 @@ const IMAGE_SIGNATURES = [
     [0x47, 0x49, 0x46, 0x38] // GIF
 ]
 /**
- * leading bytes identifying a binary payload that is not an image, e.g. the
- * zip archive `uploadFile` sends via `file`
+ * binary signatures (magic bytes), e.g. the zip `uploadFile` sends
  */
 const BINARY_SIGNATURES = [
     [0x50, 0x4b, 0x03, 0x04], // zip, also used by apk, docx, xlsx
@@ -30,13 +27,17 @@ const BINARY_SIGNATURES = [
     [0x25, 0x50, 0x44, 0x46] // pdf
 ]
 /**
- * amount of base64 characters that have to be decoded to compare the longest
- * signature above, every 4 characters decode to 3 bytes
+ * base64 chars needed to decode the longest signature (4 chars = 3 bytes)
  */
 const SIGNATURE_BASE64_LENGTH = Math.ceil(
     Math.max(...[...IMAGE_SIGNATURES, ...BINARY_SIGNATURES]
         .map((signature) => signature.length)) / 3
 ) * 4
+/**
+ * fallback for payloads without a known signature, e.g. a text file pushed
+ * via `pushFile`, a command argument is never this long
+ */
+const BINARY_MAX_ARGUMENT_LENGTH = 1000
 export const SLASH = '/'
 export const REG_EXP_WINDOWS_ABS_PATH = /^[A-Za-z]:\\/
 
@@ -344,11 +345,7 @@ export function isBase64(str: string) {
 }
 
 /**
- * checks if provided string is a Base64 encoded image, e.g. a screenshot.
- * As `isBase64` only validates the syntax and therefore accepts any string
- * that happens to use the Base64 charset, the payload is decoded and matched
- * against the known image signatures. Only the leading characters are decoded
- * so a screenshot does not have to be decoded in full to be identified.
+ * checks if provided string is a Base64 encoded image by its signature
  * @param {string} str string to check
  * @return {boolean} `true` if the provided string is a Base64 encoded image
  */
@@ -357,30 +354,21 @@ export function isScreenshot(str: string) {
 }
 
 /**
- * checks if provided string is a Base64 encoded binary payload that is not an
- * image, e.g. the zip archive `uploadFile` sends via `file`. Like
- * `isScreenshot` this matches the payload signature, so a value that merely
- * uses the Base64 charset, e.g. "tomsmith" or an xPath, stays in the log.
+ * checks if provided string is a Base64 encoded binary payload that is not an image
  * @param {string} str string to check
  * @return {boolean} `true` if the provided string is a Base64 encoded payload
  */
 export function isBinary(str: string) {
-    /**
-     * an image is a binary payload as well, it is excluded here so that both
-     * checks are mutually exclusive and do not depend on the order they are
-     * called in
-     */
+    // exclude images so both checks are mutually exclusive
     if (typeof str !== 'string' || !isBase64(str) || isScreenshot(str)) {
         return false
     }
 
-    return matchesSignature(str, BINARY_SIGNATURES)
+    return matchesSignature(str, BINARY_SIGNATURES) || str.length > BINARY_MAX_ARGUMENT_LENGTH
 }
 
 /**
- * decodes the leading characters of a Base64 string and compares them against
- * the provided signatures, so a payload does not have to be decoded in full
- * to be identified
+ * matches the leading bytes of a Base64 string against the given signatures
  */
 function matchesSignature(str: string, signatures: number[][]) {
     if (typeof str !== 'string' || !isBase64(str)) {
