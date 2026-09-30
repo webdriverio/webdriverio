@@ -1,10 +1,11 @@
 import { EventEmitter } from 'node:events'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import { type local } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 import WebDriverInterception from '../../../src/utils/interception/index.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
+import { mockRestoreAll } from '../../../src/commands/browser/mockRestoreAll.js'
 
 type WebDriverInterceptionClass = typeof WebDriverInterception
 
@@ -1438,6 +1439,88 @@ describe('WebDriverInterception', () => {
 
             resolveProvideResponse!()
             delete SESSION_MOCKS['handle-1']
+        })
+
+        /**
+         * mimics the browser: removing an intercept that was already removed fails
+         */
+        const removeInterceptOnce = () => {
+            const removed = new Set<string>()
+            return vi.fn(async ({ intercept }: { intercept: string }) => {
+                if (removed.has(intercept)) {
+                    throw new Error(`WebDriver Bidi command "network.removeIntercept" failed with error: no such intercept - Intercept '${intercept}' does not exist.`)
+                }
+                removed.add(intercept)
+            })
+        }
+
+        const getRestorableBrowserMock = (handle: string, interceptId: string) => getResponseCollectionBrowserMock({}, {
+            networkAddIntercept: vi.fn().mockResolvedValue({ intercept: interceptId }),
+            networkRemoveIntercept: removeInterceptOnce(),
+            getWindowHandle: vi.fn().mockResolvedValue(handle),
+        })
+
+        it('should only remove the intercept once when restored concurrently or repeatedly', async () => {
+            const browser = getRestorableBrowserMock('handle-1', 'mock-id')
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            SESSION_MOCKS['handle-1'] = new Set([mock])
+
+            await expect(Promise.all([mock.restore(), mock.restore()])).resolves.toEqual([mock, mock])
+            await expect(mock.restore()).resolves.toBe(mock)
+            expect(browser.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+
+            delete SESSION_MOCKS['handle-1']
+        })
+
+        it('should allow to retry restore if removing the intercept failed', async () => {
+            const browser = getRestorableBrowserMock('handle-1', 'mock-id')
+            vi.mocked(browser.networkRemoveIntercept).mockRejectedValueOnce(new Error('boom'))
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            SESSION_MOCKS['handle-1'] = new Set([mock])
+
+            await expect(mock.restore()).rejects.toThrow('boom')
+            await expect(mock.restore()).resolves.toBe(mock)
+            expect(browser.networkRemoveIntercept).toHaveBeenCalledTimes(2)
+
+            delete SESSION_MOCKS['handle-1']
+        })
+
+        describe('mockRestoreAll on a multiremote browser', () => {
+            const setup = async () => {
+                const browserA = getRestorableBrowserMock('handle-a', 'intercept-a')
+                const browserB = getRestorableBrowserMock('handle-b', 'intercept-b')
+                SESSION_MOCKS['handle-a'] = new Set([await WebDriverInterception.initiate('http://test.com/**', {}, browserA)])
+                SESSION_MOCKS['handle-b'] = new Set([await WebDriverInterception.initiate('http://test.com/**', {}, browserB)])
+                return { browserA, browserB }
+            }
+
+            afterEach(() => {
+                delete SESSION_MOCKS['handle-a']
+                delete SESSION_MOCKS['handle-b']
+            })
+
+            it('should only restore the mocks of the calling instance', async () => {
+                const { browserA, browserB } = await setup()
+
+                await mockRestoreAll.call(browserA)
+
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'intercept-a' })
+                expect(browserB.networkRemoveIntercept).not.toHaveBeenCalled()
+                expect(SESSION_MOCKS['handle-b'].size).toBe(1)
+            })
+
+            it('should restore every mock once when run on all instances in parallel', async () => {
+                const { browserA, browserB } = await setup()
+
+                // a multiremote command runs once per instance, in parallel
+                await Promise.all([mockRestoreAll.call(browserA), mockRestoreAll.call(browserB)])
+
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'intercept-a' })
+                expect(browserB.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+                expect(browserB.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'intercept-b' })
+            })
         })
     })
 

@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { getBrowserObject } from '@wdio/utils'
 
 import { SESSION_MOCKS } from './mock.js'
 
@@ -30,10 +31,18 @@ const log = logger('webdriverio:mockClearAll')
  *
  * @alias browser.mockClearAll
  */
-export async function mockClearAll (): Promise<void> {
+export async function mockClearAll (this: WebdriverIO.Browser): Promise<void> {
+    /**
+     * only touch mocks of this browser, on a multiremote browser this command
+     * runs once per instance and `SESSION_MOCKS` holds the mocks of all of them
+     */
+    const browser = getBrowserObject(this)
     for (const [handle, mocks] of Object.entries(SESSION_MOCKS)) {
         log.trace(`Clearing mocks for ${handle}`)
         for (const mock of mocks) {
+            if (!mock.isOwnedBy(browser)) {
+                continue
+            }
             mock.clear()
         }
     }
