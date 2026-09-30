@@ -3,7 +3,7 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
-import { WDIO_KIND, type WdioKind } from './kind.js'
+import { WDIO_KIND, WDIO_CHAINABLE, type WdioKind } from './kind.js'
 
 const log = logger('@wdio/utils:shim')
 
@@ -54,15 +54,16 @@ export function registerElementArrayFactory (factory: ElementArrayFactory) {
 const TIME_BUFFER = 3
 
 /**
- * Kind of the chain that an element query command starts, see `kind.ts`.
- * `select` returns a multiremote browser, not an element, so it gets no brand.
+ * Kind of the result of an element query command, see `kind.ts`. The proxy of the
+ * chain also gets the `WDIO_CHAINABLE` brand. `select` returns a multiremote
+ * browser, not an element, so it gets no brand.
  */
 function chainKind (commandName: string): WdioKind | undefined {
     if (commandName.endsWith('$$')) {
-        return 'chainable-element-array'
+        return 'element-array'
     }
     if (commandName.endsWith('$') || ['nextElement', 'previousElement', 'parentElement'].includes(commandName)) {
-        return 'chainable-element'
+        return 'element'
     }
     return undefined
 }
@@ -187,7 +188,7 @@ export function chainElementPromise<T> (promise: Promise<T | undefined>, multiRe
         [],
         '$',
         undefined,
-        'chainable-element',
+        'element',
         multiRemote
     ) as T
 }
@@ -205,9 +206,11 @@ function createElementPromiseProxy (
         Promise.resolve(promise).then((ctx) => cmd.call(ctx, ...args)),
         {
             /**
-             * the brand of the chain (see `kind.ts`), so `WDIO_KIND in $('foo')` is true
+             * the brands of the chain (see `kind.ts`), so `WDIO_KIND in $('foo')` is true
              */
-            has: (target, prop) => (prop === WDIO_KIND && kind !== undefined) || Reflect.has(target, prop),
+            has: (target, prop) => (
+                (prop === WDIO_KIND || prop === WDIO_CHAINABLE) && kind !== undefined
+            ) || Reflect.has(target, prop),
             get: (target, prop: string) => {
                 /**
                  * return the brand before the symbol handling below, which
@@ -215,6 +218,9 @@ function createElementPromiseProxy (
                  */
                 if ((prop as string | symbol) === WDIO_KIND) {
                     return kind
+                }
+                if ((prop as string | symbol) === WDIO_CHAINABLE) {
+                    return kind === undefined ? undefined : true
                 }
                 if ((prop as string | symbol) === MULTI_REMOTE_ORIGIN) {
                     return multiRemote
@@ -283,7 +289,7 @@ function createElementPromiseProxy (
                         [prop],
                         commandName,
                         { prop, args },
-                        'chainable-element',
+                        'element',
                         multiRemote
                     )
                 }

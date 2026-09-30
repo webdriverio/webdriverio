@@ -1,43 +1,68 @@
 import path from 'node:path'
 import { describe, expect, test, vi } from 'vitest'
 
-import {
-    WDIO_KIND, getWdioKind, isBrowserKind, isElementKind, isElementArrayKind, isMultiRemoteKind, isChainableKind,
-    multiRemote, remote
-} from '../src/index.js'
+import { WDIO_KIND, WDIO_CHAINABLE, multiRemote, remote } from '../src/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
+type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
+const brandsOf = (value: unknown) => ({
+    kind: (value as Branded)?.[WDIO_KIND],
+    chainable: (value as Branded)?.[WDIO_CHAINABLE]
+})
+const resolved = (kind: string) => ({ kind, chainable: undefined })
+const chainable = (kind: string) => ({ kind, chainable: true })
+
+const multiRemoteCapabilities = {
+    browserA: { capabilities: { browserName: 'chrome' } },
+    browserB: { port: 4445, capabilities: { browserName: 'firefox' } }
+}
+
 /**
- * The `wdio.kind` brand (#15812) on the objects that WebdriverIO creates.
+ * The `wdio.kind` and `wdio.chainable` brands (#15812) on the objects that WebdriverIO creates.
  */
 describe('WebdriverIO object brand', () => {
+    test('exports the global symbols', () => {
+        expect(WDIO_KIND).toBe(Symbol.for('wdio.kind'))
+        expect(WDIO_CHAINABLE).toBe(Symbol.for('wdio.chainable'))
+    })
+
     test('browser, elements and element arrays', async () => {
         const browser = await remote({ capabilities: { browserName: 'foobar' } })
         const element = await browser.$('#foo')
         const elements = await browser.$$('#foo')
 
-        expect(getWdioKind(browser)).toBe('browser')
-        expect(getWdioKind(element)).toBe('element')
-        expect(getWdioKind(elements)).toBe('element-array')
-        expect(getWdioKind(elements[0])).toBe('element')
-        expect(getWdioKind(await element.$('#bar'))).toBe('element')
-        expect(getWdioKind(browser.$('#foo'))).toBe('chainable-element')
-        expect(getWdioKind(await elements.filter(() => true))).toBe('element-array')
-        expect(getWdioKind([...elements])).toBeUndefined()
+        expect(brandsOf(browser)).toEqual(resolved('browser'))
+        expect(brandsOf(element)).toEqual(resolved('element'))
+        expect(brandsOf(elements)).toEqual(resolved('element-array'))
+        expect(brandsOf(elements[0])).toEqual(resolved('element'))
+        expect(brandsOf(await element.$('#bar'))).toEqual(resolved('element'))
+        expect(brandsOf(await elements.filter(() => true))).toEqual(resolved('element-array'))
+        expect(brandsOf([...elements])).toEqual({ kind: undefined, chainable: undefined })
     })
 
-    test('element lists have the same kind before and after they resolve', async () => {
+    test('an unresolved element is chainable', async () => {
+        const browser = await remote({ capabilities: { browserName: 'foobar' } })
+
+        expect(brandsOf(browser.$('#foo'))).toEqual(chainable('element'))
+        expect(brandsOf(browser.$('#foo').$('#bar'))).toEqual(chainable('element'))
+        expect(brandsOf(browser.$('#foo').parentElement())).toEqual(chainable('element'))
+        expect(brandsOf(browser.$$('#foo')[0])).toEqual(chainable('element'))
+        expect(WDIO_CHAINABLE in browser.$('#foo')).toBe(true)
+    })
+
+    test('element lists have the same brand before and after they resolve, and are not chainable', async () => {
         const browser = await remote({ capabilities: { browserName: 'foobar' } })
         const pending = browser.$$('#foo')
         const chained = browser.$('#foo').$$('#bar')
 
-        expect(getWdioKind(pending)).toBe('element-array')
+        expect(brandsOf(pending)).toEqual(resolved('element-array'))
         expect(WDIO_KIND in pending).toBe(true)
-        expect(getWdioKind(chained)).toBe('element-array')
-        expect(getWdioKind(await pending)).toBe('element-array')
-        expect(getWdioKind(await chained)).toBe('element-array')
+        expect(WDIO_CHAINABLE in pending).toBe(false)
+        expect(brandsOf(chained)).toEqual(resolved('element-array'))
+        expect(brandsOf(await pending)).toEqual(resolved('element-array'))
+        expect(brandsOf(await chained)).toEqual(resolved('element-array'))
     })
 
     test('the brand is not enumerable', async () => {
@@ -50,26 +75,22 @@ describe('WebdriverIO object brand', () => {
         expect(JSON.stringify(element)).not.toContain('kind')
     })
 
-    test('multiremote browser, elements and element arrays', async () => {
-        const browser = await multiRemote({
-            browserA: { capabilities: { browserName: 'chrome' } },
-            browserB: { port: 4445, capabilities: { browserName: 'firefox' } }
-        })
+    test('multi-remote objects have the same kinds, and isMultiRemote tells them apart', async () => {
+        const browser = await multiRemote(multiRemoteCapabilities)
         const elements = await browser.$$('#foo')
 
-        expect(getWdioKind(browser)).toBe('multi-remote-browser')
-        expect(getWdioKind(browser.getInstance('browserA'))).toBe('browser')
-        expect(getWdioKind(browser.select('browserA'))).toBe('multi-remote-browser')
-        expect(getWdioKind(await browser.$('#foo'))).toBe('multi-remote-element')
-        expect(getWdioKind(elements)).toBe('multi-remote-element-array')
-        expect(getWdioKind(elements[0])).toBe('multi-remote-element')
+        expect(brandsOf(browser)).toEqual(resolved('browser'))
+        expect(brandsOf(browser.getInstance('browserA'))).toEqual(resolved('browser'))
+        expect(brandsOf(browser.select('browserA'))).toEqual(resolved('browser'))
+        expect(brandsOf(await browser.$('#foo'))).toEqual(resolved('element'))
+        expect(brandsOf(elements)).toEqual(resolved('element-array'))
+        expect(brandsOf(elements[0])).toEqual(resolved('element'))
+        expect(brandsOf(browser.$('#foo'))).toEqual(chainable('element'))
+        expect([browser.isMultiRemote, elements.isMultiRemote, elements[0].isMultiRemote]).toEqual([true, true, true])
     })
 
-    test('a chained multiremote list is multi-remote before it loads', async () => {
-        const browser = await multiRemote({
-            browserA: { capabilities: { browserName: 'chrome' } },
-            browserB: { port: 4445, capabilities: { browserName: 'firefox' } }
-        })
+    test('a chained multi-remote list knows isMultiRemote before it loads', async () => {
+        const browser = await multiRemote(multiRemoteCapabilities)
         const pendingLists = {
             'chained': browser.$('#foo').$$('#bar'),
             'nested': browser.$('#foo').$('#bar').$$('#baz'),
@@ -77,11 +98,11 @@ describe('WebdriverIO object brand', () => {
         }
 
         for (const [name, list] of Object.entries(pendingLists)) {
-            expect({ name, kind: getWdioKind(list), isMultiRemote: list.isMultiRemote })
-                .toEqual({ name, kind: 'multi-remote-element-array', isMultiRemote: true })
+            expect({ name, ...brandsOf(list), isMultiRemote: list.isMultiRemote })
+                .toEqual({ name, ...resolved('element-array'), isMultiRemote: true })
         }
         for (const list of Object.values(pendingLists)) {
-            expect(getWdioKind(await list)).toBe('multi-remote-element-array')
+            expect((await list).isMultiRemote).toBe(true)
         }
     })
 
@@ -89,36 +110,7 @@ describe('WebdriverIO object brand', () => {
         const browser = await remote({ capabilities: { browserName: 'foobar' } })
         const list = browser.$('#foo').$$('#bar')
 
-        expect(getWdioKind(list)).toBe('element-array')
         expect(list.isMultiRemote).toBe(false)
-        expect(getWdioKind(await list)).toBe('element-array')
-    })
-
-    test('kind helpers on real objects', async () => {
-        const browser = await remote({ capabilities: { browserName: 'foobar' } })
-        const multiRemoteBrowser = await multiRemote({
-            browserA: { capabilities: { browserName: 'chrome' } },
-            browserB: { port: 4445, capabilities: { browserName: 'firefox' } }
-        })
-
-        expect(isBrowserKind(browser)).toBe(true)
-        expect(isBrowserKind(multiRemoteBrowser)).toBe(true)
-        expect(isMultiRemoteKind(multiRemoteBrowser)).toBe(true)
-        expect(isMultiRemoteKind(browser)).toBe(false)
-
-        expect(isElementKind(browser.$('#foo'))).toBe(true)
-        expect(isElementKind(await browser.$('#foo'))).toBe(true)
-        expect(isElementKind(await multiRemoteBrowser.$('#foo'))).toBe(true)
-        expect(isElementKind(browser)).toBe(false)
-
-        expect(isElementArrayKind(browser.$$('#foo'))).toBe(true)
-        expect(isElementArrayKind(await multiRemoteBrowser.$$('#foo'))).toBe(true)
-        expect(isElementArrayKind([...await browser.$$('#foo')])).toBe(false)
-
-        expect(isChainableKind(browser.$('#foo'))).toBe(true)
-        expect(isChainableKind(await browser.$('#foo'))).toBe(false)
-        // a pending $$() is an element list, not a chainable, although it is thenable
-        expect(isChainableKind(browser.$$('#foo'))).toBe(false)
-        expect(isChainableKind(browser)).toBe(false)
+        expect((await list).isMultiRemote).toBe(false)
     })
 })

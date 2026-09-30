@@ -312,12 +312,12 @@ function proxify (array: ElementList, state: ElementArrayState): WebdriverIO.Ele
             }
 
             /**
-             * the brand of the list, see `@wdio/utils` `kind.ts`. It is read from the
-             * metadata, because a chained query learns `isMultiRemote` only when it loads.
-             * A pending and a resolved list are the same object, so they have the same kind.
+             * the brand of the list, see `@wdio/utils` `kind.ts`. A pending and a resolved list
+             * are the same object, so they have the same kind, and a pending list is not
+             * `WDIO_CHAINABLE`. Multi-remote is not part of the brand, read `isMultiRemote`.
              */
             if (prop === WDIO_KIND) {
-                return current.metadata.isMultiRemote ? 'multi-remote-element-array' : 'element-array'
+                return 'element-array'
             }
 
             if (prop === 'then') {

@@ -1,7 +1,6 @@
 const assert = require('node:assert')
 const {
-    remote, attach, multiRemote, Key, SevereServiceError,
-    WDIO_KIND, getWdioKind, isBrowserKind, isElementKind, isElementArrayKind, isMultiRemoteKind, isChainableKind
+    remote, attach, multiRemote, Key, SevereServiceError, WDIO_KIND, WDIO_CHAINABLE
 } = require('webdriverio')
 const os = require('node:os')
 
@@ -14,9 +13,7 @@ const isLinux = os.platform() === 'linux'
     assert.equal(typeof Key, 'object')
     assert.equal(typeof SevereServiceError, 'function')
     assert.equal(WDIO_KIND, Symbol.for('wdio.kind'))
-    for (const helper of [getWdioKind, isBrowserKind, isElementKind, isElementArrayKind, isMultiRemoteKind, isChainableKind]) {
-        assert.equal(typeof helper, 'function')
-    }
+    assert.equal(WDIO_CHAINABLE, Symbol.for('wdio.chainable'))
 
     const client = await remote({
         logLevel: 'trace',
@@ -35,15 +32,15 @@ const isLinux = os.platform() === 'linux'
         },
     })
 
-    assert.equal(getWdioKind(client), 'browser')
-    assert.equal(isBrowserKind(client), true)
+    assert.equal(client[WDIO_KIND], 'browser')
 
     await client.url('https://www.google.com/ncr')
     assert.equal(await client.getTitle(), 'Google')
-    assert.equal(isChainableKind(client.$('body')), true)
-    assert.equal(isElementKind(await client.$('body')), true)
-    assert.equal(isElementArrayKind(client.$$('body')), true)
-    assert.equal(isMultiRemoteKind(client), false)
+    assert.equal(client.$('body')[WDIO_KIND], 'element')
+    assert.equal(client.$('body')[WDIO_CHAINABLE], true)
+    assert.equal((await client.$('body'))[WDIO_KIND], 'element')
+    assert.equal((await client.$('body'))[WDIO_CHAINABLE], undefined)
+    assert.equal(client.$$('body')[WDIO_KIND], 'element-array')
     await client.deleteSession()
 })().then(
     () => {

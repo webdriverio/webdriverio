@@ -33,14 +33,12 @@ export { StrictSelectorError } from './utils/strictMode.js'
  */
 export { deviceDescriptorsSource, type DeviceName } from './deviceDescriptorsSource.js'
 /**
- * Tells which kind of WebdriverIO object a value is: a browser, an element, an
- * element array, their multiremote versions, or a chainable `$()` / `$$()`.
- * Other packages can also read `value[Symbol.for('wdio.kind')]` without an import.
+ * Brands of WebdriverIO objects: `value[WDIO_KIND]` is `'browser'`, `'element'` or
+ * `'element-array'`, and `value[WDIO_CHAINABLE]` is `true` on an unresolved `$()`.
+ * They are `Symbol.for('wdio.kind')` and `Symbol.for('wdio.chainable')`, so other
+ * packages can read them without an import.
  */
-export {
-    WDIO_KIND, getWdioKind, isBrowserKind, isElementKind, isElementArrayKind, isMultiRemoteKind, isChainableKind,
-    type WdioKind
-} from '@wdio/utils'
+export { WDIO_KIND, WDIO_CHAINABLE, type WdioKind } from '@wdio/utils'
 
 /**
  * A method to create a new session with WebdriverIO.

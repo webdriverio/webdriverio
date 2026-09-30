@@ -166,7 +166,7 @@ export default class MultiRemote {
             }
             client.instances = [...instances.keys()]
             client.isMultiRemote = true
-            setWdioKind(client, 'multi-remote-element')
+            setWdioKind(client, 'element')
             client.selector = selector ?? (Array.isArray(result) && result[0]
                 ? result[0].selector
                 : null)
@@ -379,7 +379,8 @@ export class MultiRemoteDriver {
 }
 
 /**
- * brand every multiremote browser, see `@wdio/utils` `kind.ts`. The modifier copies the
- * commands with `Object.entries`, which skips the `browser` brand of the wrapped driver.
+ * brand every multiremote browser as a browser, see `@wdio/utils` `kind.ts` (multi-remote is
+ * not part of the brand, read `isMultiRemote`). The modifier copies the commands with
+ * `Object.entries`, which skips the `browser` brand of the wrapped driver.
  */
-setWdioKind(MultiRemoteDriver.prototype, 'multi-remote-browser')
+setWdioKind(MultiRemoteDriver.prototype, 'browser')
