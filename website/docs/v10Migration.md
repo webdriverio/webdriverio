@@ -478,6 +478,14 @@ Every session is a [W3C WebDriver](https://w3c.github.io/webdriver/) session. We
 
 `browser.isW3C` is removed, including the value previously forwarded on the worker `sessionStarted` message. Passing `isW3C` to `attach` is ignored. The BiDi command set stays on the client. A live BiDi connection still depends on `webSocketUrl`.
 
+### `browser.back()` and `browser.forward()` on BiDi
+
+Call sites stay `await browser.back()` and `await browser.forward()`. Neither command takes an argument or returns a value.
+
+On a BiDi session these commands call `browsingContext.traverseHistory` with `delta` `-1` or `1` on the top-level browsing context, then wait for the document readiness `pageLoadStrategy` maps to. `none` returns when the traversal command is accepted. `eager` waits for `browsingContext.domContentLoaded`. `normal`, the default, waits for `browsingContext.load`. The wait uses the session page-load timeout (`timeouts.pageLoad`, 300000 ms when unset). Classic sessions still post to `POST /session/:sessionId/back` and `POST /session/:sessionId/forward`.
+
+A missing history entry still rejects. On BiDi the message comes from `browsingContext.traverseHistory` and contains `no such history entry`, rather than the classic WebDriver error text. A traversal that never reaches the expected readiness rejects with `History traversal timed out after <ms>ms waiting for browsingContext.domContentLoaded` or `browsingContext.load`.
+
 ### New session response
 
 Create Session must return the W3C body. WebdriverIO reads `value.sessionId` and `value.capabilities`:

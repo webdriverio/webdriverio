@@ -68,6 +68,16 @@ console.log(await browser.execute(() => window.bar))
 await browser.deleteSession()
 ```
 
+## History
+
+`back()` and `forward()` on a BiDi session traverse the top-level browsing context by one history entry. Run it with:
+
+```sh
+node history.js
+```
+
+The script opens two WebdriverIO pages in headless Chrome, goes back and forward, and checks that `back()` rejects with `no such history entry` on a new tab.
+
 ## Multi-remote mock
 
 `mock()` on a multi-remote browser returns one object for every session. `instances` names them, `getInstance(name)` returns that browser's mock, and `respond()` runs on all of them. Run it with:
