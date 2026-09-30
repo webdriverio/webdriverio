@@ -60,7 +60,7 @@ To also lint JavaScript files, such as `wdio.conf.js`, add them to the TypeScrip
 
 ```js
 export default [
-    { files: ['**/*.{js,mjs,cjs,ts,mts,cts}'], ...wdioConfig['flat/recommended'] },
+    { files: ['**/*.{js,mjs,cjs,ts,mts,cts,tsx}'], ...wdioConfig['flat/recommended'] },
 ];
 ```
 
