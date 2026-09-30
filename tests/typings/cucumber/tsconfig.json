@@ -2,7 +2,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "noImplicitAny": true,
-    "lib": ["es2018", "dom"],
+    "lib": ["es2024", "dom"],
+    "target": "ES2024",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "types": [

@@ -24,7 +24,7 @@ Stop when one of these is true. Do not pick a workaround on your own.
 
 ## Order
 
-1. Use Node.js 22.19.0 or later. Cucumber 13 does not run on Node.js 20, 23, or 25.
+1. Use Node.js 22.19.0 or later. Cucumber 13 does not run on Node.js 20, 23, or 25. A project created with `npm create wdio@latest` gets `compilerOptions.target` and `compilerOptions.lib` of `es2024`. Leave an existing `tsconfig.json` unchanged. Type-checking the generated file needs TypeScript 5.7 or newer.
 2. Install WebdriverIO 10 for `webdriverio`, `webdriver`, and every `@wdio/*` package in the same change. Leave no v9 package behind.
 3. With Mocha, use `expect-webdriverio` 6.1.0 or newer.
 4. With Appium, install `appium@^3` and run `appium driver update installed`.

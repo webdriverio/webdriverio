@@ -4,7 +4,7 @@
         "baseUrl": ".",
         "outDir": "./build",
         "rootDir": "./src",
-        "lib": ["es2023", "dom", "dom.iterable"]
+        "lib": ["es2024", "dom", "dom.iterable"]
     },
     "include": [
         "src/**/*"

@@ -331,8 +331,8 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
             // compiler
             moduleResolution: 'node',
             module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
-            target: 'es2022',
-            lib: ['es2022', 'dom'],
+            target: 'es2024',
+            lib: ['es2024', 'dom'],
             types,
             skipLibCheck: true,
             // bundler
