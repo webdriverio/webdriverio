@@ -184,7 +184,21 @@ The `Element`, `MultiRemoteBrowser` and `MultiRemoteElement` types exported by `
 + const elem: WebdriverIO.Element = await $('#foo')
 ```
 
-Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript version this repository compiles with.
+Published packages set `typeScriptVersion` to 6.0.3, matching the TypeScript version this repository compiles with.
+
+`browser.mock()` accepts the `URLPattern` of `urlpattern-polyfill` and the native `URLPattern` (global in Node.js 24, and typed by the `dom` library of TypeScript 6).
+
+TypeScript 6 deprecates `"moduleResolution": "node"` and `"baseUrl"`, and makes `strict` the default. `create-wdio` now generates `"moduleResolution": "bundler"` for ESM projects and `"NodeNext"` for CommonJS projects. If you update TypeScript in an existing project, change these options in your `tsconfig.json`:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
+-        "moduleResolution": "node",
++        "moduleResolution": "bundler",
+         "module": "ESNext"
+     }
+ }
+```
 
 ## Reporters
 
