@@ -272,18 +272,18 @@ describe('main suite 1', () => {
             // Unstable on Windows: expected "center", received "center\nout"
             this.retries(3)
             await browser.setWindowSize(500, 500)
-            await browser.switchToParentFrame()
-            await browser.$('#parent').moveTo()
-            await expect(browser.$('#text')).toHaveValue('center')
+            const page = (await browser.browsingContexts())[0]
+            await page.$('#parent').moveTo()
+            await expect(page.$('#text')).toHaveValue('center')
         })
 
         it('moveTo to nested iframe with auto scrolling', async function () {
             // Unstable on Windows: expected "center", received "center\nout"
             this.retries(3)
-            const iframe = await browser.$('iframe.code-tabs__result')
-            await browser.switchFrame(iframe)
-            await browser.$('#parent').moveTo()
-            await expect(browser.$('#text')).toHaveValue('center')
+            const page = (await browser.browsingContexts())[0]
+            const frame = await page.frame('iframe.code-tabs__result')
+            await frame.$('#parent').moveTo()
+            await expect(frame.$('#text')).toHaveValue('center')
         })
 
         inputs.forEach((input) => {
@@ -300,7 +300,7 @@ describe('main suite 1', () => {
         })
 
         after(async () => {
-            await browser.switchFrame(null)
+            await browser.switchToParentFrame().catch(() => {})
         })
     })
 
@@ -418,22 +418,22 @@ describe('main suite 1', () => {
 
         it('should return a request object', async () => {
             const request = await browser.url('https://guinea-pig.webdriver.io/')
-            if (!request) {
+            if (!request?.request) {
                 throw new Error('Request object is not defined')
             }
-            expect(request.children!.length > 0).toBe(true)
-            expect(Object.keys(request.response?.headers || {})).toContain('x-amz-version-id')
+            expect(request.request.children!.length > 0).toBe(true)
+            expect(Object.keys(request.request.response?.headers || {})).toContain('x-amz-version-id')
         })
 
         it('should not contain any children due to "none" wait property', async () => {
-            const request = await browser.url('https://guinea-pig.webdriver.io/', {
+            const context = await browser.url('https://guinea-pig.webdriver.io/', {
                 wait: 'none'
             })
 
-            if (!request) {
+            if (!context?.request) {
                 throw new Error('Request object is not defined')
             }
-            expect(request.children!.length).toBe(0)
+            expect(context.request.children!.length).toBe(0)
         })
 
         it('should allow to load a script before loading the page', async () => {
@@ -637,22 +637,26 @@ describe('main suite 1', () => {
         })
 
         it('should allow user to switch between contexts', async function() {
-            await browser.url(`${navigationOrigin}/window-a`)
+            const first = await browser.url(`${navigationOrigin}/window-a`)
+            if (!first) {
+                throw new Error('expected browser.url() to return a browsing context')
+            }
             const firstHandle = await browser.getWindowHandle()
+            expect(first.contextId).toBe(firstHandle)
 
-            const { handle: secondHandle } = await browser.newWindow(`${navigationOrigin}/window-b`)
-            await expect($('#beta')).toBePresent()
-            await expect($('#alpha')).not.toBePresent()
-
-            await browser.switchWindow(`${navigationOrigin}/window-a`)
+            const second = await browser.newWindow(`${navigationOrigin}/window-b`)
+            if (!('contextId' in second)) {
+                throw new Error('expected newWindow() to return a browsing context')
+            }
             expect(await browser.getWindowHandle()).toBe(firstHandle)
-            await expect($('#alpha')).toBePresent()
-            await expect($('#beta')).not.toBePresent()
+            await expect(second.$('#beta')).toBePresent()
+            await expect(second.$('#alpha')).not.toBePresent()
+            await expect(first.$('#alpha')).toBePresent()
+            await expect(first.$('#beta')).not.toBePresent()
 
-            await browser.switchWindow('Window Beta')
-            expect(await browser.getWindowHandle()).toBe(secondHandle)
-            await expect($('#beta')).toBePresent()
-            await expect($('#alpha')).not.toBePresent()
+            const beta = (await browser.browsingContexts()).find((page) => page.url.includes('/window-b'))
+            expect(beta?.contextId).toBe(second.contextId)
+            await expect(beta!.$('#beta')).toBePresent()
         })
 
         it.skip('should not switch window if requested window was not found', async () => {
@@ -684,148 +688,170 @@ describe('main suite 1', () => {
         })
 
         it('should see that content is no longer displayed when window is closed', async () => {
-            await browser.url('https://the-internet.herokuapp.com/iframe')
-            const elementalSeleniumLink = await $('/html/body/div[3]/div/div/a')
+            const page = await browser.url('https://the-internet.herokuapp.com/iframe')
+            if (!page) {
+                throw new Error('expected browser.url() to return a browsing context')
+            }
+            const elementalSeleniumLink = await page.$('/html/body/div[3]/div/div/a')
             await elementalSeleniumLink.waitForDisplayed()
             await elementalSeleniumLink.click()
             await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 2)
-            await browser.switchWindow('https://elementalselenium.com/')
-            await $('#__docusaurus_skipToContent_fallback').waitForDisplayed()
-            await browser.closeWindow()
-            await $('#__docusaurus_skipToContent_fallback').waitForDisplayed({ reverse: true })
+            const popup = (await browser.browsingContexts()).find((context) => context.url.includes('elementalselenium.com'))
+            if (!popup) {
+                throw new Error('expected the opened window to be listed')
+            }
+            await popup.$('#__docusaurus_skipToContent_fallback').waitForDisplayed()
+            await popup.closeWindow()
             await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 1)
-            await browser.switchWindow('https://the-internet.herokuapp.com/iframe')
+            const left = await browser.browsingContexts()
+            expect(left.some((context) => context.url.includes('elementalselenium.com'))).toBe(false)
+            await expect(page.$('/html/body/div[3]/div/div/a')).toBeDisplayed()
         })
     })
 
-    describe('switchFrame', () => {
-        afterEach(async () => {
-            try {
-                await browser.switchFrame(null)
-            } catch (error) {
-                // Unstable with `Error: Timeout` and can't retry
-                console.error(error)
+    describe('frames', () => {
+        it('can open a frame via url', async function() {
+            const page = await browser.url(`${navigationOrigin}/frames`)
+            if (!page) {
+                throw new Error('expected browser.url() to return a browsing context')
             }
-        })
-
-        it('can switch to a frame via url', async function() {
-            await browser.url(`${navigationOrigin}/frames`)
-            await browser.switchFrame(`${navigationOrigin}/frame-a2`)
-            expect(await browser.execute(() => [document.title, document.URL]))
+            const frame = await page.frame(`${navigationOrigin}/frame-a2`)
+            expect(await frame.execute(() => [document.title, document.URL]))
                 .toEqual(['IFrame A2', `${navigationOrigin}/frame-a2`])
-            expect(await browser.getElementText((await $('h1')).elementId)).toBe('Nested frame')
+            expect(await frame.$('h1').getText()).toBe('Nested frame')
         })
 
-        it('can switch to a frame via element', async () => {
-            await browser.url('https://the-internet.herokuapp.com/nested_frames')
-            await browser.switchFrame($$('frame')[0])
-            expect(await browser.execute(() => document.URL))
+        it('can open a frame via element', async () => {
+            const page = await browser.url('https://the-internet.herokuapp.com/nested_frames')
+            if (!page) {
+                throw new Error('expected browser.url() to return a browsing context')
+            }
+            const frame = await page.frame(page.$$('frame')[0])
+            expect(await frame.execute(() => document.URL))
                 .toBe('https://the-internet.herokuapp.com/frame_top')
         })
 
-        it('can switch to a frame via an item of a custom element list command', async () => {
+        it('can open a frame via an item of a custom element list command', async () => {
             browser.addCommand('frames$$', function (this: WebdriverIO.Browser) {
                 return this.$$('iframe')
             })
-            await browser.url(`${navigationOrigin}/frames`)
+            const page = await browser.url(`${navigationOrigin}/frames`)
+            if (!page) {
+                throw new Error('expected browser.url() to return a browsing context')
+            }
 
             // @ts-expect-error custom command
             expect(await browser.execute((frame) => frame.tagName, await browser.frames$$()[0])).toBe('IFRAME')
 
             // @ts-expect-error custom command
-            await browser.switchFrame(browser.frames$$()[0])
-            expect(await browser.execute(() => document.title)).toBe('IFrame A')
+            const first = await page.frame(browser.frames$$()[0])
+            expect(await first.execute(() => document.title)).toBe('IFrame A')
 
-            await browser.switchFrame(null)
             // @ts-expect-error custom command
-            await browser.switchFrame(browser.frames$$().at(0))
-            expect(await browser.execute(() => document.title)).toBe('IFrame A')
+            const at = await page.frame(browser.frames$$().at(0))
+            expect(await at.execute(() => document.title)).toBe('IFrame A')
 
             /**
              * `find()` can give no element, so it gives a plain promise: await it first
              */
-            await browser.switchFrame(null)
             // @ts-expect-error custom command
-            await browser.switchFrame(await browser.frames$$().find(async (frame: WebdriverIO.Element) => await frame.getTagName() === 'iframe'))
-            expect(await browser.execute(() => document.title)).toBe('IFrame A')
+            const found = await page.frame(await browser.frames$$().find(async (frame: WebdriverIO.Element) => await frame.getTagName() === 'iframe'))
+            expect(await found.execute(() => document.title)).toBe('IFrame A')
         })
 
-        it('can switch to a frame via an item of a custom$$ locator strategy query', async () => {
+        it('can open a frame via an item of a custom$$ locator strategy query', async () => {
             browser.addLocatorStrategy('frames', () => Array.from(document.querySelectorAll('iframe')) as HTMLElement[])
-            await browser.url(`${navigationOrigin}/frames`)
+            const page = await browser.url(`${navigationOrigin}/frames`)
+            if (!page) {
+                throw new Error('expected browser.url() to return a browsing context')
+            }
 
-            await browser.switchFrame(browser.custom$$('frames', '')[0])
-            expect(await browser.execute(() => document.title)).toBe('IFrame A')
+            const frame = await page.frame(page.custom$$('frames', '')[0])
+            expect(await frame.execute(() => document.title)).toBe('IFrame A')
         })
 
-        it('can switch to a frame via function', async () => {
-            await browser.url('https://the-internet.herokuapp.com/nested_frames')
-            await browser.switchFrame(() => document.URL.includes('frame_right'))
-            expect(await browser.execute(() => document.URL))
+        it('can open a frame via function', async () => {
+            const page = await browser.url('https://the-internet.herokuapp.com/nested_frames')
+            if (!page) {
+                throw new Error('expected browser.url() to return a browsing context')
+            }
+            const frame = await page.frame(() => document.URL.includes('frame_right'))
+            expect(await frame.execute(() => document.URL))
                 .toBe('https://the-internet.herokuapp.com/frame_right')
         })
 
         it('should reset the frame when the page is reloaded', async () => {
-            await browser.url('https://the-internet.herokuapp.com/iframe')
-            await expect($('#tinymce')).not.toBePresent()
-            await browser.switchFrame($('iframe'))
-            await expect($('#tinymce')).toBePresent()
-            await browser.refresh()
-            await expect($('#tinymce')).not.toBePresent()
-            await browser.switchFrame($('iframe'))
-            await expect($('#tinymce')).toBePresent()
+            const page = await browser.url('https://the-internet.herokuapp.com/iframe')
+            if (!page) {
+                throw new Error('expected browser.url() to return a browsing context')
+            }
+            await expect(page.$('#tinymce')).not.toBePresent()
+            const frame = await page.frame(page.$('iframe'))
+            await expect(frame.$('#tinymce')).toBePresent()
+            await page.refresh()
+            await expect(page.$('#tinymce')).not.toBePresent()
+            const again = await page.frame(page.$('iframe'))
+            await expect(again.$('#tinymce')).toBePresent()
         })
 
-        it('allows expect after switching to non-children', async () => {
-            await browser.url('https://guinea-pig.webdriver.io/iframe.html')
-            await expect($('h1,h2,h3')).toHaveText('Frame Demo')
+        it('allows expect after opening a sibling frame from the page', async () => {
+            const page = await browser.url('https://guinea-pig.webdriver.io/iframe.html')
+            if (!page) {
+                throw new Error('expected browser.url() to return a browsing context')
+            }
+            await expect(page.$('h1,h2,h3')).toHaveText('Frame Demo')
 
-            await browser.switchFrame($('#A')) // child
-            await expect($('h1,h2,h3')).toHaveText('IFrame A')
+            const child = await page.frame(page.$('#A'))
+            await expect(child.$('h1,h2,h3')).toHaveText('IFrame A')
 
-            // child, we use this to proof switch frame with a function works
-            await browser.switchFrame(() => window.location.href === 'https://guinea-pig.webdriver.io/iframeA1.html')
-            await expect($('h1,h2,h3')).toHaveText('IFrame A1')
+            const a1 = await child.frame(() => window.location.href === 'https://guinea-pig.webdriver.io/iframeA1.html')
+            await expect(a1.$('h1,h2,h3')).toHaveText('IFrame A1')
 
-            // sibling
-            await browser.switchFrame(() => window.location.href === 'https://guinea-pig.webdriver.io/iframeA2.html')
-            await expect($('h1,h2,h3')).toHaveText('IFrame A2') // FAILS "no such element"
+            const a2 = await page.frame(() => window.location.href === 'https://guinea-pig.webdriver.io/iframeA2.html')
+            await expect(a2.$('h1,h2,h3')).toHaveText('IFrame A2')
         })
 
-        describe('switchToParentFrame', () => {
-            it('switches to parent (not top-level)', async () => {
-                await browser.url('https://guinea-pig.webdriver.io/iframe.html')
-                await expect($('h1')).toHaveText('Frame Demo')
-                await expect($('h2')).not.toExist()
-                await expect($('h3')).not.toExist()
+        describe('parent', () => {
+            it('returns the parent frame, not the top-level page', async () => {
+                const page = await browser.url('https://guinea-pig.webdriver.io/iframe.html')
+                if (!page) {
+                    throw new Error('expected browser.url() to return a browsing context')
+                }
+                await expect(page.$('h1')).toHaveText('Frame Demo')
+                await expect(page.$('h2')).not.toExist()
+                await expect(page.$('h3')).not.toExist()
 
-                await browser.switchFrame($('#A'))
-                await expect($('h1')).not.toExist()
-                await expect($('h2')).toHaveText('IFrame A')
-                await expect($('h3')).not.toExist()
+                const a = await page.frame(page.$('#A'))
+                await expect(a.$('h1')).not.toExist()
+                await expect(a.$('h2')).toHaveText('IFrame A')
+                await expect(a.$('h3')).not.toExist()
 
-                await browser.switchFrame($('#A2'))
-                await expect($('h1')).not.toExist()
-                await expect($('h2')).not.toExist()
-                await expect($('h3')).toHaveText('IFrame A2')
+                const a2 = await a.frame(a.$('#A2'))
+                await expect(a2.$('h1')).not.toExist()
+                await expect(a2.$('h2')).not.toExist()
+                await expect(a2.$('h3')).toHaveText('IFrame A2')
 
-                await browser.switchToParentFrame()
-                await expect($('h1')).not.toExist()
-                await expect($('h2')).toHaveText('IFrame A')
-                await expect($('h3')).not.toExist()
+                const parent = a2.parent
+                if (!parent) {
+                    throw new Error('expected a parent browsing context')
+                }
+                await expect(parent.$('h1')).not.toExist()
+                await expect(parent.$('h2')).toHaveText('IFrame A')
+                await expect(parent.$('h3')).not.toExist()
             })
-
-            after(() => browser.switchFrame(null))
         })
 
         describe('taking screenshots', () => {
             it('should take a screenshot of the iframe', async () => {
-                await browser.url('https://guinea-pig.webdriver.io/iframe.html')
-                await browser.switchFrame($('#A'))
-                await browser.switchFrame($('#A2'))
+                const page = await browser.url('https://guinea-pig.webdriver.io/iframe.html')
+                if (!page) {
+                    throw new Error('expected browser.url() to return a browsing context')
+                }
+                const a = await page.frame(page.$('#A'))
+                const a2 = await a.frame(a.$('#A2'))
 
                 const screenshotPath = path.resolve(__dirname, 'iframe.png')
-                await browser.saveScreenshot(screenshotPath)
+                await a2.saveScreenshot(screenshotPath)
                 const image = await fs.readFile(screenshotPath)
                 const dimensions = imageSize(image) as { width: number, height: number }
                 console.log(`Screenshot dimensions: ${JSON.stringify(dimensions)}`)
@@ -835,50 +861,54 @@ describe('main suite 1', () => {
                 expect(dimensions.height).toBeGreaterThanOrEqual(80)
                 expect(dimensions.height).toBeLessThanOrEqual(90)
             })
-
-            after(() => browser.switchFrame(null))
         })
 
         describe('iframe navigations', () => {
-            beforeEach(async () => {
-                await browser.url('https://guinea-pig.webdriver.io/iframeNavigation.html')
-            })
-
             describe('ability to catch navigation event within iframe', () => {
                 it('should work by using a link with target=_top', async () => {
-                    await browser.switchFrame('iframeNavigationInner.html')
-                    await $('a').click()
-                    await expect($('h1')).toHaveText('Iframe Target')
+                    const page = await browser.url('https://guinea-pig.webdriver.io/iframeNavigation.html')
+                    if (!page) {
+                        throw new Error('expected browser.url() to return a browsing context')
+                    }
+                    const frame = await page.frame('iframeNavigationInner.html')
+                    await frame.$('a').click()
+                    await expect(page.$('h1')).toHaveText('Iframe Target')
                 })
 
                 it('should work by setting the location', async () => {
-                    await browser.switchFrame('iframeNavigationInner.html')
-                    await $('button').click()
-                    await expect($('h1')).toHaveText('Iframe Target')
+                    const page = await browser.url('https://guinea-pig.webdriver.io/iframeNavigation.html')
+                    if (!page) {
+                        throw new Error('expected browser.url() to return a browsing context')
+                    }
+                    const frame = await page.frame('iframeNavigationInner.html')
+                    await frame.$('button').click()
+                    await expect(page.$('h1')).toHaveText('Iframe Target')
                 })
             })
         })
 
-        describe('switchFrame with iframe in shadow DOM', () => {
-            beforeEach(async () => {
-                await browser.url('https://guinea-pig.webdriver.io/iframeInShadowDom.html')
-            })
-
-            it('should switch to iframe inside shadow root via element', async () => {
-                const host = await browser.$('#wrapper')
+        describe('iframe in shadow DOM', () => {
+            it('should open an iframe inside a shadow root via element', async () => {
+                const page = await browser.url('https://guinea-pig.webdriver.io/iframeInShadowDom.html')
+                if (!page) {
+                    throw new Error('expected browser.url() to return a browsing context')
+                }
+                const host = await page.$('#wrapper')
                 const iframe = await host.shadow$('iframe')
+                const frame = await page.frame(iframe)
 
-                // Switch to the iframe inside the shadow DOM
-                await browser.switchFrame(await browser.$(iframe))
-
-                const [title, url] = await browser.execute(() => [document.title, document.URL])
+                const [title, url] = await frame.execute(() => [document.title, document.URL])
                 expect(title).toBe('Iframe Target')
                 expect(url).toContain('iframeTarget.html')
             })
 
             it('should work when using the url', async () => {
-                await browser.switchFrame('https://guinea-pig.webdriver.io/iframeTarget.html')
-                await expect($('h1')).toHaveText('Iframe Target')
+                const page = await browser.url('https://guinea-pig.webdriver.io/iframeInShadowDom.html')
+                if (!page) {
+                    throw new Error('expected browser.url() to return a browsing context')
+                }
+                const frame = await page.frame('https://guinea-pig.webdriver.io/iframeTarget.html')
+                await expect(frame.$('h1')).toHaveText('Iframe Target')
             })
         })
 

@@ -106,7 +106,7 @@ Drop the `done` callback. Return the value, or return a promise. The `script` ti
 
 ### `switchToFrame`
 
-`switchToFrame` is not a public command. Use `switchFrame` with an element, or `null` for the top frame. On BiDi, a string can be a frame url or context id. Do not pass a numeric frame index. A BiDi session rejects it.
+`switchToFrame` is not a public command. In a BiDi session `switchFrame` and `switchWindow` throw: hold the `WebdriverIO.BrowsingContext` from `browser.url()` or `browser.newWindow()` and call `context.frame()`. In a Classic session, `switchFrame` takes an element, or `null` for the top frame.
 
 ### Strict `$`
 

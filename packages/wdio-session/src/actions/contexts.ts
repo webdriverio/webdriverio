@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { getContextManager } from 'webdriverio'
 
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
@@ -68,7 +69,9 @@ function findTab (tabs: Tab[], arg: unknown) {
 /**
  * window handles change between runs, emitted code matches by URL
  */
-const switchCode = (tab: Tab) => `await browser.switchWindow(${quote(tab.url)})`
+const switchCode = (session: Session, tab: Tab) => session.isBidi
+    ? `const page = (await browser.browsingContexts()).find((context) => context.url === ${quote(tab.url)})`
+    : `await browser.switchWindow(${quote(tab.url)})`
 
 function resetFrame (session: Session) {
     session.set('frame', undefined)
@@ -78,6 +81,16 @@ function resetFrame (session: Session) {
 async function switchTo (session: Session, tab: Tab) {
     await session.browser.switchToWindow(tab.handle)
     resetFrame(session)
+    session.set('activeContext', undefined)
+}
+
+async function focusNewContext (session: Session, opened: unknown) {
+    if (!session.isBidi || !opened || typeof opened !== 'object' || !('contextId' in opened)) {
+        return
+    }
+    const contextId = (opened as WebdriverIO.BrowsingContext).contextId
+    await session.browser.switchToWindow(contextId)
+    getContextManager(session.browser).setCurrentContext(contextId)
 }
 
 export const tabs: ActionFn = async (session, args) => {
@@ -88,7 +101,8 @@ export const tabs: ActionFn = async (session, args) => {
     }
     if (sub === 'new') {
         const url = (args.arg as string | undefined) || 'about:blank'
-        await session.browser.newWindow(url)
+        const opened = await session.browser.newWindow(url)
+        await focusNewContext(session, opened)
         resetFrame(session)
         const list = await listTabs(session)
         return { ...done(`Opened tab [${list.length - 1}] ${url}`, `await browser.newWindow(${quote(url)})`), data: { tabs: list } }
@@ -97,7 +111,7 @@ export const tabs: ActionFn = async (session, args) => {
     const tab = findTab(list, args.arg)
     if (sub === 'switch') {
         await switchTo(session, tab)
-        return { ...done(`Switched to tab [${tab.index}] ${tab.title || tab.url}`, switchCode(tab)), data: { tab } }
+        return { ...done(`Switched to tab [${tab.index}] ${tab.title || tab.url}`, switchCode(session, tab)), data: { tab } }
     }
     if (list.length === 1) {
         throw usage('Cannot close the last tab.', 'Use `wdio session close` to end the session.')
@@ -107,7 +121,7 @@ export const tabs: ActionFn = async (session, args) => {
     await session.browser.closeWindow()
     const next = tab.current ? list.find((t) => t.handle !== tab.handle)! : current
     await switchTo(session, next)
-    const code = [switchCode(tab), 'await browser.closeWindow()', switchCode(next)]
+    const code = [switchCode(session, tab), 'await browser.closeWindow()', switchCode(session, next)]
     return {
         ...done(`Closed tab [${tab.index}] ${tab.title || tab.url}, now on ${next.title || next.url}`, code.join('\n')),
         data: { tabs: await listTabs(session) }
@@ -124,6 +138,9 @@ export const windows: ActionFn = async (session, args) => {
 export const frame: ActionFn = async (session, args) => {
     const target = String(args.target ?? '')
     const { browser } = session
+    if (session.isBidi) {
+        return frameBidi(session, target)
+    }
     if (target === 'top') {
         await browser.switchFrame(null)
         resetFrame(session)
@@ -147,6 +164,69 @@ export const frame: ActionFn = async (session, args) => {
     session.set('frameStack', stack)
     session.set('frame', resolved.label)
     return done(`Switched to frame ${resolved.label}`, `await browser.switchFrame(${resolved.code})`)
+}
+
+const pageCode = 'const page = (await browser.browsingContexts()).find((context) => context.contextId === await browser.getWindowHandle())'
+
+async function currentPage (session: Session) {
+    const held = session.get<WebdriverIO.BrowsingContext>('activeContext')
+    if (held && !held.isFrame) {
+        return held
+    }
+    const contexts = await session.browser.browsingContexts()
+    const handle = await session.browser.getWindowHandle()
+    return contexts.find((context) => context.contextId === handle) ?? contexts[0]
+}
+
+function adopt (session: Session, contextId: string) {
+    getContextManager(session.browser).setCurrentContext(contextId)
+}
+
+async function frameBidi (session: Session, target: string): Promise<ActionOutcome> {
+    if (target === 'top') {
+        const handle = await session.browser.getWindowHandle()
+        adopt(session, handle)
+        session.set('activeContext', undefined)
+        resetFrame(session)
+        return done('Switched to the top document', pageCode)
+    }
+    if (target === 'parent') {
+        const current = session.get<WebdriverIO.BrowsingContext>('activeContext')
+        const parent = current?.parent
+        const stack = session.get<string[]>('frameStack') || []
+        stack.pop()
+        session.set('frameStack', stack)
+        if (parent?.isFrame) {
+            adopt(session, parent.contextId)
+            session.set('activeContext', parent)
+            session.set('frame', stack.at(-1))
+        } else {
+            const handle = await session.browser.getWindowHandle()
+            adopt(session, handle)
+            session.set('activeContext', undefined)
+            session.set('frame', undefined)
+        }
+        return done(`Switched to ${stack.at(-1) || 'the top document'}`, 'const parent = frame.parent')
+    }
+    const resolved = await resolveTarget(session, target)
+    const tag = await resolved.element.getTagName().catch(() => '')
+    if (!['iframe', 'frame'].includes(tag.toLowerCase())) {
+        throw usage(`${resolved.label} is not a frame.`, 'Pass the ref of an iframe from `wdio session snapshot`.')
+    }
+    const owner = session.get<WebdriverIO.BrowsingContext>('activeContext') ?? await currentPage(session)
+    if (!owner) {
+        throw usage('No browsing context to enter a frame from.')
+    }
+    const child = await owner.frame(resolved.element)
+    adopt(session, child.contextId)
+    session.set('activeContext', child)
+    const stack = [...(session.get<string[]>('frameStack') || []), resolved.label]
+    session.set('frameStack', stack)
+    session.set('frame', resolved.label)
+    return done(
+        `Switched to frame ${resolved.label}`,
+        `${pageCode}\nconst frame = await page.frame(${resolved.code})`
+    )
 }
 
 export const contexts: ActionFn = async (session, args) => {
