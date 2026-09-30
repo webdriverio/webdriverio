@@ -184,7 +184,46 @@ The `Element`, `MultiRemoteBrowser` and `MultiRemoteElement` types exported by `
 + const elem: WebdriverIO.Element = await $('#foo')
 ```
 
-Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript version this repository compiles with.
+Published packages set `typeScriptVersion` to 6.0.3, matching the TypeScript version this repository compiles with.
+
+`browser.mock()` accepts the `URLPattern` of `urlpattern-polyfill` and the native `URLPattern` (global in Node.js 24, and typed by the `dom` library of TypeScript 6).
+
+TypeScript 6 deprecates `"moduleResolution": "node"` and `"baseUrl"`, and makes `strict` the default. `create-wdio` now generates `"moduleResolution": "bundler"` for ESM projects and `"NodeNext"` for CommonJS projects. If you update TypeScript in an existing project, change these options in your `tsconfig.json`.
+
+For an ESM project:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
+-        "moduleResolution": "node",
++        "moduleResolution": "bundler",
+         "module": "ESNext"
+     }
+ }
+```
+
+For a CommonJS project, use `NodeNext` for both options, as `create-wdio` does:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
+-        "moduleResolution": "node",
+-        "module": "CommonJS"
++        "moduleResolution": "NodeNext",
++        "module": "NodeNext"
+     }
+ }
+```
+
+TypeScript 6 also changes the default of `types` to `[]`, so it no longer loads every installed `@types/*` package. If your `tsconfig.json` has no `types` list, globals such as Mocha's `describe` and `it` fail with `Cannot find name`. List the type packages that your tests use, as `create-wdio` does. For example, with Mocha:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
++        "types": ["node", "@wdio/globals/types", "@wdio/mocha-framework"]
+     }
+ }
+```
 
 ## Reporters
 

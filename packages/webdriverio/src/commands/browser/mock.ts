@@ -1,3 +1,4 @@
+import type { URLPattern } from 'urlpattern-polyfill'
 import { getBrowserObject } from '@wdio/utils'
 
 import type { MockFilterOptions } from '../../utils/interception/types.js'
@@ -131,7 +132,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  */
 export async function mock(
     this: WebdriverIO.Browser,
-    url: string | URLPattern,
+    url: string | URLPattern | globalThis.URLPattern,
     filterOptions?: MockFilterOptions
 ): Promise<WebdriverIO.Mock> {
     if (!this.isBidi) {
