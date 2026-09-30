@@ -50,22 +50,21 @@ describe('createHybridExpect', () => {
         const hybridExpect = createHybridExpect(fakeEnv(calls), wdioMatchers) as (actual: unknown) => any
 
         expect(hybridExpect([1, 2]).toHaveSize(2)).toBeUndefined()
-        await hybridExpect({ parent: {}, selector: 'div', getElement () {} }).toHaveSize('elem')
+        await hybridExpect({ [Symbol.for('wdio.kind')]: 'element' }).toHaveSize('elem')
         await hybridExpect(Promise.resolve({ selector: 'div' })).toHaveSize('chain')
         expect(calls).toEqual(['sync:toHaveSize(2)', 'async:toHaveSize(elem)', 'async:toHaveSize(chain)'])
     })
 
-    it('identifies WebdriverIO values by the shape that expect-webdriverio uses', async () => {
-        const element = { parent: {}, selector: 'div', getElement () {} }
+    it('identifies WebdriverIO values by their wdio.kind brand', async () => {
+        const kind = Symbol.for('wdio.kind')
+        const element = { [kind]: 'element' }
         const wdioValues: Record<string, unknown> = {
             'element': element,
-            'element without selector': { parent: {}, getElement () {} },
-            'empty element array': Object.assign([], { parent: {}, selector: 'li', foundWith: '$$' }),
-            'Element[]': [element],
-            'multiremote element': { isMultiRemote: true, selector: 'div' },
-            'multiremote element array': Object.assign([], { isMultiRemote: true, parent: {}, selector: 'li', foundWith: '$$' }),
-            'browser': new (class Browser { getTitle () {} })(),
-            'multiremote browser': new (class MultiRemoteDriver { getTitle () {} })()
+            'chainable element': { [kind]: 'element', [Symbol.for('wdio.chainable')]: true, then () {} },
+            'element array': Object.assign([], { [kind]: 'element-array' }),
+            'copy of an element list': [element],
+            'browser': { [kind]: 'browser' },
+            'browser behind a proxy that only forwards reads': new Proxy({}, { get: (_, prop) => prop === kind ? 'browser' : undefined })
         }
         for (const [name, value] of Object.entries(wdioValues)) {
             const calls: string[] = []
