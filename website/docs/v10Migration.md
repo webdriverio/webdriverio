@@ -640,11 +640,11 @@ Appium 3 requires a driver or `*` scope prefix on `--allow-insecure` features, f
 
 ### `stopRecordingScreen` signature aligned with `startRecordingScreen`
 
-`driver.stopRecordingScreen` now only accepts a single `options` argument, instead of the previous 4 arguments, aligning with `driver.startRecordingScreen`. Move the individual arguments inside `options`:
+`driver.stopRecordingScreen` now only accepts a single `options` argument, instead of the previous 4 arguments, aligning with `driver.startRecordingScreen`. Move the individual arguments inside an object:
 
 ```diff
-- driver.stopRecordingScreen(remotePath: 'webdriver.io', method: 'POST')
-+ driver.stopRecordingScreen(options: {remotePath: 'webdriver.io', method: 'POST'})
+- driver.stopRecordingScreen('webdriver.io', undefined, undefined, 'POST')
++ driver.stopRecordingScreen({ remotePath: 'webdriver.io', method: 'POST' })
 ```
 
 ## Multi-remote naming
