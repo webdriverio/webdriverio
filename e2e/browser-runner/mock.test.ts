@@ -8,7 +8,8 @@ const CORS_PARAMS: RespondWithOptions = {
 
 describe('WebdriverIO mock command', () => {
     it('supports mocking of API requests', async () => {
-        const apiMock = await browser.mock('**/api/**')
+        // Keep runner traffic outside the intercept: https://github.com/webdriverio/webdriverio/issues/15739
+        const apiMock = await browser.mock('https://api.webdriver.io/api/**')
         apiMock
             .respondOnce({ foo: 'bar' }, CORS_PARAMS)
             .respondOnce('Hello World', CORS_PARAMS)
@@ -17,21 +18,7 @@ describe('WebdriverIO mock command', () => {
         expect(await jsonAPI.json()).toEqual({ foo: 'bar' })
         const textAPI = await fetch('https://api.webdriver.io/api/bar')
         expect(await textAPI.text()).toBe('Hello World')
-    })
-
-    it('keeps fetches to loaded scripts under mock control while the page is busy', async () => {
-        const scriptMock = await browser.mock(import.meta.url)
-        scriptMock.respond('mocked script')
-
-        try {
-            const response = fetch(import.meta.url)
-            // Node receives the BiDi event while the page cannot handle it yet.
-            const deadline = performance.now() + 200
-            while (performance.now() < deadline) { /* keep the page busy */ }
-            expect(await (await response).text()).toBe('mocked script')
-        } finally {
-            await scriptMock.restore()
-        }
+        await apiMock.restore()
     })
 
     let imgMock: WebdriverIO.Mock
@@ -46,7 +33,7 @@ describe('WebdriverIO mock command', () => {
     })
 
     it('shows image after clearing mock', async () => {
-        imgMock.restore()
+        await imgMock.restore()
         render(
             html`<img src="https://placehold.co/400x400?invalidateCache" />`,
             document.body

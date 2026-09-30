@@ -8,7 +8,7 @@ import { initializeLauncherService, initializeWorkerService } from './initialize
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeImport,
     isFunctionAsync, transformCommandLogResult, sleep, isAppiumCapability,
-    userImport, getBrowserObject, enableFileLogging, isSourceMapRequest,
+    userImport, getBrowserObject, enableFileLogging,
 } from './utils.js'
 import { wrapCommand, executeHooksWithArgs, executeAsync } from './shim.js'
 import * as asyncIterators from './pIteration.js'
@@ -36,7 +36,6 @@ export {
     userImport,
     getBrowserObject,
     enableFileLogging,
-    isSourceMapRequest,
     asyncIterators,
 
     /**

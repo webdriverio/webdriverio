@@ -22,6 +22,7 @@ A package unit test does not prove the feature. Do not run `pnpm test`,
 | The change affects | Drive | Not the proof |
 |--------------------|-------|---------------|
 | Testrunner, CLI, hooks, retries, spec filters, framework adapters, services, reporters | One named smoke suite | A unit test. The full smoke matrix. |
+| Browser-side network mocks in component specs | The [browser-runner mock script](features/browser-runner-mocks.md) | A skipped component script or mock-driver smoke run. |
 | A browser or element command, session, or protocol path the user hits with a real driver | One example script | A smoke suite. The driver there is mocked. |
 | Hot-path speed, startup, loader, or skip cost | `pnpm run bench:runner` against a baseline | A real-browser example. |
 | Exported types or command signatures | The matching `pnpm run test:typings:*` | A runtime smoke run. |
@@ -101,6 +102,7 @@ One smoke launch and one benchmark at a time. Both use the in-process mock on `:
 
 ## Feature map
 
+- [Browser-runner network mocks](features/browser-runner-mocks.md)
 - [Smoke testrunner](features/smoke-testrunner.md)
 - [Example pipeline](features/example-pipeline.md)
 - [Runner benchmark](features/runner-benchmark.md)

@@ -5,6 +5,7 @@ import { loadEnv } from 'vite'
 import { expect } from '@wdio/globals'
 
 const isMac = os.platform() === 'darwin' && process.env.CI
+const requiresBidi = process.argv.some((arg) => arg.endsWith('mock.test.ts'))
 
 /**
  * skip tests if:
@@ -35,8 +36,7 @@ export const config = {
      * capabilities
      */
     capabilities: [
-        // Network mocking requires BiDi, which Safari does not support yet.
-        isMac && !process.argv.includes('mock.test.ts')
+        isMac && !requiresBidi
             ? {
                 browserName: 'safari'
             }

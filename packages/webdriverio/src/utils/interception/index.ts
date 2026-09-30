@@ -48,21 +48,8 @@ function toStringBody(payload: Exclude<RespondBodyValue, Buffer>) {
     return serialized
 }
 
-/**
- * `Buffer` is not defined when mocks are created inside the browser runner
- */
 function isBuffer(payload: RespondBodyValue): payload is Buffer {
     return typeof Buffer !== 'undefined' && Buffer.isBuffer(payload)
-}
-
-/**
- * decode a base64 BiDi header value as UTF-8 without `Buffer`, see `isBuffer`
- */
-function decodeHeaderValue(value: remote.NetworkBytesValue) {
-    if (value.type === 'string') {
-        return value.value
-    }
-    return new TextDecoder().decode(Uint8Array.from(atob(value.value), (char) => char.charCodeAt(0)))
 }
 
 function toNetworkBody(payload: RespondBodyValue) {
@@ -210,12 +197,9 @@ export default class WebDriverInterception {
              * if request is not matching pattern but blocked by this mock (due to catch-all),
              * we need to continue the request
              */
-            if (request.intercepts?.includes(this.#mockId) && !this.#isClaimedByOtherMock(request)) {
+            if (request.intercepts?.includes(this.#mockId)) {
                 return this.#browser.networkContinueRequest({
                     request: request.request.request
-                }).catch((err: Error) => {
-                    // someone else (e.g. the browser runner) may have continued it already
-                    log.debug(`Failed to continue request ${request.request.url}: ${err.message}`)
                 })
             }
             return
@@ -299,7 +283,7 @@ export default class WebDriverInterception {
              * if request is not matching pattern but blocked by this mock (due to catch-all),
              * we need to continue the request
              */
-            if (isHandledByThisMock && request.isBlocked && !this.#isClaimedByOtherMock(request)) {
+            if (isHandledByThisMock && request.isBlocked) {
                 return this.#browser.networkProvideResponse({
                     request: request.request.request
                 }).catch(this.#handleNetworkProvideResponseError)
@@ -458,7 +442,7 @@ export default class WebDriverInterception {
      * @param err Bidi message error
      */
     #handleNetworkProvideResponseError(err: Error) {
-        if (err.message.includes('no such request')) {
+        if (err.message.endsWith('no such request')) {
             return
         }
 
@@ -548,19 +532,6 @@ export default class WebDriverInterception {
         return request.isBlocked && matches
     }
 
-    /**
-     * a request blocked by several intercepts is handled by the mock whose pattern
-     * matches it, so a catch-all mock must not continue it on that mock's behalf
-     */
-    #isClaimedByOtherMock(request: local.NetworkBeforeRequestSentParameters | Response) {
-        return Object.values(SESSION_MOCKS).some((mocks) => [...mocks].some((mock) => (
-            mock !== this &&
-            mock.#browser === this.#browser &&
-            request.intercepts?.includes(mock.#mockId) &&
-            mock.#pattern.test(request.request.url)
-        )))
-    }
-
     #matchesPostDataFilter<T extends local.NetworkBeforeRequestSentParameters | Response>(request: RequestWithPostData<T>) {
         if (!this.#filterOptions.postData) {
             return true
@@ -586,7 +557,7 @@ export default class WebDriverInterception {
         if (isRequestMatching && this.#filterOptions.requestHeaders) {
             isRequestMatching = typeof this.#filterOptions.requestHeaders === 'function'
                 ? this.#filterOptions.requestHeaders(request.request.headers.reduce((acc, { name, value }) => {
-                    acc[name] = decodeHeaderValue(value)
+                    acc[name] = value.type === 'string' ? value.value : Buffer.from(value.value, 'base64').toString()
                     return acc
                 }, {} as Record<string, string>))
                 : Object.entries(this.#filterOptions.requestHeaders).every(([key, value]) => {
@@ -595,7 +566,9 @@ export default class WebDriverInterception {
                         return false
                     }
 
-                    return decodeHeaderValue(header.value) === value
+                    return header.value.type === 'string'
+                        ? header.value.value === value
+                        : Buffer.from(header.value.value, 'base64').toString() === value
                 })
         }
 
@@ -606,7 +579,7 @@ export default class WebDriverInterception {
         if (isRequestMatching && this.#filterOptions.responseHeaders && 'response' in request) {
             isRequestMatching = typeof this.#filterOptions.responseHeaders === 'function'
                 ? this.#filterOptions.responseHeaders(request.response.headers.reduce((acc, { name, value }) => {
-                    acc[name] = decodeHeaderValue(value)
+                    acc[name] = value.type === 'string' ? value.value : Buffer.from(value.value, 'base64').toString()
                     return acc
                 }, {} as Record<string, string>))
                 : Object.entries(this.#filterOptions.responseHeaders).every(([key, value]) => {
@@ -615,7 +588,9 @@ export default class WebDriverInterception {
                         return false
                     }
 
-                    return decodeHeaderValue(header.value) === value
+                    return header.value.type === 'string'
+                        ? header.value.value === value
+                        : Buffer.from(header.value.value, 'base64').toString() === value
                 })
         }
 
@@ -688,6 +663,7 @@ export default class WebDriverInterception {
         const handle = await this.#browser.getWindowHandle()
 
         log.trace(`Restoring mock for ${handle}`)
+        SESSION_MOCKS[handle].delete(this as WebDriverInterception)
 
         // Continue any in-flight blocked requests before removing the intercept
         // to prevent them from hanging
@@ -703,13 +679,8 @@ export default class WebDriverInterception {
 
         // Remove the network intercept BEFORE setting #restored flag
         // This prevents new requests from being blocked while we're cleaning up
-        // Until then this mock still handles (and claims) requests blocked by its intercept
-        try {
-            if (this.#mockId) {
-                await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
-            }
-        } finally {
-            SESSION_MOCKS[handle].delete(this)
+        if (this.#mockId) {
+            await this.#browser.networkRemoveIntercept({ intercept: this.#mockId })
         }
 
         // Now it's safe to mark as restored
@@ -870,12 +841,6 @@ export function parseUrlPattern(url: string | URLPattern) {
     if (typeof url === 'object') {
         return url
     }
-
-    /**
-     * a single `*` already matches across `/`, and adjacent wildcards like `**` make
-     * URLPattern backtrack catastrophically on long URLs that don't match
-     */
-    url = url.replace(/\\.|(\*{2,})/g, (match, wildcards) => wildcards ? '*' : match)
 
     /**
      * parse URLPattern from absolute URL
