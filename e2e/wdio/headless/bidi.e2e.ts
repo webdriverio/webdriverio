@@ -22,6 +22,18 @@ describe('bidi e2e test', () => {
                 return this.skip()
             }
 
+            /**
+             * The gutter number is the call site in this file, read from the
+             * stack frame. A literal line number fails as soon as a line is
+             * inserted above this test.
+             */
+            const expectAnnotatedThrow = (stack: string, snippet: string) => {
+                const escaped = snippet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                expect(stack).toMatch(new RegExp(`\\d+ │ ${escaped}`))
+                const line = stack.match(new RegExp(`(\\d+) │ ${escaped}`))?.[1]
+                expect(stack).toContain(`bidi.e2e.ts:${line}:`)
+            }
+
             const result = await browser.execute(async () => {
                 const a: number = 1
                 console.log('Hello Bidi')
@@ -31,7 +43,7 @@ describe('bidi e2e test', () => {
                     }
                 }
             }).catch(err => err)
-            expect(result.stack).toContain('16 │ if(a){if(a){throw new Error("Hello Bidi")}}}')
+            expectAnnotatedThrow(result.stack, 'if(a){if(a){throw new Error("Hello Bidi")}}}')
 
             const result2 = await browser.execute(async () => {
                 const a: number = 1
@@ -42,7 +54,7 @@ describe('bidi e2e test', () => {
                     }
                 }
             }).catch(err => err)
-            expect(result2.stack).toContain('27 │ if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
+            expectAnnotatedThrow(result2.stack, 'if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
         })
     })
 
