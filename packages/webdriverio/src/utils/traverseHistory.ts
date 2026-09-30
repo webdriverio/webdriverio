@@ -15,12 +15,11 @@ const DEFAULT_PAGE_LOAD_TIMEOUT = 300_000
  */
 const HISTORY_NAVIGATION_EVENTS = [
     'browsingContext.navigationStarted',
+    'browsingContext.navigationCommitted',
     'browsingContext.domContentLoaded',
     'browsingContext.load',
     'browsingContext.fragmentNavigated',
-    'browsingContext.historyUpdated',
-    'browsingContext.navigationFailed',
-    'browsingContext.navigationAborted'
+    'browsingContext.historyUpdated'
 ] as const
 
 type HistoryReadiness = 'none' | 'interactive' | 'complete'
@@ -76,6 +75,34 @@ function matchesContext (params: NavigationInfo | undefined, context: string) {
 }
 
 /**
+ * A back-forward cache restore emits `navigationCommitted` and no `load`.
+ * The committed document is already complete. A network navigation is still
+ * `loading` at commit time, so this check does not skip the load event.
+ */
+async function documentReadyState (browser: WebdriverIO.Browser, context: string): Promise<string | undefined> {
+    const result = await browser.scriptEvaluate({
+        expression: 'document.readyState',
+        awaitPromise: false,
+        target: { context }
+    })
+    if (result.type !== 'success') {
+        return undefined
+    }
+    const value = result.result
+    if (value && typeof value === 'object' && 'type' in value && value.type === 'string' && 'value' in value && typeof value.value === 'string') {
+        return value.value
+    }
+    return undefined
+}
+
+function readyStateSatisfies (readiness: HistoryReadiness, state: string | undefined) {
+    if (readiness === 'interactive') {
+        return state === 'interactive' || state === 'complete'
+    }
+    return state === 'complete'
+}
+
+/**
  * Traverse the joint session history of the current top-level browsing context
  * by one entry and wait for the readiness `pageLoadStrategy` asks for.
  *
@@ -123,9 +150,9 @@ export async function traverseTopLevelHistory (
         }
     })
     /**
-     * A timeout or navigation failure rejects `ready`. Swallow that rejection
-     * here and rethrow `waitError` from the caller so it is never unhandled
-     * when the history command itself fails first.
+     * A timeout rejects `ready`. Swallow that rejection here and rethrow
+     * `waitError` from the caller so it is never unhandled when the history
+     * command itself fails first.
      */
     const readySettled = ready.then(() => undefined, () => undefined)
 
@@ -145,6 +172,21 @@ export async function traverseTopLevelHistory (
          * A same-document traversal (fragment or `pushState`) does not.
          */
         crossDocument = true
+    }
+    const onNavigationCommitted = (params: local.BrowsingContextNavigationInfo) => {
+        if (!armed || !matchesContext(params, context)) {
+            return
+        }
+        void documentReadyState(browser, context).then((state) => {
+            if (!armed || settled || !readyStateSatisfies(readiness, state)) {
+                return
+            }
+            resolveReady()
+        }).catch(() => {
+            /**
+             * The load or DOMContentLoaded event still completes the wait.
+             */
+        })
     }
     const onDomContentLoaded = (params: local.BrowsingContextNavigationInfo) => {
         if (readiness === 'interactive') {
@@ -167,20 +209,13 @@ export async function traverseTopLevelHistory (
         }
         succeed(params)
     }
-    const onNavigationFailed = (params: local.BrowsingContextNavigationInfo) => {
-        if (!armed || !matchesContext(params, context)) {
-            return
-        }
-        rejectReady(new Error('History traversal failed before the page finished loading'))
-    }
 
     browser.on('browsingContext.navigationStarted', onNavigationStarted)
+    browser.on('browsingContext.navigationCommitted', onNavigationCommitted)
     browser.on('browsingContext.domContentLoaded', onDomContentLoaded)
     browser.on('browsingContext.load', onLoad)
     browser.on('browsingContext.fragmentNavigated', onFragmentNavigated)
     browser.on('browsingContext.historyUpdated', onHistoryUpdated)
-    browser.on('browsingContext.navigationFailed', onNavigationFailed)
-    browser.on('browsingContext.navigationAborted', onNavigationFailed)
 
     const timer = setTimeout(() => {
         rejectReady(new Error(
@@ -223,12 +258,11 @@ export async function traverseTopLevelHistory (
         armed = false
         clearTimeout(timer)
         browser.off('browsingContext.navigationStarted', onNavigationStarted)
+        browser.off('browsingContext.navigationCommitted', onNavigationCommitted)
         browser.off('browsingContext.domContentLoaded', onDomContentLoaded)
         browser.off('browsingContext.load', onLoad)
         browser.off('browsingContext.fragmentNavigated', onFragmentNavigated)
         browser.off('browsingContext.historyUpdated', onHistoryUpdated)
-        browser.off('browsingContext.navigationFailed', onNavigationFailed)
-        browser.off('browsingContext.navigationAborted', onNavigationFailed)
         if (!settled) {
             resolveReady()
         }

@@ -258,6 +258,27 @@ describe('back and forward', () => {
             await pending
         })
 
+        it('returns when a committed document is already complete', async () => {
+            vi.spyOn(browser, 'scriptEvaluate').mockResolvedValue({
+                type: 'success',
+                realm: 'realm-1',
+                result: { type: 'string', value: 'complete' }
+            })
+            vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
+                browser.emit('browsingContext.navigationStarted', navigationInfo('top-level'))
+                browser.emit('browsingContext.navigationCommitted', navigationInfo('top-level'))
+                return {}
+            })
+
+            await browser.back()
+
+            expect(browser.scriptEvaluate).toHaveBeenCalledWith(expect.objectContaining({
+                expression: 'document.readyState',
+                target: { context: 'top-level' }
+            }))
+            vi.mocked(browser.scriptEvaluate).mockRestore()
+        })
+
         it('uses the session page-load timeout', async () => {
             vi.mocked(browser.getTimeouts).mockResolvedValue({ implicit: 0, pageLoad: 30, script: 0 })
             vi.mocked(browser.browsingContextTraverseHistory).mockResolvedValue({})

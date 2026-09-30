@@ -23,7 +23,9 @@ import { traverseTopLevelHistory } from '../../utils/traverseHistory.js'
  *
  * The wait uses the session page-load timeout (`timeouts.pageLoad`, 300000 ms
  * when it has not been set). A same-document traversal, such as a fragment
- * change, finishes without a load event.
+ * change, finishes without a load event. A back-forward cache restore commits
+ * a document that is already complete and does not emit `browsingContext.load`;
+ * the command returns once that document's `readyState` matches the strategy.
  *
  * A classic session posts to the WebDriver [forward](/docs/api/webdriver#forward)
  * endpoint. There is no next entry in either mode when the command rejects
