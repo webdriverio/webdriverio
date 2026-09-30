@@ -2,6 +2,7 @@ import { ELEMENT_KEY } from 'webdriver'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import type { ElementReference } from '@wdio/protocols'
+import { WDIO_CHAINABLE, setWdioKind } from '@wdio/utils'
 import {
     getElementFromResponse,
     parseCSS,
@@ -396,6 +397,7 @@ describe('utils', () => {
             constructor({ elementId, ...otherProps }: any) {
                 this.elementId = elementId
                 Object.keys(otherProps).forEach((key) => this[key] = otherProps[key])
+                setWdioKind(this, 'element')
             }
         }
 
@@ -439,6 +441,19 @@ describe('utils', () => {
             })
 
             expect(() => verifyArgsAndStripIfElement(fakeObj)).toThrow('The element with selector "div" you are trying to pass into the execute method wasn\'t found')
+        })
+
+        it('reads the wdio.kind brand, not the class name', () => {
+            class Element {
+                elementId = 'foo-bar'
+            }
+            const notAnElement = new Element()
+            expect(verifyArgsAndStripIfElement(notAnElement)).toBe(notAnElement)
+        })
+
+        it('does not strip a chainable element that is not loaded yet', () => {
+            const chainable = Object.defineProperty(setWdioKind({ elementId: 'foo-bar' }, 'element'), WDIO_CHAINABLE, { value: true })
+            expect(verifyArgsAndStripIfElement(chainable)).toBe(chainable)
         })
     })
 

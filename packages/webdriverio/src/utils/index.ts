@@ -4,7 +4,7 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
 import { type remote, ELEMENT_KEY } from 'webdriver'
-import { UNICODE_CHARACTERS, WDIO_KIND, getBrowserObject } from '@wdio/utils'
+import { UNICODE_CHARACTERS, WDIO_CHAINABLE, WDIO_KIND, getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
@@ -995,11 +995,13 @@ export async function findElements(
 }
 
 /**
- * Strip an element down to its W3C element reference.
+ * Strip an element down to its W3C element reference. A chainable `$()` is not
+ * loaded yet, so it is not stripped (see `@wdio/utils` `kind.ts`).
  */
 export function verifyArgsAndStripIfElement(args: unknown) {
     function verify(arg: unknown) {
-        if (arg && typeof arg === 'object' && arg.constructor.name === 'Element') {
+        const branded = arg as { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown } | undefined
+        if (arg && typeof arg === 'object' && branded?.[WDIO_KIND] === 'element' && branded[WDIO_CHAINABLE] !== true) {
             const elem = arg as WebdriverIO.Element
             if (!elem.elementId) {
                 throw new Error(`The element with selector "${elem.selector}" you are trying to pass into the execute method wasn't found`)
