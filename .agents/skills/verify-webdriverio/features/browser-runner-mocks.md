@@ -18,7 +18,7 @@ Require exit 0 and the spec reporter's three passing assertions: API requests, i
 
 ## Gotchas
 
-- The suite requires Chrome/ChromeDriver and access to `api.webdriver.io` and `placehold.co`.
+- The suite requires Chrome/ChromeDriver. Image requests use local SVG fixtures served by Vite; API responses are supplied by the mock.
 - Match the API host as well as its wildcard path. A catch-all BiDi intercept can block the browser runner's own Vite or driver traffic.
 - A skipped process with exit 0 is not proof. Require all three assertions in the output.
 - Run one real-browser suite at a time; this is not a mock-driver smoke test.

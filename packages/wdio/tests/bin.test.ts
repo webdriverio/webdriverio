@@ -1,6 +1,6 @@
 import { execFileSync, spawn } from 'node:child_process'
 import { once } from 'node:events'
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { basename, dirname, resolve, win32 } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -98,6 +98,24 @@ describe('wdio package', () => {
         expect(pnpmCommand(args, entry, () => {
             throw new Error('native pnpm does not need Corepack')
         })).toEqual([entry, ...args])
+    })
+
+    it('launches a pnpm-named native executable with spaced arguments', () => {
+        const directory = mkdtempSync(resolve(tmpdir(), 'native pnpm '))
+        const entry = resolve(directory, process.platform === 'win32' ? 'pnpm.exe' : 'pnpm')
+        const args = ['pack', '--pack-destination', resolve(directory, 'package destination')]
+        try {
+            copyFileSync(process.execPath, entry)
+            const [command, ...argv] = pnpmCommand([
+                '--eval', 'process.stdout.write(JSON.stringify(process.argv.slice(1)))', '--', ...args
+            ], entry, () => {
+                throw new Error('native pnpm does not need Corepack')
+            })
+            const output = execFileSync(command, argv, { cwd: packageDir, encoding: 'utf8' })
+            expect(JSON.parse(output)).toEqual(args)
+        } finally {
+            rmSync(directory, { recursive: true, force: true })
+        }
     })
 
     it('does not execute a Windows pnpm.cmd shim', () => {

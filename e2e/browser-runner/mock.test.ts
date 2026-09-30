@@ -5,6 +5,8 @@ import { html, render } from 'lit'
 const CORS_PARAMS: RespondWithOptions = {
     headers: { 'Access-Control-Allow-Origin': '*' }
 }
+const originalImage = new URL('./__fixtures__/400x400.svg?no-inline', import.meta.url).href
+const redirectedImage = new URL('./__fixtures__/600x500.svg?no-inline', import.meta.url).href
 
 describe('WebdriverIO mock command', () => {
     it('supports mocking of API requests', async () => {
@@ -23,10 +25,12 @@ describe('WebdriverIO mock command', () => {
 
     let imgMock: WebdriverIO.Mock
     it('can redirect images', async () => {
-        imgMock = await browser.mock('https://placehold.co/**')
-        imgMock.redirect('https://placehold.co/600x500')
+        const imagePattern = new URL(originalImage)
+        imagePattern.search = '*'
+        imgMock = await browser.mock(imagePattern.href)
+        imgMock.redirect(redirectedImage)
         render(
-            html`<img src="https://placehold.co/400x400" />`,
+            html`<img src=${originalImage} />`,
             document.body
         )
         await expect($('img')).toHaveSize({ width: 600, height: 500 })
@@ -34,8 +38,10 @@ describe('WebdriverIO mock command', () => {
 
     it('shows image after clearing mock', async () => {
         await imgMock.restore()
+        const restoredImage = new URL(originalImage)
+        restoredImage.searchParams.set('invalidateCache', '')
         render(
-            html`<img src="https://placehold.co/400x400?invalidateCache" />`,
+            html`<img src=${restoredImage.href} />`,
             document.body
         )
         await expect($('img')).toHaveSize({ width: 400, height: 400 })

@@ -400,7 +400,7 @@ describe('Multi-Remote tests', () => {
             const browserA = browser.getInstance('browserA')
             const browserB = browser.getInstance('browserB')
             if (!browserA || !browserB) {
-                throw new Error('expected both multiremote instances')
+                throw new Error('expected both multi-remote instances')
             }
             vi.spyOn(browserA, 'mock').mockResolvedValue(mocks.browserA)
             vi.spyOn(browserB, 'mock').mockResolvedValue(mocks.browserB)
