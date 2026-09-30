@@ -31,7 +31,7 @@ export type ClassicHistoryCommand = keyof typeof CLASSIC_HISTORY_COMMANDS
  * still posts to `POST /session/:sessionId/back` or `.../forward`.
  */
 export async function runClassicProtocolCommand (
-    this: Pick<BaseClient, 'sessionId' | 'options' | 'capabilities' | 'isSeleniumStandalone'> & Pick<BaseClient, 'emit' | 'on' | 'off'>,
+    this: Pick<BaseClient, 'sessionId' | 'options' | 'capabilities' | 'isSeleniumStandalone'>,
     commandName: ClassicHistoryCommand
 ): Promise<void> {
     const definition = CLASSIC_HISTORY_COMMANDS[commandName]
