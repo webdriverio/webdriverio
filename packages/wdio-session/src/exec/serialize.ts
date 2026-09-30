@@ -155,12 +155,21 @@ export async function serialize (value: unknown, opts: SerializeOptions = {}): P
         return { text: `${value}n`, value: `${value}n` }
     }
     if (isElementArray(value)) {
-        const shown = await Promise.all(value.slice(0, MAX_ELEMENTS).map((el) => formatElement(el, opts)))
-        const more = value.length > MAX_ELEMENTS ? [`… ${value.length - MAX_ELEMENTS} more`] : []
+        /**
+         * An unresolved ElementArray is thenable. Await it before reading
+         * entries. `slice` and `map` on the list are async query helpers, so
+         * copy with `Array.prototype` and format that plain array.
+         */
+        const list = typeof (value as { then?: unknown }).then === 'function'
+            ? await (value as unknown as PromiseLike<WebdriverIO.ElementArray>)
+            : value
+        const elements = Array.prototype.slice.call(list) as WebdriverIO.Element[]
+        const shown = await Promise.all(elements.slice(0, MAX_ELEMENTS).map((el) => formatElement(el, opts)))
+        const more = elements.length > MAX_ELEMENTS ? [`… ${elements.length - MAX_ELEMENTS} more`] : []
         const lines = [...shown, ...more].map((l) => `  ${l}`)
         return {
-            text: value.length ? `ElementArray(${value.length}) [\n${lines.join('\n')}\n]` : 'ElementArray(0) []',
-            value: toPlain([...value])
+            text: elements.length ? `ElementArray(${elements.length}) [\n${lines.join('\n')}\n]` : 'ElementArray(0) []',
+            value: toPlain(elements)
         }
     }
     if (isElement(value)) {
