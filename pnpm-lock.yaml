@@ -1575,6 +1575,9 @@ importers:
       edgedriver:
         specifier: ^7.0.0
         version: 7.0.0(supports-color@11.0.0)
+      electron-to-chromium:
+        specifier: ^1.5.439
+        version: 1.5.439
       geckodriver:
         specifier: ^7.0.0
         version: 7.0.0(supports-color@11.0.0)
