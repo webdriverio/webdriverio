@@ -65,6 +65,35 @@ describe('WebdriverIO object brand', () => {
         expect(getWdioKind(elements[0])).toBe('multi-remote-element')
     })
 
+    test('a chained multiremote list is multi-remote before it loads', async () => {
+        const browser = await multiRemote({
+            browserA: { capabilities: { browserName: 'chrome' } },
+            browserB: { port: 4445, capabilities: { browserName: 'firefox' } }
+        })
+        const pendingLists = {
+            'chained': browser.$('#foo').$$('#bar'),
+            'nested': browser.$('#foo').$('#bar').$$('#baz'),
+            'index on a pending list': browser.$$('#foo')[0].$$('#bar')
+        }
+
+        for (const [name, list] of Object.entries(pendingLists)) {
+            expect({ name, kind: getWdioKind(list), isMultiRemote: list.isMultiRemote })
+                .toEqual({ name, kind: 'multi-remote-element-array', isMultiRemote: true })
+        }
+        for (const list of Object.values(pendingLists)) {
+            expect(getWdioKind(await list)).toBe('multi-remote-element-array')
+        }
+    })
+
+    test('a chained single-session list stays single-session', async () => {
+        const browser = await remote({ capabilities: { browserName: 'foobar' } })
+        const list = browser.$('#foo').$$('#bar')
+
+        expect(getWdioKind(list)).toBe('element-array')
+        expect(list.isMultiRemote).toBe(false)
+        expect(getWdioKind(await list)).toBe('element-array')
+    })
+
     test('kind helpers on real objects', async () => {
         const browser = await remote({ capabilities: { browserName: 'foobar' } })
         const multiRemoteBrowser = await multiRemote({

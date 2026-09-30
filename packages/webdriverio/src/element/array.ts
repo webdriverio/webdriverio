@@ -158,8 +158,9 @@ function integerIndex (index: number) {
 function readIndex (array: ElementList, index: number) {
     const normalized = integerIndex(index)
     const state = stateOf(array)
+    const multiRemote = state.metadata.isMultiRemote === true
     if (!state.resolved) {
-        return chainElementPromise(elementAt(array, normalized))
+        return chainElementPromise(elementAt(array, normalized), multiRemote)
     }
     if (normalized < 0 || !Number.isFinite(normalized) || state.metadata.refetch === false) {
         return Array.prototype.at.call(array, normalized)
@@ -167,7 +168,7 @@ function readIndex (array: ElementList, index: number) {
     if (normalized < array.length) {
         return array[normalized]
     }
-    return chainElementPromise(elementAt(array, normalized))
+    return chainElementPromise(elementAt(array, normalized), multiRemote)
 }
 
 async function elementAt (array: ElementList, index: number): Promise<WebdriverIO.Element | undefined> {
