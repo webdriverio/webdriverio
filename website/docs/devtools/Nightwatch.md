@@ -202,7 +202,8 @@ Working examples live in the repo's top-level `examples/` directory. Build the w
 
 | Directory | Runner | Command |
 |-----------|--------|---------|
-| [`examples/nightwatch/`](https://github.com/webdriverio/devtools/tree/main/examples/nightwatch) | Nightwatch mocha-style | `pnpm demo:nightwatch` |
+| [`examples/nightwatch/bdd/`](https://github.com/webdriverio/devtools/tree/main/examples/nightwatch/bdd) | Nightwatch BDD (`describe`/`it`) | `pnpm demo:nightwatch` |
+| [`examples/nightwatch/cucumber/`](https://github.com/webdriverio/devtools/tree/main/examples/nightwatch/cucumber) | Nightwatch Cucumber | `pnpm --filter @wdio/nightwatch-devtools example:cucumber` |
 
 ## Features
 

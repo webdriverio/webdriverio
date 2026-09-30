@@ -26,9 +26,12 @@ npm install @wdio/selenium-devtools
 
 ```bash
 pip install selenium-devtools-py
+selenium-devtools install-backend
 ```
 
 **Requires Python 3.10+ and `selenium>=4.44`.** Both are declared in the package metadata, so pip enforces them rather than leaving you to find an empty Network tab at runtime. Network capture subscribes through the public BiDi event API that selenium regenerated in 4.44; the private connection it replaced was removed in the same release, and 4.44 is what sets the Python floor.
+
+**The second command is optional, and worth running once.** The dashboard backend is a Node package, which pip cannot install for you - so without it every run fetches the backend with `npx` on first use. That costs a registry round trip on each run, and where a proxy declines the package it fails as the run starts: the adapter warns, your tests then pass with nothing captured. `selenium-devtools install-backend` puts the backend on disk instead, and a run prefers what it finds there, reaching `npx` only when nothing is. `selenium-devtools backend-path` reports whether it is installed.
 
 </TabItem>
 </Tabs>
@@ -378,7 +381,9 @@ Highest wins: CLI, then ini, then the environment below. `pytest -o devtools=fal
 | `DEVTOOLS_RUN_ID=<id>` | Join several processes into one run. |
 | `DEVTOOLS_BACKEND_CMD=<cmd>` | Start the backend with an explicit command instead of the resolved one. |
 
-The backend is a Node application, so **Node 18+ must be available in every mode** - even in trace mode, where no dashboard window ever opens. It is not only the UI: the page collector is served by the backend, the whole event stream travels over its WebSocket, and in trace mode it is also what builds the archive. `enable()` checks for Node up front and names what is missing rather than failing later as a spawn timeout. The adapter finds or launches the backend for you - see [running the backend on its own](/docs/devtools/dashboard#running-the-backend-on-its-own) if you would rather manage it yourself, or point `DEVTOOLS_PORT` at one you are already running, in which case no local Node is needed.
+The backend is a Node application, so **Node 18+ must be available in every mode** - even in trace mode, where no dashboard window ever opens. It is not only the UI: the page collector is served by the backend, the whole event stream travels over its WebSocket, and in trace mode it is also what builds the archive. `enable()` checks for Node up front and names what is missing rather than failing later as a spawn timeout.
+
+The adapter finds or launches the backend for you, preferring a copy [`selenium-devtools install-backend`](#installation) has already put on disk and falling back to fetching it with `npx`. See [running the backend on its own](/docs/devtools/dashboard#running-the-backend-on-its-own) if you would rather manage it yourself, or point `DEVTOOLS_PORT` at one you are already running, in which case no local Node is needed.
 
 ### Assertions
 
@@ -502,7 +507,7 @@ devtools_trace_granularity = test
 devtools_trace_policy = retain-on-failure
 ```
 
-`[tool.pytest.ini_options]` in `pyproject.toml` takes the same keys, and `pytest -o devtools_trace_policy=on tests/` overrides one of them for a single run without editing the file. A fully commented version - every setting and every environment variable, with what each one is for - is in the repo at [`examples/selenium/python-test/trace-py-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/python-test/trace-py-test).
+`[tool.pytest.ini_options]` in `pyproject.toml` takes the same keys, and `pytest -o devtools_trace_policy=on tests/` overrides one of them for a single run without editing the file. A fully commented version - every setting and every environment variable, with what each one is for - is in the repo at [`examples/selenium-py/pytest/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-py/pytest).
 
 A plain script passes the same two as keyword arguments:
 
@@ -584,14 +589,14 @@ Working examples live in the repo's top-level `examples/` directory. Build the w
 
 | Directory | Runner | Command |
 |-----------|--------|---------|
-| [`examples/selenium/mocha-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/mocha-test) | Mocha | `pnpm --filter @wdio/selenium-devtools example:mocha` |
-| [`examples/selenium/jest-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/jest-test) | Jest | `pnpm --filter @wdio/selenium-devtools example:jest` |
-| [`examples/selenium/cucumber-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/cucumber-test) | Cucumber | `pnpm demo:selenium` |
+| [`examples/selenium-js/mocha/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-js/mocha) | Mocha | `pnpm --filter @wdio/selenium-devtools example:mocha` |
+| [`examples/selenium-js/jest/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-js/jest) | Jest | `pnpm --filter @wdio/selenium-devtools example:jest` |
+| [`examples/selenium-js/cucumber/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-js/cucumber) | Cucumber | `pnpm demo:selenium` |
 
 </TabItem>
 <TabItem value="python" label="Python">
 
-The Python examples live in [`examples/selenium/python-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/python-test). Install the adapter and build the workspace once (`pnpm install && pnpm build`, so the backend exists), then run from the repo root:
+The Python examples live in [`examples/selenium-py/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-py) — `scripts/` for the plain-script cases and `pytest/` for the pytest one. Install the adapter and build the workspace once (`pnpm install && pnpm build`, so the backend exists), then run from the repo root:
 
 | Example | What it shows | Command |
 |---|---|---|
