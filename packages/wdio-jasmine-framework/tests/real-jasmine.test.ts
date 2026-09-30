@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { expect, test, vi } from 'vitest'
+import { executeHooksWithArgs } from '@wdio/utils'
 
 import { JasmineAdapter } from '../src/index.js'
 
@@ -17,4 +18,20 @@ test('initializes against Jasmine 6 private Spec and Suite', async () => {
     )
 
     await expect(adapter.init()).resolves.toBe(adapter)
+})
+
+test('oneFailurePerSpec stops the spec after a failed sync expect', async () => {
+    vi.mocked(executeHooksWithArgs).mockResolvedValue([])
+    const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }
+    const adapter = new JasmineAdapter(
+        '0-0',
+        { beforeHook: [], afterHook: [], jasmineOpts: { oneFailurePerSpec: true } } as any,
+        [path.join(__dirname, '__fixtures__', 'stopOnFailure.js')],
+        { browserName: 'chrome' } as any,
+        reporter as any
+    )
+
+    await adapter.init()
+    expect(await adapter.run()).toBe(1)
+    expect((globalThis as { __wdioStopOnFailure?: string[] }).__wdioStopOnFailure).toEqual(['before', 'next'])
 })
