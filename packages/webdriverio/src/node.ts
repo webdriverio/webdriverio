@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import process from 'node:process'
 
 import { downloadFile } from './node/downloadFile.js'
+import { extensionDataFromPath } from './node/extensionArchive.js'
 import { savePDF } from './node/savePDF.js'
 import { saveRecordingScreen } from './node/saveRecordingScreen.js'
 import { saveScreenshot } from './node/saveScreenshot.js'
@@ -18,6 +19,7 @@ environment.value = {
     downloadFile,
     savePDF,
     saveRecordingScreen,
+    extensionDataFromPath,
     saveScreenshot,
     saveElementScreenshot,
     variables: process.env as EnvironmentVariables
