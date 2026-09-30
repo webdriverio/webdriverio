@@ -223,6 +223,42 @@ describe('installExtension', () => {
         expect(zip.file('loop/manifest.json')).toBeNull()
     })
 
+    it('packs a directory and a symlink alias of that directory', async () => {
+        const browser = await bidiBrowser({ hostname: 'grid.example.com' })
+        const dir = tempDirectory()
+        fs.mkdirSync(path.join(dir, 'real'))
+        fs.writeFileSync(path.join(dir, 'real', 'main.js'), 'console.log(1)')
+        fs.symlinkSync(path.join(dir, 'real'), path.join(dir, 'alias'))
+
+        await browser.installExtension(dir)
+
+        const payload = vi.mocked(browser.webExtensionInstall).mock.calls[0][0].extensionData
+        expect(payload.type).toBe('base64')
+        if (payload.type !== 'base64') {
+            return
+        }
+        const zip = await JSZip.loadAsync(Buffer.from(payload.value, 'base64'))
+        expect(await zip.file('real/main.js')?.async('string')).toBe('console.log(1)')
+        expect(await zip.file('alias/main.js')?.async('string')).toBe('console.log(1)')
+    })
+
+    it('skips a dangling symlink when zipping a remote directory', async () => {
+        const browser = await bidiBrowser({ hostname: 'grid.example.com' })
+        const dir = tempDirectory()
+        fs.symlinkSync(path.join(dir, 'missing.txt'), path.join(dir, 'dangling.txt'))
+
+        await browser.installExtension(dir)
+
+        const payload = vi.mocked(browser.webExtensionInstall).mock.calls[0][0].extensionData
+        expect(payload.type).toBe('base64')
+        if (payload.type !== 'base64') {
+            return
+        }
+        const zip = await JSZip.loadAsync(Buffer.from(payload.value, 'base64'))
+        expect(await zip.file('manifest.json')?.async('string')).toContain('wdio-extension-fixture')
+        expect(zip.file('dangling.txt')).toBeNull()
+    })
+
     it('explains how to enable webExtension.install on Chrome', async () => {
         const browser = await bidiBrowser()
         vi.mocked(browser.webExtensionInstall).mockRejectedValue(new Error(

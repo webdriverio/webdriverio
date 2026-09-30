@@ -95,7 +95,10 @@ function zipDirectory (dir: string): Promise<Buffer> {
  * Extension archives must contain `manifest.json` at the zip root, so the
  * directory contents are stored without an extra top-level folder.
  * `stat` follows symbolic links so a linked script or asset is packed.
- * `seen` stops a symlink cycle from walking the same directory forever.
+ * `seen` is the directories currently on the walk stack. A symlink that
+ * points back at one of them is a cycle and is skipped. An alias of a
+ * directory that is no longer on the stack is archived again under the
+ * new path. A dangling symlink is skipped.
  */
 function appendDirectory (archive: ZipArchive, dir: string, prefix: string, seen: Set<string>) {
     const realDir = fs.realpathSync(dir)
@@ -104,21 +107,32 @@ function appendDirectory (archive: ZipArchive, dir: string, prefix: string, seen
     }
     seen.add(realDir)
 
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-        const full = path.join(dir, entry.name)
-        const name = prefix ? `${prefix}/${entry.name}` : entry.name
-        let stat: fs.Stats
-        try {
-            stat = fs.statSync(full)
-        } catch (err) {
-            throw new Error(`installExtension could not read ${full}: ${errorMessage(err)}`)
+    try {
+        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+            const full = path.join(dir, entry.name)
+            const name = prefix ? `${prefix}/${entry.name}` : entry.name
+            let stat: fs.Stats
+            try {
+                stat = fs.statSync(full)
+            } catch (err) {
+                if (isNotFound(err)) {
+                    continue
+                }
+                throw new Error(`installExtension could not read ${full}: ${errorMessage(err)}`)
+            }
+            if (stat.isDirectory()) {
+                appendDirectory(archive, full, name, seen)
+            } else if (stat.isFile()) {
+                archive.append(fs.createReadStream(full), { name })
+            }
         }
-        if (stat.isDirectory()) {
-            appendDirectory(archive, full, name, seen)
-        } else if (stat.isFile()) {
-            archive.append(fs.createReadStream(full), { name })
-        }
+    } finally {
+        seen.delete(realDir)
     }
+}
+
+function isNotFound (err: unknown) {
+    return typeof err === 'object' && err !== null && 'code' in err && err.code === 'ENOENT'
 }
 
 function errorMessage (err: unknown) {
