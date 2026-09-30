@@ -688,6 +688,16 @@ async function strictSelectors() {
     expectType<string>(await browser.$('button', { strict: true }).getTagName())
     expectType<string>(await browser.$('div').$('button', { strict: false }).getTagName())
 
+    const extensionId = await browser.installExtension('./dist')
+    expectType<string>(extensionId)
+    await browser.installExtension('./ext.zip')
+    await browser.installExtension({ base64: 'UEsDBA==' })
+    await browser.uninstallExtension(extensionId)
+    // @ts-expect-error extension payload must be a path or { base64 }
+    await browser.installExtension({ path: './dist' })
+    // @ts-expect-error extension id is a string
+    await browser.uninstallExtension(42)
+
     // @ts-expect-error unknown option
     await browser.$('button', { strictly: false })
     // @ts-expect-error strict needs to be a boolean
