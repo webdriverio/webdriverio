@@ -296,11 +296,30 @@ function createElementPromiseProxy (
                         commandName,
                         { prop, args },
                         /**
-                         * no `wdio.kind` brand: an ElementArray brands its own index
-                         * (`chainElementPromise`), so this proxy only wraps a value that
-                         * is not an ElementArray, and its item is unknown
+                         * an item of a pending element list (a custom `$$` command) is an
+                         * element. Other values get no `wdio.kind` brand: an ElementArray
+                         * brands its own index (`chainElementPromise`), so this proxy
+                         * only wraps a value that is not an ElementArray, and its item is unknown
                          */
-                        undefined,
+                        kind === 'element-array' ? 'element' : undefined,
+                        multiRemote
+                    )
+                }
+
+                /**
+                 * `at()` of a pending element list is a chainable element, like an index
+                 * and like `at()` of an ElementArray, see `kind.ts`
+                 */
+                if (prop === 'at' && kind === 'element-array') {
+                    return (index: number) => createElementPromiseProxy(
+                        target,
+                        function (this: { at: (index: number) => unknown }, index: number) {
+                            return this.at(index)
+                        },
+                        [index],
+                        commandName,
+                        { prop, args: [index] },
+                        'element',
                         multiRemote
                     )
                 }
@@ -571,9 +590,12 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
 
                 /**
                  * A command with an element-list name that does not return an
-                 * ElementArray (test doubles, custom stubs) keeps the promise proxy.
-                 * It gets no `wdio.kind` brand: the result is not an ElementArray.
+                 * ElementArray (an async `overwriteCommand`, test doubles) keeps the
+                 * promise proxy. A promise is a pending element list by its name, see
+                 * `kind.ts`. A value that is not a promise is known, and it is not an
+                 * ElementArray, so it gets no `wdio.kind` brand.
                  */
+                const isPending = typeof (result as { then?: unknown } | undefined)?.then === 'function'
                 return createElementPromiseProxy(
                     Promise.resolve(result),
                     function (this: unknown) {
@@ -582,7 +604,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                     [],
                     commandName,
                     undefined,
-                    undefined,
+                    isPending ? 'element-array' : undefined,
                     isMultiRemoteOrigin(this)
                 )
             }
