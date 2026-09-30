@@ -723,6 +723,41 @@ describe('main suite 1', () => {
                 .toBe('https://the-internet.herokuapp.com/frame_top')
         })
 
+        it('can switch to a frame via an item of a custom element list command', async () => {
+            browser.addCommand('frames$$', function (this: WebdriverIO.Browser) {
+                return this.$$('iframe')
+            })
+            await browser.url(`${navigationOrigin}/frames`)
+
+            // @ts-expect-error custom command
+            expect(await browser.execute((frame) => frame.tagName, await browser.frames$$()[0])).toBe('IFRAME')
+
+            // @ts-expect-error custom command
+            await browser.switchFrame(browser.frames$$()[0])
+            expect(await browser.execute(() => document.title)).toBe('IFrame A')
+
+            await browser.switchFrame(null)
+            // @ts-expect-error custom command
+            await browser.switchFrame(browser.frames$$().at(0))
+            expect(await browser.execute(() => document.title)).toBe('IFrame A')
+
+            /**
+             * `find()` can give no element, so it gives a plain promise: await it first
+             */
+            await browser.switchFrame(null)
+            // @ts-expect-error custom command
+            await browser.switchFrame(await browser.frames$$().find(async (frame: WebdriverIO.Element) => await frame.getTagName() === 'iframe'))
+            expect(await browser.execute(() => document.title)).toBe('IFrame A')
+        })
+
+        it('can switch to a frame via an item of a custom$$ locator strategy query', async () => {
+            browser.addLocatorStrategy('frames', () => Array.from(document.querySelectorAll('iframe')) as HTMLElement[])
+            await browser.url(`${navigationOrigin}/frames`)
+
+            await browser.switchFrame(browser.custom$$('frames', '')[0])
+            expect(await browser.execute(() => document.title)).toBe('IFrame A')
+        })
+
         it('can switch to a frame via function', async () => {
             await browser.url('https://the-internet.herokuapp.com/nested_frames')
             await browser.switchFrame(() => document.URL.includes('frame_right'))
