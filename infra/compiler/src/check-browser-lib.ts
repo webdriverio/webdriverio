@@ -28,7 +28,18 @@ if (configs.length === 0) {
     throw new Error('No browser builds found')
 }
 
+/**
+ * TypeScript's `dom` lib is current, so these calls type-check at ES2021 and
+ * still throw in Chrome 90, Edge 90, Firefox 90 and Safari 14.1. esbuild does
+ * not polyfill them. The emitted bundle is what the browser runs.
+ */
+const UNSUPPORTED_BROWSER_APIS: { name: string, pattern: RegExp }[] = [
+    { name: 'AbortSignal.any', pattern: /AbortSignal\.any\b/ },
+    { name: 'AbortSignal.timeout', pattern: /AbortSignal\.timeout\b/ }
+]
+
 const bundleFiles = new Set<string>()
+const unsupportedApiUses: string[] = []
 for (const config of configs) {
     const result = await build({
         ...config,
@@ -44,6 +55,22 @@ for (const config of configs) {
     for (const file of sourceFiles(result.metafile, config.absWorkingDir)) {
         bundleFiles.add(file)
     }
+    const bundleName = path.relative(rootDir, config.outfile || config.outdir || 'browser bundle')
+    for (const output of result.outputFiles ?? []) {
+        for (const api of UNSUPPORTED_BROWSER_APIS) {
+            if (api.pattern.test(output.text)) {
+                unsupportedApiUses.push(`${bundleName} calls ${api.name}`)
+            }
+        }
+    }
+}
+
+if (unsupportedApiUses.length > 0) {
+    console.error('\nBrowser bundle calls APIs the declared browsers do not have:\n')
+    console.error(unsupportedApiUses.join('\n'))
+    process.exitCode = 1
+} else {
+    console.log('browser bundle APIs: ok')
 }
 
 const scriptFiles = (await fs.readdir(scriptsDir))
@@ -189,10 +216,9 @@ async function typecheck (files: string[], lib: string[], owned: Set<string>, la
             experimentalDecorators: true,
             useDefineForClassFields: true,
             noEmit: true,
-            types: ['node'],
-            // The config file lives in the temp directory. Point typeRoots at
-            // the workspace so `@types/node` still resolves.
-            typeRoots: [path.join(rootDir, 'node_modules', '@types')]
+            // These scripts run in the automated browser. An empty `types`
+            // list keeps `@types/node` out, so `process` and `Buffer` are errors.
+            types: []
         },
         files
     }

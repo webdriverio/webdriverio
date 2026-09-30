@@ -26,12 +26,6 @@ Strict selectors and bare capability `specs` / `exclude` lists only show up when
 
 WebdriverIO v10 requires Node.js 22.19.0 or later. Node.js 18 and 20 are no longer supported. CI covers Node.js 22, 24, and 26.
 
-## TypeScript
-
-`npm create wdio@latest` writes `compilerOptions.target` and `compilerOptions.lib` as `es2024`. Type-checking that file needs TypeScript 5.7 or newer. `tsx`, which runs the config and the tests, does not type-check, so an older compiler only matters when you run `tsc` yourself.
-
-An existing `tsconfig.json` is not rewritten. A generated config that extends another config keeps the `target` and `lib` of the parent.
-
 ## Component tests
 
 The browser runner still runs in Chrome 90, Edge 90, Firefox 90 and Safari 14.1 or newer. See [Browser support](/docs/component-testing#browser-support).
@@ -197,6 +191,10 @@ The `Element`, `MultiRemoteBrowser` and `MultiRemoteElement` types exported by `
 ```
 
 Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript version this repository compiles with.
+
+`npm create wdio@latest` writes `compilerOptions.target` and `compilerOptions.lib` as `es2024`. Type-checking that file needs TypeScript 5.7 or newer. `tsx`, which runs the config and the tests, does not type-check, so an older compiler only matters when you run `tsc` yourself.
+
+An existing `tsconfig.json` is not rewritten. A generated config that extends another config keeps the `target` and `lib` of the parent.
 
 ## Reporters
 
