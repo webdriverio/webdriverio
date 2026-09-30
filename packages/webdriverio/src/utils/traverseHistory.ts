@@ -19,9 +19,19 @@ const READY_STATE_RETRY_MS = 50
  * `browsingContext.historyUpdated` has no navigation id. `pushState` and
  * `replaceState` emit it for the same context, so the page's Navigation API
  * records whether the last history change was a traversal.
+ *
+ * Each command stores its listener under its own id. A later cleanup must
+ * not remove a traversal that is still waiting.
  */
 const HISTORY_MARKER = '__wdioHistoryTraverse'
-const INSTALL_HISTORY_MARKER = `(() => {
+
+function historyMarkerId () {
+    return `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
+}
+
+function installHistoryMarker (id: string) {
+    const key = JSON.stringify(id)
+    return `(() => {
     const nav = globalThis.navigation
     if (!nav || typeof nav.addEventListener !== 'function') {
         return 'unsupported'
@@ -30,28 +40,40 @@ const INSTALL_HISTORY_MARKER = `(() => {
     const onNavigate = (event) => {
         events.push(event.navigationType)
     }
+    const root = globalThis.${HISTORY_MARKER} || (globalThis.${HISTORY_MARKER} = { entries: {} })
+    root.entries[${key}] = { events, onNavigate }
     nav.addEventListener('navigate', onNavigate)
-    globalThis.${HISTORY_MARKER} = { events, onNavigate }
     return 'installed'
 })()`
-const READ_HISTORY_MARKER = `(() => {
-    const record = globalThis.${HISTORY_MARKER}
-    if (!record || !Array.isArray(record.events) || record.events.length === 0) {
+}
+
+function readHistoryMarker (id: string) {
+    const key = JSON.stringify(id)
+    return `(() => {
+    const root = globalThis.${HISTORY_MARKER}
+    const entry = root && root.entries && root.entries[${key}]
+    if (!entry || !Array.isArray(entry.events) || entry.events.length === 0) {
         return ''
     }
-    return String(record.events[record.events.length - 1])
+    return String(entry.events[entry.events.length - 1])
 })()`
-const CLEAR_HISTORY_MARKER = `(() => {
-    const record = globalThis.${HISTORY_MARKER}
-    if (!record) {
+}
+
+function clearHistoryMarker (id: string) {
+    const key = JSON.stringify(id)
+    return `(() => {
+    const root = globalThis.${HISTORY_MARKER}
+    const entry = root && root.entries && root.entries[${key}]
+    if (!entry) {
         return
     }
     const nav = globalThis.navigation
     if (nav && typeof nav.removeEventListener === 'function') {
-        nav.removeEventListener('navigate', record.onNavigate)
+        nav.removeEventListener('navigate', entry.onNavigate)
     }
-    delete globalThis.${HISTORY_MARKER}
+    delete root.entries[${key}]
 })()`
+}
 
 /**
  * Events that describe a history traversal. `traverseHistory` returns before
@@ -180,10 +202,11 @@ export async function traverseTopLevelHistory (
 
     let subscription: string | undefined
     let historyMarker: 'installed' | 'unavailable' = 'unavailable'
+    const markerId = historyMarkerId()
+    let urlBefore: string | undefined
     let armed = false
     let settled = false
     let crossDocument = false
-    let watchingReadyState = false
     let waitError: Error | undefined
     let resolveReady: () => void = () => {}
     let rejectReady: (error: Error) => void = () => {}
@@ -226,22 +249,30 @@ export async function traverseTopLevelHistory (
         /**
          * Cross-document traversals emit this before `historyUpdated`.
          * A same-document traversal (fragment or `pushState`) does not.
+         *
+         * Firefox omits `navigationCommitted` and `load` when the entry is
+         * restored from the back-forward cache, so this event is the only
+         * signal. Wait until the document URL changes, then read readyState.
          */
         crossDocument = true
+        if (urlBefore !== undefined) {
+            void watchTraversalReadyState(true)
+        }
     }
     /**
-     * A back-forward cache restore emits `navigationCommitted` and no `load`.
-     * The committed document is already complete. A network navigation is still
-     * `loading` at commit time, so a successful read does not skip that event.
+     * A back-forward cache restore can commit a document that is already
+     * complete and emit no `load`. A network navigation is still `loading`
+     * at commit time, so a successful read does not skip that event.
+     * Pass `requireUrlChange` when the only event so far is `navigationStarted`:
+     * the outgoing document is already complete, and its URL has not moved.
      */
-    const watchCommittedReadyState = async () => {
-        if (watchingReadyState) {
-            return
-        }
-        watchingReadyState = true
+    const watchTraversalReadyState = async (requireUrlChange: boolean) => {
         try {
             while (armed && !settled) {
                 const state = await evaluateString(browser, context, 'document.readyState')
+                const href = requireUrlChange
+                    ? await evaluateString(browser, context, 'location.href')
+                    : undefined
                 if (!armed || settled) {
                     return
                 }
@@ -249,7 +280,11 @@ export async function traverseTopLevelHistory (
                  * `undefined` means the realm rejected the check. A cache
                  * restore has no later `load` event, so try again.
                  */
-                if (state === undefined) {
+                if (state === undefined || (requireUrlChange && href === undefined)) {
+                    await delay(READY_STATE_RETRY_MS)
+                    continue
+                }
+                if (requireUrlChange && href === urlBefore) {
                     await delay(READY_STATE_RETRY_MS)
                     continue
                 }
@@ -258,15 +293,17 @@ export async function traverseTopLevelHistory (
                 }
                 return
             }
-        } finally {
-            watchingReadyState = false
+        } catch {
+            /**
+             * The load or DOMContentLoaded event still completes the wait.
+             */
         }
     }
     const onNavigationCommitted = (params: local.BrowsingContextNavigationInfo) => {
         if (!armed || !matchesContext(params, context)) {
             return
         }
-        void watchCommittedReadyState()
+        void watchTraversalReadyState(false)
     }
     const onDomContentLoaded = (params: local.BrowsingContextNavigationInfo) => {
         if (readiness === 'interactive') {
@@ -296,7 +333,7 @@ export async function traverseTopLevelHistory (
             succeed(params)
             return
         }
-        void evaluateString(browser, context, READ_HISTORY_MARKER).then((kind) => {
+        void evaluateString(browser, context, readHistoryMarker(markerId)).then((kind) => {
             if (!armed || settled || crossDocument || kind !== 'traverse') {
                 return
             }
@@ -324,9 +361,10 @@ export async function traverseTopLevelHistory (
             contexts: [context]
         })
         subscription = subscribed.subscription
-        if (await evaluateString(browser, context, INSTALL_HISTORY_MARKER) === 'installed') {
+        if (await evaluateString(browser, context, installHistoryMarker(markerId)) === 'installed') {
             historyMarker = 'installed'
         }
+        urlBefore = await evaluateString(browser, context, 'location.href')
         /**
          * Arm only after the subscription exists and immediately before the
          * command. The spec returns before the traversal finishes, and the
@@ -364,7 +402,7 @@ export async function traverseTopLevelHistory (
             resolveReady()
         }
         if (historyMarker === 'installed') {
-            void evaluateString(browser, context, CLEAR_HISTORY_MARKER)
+            void evaluateString(browser, context, clearHistoryMarker(markerId))
         }
         /**
          * Unsubscribing is cleanup. A dropped socket waits for the BiDi

@@ -289,7 +289,7 @@ describe('back and forward', () => {
             })
             await vi.waitFor(() => {
                 expect(browser.scriptEvaluate).toHaveBeenCalledWith(expect.objectContaining({
-                    expression: expect.stringContaining('record.events')
+                    expression: expect.stringContaining('entry.events')
                 }))
             })
             await flush()
@@ -320,6 +320,62 @@ describe('back and forward', () => {
             await browser.back()
 
             expect(browser.browsingContextTraverseHistory).toHaveBeenCalledTimes(1)
+            vi.mocked(browser.scriptEvaluate).mockRestore()
+        })
+
+        it('uses a separate history marker for each traversal', async () => {
+            const installs: string[] = []
+            const clears: string[] = []
+            vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
+                const expression = params?.expression ?? ''
+                if (expression.includes('addEventListener')) {
+                    installs.push(expression)
+                    return scriptValue('installed')
+                }
+                if (expression.includes('removeEventListener')) {
+                    clears.push(expression)
+                    return scriptValue('')
+                }
+                if (expression.includes('location.href')) {
+                    return scriptValue('https://example.test/same')
+                }
+                return scriptValue('unsupported')
+            })
+            await loadAfterTraverse()
+
+            await browser.back()
+            await browser.forward()
+
+            const markerKey = (source: string) => source.match(/entries\[("t[^"]+")\]/)?.[1]
+            expect(installs).toHaveLength(2)
+            expect(clears.map(markerKey)).toEqual(installs.map(markerKey))
+            expect(markerKey(installs[0])).not.toBe(markerKey(installs[1]))
+            vi.mocked(browser.scriptEvaluate).mockRestore()
+        })
+
+        it('returns when navigation starts and the restored document is already complete', async () => {
+            let hrefReads = 0
+            vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
+                const expression = params?.expression ?? ''
+                if (expression.includes('location.href')) {
+                    hrefReads += 1
+                    return scriptValue(hrefReads === 1
+                        ? 'https://example.test/second'
+                        : 'https://example.test/first')
+                }
+                if (expression.includes('document.readyState')) {
+                    return scriptValue('complete')
+                }
+                return scriptValue('unsupported')
+            })
+            vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
+                browser.emit('browsingContext.navigationStarted', navigationInfo('top-level'))
+                return {}
+            })
+
+            await browser.back()
+
+            expect(hrefReads).toBeGreaterThan(1)
             vi.mocked(browser.scriptEvaluate).mockRestore()
         })
 
