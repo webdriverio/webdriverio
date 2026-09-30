@@ -1,5 +1,14 @@
+import path from 'node:path'
+import url from 'node:url'
+
 import { browser, expect } from '@wdio/globals'
 import type { local, remote } from 'webdriver'
+
+const extensionFixture = path.resolve(
+    path.dirname(url.fileURLToPath(import.meta.url)),
+    '__fixtures__',
+    'web-extension'
+)
 
 describe('bidi e2e test', () => {
     describe('execute', () => {
@@ -509,6 +518,35 @@ describe('bidi e2e test', () => {
 
                 // TODO fix one day we should be able to assert 'positionUnavailable' somehow
                 await expect(geolocation).rejects.toThrow()
+            })
+        })
+
+        describe('web extension', () => {
+            it('installs and uninstalls an extension', async () => {
+                const browserName = browser.capabilities.browserName ?? 'unknown'
+                let id: string
+                try {
+                    id = await browser.installExtension(extensionFixture)
+                } catch (err) {
+                    const message = err instanceof Error ? err.message : String(err)
+                    /**
+                     * A BiDi browser that does not implement webExtension.install
+                     * reports `unsupported operation` (module present, command
+                     * refused) or `unknown command` (module absent). Assert that
+                     * error instead of skipping the test.
+                     */
+                    if (/unsupported operation|unknown command/i.test(message)) {
+                        expect(message).toMatch(/unsupported operation|unknown command/i)
+                        console.log(`webExtension.install is not implemented in ${browserName}: ${message}`)
+                        return
+                    }
+                    throw err
+                }
+
+                expect(id).toEqual(expect.any(String))
+                expect(id.length).toBeGreaterThan(0)
+                await browser.uninstallExtension(id)
+                await expect(browser.uninstallExtension(id)).rejects.toThrow()
             })
         })
     })

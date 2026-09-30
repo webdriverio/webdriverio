@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
@@ -7,6 +8,20 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const isLinux = os.platform() === 'linux'
 const isApple = os.platform() === 'darwin'
 const isWindows = os.platform() === 'win32'
+
+/**
+ * Chrome and Edge implement `webExtension.install` only when these arguments
+ * are set. `--remote-debugging-pipe` needs its own user-data-dir from Chrome 136.
+ * Each capability gets a directory so parallel browsers do not share a profile.
+ */
+function chromiumExtensionArgs (browser: string) {
+    const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), `wdio-${browser}-`))
+    return [
+        '--enable-unsafe-extension-debugging',
+        '--remote-debugging-pipe',
+        `--user-data-dir=${userDataDir}`
+    ]
+}
 
 /**
  * with this config file we verify that the `webdriverio` package can spin
@@ -33,7 +48,8 @@ export const config: WebdriverIO.Config = {
                 args: ['headless', 'disable-gpu',
                     // Having `WebDriverError: session not created: Chrome instance exited` since ubuntu 22.04 to 24.04, since the below is no more wrapped by default.
                     // See https://github.com/webdriverio/webdriverio/issues/14168.
-                    ...(isLinux ? ['no-sandbox'] : [])
+                    ...(isLinux ? ['no-sandbox'] : []),
+                    ...chromiumExtensionArgs('chrome')
                 ]
             }
         },
@@ -53,7 +69,8 @@ export const config: WebdriverIO.Config = {
                     'disable-gpu',
                     // Having `WebDriverError: session not created: Chrome instance exited` since ubuntu 22.04 to 24.04, since the below is no more wrapped by default.
                     // See https://github.com/webdriverio/webdriverio/issues/14168.
-                    ...(isLinux ? ['no-sandbox'] : [])
+                    ...(isLinux ? ['no-sandbox'] : []),
+                    ...chromiumExtensionArgs('edge')
                 ]
             },
         },
@@ -68,7 +85,8 @@ export const config: WebdriverIO.Config = {
                     // `no-sandbox` is required on Linux since Ubuntu 22.04→24.04 (seccomp/user-namespace sandbox no longer
                     // provided by default — see https://github.com/webdriverio/webdriverio/issues/14168) and on macOS in
                     // CI/sandboxed environments where Chrome's user-namespace sandboxing is also unavailable.
-                    ...(isLinux || isApple ? ['no-sandbox'] : [])
+                    ...(isLinux || isApple ? ['no-sandbox'] : []),
+                    ...chromiumExtensionArgs('chromium')
                 ]
             }
         }] : []),

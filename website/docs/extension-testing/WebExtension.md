@@ -1,10 +1,12 @@
 ---
 id: web-extensions
 title: Web Extension Testing
-description: "Load a web extension into Chrome or Firefox during a WebdriverIO session and test its content scripts and popup end to end."
+description: "Load a web extension into Chrome or Firefox for a WebdriverIO session, including a mid-session BiDi install and uninstall."
 ---
 
 WebdriverIO is the ideal tool to automate a browser. Web Extensions are a part of the browser and can be automated in the same way. Whenever your web extension uses content scripts to run JavaScript on websites or offer a popup modal, you can run an e2e test for that using WebdriverIO.
+
+Load the extension before the first navigation with the capability setup below. To install and remove one in the middle of a [WebDriver BiDi](https://w3c.github.io/webdriver-bidi/#module-webExtension) session, use [`installExtension`](/docs/api/browser/installExtension) and [`uninstallExtension`](/docs/api/browser/uninstallExtension).
 
 ## Loading a Web Extension into the Browser
 
@@ -12,7 +14,7 @@ As a first step we have to load the extension under test into the browser as par
 
 :::info
 
-These docs leave out Safari web extensions as their support for it is way behind and user demand not high. If you are building a web extension for Safari, please [raise an issue](https://github.com/webdriverio/webdriverio/issues/new?assignees=&labels=Docs+%F0%9F%93%96%2CNeeds+Triaging+%E2%8F%B3&template=documentation.yml&title=%5B%F0%9F%93%96+Docs%5D%3A+%3Ctitle%3E) and collaborate on including it here as well.
+These docs leave out Safari web extensions as their support for it is way behind and user demand not high. Safari also has no WebDriver BiDi session, so [`installExtension`](/docs/api/browser/installExtension) does not cover Safari. If you are building a web extension for Safari, please [raise an issue](https://github.com/webdriverio/webdriverio/issues/new?assignees=&labels=Docs+%F0%9F%93%96%2CNeeds+Triaging+%E2%8F%B3&template=documentation.yml&title=%5B%F0%9F%93%96+Docs%5D%3A+%3Ctitle%3E) and collaborate on including it here as well.
 
 :::
 
@@ -94,6 +96,79 @@ In order to generate an `.xpi` file, it is recommended to use the [`web-ext`](ht
 ```sh
 npx web-ext build -s dist/ -a . -n web-extension-firefox.xpi
 ```
+
+## Install an extension during the session
+
+Since v10, [`browser.installExtension`](/docs/api/browser/installExtension) and [`browser.uninstallExtension`](/docs/api/browser/uninstallExtension) install a web extension in the middle of a WebDriver BiDi session and return its id. Use them when the extension must not be present at launch, or when the same test installs it, exercises it, and removes it.
+
+The capability setup and `installAddOn` above stay the way to load an extension before the first navigation. `installExtension` does not replace them. `browser.webExtensionInstall` and `browser.webExtensionUninstall` stay available when you want the [spec payload](https://w3c.github.io/webdriver-bidi/#command-webExtension-install) yourself.
+
+```ts title="test/specs/extension.e2e.ts"
+import path from 'node:path'
+import url from 'node:url'
+import { browser, expect } from '@wdio/globals'
+
+const extensionPath = path.resolve(
+    path.dirname(url.fileURLToPath(import.meta.url)),
+    '../../dist'
+)
+
+describe('web extension', () => {
+    it('installs and removes the extension', async () => {
+        const extensionId = await browser.installExtension(extensionPath)
+        expect(extensionId).not.toEqual('')
+
+        await browser.url('https://webdriver.io')
+        await browser.uninstallExtension(extensionId)
+    })
+})
+```
+
+`installExtension` accepts three inputs:
+
+| Input | Payload sent to the browser |
+| --- | --- |
+| A directory path | `{ type: 'path', path }` after `path.resolve`. The browser has to be able to read that directory. |
+| A `.zip`, `.xpi`, or `.crx` path | `{ type: 'archivePath', path }` after `path.resolve`. |
+| `{ base64: string }` | `{ type: 'base64', value }`. Archive bytes. Any other object is rejected. |
+
+A string path is always resolved on the test runner. On a remote session — a hostname other than `localhost`, `127.0.0.1`, or `::1`, or a cloud `user` and `key` — that path is not a path on the browser machine. The command reads an archive, or zips a directory in memory, and sends `base64`. You do not branch on local versus remote yourself. Local sessions send `path` or `archivePath` and do not read the bytes.
+
+Point a directory at the extension root, the folder that contains `manifest.json`.
+
+The session has to speak WebDriver BiDi. A classic session throws `installExtension requires a WebDriver BiDi session (webExtension.install)`. A browser that implements BiDi but not this module fails the command with `unsupported operation` (or `unknown command` when the module is absent). A bad archive fails with `invalid web extension`. Uninstalling an id the browser does not know fails with `no such web extension`.
+
+`uninstallExtension` takes the id string `installExtension` returned.
+
+### Chromium
+
+Chrome and Edge implement `webExtension.install` and leave it switched off until you start the browser with `--enable-unsafe-extension-debugging` and `--remote-debugging-pipe`. Chrome 136 and newer also require `--user-data-dir` whenever `--remote-debugging-pipe` is set. Without those arguments the command fails with `unknown error - Method not available`.
+
+`--remote-debugging-pipe` is the pipe between the driver and the browser. The BiDi session still uses `webSocketUrl`.
+
+```ts title="wdio.conf.ts"
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-chrome-'))
+
+export const config: WebdriverIO.Config = {
+    // ...
+    capabilities: [{
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+            args: [
+                '--enable-unsafe-extension-debugging',
+                '--remote-debugging-pipe',
+                `--user-data-dir=${userDataDir}`
+            ]
+        }
+    }]
+}
+```
+
+Use `ms:edgeOptions` for Edge. Firefox loads the extension in a normal BiDi session and does not need these arguments.
 
 ## Tips & Tricks
 
