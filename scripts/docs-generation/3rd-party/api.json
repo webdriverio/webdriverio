@@ -2,6 +2,7 @@
     {
         "packageName": "expect-webdriverio",
         "title": "Expect",
+        "branch": "v7",
         "githubUrl": "https://github.com/webdriverio/expect-webdriverio",
         "npmUrl": "https://www.npmjs.com/package/expect-webdriverio",
         "locations": [

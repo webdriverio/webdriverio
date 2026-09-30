@@ -54,6 +54,22 @@ describe('Multi-Remote tests', () => {
         }
     })
 
+    test('getInstance should throw for an unknown instance', async () => {
+        const browser = await multiremote(caps())
+
+        expect(() => browser.getInstance('browserC'))
+            .toThrow('Multiremote object has no instance named "browserC"')
+    })
+
+    test('getInstance should not return inherited Object.prototype members', async () => {
+        const browser = await multiremote(caps())
+
+        for (const name of ['toString', 'constructor', 'hasOwnProperty']) {
+            expect(() => browser.getInstance(name))
+                .toThrow(`Multiremote object has no instance named "${name}"`)
+        }
+    })
+
     test('should run command on all instances', async () => {
         const browser = await multiremote(caps())
 
@@ -96,6 +112,10 @@ describe('Multi-Remote tests', () => {
         expect(elem.getInstance('browserB')).toBeDefined()
         expect(elem.getInstance('browserA').elementId).toBe('some-elem-123')
         expect(elem.getInstance('browserB').elementId).toBe('some-elem-123')
+        for (const name of ['browserC', 'selector', 'instances', 'click']) {
+            expect(() => elem.getInstance(name))
+                .toThrow(`Multiremote object has no instance named "${name}"`)
+        }
 
         // @ts-expect-error invalid params
         const result = await elem.getSize()

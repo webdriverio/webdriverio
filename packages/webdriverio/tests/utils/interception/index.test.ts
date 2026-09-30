@@ -33,6 +33,7 @@ describe('WebDriverInterception', () => {
     ) => {
         const defaults = {
             options,
+            isFirefox: false,
             sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
             networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: 'mock-id' })),
             networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' })),
@@ -304,6 +305,7 @@ describe('WebDriverInterception', () => {
             statusCode: 200,
             body: { type: 'string', value: 'mocked response' }
         })
+        expect(loggerMock.warn).not.toHaveBeenCalled()
 
         vi.mocked(browser.networkProvideResponse).mockClear()
         browser.emit('network.responseStarted', {
@@ -318,6 +320,94 @@ describe('WebDriverInterception', () => {
         expect(mock.calls).toHaveLength(1)
     })
 
+    it('should respond at beforeRequestSent in Firefox for static response overwrites', async () => {
+        const browser = getResponseCollectionBrowserMock({}, { isFirefox: true })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+
+        vi.mocked(browser.networkProvideResponse).mockClear()
+        browser.emit('network.responseStarted', {
+            ...getBlockedRequestStub(),
+            response: { status: 200, headers: [] }
+        })
+        await waitForAsyncHandlers()
+
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+        expect(mock.calls).toHaveLength(1)
+    })
+
+    it('should warn only once when Firefox skips the origin for static responses', async () => {
+        const browser = getResponseCollectionBrowserMock({}, { isFirefox: true })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-123'))
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-456'))
+
+        expect(loggerMock.warn).toHaveBeenCalledTimes(1)
+        expect(loggerMock.warn).toHaveBeenCalledWith(expect.stringContaining('origin request is skipped'))
+    })
+
+    it('should run a request-only dynamic response early in Firefox when fetchResponse is false', async () => {
+        const browser = getResponseCollectionBrowserMock({}, { isFirefox: true })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond((request) => ({ url: request.request.url }), { fetchResponse: false })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: '{"url":"http://test.com/api"}' }
+        })
+        expect(loggerMock.warn).not.toHaveBeenCalled()
+    })
+
+    it('should apply pending request overwrites before Firefox response overwrites', async () => {
+        const browser = getResponseCollectionBrowserMock({}, { isFirefox: true })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.abort()
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('should fail a blocked request and clear response data when Firefox rejects a response', async () => {
+        const browser = getResponseCollectionBrowserMock({}, { isFirefox: true })
+        vi.mocked(browser.networkProvideResponse).mockRejectedValue(new Error('mock response failed'))
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond(Buffer.from('binary response'))
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+        await waitForAsyncHandlers()
+
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(mock.getBinaryResponse('req-123')).toBeNull()
+    })
+
+    it('should wait for the response in Firefox when response filters need origin data', async () => {
+        const browser = getResponseCollectionBrowserMock({}, { isFirefox: true })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', { statusCode: 200 }, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
     it('should fetch the backend by default', async () => {
         const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
@@ -329,6 +419,44 @@ describe('WebDriverInterception', () => {
             request: 'req-123'
         })
         expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+        expect(loggerMock.warn).not.toHaveBeenCalled()
+    })
+
+    it('should fail a blocked request when providing a mock response fails', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        vi.mocked(browser.networkProvideResponse).mockRejectedValue(new Error('mock response failed'))
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+        browser.emit('network.responseStarted', {
+            ...getBlockedRequestStub(),
+            response: { status: 200, headers: [] }
+        })
+        await waitForAsyncHandlers()
+
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(loggerMock.error).toHaveBeenCalledWith(expect.stringContaining('Failed to provide mock response for request req-123: mock response failed'))
+    })
+
+    it('should log failed failRequest without sending the request to the origin', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        vi.mocked(browser.networkProvideResponse).mockRejectedValue(new Error('mock response failed'))
+        vi.mocked(browser.networkFailRequest).mockRejectedValue(new Error('fail request failed'))
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+        vi.mocked(browser.networkContinueRequest).mockClear()
+        browser.emit('network.responseStarted', {
+            ...getBlockedRequestStub(),
+            response: { status: 200, headers: [] }
+        })
+        await waitForAsyncHandlers()
+
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        expect(loggerMock.error).toHaveBeenCalledWith(expect.stringContaining('Failed to fail blocked mock request req-123: fail request failed'))
     })
 
     it('should expose a binary response when fetchResponse is false', async () => {
