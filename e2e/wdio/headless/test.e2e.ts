@@ -888,14 +888,21 @@ describe('main suite 1', () => {
         })
     })
 
-    it('should be able to save PDF with pageRanges', async () => {
+    it('should save a PDF whose bytes start with %PDF', async () => {
         await browser.url('https://guinea-pig.webdriver.io/')
 
-        const pdf = await browser.savePDF(path.join(os.tmpdir(), 'page-ranges.pdf'), {
+        const file = path.join(os.tmpdir(), `save-pdf-${Date.now()}.pdf`)
+        const pdf = await browser.savePDF(file, {
+            orientation: 'landscape',
+            left: 2,
             pageRanges: ['1', 2]
         })
 
-        expect(pdf.length).toBeGreaterThan(0)
+        expect(browser.isBidi).toBe(true)
+        expect(pdf.subarray(0, 5).toString()).toBe('%PDF-')
+        const written = await fs.readFile(file)
+        expect(written.subarray(0, 5).toString()).toBe('%PDF-')
+        await fs.rm(file, { force: true })
     })
 
     it('should be able to create and update a mock sensor', async () => {

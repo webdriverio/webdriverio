@@ -157,7 +157,7 @@ export async function serialize (value: unknown, opts: SerializeOptions = {}): P
     if (isElementArray(value)) {
         /**
          * An unresolved ElementArray is thenable. Await it before reading
-         * entries. `slice` and `map` on the list are async query helpers, so
+         * entries. A resolved list still owns async `slice` and `map`, so
          * copy with `Array.prototype` and format that plain array.
          */
         const list = typeof (value as { then?: unknown }).then === 'function'

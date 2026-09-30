@@ -82,6 +82,25 @@ describe('exec serialize', () => {
         expect((await serialize(wdioList(items, false), { describeElement })).text).toBe(expected)
     })
 
+    it('prints an element list whose map returns a promise', async () => {
+        const items = [element('nav a', 'a1'), element('nav a', 'a2')]
+        const list = Object.assign([...items], {
+            selector: 'nav a',
+            foundWith: '$$',
+            slice (start?: number, end?: number) {
+                const sliced = Array.prototype.slice.call(this, start, end) as ReturnType<typeof element>[]
+                return Object.assign(sliced, {
+                    async map (cb: (el: ReturnType<typeof element>, index: number) => unknown) {
+                        return Promise.all(Array.prototype.map.call(this, cb) as Promise<unknown>[])
+                    }
+                })
+            }
+        })
+        expect((await serialize(list, { describeElement: async () => ({ tag: 'a', name: 'Home' }) })).text).toBe(
+            'ElementArray(2) [\n  <a "Home" selector="nav a">\n  <a "Home" selector="nav a">\n]'
+        )
+    })
+
     it('prints buffers as a size', async () => {
         expect((await serialize(Buffer.alloc(12345))).text).toBe('<Buffer 12345 bytes>')
         expect((await serialize(new Uint8Array(3))).text).toBe('<Buffer 3 bytes>')
