@@ -116,6 +116,7 @@ export default class WebDriverInterception {
 
     #eventHandler: Map<string, Function[]> = new Map()
     #restored = false
+    #restorePromise?: Promise<this>
     #requestOverwrites: Overwrite[] = []
     #respondOverwrites: Overwrite[] = []
     #calls: Response[] = []
@@ -824,6 +825,20 @@ export default class WebDriverInterception {
      */
     async restore() {
         /**
+         * Concurrent or repeated calls share a single restore so the intercept
+         * is only removed once, removing it twice fails with "no such intercept".
+         */
+        if (!this.#restorePromise) {
+            this.#restorePromise = this.#restore().catch((err) => {
+                this.#restorePromise = undefined
+                throw err
+            })
+        }
+        return this.#restorePromise
+    }
+
+    async #restore() {
+        /**
          * Snapshot before reset()/clear() — those clear `#blockedRequests`, and we
          * still need to continue any in-flight blocked requests after cleanup.
          */
@@ -965,6 +980,16 @@ export default class WebDriverInterception {
         return Promise.resolve(networkCall).finally(() => {
             this.#blockedRequests.delete(requestId)
         })
+    }
+
+    /**
+     * Whether this mock was registered on the given browser. `SESSION_MOCKS` is
+     * shared by all instances of a multiremote browser.
+     * @param browser  browser instance to check
+     * @returns        `true` if this mock belongs to that browser
+     */
+    isOwnedBy(browser: WebdriverIO.Browser) {
+        return this.#browser === browser
     }
 
     isSameDefinition(url: string | URLPattern, filterOptions: MockFilterOptions = {}) {
