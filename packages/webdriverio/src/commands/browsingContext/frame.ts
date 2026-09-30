@@ -1,5 +1,8 @@
+import type { remote } from 'webdriver'
+
 import type { ChainablePromiseElement } from '../../types.js'
 import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
+import { LocalValue } from '../../utils/bidi/value.js'
 import { getBrowsingContext } from '../../browsingContext.js'
 
 type FrameTarget = string | WebdriverIO.Element | ChainablePromiseElement | FramePredicate
@@ -34,6 +37,24 @@ export async function frame (
         return frameFromElement(this, element)
     }
     if (typeof target === 'string') {
+        /**
+         * A url or context id can appear after the call starts. A selector is
+         * checked once, then resolved as an element, so it does not wait out
+         * the full timeout before that fallback.
+         */
+        if (target.includes('://') || target.startsWith('/') || /^[A-Fa-f0-9-]{16,}$/.test(target)) {
+            const waited = await this.waitUntil(
+                async () => (await frameFromTree(this, target)) || false,
+                {
+                    timeout: this.options.waitforTimeout,
+                    interval: this.options.waitforInterval,
+                    timeoutMsg: `Could not find a frame for "${target}"`
+                }
+            ).catch(() => undefined)
+            if (waited) {
+                return waited
+            }
+        }
         const fromTree = await frameFromTree(this, target)
         if (fromTree) {
             return fromTree
@@ -81,17 +102,25 @@ async function frameByPredicate (
     predicate: FramePredicate
 ): Promise<WebdriverIO.BrowsingContext> {
     const browser = caller.browser
-    const children = await childNodes(caller)
     const functionDeclaration = createBidiFunctionDeclaration(predicate as unknown as Function)
-    const match = await findInTree(caller, children, async (node) => {
-        const result = await browser.scriptCallFunction({
-            functionDeclaration,
-            awaitPromise: true,
-            arguments: [],
-            target: { context: node.context }
-        }).catch(() => undefined)
-        return Boolean(result && result.type === 'success' && result.result.type === 'boolean' && result.result.value)
-    })
+    const match = await caller.waitUntil(async () => {
+        const children = await childNodes(caller)
+        return (await findInTree(caller, children, async (node) => {
+            const result = await browser.scriptCallFunction({
+                functionDeclaration,
+                awaitPromise: true,
+                arguments: [
+                    LocalValue.getArgument({ context: node.context, url: node.url }) as remote.ScriptLocalValue
+                ],
+                target: { context: node.context }
+            }).catch(() => undefined)
+            return Boolean(result && result.type === 'success' && result.result.type === 'boolean' && result.result.value)
+        })) || false
+    }, {
+        timeout: caller.options.waitforTimeout,
+        interval: caller.options.waitforInterval,
+        timeoutMsg: 'No frame matched the given function'
+    }).catch(() => undefined)
     if (!match) {
         throw new Error('No frame matched the given function')
     }

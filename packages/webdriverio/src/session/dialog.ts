@@ -151,6 +151,7 @@ export class Dialog {
             context: this.#context,
             userText
         })
+        getDialogManager(browser).clearPrompt(this.#context)
     }
 
     async dismiss() {
@@ -167,5 +168,6 @@ export class Dialog {
             accept: false,
             context: this.#context
         })
+        getDialogManager(browser).clearPrompt(this.#context)
     }
 }

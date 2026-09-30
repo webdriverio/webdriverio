@@ -1,6 +1,8 @@
 import { validateUrl } from '../../utils/index.js'
 import { getNetworkManager } from '../../session/networkManager.js'
-import type { InitScript } from './addInitScript.js'
+import { getContextManager } from '../../session/context.js'
+import { contextIdValue } from '../../session/browsingContext.js'
+import { addInitScript, type InitScript } from './addInitScript.js'
 
 type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
 
@@ -57,7 +59,28 @@ export async function navigateInContext (
             throw new Error(`Option "onBeforeLoad" must be a function, but received: ${typeof options.onBeforeLoad}`)
         }
 
-        resetPreloadScript = await browser.addInitScript(options.onBeforeLoad as (() => void))
+        /**
+         * `browser.addInitScript` attaches the preload to the focused window.
+         * That is the context `browser.url()` navigates. A held context that is
+         * not the focused window has to register the preload itself, or the
+         * script would run in the wrong tab.
+         */
+        const target = contextIdValue(context)
+        const current = contextIdValue(await getContextManager(browser).getCurrentContext())
+        const fn = options.onBeforeLoad as () => void
+        if (target === current) {
+            resetPreloadScript = await browser.addInitScript(fn) as InitScript
+        } else {
+            const register = addInitScript as unknown as (
+                this: WebdriverIO.BrowsingContext,
+                script: () => void
+            ) => Promise<InitScript>
+            resetPreloadScript = await register.call({
+                contextId: target,
+                browser,
+                isFrame: false
+            } as WebdriverIO.BrowsingContext, fn)
+        }
     }
 
     if (options.auth) {
@@ -95,15 +118,20 @@ export async function navigateInContext (
             context,
             url: path,
             wait
-        }).catch((err: Error) => {
+        }).catch(async (err: Error) => {
             /**
              * WebDriver BiDi can fail a navigation that races another one.
+             * Classic `navigateTo` follows the focused window, so it is only
+             * safe when this navigation is already that window.
              * @see https://github.com/w3c/webdriver-bidi/issues/878
              */
+            const current = contextIdValue(await getContextManager(browser).getCurrentContext())
             if (
-                err.message.includes('navigation canceled by concurrent navigation') ||
-                err.message.includes('failed with error: unknown error') ||
-                err.message.includes('no such frame')
+                contextIdValue(context) === current && (
+                    err.message.includes('navigation canceled by concurrent navigation') ||
+                    err.message.includes('failed with error: unknown error') ||
+                    err.message.includes('no such frame')
+                )
             ) {
                 return browser.navigateTo(validateUrl(path))
             }

@@ -27,12 +27,12 @@ import type { ChainablePromiseElement } from '../../types.js'
  *
  * @alias browser.switchFrame
  * @param {Element|null} context  frame element, or `null` for the top frame (Classic only)
- * @return {Promise<string|void>}
+ * @return {void}
  */
 export async function switchFrame (
     this: WebdriverIO.Browser,
     context: WebdriverIO.Element | ChainablePromiseElement | string | null | ((tree: unknown) => boolean | Promise<boolean>)
-): Promise<string | void> {
+): Promise<void> {
     if (this.isBidi) {
         throw new Error(
             '`switchFrame` was removed for WebDriver BiDi sessions in WebdriverIO v10. ' +

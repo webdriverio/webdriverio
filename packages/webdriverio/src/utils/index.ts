@@ -438,10 +438,19 @@ async function findInFrameByScript (
      * Return one node, or a count. An array of nodes loses its browsing-context
      * identity on the way back, so later commands reject the shared id.
      */
-    const query = function (strategy: string, selector: string, at: number | null) {
-        const nodes = strategy === 'xpath'
-            ? (() => {
-                const snapshot = document.evaluate(selector, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+    const query = function (strategy: string, selector: string, at: number | null, root: ParentNode | null) {
+        const css = strategy === 'id'
+            ? `#${CSS.escape(selector)}`
+            : strategy === 'class name'
+                ? `.${selector.split(/\s+/).map((part) => CSS.escape(part)).join('.')}`
+                : strategy === 'name'
+                    ? `[name="${selector.replace(/"/g, '\\"')}"]`
+                    : strategy === 'tag name'
+                        ? selector
+                        : selector
+        const matches = (base: ParentNode): Node[] => {
+            if (strategy === 'xpath') {
+                const snapshot = document.evaluate(selector, base, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
                 const found: Node[] = []
                 for (let i = 0; i < snapshot.snapshotLength; i++) {
                     const node = snapshot.snapshotItem(i)
@@ -450,26 +459,41 @@ async function findInFrameByScript (
                     }
                 }
                 return found
-            })()
-            : strategy === 'link text' || strategy === 'partial link text'
-                ? Array.from(document.querySelectorAll('a')).filter((link) => (
+            }
+            const scope = 'querySelectorAll' in base ? base : document
+            if (strategy === 'link text' || strategy === 'partial link text') {
+                return Array.from(scope.querySelectorAll('a')).filter((link) => (
                     strategy === 'link text'
                         ? link.textContent === selector
                         : (link.textContent || '').includes(selector)
                 ))
-                : Array.from(document.querySelectorAll(selector))
+            }
+            const found: Node[] = Array.from(scope.querySelectorAll(css))
+            for (const element of Array.from(scope.querySelectorAll('*'))) {
+                if (element.shadowRoot) {
+                    found.push(...matches(element.shadowRoot))
+                }
+            }
+            return found
+        }
+        const nodes = matches(root && 'querySelectorAll' in root ? root : document)
         if (at === null) {
             return nodes.length
         }
         return nodes[at] || null
     }
+    const resolved = using === 'aria'
+        ? { using: 'xpath', value: getAriaXPathSelector(value) }
+        : { using, value }
+    const rootId = (scope as { [ELEMENT_KEY]?: string })[ELEMENT_KEY]
     const params: remote.ScriptCallFunctionParameters = {
         functionDeclaration: createBidiFunctionDeclaration(query as unknown as Function),
         awaitPromise: true,
         arguments: [
-            LocalValue.getArgument(using),
-            LocalValue.getArgument(value),
-            LocalValue.getArgument(index)
+            LocalValue.getArgument(resolved.using),
+            LocalValue.getArgument(resolved.value),
+            LocalValue.getArgument(index),
+            rootId ? { sharedId: rootId } : LocalValue.getArgument(null)
         ] as remote.ScriptLocalValue[],
         target: { context: held.contextId }
     }

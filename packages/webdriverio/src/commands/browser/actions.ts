@@ -1,5 +1,7 @@
-import type { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index.js'
+import { ELEMENT_KEY } from 'webdriver'
 import type { remote } from 'webdriver'
+
+import type { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index.js'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
 
@@ -36,9 +38,25 @@ export async function actions (
 ): Promise<void> {
     const payload = actions.map((action) => action.toJSON())
     if (isBrowsingContext(this)) {
+        const bidiPayload = payload.map((source) => ({
+            ...source,
+            actions: source.actions.map((action) => {
+                const origin = (action as { origin?: { [key: string]: string } }).origin
+                if (!origin || typeof origin !== 'object' || !(ELEMENT_KEY in origin)) {
+                    return action
+                }
+                return {
+                    ...action,
+                    origin: {
+                        type: 'element',
+                        element: { sharedId: origin[ELEMENT_KEY] }
+                    }
+                }
+            })
+        }))
         await this.browser.inputPerformActions({
             context: this.contextId,
-            actions: payload as remote.InputSourceActions[]
+            actions: bidiPayload as remote.InputSourceActions[]
         })
         await this.browser.inputReleaseActions({ context: this.contextId })
         return

@@ -97,7 +97,12 @@ async function readBidiCookies (
 ): Promise<Cookie[]> {
     try {
         const { cookies } = await browser.storageGetCookies(params)
-        if (cookies.length === 0) {
+        /**
+         * A context partition is already the held tab. An empty result is that
+         * tab's cookies. The classic fallback would read the focused window.
+         */
+        const partitionedByContext = params.partition?.type === 'context'
+        if (cookies.length === 0 && !partitionedByContext) {
             log.debug('BiDi getCookies returned empty, falling back to classic')
             return getCookiesClassic.call(browser, filter)
         }
@@ -108,6 +113,9 @@ async function readBidiCookies (
                 : cookie.value.value,
         }))
     } catch (err) {
+        if (params.partition?.type === 'context') {
+            throw err
+        }
         log.warn(`BiDi getCookies failed, falling back to classic: ${(err as Error).message}`)
         return getCookiesClassic.call(browser, filter)
     }
