@@ -67,7 +67,7 @@ export function buildPackageScaffold(packageName: string, packageType: PackageTy
   "type": "module",
   "exports": "./build/index.js",
   "types": "./build/index.d.ts",
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "engines": {
     "node": ">=22.19.0"
   },

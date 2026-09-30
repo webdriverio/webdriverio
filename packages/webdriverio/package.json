@@ -64,7 +64,7 @@
     }
   },
   "types": "./build/index.d.ts",
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "devDependencies": {
     "@sinonjs/fake-timers": "^14.0.0",
     "@types/archiver": "^8.0.0",

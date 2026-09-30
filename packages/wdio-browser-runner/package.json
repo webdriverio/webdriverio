@@ -70,7 +70,7 @@
     "build:copy:css": "cp ./node_modules/mocha/mocha.css ./build/third_party/mocha.css",
     "build:copy:js": "sed '$d' ./node_modules/mocha/mocha.js > ./build/third_party/mocha.js"
   },
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "dependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@vitest/spy": "^5.0.2",
