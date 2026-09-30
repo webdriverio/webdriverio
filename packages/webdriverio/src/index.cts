@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import * as kind from '@wdio/utils/kind'
+
 exports.SevereServiceError = class SevereServiceError extends Error {
     constructor(message = 'Severe Service Error occurred.') {
         super(message)
@@ -118,3 +120,15 @@ exports.multiRemote = async function(
     const { multiRemote } = await import('./node.js')
     return multiRemote(params, { automationProtocol })
 }
+
+/**
+ * The `wdio.kind` brand helpers (see `@wdio/utils` `kind.ts`) are synchronous,
+ * so they come from the CommonJS build of `@wdio/utils/kind`, not from `./node.js`.
+ */
+exports.WDIO_KIND = kind.WDIO_KIND
+exports.getWdioKind = kind.getWdioKind
+exports.isBrowserKind = kind.isBrowserKind
+exports.isElementKind = kind.isElementKind
+exports.isElementArrayKind = kind.isElementArrayKind
+exports.isMultiRemoteKind = kind.isMultiRemoteKind
+exports.isChainableKind = kind.isChainableKind

@@ -15,6 +15,12 @@
       "source": "./src/node/index.ts",
       "import": "./build/node.js",
       "types": "./src/node/index.d.ts"
+    },
+    "./kind": {
+      "types": "./build/kind.d.ts",
+      "source": "./src/kind.ts",
+      "import": "./build/kind.js",
+      "require": "./build/kind.cjs"
     }
   },
   "types": "./build/index.d.ts",
