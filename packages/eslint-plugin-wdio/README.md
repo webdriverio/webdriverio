@@ -56,6 +56,16 @@ export default [
 
 `wdio/no-floating-promise` needs type information, so your spec files must be part of a `tsconfig.json`.
 
+To also lint JavaScript files, such as `wdio.conf.js`, add them to the TypeScript project (`"allowJs": true` and the files in `include`), then widen the pattern:
+
+```js
+export default [
+    { files: ['**/*.{js,mjs,cjs,ts,mts,cts}'], ...wdioConfig['flat/recommended'] },
+];
+```
+
+If a matched file is not part of the TypeScript project, ESLint reports "was not found by the project service".
+
 ## List of supported rules
 
 
