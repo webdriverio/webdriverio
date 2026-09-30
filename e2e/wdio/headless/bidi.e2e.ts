@@ -1,5 +1,14 @@
+import path from 'node:path'
+import url from 'node:url'
+
 import { browser, expect } from '@wdio/globals'
 import type { local, remote } from 'webdriver'
+
+const extensionFixture = path.resolve(
+    path.dirname(url.fileURLToPath(import.meta.url)),
+    '__fixtures__',
+    'web-extension'
+)
 
 describe('bidi e2e test', () => {
     describe('execute', () => {
@@ -648,6 +657,36 @@ describe('bidi e2e test', () => {
                         await restore()
                     }
                 })
+            })
+        })
+
+        describe('web extension', () => {
+            it('installs and uninstalls an extension', async () => {
+                const browserName = browser.capabilities.browserName ?? 'unknown'
+                /**
+                 * Chrome, Edge, and Chromium are started with the flags that
+                 * enable webExtension.install. A missing command there is a
+                 * regression. Other BiDi browsers may report `unsupported
+                 * operation` or `unknown command`; that result is asserted.
+                 */
+                const requiresExtensionCommands = /chrome|chromium|edge/i.test(browserName)
+                let id: string
+                try {
+                    id = await browser.installExtension(extensionFixture)
+                } catch (err) {
+                    const message = err instanceof Error ? err.message : String(err)
+                    if (!requiresExtensionCommands && /unsupported operation|unknown command/i.test(message)) {
+                        expect(message).toMatch(/unsupported operation|unknown command/i)
+                        console.log(`webExtension.install is not implemented in ${browserName}: ${message}`)
+                        return
+                    }
+                    throw err
+                }
+
+                expect(id).toEqual(expect.any(String))
+                expect(id.length).toBeGreaterThan(0)
+                await browser.uninstallExtension(id)
+                await expect(browser.uninstallExtension(id)).rejects.toThrow()
             })
         })
     })
