@@ -41,6 +41,21 @@ describe('wrapCommand', () => {
             }
         })
 
+        it('brands a pending element list as an element list that is not chainable', () => {
+            const customList = wrapCommand('allFoo$$', vi.fn().mockResolvedValue([])).call(scope) as object
+            /**
+             * a chained `$$` without a registered ElementArray factory keeps the promise proxy
+             */
+            const chainedScope = Object.assign(Promise.resolve(scope), scope)
+            const chainedList = wrapCommand('$$', vi.fn().mockResolvedValue([])).call(chainedScope) as object
+
+            for (const list of [customList, chainedList]) {
+                expect(brandsOf(list)).toEqual({ kind: 'element-array', chainable: undefined })
+                expect(WDIO_KIND in list).toBe(true)
+                expect(WDIO_CHAINABLE in list).toBe(false)
+            }
+        })
+
         it('supports `in` on the chain', () => {
             const chain = wrapCommand('$', vi.fn().mockResolvedValue({})).call(scope) as object
 

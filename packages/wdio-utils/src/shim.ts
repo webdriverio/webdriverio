@@ -202,6 +202,11 @@ function createElementPromiseProxy (
     kind?: WdioKind,
     multiRemote = false
 ): unknown {
+    /**
+     * only an unresolved element is chainable: a pending element list (for example
+     * a custom `$$` command) has the kind `'element-array'` and no chainable brand
+     */
+    const chainable = kind === 'element'
     return new Proxy(
         Promise.resolve(promise).then((ctx) => cmd.call(ctx, ...args)),
         {
@@ -209,7 +214,8 @@ function createElementPromiseProxy (
              * the brands of the chain (see `kind.ts`), so `WDIO_KIND in $('foo')` is true
              */
             has: (target, prop) => (
-                (prop === WDIO_KIND || prop === WDIO_CHAINABLE) && kind !== undefined
+                (prop === WDIO_KIND && kind !== undefined) ||
+                (prop === WDIO_CHAINABLE && chainable)
             ) || Reflect.has(target, prop),
             get: (target, prop: string) => {
                 /**
@@ -220,7 +226,7 @@ function createElementPromiseProxy (
                     return kind
                 }
                 if ((prop as string | symbol) === WDIO_CHAINABLE) {
-                    return kind === undefined ? undefined : true
+                    return chainable || undefined
                 }
                 if ((prop as string | symbol) === MULTI_REMOTE_ORIGIN) {
                     return multiRemote
