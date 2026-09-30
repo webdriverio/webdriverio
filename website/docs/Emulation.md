@@ -1,10 +1,10 @@
 ---
 id: emulation
 title: Emulation
-description: "Emulate geolocation, color scheme, user agent, online state, clock and devices in the browser with the emulate command."
+description: "Emulate geolocation, media features, user agent, network, locale, timezone, screen and devices with the emulate command."
 ---
 
-With WebdriverIO you can emulate Web APIs using the [`emulate`](/docs/api/browser/emulate) command to return custom values that help you emulate certain browser behaviors. Note that this requires your application to explicitly use these APIs.
+With WebdriverIO you can emulate browser behavior using the [`emulate`](/docs/api/browser/emulate) command. The command drives the [WebDriver BiDi emulation module](https://w3c.github.io/webdriver-bidi/#module-emulation) for the current top-level browsing context. The override applies immediately. You do not reload the page. `clock` is the exception: BiDi has no clock command, so that scope still installs fake timers.
 
 <LiteYouTubeEmbed
     id="2bQXzIB_97M"
@@ -13,11 +13,15 @@ With WebdriverIO you can emulate Web APIs using the [`emulate`](/docs/api/browse
 
 :::info
 
-This feature requires WebDriver Bidi support for the browser. While recent versions of Chrome, Edge and Firefox have such support, Safari __does not__. For updates follow [wpt.fyi](https://wpt.fyi/results/webdriver/tests/bidi/script/add_preload_script/add_preload_script.py?label=experimental&label=master&aligned). Furthermore if you use a cloud vendor for spawning browsers, make sure your vendor also supports WebDriver Bidi.
+This feature requires WebDriver Bidi support for the browser. While recent versions of Chrome, Edge and Firefox have such support, Safari __does not__. For updates follow [wpt.fyi](https://wpt.fyi/results/webdriver/tests/bidi/emulation?label=experimental&label=master&aligned). Furthermore if you use a cloud vendor for spawning browsers, make sure your vendor also supports WebDriver Bidi.
 
 To enable WebDriver Bidi for your test, make sure to have `webSocketUrl: true` set in your capabilities.
 
+A browser that does not implement a command rejects it with `unsupported operation`. WebdriverIO does not fall back to a preload script or to CDP.
+
 :::
+
+`emulate` returns a function that clears that scope. [`browser.restore()`](/docs/api/browser/restore) clears every active scope, or the scopes you list.
 
 ## Geolocation
 
@@ -29,17 +33,24 @@ await browser.emulate('geolocation', {
     longitude: 13.39,
     accuracy: 100
 })
+await browser.setPermissions({ name: 'geolocation' }, 'granted')
 await browser.url('https://www.google.com/maps')
 await browser.$('aria/Show Your Location').click()
 await browser.pause(5000)
 console.log(await browser.getUrl()) // outputs: "https://www.google.com/maps/@52.52,13.39,16z?entry=ttu"
 ```
 
-This will monkey patch how [`navigator.geolocation.getCurrentPosition`](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition) works and returns the location provided by you.
+This uses the browser geolocation stack, including `getCurrentPosition` and `watchPosition`. A page can still need the geolocation permission granted, as in the example. Optional fields are `accuracy`, `altitude`, `altitudeAccuracy`, `heading` and `speed`.
 
-## Color Scheme
+To make the page fail to read a position:
 
-Change the default color scheme setup of the browser via:
+```ts
+await browser.emulate('geolocation', { error: 'positionUnavailable' })
+```
+
+## Color Scheme and other media features
+
+Change the `prefers-color-scheme` media feature:
 
 ```ts
 await browser.emulate('colorScheme', 'light')
@@ -48,32 +59,66 @@ const backgroundColor = await browser.$('nav').getCSSProperty('background-color'
 console.log(backgroundColor.parsed.hex) // outputs: "#efefef"
 
 await browser.emulate('colorScheme', 'dark')
-await browser.url('https://webdriver.io')
-const backgroundColor = await browser.$('nav').getCSSProperty('background-color')
-console.log(backgroundColor.parsed.hex) // outputs: "#000000"
+const backgroundColorDark = await browser.$('nav').getCSSProperty('background-color')
+console.log(backgroundColorDark.parsed.hex) // outputs: "#000000"
 ```
 
-This will monkey patch how [`window.matchMedia`](https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia) behaves when you query the color scheme via `(prefers-color-scheme: dark)`.
+This updates CSS `@media (prefers-color-scheme)` as well as [`window.matchMedia`](https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia). No reload is required.
+
+`media` sets the rest of the media-feature map, for example reduced motion:
+
+```ts
+await browser.emulate('media', { prefersReducedMotion: 'reduce', hover: 'none' })
+```
+
+`colorScheme` and `media` share one map. The BiDi command replaces the whole map, so the later call wins. Restoring either scope clears the map.
+
+`forcedColors` is a different command. It sets the forced-colors theme (`'light'` or `'dark'`), not the `forced-colors` media feature. That media feature stays on `media` as `forcedColors: 'none' | 'active'`.
 
 ## User Agent
 
-Change the user agent of the browser to a different string via:
+Change the user agent of the browser via:
 
 ```ts
 await browser.emulate('userAgent', 'Chrome/1.2.3.4 Safari/537.36')
 ```
 
-This will change the value of [`navigator.userAgent`](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/userAgent). Note that browser vendors progressively deprecating the User Agent.
+This is the browser's user-agent override. It is not a patched `navigator.userAgent` property. Browser vendors are progressively deprecating the User Agent.
 
-## onLine Property
+## Online state
 
-Change the online status of the browser via:
+Take the browsing context offline:
 
 ```ts
 await browser.emulate('onLine', false)
 ```
 
-This will __not__ turn off network traffic between the browser and the internet and only changes the return value of [`navigator.onLine`](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/onLine). If you are interested modifying network capabilities of the browser, look into the [`throttleNetwork`](/docs/api/browser/throttleNetwork) command.
+`false` sends `emulation.setNetworkConditions` with `{ type: 'offline' }`. Fetch, WebSocket and WebTransport fail, and [`navigator.onLine`](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/onLine) follows. `true`, and restoring the scope, clears the condition. Throughput and latency stay on [`throttleNetwork`](/docs/api/browser/throttleNetwork). BiDi network conditions only support offline.
+
+## Locale, timezone and touch
+
+```ts
+await browser.emulate('locale', 'fr-FR')
+await browser.emulate('timezone', 'Pacific/Honolulu')
+await browser.emulate('touch', 1)
+```
+
+`locale` is a BCP 47 tag. `timezone` is an IANA name or an offset such as `+02:00`. `touch` is `maxTouchPoints` and must be an integer `>= 1`. Restoring `touch` clears the override. It cannot set `0`.
+
+## Screen, orientation and layout
+
+```ts
+await browser.emulate('screen', { width: 390, height: 844 })
+await browser.emulate('orientation', { natural: 'portrait', type: 'portrait-primary' })
+await browser.emulate('viewportMeta', true)
+await browser.emulate('textLayout', 'mobile')
+await browser.emulate('scrollbar', 'overlay')
+await browser.emulate('scripting', false)
+```
+
+`screen` is the web-exposed screen area, not the viewport. `orientation.natural` is `'portrait'` or `'landscape'`. `orientation.type` is `'portrait-primary'`, `'portrait-secondary'`, `'landscape-primary'` or `'landscape-secondary'`.
+
+`viewportMeta` only accepts `true`. The spec value is `true | null`, so there is no `false`. Restore clears it. `textLayout` only accepts `'mobile'`. `scripting` can only be disabled. The spec cannot force scripting on. `scrollbar` is `'classic'` or `'overlay'`.
 
 ## Clock
 
@@ -151,15 +196,22 @@ interface FakeTimerInstallOpts {
 
 ## Device
 
-The `emulate` command also supports emulating a certain mobile or desktop device by changing the viewport, device scale factor and the user agent. This should, by no means, be used for mobile testing as desktop browser engines differ from mobile ones. This should only be used if your application offers a specific behavior for smaller viewport sizes.
+The `emulate` command also supports emulating a certain mobile or desktop device. This should, by no means, be used for mobile testing as desktop browser engines differ from mobile ones. This should only be used if your application offers a specific behavior for smaller viewport sizes.
 
-For example, to switch the user agent and viewport to an iPhone 15, just run:
+For a device, WebdriverIO:
+
+- sets the user agent from the descriptor
+- sets the viewport and device scale factor
+- sets `maxTouchPoints` to `1` when the descriptor has touch, and clears touch otherwise
+- sets mobile text layout and the viewport meta tag when the descriptor is mobile, and clears them otherwise
+
+It does not invent a screen size or an orientation from the device name. Viewport is not `screen.width`. Use the `screen` and `orientation` scopes for those.
 
 ```ts
 const restore = await browser.emulate('device', 'iPhone 15')
 // test your application ...
 
-// reset to original viewport and user agent
+// reset user agent, viewport, touch, text layout and viewport meta
 await restore()
 ```
 

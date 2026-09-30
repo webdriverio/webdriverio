@@ -28,8 +28,6 @@ export const NETWORK_PRESETS: Record<string, { latency: number, download_through
     WiFi: { latency: 2, download_throughput: 30 * 1024 * 1024 / 8, upload_throughput: 15 * 1024 * 1024 / 8 }
 }
 
-const RELOAD_HINT = 'Reload the page to apply (`wdio session reload`).'
-
 const done = (text: string, code: string): ActionOutcome => ({ text, code, history: code })
 
 interface Emulation {
@@ -360,12 +358,95 @@ export function findDevice (name: string): DeviceName | undefined {
     return names.find((n) => n === name) || names.find((n) => n.toLowerCase() === name.toLowerCase())
 }
 
-export function parseViewport (value: string) {
+export function parseViewport (value: string, label = 'viewport') {
     const match = value.match(/^(\d+)x(\d+)$/)
     if (!match) {
-        throw usage(`Invalid viewport "${value}".`, 'Use <width>x<height>, e.g. 1280x720.')
+        throw usage(`Invalid ${label} "${value}".`, 'Use <width>x<height>, e.g. 1280x720.')
     }
     return { width: Number(match[1]), height: Number(match[2]) }
+}
+
+const MEDIA_FEATURES = [
+    'anyHover', 'anyPointer', 'color', 'colorGamut', 'colorIndex', 'displayMode', 'dynamicRange',
+    'environmentBlending', 'forcedColors', 'grid', 'horizontalViewportSegments', 'hover',
+    'invertedColors', 'monochrome', 'navControls', 'overflowBlock', 'overflowInline', 'pointer',
+    'prefersColorScheme', 'prefersContrast', 'prefersReducedData', 'prefersReducedMotion',
+    'prefersReducedTransparency', 'scan', 'scripting', 'update', 'verticalViewportSegments',
+    'videoColorGamut', 'videoDynamicRange'
+] as const
+
+const NUMERIC_MEDIA_FEATURES = new Set<string>([
+    'color', 'colorIndex', 'grid', 'horizontalViewportSegments', 'monochrome', 'verticalViewportSegments'
+])
+
+const ORIENTATION_NATURAL = ['portrait', 'landscape']
+const ORIENTATION_TYPES = ['portrait-primary', 'portrait-secondary', 'landscape-primary', 'landscape-secondary']
+
+/**
+ * `key=value` pairs use the generated camelCase feature names. A JSON object
+ * is accepted for the same map.
+ */
+export function parseMediaFeatures (value: string) {
+    const trimmed = value.trim()
+    const features: Record<string, string | number | null> = {}
+    if (trimmed.startsWith('{')) {
+        let parsed: unknown
+        try {
+            parsed = JSON.parse(trimmed)
+        } catch {
+            throw usage(`Invalid media features "${value}".`, 'Use JSON or key=value, for example prefersReducedMotion=reduce.')
+        }
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw usage('Media features must be an object.', 'Use key=value, for example prefersReducedMotion=reduce.')
+        }
+        for (const [key, raw] of Object.entries(parsed)) {
+            if (!MEDIA_FEATURES.includes(key as typeof MEDIA_FEATURES[number])) {
+                throw usage(`Unknown media feature "${key}".`, 'Use a name such as prefersReducedMotion, hover or prefersColorScheme.')
+            }
+            if (raw !== null && typeof raw !== 'string' && typeof raw !== 'number') {
+                throw usage(`Invalid value for media feature "${key}".`)
+            }
+            features[key] = raw as string | number | null
+        }
+    } else {
+        for (const part of trimmed.split(',')) {
+            const eq = part.indexOf('=')
+            if (eq <= 0) {
+                throw usage(`Invalid media feature "${part.trim()}".`, 'Use key=value, for example prefersReducedMotion=reduce.')
+            }
+            const key = part.slice(0, eq).trim()
+            const raw = part.slice(eq + 1).trim()
+            if (!MEDIA_FEATURES.includes(key as typeof MEDIA_FEATURES[number])) {
+                throw usage(`Unknown media feature "${key}".`, 'Use a name such as prefersReducedMotion, hover or prefersColorScheme.')
+            }
+            if (raw === 'null') {
+                features[key] = null
+            } else if (NUMERIC_MEDIA_FEATURES.has(key)) {
+                const numeric = Number(raw)
+                if (!Number.isInteger(numeric) || numeric < 0) {
+                    throw usage(`Media feature "${key}" needs a non-negative integer.`)
+                }
+                features[key] = numeric
+            } else {
+                features[key] = raw
+            }
+        }
+    }
+    if (Object.keys(features).length === 0) {
+        throw usage('Media emulation needs at least one feature.', 'For example prefersReducedMotion=reduce.')
+    }
+    return features
+}
+
+export function parseOrientation (value: string) {
+    const [natural, type] = value.split(':')
+    if (!natural || !type || !ORIENTATION_NATURAL.includes(natural) || !ORIENTATION_TYPES.includes(type)) {
+        throw usage(`Invalid orientation "${value}".`, 'Use <natural>:<type>, for example portrait:portrait-primary.')
+    }
+    return {
+        natural: natural as 'portrait' | 'landscape',
+        type: type as 'portrait-primary' | 'portrait-secondary' | 'landscape-primary' | 'landscape-secondary'
+    }
 }
 
 export const emulate: ActionFn = async (session, args) => {
@@ -394,7 +475,7 @@ export const emulate: ActionFn = async (session, args) => {
         const device = deviceDescriptorsSource[name]
         await swap(session, 'device', () => browser.emulate('device', name))
         return {
-            ...done(`Emulating ${name} (${device.viewport.width}x${device.viewport.height} @${device.deviceScaleFactor}x). ${RELOAD_HINT}`, `await browser.emulate('device', ${quote(name)})`),
+            ...done(`Emulating ${name} (${device.viewport.width}x${device.viewport.height} @${device.deviceScaleFactor}x).`, `await browser.emulate('device', ${quote(name)})`),
             data: { device: name, ...device.viewport, devicePixelRatio: device.deviceScaleFactor }
         }
     }
@@ -556,13 +637,95 @@ export const emulate: ActionFn = async (session, args) => {
         }
         session.requireBidi('Color scheme emulation')
         await swap(session, 'colorScheme', () => browser.emulate('colorScheme', scheme))
-        return done(`Color scheme ${scheme}. ${RELOAD_HINT}`, `await browser.emulate('colorScheme', '${scheme}')`)
+        return done(`Color scheme ${scheme}.`, `await browser.emulate('colorScheme', '${scheme}')`)
     }
     case 'user-agent': {
         const ua = needsValue('a user agent string')
         session.requireBidi('User agent emulation')
         await swap(session, 'userAgent', () => browser.emulate('userAgent', ua))
-        return done(`User agent set. ${RELOAD_HINT}`, `await browser.emulate('userAgent', ${quote(ua)})`)
+        return done('User agent set.', `await browser.emulate('userAgent', ${quote(ua)})`)
+    }
+    case 'media': {
+        const features = parseMediaFeatures(needsValue('media features, for example prefersReducedMotion=reduce'))
+        session.requireBidi('Media feature emulation')
+        await swap(session, 'media', () => browser.emulate('media', features as never))
+        return done('Media features set.', `await browser.emulate('media', ${JSON.stringify(features)})`)
+    }
+    case 'locale': {
+        const locale = needsValue('a BCP 47 locale, for example en-US')
+        session.requireBidi('Locale emulation')
+        await swap(session, 'locale', () => browser.emulate('locale', locale))
+        return done(`Locale ${locale}.`, `await browser.emulate('locale', ${quote(locale)})`)
+    }
+    case 'timezone': {
+        const timezone = needsValue('an IANA time zone or offset, for example Europe/Berlin')
+        session.requireBidi('Timezone emulation')
+        await swap(session, 'timezone', () => browser.emulate('timezone', timezone))
+        return done(`Timezone ${timezone}.`, `await browser.emulate('timezone', ${quote(timezone)})`)
+    }
+    case 'touch': {
+        const points = Number(needsValue('an integer >= 1'))
+        if (!Number.isInteger(points) || points < 1) {
+            throw usage('Touch emulation needs an integer >= 1.')
+        }
+        session.requireBidi('Touch emulation')
+        await swap(session, 'touch', () => browser.emulate('touch', points))
+        return done(`Touch ${points}.`, `await browser.emulate('touch', ${points})`)
+    }
+    case 'orientation': {
+        const orientation = parseOrientation(needsValue('natural:type, for example portrait:portrait-primary'))
+        session.requireBidi('Screen orientation emulation')
+        await swap(session, 'orientation', () => browser.emulate('orientation', orientation))
+        return done(`Orientation ${orientation.natural} ${orientation.type}.`, `await browser.emulate('orientation', ${JSON.stringify(orientation)})`)
+    }
+    case 'screen': {
+        const screen = parseViewport(needsValue('a size like 800x600'), 'screen')
+        session.requireBidi('Screen emulation')
+        await swap(session, 'screen', () => browser.emulate('screen', screen))
+        return done(`Screen ${screen.width}x${screen.height}.`, `await browser.emulate('screen', { width: ${screen.width}, height: ${screen.height} })`)
+    }
+    case 'viewport-meta': {
+        if (value && value !== 'true') {
+            throw usage('Viewport meta emulation only accepts true.', 'Run `wdio session emulate viewport-meta`.')
+        }
+        session.requireBidi('Viewport meta emulation')
+        await swap(session, 'viewportMeta', () => browser.emulate('viewportMeta', true))
+        return done('Viewport meta enabled.', 'await browser.emulate(\'viewportMeta\', true)')
+    }
+    case 'text-layout': {
+        const mode = value ?? 'mobile'
+        if (mode !== 'mobile') {
+            throw usage('Text layout emulation only supports mobile.')
+        }
+        session.requireBidi('Text layout emulation')
+        await swap(session, 'textLayout', () => browser.emulate('textLayout', 'mobile'))
+        return done('Text layout mobile.', 'await browser.emulate(\'textLayout\', \'mobile\')')
+    }
+    case 'scripting': {
+        if (needsValue('false') !== 'false') {
+            throw usage('Scripting can only be disabled.', 'Run `wdio session emulate scripting false`.')
+        }
+        session.requireBidi('Scripting emulation')
+        await swap(session, 'scripting', () => browser.emulate('scripting', false))
+        return done('Scripting disabled.', 'await browser.emulate(\'scripting\', false)')
+    }
+    case 'scrollbar': {
+        const scrollbar = needsValue('classic or overlay')
+        if (scrollbar !== 'classic' && scrollbar !== 'overlay') {
+            throw usage(`Invalid scrollbar "${scrollbar}".`, 'Use classic or overlay.')
+        }
+        session.requireBidi('Scrollbar emulation')
+        await swap(session, 'scrollbar', () => browser.emulate('scrollbar', scrollbar))
+        return done(`Scrollbar ${scrollbar}.`, `await browser.emulate('scrollbar', '${scrollbar}')`)
+    }
+    case 'forced-colors': {
+        const theme = needsValue('light or dark')
+        if (theme !== 'light' && theme !== 'dark') {
+            throw usage(`Invalid forced colors theme "${theme}".`, 'Use light or dark.')
+        }
+        session.requireBidi('Forced colors emulation')
+        await swap(session, 'forcedColors', () => browser.emulate('forcedColors', theme))
+        return done(`Forced colors ${theme}.`, `await browser.emulate('forcedColors', '${theme}')`)
     }
     case 'reset': {
         const map = emulations(session)
@@ -571,7 +734,7 @@ export const emulate: ActionFn = async (session, args) => {
             await remember(session, scope, undefined)
         }
         await applyViewport(session).catch(() => {})
-        return done(scopes.length ? `Reset ${scopes.join(', ')}. ${RELOAD_HINT}` : 'Nothing to reset', 'await browser.restore()')
+        return done(scopes.length ? `Reset ${scopes.join(', ')}.` : 'Nothing to reset', 'await browser.restore()')
     }
     default:
         throw usage(`Unknown emulation "${sub}".`)
@@ -613,6 +776,6 @@ export const geolocation: ActionFn = async (session, args) => {
     session.requireBidi('Geolocation emulation')
     const coords = { latitude, longitude, ...(accuracy !== undefined ? { accuracy } : {}) }
     await swap(session, 'geolocation', () => browser.emulate('geolocation', coords))
-    return done(`Location set to ${latitude}, ${longitude}. ${RELOAD_HINT}`,
+    return done(`Location set to ${latitude}, ${longitude}.`,
         `await browser.emulate('geolocation', { latitude: ${latitude}, longitude: ${longitude}${accuracy !== undefined ? `, accuracy: ${accuracy}` : ''} })`)
 }

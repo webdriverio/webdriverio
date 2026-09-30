@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { emulate, findDevice, geolocation, NETWORK_PRESETS, parseViewport } from '../../src/actions/emulate.js'
+import { emulate, findDevice, geolocation, NETWORK_PRESETS, parseMediaFeatures, parseOrientation, parseViewport } from '../../src/actions/emulate.js'
 import type { Session } from '../../src/session.js'
 
 describe('parseViewport', () => {
@@ -215,6 +215,82 @@ describe('classic chromium emulation', () => {
         await emulate(session, { sub: 'reset' })
         const removed = sent.find((entry) => entry.command === 'Page.removeScriptToEvaluateOnNewDocument')
         expect(removed?.params).toEqual({ identifier: 'script-1' })
+    })
+})
+
+describe('bidi emulation scopes', () => {
+    function bidiSession () {
+        const calls: { scope: string, value: unknown }[] = []
+        const store = new Map<string, unknown>()
+        const session = {
+            isBidi: true,
+            applies: ['W'],
+            browser: {
+                capabilities: { browserName: 'firefox' },
+                emulate: async (scope: string, value: unknown) => {
+                    calls.push({ scope, value })
+                    return async () => undefined
+                }
+            },
+            get: (key: string) => store.get(key),
+            set: (key: string, value: unknown) => store.set(key, value),
+            requireBidi () {}
+        }
+        return { session: session as unknown as Session, calls }
+    }
+
+    it('applies a device without asking for a reload', async () => {
+        const { session, calls } = bidiSession()
+        const result = await emulate(session, { sub: 'device', value: 'iPhone 15' })
+        expect(result.text).toBe('Emulating iPhone 15 (393x659 @3x).')
+        expect(result.text).not.toContain('Reload')
+        expect(calls).toEqual([{ scope: 'device', value: 'iPhone 15' }])
+    })
+
+    it('applies color scheme and user agent without a reload hint', async () => {
+        const { session } = bidiSession()
+        expect((await emulate(session, { sub: 'color-scheme', value: 'dark' })).text).toBe('Color scheme dark.')
+        expect((await emulate(session, { sub: 'user-agent', value: 'Custom UA' })).code).toContain("await browser.emulate('userAgent', 'Custom UA')")
+    })
+
+    it('parses media features, orientation and the remaining scopes', async () => {
+        expect(parseMediaFeatures('prefersReducedMotion=reduce,hover=none')).toEqual({
+            prefersReducedMotion: 'reduce',
+            hover: 'none'
+        })
+        expect(parseMediaFeatures('{"color":8,"forcedColors":null}')).toEqual({ color: 8, forcedColors: null })
+        expect(() => parseMediaFeatures('nope')).toThrow(/Invalid media feature/)
+        expect(parseOrientation('landscape:landscape-primary')).toEqual({
+            natural: 'landscape',
+            type: 'landscape-primary'
+        })
+
+        const { session, calls } = bidiSession()
+        expect((await emulate(session, { sub: 'media', value: 'prefersReducedMotion=reduce' })).code)
+            .toContain('"prefersReducedMotion":"reduce"')
+        expect((await emulate(session, { sub: 'locale', value: 'fr-FR' })).text).toBe('Locale fr-FR.')
+        expect((await emulate(session, { sub: 'timezone', value: 'Pacific/Honolulu' })).text).toBe('Timezone Pacific/Honolulu.')
+        expect((await emulate(session, { sub: 'touch', value: '2' })).code).toContain("emulate('touch', 2)")
+        expect((await emulate(session, { sub: 'orientation', value: 'portrait:portrait-primary' })).text).toContain('portrait-primary')
+        expect((await emulate(session, { sub: 'screen', value: '800x600' })).code).toContain('width: 800, height: 600')
+        expect((await emulate(session, { sub: 'viewport-meta' })).code).toContain("emulate('viewportMeta', true)")
+        expect((await emulate(session, { sub: 'text-layout' })).text).toBe('Text layout mobile.')
+        expect((await emulate(session, { sub: 'scripting', value: 'false' })).text).toBe('Scripting disabled.')
+        expect((await emulate(session, { sub: 'scrollbar', value: 'overlay' })).text).toBe('Scrollbar overlay.')
+        expect((await emulate(session, { sub: 'forced-colors', value: 'dark' })).text).toBe('Forced colors dark.')
+        expect(calls.map((call) => call.scope)).toEqual([
+            'media', 'locale', 'timezone', 'touch', 'orientation', 'screen',
+            'viewportMeta', 'textLayout', 'scripting', 'scrollbar', 'forcedColors'
+        ])
+        await expect(emulate(session, { sub: 'touch', value: '0' })).rejects.toThrow(/integer >= 1/)
+        await expect(emulate(session, { sub: 'screen', value: 'big' })).rejects.toThrow(/Invalid screen/)
+    })
+
+    it('sets geolocation without a reload hint', async () => {
+        const { session } = bidiSession()
+        const result = await geolocation(session, { lat: '52.52', lon: '13.405' })
+        expect(result.text).toBe('Location set to 52.52, 13.405.')
+        expect(result.text).not.toContain('Reload')
     })
 })
 

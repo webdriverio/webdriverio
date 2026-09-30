@@ -390,6 +390,20 @@ export class ContextManager extends SessionManager {
     }
 
     /**
+     * Browsing context id the emulation commands target. Several BiDi emulation
+     * commands reject a call that is not aimed at a top-level traversable, and
+     * a child frame id is not one. Resolve the frame the user is in to the
+     * top-level context that contains it.
+     */
+    async getCurrentTopLevelContext () {
+        const current = await this.getCurrentContext()
+        if (!current) {
+            return current
+        }
+        return await this.#getTopLevelContext(current) ?? current
+    }
+
+    /**
      * Sets the cached current window handle value.
      * @param handle current window handle to set
      */

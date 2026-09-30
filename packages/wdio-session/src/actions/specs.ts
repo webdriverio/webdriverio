@@ -280,9 +280,9 @@ export const ACTIONS: ActionSpec[] = [
      */
     {
         name: 'emulate', group: 'Emulation', applies: ['W'], mutation: true,
-        desc: 'Emulate a device, viewport, network, cpu, clock, color scheme or user agent',
+        desc: 'Emulate a device, viewport, network, cpu, clock or a BiDi emulation scope',
         positionals: [
-            { name: 'sub', desc: 'device | viewport | network | cpu | clock | color-scheme | user-agent | reset', required: true, choices: ['device', 'viewport', 'network', 'cpu', 'clock', 'color-scheme', 'user-agent', 'reset'] },
+            { name: 'sub', desc: 'device | viewport | network | cpu | clock | color-scheme | user-agent | media | locale | timezone | touch | orientation | screen | viewport-meta | text-layout | scripting | scrollbar | forced-colors | reset', required: true, choices: ['device', 'viewport', 'network', 'cpu', 'clock', 'color-scheme', 'user-agent', 'media', 'locale', 'timezone', 'touch', 'orientation', 'screen', 'viewport-meta', 'text-layout', 'scripting', 'scrollbar', 'forced-colors', 'reset'] },
             { name: 'value', desc: 'Value for the emulation' }
         ],
         options: { dpr: { type: 'number', desc: 'Device pixel ratio (viewport)' }, tick: { type: 'number', desc: 'Advance the emulated clock by ms' } }

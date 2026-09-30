@@ -639,10 +639,28 @@ async function bar() {
     // Emulate tests
     let restore = await browser.emulate('geolocation', { latitude: 1, longitude: 2 })
     await restore()
+    restore = await browser.emulate('geolocation', { error: 'positionUnavailable' })
     restore = await browser.emulate('userAgent', 'foobar')
+    restore = await browser.emulate('colorScheme', 'dark')
+    restore = await browser.emulate('media', { prefersReducedMotion: 'reduce', hover: 'none' })
     restore = await browser.emulate('onLine', true)
+    restore = await browser.emulate('locale', 'fr-FR')
+    restore = await browser.emulate('timezone', 'Pacific/Honolulu')
+    restore = await browser.emulate('touch', 1)
+    restore = await browser.emulate('orientation', { natural: 'portrait', type: 'portrait-primary' })
+    restore = await browser.emulate('screen', { width: 800, height: 600 })
+    restore = await browser.emulate('viewportMeta', true)
+    restore = await browser.emulate('textLayout', 'mobile')
+    restore = await browser.emulate('scripting', false)
+    restore = await browser.emulate('scrollbar', 'overlay')
+    restore = await browser.emulate('forcedColors', 'dark')
+    restore = await browser.emulate('device', 'iPhone 8')
     // @ts-expect-error invalid param
     restore = await browser.emulate('onLine', 'dark')
+    // @ts-expect-error viewport meta cannot be false
+    restore = await browser.emulate('viewportMeta', false)
+    // @ts-expect-error scripting cannot be forced on
+    restore = await browser.emulate('scripting', true)
     // @ts-expect-error invalid scope
     restore = await browser.emulate('foobar')
     const clock = await browser.emulate('clock', { now: new Date(2021, 3, 14) })

@@ -28,12 +28,11 @@ describe('wdio session emulation', () => {
         await server.close()
     })
 
-    it('lists devices and emulates one after a reload', async () => {
+    it('lists devices and emulates one', async () => {
         const list = await run('emulate', 'device', '--json')
         expect(list.json.result.data.devices).toContain('iPhone 15')
         const res = await run('emulate', 'device', 'iphone 15')
-        expect(res.stdout).toBe("Emulating iPhone 15 (393x659 @3x). Reload the page to apply (`wdio session reload`).\n→ await browser.emulate('device', 'iPhone 15')\n")
-        await run('reload')
+        expect(res.stdout).toBe("Emulating iPhone 15 (393x659 @3x).\n→ await browser.emulate('device', 'iPhone 15')\n")
         expect(await read('[innerWidth, devicePixelRatio, navigator.userAgent.includes("iPhone")]')).toEqual([393, 3, true])
         const unknown = await project.run(['emulate', 'device', 'iPhone 99'])
         expect(unknown.code).toBe(2)
@@ -42,7 +41,6 @@ describe('wdio session emulation', () => {
 
     it('emulates the color scheme', async () => {
         await run('emulate', 'color-scheme', 'dark')
-        await run('reload')
         expect(await read('matchMedia("(prefers-color-scheme: dark)").matches')).toBe(true)
     })
 
@@ -59,7 +57,6 @@ describe('wdio session emulation', () => {
     it('restores everything with reset', async () => {
         const res = await run('emulate', 'reset')
         expect(res.stdout).toMatch(/^Reset device, colorScheme, clock\./)
-        await run('reload')
         expect(await read('[innerWidth, matchMedia("(prefers-color-scheme: dark)").matches, new Date().getUTCFullYear() < 2030, navigator.userAgent.includes("iPhone")]'))
             .toEqual([1280, false, true, false])
         expect((await run('emulate', 'reset')).stdout).toBe('Nothing to reset\n→ await browser.restore()\n')

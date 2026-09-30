@@ -650,6 +650,29 @@ Other changes you may notice:
   }
   ```
 
+## Emulation
+
+`browser.emulate()` drives the WebDriver BiDi emulation module for the current top-level browsing context. v9 injected a preload script that patched `navigator.geolocation.getCurrentPosition`, `navigator.userAgent`, `window.matchMedia` and `navigator.onLine`. Those scripts are gone. `browser.emulate('clock', …)` still installs fake timers into the current page and into pages opened afterwards.
+
+A reload is no longer required for the BiDi scopes.
+
+```diff
+  await browser.emulate('onLine', false)
+- // only `navigator.onLine` changed; traffic still flowed
++ // the browsing context is offline, including fetch, WebSocket and WebTransport
+```
+
+- `onLine: false` calls `emulation.setNetworkConditions` with `{ type: 'offline' }`. `true` and restoring the scope clear it. Throughput and latency stay on `browser.throttleNetwork()`.
+- `colorScheme` sets the `prefers-color-scheme` media feature, so CSS `@media (prefers-color-scheme)` follows `matchMedia`.
+- `userAgent` is the browser user-agent override, not a patched `navigator.userAgent` property.
+- `geolocation` uses the browser geolocation stack. A page can still need `browser.setPermissions({ name: 'geolocation' }, 'granted')`. `{ error: 'positionUnavailable' }` reports that error instead of coordinates.
+- `colorScheme` and `media` share one media-feature map. The later call replaces the whole map, and restoring either scope clears it.
+- `device` sets the user agent, viewport, touch, mobile text layout and viewport meta from the device descriptor. It does not change `screen` or `orientation`.
+
+New scopes are `media`, `locale`, `timezone`, `touch`, `orientation`, `screen`, `viewportMeta`, `textLayout`, `scripting`, `scrollbar` and `forcedColors`. A browser that does not implement a command rejects it with `unsupported operation`. WebdriverIO does not fall back to a preload script or to CDP.
+
+`wdio session emulate` accepts the same scopes. It no longer tells you to reload for an override that applies immediately. `emulate network` presets and `emulate cpu` are unchanged and remain Chromium-only. See [Emulation](/docs/emulation).
+
 ## Next steps
 
 - Copy the [migration skill](#migrate-with-a-coding-agent) into the project and ask an agent to apply it.
