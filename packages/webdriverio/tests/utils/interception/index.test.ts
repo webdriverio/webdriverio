@@ -1454,7 +1454,8 @@ describe('WebDriverInterception', () => {
             })
         }
 
-        const getRestorableBrowserMock = (handle: string, interceptId: string) => getResponseCollectionBrowserMock({}, {
+        const getRestorableBrowserMock = (handle: string, interceptId: string, sessionId = `session-${handle}`) => getResponseCollectionBrowserMock({}, {
+            sessionId,
             networkAddIntercept: vi.fn().mockResolvedValue({ intercept: interceptId }),
             networkRemoveIntercept: removeInterceptOnce(),
             getWindowHandle: vi.fn().mockResolvedValue(handle),
@@ -1508,6 +1509,18 @@ describe('WebDriverInterception', () => {
                 expect(browserA.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'intercept-a' })
                 expect(browserB.networkRemoveIntercept).not.toHaveBeenCalled()
                 expect(SESSION_MOCKS['handle-b'].size).toBe(1)
+            })
+
+            it('should restore mocks created by another client attached to the same session', async () => {
+                const { browserA, browserB } = await setup()
+                // e.g. a client created with `attach()` for browserA's session
+                const attachedA = getRestorableBrowserMock('handle-a', 'unused', browserA.sessionId)
+
+                await mockRestoreAll.call(attachedA)
+
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+                expect(browserA.networkRemoveIntercept).toHaveBeenCalledWith({ intercept: 'intercept-a' })
+                expect(browserB.networkRemoveIntercept).not.toHaveBeenCalled()
             })
 
             it('should restore every mock once when run on all instances in parallel', async () => {
