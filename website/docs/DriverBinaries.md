@@ -39,7 +39,7 @@ If you have a browser installation on a location that cannot be auto-detected by
 }
 ```
 
-**2. Download and install the driver using [Chromedriver](https://www.npmjs.com/package/chromedriver), [Edgedriver](https://www.npmjs.com/package/edgedriver) or [Geckodriver](https://www.npmjs.com/package/geckodriver).**
+**2. Download and install the driver: Chromedriver from [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/), Edgedriver and Geckodriver with the [edgedriver](https://www.npmjs.com/package/edgedriver) and [geckodriver](https://www.npmjs.com/package/geckodriver) packages.**
 
 WebdriverIO will always do this, unless driver [binary](capabilities#binary) is specified in the configuration:
 
@@ -55,6 +55,10 @@ WebdriverIO will always do this, unless driver [binary](capabilities#binary) is 
     ]
 }
 ```
+
+WebdriverIO downloads Chromedriver from Chrome for Testing by default, but in certain cases it will use an [Electron release](https://github.com/electron/electron/releases):
+
+- [`wdio:electronVersion`](capabilities#wdioelectronversion) is set, for an Electron app. It uses that release, unless `browserVersion` and `CHROMEDRIVER_CDNURL` are both set.
 
 :::info
 

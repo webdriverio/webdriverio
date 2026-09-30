@@ -73,7 +73,16 @@ vi.mock('edgedriver', () => ({
     download: vi.fn().mockResolvedValue({ executablePath: '/path/to/edgedriver' })
 }))
 
+vi.mock('../../src/node/electronChromedriverProvider.js', () => ({
+    ElectronChromedriverProvider: vi.fn(function () {
+        return { getExecutablePath: () => 'chromedriver' }
+    })
+}))
+
 vi.mock('@puppeteer/browsers', () => ({
+    Cache: vi.fn(function () {
+        return { installationDir: () => '/foo/bar', writeExecutablePath: vi.fn() }
+    }),
     Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium', CHROMEDRIVER: 'chrome' },
     ChromeReleaseChannel: { STABLE: 'stable' },
     detectBrowserPlatform: vi.fn(),
@@ -271,6 +280,66 @@ describe('setupChromedriver', () => {
             vi.mocked(install).mockResolvedValue({} as never)
         }
     })
+
+    describe('Chromedriver source', () => {
+        beforeEach(async () => {
+            const fsp = (await import('node:fs/promises')).default
+            vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+            vi.mocked(install).mockClear()
+            vi.mocked(resolveBuildId).mockClear()
+        })
+
+        afterEach(async () => {
+            const fsp = (await import('node:fs/promises')).default
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+        })
+
+        it('installs the Chromedriver of the Electron release set by wdio:electronVersion', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+
+            await setupChromedriver('/some/cache', undefined, '34.0.0-beta.9')
+
+            expect(resolveBuildId).not.toHaveBeenCalled()
+            expect(install).toHaveBeenCalledWith(expect.objectContaining({ buildId: '34.0.0-beta.9', providers: [expect.any(Object)] }))
+        })
+
+        it('uses Chrome for Testing when the Electron release cannot be downloaded', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            vi.mocked(install)
+                .mockRejectedValueOnce(new Error('404'))
+                .mockRejectedValueOnce(new Error('404'))
+
+            await setupChromedriver('/some/cache', '133.0.6943.0', '33.2.1+wvcus')
+
+            expect(install).toHaveBeenCalledTimes(3)
+            expect(install).toHaveBeenNthCalledWith(3, expect.not.objectContaining({ providers: expect.anything() }))
+        })
+
+        it('downloads Chromedriver for browserVersion from a CHROMEDRIVER_CDNURL mirror instead of the Electron release', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            process.env.CHROMEDRIVER_CDNURL = 'https://mirror.example.com'
+
+            try {
+                await setupChromedriver('/some/cache', '133.0.6943.0', '33.2.1')
+                expect(install).toHaveBeenCalledTimes(1)
+                expect(install).toHaveBeenCalledWith(expect.objectContaining({ baseUrl: 'https://mirror.example.com' }))
+            } finally {
+                delete process.env.CHROMEDRIVER_CDNURL
+            }
+        })
+
+        it('rethrows a failed Electron download without a Chrome version to fall back to', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            vi.mocked(install).mockRejectedValue(new Error('404'))
+
+            try {
+                await expect(setupChromedriver('/some/cache', undefined, '33.2.1')).rejects.toThrow('404')
+                expect(resolveBuildId).not.toHaveBeenCalled()
+            } finally {
+                vi.mocked(install).mockResolvedValue({} as never)
+            }
+        })
+    })
 })
 
 describe('setupGeckodriver and setupEdgedriver', () => {
@@ -421,6 +490,18 @@ describe('driver utils', () => {
                 browserVersion: '1.2.3',
                 executablePath: '/my/chrome'
             })
+        })
+
+        it('does not ask an Electron app binary for a Chrome version', async () => {
+            vi.mocked(cp.spawnSync).mockClear()
+            await expect(setupPuppeteerBrowser('/foo/bar', {
+                'wdio:electronVersion': '33.2.1',
+                'goog:chromeOptions': { binary: '/path/to/electron-app' }
+            })).resolves.toEqual({
+                browserVersion: undefined,
+                executablePath: '/path/to/electron-app'
+            })
+            expect(cp.spawnSync).not.toHaveBeenCalled()
         })
 
         it('should install chrome stable if browser is not found', async () => {
