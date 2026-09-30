@@ -45,6 +45,30 @@ describe('exec serialize', () => {
         expect((await serialize(elementArray([]))).text).toBe('ElementArray(0) []')
     })
 
+    it('reads ElementArray elements through Array.prototype, not its async map', async () => {
+        const items = [element('nav a', 'a1'), element('nav a', 'a2')]
+        const list = new Proxy([...items], {
+            get (target, prop, receiver) {
+                if (prop === 'selector') {
+                    return 'nav a'
+                }
+                if (prop === 'foundWith') {
+                    return '$$'
+                }
+                if (prop === 'slice' || prop === 'map') {
+                    return () => Promise.reject(new Error(`ElementArray.${String(prop)} should not run`))
+                }
+                const member = Reflect.get(target, prop, receiver)
+                return typeof member === 'function' ? member.bind(target) : member
+            },
+            has (target, prop) {
+                return prop === 'selector' || prop === 'foundWith' || Reflect.has(target, prop)
+            }
+        })
+        const { text } = await serialize(list, { describeElement: async () => ({ tag: 'a', name: 'Docs' }) })
+        expect(text).toBe('ElementArray(2) [\n  <a "Docs" selector="nav a">\n  <a "Docs" selector="nav a">\n]')
+    })
+
     it('prints buffers as a size', async () => {
         expect((await serialize(Buffer.alloc(12345))).text).toBe('<Buffer 12345 bytes>')
         expect((await serialize(new Uint8Array(3))).text).toBe('<Buffer 3 bytes>')
