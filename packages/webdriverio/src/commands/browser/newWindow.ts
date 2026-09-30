@@ -1,7 +1,7 @@
 import { sleep } from '@wdio/utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
-import { getContextManager } from '../../session/context.js'
+import { getBrowsingContext } from '../../browsingContext.js'
 import type { NewWindowOptions } from '../../types.js'
 
 const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
@@ -11,7 +11,10 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * Open new window or tab in browser (defaults to a new window if not specified).
  * This command is the equivalent function to `window.open()`. This command does not work in mobile environments.
  *
- * __Note:__ When calling this command you automatically switch to the new window or tab.
+ * __Note:__ In a WebDriver BiDi session this command returns the new browsing context
+ * and does not switch to it. `browser.url()` keeps navigating the context it
+ * returned first. In a Classic session the command still switches to the new
+ * window and returns `{ handle, type }`.
  *
  * <example>
     :newWindowSync.js
@@ -52,7 +55,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * @param {NewWindowOptions=} options                newWindow command options
  * @param {string=}           options.type           type of new window: 'tab' or 'window'
  *
- * @return {Object}          An object containing the window handle and the type of new window `{handle: string, type: string}` handle - The ID of the window handle of the new tab or window, type - The type of the new window, either 'tab' or 'window'
+ * @return {BrowsingContext|Object}  In a BiDi session, the new browsing context. In a Classic session, `{handle, type}`.
  *
  * @throws {Error} If `url` is invalid, if the command is used on mobile, or `type` is not 'tab' or 'window'.
  *
@@ -64,7 +67,7 @@ export async function newWindow (
     this: WebdriverIO.Browser,
     url: string,
     options: NewWindowOptions = {}
-): Promise<{ handle: string, type: 'tab' | 'window' }> {
+): Promise<WebdriverIO.BrowsingContext | { handle: string, type: 'tab' | 'window' }> {
     /**
      * parameter check
      */
@@ -103,13 +106,22 @@ export async function newWindow (
     const tabsBefore = await this.getWindowHandles()
 
     if (this.isBidi) {
-        const contextManager = getContextManager(this)
-        const { context } = await this.browsingContextCreate({ type })
-        contextManager.setCurrentContext(context)
+        const reference = options.referenceContext
+        if (reference && typeof reference !== 'string' && reference.isFrame) {
+            throw new Error('`referenceContext` must be a top-level browsing context')
+        }
+        const referenceContext = typeof reference === 'string'
+            ? reference
+            : reference?.contextId
+        const { context } = await this.browsingContextCreate({
+            type,
+            ...(referenceContext ? { referenceContext } : {})
+        })
         await this.browsingContextNavigate({ context, url })
-    } else {
-        await this.execute(newWindowHelper, url)
+        return getBrowsingContext(this, context, { isFrame: false, url })
     }
+
+    await this.execute(newWindowHelper, url)
 
     /**
      * if tests are run in DevTools there might be a delay until
