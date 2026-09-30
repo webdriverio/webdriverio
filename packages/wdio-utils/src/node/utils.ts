@@ -7,15 +7,15 @@ import cp from 'node:child_process'
 import decamelize from 'decamelize'
 import logger from '@wdio/logger'
 import {
-    install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, Cache, ChromeReleaseChannel,
-    computeExecutablePath, type InstallOptions, type BrowserPlatform
+    install, canDownload, resolveBuildId, detectBrowserPlatform, getVersionComparator, Browser, BrowserPlatform,
+    Cache, ChromeReleaseChannel, computeExecutablePath, type InstallOptions
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
 import { locateChrome, locateFirefox, locateApp } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
-import { ElectronChromedriverProvider } from './electronChromedriverProvider.js'
+import { ElectronChromedriverProvider, getElectronVersionForChromium } from './electronChromedriverProvider.js'
 
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
@@ -429,6 +429,12 @@ function chromedriverSetupKey (cacheDir: string, platform: string, buildId: stri
     return `chromedriver:${driverCacheKey(cacheDir)}:${platform}:${buildId}`
 }
 
+/**
+ * Chrome for Testing ships linux-arm64 Chromedriver from this build. For older builds,
+ * `@puppeteer/browsers` resolves LINUX_ARM to the linux64 (x64) archive.
+ */
+const CFT_LINUX_ARM64_FLOOR = '153.0.8001.0'
+
 export async function setupChromedriver (cacheDir: string, driverVersion?: string, electronVersion?: string) {
     const platform = detectBrowserPlatform()
     if (!platform) {
@@ -454,6 +460,17 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
      * same key. Resolving reads no state and writes nothing, so doing it twice is free.
      */
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
+    if (platform === BrowserPlatform.LINUX_ARM && getVersionComparator(Browser.CHROMEDRIVER)(buildId, CFT_LINUX_ARM64_FLOOR) < 0) {
+        const matchingElectronVersion = getElectronVersionForChromium(buildId)
+        if (!matchingElectronVersion) {
+            throw new Error(
+                `Chrome for Testing has no linux-arm64 Chromedriver before v${CFT_LINUX_ARM64_FLOOR}, and no Electron release ships one for Chrome v${buildId}. ` +
+                'See https://webdriver.io/docs/arm64-chromedriver'
+            )
+        }
+        return installElectronChromedriver(cacheDir, platform, matchingElectronVersion)
+    }
+
     return shareDriverSetup(
         chromedriverSetupKey(cacheDir, platform, buildId),
         () => installChromedriver(cacheDir, platform, version, buildId)

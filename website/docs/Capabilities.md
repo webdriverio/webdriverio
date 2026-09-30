@@ -148,7 +148,7 @@ The mirror is expected to serve the driver archives under the same paths as the 
 CHROMEDRIVER_CDNURL=https://artifactory.company.com/chrome-for-testing npx wdio run wdio.conf.js
 ```
 
-which resolves the driver to `https://artifactory.company.com/chrome-for-testing/<buildId>/<platform>/chromedriver-<platform>.zip`, where `<platform>` is one of `linux64`, `mac-x64`, `mac-arm64`, `win32` or `win64`, e.g. `.../140.0.7339.207/mac-arm64/chromedriver-mac-arm64.zip`.
+which resolves the driver to `https://artifactory.company.com/chrome-for-testing/<buildId>/<platform>/chromedriver-<platform>.zip`, where `<platform>` is one of `linux64`, `linux-arm64`, `mac-x64`, `mac-arm64`, `win32` or `win64`, e.g. `.../140.0.7339.207/mac-arm64/chromedriver-mac-arm64.zip`.
 
 :::info Fully offline environments
 
@@ -156,7 +156,7 @@ These variables redirect the driver download only. To keep WebdriverIO from reac
 
 - **A browser has to be available locally.** If WebdriverIO can't find an installed Chrome or Firefox it downloads the browser too, and that download does not honor these variables. Either install the browser on the machine or point WebdriverIO at it via `goog:chromeOptions.binary` / `moz:firefoxOptions.binary`.
 - **Use a full version number.** If `browserVersion` is omitted, WebdriverIO reads the exact version from the local browser and no version lookup is needed. If you do set it, use the complete four part version, e.g. `140.0.7339.207`. A release channel (`stable`), a milestone (`140`) or a partial version (`140.0.7339`) requires a version lookup against a public Google endpoint that can't be redirected.
-- **Chromedriver has to come from Chrome for Testing.** With `wdio:electronVersion` but no `browserVersion`, Chromedriver is downloaded from Electron's GitHub releases, which these variables don't redirect.
+- **Chromedriver has to come from Chrome for Testing.** For Chrome older than `153.0.8001.0` on Linux ARM64, and with `wdio:electronVersion` but no `browserVersion`, Chromedriver is downloaded from Electron's GitHub releases, which these variables don't redirect.
 - **Make sure the mirror actually has the version you need.** If the driver can't be fetched from your host — because the version isn't mirrored, but equally because the url is wrong or the credentials were rejected — WebdriverIO logs a warning and then looks up the closest known good version, which again queries the public endpoint. Check the warning for the host it tried if a run unexpectedly reaches the internet or picks a version you didn't ask for.
 
 :::
