@@ -157,6 +157,7 @@ describe('switchFrame command', () => {
                 waitForExist: vi.fn().mockResolvedValue(true),
                 isExisting: vi.fn().mockResolvedValue(true),
                 isElement: true,
+                [Symbol.for('wdio.kind')]: 'element',
                 getElement: vi.fn()
             } as any
 
@@ -179,7 +180,8 @@ describe('switchFrame command', () => {
                 [ELEMENT_KEY]: 'elem-789',
                 waitForExist: vi.fn().mockResolvedValue(true),
                 isExisting: vi.fn().mockResolvedValue(true),
-                isElement: true
+                isElement: true,
+                [Symbol.for('wdio.kind')]: 'element'
             }
 
             // Spy on browser.$ to simulate re-resolving the selector
@@ -191,6 +193,7 @@ describe('switchFrame command', () => {
                 selector: 'iframe',
                 parent: browser,
                 isElement: true,
+                [Symbol.for('wdio.kind')]: 'element',
                 elementId: undefined,
                 [ELEMENT_KEY]: undefined,
                 async getElement() {

@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { WDIO_KIND } from '@wdio/utils'
 import { ELEMENT_KEY, type remote } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
@@ -71,7 +72,8 @@ export async function switchFrame (
     context: WebdriverIO.Element | ChainablePromiseElement | string | null | ((tree: FlatContextTree) => boolean | Promise<boolean>)
 ): Promise<string | void> {
     function isPossiblyUnresolvedElement(input: typeof context): input is WebdriverIO.Element | ChainablePromiseElement {
-        return Boolean(input) && typeof input === 'object' && typeof (input as WebdriverIO.Element).getElement === 'function'
+        // an element or a chainable $() both have the kind 'element', see `@wdio/utils` `kind.ts`
+        return Boolean(input) && typeof input === 'object' && (input as { [WDIO_KIND]?: unknown })[WDIO_KIND] === 'element'
     }
 
     /**
