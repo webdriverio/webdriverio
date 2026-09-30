@@ -19,5 +19,4 @@ expect(some($$('foo'))).toHaveText(expect.oneOf('foobar', expect.stringContainin
 /**
  * check support for Jasmine specific matchers
  */
-// @ts-ignore ToDo(@christian-bromann): fix typings
 expect(true).toBeTrue()

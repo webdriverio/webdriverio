@@ -80,8 +80,9 @@ export interface JasmineOpts {
      */
     requires?: string[]
     /**
-     * Whether to randomize spec execution order.
-     * @default true
+     * Whether to randomize spec execution order. Jasmine's own default is `true`, but
+     * WebdriverIO runs the specs in order unless this option is set.
+     * @default false
      */
     random?: boolean
     /**
@@ -97,7 +98,8 @@ export interface JasmineOpts {
      */
     failSpecWithNoExpectations?: boolean
     /**
-     * Whether to cause specs to only have one expectation failure.
+     * Stop a spec at its first failed expectation. A failed sync matcher stops the spec at
+     * once, and an awaited async matcher stops it when its promise settles.
      * @default false
      * @since v3.3.0
      */
@@ -119,11 +121,12 @@ export interface JasmineOpts {
     invertGrep?: boolean
     /**
      * Clean up stack trace and remove all traces of node module packages.
-     * @default false
+     * @default true
      */
     cleanStack?: boolean
     /**
-     * Stops test suite (`describe`) execution on first spec (`it`) failure (other suites continue running)
+     * Stop the spec file at its first failed spec (`it`): the other specs of the file do not
+     * run, also in other `describe` blocks. Other spec files run in their own workers.
      * @default false
      */
     stopOnSpecFailure?: boolean

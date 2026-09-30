@@ -101,6 +101,16 @@ for (const elem of elems) {
 }
 ```
 
+`$$` returns an [`ElementArray`](/docs/api/browser/$$). You can also iterate it before awaiting the list:
+
+```js
+for await (const elem of $$('div')) {
+    await elem.click()
+}
+```
+
+`for (const elem of $$('div'))` throws until the list has resolved, because a synchronous loop cannot wait for the query. Await the list first, as in the example above, or use `for await`.
+
 ### WebdriverIO Assertions
 
 If you use the WebdriverIO assertion helper [`expect-webdriverio`](https://webdriver.io/docs/api/expect-webdriverio) make sure to set an `await` in front of every `expect` call, e.g.:

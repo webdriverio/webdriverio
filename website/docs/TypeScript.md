@@ -70,10 +70,12 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "@wdio/globals/types", "@wdio/jasmine-framework"]
+        "types": ["node", "jasmine", "@wdio/globals/types", "@wdio/jasmine-framework"]
     }
 }
 ```
+
+`jasmine` loads `@types/jasmine`, which gives `jasmine`, `spyOn` and `expectAsync`. With `@wdio/jasmine-framework`, the global `expect` returns `void` for Jasmine sync matchers and a `Promise` for WebdriverIO matchers and Jasmine async matchers.
 
 </TabItem>
 <TabItem value="cucumber">

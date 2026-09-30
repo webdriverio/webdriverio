@@ -9,6 +9,7 @@ import type { Services, Capabilities } from '@wdio/types'
 import type { expect as wdioExpectImport, wdioCustomMatchers as wdioMatchersImport, getDefaultOptions as wdioGetOptions } from 'expect-webdriverio'
 
 import JasmineReporter from './reporter.js'
+import { createHybridExpect } from './expect.js'
 import { jestResultToJasmine } from './utils.js'
 import type {
     JasmineOpts as JasmineOptions, ResultHandlerPayload, FrameworkMessage, FormattedMessage
@@ -25,6 +26,7 @@ const EXPECT_ASYMMETRIC_MATCHERS = [
     'objectContaining',
     'stringContaining',
     'stringMatching',
+    'oneOf',
     'not',
 ] as const
 const TEST_INTERFACES = ['it', 'fit', 'xit']
@@ -287,7 +289,8 @@ class JasmineAdapter {
             failSpecWithNoExpectations: Boolean(this._jasmineOpts.failSpecWithNoExpectations),
             random: Boolean(this._jasmineOpts.random),
             seed: Boolean(this._jasmineOpts.seed),
-            oneFailurePerSpec: Boolean(this._jasmineOpts.oneFailurePerSpec)
+            // Jasmine 6 has no "oneFailurePerSpec" option and ignores unknown keys
+            stopSpecOnExpectationFailure: Boolean(this._jasmineOpts.oneFailurePerSpec)
         })
 
         /**
@@ -399,11 +402,12 @@ class JasmineAdapter {
         const jasmineEnv = jasmine.getEnv()
 
         /**
-         * set up WebdriverIO matchers with Jasmine
+         * set up WebdriverIO matchers with Jasmine. Only the WDIO matchers are async,
+         * Jasmine sync matchers stay on `jasmineEnv.expect`.
          */
-        const expect = jasmineEnv.expectAsync
-        const matchers = this.#setupMatchers(jasmine, wdioMatchers, getConfig)
+        const matchers = this.#setupMatchers(wdioMatchers, getConfig)
         jasmineEnv.beforeAll(() => jasmineEnv.addAsyncMatchers(matchers))
+        const expect = createHybridExpect(jasmineEnv, new Set(Object.keys(wdioMatchers))) as ReturnType<typeof createHybridExpect> & Record<string, unknown>
 
         /**
          * make Jasmine and WebdriverIOs expect global more compatible by attaching
@@ -603,36 +607,11 @@ class JasmineAdapter {
         }
     }
 
-    #transformMatchers (matchers: jasmine.CustomMatcherFactories) {
-        return Object.entries(matchers).reduce((prev, [name, fn]) => {
-            prev[name] = (util) => ({
-                compare: async <T>(actual: T, expected: T, ...args: unknown[]) => fn(util).compare(actual, expected, ...args),
-                negativeCompare: async <T>(actual: T, expected: T, ...args: unknown[]) => {
-                    const { pass, message } = fn(util).compare(actual, expected, ...args)
-                    return {
-                        pass: !pass,
-                        message
-                    }
-                }
-            })
-            return prev
-        }, {} as jasmine.CustomAsyncMatcherFactories)
-    }
-
     #setupMatchers (
-        jasmine: jasmine.Jasmine,
         wdioCustomMatchers: typeof wdioMatchersImport,
         getOptions: typeof wdioGetOptions
     ): jasmine.CustomAsyncMatcherFactories {
-        /**
-         * overwrite "jasmine.addMatchers" to be always async since the `expect` global we
-         * have is the `expectAsync` from Jasmine, so we need to ensure that synchronous
-         * matchers are added to `expectAsync`
-         */
-        globalThis.jasmine.addMatchers = (matchers) => globalThis.jasmine.addAsyncMatchers(this.#transformMatchers(matchers))
-
-        const syncMatchers: jasmine.CustomAsyncMatcherFactories = this.#transformMatchers(jasmineInternals(jasmine).matchers)
-        const wdioMatchers: jasmine.CustomAsyncMatcherFactories = Object.entries(wdioCustomMatchers).reduce((prev, [name, fn]) => {
+        return Object.entries(wdioCustomMatchers).reduce((prev, [name, fn]) => {
             prev[name] = () => ({
                 async compare (...args: unknown[]) {
                     const context = getOptions()
@@ -648,7 +627,6 @@ class JasmineAdapter {
             })
             return prev
         }, {} as jasmine.CustomAsyncMatcherFactories)
-        return { ...wdioMatchers, ...syncMatchers }
     }
 }
 
@@ -666,6 +644,31 @@ export * from './types.js'
 
 // eslint-disable-next-line no-unused-vars -- referenced as `jasmine.*` in the global augmentation below
 type jasmine = typeof Jasmine
+
+/**
+ * `@types/jasmine` types `expect(array)` with `ArrayLike<T>`, so an `Element[]`
+ * (for example from `$$().filter()`) arrives here as `ArrayLike<Element>`.
+ * Give expect-webdriverio the `Element[]` that its matchers accept.
+ */
+type WdioActual<T> = [T] extends [readonly unknown[]]
+    ? T
+    : [T] extends [ArrayLike<infer E>]
+        ? [E] extends [WebdriverIO.Element | WebdriverIO.MultiRemoteElement] ? E[] : T
+        : T
+type WdioAsyncMatchers<T> = ExpectWebdriverIO.Matchers<Promise<void>, WdioActual<T>>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- matches any matcher signature
+type MatcherArgs<Fn> = Fn extends (...args: any[]) => any ? Parameters<Fn> : never
+type JasmineAsyncMatcherName = 'toBePending' | 'toBeResolved' | 'toBeResolvedTo' | 'toBeRejected' | 'toBeRejectedWith' | 'toBeRejectedWithError'
+type JasmineAsyncMatchersFor<T> = T extends PromiseLike<infer V> ? jasmine.AsyncMatchers<V, unknown> : never
+
+/**
+ * Matchers that the global `expect` sends to `expectAsync` (see `./expect.ts`).
+ * They return a Promise, and only exist for the actual values that they accept.
+ */
+type WdioJasmineAsyncMatchers<T> = Omit<WdioAsyncMatchers<T>, 'toHaveSize'> & {
+    [K in JasmineAsyncMatcherName]: JasmineAsyncMatchersFor<T>[K]
+}
+
 declare global {
     /**
      * Define a single spec. A spec should contain one or more expectations that test the state of the code.
@@ -732,8 +735,45 @@ declare global {
     namespace WebdriverIO {
         interface JasmineOpts extends JasmineOptions {}
     }
+    /**
+     * The asymmetric matchers that the adapter copies from expect-webdriverio.
+     * They type `expect.stringContaining()` and the others when TypeScript uses
+     * the `expect` function of `@types/jasmine`.
+     */
+    namespace expect {
+        const any: ExpectWebdriverIO.Expect['any']
+        const anything: ExpectWebdriverIO.Expect['anything']
+        const arrayContaining: ExpectWebdriverIO.Expect['arrayContaining']
+        const objectContaining: ExpectWebdriverIO.Expect['objectContaining']
+        const stringContaining: ExpectWebdriverIO.Expect['stringContaining']
+        const stringMatching: ExpectWebdriverIO.Expect['stringMatching']
+        const oneOf: ExpectWebdriverIO.Expect['oneOf']
+        const not: ExpectWebdriverIO.Expect['not']
+    }
+    namespace jasmine {
+        /**
+         * Jasmine sync matchers stay sync and return `void`. WebdriverIO matchers
+         * and Jasmine async matchers go to `expectAsync` and return a Promise.
+         */
+        interface Matchers<T> extends WdioJasmineAsyncMatchers<T> {
+            /**
+             * WebdriverIO's `toHaveSize` for an element. Jasmine's `toHaveSize(number)`
+             * stays available for any other value.
+             */
+            toHaveSize(...args: MatcherArgs<WdioAsyncMatchers<T>['toHaveSize']>): Promise<void>
+        }
+    }
     namespace ExpectWebdriverIO {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        interface Matchers<R, T> extends jasmine.Matchers<R> {}
+        /**
+         * `@wdio/globals/types` and `@types/jasmine` both declare the global `expect`,
+         * and TypeScript uses the one it reads first. These signatures make both
+         * resolve to Jasmine's matchers, which is what the runtime `expect` gives.
+         */
+        interface Expect {
+            <T extends jasmine.Func>(spy: T | jasmine.Spy<T>): jasmine.FunctionMatchers<T>
+            (actual: string): jasmine.Matchers<string>
+            <T>(actual: ArrayLike<T>): jasmine.ArrayLikeMatchers<T>
+            <T>(actual: T): jasmine.Matchers<T>
+        }
     }
 }
