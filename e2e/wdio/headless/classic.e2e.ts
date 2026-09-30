@@ -1,5 +1,26 @@
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+
 import { browser } from '@wdio/globals'
 import scripts from './__fixtures__/script.js'
+
+describe('savePDF on a classic session', () => {
+    it('prints a PDF with printPage', async () => {
+        expect(browser.isBidi).toBe(false)
+        await browser.url('https://guinea-pig.webdriver.io/')
+
+        const file = path.join(os.tmpdir(), `classic-save-pdf-${Date.now()}.pdf`)
+        const pdf = await browser.savePDF(file, {
+            orientation: 'landscape',
+            left: 2
+        })
+
+        expect(pdf.subarray(0, 5).toString()).toBe('%PDF-')
+        expect((await fs.readFile(file)).subarray(0, 5).toString()).toBe('%PDF-')
+        await fs.rm(file, { force: true })
+    })
+})
 
 describe('__name polyfill', () => {
     it('suppports __name polyfill for classic sessions', async () => {

@@ -2,7 +2,7 @@ import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
 import { remote, multiRemote, SevereServiceError, Key } from 'webdriverio'
-import type { ClickOptions, Selector, Action } from 'webdriverio'
+import type { ClickOptions, Selector, Action, PDFPrintOptions } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
 
 declare global {
@@ -278,7 +278,7 @@ async function bar() {
     expectType<number>(callResult)
 
     // printPage
-    await browser.savePDF('./packages/bar.pdf', {
+    const pdfOptions: PDFPrintOptions = {
         orientation: 'landscape',
         background: true,
         width: 24.5,
@@ -289,7 +289,8 @@ async function bar() {
         right: 5,
         shrinkToFit: true,
         pageRanges: ['1', 2]
-    })
+    }
+    await browser.savePDF('./packages/bar.pdf', pdfOptions)
 
     await browser.savePDF('./packages/bar.pdf')
 

@@ -1,3 +1,7 @@
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+
 import { browser, expect } from '@wdio/globals'
 import type { local, remote } from 'webdriver'
 
@@ -35,6 +39,24 @@ describe('bidi e2e test', () => {
             }).catch(err => err)
             expect(result2.stack).toContain('27 │ if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
         })
+    })
+
+    it('prints a PDF with browsingContext.print', async function () {
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+
+        await browser.url('https://guinea-pig.webdriver.io/')
+        const file = path.join(os.tmpdir(), `bidi-save-pdf-${browser.capabilities.browserName}-${Date.now()}.pdf`)
+        const pdf = await browser.savePDF(file, {
+            orientation: 'landscape',
+            left: 2
+        })
+
+        expect(browser.isBidi).toBe(true)
+        expect(pdf.subarray(0, 5).toString()).toBe('%PDF-')
+        expect((await fs.readFile(file)).subarray(0, 5).toString()).toBe('%PDF-')
+        await fs.rm(file, { force: true })
     })
 
     it('can send bidi commands', async function () {
