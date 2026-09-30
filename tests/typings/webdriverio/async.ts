@@ -520,6 +520,12 @@ async function bar() {
         await browser.$('foo').$('bar').$$('loo').selector)
     expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
         await browser.$('foo').$('bar').$$('loo').parent)
+    expectType<Selector>(browser.$$('.item').selector)
+    expectType<string>(browser.$$('.item').foundWith)
+    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
+        browser.$$('.item').parent)
+    // @ts-expect-error selector is available immediately and is not a promise
+    browser.$$('.item').selector.then(() => undefined)
 
     // promise chain API
     expectType<string>(
@@ -676,6 +682,16 @@ async function strictSelectors() {
     expectType<string>(await browser.$('button', { strict: false }).getTagName())
     expectType<string>(await browser.$('button', { strict: true }).getTagName())
     expectType<string>(await browser.$('div').$('button', { strict: false }).getTagName())
+
+    const extensionId = await browser.installExtension('./dist')
+    expectType<string>(extensionId)
+    await browser.installExtension('./ext.zip')
+    await browser.installExtension({ base64: 'UEsDBA==' })
+    await browser.uninstallExtension(extensionId)
+    // @ts-expect-error extension payload must be a path or { base64 }
+    await browser.installExtension({ path: './dist' })
+    // @ts-expect-error extension id is a string
+    await browser.uninstallExtension(42)
 
     // @ts-expect-error unknown option
     await browser.$('button', { strictly: false })

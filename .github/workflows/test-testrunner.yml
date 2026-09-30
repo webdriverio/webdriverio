@@ -34,6 +34,7 @@ jobs:
         run: |
           pnpm run test:e2e:testrunner
           pnpm run test:e2e:classic
+          pnpm run test:e2e:jasmine
           pnpm run test:e2e:lighthouse
         shell: bash
 

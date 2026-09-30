@@ -12,6 +12,12 @@ While there is currently no difference in how matchers are defined that are spec
 
 :::
 
+:::info Jasmine
+
+With the Jasmine framework, `expect.extend` is not available. Use `jasmine.addMatchers` for a sync matcher or `jasmine.addAsyncMatchers` for an async matcher, see the [Jasmine custom matchers tutorial](https://jasmine.github.io/tutorials/custom_matchers). Matchers from `jasmine.addAsyncMatchers` return a promise, so `await` them.
+
+:::
+
 ## Custom Browser Matchers
 
 To register a custom browser matcher, call `extend` on the `expect` object either in your spec file directly or as part of the e.g. `before` hook in your `wdio.conf.js`:

@@ -1,5 +1,14 @@
+import path from 'node:path'
+import url from 'node:url'
+
 import { browser, expect } from '@wdio/globals'
 import type { local, remote } from 'webdriver'
+
+const extensionFixture = path.resolve(
+    path.dirname(url.fileURLToPath(import.meta.url)),
+    '__fixtures__',
+    'web-extension'
+)
 
 describe('bidi e2e test', () => {
     describe('execute', () => {
@@ -13,6 +22,18 @@ describe('bidi e2e test', () => {
                 return this.skip()
             }
 
+            /**
+             * The gutter number is the call site in this file, read from the
+             * stack frame. A literal line number fails as soon as a line is
+             * inserted above this test.
+             */
+            const expectAnnotatedThrow = (stack: string, snippet: string) => {
+                const escaped = snippet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                expect(stack).toMatch(new RegExp(`\\d+ │ ${escaped}`))
+                const line = stack.match(new RegExp(`(\\d+) │ ${escaped}`))?.[1]
+                expect(stack).toContain(`bidi.e2e.ts:${line}:`)
+            }
+
             const result = await browser.execute(async () => {
                 const a: number = 1
                 console.log('Hello Bidi')
@@ -22,7 +43,7 @@ describe('bidi e2e test', () => {
                     }
                 }
             }).catch(err => err)
-            expect(result.stack).toContain('16 │ if(a){if(a){throw new Error("Hello Bidi")}}}')
+            expectAnnotatedThrow(result.stack, 'if(a){if(a){throw new Error("Hello Bidi")}}}')
 
             const result2 = await browser.execute(async () => {
                 const a: number = 1
@@ -33,7 +54,7 @@ describe('bidi e2e test', () => {
                     }
                 }
             }).catch(err => err)
-            expect(result2.stack).toContain('27 │ if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
+            expectAnnotatedThrow(result2.stack, 'if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
         })
     })
 
@@ -509,6 +530,36 @@ describe('bidi e2e test', () => {
 
                 // TODO fix one day we should be able to assert 'positionUnavailable' somehow
                 await expect(geolocation).rejects.toThrow()
+            })
+        })
+
+        describe('web extension', () => {
+            it('installs and uninstalls an extension', async () => {
+                const browserName = browser.capabilities.browserName ?? 'unknown'
+                /**
+                 * Chrome, Edge, and Chromium are started with the flags that
+                 * enable webExtension.install. A missing command there is a
+                 * regression. Other BiDi browsers may report `unsupported
+                 * operation` or `unknown command`; that result is asserted.
+                 */
+                const requiresExtensionCommands = /chrome|chromium|edge/i.test(browserName)
+                let id: string
+                try {
+                    id = await browser.installExtension(extensionFixture)
+                } catch (err) {
+                    const message = err instanceof Error ? err.message : String(err)
+                    if (!requiresExtensionCommands && /unsupported operation|unknown command/i.test(message)) {
+                        expect(message).toMatch(/unsupported operation|unknown command/i)
+                        console.log(`webExtension.install is not implemented in ${browserName}: ${message}`)
+                        return
+                    }
+                    throw err
+                }
+
+                expect(id).toEqual(expect.any(String))
+                expect(id.length).toBeGreaterThan(0)
+                await browser.uninstallExtension(id)
+                await expect(browser.uninstallExtension(id)).rejects.toThrow()
             })
         })
     })
