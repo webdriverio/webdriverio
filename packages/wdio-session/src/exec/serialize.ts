@@ -1,4 +1,4 @@
-import { WDIO_KIND, WDIO_CHAINABLE } from '@wdio/utils'
+import { getWdioKind, isArrayOfElements, isLoadedElement } from '@wdio/utils'
 
 const MAX_DEPTH = 6
 const MAX_CHARS = 4000
@@ -26,24 +26,18 @@ export interface Serialized {
     value?: unknown
 }
 
-type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
-
 /**
  * A resolved element, see `@wdio/utils` `kind.ts`. A chainable $() is a promise, not a result.
  */
 export function isElement (value: unknown): value is WebdriverIO.Element {
-    return Boolean(value) && typeof value === 'object' &&
-        (value as Branded)[WDIO_KIND] === 'element' && (value as Branded)[WDIO_CHAINABLE] !== true
+    return typeof value === 'object' && isLoadedElement(value)
 }
 
 /**
  * An element list, or a copy of one (`[...list]`) whose items are all elements
  */
 export function isElementArray (value: unknown): value is WebdriverIO.ElementArray {
-    return Array.isArray(value) && (
-        (value as Branded)[WDIO_KIND] === 'element-array' ||
-        (value.length > 0 && value.every(isElement))
-    )
+    return (Array.isArray(value) && getWdioKind(value) === 'element-array') || isArrayOfElements(value)
 }
 
 function isBinary (value: unknown): value is Uint8Array {

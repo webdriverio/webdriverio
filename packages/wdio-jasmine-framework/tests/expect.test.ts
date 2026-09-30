@@ -80,7 +80,14 @@ describe('createHybridExpect', () => {
             'object with sessionId': { sessionId: '1', size: 1 },
             'object with parent': { parent: {}, length: 2 },
             'empty array': [],
-            'application class named Browser': new (class Browser { length = 1 })()
+            'application class named Browser': new (class Browser { length = 1 })(),
+            /**
+             * the `every` of an element list is async, and its promise is always truthy
+             */
+            'array with an async every': Object.assign([1, 2], { every: async () => false }),
+            'deep mock that returns a value for every property': new Proxy({}, {
+                get: (_, prop) => prop === 'then' ? undefined : () => {}
+            })
         }
         for (const [name, value] of Object.entries(jasmineValues)) {
             const calls: string[] = []

@@ -45,6 +45,15 @@ describe('exec serialize', () => {
         expect((await serialize(elementArray([]))).text).toBe('ElementArray(0) []')
     })
 
+    it('does not print an array with an async `every` as an ElementArray', async () => {
+        /**
+         * the `every` of an element list is async, and its promise is always truthy
+         */
+        const list = Object.assign([1, 2], { every: async () => false })
+        expect((await serialize(list)).text).not.toMatch(/^ElementArray/)
+        expect((await serialize([])).text).not.toMatch(/^ElementArray/)
+    })
+
     it('prints an ElementArray without calling its async slice or map', async () => {
         const items = [element('nav a', 'id1'), element('nav a', 'id2')]
         /**

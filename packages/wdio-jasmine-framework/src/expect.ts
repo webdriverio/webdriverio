@@ -1,4 +1,4 @@
-import { WDIO_KIND } from '@wdio/utils'
+import { getWdioKind, isArrayOfElements } from '@wdio/utils'
 
 /**
  * Minimal view of the Jasmine env methods the hybrid `expect` needs.
@@ -21,21 +21,6 @@ const isObject = (value: unknown): value is AnyObject => (
 )
 
 /**
- * The `wdio.kind` brand of a WebdriverIO object, see `@wdio/utils` `kind.ts`. It is
- * set on browsers, elements, element lists (also multi-remote) and chainable
- * `$()`, and it passes through the `@wdio/globals` proxies, which forward reads.
- */
-const kindOf = (value: unknown) => isObject(value) ? (value as { [WDIO_KIND]?: unknown })[WDIO_KIND] : undefined
-
-/**
- * A copy of an element list (`[...await $$()]`): a plain array whose items are
- * elements. `[]` is a Jasmine value, for example `expect([]).toHaveSize(0)`.
- */
-const isArrayOfElements = (value: unknown) => (
-    Array.isArray(value) && value.length > 0 && value.every((item) => kindOf(item) === 'element')
-)
-
-/**
  * Values that a WDIO matcher can assert on: a WebdriverIO object, a copy of an
  * element list, the `some()` wrapper of elements, or a promise. A Jasmine sync
  * matcher cannot check a promise, and a WDIO matcher awaits it (for example a
@@ -45,7 +30,14 @@ function isWebdriverIOObject (actual: unknown) {
     if (!isObject(actual)) {
         return false
     }
-    return kindOf(actual) !== undefined ||
+    /**
+     * The `wdio.kind` brand (see `@wdio/utils` `kind.ts`) is set on browsers, elements,
+     * element lists (also multi-remote) and chainable `$()`, and it passes through the
+     * `@wdio/globals` proxies, which forward reads. A copy of an element list
+     * (`[...await $$()]`) is a plain array of elements. `[]` is a Jasmine value, for
+     * example `expect([]).toHaveSize(0)`.
+     */
+    return getWdioKind(actual) !== undefined ||
         isArrayOfElements(actual) ||
         SOME_WRAPPER in actual ||
         typeof actual.then === 'function'
