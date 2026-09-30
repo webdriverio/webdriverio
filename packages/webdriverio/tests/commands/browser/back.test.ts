@@ -19,6 +19,14 @@ vi.mock('../../../src/session/context.js', () => ({
     }))
 }))
 
+function scriptValue (value: string) {
+    return {
+        type: 'success' as const,
+        realm: 'realm-1',
+        result: { type: 'string' as const, value }
+    }
+}
+
 function navigationInfo (context: string) {
     return {
         context,
@@ -258,6 +266,63 @@ describe('back and forward', () => {
             await pending
         })
 
+        it('ignores a history update from pushState or replaceState', async () => {
+            vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
+                const expression = params?.expression ?? ''
+                if (expression.includes('addEventListener')) {
+                    return scriptValue('installed')
+                }
+                return scriptValue('push')
+            })
+            vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
+                browser.emit('browsingContext.historyUpdated', {
+                    context: 'top-level',
+                    timestamp: 2,
+                    url: 'https://example.test/pushed'
+                })
+                return {}
+            })
+
+            let resolved = false
+            const pending = browser.back().then(() => {
+                resolved = true
+            })
+            await vi.waitFor(() => {
+                expect(browser.scriptEvaluate).toHaveBeenCalledWith(expect.objectContaining({
+                    expression: expect.stringContaining('record.events')
+                }))
+            })
+            await flush()
+            expect(resolved).toBe(false)
+
+            browser.emit('browsingContext.load', navigationInfo('top-level'))
+            await pending
+            vi.mocked(browser.scriptEvaluate).mockRestore()
+        })
+
+        it('finishes a same-document traversal when the Navigation API reports traverse', async () => {
+            vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
+                const expression = params?.expression ?? ''
+                if (expression.includes('addEventListener')) {
+                    return scriptValue('installed')
+                }
+                return scriptValue('traverse')
+            })
+            vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
+                browser.emit('browsingContext.historyUpdated', {
+                    context: 'top-level',
+                    timestamp: 2,
+                    url: 'https://example.test/previous'
+                })
+                return {}
+            })
+
+            await browser.back()
+
+            expect(browser.browsingContextTraverseHistory).toHaveBeenCalledTimes(1)
+            vi.mocked(browser.scriptEvaluate).mockRestore()
+        })
+
         it('returns when a committed document is already complete', async () => {
             vi.spyOn(browser, 'scriptEvaluate').mockResolvedValue({
                 type: 'success',
@@ -279,6 +344,30 @@ describe('back and forward', () => {
             vi.mocked(browser.scriptEvaluate).mockRestore()
         })
 
+        it('retries the readyState check when the committed realm rejects it', async () => {
+            let readyChecks = 0
+            vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
+                if ((params?.expression ?? '').includes('document.readyState')) {
+                    readyChecks += 1
+                    if (readyChecks === 1) {
+                        throw new Error('realm not ready')
+                    }
+                    return scriptValue('complete')
+                }
+                return scriptValue('unsupported')
+            })
+            vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
+                browser.emit('browsingContext.navigationStarted', navigationInfo('top-level'))
+                browser.emit('browsingContext.navigationCommitted', navigationInfo('top-level'))
+                return {}
+            })
+
+            await browser.back()
+
+            expect(readyChecks).toBeGreaterThan(1)
+            vi.mocked(browser.scriptEvaluate).mockRestore()
+        })
+
         it('uses the session page-load timeout', async () => {
             vi.mocked(browser.getTimeouts).mockResolvedValue({ implicit: 0, pageLoad: 30, script: 0 })
             vi.mocked(browser.browsingContextTraverseHistory).mockResolvedValue({})
@@ -286,6 +375,19 @@ describe('back and forward', () => {
             await expect(browser.back()).rejects.toThrow(
                 'History traversal timed out after 30ms waiting for browsingContext.load'
             )
+        })
+
+        it('does not wait for sessionUnsubscribe after the traversal finishes', async () => {
+            let release: (value: Awaited<ReturnType<WebdriverIO.Browser['sessionUnsubscribe']>>) => void = () => {}
+            vi.mocked(browser.sessionUnsubscribe).mockReturnValue(new Promise((resolve) => {
+                release = resolve
+            }))
+            await loadAfterTraverse()
+
+            await browser.back()
+
+            expect(browser.sessionUnsubscribe).toHaveBeenCalledWith({ subscriptions: ['sub-1'] })
+            release({})
         })
 
         it('does not swallow a no such history entry rejection', async () => {

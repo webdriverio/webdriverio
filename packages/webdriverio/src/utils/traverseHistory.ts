@@ -9,6 +9,51 @@ import { getContextManager } from '../session/context.js'
 const DEFAULT_PAGE_LOAD_TIMEOUT = 300_000
 
 /**
+ * A back-forward cache restore can reject `scriptEvaluate` at the instant
+ * `navigationCommitted` arrives. Retry until the realm accepts the call.
+ * A network navigation reports `loading` and still waits for the load event.
+ */
+const READY_STATE_RETRY_MS = 50
+
+/**
+ * `browsingContext.historyUpdated` has no navigation id. `pushState` and
+ * `replaceState` emit it for the same context, so the page's Navigation API
+ * records whether the last history change was a traversal.
+ */
+const HISTORY_MARKER = '__wdioHistoryTraverse'
+const INSTALL_HISTORY_MARKER = `(() => {
+    const nav = globalThis.navigation
+    if (!nav || typeof nav.addEventListener !== 'function') {
+        return 'unsupported'
+    }
+    const events = []
+    const onNavigate = (event) => {
+        events.push(event.navigationType)
+    }
+    nav.addEventListener('navigate', onNavigate)
+    globalThis.${HISTORY_MARKER} = { events, onNavigate }
+    return 'installed'
+})()`
+const READ_HISTORY_MARKER = `(() => {
+    const record = globalThis.${HISTORY_MARKER}
+    if (!record || !Array.isArray(record.events) || record.events.length === 0) {
+        return ''
+    }
+    return String(record.events[record.events.length - 1])
+})()`
+const CLEAR_HISTORY_MARKER = `(() => {
+    const record = globalThis.${HISTORY_MARKER}
+    if (!record) {
+        return
+    }
+    const nav = globalThis.navigation
+    if (nav && typeof nav.removeEventListener === 'function') {
+        nav.removeEventListener('navigate', record.onNavigate)
+    }
+    delete globalThis.${HISTORY_MARKER}
+})()`
+
+/**
  * Events that describe a history traversal. `traverseHistory` returns before
  * the traversal finishes, so listeners are installed before the command.
  * @see https://w3c.github.io/webdriver-bidi/#command-browsingContext-traverseHistory
@@ -74,25 +119,34 @@ function matchesContext (params: NavigationInfo | undefined, context: string) {
     return params?.context === context
 }
 
-/**
- * A back-forward cache restore emits `navigationCommitted` and no `load`.
- * The committed document is already complete. A network navigation is still
- * `loading` at commit time, so this check does not skip the load event.
- */
-async function documentReadyState (browser: WebdriverIO.Browser, context: string): Promise<string | undefined> {
-    const result = await browser.scriptEvaluate({
-        expression: 'document.readyState',
-        awaitPromise: false,
-        target: { context }
-    })
-    if (result.type !== 'success') {
+async function evaluateString (
+    browser: WebdriverIO.Browser,
+    context: string,
+    expression: string
+): Promise<string | undefined> {
+    try {
+        const result = await browser.scriptEvaluate({
+            expression,
+            awaitPromise: false,
+            target: { context }
+        })
+        if (result.type !== 'success') {
+            return undefined
+        }
+        const value = result.result
+        if (value && typeof value === 'object' && 'type' in value && value.type === 'string' && 'value' in value && typeof value.value === 'string') {
+            return value.value
+        }
+        return undefined
+    } catch {
         return undefined
     }
-    const value = result.result
-    if (value && typeof value === 'object' && 'type' in value && value.type === 'string' && 'value' in value && typeof value.value === 'string') {
-        return value.value
-    }
-    return undefined
+}
+
+function delay (ms: number) {
+    return new Promise<void>((resolve) => {
+        setTimeout(resolve, ms)
+    })
 }
 
 function readyStateSatisfies (readiness: HistoryReadiness, state: string | undefined) {
@@ -125,9 +179,11 @@ export async function traverseTopLevelHistory (
     const expectedEvent = readiness === 'interactive' ? 'browsingContext.domContentLoaded' : 'browsingContext.load'
 
     let subscription: string | undefined
+    let historyMarker: 'installed' | 'unavailable' = 'unavailable'
     let armed = false
     let settled = false
     let crossDocument = false
+    let watchingReadyState = false
     let waitError: Error | undefined
     let resolveReady: () => void = () => {}
     let rejectReady: (error: Error) => void = () => {}
@@ -173,20 +229,44 @@ export async function traverseTopLevelHistory (
          */
         crossDocument = true
     }
+    /**
+     * A back-forward cache restore emits `navigationCommitted` and no `load`.
+     * The committed document is already complete. A network navigation is still
+     * `loading` at commit time, so a successful read does not skip that event.
+     */
+    const watchCommittedReadyState = async () => {
+        if (watchingReadyState) {
+            return
+        }
+        watchingReadyState = true
+        try {
+            while (armed && !settled) {
+                const state = await evaluateString(browser, context, 'document.readyState')
+                if (!armed || settled) {
+                    return
+                }
+                /**
+                 * `undefined` means the realm rejected the check. A cache
+                 * restore has no later `load` event, so try again.
+                 */
+                if (state === undefined) {
+                    await delay(READY_STATE_RETRY_MS)
+                    continue
+                }
+                if (readyStateSatisfies(readiness, state)) {
+                    resolveReady()
+                }
+                return
+            }
+        } finally {
+            watchingReadyState = false
+        }
+    }
     const onNavigationCommitted = (params: local.BrowsingContextNavigationInfo) => {
         if (!armed || !matchesContext(params, context)) {
             return
         }
-        void documentReadyState(browser, context).then((state) => {
-            if (!armed || settled || !readyStateSatisfies(readiness, state)) {
-                return
-            }
-            resolveReady()
-        }).catch(() => {
-            /**
-             * The load or DOMContentLoaded event still completes the wait.
-             */
-        })
+        void watchCommittedReadyState()
     }
     const onDomContentLoaded = (params: local.BrowsingContextNavigationInfo) => {
         if (readiness === 'interactive') {
@@ -204,10 +284,24 @@ export async function traverseTopLevelHistory (
         succeed(params)
     }
     const onHistoryUpdated = (params: local.BrowsingContextHistoryUpdatedParameters) => {
-        if (crossDocument) {
+        if (crossDocument || !armed || !matchesContext(params, context)) {
             return
         }
-        succeed(params)
+        /**
+         * Without the Navigation API this event cannot be tied to the
+         * traversal. Same-document entries still have no other completion
+         * signal, so keep the previous behavior there.
+         */
+        if (historyMarker !== 'installed') {
+            succeed(params)
+            return
+        }
+        void evaluateString(browser, context, READ_HISTORY_MARKER).then((kind) => {
+            if (!armed || settled || crossDocument || kind !== 'traverse') {
+                return
+            }
+            resolveReady()
+        })
     }
 
     browser.on('browsingContext.navigationStarted', onNavigationStarted)
@@ -230,6 +324,9 @@ export async function traverseTopLevelHistory (
             contexts: [context]
         })
         subscription = subscribed.subscription
+        if (await evaluateString(browser, context, INSTALL_HISTORY_MARKER) === 'installed') {
+            historyMarker = 'installed'
+        }
         /**
          * Arm only after the subscription exists and immediately before the
          * command. The spec returns before the traversal finishes, and the
@@ -266,8 +363,15 @@ export async function traverseTopLevelHistory (
         if (!settled) {
             resolveReady()
         }
+        if (historyMarker === 'installed') {
+            void evaluateString(browser, context, CLEAR_HISTORY_MARKER)
+        }
+        /**
+         * Unsubscribing is cleanup. A dropped socket waits for the BiDi
+         * response timeout, and the traversal result is already known.
+         */
         if (subscription) {
-            await browser.sessionUnsubscribe({ subscriptions: [subscription] }).catch(() => {})
+            void browser.sessionUnsubscribe({ subscriptions: [subscription] }).catch(() => undefined)
         }
     }
 }
