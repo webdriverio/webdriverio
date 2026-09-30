@@ -97,13 +97,10 @@
     },
     {
       "files": [
-        "examples/**/*.ts",
-        "examples/**/*.js",
-        "packages/**/*.test.ts",
-        "packages/**/tests/**/*.ts",
-        "e2e/**/*.js",
-        "e2e/**/*.ts",
-        "e2e/**/*.tsx"
+        "examples/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}",
+        "packages/**/*.test.{js,mjs,cjs,jsx,ts,mts,cts,tsx}",
+        "packages/**/tests/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}",
+        "e2e/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}"
       ],
       "env": {
         "mocha": true,
@@ -124,10 +121,8 @@
     },
     {
       "files": [
-        "tests/**/*.ts",
-        "tests/**/*.js",
-        "e2e/**/*.ts",
-        "e2e/**/*.js"
+        "tests/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}",
+        "e2e/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}"
       ],
       "env": {
         "mocha": true,
