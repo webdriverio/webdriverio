@@ -243,14 +243,34 @@ function locateChromeSafely () {
     return locateChrome().catch(() => undefined)
 }
 
+function locateInstalledBrowser (browserName: Browser) {
+    if (browserName === Browser.CHROME) {
+        return locateChromeSafely()
+    }
+    if (browserName === Browser.CHROMIUM) {
+        return locateApp({
+            appName: Browser.CHROMIUM,
+            macOsName: Browser.CHROMIUM,
+            linuxWhich: 'chromium-browser'
+        }).catch(() => undefined)
+    }
+    return locateFirefox().catch(() => undefined)
+}
+
+function getPuppeteerBrowser (browserName?: string) {
+    if (browserName === Browser.FIREFOX) {
+        return Browser.FIREFOX
+    }
+    if (browserName === Browser.CHROMIUM) {
+        return Browser.CHROMIUM
+    }
+    return Browser.CHROME
+}
+
 export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.Capabilities) {
     caps.browserName = caps.browserName?.toLowerCase()
 
-    const browserName = caps.browserName === Browser.FIREFOX
-        ? Browser.FIREFOX
-        : caps.browserName === Browser.CHROMIUM
-            ? Browser.CHROMIUM
-            : Browser.CHROME
+    const browserName = getPuppeteerBrowser(caps.browserName)
     const exist = await fsp.access(cacheDir).then(() => true, () => false)
     const isChromeOrChromium = browserName === Browser.CHROME || caps.browserName === Browser.CHROMIUM
     if (!exist) {
@@ -292,15 +312,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     }
 
     if (!caps.browserVersion) {
-        const executablePath = browserName === Browser.CHROME
-            ? await locateChromeSafely()
-            : browserName === Browser.CHROMIUM
-                ? await locateApp({
-                    appName: Browser.CHROMIUM,
-                    macOsName: Browser.CHROMIUM,
-                    linuxWhich: 'chromium-browser'
-                }).catch(() => undefined)
-                : await locateFirefox().catch(() => undefined)
+        const executablePath = await locateInstalledBrowser(browserName)
         const browserVersion = isChromeOrChromium
             ? getBuildIdByChromePath(executablePath)
             : await getBuildIdByFirefoxPath(executablePath)
