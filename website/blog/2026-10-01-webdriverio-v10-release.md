@@ -82,7 +82,7 @@ Other people kept adding to it. [Ned Thompson](https://github.com/nthompson-bitw
 
 Verification needs precise assertions and a typed protocol underneath them. [David Prevost](https://github.com/dprevost-LMI) has been one of the most active contributors across the whole organization, with work across every layer that verification depends on:
 
-- **expect-webdriverio 8**, the assertion library v10 ships with. Types are published the way users compile them, and the real matcher name now reaches the `beforeAssertion` / `afterAssertion` hooks.
+- **expect-webdriverio 8**, the assertion library v10 ships with. Types are published the way users compile them, and the real matcher name now reaches the `beforeAssertion` / `afterAssertion` hooks. Finally, robust multi-remote support: browser, element, network and snapshot matchers now check every instance of a multi-remote session.
 - **[cddl](https://github.com/webdriverio/cddl)**, the parser and code generator behind our typed WebDriver BiDi client.
 - **The new [driver](https://github.com/webdriverio/driver) monorepo** with `geckodriver`, `edgedriver` and `safaridriver`.
 - **The v10 upgrades** to Vitest 5 in the browser runner, pnpm 11, and Jasmine matchers that stay synchronous.
