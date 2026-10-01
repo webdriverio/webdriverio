@@ -193,9 +193,18 @@ export const tabs: ActionFn = async (session, args) => {
      * Declare the closing page while it is still in the tree, so a page
      * that shares its URL with another tab is found by its position.
      */
+    const registry = structuredClone(contextVars(session))
     const closed = session.isBidi ? await declarePage(session, tab.handle, tab.url) : undefined
-    await session.browser.switchToWindow(tab.handle)
-    await session.browser.closeWindow()
+    try {
+        await session.browser.switchToWindow(tab.handle)
+        await session.browser.closeWindow()
+    } catch (err) {
+        /**
+         * No step is recorded, so the page variable was never declared.
+         */
+        session.set('contextVars', registry)
+        throw err
+    }
     const next = tab.current ? list.find((t) => t.handle !== tab.handle)! : current
     await switchTo(session, next)
     let code: string
@@ -292,8 +301,38 @@ async function declareHeld (session: Session, context: WebdriverIO.BrowsingConte
     if (!url) {
         return { code: owner.code }
     }
-    const own = await declareContext(session, 'frame', context.contextId, () => `await ${owner.name}.frame(${quote(url)})`)
+    const lookup = await frameLookup(session, context, url)
+    if (!lookup) {
+        return { code: owner.code }
+    }
+    const own = await declareContext(session, 'frame', context.contextId, () => `await ${owner.name}.frame(${lookup(owner.name!)})`)
     return { name: own.name, code: joinCode(owner.code, own.code) }
+}
+
+/**
+ * How to find a held frame in its parent. A URL is enough when no sibling
+ * shares it. Otherwise the frame is found by its position among the
+ * parent's frame elements, which `contentWindow` maps to context ids.
+ */
+async function frameLookup (session: Session, context: WebdriverIO.BrowsingContext, url: string) {
+    const parentId = context.parent!.contextId
+    const { contexts } = await session.browser.browsingContextGetTree({ root: parentId, maxDepth: 1 })
+    const siblings = contexts[0]?.children ?? []
+    if (siblings.filter((child) => child.url === url).length <= 1) {
+        return () => quote(url)
+    }
+    const result = await session.browser.scriptCallFunction({
+        functionDeclaration: '() => Array.from(document.querySelectorAll(\'iframe, frame\'), (frame) => frame.contentWindow)',
+        awaitPromise: false,
+        target: { context: parentId }
+    }).catch(() => undefined)
+    if (!result || result.type !== 'success' || result.result.type !== 'array') {
+        return undefined
+    }
+    const index = (result.result.value ?? []).findIndex((value) => (
+        value.type === 'window' && value.value.context === context.contextId
+    ))
+    return index < 0 ? undefined : (name: string) => `${name}.$$('iframe, frame')[${index}]`
 }
 
 function adopt (session: Session, contextId: string) {

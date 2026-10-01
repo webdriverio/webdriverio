@@ -16,7 +16,7 @@ vi.mock('../../src/snapshot/target.js', () => ({
 
 const { frame, tabs } = await import('../../src/actions/contexts.js')
 
-function harness ({ secondUrl = 'https://b.test/' } = {}) {
+function harness ({ secondUrl = 'https://b.test/', outerSiblings = ['https://a.test/outer.html'] } = {}) {
     const store = new Map<string, unknown>()
     const page = {
         contextId: 'tab-1',
@@ -50,8 +50,18 @@ function harness ({ secondUrl = 'https://b.test/' } = {}) {
             getWindowHandle: async () => 'tab-1',
             getWindowHandles: async () => ['tab-1', 'tab-2'],
             browsingContexts: async () => [page, second],
-            browsingContextGetTree: async () => ({
-                contexts: [{ context: 'tab-1', url: 'https://a.test/' }, { context: 'tab-2', url: secondUrl }]
+            browsingContextGetTree: async (params: { root?: string }) => params.root === 'tab-1'
+                ? { contexts: [{ context: 'tab-1', children: outerSiblings.map((url, i) => ({ context: i ? `sibling-${i}` : 'outer-ctx', url })) }] }
+                : { contexts: [{ context: 'tab-1', url: 'https://a.test/' }, { context: 'tab-2', url: secondUrl }] },
+            scriptCallFunction: async () => ({
+                type: 'success',
+                result: {
+                    type: 'array',
+                    value: [
+                        { type: 'window', value: { context: 'sibling-1' } },
+                        { type: 'window', value: { context: 'outer-ctx' } }
+                    ]
+                }
             }),
             scriptEvaluate: async () => ({ type: 'success', result: { type: 'string', value: 'Title' } }),
             switchToWindow: vi.fn(),
@@ -118,7 +128,31 @@ describe('frame (BiDi) after a cleared history', () => {
     })
 })
 
+describe('frame (BiDi) with sibling frames on the same URL', () => {
+    it('finds the held parent frame by its position among the frame elements', async () => {
+        const { session, history, record } = harness({ outerSiblings: ['https://a.test/outer.html', 'https://a.test/outer.html'] })
+        await record((await frame(session, { target: 'iframe#outer', $cwd: '/' })).history)
+
+        history.entries = []
+        history.generation++
+        expect((await frame(session, { target: 'iframe#inner', $cwd: '/' })).history).toBe(
+            "const page = (await browser.browsingContexts()).find((context) => context.url === 'https://a.test/')!\n" +
+            "const frame = await page.frame(page.$$('iframe, frame')[1])\n" +
+            "const frame2 = await frame.frame(frame.$('iframe#inner'))"
+        )
+    })
+})
+
 describe('tabs close (BiDi)', () => {
+    it('does not keep the page variable when closing fails', async () => {
+        const { session, closeWindow } = harness()
+        closeWindow.mockRejectedValueOnce(new Error('no such window'))
+        await expect(tabs(session, { sub: 'close', arg: '1', $cwd: '/' })).rejects.toThrow('no such window')
+
+        const result = await tabs(session, { sub: 'switch', arg: '1', $cwd: '/' })
+        expect(result.history).toBe("const page = (await browser.browsingContexts()).find((context) => context.url === 'https://b.test/')!")
+    })
+
     it('tells tabs with the same URL apart by their order', async () => {
         const { session } = harness({ secondUrl: 'https://a.test/' })
         const result = await tabs(session, { sub: 'close', arg: '1', $cwd: '/' })
