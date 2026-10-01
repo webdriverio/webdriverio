@@ -49,6 +49,20 @@ describe('Multi-Remote tests', () => {
             }
         })
 
+        test('gives no element to an instance that finds fewer elements (#15845)', async () => {
+            const browser = await multiRemote(caps())
+            vi.spyOn(browser.getInstance('browserB'), 'findElements')
+                .mockResolvedValue([{ 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' }])
+
+            const elements = await browser.$$('#foo')
+
+            expect(elements).toHaveLength(3)
+            expect(elements[0].getInstance('browserB').elementId).toBe('some-elem-123')
+            expect(() => elements[1].getInstance('browserB')).toThrow('Multi-remote object has no instance named "browserB"')
+            expect(() => elements[2].getInstance('browserB')).toThrow('Multi-remote object has no instance named "browserB"')
+            expect(elements[2].getInstance('browserA').elementId).toBe('some-elem-789')
+        })
+
         test('keeps isMultiRemote when $$ is chained from an element query', async () => {
             const browser = await multiRemote(caps())
 

@@ -1,4 +1,3 @@
-import zip from 'lodash.zip'
 import clone from 'lodash.clonedeep'
 import { setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
@@ -15,6 +14,16 @@ import * as BrowserCommands from './commands/browser.js'
 const overridableCommands = new Set(Object.keys(BrowserCommands))
 
 type EventEmitter = (args: unknown) => void
+
+/**
+ * Groups the elements of each instance by index. An index past the end of an
+ * `ElementArray` is a lazy element that waits and then rejects, so an instance
+ * with fewer elements gets `undefined` (#15845).
+ */
+function zipElements (lists: WebdriverIO.Element[][]) {
+    const length = Math.max(0, ...lists.map((list) => list.length))
+    return Array.from({ length }, (_, index) => lists.map((list) => index < list.length ? list[index] : undefined))
+}
 type WrappedClient = {
     options: Options.WebdriverIO,
     commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'select')[],
@@ -266,7 +275,7 @@ export default class MultiRemote {
                 const selector = args[0] as Selector
                 return ElementArray.fromAsyncCallback(async () => {
                     const { result, activeInstances } = await execute()
-                    const zippedResult = zip(...(result as unknown[][]))
+                    const zippedResult = zipElements(result as WebdriverIO.Element[][])
                     return zippedResult.map((singleResult) => MultiRemote.elementWrapper(
                         activeInstances,
                         singleResult,

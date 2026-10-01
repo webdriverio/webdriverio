@@ -1711,9 +1711,6 @@ importers:
       lodash.clonedeep:
         specifier: ^4.5.0
         version: 4.5.0
-      lodash.zip:
-        specifier: ^4.2.0
-        version: 4.2.0
       query-selector-shadow-dom:
         specifier: ^1.0.1
         version: 1.0.1
@@ -1745,9 +1742,6 @@ importers:
       '@types/lodash.clonedeep':
         specifier: ^4.5.9
         version: 4.5.9
-      '@types/lodash.zip':
-        specifier: ^4.2.9
-        version: 4.2.9
       puppeteer-core:
         specifier: ^25.11.0
         version: 25.11.0(yauzl@3.4.0)
@@ -6824,9 +6818,6 @@ packages:
 
   '@types/lodash.union@4.6.9':
     resolution: {integrity: sha512-l/GEj9Xp2DptsfFYZ1JUczg6W/6JGbbDi0mVK8urg8XLUMguNJ2L1ya0QJzMctrtlP9+t5lfyL4QLF6P9/6ssQ==}
-
-  '@types/lodash.zip@4.2.9':
-    resolution: {integrity: sha512-cJvqtEzLgHUPF6H6v7K6Q/yIc1DAYpsUkHD1Q7bUOAcCE0b7drzoUMi/Toj0MjQI3WeM6rI6v295mkenAQ+R7A==}
 
   '@types/lodash@4.17.19':
     resolution: {integrity: sha512-NYqRyg/hIQrYPT9lbOeYc3kIRabJDn/k4qQHIXUpx88CBDww2fD15Sg5kbXlW86zm2XEW4g0QxkTI3/Kfkc7xQ==}
@@ -21532,10 +21523,6 @@ snapshots:
       '@types/lodash': 4.17.19
 
   '@types/lodash.union@4.6.9':
-    dependencies:
-      '@types/lodash': 4.17.19
-
-  '@types/lodash.zip@4.2.9':
     dependencies:
       '@types/lodash': 4.17.19
 
