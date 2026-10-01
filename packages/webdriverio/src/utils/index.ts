@@ -555,6 +555,26 @@ export async function findDeepElement(
     const isScopedContext = shadowRoots.length > 0 || Boolean((this as WebdriverIO.Element).elementId)
     ;({ using, value } = applyFirefoxRootSelectorWorkaround(using, value, isScopedContext, browser))
 
+    /**
+     * An XPath expression needs an element or a document as its context node. A
+     * shadow root is a `DocumentFragment`, so `browsingContext.locateNodes` rejects
+     * the whole call as soon as one appears in `startNodes`, e.g. in Chrome:
+     *
+     *   NotSupportedError: Failed to execute 'evaluate' on 'XPathExpression': The node
+     *   provided is '#document-fragment', which is not a valid context node type.
+     *
+     * Every XPath lookup on a page that has a shadow root therefore failed, logged a
+     * warning and ran a second time through Classic (#14313). Leaving the shadow roots
+     * out of `startNodes` is not enough to keep the result the same: an XPath
+     * expression cannot cross a shadow boundary either, and Classic queries every
+     * known shadow root on its own, which is what keeps a match inside Shadow DOM
+     * findable. Use that path directly instead - it returns what the fallback already
+     * returned, in one round trip less and without the warning.
+     */
+    if (using === 'xpath' && shadowRoots.length > 0) {
+        return findElementViaClassic(this, browser, using, value, shadowRoots)
+    }
+
     const locator = transformClassicToBidiSelector(using, value)
 
     /**
@@ -704,6 +724,14 @@ export async function findDeepElements(
 
     const isScopedContext = shadowRoots.length > 0 || Boolean((this as WebdriverIO.Element).elementId)
     ;({ using, value } = applyFirefoxRootSelectorWorkaround(using, value, isScopedContext, browser))
+
+    /**
+     * See `findDeepElement`: a shadow root is not a valid XPath context node, and
+     * only Classic can reach an XPath match inside one.
+     */
+    if (using === 'xpath' && shadowRoots.length > 0) {
+        return findElementsViaClassic(this, browser, using, value, shadowRoots)
+    }
 
     const locator = transformClassicToBidiSelector(using, value)
 

@@ -794,3 +794,119 @@ describe.each([
         )
     })
 })
+
+describe('xpath lookups with known shadow roots', () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockGetCurrentContext.mockResolvedValue('ctx-1')
+        mockGetShadowElementsByContextId.mockReturnValue([])
+    })
+
+    /**
+     * regression test for #14313: a shadow root is not a valid XPath context node,
+     * so passing one as a start node made the browser reject the whole
+     * `browsingContext.locateNodes` call, which then ran a second time through
+     * Classic - Classic is also the only path that reaches a match inside a
+     * shadow root with an XPath expression, so it is used directly now
+     */
+    it('should skip BiDi and use Classic for an xpath selector (unscoped)', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1', 'shadow-2'])
+
+        const browser = createMockBrowser({ isBidi: true })
+        browser.findElement.mockResolvedValue({ [ELEMENT_KEY]: 'light-dom-node' })
+
+        const result = await findDeepElement.call(browser, '//div[@id="foo"]')
+
+        expect(browser.browsingContextLocateNodes).not.toHaveBeenCalled()
+        expect(browser.findElement).toHaveBeenCalledWith('xpath', '//div[@id="foo"]')
+        expect(result).toEqual({ [ELEMENT_KEY]: 'light-dom-node' })
+    })
+
+    it('should keep an xpath match inside a known shadow root findable', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1', 'shadow-2'])
+
+        const browser = createMockBrowser({ isBidi: true })
+        browser.findElement.mockResolvedValue({})
+        browser.findElementFromElement
+            .mockResolvedValueOnce({})
+            .mockResolvedValueOnce({ [ELEMENT_KEY]: 'shadow-xpath-node' })
+
+        const result = await findDeepElement.call(browser, '//div')
+
+        expect(browser.findElementFromElement).toHaveBeenCalledWith('shadow-1', 'xpath', '//div')
+        expect(browser.findElementFromElement).toHaveBeenCalledWith('shadow-2', 'xpath', '//div')
+        expect(result).toEqual({ [ELEMENT_KEY]: 'shadow-xpath-node' })
+    })
+
+    it('should scope the Classic xpath lookup to the element it was called on', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+
+        const browser = createMockBrowser({ isBidi: true })
+        const element: any = {
+            isW3C: true,
+            isMobile: false,
+            isBidi: true,
+            elementId: 'wrapper-elem-id',
+            __browser: browser,
+            findElementFromElement: vi.fn().mockResolvedValue({ [ELEMENT_KEY]: 'scoped-node' }),
+        }
+
+        const result = await findDeepElement.call(element, '//div')
+
+        expect(browser.browsingContextLocateNodes).not.toHaveBeenCalled()
+        expect(element.findElementFromElement).toHaveBeenCalledWith('wrapper-elem-id', 'xpath', '//div')
+        expect(result).toEqual({ [ELEMENT_KEY]: 'scoped-node' })
+    })
+
+    it('should still use BiDi for an xpath selector when no shadow root is known', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'bidi-node' }] })
+
+        const result = await findDeepElement.call(browser, '//div[@id="foo"]')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({
+                locator: { type: 'xpath', value: '//div[@id="foo"]' },
+                startNodes: undefined,
+            })
+        )
+        expect(browser.findElement).not.toHaveBeenCalled()
+        expect(result).toEqual(expect.objectContaining({ [ELEMENT_KEY]: 'bidi-node' }))
+    })
+
+    it('should still send shadow roots as startNodes for a css selector (unscoped)', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1', 'shadow-2'])
+
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+
+        await findDeepElement.call(browser, '.child-selector')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(
+            expect.objectContaining({
+                startNodes: [
+                    { sharedId: 'shadow-1' },
+                    { sharedId: 'shadow-2' },
+                ],
+            })
+        )
+    })
+
+    it('should collect light DOM and shadow root xpath matches in findDeepElements', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+
+        const browser = createMockBrowser({ isBidi: true })
+        browser.findElements.mockResolvedValue([{ [ELEMENT_KEY]: 'light-dom-node' }])
+        browser.findElementsFromElement.mockResolvedValue([{ [ELEMENT_KEY]: 'shadow-node' }])
+
+        const result = await findDeepElements.call(browser, '//div')
+
+        expect(browser.browsingContextLocateNodes).not.toHaveBeenCalled()
+        expect(browser.findElements).toHaveBeenCalledWith('xpath', '//div')
+        expect(browser.findElementsFromElement).toHaveBeenCalledWith('shadow-1', 'xpath', '//div')
+        expect(result).toEqual([
+            { [ELEMENT_KEY]: 'light-dom-node' },
+            { [ELEMENT_KEY]: 'shadow-node' },
+        ])
+    })
+})
