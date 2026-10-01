@@ -219,6 +219,26 @@ When(/^User (.) types a message into the chat/, async (userId) => {
 })
 ```
 
+## Assertions
+
+The `expect` matchers support multiremote browsers, elements and mocks. By default, every instance must match the expected value:
+
+```js
+await expect(multiRemoteBrowser).toHaveTitle('My App')
+await expect(multiRemoteBrowser.$('h1')).toHaveText('Welcome')
+```
+
+To expect a different value per instance, use `expect.multiRemote()` with one value per instance name:
+
+```js
+await expect(multiRemoteBrowser).toHaveTitle(expect.multiRemote({
+    myChromeBrowser: 'My App',
+    myFirefoxBrowser: expect.stringContaining('App')
+}))
+```
+
+For all the supported matchers and the required configuration, see the [expect-webdriverio multiremote guide](https://github.com/webdriverio/expect-webdriverio/blob/v7/docs/MultiRemote.md).
+
 ## Extending TypeScript Types
 
 If you are using TypeScript and like to access the driver instance from the multiremote object directly, you can also extend the multiremote types to do so. For example, given the following capabilities:

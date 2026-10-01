@@ -40,8 +40,8 @@
     "access": "public"
   },
   "peerDependencies": {
-    "expect-webdriverio": "^6.0.9",
-    "webdriverio": "^9.28.0"
+    "expect-webdriverio": "^7.0.1",
+    "webdriverio": "^9.31.5"
   },
   "peerDependenciesMeta": {
     "expect-webdriverio": {
@@ -50,5 +50,8 @@
     "webdriverio": {
       "optional": false
     }
+  },
+  "devDependencies": {
+    "webdriverio": "workspace:*"
   }
 }
