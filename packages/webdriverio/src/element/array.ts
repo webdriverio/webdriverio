@@ -33,7 +33,7 @@ interface ElementArrayMetadata {
      * Builds one multi-remote element from one element per instance, in the
      * instance order of `parent`. Set by a multi-remote `$$`.
      */
-    wrapMultiRemote?: (elements: WebdriverIO.Element[]) => WebdriverIO.MultiRemoteElement
+    wrapMultiRemote?: (elements: unknown[]) => WebdriverIO.MultiRemoteElement
 }
 
 interface ElementArrayState {
@@ -176,13 +176,13 @@ function readIndex (array: ElementList, index: number) {
     return chainElementPromise(elementAt(array, normalized), multiRemote)
 }
 
-async function elementAt (array: ElementList, index: number): Promise<WebdriverIO.Element | undefined> {
+async function elementAt (array: ElementList, index: number): Promise<WebdriverIO.Element | WebdriverIO.MultiRemoteElement | undefined> {
     const items = await load(array)
     if (index < 0) {
-        return items.at(index) as WebdriverIO.Element | undefined
+        return items.at(index)
     }
     if (index < items.length) {
-        return items[index] as WebdriverIO.Element
+        return items[index]
     }
 
     const { parent, foundWith, selector, refetch, wrapMultiRemote } = stateOf(array).metadata
@@ -190,32 +190,36 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
         return undefined
     }
 
-    /**
-     * A multi-remote `waitUntil` runs the condition once per instance, with `this`
-     * as the browser or the element of that instance and with the timeout of that
-     * instance. So every instance queries and waits for itself, and their elements
-     * build one multi-remote element. A multi-remote element has no `parent`, so a
-     * multi-remote parent waits itself.
-     */
-    const waiter = (wrapMultiRemote ? parent : getBrowserObject(parent as WebdriverIO.Element)) as WebdriverIO.Browser
-    const found = await waiter.waitUntil(async function (this: WebdriverIO.Browser | WebdriverIO.Element) {
-        const target = wrapMultiRemote ? this : parent
-        const query = (target as unknown as Record<string, (selector?: Selector) => Promise<WebdriverIO.ElementArray>>)[foundWith]
+    const timeoutMsg = `Index out of bounds! $$(${String(selector)}) returned only ${items.length} elements.`
+    const findIn = async (target: object) => {
+        const query = (target as Record<string, (selector?: Selector) => Promise<WebdriverIO.ElementArray>>)[foundWith]
         if (typeof query !== 'function') {
             return false
         }
         const refetched = await query.call(target, selector as Selector | undefined)
-        if (refetched && refetched.length > index) {
-            return refetched[index]
-        }
-        return false
-    }, {
-        timeout: wrapMultiRemote ? undefined : waiter.options?.waitforTimeout,
-        timeoutMsg: `Index out of bounds! $$(${String(selector)}) returned only ${items.length} elements.`
+        return refetched && refetched.length > index ? refetched[index] : false
+    }
+
+    if (wrapMultiRemote) {
+        /**
+         * A multi-remote `waitUntil` runs the condition once per instance, with `this`
+         * as the browser or the element of that instance and with the timeout of that
+         * instance. So every instance queries and waits for itself, and their elements
+         * build one multi-remote element. A multi-remote element has no `parent`, so a
+         * multi-remote parent waits itself.
+         */
+        const multiRemoteParent = parent as WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement
+        const elements = await multiRemoteParent.waitUntil(function (this: WebdriverIO.Browser | WebdriverIO.Element) {
+            return findIn(this)
+        }, { timeoutMsg })
+        return wrapMultiRemote(elements)
+    }
+
+    const browser = getBrowserObject(parent as WebdriverIO.Element)
+    return browser.waitUntil(() => findIn(parent), {
+        timeout: browser.options?.waitforTimeout,
+        timeoutMsg
     })
-    return wrapMultiRemote
-        ? wrapMultiRemote(found as unknown as WebdriverIO.Element[]) as unknown as WebdriverIO.Element
-        : found as WebdriverIO.Element
 }
 
 const methods: Record<string, Function> = {
