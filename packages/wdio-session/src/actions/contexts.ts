@@ -66,12 +66,68 @@ function findTab (tabs: Tab[], arg: unknown) {
     return tab
 }
 
+interface ContextVars {
+    /** context id → variable that holds it in the recorded code */
+    names: Record<string, string>
+    used: string[]
+    generation?: number
+}
+
+/**
+ * Recorded steps share one function scope in an exported spec. Each held
+ * browsing context gets its own variable, declared once and reused by later
+ * steps. The registry starts over when the history is cleared, and skips
+ * names a kept history already declares.
+ */
+function contextVars (session: Session): ContextVars {
+    const generation = session.history?.generation
+    const vars = session.get<ContextVars>('contextVars')
+    if (vars && vars.generation === generation) {
+        return vars
+    }
+    const declared = (session.history?.entries ?? [])
+        .flatMap((entry) => [...entry.code.matchAll(/\bconst ((?:page|frame)\d*) =/g)].map((match) => match[1]))
+    const fresh: ContextVars = { names: {}, used: declared, generation }
+    session.set('contextVars', fresh)
+    return fresh
+}
+
+/**
+ * The variable for a context and the code that declares it. The code is
+ * empty when an earlier step already declared it.
+ */
+function declareContext (session: Session, prefix: 'page' | 'frame', contextId: string, expression: () => string) {
+    const vars = contextVars(session)
+    const known = vars.names[contextId]
+    if (known) {
+        return { name: known, code: '' }
+    }
+    let name: string = prefix
+    for (let n = 2; vars.used.includes(name); n++) {
+        name = `${prefix}${n}`
+    }
+    vars.used.push(name)
+    vars.names[contextId] = name
+    return { name, code: `const ${name} = ${expression()}` }
+}
+
+function forgetContext (session: Session, contextId: string) {
+    delete contextVars(session).names[contextId]
+}
+
 /**
  * window handles change between runs, emitted code matches by URL
  */
+const pageByUrl = (url: string) => `(await browser.browsingContexts()).find((context) => context.url === ${quote(url)})!`
+
+const declarePage = (session: Session, contextId: string, url: string) =>
+    declareContext(session, 'page', contextId, () => pageByUrl(url))
+
 const switchCode = (session: Session, tab: Tab) => session.isBidi
-    ? `const page = (await browser.browsingContexts()).find((context) => context.url === ${quote(tab.url)})`
+    ? declarePage(session, tab.handle, tab.url).code
     : `await browser.switchWindow(${quote(tab.url)})`
+
+const joinCode = (...lines: string[]) => lines.filter(Boolean).join('\n')
 
 function resetFrame (session: Session) {
     session.set('frame', undefined)
@@ -121,9 +177,20 @@ export const tabs: ActionFn = async (session, args) => {
     await session.browser.closeWindow()
     const next = tab.current ? list.find((t) => t.handle !== tab.handle)! : current
     await switchTo(session, next)
-    const code = [switchCode(session, tab), 'await browser.closeWindow()', switchCode(session, next)]
+    let code: string
+    if (session.isBidi) {
+        /**
+         * A held page closes itself. `browser.closeWindow()` would close
+         * whichever tab the session pointer is on when the spec replays.
+         */
+        const closed = declarePage(session, tab.handle, tab.url)
+        forgetContext(session, tab.handle)
+        code = joinCode(closed.code, `await ${closed.name}.closeWindow()`, switchCode(session, next))
+    } else {
+        code = joinCode(switchCode(session, tab), 'await browser.closeWindow()', switchCode(session, next))
+    }
     return {
-        ...done(`Closed tab [${tab.index}] ${tab.title || tab.url}, now on ${next.title || next.url}`, code.join('\n')),
+        ...done(`Closed tab [${tab.index}] ${tab.title || tab.url}, now on ${next.title || next.url}`, code),
         data: { tabs: await listTabs(session) }
     }
 }
@@ -166,8 +233,6 @@ export const frame: ActionFn = async (session, args) => {
     return done(`Switched to frame ${resolved.label}`, `await browser.switchFrame(${resolved.code})`)
 }
 
-const pageCode = 'const page = (await browser.browsingContexts()).find((context) => context.contextId === await browser.getWindowHandle())'
-
 async function currentPage (session: Session) {
     const held = session.get<WebdriverIO.BrowsingContext>('activeContext')
     if (held && !held.isFrame) {
@@ -176,6 +241,11 @@ async function currentPage (session: Session) {
     const contexts = await session.browser.browsingContexts()
     const handle = await session.browser.getWindowHandle()
     return contexts.find((context) => context.contextId === handle) ?? contexts[0]
+}
+
+async function declareCurrentPage (session: Session, page: WebdriverIO.BrowsingContext) {
+    const url = await page.getUrl().catch(() => page.url)
+    return declarePage(session, page.contextId, url)
 }
 
 function adopt (session: Session, contextId: string) {
@@ -188,7 +258,8 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
         adopt(session, handle)
         session.set('activeContext', undefined)
         resetFrame(session)
-        return done('Switched to the top document', pageCode)
+        const page = await currentPage(session)
+        return done('Switched to the top document', page ? (await declareCurrentPage(session, page)).code : '')
     }
     if (target === 'parent') {
         const current = session.get<WebdriverIO.BrowsingContext>('activeContext')
@@ -196,17 +267,24 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
         const stack = session.get<string[]>('frameStack') || []
         stack.pop()
         session.set('frameStack', stack)
+        let code = ''
         if (parent?.isFrame) {
             adopt(session, parent.contextId)
             session.set('activeContext', parent)
             session.set('frame', stack.at(-1))
+            const child = current && contextVars(session).names[current.contextId]
+            if (child) {
+                code = declareContext(session, 'frame', parent.contextId, () => `${child}.parent!`).code
+            }
         } else {
             const handle = await session.browser.getWindowHandle()
             adopt(session, handle)
             session.set('activeContext', undefined)
             session.set('frame', undefined)
+            const page = await currentPage(session)
+            code = page ? (await declareCurrentPage(session, page)).code : ''
         }
-        return done(`Switched to ${stack.at(-1) || 'the top document'}`, 'const parent = frame.parent')
+        return done(`Switched to ${stack.at(-1) || 'the top document'}`, code)
     }
     const resolved = await resolveTarget(session, target)
     const tag = await resolved.element.getTagName().catch(() => '')
@@ -218,15 +296,22 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
         throw usage('No browsing context to enter a frame from.')
     }
     const child = await owner.frame(resolved.element)
+    /**
+     * The frame element belongs to the owner's document, so the recorded
+     * selector is queried on the owner, not on the top-level page.
+     */
+    const ownerVar = owner.isFrame
+        ? { name: contextVars(session).names[owner.contextId], code: '' }
+        : await declareCurrentPage(session, owner)
+    const childVar = ownerVar.name
+        ? declareContext(session, 'frame', child.contextId, () => `await ${ownerVar.name}.frame(${ownerVar.name}.${resolved.code})`)
+        : { code: '' }
     adopt(session, child.contextId)
     session.set('activeContext', child)
     const stack = [...(session.get<string[]>('frameStack') || []), resolved.label]
     session.set('frameStack', stack)
     session.set('frame', resolved.label)
-    return done(
-        `Switched to frame ${resolved.label}`,
-        `${pageCode}\nconst frame = await page.frame(${resolved.code})`
-    )
+    return done(`Switched to frame ${resolved.label}`, joinCode(ownerVar.code, childVar.code))
 }
 
 export const contexts: ActionFn = async (session, args) => {
