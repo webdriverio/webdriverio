@@ -474,7 +474,17 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
     return shareDriverSetup(
         chromedriverSetupKey(cacheDir, platform, buildId),
         () => installChromedriver(cacheDir, platform, version, buildId)
-    )
+    ).catch((err) => {
+        const fallbackElectronVersion = !getChromedriverCdnUrl() && getElectronVersionForChromium(buildId)
+        if (!fallbackElectronVersion) {
+            throw err
+        }
+        log.warn(`Couldn't download Chromedriver v${buildId} from Chrome for Testing, using the one from Electron v${fallbackElectronVersion}: ${describeRejection(err)}`)
+        return installElectronChromedriver(cacheDir, platform, fallbackElectronVersion).catch((electronErr) => {
+            log.warn(`Couldn't download Chromedriver from Electron v${fallbackElectronVersion} either: ${describeRejection(electronErr)}`)
+            throw err
+        })
+    })
 }
 
 function installElectronChromedriver (cacheDir: string, platform: BrowserPlatform, electronVersion: string) {

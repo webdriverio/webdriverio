@@ -62,6 +62,7 @@ WebdriverIO downloads Chromedriver from Chrome for Testing by default, but in ce
 
 - [`wdio:electronVersion`](capabilities#wdioelectronversion) is set, for an Electron app. It uses that release, unless `browserVersion` and `CHROMEDRIVER_CDNURL` are both set.
 - Chrome is older than `153.0.8001.0` on Linux ARM64, where Chrome for Testing has no Chromedriver builds (see [Chromedriver on ARM64](arm64-chromedriver)). It uses the last release with the same Chromium major.
+- The Chrome for Testing download fails, for example during an outage, and `CHROMEDRIVER_CDNURL` isn't set. It uses the last release with the same Chromium major.
 
 :::info
 

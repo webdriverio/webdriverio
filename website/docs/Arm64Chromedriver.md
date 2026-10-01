@@ -47,5 +47,5 @@ To resolve it:
 
 ## Related
 
-- [Driver Binaries](driverbinaries): how WebdriverIO downloads and caches browser drivers.
+- [Driver Binaries](driverbinaries): how WebdriverIO downloads and caches browser drivers, including the fallback when Chrome for Testing fails.
 - [Capabilities](capabilities#wdioelectronversion): the `wdio:electronVersion` option.

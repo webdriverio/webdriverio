@@ -347,6 +347,34 @@ describe('setupChromedriver', () => {
             }
         })
 
+        it('uses an Electron release with the same Chromium major when Chrome for Testing fails', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            vi.mocked(resolveBuildId).mockResolvedValue('130.0.6723.58' as never)
+            vi.mocked(install)
+                .mockRejectedValueOnce(new Error('503'))
+                .mockRejectedValueOnce(new Error('503'))
+
+            await setupChromedriver('/some/cache', '130.0.6723.58')
+
+            expect(getElectronVersionForChromium).toHaveBeenCalledWith('130.0.6723.58')
+            expect(install).toHaveBeenNthCalledWith(3, expect.objectContaining({ buildId: '33.2.1', providers: [expect.any(Object)] }))
+        })
+
+        it('keeps a CHROMEDRIVER_CDNURL mirror as the only source', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            vi.mocked(resolveBuildId).mockResolvedValue('130.0.6723.58' as never)
+            vi.mocked(install).mockRejectedValue(new Error('503'))
+            process.env.CHROMEDRIVER_CDNURL = 'https://mirror.example.com'
+
+            try {
+                await expect(setupChromedriver('/some/cache', '130.0.6723.58')).rejects.toThrow('503')
+                expect(install).not.toHaveBeenCalledWith(expect.objectContaining({ providers: expect.anything() }))
+            } finally {
+                delete process.env.CHROMEDRIVER_CDNURL
+                vi.mocked(install).mockResolvedValue({} as never)
+            }
+        })
+
         describe('on Linux ARM64', () => {
             beforeEach(() => {
                 vi.mocked(detectBrowserPlatform).mockReturnValue('linux_arm' as never)
