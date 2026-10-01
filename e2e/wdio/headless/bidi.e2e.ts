@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import os from 'node:os'
 import path from 'node:path'
 import url from 'node:url'
 
@@ -56,6 +58,24 @@ describe('bidi e2e test', () => {
             }).catch(err => err)
             expectAnnotatedThrow(result2.stack, 'if(a){if(a){await Promise.reject(new Error("Hello Bidi"))}}}')
         })
+    })
+
+    it('prints a PDF with browsingContext.print', async function () {
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+
+        await browser.url('https://guinea-pig.webdriver.io/')
+        const file = path.join(os.tmpdir(), `bidi-save-pdf-${browser.capabilities.browserName}-${Date.now()}.pdf`)
+        const pdf = await browser.savePDF(file, {
+            orientation: 'landscape',
+            left: 2
+        })
+
+        expect(browser.isBidi).toBe(true)
+        expect(pdf.subarray(0, 5).toString()).toBe('%PDF-')
+        expect((await fs.readFile(file)).subarray(0, 5).toString()).toBe('%PDF-')
+        await fs.rm(file, { force: true })
     })
 
     it('can send bidi commands', async function () {
@@ -530,6 +550,133 @@ describe('bidi e2e test', () => {
 
                 // TODO fix one day we should be able to assert 'positionUnavailable' somehow
                 await expect(geolocation).rejects.toThrow()
+            })
+        })
+
+        describe('emulate', () => {
+            const unsupported = (err: unknown) => {
+                const message = err instanceof Error ? err.message : String(err)
+                return /unsupported operation|unknown command/i.test(message)
+            }
+
+            /**
+             * A browser that has not implemented the command rejects it. Chrome
+             * reports `unknown command`; another browser may report
+             * `unsupported operation`. That is the `emulate` contract, so skip
+             * the page assertion. `invalid argument` still fails the test.
+             */
+            async function run (this: Mocha.Context, fn: () => Promise<void>) {
+                try {
+                    await fn()
+                } catch (err) {
+                    if (unsupported(err)) {
+                        return this.skip()
+                    }
+                    throw err
+                }
+            }
+
+            it('emulates geolocation without a reload', async function () {
+                await browser.url('https://guinea-pig.webdriver.io')
+                await run.call(this, async () => {
+                    const restore = await browser.emulate('geolocation', {
+                        latitude: 52.52,
+                        longitude: 13.405,
+                        accuracy: 1
+                    })
+                    try {
+                        await browser.setPermissions({ name: 'geolocation' }, 'granted')
+                        const geolocation = await browser.execute(() => {
+                            return new Promise((resolve, reject) => {
+                                navigator.geolocation.getCurrentPosition(
+                                    (position) => resolve({
+                                        latitude: position.coords.latitude,
+                                        longitude: position.coords.longitude,
+                                        accuracy: position.coords.accuracy
+                                    }),
+                                    (error) => reject(error),
+                                    { timeout: 10000 }
+                                )
+                            })
+                        })
+                        expect(geolocation).toEqual({
+                            latitude: 52.52,
+                            longitude: 13.405,
+                            accuracy: 1
+                        })
+                    } finally {
+                        await restore()
+                    }
+                })
+            })
+
+            it('emulates the user agent without a reload', async function () {
+                await browser.url('https://guinea-pig.webdriver.io')
+                await run.call(this, async () => {
+                    const restore = await browser.emulate('userAgent', 'WebdriverIO-Emulate-UA')
+                    try {
+                        expect(await browser.execute(() => navigator.userAgent)).toBe('WebdriverIO-Emulate-UA')
+                    } finally {
+                        await restore()
+                    }
+                })
+            })
+
+            it('emulates the color scheme for matchMedia and CSS without a reload', async function () {
+                await browser.url('https://guinea-pig.webdriver.io')
+                await run.call(this, async () => {
+                    const restore = await browser.emulate('colorScheme', 'dark')
+                    try {
+                        const observed = await browser.execute(() => {
+                            const style = document.createElement('style')
+                            style.textContent = '#wdio-scheme { color: rgb(0, 128, 0) } @media (prefers-color-scheme: dark) { #wdio-scheme { color: rgb(0, 0, 128) } }'
+                            document.head.appendChild(style)
+                            const el = document.createElement('div')
+                            el.id = 'wdio-scheme'
+                            document.body.appendChild(el)
+                            return {
+                                matches: matchMedia('(prefers-color-scheme: dark)').matches,
+                                color: getComputedStyle(el).color
+                            }
+                        })
+                        expect(observed).toEqual({ matches: true, color: 'rgb(0, 0, 128)' })
+                    } finally {
+                        await restore()
+                    }
+                })
+            })
+
+            it('takes the browsing context offline without a reload', async function () {
+                await browser.url('https://guinea-pig.webdriver.io')
+                await run.call(this, async () => {
+                    const restore = await browser.emulate('onLine', false)
+                    try {
+                        const observed = await browser.execute(async () => {
+                            let fetched = 'ok'
+                            try {
+                                await fetch(`${location.href}?r=${Math.random()}`, { cache: 'no-store' })
+                            } catch {
+                                fetched = 'rejected'
+                            }
+                            return { online: navigator.onLine, fetched }
+                        })
+                        expect(observed).toEqual({ online: false, fetched: 'rejected' })
+                    } finally {
+                        await restore()
+                    }
+                })
+            })
+
+            it('emulates the timezone without a reload', async function () {
+                await browser.url('https://guinea-pig.webdriver.io')
+                await run.call(this, async () => {
+                    const restore = await browser.emulate('timezone', 'Pacific/Honolulu')
+                    try {
+                        expect(await browser.execute(() => Intl.DateTimeFormat().resolvedOptions().timeZone)).toBe('Pacific/Honolulu')
+                    } finally {
+                        await restore()
+                    }
+                })
             })
         })
 

@@ -1,5 +1,5 @@
-import { getBrowserObject } from '@wdio/utils'
 import type { TransformElement, TransformReturn } from '../../types.js'
+import { execute as executeScript } from '../browser/execute.js'
 
 /**
  *
@@ -46,7 +46,6 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
     ...args: InnerArguments
 ): Promise<TransformReturn<Awaited<ReturnValue>>> {
     const scope = this as WebdriverIO.Element
-    const browser = getBrowserObject(scope)
     await scope.waitForExist()
-    return browser.execute(script, scope, ...args)
+    return executeScript.call(scope, script as never, scope, ...args) as Promise<TransformReturn<Awaited<ReturnValue>>>
 }

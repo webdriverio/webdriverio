@@ -1,6 +1,8 @@
 import logger from '@wdio/logger'
 import type { remote } from 'webdriver'
 
+import { isBrowsingContext } from '../../session/browsingContext.js'
+
 const log = logger('webdriverio')
 
 /**
@@ -13,7 +15,7 @@ const log = logger('webdriverio')
  * @example https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/deleteCookies/example.js#L31-L35
  */
 export async function deleteCookies(
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     filter?: string | string[] | remote.StorageCookieFilter | remote.StorageCookieFilter[]
 ): Promise<void> {
     const filterArray = typeof filter === 'undefined'
@@ -22,6 +24,30 @@ export async function deleteCookies(
 
     if (!this.isBidi) {
         await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
+        return
+    }
+
+    if (isBrowsingContext(this)) {
+        const partition: remote.StoragePartitionDescriptor = {
+            type: 'context',
+            context: this.contextId
+        }
+        if (!filterArray) {
+            await this.browser.storageDeleteCookies({ partition })
+            return
+        }
+        const bidiFilter = filterArray.map((entry) => {
+            if (typeof entry === 'string') {
+                return { name: entry } as remote.StorageCookieFilter
+            }
+            if (typeof entry === 'object') {
+                return entry
+            }
+            throw new Error(`Invalid value for cookie filter, expected 'string' or 'remote.StorageCookieFilter' but found "${typeof entry}"`)
+        })
+        await Promise.all(bidiFilter.map((entry) => (
+            this.browser.storageDeleteCookies({ filter: entry, partition })
+        )))
         return
     }
 

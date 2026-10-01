@@ -4,7 +4,7 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
 import { type remote, ELEMENT_KEY } from 'webdriver'
-import { UNICODE_CHARACTERS, getBrowserObject } from '@wdio/utils'
+import { UNICODE_CHARACTERS, WDIO_KIND, getBrowserObject, isLoadedElement } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
 import * as browserCommands from '../commands/browser.js'
@@ -16,6 +16,10 @@ import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy, getAriaXPathSelector } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
+import { contextIdOf, heldBrowsingContext } from '../session/browsingContext.js'
+import { createBidiFunctionDeclaration } from './bidi/serialize.js'
+import { LocalValue } from './bidi/value.js'
+import { parseScriptResult } from './bidi/index.js'
 import { ElementArray } from '../element/array.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
@@ -47,7 +51,7 @@ const applyScopePrototype = (
  * enhances objects with element commands
  */
 export const getPrototype = (scope: 'browser' | 'element') => {
-    const prototype: Record<string, PropertyDescriptor> = {
+    const prototype: Record<string | symbol, PropertyDescriptor> = {
         /**
          * used to store the puppeteer instance in the browser scope
          */
@@ -80,6 +84,10 @@ export const getPrototype = (scope: 'browser' | 'element') => {
      */
     applyScopePrototype(prototype, scope)
     prototype.strategies = { value: new Map() }
+    /**
+     * brand the instance as a browser or an element, see `@wdio/utils` `kind.ts`
+     */
+    prototype[WDIO_KIND] = { value: scope, configurable: true }
 
     return prototype
 }
@@ -409,6 +417,114 @@ async function findElementsViaClassic(
     return unique
 }
 
+/**
+ * `browsingContext.locateNodes` does not search a child frame. A classic
+ * `findElement` would search the session pointer instead, so query the frame
+ * document directly.
+ */
+async function findInFrameByScript (
+    scope: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    using: string,
+    value: string,
+    index: number | null
+): Promise<ElementReference | number | undefined> {
+    const held = heldBrowsingContext(scope)
+    if (!held?.isFrame) {
+        return undefined
+    }
+
+    /**
+     * Return one node, or a count. An array of nodes loses its browsing-context
+     * identity on the way back, so later commands reject the shared id.
+     */
+    const query = function (strategy: string, selector: string, at: number | null, root: ParentNode | null) {
+        const css = strategy === 'id'
+            ? `#${CSS.escape(selector)}`
+            : strategy === 'class name'
+                ? `.${selector.split(/\s+/).map((part) => CSS.escape(part)).join('.')}`
+                : strategy === 'name'
+                    ? `[name="${selector.replace(/"/g, '\\"')}"]`
+                    : strategy === 'tag name'
+                        ? selector
+                        : selector
+        const matches = (base: ParentNode): Node[] => {
+            if (strategy === 'xpath') {
+                const snapshot = document.evaluate(selector, base, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+                const found: Node[] = []
+                for (let i = 0; i < snapshot.snapshotLength; i++) {
+                    const node = snapshot.snapshotItem(i)
+                    if (node) {
+                        found.push(node)
+                    }
+                }
+                return found
+            }
+            const scope = 'querySelectorAll' in base ? base : document
+            if (strategy === 'link text' || strategy === 'partial link text') {
+                return Array.from(scope.querySelectorAll('a')).filter((link) => (
+                    strategy === 'link text'
+                        ? link.textContent === selector
+                        : (link.textContent || '').includes(selector)
+                ))
+            }
+            const found: Node[] = Array.from(scope.querySelectorAll(css))
+            for (const element of Array.from(scope.querySelectorAll('*'))) {
+                if (element.shadowRoot) {
+                    found.push(...matches(element.shadowRoot))
+                }
+            }
+            return found
+        }
+        const nodes = matches(root && 'querySelectorAll' in root ? root : document)
+        if (at === null) {
+            return nodes.length
+        }
+        return nodes[at] || null
+    }
+    const resolved = using === 'aria'
+        ? { using: 'xpath', value: getAriaXPathSelector(value) }
+        : { using, value }
+    const rootId = (scope as { [ELEMENT_KEY]?: string })[ELEMENT_KEY]
+    const params: remote.ScriptCallFunctionParameters = {
+        functionDeclaration: createBidiFunctionDeclaration(query as unknown as Function),
+        awaitPromise: true,
+        arguments: [
+            LocalValue.getArgument(resolved.using),
+            LocalValue.getArgument(resolved.value),
+            LocalValue.getArgument(index),
+            rootId ? { sharedId: rootId } : LocalValue.getArgument(null)
+        ] as remote.ScriptLocalValue[],
+        target: { context: held.contextId }
+    }
+    const parsed = parseScriptResult(params, await browser.scriptCallFunction(params))
+    if (typeof parsed === 'number') {
+        return parsed
+    }
+    if (parsed && typeof parsed === 'object' && ELEMENT_KEY in parsed) {
+        return parsed as ElementReference
+    }
+    return undefined
+}
+
+async function findAllInFrame (
+    scope: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    using: string,
+    value: string
+): Promise<ElementReference[]> {
+    const count = await findInFrameByScript(scope, browser, using, value, null)
+    const total = typeof count === 'number' ? count : 0
+    const nodes: ElementReference[] = []
+    for (let i = 0; i < total; i++) {
+        const node = await findInFrameByScript(scope, browser, using, value, i)
+        if (node && typeof node === 'object') {
+            nodes.push(node)
+        }
+    }
+    return nodes
+}
+
 type BidiStartNode = { sharedId: string }
 
 /**
@@ -525,14 +641,16 @@ export async function findDeepElement(
 ): Promise<ElementReference | undefined> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
-    const contextManager = getContextManager(browser)
-    const context = await contextManager.getCurrentContext()
+    const context = await contextIdOf(this)
 
     const shadowRoots = await shadowRootManager.getShadowElementsByContextId(
         context,
         (this as WebdriverIO.Element).elementId
     )
     let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
+    if (heldBrowsingContext(this)?.isFrame) {
+        return findInFrameByScript(this, browser, using, value, 0) as Promise<ElementReference | undefined>
+    }
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -656,6 +774,9 @@ export async function findDeepElement(
                 this, browser, using, value, context, startNodes, shadowRoots
             )
         }
+        if (heldBrowsingContext(this)?.isFrame) {
+            return findInFrameByScript(this, browser, using, value, 0) as Promise<ElementReference | undefined>
+        }
         return findElementViaClassic(this, browser, using, value, shadowRoots)
     })
 
@@ -675,14 +796,16 @@ export async function findDeepElements(
 ): Promise<ElementReference[]> {
     const browser = getBrowserObject(this)
     const shadowRootManager = getShadowRootManager(browser)
-    const contextManager = getContextManager(browser)
-    const context = await contextManager.getCurrentContext()
+    const context = await contextIdOf(this)
 
     const shadowRoots = await shadowRootManager.getShadowElementsByContextId(
         context,
         (this as WebdriverIO.Element).elementId
     )
     let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
+    if (heldBrowsingContext(this)?.isFrame) {
+        return findAllInFrame(this, browser, using, value)
+    }
 
     /**
      * if we are using a relative xpath selector and we have a parent element
@@ -791,6 +914,9 @@ export async function findDeepElements(
             return findAriaElementsViaXPathFallback(
                 this, browser, using, value, context, startNodes, shadowRoots
             )
+        }
+        if (heldBrowsingContext(this)?.isFrame) {
+            return findAllInFrame(this, browser, using, value)
         }
         return findElementsViaClassic(this, browser, using, value, shadowRoots)
     })
@@ -991,18 +1117,18 @@ export async function findElements(
 }
 
 /**
- * Strip an element down to its W3C element reference.
+ * Strip an element down to its W3C element reference. A chainable `$()` is not
+ * loaded yet, so it is not stripped (see `@wdio/utils` `kind.ts`).
  */
 export function verifyArgsAndStripIfElement(args: unknown) {
     function verify(arg: unknown) {
-        if (arg && typeof arg === 'object' && arg.constructor.name === 'Element') {
-            const elem = arg as WebdriverIO.Element
-            if (!elem.elementId) {
-                throw new Error(`The element with selector "${elem.selector}" you are trying to pass into the execute method wasn't found`)
+        if (isLoadedElement(arg)) {
+            if (!arg.elementId) {
+                throw new Error(`The element with selector "${arg.selector}" you are trying to pass into the execute method wasn't found`)
             }
 
             return {
-                [ELEMENT_KEY]: elem.elementId
+                [ELEMENT_KEY]: arg.elementId
             }
         }
 
@@ -1083,11 +1209,12 @@ export async function hasElementId(element: WebdriverIO.Element) {
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
     if (!element.elementId) {
+        const parent = element.parent as WebdriverIO.Element | WebdriverIO.Browser
         const command = element.isReactElement
-            ? element.parent.react$.bind(element.parent)
+            ? parent.react$.bind(parent)
             : element.isShadowElement
-                ? element.parent.shadow$.bind(element.parent)
-                : element.parent.$.bind(element.parent)
+                ? parent.shadow$.bind(parent)
+                : parent.$.bind(parent)
         element.elementId = (await command(element.selector as string).getElement()).elementId
     }
 

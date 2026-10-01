@@ -1,6 +1,11 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import { describe, it, expect } from 'vitest'
 
-import { normalizeUrl, parseKeys } from '../../src/actions/interact.js'
+import { normalizeUrl, parseKeys, upload } from '../../src/actions/interact.js'
+import { quote } from '../../src/quote.js'
+import type { Session } from '../../src/session.js'
 
 describe('parseKeys', () => {
     it('keeps single keys and characters', () => {
@@ -23,6 +28,89 @@ describe('parseKeys', () => {
     it('rejects unknown key names', () => {
         expect(() => parseKeys('Control+Foo')).toThrow('Unknown key "Foo".')
         expect(() => parseKeys('')).toThrow('No keys given.')
+    })
+})
+
+function uploadSession (element: Record<string, unknown>, plan: Record<string, unknown> = {}, isBidi = true) {
+    return {
+        cwd: '/tmp',
+        isBidi,
+        plan,
+        browser: {
+            $: () => ({ getElement: async () => element }),
+            uploadFile: async () => {
+                throw new Error('uploadFile should not be called')
+            }
+        }
+    } as unknown as Session
+}
+
+describe('upload', () => {
+    const file = fileURLToPath(import.meta.url)
+
+    it('emits setFiles with the resolved path', async () => {
+        const seen: unknown[] = []
+        const element = {
+            elementId: '1',
+            setFiles: async (value: string) => {
+                seen.push(value)
+            }
+        }
+        const result = await upload(uploadSession(element), { target: '#file', file, $cwd: '/' })
+        expect(seen).toEqual([file])
+        expect(result.code).toBe(`await $('#file').setFiles(${quote(file)})`)
+        expect(result.history).not.toContain('uploadFile')
+        expect(result.history).not.toContain('setValue')
+    })
+
+    it('falls back to setValue in a Classic session', async () => {
+        const seen: unknown[] = []
+        const element = {
+            elementId: '1',
+            setFiles: async () => {
+                throw new Error('setFiles should not be called')
+            },
+            setValue: async (value: string) => {
+                seen.push(value)
+            }
+        }
+        const result = await upload(uploadSession(element, {}, false), { target: '#file', file, $cwd: '/' })
+        expect(seen).toEqual([file])
+        expect(result.code).toBe(`await $('#file').setValue(${quote(file)})`)
+    })
+
+    it('uses setFiles for a remote session', async () => {
+        const seen: unknown[] = []
+        const element = {
+            elementId: '1',
+            setFiles: async (value: string) => {
+                seen.push(value)
+            },
+            setValue: async () => {
+                throw new Error('setValue should not be called')
+            }
+        }
+        const result = await upload(uploadSession(element, {
+            provider: 'browserstack',
+            remote: { hostname: 'hub.browserstack.com' }
+        }), { target: '#file', file, $cwd: '/' })
+        expect(seen).toEqual([path.resolve(file)])
+        expect(result.code).toContain('.setFiles(')
+        expect(result.code).not.toContain('uploadFile')
+    })
+
+    it('rejects a missing file before calling setFiles', async () => {
+        const element = {
+            elementId: '1',
+            setFiles: async () => {
+                throw new Error('setFiles should not be called')
+            }
+        }
+        await expect(upload(uploadSession(element), {
+            target: '#file',
+            file: 'missing.png',
+            $cwd: '/tmp/does-not-exist'
+        })).rejects.toThrow('does not exist')
     })
 })
 

@@ -184,7 +184,46 @@ The `Element`, `MultiRemoteBrowser` and `MultiRemoteElement` types exported by `
 + const elem: WebdriverIO.Element = await $('#foo')
 ```
 
-Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript version this repository compiles with.
+Published packages set `typeScriptVersion` to 6.0.3, matching the TypeScript version this repository compiles with.
+
+`browser.mock()` accepts the `URLPattern` of `urlpattern-polyfill` and the native `URLPattern` (global in Node.js 24, and typed by the `dom` library of TypeScript 6).
+
+TypeScript 6 deprecates `"moduleResolution": "node"` and `"baseUrl"`, and makes `strict` the default. `create-wdio` now generates `"moduleResolution": "bundler"` for ESM projects and `"NodeNext"` for CommonJS projects. If you update TypeScript in an existing project, change these options in your `tsconfig.json`.
+
+For an ESM project:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
+-        "moduleResolution": "node",
++        "moduleResolution": "bundler",
+         "module": "ESNext"
+     }
+ }
+```
+
+For a CommonJS project, use `NodeNext` for both options, as `create-wdio` does:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
+-        "moduleResolution": "node",
+-        "module": "CommonJS"
++        "moduleResolution": "NodeNext",
++        "module": "NodeNext"
+     }
+ }
+```
+
+TypeScript 6 also changes the default of `types` to `[]`, so it no longer loads every installed `@types/*` package. If your `tsconfig.json` has no `types` list, globals such as Mocha's `describe` and `it` fail with `Cannot find name`. List the type packages that your tests use, as `create-wdio` does. For example, with Mocha:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
++        "types": ["node", "@wdio/globals/types", "@wdio/mocha-framework"]
+     }
+ }
+```
 
 ## Reporters
 
@@ -379,6 +418,21 @@ await browser.action('pointer', { parameters: { pointerType: 'touch' } })
     .perform()
 ```
 
+## `uploadFile`
+
+`browser.uploadFile()` is removed. It zipped a local file and posted it to the Selenium `file` endpoint, which is not part of WebDriver or WebDriver BiDi. Set a file input with [`element.setFiles()`](/docs/api/element/setFiles).
+
+```diff
+- const remotePath = await browser.uploadFile('/path/to/file.png')
+- await $('#file-upload').setValue(remotePath)
++ await $('#file-upload').setFiles('/path/to/file.png')
++ await $('#file-upload').setFiles(['/path/to/a.png', '/path/to/b.png'])
+```
+
+`setFiles` needs a BiDi session. The paths are opened by the browser. A relative path is resolved against `process.cwd()`. Selenium Grid file staging is not part of v10. A suite that depended on `uploadFile` to push bytes to a node has to put the file where the browser can read it, then call `setFiles`.
+
+On a classic local session, `element.setValue('/local/path')` still types a path the local browser can already see. The raw Selenium endpoint remains `browser.file()` for Grid users who call it directly.
+
 ## `executeAsync`
 
 `browser.executeAsync` and `element.executeAsync` are removed. Pass an `async` function to [`execute`](/docs/api/browser/execute). The function's return value, including a returned promise, is the command result. The `script` timeout still applies.
@@ -394,7 +448,22 @@ Drop the WebDriver `done` callback. A string script that expected that callback 
 
 ## `switchToFrame`
 
-`browser.switchToFrame` is no longer a public command. It is omitted from the TypeScript types and the docs. Call [`switchFrame`](/docs/api/browser/switchFrame).
+`browser.switchToFrame` is no longer a public command.
+
+In a WebDriver BiDi session, `switchFrame` and `switchWindow` throw. A tab, a window, and a frame are a `WebdriverIO.BrowsingContext` you hold. `browser.url()` navigates the session's initial top-level context and returns it. `browser.newWindow()` returns the new context and does not switch to it. `context.frame()` returns a child frame. `context.parent` is the frame you opened it from.
+
+```ts
+const page = await browser.url('https://example.com')
+const other = await browser.newWindow('https://webdriver.io', { type: 'tab' })
+console.log(await page.getTitle())
+const frame = await page.frame('iframe')
+console.log(await frame.$('h1').getText())
+const pages = await browser.browsingContexts()
+```
+
+`context.url` is the document URL string. Navigate a held context with `context.navigate(url)`. Load metadata from `browser.url()` is `context.request`.
+
+In a Classic session, keep calling `switchFrame` with an element, or `null` for the top frame. A string or a function is rejected there.
 
 ```diff
 - await browser.switchToFrame(await $('iframe'))
@@ -402,8 +471,6 @@ Drop the WebDriver `done` callback. A string script that expected that callback 
 + await browser.switchFrame($('iframe'))
 + await browser.switchFrame(null)
 ```
-
-Pass an element, or `null` for the top frame. On a BiDi session a string can be a frame url or a context id. Do not pass a numeric frame index. A BiDi session rejects it.
 
 ## `setTimeout`
 
@@ -502,6 +569,12 @@ For other spy changes, see the [Vitest migration guide](https://vitest.dev/guide
 
 ## ESLint
 
+`eslint-plugin-wdio` requires ESLint 10. ESLint 9 reached [end of life](https://eslint.org/version-support/) on 2026-08-06 and is no longer supported. With TypeScript, use `typescript-eslint` 8.56.0 or later.
+
+```sh
+npm install --save-dev eslint@10 eslint-plugin-wdio
+```
+
 `eslint-plugin-wdio` exports only the flat config `flat/recommended`. The eslintrc name `plugin:wdio/recommended` is removed.
 
 ```js
@@ -511,6 +584,24 @@ export default [
     wdioConfig['flat/recommended'],
 ]
 ```
+
+The recommended config switches to the type-aware `wdio/no-floating-promise` rule, in place of `wdio/await-expect`, when the `typescript-eslint` package is installed. Installing only `@typescript-eslint/eslint-plugin` is not enough.
+
+```sh
+npm install --save-dev typescript typescript-eslint
+```
+
+In that mode, the config parses every file it matches with the TypeScript project service. Limit it to TypeScript files, and make sure they are part of a `tsconfig.json`:
+
+```js
+import { configs as wdioConfig } from 'eslint-plugin-wdio'
+
+export default [
+    { files: ['**/*.{ts,mts,cts,tsx}'], ...wdioConfig['flat/recommended'] },
+]
+```
+
+A matched JavaScript file that is not in the TypeScript project, such as `wdio.conf.js`, fails with "was not found by the project service". To lint JavaScript files too, set `"allowJs": true`, add them to `include` in `tsconfig.json`, and widen the pattern to `**/*.{js,mjs,cjs,ts,mts,cts,tsx}`.
 
 ## Custom frameworks
 
@@ -601,7 +692,7 @@ In v9, many mobile helpers tried `browser.execute('mobile: …')` and, on an unk
 
 ### Removed protocol commands
 
-Appium 3 [removed many deprecated base-driver endpoints](https://appium.io/docs/en/3.0/guides/migrating-2-to-3/). WebdriverIO no longer exposes client methods for those routes (for example `appiumLock`, `touchPerform`, `startRecordingScreen` / `stopRecordingScreen`, and the Mobile JSON Wire Protocol map). Use W3C Actions, the corresponding mobile command, or a driver `mobile:` execute method instead. Screen recording replacements include `mobile: startXCTestScreenRecording` / `mobile: stopXCTestScreenRecording` (iOS), `mobile: startMediaProjectionRecording` / `mobile: stopMediaProjectionRecording` (Android), and the macOS / Windows driver equivalents. [`browser.saveRecordingScreen`](/docs/api/browser/saveRecordingScreen) now stops recording through those `mobile:` methods instead of the removed HTTP endpoints.
+Appium 3 [removed many deprecated base-driver endpoints](https://appium.io/docs/en/latest/guides/migrating-2-to-3/). WebdriverIO no longer exposes client methods for most of those routes (for example `appiumLock`, `touchPerform`, and the Mobile JSON Wire Protocol map). Use W3C Actions, the corresponding mobile command, or a driver `mobile:` execute method instead.
 
 ### Appium `--allow-insecure` scope
 
@@ -625,6 +716,15 @@ Appium 3 requires a driver or `*` scope prefix on `--allow-insecure` features, f
 ### `getValue` on mobile reads the element property
 
 `element.getValue()` calls Get Element Property on every session, including Appium 3. On a mobile session it previously called Get Element Attribute.
+
+### `stopRecordingScreen` signature aligned with `startRecordingScreen`
+
+`driver.stopRecordingScreen` now only accepts a single `options` argument, instead of the previous 4 arguments, aligning with `driver.startRecordingScreen`. Move the individual arguments inside an object:
+
+```diff
+- driver.stopRecordingScreen('webdriver.io', undefined, undefined, 'POST')
++ driver.stopRecordingScreen({ remotePath: 'webdriver.io', method: 'POST' })
+```
 
 ## Multi-remote naming
 
@@ -697,6 +797,29 @@ Other changes you may notice:
       await daemon?.stop()
   }
   ```
+
+## Emulation
+
+`browser.emulate()` drives the WebDriver BiDi emulation module for the current top-level browsing context. v9 injected a preload script that patched `navigator.geolocation.getCurrentPosition`, `navigator.userAgent`, `window.matchMedia` and `navigator.onLine`. Those scripts are gone. `browser.emulate('clock', …)` still installs fake timers into the current page and into pages opened afterwards.
+
+A reload is no longer required for the BiDi scopes.
+
+```diff
+  await browser.emulate('onLine', false)
+- // only `navigator.onLine` changed; traffic still flowed
++ // the browsing context is offline, including fetch, WebSocket and WebTransport
+```
+
+- `onLine: false` calls `emulation.setNetworkConditions` with `{ type: 'offline' }`. `true` and restoring the scope clear it. Throughput and latency stay on `browser.throttleNetwork()`.
+- `colorScheme` sets the `prefers-color-scheme` media feature, so CSS `@media (prefers-color-scheme)` follows `matchMedia`.
+- `userAgent` is the browser user-agent override, not a patched `navigator.userAgent` property.
+- `geolocation` uses the browser geolocation stack. A page can still need `browser.setPermissions({ name: 'geolocation' }, 'granted')`. `{ error: 'positionUnavailable' }` reports that error instead of coordinates.
+- `colorScheme` and `media` share one media-feature map. The later call replaces the whole map, and restoring either scope clears it.
+- `device` sets the user agent, viewport, touch, mobile text layout and viewport meta from the device descriptor. It does not change `screen` or `orientation`.
+
+New scopes are `media`, `locale`, `timezone`, `touch`, `orientation`, `screen`, `viewportMeta`, `textLayout`, `scripting`, `scrollbar` and `forcedColors`. A browser that does not implement a command rejects the call with its own error (`unknown command` or `unsupported operation`). WebdriverIO does not fall back to a preload script or to CDP. If `device` is rejected part way through, the previous user agent, viewport, touch, text layout and viewport meta are put back.
+
+`wdio session emulate` accepts the same scopes. It no longer tells you to reload for an override that applies immediately. `emulate network` presets and `emulate cpu` are unchanged and remain Chromium-only. See [Emulation](/docs/emulation).
 
 ## Next steps
 

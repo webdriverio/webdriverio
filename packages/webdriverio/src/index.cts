@@ -118,3 +118,10 @@ exports.multiRemote = async function(
     const { multiRemote } = await import('./node.js')
     return multiRemote(params, { automationProtocol })
 }
+
+/**
+ * Brands of WebdriverIO objects, see `@wdio/utils` `kind.ts`. `Symbol.for()` returns
+ * the same symbols as the ESM entry.
+ */
+exports.WDIO_KIND = Symbol.for('wdio.kind')
+exports.WDIO_CHAINABLE = Symbol.for('wdio.chainable')

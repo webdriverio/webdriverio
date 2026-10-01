@@ -2,20 +2,18 @@ import { environment } from '../../environment.js'
 
 /**
  *
- * Save a video started by a driver `mobile:` screen-recording execute method to a file.
+ * Save a video started by [`startRecordingScreen`](/docs/api/appium#startrecordingscreen) command to file.
  *
  * :::info
  *
- * This command is only supported for mobile sessions running on [Appium](https://appium.io/).
- * Start recording with the driver-specific execute method first, for example
- * `mobile: startXCTestScreenRecording` (iOS) or `mobile: startMediaProjectionRecording` (Android).
+ * This command is only supported for mobile sessions running on [Appium](https://appium.github.io/appium.io/docs/en/commands/device/recording-screen/start-recording-screen/).
  *
  * :::
  *
  * <example>
     :saveRecordingScreen.js
     it('should save a video', async () => {
-        await browser.execute('mobile: startMediaProjectionRecording', {})
+        await browser.startRecordingScreen()
         await $('~BUTTON').click()
         await browser.saveRecordingScreen('./some/path/video.mp4')
     })

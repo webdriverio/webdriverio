@@ -2,6 +2,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "noImplicitAny": true,
+    "strict": false,
     "lib": ["es2018", "dom"],
     "esModuleInterop": true,
     "resolveJsonModule": true,

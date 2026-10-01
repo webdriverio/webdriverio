@@ -131,9 +131,11 @@ describe('newWindow', () => {
         const browsingContextNavigateSpy: MockInstance = vi.spyOn(browser, 'browsingContextNavigate')
         browsingContextNavigateSpy.mockImplementation(() => ({}))
 
-        const newHandle = await browser.newWindow('https://webdriver.io')
+        const newWindow = await browser.newWindow('https://webdriver.io')
 
-        expect(newHandle.type).toBe('window')
+        expect(newWindow.contextId).toBe('new-window-handle')
+        expect(newWindow.isFrame).toBe(false)
+        expect(newWindow.url).toBe('https://webdriver.io')
         expect(browsingContextCreateSpy).toHaveBeenCalledTimes(1)
         expect(browsingContextCreateSpy).toHaveBeenCalledWith({ type: 'window' })
         expect(browsingContextNavigateSpy).toHaveBeenCalledTimes(1)
@@ -156,11 +158,12 @@ describe('newWindow', () => {
         const browsingContextNavigateSpy: MockInstance = vi.spyOn(browser, 'browsingContextNavigate')
         browsingContextNavigateSpy.mockImplementation(() => ({}))
 
-        const newHandle = await browser.newWindow('https://webdriver.io', {
+        const newTab = await browser.newWindow('https://webdriver.io', {
             type: 'tab'
         })
 
-        expect(newHandle.type).toBe('tab')
+        expect(newTab.contextId).toBe('new-tab-handle')
+        expect(newTab.isFrame).toBe(false)
         expect(browsingContextCreateSpy).toHaveBeenCalledTimes(1)
         expect(browsingContextCreateSpy).toHaveBeenCalledWith({ type: 'tab' })
         expect(browsingContextNavigateSpy).toHaveBeenCalledTimes(1)

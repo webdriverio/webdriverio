@@ -24,7 +24,7 @@ import type { WaitUntilOptions } from '../../types.js'
  *
  */
 export function waitUntil<ReturnValue>(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.BrowsingContext,
     condition: () => ReturnValue | Promise<ReturnValue>,
     {
         timeout = this.options.waitforTimeout,

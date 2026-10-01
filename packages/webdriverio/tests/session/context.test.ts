@@ -422,4 +422,25 @@ describe('ContextManager', () => {
 
         expect(await manager.getCurrentContext()).toBe('context-1')
     })
+
+    it('resolves the current frame to its top-level context', async () => {
+        const stub = createBrowserStub({ isBidi: true } as any)
+        const browser = stub.browser
+        ;(browser as any).browsingContextGetTree.mockResolvedValue({
+            contexts: [{
+                context: 'top', parent: null, url: '', clientWindow: 'window-1',
+                originalOpener: null, userContext: 'default',
+                children: [{
+                    context: 'frame', url: '', clientWindow: 'window-1',
+                    originalOpener: null, userContext: 'default', children: []
+                }]
+            }]
+        })
+        const manager = getContextManager(browser)
+        manager.setCurrentContext('frame')
+        expect(await manager.getCurrentTopLevelContext()).toBe('top')
+
+        manager.setCurrentContext('top')
+        expect(await manager.getCurrentTopLevelContext()).toBe('top')
+    })
 })

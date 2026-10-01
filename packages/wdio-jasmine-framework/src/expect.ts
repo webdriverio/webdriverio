@@ -1,3 +1,5 @@
+import { getWdioKind, isArrayOfElements } from '@wdio/utils'
+
 /**
  * Minimal view of the Jasmine env methods the hybrid `expect` needs.
  */
@@ -14,76 +16,31 @@ type AnyObject = Record<PropertyKey, unknown>
  */
 const SOME_WRAPPER = Symbol.for('expect-webdriverio.some')
 
-/*
- * The guards below come from expect-webdriverio (`src/util/elementsUtil.ts`
- * and `src/util/multiRemoteUtils.ts`), which does not export them. Changes:
- * - A plain array must not be empty: `[]` is a Jasmine value, for example
- *   `expect([]).toHaveSize(0)`. An empty `$$()` result is still found by
- *   `isElementArray`.
- * - A browser must also have a command, so that an application class named
- *   `Browser` is not a WebdriverIO browser.
- */
 const isObject = (value: unknown): value is AnyObject => (
     !!value && (typeof value === 'object' || typeof value === 'function')
 )
-const hasMultiRemoteFlag = (value: AnyObject) => value.isMultiRemote === true || value.isMultiremote === true
 
 /**
- * `selector` can be undefined, so `parent` identifies an element or an
- * element array. A not found element is still an element.
- */
-const isElement = (value: unknown) => (
-    isObject(value) && 'parent' in value && !Array.isArray(value) && 'getElement' in value && !hasMultiRemoteFlag(value)
-)
-const isElementArray = (value: unknown) => (
-    isObject(value) && 'parent' in value && 'foundWith' in value && !hasMultiRemoteFlag(value)
-)
-/**
- * `Element[]`, for example the result of `$$().filter()`. `Array.prototype.every`
- * skips the async iterators of a multiremote element array.
- */
-const isArrayOfElements = (value: unknown) => (
-    Array.isArray(value) && value.length > 0 && !hasMultiRemoteFlag(value as unknown as AnyObject) &&
-    Array.prototype.every.call(value, isElement)
-)
-const isMultiRemoteElement = (value: unknown) => (
-    isObject(value) && hasMultiRemoteFlag(value) && !Array.isArray(value) && 'selector' in value
-)
-const isMultiRemoteElementArray = (value: unknown) => (
-    isObject(value) && hasMultiRemoteFlag(value) && 'parent' in value && 'foundWith' in value && 'selector' in value
-)
-const isArrayOfMultiRemoteElements = (value: unknown) => (
-    Array.isArray(value) && value.length > 0 && !isMultiRemoteElementArray(value) &&
-    Array.prototype.every.call(value, isMultiRemoteElement)
-)
-/**
- * `@wdio/globals` binds every function that it returns, `constructor`
- * included, so its name can start with `bound `.
- */
-const isBrowser = (value: unknown) => {
-    if (!isObject(value)) {
-        return false
-    }
-    const name = (value.constructor as { name?: string } | undefined)?.name?.replace(/^bound /, '')
-    return (name === 'Browser' || !!name?.endsWith('MultiRemoteDriver')) && typeof value.getTitle === 'function'
-}
-
-/**
- * Values that a WDIO matcher can assert on: an element, an element array or
- * `Element[]`, their multiremote versions, a browser, the `some()` wrapper of
- * elements, or a promise. A chainable `$()` / `$$()` can only be found as a
- * promise, and a Jasmine sync matcher cannot check a promise, so every
- * promise goes to the WDIO matcher.
+ * Values that a WDIO matcher can assert on: a WebdriverIO object, a copy of an
+ * element list, the `some()` wrapper of elements, or a promise. A Jasmine sync
+ * matcher cannot check a promise, and a WDIO matcher awaits it (for example a
+ * promise of an element from an async function), so every promise goes to WDIO.
  */
 function isWebdriverIOObject (actual: unknown) {
     if (!isObject(actual)) {
         return false
     }
-    return typeof actual.then === 'function' ||
+    /**
+     * The `wdio.kind` brand (see `@wdio/utils` `kind.ts`) is set on browsers, elements,
+     * element lists (also multi-remote) and chainable `$()`, and it passes through the
+     * `@wdio/globals` proxies, which forward reads. A copy of an element list
+     * (`[...await $$()]`) is a plain array of elements. `[]` is a Jasmine value, for
+     * example `expect([]).toHaveSize(0)`.
+     */
+    return getWdioKind(actual) !== undefined ||
+        isArrayOfElements(actual) ||
         SOME_WRAPPER in actual ||
-        isElement(actual) || isElementArray(actual) || isArrayOfElements(actual) ||
-        isMultiRemoteElement(actual) || isMultiRemoteElementArray(actual) || isArrayOfMultiRemoteElements(actual) ||
-        isBrowser(actual)
+        typeof actual.then === 'function'
 }
 
 /**

@@ -1,5 +1,9 @@
 import { ELEMENT_KEY } from 'webdriver'
+import type { remote } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
+import { getBrowserObject } from '@wdio/utils'
+
+import { foreignContextId, isBrowsingContext } from '../../session/browsingContext.js'
 
 export type ActionType = 'key' | 'pointer' | 'wheel'
 export type KeyActionType = 'mouse' | 'pen' | 'touch'
@@ -31,11 +35,11 @@ export default class BaseAction {
     #id: string
     #type: ActionType
     #parameters: ActionParameters
-    #instance: WebdriverIO.Browser
+    #instance: WebdriverIO.Browser | WebdriverIO.BrowsingContext
     protected sequence: Sequence[] = []
 
     constructor(
-        protected instance: WebdriverIO.Browser,
+        protected instance: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
         type: ActionType,
         params?: BaseActionParams
     ) {
@@ -94,6 +98,7 @@ export default class BaseAction {
         /**
          * transform chainable / not resolved elements into WDIO elements
          */
+        let originContext: string | undefined
         for (const seq of this.sequence) {
             /**
              * continue if we don't deal with origin or elements within
@@ -111,6 +116,11 @@ export default class BaseAction {
                 seq.origin = await seq.origin
             }
 
+            const foreign = await foreignContextId(seq.origin as WebdriverIO.Element)
+            if (foreign) {
+                originContext = foreign
+            }
+
             if (!seq.origin[ELEMENT_KEY]) {
                 throw new Error(`Couldn't find element for "${seq.type}" action sequence`)
             }
@@ -118,9 +128,48 @@ export default class BaseAction {
             seq.origin = { [ELEMENT_KEY]: seq.origin[ELEMENT_KEY] }
         }
 
-        await this.#instance.performActions([this.toJSON()])
+        const browser = getBrowserObject(this.#instance)
+        const sequence = [this.toJSON()]
+        const contextId = isBrowsingContext(this.#instance) ? this.#instance.contextId : originContext
+        if (contextId) {
+            const actions = sequence.map((source) => ({
+                ...source,
+                actions: source.actions.map((action) => {
+                    /**
+                     * A pointer move into another navigable starts from the last
+                     * top-level position. The default 100ms interpolation crosses
+                     * the frame and fires mouse events an in-frame action does not.
+                     * An instant move lands on the element. A chosen duration stays.
+                     */
+                    const instant = action.type === 'pointerMove' && action.duration === 100
+                        ? { ...action, duration: 0 }
+                        : action
+                    const origin = (instant as { origin?: ElementReference }).origin
+                    if (!origin || typeof origin !== 'object' || !(ELEMENT_KEY in origin)) {
+                        return instant
+                    }
+                    return {
+                        ...instant,
+                        origin: {
+                            type: 'element' as const,
+                            element: { sharedId: origin[ELEMENT_KEY] }
+                        }
+                    }
+                })
+            }))
+            await browser.inputPerformActions({
+                context: contextId,
+                actions: actions as remote.InputSourceActions[]
+            })
+            if (!skipRelease) {
+                await browser.inputReleaseActions({ context: contextId })
+            }
+            return
+        }
+
+        await browser.performActions(sequence)
         if (!skipRelease) {
-            await this.#instance.releaseActions()
+            await browser.releaseActions()
         }
     }
 }
