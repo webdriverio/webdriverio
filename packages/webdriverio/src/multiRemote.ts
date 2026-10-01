@@ -273,22 +273,25 @@ export default class MultiRemote {
              */
             if (commandName === '$$') {
                 const selector = args[0] as Selector
+                let loadedInstances = instances
+                const wrapMultiRemote = (elements: unknown) => MultiRemote.elementWrapper(
+                    loadedInstances,
+                    elements,
+                    this.__propertiesObject__,
+                    self,
+                    typeof selector === 'string' ? selector : undefined
+                )
                 return ElementArray.fromAsyncCallback(async () => {
                     const { result, activeInstances } = await execute()
-                    const zippedResult = zipElements(result as WebdriverIO.Element[][])
-                    return zippedResult.map((singleResult) => MultiRemote.elementWrapper(
-                        activeInstances,
-                        singleResult,
-                        this.__propertiesObject__,
-                        self,
-                        typeof selector === 'string' ? selector : undefined
-                    ))
+                    loadedInstances = activeInstances
+                    return zipElements(result as WebdriverIO.Element[][]).map(wrapMultiRemote)
                 }, {
                     selector,
                     foundWith: '$$',
                     parent: this,
                     props: [],
-                    isMultiRemote: true
+                    isMultiRemote: true,
+                    wrapMultiRemote
                 })
             }
 

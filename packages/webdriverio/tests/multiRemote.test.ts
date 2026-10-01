@@ -126,6 +126,38 @@ describe('Multi-Remote tests', () => {
 
                 await expect(elements[2]).rejects.toThrow('Index out of bounds! $$(#foo) returned only 2 elements.')
             })
+
+            test('waits for every instance with its own timeout', async () => {
+                const browser = await multiRemote(caps())
+                browser.getInstance('browserA').options.waitforTimeout = 50
+                browser.getInstance('browserB').options.waitforTimeout = 2000
+                let queriesA = 0
+                vi.spyOn(browser.getInstance('browserA'), 'findElements')
+                    .mockImplementation(async () => elementRefs(++queriesA >= 2 ? 3 : 2))
+                const start = Date.now()
+                vi.spyOn(browser.getInstance('browserB'), 'findElements')
+                    .mockImplementation(async () => elementRefs(Date.now() - start >= 300 ? 3 : 2))
+
+                const elements = await browser.$$('#foo')
+                const element = await elements[2]
+
+                expect(element.getInstance('browserA').elementId).toBe('elem-2')
+                expect(element.getInstance('browserB').elementId).toBe('elem-2')
+            })
+
+            test('rejects when one instance does not find the element', async () => {
+                const browser = await multiRemote(caps())
+                browser.getInstance('browserB').options.waitforTimeout = 50
+                let queriesA = 0
+                vi.spyOn(browser.getInstance('browserA'), 'findElements')
+                    .mockImplementation(async () => elementRefs(++queriesA >= 2 ? 3 : 2))
+                vi.spyOn(browser.getInstance('browserB'), 'findElements')
+                    .mockResolvedValue(elementRefs(2))
+
+                const elements = await browser.$$('#foo')
+
+                await expect(elements[2]).rejects.toThrow('Index out of bounds! $$(#foo) returned only 2 elements.')
+            })
         })
 
         test('keeps isMultiRemote when $$ is chained from an element query', async () => {
