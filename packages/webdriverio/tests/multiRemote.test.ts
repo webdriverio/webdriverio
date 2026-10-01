@@ -63,6 +63,37 @@ describe('Multi-Remote tests', () => {
             expect(elements[2].getInstance('browserA').elementId).toBe('some-elem-789')
         })
 
+        test('gives an empty list when no instance finds an element', async () => {
+            const browser = await multiRemote(caps())
+            for (const name of ['browserA', 'browserB']) {
+                vi.spyOn(browser.getInstance(name), 'findElements').mockResolvedValue([])
+            }
+
+            const elements = await browser.$$('#foo')
+
+            expect(elements).toHaveLength(0)
+            expect(elements.isMultiRemote).toBe(true)
+        })
+
+        test('gives no element to an instance that finds fewer elements in a list of an element query', async () => {
+            const browser = await multiRemote(caps())
+            const parent = await browser.$('#parent')
+            vi.spyOn(parent.getInstance('browserA'), 'findElementsFromElement').mockResolvedValue([
+                { 'element-6066-11e4-a52e-4f735466cecf': 'a-0' },
+                { 'element-6066-11e4-a52e-4f735466cecf': 'a-1' }
+            ])
+            vi.spyOn(parent.getInstance('browserB'), 'findElementsFromElement').mockResolvedValue([
+                { 'element-6066-11e4-a52e-4f735466cecf': 'b-0' }
+            ])
+
+            const elements = await parent.$$('#foo')
+
+            expect(elements).toHaveLength(2)
+            expect(elements[0].getInstance('browserB').elementId).toBe('b-0')
+            expect(elements[1].getInstance('browserA').elementId).toBe('a-1')
+            expect(() => elements[1].getInstance('browserB')).toThrow('Multi-remote object has no instance named "browserB"')
+        })
+
         describe('index past the end of a loaded list', () => {
             const elementRefs = (count: number) => Array.from(
                 { length: count },
@@ -143,6 +174,59 @@ describe('Multi-Remote tests', () => {
 
                 expect(element.getInstance('browserA').elementId).toBe('elem-2')
                 expect(element.getInstance('browserB').elementId).toBe('elem-2')
+            })
+
+            test('waits on a list that is not loaded yet', async () => {
+                const browser = await multiRemote(caps())
+                growingElements(browser, 3)
+
+                const element = await browser.$$('#foo')[2]
+
+                expect(Array.isArray(element)).toBe(false)
+                expect(element.isMultiRemote).toBe(true)
+                expect(element.getInstance('browserA').elementId).toBe('elem-2')
+                expect(element.getInstance('browserB').elementId).toBe('elem-2')
+            })
+
+            test('waits only on the selected instances', async () => {
+                const browser = await multiRemote(caps())
+                const [findA, findB] = growingElements(browser, 3)
+
+                const elements = await browser.select('browserB').$$('#foo')
+                const element = await elements[2]
+
+                expect(element.instances).toEqual(['browserB'])
+                expect(element.getInstance('browserB').elementId).toBe('elem-2')
+                expect(() => element.getInstance('browserA')).toThrow('Multi-remote object has no instance named "browserA"')
+                expect(findA).not.toHaveBeenCalled()
+                expect(findB.mock.calls).toHaveLength(3)
+            })
+
+            test('waits only on the instances of a selected parent element', async () => {
+                const browser = await multiRemote(caps())
+                const parent = (await browser.$('#parent')).select('browserB')
+                let queries = 0
+                const findB = vi.spyOn(parent.getInstance('browserB'), 'findElementsFromElement')
+                    .mockImplementation(async () => elementRefs(++queries >= 3 ? 3 : 2))
+
+                const elements = await parent.$$('#foo')
+                const element = await elements[2]
+
+                expect(element.instances).toEqual(['browserB'])
+                expect(element.getInstance('browserB').elementId).toBe('elem-2')
+                expect(findB.mock.calls).toHaveLength(3)
+            })
+
+            test('does not wait for an index past the end of a slice', async () => {
+                const browser = await multiRemote(caps())
+                const [findA, findB] = growingElements(browser, 3)
+
+                const elements = await browser.$$('#foo')
+                const sliced = elements.slice(0, 1)
+
+                expect(sliced[2]).toBeUndefined()
+                expect(findA.mock.calls).toHaveLength(1)
+                expect(findB.mock.calls).toHaveLength(1)
             })
 
             test('rejects when one instance does not find the element', async () => {
