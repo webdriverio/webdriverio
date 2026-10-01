@@ -121,7 +121,7 @@ await checkout.$('h1').getText()
 await docs.getTitle()
 ```
 
-Windows the test didn't open, like a `window.open` popup, come from `browser.browsingContexts()`. Because nothing moves a hidden pointer anymore, `switchWindow` and `switchFrame` throw in BiDi sessions. Classic sessions keep them, and the [migration guide](/docs/v10-migration#switchtoframe) shows the new calls. Thanks to [Дамян Минков](https://github.com/damencho) for insisting that frames work exactly like tabs.
+Windows the test didn't open, like a `window.open` popup, come from `browser.browsingContexts()`. Because nothing moves a hidden pointer anymore, `switchWindow` and `switchFrame` throw in BiDi sessions. Classic sessions keep them, and the [migration guide](/docs/v10-migration#switchtoframe) shows the new calls.
 
 ### Small API changes you will notice
 
