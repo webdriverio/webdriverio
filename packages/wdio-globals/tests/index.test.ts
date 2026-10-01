@@ -41,4 +41,12 @@ describe('global handler', () => {
         expect(() => (wdioExpect as any).closeTo(10, 2)).not.toThrow()
     })
 
+    it('can set multiRemote on expect', () => {
+        const values = { browserA: 'foo', browserB: 'bar' }
+        const myExpect = { multiRemote: vi.fn().mockReturnValue('mock-result') }
+        _setGlobal('expect', myExpect, true)
+        expect(wdioExpect.multiRemote(values)).toBe('mock-result')
+        expect(myExpect.multiRemote).toHaveBeenCalledWith(values)
+    })
+
 })
