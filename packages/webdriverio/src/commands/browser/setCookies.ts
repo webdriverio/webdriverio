@@ -1,6 +1,8 @@
 import logger from '@wdio/logger'
 import type { Cookie } from '@wdio/protocols'
 
+import { isBrowsingContext } from '../../session/browsingContext.js'
+
 const log = logger('webdriverio')
 
 /**
@@ -58,7 +60,7 @@ const log = logger('webdriverio')
  *
  */
 export async function setCookies(
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     cookieObjs: Cookie | Cookie[]
 ): Promise<void> {
     const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
@@ -71,7 +73,31 @@ export async function setCookies(
      * if session doesn't use Bidi, use WebDriver Classic command
      */
     if (!this.isBidi) {
-        await Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
+        const classic = isBrowsingContext(this) ? this.browser : this
+        await Promise.all(cookieObjsList.map(cookieObj => classic.addCookie(cookieObj)))
+        return
+    }
+
+    const browser = isBrowsingContext(this) ? this.browser : this
+    if (isBrowsingContext(this)) {
+        const origin = this.url.startsWith('http') ? this.url : await this.getUrl()
+        const url = new URL(origin)
+        await Promise.all(cookieObjsList.map((cookie) => (
+            browser.storageSetCookie({
+                cookie: {
+                    ...cookie,
+                    domain: cookie.domain || url.hostname,
+                    value: {
+                        type: 'string',
+                        value: cookie.value,
+                    }
+                },
+                partition: {
+                    type: 'context',
+                    context: this.contextId
+                }
+            })
+        )))
         return
     }
 

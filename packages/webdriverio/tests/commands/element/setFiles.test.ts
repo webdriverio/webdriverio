@@ -40,6 +40,22 @@ describe('setFiles', () => {
         })
     })
 
+    it('uses the browsing context the element was found in', async () => {
+        const inputSetFiles = vi.fn(async () => ({}))
+        const browser = { isBidi: true, inputSetFiles }
+        const frame = { contextId: 'held-frame', browser, parent: browser }
+        const elem = { elementId: 'shared-id', parent: frame } as unknown as WebdriverIO.Element
+        const absolute = path.resolve('/tmp/file.png')
+
+        await setFiles.call(elem, absolute)
+
+        expect(inputSetFiles).toHaveBeenCalledWith({
+            context: 'held-frame',
+            element: { sharedId: 'shared-id' },
+            files: [absolute]
+        })
+    })
+
     it('accepts a single path', async () => {
         const { element: elem, inputSetFiles } = element()
         const absolute = path.resolve('/tmp/file.png')

@@ -1,29 +1,27 @@
 import { getContextManager } from '../../session/context.js'
 
 /**
+ * Switch focus to a particular tab / window (Classic sessions).
  *
- * Switch focus to a particular tab / window.
+ * In a WebDriver BiDi session this command throws. `browser.url()` and
+ * `browser.newWindow()` return the browsing context, and `browser.browsingContexts()`
+ * lists the open top-level contexts. Commands run on the context you hold.
  *
  * <example>
     :switchWindow.js
     it('should switch to another window', async () => {
-        // open url
+        // Classic
         await browser.url('https://google.com')
-
-        // get window handle
         const handle = await browser.getWindowHandle()
-
-        // create new window
         await browser.newWindow('https://webdriver.io')
-
-        // switch back via url match
         await browser.switchWindow('google.com')
-
-        // switch back via title match
-        await browser.switchWindow('Next-gen browser and mobile automation test framework for Node.js')
-
-        // switch back via window handle
         await browser.switchWindow(handle)
+
+        // BiDi
+        const google = await browser.url('https://google.com')
+        const docs = await browser.newWindow('https://webdriver.io')
+        console.log(await docs.getTitle())
+        console.log(await google.getTitle())
     });
  * </example>
  *
@@ -38,6 +36,14 @@ export async function switchWindow (
     this: WebdriverIO.Browser,
     matcher: string | RegExp
 ): Promise<string> {
+    if (this.isBidi) {
+        throw new Error(
+            '`switchWindow` was removed for WebDriver BiDi sessions in WebdriverIO v10. ' +
+            'Hold the browsing context returned by `browser.url()` or `browser.newWindow()`, ' +
+            'or find one with `browser.browsingContexts()`.'
+        )
+    }
+
     /**
      * parameter check
      */

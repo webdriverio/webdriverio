@@ -448,7 +448,22 @@ Drop the WebDriver `done` callback. A string script that expected that callback 
 
 ## `switchToFrame`
 
-`browser.switchToFrame` is no longer a public command. It is omitted from the TypeScript types and the docs. Call [`switchFrame`](/docs/api/browser/switchFrame).
+`browser.switchToFrame` is no longer a public command.
+
+In a WebDriver BiDi session, `switchFrame` and `switchWindow` throw. A tab, a window, and a frame are a `WebdriverIO.BrowsingContext` you hold. `browser.url()` navigates the session's initial top-level context and returns it. `browser.newWindow()` returns the new context and does not switch to it. `context.frame()` returns a child frame. `context.parent` is the frame you opened it from.
+
+```ts
+const page = await browser.url('https://example.com')
+const other = await browser.newWindow('https://webdriver.io', { type: 'tab' })
+console.log(await page.getTitle())
+const frame = await page.frame('iframe')
+console.log(await frame.$('h1').getText())
+const pages = await browser.browsingContexts()
+```
+
+`context.url` is the document URL string. Navigate a held context with `context.navigate(url)`. Load metadata from `browser.url()` is `context.request`.
+
+In a Classic session, keep calling `switchFrame` with an element, or `null` for the top frame. A string or a function is rejected there.
 
 ```diff
 - await browser.switchToFrame(await $('iframe'))
@@ -456,8 +471,6 @@ Drop the WebDriver `done` callback. A string script that expected that callback 
 + await browser.switchFrame($('iframe'))
 + await browser.switchFrame(null)
 ```
-
-Pass an element, or `null` for the top frame. On a BiDi session a string can be a frame url or a context id. Do not pass a numeric frame index. A BiDi session rejects it.
 
 ## `setTimeout`
 

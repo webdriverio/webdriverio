@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { getBrowserObject } from '@wdio/utils'
 
-import { getContextManager } from '../../session/context.js'
+import { contextIdOf } from '../../session/browsingContext.js'
 
 /**
  * Set the files of an `<input type="file">` with the WebDriver BiDi
@@ -61,9 +61,10 @@ export async function setFiles (
 
     /**
      * A file input inside a frame belongs to that frame's browsing context.
-     * The context manager tracks the context the element was located in.
+     * An element found in a held context uses that context. Otherwise the
+     * context manager tracks the context the element was located in.
      */
-    const context = await getContextManager(browser).getCurrentContext()
+    const context = await contextIdOf(this)
     await browser.inputSetFiles({
         context,
         element: { sharedId: this.elementId },

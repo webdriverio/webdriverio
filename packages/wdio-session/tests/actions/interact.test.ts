@@ -31,9 +31,10 @@ describe('parseKeys', () => {
     })
 })
 
-function uploadSession (element: Record<string, unknown>, plan: Record<string, unknown> = {}) {
+function uploadSession (element: Record<string, unknown>, plan: Record<string, unknown> = {}, isBidi = true) {
     return {
         cwd: '/tmp',
+        isBidi,
         plan,
         browser: {
             $: () => ({ getElement: async () => element }),
@@ -60,6 +61,22 @@ describe('upload', () => {
         expect(result.code).toBe(`await $('#file').setFiles(${quote(file)})`)
         expect(result.history).not.toContain('uploadFile')
         expect(result.history).not.toContain('setValue')
+    })
+
+    it('falls back to setValue in a Classic session', async () => {
+        const seen: unknown[] = []
+        const element = {
+            elementId: '1',
+            setFiles: async () => {
+                throw new Error('setFiles should not be called')
+            },
+            setValue: async (value: string) => {
+                seen.push(value)
+            }
+        }
+        const result = await upload(uploadSession(element, {}, false), { target: '#file', file, $cwd: '/' })
+        expect(seen).toEqual([file])
+        expect(result.code).toBe(`await $('#file').setValue(${quote(file)})`)
     })
 
     it('uses setFiles for a remote session', async () => {

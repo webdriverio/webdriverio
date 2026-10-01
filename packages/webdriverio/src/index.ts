@@ -29,6 +29,12 @@ export const SevereServiceError = SevereServiceErrorImport
  */
 export { StrictSelectorError } from './utils/strictMode.js'
 /**
+ * The session's context pointer. The session REPL uses this to aim
+ * `browser.$` and `browser.execute` at a frame it is holding. Public
+ * commands do not move that pointer.
+ */
+export { getContextManager } from './session/context.js'
+/**
  * Device descriptors used by `browser.emulate('device', name)`
  */
 export { deviceDescriptorsSource, type DeviceName } from './deviceDescriptorsSource.js'
