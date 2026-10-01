@@ -179,6 +179,24 @@ Default: `true`
 ]
 ```
 
+### slowThreshold
+Report tests that take longer than this threshold (in milliseconds) to run. Slow tests are printed in an additional
+section of the report, sorted from slowest to fastest. Disabled by default, i.e. no threshold is applied and no
+slow tests section is printed unless this option is set.
+
+Type: `number`
+Default: `undefined`
+
+#### Example
+```js
+[
+  "spec",
+  {
+    slowThreshold: 2000,
+  },
+]
+```
+
 ## Environment Options
 
 There are certain options you can set through environment variables:
