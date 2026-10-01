@@ -41,6 +41,10 @@ async function flush () {
     await Promise.resolve()
 }
 
+function delay (ms: number) {
+    return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
+
 describe('back and forward', () => {
     describe('classic', () => {
         let browser: WebdriverIO.Browser
@@ -355,33 +359,30 @@ describe('back and forward', () => {
 
         it('returns when a restored document is ready even if the url is unchanged', async () => {
             let reads = 0
-            let stampedToken = ''
             vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
                 const expression = params?.expression ?? ''
-                if (!expression.includes('__wdioHistoryToken')) {
+                if (!expression.includes('__wdioHistoryTokens')) {
                     return scriptValue('unsupported')
                 }
                 reads += 1
-                if (expression.includes('__wdioHistoryToken = token')) {
-                    const stamped = expression.match(/const token = ("t[^"]*")/)
-                    stampedToken = stamped ? JSON.parse(stamped[1]) as string : ''
+                if (expression.includes('] = true')) {
                     return scriptValue(JSON.stringify({
                         href: 'https://example.test/same',
                         readyState: 'complete',
-                        token: stampedToken
+                        marked: true
                     }))
                 }
                 if (reads === 2) {
                     return scriptValue(JSON.stringify({
                         href: 'https://example.test/other',
                         readyState: 'complete',
-                        token: stampedToken
+                        marked: true
                     }))
                 }
                 return scriptValue(JSON.stringify({
                     href: 'https://example.test/same',
                     readyState: 'loading',
-                    token: ''
+                    marked: false
                 }))
             })
             vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
@@ -404,13 +405,54 @@ describe('back and forward', () => {
             vi.mocked(browser.scriptEvaluate).mockRestore()
         })
 
+        it('keeps each concurrent traversal mark on the outgoing document', async () => {
+            /**
+             * One outgoing document that stays complete. Each command marks
+             * it under its own token, so neither may take it for the destination.
+             */
+            const tokens: Record<string, true> = {}
+            vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
+                const expression = params?.expression ?? ''
+                if (!expression.includes('__wdioHistoryTokens')) {
+                    return scriptValue('unsupported')
+                }
+                const key = JSON.parse(expression.match(/\[("t[^"]+")\]/)![1]) as string
+                if (expression.includes('] = true')) {
+                    tokens[key] = true
+                }
+                return scriptValue(JSON.stringify({
+                    href: 'https://example.test/same',
+                    readyState: 'complete',
+                    marked: tokens[key] === true
+                }))
+            })
+            vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
+                browser.emit('browsingContext.navigationStarted', navigationInfo('top-level'))
+                return {}
+            })
+
+            let settled = 0
+            const first = browser.back().then(() => { settled += 1 })
+            const second = browser.back().then(() => { settled += 1 })
+            await vi.waitFor(() => {
+                expect(Object.keys(tokens)).toHaveLength(2)
+                expect(browser.browsingContextTraverseHistory).toHaveBeenCalledTimes(2)
+            })
+            await delay(150)
+            expect(settled).toBe(0)
+
+            browser.emit('browsingContext.load', navigationInfo('top-level'))
+            await Promise.all([first, second])
+            vi.mocked(browser.scriptEvaluate).mockRestore()
+        })
+
         it('returns when a committed document is already complete', async () => {
             vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
                 if ((params?.expression ?? '').includes('document.readyState')) {
                     return scriptValue(JSON.stringify({
                         href: 'https://example.test/',
                         readyState: 'complete',
-                        token: 'restored'
+                        marked: false
                     }))
                 }
                 return scriptValue('unsupported')
@@ -441,7 +483,7 @@ describe('back and forward', () => {
                     return scriptValue(JSON.stringify({
                         href: 'https://example.test/',
                         readyState: 'complete',
-                        token: ''
+                        marked: false
                     }))
                 }
                 return scriptValue('unsupported')

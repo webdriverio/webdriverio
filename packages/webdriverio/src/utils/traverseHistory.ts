@@ -181,29 +181,29 @@ function readyStateSatisfies (readiness: HistoryReadiness, state: string | undef
 interface DocumentSnapshot {
     href: string
     readyState: string
-    token: string
+    marked: boolean
 }
 
 /**
- * One script reads the URL, readiness, and document token together. Separate
- * evaluations can observe the outgoing document and the restored one.
+ * Each command marks the outgoing document under its own token. A single
+ * shared slot would let a concurrent traversal overwrite the mark, and the
+ * first command would then take the outgoing document for the destination.
  */
-function readDocumentSnapshot () {
-    return `(() => {
-    const root = document.documentElement
-    const token = root && typeof root.__wdioHistoryToken === 'string' ? root.__wdioHistoryToken : ''
-    return JSON.stringify({ href: location.href, readyState: document.readyState, token })
-})()`
-}
+const DOCUMENT_TOKENS = '__wdioHistoryTokens'
 
-function stampDocumentSnapshot (token: string) {
+/**
+ * One script reads the URL, readiness, and document mark together. Separate
+ * evaluations can observe the outgoing document and the restored one.
+ * With `stamp`, the document is marked with `token` first.
+ */
+function documentSnapshot (token: string, stamp: boolean) {
     const key = JSON.stringify(token)
     return `(() => {
     const root = document.documentElement
-    const token = ${key}
-    if (root) root.__wdioHistoryToken = token
-    const seen = root && typeof root.__wdioHistoryToken === 'string' ? root.__wdioHistoryToken : ''
-    return JSON.stringify({ href: location.href, readyState: document.readyState, token: seen })
+    ${stamp ? `if (root) (root.${DOCUMENT_TOKENS} || (root.${DOCUMENT_TOKENS} = {}))[${key}] = true` : ''}
+    const tokens = root && root.${DOCUMENT_TOKENS}
+    const marked = Boolean(tokens && tokens[${key}] === true)
+    return JSON.stringify({ href: location.href, readyState: document.readyState, marked })
 })()`
 }
 
@@ -213,10 +213,10 @@ function parseDocumentSnapshot (value: string | undefined): DocumentSnapshot | u
     }
     try {
         const parsed = JSON.parse(value) as Partial<DocumentSnapshot>
-        if (typeof parsed.href !== 'string' || typeof parsed.readyState !== 'string' || typeof parsed.token !== 'string') {
+        if (typeof parsed.href !== 'string' || typeof parsed.readyState !== 'string' || typeof parsed.marked !== 'boolean') {
             return undefined
         }
-        return { href: parsed.href, readyState: parsed.readyState, token: parsed.token }
+        return { href: parsed.href, readyState: parsed.readyState, marked: parsed.marked }
     } catch {
         return undefined
     }
@@ -312,7 +312,7 @@ export async function traverseTopLevelHistory (
     const watchTraversalReadyState = async (requireNewDocument: boolean) => {
         try {
             while (armed && !settled) {
-                const sample = parseDocumentSnapshot(await evaluateString(browser, context, readDocumentSnapshot()))
+                const sample = parseDocumentSnapshot(await evaluateString(browser, context, documentSnapshot(markerId, false)))
                 if (!armed || settled) {
                     return
                 }
@@ -324,7 +324,7 @@ export async function traverseTopLevelHistory (
                     await delay(READY_STATE_RETRY_MS)
                     continue
                 }
-                if (requireNewDocument && (!outgoing || sample.token === outgoing.token)) {
+                if (requireNewDocument && (!outgoing || sample.marked)) {
                     await delay(READY_STATE_RETRY_MS)
                     continue
                 }
@@ -405,8 +405,8 @@ export async function traverseTopLevelHistory (
             historyMarker = 'installed'
         }
         for (let attempt = 0; attempt < 5 && !outgoing && !settled; attempt++) {
-            const stamped = parseDocumentSnapshot(await evaluateString(browser, context, stampDocumentSnapshot(markerId)))
-            if (stamped?.token === markerId) {
+            const stamped = parseDocumentSnapshot(await evaluateString(browser, context, documentSnapshot(markerId, true)))
+            if (stamped?.marked) {
                 outgoing = stamped
                 break
             }
