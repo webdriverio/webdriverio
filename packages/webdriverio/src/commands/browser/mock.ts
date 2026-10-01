@@ -158,7 +158,14 @@ export async function mock(
         SESSION_MOCKS[context].delete(existingMock)
     }
 
-    const networkInterception = await WebDriverInterception.initiate(url, normalizedFilterOptions, browser)
+    /**
+     * A mock made on a held context only intercepts that context's requests.
+     * `browser.mock()` stays session-wide.
+     */
+    const networkInterception = await WebDriverInterception.initiate(url, normalizedFilterOptions, browser, {
+        contexts: isBrowsingContext(this) ? [context] : undefined,
+        sessionKey: context
+    })
     SESSION_MOCKS[context].add(networkInterception)
     return networkInterception satisfies WebdriverIO.Mock
 }

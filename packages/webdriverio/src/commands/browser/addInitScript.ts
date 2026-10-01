@@ -58,29 +58,29 @@ import { assertTopLevel, isBrowsingContext } from '../../session/browsingContext
  */
 
 export async function addInitScript<Payload> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunction<Payload>,
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunctionArg1<Payload, Arg1>,
     arg1: Arg1
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunctionArg2<Payload, Arg1, Arg2>,
     arg1: Arg1,
     arg2: Arg2
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3>,
     arg1: Arg1,
     arg2: Arg2,
     arg3: Arg3
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4>,
     arg1: Arg1,
     arg2: Arg2,
@@ -88,7 +88,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4> (
     arg4: Arg4
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5>,
     arg1: Arg1,
     arg2: Arg2,

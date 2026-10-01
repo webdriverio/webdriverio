@@ -4,6 +4,7 @@ import type { ChainablePromiseElement } from '../../types.js'
 import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { getBrowsingContext } from '../../browsingContext.js'
+import { StrictSelectorError } from '../../utils/strictSelectorError.js'
 
 type FrameTarget = string | WebdriverIO.Element | ChainablePromiseElement | FramePredicate
 
@@ -60,6 +61,16 @@ export async function frame (
             if (waited && waited !== true) {
                 return waited
             }
+        } else {
+            /**
+             * Anything else reads as a selector first, so `frame('iframe')`
+             * is the iframe element on this page, not a frame whose url
+             * happens to contain "iframe". A url substring is the fallback.
+             */
+            const element = await existingElement(this, target)
+            if (element) {
+                return frameFromElement(this, element)
+            }
         }
         const fromTree = await frameFromTree(this, target)
         if (fromTree) {
@@ -91,6 +102,26 @@ async function frameFromElement (
         parent,
         url: ''
     })
+}
+
+/**
+ * The element `selector` finds right now, if any. An invalid selector is not
+ * an element. A selector that matches several elements is ambiguous, so the
+ * strict selector error is rethrown instead of guessing.
+ */
+async function existingElement (
+    caller: WebdriverIO.BrowsingContext,
+    selector: string
+): Promise<WebdriverIO.Element | undefined> {
+    try {
+        const element = await caller.$(selector) as unknown as WebdriverIO.Element
+        return await element.isExisting() ? element : undefined
+    } catch (err) {
+        if (err instanceof StrictSelectorError) {
+            throw err
+        }
+        return undefined
+    }
 }
 
 async function selectorExists (

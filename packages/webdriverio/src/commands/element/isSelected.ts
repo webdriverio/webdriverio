@@ -1,3 +1,5 @@
+import { foreignContextId } from '../../session/browsingContext.js'
+
 /**
  *
  * Will return true or false whether or not an `<option>` or `<input>` element of type
@@ -27,6 +29,16 @@
  * @type state
  *
  */
-export function isSelected (this: WebdriverIO.Element) {
+export async function isSelected (this: WebdriverIO.Element) {
+    if (await foreignContextId(this)) {
+        return this.execute((el: Element) => {
+            const tag = el.tagName.toLowerCase()
+            if (tag === 'option') {
+                return (el as HTMLOptionElement).selected
+            }
+            const type = tag === 'input' ? (el as HTMLInputElement).type : ''
+            return (type === 'checkbox' || type === 'radio') && (el as HTMLInputElement).checked
+        })
+    }
     return this.isElementSelected(this.elementId)
 }

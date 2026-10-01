@@ -138,6 +138,12 @@ async function elementClick(element: WebdriverIO.Element) {
          * A DOM `el.click()` is not a trusted pointer gesture. Perform the
          * click in the element's browsing context instead.
          */
+        /**
+         * The pointer targets the element's center in the viewport. An element
+         * of a nested frame can be scrolled out of its parent frame, so bring
+         * it (and every frame around it) into view first.
+         */
+        await element.execute((el: Element) => el.scrollIntoView({ block: 'center', inline: 'center' }))
         const browser = getBrowserObject(element)
         await browser.inputPerformActions({
             context,

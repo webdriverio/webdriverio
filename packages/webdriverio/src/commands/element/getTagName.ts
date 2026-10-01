@@ -1,3 +1,5 @@
+import { foreignContextId } from '../../session/browsingContext.js'
+
 /**
  *
  * Get tag name of a DOM-element.
@@ -21,6 +23,9 @@
  * @type property
  *
  */
-export function getTagName (this: WebdriverIO.Element) {
+export async function getTagName (this: WebdriverIO.Element) {
+    if (await foreignContextId(this)) {
+        return this.execute((el: Element) => el.tagName.toLowerCase())
+    }
     return this.getElementTagName(this.elementId)
 }

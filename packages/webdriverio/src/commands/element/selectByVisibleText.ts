@@ -1,4 +1,6 @@
 import { getElementFromResponse } from '../../utils/index.js'
+import { foreignContextId } from '../../session/browsingContext.js'
+import { selectOptionInContext } from '../../utils/foreignContext.js'
 
 /**
  *
@@ -43,6 +45,10 @@ export async function selectByVisibleText (
     const normalized = text
         .trim() // strip leading and trailing white-space characters
         .replace(/\s+/, ' ') // replace sequences of whitespace characters by a single space
+
+    if (await foreignContextId(this)) {
+        return selectOptionInContext(this, { by: 'text', text: text.trim().replace(/\s+/g, ' ') }, `Option with text "${text}" not found.`)
+    }
 
     /**
     * find option element using xpath

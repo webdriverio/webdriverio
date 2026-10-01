@@ -1,3 +1,5 @@
+import { foreignContextId } from '../../session/browsingContext.js'
+
 /**
  *
  * Return true or false if the selected DOM-element is enabled.
@@ -30,6 +32,9 @@
  * @type state
  *
  */
-export function isEnabled (this: WebdriverIO.Element) {
+export async function isEnabled (this: WebdriverIO.Element) {
+    if (await foreignContextId(this)) {
+        return this.execute((el: Element) => !el.matches(':disabled'))
+    }
     return this.isElementEnabled(this.elementId)
 }

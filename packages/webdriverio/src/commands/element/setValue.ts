@@ -1,9 +1,7 @@
-import { getBrowserObject } from '@wdio/utils'
-import { BIDI_MASK, type remote } from 'webdriver'
 
 import type { InputOptions } from '../../types.js'
-import { Key } from '../../constants.js'
 import { foreignContextId } from '../../session/browsingContext.js'
+import { typeInContext } from '../../utils/foreignContext.js'
 
 /**
  * Send a sequence of key strokes to an element after the input has been cleared before. If the element doesn't need
@@ -45,37 +43,7 @@ export async function setValue (
          * with key actions in the element's own context, so controlled inputs
          * see the same keystrokes a user would send.
          */
-        await this.execute((el: HTMLElement) => {
-            el.focus()
-            if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
-                el.select()
-                return
-            }
-            const selection = el.ownerDocument.getSelection()
-            const range = el.ownerDocument.createRange()
-            range.selectNodeContents(el)
-            selection?.removeAllRanges()
-            selection?.addRange(range)
-        })
-        const text = String(value)
-        const keys = text.length > 0 ? Array.from(text) : [Key.Backspace]
-        const browser = getBrowserObject(this)
-        const params: remote.InputPerformActionsParameters = {
-            context,
-            actions: [{
-                id: 'keyboard',
-                type: 'key',
-                actions: keys.flatMap((key) => [
-                    { type: 'keyDown' as const, value: key },
-                    { type: 'keyUp' as const, value: key }
-                ])
-            }]
-        }
-        if (options?.mask) {
-            Object.assign(params, { [BIDI_MASK]: true })
-        }
-        await browser.inputPerformActions(params)
-        await browser.inputReleaseActions({ context })
+        await typeInContext(this, context, String(value), { replace: true, mask: options?.mask })
         return
     }
     await this.clearValue()

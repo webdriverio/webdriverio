@@ -1,3 +1,5 @@
+import { foreignContextId } from '../../session/browsingContext.js'
+
 /**
  *
  * Clear the value of an input or textarea element. Make sure you can interact with the
@@ -24,6 +26,32 @@
  * @type action
  *
  */
-export function clearValue (this: WebdriverIO.Element) {
+export async function clearValue (this: WebdriverIO.Element) {
+    if (await foreignContextId(this)) {
+        /**
+         * Element Clear in the element's own document: focus, empty the value
+         * (through the native setter so framework value tracking sees it),
+         * fire `input` and `change`, then blur.
+         */
+        await this.execute((el: HTMLElement) => {
+            el.focus()
+            if (el.isContentEditable) {
+                el.innerHTML = ''
+                el.dispatchEvent(new Event('input', { bubbles: true }))
+            } else {
+                const field = el as HTMLInputElement
+                const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(field), 'value')?.set
+                if (setter) {
+                    setter.call(field, '')
+                } else {
+                    field.value = ''
+                }
+                field.dispatchEvent(new Event('input', { bubbles: true }))
+                field.dispatchEvent(new Event('change', { bubbles: true }))
+            }
+            el.blur()
+        })
+        return
+    }
     return this.elementClear(this.elementId)
 }

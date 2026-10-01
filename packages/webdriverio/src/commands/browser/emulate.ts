@@ -5,6 +5,7 @@ import { ClockManager } from '../../clock.js'
 import { deviceDescriptorsSource, type DeviceName } from '../../deviceDescriptorsSource.js'
 import { restoreFunctions } from '../../constants.js'
 import { getContextManager } from '../../session/context.js'
+import { isBrowsingContext } from '../../session/browsingContext.js'
 import { claimRestore, rememberOverride, rememberedOverride, type RememberedViewport } from '../../session/emulationState.js'
 import type { SupportedScopes } from '../../types.js'
 
@@ -53,12 +54,22 @@ function storeRestoreFunction (browser: WebdriverIO.Browser, scope: SupportedSco
     restoreFunctions.get(browser)?.set(scope, updatedList)
 }
 
+type EmulationTarget = WebdriverIO.Browser | WebdriverIO.BrowsingContext
+
+function browserOf (target: EmulationTarget) {
+    return isBrowsingContext(target) ? target.browser : target
+}
+
 /**
  * Emulation commands that take `contexts` require a top-level traversable.
- * A frame the user has switched into is not one of those.
+ * A held top-level context is its own target. On the browser it is the
+ * current top-level context, never a frame the user has switched into.
  */
-async function topLevelContexts (browser: WebdriverIO.Browser) {
-    return [await getContextManager(browser).getCurrentTopLevelContext()]
+async function topLevelContexts (target: EmulationTarget) {
+    if (isBrowsingContext(target)) {
+        return [target.contextId]
+    }
+    return [await getContextManager(target).getCurrentTopLevelContext()]
 }
 
 /**
@@ -68,7 +79,7 @@ async function topLevelContexts (browser: WebdriverIO.Browser) {
  * not clear an override a newer call has replaced.
  */
 async function install (
-    browser: WebdriverIO.Browser,
+    target: EmulationTarget,
     scope: SupportedScopes,
     apply: (contexts: string[]) => Promise<unknown>,
     clear: (contexts: string[]) => Promise<unknown>,
@@ -77,7 +88,8 @@ async function install (
         clear: (context: string) => void
     }
 ) {
-    const contexts = await topLevelContexts(browser)
+    const browser = browserOf(target)
+    const contexts = await topLevelContexts(target)
     await apply(contexts)
     memory?.apply(contexts[0])
     const current = claimRestore(browser, scope, contexts)
@@ -198,7 +210,8 @@ function assertMedia (options: unknown): remote.EmulationMediaFeatures {
  * observes. Viewport is not `screen.width`, and the descriptor has no
  * orientation, so those stay on the `screen` and `orientation` scopes.
  */
-async function emulateDevice (browser: WebdriverIO.Browser, name: unknown) {
+async function emulateDevice (target: EmulationTarget, name: unknown) {
+    const browser = browserOf(target)
     if (typeof name !== 'string') {
         throw new Error(`Expected "device" emulation options to be a string, received "${typeof name}"`)
     }
@@ -208,7 +221,7 @@ async function emulateDevice (browser: WebdriverIO.Browser, name: unknown) {
         throw new Error(`Unknown device name "${name}", please use one of the following: ${Object.keys(deviceDescriptorsSource).join(', ')}`)
     }
 
-    const contexts = await topLevelContexts(browser)
+    const contexts = await topLevelContexts(target)
     const context = contexts[0]
     const previous = rememberedOverride(browser, context)
     const desktop = deviceDescriptorsSource['Desktop Chrome']
@@ -421,11 +434,13 @@ export async function emulate(scope: 'forcedColors', theme: ColorScheme): Promis
  * @returns {Function}  a function to reset the emulation
  */
 export async function emulate<Scope extends SupportedScopes> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     scope: Scope,
     options: EmulationOptions[Scope]
 ) {
-    if (!this.isBidi) {
+    const target = this
+    const browser = browserOf(target)
+    if (!browser.isBidi) {
         throw new Error('emulate command is only supported for Bidi')
     }
 
@@ -438,21 +453,21 @@ export async function emulate<Scope extends SupportedScopes> (
                 throw new Error('Expected geolocation error to be "positionUnavailable"')
             }
             return install(
-                this,
+                target,
                 'geolocation',
-                (contexts) => this.emulationSetGeolocationOverride({
+                (contexts) => browser.emulationSetGeolocationOverride({
                     error: { type: 'positionUnavailable' },
                     contexts
                 }),
-                (contexts) => this.emulationSetGeolocationOverride({ coordinates: null, contexts })
+                (contexts) => browser.emulationSetGeolocationOverride({ coordinates: null, contexts })
             )
         }
         const coordinates = geolocationCoordinates(options as Partial<GeolocationCoordinates>)
         return install(
-            this,
+            target,
             'geolocation',
-            (contexts) => this.emulationSetGeolocationOverride({ coordinates, contexts }),
-            (contexts) => this.emulationSetGeolocationOverride({ coordinates: null, contexts })
+            (contexts) => browser.emulationSetGeolocationOverride({ coordinates, contexts }),
+            (contexts) => browser.emulationSetGeolocationOverride({ coordinates: null, contexts })
         )
     }
 
@@ -461,21 +476,21 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected userAgent emulation options to be a string, received ${typeof options}`)
         }
         return install(
-            this,
+            target,
             'userAgent',
-            (contexts) => this.emulationSetUserAgentOverride({ userAgent: options, contexts }),
-            (contexts) => this.emulationSetUserAgentOverride({ userAgent: null, contexts }),
+            (contexts) => browser.emulationSetUserAgentOverride({ userAgent: options, contexts }),
+            (contexts) => browser.emulationSetUserAgentOverride({ userAgent: null, contexts }),
             {
-                apply: (context) => rememberOverride(this, context, { userAgent: options }),
-                clear: (context) => rememberOverride(this, context, { userAgent: null })
+                apply: (context) => rememberOverride(browser, context, { userAgent: options }),
+                clear: (context) => rememberOverride(browser, context, { userAgent: null })
             }
         )
     }
 
     if (scope === 'clock') {
-        const clock = new ClockManager(this)
+        const clock = new ClockManager(browser)
         await clock.install(options as FakeTimerInstallOpts)
-        storeRestoreFunction(this, 'clock', clock.restore.bind(clock))
+        storeRestoreFunction(browser, 'clock', clock.restore.bind(clock))
         return clock
     }
 
@@ -485,20 +500,20 @@ export async function emulate<Scope extends SupportedScopes> (
         }
         const features = toMediaFeatureWire({ prefersColorScheme: options })
         return install(
-            this,
+            target,
             'colorScheme',
-            (contexts) => this.emulationSetMediaFeaturesOverride({ features, contexts }),
-            (contexts) => this.emulationSetMediaFeaturesOverride({ features: null, contexts })
+            (contexts) => browser.emulationSetMediaFeaturesOverride({ features, contexts }),
+            (contexts) => browser.emulationSetMediaFeaturesOverride({ features: null, contexts })
         )
     }
 
     if (scope === 'media') {
         const features = toMediaFeatureWire(assertMedia(options))
         return install(
-            this,
+            target,
             'media',
-            (contexts) => this.emulationSetMediaFeaturesOverride({ features, contexts }),
-            (contexts) => this.emulationSetMediaFeaturesOverride({ features: null, contexts })
+            (contexts) => browser.emulationSetMediaFeaturesOverride({ features, contexts }),
+            (contexts) => browser.emulationSetMediaFeaturesOverride({ features: null, contexts })
         )
     }
 
@@ -507,33 +522,33 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "onLine" emulation options to be a boolean, received "${typeof options}"`)
         }
         return install(
-            this,
+            target,
             'onLine',
-            (contexts) => this.emulationSetNetworkConditions({
+            (contexts) => browser.emulationSetNetworkConditions({
                 networkConditions: options ? null : { type: 'offline' },
                 contexts
             }),
-            (contexts) => this.emulationSetNetworkConditions({ networkConditions: null, contexts })
+            (contexts) => browser.emulationSetNetworkConditions({ networkConditions: null, contexts })
         )
     }
 
     if (scope === 'locale') {
         const locale = assertNonEmptyString('locale', options)
         return install(
-            this,
+            target,
             'locale',
-            (contexts) => this.emulationSetLocaleOverride({ locale, contexts }),
-            (contexts) => this.emulationSetLocaleOverride({ locale: null, contexts })
+            (contexts) => browser.emulationSetLocaleOverride({ locale, contexts }),
+            (contexts) => browser.emulationSetLocaleOverride({ locale: null, contexts })
         )
     }
 
     if (scope === 'timezone') {
         const timezone = assertNonEmptyString('timezone', options)
         return install(
-            this,
+            target,
             'timezone',
-            (contexts) => this.emulationSetTimezoneOverride({ timezone, contexts }),
-            (contexts) => this.emulationSetTimezoneOverride({ timezone: null, contexts })
+            (contexts) => browser.emulationSetTimezoneOverride({ timezone, contexts }),
+            (contexts) => browser.emulationSetTimezoneOverride({ timezone: null, contexts })
         )
     }
 
@@ -542,13 +557,13 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "touch" emulation options to be an integer >= 1, received "${options}"`)
         }
         return install(
-            this,
+            target,
             'touch',
-            (contexts) => this.emulationSetTouchOverride({ maxTouchPoints: options, contexts }),
-            (contexts) => this.emulationSetTouchOverride({ maxTouchPoints: null, contexts }),
+            (contexts) => browser.emulationSetTouchOverride({ maxTouchPoints: options, contexts }),
+            (contexts) => browser.emulationSetTouchOverride({ maxTouchPoints: null, contexts }),
             {
-                apply: (context) => rememberOverride(this, context, { touch: options }),
-                clear: (context) => rememberOverride(this, context, { touch: null })
+                apply: (context) => rememberOverride(browser, context, { touch: options }),
+                clear: (context) => rememberOverride(browser, context, { touch: null })
             }
         )
     }
@@ -556,20 +571,20 @@ export async function emulate<Scope extends SupportedScopes> (
     if (scope === 'orientation') {
         const screenOrientation = assertOrientation(options)
         return install(
-            this,
+            target,
             'orientation',
-            (contexts) => this.emulationSetScreenOrientationOverride({ screenOrientation, contexts }),
-            (contexts) => this.emulationSetScreenOrientationOverride({ screenOrientation: null, contexts })
+            (contexts) => browser.emulationSetScreenOrientationOverride({ screenOrientation, contexts }),
+            (contexts) => browser.emulationSetScreenOrientationOverride({ screenOrientation: null, contexts })
         )
     }
 
     if (scope === 'screen') {
         const screenArea = assertScreen(options)
         return install(
-            this,
+            target,
             'screen',
-            (contexts) => this.emulationSetScreenSettingsOverride({ screenArea, contexts }),
-            (contexts) => this.emulationSetScreenSettingsOverride({ screenArea: null, contexts })
+            (contexts) => browser.emulationSetScreenSettingsOverride({ screenArea, contexts }),
+            (contexts) => browser.emulationSetScreenSettingsOverride({ screenArea: null, contexts })
         )
     }
 
@@ -578,13 +593,13 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error('Expected "viewportMeta" emulation options to be true')
         }
         return install(
-            this,
+            target,
             'viewportMeta',
-            (contexts) => this.emulationSetViewportMetaOverride({ viewportMeta: true, contexts }),
-            (contexts) => this.emulationSetViewportMetaOverride({ viewportMeta: null, contexts }),
+            (contexts) => browser.emulationSetViewportMetaOverride({ viewportMeta: true, contexts }),
+            (contexts) => browser.emulationSetViewportMetaOverride({ viewportMeta: null, contexts }),
             {
-                apply: (context) => rememberOverride(this, context, { viewportMeta: true }),
-                clear: (context) => rememberOverride(this, context, { viewportMeta: null })
+                apply: (context) => rememberOverride(browser, context, { viewportMeta: true }),
+                clear: (context) => rememberOverride(browser, context, { viewportMeta: null })
             }
         )
     }
@@ -594,13 +609,13 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error('Expected "textLayout" emulation options to be "mobile"')
         }
         return install(
-            this,
+            target,
             'textLayout',
-            (contexts) => this.emulationSetTextLayoutModeOverride({ textLayoutMode: 'mobile', contexts }),
-            (contexts) => this.emulationSetTextLayoutModeOverride({ textLayoutMode: null, contexts }),
+            (contexts) => browser.emulationSetTextLayoutModeOverride({ textLayoutMode: 'mobile', contexts }),
+            (contexts) => browser.emulationSetTextLayoutModeOverride({ textLayoutMode: null, contexts }),
             {
-                apply: (context) => rememberOverride(this, context, { textLayout: 'mobile' }),
-                clear: (context) => rememberOverride(this, context, { textLayout: null })
+                apply: (context) => rememberOverride(browser, context, { textLayout: 'mobile' }),
+                clear: (context) => rememberOverride(browser, context, { textLayout: null })
             }
         )
     }
@@ -610,10 +625,10 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error('Expected "scripting" emulation options to be false')
         }
         return install(
-            this,
+            target,
             'scripting',
-            (contexts) => this.emulationSetScriptingEnabled({ enabled: false, contexts }),
-            (contexts) => this.emulationSetScriptingEnabled({ enabled: null, contexts })
+            (contexts) => browser.emulationSetScriptingEnabled({ enabled: false, contexts }),
+            (contexts) => browser.emulationSetScriptingEnabled({ enabled: null, contexts })
         )
     }
 
@@ -622,10 +637,10 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "scrollbar" emulation options to be "classic" or "overlay", received "${options}"`)
         }
         return install(
-            this,
+            target,
             'scrollbar',
-            (contexts) => this.emulationSetScrollbarTypeOverride({ scrollbarType: options, contexts }),
-            (contexts) => this.emulationSetScrollbarTypeOverride({ scrollbarType: null, contexts })
+            (contexts) => browser.emulationSetScrollbarTypeOverride({ scrollbarType: options, contexts }),
+            (contexts) => browser.emulationSetScrollbarTypeOverride({ scrollbarType: null, contexts })
         )
     }
 
@@ -634,15 +649,15 @@ export async function emulate<Scope extends SupportedScopes> (
             throw new Error(`Expected "forcedColors" emulation options to be "light" or "dark", received "${options}"`)
         }
         return install(
-            this,
+            target,
             'forcedColors',
-            (contexts) => this.emulationSetForcedColorsModeThemeOverride({ theme: options, contexts }),
-            (contexts) => this.emulationSetForcedColorsModeThemeOverride({ theme: null, contexts })
+            (contexts) => browser.emulationSetForcedColorsModeThemeOverride({ theme: options, contexts }),
+            (contexts) => browser.emulationSetForcedColorsModeThemeOverride({ theme: null, contexts })
         )
     }
 
     if (scope === 'device') {
-        return emulateDevice(this, options)
+        return emulateDevice(target, options)
     }
 
     throw new Error(`Invalid scope "${scope}", expected one of ${SCOPES.map((name) => `"${name}"`).join(', ')}`)

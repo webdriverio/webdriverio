@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { createServer } from 'node:http'
@@ -14,77 +15,14 @@ import { browser, expect } from '@wdio/globals'
  * Pages are served from 127.0.0.1. `/outer` also embeds a frame from
  * `localhost`, a different origin, which Chromium runs out of process.
  */
-const ELEMENT_COMMANDS_WITHOUT_CONTEXT = 'element commands in .* (isEnabled|isSelected|isClickable|getTagName|getCSSProperty|clearValue|addValue|selectByVisibleText|saveScreenshot)$'
-
-/**
- * Tests that fail today because of a bug. They are skipped so the suite
- * stays green and the bug stays visible. Fix the bug, then delete its entry
- * here so the test runs. `only` limits an entry to Chromium or Firefox.
- */
-const knownIssues: { title: RegExp, reason: string, only?: 'chromium' | 'firefox' }[] = [
-    {
-        title: /emulates in the tab it was called on$/,
-        reason: '`emulate` on a held tab applies to the session\'s current top-level context instead'
-    },
-    {
-        title: /mocks requests of the tab it was called on only$/,
-        reason: '`mock` on a held context adds a session-wide network intercept'
-    },
-    {
-        title: /restores a mock created on a tab that is not the initial one$/,
-        reason: '`mock.restore()` looks the mock up by `getWindowHandle()` and throws for a mock made on another tab'
-    },
-    {
-        title: /treats a plain selector as an element on this page, not a url substring$/,
-        reason: '`frame(\'iframe\')` matches the string against frame urls before it uses it as a selector'
-    },
-    {
-        title: new RegExp(ELEMENT_COMMANDS_WITHOUT_CONTEXT),
-        reason: 'element commands that use classic WebDriver run against the session\'s current document, not the held context'
-    },
-    {
-        title: /clicks an element of a nested frame scrolled out of its parent frame$/,
-        reason: 'the click lands outside the nested frame when it has to be scrolled into view inside its parent frame'
-    },
-    {
-        title: /accepts a dialog of a background tab from the dialog event$/,
-        reason: '`dialog.accept()` returns without answering when the dialog is not in the session\'s current context'
-    },
-    {
-        title: /reloads a frame and keeps the state of its parent$/,
-        reason: 'Chromium rejects `browsingContext.reload` on a frame with "navigation canceled by context disposal"',
-        only: 'chromium'
-    },
-    {
-        title: /rejects commands on a frame after its page navigated away$/,
-        reason: 'commands on a discarded frame never settle in Firefox',
-        only: 'firefox'
-    }
-]
-
-function knownIssue (fullTitle: string) {
-    const isFirefox = browser.capabilities.browserName?.toLowerCase() === 'firefox'
-    return knownIssues.find((issue) => (
-        issue.title.test(fullTitle) &&
-        (!issue.only || issue.only === (isFirefox ? 'firefox' : 'chromium'))
-    ))
-}
-
-/**
- * `it`, except a test listed in `knownIssues` is skipped.
- */
-function test (title: string, fn: () => Promise<unknown>) {
-    it(title, async function () {
-        if (knownIssue(this.test!.fullTitle())) {
-            return this.skip()
-        }
-        await fn()
-    })
-}
-
 describe('browsing contexts', () => {
     let origin: string
     let crossOrigin: string
+    /**
+     * Each worker writes screenshots to its own directory and removes it, so
+     * parallel browsers can't overwrite each other's files.
+     */
+    let screenshots: string
 
     const page = (title: string, body = '') => (
         `<!doctype html><title>${title}</title><h1 id="where">${title}</h1>${body}`
@@ -189,6 +127,7 @@ describe('browsing contexts', () => {
             // A held browsing context is a WebDriver BiDi feature
             this.skip()
         }
+        screenshots = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-browsing-contexts-'))
         server.listen(0, '127.0.0.1')
         await once(server, 'listening')
         const { port } = server.address() as AddressInfo
@@ -212,6 +151,9 @@ describe('browsing contexts', () => {
     })
 
     after(async () => {
+        if (screenshots) {
+            await fs.rm(screenshots, { recursive: true, force: true })
+        }
         if (!server.listening) {
             return
         }
@@ -221,7 +163,7 @@ describe('browsing contexts', () => {
     })
 
     describe('tabs and windows', () => {
-        test('keeps browser.url() on the initial context after a new tab opens', async () => {
+        it('keeps browser.url() on the initial context after a new tab opens', async () => {
             const first = await open('/tab-a')
             const tab = await openTab('/tab-b')
 
@@ -232,7 +174,7 @@ describe('browsing contexts', () => {
             expect(await where(tab)).toBe('Tab B')
         })
 
-        test('runs commands on two tabs at the same time', async () => {
+        it('runs commands on two tabs at the same time', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
 
@@ -252,7 +194,7 @@ describe('browsing contexts', () => {
             expect(await valueOf(b)).toBe('typed in B')
         })
 
-        test('navigates one tab without touching the other', async () => {
+        it('navigates one tab without touching the other', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
 
@@ -266,7 +208,7 @@ describe('browsing contexts', () => {
             expect(await where(a)).toBe('Tab A')
         })
 
-        test('goes back and forward in one tab only', async () => {
+        it('goes back and forward in one tab only', async () => {
             const a = await open('/tab-a')
             await a.navigate(`${origin}/tab-a-2`)
             const b = await openTab('/tab-b')
@@ -284,7 +226,7 @@ describe('browsing contexts', () => {
             expect(await where(b)).toBe('Tab B 2')
         })
 
-        test('reloads one tab and keeps the state of the other', async () => {
+        it('reloads one tab and keeps the state of the other', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
             await mark(a, 'keep me')
@@ -295,7 +237,7 @@ describe('browsing contexts', () => {
             expect(await markOf(a)).toBe('keep me')
         })
 
-        test('types into a background tab', async () => {
+        it('types into a background tab', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
 
@@ -305,7 +247,7 @@ describe('browsing contexts', () => {
             expect(await valueOf(a)).toBe('')
         })
 
-        test('activates a tab', async () => {
+        it('activates a tab', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
 
@@ -316,7 +258,7 @@ describe('browsing contexts', () => {
             await browser.waitUntil(async () => await a.execute(() => document.visibilityState) === 'visible')
         })
 
-        test('lists only top-level contexts, not frames', async () => {
+        it('lists only top-level contexts, not frames', async () => {
             const { outer, middle } = await openFrames()
             const tab = await openTab('/tab-b')
 
@@ -330,7 +272,7 @@ describe('browsing contexts', () => {
             }
         })
 
-        test('opens a window next to a reference context', async () => {
+        it('opens a window next to a reference context', async () => {
             const a = await open('/tab-a')
             const window = await browser.newWindow(`${origin}/tab-b`, { type: 'window', referenceContext: a })
             if (!('contextId' in window)) {
@@ -343,7 +285,7 @@ describe('browsing contexts', () => {
             expect(await where(a)).toBe('Tab A')
         })
 
-        test('closes one tab, and commands on it reject afterwards', async () => {
+        it('closes one tab, and commands on it reject afterwards', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
 
@@ -354,7 +296,7 @@ describe('browsing contexts', () => {
             expect(await where(a)).toBe('Tab A')
         })
 
-        test('rejects commands on a frame of a closed tab', async () => {
+        it('rejects commands on a frame of a closed tab', async () => {
             await open('/tab-a')
             const tab = await browser.newWindow(`${origin}/outer`, { type: 'tab' })
             if (!('contextId' in tab)) {
@@ -365,7 +307,7 @@ describe('browsing contexts', () => {
             expect(await rejection(middle.getTitle())).toMatch(/no such frame|no such window|not found|discarded/i)
         })
 
-        test('sets the viewport of one tab only', async () => {
+        it('sets the viewport of one tab only', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
             const widthOfA = await a.execute(() => window.innerWidth)
@@ -375,7 +317,7 @@ describe('browsing contexts', () => {
             expect(await a.execute(() => window.innerWidth)).toBe(widthOfA)
         })
 
-        test('scopes an init script to the tab it was added to', async () => {
+        it('scopes an init script to the tab it was added to', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
 
@@ -389,7 +331,7 @@ describe('browsing contexts', () => {
             expect(await a.execute(() => (window as unknown as { marker?: string }).marker)).toBeUndefined()
         })
 
-        test('emulates in the tab it was called on', async () => {
+        it('emulates in the tab it was called on', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
             const userAgentOfA = await a.execute(() => navigator.userAgent)
@@ -405,24 +347,24 @@ describe('browsing contexts', () => {
             }
         })
 
-        test('mocks requests of the tab it was called on only', async () => {
+        it('mocks requests of the tab it was called on only', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-a')
 
             const mock = await b.mock('**/api/scoped')
-            mock.respond('mocked', { headers: { 'Content-Type': 'text/plain' } })
+            mock.respond('mocked', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
             await b.navigate(`${origin}/fetch?endpoint=scoped`)
             await a.navigate(`${origin}/fetch?endpoint=scoped`)
             await expect(b.$('#result')).toHaveText('mocked')
             await expect(a.$('#result')).toHaveText('real')
         })
 
-        test('restores a mock created on a tab that is not the initial one', async () => {
+        it('restores a mock created on a tab that is not the initial one', async () => {
             await open('/tab-a')
             const b = await openTab('/tab-a')
 
             const mock = await b.mock('**/api/restored')
-            mock.respond('mocked', { headers: { 'Content-Type': 'text/plain' } })
+            mock.respond('mocked', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
             await b.navigate(`${origin}/fetch?endpoint=restored`)
             await expect(b.$('#result')).toHaveText('mocked')
 
@@ -431,7 +373,7 @@ describe('browsing contexts', () => {
             await expect(b.$('#result')).toHaveText('real')
         })
 
-        test('shares cookies between tabs of the same origin', async () => {
+        it('shares cookies between tabs of the same origin', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
 
@@ -443,12 +385,12 @@ describe('browsing contexts', () => {
             expect(await a.getCookies({ name: 'shared' })).toEqual([])
         })
 
-        test('takes a screenshot of a background tab', async () => {
+        it('takes a screenshot of a background tab', async () => {
             await open('/tab-a')
             const b = await openTab('/tab-b')
             await b.setViewport({ width: 500, height: 400 })
 
-            const screenshot = await b.saveScreenshot(path.join(os.tmpdir(), 'wdio-browsing-context-tab.png'))
+            const screenshot = await b.saveScreenshot(path.join(screenshots, 'tab.png'))
             // PNG header: width at byte 16, height at byte 20
             expect(screenshot.readUInt32BE(16)).toBe(500)
             expect(screenshot.readUInt32BE(20)).toBe(400)
@@ -456,7 +398,7 @@ describe('browsing contexts', () => {
     })
 
     describe('frames', () => {
-        test('scopes element lookups to each frame of a nested chain', async () => {
+        it('scopes element lookups to each frame of a nested chain', async () => {
             const { outer, middle, inner } = await openFrames()
 
             expect(await where(outer)).toBe('Outer')
@@ -466,7 +408,7 @@ describe('browsing contexts', () => {
             await expect(middle.$('#middle')).not.toExist()
         })
 
-        test('links each frame to its parent', async () => {
+        it('links each frame to its parent', async () => {
             const { outer, middle, inner, cross } = await openFrames()
 
             expect(outer.isFrame).toBe(false)
@@ -479,7 +421,7 @@ describe('browsing contexts', () => {
             expect(await where(inner.parent!)).toBe('Middle')
         })
 
-        test('finds the same nested frame by element, url, context id, and predicate', async () => {
+        it('finds the same nested frame by element, url, context id, and predicate', async () => {
             const { outer, middle, inner } = await openFrames()
 
             const byUrl = await outer.frame(`${origin}/inner`)
@@ -493,13 +435,13 @@ describe('browsing contexts', () => {
             }
         })
 
-        test('treats a plain selector as an element on this page, not a url substring', async () => {
+        it('treats a plain selector as an element on this page, not a url substring', async () => {
             const page = await open('/selector-trap')
             const first = await page.frame('iframe')
             expect(await first.getTitle()).toBe('Plain')
         })
 
-        test('reads the title and url of each frame', async () => {
+        it('reads the title and url of each frame', async () => {
             const { outer, middle, inner, cross } = await openFrames()
 
             expect(await outer.getTitle()).toBe('Outer')
@@ -511,7 +453,7 @@ describe('browsing contexts', () => {
             expect(await cross.getUrl()).toBe(`${crossOrigin}/cross`)
         })
 
-        test('keeps input in the frame it was typed into', async () => {
+        it('keeps input in the frame it was typed into', async () => {
             const { outer, middle, inner, cross } = await openFrames()
 
             await outer.$('#input').setValue('outer')
@@ -525,7 +467,7 @@ describe('browsing contexts', () => {
             expect(await valueOf(cross)).toBe('cross')
         })
 
-        test('types with keys() into a nested and a cross-origin frame', async () => {
+        it('types with keys() into a nested and a cross-origin frame', async () => {
             const { outer, middle, inner, cross } = await openFrames()
 
             const values = async () => ({
@@ -544,7 +486,7 @@ describe('browsing contexts', () => {
             expect(await values()).toEqual({ outer: '', middle: '', inner: 'nested', cross: 'cross' })
         })
 
-        test('clicks an element of a nested frame scrolled out of its parent frame', async () => {
+        it('clicks an element of a nested frame scrolled out of its parent frame', async () => {
             const outer = await open('/clipped-outer')
             const middle = await outer.frame(outer.$('#middle'))
             const inner = await middle.frame(middle.$('#inner'))
@@ -555,7 +497,7 @@ describe('browsing contexts', () => {
             expect(await valueOf(outer)).toBe('')
         })
 
-        test('navigates a nested frame without moving its parents', async () => {
+        it('navigates a nested frame without moving its parents', async () => {
             const { outer, middle, inner } = await openFrames()
 
             const returned = await inner.navigate(`${origin}/inner-2`)
@@ -565,7 +507,7 @@ describe('browsing contexts', () => {
             expect(await outer.getUrl()).toBe(`${origin}/outer`)
         })
 
-        test('reloads a frame and keeps the state of its parent', async () => {
+        it('reloads a frame and keeps the state of its parent', async () => {
             const { outer, middle } = await openFrames()
             await mark(outer, 'keep me')
             await mark(middle, 'reset me')
@@ -575,7 +517,7 @@ describe('browsing contexts', () => {
             expect(await markOf(outer)).toBe('keep me')
         })
 
-        test('rejects commands on a frame after its page navigated away', async () => {
+        it('rejects commands on a frame after its page navigated away', async () => {
             const { outer, middle } = await openFrames()
 
             await outer.navigate(`${origin}/tab-a`)
@@ -586,7 +528,7 @@ describe('browsing contexts', () => {
             expect(await where(again)).toBe('Middle')
         })
 
-        test('rejects top-level only commands on a frame', async () => {
+        it('rejects top-level only commands on a frame', async () => {
             const { middle } = await openFrames()
             const topLevelOnly = {
                 back: () => middle.back(),
@@ -606,25 +548,25 @@ describe('browsing contexts', () => {
             expect(await where(middle)).toBe('Middle')
         })
 
-        test('does not take session commands', async () => {
+        it('does not take session commands', async () => {
             const page = await open('/tab-a')
             expect(await rejection(page.addCommand('never', () => {}) as unknown as Promise<unknown>))
                 .toBe('`addCommand` is only available on the browser, not on a browsing context')
         })
 
-        test('rejects a frame that does not exist', async () => {
+        it('rejects a frame that does not exist', async () => {
             const page = await open('/tab-a')
             const started = Date.now()
             expect(await rejection(page.frame('#not-a-frame'))).toMatch(/not-a-frame/)
             expect(Date.now() - started).toBeLessThan(browser.options.waitforTimeout! + 5000)
         })
 
-        test('rejects an element that is not a frame', async () => {
+        it('rejects an element that is not a frame', async () => {
             const page = await open('/tab-a')
             expect(await rejection(page.frame(page.$('#input')))).toBe('The element is not a frame with a browsing context')
         })
 
-        test('works with frames of a tab that is not the initial one', async () => {
+        it('works with frames of a tab that is not the initial one', async () => {
             const a = await open('/tab-a')
             const tab = await browser.newWindow(`${origin}/outer`, { type: 'tab' })
             if (!('contextId' in tab)) {
@@ -681,7 +623,7 @@ describe('browsing contexts', () => {
                 await expect(context.$('#double')).toHaveText('double clicked')
             },
             saveScreenshot: async (context) => {
-                const screenshot = await context.$('#box').saveScreenshot(path.join(os.tmpdir(), 'wdio-browsing-context-box.png'))
+                const screenshot = await context.$('#box').saveScreenshot(path.join(screenshots, 'box.png'))
                 expect(screenshot.readUInt32BE(16)).toBeGreaterThanOrEqual(120)
                 expect(screenshot.readUInt32BE(20)).toBeGreaterThanOrEqual(30)
             }
@@ -690,7 +632,7 @@ describe('browsing contexts', () => {
         for (const [where, target] of Object.entries(targets)) {
             describe(`in ${where}`, () => {
                 for (const [command, run] of Object.entries(commands)) {
-                    test(command, async () => run(await target()))
+                    it(command, async () => run(await target()))
                 }
             })
         }
@@ -716,7 +658,7 @@ describe('browsing contexts', () => {
             }, 10)
         }, message)
 
-        test('reads and accepts a dialog in a background tab', async () => {
+        it('reads and accepts a dialog in a background tab', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
 
@@ -727,7 +669,7 @@ describe('browsing contexts', () => {
             expect(await where(a)).toBe('Tab A')
         })
 
-        test('dismisses a dialog in one tab while another tab has one open', async () => {
+        it('dismisses a dialog in one tab while another tab has one open', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-b')
 
@@ -743,7 +685,7 @@ describe('browsing contexts', () => {
             await expect(a.$('#result')).toHaveText('true')
         })
 
-        test('handles a dialog opened by a frame', async () => {
+        it('handles a dialog opened by a frame', async () => {
             const { outer, middle } = await openFrames()
 
             await confirmLater(middle, 'from a frame')
@@ -752,7 +694,7 @@ describe('browsing contexts', () => {
             await expect(middle.$('#result')).toHaveText('true')
         })
 
-        test('accepts a dialog of a background tab from the dialog event', async () => {
+        it('accepts a dialog of a background tab from the dialog event', async () => {
             browser.off('dialog', keepDialogsOpen)
             const accept = (dialog: WebdriverIO.Dialog) => dialog.accept()
             browser.on('dialog', accept)
@@ -769,7 +711,7 @@ describe('browsing contexts', () => {
     })
 
     describe('removed commands', () => {
-        test('rejects switchWindow and switchFrame in a BiDi session', async () => {
+        it('rejects switchWindow and switchFrame in a BiDi session', async () => {
             const page = await open('/outer')
             expect(await rejection(browser.switchWindow(`${origin}/outer`))).toMatch(/switchWindow/)
             expect(await rejection(browser.switchFrame(page.$('#middle') as unknown as WebdriverIO.Element))).toMatch(/switchFrame/)

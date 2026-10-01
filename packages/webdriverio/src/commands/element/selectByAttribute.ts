@@ -2,6 +2,8 @@ import { ELEMENT_KEY } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
 import { getElementFromResponse } from '../../utils/index.js'
+import { foreignContextId } from '../../session/browsingContext.js'
+import { selectOptionInContext } from '../../utils/foreignContext.js'
 
 /**
  *
@@ -53,6 +55,14 @@ export async function selectByAttribute (
     /**
     * find option elememnt using xpath
     */
+    if (await foreignContextId(this)) {
+        return selectOptionInContext(
+            this,
+            { by: 'attribute', attribute: attribute.trim(), value: value.trim() },
+            `Option with attribute "${attribute}=${value}" not found.`
+        )
+    }
+
     const normalized = `[normalize-space(@${attribute.trim()}) = "${value.trim()}"]`
     let optionElement: ElementReference | undefined
     await this.waitUntil(async () => {

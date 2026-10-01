@@ -1073,6 +1073,10 @@ declare global {
          * Navigate a held context with `navigate()`. `browser.url()` navigates
          * the session's initial top-level context and returns it.
          */
+        /**
+         * Commands typed with `this: WebdriverIO.Browser` drop that `this`
+         * here (`OmitThisParameter`), so they can be called on a context.
+         */
         interface BrowsingContext {
             isBidi: boolean
             isMobile: boolean
@@ -1089,9 +1093,9 @@ declare global {
             execute: Browser['execute']
             action: Browser['action']
             actions: Browser['actions']
-            keys: Browser['keys']
+            keys: OmitThisParameter<Browser['keys']>
             scroll: Browser['scroll']
-            saveScreenshot: Browser['saveScreenshot']
+            saveScreenshot: OmitThisParameter<Browser['saveScreenshot']>
             savePDF: Browser['savePDF']
             getCookies: Browser['getCookies']
             setCookies: Browser['setCookies']
@@ -1102,7 +1106,7 @@ declare global {
             mockClearAll: Browser['mockClearAll']
             mockRestoreAll: Browser['mockRestoreAll']
             emulate: Browser['emulate']
-            restore: Browser['restore']
+            restore: OmitThisParameter<Browser['restore']>
             waitUntil: Browser['waitUntil']
             pause: Browser['pause']
             frame(target: string | Element | ChainablePromiseElement | ((context: { context: string, url: string }) => boolean | Promise<boolean>)): Promise<BrowsingContext>

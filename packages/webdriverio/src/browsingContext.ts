@@ -116,7 +116,7 @@ function commandProperties (): Record<string, PropertyDescriptor> {
         acceptAlert,
         dismissAlert,
         getAlertText,
-        emulate: onBrowser('emulate', emulate),
+        emulate: topLevel('emulate', emulate),
         restore: onBrowser('restore', restore)
     }
     const properties: Record<string, PropertyDescriptor> = {

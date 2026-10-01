@@ -136,6 +136,10 @@ export default class WebDriverInterception {
     #pattern: URLPattern
     #patternId: string
     #mockId: string
+    /**
+     * The `SESSION_MOCKS` key `mock()` stored this interception under
+     */
+    #sessionKey?: string
     #filterOptions: MockFilterOptions
     #browser: WebdriverIO.Browser
 
@@ -156,8 +160,10 @@ export default class WebDriverInterception {
         mockId: string,
         filterOptions: MockFilterOptions,
         browser: WebdriverIO.Browser,
-        isCollectingNetworkData = false
+        isCollectingNetworkData = false,
+        sessionKey?: string
     ) {
+        this.#sessionKey = sessionKey
         this.#pattern = pattern
         this.#patternId = getPatternId(pattern)
         this.#mockId = mockId
@@ -176,7 +182,8 @@ export default class WebDriverInterception {
     static async initiate(
         url: string | URLPattern | globalThis.URLPattern,
         filterOptions: MockFilterOptions,
-        browser: WebdriverIO.Browser
+        browser: WebdriverIO.Browser,
+        scope: { contexts?: string[], sessionKey?: string } = {}
     ) {
         const pattern = parseUrlPattern(url)
         const isCollectingNetworkData = browser.options.maxSpyCollectedBodySize !== 0
@@ -210,6 +217,7 @@ export default class WebDriverInterception {
          * register network intercept
          */
         const interception = await browser.networkAddIntercept({
+            ...(scope.contexts ? { contexts: scope.contexts } : {}),
             phases: ['beforeRequestSent', 'responseStarted'],
             urlPatterns: [{
                 type: 'pattern',
@@ -221,7 +229,7 @@ export default class WebDriverInterception {
             }]
         })
 
-        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData)
+        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData, scope.sessionKey)
     }
 
     #emit(event: string, args: unknown) {
@@ -885,10 +893,10 @@ export default class WebDriverInterception {
         const blockedRequestIds = Array.from(this.#blockedRequests)
         this.reset()
         this.#respondOverwrites = []
-        const handle = await this.#browser.getWindowHandle()
+        const handle = this.#sessionKey ?? await this.#browser.getWindowHandle()
 
         log.trace(`Restoring mock for ${handle}`)
-        SESSION_MOCKS[handle].delete(this as WebDriverInterception)
+        SESSION_MOCKS[handle]?.delete(this as WebDriverInterception)
 
         // Continue any in-flight blocked requests before removing the intercept
         // to prevent them from hanging

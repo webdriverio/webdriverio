@@ -7,6 +7,7 @@ import { remote } from '../../../src/index.js'
 import { getBrowsingContext } from '../../../src/browsingContext.js'
 import { getContextManager } from '../../../src/session/context.js'
 import { getElement } from '../../../src/utils/getElementObject.js'
+import { StrictSelectorError } from '../../../src/utils/strictSelectorError.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -282,5 +283,178 @@ describe('browsing context', () => {
         const element = page.$('#parent') as { moveTo?: unknown, then?: unknown }
         expect(typeof element.then).toBe('function')
         expect(typeof element.moveTo).toBe('function')
+    })
+
+    describe('commands on another held context', () => {
+        /**
+         * The session's current context is `top-context` (see the mock above).
+         * `tab-2` and `frame-1` are held contexts other than that one.
+         */
+        const heldElement = (contextId: string, isFrame = false) => {
+            const context = getBrowsingContext(browser, contextId, { isFrame, url: 'https://child.example' })
+            const elem = getElement.call(context, '#target', { [ELEMENT_KEY]: 'elem-1' })
+            return { context, elem }
+        }
+
+        it('reads element state in the element\'s own document, not over classic WebDriver', async () => {
+            const { elem } = heldElement('frame-1', true)
+            const execute = vi.spyOn(elem, 'execute')
+            const classic = {
+                isElementEnabled: vi.spyOn(elem, 'isElementEnabled'),
+                isElementSelected: vi.spyOn(elem, 'isElementSelected'),
+                getElementTagName: vi.spyOn(elem, 'getElementTagName'),
+                elementClear: vi.spyOn(elem, 'elementClear')
+            }
+
+            execute.mockResolvedValueOnce(false)
+            await expect(elem.isEnabled()).resolves.toBe(false)
+            execute.mockResolvedValueOnce(true)
+            await expect(elem.isSelected()).resolves.toBe(true)
+            execute.mockResolvedValueOnce('select')
+            await expect(elem.getTagName()).resolves.toBe('select')
+            execute.mockResolvedValueOnce(undefined)
+            await elem.clearValue()
+
+            expect(execute).toHaveBeenCalledTimes(4)
+            for (const spy of Object.values(classic)) {
+                expect(spy).not.toHaveBeenCalled()
+            }
+        })
+
+        it('reports colors of an element in another context as rgba, like the drivers', async () => {
+            const { elem } = heldElement('tab-2')
+            const cssValue = vi.spyOn(elem, 'getElementCSSValue')
+            vi.spyOn(elem, 'execute').mockResolvedValue('rgb(255, 0, 0)')
+            const { value } = await elem.getCSSProperty('color')
+            expect(value).toBe('rgba(255,0,0,1)')
+            expect(cssValue).not.toHaveBeenCalled()
+        })
+
+        it('appends with addValue without selecting the current value', async () => {
+            const { elem } = heldElement('frame-1', true)
+            const execute = vi.spyOn(elem, 'execute').mockResolvedValue(undefined)
+            const sendKeys = vi.spyOn(elem, 'elementSendKeys')
+            const perform = vi.spyOn(browser, 'inputPerformActions').mockResolvedValue({})
+            vi.spyOn(browser, 'inputReleaseActions').mockResolvedValue({})
+
+            await elem.addValue('b')
+            expect(execute).toHaveBeenCalledWith(expect.any(Function), false)
+            expect(perform).toHaveBeenCalledWith(expect.objectContaining({
+                context: 'frame-1',
+                actions: [expect.objectContaining({
+                    actions: [{ type: 'keyDown', value: 'b' }, { type: 'keyUp', value: 'b' }]
+                })]
+            }))
+            expect(sendKeys).not.toHaveBeenCalled()
+
+            perform.mockClear()
+            await elem.addValue('')
+            expect(perform).not.toHaveBeenCalled()
+        })
+
+        it('selects an option in the element\'s own document', async () => {
+            const { elem } = heldElement('tab-2')
+            const click = vi.spyOn(elem, 'elementClick')
+            const execute = vi.spyOn(elem, 'execute').mockResolvedValue(true)
+
+            await elem.selectByVisibleText('  Two   options ')
+            await elem.selectByIndex(1)
+            await elem.selectByAttribute('value', ' two ')
+            expect(execute.mock.calls.map((call) => call[1])).toEqual([
+                { by: 'text', text: 'Two options' },
+                { by: 'index', index: 1 },
+                { by: 'attribute', attribute: 'value', value: 'two' }
+            ])
+            expect(click).not.toHaveBeenCalled()
+        })
+
+        it('scrolls an element into view before clicking it in another context', async () => {
+            const { elem } = heldElement('frame-1', true)
+            const execute = vi.spyOn(elem, 'execute').mockResolvedValue(undefined)
+            vi.spyOn(elem, 'waitForExist').mockResolvedValue(true)
+            const perform = vi.spyOn(browser, 'inputPerformActions').mockResolvedValue({})
+            vi.spyOn(browser, 'inputReleaseActions').mockResolvedValue({})
+
+            await elem.click()
+            expect(execute).toHaveBeenCalledTimes(1)
+            expect(execute.mock.invocationCallOrder[0]).toBeLessThan(perform.mock.invocationCallOrder[0])
+            expect(perform).toHaveBeenCalledWith(expect.objectContaining({ context: 'frame-1' }))
+        })
+
+        it('emulates in the held tab instead of the current one', async () => {
+            const tab = getBrowsingContext(browser, 'tab-2', { isFrame: false, url: 'https://child.example' })
+            const override = vi.spyOn(browser, 'emulationSetUserAgentOverride').mockResolvedValue({})
+            const restore = await tab.emulate('userAgent', 'agent')
+            expect(override).toHaveBeenCalledWith({ userAgent: 'agent', contexts: ['tab-2'] })
+            await restore()
+            expect(override).toHaveBeenLastCalledWith({ userAgent: null, contexts: ['tab-2'] })
+        })
+
+        it('limits a mock of a held tab to that tab and restores it without the window handle', async () => {
+            const tab = getBrowsingContext(browser, 'tab-2', { isFrame: false, url: 'https://child.example' })
+            vi.spyOn(browser, 'sessionSubscribe').mockResolvedValue({} as never)
+            vi.spyOn(browser, 'networkAddDataCollector').mockResolvedValue({ collector: 'c' } as never)
+            const addIntercept = vi.spyOn(browser, 'networkAddIntercept').mockResolvedValue({ intercept: 'i-1' })
+            vi.spyOn(browser, 'networkRemoveIntercept').mockResolvedValue({})
+            const windowHandle = vi.spyOn(browser, 'getWindowHandle')
+
+            const mock = await tab.mock('**/api')
+            expect(addIntercept).toHaveBeenCalledWith(expect.objectContaining({ contexts: ['tab-2'] }))
+            await expect(mock.restore()).resolves.not.toThrow()
+            expect(windowHandle).not.toHaveBeenCalled()
+
+            addIntercept.mockClear()
+            await browser.mock('**/session-wide')
+            expect(addIntercept.mock.calls[0][0]).not.toHaveProperty('contexts')
+        })
+
+        it('treats a plain string as a selector before matching frame urls', async () => {
+            const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' })
+            const tree = vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'top-context', url: 'https://example.com', children: [
+                    { context: 'frame-1', url: 'https://example.com/plain', children: [
+                        { context: 'frame-2', url: 'https://example.com/iframe-nested', children: [] }
+                    ] }
+                ] }]
+            } as never)
+            const frameElement = getElement.call(page, 'iframe', { [ELEMENT_KEY]: 'iframe-1' })
+            vi.spyOn(frameElement, 'isExisting').mockResolvedValue(true)
+            vi.spyOn(frameElement, 'waitForExist').mockResolvedValue(true)
+            const $ = vi.spyOn(page, '$').mockReturnValue(frameElement as never)
+            vi.spyOn(page, 'execute').mockResolvedValue({ context: 'frame-1' })
+
+            const child = await page.frame('iframe')
+            expect(child.contextId).toBe('frame-1')
+            expect(tree).not.toHaveBeenCalled()
+
+            $.mockImplementation(() => {
+                throw new StrictSelectorError('iframe', 2)
+            })
+            await expect(page.frame('iframe')).rejects.toThrow('strict mode violation')
+        })
+
+        it('reloads a frame from inside it, so the frame keeps its context', async () => {
+            const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://child.example' })
+            const reload = vi.spyOn(browser, 'browsingContextReload')
+            vi.spyOn(frame, 'execute')
+                .mockResolvedValueOnce('token')
+                .mockResolvedValue({ marker: undefined, ready: 'complete' })
+
+            await frame.refresh()
+            expect(reload).not.toHaveBeenCalled()
+            expect(frame.execute).toHaveBeenCalledTimes(2)
+        })
+
+        it('rejects running a script in a frame whose page navigated away', async () => {
+            const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' })
+            const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://child.example', parent: page })
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'top-context', url: 'https://example.com/next', children: [] }]
+            } as never)
+            const scriptCallFunction = vi.spyOn(browser, 'scriptCallFunction')
+
+            await expect(frame.execute(() => document.title)).rejects.toThrow('no such frame')
+            expect(scriptCallFunction).not.toHaveBeenCalled()
+        })
     })
 })
