@@ -974,10 +974,11 @@ importers:
     dependencies:
       expect-webdriverio:
         specifier: ^7.0.1
-        version: 7.0.1(@wdio/globals@9.31.3)(@wdio/logger@9.29.1)(webdriverio@9.32.0(puppeteer-core@24.34.0))
+        version: 7.0.1(@wdio/globals@9.31.3)(@wdio/logger@9.29.1)(webdriverio@packages+webdriverio)
+    devDependencies:
       webdriverio:
-        specifier: ^9.31.5
-        version: 9.32.0(puppeteer-core@24.34.0)
+        specifier: workspace:*
+        version: link:../webdriverio
 
   packages/wdio-jasmine-framework:
     dependencies:
