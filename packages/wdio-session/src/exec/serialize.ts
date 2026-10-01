@@ -27,13 +27,6 @@ export interface Serialized {
 }
 
 /**
- * A resolved element, see `@wdio/utils` `kind.ts`. A chainable $() is a promise, not a result.
- */
-export function isElement (value: unknown): value is WebdriverIO.Element {
-    return typeof value === 'object' && isLoadedElement(value)
-}
-
-/**
  * An element list, or a copy of one (`[...list]`) whose items are all elements
  */
 export function isElementArray (value: unknown): value is WebdriverIO.ElementArray {
@@ -101,7 +94,7 @@ export function toPlain (value: unknown, depth = MAX_DEPTH, seen = new WeakSet<o
     if (typeof value === 'function') {
         return `[Function${value.name ? ` ${value.name}` : ''}]`
     }
-    if (isElement(value)) {
+    if (isLoadedElement(value)) {
         return { selector: selectorString(value.selector), elementId: value.elementId }
     }
     if (isBinary(value)) {
@@ -174,7 +167,7 @@ export async function serialize (value: unknown, opts: SerializeOptions = {}): P
             value: toPlain(elements)
         }
     }
-    if (isElement(value)) {
+    if (isLoadedElement(value)) {
         return { text: await formatElement(value, opts), value: toPlain(value) }
     }
     if (isBinary(value)) {

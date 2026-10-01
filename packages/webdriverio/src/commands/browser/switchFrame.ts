@@ -73,7 +73,7 @@ export async function switchFrame (
 ): Promise<string | void> {
     function isPossiblyUnresolvedElement(input: typeof context): input is WebdriverIO.Element | ChainablePromiseElement {
         // an element or a chainable $() both have the kind 'element', see `@wdio/utils` `kind.ts`
-        return typeof input === 'object' && getWdioKind(input) === 'element'
+        return getWdioKind(input) === 'element'
     }
 
     /**

@@ -1000,14 +1000,13 @@ export async function findElements(
  */
 export function verifyArgsAndStripIfElement(args: unknown) {
     function verify(arg: unknown) {
-        if (typeof arg === 'object' && isLoadedElement(arg)) {
-            const elem = arg as WebdriverIO.Element
-            if (!elem.elementId) {
-                throw new Error(`The element with selector "${elem.selector}" you are trying to pass into the execute method wasn't found`)
+        if (isLoadedElement(arg)) {
+            if (!arg.elementId) {
+                throw new Error(`The element with selector "${arg.selector}" you are trying to pass into the execute method wasn't found`)
             }
 
             return {
-                [ELEMENT_KEY]: elem.elementId
+                [ELEMENT_KEY]: arg.elementId
             }
         }
 

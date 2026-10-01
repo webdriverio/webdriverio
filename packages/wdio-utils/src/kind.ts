@@ -74,7 +74,7 @@ export function getLoadedWdioKind (value: unknown): WdioKind | undefined {
 /**
  * `true` for a loaded element, not a chainable `$()`
  */
-export function isLoadedElement (value: unknown): boolean {
+export function isLoadedElement (value: unknown): value is WebdriverIO.Element {
     return getLoadedWdioKind(value) === 'element'
 }
 
