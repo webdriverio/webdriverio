@@ -20,6 +20,37 @@ type WrappedClient = {
 }
 
 /**
+ * A multi-remote element has no element id of its own, so a command argument
+ * holding one gets the element of the instance the command runs on.
+ */
+function toInstanceArg (arg: unknown, instanceName: string): unknown {
+    if (!arg || typeof arg !== 'object') {
+        return arg
+    }
+
+    const element = arg as WebdriverIO.MultiRemoteElement
+    if (element.isMultiremote === true && Array.isArray(element.instances)) {
+        if (!element.instances.includes(instanceName)) {
+            throw new Error(`Element "${String(element.selector)}" is not available on instance "${instanceName}"`)
+        }
+        return (element as unknown as Record<string, unknown>)[instanceName]
+    }
+
+    if (Array.isArray(arg)) {
+        const items = arg.map((item) => toInstanceArg(item, instanceName))
+        return items.some((item, i) => item !== arg[i]) ? items : arg
+    }
+
+    if (Object.getPrototypeOf(arg) !== Object.prototype) {
+        return arg
+    }
+    const entries = Object.entries(arg).map(([key, value]) => [key, toInstanceArg(value, instanceName)] as const)
+    return entries.some(([key, value]) => value !== (arg as Record<string, unknown>)[key])
+        ? Object.fromEntries(entries)
+        : arg
+}
+
+/**
  * Multiremote class
  */
 export default class MultiRemote {
@@ -241,7 +272,9 @@ export default class MultiRemote {
 
             const result = await Promise.all(
                 scopeEntries.map(
-                    ([, instance]) => instance[commandName](...args)
+                    ([instanceName, instance]) => instance[commandName](
+                        ...args.map((arg) => toInstanceArg(arg, instanceName))
+                    )
                 )
             )
 

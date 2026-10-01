@@ -131,6 +131,41 @@ describe('Multi-Remote tests', () => {
             .toEqual('/session/foobar-123/element/some-elem-123/rect')
     })
 
+    test('should pass a multi-remote element argument as the element of each instance (#15844)', async () => {
+        const browser = await multiremote(caps())
+        const elem = await browser.$('#foo')
+
+        const result = await browser.execute((el) => el, elem)
+        expect(result).toHaveLength(2)
+
+        for (const call of [vi.mocked(fetch).mock.calls[4], vi.mocked(fetch).mock.calls[5]]) {
+            expect((call[0] as any).pathname).toBe('/session/foobar-123/execute/sync')
+            expect(JSON.parse((call[1] as any).body).args).toEqual([
+                { 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123', ELEMENT: 'some-elem-123' }
+            ])
+        }
+    })
+
+    test('should give each instance its own element, also inside arrays and objects (#15844)', async () => {
+        const browser = await multiremote(caps())
+        const elem = await browser.$('#foo')
+        const elemA = elem.getInstance('browserA')
+        const elemB = elem.getInstance('browserB')
+        const executeA = vi.spyOn(browser.getInstance('browserA'), 'execute').mockResolvedValue('a')
+        const executeB = vi.spyOn(browser.getInstance('browserB'), 'execute').mockResolvedValue('b')
+        const script = () => {}
+
+        await browser.execute(script, elem, [elem], { elem }, 'foo')
+
+        expect(executeA.mock.calls[0][1]).toBe(elemA)
+        expect(executeA.mock.calls[0][2]).toEqual([elemA])
+        expect((executeA.mock.calls[0][3] as any).elem).toBe(elemA)
+        expect(executeA.mock.calls[0][4]).toBe('foo')
+        expect(executeB.mock.calls[0][1]).toBe(elemB)
+        expect(executeB.mock.calls[0][2]).toEqual([elemB])
+        expect((executeB.mock.calls[0][3] as any).elem).toBe(elemB)
+    })
+
     test('should be able to fetch multiple elements', async () => {
         const browser = await multiremote(caps())
 
@@ -217,6 +252,15 @@ describe('Multi-Remote tests', () => {
             const h1 = await browser.$('#foo')
 
             expect(() => h1.select('nonExistentBrowser')).toThrowError('None of the following requested instances are valid: nonExistentBrowser')
+        })
+
+        test('should throw when an element argument was not selected for an instance (#15844)', async () => {
+            const browser = await multiremote(caps())
+
+            const h1 = await browser.$('#foo')
+
+            await expect(browser.execute((el) => el, h1.select('browserA')))
+                .rejects.toThrow('Element "#foo" is not available on instance "browserB"')
         })
     })
 })
