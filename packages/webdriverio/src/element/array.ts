@@ -171,6 +171,20 @@ function readIndex (array: ElementList, index: number) {
     return chainElementPromise(elementAt(array, normalized), multiRemote)
 }
 
+/**
+ * The browser that waits for an index past the end. A multi-remote `waitUntil`
+ * runs the condition on every instance and gives one result per instance, but
+ * the condition already queries every instance, so one instance waits.
+ */
+function waitingBrowser (parent: NonNullable<ElementArrayMetadata['parent']>, isMultiRemote: boolean): WebdriverIO.Browser {
+    const browser = getBrowserObject(parent as WebdriverIO.Element)
+    if (!isMultiRemote) {
+        return browser
+    }
+    const multiRemote = browser as unknown as WebdriverIO.MultiRemoteBrowser
+    return getBrowserObject(multiRemote.getInstance(multiRemote.instances[0]))
+}
+
 async function elementAt (array: ElementList, index: number): Promise<WebdriverIO.Element | undefined> {
     const items = await load(array)
     if (index < 0) {
@@ -180,12 +194,12 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
         return items[index] as WebdriverIO.Element
     }
 
-    const { parent, foundWith, selector, refetch } = stateOf(array).metadata
+    const { parent, foundWith, selector, refetch, isMultiRemote } = stateOf(array).metadata
     if (refetch === false || !parent) {
         return undefined
     }
 
-    const browser = getBrowserObject(parent as WebdriverIO.Element)
+    const browser = waitingBrowser(parent, isMultiRemote === true)
     return await browser.waitUntil(async () => {
         const query = (parent as unknown as Record<string, (selector?: Selector) => Promise<WebdriverIO.ElementArray>>)[foundWith]
         if (typeof query !== 'function') {

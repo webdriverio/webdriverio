@@ -63,6 +63,71 @@ describe('Multi-Remote tests', () => {
             expect(elements[2].getInstance('browserA').elementId).toBe('some-elem-789')
         })
 
+        describe('index past the end of a loaded list', () => {
+            const elementRefs = (count: number) => Array.from(
+                { length: count },
+                (_, index) => ({ 'element-6066-11e4-a52e-4f735466cecf': `elem-${index}` })
+            )
+
+            /**
+             * Every instance finds 2 elements, then 3 elements from the query
+             * number `foundFrom` on.
+             */
+            const growingElements = (browser: WebdriverIO.MultiRemoteBrowser, foundFrom: number) => (
+                ['browserA', 'browserB'].map((name) => {
+                    let queries = 0
+                    return vi.spyOn(browser.getInstance(name), 'findElements')
+                        .mockImplementation(async () => elementRefs(++queries >= foundFrom ? 3 : 2))
+                })
+            )
+
+            test('gives one multi-remote element when the element appears', async () => {
+                const browser = await multiRemote(caps())
+                const [findA, findB] = growingElements(browser, 3)
+
+                const elements = await browser.$$('#foo')
+                const element = await elements[2]
+
+                expect(Array.isArray(element)).toBe(false)
+                expect(element.isMultiRemote).toBe(true)
+                expect(element.getInstance('browserA').elementId).toBe('elem-2')
+                expect(element.getInstance('browserB').elementId).toBe('elem-2')
+                expect(findA.mock.calls).toHaveLength(3)
+                expect(findB.mock.calls).toHaveLength(3)
+            })
+
+            test('gives one multi-remote element for a list of an element query', async () => {
+                const browser = await multiRemote(caps())
+                const parent = await browser.$('#parent')
+                const [findA, findB] = ['browserA', 'browserB'].map((name) => {
+                    let queries = 0
+                    return vi.spyOn(parent.getInstance(name), 'findElementsFromElement')
+                        .mockImplementation(async () => elementRefs(++queries >= 3 ? 3 : 2))
+                })
+
+                const elements = await parent.$$('#foo')
+                const element = await elements[2]
+
+                expect(Array.isArray(element)).toBe(false)
+                expect(element.isMultiRemote).toBe(true)
+                expect(element.getInstance('browserB').elementId).toBe('elem-2')
+                expect(findA.mock.calls).toHaveLength(3)
+                expect(findB.mock.calls).toHaveLength(3)
+            })
+
+            test('rejects when the element does not appear', async () => {
+                const browser = await multiRemote(caps())
+                for (const name of ['browserA', 'browserB']) {
+                    browser.getInstance(name).options.waitforTimeout = 50
+                }
+                growingElements(browser, Number.POSITIVE_INFINITY)
+
+                const elements = await browser.$$('#foo')
+
+                await expect(elements[2]).rejects.toThrow('Index out of bounds! $$(#foo) returned only 2 elements.')
+            })
+        })
+
         test('keeps isMultiRemote when $$ is chained from an element query', async () => {
             const browser = await multiRemote(caps())
 
