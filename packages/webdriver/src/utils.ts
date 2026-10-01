@@ -292,16 +292,16 @@ export function isSuccessfulResponse (statusCode?: number, body?: unknown) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isAppium, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ProtocolCommands = deepmerge<any>(
         /**
-         * if mobile apply JSONWire and WebDriver protocol because
-         * some legacy JSONWire commands are still used in Appium
-         * (e.g. set/get geolocation)
+         * if mobile or Appium apply Appium and WebDriver protocol because
+         * some Appium commands are still used in Appium sessions
+         * (e.g. get/set appium session details, settings, extensions, etc.)
          */
-        isMobile
+        isMobile || isAppium
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ? deepmerge<any>(AppiumProtocol as Protocol, WebDriverProtocol as Protocol) as Protocol
             : WebDriverProtocol,
@@ -349,10 +349,11 @@ export function getPrototype ({ isW3C, isChromium, isFirefox, isMobile, isSauce,
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, isWindowsApp, isMacApp }: Partial<SessionFlags>): PropertyDescriptorMap {
+export function getEnvironmentVars({ isW3C, isMobile, isAppium, isIOS, isAndroid, isFirefox, isSauce, isSeleniumStandalone, isChromium, isWindowsApp, isMacApp }: Partial<SessionFlags>): PropertyDescriptorMap {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
+        isAppium: { value: isAppium },
         isIOS: { value: isIOS },
         isAndroid: { value: isAndroid },
         isFirefox: { value: isFirefox },

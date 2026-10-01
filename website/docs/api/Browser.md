@@ -28,6 +28,7 @@ A browser object has the following properties:
 | `isMacApp` | `Boolean` | Indicates if this session is Running for a native Mac App |
 | `isWindowsApp` | `Boolean` | Indicates if this session is Running for a native Windows App |
 | `isMobile` | `Boolean` | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags). |
+| `isAppium` | `Boolean` | Indicates an Appium session, whether mobile or browser-based. See more under [Mobile Flags](#mobile-flags). |
 | `isIOS` | `Boolean` | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags). |
 | `isAndroid` | `Boolean` | Indicates an Android session. See more under [Mobile Flags](#mobile-flags). |
 | `isNativeContext` | `Boolean`  | Indicates if the mobile is in the `NATIVE_APP` context. See more under [Mobile Flags](#mobile-flags). |

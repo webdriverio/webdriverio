@@ -89,6 +89,17 @@ describe('utils', () => {
         expect(typeof mobileChromePrototype.appiumLock.value).toBe('function')
         expect(typeof mobileChromePrototype.getNetworkConnection.value).toBe('function')
 
+        // non-mobile Appium sessions (e.g. Appium browser drivers) should still have Appium commands
+        const appiumPrototype = getPrototype({
+            isW3C: true, isChromium: false, isMobile: false, isAppium: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
+        })
+        expect(appiumPrototype instanceof Object).toBe(true)
+        expect(typeof appiumPrototype.performActions.value).toBe('function')
+        expect(typeof appiumPrototype.getAppiumCommands.value).toBe('function')
+        expect(typeof appiumPrototype.appiumLock.value).toBe('function')
+        expect(typeof appiumPrototype.lock).toBe('undefined')
+        expect(typeof appiumPrototype.getNetworkConnection).toBe('undefined')
+
         const saucePrototype = getPrototype({
             isW3C: true, isChromium, isMobile, isSauce: true, isSeleniumStandalone, isIOS, isAndroid
         })

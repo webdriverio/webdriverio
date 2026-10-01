@@ -170,6 +170,18 @@ function isMobile(capabilities: WebdriverIO.Capabilities) {
 }
 
 /**
+ * check if session is run by Appium
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if session is run by Appium
+ */
+function isAppium(capabilities?: WebdriverIO.Capabilities) {
+    if (!capabilities) {
+        return false
+    }
+    return Boolean(getAutomationName(capabilities))
+}
+
+/**
  * check if session is run on iOS device
  * @param  {Object}  capabilities  of session response
  * @return {Boolean}               true if run on iOS device
@@ -326,6 +338,7 @@ export function capabilitiesEnvironmentDetector(capabilities: WebdriverIO.Capabi
         isChrome: isChrome(capabilities),
         isFirefox: isFirefox(capabilities),
         isMobile: isMobile(capabilities),
+        isAppium: isAppium(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(capabilities),
@@ -354,6 +367,7 @@ export function sessionEnvironmentDetector({
         isChrome: isChrome(capabilities),
         isFirefox: isFirefox(capabilities),
         isMobile: isMobile(capabilities),
+        isAppium: isAppium(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(requestedCapabilities),
