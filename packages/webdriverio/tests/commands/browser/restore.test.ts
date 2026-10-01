@@ -1,9 +1,18 @@
 import path from 'node:path'
 
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { remote } from '../../../src/index.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../../../src/session/context.js', () => ({
+    getContextManager () {
+        return {
+            initialize: async () => '',
+            getCurrentTopLevelContext: async () => 'ctx-1'
+        }
+    }
+}))
+
+const { remote } = await import('../../../src/index.js')
 
 const browserA = await remote({
     baseUrl: 'http://foobar.com',
@@ -21,10 +30,10 @@ const browserB = await remote({
 
 const fakeScope = {
     isBidi: true,
-    scriptAddPreloadScript: vi.fn().mockResolvedValue({ script: 'foobar' }),
-    scriptRemovePreloadScript: vi.fn(),
-    addInitScript: vi.fn(),
-    execute: vi.fn().mockResolvedValue({}),
+    emulationSetGeolocationOverride: vi.fn(),
+    emulationSetUserAgentOverride: vi.fn(),
+    emulationSetMediaFeaturesOverride: vi.fn(),
+    emulationSetNetworkConditions: vi.fn(),
     options: {
         beforeCommand: vi.fn(),
         afterCommand: vi.fn()
@@ -41,9 +50,14 @@ const scopeBrowserB = {
     emulate: browserB.emulate.bind(browserB)
 }
 
+const CONTEXTS = ['ctx-1']
+
 describe('restore', () => {
     beforeEach(() => {
-        vi.mocked(fakeScope.scriptRemovePreloadScript).mockClear()
+        vi.mocked(fakeScope.emulationSetGeolocationOverride).mockClear()
+        vi.mocked(fakeScope.emulationSetUserAgentOverride).mockClear()
+        vi.mocked(fakeScope.emulationSetMediaFeaturesOverride).mockClear()
+        vi.mocked(fakeScope.emulationSetNetworkConditions).mockClear()
     })
 
     it('should restore all emulated behavior', async () => {
@@ -53,9 +67,13 @@ describe('restore', () => {
         await browserB.emulate.call(scopeBrowserB, 'onLine', false)
 
         await browserB.restore.call(scopeBrowserB)
-        expect(fakeScope.scriptRemovePreloadScript).toBeCalledTimes(1)
+        expect(fakeScope.emulationSetNetworkConditions).toBeCalledWith({ networkConditions: null, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetGeolocationOverride).toBeCalledTimes(1)
+
         await browserA.restore.call(scopeBrowserA)
-        expect(fakeScope.scriptRemovePreloadScript).toBeCalledTimes(4)
+        expect(fakeScope.emulationSetGeolocationOverride).toBeCalledWith({ coordinates: null, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetUserAgentOverride).toBeCalledWith({ userAgent: null, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetMediaFeaturesOverride).toBeCalledWith({ features: null, contexts: CONTEXTS })
     })
 
     it('should restore specific emulated behavior', async () => {
@@ -64,6 +82,9 @@ describe('restore', () => {
         await browserA.emulate.call(scopeBrowserA, 'colorScheme', 'dark')
         await browserA.emulate.call(scopeBrowserA, 'onLine', false)
         await browserA.restore.call(scopeBrowserA, ['geolocation', 'userAgent'])
-        expect(fakeScope.scriptRemovePreloadScript).toBeCalledTimes(2)
+        expect(fakeScope.emulationSetGeolocationOverride).toBeCalledWith({ coordinates: null, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetUserAgentOverride).toBeCalledWith({ userAgent: null, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetMediaFeaturesOverride).toBeCalledTimes(1)
+        expect(fakeScope.emulationSetNetworkConditions).toBeCalledTimes(1)
     })
 })

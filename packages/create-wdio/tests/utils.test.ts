@@ -581,6 +581,21 @@ test('setupTypeScript', async () => {
     expect(vi.mocked(fs.writeFile).mock.calls[0][1]).toMatchSnapshot()
 })
 
+test('setupTypeScript uses NodeNext for a CommonJS project', async () => {
+    vi.mocked(fs.writeFile).mockClear()
+    await setupTypeScript({
+        isUsingTypeScript: true,
+        esmSupport: false,
+        rawAnswers: { framework: 'foo', services: [] },
+        packagesToInstall: [],
+        tsConfigFilePath: '/foobar/tsconfig.json',
+        projectRootDir: '/foobar'
+    } as any)
+    const { compilerOptions } = JSON.parse(vi.mocked(fs.writeFile).mock.calls[0][1] as string)
+    expect(compilerOptions.module).toBe('NodeNext')
+    expect(compilerOptions.moduleResolution).toBe('NodeNext')
+})
+
 test('setupTypeScript does not create tsconfig.json if TypeScript was not selected', async () => {
     const parsedAnswers = {
         isUsingTypeScript: false,

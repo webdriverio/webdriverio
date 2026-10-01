@@ -4,7 +4,7 @@ ESLint rules for [WebdriverIO](https://webdriver.io)
 
 ## Installation
 
-You'll first need to install [ESLint](https://eslint.org):
+You'll first need to install [ESLint](https://eslint.org) 10:
 
 ```sh
 npm i eslint --save-dev
@@ -30,19 +30,41 @@ export default [
 ];
 ```
 
-The eslintrc export `plugin:wdio/recommended` is gone. ESLint 9 flat config is the supported setup.
+The eslintrc export `plugin:wdio/recommended` is gone. Flat config is the supported setup.
 
 See [ESLint documentation](https://eslint.org/docs/latest/use/configure/configuration-files) for more information about extending configuration files.
 
 ## TypeScript Support
 
-When `typescript` and `@typescript-eslint/eslint-plugin` are detected, the recommended configuration automatically replaces `wdio/await-expect` with `wdio/no-floating-promise` for stricter, type-aware promise handling.
+When `typescript-eslint` is installed, the recommended configuration automatically replaces `wdio/await-expect` with `wdio/no-floating-promise` for stricter, type-aware promise handling.
 
 To enable this, install the required dependencies:
 
 ```sh
-npm install --save-dev typescript @typescript-eslint/eslint-plugin
+npm install --save-dev typescript typescript-eslint
 ```
+
+By default, ESLint lints only `.js`, `.mjs` and `.cjs` files. Add a `files` pattern so that it also lints your TypeScript specs:
+
+```js
+import { configs as wdioConfig } from "eslint-plugin-wdio";
+
+export default [
+    { files: ['**/*.{ts,mts,cts,tsx}'], ...wdioConfig['flat/recommended'] },
+];
+```
+
+`wdio/no-floating-promise` needs type information, so your spec files must be part of a `tsconfig.json`.
+
+To also lint JavaScript files, such as `wdio.conf.js`, add them to the TypeScript project (`"allowJs": true` and the files in `include`), then widen the pattern:
+
+```js
+export default [
+    { files: ['**/*.{js,mjs,cjs,ts,mts,cts,tsx}'], ...wdioConfig['flat/recommended'] },
+];
+```
+
+If a matched file is not part of the TypeScript project, ESLint reports "was not found by the project service".
 
 ## List of supported rules
 

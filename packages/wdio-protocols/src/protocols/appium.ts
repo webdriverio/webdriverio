@@ -103,6 +103,69 @@ export default {
             },
         },
     },
+    '/session/:sessionId/appium/start_recording_screen': {
+        POST: {
+            command: 'startRecordingScreen',
+            description: 'Start recording the screen.',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/recording-screen/start-recording-screen/',
+            parameters: [
+                {
+                    name: 'options',
+                    type: 'object',
+                    description: 'Appium driver-specific recording options (refer to driver docs)',
+                    required: false,
+                },
+            ],
+            returns: {
+                type: 'string',
+                name: 'response',
+                description:
+                    'Empty string, or the base64 encoded string of a previous screen recording, if forceRestart and remotePath are not set',
+            },
+            support: {
+                ios: {
+                    XCUITest: '9.3+',
+                },
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                windows: {
+                    Windows: '10+',
+                },
+            },
+        },
+    },
+    '/session/:sessionId/appium/stop_recording_screen': {
+        POST: {
+            command: 'stopRecordingScreen',
+            description: 'Stop recording the screen.',
+            ref: 'https://appium.github.io/appium.io/docs/en/commands/device/recording-screen/stop-recording-screen/',
+            parameters: [
+                {
+                    name: 'options',
+                    type: 'object',
+                    description: 'Appium driver-specific recording options (refer to driver docs)',
+                    required: false,
+                },
+            ],
+            returns: {
+                type: 'string',
+                name: 'response',
+                description: 'Base64 encoded string of the screen recording, or an empty string if the remotePath option is set',
+            },
+            support: {
+                ios: {
+                    XCUITest: '9.3+',
+                },
+                android: {
+                    UiAutomator: '4.2+',
+                },
+                windows: {
+                    Windows: '10+',
+                },
+            },
+        },
+    },
     '/session/:sessionId/rotation': {
         POST: {
             command: 'rotateDevice',

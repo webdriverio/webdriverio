@@ -6,6 +6,8 @@ import type { HistoryEntry } from './types.js'
 export class History {
     readonly file: string
     entries: HistoryEntry[] = []
+    /** changes on every `clear()`, so state tied to recorded code can reset */
+    generation = 0
 
     constructor (artifactsDir: string, { keep = false } = {}) {
         this.file = path.join(artifactsDir, 'history.json')
@@ -33,6 +35,7 @@ export class History {
 
     clear () {
         this.entries = []
+        this.generation++
         this.#write()
     }
 

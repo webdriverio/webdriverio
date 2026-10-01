@@ -92,7 +92,19 @@ declare global {
             /**
              * parent of the element if fetched via `$(parent).$(child)`
              */
-            parent: WebdriverIO.Element | WebdriverIO.Browser
+            parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.BrowsingContext
+        }
+        /**
+         * A tab, a window, or a frame you hold. BiDi commands on this object
+         * target `contextId` and do not move the session's current context.
+         */
+        interface BrowsingContext {
+            contextId: string
+            browser: WebdriverIO.Browser
+            isFrame: boolean
+            url: string
+            parent?: WebdriverIO.BrowsingContext
+            request?: WebdriverIO.Request
         }
         interface MultiRemoteElement {}
         interface ElementArray {}

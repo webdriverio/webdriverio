@@ -83,14 +83,16 @@ export async function waitForExist (
             let element: WebdriverIO.Element | ChainablePromiseElement
 
             if (this.index !== undefined) {
+                const parent = this.parent as WebdriverIO.Element | WebdriverIO.Browser
                 const elements = this.isShadowElement
-                    ? await this.parent.shadow$$(this.selector as string)
-                    : await this.parent.$$(this.selector as string)
+                    ? await parent.shadow$$(this.selector as string)
+                    : await parent.$$(this.selector as string)
                 element = elements[this.index]
             } else {
+                const parent = this.parent as WebdriverIO.Element | WebdriverIO.Browser
                 element = this.isShadowElement
-                    ? this.parent.shadow$(this.selector)
-                    : this.parent.$(this.selector, { strict: this.strict })
+                    ? parent.shadow$(this.selector)
+                    : parent.$(this.selector, { strict: this.strict })
             }
 
             this.elementId = await element.elementId

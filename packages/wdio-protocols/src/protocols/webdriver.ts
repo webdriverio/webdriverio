@@ -262,13 +262,13 @@ export default {
         POST: {
             command: 'printPage',
             description:
-                'The Print Page command renders the document to a paginated PDF document. __Note:__ Chrome currently only supports this in [headless mode](https://webdriver.io/docs/capabilities/#run-browser-headless), see [`crbug753118`](https://bugs.chromium.org/p/chromium/issues/detail?id=753118)).',
+                'The Print Page command renders the current browsing context to a paginated PDF. This is the WebDriver Classic endpoint. `browser.savePDF` calls it when the session is not using WebDriver BiDi. __Note:__ Chrome\'s Classic print endpoint was limited to [headless mode](https://webdriver.io/docs/capabilities/#run-browser-headless) ([crbug 753118](https://bugs.chromium.org/p/chromium/issues/detail?id=753118)). That limit is specific to this Classic command. Headed and headless Chrome, Edge, and Firefox print through WebDriver BiDi [`browsingContext.print`](https://w3c.github.io/webdriver-bidi/#command-browsingContext-print), which `browser.savePDF` uses on a BiDi session. Current Chrome can also complete this Classic command from a headed session; older Chrome may still require headless.',
             ref: 'https://w3c.github.io/webdriver/#print-page',
             parameters: [
                 {
                     name: 'orientation',
                     type: 'string',
-                    description: 'page orientation. Default: `portrait`',
+                    description: 'page orientation, `portrait` or `landscape`. Default: `portrait`',
                     required: false,
                 },
                 {

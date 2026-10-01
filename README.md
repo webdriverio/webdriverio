@@ -189,8 +189,6 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 ### 🥇 Gold Sponsor
 
 <p align="center">
-    <a href="https://www.jetify.com/"><img src="https://webdriver.io/img/sponsors/jetify_black.png" width="250" alt="Jetify" /></a>
-    &nbsp; &nbsp; &nbsp;
     <a href="https://www.lambdatest.com/"><img src="https://webdriver.io/img/sponsors/lambdatest_black.svg" width="300" alt="Lambdatest" /></a>
 </p>
 
@@ -207,7 +205,7 @@ We are immensely grateful to our exclusive Premium Sponsor for their invaluable 
 <p align="center">
     <a href="https://eslint.org/"><img src="https://eslint.org/assets/images/logo/eslint-logo-color.png" alt="Eslint" /></a>
     <a href="https://www.gridlastic.com/webdriverio.html"><img src="https://webdriver.io/img/sponsors/gridlastic.png" width="200" alt="Gridlastic" /></a>
-    <a href="https://www.rapidproxy.io/"><img src="https://webdriver.io/img/sponsors/rapidproxy.png" width="200" alt="Rapidproxy" /></a>
+    <a href="https://www.rapidproxy.io/?ref=webdriverio"><img src="https://webdriver.io/img/sponsors/rapidproxy.png" width="200" alt="Rapidproxy" /></a>
 </p>
 
 ## :page_facing_up: License

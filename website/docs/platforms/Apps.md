@@ -4,7 +4,7 @@ title: Extensions & Editors
 description: Load a browser extension or a VS Code extension into a WebdriverIO session and test it end to end.
 ---
 
-WebdriverIO tests browser extensions and editor extensions by loading them into the real host application. Browser (web) extensions run inside Chrome or Firefox. You load them through browser capabilities: `--load-extension` or a base64 `.crx` via `goog:chromeOptions` in Chrome, or `browser.installAddOn()` for an `.xpi` in Firefox. From there, you test content scripts and popup pages with the normal WebDriver commands. VS Code extensions are tested with the community [`wdio-vscode-service`](/docs/wdio-vscode-service). It downloads VS Code (stable, insiders or a specific version) and the matching Chromedriver, then starts VS Code with your extension and custom user settings. Page objects for the workbench are available through `browser.getWorkbench()`, and `browser.executeWorkbench()` runs code against the VS Code API. The same service can also serve VS Code in a browser to test web extensions. Obsidian plugins have a community service too.
+WebdriverIO tests browser extensions and editor extensions by loading them into the real host application. Browser (web) extensions run inside Chrome or Firefox. You load them through browser capabilities: `--load-extension` or a base64 `.crx` via `goog:chromeOptions` in Chrome, or `browser.installAddOn()` for an `.xpi` in Firefox. In a WebDriver BiDi session you can also install and remove an extension mid-session with `browser.installExtension()` and `browser.uninstallExtension()`. Safari has no BiDi session, so that command does not cover Safari. From there, you test content scripts and popup pages with the normal WebDriver commands. VS Code extensions are tested with the community [`wdio-vscode-service`](/docs/wdio-vscode-service). It downloads VS Code (stable, insiders or a specific version) and the matching Chromedriver, then starts VS Code with your extension and custom user settings. Page objects for the workbench are available through `browser.getWorkbench()`, and `browser.executeWorkbench()` runs code against the VS Code API. The same service can also serve VS Code in a browser to test web extensions. Obsidian plugins have a community service too.
 
 ## Quick start
 
@@ -117,7 +117,7 @@ To test the extension as a VS Code web extension, set `browserName: 'chrome'` an
 
 ## Choose your path
 
-- [Web Extension Testing](/docs/extension-testing/web-extensions): load extensions in Chrome (folder or `.crx`) and Firefox (`.xpi` via [`installAddOn`](/docs/api/gecko#installaddon)), and test popup pages. Safari web extensions are not covered.
+- [Web Extension Testing](/docs/extension-testing/web-extensions): load extensions in Chrome (folder or `.crx`) and Firefox (`.xpi` via [`installAddOn`](/docs/api/gecko#installaddon)), or install and remove one mid-session with [`installExtension`](/docs/api/browser/installExtension). Safari web extensions are not covered.
 - [Firefox Profile Service](/docs/firefox-profile-service): build a Firefox profile that includes extensions.
 - [VS Code Extension Testing](/docs/extension-testing/vscode-extensions): configuration, TypeScript setup, workbench page objects and `executeWorkbench`.
 - [VS Code Service](/docs/wdio-vscode-service): all service options, such as `cachePath`, and how to write custom page objects.

@@ -5,6 +5,7 @@ import { getBrowserObject } from '@wdio/utils'
 import type { remote } from 'webdriver'
 import { assertDirectoryExists } from './utils.js'
 import { getContextManager } from '../session/context.js'
+import { contextIdOf, isBrowsingContext } from '../session/browsingContext.js'
 import type { SaveScreenshotOptions } from '../types.js'
 /**
  *
@@ -76,11 +77,35 @@ export function takeScreenshotClassic (this: WebdriverIO.Browser, filepath: stri
  * takeScreenshotBidi
  * @returns {string} a base64 encoded screenshot
  */
-export async function takeScreenshotBidi (this: WebdriverIO.Browser, filepath: string, options?: SaveScreenshotOptions): Promise<string> {
+async function frameRect (parent: WebdriverIO.BrowsingContext, contextId: string) {
+    const frames = await parent.$$('iframe, frame')
+    for (const frame of frames) {
+        const element = await frame.getElement()
+        const win = await parent.execute(
+            (node: HTMLIFrameElement) => node.contentWindow,
+            element
+        ) as { context?: string } | null
+        if (win?.context !== contextId) {
+            continue
+        }
+        return parent.execute((node: HTMLElement) => {
+            const rect = node.getBoundingClientRect()
+            return {
+                x: Math.round(rect.x),
+                y: Math.round(rect.y),
+                width: Math.round(rect.width),
+                height: Math.round(rect.height)
+            }
+        }, element)
+    }
+    throw new Error(`Could not find a frame element for browsing context ${contextId}`)
+}
+
+export async function takeScreenshotBidi (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext, filepath: string, options?: SaveScreenshotOptions): Promise<string> {
     const browser = getBrowserObject(this)
     const contextManager = getContextManager(browser)
-    const context = await contextManager.getCurrentContext()
-    const tree = await this.browsingContextGetTree({})
+    const context = await contextIdOf(this)
+    const tree = await browser.browsingContextGetTree({})
     const origin: remote.BrowsingContextCaptureScreenshotParameters['origin'] = options?.fullPage ? 'document' : 'viewport'
     const givenFormat = options?.format || path.extname(filepath).slice(1)
     const imageFormat = givenFormat === 'png'
@@ -128,6 +153,41 @@ export async function takeScreenshotBidi (this: WebdriverIO.Browser, filepath: s
         }
     }
 
+    if (isBrowsingContext(this) && this.isFrame) {
+        let top: WebdriverIO.BrowsingContext = this
+        const chain: WebdriverIO.BrowsingContext[] = []
+        while (top.parent) {
+            chain.unshift(top)
+            top = top.parent
+        }
+        let x = 0
+        let y = 0
+        let parent = top
+        for (const child of chain) {
+            const rect = await frameRect(parent, child.contextId)
+            x += rect.x
+            y += rect.y
+            parent = child
+        }
+        const html = await this.execute(() => {
+            const rect = document.documentElement.getBoundingClientRect()
+            return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+        })
+        const shot = await browser.browsingContextCaptureScreenshot({
+            context: top.contextId,
+            origin: 'viewport',
+            format,
+            clip: {
+                type: 'box',
+                x: Math.round(x + html.x),
+                y: Math.round(y + html.y),
+                width: Math.round(html.width),
+                height: Math.round(html.height)
+            }
+        })
+        return shot.data
+    }
+
     /**
      * WebDriver Bidi doesn't allow to take a screenshot of an iframe, it fails with:
      * "unsupported operation - Non-top-level 'context'". Therefor we need to check if
@@ -136,8 +196,8 @@ export async function takeScreenshotBidi (this: WebdriverIO.Browser, filepath: s
      */
     const { data } = contextManager.findParentContext(context, tree.contexts)
         ? await browser.$('html').getElement().then(
-            (el) => this.takeElementScreenshot(el.elementId).then((data) => ({ data })))
-        : await this.browsingContextCaptureScreenshot({ context, origin, format, clip })
+            (el) => browser.takeElementScreenshot(el.elementId).then((screen) => ({ data: screen })))
+        : await browser.browsingContextCaptureScreenshot({ context, origin, format, clip })
     return data
 }
 

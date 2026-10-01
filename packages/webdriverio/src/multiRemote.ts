@@ -1,6 +1,6 @@
 import zip from 'lodash.zip'
 import clone from 'lodash.clonedeep'
-import { webdriverMonad, wrapCommand } from '@wdio/utils'
+import { setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
@@ -166,6 +166,7 @@ export default class MultiRemote {
             }
             client.instances = [...instances.keys()]
             client.isMultiRemote = true
+            setWdioKind(client, 'element')
             client.selector = selector ?? (Array.isArray(result) && result[0]
                 ? result[0].selector
                 : null)
@@ -376,3 +377,10 @@ export class MultiRemoteDriver {
         return undefined
     }
 }
+
+/**
+ * brand every multiremote browser as a browser, see `@wdio/utils` `kind.ts` (multi-remote is
+ * not part of the brand, read `isMultiRemote`). The modifier copies the commands with
+ * `Object.entries`, which skips the `browser` brand of the wrapped driver.
+ */
+setWdioKind(MultiRemoteDriver.prototype, 'browser')

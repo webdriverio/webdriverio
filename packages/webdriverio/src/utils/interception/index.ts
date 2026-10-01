@@ -174,7 +174,7 @@ export default class WebDriverInterception {
     }
 
     static async initiate(
-        url: string | URLPattern,
+        url: string | URLPattern | globalThis.URLPattern,
         filterOptions: MockFilterOptions,
         browser: WebdriverIO.Browser
     ) {
@@ -1045,7 +1045,7 @@ export default class WebDriverInterception {
         })
     }
 
-    isSameDefinition(url: string | URLPattern, filterOptions: MockFilterOptions = {}) {
+    isSameDefinition(url: string | URLPattern | globalThis.URLPattern, filterOptions: MockFilterOptions = {}) {
         const pattern = parseUrlPattern(url)
         return this.#patternId === getPatternId(pattern) && areFilterOptionsEqual(this.#filterOptions, filterOptions)
     }
@@ -1082,12 +1082,12 @@ export default class WebDriverInterception {
     }
 }
 
-export function parseUrlPattern(url: string | URLPattern) {
+export function parseUrlPattern(url: string | URLPattern | globalThis.URLPattern): URLPattern {
     /**
      * return early if it's already a URLPattern
      */
     if (typeof url === 'object') {
-        return url
+        return url as URLPattern
     }
 
     /**
