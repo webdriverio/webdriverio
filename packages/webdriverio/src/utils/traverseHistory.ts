@@ -25,6 +25,13 @@ const READY_STATE_RETRY_MS = 50
  */
 const HISTORY_MARKER = '__wdioHistoryTraverse'
 
+/**
+ * Each command marks the outgoing document under its own token. A single
+ * shared slot would let a concurrent traversal overwrite the mark, and the
+ * first command would then take the outgoing document for the destination.
+ */
+const DOCUMENT_TOKENS = '__wdioHistoryTokens'
+
 function historyMarkerId () {
     return `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
 }
@@ -59,9 +66,19 @@ function readHistoryMarker (id: string) {
 })()`
 }
 
-function clearHistoryMarker (id: string) {
+/**
+ * Removes this command's Navigation API listener and its mark on the current
+ * document. A same-document traversal keeps the document, so the mark would
+ * otherwise stay there for every later `back()` and `forward()`.
+ */
+function clearTraversalMarks (id: string) {
     const key = JSON.stringify(id)
     return `(() => {
+    const docRoot = document.documentElement
+    const tokens = docRoot && docRoot.${DOCUMENT_TOKENS}
+    if (tokens) {
+        delete tokens[${key}]
+    }
     const root = globalThis.${HISTORY_MARKER}
     const entry = root && root.entries && root.entries[${key}]
     if (!entry) {
@@ -183,13 +200,6 @@ interface DocumentSnapshot {
     readyState: string
     marked: boolean
 }
-
-/**
- * Each command marks the outgoing document under its own token. A single
- * shared slot would let a concurrent traversal overwrite the mark, and the
- * first command would then take the outgoing document for the destination.
- */
-const DOCUMENT_TOKENS = '__wdioHistoryTokens'
 
 /**
  * One script reads the URL, readiness, and document mark together. Separate
@@ -450,9 +460,11 @@ export async function traverseTopLevelHistory (
         if (!settled) {
             resolveReady()
         }
-        if (historyMarker === 'installed') {
-            void evaluateString(browser, context, clearHistoryMarker(markerId))
-        }
+        /**
+         * The stamp can land even when its result was not readable, so the
+         * marks are cleared whether or not `outgoing` was recorded.
+         */
+        void evaluateString(browser, context, clearTraversalMarks(markerId))
         /**
          * Unsubscribing is cleanup. A dropped socket waits for the BiDi
          * response timeout, and the traversal result is already known.

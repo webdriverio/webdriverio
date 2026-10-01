@@ -357,6 +357,50 @@ describe('back and forward', () => {
             vi.mocked(browser.scriptEvaluate).mockRestore()
         })
 
+        it('removes its document mark after a same-document traversal', async () => {
+            /**
+             * A fragment traversal keeps the document. Marks left on it would
+             * grow with every `back()` and `forward()` for the page's lifetime.
+             */
+            const tokens: Record<string, true> = {}
+            const tokenKey = (expression: string) => JSON.parse(expression.match(/\[("t[^"]+")\]/)![1]) as string
+            vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
+                const expression = params?.expression ?? ''
+                if (expression.includes('removeEventListener')) {
+                    delete tokens[tokenKey(expression)]
+                    return scriptValue('')
+                }
+                if (!expression.includes('__wdioHistoryTokens')) {
+                    return scriptValue('unsupported')
+                }
+                const key = tokenKey(expression)
+                if (expression.includes('] = true')) {
+                    tokens[key] = true
+                }
+                return scriptValue(JSON.stringify({
+                    href: 'https://example.test/#a',
+                    readyState: 'complete',
+                    marked: tokens[key] === true
+                }))
+            })
+            vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
+                browser.emit('browsingContext.fragmentNavigated', navigationInfo('top-level'))
+                return {}
+            })
+
+            await browser.back()
+            await browser.forward()
+            await browser.back()
+
+            await vi.waitFor(() => {
+                expect(Object.keys(tokens)).toEqual([])
+            })
+            expect(vi.mocked(browser.scriptEvaluate).mock.calls.filter(
+                ([params]) => params.expression.includes('] = true')
+            )).toHaveLength(3)
+            vi.mocked(browser.scriptEvaluate).mockRestore()
+        })
+
         it('returns when a restored document is ready even if the url is unchanged', async () => {
             let reads = 0
             vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
