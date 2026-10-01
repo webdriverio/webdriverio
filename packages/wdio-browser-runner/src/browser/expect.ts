@@ -1,7 +1,7 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
 import { MESSAGE_TYPES, browserChannelMessage, isBrowserChannelMessage, parseRunnerToBrowserMessage, type Workers } from '@wdio/types'
 import { $ } from '@wdio/globals'
-import { getWdioKind, isArrayOfElements, type WdioKind } from '@wdio/utils'
+import { getLoadedWdioKind, getWdioKind, isArrayOfElements, type WdioKind } from '@wdio/utils'
 import type { ChainablePromiseElement, ChainablePromiseArray } from 'webdriverio'
 
 import { getCID } from './utils.js'
@@ -95,7 +95,7 @@ function createMatcher (matcherName: string) {
         }
 
         const isContextObject = typeof context === 'object'
-        const loadedKind = loadedKindOf(context)
+        const loadedKind = getLoadedWdioKind(context)
 
         /**
          * A loaded WebdriverIO.Element or WebdriverIO.ElementArray, or an array of
@@ -238,15 +238,6 @@ export function shouldLoadAssertionContext (context: unknown): boolean {
     const pendingList = Array.isArray(candidate) && typeof candidate.then === 'function'
     const chainableObjectSelector = 'then' in candidate && typeof candidate.selector === 'object'
     return pendingList || chainableObjectSelector
-}
-
-/**
- * The `wdio.kind` brand of a loaded WebdriverIO object, see `@wdio/utils` `kind.ts`.
- * A chainable `$()` or a custom `$$` command is still a promise: it has a kind,
- * but it is sent as `context` and awaited, so it has no loaded kind.
- */
-export function loadedKindOf (value: unknown): WdioKind | undefined {
-    return typeof (value as { then?: unknown } | null)?.then === 'function' ? undefined : getWdioKind(value)
 }
 
 const CONTEXT_NAMES: Record<WdioKind, string> = {

@@ -452,7 +452,10 @@ describe('utils', () => {
         })
 
         it('does not strip a chainable element that is not loaded yet', () => {
-            const chainable = Object.defineProperty(setWdioKind({ elementId: 'foo-bar' }, 'element'), WDIO_CHAINABLE, { value: true })
+            /**
+             * the chain proxy of `$()` is a promise
+             */
+            const chainable = Object.defineProperty(setWdioKind({ elementId: 'foo-bar', then: () => {} }, 'element'), WDIO_CHAINABLE, { value: true })
             expect(verifyArgsAndStripIfElement(chainable)).toBe(chainable)
         })
     })

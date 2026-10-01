@@ -26,7 +26,9 @@
  *      (`getElement()`, `find()`, a custom command without `$` at the end)
  * 3. `await` does not change the kind. It can remove it only when a custom
  *    command name does not tell the truth (`count$$` that returns a number).
- * 4. A loaded object is never chainable.
+ * 4. A value is loaded when it is not a promise (it has no `then` function). A
+ *    loaded object is never chainable. A pending list and its loaded result are
+ *    the same object, so being pending is not a brand: read `getLoadedWdioKind()`.
  */
 export const WDIO_KIND: unique symbol = Symbol.for('wdio.kind') as typeof WDIO_KIND
 
@@ -62,11 +64,18 @@ export function getWdioKind (value: unknown): WdioKind | undefined {
 }
 
 /**
- * `true` for a loaded element. A chainable `$()` has the kind `'element'` too, but
- * it is a promise, not an element.
+ * The kind of a loaded value, or `undefined` for a promise (rule 4 of the contract):
+ * a chainable `$()` or a pending element list has a kind, but it is not loaded yet.
+ */
+export function getLoadedWdioKind (value: unknown): WdioKind | undefined {
+    return typeof (value as { then?: unknown } | null | undefined)?.then === 'function' ? undefined : getWdioKind(value)
+}
+
+/**
+ * `true` for a loaded element, not a chainable `$()`
  */
 export function isLoadedElement (value: unknown): boolean {
-    return getWdioKind(value) === 'element' && (value as { [WDIO_CHAINABLE]?: unknown })[WDIO_CHAINABLE] !== true
+    return getLoadedWdioKind(value) === 'element'
 }
 
 /**

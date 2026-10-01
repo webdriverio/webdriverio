@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-    WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, isLoadedElement, isArrayOfElements
+    WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements
 } from '../src/kind.js'
+
+/**
+ * a promise, like the chain proxy of `$()` or a pending element list
+ */
+const pending = <T extends object>(value: T) => Object.assign(value, { then: () => {} })
+const chainableElement = () => Object.defineProperty(pending(setWdioKind({}, 'element')), WDIO_CHAINABLE, { value: true })
 
 describe('WebdriverIO object brand', () => {
     it('uses global symbols, so other packages can read them without an import', () => {
@@ -47,13 +53,33 @@ describe('WebdriverIO object brand', () => {
         })
     })
 
+    describe('getLoadedWdioKind', () => {
+        it('gives the kind of a loaded value', () => {
+            expect(getLoadedWdioKind(setWdioKind({}, 'browser'))).toBe('browser')
+            expect(getLoadedWdioKind(setWdioKind({}, 'element'))).toBe('element')
+            expect(getLoadedWdioKind(setWdioKind([], 'element-array'))).toBe('element-array')
+        })
+
+        it('gives no kind to a promise: a chainable element or a pending element list', () => {
+            const chainable = chainableElement()
+
+            expect(getLoadedWdioKind(chainable)).toBeUndefined()
+            expect(getLoadedWdioKind(pending(setWdioKind([], 'element-array')))).toBeUndefined()
+        })
+
+        it('gives no kind to a value without a brand', () => {
+            expect(getLoadedWdioKind({ selector: '#foo' })).toBeUndefined()
+            expect(getLoadedWdioKind(null)).toBeUndefined()
+        })
+    })
+
     describe('isLoadedElement', () => {
         it('is true for an element', () => {
             expect(isLoadedElement(setWdioKind({ elementId: 'foo' }, 'element'))).toBe(true)
         })
 
         it('is false for a chainable element, a browser, a list or an unbranded value', () => {
-            const chainable = Object.defineProperty(setWdioKind({}, 'element'), WDIO_CHAINABLE, { value: true })
+            const chainable = chainableElement()
 
             expect(isLoadedElement(chainable)).toBe(false)
             expect(isLoadedElement(setWdioKind({}, 'browser'))).toBe(false)
@@ -74,7 +100,7 @@ describe('WebdriverIO object brand', () => {
         })
 
         it('is false when one item is not a loaded element', () => {
-            const chainable = Object.defineProperty(setWdioKind({}, 'element'), WDIO_CHAINABLE, { value: true })
+            const chainable = chainableElement()
 
             expect(isArrayOfElements([element(), { elementId: 'bare' }])).toBe(false)
             expect(isArrayOfElements([element(), chainable])).toBe(false)

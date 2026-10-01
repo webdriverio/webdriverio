@@ -160,13 +160,11 @@ export async function serialize (value: unknown, opts: SerializeOptions = {}): P
     }
     if (isElementArray(value)) {
         /**
-         * An unresolved ElementArray is thenable. Await it before reading
-         * entries. A resolved list still owns async `slice` and `map`, so
-         * copy with `Array.prototype` and format that plain array.
+         * An unresolved ElementArray is thenable, so `await` loads it, and a loaded
+         * list is not thenable, so `await` gives it back. A resolved list still owns
+         * async `slice` and `map`, so copy with `Array.prototype` and format that plain array.
          */
-        const list = typeof (value as { then?: unknown }).then === 'function'
-            ? await (value as unknown as PromiseLike<WebdriverIO.ElementArray>)
-            : value
+        const list = await (value as unknown as PromiseLike<WebdriverIO.ElementArray>)
         const elements = Array.prototype.slice.call(list) as WebdriverIO.Element[]
         const shown = await Promise.all(elements.slice(0, MAX_ELEMENTS).map((el) => formatElement(el, opts)))
         const more = elements.length > MAX_ELEMENTS ? [`… ${elements.length - MAX_ELEMENTS} more`] : []

@@ -18,7 +18,7 @@ import { isBidi, capabilitiesEnvironmentDetector, sessionEnvironmentDetector } f
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
 import { TimingTracker, type TimingMetrics, type TimingPhase } from './profiler.js'
 import {
-    WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, isLoadedElement, isArrayOfElements, type WdioKind
+    WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements, type WdioKind
 } from './kind.js'
 
 export {
@@ -84,6 +84,7 @@ export {
     WDIO_KINDS,
     setWdioKind,
     getWdioKind,
+    getLoadedWdioKind,
     isLoadedElement,
     isArrayOfElements,
     type WdioKind

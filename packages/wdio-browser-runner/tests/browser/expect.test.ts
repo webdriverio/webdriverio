@@ -1,9 +1,9 @@
 import path from 'node:path'
 import { describe, it, expect, vi } from 'vitest'
-import { isArrayOfElements, setWdioKind } from '@wdio/utils'
+import { getLoadedWdioKind, isArrayOfElements, setWdioKind } from '@wdio/utils'
 import { remote } from 'webdriverio'
 import { ElementArray } from '../../../webdriverio/src/element/array.js'
-import { expect as browserExpect, contextNameOf, loadedKindOf, shouldLoadAssertionContext } from '../../src/browser/expect.js'
+import { expect as browserExpect, contextNameOf, shouldLoadAssertionContext } from '../../src/browser/expect.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -84,15 +84,15 @@ describe('expect', () => {
      * The page sends a loaded element or element list as `element`, and the runner
      * fetches it again. A chainable is sent as `context`, and the browser is not sent.
      */
-    describe('loadedKindOf and isArrayOfElements read the wdio.kind brand', () => {
+    describe('getLoadedWdioKind and isArrayOfElements read the wdio.kind brand', () => {
         it('gives the kind of loaded WebdriverIO objects', async () => {
             const browser = await remote({ capabilities: { browserName: 'foobar' }, strictSelectors: false })
             const elem = await browser.$('#foo')
             const elems = await browser.$$('#foo')
 
-            expect(loadedKindOf(browser)).toBe('browser')
-            expect(loadedKindOf(elem)).toBe('element')
-            expect(loadedKindOf(elems)).toBe('element-array')
+            expect(getLoadedWdioKind(browser)).toBe('browser')
+            expect(getLoadedWdioKind(elem)).toBe('element')
+            expect(getLoadedWdioKind(elems)).toBe('element-array')
             expect(isArrayOfElements(elems)).toBe(true)
             expect(isArrayOfElements([...elems])).toBe(true)
             expect(isArrayOfElements(await elems.filter(() => true))).toBe(true)
@@ -101,18 +101,18 @@ describe('expect', () => {
         it('gives no kind to a value that is still a promise', async () => {
             const browser = await remote({ capabilities: { browserName: 'foobar' }, strictSelectors: false })
 
-            expect(loadedKindOf(browser.$('#foo'))).toBeUndefined()
-            expect(loadedKindOf(browser.$('#foo').$('#bar'))).toBeUndefined()
-            expect(loadedKindOf(browser.$$('#foo'))).toBeUndefined()
+            expect(getLoadedWdioKind(browser.$('#foo'))).toBeUndefined()
+            expect(getLoadedWdioKind(browser.$('#foo').$('#bar'))).toBeUndefined()
+            expect(getLoadedWdioKind(browser.$$('#foo'))).toBeUndefined()
             expect(isArrayOfElements([browser.$('#foo')])).toBe(false)
         })
 
         it('does not take a plain object with a selector for an element', () => {
-            expect(loadedKindOf({ selector: 'h1', elementId: 'a' })).toBeUndefined()
-            expect(loadedKindOf({ sessionId: 'a' })).toBeUndefined()
+            expect(getLoadedWdioKind({ selector: 'h1', elementId: 'a' })).toBeUndefined()
+            expect(getLoadedWdioKind({ sessionId: 'a' })).toBeUndefined()
             expect(isArrayOfElements([{ selector: 'h1' }])).toBe(false)
-            expect(loadedKindOf(null)).toBeUndefined()
-            expect(loadedKindOf('h1')).toBeUndefined()
+            expect(getLoadedWdioKind(null)).toBeUndefined()
+            expect(getLoadedWdioKind('h1')).toBeUndefined()
         })
 
         it('does not take an empty array for an array of elements', () => {
