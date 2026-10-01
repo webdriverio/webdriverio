@@ -23,7 +23,14 @@ function harness ({ secondUrl = 'https://b.test/', outerSiblings = ['https://a.t
         isFrame: false,
         url: 'https://a.test/',
         getUrl: async () => 'https://a.test/',
-        frame: vi.fn()
+        frame: vi.fn(),
+        /**
+         * `$$` also finds a frame in a shadow root, listed before the held one
+         */
+        $$: () => ({ getElements: async () => [{ id: 'shadow-frame' }, { id: 'outer-frame' }] }),
+        execute: async (_fn: unknown, element: { id: string }) => ({
+            context: element.id === 'outer-frame' ? 'outer-ctx' : 'sibling-1'
+        })
     }
     const second = { contextId: 'tab-2', isFrame: false, url: secondUrl, getUrl: async () => secondUrl }
     const outer = {
@@ -53,16 +60,6 @@ function harness ({ secondUrl = 'https://b.test/', outerSiblings = ['https://a.t
             browsingContextGetTree: async (params: { root?: string }) => params.root === 'tab-1'
                 ? { contexts: [{ context: 'tab-1', children: outerSiblings.map((url, i) => ({ context: i ? `sibling-${i}` : 'outer-ctx', url })) }] }
                 : { contexts: [{ context: 'tab-1', url: 'https://a.test/' }, { context: 'tab-2', url: secondUrl }] },
-            scriptCallFunction: async () => ({
-                type: 'success',
-                result: {
-                    type: 'array',
-                    value: [
-                        { type: 'window', value: { context: 'sibling-1' } },
-                        { type: 'window', value: { context: 'outer-ctx' } }
-                    ]
-                }
-            }),
             scriptEvaluate: async () => ({ type: 'success', result: { type: 'string', value: 'Title' } }),
             switchToWindow: vi.fn(),
             closeWindow
@@ -129,7 +126,7 @@ describe('frame (BiDi) after a cleared history', () => {
 })
 
 describe('frame (BiDi) with sibling frames on the same URL', () => {
-    it('finds the held parent frame by its position among the frame elements', async () => {
+    it('finds the held parent frame by its position in the replayed $$ query', async () => {
         const { session, history, record } = harness({ outerSiblings: ['https://a.test/outer.html', 'https://a.test/outer.html'] })
         await record((await frame(session, { target: 'iframe#outer', $cwd: '/' })).history)
 

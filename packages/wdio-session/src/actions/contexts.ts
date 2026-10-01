@@ -311,28 +311,28 @@ async function declareHeld (session: Session, context: WebdriverIO.BrowsingConte
 
 /**
  * How to find a held frame in its parent. A URL is enough when no sibling
- * shares it. Otherwise the frame is found by its position among the
- * parent's frame elements, which `contentWindow` maps to context ids.
+ * shares it. Otherwise the frame is found by its position in the same
+ * `$$('iframe, frame')` query the recorded code runs, so frames in shadow
+ * roots are counted the same way during recording and replay.
  */
 async function frameLookup (session: Session, context: WebdriverIO.BrowsingContext, url: string) {
-    const parentId = context.parent!.contextId
-    const { contexts } = await session.browser.browsingContextGetTree({ root: parentId, maxDepth: 1 })
+    const parent = context.parent!
+    const { contexts } = await session.browser.browsingContextGetTree({ root: parent.contextId, maxDepth: 1 })
     const siblings = contexts[0]?.children ?? []
     if (siblings.filter((child) => child.url === url).length <= 1) {
         return () => quote(url)
     }
-    const result = await session.browser.scriptCallFunction({
-        functionDeclaration: '() => Array.from(document.querySelectorAll(\'iframe, frame\'), (frame) => frame.contentWindow)',
-        awaitPromise: false,
-        target: { context: parentId }
-    }).catch(() => undefined)
-    if (!result || result.type !== 'success' || result.result.type !== 'array') {
-        return undefined
+    const frames: WebdriverIO.Element[] = Array.from(
+        await parent.$$('iframe, frame').getElements().catch(() => [] as WebdriverIO.Element[])
+    )
+    for (const [index, element] of frames.entries()) {
+        const window = await parent.execute((frame: HTMLIFrameElement) => frame.contentWindow, element)
+            .catch(() => undefined) as { context?: string } | null | undefined
+        if (window?.context === context.contextId) {
+            return (name: string) => `${name}.$$('iframe, frame')[${index}]`
+        }
     }
-    const index = (result.result.value ?? []).findIndex((value) => (
-        value.type === 'window' && value.value.context === context.contextId
-    ))
-    return index < 0 ? undefined : (name: string) => `${name}.$$('iframe, frame')[${index}]`
+    return undefined
 }
 
 function adopt (session: Session, contextId: string) {
