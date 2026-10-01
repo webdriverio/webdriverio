@@ -41,7 +41,7 @@
   },
   "peerDependencies": {
     "expect-webdriverio": "^7.0.0",
-    "webdriverio": "^9.28.0"
+    "webdriverio": "^9.31.5"
   },
   "peerDependenciesMeta": {
     "expect-webdriverio": {
