@@ -105,6 +105,24 @@ Sometimes "does it work" means "does it look right", and sometimes "the app" is 
 
 **Real apps in CI, without a screen.** Agents run in CI, and CI machines have no display. goosewobbler first solved this in v9 with `@wdio/xvfb`, which gave Linux runners a virtual display automatically. In v10 it grew into `@wdio/display-server`, which adds native headless Wayland through Weston. The testrunner now starts one display server for the whole run: Weston first, with Xvfb as the fallback. Browsers and desktop apps run on a headless Linux machine without extra setup. The [headless and display server guide](/docs/headless-and-display-servers) covers the options, and the [migration guide](/docs/v10-migration#virtual-displays-on-linux) shows how to rename the old `xvfb*` settings.
 
+### Tabs, windows and frames you can hold
+
+Until v10, a WebdriverIO session had one implicit "current" browsing context. `switchWindow` and `switchFrame` moved that pointer, and every following command ran wherever it pointed. Checking a payment iframe, a second tab and the main page in one test meant switching back and forth, and forgetting a single switch sent the next command to the wrong place.
+
+In a WebDriver BiDi session, a tab, a window and a frame are now a `WebdriverIO.BrowsingContext` value you hold. `browser.url()` returns the page it opened, `browser.newWindow()` returns the new tab without switching to it, and `context.frame()` returns a frame of that page. Commands on each value run in that context, so you can work with several at once:
+
+```ts
+const checkout = await browser.url('https://example.com/checkout')
+const docs = await browser.newWindow('https://webdriver.io', { type: 'tab' })
+const payment = await checkout.frame('#payment')
+
+await payment.$('#card').setValue('4242')
+await checkout.$('h1').getText()
+await docs.getTitle()
+```
+
+Windows the test didn't open, like a `window.open` popup, come from `browser.browsingContexts()`. Because nothing moves a hidden pointer anymore, `switchWindow` and `switchFrame` throw in BiDi sessions. Classic sessions keep them, and the [migration guide](/docs/v10-migration#switchtoframe) shows the new calls. Thanks to [Дамян Минков](https://github.com/damencho) for insisting that frames work exactly like tabs.
+
 ### Small API changes you will notice
 
 - **`$` is strict.** [Mrunal Chaudhari](https://github.com/mccmrunal) made `$` throw when a selector matches more than one element. An ambiguous selector is a common source of flaky tests, and agents write a lot of them. The [migration guide](/docs/v10-migration#-is-strict) shows how to audit your suite and how to opt out.
