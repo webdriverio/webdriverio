@@ -1,9 +1,12 @@
 import path from 'node:path'
 import { expect, describe, it, beforeEach, vi } from 'vitest'
 
+import { ELEMENT_KEY } from 'webdriver'
+
 import { remote } from '../../../src/index.js'
 import { getBrowsingContext } from '../../../src/browsingContext.js'
 import { getContextManager } from '../../../src/session/context.js'
+import { getElement } from '../../../src/utils/getElementObject.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -198,6 +201,63 @@ describe('browsing context', () => {
         await page.keys('a')
         expect(perform).toHaveBeenCalledWith(expect.objectContaining({ context: 'top-context' }))
         expect(release).not.toHaveBeenCalled()
+    })
+
+    it('resolves an XPath frame selector without waiting for the frame tree', async () => {
+        const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' })
+        page.options.waitforTimeout = 60_000
+        page.options.waitforInterval = 10
+        vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+            contexts: [{ context: 'top-context', url: 'https://example.com', children: [] }]
+        } as never)
+        const frameElement = getElement.call(page, '//iframe', { [ELEMENT_KEY]: 'iframe-1' })
+        vi.spyOn(frameElement, 'isExisting').mockResolvedValue(true)
+        vi.spyOn(frameElement, 'waitForExist').mockResolvedValue(true)
+        vi.spyOn(page, '$').mockReturnValue(frameElement as never)
+        vi.spyOn(page, 'execute').mockResolvedValue({ context: 'frame-1' })
+
+        const child = await page.frame('//iframe')
+        expect(child.contextId).toBe('frame-1')
+        expect(child.parent?.contextId).toBe('top-context')
+    })
+
+    it('types setValue into an element of a held context with key actions', async () => {
+        const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://child.example' })
+        const elem = getElement.call(frame, '#input', { [ELEMENT_KEY]: 'elem-1' })
+        vi.spyOn(elem, 'execute').mockResolvedValue(undefined)
+        const clear = vi.spyOn(elem, 'elementClear')
+        const sendKeys = vi.spyOn(elem, 'elementSendKeys')
+        const perform = vi.spyOn(browser, 'inputPerformActions').mockResolvedValue({})
+        const release = vi.spyOn(browser, 'inputReleaseActions').mockResolvedValue({})
+
+        await elem.setValue('ab')
+        expect(elem.execute).toHaveBeenCalledTimes(1)
+        expect(perform).toHaveBeenCalledWith({
+            context: 'frame-1',
+            actions: [{
+                id: 'keyboard',
+                type: 'key',
+                actions: [
+                    { type: 'keyDown', value: 'a' },
+                    { type: 'keyUp', value: 'a' },
+                    { type: 'keyDown', value: 'b' },
+                    { type: 'keyUp', value: 'b' }
+                ]
+            }]
+        })
+        expect(release).toHaveBeenCalledWith({ context: 'frame-1' })
+        expect(clear).not.toHaveBeenCalled()
+        expect(sendKeys).not.toHaveBeenCalled()
+
+        await elem.setValue('')
+        expect(perform).toHaveBeenLastCalledWith(expect.objectContaining({
+            actions: [expect.objectContaining({
+                actions: [
+                    { type: 'keyDown', value: '\uE003' },
+                    { type: 'keyUp', value: '\uE003' }
+                ]
+            })]
+        }))
     })
 
     it('returns a chainable element from $', () => {

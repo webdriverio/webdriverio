@@ -40,18 +40,24 @@ export async function frame (
         /**
          * A url or context id can appear after the call starts. A selector is
          * checked once, then resolved as an element, so it does not wait out
-         * the full timeout before that fallback.
+         * the full timeout before that fallback. A leading `/` is a url path
+         * or an XPath, so each retry also checks for a matching element.
          */
         if (target.includes('://') || target.startsWith('/') || /^[A-Fa-f0-9-]{16,}$/.test(target)) {
+            const mayBeXPath = target.startsWith('/')
             const waited = await this.waitUntil(
-                async () => (await frameFromTree(this, target)) || false,
+                async () => (
+                    (await frameFromTree(this, target)) ||
+                    (mayBeXPath && await selectorExists(this, target)) ||
+                    false
+                ),
                 {
                     timeout: this.options.waitforTimeout,
                     interval: this.options.waitforInterval,
                     timeoutMsg: `Could not find a frame for "${target}"`
                 }
             ).catch(() => undefined)
-            if (waited) {
+            if (waited && waited !== true) {
                 return waited
             }
         }
@@ -85,6 +91,18 @@ async function frameFromElement (
         parent,
         url: ''
     })
+}
+
+async function selectorExists (
+    caller: WebdriverIO.BrowsingContext,
+    selector: string
+): Promise<boolean> {
+    try {
+        const element = await caller.$(selector) as unknown as WebdriverIO.Element
+        return await element.isExisting()
+    } catch {
+        return false
+    }
 }
 
 async function frameFromTree (

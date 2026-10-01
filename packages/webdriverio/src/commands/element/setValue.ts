@@ -1,5 +1,7 @@
-import type { InputOptions } from '../../types.js'
+import { getBrowserObject } from '@wdio/utils'
 
+import type { InputOptions } from '../../types.js'
+import { Key } from '../../constants.js'
 import { foreignContextId } from '../../session/browsingContext.js'
 
 /**
@@ -34,14 +36,41 @@ export async function setValue (
     value: string | number,
     options?: InputOptions,
 ) {
-    if (await foreignContextId(this)) {
-        const next = String(value)
-        await this.execute((el: HTMLInputElement, text: string) => {
+    const context = await foreignContextId(this)
+    if (context) {
+        /**
+         * Classic `elementClear` and `elementSendKeys` only reach the session
+         * pointer's document. Select the current content, then type over it
+         * with key actions in the element's own context, so controlled inputs
+         * see the same keystrokes a user would send.
+         */
+        await this.execute((el: HTMLElement) => {
             el.focus()
-            el.value = text
-            el.dispatchEvent(new Event('input', { bubbles: true }))
-            el.dispatchEvent(new Event('change', { bubbles: true }))
-        }, next)
+            if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+                el.select()
+                return
+            }
+            const selection = el.ownerDocument.getSelection()
+            const range = el.ownerDocument.createRange()
+            range.selectNodeContents(el)
+            selection?.removeAllRanges()
+            selection?.addRange(range)
+        })
+        const text = String(value)
+        const keys = text.length > 0 ? Array.from(text) : [Key.Backspace]
+        const browser = getBrowserObject(this)
+        await browser.inputPerformActions({
+            context,
+            actions: [{
+                id: 'keyboard',
+                type: 'key',
+                actions: keys.flatMap((key) => [
+                    { type: 'keyDown' as const, value: key },
+                    { type: 'keyUp' as const, value: key }
+                ])
+            }]
+        })
+        await browser.inputReleaseActions({ context })
         return
     }
     await this.clearValue()
