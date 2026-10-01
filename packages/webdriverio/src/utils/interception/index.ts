@@ -125,14 +125,23 @@ function decodeHeader(value: local.NetworkBytesValue) {
         : new TextDecoder('utf-8', { ignoreBOM: true }).decode(decodeBase64(value.value))
 }
 
+function isArrayBuffer(value: unknown): value is ArrayBuffer {
+    try {
+        Reflect.apply(ArrayBuffer.prototype.slice, value, [0, 0])
+        return true
+    } catch {
+        // slice throws unless value is a real ArrayBuffer; unlike instanceof, this works across realms
+        return false
+    }
+}
+
 function toNetworkBody(payload: RespondBodyValue): remote.NetworkBytesValue {
-    const payloadType = Object.prototype.toString.call(payload)
-    if (ArrayBuffer.isView(payload) && payloadType === '[object Uint8Array]') {
+    if (ArrayBuffer.isView(payload) && Object.prototype.toString.call(payload) === '[object Uint8Array]') {
         const bytes = new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength)
         return { type: 'base64', value: encodeBase64(bytes) }
     }
-    if (payloadType === '[object ArrayBuffer]') {
-        return { type: 'base64', value: encodeBase64(new Uint8Array(payload as ArrayBuffer)) }
+    if (isArrayBuffer(payload)) {
+        return { type: 'base64', value: encodeBase64(new Uint8Array(payload)) }
     }
 
     return { type: 'string', value: toStringBody(payload) }

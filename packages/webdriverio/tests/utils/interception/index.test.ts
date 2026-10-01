@@ -175,6 +175,16 @@ describe('WebDriverInterception', () => {
         }
     })
 
+    it('serializes JSON tagged as ArrayBuffer instead of treating it as binary', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/foo', {}, browser)
+        mock.respond({ foo: 'bar', [Symbol.toStringTag]: 'ArrayBuffer' })
+        browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith(expect.objectContaining({
+            body: { type: 'string', value: '{"foo":"bar"}' }
+        }))
+    })
+
     it.each(['requestHeaders', 'responseHeaders'] as const)(
         'decodes base64 %s without a global Buffer', async (filterName) => {
             const headerValue = '\uFEFFcafé'
