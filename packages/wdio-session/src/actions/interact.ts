@@ -210,6 +210,14 @@ export const upload: ActionFn = async (session, args) => {
         throw usage(`File ${file} does not exist.`)
     }
     const target = await resolveTarget(session, args.target)
+    /**
+     * `setFiles` needs WebDriver BiDi. A Classic session sets the path with
+     * `setValue`, which works when the browser can read the file.
+     */
+    if (!session.isBidi) {
+        await target.element.setValue(file)
+        return done(`Set ${target.label} to ${path.basename(file)}`, `await ${target.code}.setValue(${quote(file)})`)
+    }
     await target.element.setFiles(file)
     return done(`Set ${target.label} to ${path.basename(file)}`, `await ${target.code}.setFiles(${quote(file)})`)
 }
