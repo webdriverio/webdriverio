@@ -812,6 +812,12 @@ export async function detectCompiler(answers: Questionnair) {
 
 const VERSION_REGEXP = /(\d+)\.(\d+)\.(\d+)-(alpha|beta|)\.(\d+)\+(.+)/g
 /**
+ * `@wdio`-scoped packages released on their own cadence rather than with the
+ * monorepo. Pinning one to the CLI's version asks npm for a release it never
+ * published, which fails the install for anyone running the wizard off a prerelease.
+ */
+const INDEPENDENTLY_VERSIONED_PACKAGES = ['@wdio/visual-service', '@wdio/devtools-service']
+/**
  * Ensure core WebdriverIO packages have the same version as cli so that if someone
  * installs `@wdio/cli@next` and runs the wizard, all related packages have the same version.
  * running `matchAll` to a version like "8.0.0-alpha.249+4bc237701", results in:
@@ -822,7 +828,7 @@ export function specifyVersionIfNeeded(packagesToInstall: string[], version: str
     const [major, minor, patch, tagName, build] = (value || []).slice(1, -1) // drop commit bit
     return packagesToInstall.map((p) => {
         if (
-            (p.startsWith('@wdio') && p !== '@wdio/visual-service') ||
+            (p.startsWith('@wdio') && !INDEPENDENTLY_VERSIONED_PACKAGES.includes(p)) ||
             ['webdriver', 'webdriverio'].includes(p)
         ) {
             const tag = major && npmTag === 'latest'

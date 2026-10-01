@@ -153,6 +153,7 @@ export const SUPPORTED_PACKAGES = {
     ],
     service: [
         // internal or community driver services
+        { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'visual', value: '@wdio/visual-service$--$visual' },
         { name: 'ai', value: '@wdio/ai-service$--$ai' },
         { name: 'vite', value: 'wdio-vite-service$--$vite' },
