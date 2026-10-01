@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import type { JsonCompatible } from '@wdio/types'
+import { setWdioKind } from '@wdio/utils'
 import { type local, type remote } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 
@@ -1081,6 +1082,11 @@ export default class WebDriverInterception {
         }))
     }
 }
+
+/**
+ * brand every mock, see `@wdio/utils` `kind.ts`
+ */
+setWdioKind(WebDriverInterception.prototype, 'mock')
 
 export function parseUrlPattern(url: string | URLPattern | globalThis.URLPattern): URLPattern {
     /**

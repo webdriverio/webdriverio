@@ -1,4 +1,4 @@
-import { webdriverMonad, wrapCommand } from '@wdio/utils'
+import { WDIO_KIND, webdriverMonad, wrapCommand } from '@wdio/utils'
 
 import { $ } from './commands/browser/$.js'
 import { $$ } from './commands/browser/$$.js'
@@ -75,7 +75,7 @@ function rejectCommand (name: string) {
     }
 }
 
-function commandProperties (): Record<string, PropertyDescriptor> {
+function commandProperties (): Record<string | symbol, PropertyDescriptor> {
     /**
      * A fresh map every time. The monad wraps each function in place, so a
      * shared map would wrap the same command again for the next context.
@@ -119,8 +119,12 @@ function commandProperties (): Record<string, PropertyDescriptor> {
         emulate: onBrowser('emulate', emulate),
         restore: onBrowser('restore', restore)
     }
-    const properties: Record<string, PropertyDescriptor> = {
-        strategies: { value: null, writable: true }
+    const properties: Record<string | symbol, PropertyDescriptor> = {
+        strategies: { value: null, writable: true },
+        /**
+         * not `'browser'`: a context has no session commands and no `addCommand`, see `@wdio/utils` `kind.ts`
+         */
+        [WDIO_KIND]: { value: 'browsing-context', configurable: true }
     }
     for (const [name, value] of Object.entries(commands)) {
         properties[name] = { value, configurable: true }
