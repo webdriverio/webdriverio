@@ -7,6 +7,8 @@ import type { Options } from '@wdio/types'
 import { getGlobalDispatcher, ProxyAgent, Agent } from 'undici'
 
 import '../src/browser.js'
+import { createRequestSignal, isConnectionTimeoutSignal } from '../src/request/abort.js'
+import { WebDriverRequestError } from '../src/request/error.js'
 import { FetchRequest as WebFetchRequest } from '../src/request/web.js'
 import { FetchRequest, SESSION_DISPATCHERS } from '../src/request/node.js'
 import { environment } from '../src/environment.js'
@@ -568,6 +570,48 @@ describe('webdriver request', () => {
 
                 controller.abort()
                 expect(signals.every((signal) => signal!.aborted)).toBe(true)
+            })
+
+            it('classifies an AbortError from the timeout signal as ETIMEDOUT', async () => {
+                const signal = createRequestSignal(15)
+                await new Promise<void>((resolve) => {
+                    if (signal.aborted) {
+                        resolve()
+                        return
+                    }
+                    signal.addEventListener('abort', () => resolve(), { once: true })
+                })
+
+                /**
+                 * Chrome and Edge 103 to 123 reject a timed-out fetch with
+                 * AbortError. The signal is what marks it as our timeout.
+                 */
+                expect(isConnectionTimeoutSignal(signal)).toBe(true)
+                const error = new WebDriverRequestError(
+                    new DOMException('The operation was aborted.', 'AbortError'),
+                    new URL('https://localhost/session'),
+                    { method: 'POST', signal }
+                )
+                expect(error.code).toBe('ETIMEDOUT')
+                expect(error.message).toContain('Request timed out')
+            })
+
+            it('does not classify a caller abort as a connection timeout', () => {
+                const controller = new AbortController()
+                const signal = createRequestSignal(60_000, controller.signal)
+                controller.abort()
+
+                expect(signal.aborted).toBe(true)
+                expect(isConnectionTimeoutSignal(signal)).toBe(false)
+                const reason = signal.reason instanceof Error
+                    ? signal.reason
+                    : new DOMException('The operation was aborted.', 'AbortError')
+                const error = new WebDriverRequestError(reason, new URL('https://localhost/session'), {
+                    method: 'GET',
+                    signal
+                })
+                expect(error.code).toBeUndefined()
+                expect(error.message).not.toContain('Request timed out')
             })
 
             it('should use error from "getRequestError" helper', async () => {

@@ -26,6 +26,10 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
+      - name: Browser bundle lib check
+        run: pnpm run test:browser-lib
+        shell: bash
+
       - name: Typing Tests
         run: pnpm run test:typings
         shell: bash

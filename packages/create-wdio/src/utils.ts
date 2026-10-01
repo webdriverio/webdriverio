@@ -334,8 +334,8 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
             // which follows the `type` of the project's package.json.
             moduleResolution: parsedAnswers.esmSupport ? 'bundler' : 'NodeNext',
             module: parsedAnswers.esmSupport ? 'ESNext' : 'NodeNext',
-            target: 'es2022',
-            lib: ['es2022', 'dom'],
+            target: 'es2024',
+            lib: ['es2024', 'dom'],
             types,
             skipLibCheck: true,
             // bundler

@@ -26,6 +26,12 @@ Strict selectors and bare capability `specs` / `exclude` lists only show up when
 
 WebdriverIO v10 requires Node.js 22.19.0 or later. Node.js 18 and 20 are no longer supported. CI covers Node.js 22, 24, and 26.
 
+## Component tests
+
+The browser runner still runs in Chrome 90, Edge 90, Firefox 90 and Safari 14.1 or newer. See [Browser support](/docs/component-testing#browser-support).
+
+Code passed to `browser.execute` stays at ES2021, so it can run in older browsers under test. That floor did not change.
+
 ## Mocha
 
 `@wdio/mocha-framework` and `@wdio/browser-runner` depend on [Mocha 12](https://mochajs.org/blog/mocha-12-stable/). Mocha 12 needs Node.js `^20.19.0 || >=22.12.0`, which is covered by the v10 floor of 22.19.0.
@@ -224,6 +230,10 @@ TypeScript 6 also changes the default of `types` to `[]`, so it no longer loads 
      }
  }
 ```
+
+`npm create wdio@latest` writes `compilerOptions.target` and `compilerOptions.lib` as `es2024`. Type-checking that file needs TypeScript 5.7 or newer. `tsx`, which runs the config and the tests, does not type-check, so an older compiler only matters when you run `tsc` yourself.
+
+An existing `tsconfig.json` is not rewritten. A generated config that extends another config keeps the `target` and `lib` of the parent.
 
 ## Reporters
 

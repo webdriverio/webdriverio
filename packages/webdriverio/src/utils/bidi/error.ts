@@ -25,7 +25,17 @@ export class WebdriverBidiExeception extends Error {
          */
         const failureLine = this.#getFailureLine()
         const stack: string[] = origStack?.split('\n') || []
-        const wrapCommandIndex = stack.findLastIndex((line) => line.includes('Context.executeAsync'))
+        /**
+         * `findLastIndex` is ES2023. This file is in the browser bundle, which
+         * still runs in Chrome 90, Edge 90, Firefox 90 and Safari 14.1.
+         */
+        let wrapCommandIndex = -1
+        for (let i = stack.length - 1; i >= 0; i--) {
+            if (stack[i].includes('Context.executeAsync')) {
+                wrapCommandIndex = i
+                break
+            }
+        }
         const executeLine = stack[wrapCommandIndex - 1] as string | undefined
         if (failureLine && executeLine) {
             const line = executeLine.replace('file://', '').split(':')

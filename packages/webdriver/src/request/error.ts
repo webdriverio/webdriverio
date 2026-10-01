@@ -1,6 +1,18 @@
 import { transformCommandLogResult } from '@wdio/utils'
 
+import { isConnectionTimeoutSignal } from './abort.js'
 import { REG_EXPS } from './constants.js'
+
+/**
+ * `Error.cause` is an ES2022 property. Read it without naming it on `Error`,
+ * so this file still type-checks at the browser bundle's ES2021 lib.
+ */
+function errorCause (err: object): unknown {
+    if (!('cause' in err)) {
+        return undefined
+    }
+    return (err as { cause?: unknown }).cause
+}
 
 abstract class WebDriverError extends Error {
     abstract url: URL
@@ -68,13 +80,15 @@ export class WebDriverRequestError extends WebDriverError {
         this.opts = opts
 
         /**
-         * A request that exceeds `connectionRetryTimeout` is aborted by
-         * `AbortSignal.timeout`, which rejects with a `DOMException` whose `code`
-         * is the numeric `TIMEOUT_ERR` rather than a string.
+         * A request that exceeds `connectionRetryTimeout` aborts our signal.
+         * Node reports that as `TimeoutError`. Chrome and Edge 103 to 123
+         * report `AbortError` instead, and older browsers have no
+         * `AbortSignal.timeout`, so the signal itself is the source of truth.
          */
-        const isAbortTimeout = err.name === 'TimeoutError'
-        const errorCode = typeof err.cause === 'object' && err.cause && 'code' in err.cause && typeof err.cause.code === 'string'
-            ? err.cause.code
+        const cause = errorCause(err)
+        const isAbortTimeout = err.name === 'TimeoutError' || isConnectionTimeoutSignal(this.opts.signal)
+        const errorCode = typeof cause === 'object' && cause && 'code' in cause && typeof cause.code === 'string'
+            ? cause.code
             : 'code' in err && typeof err.code === 'string'
                 ? err.code
                 : isAbortTimeout
@@ -87,10 +101,10 @@ export class WebDriverRequestError extends WebDriverError {
                 : 'Request failed with error code ' + errorCode
         }
 
-        if (typeof err.cause === 'object' && err.cause) {
-            this.statusCode = 'statusCode' in err.cause && typeof err.cause.statusCode === 'number'
-                ? err.cause.statusCode : undefined
-            this.body = 'body' in err.cause ? err.cause.body : undefined
+        if (typeof cause === 'object' && cause) {
+            this.statusCode = 'statusCode' in cause && typeof cause.statusCode === 'number'
+                ? cause.statusCode : undefined
+            this.body = 'body' in cause ? cause.body : undefined
         }
 
         this.message = this.computeErrorMessage()
