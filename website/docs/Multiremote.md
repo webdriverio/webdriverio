@@ -280,7 +280,7 @@ When(/^User (.) types a message into the chat/, async (userId) => {
 
 ## Assertions
 
-The `expect` matchers support multiremote browsers, elements and mocks. By default, every instance must match the expected value:
+The `expect` matchers support multi-remote browsers, elements and mocks. By default, every instance must match the expected value:
 
 ```js
 await expect(multiRemoteBrowser).toHaveTitle('My App')
@@ -296,7 +296,7 @@ await expect(multiRemoteBrowser).toHaveTitle(expect.multiRemote({
 }))
 ```
 
-For all the supported matchers and the required configuration, see the [expect-webdriverio multiremote guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/MultiRemote.md).
+For all the supported matchers and the required configuration, see the [expect-webdriverio multi-remote guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/MultiRemote.md).
 
 ## Accessing one instance
 
