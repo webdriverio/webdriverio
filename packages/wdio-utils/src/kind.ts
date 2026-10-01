@@ -72,7 +72,10 @@ export function getLoadedWdioKind (value: unknown): WdioKind | undefined {
 }
 
 /**
- * `true` for a loaded element, not a chainable `$()`
+ * `true` for a loaded element, not a chainable `$()`. A multi-remote element also
+ * passes, but it is a `WebdriverIO.MultiRemoteElement` and has no `elementId`:
+ * read the element of one instance with `getInstance()`.
+ * See https://github.com/webdriverio/webdriverio/issues/15844
  */
 export function isLoadedElement (value: unknown): value is WebdriverIO.Element {
     return getLoadedWdioKind(value) === 'element'
