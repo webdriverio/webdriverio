@@ -4,7 +4,6 @@ import type { downloadFile } from './node/downloadFile.js'
 import type { extensionDataFromPath } from './node/extensionArchive.js'
 import type { savePDF } from './node/savePDF.js'
 import type { saveRecordingScreen } from './node/saveRecordingScreen.js'
-import type { uploadFile } from './node/uploadFile.js'
 import type { saveScreenshot } from './node/saveScreenshot.js'
 import type { saveElementScreenshot } from './node/saveElementScreenshot.js'
 
@@ -24,7 +23,6 @@ export interface EnvironmentDependencies {
     downloadFile: typeof downloadFile,
     savePDF: typeof savePDF,
     saveRecordingScreen: typeof saveRecordingScreen,
-    uploadFile: typeof uploadFile,
     extensionDataFromPath: typeof extensionDataFromPath,
     saveScreenshot: typeof saveScreenshot,
     saveElementScreenshot: typeof saveElementScreenshot
@@ -50,9 +48,6 @@ export const environment: {
         },
         get saveRecordingScreen(): EnvironmentDependencies['saveRecordingScreen'] {
             throw new Error('The `saveRecordingScreen` command is not available in this environment')
-        },
-        get uploadFile(): EnvironmentDependencies['uploadFile'] {
-            throw new Error('The `uploadFile` command is not available in this environment')
         },
         get extensionDataFromPath(): EnvironmentDependencies['extensionDataFromPath'] {
             throw new Error('installExtension cannot read extension paths in this environment')

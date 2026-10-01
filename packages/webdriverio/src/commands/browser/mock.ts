@@ -1,8 +1,9 @@
+import type { URLPattern } from 'urlpattern-polyfill'
 import { getBrowserObject } from '@wdio/utils'
 
 import type { MockFilterOptions } from '../../utils/interception/types.js'
 import WebDriverInterception from '../../utils/interception/index.js'
-import { getContextManager } from '../../session/context.js'
+import { assertTopLevel, contextIdOf, isBrowsingContext } from '../../session/browsingContext.js'
 
 export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
 
@@ -130,17 +131,20 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  *
  */
 export async function mock(
-    this: WebdriverIO.Browser,
-    url: string | URLPattern,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
+    url: string | URLPattern | globalThis.URLPattern,
     filterOptions?: MockFilterOptions
 ): Promise<WebdriverIO.Mock> {
     if (!this.isBidi) {
         throw new Error('Mocking is only supported when running tests using WebDriver Bidi')
     }
 
+    if (isBrowsingContext(this)) {
+        assertTopLevel(this, 'mock')
+    }
+
     const browser = getBrowserObject(this)
-    const contextManager = getContextManager(browser)
-    const context = await contextManager.getCurrentContext()
+    const context = await contextIdOf(this)
     if (!SESSION_MOCKS[context]) {
         SESSION_MOCKS[context] = new Set()
     }
@@ -154,7 +158,7 @@ export async function mock(
         SESSION_MOCKS[context].delete(existingMock)
     }
 
-    const networkInterception = await WebDriverInterception.initiate(url, normalizedFilterOptions, this)
+    const networkInterception = await WebDriverInterception.initiate(url, normalizedFilterOptions, browser)
     SESSION_MOCKS[context].add(networkInterception)
     return networkInterception satisfies WebdriverIO.Mock
 }

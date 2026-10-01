@@ -37,7 +37,7 @@
       "require": "./build/index.cjs"
     }
   },
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "dependencies": {
     "@vitest/snapshot": "^5.0.2",
     "@wdio/config": "workspace:*",

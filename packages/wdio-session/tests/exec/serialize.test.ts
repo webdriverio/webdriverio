@@ -4,11 +4,11 @@ import { describe, it, expect } from 'vitest'
 import { serialize, toPlain, isError } from '../../src/exec/serialize.js'
 
 function element (selector: string, elementId?: string) {
-    return { selector, elementId, getTagName: async () => 'button' }
+    return { selector, elementId, getTagName: async () => 'button', [Symbol.for('wdio.kind')]: 'element' }
 }
 
 function elementArray (items: ReturnType<typeof element>[]) {
-    return Object.assign([...items], { selector: 'li', foundWith: '$$' })
+    return Object.assign([...items], { selector: 'li', foundWith: '$$', [Symbol.for('wdio.kind')]: 'element-array' })
 }
 
 describe('exec serialize', () => {
@@ -45,28 +45,76 @@ describe('exec serialize', () => {
         expect((await serialize(elementArray([]))).text).toBe('ElementArray(0) []')
     })
 
-    it('reads ElementArray elements through Array.prototype, not its async map', async () => {
-        const items = [element('nav a', 'a1'), element('nav a', 'a2')]
-        const list = new Proxy([...items], {
-            get (target, prop, receiver) {
+    it('does not print an array with an async `every` as an ElementArray', async () => {
+        /**
+         * the `every` of an element list is async, and its promise is always truthy
+         */
+        const list = Object.assign([1, 2], { every: async () => false })
+        expect((await serialize(list)).text).not.toMatch(/^ElementArray/)
+        expect((await serialize([])).text).not.toMatch(/^ElementArray/)
+    })
+
+    it('prints an ElementArray without calling its async slice or map', async () => {
+        const items = [element('nav a', 'id1'), element('nav a', 'id2')]
+        /**
+         * `$$` returns a thenable array whose `slice` and `map` are async
+         * query helpers. Calling them from `serialize` rejects or returns a
+         * promise `Promise.all` cannot iterate.
+         */
+        const wdioList = (entries: ReturnType<typeof element>[], resolved = true) => new Proxy(resolved ? [...entries] : [], {
+            get (current, prop, receiver) {
+                /**
+                 * a pending list has its brand before it loads
+                 */
+                if (prop === Symbol.for('wdio.kind')) {
+                    return 'element-array'
+                }
                 if (prop === 'selector') {
                     return 'nav a'
                 }
                 if (prop === 'foundWith') {
                     return '$$'
                 }
-                if (prop === 'slice' || prop === 'map') {
-                    return () => Promise.reject(new Error(`ElementArray.${String(prop)} should not run`))
+                if (prop === 'then') {
+                    if (resolved) {
+                        return undefined
+                    }
+                    return (onFulfilled?: (value: unknown) => unknown, onRejected?: (reason: unknown) => unknown) =>
+                        Promise.resolve(wdioList(entries, true)).then(onFulfilled, onRejected)
                 }
-                const member = Reflect.get(target, prop, receiver)
-                return typeof member === 'function' ? member.bind(target) : member
+                if (prop === 'map' || prop === 'slice') {
+                    return () => Promise.reject(new Error(`serialize must not call ElementArray ${String(prop)}`))
+                }
+                return Reflect.get(current, prop, receiver)
             },
-            has (target, prop) {
-                return prop === 'selector' || prop === 'foundWith' || Reflect.has(target, prop)
+            has (current, prop) {
+                return prop === 'selector' || prop === 'foundWith' || Reflect.has(current, prop)
             }
         })
-        const { text } = await serialize(list, { describeElement: async () => ({ tag: 'a', name: 'Docs' }) })
-        expect(text).toBe('ElementArray(2) [\n  <a "Docs" selector="nav a">\n  <a "Docs" selector="nav a">\n]')
+        const describeElement = async () => ({ tag: 'a', name: 'Home' })
+        const expected = 'ElementArray(2) [\n  <a "Home" selector="nav a">\n  <a "Home" selector="nav a">\n]'
+        expect((await serialize(wdioList(items), { describeElement })).text).toBe(expected)
+        expect((await serialize(wdioList(items, false), { describeElement })).text).toBe(expected)
+    })
+
+    it('prints an element list whose map returns a promise', async () => {
+        const items = [element('nav a', 'a1'), element('nav a', 'a2')]
+        const list = Object.assign([...items], {
+            selector: 'nav a',
+            foundWith: '$$',
+            [Symbol.for('wdio.kind')]: 'element-array',
+            slice (start?: number, end?: number) {
+                const sliced = Array.prototype.slice.call(this, start, end) as ReturnType<typeof element>[]
+                return Object.assign(sliced, {
+                    async map (cb: (el: ReturnType<typeof element>, index: number) => unknown) {
+                        return Promise.all(Array.prototype.map.call(this, cb) as Promise<unknown>[])
+                    }
+                })
+            }
+        })
+        expect((await serialize(list, { describeElement: async () => ({ tag: 'a', name: 'Home' }) })).text).toBe(
+            'ElementArray(2) [\n  <a "Home" selector="nav a">\n  <a "Home" selector="nav a">\n]'
+        )
     })
 
     it('prints buffers as a size', async () => {

@@ -46,10 +46,11 @@ describe('wdio session contexts and dialogs', () => {
             .toEqual([['Session Fixture', false], ['Shop · Cart', true]])
 
         const switched = await run('tabs', 'switch', '0')
-        expect(switched.stdout).toContain(`→ await browser.switchWindow('${server.url}/index.html')`)
+        expect(switched.stdout).toContain(`→ const page = (await browser.browsingContexts()).find((context) => context.url === '${server.url}/index.html')!`)
         expect((await run('exec', '-e', 'await browser.getTitle()')).stdout).toBe('Session Fixture\n')
 
-        await run('tabs', 'close', '1')
+        const closed = await run('tabs', 'close', '1')
+        expect(closed.stdout).toContain(`→ const page2 = (await browser.browsingContexts()).find((context) => context.url === '${server.url}/cart.html')!\nawait page2.closeWindow()\n`)
         expect((await run('tabs', '--json')).json.result.data.tabs).toHaveLength(1)
         const last = await project.run(['tabs', 'close', '0'])
         expect(last.code).toBe(2)
@@ -63,19 +64,19 @@ describe('wdio session contexts and dialogs', () => {
         expect(top).toContain('(cross-origin: run `wdio session frame')
 
         const switched = await run('frame', cross)
-        expect(switched.stdout).toBe(`Switched to frame ${cross} (iframe "Cross origin frame")\n→ await browser.switchFrame($('aria/Cross origin frame'))\n`)
+        expect(switched.stdout).toBe(`Switched to frame ${cross} (iframe "Cross origin frame")\n→ const frame = await page.frame(page.$('aria/Cross origin frame'))\n`)
         const inner = (await run('snapshot')).stdout
         expect(inner.split('\n')[0]).toBe(`- document "Child frame" url=${server.url.replace('localhost', '127.0.0.1')}/frame-child.html`)
         expect(inner).toMatch(/button "Frame button" \[ref=e\d+\]/)
         expect((await run('info', '--json')).json.result.data.frame).toBe(`${cross} (iframe "Cross origin frame")`)
         expect((await run('click', 'button=Frame button')).code).toBe(0)
 
-        expect((await run('frame', 'top')).stdout).toBe('Switched to the top document\n→ await browser.switchFrame(null)\n')
+        expect((await run('frame', 'top')).stdout).toBe('Switched to the top document\n')
         expect((await run('snapshot')).stdout.split('\n')[0]).toContain('"Frames Fixture"')
         expect((await run('info', '--json')).json.result.data.frame).toBe('top')
 
         await run('frame', cross)
-        expect((await run('frame', 'parent')).stdout).toBe('Switched to the top document\n→ await browser.switchToParentFrame()\n')
+        expect((await run('frame', 'parent')).stdout).toBe('Switched to the top document\n')
         const notFrame = await project.run(['frame', 'aria/Frames'])
         expect(notFrame.code).toBe(2)
         expect(notFrame.stderr).toContain('is not a frame')

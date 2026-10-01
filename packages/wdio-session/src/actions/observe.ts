@@ -202,7 +202,10 @@ export const screenshot: ActionFn = async (session, args) => {
 
 /**
  * Print the current page to a PDF. The path must end in `.pdf`, matching
- * `browser.savePDF`.
+ * `browser.savePDF`. BiDi sessions render with `browsingContext.print`,
+ * including headed Chrome, Edge, and Firefox. Classic sessions use
+ * `printPage`. Chrome's Classic print was headless-only; current Chrome
+ * can also print headed, and older Chrome may still require headless.
  */
 export const pdf: ActionFn = async (session, args) => {
     if (!session.isWeb) {

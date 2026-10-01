@@ -77,6 +77,18 @@ describe('Jasmine expect', () => {
         await expect(await $$('#box').filter(() => true)).toHaveSize({ width: 120, height: 40 })
     })
 
+    it('uses the WebdriverIO toHaveSize for the result of a custom element list command', async () => {
+        browser.addCommand('boxes$$', function (this: WebdriverIO.Browser) {
+            return this.$$('#box')
+        })
+        // @ts-expect-error custom command
+        await expect(await browser.boxes$$()).toHaveSize({ width: 120, height: 40 })
+        // @ts-expect-error custom command
+        await expect(await browser.boxes$$()[0]).toHaveSize({ width: 120, height: 40 })
+        // @ts-expect-error custom command
+        await expect(browser.boxes$$().at(0)).toHaveSize({ width: 120, height: 40 })
+    })
+
     it('runs Jasmine async matchers', async () => {
         await expect(Promise.resolve(1)).toBeResolvedTo(1)
         await expectAsync(Promise.reject(new Error('boom'))).toBeRejectedWithError('boom')

@@ -16,6 +16,7 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'mocking.e2e.ts'),
         path.join(__dirname, 'headless', 'shadowRootScope-repro.e2e.ts'),
         path.join(__dirname, 'headless', 'strictSelectors.e2e.ts'),
+        path.join(__dirname, 'headless', 'setFiles.e2e.ts'),
     ],
 
     /**

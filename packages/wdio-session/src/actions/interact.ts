@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { UNICODE_CHARACTERS } from '@wdio/utils'
+import { getContextManager } from 'webdriverio'
 
 import { usage } from '../errors.js'
 import { quote } from '../quote.js'
@@ -9,7 +10,6 @@ import { resolveTarget } from '../snapshot/target.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
 const DEFAULT_SCROLL_PX = 600
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]'])
 
 const done = (text: string, code: string): ActionOutcome => ({ text, code, history: code })
 
@@ -83,9 +83,15 @@ export const navigate: ActionFn = async (session, args) => {
         throw usage('No URL given.')
     }
     if (session.get('frame')) {
-        await session.browser.switchFrame(null)
+        if (session.isBidi) {
+            const handle = await session.browser.getWindowHandle()
+            getContextManager(session.browser).setCurrentContext(handle)
+        } else {
+            await session.browser.switchFrame(null)
+        }
         session.set('frame', undefined)
         session.set('frameStack', [])
+        session.set('activeContext', undefined)
     }
     await session.browser.url(url)
     const title = await session.browser.getTitle().catch(() => '')
@@ -123,12 +129,17 @@ export const click: ActionFn = async (session, args) => {
         }
         const base = await session.currentUrl()
         const url = new URL(href, base || undefined).href
-        await session.browser.newWindow(url, { type: 'tab' })
-        if (session.get?.('frame')) {
+        const opened = await session.browser.newWindow(url, { type: 'tab' })
+        if (session.isBidi && opened && typeof opened === 'object' && 'contextId' in opened) {
+            await session.browser.switchToWindow(opened.contextId)
+            getContextManager(session.browser).setCurrentContext(opened.contextId)
+        }
+        if (session.get?.('frame') && !session.isBidi) {
             await session.browser.switchFrame(null)
         }
         session.set?.('frame', undefined)
         session.set?.('frameStack', [])
+        session.set?.('activeContext', undefined)
         return done(`Opened ${url} in a new tab`, `await browser.newWindow(${quote(url)}, { type: 'tab' })`)
     }
     const [verb, call, run] = args.double
@@ -193,27 +204,22 @@ export const select: ActionFn = async (session, args) => {
     return done(`Selected ${JSON.stringify(value)} in ${target.label}`, `await ${target.code}.${call}`)
 }
 
-function isRemote (session: Session) {
-    const host = session.plan.remote?.hostname
-    return Boolean(session.plan.provider || (host && !LOCAL_HOSTS.has(host)))
-}
-
 export const upload: ActionFn = async (session, args) => {
     const file = path.resolve(String(args.$cwd || session.cwd), String(args.file ?? ''))
     if (!args.file || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
         throw usage(`File ${file} does not exist.`)
     }
     const target = await resolveTarget(session, args.target)
-    if (isRemote(session)) {
-        const remotePath = await session.browser.uploadFile(file)
-        await target.element.setValue(remotePath)
-        return done(
-            `Uploaded ${path.basename(file)} to ${target.label}`,
-            `const remotePath = await browser.uploadFile(${quote(file)})\nawait ${target.code}.setValue(remotePath)`
-        )
+    /**
+     * `setFiles` needs WebDriver BiDi. A Classic session sets the path with
+     * `setValue`, which works when the browser can read the file.
+     */
+    if (!session.isBidi) {
+        await target.element.setValue(file)
+        return done(`Set ${target.label} to ${path.basename(file)}`, `await ${target.code}.setValue(${quote(file)})`)
     }
-    await target.element.setValue(file)
-    return done(`Set ${target.label} to ${path.basename(file)}`, `await ${target.code}.setValue(${quote(file)})`)
+    await target.element.setFiles(file)
+    return done(`Set ${target.label} to ${path.basename(file)}`, `await ${target.code}.setFiles(${quote(file)})`)
 }
 
 export const focus: ActionFn = async (session, args) => {

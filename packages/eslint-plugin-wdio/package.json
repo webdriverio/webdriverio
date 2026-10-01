@@ -16,7 +16,7 @@
     }
   },
   "type": "module",
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "engines": {
     "node": ">=22.19.0"
   },
@@ -36,17 +36,17 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
-    "@types/estree": "^1.0.8",
+    "@types/estree": "^1.0.9",
     "@wdio/types": "workspace:*",
-    "eslint": "^9.39.2",
+    "eslint": "^10.11.0",
     "expect-webdriverio": "^8.0.0-alpha.1",
-    "globals": "^17.7.0",
-    "typescript-eslint": "^8.54.0"
+    "globals": "^17.12.0",
+    "typescript-eslint": "^8.71.0"
   },
   "peerDependencies": {
-    "eslint": "^9.39.2 || ^10.0.0",
+    "eslint": "^10.0.0",
     "globals": "^16.5.0 || ^17.0.0",
-    "typescript-eslint": "^8.54.0"
+    "typescript-eslint": "^8.56.0"
   },
   "peerDependenciesMeta": {
     "typescript-eslint": {

@@ -1,7 +1,6 @@
 {
     "extends": "../../tsconfig",
     "compilerOptions": {
-        "baseUrl": ".",
         "outDir": "./build",
         "rootDir": "./src",
         "lib": ["es2024", "dom", "dom.iterable"]

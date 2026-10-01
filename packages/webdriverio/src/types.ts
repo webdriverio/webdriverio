@@ -54,7 +54,7 @@ interface ChainablePromiseBaseElement {
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext>
     /**
      * selector used to fetch this element, can be
      * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
@@ -206,7 +206,7 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
      * Parent of the list if fetched via `$(parent).$$(child)`. Available
      * immediately, before the query resolves.
      */
-    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext
     /**
      * Command name with which this list was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`.
      * Available immediately, before the query resolves.
@@ -280,7 +280,7 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext
     /**
      * command name with which this element was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`
      */
@@ -540,7 +540,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: WebdriverIO.Element | WebdriverIO.Browser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.BrowsingContext
     /**
      * true if element is a React component
      */
@@ -717,6 +717,11 @@ export type DragAndDropOptions = {
 
 export type NewWindowOptions = {
     type?: 'tab' | 'window'
+    /**
+     * Top-level browsing context the new tab or window is opened from.
+     * A frame is rejected. BiDi only.
+     */
+    referenceContext?: string | WebdriverIO.BrowsingContext
 }
 
 export type TapOptions = MobileScrollIntoViewOptions & {
@@ -866,8 +871,76 @@ export interface ExtendedElementReference {
     locator: remote.BrowsingContextLocator
 }
 
-export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine' | 'clock' | 'device'
+export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'media' | 'onLine' | 'locale' | 'timezone' | 'touch' | 'orientation' | 'screen' | 'viewportMeta' | 'textLayout' | 'scripting' | 'scrollbar' | 'forcedColors' | 'clock' | 'device'
 export type RestoreMap = Map<SupportedScopes, (() => Promise<any>)[]>
+
+/**
+ * Options for `browser.savePDF`. Lengths are centimeters.
+ *
+ * Defaults match WebDriver Classic `printPage` and WebDriver BiDi
+ * `browsingContext.print`: portrait, scale `1`, background `false`,
+ * shrink-to-fit `true`, page `21.59` × `27.94` cm, margins `1` cm.
+ * Omitted fields are left to the browser.
+ */
+export interface PDFPrintOptions {
+    /**
+     * Page orientation. Accepted values are `portrait` and `landscape`.
+     * The property stays a `string` so an existing variable of that type can
+     * still be passed. Any other value is rejected when `savePDF` runs.
+     * @default 'portrait'
+     */
+    orientation?: string
+    /**
+     * Page scale. The print protocols accept `0.1`–`2`.
+     * @default 1
+     */
+    scale?: number
+    /**
+     * Print the page background.
+     * @default false
+     */
+    background?: boolean
+    /**
+     * Page width in centimeters.
+     * @default 21.59
+     */
+    width?: number
+    /**
+     * Page height in centimeters.
+     * @default 27.94
+     */
+    height?: number
+    /**
+     * Top margin in centimeters.
+     * @default 1
+     */
+    top?: number
+    /**
+     * Bottom margin in centimeters.
+     * @default 1
+     */
+    bottom?: number
+    /**
+     * Left margin in centimeters.
+     * @default 1
+     */
+    left?: number
+    /**
+     * Right margin in centimeters.
+     * @default 1
+     */
+    right?: number
+    /**
+     * Shrink the content to fit the page.
+     * @default true
+     */
+    shrinkToFit?: boolean
+    /**
+     * Pages to include. Each entry is a page number or a range such as `'1-3'`.
+     * @default []
+     */
+    pageRanges?: Array<string | number>
+}
 
 export interface SaveScreenshotOptions {
     /**
@@ -993,5 +1066,71 @@ declare global {
          * @see https://webdriver.io/docs/api/dialog
          */
         interface Dialog extends DialogImport {}
+        /**
+         * A tab, a window, or a frame. Commands on this object send the BiDi
+         * method with `contextId` and do not move the session's current context.
+         * `parent` is absent on a top-level context. `url` is the document URL.
+         * Navigate a held context with `navigate()`. `browser.url()` navigates
+         * the session's initial top-level context and returns it.
+         */
+        interface BrowsingContext {
+            isBidi: boolean
+            isMobile: boolean
+            capabilities: WebdriverIO.Capabilities
+            sessionId: string
+            options: Browser['options']
+            strategies: Map<string, unknown>
+            $(selector: Selector, options?: ElementQueryOptions): ChainablePromiseElement
+            $$(selector: Selector): ChainablePromiseArray
+            custom$: Browser['custom$']
+            custom$$: Browser['custom$$']
+            react$: Browser['react$']
+            react$$: Browser['react$$']
+            execute: Browser['execute']
+            action: Browser['action']
+            actions: Browser['actions']
+            keys: Browser['keys']
+            scroll: Browser['scroll']
+            saveScreenshot: Browser['saveScreenshot']
+            savePDF: Browser['savePDF']
+            getCookies: Browser['getCookies']
+            setCookies: Browser['setCookies']
+            deleteCookies: Browser['deleteCookies']
+            setViewport: Browser['setViewport']
+            addInitScript: Browser['addInitScript']
+            mock: Browser['mock']
+            mockClearAll: Browser['mockClearAll']
+            mockRestoreAll: Browser['mockRestoreAll']
+            emulate: Browser['emulate']
+            restore: Browser['restore']
+            waitUntil: Browser['waitUntil']
+            pause: Browser['pause']
+            frame(target: string | Element | ChainablePromiseElement | ((context: { context: string, url: string }) => boolean | Promise<boolean>)): Promise<BrowsingContext>
+            navigate(url: string, options?: {
+                wait?: 'none' | 'interactive' | 'networkIdle' | 'complete'
+                headers?: Record<string, string>
+                auth?: { user: string, pass: string }
+                timeout?: number
+                onBeforeLoad?: Function
+            }): Promise<BrowsingContext>
+            refresh(): Promise<void>
+            closeWindow(): Promise<void>
+            activate(): Promise<void>
+            getTitle(): Promise<string>
+            getUrl(): Promise<string>
+            back(): Promise<void>
+            forward(): Promise<void>
+            acceptAlert(text?: string): Promise<void>
+            dismissAlert(): Promise<void>
+            getAlertText(): Promise<string>
+            on: Browser['on']
+            off: Browser['off']
+            once: Browser['once']
+            emit: Browser['emit']
+            removeListener: Browser['removeListener']
+            removeAllListeners: Browser['removeAllListeners']
+            addCommand(...args: unknown[]): Promise<never>
+            overwriteCommand(...args: unknown[]): Promise<never>
+        }
     }
 }

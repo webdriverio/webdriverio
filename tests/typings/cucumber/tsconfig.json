@@ -2,6 +2,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "noImplicitAny": true,
+    "strict": false,
     "lib": ["es2024", "dom"],
     "module": "NodeNext",
     "moduleResolution": "Node16",

@@ -41,6 +41,22 @@ describe('global handler', () => {
         expect(readGlobal('browser')).toBeUndefined()
     })
 
+    it('forwards `in` to the installed browser, for the wdio.kind brand and for fields', () => {
+        const WDIO_KIND = Symbol.for('wdio.kind')
+        expect(WDIO_KIND in browser).toBe(false)
+        expect('prototype' in browser).toBe(true)
+
+        const session = { isMultiRemote: false }
+        Object.defineProperty(session, WDIO_KIND, { value: 'browser' })
+        _setGlobal('browser', session, false)
+
+        expect((browser as unknown as Record<symbol, unknown>)[WDIO_KIND]).toBe('browser')
+        expect(WDIO_KIND in browser).toBe(true)
+        expect('isMultiRemote' in browser).toBe(true)
+        expect('unknownField' in browser).toBe(false)
+        expect('prototype' in browser).toBe(true)
+    })
+
     it('forwards $ to the installed function', () => {
         expect(() => $('bar')).toThrow(REGISTRATION_ERROR)
 

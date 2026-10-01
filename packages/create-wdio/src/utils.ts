@@ -329,8 +329,11 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     const config: Record<string, unknown> & { include?: string[] } = {
         compilerOptions: {
             // compiler
-            moduleResolution: 'node',
-            module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
+            // TypeScript 6 deprecates `moduleResolution: 'node'` (node10). ESM uses
+            // `bundler`, which resolves imports as `tsx` does; CommonJS uses `NodeNext`,
+            // which follows the `type` of the project's package.json.
+            moduleResolution: parsedAnswers.esmSupport ? 'bundler' : 'NodeNext',
+            module: parsedAnswers.esmSupport ? 'ESNext' : 'NodeNext',
             target: 'es2024',
             lib: ['es2024', 'dom'],
             types,

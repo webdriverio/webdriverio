@@ -1,3 +1,5 @@
+import { getWdioKind, isArrayOfElements, isLoadedElement } from '@wdio/utils'
+
 const MAX_DEPTH = 6
 const MAX_CHARS = 4000
 const MAX_ELEMENTS = 10
@@ -24,16 +26,11 @@ export interface Serialized {
     value?: unknown
 }
 
-export function isElement (value: unknown): value is WebdriverIO.Element {
-    return Boolean(value) && typeof value === 'object' && 'selector' in (value as object) && 'elementId' in (value as object) &&
-        typeof (value as { getTagName?: unknown }).getTagName === 'function'
-}
-
+/**
+ * An element list, or a copy of one (`[...list]`) whose items are all elements
+ */
 export function isElementArray (value: unknown): value is WebdriverIO.ElementArray {
-    return Array.isArray(value) && (
-        ('selector' in value && 'foundWith' in value) ||
-        (value.length > 0 && value.every(isElement))
-    )
+    return (Array.isArray(value) && getWdioKind(value) === 'element-array') || isArrayOfElements(value)
 }
 
 function isBinary (value: unknown): value is Uint8Array {
@@ -97,7 +94,7 @@ export function toPlain (value: unknown, depth = MAX_DEPTH, seen = new WeakSet<o
     if (typeof value === 'function') {
         return `[Function${value.name ? ` ${value.name}` : ''}]`
     }
-    if (isElement(value)) {
+    if (isLoadedElement(value)) {
         return { selector: selectorString(value.selector), elementId: value.elementId }
     }
     if (isBinary(value)) {
@@ -156,19 +153,21 @@ export async function serialize (value: unknown, opts: SerializeOptions = {}): P
     }
     if (isElementArray(value)) {
         /**
-         * A resolved `ElementArray` overrides `slice` and `map` with the async
-         * query helpers. Reading through `Array.prototype` keeps the elements.
+         * An unresolved ElementArray is thenable, so `await` loads it, and a loaded
+         * list is not thenable, so `await` gives it back. A resolved list still owns
+         * async `slice` and `map`, so copy with `Array.prototype` and format that plain array.
          */
-        const items = Array.prototype.slice.call(value, 0, MAX_ELEMENTS) as WebdriverIO.Element[]
-        const shown = await Promise.all(items.map((el) => formatElement(el, opts)))
-        const more = value.length > MAX_ELEMENTS ? [`… ${value.length - MAX_ELEMENTS} more`] : []
+        const list = await (value as unknown as PromiseLike<WebdriverIO.ElementArray>)
+        const elements = Array.prototype.slice.call(list) as WebdriverIO.Element[]
+        const shown = await Promise.all(elements.slice(0, MAX_ELEMENTS).map((el) => formatElement(el, opts)))
+        const more = elements.length > MAX_ELEMENTS ? [`… ${elements.length - MAX_ELEMENTS} more`] : []
         const lines = [...shown, ...more].map((l) => `  ${l}`)
         return {
-            text: value.length ? `ElementArray(${value.length}) [\n${lines.join('\n')}\n]` : 'ElementArray(0) []',
-            value: toPlain(Array.prototype.slice.call(value))
+            text: elements.length ? `ElementArray(${elements.length}) [\n${lines.join('\n')}\n]` : 'ElementArray(0) []',
+            value: toPlain(elements)
         }
     }
-    if (isElement(value)) {
+    if (isLoadedElement(value)) {
         return { text: await formatElement(value, opts), value: toPlain(value) }
     }
     if (isBinary(value)) {

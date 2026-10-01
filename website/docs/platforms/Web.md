@@ -82,7 +82,7 @@ End-to-end testing across browsers:
 Browser capabilities that need WebDriver BiDi (Chrome, Edge and Firefox; not Safari):
 
 - [Request Mocks and Spies](/docs/mocksandspies): intercept, modify or stub network requests with `browser.mock()`. See also the [Mock object](/docs/api/mock).
-- [Emulation](/docs/emulation): emulate geolocation, color scheme, user agent, `navigator.onLine`, the clock and device viewports with `browser.emulate()`.
+- [Emulation](/docs/emulation): emulate geolocation, media features, user agent, offline state, locale, timezone, screen and devices with `browser.emulate()`.
 
 Component and unit testing in a real browser:
 

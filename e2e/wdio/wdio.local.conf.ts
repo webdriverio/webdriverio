@@ -54,7 +54,8 @@ export const config: WebdriverIO.Config = {
      */
     specs: [[
         path.join(__dirname, 'headless', 'launch.e2e.ts'),
-        path.join(__dirname, 'headless', 'bidi.e2e.ts')
+        path.join(__dirname, 'headless', 'bidi.e2e.ts'),
+        path.join(__dirname, 'headless', 'setFiles.e2e.ts')
     ]],
 
     /**

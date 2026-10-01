@@ -29,9 +29,11 @@ Stop when one of these is true. Do not pick a workaround on your own.
 3. With Mocha, use `expect-webdriverio` 6.1.0 or newer.
 4. With Appium, install `appium@^3` and run `appium driver update installed`.
 5. With `puppeteer-core`, use `>=24 <26`.
-6. Apply the replacements below, then run the [codemod](#codemod) for the legacy command signatures.
-7. Run the suite. Strict `$` and bare capability `specs` / `exclude` only show up at runtime.
-8. Search the patterns again. A leftover `jasmineNodeOpts` or `tagExpression` throws.
+6. With `eslint-plugin-wdio`, use `eslint@^10`. With TypeScript, install `typescript-eslint` 8.56.0 or later, not only `@typescript-eslint/eslint-plugin`, and scope the config with `files: ['**/*.{ts,mts,cts,tsx}']`. Widen it to JavaScript only when `tsconfig.json` has `allowJs` and includes those files.
+7. With TypeScript 6, replace `"moduleResolution": "node"` and remove `"baseUrl"` as the guide shows. If `tsconfig.json` has no `types` list, add one with the type packages the tests use: TypeScript 6 no longer loads `@types/*` by default.
+8. Apply the replacements below, then run the [codemod](#codemod) for the legacy command signatures.
+9. Run the suite. Strict `$` and bare capability `specs` / `exclude` only show up at runtime.
+10. Search the patterns again. A leftover `jasmineNodeOpts` or `tagExpression` throws.
 
 Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior.
 
@@ -59,6 +61,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `newWindow` `windowName` / `windowFeatures` | delete them. `type: 'window'` or `type: 'tab'` remains. |
 | `startActivity('pkg', '.Activity')` | `startActivity({ appPackage, appActivity })`. Delete `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments`. |
 | `browser.throttle(` | `browser.throttleNetwork(` |
+| `browser.uploadFile(path)` then `setValue` | `element.setFiles(path)` or `element.setFiles([paths])`. Needs a BiDi session and a path the browser can read. Grid byte staging is gone. See below. |
 | `touchAction(` | `browser.action('pointer', { parameters: { pointerType: 'touch' } })`, or mobile `tap` / `swipe` |
 | `setTimeout({ 'page load': n })` | `setTimeout({ pageLoad: n })` |
 | `browser.chromeBrowser.url(...)` on a multi-remote browser | `browser.getInstance('chromeBrowser').url(...)`. The testrunner global `chromeBrowser` is the single session. |
@@ -78,7 +81,15 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 
 Search for `multiremote` and `Multiremote` case-sensitively. Leave the `id: multiremote` permalink, `/docs/multiremote` links, file names, and the Allure historyId key `'multiremote'`.
 
+## Emulation
+
+`browser.emulate()` for geolocation, user agent, color scheme and online state no longer patches the page with a preload script, and those scopes no longer need a reload. `onLine: false` takes the browsing context offline. `colorScheme` and `media` share one media-feature map. Read the Emulation section of the migration guide before changing tests that depended on the old behavior.
+
 `browser.$$()` on a multi-remote browser is still an array, so index access keeps working. Annotate it as `WebdriverIO.MultiRemoteElementArray`. `custom$$` and `react$$` still return one result per instance, not one zipped array.
+
+### `uploadFile`
+
+`browser.uploadFile` is removed. Replace `uploadFile` plus `setValue` with `element.setFiles`. `setFiles` does not upload bytes. A remote browser needs a path on that machine. On a classic local session, `setValue` with a path the browser can already see still works. `browser.file()` remains for a direct Selenium Grid call.
 
 ### `executeAsync`
 
@@ -95,7 +106,7 @@ Drop the `done` callback. Return the value, or return a promise. The `script` ti
 
 ### `switchToFrame`
 
-`switchToFrame` is not a public command. Use `switchFrame` with an element, or `null` for the top frame. On BiDi, a string can be a frame url or context id. Do not pass a numeric frame index. A BiDi session rejects it.
+`switchToFrame` is not a public command. In a BiDi session `switchFrame` and `switchWindow` throw: hold the `WebdriverIO.BrowsingContext` from `browser.url()` or `browser.newWindow()` and call `context.frame()`. In a Classic session, `switchFrame` takes an element, or `null` for the top frame.
 
 ### Strict `$`
 

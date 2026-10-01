@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "target": "es2022",
+        "module": "nodenext",
+        "noEmit": true,
+        "types": []
+    },
+    "include": ["file.ts"]
+}
