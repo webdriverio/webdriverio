@@ -68,6 +68,22 @@ describe('switchFrame command', () => {
             )
         })
 
+        it('should switch context via an item of an unresolved element list', async () => {
+            browser.addCommand('frames$$', function (this: WebdriverIO.Browser) {
+                return this.$$('iframe')
+            })
+            const switchToFrame = vi.spyOn(browser, 'switchToFrame')
+
+            await browser.switchFrame(browser.$$('iframe')[0])
+            // @ts-expect-error custom command
+            await browser.switchFrame(browser.frames$$()[0])
+
+            expect(switchToFrame).toHaveBeenCalledTimes(2)
+            for (const [ref] of switchToFrame.mock.calls) {
+                expect(ref).toEqual(expect.objectContaining({ [ELEMENT_KEY]: 'some-elem-123' }))
+            }
+        })
+
         it('switch to parent frame', async () => {
             const switchToFrame = vi.spyOn(browser, 'switchToFrame')
             await browser.switchFrame(null)
@@ -157,6 +173,7 @@ describe('switchFrame command', () => {
                 waitForExist: vi.fn().mockResolvedValue(true),
                 isExisting: vi.fn().mockResolvedValue(true),
                 isElement: true,
+                [Symbol.for('wdio.kind')]: 'element',
                 getElement: vi.fn()
             } as any
 
@@ -179,7 +196,8 @@ describe('switchFrame command', () => {
                 [ELEMENT_KEY]: 'elem-789',
                 waitForExist: vi.fn().mockResolvedValue(true),
                 isExisting: vi.fn().mockResolvedValue(true),
-                isElement: true
+                isElement: true,
+                [Symbol.for('wdio.kind')]: 'element'
             }
 
             // Spy on browser.$ to simulate re-resolving the selector
@@ -191,6 +209,7 @@ describe('switchFrame command', () => {
                 selector: 'iframe',
                 parent: browser,
                 isElement: true,
+                [Symbol.for('wdio.kind')]: 'element',
                 elementId: undefined,
                 [ELEMENT_KEY]: undefined,
                 async getElement() {

@@ -22,6 +22,48 @@ describe('savePDF on a classic session', () => {
     })
 })
 
+describe('custom element list commands on a classic session', () => {
+    const page = 'data:text/html,' + encodeURIComponent('<iframe srcdoc="<h1>Inner frame</h1>"></iframe>')
+
+    before(() => {
+        browser.addCommand('frames$$', function (this: WebdriverIO.Browser) {
+            return this.$$('iframe')
+        })
+        browser.addLocatorStrategy('frames', () => Array.from(document.querySelectorAll('iframe')) as HTMLElement[])
+    })
+
+    afterEach(async () => {
+        await browser.switchFrame(null)
+    })
+
+    it('switches to a frame via an item of the list', async () => {
+        await browser.url(page)
+        // @ts-expect-error custom command
+        await browser.switchFrame(browser.frames$$()[0])
+        await expect($('h1')).toHaveText('Inner frame')
+    })
+
+    it('switches to a frame via at() of the list', async () => {
+        await browser.url(page)
+        // @ts-expect-error custom command
+        await browser.switchFrame(browser.frames$$().at(0))
+        await expect($('h1')).toHaveText('Inner frame')
+    })
+
+    it('switches to a frame via the awaited find() of the list', async () => {
+        await browser.url(page)
+        // @ts-expect-error custom command
+        await browser.switchFrame(await browser.frames$$().find(async (frame: WebdriverIO.Element) => await frame.getTagName() === 'iframe'))
+        await expect($('h1')).toHaveText('Inner frame')
+    })
+
+    it('switches to a frame via an item of a custom$$ locator strategy query', async () => {
+        await browser.url(page)
+        await browser.switchFrame(browser.custom$$('frames', '')[0])
+        await expect($('h1')).toHaveText('Inner frame')
+    })
+})
+
 describe('__name polyfill', () => {
     it('suppports __name polyfill for classic sessions', async () => {
         await browser.url('https://guinea-pig.webdriver.io')

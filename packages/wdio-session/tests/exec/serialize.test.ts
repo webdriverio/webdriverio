@@ -4,11 +4,11 @@ import { describe, it, expect } from 'vitest'
 import { serialize, toPlain, isError } from '../../src/exec/serialize.js'
 
 function element (selector: string, elementId?: string) {
-    return { selector, elementId, getTagName: async () => 'button' }
+    return { selector, elementId, getTagName: async () => 'button', [Symbol.for('wdio.kind')]: 'element' }
 }
 
 function elementArray (items: ReturnType<typeof element>[]) {
-    return Object.assign([...items], { selector: 'li', foundWith: '$$' })
+    return Object.assign([...items], { selector: 'li', foundWith: '$$', [Symbol.for('wdio.kind')]: 'element-array' })
 }
 
 describe('exec serialize', () => {
@@ -45,6 +45,15 @@ describe('exec serialize', () => {
         expect((await serialize(elementArray([]))).text).toBe('ElementArray(0) []')
     })
 
+    it('does not print an array with an async `every` as an ElementArray', async () => {
+        /**
+         * the `every` of an element list is async, and its promise is always truthy
+         */
+        const list = Object.assign([1, 2], { every: async () => false })
+        expect((await serialize(list)).text).not.toMatch(/^ElementArray/)
+        expect((await serialize([])).text).not.toMatch(/^ElementArray/)
+    })
+
     it('prints an ElementArray without calling its async slice or map', async () => {
         const items = [element('nav a', 'id1'), element('nav a', 'id2')]
         /**
@@ -54,6 +63,12 @@ describe('exec serialize', () => {
          */
         const wdioList = (entries: ReturnType<typeof element>[], resolved = true) => new Proxy(resolved ? [...entries] : [], {
             get (current, prop, receiver) {
+                /**
+                 * a pending list has its brand before it loads
+                 */
+                if (prop === Symbol.for('wdio.kind')) {
+                    return 'element-array'
+                }
                 if (prop === 'selector') {
                     return 'nav a'
                 }
@@ -87,6 +102,7 @@ describe('exec serialize', () => {
         const list = Object.assign([...items], {
             selector: 'nav a',
             foundWith: '$$',
+            [Symbol.for('wdio.kind')]: 'element-array',
             slice (start?: number, end?: number) {
                 const sliced = Array.prototype.slice.call(this, start, end) as ReturnType<typeof element>[]
                 return Object.assign(sliced, {
