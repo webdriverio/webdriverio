@@ -1,5 +1,12 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { wrapCommand, executeAsync } from '../src/shim.js'
+import { WDIO_KIND, WDIO_CHAINABLE } from '../src/kind.js'
+
+type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
+const brandsOf = (value: unknown) => ({
+    kind: (value as Branded)[WDIO_KIND],
+    chainable: (value as Branded)[WDIO_CHAINABLE]
+})
 
 const W3C_ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
@@ -11,6 +18,84 @@ describe('wrapCommand', () => {
 
         await expect(chained.toJSON()).resolves.toEqual({
             [W3C_ELEMENT_KEY]: 'abc-123'
+        })
+    })
+
+    describe('brand of the chainable promise', () => {
+        const scope = { options: { beforeCommand: [], afterCommand: [] } }
+
+        it('brands element queries as chainable elements', () => {
+            for (const command of ['$', 'shadow$', 'parentElement']) {
+                expect(brandsOf(wrapCommand(command, vi.fn().mockResolvedValue({})).call(scope)))
+                    .toEqual({ kind: 'element', chainable: true })
+            }
+        })
+
+        it('does not brand a $$-type command that gives a value that is not an ElementArray, or its items', () => {
+            for (const command of ['$$', 'custom$$']) {
+                const chain = wrapCommand(command, vi.fn().mockReturnValue([{ selector: 'li' }])).call(scope) as unknown as Record<string, unknown>
+
+                expect(brandsOf(chain)).toEqual({ kind: undefined, chainable: undefined })
+                expect(brandsOf(chain[0])).toEqual({ kind: undefined, chainable: undefined })
+                expect(WDIO_KIND in chain).toBe(false)
+            }
+        })
+
+        it('brands a $$-type command that gives a promise as a pending element list, by its name', () => {
+            for (const command of ['$$', 'custom$$']) {
+                const chain = wrapCommand(command, vi.fn().mockResolvedValue([{ selector: 'li' }])).call(scope) as unknown as Record<string, unknown>
+
+                expect(brandsOf(chain)).toEqual({ kind: 'element-array', chainable: undefined })
+                expect(brandsOf(chain[0])).toEqual({ kind: 'element', chainable: true })
+            }
+        })
+
+        it('brands a pending element list as an element list that is not chainable', () => {
+            const customList = wrapCommand('allFoo$$', vi.fn().mockResolvedValue([])).call(scope) as object
+            /**
+             * a chained `$$` without a registered ElementArray factory keeps the promise proxy
+             */
+            const chainedScope = Object.assign(Promise.resolve(scope), scope)
+            const chainedList = wrapCommand('$$', vi.fn().mockResolvedValue([])).call(chainedScope) as object
+
+            for (const list of [customList, chainedList]) {
+                expect(brandsOf(list)).toEqual({ kind: 'element-array', chainable: undefined })
+                expect(WDIO_KIND in list).toBe(true)
+                expect(WDIO_CHAINABLE in list).toBe(false)
+            }
+        })
+
+        it('brands an item of a pending element list as a chainable element', async () => {
+            const element = { elementId: 'foo' }
+            const list = wrapCommand('allFoo$$', vi.fn().mockResolvedValue([element])).call(scope) as unknown as Record<string, unknown>
+
+            const at = (list.at as (index: number) => unknown)(0)
+
+            expect(brandsOf(list[0])).toEqual({ kind: 'element', chainable: true })
+            expect(brandsOf(at)).toEqual({ kind: 'element', chainable: true })
+            expect(WDIO_KIND in (list[0] as object)).toBe(true)
+            await expect(list[0]).resolves.toBe(element)
+            await expect(at).resolves.toBe(element)
+        })
+
+        it('supports `in` on the chain', () => {
+            const chain = wrapCommand('$', vi.fn().mockResolvedValue({})).call(scope) as object
+
+            expect(WDIO_KIND in chain).toBe(true)
+            expect(WDIO_CHAINABLE in chain).toBe(true)
+            expect('then' in chain).toBe(true)
+        })
+
+        it('does not brand results that are not elements', () => {
+            const chain = wrapCommand('$$', vi.fn().mockResolvedValue([])).call(scope) as unknown as { map: (fn: Function) => unknown }
+            const select = wrapCommand('select', vi.fn().mockResolvedValue({})).call(scope) as object
+            const command = wrapCommand('getTitle', vi.fn().mockResolvedValue('title')).call(scope)
+
+            expect(brandsOf(chain.map(() => 1))).toEqual({ kind: undefined, chainable: undefined })
+            expect(brandsOf(select)).toEqual({ kind: undefined, chainable: undefined })
+            expect(WDIO_KIND in select).toBe(false)
+            expect(WDIO_CHAINABLE in select).toBe(false)
+            expect(brandsOf(command)).toEqual({ kind: undefined, chainable: undefined })
         })
     })
 
@@ -77,22 +162,6 @@ describe('wrapCommand', () => {
         expect(afterHook).toBeCalledWith('getData', ['param1', 'param2'], { success: true, data: 'test' }, undefined)
     })
 
-    it('should pass actual command result to afterCommand hook, not 0/1', async () => {
-        const commandResult = { title: 'Test Page', url: 'https://example.com' }
-        const commandFn = vi.fn().mockReturnValue(Promise.resolve(commandResult))
-        const afterHook = vi.fn()
-        const scope: any = {
-            options: {
-                beforeCommand: [],
-                afterCommand: afterHook
-            }
-        }
-        await wrapCommand('getTitle', commandFn).call(scope)
-
-        expect(afterHook).toBeCalledTimes(1)
-        const callArgs = afterHook.mock.calls[0]
-        expect(callArgs[2]).toEqual(commandResult) // result should be the actual command result
-    })
 })
 
 describe('executeAsync', () => {

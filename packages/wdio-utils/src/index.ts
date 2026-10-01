@@ -10,13 +10,16 @@ import {
     isFunctionAsync, transformCommandLogResult, sleep, isAppiumCapability,
     userImport, getBrowserObject, enableFileLogging,
 } from './utils.js'
-import { wrapCommand, executeHooksWithArgs, executeAsync } from './shim.js'
+import { wrapCommand, executeHooksWithArgs, executeAsync, chainElementPromise, ELEMENT_ARRAY_WRAP, registerElementArrayFactory, ELEMENT_ARRAY_COMMANDS } from './shim.js'
 import * as asyncIterators from './pIteration.js'
 import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
 import { getCurrentRunnable, setDebugAgentPause } from './test-framework/debugAgent.js'
 import { isBidi, capabilitiesEnvironmentDetector, sessionEnvironmentDetector } from './envDetector.js'
 import { UNICODE_CHARACTERS, HOOK_DEFINITION } from './constants.js'
 import { TimingTracker, type TimingMetrics, type TimingPhase } from './profiler.js'
+import {
+    WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements, type WdioKind
+} from './kind.js'
 
 export {
     startWebDriver,
@@ -42,6 +45,10 @@ export {
      * runner shim
      */
     wrapCommand,
+    chainElementPromise,
+    ELEMENT_ARRAY_WRAP,
+    ELEMENT_ARRAY_COMMANDS,
+    registerElementArrayFactory,
     executeAsync,
     wrapGlobalTestMethod,
     testFnWrapper,
@@ -67,5 +74,18 @@ export {
      */
     TimingTracker,
     type TimingMetrics,
-    type TimingPhase
+    type TimingPhase,
+
+    /**
+     * WebdriverIO object brand
+     */
+    WDIO_KIND,
+    WDIO_CHAINABLE,
+    WDIO_KINDS,
+    setWdioKind,
+    getWdioKind,
+    getLoadedWdioKind,
+    isLoadedElement,
+    isArrayOfElements,
+    type WdioKind
 }

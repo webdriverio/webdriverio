@@ -4,7 +4,7 @@ import { prettify as prettifyFn } from 'htmlfy'
 
 import { getBrowserObject } from '@wdio/utils'
 import { getShadowRootManager } from '../../session/shadowRoot.js'
-import { getContextManager } from '../../session/context.js'
+import { contextIdOf } from '../../session/browsingContext.js'
 import getHTMLScript from '../../scripts/getHTML.js'
 import getHTMLShadowScript from '../../scripts/getHTMLShadow.js'
 
@@ -115,8 +115,7 @@ export async function getHTML(
 
         const { load } = await import('cheerio')
         const shadowRootManager = getShadowRootManager(browser)
-        const contextManager = getContextManager(browser)
-        const context = await contextManager.getCurrentContext()
+        const context = await contextIdOf(this)
         const shadowRootElementPairs = await shadowRootManager.getShadowElementPairsByContextId(context, (this as WebdriverIO.Element).elementId)
 
         /**

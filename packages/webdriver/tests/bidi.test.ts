@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
 
 import '../src/node.js'
-import { BidiCore, parseBidiCommand } from '../src/bidi/core.js'
+import { BIDI_MASK, BidiCore, maskBidiCommand, parseBidiCommand } from '../src/bidi/core.js'
 import { environment } from '../src/environment.js'
 import '../src/browser.js'
 
@@ -53,6 +53,19 @@ const anonymousFn = `function anonymous(
 }`
 const otherFn = '(() => { ... }))()'
 
+/**
+ * Deliver a socket payload through the listener `BidiCore.connect` registers.
+ * That is the production path; there is no test-only response hook.
+ */
+function deliverBidiMessage (handler: BidiCore, data: Buffer) {
+    const registration = vi.mocked(handler.socket?.on)?.mock.calls.find(([event]) => event === 'message')
+    if (!registration) {
+        throw new Error('BidiCore did not register a socket "message" listener')
+    }
+    const listener = registration[1] as (payload: Buffer) => void
+    listener(data)
+}
+
 describe('BidiCore', () => {
     describe('can connect', () => {
         beforeAll(() => {
@@ -97,38 +110,26 @@ describe('BidiCore', () => {
         it('sends and waits for result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
-            cb.call(this as any)
-
-            vi.mocked(handler.socket?.on)?.mockClear()
             const promise = handler.send({ method: 'session.new', params: {} })
-            await new Promise((resolve) => setTimeout(resolve, 100))
 
-            handler.__handleResponse.call(this as any, Buffer.from('{somewrongmessage'))
-            handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
-            const result = await promise
-            expect(result).toEqual({ id: 1, result: 'foobar' })
+            deliverBidiMessage(handler, Buffer.from('{somewrongmessage'))
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
+            await expect(promise).resolves.toEqual({ id: 1, result: 'foobar' })
         })
 
         it('has a proper error stack that contains the line where the command is called', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
-            cb.call(this as any)
-
             const promise = handler.send({ method: 'session.new', params: {} })
-            setTimeout(
-                () => handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({
-                    id: 1,
-                    error: 'foobar',
-                    message: 'I am an error!'
-                }))),
-                100
-            )
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({
+                id: 1,
+                error: 'foobar',
+                message: 'I am an error!'
+            })))
 
             const error = await promise.catch((err) => err)
             const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
-            expect(error.stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:119:/)
+            expect(error.stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:123:/)
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
         })
@@ -146,7 +147,7 @@ describe('BidiCore', () => {
             /**
              * a late response should not resolve the already rejected command
              */
-            handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
             vi.useRealTimers()
         })
 
@@ -157,7 +158,7 @@ describe('BidiCore', () => {
 
             const promise = handler.send({ method: 'session.new', params: {} })
             await vi.advanceTimersByTimeAsync(90000)
-            handler.__handleResponse.call(this as any, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
             await expect(promise).resolves.toEqual({ id: 1, result: 'foobar' })
             vi.useRealTimers()
         })
@@ -190,16 +191,61 @@ describe('BidiCore', () => {
         it('can send without getting an result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
-            const [, cb] = vi.mocked(handler.socket?.on)?.mock.calls[1] || [null, () => { }]
-            cb.call(this as any)
 
             expect(handler.sendAsync({ method: 'session.new', params: {} }))
                 .toEqual(1)
             expect(vi.mocked(handler.socket?.send)?.mock.calls).toMatchSnapshot()
         })
 
+        it('sends masked params unchanged and emits them masked', async () => {
+            const handler = new BidiCore('ws://foo/bar')
+            const emit = vi.fn()
+            handler.attachClient({ emit } as never)
+            await handler.connect()
+
+            const params = {
+                context: 'frame-1',
+                actions: [{
+                    id: 'keyboard',
+                    type: 'key' as const,
+                    actions: [{ type: 'keyDown' as const, value: 's' }, { type: 'keyUp' as const, value: 's' }]
+                }],
+                [BIDI_MASK]: true
+            }
+            handler.sendAsync({ method: 'input.performActions', params })
+
+            const sent = JSON.parse(vi.mocked(handler.socket?.send)!.mock.calls[0][0] as string)
+            expect(sent.params.actions[0].actions[0].value).toBe('s')
+            expect(emit).toHaveBeenCalledWith('bidiCommand', {
+                method: 'input.performActions',
+                params: {
+                    context: 'frame-1',
+                    actions: [{
+                        id: 'keyboard',
+                        type: 'key',
+                        actions: [{ type: 'keyDown', value: '**MASKED**' }, { type: 'keyUp', value: '**MASKED**' }]
+                    }],
+                    [BIDI_MASK]: true
+                }
+            })
+        })
+
         afterAll(() => {
             process.env.WDIO_UNIT_TESTS = '1'
+        })
+    })
+
+    describe('maskBidiCommand', () => {
+        it('returns the command as is without the mask symbol', () => {
+            const command = { method: 'session.status', params: {} } as const
+            expect(maskBidiCommand(command)).toBe(command)
+        })
+
+        it('hides all params of other masked commands', () => {
+            expect(maskBidiCommand({
+                method: 'script.callFunction',
+                params: { functionDeclaration: otherFn, [BIDI_MASK]: true } as never
+            })).toEqual({ method: 'script.callFunction', params: '**MASKED**' })
         })
     })
 

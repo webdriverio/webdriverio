@@ -82,7 +82,7 @@ End-to-end testing across browsers:
 Browser capabilities that need WebDriver BiDi (Chrome, Edge and Firefox; not Safari):
 
 - [Request Mocks and Spies](/docs/mocksandspies): intercept, modify or stub network requests with `browser.mock()`. See also the [Mock object](/docs/api/mock).
-- [Emulation](/docs/emulation): emulate geolocation, color scheme, user agent, `navigator.onLine`, the clock and device viewports with `browser.emulate()`.
+- [Emulation](/docs/emulation): emulate geolocation, media features, user agent, offline state, locale, timezone, screen and devices with `browser.emulate()`.
 
 Component and unit testing in a real browser:
 
@@ -121,7 +121,7 @@ The Browser Runner requires `@wdio/browser-runner`. The React preset also needs 
 
 ## Troubleshooting
 
-- Chrome fails to start in CI with "user data directory is already in use" or "DevToolsActivePort file doesn't exist": see [Headless & Xvfb](/docs/headless-and-xvfb).
+- Chrome fails to start in CI with "user data directory is already in use" or "DevToolsActivePort file doesn't exist": see [Headless & Display Servers](/docs/headless-and-display-servers#troubleshooting).
 - `browser.mock()` or `browser.emulate()` has no effect: the session is not using WebDriver BiDi. Check your browser (Safari has no BiDi support), your cloud vendor, and `wdio:enforceWebDriverClassic`.
 - Drivers or browsers can't be downloaded behind a proxy: see [Custom Driver Download Host](/docs/capabilities#custom-driver-download-host) and [Proxy Setup](/docs/proxy).
 - Flaky tests: see [Retry Flaky Tests](/docs/retry) and [Debugging](/docs/debugging).

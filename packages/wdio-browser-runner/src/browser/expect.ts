@@ -1,6 +1,7 @@
 import { expect, type MatcherContext, type ExpectationResult, type SyncExpectationResult } from 'expect'
 import { MESSAGE_TYPES, browserChannelMessage, isBrowserChannelMessage, parseRunnerToBrowserMessage, type Workers } from '@wdio/types'
 import { $ } from '@wdio/globals'
+import { getLoadedWdioKind, getWdioKind, isArrayOfElements, type WdioKind } from '@wdio/utils'
 import type { ChainablePromiseElement, ChainablePromiseArray } from 'webdriverio'
 
 import { getCID } from './utils.js'
@@ -83,25 +84,28 @@ function createMatcher (matcherName: string) {
             context = context.sample as WebdriverIO.Element[] | WebdriverIO.ElementArray | ChainablePromiseArray
         }
 
-        const isContextObject = typeof context === 'object'
+        /**
+         * Only await when the subject is a pending list or a chainable whose
+         * selector is an object. An unconditional await runs every assertion
+         * after a microtask, and Safari then reports the previous inline
+         * snapshot line.
+         */
+        if (shouldLoadAssertionContext(context)) {
+            context = await context
+        }
 
-        if (context && isContextObject) {
-            /**
-             * Check if context is a Chainable (ChainablePromiseElement or ChainablePromiseArray)
-             */
-            if ('then' in context && typeof (context as { selector?: string }).selector === 'object') {
-                expectRequest.element = await context
-            } else if ('selector' in context) {
-                /**
-                 * Check if context is an WebdriverIO.Element or WebdriverIO.ElementArray
-                 */
-                expectRequest.element = context
-            } if (Array.isArray(context) && context.every((el) => 'selector' in el)) {
-                /**
-                 * Check if context is an array of elements (WebdriverIO.Element[]) aka filtered ElementArray
-                 */
-                expectRequest.element = context
-            }
+        const isContextObject = typeof context === 'object'
+        const loadedKind = getLoadedWdioKind(context)
+
+        /**
+         * A loaded WebdriverIO.Element or WebdriverIO.ElementArray, or an array of
+         * elements (WebdriverIO.Element[]) aka filtered ElementArray
+         */
+        if (loadedKind === 'element' || loadedKind === 'element-array') {
+            expectRequest.element = context
+            expectRequest.elementKind = loadedKind
+        } else if (isArrayOfElements(context)) {
+            expectRequest.element = context
         }
 
         /**
@@ -109,10 +113,11 @@ function createMatcher (matcherName: string) {
          */
         if (context instanceof Element) {
             expectRequest.element = await $(context as unknown as HTMLElement)
-        } else if (context && isContextObject && !('sessionId' in context)) {
+            expectRequest.elementKind = 'element'
+        } else if (context && isContextObject && loadedKind !== 'browser' && loadedKind !== 'element') {
             /**
              * check if context is an object or promise and resolve it
-             * but not pass through the browser object
+             * but not pass through the browser object or a loaded element
              */
             expectRequest.context = context
             if ('then' in context) {
@@ -156,11 +161,7 @@ function createMatcher (matcherName: string) {
         }
 
         import.meta.hot.send(WDIO_EVENT_NAME, browserChannelMessage(MESSAGE_TYPES.expectRequestMessage, expectRequest))
-        const contextString = isContextObject
-            ? 'elementId' in context
-                ? 'WebdriverIO.Element'
-                : 'WebdriverIO.Browser'
-            : context
+        const contextString = contextNameOf(context)
 
         return new Promise<SyncExpectationResult>((resolve, reject) => {
             const commandTimeout = setTimeout(
@@ -221,6 +222,43 @@ import.meta.hot?.on(WDIO_EVENT_NAME, (data: unknown) => {
         message: () => message.value.message
     })
 })
+
+/**
+ * A pending element list is thenable and already exposes `selector`.
+ * Load it before the `in` checks. Otherwise the unresolved list is sent
+ * and the runner refetches an empty collection. A chainable whose
+ * selector is an object (a function or element list) is loaded too.
+ * Plain values stay synchronous so inline snapshots keep the caller's line.
+ */
+export function shouldLoadAssertionContext (context: unknown): boolean {
+    if (!context || typeof context !== 'object') {
+        return false
+    }
+    const candidate = context as { then?: unknown, selector?: unknown }
+    const pendingList = Array.isArray(candidate) && typeof candidate.then === 'function'
+    const chainableObjectSelector = 'then' in candidate && typeof candidate.selector === 'object'
+    return pendingList || chainableObjectSelector
+}
+
+const CONTEXT_NAMES: Record<WdioKind, string> = {
+    browser: 'WebdriverIO.Browser',
+    element: 'WebdriverIO.Element',
+    'element-array': 'WebdriverIO.ElementArray'
+}
+
+/**
+ * The name of the assertion subject in the timeout message
+ */
+export function contextNameOf (context: unknown): unknown {
+    if (typeof context !== 'object') {
+        return context
+    }
+    const kind = getWdioKind(context)
+    if (!kind && isArrayOfElements(context)) {
+        return 'WebdriverIO.Element[]'
+    }
+    return CONTEXT_NAMES[kind ?? 'browser']
+}
 
 function serializeAsymmetricMatchers(arg: unknown): unknown {
     if (!arg || typeof arg !== 'object') {

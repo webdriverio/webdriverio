@@ -1,6 +1,8 @@
 import type { local, remote } from 'webdriver'
+import { getBrowserObject } from '@wdio/utils'
 
 import { deserialize } from '../../utils/bidi/index.js'
+import { assertTopLevel, isBrowsingContext } from '../../session/browsingContext.js'
 
 /**
  * Adds a script which would be evaluated in one of the following scenarios:
@@ -95,7 +97,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
     arg5: Arg5
 ): Promise<InitScript<Payload>>
 export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     script: string | InitScriptFunction<Payload> | InitScriptFunctionArg1<Payload, Arg1> | InitScriptFunctionArg2<Payload, Arg1, Arg2> | InitScriptFunctionArg3<Payload, Arg1, Arg2, Arg3> | InitScriptFunctionArg4<Payload, Arg1, Arg2, Arg3, Arg4> | InitScriptFunctionArg5<Payload, Arg1, Arg2, Arg3, Arg4, Arg5>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...args: any
@@ -107,19 +109,24 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
         throw new Error('The `addInitScript` command requires a function as first parameter, but got: ' + typeof script)
     }
 
-    if (!this.isBidi) {
+    if (isBrowsingContext(this)) {
+        assertTopLevel(this, 'addInitScript')
+    }
+
+    const browser = getBrowserObject(this)
+    if (!browser.isBidi) {
         throw new Error('This command is only supported when automating browser using WebDriver Bidi protocol')
     }
 
     const serializedParameters = (args || []).map((arg: unknown) => JSON.stringify(arg))
-    const context = await this.getWindowHandle()
+    const context = isBrowsingContext(this) ? this.contextId : await browser.getWindowHandle()
     const src = 'return ' + script.toString()
     const fn = `(emit) => {
         const closure = new Function(${JSON.stringify(src)})
         return closure()(${serializedParameters.length ? `${serializedParameters.join(', ')}, emit` : 'emit'})
     }`
     const channel = btoa(fn.toString())
-    const result = await this.scriptAddPreloadScript({
+    const result = await browser.scriptAddPreloadScript({
         functionDeclaration: fn,
         arguments: [{
             type: 'channel',
@@ -128,7 +135,7 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
         contexts: [context]
     })
 
-    await this.sessionSubscribe({
+    await browser.sessionSubscribe({
         events: ['script.message']
     })
     const eventHandler: Map<string, EventHandlerFunction<Payload>[]> = new Map()
@@ -138,11 +145,11 @@ export async function addInitScript<Payload, Arg1, Arg2, Arg3, Arg4, Arg5> (
             return handler.forEach((fn) => fn(deserialize(msg.data as remote.ScriptLocalValue)))
         }
     }
-    this.on('script.message', messageHandler)
+    browser.on('script.message', messageHandler)
     const resetFn = (() => {
         eventHandler.clear()
-        this.off('script.message', messageHandler)
-        return this.scriptRemovePreloadScript({ script: result.script })
+        browser.off('script.message', messageHandler)
+        return browser.scriptRemovePreloadScript({ script: result.script })
     }) as unknown as () => Promise<void>
 
     const returnVal: InitScript<Payload> = {

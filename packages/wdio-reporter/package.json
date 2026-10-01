@@ -35,10 +35,9 @@
       "require": "./build/index.cjs"
     }
   },
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "dependencies": {
     "@types/node": "^22.20.4",
-    "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "diff": "^8.0.4",
     "object-inspect": "^1.12.0"
@@ -46,7 +45,6 @@
   "devDependencies": {
     "@types/diff": "^8.0.0",
     "@types/object-inspect": "^1.8.1",
-    "@types/supports-color": "^8.1.1",
     "@types/tmp": "^0.2.3",
     "tmp": "^0.2.7"
   }

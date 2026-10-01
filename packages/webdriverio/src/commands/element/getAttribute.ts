@@ -1,3 +1,5 @@
+import { foreignContextId } from '../../session/browsingContext.js'
+
 /**
  *
  * Get an attribute from a DOM-element based on the attribute name.
@@ -24,9 +26,13 @@
  * @type property
  *
  */
-export function getAttribute (
+export async function getAttribute (
     this: WebdriverIO.Element,
     attributeName: string
 ) {
+    if (await foreignContextId(this)) {
+        const value = await this.execute((el: Element, name: string) => el.getAttribute(name), attributeName)
+        return typeof value === 'string' ? value : null
+    }
     return this.getElementAttribute(this.elementId, attributeName)
 }

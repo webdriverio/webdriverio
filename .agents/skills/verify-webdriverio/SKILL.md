@@ -6,6 +6,8 @@ description: >-
   driver), the runner benchmark, or typings. Use after a feature or bug fix,
   before claiming the work works, and when verifying testrunner, browser,
   session, performance, or public type behavior. A unit test is not this proof.
+metadata:
+  internal: true
 ---
 
 # Verify WebdriverIO

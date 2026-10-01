@@ -12,16 +12,6 @@ export interface XPathConversionResult {
 }
 
 /**
- * Condition extracted from XPath expression
- */
-export interface XPathCondition {
-    attribute: string
-    operator: string
-    value: string
-    logicalOp?: string
-}
-
-/**
  * Options for XPath conversion
  */
 export interface XPathConversionOptions {
@@ -47,26 +37,4 @@ export interface PredicateCondition {
     attr: string
     op: string
     value: string
-}
-
-/**
- * Represents a single segment of a parsed XPath expression
- */
-export interface XPathSegment {
-    /**
-     * The axis used: '//' for descendant, '/' for child
-     **/
-    axis: '//' | '/'
-    /**
-     * The element type or '*' for wildcard
-     **/
-    element: string
-    /**
-     * Conditions/predicates for this segment
-     **/
-    conditions: XPathCondition[]
-    /**
-     * Positional index if specified (e.g., [1])
-     **/
-    index?: number
 }

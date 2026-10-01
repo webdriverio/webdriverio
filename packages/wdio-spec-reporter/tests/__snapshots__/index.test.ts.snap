@@ -1,12 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`SpecReporter > getHeaderDisplay > should list multiple specs 1`] = `
-[
-  "Running: loremipsum (v50) on Windows 10",
-  "Session ID: foobar",
-]
-`;
-
 exports[`SpecReporter > getHeaderDisplay > should validate header output 1`] = `
 [
   "Running: loremipsum (v50) on Windows 10",
@@ -20,7 +13,7 @@ exports[`SpecReporter > getHeaderDisplay > should validate header output in mult
 ]
 `;
 
-exports[`SpecReporter > getResultDisplay > should not print if argument is a single line doc string 1`] = `
+exports[`SpecReporter > getResultDisplay > prints a single line doc string 1`] = `
 [
   "» foo/bar/loo.e2e.js",
   "Foo test",
@@ -287,8 +280,6 @@ exports[`SpecReporter > printReport > should print a report even if session coul
   ],
 ]
 `;
-
-exports[`SpecReporter > printReport > with disabled sharable Sauce report links > should print the default Sauce Labs job details page link 1`] = `[]`;
 
 exports[`SpecReporter > printReport > with normal setup > should print jobs of all instance when run with multi-remote 1`] = `
 [
@@ -603,10 +594,6 @@ exports[`SpecReporter > printReport > with normal setup > should print the repor
   ],
 ]
 `;
-
-exports[`SpecReporter > showPreface > false 1`] = `[]`;
-
-exports[`SpecReporter > showPreface > true 1`] = `[]`;
 
 exports[`SpecReporter > suite retry > should group retried test suites 1`] = `
 [

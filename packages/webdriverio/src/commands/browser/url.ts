@@ -1,12 +1,8 @@
 import { validateUrl } from '../../utils/index.js'
-import { getNetworkManager } from '../../session/networkManager.js'
 import { getContextManager } from '../../session/context.js'
-import type { InitScript } from './addInitScript.js'
-
-type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
-
-const DEFAULT_NETWORK_IDLE_TIMEOUT = 5000
-const DEFAULT_WAIT_STATE = 'complete'
+import { contextIdValue } from '../../session/browsingContext.js'
+import { getBrowsingContext } from '../../browsingContext.js'
+import { navigateInContext, type UrlCommandOptions } from './navigateInContext.js'
 
 /**
  *
@@ -16,8 +12,12 @@ const DEFAULT_WAIT_STATE = 'complete'
  * if the url contains a hash, the browser will not trigger a new navigation and the user
  * has to [refresh](/docs/api/webdriver#refresh) the page to trigger one.
  *
- * The command returns an `WebdriverIO.Request` object that contains information about the
- * request and response data of the page load:
+ * In a WebDriver BiDi session the command returns the browsing context it
+ * navigated. That is the session's initial top-level context: a later
+ * `browser.url()` navigates the same context, and load metadata is
+ * `context.request`. In a Classic session the command still returns `void`.
+ *
+ * `context.request` contains information about the request and response data of the page load:
  *
  * ```ts
  * interface WebdriverIO.Request {
@@ -90,11 +90,10 @@ const DEFAULT_WAIT_STATE = 'complete'
  * <example>
     :url.js
     // navigate to a new URL
-    const request = await browser.url('https://webdriver.io');
-    // log url
-    console.log(request.url); // outputs: "https://webdriver.io"
-    console.log(request.response?.status); // outputs: 200
-    console.log(request.response?.headers); // outputs: { 'content-type': 'text/html; charset=UTF-8' }
+    const context = await browser.url('https://webdriver.io');
+    console.log(context.url); // outputs: "https://webdriver.io"
+    console.log(context.request?.response?.status); // outputs: 200
+    console.log(context.request?.response?.headers); // outputs: { 'content-type': 'text/html; charset=UTF-8' }
 
     :baseUrlResolutions.js
     // With a base URL of http://example.com/site, the following url parameters resolve as such:
@@ -149,7 +148,7 @@ const DEFAULT_WAIT_STATE = 'complete'
  * mock the environment, e.g. overwrite Web APIs that your application uses.
  * @param {`{user: string, pass: string}`=} options.auth  basic authentication credentials
  * @param {`Record<string, string>`=} options.headers  headers to be sent with the request
- * @returns {WebdriverIO.Request} a request object of the page load with information about the request and response data
+ * @returns {WebdriverIO.BrowsingContext|void} the browsing context in a BiDi session, or `void` in a Classic session
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get
  * @see  https://nodejs.org/api/url.html#url_url_resolve_from_to
@@ -160,7 +159,7 @@ export async function url (
     this: WebdriverIO.Browser,
     path: string,
     options: UrlCommandOptions = {}
-): Promise<WebdriverIO.Request | void> {
+): Promise<WebdriverIO.BrowsingContext | void> {
     if (typeof path !== 'string') {
         throw new Error('Parameter for "url" command needs to be type of string')
     }
@@ -170,142 +169,13 @@ export async function url (
     }
 
     if (this.isBidi && path.startsWith('http')) {
-        let resetPreloadScript: InitScript | undefined
-        const contextManager = getContextManager(this)
-        const context = await contextManager.getCurrentContext()
-
-        /**
-         * set up preload script if `onBeforeLoad` option is provided
-         */
-        if (options.onBeforeLoad) {
-            if (typeof options.onBeforeLoad !== 'function') {
-                throw new Error(`Option "onBeforeLoad" must be a function, but received: ${typeof options.onBeforeLoad}`)
-            }
-
-            resetPreloadScript = await this.addInitScript(options.onBeforeLoad as (() => void))
-        }
-
-        if (options.auth) {
-            options.headers = {
-                ...(options.headers || {}),
-                Authorization: `Basic ${btoa(`${options.auth.user}:${options.auth.pass}`)}`
-            }
-        }
-
-        let navigationError: unknown
-        let request: WebdriverIO.Request | undefined = undefined
-        try {
-            let mock: WebdriverIO.Mock | undefined
-            if (options.headers) {
-                mock = await this.mock(path)
-                mock.requestOnce({ headers: options.headers })
-            }
-
-            /**
-             * WebDriver Classic allowed to provide a `pageLoadStrategy` capability.
-             * To ensure backwards combatibility, we need to map the `pageLoadStrategy`
-             * to the WebDriver Bidi spec.
-             *
-             * see https://www.w3.org/TR/webdriver2/#navigation
-             */
-            const classicPageLoadStrategy = this.capabilities.pageLoadStrategy === 'none'
-                ? 'none'
-                : this.capabilities.pageLoadStrategy === 'normal'
-                    ? 'complete'
-                    : this.capabilities.pageLoadStrategy === 'eager'
-                        ? 'interactive'
-                        : undefined
-
-            const wait = options.wait === 'networkIdle'
-                ? 'complete'
-                : options.wait || classicPageLoadStrategy || DEFAULT_WAIT_STATE
-            const navigation = await this.browsingContextNavigate({
-                context,
-                url: path,
-                wait
-            }).catch((err) => {
-                /**
-                 * It seems that WebDriver Bidi runs into issue with concurrent navigation.
-                 * @see https://github.com/w3c/webdriver-bidi/issues/878
-                 */
-                if (
-                    // Chrome error message
-                    err.message.includes('navigation canceled by concurrent navigation') ||
-                    // Firefox error message
-                    err.message.includes('failed with error: unknown error') ||
-                    // Race condition where the context is destroyed before navigation
-                    err.message.includes('no such frame')
-                ) {
-                    return this.navigateTo(validateUrl(path))
-                }
-
-                throw err
-            })
-
-            if (mock) {
-                await mock.restore()
-            }
-
-            /**
-             * Classic fallback (`navigateTo`) and some BiDi navigations (e.g. same-document)
-             * do not provide a navigation id. Skip network tracking in those cases.
-             */
-            const navigationId = navigation?.navigation
-            if (!navigationId) {
-                return
-            }
-
-            const network = getNetworkManager(this)
-
-            if (options.wait === 'networkIdle') {
-                const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
-                await this.waitUntil(async () => {
-                    return network.getPendingRequests(navigationId).length === 0
-                }, {
-                    timeout,
-                    timeoutMsg: () => {
-                        const pendingRequests = network.getPendingRequests(navigationId)
-                        return `Navigation to '${path}' timed out after ${timeout}ms with ${pendingRequests.length} (${pendingRequests.map((r) => r.url).join(', ')}) pending requests`
-                    }
-                })
-            }
-
-            /**
-             * wait until we have a request object
-             */
-            request = await this.waitUntil(
-                () => network.getRequestResponseData(navigationId),
-                /**
-                 * set a short interval to immediately return once the first request payload comes in
-                 */
-                {
-                    interval: 1,
-                    timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
-                }
-            )
-        } catch (err) {
-            navigationError = err
-        } finally {
-            /**
-             * Always clear the preload script, including fallback and error paths.
-             * If cleanup also fails, keep the original navigation error.
-             */
-            if (resetPreloadScript) {
-                try {
-                    await resetPreloadScript.remove()
-                } catch (cleanupError) {
-                    if (!navigationError) {
-                        navigationError = cleanupError
-                    }
-                }
-            }
-        }
-
-        if (navigationError) {
-            throw navigationError
-        }
-
-        return request
+        const context = await getContextManager(this).getCurrentContext()
+        const request = await navigateInContext(this, context, path, options)
+        return getBrowsingContext(this, contextIdValue(context), {
+            isFrame: false,
+            url: path,
+            ...(request ? { request } : {})
+        })
     }
 
     if (Object.keys(options).length > 0) {
@@ -313,50 +183,4 @@ export async function url (
     }
 
     await this.navigateTo(validateUrl(path))
-}
-
-interface UrlCommandOptions {
-    /**
-     * The desired state the requested resource should be in before finishing the command.
-     * It supports the following states:
-     *
-     *  - `none`: no wait after the page request is made and the response is received
-     *  - `interactive`: wait until the page is interactive
-     *  - `complete`: wait until the DOM tree of the page is fully loaded
-     *  - `networkIdle`: wait until there are no pending network requests
-     *
-     * @default 'complete'
-     */
-    wait?: WaitState
-    /**
-     * Headers to be sent with the request.
-     * @default {}
-     */
-    headers?: Record<string, string>
-    /**
-     * Basic authentication credentials
-     * Note: this will overwrite the existing `Authorization` header if provided in the `headers` option
-     */
-    auth?: {
-        user: string
-        pass: string
-    }
-    /**
-     * If set to a number, the command will wait for the specified amount of milliseconds for the page to load
-     * all responses before returning.
-     *
-     * Note: for this to have an impact, it requires the `wait` option to be set to `networkIdle`
-     *
-     * @default 5000
-     */
-    timeout?: number
-    /**
-     * A function that is being called before your page has loaded all of its resources. It allows you to easily
-     * mock the environment, e.g. overwrite Web APIs that your application uses.
-     *
-     * Note: the provided function is being serialized and executed in the browser context. You can not pass in variables
-     * from the Node.js context. Furthermore changes to the environment only apply for this specific page load.
-     * Checkout `browser.addPreloadScript` for a more versatile way to mock the environment.
-     */
-    onBeforeLoad?: () => unknown
 }

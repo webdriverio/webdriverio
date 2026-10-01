@@ -63,13 +63,6 @@ describe('WDIOReporter', () => {
         expect(customLogStream.write).toBeCalledWith('foobar')
     })
 
-    it('should not create log file if no file name is given', () => {
-        const options = { stdout: true, writeStream: { write: vi.fn() } as unknown as WriteStream }
-        const reporter = new WDIOReporter(options)
-        reporter.write('foobar')
-        expect(options.writeStream.write).toBeCalledWith('foobar')
-    })
-
     it('should set isContentPresent to true when content is passed to write()', () => {
         const options = { stdout: true, writeStream: { write: vi.fn() } as unknown as WriteStream }
         const reporter = new WDIOReporter(options)

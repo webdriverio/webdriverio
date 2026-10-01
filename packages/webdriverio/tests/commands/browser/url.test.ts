@@ -144,7 +144,9 @@ describe('url', () => {
                 url: 'http://google.com/',
                 wait: 'complete'
             })
-            expect(req).toEqual({ some: 'request' })
+            expect(req?.request).toEqual({ some: 'request' })
+            expect(req?.contextId).toBe('123')
+            expect(req?.isFrame).toBe(false)
         })
 
         it('allows to define different page load strategy', async () => {
@@ -219,8 +221,9 @@ describe('url', () => {
                 navigation: null
             })) as any)
 
-            await expect(browser.url('http://google.com', { wait: 'networkIdle' }))
-                .resolves.toBeUndefined()
+            const page = await browser.url('http://google.com', { wait: 'networkIdle' })
+            expect(page?.request).toBeUndefined()
+            expect(page?.contextId).toBe('123')
             expect(networkManager.getPendingRequests).not.toHaveBeenCalled()
             expect(networkManager.getRequestResponseData).not.toHaveBeenCalled()
         })
@@ -232,11 +235,12 @@ describe('url', () => {
                 throw new Error('navigation canceled by concurrent navigation')
             }) as any)
 
-            await expect(browser.url('http://google.com', {
+            const page = await browser.url('http://google.com', {
                 onBeforeLoad: () => {
                     console.log('onBeforeLoad')
                 }
-            })).resolves.toBeUndefined()
+            })
+            expect(page?.request).toBeUndefined()
 
             expect(addInitScript).toBeCalledTimes(1)
             expect(remove).toHaveBeenCalledTimes(1)

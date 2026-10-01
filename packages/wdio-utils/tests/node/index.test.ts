@@ -10,7 +10,7 @@ import waitPort from 'wait-port'
 import { start as startSafaridriver } from 'safaridriver'
 import { start as startGeckodriver } from 'geckodriver'
 import { start as startEdgedriver, download as downloadEdgedriver } from 'edgedriver'
-import { install, canDownload } from '@puppeteer/browsers'
+import { install, canDownload, resolveBuildId } from '@puppeteer/browsers'
 
 import { startWebDriver } from '../../src/node/index.js'
 import { DEFAULT_EDGEDRIVER_CDN_URL, setupChromedriver, setupEdgedriver } from '../../src/node/utils.js'
@@ -99,6 +99,7 @@ describe('startWebDriver', () => {
         delete process.env.WDIO_SKIP_DRIVER_SETUP
         delete process.env.EDGEDRIVER_CDNURL
         delete process.env.CHROMEDRIVER_CDNURL
+        vi.stubEnv('WAYLAND_DISPLAY', undefined)
         vi.mocked(canDownload).mockClear()
         /**
          * reset rather than clear so that a test which makes the install fail can
@@ -106,6 +107,8 @@ describe('startWebDriver', () => {
          */
         vi.mocked(install).mockReset()
         vi.mocked(install).mockResolvedValue({} as never)
+        vi.mocked(resolveBuildId).mockReset()
+        vi.mocked(resolveBuildId).mockReturnValue('115.0.5790.171')
         vi.mocked(logMock.error).mockClear()
         vi.mocked(logMock.warn).mockClear()
         vi.mocked(fsp.access).mockClear()
@@ -118,6 +121,7 @@ describe('startWebDriver', () => {
     })
 
     afterEach(() => {
+        vi.unstubAllEnvs()
         process.env.WDIO_SKIP_DRIVER_SETUP = WDIO_SKIP_DRIVER_SETUP
         if (EDGEDRIVER_CDNURL) {
             process.env.EDGEDRIVER_CDNURL = EDGEDRIVER_CDNURL
@@ -322,6 +326,11 @@ describe('startWebDriver', () => {
     })
 
     it('still downloads a different requested Chromedriver version', async () => {
+        /**
+         * Sharing is keyed on the resolved build, not the raw request. These two
+         * versions resolve to different builds, so each one is installed.
+         */
+        vi.mocked(resolveBuildId).mockImplementation((_browser, _platform, version) => version)
         await Promise.all([
             setupChromedriver('/foo/bar/cache', '115.0.5790.171'),
             setupChromedriver('/foo/bar/cache', '120.0.0.0')
@@ -635,7 +644,7 @@ describe('startWebDriver', () => {
         expect(waitPort).toBeCalledWith(expect.objectContaining({ timeout: 10 * 1000 }))
     })
 
-    it('should find last known good version for chromedriver', async () => {
+    it('should install Chromedriver for the resolved build id', async () => {
         const options = {
             capabilities: {
                 browserName: 'chrome',
@@ -792,6 +801,49 @@ describe('startWebDriver', () => {
             )
         )
     })
+
+    describe('with Wayland but no X server', () => {
+        const originalPlatform = process.platform
+
+        beforeEach(() => {
+            Object.defineProperty(process, 'platform', { value: 'linux', writable: true, configurable: true })
+            vi.stubEnv('WAYLAND_DISPLAY', 'wayland-0')
+            vi.stubEnv('DISPLAY', undefined)
+        })
+
+        afterEach(() => {
+            Object.defineProperty(process, 'platform', { value: originalPlatform, writable: true, configurable: true })
+        })
+
+        const browserArgs = async (browserName: 'chrome' | 'MicrosoftEdge', args?: string[]) => {
+            const key = browserName === 'chrome' ? 'goog:chromeOptions' : 'ms:edgeOptions'
+            const options: any = { capabilities: { browserName, [key]: args ? { args } : {} } }
+            await startWebDriver(options)
+            return options.capabilities[key].args
+        }
+
+        it.each(['chrome', 'MicrosoftEdge'] as const)('adds --ozone-platform=wayland for %s', async (browserName) => {
+            expect(await browserArgs(browserName)).toEqual(['--ozone-platform=wayland'])
+        })
+
+        it('adds it after a platform hint, which falls back to X11 without a Wayland session', async () => {
+            expect(await browserArgs('chrome', ['--ozone-platform-hint=auto']))
+                .toEqual(['--ozone-platform-hint=auto', '--ozone-platform=wayland'])
+        })
+
+        it.each([
+            ['an X server is available', 'DISPLAY', ':99'],
+            ['there is no Wayland display', 'WAYLAND_DISPLAY', undefined],
+        ])('leaves the args alone when %s', async (_, name, value) => {
+            vi.stubEnv(name, value)
+            expect(await browserArgs('chrome')).toBeUndefined()
+        })
+
+        it.each(['--ozone-platform=x11', 'ozone-platform=x11', '--headless=new', 'headless'])('keeps the user\'s %s', async (arg) => {
+            expect(await browserArgs('chrome', [arg])).toEqual([arg])
+        })
+    })
+
     it('should add a unique user-data-dir on Windows for Chrome workers', async () => {
         // Change the mocked OS to Windows
         // @ts-ignore

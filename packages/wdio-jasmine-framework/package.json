@@ -13,7 +13,7 @@
       "types": "./build/index.d.ts"
     }
   },
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "engines": {
     "node": ">=22.19.0"
   },
@@ -44,12 +44,12 @@
   },
   "devDependencies": {
     "@wdio/runner": "workspace:*",
-    "expect-webdriverio": "^6.1.0",
+    "expect-webdriverio": "^8.0.0-alpha.1",
     "webdriverio": "workspace:*"
   },
   "peerDependencies": {
     "@wdio/runner": "^9.31.2",
-    "webdriverio": "^9.28.0"
+    "webdriverio": "^10.0.0-alpha.0"
   },
   "peerDependenciesMeta": {
     "@wdio/runner": {

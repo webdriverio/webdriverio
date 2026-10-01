@@ -140,3 +140,4 @@ After a run, traces are written to `test-results/`. Point your agent at the fold
 - [WebdriverIO MCP](/docs/mcp) - all tools the MCP server provides
 - [DevTools](/docs/devtools) - live mode and trace mode
 - [Best Practices](/docs/bestpractices) - what good WebdriverIO tests look like
+- [From v9 to v10](/docs/v10-migration#migrate-with-a-coding-agent) - the migration skill for an existing suite

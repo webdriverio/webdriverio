@@ -186,6 +186,12 @@ export interface ExpectRequestEvent {
     scope: any
     args: unknown[]
     element?: any | any[]
+    /**
+     * The kind of `element`, or `undefined` for a copy of an element list
+     * (`WebdriverIO.Element[]`). JSON drops the properties of a list, so without
+     * it an element list arrives as a plain array.
+     */
+    elementKind?: 'element' | 'element-array'
     context?: unknown
     /**
      * propagate error stack for inline snapshots
@@ -281,24 +287,6 @@ export function isBrowserChannelMessage<T extends BrowserChannelType> (
     type: T
 ): message is BrowserChannelMessage<T> {
     return isRecord(message) && message.type === type && isRecord(message.value)
-}
-
-export function isBrowserRequestMessage (
-    message: AnyBrowserToRunnerMessage
-): message is BrowserChannelMessage<BrowserRequestType> {
-    switch (message.type) {
-    case MESSAGE_TYPES.commandRequestMessage:
-    case MESSAGE_TYPES.hookTriggerMessage:
-    case MESSAGE_TYPES.expectRequestMessage:
-    case MESSAGE_TYPES.expectMatchersRequest:
-        return true
-    case MESSAGE_TYPES.consoleMessage:
-    case MESSAGE_TYPES.browserTestResult:
-    case MESSAGE_TYPES.initiateBrowserStateRequest:
-        return false
-    default:
-        return assertNever(message)
-    }
 }
 
 export function isWorkerProcessEvent<T extends WorkerProcessEventType> (

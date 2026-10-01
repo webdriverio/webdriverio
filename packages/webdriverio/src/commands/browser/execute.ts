@@ -5,7 +5,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
-import { getContextManager } from '../../session/context.js'
+import { contextIdOf, heldBrowsingContext } from '../../session/browsingContext.js'
 import { polyfillFn } from '../../scripts/polyfill.js'
 import type { TransformElement, TransformReturn } from '../../types.js'
 
@@ -58,7 +58,7 @@ import type { TransformElement, TransformReturn } from '../../types.js'
  *
  */
 export async function execute<ReturnValue, InnerArguments extends unknown[]> (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.Element | WebdriverIO.BrowsingContext,
     script: string | ((...innerArgs: TransformElement<InnerArguments>) => ReturnValue | Promise<ReturnValue>),
     ...args: InnerArguments
 ): Promise<TransformReturn<Awaited<ReturnValue>>> {
@@ -69,10 +69,14 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
         throw new Error('number or type of arguments don\'t agree with execute protocol command')
     }
 
-    if (this.isBidi && !this.isMultiRemote) {
-        const browser = getBrowserObject(this)
-        const contextManager = getContextManager(browser)
-        const context = await contextManager.getCurrentContext()
+    const browser = getBrowserObject(this as WebdriverIO.Element)
+    const multiRemote = 'isMultiRemote' in this && this.isMultiRemote
+    if (this.isBidi && !multiRemote) {
+        const held = heldBrowsingContext(this) ?? args.reduce<WebdriverIO.BrowsingContext | undefined>(
+            (found, arg) => found ?? heldBrowsingContext(arg),
+            undefined
+        )
+        const context = held ? held.contextId : await contextIdOf(this)
         const functionDeclaration = createBidiFunctionDeclaration(script)
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
@@ -121,7 +125,7 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
 
     const scriptArgs = verifyArgsAndStripIfElement(args) as (string | number | boolean)[]
     if (isAsyncFn) {
-        const result = await this.executeAsyncScript(script, scriptArgs)
+        const result = await browser.executeAsyncScript(script, scriptArgs)
         if (isScriptError(result)) {
             const error = new Error(result.message)
             if (result.name) {
@@ -135,7 +139,7 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
         return result as TransformReturn<Awaited<ReturnValue>>
     }
 
-    return this.executeScript(script, scriptArgs)
+    return browser.executeScript(script, scriptArgs)
 }
 
 function isScriptError (result: unknown): result is { __wdioError: true, message: string, name?: string, stack?: string } {

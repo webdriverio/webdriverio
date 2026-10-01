@@ -29,7 +29,7 @@
       "import": "./build/index.js"
     }
   },
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "dependencies": {
     "@types/node": "^22.20.4",
     "@wdio/config": "workspace:*",
@@ -44,8 +44,8 @@
     "webdriverio": "workspace:*"
   },
   "peerDependencies": {
-    "expect-webdriverio": "^6.1.0",
-    "webdriverio": "^9.28.0"
+    "expect-webdriverio": "^8.0.0-alpha.1",
+    "webdriverio": "^10.0.0-alpha.0"
   },
   "peerDependenciesMeta": {
     "expect-webdriverio": {

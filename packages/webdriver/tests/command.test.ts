@@ -7,6 +7,7 @@ import type { CommandEndpoint } from '@wdio/protocols'
 import type { Options } from '@wdio/types'
 
 import '../src/browser.js'
+import { environment } from '../src/environment.js'
 // @ts-expect-error mock feature
 import { WebDriverRequest as RequestMock, thenMock, catchMock, makeRequestMock, getCapturedRequestHandler } from '../src/request/request.js'
 import commandWrapper from '../src/command.js'
@@ -523,7 +524,7 @@ describe('command wrapper result log', () => {
     const clearLoggerSpy = vi.spyOn(logger, 'clearLogger')
 
     beforeEach(() => {
-        delete process.env.WDIO_WORKER_ID
+        delete environment.value.variables.WDIO_WORKER_ID
         vi.clearAllMocks()
     })
 
@@ -541,12 +542,12 @@ describe('command wrapper result log', () => {
         })
     }
 
-    it('should be no result in log if there is value in response', async () => {
-        process.env.WDIO_WORKER_ID = '0-0'
+    it('does not clear the logger when deleteSession runs inside a worker', async () => {
+        environment.value.variables.WDIO_WORKER_ID = '0-0'
         const resultFunction = await getRequestCallback(
             deleteSessionCmd.method,
-            takeScreenshotCmd.path,
-            takeScreenshotCmd.endpoint
+            deleteSessionCmd.path,
+            deleteSessionCmd.endpoint
         ) as unknown as mockResponse
         resultFunction({})
         expect(vi.mocked(log.info).mock.calls).toHaveLength(0)

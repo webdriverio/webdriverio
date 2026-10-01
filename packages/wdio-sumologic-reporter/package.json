@@ -30,7 +30,7 @@
       "import": "./build/index.js"
     }
   },
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "dependencies": {
     "@wdio/logger": "workspace:*",
     "@wdio/reporter": "workspace:*",

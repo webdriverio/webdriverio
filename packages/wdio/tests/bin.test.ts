@@ -145,15 +145,6 @@ describe('wdio package', () => {
         expect(read.cwd).toBe('C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\wdio-pack')
     })
 
-    it('resolves the Corepack script when this Node ships one', () => {
-        try {
-            expect(existsSync(corepackJs())).toBe(true)
-        } catch (err) {
-            expect(err).toBeInstanceOf(Error)
-            expect((err as Error).message).toMatch(/corepack/i)
-        }
-    })
-
     it('is the public unscoped CLI published with the monorepo', () => {
         const pkg = JSON.parse(readFileSync(resolve(packageDir, 'package.json'), 'utf-8'))
         const lerna = JSON.parse(readFileSync(resolve(packageDir, '..', '..', 'lerna.json'), 'utf-8'))

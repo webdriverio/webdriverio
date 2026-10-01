@@ -48,10 +48,10 @@ export const parseMaskingPatterns = (maskingRegexString: string | undefined) => 
  *
  * @param {string} text - The text to mask.
  * @param {RegExp[] | undefined} maskingPatterns - Array of RegExp patterns to use for masking.
- * @returns {string} The masked text, or the original value if not a string or if no patterns are provided.
+ * @returns {string} The masked text, or the original text when no patterns are provided.
  */
 export const mask = (text: string, maskingPatterns: RegExp[] | undefined) => {
-    if (!maskingPatterns || typeof text !== 'string') { return text }
+    if (!maskingPatterns) { return text }
 
     const endsWithNewline = text.endsWith('\n')
     let maskedText = text

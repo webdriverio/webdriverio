@@ -207,7 +207,7 @@ First, install the adapter package from NPM:
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-You can then configure your Jasmine environment by setting a `jasmineOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
+You can then configure your Jasmine environment by setting a `jasmineOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/edge/Configuration.html).
 
 ### Jasmine Options
 
@@ -217,13 +217,13 @@ The following options can be applied in your `wdio.conf.js` to configure your Ja
 wdio run wdio.conf.ts --jasmineOpts.grep "my test" --jasmineOpts.failSpecWithNoExpectations --no-jasmineOpts.random
 ```
 
-This will pass along the following Mocha options:
+This will pass along the following Jasmine options:
 
 ```ts
 {
-    grep: ['my-test'],
-    bail: true
-    checkLeacks: false
+    grep: 'my test',
+    failSpecWithNoExpectations: true,
+    random: false
 }
 ```
 
@@ -255,9 +255,9 @@ The `requires` option is useful when you want to add or extend some basic functi
 
 #### random
 
-<Option type="boolean" default="true">
+<Option type="boolean" default="false">
 
-Whether to randomize spec execution order.
+Whether to randomize spec execution order. Jasmine's own default is `true`, but WebdriverIO runs the specs in order unless you set this option.
 
 </Option>
 
@@ -281,7 +281,7 @@ Whether to fail the spec if it ran no expectations. By default a spec that ran n
 
 <Option type="boolean" default="false">
 
-Whether to cause specs to only have one expectation failure.
+Stop a spec at its first failed expectation. A failed sync matcher stops the spec at once, and an awaited async matcher stops it when its promise settles. The other specs continue to run.
 
 </Option>
 
@@ -308,6 +308,61 @@ Only run tests matching this string or regexp. (Only applicable if no custom `sp
 If true it inverts the matching tests and only runs tests that don't match with the expression used in `grep`. (Only applicable if no custom `specFilter` function is set)
 
 </Option>
+
+#### stopOnSpecFailure
+
+<Option type="boolean" default="false">
+
+Stop the spec file at its first failed spec (`it`): the other specs of the file do not run, also in other `describe` blocks. Other spec files run in their own workers and continue.
+
+</Option>
+
+#### cleanStack
+
+<Option type="boolean" default="true">
+
+Remove the lines of `node_modules` packages from the stack traces of failures.
+
+</Option>
+
+#### expectationResultHandler
+
+<Option type="Function" default="null">
+
+Called with `(passed, assertion)` for each expectation, for example to take a screenshot when an expectation fails. If the function throws for a passed expectation, the expectation fails with that error.
+
+</Option>
+
+### Assertions
+
+With Jasmine, the global `expect` combines Jasmine's matchers and the [WebdriverIO matchers](/docs/api/expect-webdriverio):
+
+- Jasmine's matchers (`toBe`, `toEqual`, `toHaveBeenCalled`, …) and the matchers that you add with `jasmine.addMatchers` are synchronous. They return `undefined`, so you do not need `await`.
+- WebdriverIO matchers, Jasmine's async matchers (`toBeResolved`, `toBeRejectedWith`, …) and the matchers that you add with `jasmine.addAsyncMatchers` return a promise. Always `await` them.
+
+Use `expect()` for both kinds: it sends each matcher to Jasmine's `expect` or `expectAsync` for you. `await expectAsync($('#logo')).toBeDisplayed()` also works. For TypeScript, `expectAsync()` with WebdriverIO matchers needs `expect-webdriverio/jasmine` in `types`.
+
+```js
+it('checks the page', async () => {
+    expect([1, 2]).toHaveSize(2)                                   // Jasmine, sync
+    await expect($('#logo')).toHaveSize({ width: 32, height: 32 }) // WebdriverIO, async
+    await expect(loadData()).toBeResolved()                        // Jasmine async matcher
+})
+```
+
+`toHaveSize` exists in both libraries. The WebdriverIO matcher runs on WebdriverIO values: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multi-remote element, a browser, the `some()` wrapper, or a promise such as a chainable `$()`. Jasmine's matcher runs on every other value.
+
+The asymmetric matchers of both libraries work, in Jasmine and in WebdriverIO matchers: `jasmine.any()`, `jasmine.objectContaining()`, `jasmine.stringMatching()`, … and `expect.any()`, `expect.stringContaining()`, `expect.oneOf()`, `expect.not.stringContaining()`, …. To use `some()`, import it:
+
+```js
+import { some } from 'expect-webdriverio/api'
+
+await expect(some($$('li'))).toHaveAttribute('data-state', 'on')
+```
+
+The Jest parts of `expect` are not available with Jasmine: Jest-only matchers such as `toStrictEqual` or `toHaveLength`, `expect.soft()` and `expect.extend()`. To add a custom matcher, use `jasmine.addMatchers` for a sync matcher or `jasmine.addAsyncMatchers` for an async matcher.
+
+For TypeScript, add `jasmine` to `types`, see [TypeScript Setup](/docs/typescript).
 
 ## Using Cucumber
 
@@ -816,5 +871,4 @@ To learn more about the Screenplay Pattern, check out:
 - [The Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
 - [Web testing with Serenity/JS](https://serenity-js.org/handbook/web-testing/?pk_campaign=wdio8&pk_source=webdriver.io)
 - ["BDD in Action, Second Edition"](https://www.manning.com/books/bdd-in-action-second-edition)
-
 

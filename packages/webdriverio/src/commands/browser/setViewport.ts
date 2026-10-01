@@ -1,5 +1,8 @@
 /// <reference path="../../types.ts" />
-import { getContextManager } from '../../session/context.js'
+import { getBrowserObject } from '@wdio/utils'
+
+import { assertTopLevel, contextIdOf, isBrowsingContext } from '../../session/browsingContext.js'
+import { rememberOverride } from '../../session/emulationState.js'
 
 const minWindowSize = 0
 const maxWindowSize = Number.MAX_SAFE_INTEGER
@@ -34,7 +37,7 @@ export interface SetViewportOptions {
  * @type window
  */
 export async function setViewport(
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     options: SetViewportOptions
 ): Promise<void> {
     /**
@@ -55,15 +58,27 @@ export async function setViewport(
         throw new Error('setViewport expects devicePixelRatio to be a number in the 0 to 2^31 − 1 range')
     }
 
-    const contextManager = getContextManager(this)
-    const context = await contextManager.getCurrentContext()
+    if (isBrowsingContext(this)) {
+        assertTopLevel(this, 'setViewport')
+    }
 
-    await this.browsingContextSetViewport({
+    const browser = getBrowserObject(this)
+    const context = await contextIdOf(this)
+    const devicePixelRatio = options.devicePixelRatio || 1
+
+    await browser.browsingContextSetViewport({
         context,
-        devicePixelRatio: options.devicePixelRatio || 1,
+        devicePixelRatio,
         viewport: {
             width: options.width,
             height: options.height
+        }
+    })
+    rememberOverride(browser, context, {
+        viewport: {
+            width: options.width,
+            height: options.height,
+            devicePixelRatio
         }
     })
 }

@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
@@ -11,12 +11,6 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 const log = logger('')
 
 describe('wdio-testingbot-service', () => {
-    const execute = vi.fn()
-
-    afterEach(() => {
-        execute.mockReset()
-    })
-
     it('onPrepare: tbTunnel is undefined', async () => {
         const options = { tbTunnel: undefined } as any
         const tbLauncher = new TestingBotLauncher(options)
@@ -242,8 +236,10 @@ describe('wdio-testingbot-service', () => {
         const tbLauncher = new TestingBotLauncher(options)
 
         await tbLauncher.onPrepare(config, caps)
-        expect(Object.keys(caps[0]['tb:options'])).toContain('tunnel-identifier')
-        expect(Object.keys(caps[0]['tb:options'])).toContain('build')
+        const tunnelId = (tbLauncher.tbTunnelOpts as { 'tunnel-identifier': string })['tunnel-identifier']
+        expect(tunnelId).toEqual(expect.stringMatching(/^TB-tunnel-\d+$/))
+        expect(caps[0]['tb:options']['tunnel-identifier']).toBe(tunnelId)
+        expect(caps[0]['tb:options'].build).toBe('unit-test')
     })
 
     it('should add tunnelIdentifier in tb:options using multi-remote', async () => {
@@ -273,10 +269,13 @@ describe('wdio-testingbot-service', () => {
         const tbLauncher = new TestingBotLauncher(options)
 
         await tbLauncher.onPrepare(config, caps as any)
-        expect(Object.keys((caps.browserA.capabilities as WebdriverIO.Capabilities)['tb:options'] as any))
-            .toContain('tunnel-identifier')
-        expect(Object.keys((caps.browserB.capabilities as WebdriverIO.Capabilities)['tb:options'] as any))
-            .toContain('build')
+        const tunnelId = (tbLauncher.tbTunnelOpts as { 'tunnel-identifier': string })['tunnel-identifier']
+        const browserAOptions = (caps.browserA.capabilities as WebdriverIO.Capabilities)['tb:options'] as { 'tunnel-identifier': string }
+        const browserBOptions = (caps.browserB.capabilities as WebdriverIO.Capabilities)['tb:options'] as { 'tunnel-identifier': string, build: string }
+        expect(tunnelId).toEqual(expect.stringMatching(/^TB-tunnel-\d+$/))
+        expect(browserAOptions['tunnel-identifier']).toBe(tunnelId)
+        expect(browserBOptions['tunnel-identifier']).toBe(tunnelId)
+        expect(browserBOptions.build).toBe('other-unit-test')
     })
 
     it('onComplete', () => {

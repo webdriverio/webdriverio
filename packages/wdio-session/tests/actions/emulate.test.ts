@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { emulate, findDevice, NETWORK_PRESETS, parseViewport } from '../../src/actions/emulate.js'
+import { emulate, findDevice, geolocation, NETWORK_PRESETS, parseMediaFeatures, parseOrientation, parseViewport } from '../../src/actions/emulate.js'
 import type { Session } from '../../src/session.js'
 
 describe('parseViewport', () => {
@@ -44,6 +44,255 @@ describe('emulate replacement', () => {
         expect(rates).toEqual([4, 1, 8, 4])
         await emulate(session, { sub: 'reset' })
         expect(rates.at(-1)).toBe(1)
+    })
+})
+
+describe('classic chromium emulation', () => {
+    function classicSession () {
+        const executed: unknown[] = []
+        const commands: string[] = []
+        const sent: { command: string, params?: unknown }[] = []
+        const store = new Map<string, unknown>()
+        const session = {
+            isBidi: false,
+            applies: ['W'],
+            browser: {
+                capabilities: { browserName: 'electron' },
+                execute: async (script: unknown) => {
+                    executed.push(script)
+                    if (typeof script === 'function') {
+                        return store.get('geo-permission') ?? 'prompt'
+                    }
+                },
+                sendCommandAndGetResult: async (command: string, params?: unknown) => {
+                    commands.push(command)
+                    sent.push({ command, params })
+                    if (command === 'Page.addScriptToEvaluateOnNewDocument') {
+                        return { identifier: `script-${commands.length}` }
+                    }
+                },
+                sendCommand: async (command: string, params?: unknown) => {
+                    commands.push(command)
+                    sent.push({ command, params })
+                    if (command === 'Browser.setPermission' && store.get('fail-permission')) {
+                        throw new Error('setPermission failed')
+                    }
+                },
+                getUrl: async () => 'http://127.0.0.1:8081/'
+            },
+            get: (key: string) => store.get(key),
+            set: (key: string, value: unknown) => store.set(key, value),
+            requireBidi () {
+                throw new Error('BIDI_REQUIRED')
+            }
+        }
+        return { session: session as unknown as Session, executed, commands, sent, store }
+    }
+
+    it('sets the clock through the page when BiDi is absent', async () => {
+        const { session, executed, commands } = classicSession()
+        const result = await emulate(session, { sub: 'clock', value: '2026-06-21T23:30:00.000Z' })
+        expect(result.text).toContain('2026-06-21T23:30:00.000Z')
+        expect(executed).toHaveLength(1)
+        expect(String(executed[0])).toContain('new Proxy')
+        expect(result.code).toContain('new Proxy')
+        expect(result.code).not.toContain('/*')
+        expect(result.code).not.toContain('addScriptToEvaluateOnNewDocument')
+        expect(result.history).toContain('Page.addScriptToEvaluateOnNewDocument')
+        expect(result.history).toContain(result.code)
+        expect(commands).toContain('Page.addScriptToEvaluateOnNewDocument')
+    })
+
+    it('patches Date on Chromium instead of installing BiDi fake timers', async () => {
+        const { session, executed } = classicSession()
+        ;(session as { isBidi: boolean }).isBidi = true
+        ;(session.browser as { emulate?: () => Promise<unknown> }).emulate = async () => {
+            throw new Error('fake timers should not be installed')
+        }
+        const result = await emulate(session, { sub: 'clock', value: '2026-06-21T23:30:00.000Z' })
+        expect(result.text).toContain('2026-06-21T23:30:00.000Z')
+        expect(executed.length).toBeGreaterThan(0)
+    })
+
+    it('keeps the latest clock when emulate clock runs twice', async () => {
+        const { session, executed } = classicSession()
+        await emulate(session, { sub: 'clock', value: '2026-06-21T14:00:00.000Z' })
+        const result = await emulate(session, { sub: 'clock', value: '2026-06-21T23:30:00.000Z' })
+        expect(result.text).toContain('2026-06-21T23:30:00.000Z')
+        // restore of the first clock, then install of the second
+        expect(executed.length).toBeGreaterThanOrEqual(2)
+    })
+
+    it('sets geolocation through CDP when BiDi is absent', async () => {
+        const { session, commands, executed } = classicSession()
+        const result = await geolocation(session, { lat: '35.6762', lon: '139.6503' })
+        expect(result.text).toContain('35.6762, 139.6503')
+        expect(commands).toContain('Emulation.setGeolocationOverride')
+        expect(commands).toContain('Page.addScriptToEvaluateOnNewDocument')
+        expect(result.code).toContain('setGeolocationOverride')
+        expect(result.code).not.toContain('addScriptToEvaluateOnNewDocument')
+        expect(result.history).toContain('addScriptToEvaluateOnNewDocument')
+        expect(result.history).toContain('navigator')
+        expect(executed.filter((script) => typeof script === 'string')).toHaveLength(1)
+    })
+
+    it('drops the classic clock and geolocation when the session resets', async () => {
+        const { session, commands, executed } = classicSession()
+        await emulate(session, { sub: 'clock', value: '2026-06-21T23:30:00.000Z' })
+        await geolocation(session, { lat: '35.6762', lon: '139.6503' })
+        await emulate(session, { sub: 'reset' })
+        expect(commands).toContain('Page.removeScriptToEvaluateOnNewDocument')
+        expect(commands).toContain('Emulation.clearGeolocationOverride')
+        expect(commands).toContain('Browser.setPermission')
+        expect(commands).not.toContain('Browser.resetPermissions')
+        expect(executed.some((script) => String(script).includes('__wdioNativeDate'))).toBe(true)
+        expect(executed.some((script) => String(script).includes('delete navigator.geolocation'))).toBe(true)
+        expect(executed.some((script) => String(script).includes('__wdioGeolocationQuery'))).toBe(true)
+    })
+
+    it('puts the previous geolocation permission back', async () => {
+        const { session, commands, sent, store } = classicSession()
+        store.set('geo-permission', 'granted')
+        await geolocation(session, { lat: '35.6762', lon: '139.6503' })
+        await emulate(session, { sub: 'reset' })
+        const permission = sent.find((entry) => entry.command === 'Browser.setPermission')
+        expect(permission?.params).toMatchObject({
+            setting: 'granted',
+            origin: 'http://127.0.0.1:8081',
+            permission: { name: 'geolocation' }
+        })
+        expect(commands).not.toContain('Browser.resetPermissions')
+    })
+
+    it('restores prompt when the previous geolocation permission cannot be read', async () => {
+        const { session, commands, sent, store } = classicSession()
+        store.set('geo-permission', '')
+        await geolocation(session, { lat: '35.6762', lon: '139.6503' })
+        await emulate(session, { sub: 'reset' })
+        const restores = sent.filter((entry) => entry.command === 'Browser.setPermission')
+        expect(restores.at(-1)?.params).toMatchObject({
+            setting: 'prompt',
+            origin: 'http://127.0.0.1:8081',
+            permission: { name: 'geolocation' }
+        })
+        expect(commands).not.toContain('Browser.resetPermissions')
+    })
+
+    it('does not clear other origins when the per-origin permission write fails', async () => {
+        const { session, commands, executed, store } = classicSession()
+        store.set('fail-permission', true)
+        await geolocation(session, { lat: '35.6762', lon: '139.6503' })
+        const script = String(executed.find((entry) => typeof entry === 'string'))
+        expect(script).toContain("descriptor.name === 'geolocation'")
+        expect(script).toContain("state: 'granted'")
+        expect(script).toContain("live.state = 'granted'")
+        expect(script).toContain('return live.state')
+        expect(script).toContain('new EventTarget()')
+        expect(script).toContain('new WeakRef(target)')
+        expect(script).toContain("addEventListener('change', handler)")
+        await emulate(session, { sub: 'reset' })
+        const restore = String(executed.at(-1))
+        expect(commands).toContain('Browser.setPermission')
+        expect(commands).not.toContain('Browser.grantPermissions')
+        expect(commands).not.toContain('Browser.resetPermissions')
+        expect(restore).toContain('delete permissions.query')
+        expect(restore).toContain('new WeakRef(status)')
+        expect(restore).toContain('dispatchEvent(new Event(\'change\'))')
+        expect(restore).toContain('live.state = "prompt"')
+    })
+
+    it('advances the classic clock without installing BiDi fake timers', async () => {
+        const { session, executed } = classicSession()
+        await emulate(session, { sub: 'clock', value: '2030-01-01T00:00:00.000Z' })
+        const result = await emulate(session, { sub: 'clock', tick: 60000 })
+        expect(result.text).toBe('Clock advanced by 60000ms')
+        expect(String(executed.at(-1))).toContain(String(Date.parse('2030-01-01T00:00:00.000Z') + 60000))
+    })
+
+    it('removes the preloaded clock script on reset', async () => {
+        const { session, sent } = classicSession()
+        await emulate(session, { sub: 'clock', value: '2030-01-01T00:00:00.000Z' })
+        await emulate(session, { sub: 'reset' })
+        const removed = sent.find((entry) => entry.command === 'Page.removeScriptToEvaluateOnNewDocument')
+        expect(removed?.params).toEqual({ identifier: 'script-1' })
+    })
+})
+
+describe('bidi emulation scopes', () => {
+    function bidiSession () {
+        const calls: { scope: string, value: unknown }[] = []
+        const store = new Map<string, unknown>()
+        const session = {
+            isBidi: true,
+            applies: ['W'],
+            browser: {
+                capabilities: { browserName: 'firefox' },
+                emulate: async (scope: string, value: unknown) => {
+                    calls.push({ scope, value })
+                    return async () => undefined
+                }
+            },
+            get: (key: string) => store.get(key),
+            set: (key: string, value: unknown) => store.set(key, value),
+            requireBidi () {}
+        }
+        return { session: session as unknown as Session, calls }
+    }
+
+    it('applies a device without asking for a reload', async () => {
+        const { session, calls } = bidiSession()
+        const result = await emulate(session, { sub: 'device', value: 'iPhone 15' })
+        expect(result.text).toBe('Emulating iPhone 15 (393x659 @3x).')
+        expect(result.text).not.toContain('Reload')
+        expect(calls).toEqual([{ scope: 'device', value: 'iPhone 15' }])
+    })
+
+    it('applies color scheme and user agent without a reload hint', async () => {
+        const { session } = bidiSession()
+        expect((await emulate(session, { sub: 'color-scheme', value: 'dark' })).text).toBe('Color scheme dark.')
+        expect((await emulate(session, { sub: 'user-agent', value: 'Custom UA' })).code).toContain("await browser.emulate('userAgent', 'Custom UA')")
+    })
+
+    it('parses media features, orientation and the remaining scopes', async () => {
+        expect(parseMediaFeatures('prefersReducedMotion=reduce,hover=none')).toEqual({
+            prefersReducedMotion: 'reduce',
+            hover: 'none'
+        })
+        expect(parseMediaFeatures('{"color":8,"forcedColors":null}')).toEqual({ color: 8, forcedColors: null })
+        expect(() => parseMediaFeatures('{"color":"8"}')).toThrow(/non-negative integer/)
+        expect(() => parseMediaFeatures('{"grid":-1}')).toThrow(/non-negative integer/)
+        expect(() => parseMediaFeatures('nope')).toThrow(/Invalid media feature/)
+        expect(parseOrientation('landscape:landscape-primary')).toEqual({
+            natural: 'landscape',
+            type: 'landscape-primary'
+        })
+
+        const { session, calls } = bidiSession()
+        expect((await emulate(session, { sub: 'media', value: 'prefersReducedMotion=reduce' })).code)
+            .toContain('"prefersReducedMotion":"reduce"')
+        expect((await emulate(session, { sub: 'locale', value: 'fr-FR' })).text).toBe('Locale fr-FR.')
+        expect((await emulate(session, { sub: 'timezone', value: 'Pacific/Honolulu' })).text).toBe('Timezone Pacific/Honolulu.')
+        expect((await emulate(session, { sub: 'touch', value: '2' })).code).toContain("emulate('touch', 2)")
+        expect((await emulate(session, { sub: 'orientation', value: 'portrait:portrait-primary' })).text).toContain('portrait-primary')
+        expect((await emulate(session, { sub: 'screen', value: '800x600' })).code).toContain('width: 800, height: 600')
+        expect((await emulate(session, { sub: 'viewport-meta' })).code).toContain("emulate('viewportMeta', true)")
+        expect((await emulate(session, { sub: 'text-layout' })).text).toBe('Text layout mobile.')
+        expect((await emulate(session, { sub: 'scripting', value: 'false' })).text).toBe('Scripting disabled.')
+        expect((await emulate(session, { sub: 'scrollbar', value: 'overlay' })).text).toBe('Scrollbar overlay.')
+        expect((await emulate(session, { sub: 'forced-colors', value: 'dark' })).text).toBe('Forced colors dark.')
+        expect(calls.map((call) => call.scope)).toEqual([
+            'media', 'locale', 'timezone', 'touch', 'orientation', 'screen',
+            'viewportMeta', 'textLayout', 'scripting', 'scrollbar', 'forcedColors'
+        ])
+        await expect(emulate(session, { sub: 'touch', value: '0' })).rejects.toThrow(/integer >= 1/)
+        await expect(emulate(session, { sub: 'screen', value: 'big' })).rejects.toThrow(/Invalid screen/)
+    })
+
+    it('sets geolocation without a reload hint', async () => {
+        const { session } = bidiSession()
+        const result = await geolocation(session, { lat: '52.52', lon: '13.405' })
+        expect(result.text).toBe('Location set to 52.52, 13.405.')
+        expect(result.text).not.toContain('Reload')
     })
 })
 

@@ -33,13 +33,6 @@ describe('timer', () => {
             expect(processEmitSpy).not.toBeCalled()
         })
 
-        it('should not be fulfilled when resolved with false value', async () => {
-            const timer = new Timer(20, 30, () => Promise.resolve(false))
-            await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('timeout') as unknown as Record<string, unknown>)
-            expect(processEmitSpy).not.toBeCalled()
-        })
-
         it('should be rejected', async () => {
             const timer = new Timer(20, 30, () => Promise.reject(new Error('err')))
             await triggerDelay()

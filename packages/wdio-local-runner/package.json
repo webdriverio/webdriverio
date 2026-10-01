@@ -34,7 +34,7 @@
       "import": "./build/run.js"
     }
   },
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "dependencies": {
     "@types/split2": "^4.2.3",
     "@types/node": "^22.20.4",
@@ -44,7 +44,7 @@
     "@wdio/types": "workspace:*",
     "@wdio/display-server": "workspace:*",
     "exit-hook": "^4.0.0",
-    "expect-webdriverio": "^6.1.0",
+    "expect-webdriverio": "^8.0.0-alpha.1",
     "split2": "^4.1.0",
     "stream-buffers": "^3.0.2"
   },

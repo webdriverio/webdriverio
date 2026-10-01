@@ -37,7 +37,14 @@ function proxyHandler (key: SupportedGlobals) {
             return typeof field === 'function'
                 ? field.bind(receiver)
                 : field
-        }
+        },
+        /**
+         * `in` checks the installed instance too, e.g. `Symbol.for('wdio.kind') in browser`.
+         * Keep the result of the target, a proxy can not hide its non-configurable `prototype`.
+         */
+        has: (self: never, prop: PropertyKey) => (
+            (globals.has(key) && prop in globals.get(key)) || Reflect.has(self, prop)
+        )
     }
 }
 

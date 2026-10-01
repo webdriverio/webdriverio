@@ -110,8 +110,16 @@ test('missingConfigurationPrompt does not init wizard if user does not want to',
     } as any)
     const runConfigCmd = vi.fn()
     vi.mocked(inquirer.prompt).mockResolvedValue({})
-    await missingConfigurationPrompt('config', 'foobar', runConfigCmd)
-    expect(runConfigCmd).toBeCalledTimes(0)
+    const exit = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
+        throw new Error(`exit:${code}`)
+    }) as any)
+    try {
+        await expect(missingConfigurationPrompt('config', 'foobar', runConfigCmd)).rejects.toThrow('exit:0')
+        expect(runConfigCmd).toBeCalledTimes(0)
+        expect(exit).toHaveBeenCalledWith(0)
+    } finally {
+        exit.mockRestore()
+    }
 })
 
 test.skipIf(isUsingWindows)('parseAnswers', async () => {

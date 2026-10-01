@@ -1,6 +1,8 @@
 ---
 name: wdio-testing
 description: Choose the smallest WebdriverIO proof for a code change (unit, typings, smoke, component, e2e).
+metadata:
+  internal: true
 ---
 
 # WDIO testing
@@ -29,7 +31,7 @@ cite a unit test as that proof.
 | CLI flags, spec filters, retries, custom services/reporters, framework adapters | `pnpm run test:smoke <suite>` |
 | `packages/wdio-browser-runner/**` or `e2e/browser-runner/**` | `pnpm run test:component` |
 | `packages/wdio-session/**` or `e2e/session/**` | `pnpm run test:e2e:session` |
-| `packages/wdio-display-server/**` or `e2e/wdio/display-server/**` | `pnpm run test:e2e:display-server` |
+| `packages/wdio-display-server/**`, `packages/wdio-local-runner/**` or `e2e/wdio/display-server/**` | `pnpm run test:e2e:display-server` (Linux with no display only; elsewhere rely on CI) |
 | Session launch / real WebDriver path not stubbed by the mock service | the specific `test:e2e:*` script, not `test:e2e` |
 | `website/**` or `infra/docs/**` only | docs skill; no unit/smoke |
 | `.github/workflows/**`, root `package.json`, lockfile, `vitest.config.ts`, `.oxlintrc.json` | `pnpm run test:local` |

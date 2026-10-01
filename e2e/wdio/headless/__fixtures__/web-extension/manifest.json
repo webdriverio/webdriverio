@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "WDIO Extension Fixture",
+  "version": "1.0.0",
+  "description": "Empty extension installed by the WebdriverIO installExtension e2e test.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "wdio-extension-fixture@webdriver.io"
+    }
+  }
+}

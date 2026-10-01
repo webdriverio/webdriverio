@@ -62,52 +62,29 @@ describe('Vue Component Testing', () => {
         await expect(expect($$('p=Times clicked: 123')).not.toBeDisplayed()).rejects.toThrow(/"at least one result"/)
     })
 
-    const featureFlags = { featureFlags: { useToHaveTextStrictMultiElementsCompareStrategy : true } }
-
-    // TODO the below fails with `path.isAbsolute is not a function` because of `jest-message-util` using path, we might need path-browserify
-    it.skip('support toHaveText with single element in legacy mode', async () => {
-        await expect(async () => Promise.reject(new Error('test'))).rejects.toThrow('teste')
-    })
-
     it('support toHaveText with single element in strict mode', async () => {
         await render(Component)
 
-        // New strict mode
-        await expect($('p=Times clicked: 0')).toHaveText('Times clicked: 0', featureFlags)
-        await expect($('p=Times clicked: 0')).toHaveText(expect.stringContaining('Times clicked'), featureFlags)
-        await expect($('p=Times clicked: 0')).toHaveText(['Times clicked: 0', 'Times clicked: 1'], featureFlags)
-        await expect($('p=Times clicked: 0')).toHaveText([expect.stringContaining('Times clicked'), 'Times clicked: 1'], featureFlags)
-        await expect($('p=Times clicked: 0')).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'), featureFlags)
-        await expect($('p=Times clicked: 0')).toHaveText(expect.oneOf(expect.stringContaining('Times clicked'), 'Times clicked: 1'), featureFlags)
+        await expect($('p=Times clicked: 0')).toHaveText('Times clicked: 0')
+        await expect($('p=Times clicked: 0')).toHaveText(expect.stringContaining('Times clicked'))
+        await expect($('p=Times clicked: 0')).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'))
+        await expect($('p=Times clicked: 0')).toHaveText(expect.oneOf(expect.stringContaining('Times clicked'), 'Times clicked: 1'))
     })
 
-    it('support toHaveText with multi-elements in legacy mode', async () => {
+    it('support toHaveText with multi-elements in strict mode', async () => {
         await render(Component)
 
-        // Legacy
         await expect($$('p=Times clicked: 0')).toHaveText('Times clicked: 0')
         await expect(await $$('p=Times clicked: 0')).toHaveText('Times clicked: 0')
         await expect($$('p=Times clicked: 0')).toHaveText(expect.stringContaining('Times clicked'))
         await expect($$('p=Times clicked: 0')).toHaveText(['Times clicked: 0'])
         await expect($$('p=Times clicked: 0')).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'))
         await expect($$('p=Times clicked: 0')).toHaveText(expect.oneOf(expect.stringContaining('Times clicked'), 'Times clicked: 1'))
-    })
-
-    it('support toHaveText with multi-elements in strict mode', async () => {
-        await render(Component)
-
-        // New strict mode
-        await expect($$('p=Times clicked: 0')).toHaveText('Times clicked: 0', featureFlags)
-        await expect(await $$('p=Times clicked: 0')).toHaveText('Times clicked: 0', featureFlags)
-        await expect($$('p=Times clicked: 0')).toHaveText(expect.stringContaining('Times clicked'), featureFlags)
-        await expect($$('p=Times clicked: 0')).toHaveText(['Times clicked: 0'], featureFlags)
-        await expect($$('p=Times clicked: 0')).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'), featureFlags)
-        await expect($$('p=Times clicked: 0')).toHaveText(expect.oneOf(expect.stringContaining('Times clicked'), 'Times clicked: 1'), featureFlags)
-        await expect($$('p=Times clicked: 0')).toHaveText([expect.stringContaining('Times clicked')], featureFlags)
-        await expect($$('p=Times clicked: 0')).toHaveText([expect.oneOf('Times clicked: 0', 'Times clicked: 1')], featureFlags)
-        await expect(expect.some($$('p=Times clicked: 0'))).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'), featureFlags)
-        await expect($$('p=Times clicked: 0').filter(element => element.isExisting())).toHaveText('Times clicked: 0', featureFlags)
-        await expect(await $$('p=Times clicked: 0').filter(element => element.isExisting())).toHaveText('Times clicked: 0', featureFlags)
+        await expect($$('p=Times clicked: 0')).toHaveText([expect.stringContaining('Times clicked')])
+        await expect($$('p=Times clicked: 0')).toHaveText([expect.oneOf('Times clicked: 0', 'Times clicked: 1')])
+        await expect(expect.some($$('p=Times clicked: 0'))).toHaveText(expect.oneOf('Times clicked: 0', 'Times clicked: 1'))
+        await expect($$('p=Times clicked: 0').filter(element => element.isExisting())).toHaveText('Times clicked: 0')
+        await expect(await $$('p=Times clicked: 0').filter(element => element.isExisting())).toHaveText('Times clicked: 0')
     })
 
     it('should support tailwindcss', async () => {

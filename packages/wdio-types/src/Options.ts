@@ -218,7 +218,7 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * pattern to match multiple files at once or wrap a glob or set of
      * paths into an array to run them within a single worker process.
      */
-    specs?: (string | string[])[],
+    specs?: (string | string[])[]
     /**
      * Exclude specs from test execution.
      */
@@ -371,9 +371,9 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
     displayServerAutoInstallCommand?: string | string[]
     /**
      * Which display server to use for headless testing on Linux.
-     * - 'auto': Try Wayland first, then Xvfb fallback
+     * - 'auto': installed servers before auto-installing, Wayland before Xvfb, falling back when one fails to start
      * - 'wayland': Force Wayland only
-     * - 'xvfb': Force Xvfb only (not available on CentOS Stream 10/RHEL 10+)
+     * - 'xvfb': Force Xvfb only (Enterprise Linux 10 has no Xvfb package)
      * @default 'auto'
      */
     displayServer?: 'auto' | 'wayland' | 'xvfb'
@@ -392,6 +392,18 @@ export interface Testrunner extends Hooks, WebdriverIO, WebdriverIO.HookFunction
      * @default 24
      */
     displayServerDepth?: number
+    /** @deprecated Use `displayServerEnabled` instead. */
+    autoXvfb?: boolean
+    /** @deprecated Use `displayServerAutoInstall` instead. */
+    xvfbAutoInstall?: boolean
+    /** @deprecated Use `displayServerAutoInstallMode` instead. */
+    xvfbAutoInstallMode?: 'root' | 'sudo'
+    /** @deprecated Use `displayServerAutoInstallCommand` instead. */
+    xvfbAutoInstallCommand?: string | string[]
+    /** @deprecated Has no effect: display-server startup is not retried. */
+    xvfbMaxRetries?: number
+    /** @deprecated Has no effect: display-server startup is not retried. */
+    xvfbRetryDelay?: number
     // framework options
     /**
      * Mocha specific options

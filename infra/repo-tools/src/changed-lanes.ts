@@ -54,7 +54,6 @@ export const LANE_FILTERS: LaneFilters = {
         '!e2e/session/**',
         'infra/**',
         '!infra/docs/**',
-        'test-headless-flag/**',
         '@types/**',
         '__mocks__/**'
     ]

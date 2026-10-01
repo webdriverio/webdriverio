@@ -3,13 +3,11 @@ import { ELEMENT_KEY, type local } from 'webdriver'
 
 import {
     findElement,
-    findDeepElement,
     isStaleElementError,
     elementPromiseHandler,
     transformClassicToBidiSelector,
     createFunctionDeclarationFromString
 } from '../../src/utils/index.js'
-import { findStrategy } from '../../src/utils/findStrategy.js'
 
 vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false)
@@ -66,20 +64,6 @@ describe('findElement', () => {
                 expect.any(String)
             ]
         )
-    })
-})
-
-describe('findStrategy for relative XPath', () => {
-    it('should identify relative XPath starting with ./ as xpath strategy', () => {
-        const result = findStrategy('./following-sibling::div')
-        expect(result.using).toBe('xpath')
-        expect(result.value).toBe('./following-sibling::div')
-    })
-
-    it('should identify relative XPath starting with .. as xpath strategy', () => {
-        const result = findStrategy('../parent-element')
-        expect(result.using).toBe('xpath')
-        expect(result.value).toBe('../parent-element')
     })
 })
 

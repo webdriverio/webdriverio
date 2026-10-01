@@ -49,6 +49,19 @@ describe('Multi-Remote tests', () => {
             }
         })
 
+        test('keeps isMultiRemote when $$ is chained from an element query', async () => {
+            const browser = await multiRemote(caps())
+
+            const elements = await browser.$('#foo').$$('#bar')
+
+            expect(Array.isArray(elements)).toBe(true)
+            expect(elements.isMultiRemote).toBe(true)
+            expect(elements.foundWith).toBe('$$')
+            expect(elements.selector).toBe('#bar')
+            expect(elements.length).toBeGreaterThan(0)
+            expect(elements[0].isMultiRemote).toBe(true)
+        })
+
         test('exposes the async array helpers', async () => {
             const browser = await multiRemote(caps())
 
@@ -213,6 +226,9 @@ describe('Multi-Remote tests', () => {
 
         expect(browser.getInstance('browserA')).toBeDefined()
         expect(browser.getInstance('browserB')).toBeDefined()
+        expect(() => browser.getInstance('missing')).toThrow(
+            'Multi-remote object has no instance named "missing"'
+        )
 
         const result = await browser.execute(() => 'foobar')
         expect(result).toEqual(['foobar', 'foobar'])
@@ -250,6 +266,12 @@ describe('Multi-Remote tests', () => {
         expect(elem.getInstance('browserB')).toBeDefined()
         expect(elem.getInstance('browserA').elementId).toBe('some-elem-123')
         expect(elem.getInstance('browserB').elementId).toBe('some-elem-123')
+        expect(() => elem.getInstance('selector')).toThrow(
+            'Multi-remote object has no instance named "selector"'
+        )
+        expect(() => elem.getInstance('click')).toThrow(
+            'Multi-remote object has no instance named "click"'
+        )
 
         // @ts-expect-error invalid params
         const result = await elem.getSize()

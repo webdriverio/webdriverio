@@ -1,4 +1,4 @@
-import logger from '@wdio/logger'
+import logger, { SENSITIVE_DATA_REPLACER } from '@wdio/logger'
 import type { ClientOptions, RawData, WebSocket } from 'ws'
 
 import { environment } from '../environment.js'
@@ -15,6 +15,13 @@ const SCRIPT_SUFFIX = '/* __wdio script end__ */'
 
 const log = logger('webdriver')
 export const DEFAULT_RESPONSE_TIMEOUT = 1000 * 180
+
+/**
+ * Set this symbol on a command's `params` to keep its values out of logs and
+ * `bidiCommand` events, e.g. text typed with `setValue(value, { mask: true })`.
+ * `JSON.stringify` skips symbol keys, so the command is sent unchanged.
+ */
+export const BIDI_MASK = Symbol.for('wdio.bidi.mask')
 
 export class BidiCore {
     #id = 0
@@ -115,14 +122,6 @@ export class BidiCore {
         return this._isConnected
     }
 
-    /**
-     * for testing purposes only
-     * @internal
-     */
-    get __handleResponse () {
-        return this.#handleResponse.bind(this)
-    }
-
     #handleResponse (data: RawData) {
         try {
             const payload = JSON.parse(data.toString()) as CommandResponse
@@ -198,12 +197,41 @@ export class BidiCore {
             throw new Error('No connection to WebDriver Bidi was established')
         }
 
-        log.info('BIDI COMMAND', ...parseBidiCommand(params))
+        const logged = maskBidiCommand(params)
+        log.info('BIDI COMMAND', ...parseBidiCommand(logged))
         const id = ++this.#id
-        this.client?.emit('bidiCommand', params)
+        this.client?.emit('bidiCommand', logged)
         this.#ws.send(JSON.stringify({ id, ...params }))
         return id
     }
+}
+
+/**
+ * A copy of the command to log when its params carry `BIDI_MASK`. Key action
+ * values are replaced, so the log still shows the shape of the input.
+ * Any other masked command hides all of its params.
+ */
+export function maskBidiCommand (params: Omit<CommandData, 'id'>): Omit<CommandData, 'id'> {
+    const raw = params.params as unknown as Record<symbol, unknown> | undefined
+    if (!raw || !raw[BIDI_MASK]) {
+        return params
+    }
+    if (params.method === 'input.performActions') {
+        const param = params.params as remote.InputPerformActionsParameters
+        return {
+            ...params,
+            params: {
+                ...param,
+                actions: param.actions.map((source) => source.type !== 'key' ? source : {
+                    ...source,
+                    actions: source.actions.map((action) => 'value' in action
+                        ? { ...action, value: SENSITIVE_DATA_REPLACER }
+                        : action)
+                })
+            }
+        } as Omit<CommandData, 'id'>
+    }
+    return { ...params, params: SENSITIVE_DATA_REPLACER } as unknown as Omit<CommandData, 'id'>
 }
 
 export function parseBidiCommand (params:  Omit<CommandData, 'id'>) {

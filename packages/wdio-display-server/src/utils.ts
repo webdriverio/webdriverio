@@ -1,5 +1,7 @@
 import { exec, execFile } from 'node:child_process'
-import { access } from 'node:fs/promises'
+import { constants } from 'node:fs'
+import { access, stat } from 'node:fs/promises'
+import path from 'node:path'
 import { promisify } from 'node:util'
 import type logger from '@wdio/logger'
 import type { DisplayDaemonOptions, DisplayServerInstallOptions } from './types.js'
@@ -10,14 +12,19 @@ const execFileAsync = promisify(execFile)
 // Package installs pull toolchains/mirrors and are slow; give them 4 minutes.
 const INSTALL_TIMEOUT_MS = 240_000
 
-/** True if `command` is on PATH. */
+/** True if `command` is a file in a PATH directory that this process can execute. */
 export async function commandExists(command: string): Promise<boolean> {
-    try {
-        await execAsync(`which ${command}`)
-        return true
-    } catch {
-        return false
+    const dirs = process.env.PATH === undefined ? ['/usr/bin', '/bin'] : process.env.PATH.split(path.delimiter) // as for spawn, an empty entry is the working directory
+    for (const dir of dirs) {
+        const file = dir ? `${dir}/${command}` : command // not path.join, which collapses `..` before symlinks resolve, unlike execvp
+        try {
+            if ((await stat(file)).isFile()) {
+                await access(file, constants.X_OK) // an execute bit only for another user doesn't count, as for execvp
+                return true
+            }
+        } catch { /* not in this directory, or not executable by this process */ }
     }
+    return false
 }
 
 /** Daemon screen geometry with the shared defaults applied (depth is Xvfb-only). */
@@ -30,32 +37,31 @@ export function resolveDaemonDimensions(options?: DisplayDaemonOptions): { width
 }
 
 /**
- * Poll for the socket file at `path` to appear, up to `timeoutMs`.
+ * Poll for the socket file at `socketPath` to appear, up to `timeoutMs`.
  *
- * @param label - name used in the timeout error message (e.g. "Xvfb socket").
+ * @param label - name used in the timeout error message (e.g. "Wayland socket").
  * @param signal - stops polling early; callers abort it once the exit/socket race settles.
  */
-export async function waitForSocket(path: string, timeoutMs: number, label = 'socket', signal?: AbortSignal): Promise<void> {
+export async function waitForSocket(socketPath: string, timeoutMs: number, label = 'socket', signal?: AbortSignal): Promise<void> {
     const deadline = Date.now() + timeoutMs
     while (Date.now() < deadline) {
         if (signal?.aborted) {
             return
         }
         try {
-            await access(path)
+            await access(socketPath)
             return
         } catch {
             await new Promise((resolve) => setTimeout(resolve, 50))
         }
     }
-    throw new Error(`Timed out waiting for ${label} at ${path}`)
+    throw new Error(`Timed out waiting for ${label} at ${socketPath}`)
 }
 
 export async function detectPackageManager(): Promise<string> {
     const packageManagers = [
         { command: 'apt-get', name: 'apt' },
         { command: 'dnf', name: 'dnf' },
-        { command: 'yum', name: 'yum' },
         { command: 'zypper', name: 'zypper' },
         { command: 'pacman', name: 'pacman' },
         { command: 'apk', name: 'apk' },
@@ -63,11 +69,9 @@ export async function detectPackageManager(): Promise<string> {
     ]
 
     for (const { command, name } of packageManagers) {
-        try {
-            // execFile (no shell) — no shell needed to run a fixed command name.
-            await execFileAsync('which', [command])
+        if (await commandExists(command)) {
             return name
-        } catch { /* try the next candidate */ }
+        }
     }
 
     return 'unknown'
@@ -124,10 +128,9 @@ export async function installViaPackageManager({
 
     if (options?.mode === 'sudo') {
         if (process.getuid && process.getuid() !== 0) {
-            try {
-                await execFileAsync('which', ['sudo'])
+            if (await commandExists('sudo')) {
                 sudoWrap = true
-            } catch {
+            } else {
                 log.warn('sudo not available, attempting install without sudo')
             }
         }
@@ -150,51 +153,4 @@ export async function installViaPackageManager({
         log.error(`Failed to install ${name}:`, error)
         return false
     }
-}
-
-/** Generic retry helper with progressive (linear) backoff, for first-attempt-flaky operations. */
-export async function executeWithRetry<T>({
-    fn,
-    maxRetries,
-    retryDelay,
-    log,
-    context = 'display server operation',
-}: {
-    fn: () => Promise<T>
-    maxRetries: number
-    retryDelay: number
-    log: ReturnType<typeof logger>
-    context?: string
-}): Promise<T> {
-    let lastError: Error | unknown = null
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            if (attempt === 1) {
-                log.info(`Executing ${context}`)
-            } else {
-                log.info(`Retry attempt ${attempt}/${maxRetries}: ${context}`)
-            }
-
-            const result = await fn()
-
-            if (attempt > 1) {
-                log.info(`Success on attempt ${attempt}/${maxRetries}`)
-            }
-            return result
-        } catch (error: unknown) {
-            log.info(`Attempt ${attempt}/${maxRetries} failed: ${error}`)
-            lastError = error
-
-            if (attempt < maxRetries) {
-                const delay = retryDelay * attempt
-                log.info(`Waiting ${delay}ms before retry...`)
-                await new Promise((resolve) => setTimeout(resolve, delay))
-            } else {
-                log.info(`All ${maxRetries} attempts failed`)
-            }
-        }
-    }
-
-    throw lastError
 }

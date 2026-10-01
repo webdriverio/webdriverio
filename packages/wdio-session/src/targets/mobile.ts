@@ -15,6 +15,16 @@ const REQUIRED_PLATFORM: Partial<Record<AppiumTarget, { platform: NodeJS.Platfor
     windows: { platform: 'win32', label: 'Windows' }
 }
 
+/** UiAutomator2 installs the server, then starts instrumentation. Both run inside the first POST. */
+export const UIAUTOMATOR2_SERVER_INSTALL_TIMEOUT = 180_000
+export const UIAUTOMATOR2_SERVER_LAUNCH_TIMEOUT = 240_000
+/**
+ * The parent readiness wait and the WebDriver request timeout start before
+ * that POST. They have to outlast the install, the launch, and the handshake
+ * around them, or the client gives up while Appium is still inside its limits.
+ */
+export const MOBILE_SESSION_START_TIMEOUT = UIAUTOMATOR2_SERVER_INSTALL_TIMEOUT + UIAUTOMATOR2_SERVER_LAUNCH_TIMEOUT + 60_000
+
 const DRIVERS: Record<AppiumTarget, { automationName: string, label: string }> = {
     android: { automationName: 'UiAutomator2', label: 'android (UiAutomator2)' },
     ios: { automationName: 'XCUITest', label: 'ios (XCUITest)' },
@@ -40,7 +50,27 @@ function mobileCapabilities (target: 'android' | 'ios', args: OpenArgs, cwd: str
         'appium:automationName': DRIVERS[target].automationName,
         'appium:deviceName': typeof args.device === 'string' && args.device ? args.device : (target === 'android' ? 'Android Emulator' : 'iPhone 16'),
         'appium:newCommandTimeout': 3600,
-        ...(target === 'android' ? { 'appium:autoGrantPermissions': true } : { 'appium:autoAcceptAlerts': false })
+        ...(target === 'android'
+            ? {
+                'appium:autoGrantPermissions': true,
+                // A software emulator spends its one core on boot and dexopt.
+                // The hidden-API policy write, the settings app, and the
+                // UiAutomator2 instrumentation then miss Appium's shorter
+                // defaults, and the session dies before the app is on screen.
+                'appium:ignoreHiddenApiPolicyError': true,
+                'appium:disableWindowAnimation': true,
+                'appium:adbExecTimeout': 60_000,
+                // The server and the test apk are installed together. On a
+                // one-core emulator that pair takes longer than Appium's
+                // 20s default, and a short ceiling aborts the install while
+                // package manager is still writing it.
+                'appium:uiautomator2ServerInstallTimeout': UIAUTOMATOR2_SERVER_INSTALL_TIMEOUT,
+                // Cold dexopt on a slow emulator is still running when
+                // Appium's 30s default expires, and Appium then force-stops
+                // the server it just started.
+                'appium:uiautomator2ServerLaunchTimeout': UIAUTOMATOR2_SERVER_LAUNCH_TIMEOUT
+            }
+            : { 'appium:autoAcceptAlerts': false })
     }
     if (typeof args.platformVersion === 'string' && args.platformVersion) {
         caps['appium:platformVersion'] = args.platformVersion

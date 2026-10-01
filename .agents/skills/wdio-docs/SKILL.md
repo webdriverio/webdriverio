@@ -1,6 +1,8 @@
 ---
 name: wdio-docs
 description: Find the source of a WebdriverIO docs page and regenerate the site without editing generated files.
+metadata:
+  internal: true
 ---
 
 # WDIO docs

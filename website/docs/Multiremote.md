@@ -190,7 +190,7 @@ MultiRemote makes it easy and convenient to control multiple browsers, whether y
 
 ### What `$$` returns
 
-On a multi-remote browser, `$$` (and `custom$$` / `react$$`) returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`:
+On a multi-remote browser, `$$` returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`. `custom$$` and `react$$` are not zipped this way: each returns one result per instance.
 
 ```js
 const messages = await $$('.messages')

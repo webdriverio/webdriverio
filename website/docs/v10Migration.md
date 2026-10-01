@@ -1,12 +1,26 @@
 ---
 id: v10-migration
 title: From v9 to v10
-description: Every breaking change of WebdriverIO v10 and how to update your project, including Node.js, Mocha, Cucumber, strict selectors, legacy command signatures, removed commands, multi-remote instance access, multi-remote network mocks, element references, and the WebDriver protocol.
+description: Update a WebdriverIO v9 project to v10, including every breaking change and a coding-agent skill that applies this guide.
 ---
 
 This guide collects the breaking changes of WebdriverIO `v10` and what you have to do about them.
 
 Unlike previous majors, most of these changes cannot be applied by the WebdriverIO [codemod](https://github.com/webdriverio/codemod), because they depend on what your tests actually mean. The [legacy command signatures](#legacy-command-signatures) below are mechanical replacements. Each other section describes how to find the affected places in your suite.
+
+## Migrate with a coding agent
+
+Give your agent the v10 migration skill and ask it to migrate the suite to WebdriverIO v10, following this page. The skill is the procedure: what to search for, which codemod to run, and when to stop. This page is the source of truth for each break.
+
+Install it from the project you are upgrading. The [skills CLI](https://skills.sh) reads [`.agents/skills/wdio-v10-migration/SKILL.md`](https://github.com/webdriverio/webdriverio/blob/main/.agents/skills/wdio-v10-migration/SKILL.md) from this repository and writes it into the skill directory of the agents you pick:
+
+```sh
+npx skills add webdriverio/webdriverio --skill wdio-v10-migration
+```
+
+`--skill wdio-v10-migration` installs this skill. Skills for working on the WebdriverIO repository are marked internal and are not offered. The CLI asks which agents to install for and writes the skill into each agent's project directory. You can also attach that file to the chat.
+
+Strict selectors and bare capability `specs` / `exclude` lists only show up when the suite runs. The skill cannot decide those from the source alone.
 
 ## Node.js
 
@@ -14,7 +28,7 @@ WebdriverIO v10 requires Node.js 22.19.0 or later. Node.js 18 and 20 are no long
 
 ## Mocha
 
-`@wdio/mocha-framework` and `@wdio/browser-runner` depend on [Mocha 12](https://mochajs.org/blog/mocha-12-rc-1/). Mocha 12 needs Node.js `^20.19.0 || >=22.12.0`, which is covered by the v10 floor of 22.19.0.
+`@wdio/mocha-framework` and `@wdio/browser-runner` depend on [Mocha 12](https://mochajs.org/blog/mocha-12-stable/). Mocha 12 needs Node.js `^20.19.0 || >=22.12.0`, which is covered by the v10 floor of 22.19.0.
 
 ```diff
 - mochaOpts: { compilers: ['ts:ts-node/register'] }
@@ -54,19 +68,84 @@ Other Cucumber 13 breaks (ambiguous formatter paths, parallel workers, `BeforeAl
 
 ## Jasmine
 
-The legacy `jasmineNodeOpts` option is no longer read. Move its settings to `jasmineOpts`, otherwise they are ignored.
+`@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 is tested on Node.js 20, 22, and 24. The v10 floor of 22.19.0 already covers that range.
+
+`jasmineNodeOpts` was removed. Configure Jasmine with `jasmineOpts`. Setting `jasmineNodeOpts` throws:
+
+```text
+The option "jasmineNodeOpts" was removed in WebdriverIO v10. Use "jasmineOpts" instead.
+```
 
 ```diff
 - jasmineNodeOpts: { defaultTimeoutInterval: 60000 }
 + jasmineOpts: { defaultTimeoutInterval: 60000 }
 ```
 
-The deprecated `jasmineOpts.failFast` option was removed. Use `stopOnSpecFailure` instead.
+`jasmineOpts.failFast` is no longer read. Use `jasmineOpts.stopOnSpecFailure`. A leftover `failFast` does not stop the suite. Cucumber's `failFast` is a different option and still works.
 
 ```diff
 - jasmineOpts: { failFast: true }
 + jasmineOpts: { stopOnSpecFailure: true }
 ```
+
+`jasmineOpts.stopSpecOnExpectationFailure` was removed. Use `jasmineOpts.oneFailurePerSpec`. Setting the old key throws:
+
+```text
+The option "jasmineOpts.stopSpecOnExpectationFailure" was removed in WebdriverIO v10. Use "jasmineOpts.oneFailurePerSpec" instead.
+```
+
+```diff
+- jasmineOpts: { stopSpecOnExpectationFailure: true }
++ jasmineOpts: { oneFailurePerSpec: true }
+```
+
+Jasmine's sync matchers are synchronous again. In v9, the global `expect` was Jasmine's `expectAsync`, so `expect(1).toBe(1)` returned a promise. In v10, Jasmine's built-in matchers and the matchers you add with `jasmine.addMatchers` return `undefined`. WebdriverIO matchers, Jasmine's async matchers and `jasmine.addAsyncMatchers` matchers still return a promise, so continue to `await` them. You do not need to change `await expect($('#logo')).toBeDisplayed()` to `expectAsync()`: the global `expect` sends WebdriverIO matchers to `expectAsync` for you. `await expect(1).toBe(1)` continues to work.
+
+A failed sync assertion without `await` now fails the spec. In v9, it was a rejected promise: if nothing awaited it, the spec could pass, with only an unhandled rejection in the log. After the upgrade, look at the specs that start to fail. They had a hidden failure in v9, and the fix is in the test or in the application, not in the `expect` call:
+
+```js
+it('saves the form', async () => {
+    const onSave = jasmine.createSpy('onSave')
+    await submitForm(onSave)
+    // v9: passed even when `onSave` was not called
+    // v10: fails when `onSave` was not called
+    expect(onSave).toHaveBeenCalled()
+})
+```
+
+The result of a sync matcher is now `undefined`, so `.then()` or `.catch()` on it throws a `TypeError`:
+
+```diff
+- expect(total).toBe(3).then(() => log('ok'))
++ expect(total).toBe(3)
++ log('ok')
+```
+
+Other effects of this change:
+
+- `oneFailurePerSpec` now stops the spec at its first failed assertion: at once for a sync matcher, and when the promise settles for an awaited async matcher.
+- Jasmine's spy matchers work without `await`. In v9, `toHaveBeenCalled`, `toHaveSpyInteractions` and `toHaveNoOtherSpyInteractions` failed with "Does not take arguments", and an uncalled spy passed without `await`.
+- `jasmine.addMatchers` is no longer replaced, so Jasmine does not show its "Monkey patching detected" warning anymore.
+
+`toHaveSize` has two meanings. On a WebdriverIO value, it is the WebdriverIO matcher and checks the size of the element: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multi-remote element, a browser, the `some()` wrapper, or a promise such as a chainable `$()`. On any other value, it is Jasmine's matcher and checks the length. In v9, Jasmine's matcher always ran.
+
+```js
+expect([1, 2]).toHaveSize(2)                                   // Jasmine, sync
+await expect($('#logo')).toHaveSize({ width: 32, height: 32 }) // WebdriverIO, async
+```
+
+The types follow the same rules. `@wdio/jasmine-framework` now types the global `expect` with Jasmine's matchers, plus the WebdriverIO matchers and the Jasmine async matchers, which return a promise. Remove `expect-webdriverio/jasmine-wdio-expect-async` from `types` in your `tsconfig.json`, because it types every matcher as async. Add `jasmine` if it is not there:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
+-        "types": ["node", "@wdio/globals/types", "expect-webdriverio/jasmine-wdio-expect-async", "@wdio/jasmine-framework"]
++        "types": ["node", "jasmine", "@wdio/globals/types", "@wdio/jasmine-framework"]
+     }
+ }
+```
+
+`expect.oneOf()` now also works in Jasmine specs. Before, it had a type but was not on the Jasmine `expect` at runtime.
 
 ## Multi-remote Global
 
@@ -91,6 +170,8 @@ The lowercase `multiremotebrowser` global was removed, from `@wdio/globals` and 
   }]
 ```
 
+The top-level config keys stay `specs` and `exclude`. A leftover bare list on a capability does not select files for that capability. The capability then uses the top-level `specs` and `exclude`.
+
 The `tunnelIdentifier` and `parentTunnel` aliases were removed from the Sauce Labs options types. Use `tunnelName` and `tunnelOwner`.
 
 ## TypeScript
@@ -103,9 +184,50 @@ The `Element`, `MultiRemoteBrowser` and `MultiRemoteElement` types exported by `
 + const elem: WebdriverIO.Element = await $('#foo')
 ```
 
+Published packages set `typeScriptVersion` to 6.0.3, matching the TypeScript version this repository compiles with.
+
+`browser.mock()` accepts the `URLPattern` of `urlpattern-polyfill` and the native `URLPattern` (global in Node.js 24, and typed by the `dom` library of TypeScript 6).
+
+TypeScript 6 deprecates `"moduleResolution": "node"` and `"baseUrl"`, and makes `strict` the default. `create-wdio` now generates `"moduleResolution": "bundler"` for ESM projects and `"NodeNext"` for CommonJS projects. If you update TypeScript in an existing project, change these options in your `tsconfig.json`.
+
+For an ESM project:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
+-        "moduleResolution": "node",
++        "moduleResolution": "bundler",
+         "module": "ESNext"
+     }
+ }
+```
+
+For a CommonJS project, use `NodeNext` for both options, as `create-wdio` does:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
+-        "moduleResolution": "node",
+-        "module": "CommonJS"
++        "moduleResolution": "NodeNext",
++        "module": "NodeNext"
+     }
+ }
+```
+
+TypeScript 6 also changes the default of `types` to `[]`, so it no longer loads every installed `@types/*` package. If your `tsconfig.json` has no `types` list, globals such as Mocha's `describe` and `it` fail with `Cannot find name`. List the type packages that your tests use, as `create-wdio` does. For example, with Mocha:
+
+```diff title="tsconfig.json"
+ {
+     "compilerOptions": {
++        "types": ["node", "@wdio/globals/types", "@wdio/mocha-framework"]
+     }
+ }
+```
+
 ## Reporters
 
-The command `result` event and the `AfterCommandArgs` type no longer have a `name` property. Read `command` instead.
+The browser `result` event is forwarded to reporters as `client:afterCommand`. That payload and the `AfterCommandArgs` type no longer have a `name` property. Read `command` instead. Custom commands already sent `command`.
 
 ```diff
   onAfterCommand(args) {
@@ -114,7 +236,9 @@ The command `result` event and the `AfterCommandArgs` type no longer have a `nam
   }
 ```
 
-The `addEnvironment` function of `@wdio/allure-reporter` was removed. It already did nothing. Use the [`reportedEnvironmentVars`](/docs/allure-reporter) reporter option instead.
+### Allure
+
+`addEnvironment(name, value)` on `@wdio/allure-reporter` was removed. It had no effect. Set environment rows with [`reportedEnvironmentVars`](/docs/allure-reporter) in the Allure reporter options.
 
 ## `$` is strict
 
@@ -137,7 +261,7 @@ The rule applies to every step of a chain (`$('form').$('input')`) and to every 
 
 ### What did not change
 
-- `$$` still returns zero or many elements.
+- `$$` still returns zero or many elements. Since v10 that list is an [`ElementArray`](/docs/api/browser/$$): a real array you can `await`, with `for await` and async `map` / `filter` available before it resolves. `await $$('button').length` is the count. `$$('button').length > 0` is not, because `length` is a promise until the list resolves. `for (const el of $$('button'))` throws until you have awaited the list; use `for await`, or `for...of` after `await`.
 - The dedicated helper commands `custom$`, `shadow$` and `react$` are not strict — they still return their first match, as do their `$$` counterparts.
 - A selector that matches nothing still returns a lazily-resolved element, so `waitForExist` and [auto-waiting](/docs/autowait) behave as before.
 - Passing an element reference, e.g. `$(await browser.getActiveElement())`, always refers to a single node and is never checked.
@@ -274,22 +398,6 @@ Only the options object is accepted. `appWaitPackage`, `appWaitActivity`, and `o
 + })
 ```
 
-## Capability spec filters
-
-Spec and exclude lists on a capability use the `wdio:` prefix. Bare `specs` and `exclude` on a capability are ignored. The top-level config keys stay `specs` and `exclude`.
-
-```diff
-capabilities: [{
-    browserName: 'firefox',
--   specs: ['test/ffOnly/*'],
--   exclude: ['test/ffOnly/skip.js'],
-+   'wdio:specs': ['test/ffOnly/*'],
-+   'wdio:exclude': ['test/ffOnly/skip.js'],
-}]
-```
-
-A leftover bare list does not select files for that capability. The capability then uses the top-level `specs` and `exclude`.
-
 ## Removed commands
 
 `browser.throttle` and the deprecated `touchAction` commands have been removed.
@@ -310,6 +418,60 @@ await browser.action('pointer', { parameters: { pointerType: 'touch' } })
     .perform()
 ```
 
+## `uploadFile`
+
+`browser.uploadFile()` is removed. It zipped a local file and posted it to the Selenium `file` endpoint, which is not part of WebDriver or WebDriver BiDi. Set a file input with [`element.setFiles()`](/docs/api/element/setFiles).
+
+```diff
+- const remotePath = await browser.uploadFile('/path/to/file.png')
+- await $('#file-upload').setValue(remotePath)
++ await $('#file-upload').setFiles('/path/to/file.png')
++ await $('#file-upload').setFiles(['/path/to/a.png', '/path/to/b.png'])
+```
+
+`setFiles` needs a BiDi session. The paths are opened by the browser. A relative path is resolved against `process.cwd()`. Selenium Grid file staging is not part of v10. A suite that depended on `uploadFile` to push bytes to a node has to put the file where the browser can read it, then call `setFiles`.
+
+On a classic local session, `element.setValue('/local/path')` still types a path the local browser can already see. The raw Selenium endpoint remains `browser.file()` for Grid users who call it directly.
+
+## `executeAsync`
+
+`browser.executeAsync` and `element.executeAsync` are removed. Pass an `async` function to [`execute`](/docs/api/browser/execute). The function's return value, including a returned promise, is the command result. The `script` timeout still applies.
+
+```ts
+const result = await browser.execute(async (a, b) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    return a + b
+}, 1, 2)
+```
+
+Drop the WebDriver `done` callback. A string script that expected that callback as its last argument has to return a promise instead. At runtime, `executeAsync` is not a function.
+
+## `switchToFrame`
+
+`browser.switchToFrame` is no longer a public command.
+
+In a WebDriver BiDi session, `switchFrame` and `switchWindow` throw. A tab, a window, and a frame are a `WebdriverIO.BrowsingContext` you hold. `browser.url()` navigates the session's initial top-level context and returns it. `browser.newWindow()` returns the new context and does not switch to it. `context.frame()` returns a child frame. `context.parent` is the frame you opened it from.
+
+```ts
+const page = await browser.url('https://example.com')
+const other = await browser.newWindow('https://webdriver.io', { type: 'tab' })
+console.log(await page.getTitle())
+const frame = await page.frame('iframe')
+console.log(await frame.$('h1').getText())
+const pages = await browser.browsingContexts()
+```
+
+`context.url` is the document URL string. Navigate a held context with `context.navigate(url)`. Load metadata from `browser.url()` is `context.request`.
+
+In a Classic session, keep calling `switchFrame` with an element, or `null` for the top frame. A string or a function is rejected there.
+
+```diff
+- await browser.switchToFrame(await $('iframe'))
+- await browser.switchToFrame(null)
++ await browser.switchFrame($('iframe'))
++ await browser.switchFrame(null)
+```
+
 ## `setTimeout`
 
 The JSON Wire Protocol key `page load` is rejected. Use `pageLoad`.
@@ -320,14 +482,6 @@ The JSON Wire Protocol key `page load` is rejected. Use `pageLoad`.
 ```
 
 `implicit` and `script` are unchanged.
-
-## Reporters
-
-`client:afterCommand` no longer includes `name`. Read `command` for the command name. Custom commands already sent `command`.
-
-## Allure
-
-`addEnvironment(name, value)` is removed. It had no effect. Set environment rows with `reportedEnvironmentVars` in the Allure reporter options.
 
 ## Multi-remote instance access
 
@@ -345,6 +499,10 @@ A TypeScript augmentation that adds `myChromeBrowser: WebdriverIO.Browser` to `W
 With the testrunner and `injectGlobals` left on, the instance name is still a global (`myChromeBrowser.url(...)`). That global is the single session. It is not `browser.myChromeBrowser`.
 
 Command results stay in capability order: the first entry belongs to the first key in the capabilities object.
+
+`browser.$$()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteElementArray`, not a plain `MultiRemoteElement[]`. It is still an array, so an index read such as `elements[0]` keeps working. `custom$$` and `react$$` still return one result per instance. They are not zipped into one array.
+
+`WDIO_ENABLE_MULTI_REMOTE_SELECT` and `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY` have been removed. `select()` is always available, and `$$()` always returns the element array above. Delete both variables.
 
 ## Binary mock responses
 
@@ -373,6 +531,19 @@ Command results stay in capability order: the first entry belongs to the first k
 
 `getInstance` throws `Multi-remote object has no instance named "<name>"` when the name is not one of `instances`. A mock from `browser.select('myFirefoxBrowser', 'myChromeBrowser')` lists those instances in that order, which can differ from `browser.instances`. Do not assume `mocks[0]` is a particular browser.
 
+## Mock responses that skip the backend
+
+`mock.respond(..., { fetchResponse: false })` does not call the backend. In v9, a mock that also filtered on `statusCode` or `responseHeaders` ignored that filter and still answered every matching request. In v10, `respond()` and `respondOnce()` throw, because those filters can only be decided from the backend response.
+
+```diff
+- const mock = await browser.mock('**/users', { statusCode: 200 })
+- mock.respond({ name: 'Ada' }, { fetchResponse: false })
++ const mock = await browser.mock('**/users')
++ mock.respond({ name: 'Ada' }, { fetchResponse: false })
+```
+
+To keep the filter, omit `fetchResponse` so the mock fetches the response, checks the status or headers, and then replaces the body.
+
 ## Element references
 
 Element ids use the W3C WebDriver key `element-6066-11e4-a52e-4f735466cecf` and the `elementId` property. The JSON Wire Protocol field `ELEMENT` is no longer part of the element contract.
@@ -393,14 +564,6 @@ A find-element body that contains only `{ ELEMENT: '...' }` is not an element. I
 
 Jasmine prints a chained `$()` result through `toJSON`. That value is the same W3C reference, `{ 'element-6066-11e4-a52e-4f735466cecf': elementId }`.
 
-## Jasmine
-
-`@wdio/jasmine-framework` depends on [Jasmine 6](https://jasmine.github.io/upgrade-guides/6.0). Jasmine 6 needs Node.js 20, 22, or 24, which the v10 floor of 22.19.0 already covers.
-
-`jasmineNodeOpts` was removed. Configure Jasmine with `jasmineOpts`. Setting `jasmineNodeOpts` throws.
-
-`jasmineOpts.stopSpecOnExpectationFailure` was removed. Use `jasmineOpts.oneFailurePerSpec`. Setting the old key throws.
-
 ## Component testing
 
 `@wdio/browser-runner` re-exports `fn`, `spyOn` and the mock types from `@vitest/spy` 5 (previously 3). A mock that your code calls with `new` needs a `function` or `class` implementation. An arrow function throws `is not a constructor`, and `mockReturnValue` throws when the mock is called with `new`.
@@ -418,6 +581,12 @@ For other spy changes, see the [Vitest migration guide](https://vitest.dev/guide
 
 ## ESLint
 
+`eslint-plugin-wdio` requires ESLint 10. ESLint 9 reached [end of life](https://eslint.org/version-support/) on 2026-08-06 and is no longer supported. With TypeScript, use `typescript-eslint` 8.56.0 or later.
+
+```sh
+npm install --save-dev eslint@10 eslint-plugin-wdio
+```
+
 `eslint-plugin-wdio` exports only the flat config `flat/recommended`. The eslintrc name `plugin:wdio/recommended` is removed.
 
 ```js
@@ -428,9 +597,31 @@ export default [
 ]
 ```
 
-## TypeScript
+The recommended config switches to the type-aware `wdio/no-floating-promise` rule, in place of `wdio/await-expect`, when the `typescript-eslint` package is installed. Installing only `@typescript-eslint/eslint-plugin` is not enough.
 
-Published packages set `typeScriptVersion` to 5.9.3, matching the TypeScript version this repository compiles with.
+```sh
+npm install --save-dev typescript typescript-eslint
+```
+
+In that mode, the config parses every file it matches with the TypeScript project service. Limit it to TypeScript files, and make sure they are part of a `tsconfig.json`:
+
+```js
+import { configs as wdioConfig } from 'eslint-plugin-wdio'
+
+export default [
+    { files: ['**/*.{ts,mts,cts,tsx}'], ...wdioConfig['flat/recommended'] },
+]
+```
+
+A matched JavaScript file that is not in the TypeScript project, such as `wdio.conf.js`, fails with "was not found by the project service". To lint JavaScript files too, set `"allowJs": true`, add them to `include` in `tsconfig.json`, and widen the pattern to `**/*.{js,mjs,cjs,ts,mts,cts,tsx}`.
+
+## Custom frameworks
+
+`setupExpect` on a custom framework adapter no longer accepts a `Map` of matchers, and the runner no longer adds an `entries` method to the matchers object. Iterate with `Object.entries(wdioMatchers)`.
+
+## Firefox profile
+
+`@wdio/firefox-profile-service` no longer treats `legacy` as a service option. That flag only applied to Firefox 55 and older. Delete it. A leftover `legacy: true` is written into the profile as a preference named `legacy`.
 
 ## WebDriver protocol
 
@@ -513,7 +704,7 @@ In v9, many mobile helpers tried `browser.execute('mobile: …')` and, on an unk
 
 ### Removed protocol commands
 
-Appium 3 [removed many deprecated base-driver endpoints](https://appium.io/docs/en/3.0/guides/migrating-2-to-3/). WebdriverIO no longer exposes client methods for those routes (for example `appiumLock`, `touchPerform`, `startRecordingScreen` / `stopRecordingScreen`, and the Mobile JSON Wire Protocol map). Use W3C Actions, the corresponding mobile command, or a driver `mobile:` execute method instead. Screen recording replacements include `mobile: startXCTestScreenRecording` / `mobile: stopXCTestScreenRecording` (iOS), `mobile: startMediaProjectionRecording` / `mobile: stopMediaProjectionRecording` (Android), and the macOS / Windows driver equivalents. [`browser.saveRecordingScreen`](/docs/api/browser/saveRecordingScreen) now stops recording through those `mobile:` methods instead of the removed HTTP endpoints.
+Appium 3 [removed many deprecated base-driver endpoints](https://appium.io/docs/en/latest/guides/migrating-2-to-3/). WebdriverIO no longer exposes client methods for most of those routes (for example `appiumLock`, `touchPerform`, and the Mobile JSON Wire Protocol map). Use W3C Actions, the corresponding mobile command, or a driver `mobile:` execute method instead.
 
 ### Appium `--allow-insecure` scope
 
@@ -536,9 +727,16 @@ Appium 3 requires a driver or `*` scope prefix on `--allow-insecure` features, f
 
 ### `getValue` on mobile reads the element property
 
-`element.getValue()` calls Get Element Property, including on Appium 3. It previously called Get Element Attribute for every mobile session.
+`element.getValue()` calls Get Element Property on every session, including Appium 3. On a mobile session it previously called Get Element Attribute.
 
-On a W3C session, including Appium 3, `element.getValue()` calls Get Element Property. It previously called Get Element Attribute for every mobile session. A non-W3C session still reads the attribute.
+### `stopRecordingScreen` signature aligned with `startRecordingScreen`
+
+`driver.stopRecordingScreen` now only accepts a single `options` argument, instead of the previous 4 arguments, aligning with `driver.startRecordingScreen`. Move the individual arguments inside an object:
+
+```diff
+- driver.stopRecordingScreen('webdriver.io', undefined, undefined, 'POST')
++ driver.stopRecordingScreen({ remotePath: 'webdriver.io', method: 'POST' })
+```
 
 ## Multi-remote naming
 
@@ -557,3 +755,86 @@ APIs spelled `multiremote` or `Multiremote` are now camelCased / PascalCase as `
 | `browser.multiremoteFetch()` (`@wdio/webdriver-mock-service`) | `browser.multiRemoteFetch()` |
 
 Search for `multiremote` and `Multiremote` (case-sensitive) and replace every match. Allure reports also label multi-remote tests with `isMultiRemote` instead of `isMultiremote`.
+
+## Virtual displays on Linux
+
+`@wdio/xvfb` is replaced by `@wdio/display-server`. Instead of wrapping each worker in `xvfb-run`, the testrunner starts one display server for the whole run, before any service's `onPrepare` hook. It prefers Weston in headless mode and falls back to Xvfb. See [Headless & Display Servers](/docs/headless-and-display-servers) for details.
+
+The options are renamed. The old names still work in v10 but log a deprecation warning, and will be removed in v11. If you set both names, the new one wins:
+
+```diff
+- autoXvfb: false,
++ displayServerEnabled: false,
+- xvfbAutoInstall: true,
++ displayServerAutoInstall: true,
+- xvfbAutoInstallMode: 'sudo',
++ displayServerAutoInstallMode: 'sudo',
+- xvfbAutoInstallCommand: 'my-install-command',
++ displayServerAutoInstallCommand: 'my-install-command',
+```
+
+`xvfbMaxRetries` and `xvfbRetryDelay` have no effect, and will also be removed in v11. Startup is no longer retried: if Weston fails to start, the testrunner tries Xvfb, and if neither starts, the run continues without a display.
+
+A config that sets one of the four renamed options without its replacement, and doesn't set `displayServer`, keeps using Xvfb as v9 did. Unless it turns the display server off, it also logs `Preferring Xvfb, as v9 did, because the config sets v9 display keys`. Once you rename the options, add `displayServer: 'xvfb'` to keep Xvfb, or leave it out to prefer Weston. In auto mode a custom install command runs for Weston first, and again for Xvfb only if Weston still isn't available or fails to start and Xvfb is still missing, so set `displayServer` to the server it installs to skip the other server's attempt.
+
+Auto-install no longer supports `yum`, which v9 used on hosts without `dnf`. v10 detects `apt-get`, `dnf`, `zypper`, `pacman`, `apk` and `xbps-install` only, so install Xvfb yourself on a `yum`-only host.
+
+An `xvfbAutoInstallCommand` array ran through a shell in v9, so elements such as `&&` or `VAR=value` worked. Arrays now run without a shell under either option name, so use a string for shell syntax.
+
+Other changes you may notice:
+
+- All workers share one display. In v9, each worker had a display of its own. Chrome and Edge pages can now lack focus, see [Window focus](/docs/headless-and-display-servers#window-focus).
+- The Xvfb display number isn't fixed. Read it from `DISPLAY` instead of assuming `:99`.
+- A host with only `WAYLAND_DISPLAY` set now counts as having a display. v9 ran workers under Xvfb there, since `DISPLAY` was unset. v10 starts nothing, opens browser windows on your compositor, and sets `XDG_SESSION_TYPE`, `GDK_BACKEND` and `ELECTRON_OZONE_PLATFORM_HINT` to `wayland` for the run. To run them under Xvfb as before, unset `WAYLAND_DISPLAY` and set `displayServer: 'xvfb'`.
+- The default screen is 1920x1080. v9 used `xvfb-run`'s default, which is 1280x1024 on Debian and Ubuntu and 640x480 on Fedora, RHEL and Arch. To keep the size your baselines use, set `displayServerWidth` and `displayServerHeight` to it.
+- Browsers pick Wayland or X11 from the `XDG_SESSION_TYPE` the display server sets. Under Weston, WebdriverIO also adds `--ozone-platform=wayland` to the Chrome and Edge it launches, since Chrome and Edge before 140 (Chrome for Testing before 135) ignore `XDG_SESSION_TYPE`. Weston provides no `DISPLAY`, so if your tests or tools need X11, set `displayServer: 'xvfb'`.
+- If you used `XvfbManager` or the `xvfb` instance from `@wdio/xvfb` directly, use `DisplayServerManager` from `@wdio/display-server` instead. Where you ran `xvfb.init()` and wrapped commands in `xvfb-run`, or spawned processes through `ProcessFactory`, start a display and pass its environment to the processes that need it. The example uses Xvfb at 1280x1024, as v9 did on Debian and Ubuntu. On a host where only `WAYLAND_DISPLAY` is set, unset it first, or `startDaemon()` starts nothing:
+
+  ```js
+  import { spawn } from 'node:child_process'
+  import { once } from 'node:events'
+  import { DisplayServerManager } from '@wdio/display-server'
+
+  const manager = new DisplayServerManager({ displayServer: 'xvfb' })
+  const daemon = await manager.startDaemon({ width: 1280, height: 1024 })
+  // startDaemon() also returns null when a display already exists
+  if (!daemon && manager.shouldRun()) {
+      throw new Error('Xvfb could not be started')
+  }
+  try {
+      const child = spawn('your-command', { shell: true, stdio: 'inherit', env: { ...process.env, ...daemon?.env } })
+      const [code] = await once(child, 'exit')
+      process.exitCode = code ?? 1
+  } finally {
+      await daemon?.stop()
+  }
+  ```
+
+## Emulation
+
+`browser.emulate()` drives the WebDriver BiDi emulation module for the current top-level browsing context. v9 injected a preload script that patched `navigator.geolocation.getCurrentPosition`, `navigator.userAgent`, `window.matchMedia` and `navigator.onLine`. Those scripts are gone. `browser.emulate('clock', …)` still installs fake timers into the current page and into pages opened afterwards.
+
+A reload is no longer required for the BiDi scopes.
+
+```diff
+  await browser.emulate('onLine', false)
+- // only `navigator.onLine` changed; traffic still flowed
++ // the browsing context is offline, including fetch, WebSocket and WebTransport
+```
+
+- `onLine: false` calls `emulation.setNetworkConditions` with `{ type: 'offline' }`. `true` and restoring the scope clear it. Throughput and latency stay on `browser.throttleNetwork()`.
+- `colorScheme` sets the `prefers-color-scheme` media feature, so CSS `@media (prefers-color-scheme)` follows `matchMedia`.
+- `userAgent` is the browser user-agent override, not a patched `navigator.userAgent` property.
+- `geolocation` uses the browser geolocation stack. A page can still need `browser.setPermissions({ name: 'geolocation' }, 'granted')`. `{ error: 'positionUnavailable' }` reports that error instead of coordinates.
+- `colorScheme` and `media` share one media-feature map. The later call replaces the whole map, and restoring either scope clears it.
+- `device` sets the user agent, viewport, touch, mobile text layout and viewport meta from the device descriptor. It does not change `screen` or `orientation`.
+
+New scopes are `media`, `locale`, `timezone`, `touch`, `orientation`, `screen`, `viewportMeta`, `textLayout`, `scripting`, `scrollbar` and `forcedColors`. A browser that does not implement a command rejects the call with its own error (`unknown command` or `unsupported operation`). WebdriverIO does not fall back to a preload script or to CDP. If `device` is rejected part way through, the previous user agent, viewport, touch, text layout and viewport meta are put back.
+
+`wdio session emulate` accepts the same scopes. It no longer tells you to reload for an override that applies immediately. `emulate network` presets and `emulate cpu` are unchanged and remain Chromium-only. See [Emulation](/docs/emulation).
+
+## Next steps
+
+- Copy the [migration skill](#migrate-with-a-coding-agent) into the project and ask an agent to apply it.
+- [WebdriverIO for Coding Agents](/docs/ai-agents) for writing new v10 tests.
+- [Headless and Display Servers](/docs/headless-and-display-servers) when the suite runs on Linux.

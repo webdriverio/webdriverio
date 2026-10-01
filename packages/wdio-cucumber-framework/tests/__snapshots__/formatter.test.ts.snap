@@ -54,8 +54,8 @@ exports[`CucumberFormatter > emits messages for certain cucumber events > should
       "cid": "0-1",
       "description": "",
       "file": "/some/path/to/features/my-feature.feature",
-      "fullTitle": "my-feature.feature:undefined:1: Get size of an element",
-      "parent": "my-feature.feature:undefined:1",
+      "fullTitle": "my-feature.feature:3:1: Get size of an element",
+      "parent": "my-feature.feature:3:1",
       "rule": "rule name",
       "specs": [
         "/foobar.js",
@@ -124,7 +124,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events > should
       ],
       "title": "Example feature",
       "type": "feature",
-      "uid": "my-feature.feature:undefined:1",
+      "uid": "my-feature.feature:3:1",
     },
   ],
 ]
@@ -161,7 +161,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events > should
       ],
       "title": "Example feature",
       "type": "feature",
-      "uid": "my-feature.feature:undefined:1",
+      "uid": "my-feature.feature:3:1",
     },
   ],
 ]
@@ -379,8 +379,8 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
       "cid": "0-1",
       "description": "",
       "file": "/some/path/to/features/my-feature.feature",
-      "fullTitle": "my-feature.feature:undefined:1: Get size of an element",
-      "parent": "my-feature.feature:undefined:1",
+      "fullTitle": "my-feature.feature:3:1: Get size of an element",
+      "parent": "my-feature.feature:3:1",
       "rule": "rule name",
       "specs": [
         "/foobar.js",
@@ -497,7 +497,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
       ],
       "title": "Example feature",
       "type": "feature",
-      "uid": "my-feature.feature:undefined:1",
+      "uid": "my-feature.feature:3:1",
     },
   ],
 ]
@@ -534,7 +534,7 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
       ],
       "title": "Example feature",
       "type": "feature",
-      "uid": "my-feature.feature:undefined:1",
+      "uid": "my-feature.feature:3:1",
     },
   ],
 ]
@@ -574,7 +574,7 @@ exports[`CucumberFormatter > tags in title > should add tags on handleBeforeFeat
       ],
       "title": "@feature-tag1, @feature-tag2: Example feature",
       "type": "feature",
-      "uid": "my-feature.feature:undefined:1",
+      "uid": "my-feature.feature:3:1",
     },
   ],
 ]

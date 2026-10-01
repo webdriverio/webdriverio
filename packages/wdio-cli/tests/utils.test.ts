@@ -1,9 +1,6 @@
 import path from 'node:path'
-import cp from 'node:child_process'
-import fs from 'node:fs/promises'
 
-import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
-import { readPackageUp } from 'read-pkg-up'
+import { vi, describe, it, expect, beforeEach, test } from 'vitest'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config/node'
 
@@ -12,32 +9,12 @@ import {
     runOnCompleteHook,
     runServiceHook,
     getRunnerName,
-    findInConfig,
     getCapabilities,
     shouldEnableTsx,
     looksLikeTypeScriptPath,
 } from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('child_process', () => {
-    const m = {
-        execSyncRes: 'APPIUM_MISSING',
-        execSync: () => m.execSyncRes,
-        exec: vi.fn(),
-        spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
-    }
-    return { default: m }
-})
-
-vi.mock('read-pkg-up')
-
-vi.mock('node:fs/promises', () => ({
-    default: {
-        access: vi.fn().mockRejectedValue(new Error('ENOENT')),
-        mkdir: vi.fn(),
-        writeFile: vi.fn().mockReturnValue(Promise.resolve())
-    }
-}))
 
 vi.mock('@wdio/config/node', () => ({
     ConfigParser: class ConfigParserMock {
@@ -53,15 +30,6 @@ vi.mock('import-meta-resolve', () => ({ resolve: resolveMock }))
 vi.mock('tsx', () => ({}))
 
 beforeEach(() => {
-    global.console.log = vi.fn()
-
-    vi.mocked(readPackageUp).mockResolvedValue({
-        path: '/foo/package.json',
-        packageJson: {
-            name: 'cool-test-module',
-            type: 'module'
-        }
-    })
     resolveMock.mockClear()
 })
 
@@ -113,22 +81,18 @@ describe('runServiceHook', () => {
     it('executes all hooks and stops after a hook throws SevereServiceError', async () => {
         const hookFailing = vi.fn().mockImplementation(() => { throw new SevereServiceError() })
 
-        try {
-            await runServiceHook([
-                { onPrepare: hookSuccess },
-                // @ts-ignore test invalid parameter
-                { onPrepare: 'foobar' },
-                { onPrepare: asyncHookSuccess },
-                { onPrepare: hookFailing },
-            ], 'onPrepare', 1, true, 'abc')
-        } catch (err: any) {
-            expect(err.message).toEqual(expect.stringContaining('SevereServiceError'))
-            expect(err.message).toEqual(expect.stringContaining('Stopping runner...'))
-            expect(hookSuccess).toBeCalledTimes(1)
-            expect(hookFailing).toBeCalledTimes(1)
-            expect(slowSetupFn).toBeCalledTimes(1)
-            expect(asyncHookSuccess).toBeCalledTimes(1)
-        }
+        await expect(runServiceHook([
+            { onPrepare: hookSuccess },
+            // @ts-ignore test invalid parameter
+            { onPrepare: 'foobar' },
+            { onPrepare: asyncHookSuccess },
+            { onPrepare: hookFailing },
+        ], 'onPrepare', 1, true, 'abc')).rejects.toThrow(/SevereServiceError[\s\S]*Stopping runner\.\.\./)
+
+        expect(hookSuccess).toBeCalledTimes(1)
+        expect(hookFailing).toBeCalledTimes(1)
+        expect(slowSetupFn).toBeCalledTimes(1)
+        expect(asyncHookSuccess).toBeCalledTimes(1)
     })
 })
 
@@ -232,24 +196,6 @@ test('getRunnerName', () => {
     expect(getRunnerName({ foo: { capabilities: [] }, bar: {} })).toBe('undefined')
     // @ts-ignore test invalid parameter
     expect(getRunnerName({ foo: { capabilities: [] } })).toBe('MultiRemote')
-})
-
-describe('findInConfig', () => {
-    it('finds text for services', () => {
-        const str = "services: ['foo', 'bar'],"
-
-        expect(findInConfig(str, 'service')).toMatchObject([
-            'services: [\'foo\', \'bar\']'
-        ])
-    })
-
-    it('finds text for frameworks', () => {
-        const str = "framework: 'mocha'"
-
-        expect(findInConfig(str, 'framework')).toMatchObject([
-            "framework: 'mocha'"
-        ])
-    })
 })
 
 describe('getCapabilities', () => {
@@ -398,11 +344,4 @@ describe('looksLikeTypeScriptPath', () => {
         expect(looksLikeTypeScriptPath('./foo/**/*.mts')).toBe(true)
         expect(looksLikeTypeScriptPath('./foo.js')).toBe(false)
     })
-})
-
-afterEach(() => {
-    vi.mocked(console.log).mockRestore()
-    vi.mocked(fs.writeFile).mockClear()
-    vi.mocked(cp.spawn).mockClear()
-    vi.mocked(fs.mkdir).mockClear()
 })

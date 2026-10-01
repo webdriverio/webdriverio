@@ -124,29 +124,6 @@ export async function initializeInstance (
     return browser
 }
 
-/**
- * Filter logTypes based on filter
- * @param  {string[]} excludeDriverLogs logTypes filter
- * @param  {string[]} driverLogTypes    available driver log types
- * @return {string[]}                   logTypes
- */
-export function filterLogTypes(
-    excludeDriverLogs: string[],
-    driverLogTypes: string[]
-) {
-    let logTypes = [...driverLogTypes]
-
-    if (Array.isArray(excludeDriverLogs)) {
-        log.debug('filtering logTypes', logTypes)
-        logTypes = excludeDriverLogs.length === 1 && excludeDriverLogs[0] === '*'
-            ? []
-            : logTypes.filter(x => !excludeDriverLogs.includes(x)) // exclude specific logTypes
-        log.debug('filtered logTypes', logTypes)
-    }
-
-    return logTypes
-}
-
 type BrowserData = {
     sessionId: string
     protocol: string
@@ -173,8 +150,8 @@ export function getInstancesData (
     const multiRemoteBrowser = browser as WebdriverIO.MultiRemoteBrowser
     const instances: Record<string, Partial<BrowserData>> = {}
     multiRemoteBrowser.instances.forEach((browserName: string) => {
-        const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser.getInstance(browserName)!.options
-        const { sessionId } = multiRemoteBrowser.getInstance(browserName)!
+        const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser.getInstance(browserName).options
+        const { sessionId } = multiRemoteBrowser.getInstance(browserName)
 
         instances[browserName] = { sessionId, protocol, hostname, port, path, queryParams }
     })

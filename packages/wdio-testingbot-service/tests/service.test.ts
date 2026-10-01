@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import type { Capabilities, Frameworks } from '@wdio/types'
+import type { Frameworks } from '@wdio/types'
 
 import TestingBotService from '../src/service.js'
 
@@ -14,24 +14,26 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 
 describe('wdio-testingbot-service', () => {
     let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    let executeScript: ReturnType<typeof vi.fn>
+    let chromeA: { sessionId: string, executeScript: ReturnType<typeof vi.fn> }
+    let chromeB: { sessionId: string, executeScript: ReturnType<typeof vi.fn> }
+    let chromeC: { sessionId: string, executeScript: ReturnType<typeof vi.fn> }
+
     beforeEach(() => {
+        executeScript = vi.fn()
+        chromeA = { sessionId: 'sessionChromeA', executeScript: vi.fn() }
+        chromeB = { sessionId: 'sessionChromeB', executeScript: vi.fn() }
+        chromeC = { sessionId: 'sessionChromeC', executeScript: vi.fn() }
         browser = {
-            executeScript: vi.fn(),
+            executeScript,
             sessionId: 'globalSessionId',
-            requestHandler: {
-                auth: {
-                    user: 'user',
-                    pass: 'pass'
-                }
-            },
-            config: {},
             getInstance: vi.fn().mockImplementation((browserName: string) => {
-                // @ts-expect-error
+                // @ts-expect-error fixture instances are not on the MultiRemoteBrowser type
                 return browser[browserName] as WebdriverIO.Browser
             }),
-            chromeA: { sessionId: 'sessionChromeA', executeScript: vi.fn() },
-            chromeB: { sessionId: 'sessionChromeB', executeScript: vi.fn() },
-            chromeC: { sessionId: 'sessionChromeC', executeScript: vi.fn() },
+            chromeA,
+            chromeB,
+            chromeC,
             instances: ['chromeA', 'chromeB', 'chromeC'],
         } as unknown as WebdriverIO.MultiRemoteBrowser
     })
@@ -40,163 +42,146 @@ describe('wdio-testingbot-service', () => {
         vi.mocked(fetch).mockClear()
     })
 
-    it('before', () => {
-        const caps = {
-            name: 'Test suite',
-            tags: ['tag1', 'tag2'],
-            public: true,
-            build: 344
-        } as Capabilities.RemoteCapability
-        const tbService = new TestingBotService(
-            {},
-            caps,
-            {
-                user: 'foobar',
-                key: 'fookey'
-            }
-        )
-        expect(tbService['_capabilities']).toEqual(caps)
-        expect(tbService['_tbUser']).toEqual('foobar')
-        expect(tbService['_tbSecret']).toEqual('fookey')
-        expect(tbService['_testCnt']).toEqual(0)
-        expect(tbService['_failures']).toEqual(0)
-    })
-
-    it('beforeSuite', () => {
+    it('beforeTest skips annotation without credentials', () => {
         const tbService = new TestingBotService({}, {}, {})
-        tbService['_browser'] = browser
-        const suiteTitle = 'Test Suite Title'
-        tbService.beforeSuite({ title: suiteTitle } as Frameworks.Suite)
+        tbService.before(undefined, undefined, browser)
+        tbService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as Frameworks.Suite)
+        tbService.beforeTest({
+            fullName: 'Login page should greet the user',
+            title: 'should greet the user',
+            parent: 'Login page'
+        } as Frameworks.Test)
 
-        expect(tbService['_suiteTitle']).toEqual(suiteTitle)
+        expect(executeScript).not.toHaveBeenCalled()
+        expect(tbService.getBody(0, false).test.name).toBe('Jasmine__TopLevel__Suite')
     })
 
-    it('beforeTest: setAnnotation not called', () => {
-        const tbService = new TestingBotService({}, {}, {})
-        tbService['_browser'] = browser
-        tbService.setAnnotation = vi.fn()
-        const test = {
-            fullName: 'Test #1',
-            parent: 'Test parent'
-        } as Frameworks.Test
-        tbService['_tbUser'] = undefined
-        tbService['_tbSecret'] = undefined
-        tbService['_suiteTitle'] = 'Test suite'
-        tbService.beforeTest(test)
-
-        expect(tbService.setAnnotation).not.toBeCalled()
-        expect(tbService['_suiteTitle']).toEqual('Test suite')
-    })
-
-    it('beforeTest: setAnnotation called', async () => {
+    it('beforeTest annotates with the full test name', async () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
         })
-        tbService['_browser'] = browser
-        tbService.setAnnotation = vi.fn()
-        const test: Frameworks.Test = {
-            name: 'Test name',
-            fullName: 'Test #1',
-            title: 'Test title',
-            parent: 'Test parent'
-        } as any
+        tbService.before(undefined, undefined, browser)
         tbService.beforeSuite({ title: 'Test suite' } as Frameworks.Suite)
-        await tbService.beforeTest(test)
-
-        expect(tbService.setAnnotation).toBeCalledWith('tb:test-context=Test #1')
-        expect(tbService['_suiteTitle']).toEqual('Test suite')
-    })
-
-    it('beforeTest: setAnnotation called for Jasmine tests', async () => {
-        const tbService = new TestingBotService({}, {}, {
-            user: 'user',
-            key: 'secret'
-        })
-        tbService['_browser'] = browser
-        tbService.setAnnotation = vi.fn()
-        const test: Frameworks.Test = {
+        await tbService.beforeTest({
             name: 'Test name',
             fullName: 'Test #1',
             title: 'Test title',
             parent: 'Test parent'
-        } as any
+        } as Frameworks.Test)
+
+        expect(executeScript).toHaveBeenCalledWith('tb:test-context=Test #1', [])
+    })
+
+    it('beforeTest rewrites a Jasmine top-level suite into the job name', async () => {
+        const tbService = new TestingBotService({}, {}, {
+            user: 'user',
+            key: 'secret'
+        })
+        tbService.before(undefined, undefined, browser)
+        const test: Frameworks.Test = {
+            name: 'should greet the user',
+            fullName: 'Login page should greet the user',
+            title: 'should greet the user',
+            parent: 'Login page'
+        } as Frameworks.Test
 
         tbService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as Frameworks.Suite)
         await tbService.beforeTest(test)
 
-        expect(tbService.setAnnotation).toBeCalledWith('tb:test-context=Test #1')
-        expect(tbService['_suiteTitle']).toEqual('Test ')
+        expect(executeScript).toHaveBeenCalledWith('tb:test-context=Login page should greet the user', [])
+        expect(tbService.getBody(0, false)).toEqual({
+            test: {
+                name: 'Login page',
+                success: '1'
+            }
+        })
     })
 
-    it('beforeTest: setAnnotation called for Mocha test', () => {
+    it('beforeTest annotates Mocha tests with parent and title', async () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
         })
-        tbService['_browser'] = browser
-        tbService.setAnnotation = vi.fn()
-        const test: Frameworks.Test = {
+        tbService.before(undefined, undefined, browser)
+        tbService.beforeSuite({} as Frameworks.Suite)
+        await tbService.beforeTest({
             name: 'Test name',
             title: 'Test title',
             parent: 'Test parent'
-        } as any
+        } as Frameworks.Test)
 
-        tbService.beforeSuite({} as Frameworks.Suite)
-        tbService.beforeTest(test)
-
-        expect(tbService.setAnnotation).toBeCalledWith('tb:test-context=Test parent - Test title')
+        expect(executeScript).toHaveBeenCalledWith('tb:test-context=Test parent - Test title', [])
     })
 
-    it('afterTest: failed test', () => {
+    it('beforeTest annotates every multi-remote browser', async () => {
+        const caps = {
+            chromeA: { capabilities: {} },
+            chromeB: { capabilities: {} },
+            chromeC: { capabilities: {} }
+        }
+        const tbService = new TestingBotService({}, caps, {
+            user: 'user',
+            key: 'secret'
+        })
+        browser.isMultiRemote = true
+        tbService.before(undefined, undefined, browser)
+        tbService.beforeSuite({ title: 'Test suite' } as Frameworks.Suite)
+        await tbService.beforeTest({
+            fullName: 'Test #1',
+            title: 'Test title',
+            parent: 'Test parent'
+        } as Frameworks.Test)
+
+        expect(executeScript).not.toHaveBeenCalled()
+        expect(chromeA.executeScript).toHaveBeenCalledWith('tb:test-context=Test #1', [])
+        expect(chromeB.executeScript).toHaveBeenCalledWith('tb:test-context=Test #1', [])
+        expect(chromeC.executeScript).toHaveBeenCalledWith('tb:test-context=Test #1', [])
+    })
+
+    it('afterTest does not count a passing test', () => {
         const tbService = new TestingBotService({}, {}, {})
-        tbService['_browser'] = browser
         tbService['_failures'] = 0
-        const testResult = {
-            passed: true
-        } as Frameworks.TestResult
-        tbService.afterTest({} as Frameworks.Test, {}, testResult)
+        tbService.afterTest({} as Frameworks.Test, {}, { passed: true } as Frameworks.TestResult)
 
         expect(tbService['_failures']).toEqual(0)
     })
 
-    it('afterTest: passed test', () => {
+    it('afterTest counts a failing test', () => {
         const tbService = new TestingBotService({}, {}, {})
-        tbService['_browser'] = browser
         tbService['_failures'] = 0
-        const testResult = {
-            passed: false
-        } as Frameworks.TestResult
-        tbService.afterTest({} as Frameworks.Test, {}, testResult)
+        tbService.afterTest({} as Frameworks.Test, {}, { passed: false } as Frameworks.TestResult)
 
         expect(tbService['_failures']).toEqual(1)
     })
 
-    it('beforeFeature: setAnnotation not called', () => {
+    it('beforeFeature skips annotation without credentials', () => {
         const tbService = new TestingBotService({}, {}, {})
-        tbService['_browser'] = browser
-        tbService.setAnnotation = vi.fn()
+        tbService.before(undefined, undefined, browser)
         tbService.beforeFeature(uri, featureObject)
 
-        expect(tbService.setAnnotation).not.toBeCalled()
+        expect(executeScript).not.toHaveBeenCalled()
     })
 
-    it('beforeFeature: setAnnotation called', () => {
+    it('beforeFeature annotates the feature name', async () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
         })
-        tbService['_browser'] = browser
-        tbService.setAnnotation = vi.fn()
-        tbService.beforeFeature(uri, featureObject)
+        tbService.before(undefined, undefined, browser)
+        await tbService.beforeFeature(uri, featureObject)
 
-        expect(tbService['_suiteTitle']).toEqual('Create a feature')
-        expect(tbService.setAnnotation).toBeCalledWith('tb:test-context=Feature: Create a feature')
+        expect(executeScript).toHaveBeenCalledWith('tb:test-context=Feature: Create a feature', [])
+        expect(tbService.getBody(0, false)).toEqual({
+            test: {
+                name: 'Create a feature',
+                success: '1'
+            }
+        })
     })
 
-    it('afterScenario: exception happened', () => {
+    it('afterScenario counts failed scenarios', () => {
         const tbService = new TestingBotService({}, {}, {})
-        tbService['_browser'] = browser
         tbService['_failures'] = 0
 
         expect(tbService['_failures']).toBe(0)
@@ -214,28 +199,26 @@ describe('wdio-testingbot-service', () => {
         expect(tbService['_failures']).toBe(2)
     })
 
-    it('beforeScenario: setAnnotation not called', () => {
+    it('beforeScenario skips annotation when the secret is missing', () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: undefined
         })
-        tbService['_browser'] = browser
-        tbService.setAnnotation = vi.fn()
+        tbService.before(undefined, undefined, browser)
         tbService.beforeScenario({ pickle: {} })
 
-        expect(tbService.setAnnotation).not.toBeCalled()
+        expect(executeScript).not.toHaveBeenCalled()
     })
 
-    it('beforeScenario: setAnnotation called', () => {
+    it('beforeScenario annotates the scenario name', async () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
         })
-        tbService['_browser'] = browser
-        tbService.setAnnotation = vi.fn()
-        tbService.beforeScenario({ pickle: { name: 'Scenario name' } })
+        tbService.before(undefined, undefined, browser)
+        await tbService.beforeScenario({ pickle: { name: 'Scenario name' } })
 
-        expect(tbService.setAnnotation).toBeCalledWith('tb:test-context=Scenario: Scenario name')
+        expect(executeScript).toHaveBeenCalledWith('tb:test-context=Scenario: Scenario name', [])
     })
 
     it('after: updatedJob not called', async () => {
@@ -243,27 +226,27 @@ describe('wdio-testingbot-service', () => {
             user: undefined,
             key: undefined
         })
-        tbService['_browser'] = browser
+        tbService.before(undefined, undefined, browser)
         const updateJobSpy = vi.spyOn(tbService, 'updateJob')
         await tbService.after()
 
-        expect(updateJobSpy).not.toBeCalled()
+        expect(updateJobSpy).not.toHaveBeenCalled()
     })
 
-    it('after: updatedJob called with passed params', async () => {
+    it('after forwards the failure count', async () => {
         const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret',
             mochaOpts: { bail: true }
         })
-        tbService['_browser'] = browser
+        tbService.before(undefined, undefined, browser)
         const updateJobSpy = vi.spyOn(tbService, 'updateJob')
-        tbService['_browser'].sessionId = 'sessionId'
+        browser.sessionId = 'sessionId'
 
         tbService['_failures'] = 2
         await tbService.after()
 
-        expect(updateJobSpy).toBeCalledWith('sessionId', 2)
+        expect(updateJobSpy).toHaveBeenCalledWith('sessionId', 2)
     })
 
     it('after: updatedJob called when bailed', async () => {
@@ -272,12 +255,12 @@ describe('wdio-testingbot-service', () => {
             key: 'secret',
             mochaOpts: { bail: true }
         })
-        tbService['_browser'] = browser
+        tbService.before(undefined, undefined, browser)
         const updateJobSpy = vi.spyOn(tbService, 'updateJob')
-        tbService['_browser'].sessionId = 'sessionId'
+        browser.sessionId = 'sessionId'
         await tbService.after(10)
 
-        expect(updateJobSpy).toBeCalledWith('sessionId', 1)
+        expect(updateJobSpy).toHaveBeenCalledWith('sessionId', 1)
     })
 
     it('after: updatedJob called when status passed', async () => {
@@ -286,14 +269,14 @@ describe('wdio-testingbot-service', () => {
             key: 'secret',
             mochaOpts: { bail: true }
         })
-        tbService['_browser'] = browser
+        tbService.before(undefined, undefined, browser)
         const updateJobSpy = vi.spyOn(tbService, 'updateJob')
-        tbService['_browser'].sessionId = 'sessionId'
+        browser.sessionId = 'sessionId'
 
         tbService['_failures'] = 0
         await tbService.after()
 
-        expect(updateJobSpy).toBeCalledWith('sessionId', 0)
+        expect(updateJobSpy).toHaveBeenCalledWith('sessionId', 0)
     })
 
     it('after: with multi-remote: updatedJob called with passed params', async () => {
@@ -306,33 +289,31 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'secret'
         })
-        tbService['_browser'] = browser
+        tbService.before(undefined, undefined, browser)
         const updateJobSpy = vi.spyOn(tbService, 'updateJob')
 
-        tbService['_browser'].isMultiRemote = true
-        tbService['_browser'].sessionId = 'sessionId'
+        browser.isMultiRemote = true
+        browser.sessionId = 'sessionId'
         tbService['_failures'] = 2
         await tbService.after()
 
-        expect(updateJobSpy).toBeCalledWith('sessionChromeA', 2, false, 'chromeA')
-        expect(updateJobSpy).toBeCalledWith('sessionChromeB', 2, false, 'chromeB')
-        expect(updateJobSpy).toBeCalledWith('sessionChromeC', 2, false, 'chromeC')
+        expect(updateJobSpy).toHaveBeenCalledWith('sessionChromeA', 2, false, 'chromeA')
+        expect(updateJobSpy).toHaveBeenCalledWith('sessionChromeB', 2, false, 'chromeB')
+        expect(updateJobSpy).toHaveBeenCalledWith('sessionChromeC', 2, false, 'chromeC')
     })
 
-    it('onReload: updatedJob not called', async () => {
+    it('onReload skips the job update without credentials', async () => {
         const tbService = new TestingBotService({}, {}, {
             user: undefined,
             key: undefined
         })
-        tbService['_browser'] = browser
-        const tbService2 = new TestingBotService({}, {}, {})
-        tbService2['_browser'] = browser
-        const updateJobSpy = vi.spyOn(tbService2, 'updateJob')
+        tbService.before(undefined, undefined, browser)
+        const updateJobSpy = vi.spyOn(tbService, 'updateJob')
 
-        tbService['_browser'].sessionId = 'sessionId'
+        browser.sessionId = 'sessionId'
         await tbService.onReload('oldSessionId', 'newSessionId')
 
-        expect(updateJobSpy).not.toBeCalled()
+        expect(updateJobSpy).not.toHaveBeenCalled()
     })
 
     it('onReload: updatedJob called with passed params', async () => {
@@ -340,14 +321,14 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'secret'
         })
-        tbService['_browser'] = browser
+        tbService.before(undefined, undefined, browser)
         const updateJobSpy = vi.spyOn(tbService, 'updateJob')
 
-        tbService['_browser'].sessionId = 'sessionId'
+        browser.sessionId = 'sessionId'
         tbService['_failures'] = 2
         await tbService.onReload('oldSessionId', 'newSessionId')
 
-        expect(updateJobSpy).toBeCalledWith('oldSessionId', 2, true)
+        expect(updateJobSpy).toHaveBeenCalledWith('oldSessionId', 2, true)
         expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('PUT')
     })
 
@@ -356,23 +337,16 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'secret'
         })
-        tbService['_browser'] = browser
+        tbService.before(undefined, undefined, browser)
         const updateJobSpy = vi.spyOn(tbService, 'updateJob')
 
-        tbService['_browser'].isMultiRemote = true
-        tbService['_browser'].sessionId = 'sessionId'
+        browser.isMultiRemote = true
+        browser.sessionId = 'sessionId'
         tbService['_failures'] = 2
         await tbService.onReload('oldSessionId', 'sessionChromeA')
 
-        expect(updateJobSpy).toBeCalledWith('oldSessionId', 2, true, 'chromeA')
+        expect(updateJobSpy).toHaveBeenCalledWith('oldSessionId', 2, true, 'chromeA')
         expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('PUT')
-    })
-
-    it('getRestUrl', () => {
-        const tbService = new TestingBotService({}, {}, {})
-        tbService['_browser'] = browser
-        expect(tbService.getRestUrl('testSessionId'))
-            .toEqual('https://api.testingbot.com/v1/tests/testSessionId')
     })
 
     it('getBody', () => {
@@ -383,7 +357,7 @@ describe('wdio-testingbot-service', () => {
             build: 344
         }
         const tbService = new TestingBotService({}, caps, {})
-        tbService['_browser'] = browser
+        tbService.before(undefined, undefined, browser)
         tbService.beforeSuite({ title: 'Suite title' } as Frameworks.Suite)
 
         expect(tbService.getBody(0, false)).toEqual({
@@ -396,14 +370,23 @@ describe('wdio-testingbot-service', () => {
             }
         })
 
-        tbService['_testCnt'] = 2
-        expect(tbService.getBody(2, true)).toEqual({
+        expect(tbService.getBody(2, false)).toEqual({
             test: {
                 build: 344,
                 name: 'Test suite',
                 public: true,
                 success: '0',
                 tags: ['tag1', 'tag2']
+            }
+        })
+
+        const unnamed = new TestingBotService({}, {}, {})
+        unnamed.before(undefined, undefined, browser)
+        unnamed.beforeSuite({ title: 'Suite title' } as Frameworks.Suite)
+        expect(unnamed.getBody(0, false)).toEqual({
+            test: {
+                name: 'Suite title',
+                success: '1'
             }
         })
     })
@@ -416,7 +399,7 @@ describe('wdio-testingbot-service', () => {
             build: 344
         }
         const tbService = new TestingBotService({}, caps, {})
-        tbService['_browser'] = browser
+        tbService.before(undefined, undefined, browser)
 
         expect(tbService.getBody(0, false, 'internet explorer')).toEqual({
             test: {
@@ -433,25 +416,37 @@ describe('wdio-testingbot-service', () => {
         const user = 'foobar'
         const key = '123'
         const service = new TestingBotService({}, {}, { user: user, key: key })
-        service['_browser'] = browser
-        service['_suiteTitle'] = 'my test'
+        service.before(undefined, undefined, browser)
+        service.beforeSuite({ title: 'my test' } as Frameworks.Suite)
 
         await service.updateJob('12345', 23, true)
 
         expect(service['_failures']).toBe(0)
-        expect(vi.mocked(fetch).mock.calls[0][1]?.method).toEqual('PUT')
         const encodedAuth = Buffer.from(`${user}:${key}`, 'utf8').toString('base64')
-        expect(vi.mocked(fetch).mock.calls[0][1]?.headers?.Authorization).toEqual(`Basic ${encodedAuth}`)
+        expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+            'https://api.testingbot.com/v1/tests/12345',
+            expect.objectContaining({
+                method: 'PUT',
+                body: JSON.stringify({
+                    test: {
+                        name: 'my test (1)',
+                        success: '0'
+                    }
+                }),
+                headers: expect.objectContaining({
+                    Authorization: `Basic ${encodedAuth}`
+                })
+            })
+        )
     })
 
     it('updateJob failure', async () => {
         const response: any = new Error('Failure')
         response.statusCode = 500
-        vi.mocked(fetch).mockRejectedValue(response)
+        vi.mocked(fetch).mockRejectedValueOnce(response)
 
         const service = new TestingBotService({}, {}, { user: 'foobar', key: '123' })
-        service['_browser'] = browser
-        service['_suiteTitle'] = 'my test'
+        service.before(undefined, undefined, browser)
         const err: any = await service.updateJob('12345', 23, true).catch((err) => err)
         expect(err.message).toBe('Failure')
 
@@ -461,7 +456,6 @@ describe('wdio-testingbot-service', () => {
 
     it('afterSuite', () => {
         const service = new TestingBotService({}, {}, {})
-        service['_browser'] = browser
         expect(service['_failures']).toBe(0)
         service.afterSuite({} as Frameworks.Suite)
         expect(service['_failures']).toBe(0)

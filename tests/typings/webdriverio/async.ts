@@ -2,7 +2,7 @@ import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
 import { remote, multiRemote, SevereServiceError, Key } from 'webdriverio'
-import type { ClickOptions, Selector, Action } from 'webdriverio'
+import type { ClickOptions, Selector, Action, PDFPrintOptions } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
 
 declare global {
@@ -188,6 +188,23 @@ async function bar() {
     })
     expectType<WebdriverIO.ElementArray>(waitUntilElems)
 
+    const page = await browser.url('https://webdriver.io')
+    if (page) {
+        expectType<string>(page.contextId)
+        expectType<string>(page.url)
+        expectType<boolean>(page.isFrame)
+        expectType<WebdriverIO.Browser>(page.browser)
+        const same = await page.navigate('/docs')
+        expectType<WebdriverIO.BrowsingContext>(same)
+        const child = await page.frame('iframe')
+        expectType<WebdriverIO.BrowsingContext>(child)
+        expectType<WebdriverIO.BrowsingContext | undefined>(child.parent)
+        await page.activate()
+        await page.getTitle()
+    }
+    const pages = await browser.browsingContexts()
+    expectType<WebdriverIO.BrowsingContext[]>(pages)
+
     await browser.getCookies()
     await browser.getCookies({ name: 'foobar' })
     // @ts-expect-error string filters were removed in v10
@@ -278,7 +295,7 @@ async function bar() {
     expectType<number>(callResult)
 
     // printPage
-    await browser.savePDF('./packages/bar.pdf', {
+    const pdfOptions: PDFPrintOptions = {
         orientation: 'landscape',
         background: true,
         width: 24.5,
@@ -289,7 +306,12 @@ async function bar() {
         right: 5,
         shrinkToFit: true,
         pageRanges: ['1', 2]
-    })
+    }
+    await browser.savePDF('./packages/bar.pdf', pdfOptions)
+
+    const orientation: string = 'portrait'
+    const stringOrientation: PDFPrintOptions = { orientation }
+    await browser.savePDF('./packages/bar.pdf', stringOrientation)
 
     await browser.savePDF('./packages/bar.pdf')
 
@@ -406,6 +428,12 @@ async function bar() {
     // An examples of setValue command with enabled/disabled translation to Unicode
     const elem1 = await $('')
     elem1.setValue('Delete')
+    await elem1.setFiles('/tmp/file.png')
+    await elem1.setFiles(['/tmp/a.png', '/tmp/b.png'])
+    // @ts-expect-error setFiles takes a path or a list of paths
+    await elem1.setFiles(123)
+    // @ts-expect-error uploadFile was removed in v10
+    await browser.uploadFile('/tmp/file.png')
 
     const selector$$: string | HTMLElement | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> | {strategy: Function; strategyName: string; strategyArguments: any[]} = elems.selector
     ;(elems.parent as WebdriverIO.Element).click()
@@ -484,7 +512,8 @@ async function bar() {
     mock.respond('/other/resource.jpg')
     mock.respond('/other/resource.jpg', {
         statusCode: 100,
-        headers: { foo: 'bar' }
+        headers: { foo: 'bar' },
+        fetchResponse: false
     })
     mock.respond(Buffer.from('foobar'))
     mock.respond(new Uint8Array([137, 80, 78, 71]))
@@ -499,7 +528,8 @@ async function bar() {
     mock.respondOnce('/other/resource.jpg')
     mock.respondOnce('/other/resource.jpg', {
         statusCode: 100,
-        headers: { foo: 'bar' }
+        headers: { foo: 'bar' },
+        fetchResponse: false
     })
     mock.restore()
     const match = mock.calls[0]
@@ -515,14 +545,20 @@ async function bar() {
         await browser.$('foo').$('bar').error)
     expectType<string>(
         await browser.$('foo').$('bar').elementId)
-    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
+    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext>(
         await browser.$('foo').$('bar').parent)
     expectType<number>(
         await browser.$('foo').$('bar').$$('loo').length)
     expectType<Selector>(
         await browser.$('foo').$('bar').$$('loo').selector)
-    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
+    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext>(
         await browser.$('foo').$('bar').$$('loo').parent)
+    expectType<Selector>(browser.$$('.item').selector)
+    expectType<string>(browser.$$('.item').foundWith)
+    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext>(
+        browser.$$('.item').parent)
+    // @ts-expect-error selector is available immediately and is not a promise
+    browser.$$('.item').selector.then(() => undefined)
 
     // promise chain API
     expectType<string>(
@@ -572,7 +608,7 @@ async function bar() {
     }
     const panels = await browser.$$('foo')
     for (const panel of panels) {
-        await expect(panel).toHaveAttr('class', 'false')
+        await expect(panel).toHaveAttribute('class', 'false')
     }
 
     type Random = {
@@ -642,10 +678,28 @@ async function bar() {
     // Emulate tests
     let restore = await browser.emulate('geolocation', { latitude: 1, longitude: 2 })
     await restore()
+    restore = await browser.emulate('geolocation', { error: 'positionUnavailable' })
     restore = await browser.emulate('userAgent', 'foobar')
+    restore = await browser.emulate('colorScheme', 'dark')
+    restore = await browser.emulate('media', { prefersReducedMotion: 'reduce', hover: 'none' })
     restore = await browser.emulate('onLine', true)
+    restore = await browser.emulate('locale', 'fr-FR')
+    restore = await browser.emulate('timezone', 'Pacific/Honolulu')
+    restore = await browser.emulate('touch', 1)
+    restore = await browser.emulate('orientation', { natural: 'portrait', type: 'portrait-primary' })
+    restore = await browser.emulate('screen', { width: 800, height: 600 })
+    restore = await browser.emulate('viewportMeta', true)
+    restore = await browser.emulate('textLayout', 'mobile')
+    restore = await browser.emulate('scripting', false)
+    restore = await browser.emulate('scrollbar', 'overlay')
+    restore = await browser.emulate('forcedColors', 'dark')
+    restore = await browser.emulate('device', 'iPhone 8')
     // @ts-expect-error invalid param
     restore = await browser.emulate('onLine', 'dark')
+    // @ts-expect-error viewport meta cannot be false
+    restore = await browser.emulate('viewportMeta', false)
+    // @ts-expect-error scripting cannot be forced on
+    restore = await browser.emulate('scripting', true)
     // @ts-expect-error invalid scope
     restore = await browser.emulate('foobar')
     const clock = await browser.emulate('clock', { now: new Date(2021, 3, 14) })
@@ -679,6 +733,16 @@ async function strictSelectors() {
     expectType<string>(await browser.$('button', { strict: false }).getTagName())
     expectType<string>(await browser.$('button', { strict: true }).getTagName())
     expectType<string>(await browser.$('div').$('button', { strict: false }).getTagName())
+
+    const extensionId = await browser.installExtension('./dist')
+    expectType<string>(extensionId)
+    await browser.installExtension('./ext.zip')
+    await browser.installExtension({ base64: 'UEsDBA==' })
+    await browser.uninstallExtension(extensionId)
+    // @ts-expect-error extension payload must be a path or { base64 }
+    await browser.installExtension({ path: './dist' })
+    // @ts-expect-error extension id is a string
+    await browser.uninstallExtension(42)
 
     // @ts-expect-error unknown option
     await browser.$('button', { strictly: false })

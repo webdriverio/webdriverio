@@ -17,16 +17,16 @@ export interface DisplayDaemonOptions {
 }
 
 export interface DisplayDaemon {
-    /** Env downstream children need, e.g. { DISPLAY: ':99' } or { WAYLAND_DISPLAY, XDG_RUNTIME_DIR }. */
+    /** Env downstream children need, e.g. { DISPLAY: ':0' } or { WAYLAND_DISPLAY, XDG_RUNTIME_DIR }. */
     env: Record<string, string>
 
     /** Safe to call multiple times. */
     stop(): Promise<void>
 
     /**
-     * Best-effort **synchronous** cleanup for Node's `'exit'` listener, where async
-     * work is abandoned: `proc.kill('SIGKILL')` and `rmSync` any runtime files.
-     * Safe to call multiple times and after `stop()`.
+     * Best-effort **synchronous** cleanup: `proc.kill('SIGKILL')` and `rmSync` any runtime
+     * files. The built-in servers also run it on Node's `'exit'` event, where async work is
+     * abandoned, until `stop()` or `stopSync()` has run. Safe to call multiple times and after `stop()`.
      */
     stopSync(): void
 }
@@ -38,8 +38,6 @@ export interface DisplayServer {
 
     /** @returns true if the install succeeded or the server was already available. */
     install(options?: DisplayServerInstallOptions): Promise<boolean>
-
-    getChromeFlags(): string[]
 
     /**
      * The launcher starts this so children spawned in a service `onPrepare`
@@ -53,7 +51,7 @@ export interface DisplayServerOptions {
     enabled?: boolean
 
     /**
-     * - 'auto': Wayland first, then Xvfb fallback
+     * - 'auto': installed servers before auto-installing, Wayland before Xvfb, falling back when one fails to start
      * - 'wayland': Wayland only
      * - 'xvfb': Xvfb only
      * @default 'auto'

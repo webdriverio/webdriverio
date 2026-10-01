@@ -170,6 +170,7 @@
 /docs/api/element/selectByAttribute
 /docs/api/element/selectByIndex
 /docs/api/element/selectByVisibleText
+/docs/api/element/setFiles
 /docs/api/element/setValue
 /docs/api/element/shadow$
 /docs/api/element/shadow$$

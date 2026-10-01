@@ -95,7 +95,7 @@ A unit test is not that proof.
 | Testrunner, CLI, reporter, service, framework wiring | `pnpm run test:smoke:list` then `pnpm run test:smoke <suite>` (see [tests/AGENTS.md](tests/AGENTS.md)) |
 | `@wdio/browser-runner` / `e2e/browser-runner` | `pnpm run test:component` |
 | `@wdio/session` / `e2e/session` | `pnpm run test:e2e:session` |
-| `@wdio/display-server` / display-server e2e | `pnpm run test:e2e:display-server` |
+| `@wdio/display-server` / `@wdio/local-runner` / `e2e/wdio/display-server` | `pnpm run test:e2e:display-server` (Linux with no display only; elsewhere rely on CI) |
 | Docs-only (`website/docs`, JSDoc, package README) | `pnpm run docs:list` then `pnpm run docs:generate` |
 | Root CI / toolchain files | treat as `run-all`; run `pnpm run test:local` |
 
@@ -150,7 +150,8 @@ through the repo; search for every occurrence before renaming a key.
 - Never write `multiremote` or `Multiremote`, e.g. `isMultiremote`, `multiremote()`.
 - Exceptions, kept for compatibility: the `id: multiremote` permalink and
   `/docs/multiremote` links, file and folder names, the Allure historyId key
-  `'multiremote'`, the v9 column of `v10Migration.md`, and `CHANGELOG.md`.
+  `'multiremote'`, the v9 column of `v10Migration.md`, the v10 migration
+  skill (it has to name the old identifiers), and `CHANGELOG.md`.
 
 Must print nothing before committing. It flags every `multiremote` /
 `Multiremote` and filters out the exceptions above:
@@ -158,6 +159,7 @@ Must print nothing before committing. It flags every `multiremote` /
 ```sh
 git grep -nE "[Mm]ultiremote" -- ':!AGENTS.md' ':!CHANGELOG.md' \
   ':!website/_sidebars.json' ':!**/__fixtures__/**' ':!**/__snapshots__/**' \
+  ':!.agents/skills/wdio-v10-migration/**' \
   | grep -vE "multiremotebrowser|/multiremote|multiremote/|[.-]multiremote|multiremote[.-]|'multiremote', '|return 'multiremote'|^website/docs/Multiremote\.md:2:|^website/docs/v10Migration\.md:[0-9]+:(\| \`|APIs spelled|The old \`isMultiremote\`|Search for \`multiremote\`)"
 ```
 
@@ -190,6 +192,8 @@ Read the matching guide in full before editing that tree.
 - **webdriver client / BiDi:** [packages/webdriver/AGENTS.md](packages/webdriver/AGENTS.md)
 - **Protocol specs:** [packages/wdio-protocols/AGENTS.md](packages/wdio-protocols/AGENTS.md)
 - **CLI / launcher:** [packages/wdio-cli/AGENTS.md](packages/wdio-cli/AGENTS.md)
+- **Session CLI:** [packages/wdio-session/AGENTS.md](packages/wdio-session/AGENTS.md)
+- **Local runner:** [packages/wdio-local-runner/AGENTS.md](packages/wdio-local-runner/AGENTS.md)
 - **Reporters:** [packages/wdio-reporter/AGENTS.md](packages/wdio-reporter/AGENTS.md)
 - **Compiler / types:** [infra/compiler/AGENTS.md](infra/compiler/AGENTS.md)
 - **Repo helpers:** [infra/repo-tools/AGENTS.md](infra/repo-tools/AGENTS.md)
@@ -203,3 +207,6 @@ Read the matching guide in full before editing that tree.
 - **Hot-path perf skill:** [.agents/skills/wdio-perf/SKILL.md](.agents/skills/wdio-perf/SKILL.md)
 - **Ownership map:** [.github/OWNERSHIP.md](.github/OWNERSHIP.md)
 - **Docs skill:** [.agents/skills/wdio-docs/SKILL.md](.agents/skills/wdio-docs/SKILL.md)
+- **v10 user migration:** [website/docs/v10Migration.md](website/docs/v10Migration.md) and [.agents/skills/wdio-v10-migration/SKILL.md](.agents/skills/wdio-v10-migration/SKILL.md). Update both together.
+
+`wdio-docs`, `wdio-testing`, `wdio-perf`, and `verify-webdriverio` set `metadata.internal: true` so `npx skills add` does not offer them. Leave that flag on. The session skill stays in `@wdio/session` and is installed with `npx wdio session skill --install`.

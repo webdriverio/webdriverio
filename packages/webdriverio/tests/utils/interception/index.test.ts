@@ -63,6 +63,17 @@ describe('WebDriverInterception', () => {
         isBlocked: true
     } satisfies Partial<local.NetworkResponseStartedParameters> as local.NetworkResponseStartedParameters)
 
+    const getBlockedRequestStub = (requestId = 'req-123') => ({
+        isBlocked: true,
+        intercepts: ['mock-id'],
+        request: {
+            request: requestId,
+            url: 'http://test.com/api',
+            method: 'GET',
+            headers: []
+        }
+    })
+
     beforeEach(() => {
         vi.clearAllMocks()
     })
@@ -356,6 +367,162 @@ describe('WebDriverInterception', () => {
                 type: 'base64',
                 value: Buffer.from(JSON.stringify(binaryBody)).toString('base64')
             }
+        })
+    })
+
+    it('should respond without fetching when fetchResponse is false', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response', { fetchResponse: false })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+
+        vi.mocked(browser.networkProvideResponse).mockClear()
+        browser.emit('network.responseStarted', {
+            ...getBlockedRequestStub(),
+            response: {
+                status: 200,
+                headers: []
+            }
+        })
+
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+        expect(mock.calls).toHaveLength(1)
+    })
+
+    it('should fetch the backend by default', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).toHaveBeenCalledWith({
+            request: 'req-123'
+        })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('should expose a binary response when fetchResponse is false', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+        const binaryData = Buffer.from('binary data')
+
+        mock.respond(binaryData, { fetchResponse: false })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(mock.getBinaryResponse('req-123')).toEqual(binaryData)
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: {
+                type: 'base64',
+                value: binaryData.toString('base64')
+            }
+        })
+    })
+
+    it('should only respond once without fetching when respondOnce is used', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respondOnce('mocked response', { fetchResponse: false })
+
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-1'))
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-1',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+
+        vi.mocked(browser.networkProvideResponse).mockClear()
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-2'))
+
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+        expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-2' })
+    })
+
+    it('should abort before answering with fetchResponse false', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.abortOnce()
+        mock.respond('mocked response', { fetchResponse: false })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-1'))
+
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-1' })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+
+        vi.mocked(browser.networkFailRequest).mockClear()
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub('req-2'))
+
+        expect(browser.networkFailRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-2',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+    })
+
+    it('should reject fetchResponse false when the mock filters on the response', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', { statusCode: 404 }, browser)
+
+        expect(() => mock.respond('missing', { fetchResponse: false }))
+            .toThrow(/fetchResponse: false cannot be used when the mock filters on statusCode or responseHeaders/)
+        expect(() => mock.respondOnce('missing', { fetchResponse: false }))
+            .toThrow(/fetchResponse: false cannot be used when the mock filters on statusCode or responseHeaders/)
+    })
+
+    it('should reject fetchResponse false when the mock filters on response headers', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {
+            responseHeaders: (headers) => headers['x-mock'] === 'yes'
+        }, browser)
+
+        expect(() => mock.respond('header match', { fetchResponse: false }))
+            .toThrow(/fetchResponse: false cannot be used when the mock filters on statusCode or responseHeaders/)
+    })
+
+    it('should still skip the backend when fetchResponse is false and the mock filters on the request', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {
+            method: 'GET'
+        }, browser)
+
+        mock.respond('mocked response', { fetchResponse: false })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+    })
+
+    it('should let a fetchResponse callback read a response', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response', {
+            fetchResponse: false,
+            statusCode: (event) => event.response.status
+        })
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkFailRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
         })
     })
 
@@ -1331,6 +1498,268 @@ describe('WebDriverInterception', () => {
             emitBlockedRequest(browser, 'https://foobar.com/api/users/123')
 
             expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+        })
+
+        /**
+         * Node.js 24 has a global `URLPattern`. On Node.js 22 the polyfill import
+         * above installs itself as the global, so there is no native one to test.
+         */
+        const NativeURLPattern = globalThis.URLPattern
+        it.skipIf(NativeURLPattern === URLPattern)('should accept a native URLPattern', async () => {
+            const polyfillBrowser = getResponseCollectionBrowserMock()
+            await WebDriverInterception.initiate(new URLPattern({ pathname: '/api/users/*' }), {}, polyfillBrowser)
+
+            const browser = getResponseCollectionBrowserMock()
+            const mock = await WebDriverInterception.initiate(new NativeURLPattern({ pathname: '/api/users/*' }), {}, browser)
+
+            expect(browser.networkAddIntercept).toHaveBeenCalledWith(
+                vi.mocked(polyfillBrowser.networkAddIntercept).mock.calls[0][0]
+            )
+            expect(mock.isSameDefinition('/api/users/*')).toBe(true)
+            expect(mock.isSameDefinition(new URLPattern({ pathname: '/api/users/*' }))).toBe(true)
+            expect(mock.isSameDefinition(new NativeURLPattern({ pathname: '/api/users/*' }))).toBe(true)
+            expect(mock.isSameDefinition(new NativeURLPattern({ pathname: '/api/posts/*' }))).toBe(false)
+
+            mock.abort()
+            emitBlockedRequest(browser, 'https://foobar.com/api/users/123')
+
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+        })
+    })
+
+    /**
+     * `mock()` replaces a mock that has an identical definition, so the mocks that
+     * can still overlap are the ones whose definitions differ while their patterns
+     * match the same request. The driver then reports both intercepts on the event
+     * and only the first release is accepted.
+     */
+    describe('a request blocked by more than one mock', () => {
+        const TARGET_URL = 'https://foobar.com/api/users/123'
+
+        const getBrowserMockWithUniqueIntercepts = () => {
+            let interceptCount = 0
+            return getResponseCollectionBrowserMock({}, {
+                networkAddIntercept: vi.fn().mockImplementation(
+                    () => Promise.resolve({ intercept: `mock-id-${++interceptCount}` })
+                )
+            })
+        }
+
+        const initiateOverlappingMocks = (browser: WebdriverIO.Browser) => Promise.all([
+            WebDriverInterception.initiate(TARGET_URL, {}, browser),
+            WebDriverInterception.initiate(TARGET_URL, { method: 'get' }, browser)
+        ])
+
+        const blockedBy = (intercepts: string[]) => ({
+            isBlocked: true,
+            intercepts,
+            request: { request: 123, url: TARGET_URL, method: 'GET', headers: [] }
+        })
+
+        it('is continued once, not once per mock', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            await initiateOverlappingMocks(browser)
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
+        })
+
+        it('is responded to once, not once per mock', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            const [first, second] = await initiateOverlappingMocks(browser)
+            first.respond({ from: 'first' })
+            second.respond({ from: 'second' })
+
+            browser.emit('network.responseStarted', {
+                ...blockedBy(['mock-id-1', 'mock-id-2']),
+                response: { headers: [], status: 200 }
+            })
+
+            expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        })
+
+        it('is failed once when both mocks abort', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            const [first, second] = await initiateOverlappingMocks(browser)
+            first.abort()
+            second.abort()
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+
+            expect(browser.networkFailRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(0)
+        })
+
+        it('lets the mock that matches win over one that only declines', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            // registered first, and it declines a GET
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)
+            // registered second, and this is the one the request belongs to
+            const handling = await WebDriverInterception.initiate(TARGET_URL, { method: 'get' }, browser)
+            handling.respond({ from: 'the matching mock' })
+
+            browser.emit('network.responseStarted', {
+                ...blockedBy(['mock-id-1', 'mock-id-2']),
+                response: { headers: [], status: 200 }
+            })
+            await waitForAsyncHandlers()
+
+            expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+            expect(browser.networkProvideResponse).toHaveBeenCalledWith(expect.objectContaining({
+                request: 123,
+                body: { type: 'string', value: JSON.stringify({ from: 'the matching mock' }) }
+            }))
+        })
+
+        const deferredRequestBody = () => {
+            let resolveBody!: (body: string) => void
+            const lookup = new Promise<{ bytes: { type: 'string', value: string } }>((resolve) => {
+                resolveBody = (body) => resolve({ bytes: { type: 'string', value: body } })
+            })
+            return { lookup, resolveBody }
+        }
+
+        const flushMicrotasks = async () => {
+            await Promise.resolve()
+            await Promise.resolve()
+            await Promise.resolve()
+            await Promise.resolve()
+        }
+
+        it('does not let a declining mock release a request before a postData mock aborts it', async () => {
+            const { lookup, resolveBody } = deferredRequestBody()
+            const browser = getBrowserMockWithUniqueIntercepts()
+            vi.mocked(browser.networkGetData).mockReturnValue(lookup)
+            // registered first, and it declines a GET
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)
+            const handling = await WebDriverInterception.initiate(TARGET_URL, { postData: 'request-body' }, browser)
+            handling.abort()
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+            await Promise.resolve()
+
+            expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+            expect(browser.networkFailRequest).not.toHaveBeenCalled()
+
+            resolveBody('request-body')
+            await lookup
+            await flushMicrotasks()
+
+            expect(browser.networkFailRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        })
+
+        it('does not let a declining mock release a request before a postData mock overwrites it', async () => {
+            const { lookup, resolveBody } = deferredRequestBody()
+            const browser = getBrowserMockWithUniqueIntercepts()
+            vi.mocked(browser.networkGetData).mockReturnValue(lookup)
+            const handling = await WebDriverInterception.initiate(TARGET_URL, { postData: 'request-body' }, browser)
+            handling.request({ method: 'PUT' })
+            // registered second, so its microtask is queued after the body lookup starts
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+            await Promise.resolve()
+
+            expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+
+            resolveBody('request-body')
+            await lookup
+            await flushMicrotasks()
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith(expect.objectContaining({
+                request: 123,
+                method: 'PUT'
+            }))
+        })
+
+        it('does not wait on a body lookup once a cheaper filter has declined', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            vi.mocked(browser.networkGetData).mockReturnValue(new Promise(() => {}))
+            await WebDriverInterception.initiate(TARGET_URL, {
+                method: 'post',
+                postData: 'request-body'
+            }, browser)
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'put' }, browser)
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+            await flushMicrotasks()
+
+            expect(browser.networkGetData).not.toHaveBeenCalled()
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
+        })
+
+        it('still continues once when a postData mock declines after the body arrives', async () => {
+            const { lookup, resolveBody } = deferredRequestBody()
+            const browser = getBrowserMockWithUniqueIntercepts()
+            vi.mocked(browser.networkGetData).mockReturnValue(lookup)
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)
+            await WebDriverInterception.initiate(TARGET_URL, { postData: 'request-body' }, browser)
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+            await Promise.resolve()
+
+            expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+
+            resolveBody('other-body')
+            await lookup
+            await flushMicrotasks()
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkFailRequest).not.toHaveBeenCalled()
+        })
+
+        it('evaluates a function method filter once when the mock also filters postData', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            let methodChecks = 0
+            const handling = await WebDriverInterception.initiate(TARGET_URL, {
+                method: () => {
+                    methodChecks += 1
+                    return methodChecks === 1
+                },
+                postData: 'request-body'
+            }, browser)
+            handling.abort()
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1']))
+            await flushMicrotasks()
+
+            expect(methodChecks).toBe(1)
+            expect(browser.networkFailRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 123 })
+            expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        })
+
+        it('still releases a request that every mock declines', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'post' }, browser)
+            await WebDriverInterception.initiate(TARGET_URL, { method: 'put' }, browser)
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1', 'mock-id-2']))
+            await waitForAsyncHandlers()
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 123 })
+        })
+
+        it('still lets a single mock release the same request in both phases', async () => {
+            const browser = getBrowserMockWithUniqueIntercepts()
+            await WebDriverInterception.initiate(TARGET_URL, {}, browser)
+
+            browser.emit('network.beforeRequestSent', blockedBy(['mock-id-1']))
+            browser.emit('network.responseStarted', {
+                ...blockedBy(['mock-id-1']),
+                response: { headers: [], status: 200 }
+            })
+
+            expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
+            expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
         })
     })
 })

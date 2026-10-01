@@ -2,9 +2,9 @@
 #
 # Pull requests detect which areas changed and skip expensive suites that
 # cannot be affected (display-server distro matrix, component tests, session
-# e2e, docs site build, etc.). PRs also use a reduced OS × Node matrix. Pushes
-# to main/v10 (and PRs that touch CI config) still run the full matrix so merge
-# coverage stays complete.
+# e2e, docs site build, etc.). PRs also use a reduced OS × Node matrix and a
+# subset of the display-server cells. Pushes to main/v10 (and PRs that touch CI
+# config) still run the full matrix so merge coverage stays complete.
 #
 # Typical PR (e.g. a webdriverio package change): ~25 jobs instead of ~70.
 name: Test
@@ -40,6 +40,7 @@ jobs:
       component: ${{ github.event_name != 'pull_request' || steps.filter.outputs.component == 'true' }}
       session: ${{ github.event_name != 'pull_request' || steps.filter.outputs.session == 'true' }}
       display_server: ${{ github.event_name != 'pull_request' || steps.filter.outputs.display_server == 'true' }}
+      display_server_images: ${{ github.event_name != 'pull_request' || steps.filter.outputs.display_server_images == 'true' }}
     steps:
       - name: 🔎 Filter changed paths
         if: github.event_name == 'pull_request'
@@ -70,6 +71,9 @@ jobs:
               - 'packages/wdio-display-server/**'
               - 'packages/wdio-local-runner/**'
               - 'e2e/wdio/display-server/**'
+            # Most distro images only build in the full display-server matrix.
+            display_server_images:
+              - 'e2e/wdio/display-server/docker/**'
             # Core product / test code. Display-server, browser-runner, and session
             # trees are excluded so those dedicated suites can run on their own.
             code:
@@ -86,7 +90,6 @@ jobs:
               # @wdio/docs unit tests run in the docs workflow. Leaving this
               # package out of the code lane keeps smoke and e2e off a docs-only PR.
               - '!infra/docs/**'
-              - 'test-headless-flag/**'
               - '@types/**'
               - '__mocks__/**'
 
@@ -187,6 +190,8 @@ jobs:
     needs: [changes, build_core, static_code_analysis]
     if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.display_server == 'true'
     uses: ./.github/workflows/test-display-server.yml
+    with:
+      full_matrix: ${{ needs.changes.outputs.run-all == 'true' || needs.changes.outputs.display_server_images == 'true' }}
 
   # Stable required check. Individual matrix cells are skipped on most PRs;
   # this job succeeds when every job that *did* run succeeded (skipped is OK).

@@ -1,7 +1,10 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import globals from 'globals'
 import { expect, test } from 'vitest'
+import { Linter } from 'eslint'
 import index from '../src/index.js'
 import pkg from '../package.json' with { type: 'json' }
-import plugin from '../src/plugin.js'
 
 test('should export proper plugin configuration', () => {
     const rules = {
@@ -11,117 +14,18 @@ test('should export proper plugin configuration', () => {
         'wdio/no-floating-promise': 'error'
     }
 
-    const globals = {
+    // WDIO names are this package's contract. Mocha and Node come from the
+    // globals dependency, spread in that order so a future collision matches
+    // sharedGlobals. Do not paste those sets by hand.
+    const recommendedGlobals = {
         '$': false,
         '$$': false,
-        'AbortController': false,
-        'AbortSignal': false,
-        'AsyncDisposableStack': false,
-        'Blob': false,
-        'BroadcastChannel': false,
-        'Buffer': false,
-        'ByteLengthQueuingStrategy': false,
-        'CloseEvent': false,
-        'CompressionStream': false,
-        'CountQueuingStrategy': false,
-        'Crypto': false,
-        'CryptoKey': false,
-        'CustomEvent': false,
-        'DOMException': false,
-        'DecompressionStream': false,
-        'DisposableStack': false,
-        'ErrorEvent': false,
-        'Event': false,
-        'EventTarget': false,
-        'File': false,
-        'FormData': false,
-        'Headers': false,
-        'MessageChannel': false,
-        'MessageEvent': false,
-        'MessagePort': false,
-        'Navigator': false,
-        'Performance': false,
-        'PerformanceEntry': false,
-        'PerformanceMark': false,
-        'PerformanceMeasure': false,
-        'PerformanceObserver': false,
-        'PerformanceObserverEntryList': false,
-        'PerformanceResourceTiming': false,
-        'QuotaExceededError': false,
-        'ReadableByteStreamController': false,
-        'ReadableStream': false,
-        'ReadableStreamBYOBReader': false,
-        'ReadableStreamBYOBRequest': false,
-        'ReadableStreamDefaultController': false,
-        'ReadableStreamDefaultReader': false,
-        'Request': false,
-        'Response': false,
-        'Storage': false,
-        'SubtleCrypto': false,
-        'SuppressedError': false,
-        'Temporal': false,
-        'TextDecoder': false,
-        'TextDecoderStream': false,
-        'TextEncoder': false,
-        'TextEncoderStream': false,
-        'TransformStream': false,
-        'TransformStreamDefaultController': false,
-        'URL': false,
-        'URLPattern': false,
-        'URLSearchParams': false,
-        'WebAssembly': false,
-        'WebSocket': false,
-        'WritableStream': false,
-        'WritableStreamDefaultController': false,
-        'WritableStreamDefaultWriter': false,
-        '__dirname': false,
-        '__filename': false,
-        'after': false,
-        'afterEach': false,
-        'atob': false,
-        'before': false,
-        'beforeEach': false,
-        'browser': false,
-        'btoa': false,
-        'clearImmediate': false,
-        'clearInterval': false,
-        'clearTimeout': false,
-        'console': false,
-        'context': false,
-        'crypto': false,
-        'describe': false,
-        'driver': false,
-        'expect': false,
-        'exports': true,
-        'fetch': false,
-        'global': false,
-        'it': false,
-        'localStorage': false,
-        'mocha': false,
-        'module': false,
-        'multiRemoteBrowser': false,
-        'navigator': false,
-        'performance': false,
-        'process': false,
-        'queueMicrotask': false,
-        'require': false,
-        'run': false,
-        'sessionStorage': false,
-        'setImmediate': false,
-        'setInterval': false,
-        'setTimeout': false,
-        'setup': false,
-        'specify': false,
-        'structuredClone': false,
-        'suite': false,
-        'suiteSetup': false,
-        'suiteTeardown': false,
-        'teardown': false,
-        'test': false,
-        'xcontext': false,
-        'xdescribe': false,
-        'xit': false,
-        'xspecify': false,
+        browser: false,
+        driver: false,
+        expect: false,
+        multiRemoteBrowser: false,
+        ...globals.mocha,
+        ...globals.node,
     }
 
     expect(index).toEqual({
@@ -132,7 +36,7 @@ test('should export proper plugin configuration', () => {
         configs: {
             'flat/recommended': {
                 languageOptions: {
-                    globals: globals,
+                    globals: recommendedGlobals,
                     parser: expect.any(Object),
                     parserOptions: {
                         projectService: true,
@@ -165,3 +69,30 @@ test('should export proper plugin configuration', () => {
     })
 })
 
+test('flat/recommended should lint a typed spec when typescript-eslint is installed', () => {
+    const fixtureDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', 'typed')
+    const recommended = index.configs['flat/recommended']
+    const code = [
+        'declare const browser: { url(u: string): Promise<void>; pause(n: number): Promise<void>; debug(): Promise<void> }',
+        'export async function t () {',
+        "    browser.url('/')",
+        '    await browser.pause(1000)',
+        '    await browser.debug()',
+        '}',
+    ].join('\n')
+
+    const messages = new Linter().verify(code, [{
+        ...recommended,
+        files: ['**/*.ts'],
+        languageOptions: {
+            ...recommended.languageOptions,
+            parserOptions: { ...recommended.languageOptions.parserOptions, tsconfigRootDir: fixtureDir },
+        },
+    }], path.join(fixtureDir, 'file.ts'))
+
+    expect(messages.map(({ ruleId, line }) => ({ ruleId, line }))).toEqual([
+        { ruleId: 'wdio/no-floating-promise', line: 3 },
+        { ruleId: 'wdio/no-pause', line: 4 },
+        { ruleId: 'wdio/no-debug', line: 5 },
+    ])
+})

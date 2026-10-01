@@ -17,9 +17,10 @@
     "@testing-library/vue": "^8.0.1",
     "@types/mocha": "^10.0.10",
     "@vitejs/plugin-vue": "^6.0.9",
-    "expect-webdriverio": "^6.1.0",
+    "@wdio/types": "workspace:*",
+    "expect-webdriverio": "^8.0.0-alpha.1",
     "mocha": "^12.0.2",
-    "typescript": "^5.3.3",
+    "typescript": "^6.0.3",
     "vite": "^7.3.6",
     "vue-tsc": "^2.0.17"
   }

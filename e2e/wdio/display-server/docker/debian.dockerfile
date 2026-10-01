@@ -1,4 +1,5 @@
-FROM debian:13
+ARG DEBIAN_VERSION=13
+FROM debian:${DEBIAN_VERSION}
 
 # Avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive

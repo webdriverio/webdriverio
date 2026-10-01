@@ -7,6 +7,7 @@ import type { Worker } from './Workers.js'
 export interface RunnerInstance {
     initialize(): Promise<void>
     shutdown(): Promise<boolean>
+    dispose?(): Promise<void>
     closeSession?: (cid: number) => Promise<void>
     getWorkerCount(): number
     run(args: any): Worker

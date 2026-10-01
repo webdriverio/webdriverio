@@ -1,0 +1,123 @@
+.fill {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    color: #e4e4e7;
+    font-family: var(--ifm-font-family-monospace);
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.65rem 0.9rem;
+    border-bottom: 1px solid #25252b;
+    background: #141418;
+}
+
+.bar span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #3a3a42;
+}
+
+.bar em {
+    margin-left: 0.6rem;
+    color: #8b8b94;
+    font-size: 0.72rem;
+    font-style: normal;
+}
+
+.controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.controls button {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 22px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #c8c8d0;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.controls button:hover:not(:disabled) {
+    background: #2a2a32;
+    color: #fff;
+}
+
+.controls button:focus-visible {
+    outline: 2px solid var(--ifm-color-primary);
+    outline-offset: 1px;
+}
+
+.controls button:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 0.85rem 1rem 1rem;
+}
+
+.cmd,
+.out,
+.arrow {
+    margin: 0 0 0.35rem;
+}
+
+.prompt {
+    margin-right: 0.45rem;
+    color: var(--ifm-color-primary-light);
+}
+
+.caret {
+    display: inline-block;
+    width: 7px;
+    height: 0.95em;
+    margin-left: 1px;
+    background: currentColor;
+    vertical-align: text-bottom;
+    animation: caretBlink 1.05s steps(1) infinite;
+}
+
+.out,
+.arrow {
+    padding-left: 1rem;
+    color: #9a9aa3;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.arrow {
+    color: #7dcea0;
+}
+
+@keyframes caretBlink {
+    50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .caret {
+        animation: none;
+    }
+}

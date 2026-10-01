@@ -54,7 +54,7 @@ interface ChainablePromiseBaseElement {
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext>
     /**
      * selector used to fetch this element, can be
      * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
@@ -173,24 +173,49 @@ interface AsyncIterators<T> {
 }
 
 export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Element> {
+    /**
+     * Awaiting the list yields the resolved `ElementArray`. Until then, `length`
+     * is a promise and each index is a chainable element.
+     */
+    then<TResult1 = WebdriverIO.ElementArray, TResult2 = never>(
+        onfulfilled?: ((value: WebdriverIO.ElementArray) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+        onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    ): Promise<TResult1 | TResult2>
+    catch<TResult = never>(
+        onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | undefined | null
+    ): Promise<WebdriverIO.ElementArray | TResult>
+    finally(onfinally?: (() => void) | undefined | null): Promise<WebdriverIO.ElementArray>
+
     [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
     [Symbol.iterator](): IterableIterator<WebdriverIO.Element>
 
     /**
-     * Amount of element fetched.
+     * Amount of elements fetched. This is a promise until the query resolves,
+     * so compare it only after awaiting the list or the property itself.
      */
     length: Promise<number>
     /**
-     * selector used to fetch this element, can be
-     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
-     * - a string if `findElement` was used and a reference was found
-     * - or a function if element was found via e.g. `$(() => document.body)`
+     * Selector used to fetch this list. It is available immediately, before the
+     * query resolves. It can be
+     * - undefined if the list was created via `$$([])`, raw element references, or elements that do not share one selector
+     * - a string if `findElements` was used and a reference was found
+     * - or a function if the elements were found via e.g. `$$(() => document.body)`
      */
-    selector: Promise<Selector>
+    selector: Selector | undefined
     /**
-     * parent of the element if fetched via `$(parent).$(child)`
+     * Parent of the list if fetched via `$(parent).$$(child)`. Available
+     * immediately, before the query resolves.
      */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext
+    /**
+     * Command name with which this list was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`.
+     * Available immediately, before the query resolves.
+     */
+    foundWith: string
+    /**
+     * Extra arguments of the query that fetched this list. Available immediately.
+     */
+    props: any[]
     /**
      * allow to access a specific index of the element set
      */
@@ -246,16 +271,16 @@ export type MultiRemoteProtocolCommandsType = {
 
 interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof AsyncIterators<WebdriverIO.Element>>, AsyncIterators<WebdriverIO.Element> {
     /**
-     * selector used to fetch this element, can be
-     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
-     * - a string if `findElement` was used and a reference was found
-     * - or a function if element was found via e.g. `$(() => document.body)`
+     * selector used to fetch this list, can be
+     * - undefined if the list was created via `$$([])`, raw element references, or elements that do not share one selector
+     * - a string if `findElements` was used and a reference was found
+     * - or a function if the elements were found via e.g. `$$(() => document.body)`
      */
-    selector: Selector
+    selector: Selector | undefined
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext
     /**
      * command name with which this element was found, e.g. `$$`, `react$$`, `custom$$`, `shadow$$`
      */
@@ -272,6 +297,11 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
      * get the `WebdriverIO.Element[]` list
      */
     getElements(): Promise<WebdriverIO.ElementArray>
+    /**
+     * Async iterator so `for await (const el of $$('...'))` yields each element
+     * whether or not the list has been awaited yet.
+     */
+    [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
 }
 export type ElementArray = ElementArrayExport
 
@@ -282,9 +312,9 @@ export type ElementArray = ElementArrayExport
  */
 interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemoteElement>, keyof AsyncIterators<WebdriverIO.MultiRemoteElement>>, AsyncIterators<WebdriverIO.MultiRemoteElement> {
     /**
-     * selector used to fetch this element array
+     * selector used to fetch this element array. Undefined when the entries do not share one selector.
      */
-    selector: Selector
+    selector: Selector | undefined
     /**
      * parent of the element array, i.e. the multi-remote browser or element it was fetched from
      */
@@ -309,6 +339,10 @@ interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemo
      * get the `WebdriverIO.MultiRemoteElement[]` list
      */
     getElements(): Promise<WebdriverIO.MultiRemoteElementArray>
+    /**
+     * Async iterator over the multi-remote elements in this list.
+     */
+    [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.MultiRemoteElement>
 }
 export type MultiRemoteElementArray = MultiRemoteElementArrayExport
 
@@ -506,7 +540,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: WebdriverIO.Element | WebdriverIO.Browser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.BrowsingContext
     /**
      * true if element is a React component
      */
@@ -547,7 +581,7 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
     /**
      * get a specific instance to run commands on it
      */
-    getInstance: (browserName: string) => WebdriverIO.Browser | undefined
+    getInstance: (browserName: string) => WebdriverIO.Browser
 
     /**
      * select one or multiple browsers always wrapped into a multi-remote to run commands on them.
@@ -683,6 +717,11 @@ export type DragAndDropOptions = {
 
 export type NewWindowOptions = {
     type?: 'tab' | 'window'
+    /**
+     * Top-level browsing context the new tab or window is opened from.
+     * A frame is rejected. BiDi only.
+     */
+    referenceContext?: string | WebdriverIO.BrowsingContext
 }
 
 export type TapOptions = MobileScrollIntoViewOptions & {
@@ -832,8 +871,76 @@ export interface ExtendedElementReference {
     locator: remote.BrowsingContextLocator
 }
 
-export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'onLine' | 'clock' | 'device'
+export type SupportedScopes = 'geolocation' | 'userAgent' | 'colorScheme' | 'media' | 'onLine' | 'locale' | 'timezone' | 'touch' | 'orientation' | 'screen' | 'viewportMeta' | 'textLayout' | 'scripting' | 'scrollbar' | 'forcedColors' | 'clock' | 'device'
 export type RestoreMap = Map<SupportedScopes, (() => Promise<any>)[]>
+
+/**
+ * Options for `browser.savePDF`. Lengths are centimeters.
+ *
+ * Defaults match WebDriver Classic `printPage` and WebDriver BiDi
+ * `browsingContext.print`: portrait, scale `1`, background `false`,
+ * shrink-to-fit `true`, page `21.59` × `27.94` cm, margins `1` cm.
+ * Omitted fields are left to the browser.
+ */
+export interface PDFPrintOptions {
+    /**
+     * Page orientation. Accepted values are `portrait` and `landscape`.
+     * The property stays a `string` so an existing variable of that type can
+     * still be passed. Any other value is rejected when `savePDF` runs.
+     * @default 'portrait'
+     */
+    orientation?: string
+    /**
+     * Page scale. The print protocols accept `0.1`–`2`.
+     * @default 1
+     */
+    scale?: number
+    /**
+     * Print the page background.
+     * @default false
+     */
+    background?: boolean
+    /**
+     * Page width in centimeters.
+     * @default 21.59
+     */
+    width?: number
+    /**
+     * Page height in centimeters.
+     * @default 27.94
+     */
+    height?: number
+    /**
+     * Top margin in centimeters.
+     * @default 1
+     */
+    top?: number
+    /**
+     * Bottom margin in centimeters.
+     * @default 1
+     */
+    bottom?: number
+    /**
+     * Left margin in centimeters.
+     * @default 1
+     */
+    left?: number
+    /**
+     * Right margin in centimeters.
+     * @default 1
+     */
+    right?: number
+    /**
+     * Shrink the content to fit the page.
+     * @default true
+     */
+    shrinkToFit?: boolean
+    /**
+     * Pages to include. Each entry is a page number or a range such as `'1-3'`.
+     * @default []
+     */
+    pageRanges?: Array<string | number>
+}
 
 export interface SaveScreenshotOptions {
     /**
@@ -925,9 +1032,10 @@ declare global {
         interface MultiRemoteElement extends MultiRemoteElementType {}
         /**
          * WebdriverIO multi-remote element array
-         * What `$$`, `custom$$` and `react$$` return on a multi-remote browser. Like
-         * `ElementArray` it carries the selector, parent and properties of the fetched
-         * set, and `isMultiRemote` marks it as the multi-remote variant.
+         * What `$$` returns on a multi-remote browser. `custom$$` and `react$$`
+         * return one result per instance and are not this type. Like `ElementArray`
+         * it carries the selector, parent and properties of the fetched set, and
+         * `isMultiRemote` marks it as the multi-remote variant.
          *
          * @see https://webdriver.io/docs/multiremote/
          */
@@ -958,5 +1066,71 @@ declare global {
          * @see https://webdriver.io/docs/api/dialog
          */
         interface Dialog extends DialogImport {}
+        /**
+         * A tab, a window, or a frame. Commands on this object send the BiDi
+         * method with `contextId` and do not move the session's current context.
+         * `parent` is absent on a top-level context. `url` is the document URL.
+         * Navigate a held context with `navigate()`. `browser.url()` navigates
+         * the session's initial top-level context and returns it.
+         */
+        interface BrowsingContext {
+            isBidi: boolean
+            isMobile: boolean
+            capabilities: WebdriverIO.Capabilities
+            sessionId: string
+            options: Browser['options']
+            strategies: Map<string, unknown>
+            $(selector: Selector, options?: ElementQueryOptions): ChainablePromiseElement
+            $$(selector: Selector): ChainablePromiseArray
+            custom$: Browser['custom$']
+            custom$$: Browser['custom$$']
+            react$: Browser['react$']
+            react$$: Browser['react$$']
+            execute: Browser['execute']
+            action: Browser['action']
+            actions: Browser['actions']
+            keys: Browser['keys']
+            scroll: Browser['scroll']
+            saveScreenshot: Browser['saveScreenshot']
+            savePDF: Browser['savePDF']
+            getCookies: Browser['getCookies']
+            setCookies: Browser['setCookies']
+            deleteCookies: Browser['deleteCookies']
+            setViewport: Browser['setViewport']
+            addInitScript: Browser['addInitScript']
+            mock: Browser['mock']
+            mockClearAll: Browser['mockClearAll']
+            mockRestoreAll: Browser['mockRestoreAll']
+            emulate: Browser['emulate']
+            restore: Browser['restore']
+            waitUntil: Browser['waitUntil']
+            pause: Browser['pause']
+            frame(target: string | Element | ChainablePromiseElement | ((context: { context: string, url: string }) => boolean | Promise<boolean>)): Promise<BrowsingContext>
+            navigate(url: string, options?: {
+                wait?: 'none' | 'interactive' | 'networkIdle' | 'complete'
+                headers?: Record<string, string>
+                auth?: { user: string, pass: string }
+                timeout?: number
+                onBeforeLoad?: Function
+            }): Promise<BrowsingContext>
+            refresh(): Promise<void>
+            closeWindow(): Promise<void>
+            activate(): Promise<void>
+            getTitle(): Promise<string>
+            getUrl(): Promise<string>
+            back(): Promise<void>
+            forward(): Promise<void>
+            acceptAlert(text?: string): Promise<void>
+            dismissAlert(): Promise<void>
+            getAlertText(): Promise<string>
+            on: Browser['on']
+            off: Browser['off']
+            once: Browser['once']
+            emit: Browser['emit']
+            removeListener: Browser['removeListener']
+            removeAllListeners: Browser['removeAllListeners']
+            addCommand(...args: unknown[]): Promise<never>
+            overwriteCommand(...args: unknown[]): Promise<never>
+        }
     }
 }

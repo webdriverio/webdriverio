@@ -2,12 +2,10 @@ import path from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { Status } from '@cucumber/cucumber'
 import {
-    createStepArgument,
     formatMessage,
     getStepType,
     getFeatureId,
     buildStepPayload,
-    getTestStepTitle,
     addKeywordToStep,
     getRule,
     generateSkipTagsFromCapabilities,
@@ -18,46 +16,18 @@ import { featureWithRules } from './fixtures/features.js'
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('utils', () => {
-    describe('createStepArgument', () => {
-        it('Works without argument', () => {
-            expect(typeof createStepArgument({} as any)).toBe('undefined')
-        })
-
-        it('Works with unexpected type', () => {
-            expect(typeof createStepArgument({ argument: { } } as any))
-                .toBe('undefined')
-        })
-
-        it('Works with DataTable', () => {
-            expect(createStepArgument({
-                argument: {
-                    dataTable: {
-                        rows: [
-                            { cells: [{ value: '1' }, { value: '2' }] },
-                            { cells: [{ value: '3' }, { value: '4' }] },
-                            { cells: [{ value: '5' }, { value: '6' }] }
-                        ]
-                    }
-                }
-            } as any)).toMatchSnapshot()
-        })
-
-        it('Works with DocString', () => {
-            expect(createStepArgument({
-                argument: {
-                    docString: {
-                        content: 'some string content'
-                    }
-                }
-            } as any)).toEqual('some string content')
-        })
-    })
-
     describe('formatMessage', () => {
-        it('should set passed state for test hooks', () => {
+        it('should copy Error into a plain object', () => {
+            const error = new Error('boom')
             expect(formatMessage({
-                payload: { state: 'passed' }
-            })).toMatchSnapshot()
+                payload: { error }
+            })).toEqual({
+                error: {
+                    name: 'Error',
+                    message: 'boom',
+                    stack: error.stack,
+                }
+            })
         })
 
         it('should not fail if payload was not passed', () => {
@@ -72,16 +42,6 @@ describe('utils', () => {
                 title: 'bar',
                 fullTitle: 'foo: bar',
             })
-        })
-    })
-
-    describe('getTestStepTitle', () => {
-        it('should determine a correct title', () => {
-            expect(getTestStepTitle('Given ', 'I do something good', 'Step')).toEqual('Given I do something good')
-        })
-
-        it('should determine a Undefined Step', () => {
-            expect(getTestStepTitle('', '', 'Step')).toEqual('Undefined Step')
         })
     })
 
@@ -112,6 +72,39 @@ describe('utils', () => {
         } as any, {
             type: 'step'
         })).toMatchSnapshot()
+
+        expect(buildStepPayload('uri', {
+            name: 'some feature'
+        } as any, {
+            id: '321',
+            tags: []
+        } as any, {
+            id: '123',
+            text: '',
+            keyword: '',
+            argument: {
+                docString: { content: 'some string content' }
+            }
+        } as any, {
+            type: 'step'
+        })).toMatchObject({
+            title: 'Undefined Step',
+            argument: 'some string content',
+        })
+
+        expect(buildStepPayload('uri', {
+            name: 'some feature'
+        } as any, {
+            id: '321',
+            tags: []
+        } as any, {
+            id: '123',
+            text: 'title',
+            keyword: 'Given',
+            argument: {}
+        } as any, {
+            type: 'step'
+        }).argument).toBeUndefined()
     })
 
     it('addKeywordToStep should add keywords to the steps', () => {
@@ -210,35 +203,52 @@ describe('utils', () => {
 
         expect(generateSkipTagsFromCapabilities({
             browserName: 'chrome',
-        }, [['@skip\\(browserName="foobar"\\)']]))
+        }, [['@skip(browserName="foobar")']]))
             .toStrictEqual([])
+
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'chrome',
+            platformName: 'windows'
+        }, [['@skip(browserName="foobar";platformName="windows")']]))
+            .toStrictEqual([])
+
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'chrome',
+        }, [['@skip(something="weird")']]))
+            .toStrictEqual([])
+
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'chrome',
+        }, [['@skip()']]))
+            .toStrictEqual(['(not @skip\\(\\))'])
+
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'chrome',
+        }, [['@skip']]))
+            .toStrictEqual(['(not @skip)'])
+
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'chrome',
+        }, [['@skip_local']]))
+            .toStrictEqual([])
+
+        // #14763: keep regex metacharacters so Cucumber can parse the tag expression.
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'chrome',
+        }, [['@skip(browserName=/^chrome$/i)']]))
+            .toStrictEqual(['(not @skip\\(browserName=/^chrome$/i\\))'])
+
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'chrome',
+        }, [['@skip(browserName=/^firefox$/i)']]))
+            .toStrictEqual([])
+
+        // #14672: square brackets and nested regex text must not be escaped.
+        expect(generateSkipTagsFromCapabilities({
+            browserName: 'firefox',
+        }, [['@skip(browserName=["firefox","safari",/^i.+explorer$/])']]))
+            .toStrictEqual(['(not @skip\\(browserName=["firefox","safari",/^i.+explorer$/]\\))'])
     })
-
-    expect(generateSkipTagsFromCapabilities({
-        browserName: 'chrome',
-        platformName: 'windows'
-    }, [['@skip\\(browserName="foobar";platformName="windows"\\)']]))
-        .toStrictEqual([])
-
-    expect(generateSkipTagsFromCapabilities({
-        browserName: 'chrome',
-    }, [['@skip\\(something="weird"\\)']]))
-        .toStrictEqual([])
-
-    expect(generateSkipTagsFromCapabilities({
-        browserName: 'chrome',
-    }, [['@skip()']]))
-        .toStrictEqual(['(not @skip\\(\\))'])
-
-    expect(generateSkipTagsFromCapabilities({
-        browserName: 'chrome',
-    }, [['@skip']]))
-        .toStrictEqual(['(not @skip)'])
-
-    expect(generateSkipTagsFromCapabilities({
-        browserName: 'chrome',
-    }, [['@skip_local']]))
-        .toStrictEqual([])
 
     describe('convertStatus', () => {
         it('maps Cucumber statuses to TestStatus', () => {

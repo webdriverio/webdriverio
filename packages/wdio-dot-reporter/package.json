@@ -28,15 +28,11 @@
       "types": "./build/index.d.ts"
     }
   },
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "dependencies": {
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
     "chalk": "^5.0.1"
-  },
-  "devDependencies": {
-    "@types/tmp": "^0.2.3",
-    "tmp": "^0.2.7"
   },
   "publishConfig": {
     "access": "public"

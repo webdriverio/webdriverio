@@ -219,8 +219,17 @@ function getCompilerOptions(ts: any, rootDir: string): CompilerOptions | null {
  */
 export async function importStencilConfig(rootDir: string) {
     const configPath = path.join(rootDir, 'stencil.config.ts')
-    // ESM `import()` needs a file URL for absolute paths on Windows
-    const config = await import(url.pathToFileURL(configPath).href).catch(() => ({ config: {} }))
+
+    /**
+     * a Stencil config is optional, but errors from importing an existing
+     * one (e.g. syntax errors) should not be silently ignored.
+     * ESM `import()` needs a file URL for absolute paths on Windows.
+     */
+    if (!await hasFileByExtensions(configPath, [])) {
+        return { config: {} }
+    }
+
+    const config = await import(url.pathToFileURL(configPath).href)
 
     /**
      * if we import the config within a CJS environment we need to

@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import os from 'node:os'
 import path from 'node:path'
 
 import type { Plugin } from 'vite'
@@ -48,7 +50,9 @@ test('isNuxtFramework', async () => {
 })
 
 test('optimizeForStencil', async () => {
-    const opt = await optimizeForStencil(path.join(__dirname, '__fixtures__', 'stencil'))
+    const root = path.join(__dirname, '__fixtures__', 'stencil')
+    vi.mocked(hasFileByExtensions).mockResolvedValueOnce(path.join(root, 'stencil.config.ts'))
+    const opt = await optimizeForStencil(root)
     expect(opt).toEqual({
         optimizeDeps: {
             include: ['foo', 'bar', '@wdio/browser-runner/stencil > @stencil/core/internal/testing/index.js']
@@ -72,6 +76,28 @@ test('optimizeForStencil', async () => {
     ).toEqual({
         code: "import { Component, Prop, h } from 'something else'"
     })
+})
+
+test('optimizeForStencil rejects an existing config that fails to import', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-stencil-'))
+    const configPath = path.join(root, 'stencil.config.ts')
+    await fs.writeFile(configPath, 'throw new Error("broken stencil config")\n')
+    vi.mocked(hasFileByExtensions).mockResolvedValueOnce(configPath)
+
+    try {
+        await expect(optimizeForStencil(root)).rejects.toThrow('broken stencil config')
+    } finally {
+        await fs.rm(root, { recursive: true, force: true })
+    }
+})
+
+test('optimizeForStencil without a Stencil config', async () => {
+    vi.mocked(hasFileByExtensions).mockResolvedValueOnce(undefined)
+    const opt = await optimizeForStencil('/foo/bar')
+    expect(opt.optimizeDeps).toEqual({
+        include: ['@wdio/browser-runner/stencil > @stencil/core/internal/testing/index.js']
+    })
+    expect(hasFileByExtensions).toHaveBeenLastCalledWith(path.join('/foo/bar', 'stencil.config.ts'), [])
 })
 
 test('auto imports "h" from Stencil', async () => {

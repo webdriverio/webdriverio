@@ -10,6 +10,7 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "lib": ["ESNext", "DOM"],
+    "types": ["mocha"],
     "skipLibCheck": true,
     "noEmit": true
   },

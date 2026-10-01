@@ -160,7 +160,19 @@ if (!process.argv.includes('--skip-build-checks')) {
         .split('\n')
         .map((line) => line.trim())
         .filter((line) => line && !line.startsWith('#'))
+    /**
+     * event pages are generated from events.webdriver.io, which `eventDocs.ts`
+     * tolerates being down; don't fail unrelated builds on that outage
+     */
+    const eventsDir = path.join(WEBSITE_DIR, 'community', 'events')
+    const eventsGenerated = fs.existsSync(eventsDir) && fs.readdirSync(eventsDir).some((file) => file.endsWith('.md'))
+    if (!eventsGenerated) {
+        console.warn('No event pages were generated (events.webdriver.io unavailable?), skipping /community/events/* URLs')
+    }
     for (const pathname of baseline) {
+        if (!eventsGenerated && pathname.startsWith('/community/events/')) {
+            continue
+        }
         if (!resolve(pathname)) {
             errors.push(`${pathname} no longer resolves, add a redirect to website/vercel.json`)
         }

@@ -2,6 +2,8 @@ import logger from '@wdio/logger'
 import type { Cookie } from '@wdio/protocols'
 import type { remote } from 'webdriver'
 
+import { isBrowsingContext } from '../../session/browsingContext.js'
+
 const log = logger('webdriverio')
 
 /**
@@ -42,7 +44,7 @@ const log = logger('webdriverio')
  *
  */
 export async function getCookies(
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     filter?: remote.StorageCookieFilter,
     sourceOrigin?: string | null
 ): Promise<Cookie[]> {
@@ -50,6 +52,15 @@ export async function getCookies(
 
     if (!this.isBidi) {
         return getCookiesClassic.call(this, filter)
+    }
+
+    if (isBrowsingContext(this)) {
+        return readBidiCookies(this.browser, {
+            ...(sourceOrigin === null ? {} : {
+                partition: { type: 'context', context: this.contextId }
+            }),
+            ...(typeof filter !== 'undefined' ? { filter } : {})
+        }, filter)
     }
 
     let url: URL
@@ -76,15 +87,25 @@ export async function getCookies(
         params.filter = filter
     }
 
+    return readBidiCookies(this, params, filter)
+}
+
+async function readBidiCookies (
+    browser: WebdriverIO.Browser,
+    params: remote.StorageGetCookiesParameters,
+    filter?: remote.StorageCookieFilter
+): Promise<Cookie[]> {
     try {
-        const { cookies } = await this.storageGetCookies(params)
-
-        // Fallback to classic if BiDi returns empty (common in hybrid/guest modes)
-        if (cookies.length === 0) {
+        const { cookies } = await browser.storageGetCookies(params)
+        /**
+         * A context partition is already the held tab. An empty result is that
+         * tab's cookies. The classic fallback would read the focused window.
+         */
+        const partitionedByContext = params.partition?.type === 'context'
+        if (cookies.length === 0 && !partitionedByContext) {
             log.debug('BiDi getCookies returned empty, falling back to classic')
-            return getCookiesClassic.call(this, filter)
+            return getCookiesClassic.call(browser, filter)
         }
-
         return cookies.map((cookie) => ({
             ...cookie,
             value: cookie.value.type === 'base64'
@@ -92,8 +113,11 @@ export async function getCookies(
                 : cookie.value.value,
         }))
     } catch (err) {
+        if (params.partition?.type === 'context') {
+            throw err
+        }
         log.warn(`BiDi getCookies failed, falling back to classic: ${(err as Error).message}`)
-        return getCookiesClassic.call(this, filter)
+        return getCookiesClassic.call(browser, filter)
     }
 }
 

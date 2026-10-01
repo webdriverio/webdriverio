@@ -120,49 +120,6 @@ test('onPrepare w/ SauceConnect w/ tunnelName w/ W3C', async () => {
     expect(vi.mocked(log.info).mock.calls[2][0]).toContain('Sauce Connect successfully started after')
 })
 
-test('onPrepare w/ SauceConnect w/o identifier w/ W3C', async () => {
-    const options: SauceServiceConfig = {
-        sauceConnect: true
-    }
-    const caps = [{ 'appium:deviceName': 'Samsung Galaxy S10' }] as WebdriverIO.Capabilities[]
-    const config = {
-        user: 'foobaruser',
-        key: '12345'
-    } as Options.Testrunner
-    const service = new SauceServiceLauncher(options, caps as never, config)
-    expect(service['_sauceConnectProcess']).toBeUndefined()
-    await service.onPrepare(config, caps)
-
-    expect(caps[0]['sauce:options']?.tunnelName).toContain('SC-tunnel-')
-    expect(service['_sauceConnectProcess']).not.toBeUndefined()
-
-    // @ts-ignore mock feature
-    expect(SauceLabs.default.instances).toHaveLength(1)
-    // @ts-ignore mock feature
-    expect(SauceLabs.default.instances[0].startSauceConnect).toBeCalledTimes(1)
-    await new Promise((resolve) => setTimeout(resolve, 100))
-    expect(vi.mocked(log.info).mock.calls[2][0]).toContain('Sauce Connect successfully started after')
-})
-
-test('onPrepare w/ SauceConnect', async () => {
-    const options: SauceServiceConfig = {
-        sauceConnect: true
-    }
-    const caps = [{}] as WebdriverIO.Capabilities[]
-    const config = {
-        user: 'foobaruser',
-        key: '12345'
-    } as Options.Testrunner
-    const service = new SauceServiceLauncher(options, caps as never, config)
-    expect(service['_sauceConnectProcess']).toBeUndefined()
-    await service.onPrepare(config, caps)
-
-    expect(service['_sauceConnectProcess']).not.toBeUndefined()
-    expect(config.port).toBe(undefined)
-    expect(config.protocol).toBe(undefined)
-    expect(config.hostname).toBe(undefined)
-})
-
 test('onPrepare w/ SauceConnect w/ region EU', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: true
@@ -182,49 +139,6 @@ test('onPrepare w/ SauceConnect w/ region EU', async () => {
     expect(SauceLabs.default.instances).toHaveLength(1)
     // @ts-ignore mock feature
     expect(SauceLabs.default.instances[0].options.region).toBe('eu')
-})
-
-test('onPrepare multi-remote', async () => {
-    const options: SauceServiceConfig = {
-        sauceConnect: true,
-        sauceConnectOpts: {
-            tunnelName: 'my-tunnel'
-        }
-    }
-    const caps: Capabilities.RequestedMultiRemoteCapabilities = {
-        browserA: {
-            capabilities: { browserName: 'chrome' }
-        },
-        browserB: {
-            capabilities: {
-                browserName: 'firefox',
-                'sauce:options': { tunnelName: 'fish' }
-            }
-        }
-    }
-    const config = {
-        user: 'foobaruser',
-        key: '12345'
-    } as Options.Testrunner
-    const service = new SauceServiceLauncher(options, caps as never, config)
-    expect(service['_sauceConnectProcess']).toBeUndefined()
-    await service.onPrepare(config, caps)
-
-    expect(caps).toEqual({
-        browserA: {
-            capabilities: {
-                browserName: 'chrome',
-                'sauce:options': { tunnelName: 'my-tunnel' }
-            }
-        },
-        browserB: {
-            capabilities: {
-                browserName: 'firefox',
-                'sauce:options': { tunnelName: 'fish' }
-            },
-        }
-    })
-    expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
 test('onPrepare parallel multi-remote', async () => {

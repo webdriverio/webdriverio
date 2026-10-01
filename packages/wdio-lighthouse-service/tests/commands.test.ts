@@ -18,13 +18,6 @@ vi.mock('lighthouse', () => ({
     desktopConfig: { settings: { formFactor: 'desktop' } },
     startFlow: (...args: unknown[]) => startFlow(...args)
 }))
-vi.mock('../src/utils', async (importOriginal) => {
-    const actual = await importOriginal() as Record<string, unknown>
-    return {
-        ...actual,
-        sumByKey: vi.fn().mockReturnValue('foobar')
-    }
-})
 vi.mock('../src/auditor', () => {
     const updateCommandsMock = vi.fn()
     return {
@@ -118,18 +111,15 @@ test('initialization', async () => {
     expect(handler['_session']?.send).toBeCalledWith('Runtime.enable')
     expect(handler['_session']?.send).toBeCalledWith('Page.enable')
 
-    handler['_devtoolsGatherer'] = { onMessage: vi.fn() } as any
     handler['_propagateWSEvents']({ method: 'foo', params: 'bar' })
-    expect(handler['_devtoolsGatherer']?.onMessage).toBeCalledTimes(1)
     expect((handler['_browser'] as any).emit).toBeCalledWith('foo', 'bar')
 })
 
 test('ignores non CDP websocket events', () => {
     const handler = createHandler()
-    handler['_devtoolsGatherer'] = { onMessage: vi.fn() } as any
     handler['_propagateWSEvents']('not-an-event')
     handler['_propagateWSEvents']({ method: 'only-method' })
-    expect(handler['_devtoolsGatherer']?.onMessage).not.toBeCalled()
+    expect(browser.emit).not.toHaveBeenCalled()
 })
 
 test('getTraceLogs', () => {
@@ -203,9 +193,9 @@ test('getPageWeight', () => {
     }
 
     const { pageWeight, transferred, requestCount, details } = handler.getPageWeight()
-    expect(pageWeight).toBe('foobar')
-    expect(transferred).toBe('foobar')
-    expect(requestCount).toBe('foobar')
+    expect(pageWeight).toBe(76822)
+    expect(transferred).toBe(61153)
+    expect(requestCount).toBe(8)
     expect(details).toEqual(handler['_networkHandler'].requestTypes)
 })
 
@@ -529,11 +519,9 @@ test('setThrottlingProfile throws when the page is missing', async () => {
 
 test('ignores websocket events that cannot be stringified', () => {
     const handler = createHandler()
-    handler['_devtoolsGatherer'] = { onMessage: vi.fn() } as any
     const params = {} as { self?: unknown }
     params.self = params
     handler['_propagateWSEvents']({ method: 'Network.dataReceived', params })
-    expect(handler['_devtoolsGatherer']?.onMessage).toBeCalledTimes(1)
     expect(browser.emit).toBeCalledWith('Network.dataReceived', params)
 })
 

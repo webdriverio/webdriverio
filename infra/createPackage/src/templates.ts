@@ -34,7 +34,6 @@ export function buildPackageScaffold(packageName: string, packageType: PackageTy
             content: `{
     "extends": "../../tsconfig",
     "compilerOptions": {
-        "baseUrl": ".",
         "outDir": "./build",
         "rootDir": "./src"
     },
@@ -47,7 +46,6 @@ export function buildPackageScaffold(packageName: string, packageType: PackageTy
             content: `{
     "extends": "../../tsconfig.prod",
     "compilerOptions": {
-        "baseUrl": ".",
         "outDir": "./build",
         "rootDir": "./src"
     },
@@ -67,7 +65,7 @@ export function buildPackageScaffold(packageName: string, packageType: PackageTy
   "type": "module",
   "exports": "./build/index.js",
   "types": "./build/index.d.ts",
-  "typeScriptVersion": "5.9.3",
+  "typeScriptVersion": "6.0.3",
   "engines": {
     "node": ">=22.19.0"
   },

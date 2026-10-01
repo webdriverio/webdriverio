@@ -15,6 +15,12 @@ import {
 } from '../../packages/wdio-utils/src/envDetector.js'
 import { UNICODE_CHARACTERS as UNICODE_CHARACTERS_ORIG, HOOK_DEFINITION as HOOK_DEFINITION_ORIG } from '../../packages/wdio-utils/src/constants.js'
 
+/**
+ * the object brands have no side effects, and `webdriverio` uses them when its
+ * modules load (for example on `MultiRemoteDriver.prototype`), so keep them real
+ */
+export { WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind } from '../../packages/wdio-utils/src/kind.js'
+
 class DotReporter {
     options: any
     emit: any
@@ -91,6 +97,11 @@ export const getArgumentType = getArgumentTypeOrig
 export const executeSync = vi.fn()
 export const executeAsync = vi.fn()
 export const wrapCommand = (_: any, origFn: any) => origFn
+/**
+ * Element lists register their constructor at import time. Launcher tests mock
+ * this module, so the registration has to exist or loading `webdriverio` throws.
+ */
+export const registerElementArrayFactory = vi.fn()
 export const wrapGlobalTestMethod = vi.fn().mockReturnValue(vi.fn())
 export const executeHooksWithArgs = vi.fn()
 export const runFnInFiberContext = vi.fn().mockImplementation((fn) => {

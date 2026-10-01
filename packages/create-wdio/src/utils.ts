@@ -260,12 +260,8 @@ export async function createPackageJSON(parsedAnswers: ParsedAnswers) {
 
     // If a user said no to creating a package.json, but it doesn't exist, abort.
     if (parsedAnswers.createPackageJSON === false) {
-        /* istanbul ignore if */
-        if (!packageJsonExists) {
-            console.log(`No WebdriverIO configuration found in "${parsedAnswers.wdioConfigPath}"`)
-            return !process.env.WDIO_UNIT_TESTS && process.exit(0)
-        }
-        return
+        console.log(`No WebdriverIO configuration found in "${parsedAnswers.wdioConfigPath}"`)
+        process.exit(0)
     }
 
     // Only create if the user gave explicit permission to
@@ -333,8 +329,11 @@ export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     const config: Record<string, unknown> & { include?: string[] } = {
         compilerOptions: {
             // compiler
-            moduleResolution: 'node',
-            module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
+            // TypeScript 6 deprecates `moduleResolution: 'node'` (node10). ESM uses
+            // `bundler`, which resolves imports as `tsx` does; CommonJS uses `NodeNext`,
+            // which follows the `type` of the project's package.json.
+            moduleResolution: parsedAnswers.esmSupport ? 'bundler' : 'NodeNext',
+            module: parsedAnswers.esmSupport ? 'ESNext' : 'NodeNext',
             target: 'es2022',
             lib: ['es2022', 'dom'],
             types,
