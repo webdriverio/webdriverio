@@ -2,7 +2,7 @@ import path from 'node:path'
 import { expect, describe, it, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 // @ts-expect-error mock feature
-import { getMockCalls } from '../../../src/commands/browser/mock.js'
+import { getMockCalls, SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 
 vi.mock('fetch')
 vi.mock('../../../src/commands/browser/mock', () => {
@@ -10,10 +10,10 @@ vi.mock('../../../src/commands/browser/mock', () => {
     const bumpCall = () => ++clearedMocks
     const SESSION_MOCKS: Record<string, any> = {}
     SESSION_MOCKS.foobar = new Set()
-    SESSION_MOCKS.foobar.add({ clear: vi.fn(bumpCall) })
-    SESSION_MOCKS.foobar.add({ clear: vi.fn(bumpCall) })
+    SESSION_MOCKS.foobar.add({ clear: vi.fn(bumpCall), isOwnedBy: () => true })
+    SESSION_MOCKS.foobar.add({ clear: vi.fn(bumpCall), isOwnedBy: () => true })
     SESSION_MOCKS.barfoo = new Set()
-    SESSION_MOCKS.barfoo.add({ clear: vi.fn(bumpCall) })
+    SESSION_MOCKS.barfoo.add({ clear: vi.fn(bumpCall), isOwnedBy: () => true })
     return { SESSION_MOCKS, getMockCalls: () => clearedMocks, default: vi.fn() }
 })
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -29,5 +29,29 @@ describe('mockClearAll', () => {
         expect(getMockCalls()).toBe(0)
         await browser.mockClearAll()
         expect(getMockCalls()).toBe(3)
+    })
+
+    it('should only clear mocks of the calling browser', async () => {
+        const [browserA, browserB] = await Promise.all([1, 2].map(() => remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'devtools'
+            }
+        })))
+        const getMock = (owner: WebdriverIO.Browser) => ({
+            clear: vi.fn(),
+            isOwnedBy: (browser: WebdriverIO.Browser) => browser === owner
+        })
+        const mockA = getMock(browserA)
+        const mockB = getMock(browserB)
+        SESSION_MOCKS.contextA = new Set([mockA])
+        SESSION_MOCKS.contextB = new Set([mockB])
+
+        await browserA.mockClearAll()
+        expect(mockA.clear).toHaveBeenCalledTimes(1)
+        expect(mockB.clear).not.toHaveBeenCalled()
+
+        delete SESSION_MOCKS.contextA
+        delete SESSION_MOCKS.contextB
     })
 })
