@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { Buffer } from 'node:buffer'
+import { runInNewContext } from 'node:vm'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { type local } from 'webdriver'
@@ -144,12 +145,15 @@ describe('WebDriverInterception', () => {
         ['Uint8Array', new Uint8Array([137, 80, 78, 71])],
         ['offset view', new Uint8Array([0, 137, 80, 78, 71, 0]).subarray(1, 5)],
         ['ArrayBuffer', new Uint8Array([137, 80, 78, 71]).buffer],
+        ['cross-realm Uint8Array', runInNewContext('new Uint8Array([137, 80, 78, 71])') as Uint8Array],
+        ['cross-realm offset view', runInNewContext('new Uint8Array([0, 137, 80, 78, 71, 0]).subarray(1, 5)') as Uint8Array],
+        ['cross-realm ArrayBuffer', runInNewContext('new Uint8Array([137, 80, 78, 71]).buffer') as ArrayBuffer],
         ['empty bytes', new Uint8Array()],
         ['one byte', new Uint8Array([255])],
         ['two bytes', new Uint8Array([255, 254])],
         ['large payload', Uint8Array.from({ length: 200003 }, (_, index) => index % 256)]
     ])('responds with %s without a global Buffer', async (_name, payload) => {
-        const bytes = payload instanceof ArrayBuffer ? new Uint8Array(payload) : payload
+        const bytes = ArrayBuffer.isView(payload) ? payload : new Uint8Array(payload)
         const expected = Buffer.from(bytes).toString('base64')
         const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://test.com/foo', {}, browser)

@@ -98,7 +98,7 @@ type RequestWithPostData<T extends local.NetworkBeforeRequestSentParameters | Re
     postData?: string
 }
 
-function toStringBody(payload: Exclude<RespondBodyValue, Uint8Array | ArrayBuffer>) {
+function toStringBody(payload: unknown) {
     if (typeof payload === 'string') {
         return payload
     }
@@ -126,11 +126,13 @@ function decodeHeader(value: local.NetworkBytesValue) {
 }
 
 function toNetworkBody(payload: RespondBodyValue): remote.NetworkBytesValue {
-    if (payload instanceof Uint8Array) {
-        return { type: 'base64', value: encodeBase64(payload) }
+    const payloadType = Object.prototype.toString.call(payload)
+    if (ArrayBuffer.isView(payload) && payloadType === '[object Uint8Array]') {
+        const bytes = new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength)
+        return { type: 'base64', value: encodeBase64(bytes) }
     }
-    if (payload instanceof ArrayBuffer) {
-        return { type: 'base64', value: encodeBase64(new Uint8Array(payload)) }
+    if (payloadType === '[object ArrayBuffer]') {
+        return { type: 'base64', value: encodeBase64(new Uint8Array(payload as ArrayBuffer)) }
     }
 
     return { type: 'string', value: toStringBody(payload) }

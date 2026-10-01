@@ -47,6 +47,33 @@ describe('WebdriverIO mock command', () => {
         }
     })
 
+    it('supports binary responses from an iframe', async () => {
+        const frame = document.createElement('iframe')
+        const apiMock = await browser.mock('https://api.webdriver.io/api/*')
+        document.body.append(frame)
+        try {
+            const FrameUint8Array = (frame.contentWindow as Window & typeof globalThis).Uint8Array
+            const bytes = new FrameUint8Array([0, 137, 80, 78, 71, 0]).subarray(1, 5)
+            const buffer = new FrameUint8Array([137, 80, 78, 71]).buffer
+            expect(bytes instanceof Uint8Array).toBe(false)
+            expect(buffer instanceof ArrayBuffer).toBe(false)
+            apiMock
+                .respondOnce(bytes, CORS_PARAMS)
+                .respondOnce(buffer, CORS_PARAMS)
+                .respondOnce(() => bytes, CORS_PARAMS)
+                .respondOnce(() => buffer, CORS_PARAMS)
+
+            for (const endpoint of ['typed-array', 'array-buffer', 'typed-array-callback', 'array-buffer-callback']) {
+                const response = await fetch(`https://api.webdriver.io/api/${endpoint}`)
+                expect(new Uint8Array(await response.arrayBuffer())).toEqual(new Uint8Array([137, 80, 78, 71]))
+            }
+            expect(apiMock.calls).toHaveLength(4)
+        } finally {
+            frame.remove()
+            await apiMock.restore()
+        }
+    })
+
     let imgMock: WebdriverIO.Mock
     it('can redirect images', async () => {
         const imagePattern = new URL(originalImage)
