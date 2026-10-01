@@ -1,4 +1,5 @@
 import { getBrowserObject } from '@wdio/utils'
+import { BIDI_MASK, type remote } from 'webdriver'
 
 import type { InputOptions } from '../../types.js'
 import { Key } from '../../constants.js'
@@ -59,7 +60,7 @@ export async function setValue (
         const text = String(value)
         const keys = text.length > 0 ? Array.from(text) : [Key.Backspace]
         const browser = getBrowserObject(this)
-        await browser.inputPerformActions({
+        const params: remote.InputPerformActionsParameters = {
             context,
             actions: [{
                 id: 'keyboard',
@@ -69,7 +70,11 @@ export async function setValue (
                     { type: 'keyUp' as const, value: key }
                 ])
             }]
-        })
+        }
+        if (options?.mask) {
+            Object.assign(params, { [BIDI_MASK]: true })
+        }
+        await browser.inputPerformActions(params)
         await browser.inputReleaseActions({ context })
         return
     }

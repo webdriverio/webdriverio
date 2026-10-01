@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { expect, describe, it, beforeEach, vi } from 'vitest'
 
-import { ELEMENT_KEY } from 'webdriver'
+import { BIDI_MASK, ELEMENT_KEY } from 'webdriver'
 
 import { remote } from '../../../src/index.js'
 import { getBrowsingContext } from '../../../src/browsingContext.js'
@@ -258,6 +258,23 @@ describe('browsing context', () => {
                 ]
             })]
         }))
+    })
+
+    it('marks setValue key actions in a held context for masking', async () => {
+        const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://child.example' })
+        const elem = getElement.call(frame, '#password', { [ELEMENT_KEY]: 'elem-1' })
+        vi.spyOn(elem, 'execute').mockResolvedValue(undefined)
+        const perform = vi.spyOn(browser, 'inputPerformActions').mockResolvedValue({})
+        vi.spyOn(browser, 'inputReleaseActions').mockResolvedValue({})
+
+        const masked = (call: number) => (perform.mock.calls[call][0] as unknown as Record<symbol, unknown>)[BIDI_MASK]
+        expect(typeof BIDI_MASK).toBe('symbol')
+
+        await elem.setValue('secret', { mask: true })
+        expect(masked(0)).toBe(true)
+
+        await elem.setValue('visible')
+        expect(masked(1)).toBeUndefined()
     })
 
     it('returns a chainable element from $', () => {
