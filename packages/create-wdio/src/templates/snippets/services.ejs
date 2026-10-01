@@ -23,7 +23,7 @@ services: [<%- answers.services.map((service) => {
 
             // Per-test artifacts, attached inline to Allure by
             // @wdio/allure-reporter. Both need traceGranularity: 'test';
-            // at a coarser granularity they are listed in the manifest instead.
+            // at a coarser granularity neither artifact is produced.
             // screenshot: 'off',            // 'on' | 'only-on-failure'
             // video: 'off',                 // a retention policy, as tracePolicy above
 
