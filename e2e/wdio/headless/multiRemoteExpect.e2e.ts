@@ -198,18 +198,7 @@ describe('multi remote expect', () => {
             await expect(title).toHaveWidth(expect.multiRemote({ ...WIDTHS, browserC: { gte: 250, lte: 350 } }))
         })
 
-        it('should match an inline snapshot per instance when instances differ', async function () {
-            /**
-             * On Windows, expect-webdriverio 7.0.0 does not remove its own stack frames (it filters
-             * them with `path.sep`, but ES module frames are `file:///` URLs with `/`), so every
-             * inline snapshot of this file gets the same location, and the second one fails with
-             * "different snapshots cannot be called at the same location".
-             * TODO: remove the skip after the fix in expect-webdriverio `src/matchers/snapshot.ts` is released.
-             */
-            if (process.platform === 'win32') {
-                return this.skip()
-            }
-
+        it('should match an inline snapshot per instance when instances differ', async () => {
             await Promise.all(Object.entries(LOCALES).map(([instance, locale]) => (
                 multiRemoteBrowser.getInstance(instance).execute((locale) => {
                     document.querySelector('header h1')!.setAttribute('data-locale', locale)
