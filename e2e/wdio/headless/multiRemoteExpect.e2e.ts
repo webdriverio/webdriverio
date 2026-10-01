@@ -137,7 +137,7 @@ describe('multi remote expect', () => {
             await expect(multiRemoteBrowser.$('.page').select('browserB')).toHaveText('Second page!')
         })
 
-        // TODO: unskip when expect-webdriverio supports v10 `getInstance()`, which returns a lazy element for an instance with no element instead of throwing
+        // TODO: unskip when #15846 is merged: until then, `getInstance()` gives a lazy element for an instance with fewer elements instead of throwing
         it.skip('should assert the elements of every instance with one expected value per instance', async () => {
             const links = multiRemoteBrowser.$$('header a')
 
