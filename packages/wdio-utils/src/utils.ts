@@ -7,8 +7,37 @@ import type { Options, Services } from '@wdio/types'
 import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
+const BINARY_REPLACEMENT = '"<Binary[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
 const REGEX_SCRIPT_NAME = /return \((async )?function (\w+)/
+/**
+ * image signatures (magic bytes)
+ */
+const IMAGE_SIGNATURES = [
+    [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], // PNG
+    [0xff, 0xd8, 0xff], // JPEG
+    [0x47, 0x49, 0x46, 0x38] // GIF
+]
+/**
+ * binary signatures (magic bytes), e.g. the zip `uploadFile` sends
+ */
+const BINARY_SIGNATURES = [
+    [0x50, 0x4b, 0x03, 0x04], // zip, also used by apk, docx, xlsx
+    [0x1f, 0x8b, 0x08], // gzip
+    [0x25, 0x50, 0x44, 0x46] // pdf
+]
+/**
+ * base64 chars needed to decode the longest signature (4 chars = 3 bytes)
+ */
+const SIGNATURE_BASE64_LENGTH = Math.ceil(
+    Math.max(...[...IMAGE_SIGNATURES, ...BINARY_SIGNATURES]
+        .map((signature) => signature.length)) / 3
+) * 4
+/**
+ * fallback for payloads without a known signature, e.g. a text file pushed
+ * via `pushFile`, a command argument other than a selector is never this long
+ */
+const BINARY_MAX_ARGUMENT_LENGTH = 1000
 export const SLASH = '/'
 export const REG_EXP_WINDOWS_ABS_PATH = /^[A-Za-z]:\\/
 
@@ -91,23 +120,15 @@ export function commandCallStructure (commandName: string, args: unknown[], unfu
             /^\s*(?:(?:async\s+)?function(?:\s+\w+)?\s*\(|!function\(|return\s+\(?(?:async\s+)?function|\([^)]*\)\s*=>|\w+\s*=>)/.test(arg.trim())
         ) {
             arg = '<fn>'
+        } else if (typeof arg === 'string' && isScreenshot(arg)) {
+            arg = SCREENSHOT_REPLACEMENT
         } else if (
             typeof arg === 'string' &&
-            /**
-             * the isBase64 method returns for xPath values like
-             * "/html/body/a" a true value which is why we should
-             * include a command check in here.
-             */
+            // an xPath only uses base64 characters and can exceed the length fallback
             !commandName.startsWith('findElement') &&
-            /**
-             * the isBase64 method returns for the argument value like
-             * "9A562133B0552E0ECB7628F2E8A09E86" a true value which is
-             * why we should include a command check in here.
-             */
-            !commandName.startsWith('switch') &&
-            isBase64(arg)
+            isBinary(arg)
         ) {
-            arg = SCREENSHOT_REPLACEMENT
+            arg = BINARY_REPLACEMENT
         } else if (typeof arg === 'string') {
             arg = `"${arg}"`
         } else if (typeof arg === 'function') {
@@ -136,8 +157,10 @@ export function transformCommandLogResult (result: unknown) {
         return '<empty result>'
     } else if (typeof result !== 'object' || !result) {
         return result
-    } else if ('file' in result && typeof result.file === 'string' && isBase64(result.file)) {
+    } else if ('file' in result && typeof result.file === 'string' && isScreenshot(result.file)) {
         return SCREENSHOT_REPLACEMENT
+    } else if ('file' in result && typeof result.file === 'string' && isBinary(result.file)) {
+        return BINARY_REPLACEMENT
     } else if ('script' in result && typeof result.script === 'string' && isBase64(result.script)) {
         return SCRIPT_PLACEHOLDER
     } else if ('script' in result && typeof result.script === 'string' && result.script.match(REGEX_SCRIPT_NAME)) {
@@ -324,6 +347,39 @@ export function isBase64(str: string) {
         firstPaddingChar === len - 1 ||
         (firstPaddingChar === len - 2 && str[len - 1] === '=')
     )
+}
+
+/**
+ * checks if provided string is a Base64 encoded image by its signature
+ * @param {string} str string to check
+ * @return {boolean} `true` if the provided string is a Base64 encoded image
+ */
+export function isScreenshot(str: string) {
+    return typeof str === 'string' && isBase64(str) && matchesSignature(str, IMAGE_SIGNATURES)
+}
+
+/**
+ * checks if provided string is a Base64 encoded binary payload that is not an image
+ * @param {string} str string to check
+ * @return {boolean} `true` if the provided string is a Base64 encoded payload
+ */
+export function isBinary(str: string) {
+    // exclude images so both checks are mutually exclusive
+    if (typeof str !== 'string' || !isBase64(str) || matchesSignature(str, IMAGE_SIGNATURES)) {
+        return false
+    }
+
+    return matchesSignature(str, BINARY_SIGNATURES) || str.length > BINARY_MAX_ARGUMENT_LENGTH
+}
+
+/**
+ * matches the leading bytes of a Base64 string against the given signatures
+ */
+function matchesSignature(str: string, signatures: number[][]) {
+    const header = Buffer.from(str.slice(0, SIGNATURE_BASE64_LENGTH), 'base64')
+    return signatures.some((signature) => (
+        signature.every((byte, i) => header[i] === byte)
+    ))
 }
 
 /**
