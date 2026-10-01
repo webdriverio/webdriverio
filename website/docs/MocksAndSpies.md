@@ -14,26 +14,32 @@ Note that using the `mock` command requires support for WebDriver Bidi. That is 
 
 ## Creating a mock
 
-Before you can modify any responses you have define a mock first. This mock is described by the resource url and can be filtered by the [request method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) or [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource is matched using a [`URLPattern`](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern), where `*` matches any sequence of characters. A url without a protocol is matched against the path of the request only, so `**/users/list` matches that path on any origin:
+Before you can modify any responses you have define a mock first. This mock is described by the resource url and can be filtered by the [request method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) or [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers). The resource is matched using a [`URLPattern`](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern), where `*` matches any sequence of characters. A url without a protocol is matched against the path of the request only, so `*/users/list` matches that path on any origin:
 
 ```js
 // mock all resources ending with "/users/list"
-const userListMock = await browser.mock('**/users/list')
+const userListMock = await browser.mock('*/users/list')
 
 // or you can specify the mock by filtering resources by headers or
 // status code, only mock successful requests to json resources
-const strictMock = await browser.mock('**', {
+const strictMock = await browser.mock('*', {
     // mock all json responses
     requestHeaders: { 'Content-Type': 'application/json' },
     // that were successful
     statusCode: 200
 })
 
-// instead of a string you can also pass in a `URLPattern`; Node.js has no
-// global `URLPattern` yet, so import a polyfill first
+// instead of a string you can also pass in a `URLPattern`; the polyfill
+// also works in runtimes without native URLPattern support
 import { URLPattern } from 'urlpattern-polyfill'
 const patternMock = await browser.mock(new URLPattern({ pathname: '/users/list' }))
 ```
+
+:::warning
+
+Use a single `*` for URL wildcards; it also matches `/`. Consecutive wildcards before fixed text, such as `**/api/**` or `**/data.json`, can cause excessive regex backtracking on unrelated URLs and freeze a test. See [issue #13548](https://github.com/webdriverio/webdriverio/issues/13548). In component tests, also use a fixed protocol and hostname to keep runner traffic outside the intercept; see [component testing request mocks](/docs/component-testing/mocking#requests).
+
+:::
 
 ## Specifying custom responses
 
@@ -101,7 +107,7 @@ mock.respond(responseFixture)
 If you like to modify text resources like JavaScript, CSS files or other text based resources you can just pass in a file path and WebdriverIO will replaces the original resource with it, e.g.:
 
 ```js
-const scriptMock = await browser.mock('**/script.min.js')
+const scriptMock = await browser.mock('*/script.min.js')
 scriptMock.respond('./tests/fixtures/script.js')
 
 // or respond with your custom JS
@@ -169,7 +175,7 @@ Instead of returning a custom response you can also just abort the request with 
 This is very useful if you want to block 3rd party script from your page that have a negative influence on your functional test. You can abort a mock by just calling `abort` or `abortOnce`, e.g.:
 
 ```js
-const mock = await browser.mock('https://www.google-analytics.com/**')
+const mock = await browser.mock('https://www.google-analytics.com/*')
 mock.abort('Failed')
 ```
 
@@ -178,7 +184,7 @@ mock.abort('Failed')
 Every mock is automatically a spy that counts the amount of requests the browser made to that resource. If you don't apply a custom response or abort reason to the mock it continues with the default response you would normally receive. This allows you to check how many times the browser made the request, e.g. to a certain API endpoint.
 
 ```js
-const mock = await browser.mock('**/user', { method: 'post' })
+const mock = await browser.mock('*/user', { method: 'post' })
 console.log(mock.calls.length) // returns 0
 
 // register user
@@ -201,7 +207,7 @@ If you need to wait until a matching request has responded, use `mock.waitForRes
 On a [multi-remote](/docs/multiremote) browser, `mock()` returns a `MultiRemoteMock` rather than one `Mock`. Methods such as `respond()` and `restore()` run on every instance. `waitForResponse()` waits until every instance has a matching response. Captured requests stay on the mock for that browser:
 
 ```ts
-const mock = await browser.mock('**/user', { method: 'post' })
+const mock = await browser.mock('*/user', { method: 'post' })
 mock.respond({ success: true })
 
 // register a user in every browser so each session sends the request
@@ -221,5 +227,5 @@ expect(mock.getInstance('myFirefoxBrowser').calls).toHaveLength(1)
 To stub one browser only, call `mock()` on that instance:
 
 ```ts
-const chromeOnly = await browser.getInstance('myChromeBrowser').mock('**/user')
+const chromeOnly = await browser.getInstance('myChromeBrowser').mock('*/user')
 ```

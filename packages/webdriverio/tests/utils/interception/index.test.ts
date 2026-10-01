@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events'
+import { Buffer } from 'node:buffer'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { type local } from 'webdriver'
@@ -126,6 +127,65 @@ describe('WebDriverInterception', () => {
             vi.unstubAllGlobals()
         }
     })
+
+    it.each([
+        ['imported Buffer', Buffer.from([137, 80, 78, 71])],
+        ['Uint8Array', new Uint8Array([137, 80, 78, 71])],
+        ['offset view', new Uint8Array([0, 137, 80, 78, 71, 0]).subarray(1, 5)],
+        ['ArrayBuffer', new Uint8Array([137, 80, 78, 71]).buffer],
+        ['empty bytes', new Uint8Array()],
+        ['one byte', new Uint8Array([255])],
+        ['two bytes', new Uint8Array([255, 254])],
+        ['large payload', Uint8Array.from({ length: 200003 }, (_, index) => index % 256)]
+    ])('responds with %s without a global Buffer', async (_name, payload) => {
+        const bytes = payload instanceof ArrayBuffer ? new Uint8Array(payload) : payload
+        const expected = Buffer.from(bytes).toString('base64')
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/foo', {}, browser)
+        vi.stubGlobal('Buffer', undefined)
+        try {
+            mock.respondOnce(payload).respondOnce(() => payload)
+            browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+            browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+            expect(browser.networkProvideResponse).toHaveBeenCalledTimes(2)
+            expect(browser.networkProvideResponse).toHaveBeenNthCalledWith(1, expect.objectContaining({
+                body: { type: 'base64', value: expected }
+            }))
+            expect(browser.networkProvideResponse).toHaveBeenNthCalledWith(2, expect.objectContaining({
+                body: { type: 'base64', value: expected }
+            }))
+            expect(mock.getBinaryResponse('req-123')).toEqual(new Uint8Array(bytes))
+        } finally {
+            vi.unstubAllGlobals()
+        }
+    })
+
+    it.each(['requestHeaders', 'responseHeaders'] as const)(
+        'decodes base64 %s without a global Buffer', async (filterName) => {
+            const headerValue = '\uFEFFcafé'
+            const header = {
+                name: 'example',
+                value: { type: 'base64' as const, value: Buffer.from(headerValue).toString('base64') }
+            }
+            vi.stubGlobal('Buffer', undefined)
+            try {
+                for (const filter of [{ example: headerValue }, (headers: Record<string, string>) => headers.example === headerValue]) {
+                    const browser = getResponseCollectionBrowserMock()
+                    const mock = await WebDriverInterception.initiate('http://test.com/foo', { [filterName]: filter }, browser)
+                    const request = getResponseCollectionRequestStub()
+                    request.request.headers = [header]
+                    request.response.headers = [header]
+                    mock.respond('matched')
+                    browser.emit('network.responseStarted', request)
+                    expect(browser.networkProvideResponse).toHaveBeenCalledWith(expect.objectContaining({
+                        body: { type: 'string', value: 'matched' }
+                    }))
+                }
+            } finally {
+                vi.unstubAllGlobals()
+            }
+        }
+    )
 
     it('initiate even when networkAddDataCollector is not supported', async () => {
         vi.resetModules()

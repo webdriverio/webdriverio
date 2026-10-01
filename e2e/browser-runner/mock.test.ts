@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import { expect, browser, $ } from '@wdio/globals'
 import type { RespondWithOptions } from 'webdriverio'
 import { html, render } from 'lit'
@@ -11,7 +12,7 @@ const redirectedImage = new URL('./__fixtures__/600x500.svg?no-inline', import.m
 describe('WebdriverIO mock command', () => {
     it('supports mocking of API requests', async () => {
         // Keep runner traffic outside the intercept: https://github.com/webdriverio/webdriverio/issues/15739
-        const apiMock = await browser.mock('https://api.webdriver.io/api/**')
+        const apiMock = await browser.mock('https://api.webdriver.io/api/*')
         apiMock
             .respondOnce({ foo: 'bar' }, CORS_PARAMS)
             .respondOnce('Hello World', CORS_PARAMS)
@@ -21,6 +22,29 @@ describe('WebdriverIO mock command', () => {
         const textAPI = await fetch('https://api.webdriver.io/api/bar')
         expect(await textAPI.text()).toBe('Hello World')
         await apiMock.restore()
+    })
+
+    it('supports binary responses without a global Buffer', async () => {
+        expect(globalThis.Buffer).toBeUndefined()
+        const bytes = [137, 80, 78, 71]
+        const apiMock = await browser.mock('https://api.webdriver.io/api/*')
+        try {
+            apiMock
+                .respondOnce(Buffer.from(bytes), CORS_PARAMS)
+                .respondOnce(new Uint8Array(bytes), CORS_PARAMS)
+                .respondOnce(() => new Uint8Array(bytes).buffer, CORS_PARAMS)
+
+            for (const endpoint of ['buffer', 'typed-array', 'array-buffer']) {
+                const response = await fetch(`https://api.webdriver.io/api/${endpoint}`)
+                expect(new Uint8Array(await response.arrayBuffer())).toEqual(new Uint8Array(bytes))
+            }
+            expect(apiMock.calls).toHaveLength(3)
+            for (const call of apiMock.calls) {
+                expect(apiMock.getBinaryResponse(call.request.request)).toEqual(new Uint8Array(bytes))
+            }
+        } finally {
+            await apiMock.restore()
+        }
     })
 
     let imgMock: WebdriverIO.Mock

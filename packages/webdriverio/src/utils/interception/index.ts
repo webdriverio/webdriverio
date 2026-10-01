@@ -4,6 +4,7 @@ import { type local, type remote } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 
 import Timer from '../Timer.js'
+import { encodeBase64, decodeBase64 } from '../base64.js'
 import { parseOverwrite, getPatternParam } from './utils.js'
 import { SESSION_MOCKS } from '../../commands/browser/mock.js'
 import type { MockFilterOptions, RequestWithOptions, RespondWithOptions, Response } from './types.js'
@@ -15,7 +16,7 @@ const DEFAULT_SPY_COLLECTED_BODY_SIZE = 10 * 1024 * 1024
 
 let hasSubscribedToEvents = false
 
-type RespondBodyValue = string | JsonCompatible | Buffer
+type RespondBodyValue = string | JsonCompatible | Uint8Array | ArrayBuffer
 type RespondBody = RespondBodyValue | ((request: local.NetworkResponseCompletedParameters) => RespondBodyValue)
 interface Overwrite {
     overwrite?: RequestWithOptions | RespondWithOptions
@@ -27,7 +28,7 @@ type RequestWithPostData<T extends local.NetworkBeforeRequestSentParameters | Re
     postData?: string
 }
 
-function toStringBody(payload: Exclude<RespondBodyValue, Buffer>) {
+function toStringBody(payload: Exclude<RespondBodyValue, Uint8Array | ArrayBuffer>) {
     if (typeof payload === 'string') {
         return payload
     }
@@ -41,23 +42,28 @@ function toStringBody(payload: Exclude<RespondBodyValue, Buffer>) {
     if (typeof serialized !== 'string') {
         throw new Error(
             `Failed to serialize mock.respond() payload of type "${typeof payload}". ` +
-            'The response body must be a string, Buffer, or JSON-serializable value.'
+            'The response body must be a string, Uint8Array, ArrayBuffer, or JSON-serializable value.'
         )
     }
 
     return serialized
 }
 
-function isBuffer(payload: RespondBodyValue): payload is Buffer {
-    return typeof Buffer !== 'undefined' && Buffer.isBuffer(payload)
+function decodeHeader(value: local.NetworkBytesValue) {
+    return value.type === 'string'
+        ? value.value
+        : new TextDecoder('utf-8', { ignoreBOM: true }).decode(decodeBase64(value.value))
 }
 
-function toNetworkBody(payload: RespondBodyValue) {
-    if (isBuffer(payload)) {
-        return { type: 'base64' as const, value: payload.toString('base64') }
+function toNetworkBody(payload: RespondBodyValue): remote.NetworkBytesValue {
+    if (payload instanceof Uint8Array) {
+        return { type: 'base64', value: encodeBase64(payload) }
+    }
+    if (payload instanceof ArrayBuffer) {
+        return { type: 'base64', value: encodeBase64(new Uint8Array(payload)) }
     }
 
-    return { type: 'string' as const, value: toStringBody(payload) }
+    return { type: 'string', value: toStringBody(payload) }
 }
 
 /**
@@ -450,11 +456,9 @@ export default class WebDriverInterception {
     }
 
     /**
-     * Get the raw binary data for a mock response by request ID
-     * @param {string} requestId  The ID of the request to retrieve the binary response for
-     * @returns {Buffer | null}   The binary data as a Buffer, or null if no matching binary response is found
+     * Read a cached binary overwrite as a Buffer in Node.js or Uint8Array in browsers.
      */
-    getBinaryResponse(requestId: string): Buffer | null {
+    getBinaryResponse(requestId: string): Uint8Array | null {
         const body = this.#overwrittenResponseBodies.get(requestId)
         if (body?.type !== 'base64') {
             return null
@@ -463,7 +467,7 @@ export default class WebDriverInterception {
             log.warn(`Invalid base64 data for request ${requestId}`)
             return null
         }
-        return Buffer.from(body.value, 'base64')
+        return decodeBase64(body.value)
     }
 
     #attachPostData<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T): RequestWithPostData<T> {
@@ -557,7 +561,7 @@ export default class WebDriverInterception {
         if (isRequestMatching && this.#filterOptions.requestHeaders) {
             isRequestMatching = typeof this.#filterOptions.requestHeaders === 'function'
                 ? this.#filterOptions.requestHeaders(request.request.headers.reduce((acc, { name, value }) => {
-                    acc[name] = value.type === 'string' ? value.value : Buffer.from(value.value, 'base64').toString()
+                    acc[name] = decodeHeader(value)
                     return acc
                 }, {} as Record<string, string>))
                 : Object.entries(this.#filterOptions.requestHeaders).every(([key, value]) => {
@@ -566,9 +570,7 @@ export default class WebDriverInterception {
                         return false
                     }
 
-                    return header.value.type === 'string'
-                        ? header.value.value === value
-                        : Buffer.from(header.value.value, 'base64').toString() === value
+                    return decodeHeader(header.value) === value
                 })
         }
 
@@ -579,7 +581,7 @@ export default class WebDriverInterception {
         if (isRequestMatching && this.#filterOptions.responseHeaders && 'response' in request) {
             isRequestMatching = typeof this.#filterOptions.responseHeaders === 'function'
                 ? this.#filterOptions.responseHeaders(request.response.headers.reduce((acc, { name, value }) => {
-                    acc[name] = value.type === 'string' ? value.value : Buffer.from(value.value, 'base64').toString()
+                    acc[name] = decodeHeader(value)
                     return acc
                 }, {} as Record<string, string>))
                 : Object.entries(this.#filterOptions.responseHeaders).every(([key, value]) => {
@@ -588,9 +590,7 @@ export default class WebDriverInterception {
                         return false
                     }
 
-                    return header.value.type === 'string'
-                        ? header.value.value === value
-                        : Buffer.from(header.value.value, 'base64').toString() === value
+                    return decodeHeader(header.value) === value
                 })
         }
 

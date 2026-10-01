@@ -487,10 +487,15 @@ async function bar() {
         headers: { foo: 'bar' }
     })
     mock.respond(Buffer.from('foobar'))
+    mock.respond(new Uint8Array([137, 80, 78, 71]))
+    mock.respond(new Uint8Array([137, 80, 78, 71]).buffer)
     mock.respond({ foo: 'bar' })
     mock.respond((request) => ({ url: request.request.url, foo: 'bar' }))
     mock.respond((request) => `id=${request.request.request}`)
     mock.respond(() => Buffer.from('foobar'))
+    mock.respond(() => new Uint8Array([137, 80, 78, 71]))
+    mock.respondOnce(() => new Uint8Array([137, 80, 78, 71]).buffer)
+    expectType<Uint8Array | null>(mock.getBinaryResponse('request-id'))
     mock.respondOnce('/other/resource.jpg')
     mock.respondOnce('/other/resource.jpg', {
         statusCode: 100,

@@ -308,4 +308,6 @@ mock('./some/module.ts', async () => {
 
 If you are looking for mocking browser requests, e.g. API calls, head over to the [Request Mock and Spies](/docs/mocksandspies) section.
 
-In component tests, use an absolute URL pattern with a fixed protocol and hostname for `browser.mock()`, such as `https://api.webdriver.io/api/**`. Host-less wildcard patterns such as `**/api/**` can also intercept the browser runner's own Vite and driver traffic and stall the test. See [issue #15739](https://github.com/webdriverio/webdriverio/issues/15739) for this limitation.
+In component tests, use an absolute URL pattern with a fixed protocol and hostname for `browser.mock()`, such as `https://api.webdriver.io/api/*`. A single `*` also matches slashes. Host-less patterns such as `*/api/*` create a catch-all BiDi intercept and can block the browser runner's own Vite or driver traffic. See [issue #15739](https://github.com/webdriverio/webdriverio/issues/15739).
+
+Avoid consecutive wildcards before fixed text because of regex backtracking. See the [URL wildcard warning](/docs/mocksandspies#creating-a-mock) in the main mocking guide.
