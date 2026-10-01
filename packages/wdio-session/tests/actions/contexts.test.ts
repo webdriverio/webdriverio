@@ -16,7 +16,7 @@ vi.mock('../../src/snapshot/target.js', () => ({
 
 const { frame, tabs } = await import('../../src/actions/contexts.js')
 
-function harness () {
+function harness ({ secondUrl = 'https://b.test/' } = {}) {
     const store = new Map<string, unknown>()
     const page = {
         contextId: 'tab-1',
@@ -25,8 +25,16 @@ function harness () {
         getUrl: async () => 'https://a.test/',
         frame: vi.fn()
     }
-    const outer = { contextId: 'outer-ctx', isFrame: true, parent: page, frame: vi.fn() }
-    const inner = { contextId: 'inner-ctx', isFrame: true, parent: outer, frame: vi.fn() }
+    const second = { contextId: 'tab-2', isFrame: false, url: secondUrl, getUrl: async () => secondUrl }
+    const outer = {
+        contextId: 'outer-ctx',
+        isFrame: true,
+        url: '',
+        parent: page,
+        getUrl: async () => 'https://a.test/outer.html',
+        frame: vi.fn()
+    }
+    const inner = { contextId: 'inner-ctx', isFrame: true, url: '', parent: outer, frame: vi.fn() }
     page.frame.mockResolvedValue(outer)
     outer.frame.mockResolvedValue(inner)
     const history = { entries: [] as { code: string }[], generation: 0 }
@@ -41,9 +49,9 @@ function harness () {
         browser: {
             getWindowHandle: async () => 'tab-1',
             getWindowHandles: async () => ['tab-1', 'tab-2'],
-            browsingContexts: async () => [page],
+            browsingContexts: async () => [page, second],
             browsingContextGetTree: async () => ({
-                contexts: [{ context: 'tab-1', url: 'https://a.test/' }, { context: 'tab-2', url: 'https://b.test/' }]
+                contexts: [{ context: 'tab-1', url: 'https://a.test/' }, { context: 'tab-2', url: secondUrl }]
             }),
             scriptEvaluate: async () => ({ type: 'success', result: { type: 'string', value: 'Title' } }),
             switchToWindow: vi.fn(),
@@ -95,7 +103,32 @@ describe('frame (BiDi)', () => {
     })
 })
 
+describe('frame (BiDi) after a cleared history', () => {
+    it('declares the held parent frame by URL before entering a nested frame', async () => {
+        const { session, history, record } = harness()
+        await record((await frame(session, { target: 'iframe#outer', $cwd: '/' })).history)
+
+        history.entries = []
+        history.generation++
+        expect((await frame(session, { target: 'iframe#inner', $cwd: '/' })).history).toBe(
+            "const page = (await browser.browsingContexts()).find((context) => context.url === 'https://a.test/')!\n" +
+            "const frame = await page.frame('https://a.test/outer.html')\n" +
+            "const frame2 = await frame.frame(frame.$('iframe#inner'))"
+        )
+    })
+})
+
 describe('tabs close (BiDi)', () => {
+    it('tells tabs with the same URL apart by their order', async () => {
+        const { session } = harness({ secondUrl: 'https://a.test/' })
+        const result = await tabs(session, { sub: 'close', arg: '1', $cwd: '/' })
+        expect(result.history).toBe(
+            "const page = (await browser.browsingContexts()).filter((context) => context.url === 'https://a.test/')[1]!\n" +
+            'await page.closeWindow()\n' +
+            "const page2 = (await browser.browsingContexts()).filter((context) => context.url === 'https://a.test/')[0]!"
+        )
+    })
+
     it('closes the held page instead of the session window', async () => {
         const { session, closeWindow } = harness()
         const result = await tabs(session, { sub: 'close', arg: '1', $cwd: '/' })
