@@ -13,7 +13,7 @@
     "@wdio/local-runner": "workspace:*",
     "@wdio/mocha-framework": "workspace:*",
     "@wdio/spec-reporter": "workspace:*",
-    "expect-webdriverio": "^7.0.0",
+    "expect-webdriverio": "^7.0.1",
     "webdriverio": "workspace:*"
   }
 }
