@@ -15,9 +15,9 @@ const pages: Record<string, string> = {
 }
 
 async function fileNames (element: WebdriverIO.Element) {
-    return browser.execute((input: HTMLInputElement) => {
+    return element.execute((input: HTMLInputElement) => {
         return Array.from(input.files || [], (file) => file.name)
-    }, element as unknown as HTMLInputElement)
+    })
 }
 
 describe('setFiles', () => {
@@ -82,16 +82,14 @@ describe('setFiles', () => {
             return this.skip()
         }
 
-        await browser.url(`${origin}/`)
-        const frame = await $('iframe')
-        await browser.switchFrame(frame)
-        try {
-            const input = await $('#framed')
-            await input.waitForExist()
-            await input.setFiles(first)
-            expect(await fileNames(input)).toEqual(['one.txt'])
-        } finally {
-            await browser.switchFrame(null)
+        const page = await browser.url(`${origin}/`)
+        if (!page) {
+            throw new Error('expected browser.url() to return a browsing context')
         }
+        const frame = await page.frame(page.$('iframe'))
+        const input = await frame.$('#framed')
+        await input.waitForExist()
+        await input.setFiles(first)
+        expect(await fileNames(input)).toEqual(['one.txt'])
     })
 })
