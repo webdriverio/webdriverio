@@ -14,10 +14,14 @@ const POLL = 25
 const EVENTS = [
     'network.beforeRequestSent', 'network.responseCompleted', 'network.fetchError',
     'browsingContext.navigationStarted', 'browsingContext.load', 'browsingContext.domContentLoaded',
-    'browsingContext.navigationFailed', 'browsingContext.navigationAborted',
-    'browsingContext.historyUpdated', 'browsingContext.fragmentNavigated',
+    'browsingContext.navigationFailed', 'browsingContext.fragmentNavigated',
     'browsingContext.contextCreated', 'browsingContext.userPromptOpened', 'script.message'
 ]
+/**
+ * events not every browser implements yet, e.g. Firefox rejects
+ * `browsingContext.navigationAborted`
+ */
+const OPTIONAL_EVENTS = ['browsingContext.navigationAborted', 'browsingContext.historyUpdated']
 
 /**
  * Watch the DOM and report the named regions that change. Runs in the page:
@@ -173,6 +177,9 @@ export class EffectRecorder {
     async #attachBidi () {
         const browser = this.browser
         await browser.sessionSubscribe({ events: EVENTS })
+        for (const event of OPTIONAL_EVENTS) {
+            await browser.sessionSubscribe({ events: [event] }).catch(() => {})
+        }
         const on = <T>(event: string, handler: (params: T) => void) => (browser.on as unknown as (event: string, handler: (params: T) => void) => void).call(browser, event, handler)
         on('network.beforeRequestSent', (params: RequestParams) => this.#requestStarted(params))
         on('network.responseCompleted', (params: RequestParams) => this.#requestFinished(params, false))

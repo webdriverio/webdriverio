@@ -34,6 +34,17 @@ describe('EffectRecorder on a BiDi session', () => {
         expect(browser.scriptCallFunction).toHaveBeenCalledWith(expect.objectContaining({ target: { context: 'page' } }))
     })
 
+    it('attaches when the browser rejects an event it does not implement yet', async () => {
+        const { browser } = bidiBrowser()
+        browser.sessionSubscribe.mockImplementation(async ({ events }: { events: string[] }) => {
+            if (events.includes('browsingContext.navigationAborted')) {
+                throw new Error('invalid argument - browsingContext.navigationAborted is not a valid event name')
+            }
+        })
+        await expect(EffectRecorder.attach(browser, resolveEffectsConfig())).resolves.toBeInstanceOf(EffectRecorder)
+        expect(browser.sessionSubscribe).toHaveBeenCalledWith({ events: ['browsingContext.historyUpdated'] })
+    })
+
     it('starts a new epoch in every frame of the page, so changes from before the step do not count', async () => {
         const { browser } = bidiBrowser()
         browser.browsingContextGetTree.mockResolvedValue({ contexts: [{ context: 'page', children: [{ context: 'frame', children: [] }] }] })
