@@ -1,4 +1,6 @@
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import type { BaseMessage } from '@langchain/core/messages'
+import type { LLMResult } from '@langchain/core/outputs'
 import type { StructuredToolInterface } from '@langchain/core/tools'
 import type { AgentMiddleware } from 'langchain'
 
@@ -32,32 +34,6 @@ export interface LoopResult {
     modelCalls: number
 }
 
-interface MessageLike {
-    _getType?: () => string
-    type?: string
-    content?: unknown
-    usage_metadata?: { input_tokens?: number, output_tokens?: number }
-}
-
-function messageType (message: MessageLike) {
-    return message._getType?.() || message.type
-}
-
-function textOf (message?: MessageLike) {
-    if (!message) {
-        return ''
-    }
-    if (typeof message.content === 'string') {
-        return message.content
-    }
-    if (Array.isArray(message.content)) {
-        return message.content
-            .map((block: { type?: string, text?: unknown }) => block.type === 'text' && typeof block.text === 'string' ? block.text : '')
-            .join('')
-    }
-    return ''
-}
-
 /**
  * Run the tool loop for one instruction: LangChain's `createAgent` with the
  * page tools, `done` and `fail`, and the middleware the caller adds (e.g.
@@ -65,7 +41,11 @@ function textOf (message?: MessageLike) {
  * no todo list.
  */
 export async function runLoop (options: LoopOptions): Promise<LoopResult> {
-    const [{ createAgent }, { GraphRecursionError }] = await Promise.all([import('langchain'), import('@langchain/langgraph')])
+    const [{ createAgent }, { GraphRecursionError }, { AIMessage }] = await Promise.all([
+        import('langchain'),
+        import('@langchain/langgraph'),
+        import('@langchain/core/messages')
+    ])
     const outcome: Outcome = options.control?.outcome || {}
     const control = options.control?.tools || await controlTools(outcome)
     const agent = createAgent({
@@ -75,7 +55,26 @@ export async function runLoop (options: LoopOptions): Promise<LoopResult> {
         middleware: options.middleware || []
     })
 
-    let messages: MessageLike[] = []
+    /**
+     * Counted as the model answers, so a loop that times out or runs out of
+     * steps still reports the calls and tokens it used.
+     */
+    const usage: TokenUsage = { input: 0, output: 0 }
+    let modelCalls = 0
+    const counter = {
+        handleLLMEnd (output: LLMResult) {
+            modelCalls++
+            for (const generation of output.generations.flat()) {
+                const message = (generation as { message?: BaseMessage }).message
+                if (message && AIMessage.isInstance(message)) {
+                    usage.input += message.usage_metadata?.input_tokens || 0
+                    usage.output += message.usage_metadata?.output_tokens || 0
+                }
+            }
+        }
+    }
+
+    let messages: BaseMessage[] = []
     try {
         const result = await agent.invoke(
             { messages: [{ role: 'user', content: options.prompt }] },
@@ -84,34 +83,36 @@ export async function runLoop (options: LoopOptions): Promise<LoopResult> {
                  * every tool call is a model step plus a tool step
                  */
                 recursionLimit: options.maxSteps * 2 + 2,
-                signal: AbortSignal.timeout(options.timeout)
+                signal: AbortSignal.timeout(options.timeout),
+                callbacks: [counter]
             }
-        ) as { messages: MessageLike[] }
+        ) as { messages: BaseMessage[] }
         messages = result.messages
     } catch (err) {
         const error = err as Error
         if (error instanceof GraphRecursionError || error.name === 'GraphRecursionError') {
-            return { status: 'fail', summary: `stopped after ${options.maxSteps} steps without completing the instruction`, usage: { input: 0, output: 0 }, modelCalls: options.maxSteps }
+            return { status: 'fail', summary: `stopped after ${options.maxSteps} steps without completing the instruction`, usage, modelCalls }
         }
         if (error.name === 'TimeoutError' || error.name === 'AbortError') {
-            return { status: 'fail', summary: `timed out after ${options.timeout}ms`, usage: { input: 0, output: 0 }, modelCalls: 0 }
+            return { status: 'fail', summary: `timed out after ${options.timeout}ms`, usage, modelCalls }
         }
         throw err
     }
 
-    const aiMessages = messages.filter((message) => messageType(message) === 'ai')
-    const usage = aiMessages.reduce<TokenUsage>((total, message) => ({
-        input: total.input + (message.usage_metadata?.input_tokens || 0),
-        output: total.output + (message.usage_metadata?.output_tokens || 0)
-    }), { input: 0, output: 0 })
-
+    if (outcome.status) {
+        return { status: outcome.status, summary: outcome.summary || outcome.status, usage, modelCalls }
+    }
     /**
-     * a model that answers in text instead of calling `done` finished too
+     * A model that stops with a text answer did not say it completed the
+     * instruction. Its steps are not recorded, a replay could otherwise
+     * pass off an unfinished action as done.
      */
+    const last = messages.filter((message) => AIMessage.isInstance(message)).at(-1)
+    const text = last?.text.trim()
     return {
-        status: outcome.status || 'done',
-        summary: outcome.summary || textOf(aiMessages.at(-1)) || 'done',
+        status: 'fail',
+        summary: `the model stopped without calling \`done\`${text ? `: ${text}` : ''}`,
         usage,
-        modelCalls: aiMessages.length
+        modelCalls
     }
 }

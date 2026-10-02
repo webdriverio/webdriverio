@@ -102,17 +102,23 @@ describe('AiRuntime.act', () => {
         expect(error.usage).toEqual({ input: 200, output: 20 })
     })
 
-    it('stops at the step limit', async () => {
+    it('stops at the step limit and still counts the model calls it made', async () => {
         setup()
         const model = scriptedModel(Array.from({ length: 10 }, () => ({ tool: 'snapshot' })))
-        await expect(new AiRuntime({ workspace, model, maxSteps: 2 }).act(browser, 'Loop forever'))
-            .rejects.toThrow('stopped after 2 steps without completing the instruction')
+        const ai = new AiRuntime({ workspace, model, maxSteps: 2 })
+        const error = await ai.act(browser, 'Loop forever').catch((err) => err)
+        expect(error.message).toContain('stopped after 2 steps without completing the instruction')
+        expect(ai.modelCalls).toBe(model.callCount)
+        expect(ai.modelCalls).toBeGreaterThan(0)
+        expect(error.usage).toEqual({ input: 100 * model.callCount, output: 10 * model.callCount })
     })
 
-    it('accepts a model that answers in text instead of calling done', async () => {
+    it('fails when the model answers in text instead of calling done, and records nothing', async () => {
         setup()
-        const model = scriptedModel([{ tool: 'snapshot' }, { text: 'The menu is open now.' }])
-        await expect(new AiRuntime({ workspace, model }).act(browser, 'Open the menu')).resolves.toMatchObject({ summary: 'The menu is open now.' })
+        const model = scriptedModel([{ tool: 'click', args: { target: 'e3' } }, { text: 'The menu is open now.' }])
+        const ai = new AiRuntime({ workspace, model })
+        await expect(ai.act(browser, 'Open the menu')).rejects.toThrow('the model stopped without calling `done`: The menu is open now.')
+        expect(ai.records.at(-1)).toMatchObject({ error: expect.stringContaining('without calling `done`') })
     })
 
     it('explains how to configure a model when none is set', async () => {
