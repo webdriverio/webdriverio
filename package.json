@@ -30,6 +30,7 @@
     "docs": "run-s docs:setup docs:generate docs:build",
     "docs:setup": "cd ./website && pnpm install && cd ..",
     "docs:list": "tsx ./infra/repo-tools/src/docs-list.ts",
+    "docs:session-commands": "tsx packages/wdio-session/scripts/generate-docs.ts",
     "docs:generate": "run-s clean:website generate:bidi && pnpm -r --filter=@wdio/docs run generate",
     "docs:generate:en": "run-s clean:website generate:bidi && pnpm -r --filter=@wdio/docs run generate:en",
     "docs:build": "cd ./website && pnpm build && cd ..",

@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import yargs, { type Argv, type Options } from 'yargs'
+import yargs, { type Argv } from 'yargs'
 
 import { ACTIONS, ACTION_MAP, actionIsMutation, actionTimeout, type ActionSpec } from '../actions/specs.js'
 import { DEFAULT_SESSION, SESSION_NAME_PATTERN } from '../constants.js'
@@ -12,6 +12,7 @@ import { skill } from '../skill.js'
 import { buildPlan } from '../targets/index.js'
 import { getArtifactsDir, getRuntimeDir, isPidAlive, listStates, readState, removeStaleState } from '../daemon/state.js'
 import { getLiveState, send } from './client.js'
+import { GLOBAL_OPTIONS, GLOBAL_VALUE_FLAGS, commandString, findHelpRequest, helpWidth, renderHelp } from './help.js'
 import { printError, printResult, useColor, type OutputOptions } from './output.js'
 import { spawnDaemon, waitForExit } from './spawn.js'
 import type { ActionResult, StateFile } from '../types.js'
@@ -23,16 +24,6 @@ export interface CliIO {
     env?: NodeJS.ProcessEnv
     cwd?: string
 }
-
-const GLOBAL_OPTIONS: Record<string, Options> = {
-    session: { alias: 's', type: 'string', desc: 'Session name (env WDIO_SESSION)', global: true },
-    json: { type: 'boolean', desc: 'Print one JSON object (env WDIO_SESSION_JSON=1)', global: true },
-    timeout: { type: 'number', desc: 'Request timeout in ms', global: true },
-    quiet: { alias: 'q', type: 'boolean', desc: 'Print nothing on success except requested data', global: true },
-    color: { type: 'boolean', desc: 'Use --no-color to disable colors', global: true }
-}
-
-const GLOBAL_VALUE_FLAGS = new Set(['-s', '--session', '--timeout'])
 
 /**
  * `wdio session <<'JS' … JS` runs `exec` when no action is given and stdin
@@ -48,16 +39,11 @@ export function hasAction (args: string[]) {
         if (!arg.startsWith('-')) {
             return true
         }
-        if (arg === '--help' || arg === '-h' || arg === '--version') {
+        if (arg === '--version') {
             return true
         }
     }
     return false
-}
-
-function commandString (spec: ActionSpec) {
-    const positionals = (spec.positionals || []).map((p) => p.required ? `<${p.name}${p.variadic ? '..' : ''}>` : `[${p.name}${p.variadic ? '..' : ''}]`)
-    return [spec.name, ...positionals].join(' ')
 }
 
 export function buildParser (onAction: (spec: ActionSpec, argv: Record<string, unknown>) => void) {
@@ -69,25 +55,19 @@ export function buildParser (onAction: (spec: ActionSpec, argv: Record<string, u
         .strict()
         .exitProcess(false)
         .version(false)
-        .help()
-        .alias('h', 'help')
-        .wrap(Math.min(120, process.stdout.columns || 100))
+        .help(false)
         .demandCommand(1, 'Specify an action, e.g. `wdio session open chrome`.')
-        .epilogue('Docs: https://webdriver.io/docs/session')
 
     for (const spec of ACTIONS) {
         parser = parser.command(
             commandString(spec),
-            `${spec.desc}${spec.group ? '' : ''}`,
+            spec.desc,
             (y: Argv) => {
                 for (const p of spec.positionals || []) {
                     y = y.positional(p.name, { desc: p.desc, type: 'string', ...(p.choices ? { choices: p.choices } : {}) })
                 }
                 if (spec.options) {
                     y = y.options(spec.options)
-                }
-                for (const [cmd, desc] of spec.examples || []) {
-                    y = y.example(cmd, desc)
                 }
                 return y
             },
@@ -148,6 +128,17 @@ export async function runSessionCli (rawArgs: string[], io: CliIO = {}): Promise
     const cwd = io.cwd || process.cwd()
 
     let args = [...rawArgs]
+    const help = findHelpRequest(args)
+    if (help) {
+        const text = renderHelp(help, helpWidth(stdout.columns))
+        if (text === undefined) {
+            return printError(usage(`Unknown action "${help.action}".`, 'Run `wdio session --help` for the list of actions.'), {
+                json: args.includes('--json'), session: DEFAULT_SESSION, action: help.action || '', stdout, stderr
+            })
+        }
+        stdout.write(text + '\n')
+        return 0
+    }
     if (!hasAction(args) && !stdin.isTTY) {
         args = ['exec', ...args]
     }
@@ -156,12 +147,10 @@ export async function runSessionCli (rawArgs: string[], io: CliIO = {}): Promise
     const parser = buildParser((spec, argv) => {
         selected = { spec, argv }
     })
-    let helpOutput = ''
     let parseError: Error | undefined
     try {
-        await parser.parseAsync(args, {}, (err: Error | undefined, _argv: unknown, output: string) => {
+        await parser.parseAsync(args, {}, (err: Error | undefined) => {
             parseError = err || undefined
-            helpOutput = output
         })
     } catch (err) {
         parseError = err as Error
@@ -169,10 +158,6 @@ export async function runSessionCli (rawArgs: string[], io: CliIO = {}): Promise
 
     const json = args.includes('--json') || env.WDIO_SESSION_JSON === '1'
     if (parseError || !selected) {
-        if (helpOutput && !parseError) {
-            stdout.write(helpOutput + '\n')
-            return 0
-        }
         const message = parseError?.message || 'Specify an action.'
         return printError(usage(message, 'Run `wdio session --help` for the list of actions.'), {
             json, session: DEFAULT_SESSION, action: args[0] || '', stdout, stderr
