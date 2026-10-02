@@ -17,6 +17,12 @@ export const config: WebdriverIO.MultiRemoteConfig = {
         path.resolve(__dirname, 'headless', 'multiRemoteExpect.e2e.ts')
     ],
     exclude: [],
+    /**
+     * One worker at a time. Each worker downloads `chromium@latest` when it is not
+     * installed, and two workers that download the same build into the same cache
+     * folder at the same time fail with "exists but the executable is missing".
+     */
+    maxInstances: 1,
     capabilities: [
         {
             browserA: {
