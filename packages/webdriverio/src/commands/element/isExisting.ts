@@ -68,5 +68,5 @@ export async function isExisting (this: WebdriverIO.Element) {
             : this.parent.$$.bind(this.parent)
     return command(this.selector as string)
         .getElements()
-        .then((res) => res.length > 0)
+        .then((res) => res.length > (this.index ?? 0))
 }

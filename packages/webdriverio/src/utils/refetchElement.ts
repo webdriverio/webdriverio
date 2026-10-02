@@ -40,12 +40,17 @@ export default async function refetchElement (
              * so return a missing element rather than falling back to the first match
              */
             if (!elements[index]) {
-                const missingElement = getElement.call(
-                    resolvedElement,
-                    selector,
-                    new Error(`Index out of bounds! $$(${selector}) returned only ${elements.length} elements.`)
-                )
+                const notFound = new Error(`Index out of bounds! $$(${selector}) returned only ${elements.length} elements.`)
+                let missingElement = getElement.call(resolvedElement, selector, notFound)
                 missingElement.index = index
+                /**
+                 * keep the rest of the chain under the missing element, so a descendant is never
+                 * looked up from a parent further up the tree
+                 */
+                for (const rest of selectors.slice(currentIndex + 1)) {
+                    missingElement = getElement.call(missingElement, rest.selector, notFound)
+                    missingElement.index = rest.index
+                }
                 return missingElement
             }
 

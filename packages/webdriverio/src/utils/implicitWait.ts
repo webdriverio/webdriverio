@@ -1,6 +1,8 @@
 import logger from '@wdio/logger'
 import { getBrowserObject } from '@wdio/utils'
 
+import { findElementAgain } from './index.js'
+
 const log = logger('webdriverio')
 
 /**
@@ -23,7 +25,11 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             /**
              * if waitForExist was successful requery element and assign elementId to the scope
              */
-            return (currentElement.parent as WebdriverIO.Element).$(currentElement.selector).getElement()
+            const element = await findElementAgain(currentElement)
+            if (!element) {
+                throw new Error(`${currentElement.selector} not found`)
+            }
+            return element
         } catch {
             if (currentElement.selector.toString().includes('this.previousElementSibling')) {
                 throw new Error(

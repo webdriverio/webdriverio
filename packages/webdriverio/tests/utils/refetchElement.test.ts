@@ -4,6 +4,7 @@ import { describe, it, afterEach, beforeAll, expect, vi } from 'vitest'
 import { remote } from '../../src/index.js'
 import refetchElement from '../../src/utils/refetchElement.js'
 import { waitForExist } from '../../src/commands/element/waitForExist.js'
+import { hasElementId } from '../../src/utils/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -84,6 +85,32 @@ describe('refetchElement', () => {
         expect(refetchedElement.elementId).toBeUndefined()
         expect(refetchedElement.selector).toBe('#foo')
         expect(refetchedElement.index).toBe(2)
+    })
+
+    it('should not look a missing indexed element up again as the first match', async () => {
+        const elem = (await browser.$$('#foo'))[2]
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/\/elements$/, { value: [{ 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' }] })
+        const refetchedElement = await refetchElement(elem, 'isDisplayed')
+        expect(await hasElementId(refetchedElement)).toBe(false)
+        expect(refetchedElement.elementId).toBeUndefined()
+    })
+
+    it('should keep the rest of the chain under a missing indexed ancestor', async () => {
+        const section = (await browser.$$('#foo'))[2]
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/some-elem-789\/element$/, { value: { 'element-6066-11e4-a52e-4f735466cecf': 'some-sub-elem-321' } })
+        const button = await section.$('#subfoo')
+        expect(button.elementId).toBe('some-sub-elem-321')
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/\/elements$/, { value: [{ 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' }] })
+        const refetchedElement = await refetchElement(button, 'click')
+        expect(refetchedElement.elementId).toBeUndefined()
+        expect(refetchedElement.selector).toBe('#subfoo')
+        const parent = refetchedElement.parent as WebdriverIO.Element
+        expect(parent.selector).toBe('#foo')
+        expect(parent.index).toBe(2)
+        expect(parent.elementId).toBeUndefined()
     })
 
     it('should successfully refetch an element that isn\'t immediately present', async () => {

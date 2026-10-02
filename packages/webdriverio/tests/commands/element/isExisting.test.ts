@@ -42,6 +42,15 @@ describe('isExisting test', () => {
 
     })
 
+    it('should not report an indexed element as existing once the list shrank below its index', async () => {
+        const elem = (await browser.$$('#foo'))[2]
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/\/elements$/, { value: [{ 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' }] })
+        expect(await elem.isExisting()).toBe(false)
+        // @ts-ignore mock feature
+        vi.mocked(fetch).resetCustomResponses()
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
     })
