@@ -83,6 +83,15 @@ async function bar() {
     expectType<WebdriverIO.MultiRemoteElement>(await mrElem.shadow$('.foo'))
     expectType<boolean[]>(await (await mrElem.shadow$('.foo')).isDisplayed())
 
+    // the other list queries also give a multi-remote list
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mr.custom$$('myStrategy', '.foo'))
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mr.react$$('MyComponent', { props: { foo: 'bar' } }))
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mrElem.custom$$('myStrategy', '.foo'))
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mrElem.react$$('MyComponent'))
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mrElem.shadow$$('.foo'))
+    expectType<WebdriverIO.MultiRemoteElement>((await mrElem.shadow$$('.foo'))[0])
+    expectType<string[][]>(await (await mr.custom$$('myStrategy', '.foo')).map((el) => el.instances))
+
     // instances array
     expectType<string[]>(mr.instances)
 

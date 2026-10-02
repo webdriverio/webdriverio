@@ -202,7 +202,7 @@ await button.getInstance('myChromeBrowser').click()  // clicks only in Chrome
 
 ### What `$$` returns
 
-On a multi-remote browser, `$$` returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`. `custom$$` and `react$$` are not zipped this way: each returns one result per instance.
+On a multi-remote browser, `$$` returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`. `custom$$`, `react$$` and, on a multi-remote element, `shadow$$` return the same kind of list.
 
 ```js
 const messages = await $$('.messages')
