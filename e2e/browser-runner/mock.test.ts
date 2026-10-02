@@ -11,17 +11,21 @@ const redirectedImage = new URL('./__fixtures__/600x500.svg?no-inline', import.m
 
 describe('WebdriverIO mock command', () => {
     it('supports mocking of API requests', async () => {
-        // Keep runner traffic outside the intercept: https://github.com/webdriverio/webdriverio/issues/15739
-        const apiMock = await browser.mock('https://api.webdriver.io/api/*')
-        apiMock
-            .respondOnce({ foo: 'bar' }, CORS_PARAMS)
-            .respondOnce('Hello World', CORS_PARAMS)
+        for (const pattern of ['https://api.webdriver.io/api/*', '*/api/*']) {
+            const apiMock = await browser.mock(pattern)
+            try {
+                apiMock
+                    .respondOnce({ foo: 'bar' }, CORS_PARAMS)
+                    .respondOnce('Hello World', CORS_PARAMS)
 
-        const jsonAPI = await fetch('https://api.webdriver.io/api/foo')
-        expect(await jsonAPI.json()).toEqual({ foo: 'bar' })
-        const textAPI = await fetch('https://api.webdriver.io/api/bar')
-        expect(await textAPI.text()).toBe('Hello World')
-        await apiMock.restore()
+                const jsonAPI = await fetch('https://api.webdriver.io/api/foo')
+                expect(await jsonAPI.json()).toEqual({ foo: 'bar' })
+                const textAPI = await fetch('https://api.webdriver.io/api/bar')
+                expect(await textAPI.text()).toBe('Hello World')
+            } finally {
+                await apiMock.restore()
+            }
+        }
     })
 
     it('supports binary responses without a global Buffer', async () => {
@@ -55,6 +59,13 @@ describe('WebdriverIO mock command', () => {
             const FrameUint8Array = (frame.contentWindow as Window & typeof globalThis).Uint8Array
             const bytes = new FrameUint8Array([0, 137, 80, 78, 71, 0]).subarray(1, 5)
             const buffer = new FrameUint8Array([137, 80, 78, 71]).buffer
+            Object.defineProperty(buffer, 'constructor', {
+                value: {
+                    get [Symbol.species]() {
+                        throw new Error('Symbol.species must not be read')
+                    }
+                }
+            })
             expect(bytes instanceof Uint8Array).toBe(false)
             expect(buffer instanceof ArrayBuffer).toBe(false)
             apiMock

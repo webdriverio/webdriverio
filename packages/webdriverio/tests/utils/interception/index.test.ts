@@ -145,6 +145,13 @@ describe('WebDriverInterception', () => {
         ['Uint8Array', new Uint8Array([137, 80, 78, 71])],
         ['offset view', new Uint8Array([0, 137, 80, 78, 71, 0]).subarray(1, 5)],
         ['ArrayBuffer', new Uint8Array([137, 80, 78, 71]).buffer],
+        ['ArrayBuffer with throwing species', Object.defineProperty(new Uint8Array([137, 80, 78, 71]).buffer, 'constructor', {
+            value: {
+                get [Symbol.species]() {
+                    throw new Error('Symbol.species must not be read')
+                }
+            }
+        })],
         ['cross-realm Uint8Array', runInNewContext('new Uint8Array([137, 80, 78, 71])') as Uint8Array],
         ['cross-realm offset view', runInNewContext('new Uint8Array([0, 137, 80, 78, 71, 0]).subarray(1, 5)') as Uint8Array],
         ['cross-realm ArrayBuffer', runInNewContext('new Uint8Array([137, 80, 78, 71]).buffer') as ArrayBuffer],
@@ -183,6 +190,14 @@ describe('WebDriverInterception', () => {
         expect(browser.networkProvideResponse).toHaveBeenCalledWith(expect.objectContaining({
             body: { type: 'string', value: '{"foo":"bar"}' }
         }))
+    })
+
+    it('rejects a detached ArrayBuffer instead of serializing it as JSON', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/foo', {}, browser)
+        const payload = new ArrayBuffer(4)
+        structuredClone(payload, { transfer: [payload] })
+        expect(() => mock.respond(payload)).toThrow(TypeError)
     })
 
     it.each(['requestHeaders', 'responseHeaders'] as const)(

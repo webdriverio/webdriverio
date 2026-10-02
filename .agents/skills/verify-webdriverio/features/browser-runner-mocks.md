@@ -4,7 +4,7 @@ Component specs execute `browser.mock()` inside a real browser. Drive this path 
 
 ## Sub-features
 
-- `browser-runner-mocks` replaces API responses with JSON, text, and binary data (including iframe-created payloads), redirects an image, and restores the original image request.
+- `browser-runner-mocks` replaces API responses using absolute and host-less single-star patterns, handles binary data (including iframe-created buffers with a throwing species getter), redirects an image, and restores the original image request.
 
 ## How to get to it (user POV)
 
@@ -19,6 +19,6 @@ Require exit 0 and the spec reporter's five passing tests: API requests, binary 
 ## Gotchas
 
 - The suite requires Chrome/ChromeDriver. Image requests use local SVG fixtures served by Vite; API responses are supplied by the mock.
-- Match the API host as well as its wildcard path, using a single `*` rather than consecutive wildcards. A catch-all BiDi intercept can block the browser runner's own Vite or driver traffic.
+- Prefer a fixed API host to limit the intercept. The API test also verifies a host-less single-star pattern. Avoid consecutive wildcards before fixed text, which can stall URLPattern matching.
 - A skipped process with exit 0 is not proof. Require all five tests in the output.
 - Run one real-browser suite at a time; this is not a mock-driver smoke test.

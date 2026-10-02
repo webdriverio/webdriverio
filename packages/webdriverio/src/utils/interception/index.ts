@@ -125,12 +125,15 @@ function decodeHeader(value: local.NetworkBytesValue) {
         : new TextDecoder('utf-8', { ignoreBOM: true }).decode(decodeBase64(value.value))
 }
 
+// SAFETY: Every supported runtime defines ArrayBuffer.prototype.byteLength as a getter.
+const getArrayBufferByteLength = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'byteLength')!.get!
+
 function isArrayBuffer(value: unknown): value is ArrayBuffer {
     try {
-        Reflect.apply(ArrayBuffer.prototype.slice, value, [0, 0])
+        getArrayBufferByteLength.call(value)
         return true
     } catch {
-        // slice throws unless value is a real ArrayBuffer; unlike instanceof, this works across realms
+        // The native getter rejects non-ArrayBuffers across realms without consulting Symbol.species.
         return false
     }
 }
