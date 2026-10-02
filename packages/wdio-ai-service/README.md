@@ -148,6 +148,23 @@ steps.json          the steps that ran
 
 The model can read the folder with the read-only file tools of [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview) (`ls`, `read_file`, `glob`, `grep`). It cannot write files or read anything outside the folder. Placeholder values are redacted from every file. A test that replays from the cache creates no folder. A failed `act` error names the folder, so you can look at what the model saw.
 
+## Eject
+
+Turn `act()` calls back into plain WebdriverIO code once they are recorded:
+
+```sh
+npx wdio-ai eject test/specs/cart.e2e.ts
+```
+
+```ts
+// act: Add a blue shirt in size M to the shopping cart
+await $('role/link[name="Blue Shirt"]').click()
+await $('role/combobox[name="Size"]').selectByVisibleText('M')
+await $('role/button[name="Add to cart"]').click()
+```
+
+The instruction stays as a comment. Placeholders become references to the `values` of the call. A call is matched by its instruction, or by its `id`. Calls that are not recorded yet, or recorded with different steps in several tests, are left alone and reported. Use `--test <full title>` to pick the entries of one test and `--dry-run` to print the result.
+
 Without the testrunner:
 
 ```ts

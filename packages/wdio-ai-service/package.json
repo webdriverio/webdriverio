@@ -32,7 +32,15 @@
     ".": {
       "types": "./build/index.d.ts",
       "import": "./build/index.js"
+    },
+    "./cli": {
+      "types": "./build/cli.d.ts",
+      "source": "./src/cli.ts",
+      "import": "./build/cli.js"
     }
+  },
+  "bin": {
+    "wdio-ai": "./bin/wdio-ai.js"
   },
   "typeScriptVersion": "6.0.3",
   "dependencies": {
