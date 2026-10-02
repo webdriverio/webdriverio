@@ -17,6 +17,10 @@ const overridableCommands = new Set(Object.keys(BrowserCommands))
  * queries that find one element per instance, wrapped into one multi-remote element
  */
 const SINGLE_QUERIES = new Set(['$', 'custom$', 'react$', 'shadow$'])
+/**
+ * queries that find a list per instance, zipped into one multi-remote list
+ */
+const LIST_QUERIES = new Set(['$$', 'custom$$', 'react$$', 'shadow$$'])
 
 type EventEmitter = (args: unknown) => void
 
@@ -272,12 +276,12 @@ export default class MultiRemote {
             }
 
             /**
-             * `$$` has to return the element list synchronously. An async
+             * A list query has to return the element list synchronously. An async
              * function would unwrap the thenable list before the caller can
              * iterate it.
              */
-            if (commandName === '$$') {
-                const selector = args[0] as Selector
+            if (LIST_QUERIES.has(commandName)) {
+                const [selector, ...props] = args as [Selector, ...unknown[]]
                 let loadedInstances = instances
                 const wrapMultiRemote = (elements: unknown) => MultiRemote.elementWrapper(
                     loadedInstances,
@@ -292,9 +296,13 @@ export default class MultiRemote {
                     return zipElements(result as WebdriverIO.Element[][]).map(wrapMultiRemote)
                 }, {
                     selector,
-                    foundWith: '$$',
+                    foundWith: commandName,
                     parent: this,
-                    props: [],
+                    /**
+                     * the arguments after the selector, so that
+                     * `parent[foundWith](selector, ...props)` runs the same query again
+                     */
+                    props,
                     isMultiRemote: true,
                     wrapMultiRemote
                 })

@@ -202,12 +202,12 @@ await button.getInstance('myChromeBrowser').click()  // clicks only in Chrome
 
 ### What `$$` returns
 
-On a multi-remote browser, `$$` returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`. `custom$$` and `react$$` are not zipped this way: each returns one result per instance.
+On a multi-remote browser, `$$` returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`. `custom$$`, `react$$` and, on a multi-remote element, `shadow$$` return the same kind of list.
 
 ```js
 const messages = await $$('.messages')
 
-messages.length      // how many elements were found
+messages.length      // the largest number of elements that one instance found
 messages[0]          // a MultiRemoteElement, addressing all instances
 messages.selector    // '.messages'
 messages.foundWith   // '$$'
@@ -217,6 +217,20 @@ messages.isMultiRemote // true, so it can be told apart from a plain ElementArra
 // the async array helpers are available, as on a single browser
 await messages.map((m) => m.getText())
 await messages.filter(async (m) => await m.isDisplayed())
+```
+
+When the instances find a different number of elements, an entry has no element for an instance that found fewer. For that instance, `getInstance()` throws, and a command on the entry fails. Use `select()` with the instances that have the element. An `expect` matcher on the whole list checks each instance with its own elements:
+
+```js
+// myChromeBrowser finds 3 messages, myFirefoxBrowser finds 2
+const messages = await $$('.messages')
+
+messages.length                                       // 3
+await messages[2].select('myChromeBrowser').click()  // only Chrome has a third message
+await expect(messages).toBeElementsArrayOfSize(expect.multiRemote({
+    myChromeBrowser: 3,
+    myFirefoxBrowser: 2
+}))
 ```
 
 :::info
