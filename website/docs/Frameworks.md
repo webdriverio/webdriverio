@@ -350,7 +350,7 @@ it('checks the page', async () => {
 })
 ```
 
-`toHaveSize` exists in both libraries. The WebdriverIO matcher runs on WebdriverIO values: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multiremote element, a browser, the `some()` wrapper, or a promise such as a chainable `$()`. Jasmine's matcher runs on every other value.
+`toHaveSize` exists in both libraries. The WebdriverIO matcher runs on WebdriverIO values: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multi-remote element, a browser, a browsing context, a mock, the `some()` wrapper, or a promise such as a chainable `$()`. Jasmine's matcher runs on every other value.
 
 The asymmetric matchers of both libraries work, in Jasmine and in WebdriverIO matchers: `jasmine.any()`, `jasmine.objectContaining()`, `jasmine.stringMatching()`, … and `expect.any()`, `expect.stringContaining()`, `expect.oneOf()`, `expect.not.stringContaining()`, …. To use `some()`, import it:
 
@@ -871,5 +871,4 @@ To learn more about the Screenplay Pattern, check out:
 - [The Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern/?pk_campaign=wdio8&pk_source=webdriver.io)
 - [Web testing with Serenity/JS](https://serenity-js.org/handbook/web-testing/?pk_campaign=wdio8&pk_source=webdriver.io)
 - ["BDD in Action, Second Edition"](https://www.manning.com/books/bdd-in-action-second-edition)
-
 

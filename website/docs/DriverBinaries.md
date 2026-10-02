@@ -10,6 +10,8 @@ To run automation based on the WebDriver protocol you need to have browser drive
 
 With WebdriverIO `v8.14` and above there is no need to manually download and setup any browser drivers anymore as this is handled by WebdriverIO. All you have to do is specify the browser you want to test and WebdriverIO will do the rest.
 
+On ARM64, see [Chromedriver on ARM64](arm64-chromedriver) for how driver setup works on macOS, Windows and Linux, and what to do when it can't be set up automatically.
+
 ### Customizing the level of automation
 
 WebdriverIO's have three levels of automation:
@@ -39,7 +41,7 @@ If you have a browser installation on a location that cannot be auto-detected by
 }
 ```
 
-**2. Download and install the driver using [Chromedriver](https://www.npmjs.com/package/chromedriver), [Edgedriver](https://www.npmjs.com/package/edgedriver) or [Geckodriver](https://www.npmjs.com/package/geckodriver).**
+**2. Download and install the driver: Chromedriver from [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/), Edgedriver and Geckodriver with the [edgedriver](https://www.npmjs.com/package/edgedriver) and [geckodriver](https://www.npmjs.com/package/geckodriver) packages.**
 
 WebdriverIO will always do this, unless driver [binary](capabilities#binary) is specified in the configuration:
 
@@ -55,6 +57,12 @@ WebdriverIO will always do this, unless driver [binary](capabilities#binary) is 
     ]
 }
 ```
+
+WebdriverIO downloads Chromedriver from Chrome for Testing by default, but in certain cases it will use an [Electron release](https://github.com/electron/electron/releases):
+
+- [`wdio:electronVersion`](capabilities#wdioelectronversion) is set, for an Electron app. It uses that release, unless `browserVersion` and `CHROMEDRIVER_CDNURL` are both set.
+- Chrome is older than `153.0.8001.0` on Linux ARM64, where Chrome for Testing has no Chromedriver builds (see [Chromedriver on ARM64](arm64-chromedriver)). It uses the last release with the same Chromium major.
+- The Chrome for Testing download fails, for example during an outage, and `CHROMEDRIVER_CDNURL` isn't set. It uses the last release with the same Chromium major.
 
 :::info
 

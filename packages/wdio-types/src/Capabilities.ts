@@ -351,6 +351,16 @@ export interface WebdriverIOCapabilities {
     'wdio:edgedriverOptions'?: WebdriverIO.EdgedriverOptions
 
     /**
+     * Electron version for Electron applications. When specified, WebdriverIO downloads the
+     * Chromedriver bundled with that Electron release instead of using Chrome for Testing.
+     * With `browserVersion` also set, WebdriverIO uses the Chromedriver for that version
+     * instead when the download fails or `CHROMEDRIVER_CDNURL` is set.
+     *
+     * @example '33.2.1'
+     */
+    'wdio:electronVersion'?: string
+
+    /**
     * Maximum number of total parallel running workers (per capability)
     */
     'wdio:maxInstances'?: number

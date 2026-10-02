@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { getWdioKind } from '@wdio/utils'
 import { getContextManager } from 'webdriverio'
 
 import { SessionError, usage } from '../errors.js'
@@ -157,7 +158,10 @@ async function switchTo (session: Session, tab: Tab) {
 }
 
 async function focusNewContext (session: Session, opened: unknown) {
-    if (!session.isBidi || !opened || typeof opened !== 'object' || !('contextId' in opened)) {
+    /**
+     * in a BiDi session `newWindow()` gives a browsing context, see `@wdio/utils` `kind.ts`
+     */
+    if (!session.isBidi || getWdioKind(opened) !== 'browsing-context') {
         return
     }
     const contextId = (opened as WebdriverIO.BrowsingContext).contextId

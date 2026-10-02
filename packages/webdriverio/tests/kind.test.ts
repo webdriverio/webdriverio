@@ -1,9 +1,14 @@
 import path from 'node:path'
 import { inspect } from 'node:util'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { getBrowserObject } from '@wdio/utils'
 
 import { WDIO_KIND, WDIO_CHAINABLE, attach, multiRemote, remote } from '../src/index.js'
 import refetchElement from '../src/utils/refetchElement.js'
+import WebDriverInterception from '../src/utils/interception/index.js'
+import { getBrowsingContext } from '../src/browsingContext.js'
+import { contextIdOf, isBrowsingContext } from '../src/session/browsingContext.js'
+import { getContextManager } from '../src/session/context.js'
 import { verifyArgsAndStripIfElement } from '../src/utils/index.js'
 
 vi.mock('fetch')
@@ -16,11 +21,36 @@ const brandsOf = (value: unknown) => ({
 })
 const resolved = (kind: string) => ({ kind, chainable: undefined })
 const chainable = (kind: string) => ({ kind, chainable: true })
+/**
+ * the brands that are enumerable on `value` or on its prototypes (a mock has its brand on the prototype)
+ */
+const enumerableBrands = (value: object) => {
+    const found: symbol[] = []
+    for (let owner: object | null = value; owner; owner = Object.getPrototypeOf(owner)) {
+        for (const symbol of [WDIO_KIND, WDIO_CHAINABLE]) {
+            if (Object.getOwnPropertyDescriptor(owner, symbol)?.enumerable) {
+                found.push(symbol)
+            }
+        }
+    }
+    return found
+}
 
 const multiRemoteCapabilities = {
     browserA: { capabilities: { browserName: 'chrome' } },
     browserB: { port: 4445, capabilities: { browserName: 'firefox' } }
 }
+
+/**
+ * a network mock on a browser that only answers the BiDi commands of `WebDriverInterception.initiate`
+ */
+const createMock = () => WebDriverInterception.initiate('http://foobar.com/api', {}, {
+    options: {},
+    on: vi.fn(),
+    sessionSubscribe: vi.fn().mockResolvedValue(undefined),
+    networkAddIntercept: vi.fn().mockResolvedValue({ intercept: '123' }),
+    networkAddDataCollector: vi.fn().mockResolvedValue({ collector: '123' })
+} as unknown as WebdriverIO.Browser)
 
 /**
  * The `wdio.kind` and `wdio.chainable` brands (#15812) on the objects that WebdriverIO creates.
@@ -109,6 +139,45 @@ describe('WebdriverIO object brand', () => {
         }
     })
 
+    test('mocks have the kind mock, and isMultiRemote tells a multi-remote mock apart', async () => {
+        const browser = await multiRemote({
+            browserA: { capabilities: { browserName: 'bidi' } },
+            browserB: { port: 4445, capabilities: { browserName: 'bidi' } }
+        })
+        /**
+         * only the BiDi transport is stubbed, so `mock()` of each instance creates a real `WebDriverInterception`
+         */
+        for (const name of browser.instances) {
+            const instance = browser.getInstance(name)
+            vi.spyOn(instance, 'sessionSubscribe').mockResolvedValue(undefined as never)
+            vi.spyOn(instance, 'networkAddIntercept').mockResolvedValue({ intercept: name } as never)
+            vi.spyOn(instance, 'networkAddDataCollector').mockResolvedValue({ collector: name } as never)
+        }
+        const multiRemoteMock = await browser.mock('**/api')
+        const instanceMocks = multiRemoteMock.instances.map((name) => multiRemoteMock.getInstance(name))
+
+        expect(instanceMocks[0]).toBeInstanceOf(WebDriverInterception)
+        expect(instanceMocks[0]).not.toBe(instanceMocks[1])
+        expect(instanceMocks.map(brandsOf)).toEqual([resolved('mock'), resolved('mock')])
+        expect(brandsOf(multiRemoteMock)).toEqual(resolved('mock'))
+        expect([
+            ...instanceMocks.map((mock) => Boolean((mock as { isMultiRemote?: boolean }).isMultiRemote)),
+            multiRemoteMock.isMultiRemote
+        ]).toEqual([false, false, true])
+    })
+
+    test('browsing contexts have their own kind, not the kind of the browser', async () => {
+        const browser = await remote({ capabilities: { browserName: 'foobar' } })
+        const tab = getBrowsingContext(browser, 'tab-1', { isFrame: false, url: 'https://webdriver.io' })
+        const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'about:blank', parent: tab })
+
+        expect(brandsOf(tab)).toEqual(resolved('browsing-context'))
+        expect(brandsOf(frame)).toEqual(resolved('browsing-context'))
+        expect(brandsOf(tab.browser)).toEqual(resolved('browser'))
+        expect([isBrowsingContext(tab), isBrowsingContext(frame), isBrowsingContext(browser)]).toEqual([true, true, false])
+        expect(isBrowsingContext({ contextId: 'tab-1', browser })).toBe(false)
+    })
+
     test('a chained single-session list stays single-session', async () => {
         const browser = await remote({ capabilities: { browserName: 'foobar' } })
         const list = browser.$('#foo').$$('#bar')
@@ -155,6 +224,8 @@ describe('WebdriverIO object brand matrix', () => {
     const E_CHAIN: Brands = { kind: 'element', chainable: true }
     const E: Brands = { kind: 'element' }
     const A: Brands = { kind: 'element-array' }
+    const M: Brands = { kind: 'mock' }
+    const C: Brands = { kind: 'browsing-context' }
     const NONE: Brands = {}
     /**
      * rule 2 of the contract in `@wdio/utils` `kind.ts`: before `await`, the command name gives the brands
@@ -223,6 +294,12 @@ describe('WebdriverIO object brand matrix', () => {
         }
 
         const webdriver = browser as unknown as WebdriverIO.Browser
+        /**
+         * `switchFrame` is WebDriver Classic only: in a BiDi session, `frame()` gives a browsing context
+         */
+        if (webdriver.isBidi) {
+            return
+        }
         const switchToFrame = vi.spyOn(webdriver, 'switchToFrame')
         try {
             const switched = await webdriver.switchFrame(value as WebdriverIO.Element).then(() => true, () => false)
@@ -264,6 +341,15 @@ describe('WebdriverIO object brand matrix', () => {
             expect(Boolean((result as { error?: unknown }).error)).toBe(row.hasError)
         }
         /**
+         * `isBrowsingContext()` and `getBrowserObject()` read the brand: only a context is a
+         * context, and every object of a single session, also in a context, leads to the browser
+         */
+        expect(isBrowsingContext(result)).toBe(row.awaited.kind === 'browsing-context')
+        const isSingleSession = !(browser as unknown as { isMultiRemote?: boolean }).isMultiRemote
+        if (isSingleSession && row.awaited.kind && row.awaited.kind !== 'mock' && row.awaited.kind !== 'browser') {
+            expect(getBrowserObject(result as WebdriverIO.Element)).toBe(browser)
+        }
+        /**
          * `switchFrame` and `execute` run on a single session
          */
         if (!(browser as unknown as { isMultiRemote?: boolean }).isMultiRemote) {
@@ -298,6 +384,76 @@ describe('WebdriverIO object brand matrix', () => {
         }, { attachToElement: true })
         return browser as unknown as Loose
     }
+
+    /**
+     * A tab with a frame, which has a nested frame
+     */
+    const CONTEXT_TREE = {
+        contexts: [{
+            context: 'top-context',
+            url: 'https://example.com',
+            children: [{
+                context: 'child',
+                url: 'https://child.example',
+                children: [{ context: 'nested', url: 'https://nested.example', children: [] }]
+            }]
+        }]
+    }
+
+    /**
+     * A BiDi session. Only the BiDi transport is stubbed, so `mock()`, `url()`, `newWindow()`,
+     * `browsingContexts()` and `frame()` run their real code.
+     */
+    function stubBidi (browser: WebdriverIO.Browser, name = 'browser') {
+        vi.spyOn(getContextManager(browser), 'getCurrentContext').mockResolvedValue('top-context')
+        vi.spyOn(browser, 'getWindowHandle').mockResolvedValue('top-context')
+        vi.spyOn(browser, 'sessionSubscribe').mockResolvedValue(undefined as never)
+        vi.spyOn(browser, 'networkAddIntercept').mockResolvedValue({ intercept: name } as never)
+        vi.spyOn(browser, 'networkAddDataCollector').mockResolvedValue({ collector: name } as never)
+        vi.spyOn(browser, 'networkRemoveIntercept').mockResolvedValue(undefined as never)
+        vi.spyOn(browser, 'browsingContextNavigate').mockResolvedValue({ navigation: null, url: 'https://example.com/' } as never)
+        vi.spyOn(browser, 'browsingContextCreate').mockResolvedValue({ context: 'new-tab' } as never)
+        /**
+         * a query in a frame runs as a script in that frame, and finds one node
+         */
+        vi.spyOn(browser, 'scriptCallFunction').mockResolvedValue({
+            type: 'success',
+            realm: 'frame-realm',
+            result: { type: 'node', sharedId: 'frame-elem-1' }
+        } as never)
+        vi.spyOn(browser, 'browsingContextGetTree').mockImplementation(async (params) => (
+            params && 'root' in params && params.root === 'child'
+                ? { contexts: [CONTEXT_TREE.contexts[0].children[0]] }
+                : CONTEXT_TREE
+        ) as never)
+    }
+
+    async function bidiSession () {
+        const browser = await remote({ waitforTimeout: 20, capabilities: { browserName: 'bidi' } })
+        stubBidi(browser)
+        return browser as unknown as Loose
+    }
+
+    async function bidiMultiRemote () {
+        const browser = await multiRemote({
+            browserA: { waitforTimeout: 20, capabilities: { browserName: 'bidi' } },
+            browserB: { waitforTimeout: 20, port: 4445, capabilities: { browserName: 'bidi' } }
+        })
+        for (const name of browser.instances) {
+            stubBidi(browser.getInstance(name), name)
+        }
+        return browser as unknown as Loose
+    }
+
+    /**
+     * a tab, whose `execute` gives the frame of an iframe element, as `frame(element)` reads it
+     */
+    async function tab (browser: Loose) {
+        const context = await browser.url('https://example.com') as unknown as WebdriverIO.BrowsingContext
+        vi.spyOn(context, 'execute').mockResolvedValue({ context: 'child' } as never)
+        return context as unknown as Loose
+    }
+    const frameOf = async (browser: Loose) => (await tab(browser)).frame('https://child.example')
 
     describe('single session: built-in queries', () => {
         test.each<[string, Row]>([
@@ -547,6 +703,86 @@ describe('WebdriverIO object brand matrix', () => {
         })
     })
 
+    describe('single session (BiDi): mocks and browsing contexts', () => {
+        test.each<[string, Row]>([
+            ['#M1 mock()', { make: (b) => b.mock('**/api'), pending: 'other promise', awaited: M, isMultiRemote: false }],
+            ['#M2 mock() again with the same definition', { from: async (b) => (await b.mock('**/api'), b), make: (b) => b.mock('**/api'), pending: 'other promise', awaited: M, isMultiRemote: false }],
+            ['#M3 mock().respond(), a loaded mock', { from: (b) => b.mock('**/api'), make: (m) => m.respond('body'), pending: M, awaited: M, isMultiRemote: false }],
+            ['#M3 mock().abort() and clear()', { from: (b) => b.mock('**/api'), make: (m) => m.abort().clear(), pending: M, awaited: M, isMultiRemote: false }],
+            ['#M4 mock().restore()', { from: (b) => b.mock('**/api'), make: (m) => m.restore(), pending: 'other promise', awaited: M, isMultiRemote: false }],
+            ['#M5 context mock()', { from: tab, make: (context) => context.mock('**/api'), pending: 'other promise', awaited: M, isMultiRemote: false }],
+            ['#M6 frame mock() (top-level only)', { from: frameOf, make: (frame) => frame.mock('**/api'), pending: 'other promise', awaited: 'rejects' }],
+            ['#C1 url(http)', { make: (b) => b.url('https://example.com'), pending: 'other promise', awaited: C, isMultiRemote: false }],
+            ['#C2 url() of a page that is not http', { make: (b) => b.url('about:blank'), pending: 'other promise', awaited: NONE }],
+            ['#C3 newWindow()', { make: (b) => b.newWindow('https://webdriver.io'), pending: 'other promise', awaited: C, isMultiRemote: false }],
+            ['#C4 browsingContexts(), a plain list', { make: (b) => b.browsingContexts(), pending: 'other promise', awaited: NONE }],
+            ['#C4 browsingContexts()[0]', { make: (b) => (b.browsingContexts() as unknown as Promise<Loose[]>).then((list) => list[0]), awaited: C, isMultiRemote: false }],
+            ['#C5 context navigate()', { from: tab, make: (context) => context.navigate('https://example.com/next'), pending: 'other promise', awaited: C, isMultiRemote: false }],
+            ['#C6 context frame(url)', { from: tab, make: (context) => context.frame('https://child.example'), pending: 'other promise', awaited: C, isMultiRemote: false }],
+            ['#C6 context frame(selector)', { from: tab, make: (context) => context.frame('iframe'), pending: 'other promise', awaited: C, isMultiRemote: false }],
+            ['#C6 context frame(element)', { from: tab, make: (context) => context.frame(context.$('iframe')), pending: 'other promise', awaited: C, isMultiRemote: false }],
+            ['#C7 nested frame(url)', { from: frameOf, make: (frame) => frame.frame('https://nested.example'), pending: 'other promise', awaited: C, isMultiRemote: false }],
+            ['#C8 context $(s)', { from: tab, make: (context) => context.$('#foo'), pending: 'element query', awaited: E, isMultiRemote: false }],
+            ['#C8 context $$(s)', { from: tab, make: (context) => context.$$('#foo'), pending: 'list query', awaited: A, isMultiRemote: false }],
+            ['#C8 context $$(s)[0]', { from: tab, make: (context) => context.$$('#foo')[0], pending: 'list item', awaited: E, isMultiRemote: false }],
+            ['#C8 frame $(s)', { from: frameOf, make: (frame) => frame.$('#foo'), pending: 'element query', awaited: E, isMultiRemote: false }],
+            ['#C9 the browser of a context', { from: tab, make: (context) => context.browser, pending: B, awaited: B, isMultiRemote: false }],
+            ['#C9 the parent of an element in a context', { from: tab, make: async (context) => (await context.$('#foo')).parent, awaited: C, isMultiRemote: false }]
+        ])('%s', async (_, row) => {
+            await check(await bidiSession(), row)
+        })
+
+        test('#C10 an element in a frame targets the frame, and an object with only the shape of a context is not one', async () => {
+            const browser = await bidiSession()
+            const frame = await frameOf(browser) as unknown as WebdriverIO.BrowsingContext
+            const element = await frame.$('#foo')
+            const lookalike = { contextId: 'child', browser }
+
+            expect(await contextIdOf(element)).toBe('child')
+            expect(getBrowserObject(element)).toBe(browser)
+            expect(isBrowsingContext(lookalike)).toBe(false)
+            expect(getBrowserObject(lookalike as unknown as WebdriverIO.Element)).toBe(lookalike)
+        })
+    })
+
+    describe('single session (Classic): no mock and no browsing context', () => {
+        test.each<[string, Row]>([
+            ['#M7 mock() (BiDi only)', { make: (b) => b.mock('**/api'), pending: 'other promise', awaited: 'rejects' }],
+            ['#C11 url(http)', { make: (b) => b.url('https://example.com'), pending: 'other promise', awaited: NONE }],
+            ['#C12 newWindow(), a window handle', {
+                from: (b) => {
+                    const browser = b as unknown as WebdriverIO.Browser
+                    vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
+                    vi.spyOn(browser, 'getWindowHandles').mockResolvedValueOnce(['first']).mockResolvedValue(['first', 'second'])
+                    vi.spyOn(browser, 'switchToWindow').mockResolvedValue(undefined as never)
+                    return b
+                },
+                make: (b) => b.newWindow('https://webdriver.io'),
+                pending: 'other promise',
+                awaited: NONE
+            }]
+        ])('%s', async (_, row) => {
+            await check(await singleSession(), row)
+        })
+    })
+
+    describe('multi-remote (BiDi): mocks and browsing contexts', () => {
+        test.each<[string, Row]>([
+            ['#M8 mock()', { make: (mr) => mr.mock('**/api'), pending: 'other promise', awaited: M, isMultiRemote: true }],
+            ['#M8 select().mock()', { make: (mr) => mr.select('browserB', 'browserA').mock('**/api'), pending: 'other promise', awaited: M, isMultiRemote: true }],
+            ['#M9 mock().getInstance()', { from: (mr) => mr.mock('**/api'), make: (m) => m.getInstance('browserA'), pending: M, awaited: M, isMultiRemote: false }],
+            ['#M9 getInstance().mock()', { make: (mr) => mr.getInstance('browserA').mock('**/api'), pending: 'other promise', awaited: M, isMultiRemote: false }],
+            ['#M10 mock().respond(), a loaded mock', { from: (mr) => mr.mock('**/api'), make: (m) => m.respond('body'), pending: M, awaited: M, isMultiRemote: true }],
+            ['#M10 mock().restore()', { from: (mr) => mr.mock('**/api'), make: (m) => m.restore(), pending: 'other promise', awaited: M, isMultiRemote: true }],
+            ['#C13 url(http), a plain list', { make: (mr) => mr.url('https://example.com'), pending: 'other promise', awaited: NONE }],
+            ['#C13 url(http)[0]', { make: (mr) => (mr.url('https://example.com') as unknown as Promise<Loose[]>).then((list) => list[0]), awaited: C, isMultiRemote: false }],
+            ['#C14 newWindow()[0]', { make: (mr) => (mr.newWindow('https://webdriver.io') as unknown as Promise<Loose[]>).then((list) => list[0]), awaited: C, isMultiRemote: false }],
+            ['#C15 getInstance().url(http)', { make: (mr) => mr.getInstance('browserA').url('https://example.com'), pending: 'other promise', awaited: C, isMultiRemote: false }]
+        ])('%s', async (_, row) => {
+            await check(await bidiMultiRemote(), row)
+        })
+    })
+
     describe('multi-remote', () => {
         test.each<[string, Row]>([
             ['#43 multi-remote browser', { make: (mr) => mr, pending: B, awaited: B, isMultiRemote: true }],
@@ -580,13 +816,15 @@ describe('WebdriverIO object brand matrix', () => {
             browser,
             element: await browser.$('#foo'),
             list: await browser.$$('#foo'),
-            pendingList: browser.$$('#foo')
+            pendingList: browser.$$('#foo'),
+            chainable: browser.$('#foo'),
+            mock: await createMock(),
+            context: getBrowsingContext(browser as unknown as WebdriverIO.Browser, 'tab-1', { isFrame: false, url: 'https://webdriver.io' })
         }
 
         for (const [name, value] of Object.entries(values)) {
-            const enumerable = Object.getOwnPropertySymbols(value)
-                .filter((symbol) => Object.getOwnPropertyDescriptor(value, symbol)?.enumerable)
-            expect({ name, enumerable }).toEqual({ name, enumerable: expect.not.arrayContaining([WDIO_KIND, WDIO_CHAINABLE]) })
+            expect({ name, branded: brandsOf(value).kind !== undefined }).toEqual({ name, branded: true })
+            expect({ name, enumerable: enumerableBrands(value) }).toEqual({ name, enumerable: [] })
             expect({ name, inspect: inspect(value).includes('wdio.') }).toEqual({ name, inspect: false })
         }
         expect(JSON.stringify(values.list)).not.toContain('element-array')

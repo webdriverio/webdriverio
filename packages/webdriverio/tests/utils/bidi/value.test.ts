@@ -206,6 +206,21 @@ describe('LocalValue', () => {
         })
     })
 
+    it('should deserialize a NodeList and an HTMLCollection into element references', () => {
+        const nodes = [
+            { type: 'node', sharedId: 'f.1.d.1.e.1', value: { localName: 'li', nodeType: 1 } },
+            { type: 'node', sharedId: 'f.1.d.1.e.2', value: { localName: 'li', nodeType: 1 } }
+        ]
+        const references = [
+            { [ELEMENT_KEY]: 'f.1.d.1.e.1' },
+            { [ELEMENT_KEY]: 'f.1.d.1.e.2' }
+        ]
+
+        expect(deserialize({ type: 'nodelist', value: nodes } as any)).toEqual(references)
+        expect(deserialize({ type: 'htmlcollection', value: nodes } as any)).toEqual(references)
+        expect(deserialize({ type: 'nodelist', value: [] } as any)).toEqual([])
+    })
+
     it('should resolve references', () => {
         expect(deserialize({
             type: 'array',
