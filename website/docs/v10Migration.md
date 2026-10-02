@@ -538,7 +538,7 @@ Command results stay in capability order: the first entry belongs to the first k
 
 `browser.$$()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteElementArray`, not a plain `MultiRemoteElement[]`. It is still an array, so an index read such as `elements[0]` keeps working.
 
-`custom$()`, `react$()` and, on an element, `shadow$()` return one `WebdriverIO.MultiRemoteElement`, as `$()` does. In v9 they returned one element per instance in a plain array. Read the element of one browser with `getInstance`:
+`custom$()`, `react$()` and, on an element, `shadow$()`, `nextElement()`, `previousElement()` and `parentElement()` return one `WebdriverIO.MultiRemoteElement`, as `$()` does. In v9 they returned one element per instance in a plain array. Read the element of one browser with `getInstance`:
 
 ```diff
 - const [chromeHost, firefoxHost] = await browser.custom$('byTestId', 'host')

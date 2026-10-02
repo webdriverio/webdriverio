@@ -245,9 +245,9 @@ type ElementCommandNames = SingleElementCommandNames | MultiElementCommandNames
  */
 type MultiRemoteArrayCommandNames = ElementCommandNames | 'SESSION_MOCKS' | 'CDP_SESSIONS' | 'mock'
 /**
- * `shadow$` and `shadow$$` exist only on an element
+ * `shadow$`, `shadow$$` and the sibling and parent queries exist only on an element
  */
-type ElementScopeSingleElementCommandNames = SingleElementCommandNames | 'shadow$'
+type ElementScopeSingleElementCommandNames = SingleElementCommandNames | 'shadow$' | 'nextElement' | 'previousElement' | 'parentElement'
 type ElementScopeMultiElementCommandNames = MultiElementCommandNames | 'shadow$$'
 type MultiRemoteBrowserQueries = {
     [K in keyof Pick<BrowserCommandsType, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement>

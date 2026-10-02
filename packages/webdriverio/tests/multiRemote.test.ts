@@ -629,6 +629,33 @@ describe('Multi-Remote tests', () => {
             expect(child.getInstance('browserA').parent).toBe(inner.getInstance('browserA'))
             expect(child.getInstance('browserB').parent).toBe(inner.getInstance('browserB'))
         })
+
+        test('nextElement gives a multi-remote element', async () => {
+            const browser = await multiRemote(caps())
+            const element = await browser.$('#foo')
+
+            expectMultiRemoteElement(await element.nextElement(), 'some-next-elem')
+        })
+
+        test('previousElement gives a multi-remote element', async () => {
+            const browser = await multiRemote(caps())
+            const element = await browser.$('#foo').$('#bar')
+
+            expectMultiRemoteElement(await element.previousElement(), 'some-previous-elem')
+        })
+
+        test('parentElement gives a multi-remote element', async () => {
+            const browser = await multiRemote(caps())
+            const element = await browser.$('#foo').$('#bar')
+
+            expectMultiRemoteElement(await element.parentElement(), 'some-parent-elem')
+        })
+
+        test('nextElement chained on $ gives a multi-remote element', async () => {
+            const browser = await multiRemote(caps())
+
+            expectMultiRemoteElement(await browser.$('#foo').nextElement(), 'some-next-elem')
+        })
     })
 
     describe('list queries', () => {
