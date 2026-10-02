@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { type local } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
-import WebDriverInterception from '../../../src/utils/interception/index.js'
+import WebDriverInterception, { parseUrlPattern } from '../../../src/utils/interception/index.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 
 type WebDriverInterceptionClass = typeof WebDriverInterception
@@ -638,6 +638,28 @@ describe('WebDriverInterception', () => {
         expect(browser.networkProvideResponse).not.toHaveBeenCalled()
     })
 
+    it('does not collect response data once the mock is restored', async () => {
+        const browser = getResponseCollectionBrowserMock({
+            waitforTimeout: 5000,
+            waitforInterval: 100
+        }, {
+            call: vi.fn().mockImplementation((fn) => fn())
+        })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { sessionKey: 'window-1' })
+        Object.assign(browser, { networkRemoveIntercept: vi.fn().mockResolvedValue({}) })
+        await mock.restore()
+        vi.mocked(browser.networkGetData).mockClear()
+
+        browser.emit('network.responseCompleted', {
+            isBlocked: false,
+            request: { request: 'req-1', url: 'http://test.com/api', method: 'GET', headers: [] },
+            response: { status: 200, headers: [] }
+        })
+        await new Promise((resolve) => setTimeout(resolve, 0))
+        expect(browser.networkGetData).not.toHaveBeenCalled()
+        expect(mock.calls).toHaveLength(0)
+    })
+
     it('should resolve waitForResponse for a matching response reported as not blocked (regression test)', async () => {
         const browser = getResponseCollectionBrowserMock({
             waitforTimeout: 5000,
@@ -1048,6 +1070,24 @@ describe('WebDriverInterception', () => {
         }))
         expect(browser.networkContinueRequest).toHaveBeenCalledWith({
             request: 'req-123'
+        })
+    })
+
+    describe('parseUrlPattern', () => {
+        it('collapses repeated wildcards, which match the same URLs', () => {
+            const pattern = parseUrlPattern('**/api/users')
+            expect(pattern.pathname).toBe('*/api/users')
+            expect(pattern.test('https://example.test/v1/api/users')).toBe(true)
+            expect(pattern.test('https://example.test/api/users')).toBe(true)
+            expect(pattern.test('https://example.test/api/other')).toBe(false)
+            expect(parseUrlPattern('https://**.example.test/**').hostname).toBe('*.example.test')
+        })
+
+        it('tests a long URL that does not match without backtracking', () => {
+            const pattern = parseUrlPattern('**/api/nothing')
+            const start = Date.now()
+            expect(pattern.test(`data:image/png;base64,${'A'.repeat(100_000)}`)).toBe(false)
+            expect(Date.now() - start).toBeLessThan(1000)
         })
     })
 

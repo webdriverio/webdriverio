@@ -644,6 +644,9 @@ export default class WebDriverInterception {
     }
 
     async #handleResponseCompleted(response: Response) {
+        if (this.#restored) {
+            return
+        }
         /**
          * don't do anything if:
          * - request is not matching the pattern
@@ -1163,6 +1166,15 @@ export function parseUrlPattern(url: string | URLPattern | globalThis.URLPattern
     if (typeof url === 'object') {
         return url as URLPattern
     }
+
+    /**
+     * A URLPattern `*` already matches any characters, `/` included, so a
+     * glob like `**` + `/api` means the same as `*` + `/api`. Each extra `*`
+     * adds a group to the compiled regular expression, though, and testing
+     * it against a long URL that does not match (e.g. a `data:` URL) then
+     * backtracks for seconds to minutes, which blocks the process.
+     */
+    url = url.replace(/(?<!\\)\*{2,}/g, '*')
 
     /**
      * parse URLPattern from absolute URL

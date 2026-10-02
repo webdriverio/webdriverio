@@ -105,15 +105,9 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'launch.e2e.ts'),
         path.join(__dirname, 'headless', 'bidi.e2e.ts'),
         path.join(__dirname, 'headless', 'setFiles.e2e.ts'),
-        path.join(__dirname, 'headless', 'browsingContexts.e2e.ts')
-    ],
-    /**
-     * Runs in a session of its own: once a session removed an intercept,
-     * Chromium can stall a later intercepted request in the `responseStarted`
-     * phase, which the mocks of the group above would trigger.
-     */
-    path.join(__dirname, 'headless', 'mocking.e2e.ts')
-    ],
+        path.join(__dirname, 'headless', 'browsingContexts.e2e.ts'),
+        path.join(__dirname, 'headless', 'mocking.e2e.ts')
+    ]],
 
     /**
      * capabilities
