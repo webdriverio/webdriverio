@@ -403,7 +403,11 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     function hiddenInTree (el: Element) {
         let current: Element | null = el
         while (current) {
-            if (isHidden(current)) {
+            /**
+             * a light DOM child of a shadow host that no slot takes is not
+             * rendered, the snapshot walk does not see it either
+             */
+            if (isHidden(current) || (current.parentElement?.shadowRoot && !current.assignedSlot)) {
                 return true
             }
             current = current.parentElement || ((current.getRootNode() as ShadowRoot).host ?? null)

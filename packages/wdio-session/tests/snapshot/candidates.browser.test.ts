@@ -58,6 +58,19 @@ describe('snapshot selector candidates', () => {
         expect(candidates('bogus', 'Unique action')?.some((candidate) => candidate.startsWith('role/'))).toBe(false)
     })
 
+    it('does not count a light DOM child of a shadow host that no slot takes', () => {
+        document.body.innerHTML = ''
+        const host = document.createElement('div')
+        host.innerHTML = '<button>Pay now</button>'
+        document.body.appendChild(host)
+        host.attachShadow({ mode: 'open' }).innerHTML = '<button>Pay now</button>'
+        const collect = new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
+        const { refs } = collect({ roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true })
+        const payNow = refs.filter((ref) => ref.role === 'button' && ref.name === 'Pay now')
+        expect(payNow).toHaveLength(1)
+        expect(payNow[0].candidates).toContain('role/button[name="Pay now"]')
+    })
+
     it('escapes quotes and backslashes in the name', () => {
         const candidates = candidatesOf('<button>Say "hi" \\ bye</button>')
         expect(candidates('button', 'Say "hi" \\ bye')).toContain('role/button[name="Say \\"hi\\" \\\\ bye"]')
