@@ -750,8 +750,27 @@ describe('browsing contexts', () => {
             const current = await open('/parity')
             const background = await openTab('/parity')
             const classic = await report(current)
+            const held = await report(background)
             expect(classic.coveredClick).toEqual({ error: 'element click intercepted' })
-            expect(await report(background)).toEqual(classic)
+
+            /**
+             * The spec values, which chromedriver reports too: HTML attribute
+             * names are case-insensitive, and an option in a disabled
+             * `<optgroup>` is disabled, so a click does not select it.
+             */
+            expect(held.upperCaseBooleanAttribute).toBe('true')
+            expect(held.optionInDisabledGroupAfterClick).toBe(false)
+            if (browser.capabilities.browserName === 'firefox') {
+                /**
+                 * geckodriver matches boolean attribute names case-sensitively
+                 * and selects an option of a disabled `<optgroup>`.
+                 */
+                for (const key of ['upperCaseBooleanAttribute', 'optionInDisabledGroupAfterClick']) {
+                    delete classic[key]
+                    delete held[key]
+                }
+            }
+            expect(held).toEqual(classic)
         })
     })
 
