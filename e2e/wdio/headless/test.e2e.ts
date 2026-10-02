@@ -24,8 +24,22 @@ describe('main suite 1', () => {
         '/frame-a': '<title>IFrame A</title><iframe src="/frame-a2"></iframe>',
         '/frame-a2': '<title>IFrame A2</title><h1>Nested frame</h1>'
     }
+    /**
+     * `/basic_auth` accepts only `admin:admin`. It sends no `WWW-Authenticate` header, so a
+     * missing or wrong header shows "Not authorized" at once instead of a credentials prompt.
+     */
+    const BASIC_AUTH = `Basic ${Buffer.from('admin:admin').toString('base64')}`
+    const basicAuthHeaders: (string | undefined)[] = []
     const navigationServer = createServer((request, response) => {
         response.setHeader('Content-Type', 'text/html; charset=utf-8')
+        if (request.url === '/basic_auth') {
+            basicAuthHeaders.push(request.headers.authorization)
+            if (request.headers.authorization !== BASIC_AUTH) {
+                response.statusCode = 401
+                return response.end('<title>Basic Auth</title><p>Not authorized</p>')
+            }
+            return response.end('<title>Basic Auth</title><p>Congratulations! You must have the proper credentials.</p>')
+        }
         response.end(navigationPages[request.url || '/'] || '')
     })
     let navigationOrigin: string
@@ -401,14 +415,15 @@ describe('main suite 1', () => {
 
     describe('url command', () => {
         it('supports basic auth', async () => {
-            await browser.url('https://the-internet.herokuapp.com/basic_auth', {
+            basicAuthHeaders.length = 0
+            await browser.url(`${navigationOrigin}/basic_auth`, {
                 auth: {
                     user: 'admin',
                     pass: 'admin'
-
                 }
             })
             await expect($('p=Congratulations! You must have the proper credentials.')).toBeDisplayed()
+            expect(basicAuthHeaders).toEqual([BASIC_AUTH])
         })
 
         it('should return a request object', async () => {
