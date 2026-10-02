@@ -74,6 +74,22 @@ await browser.act('Log in as {{email}} with password {{password}}', {
 
 `act` resolves to `{ source, steps, summary }`. `steps` lists the WebdriverIO code that ran. When the model reports that the instruction cannot be completed, or the step limit or timeout (`timeout`, default 60s) is reached, `act` throws an `ActError` with the reason.
 
+## Scope
+
+`act` and `extract` are available on the browser, on elements and on browsing contexts:
+
+```ts
+// only the billing form: snapshots show nothing else, steps stay inside it
+await $('form#billing').act('Fill in a valid German address')
+
+// a cross-origin payment frame, held from the page
+const page = await browser.url('https://shop.example/checkout')
+const payment = await page.frame('https://pay.example/form')
+await payment.act('Pay with the test card {{card}}', { values: { card: '4242 4242 4242 4242' } })
+```
+
+On a frame or a tab the steps run in that browsing context, and the browser goes back to where it was afterwards. On the browser the model can enter frames, go back to the top document and switch to a window a step opened. These steps are recorded and replayed like any other.
+
 ## Extract
 
 `extract(instruction, schema, options?)` reads information from the page and validates it against a [Standard Schema](https://standardschema.dev): zod, valibot, arktype and others. The model can only read the page (`snapshot`, `find`, `get`, `is`, `scroll`, the workspace), never change it. When the schema library can describe itself as JSON Schema (zod 4 can), the model gets that shape. An answer that does not match is rejected and the model answers again once. `extract` results are never cached: a read has to see the current page.
