@@ -12,7 +12,10 @@ const isLinux = os.platform() === 'linux'
 export const config: WebdriverIO.MultiRemoteConfig = {
     ...baseConfig,
 
-    specs: [path.resolve(__dirname, 'headless', 'multiRemoteTest.e2e.ts')],
+    specs: [
+        path.resolve(__dirname, 'headless', 'multiRemoteTest.e2e.ts'),
+        path.resolve(__dirname, 'headless', 'multiRemoteExpect.e2e.ts')
+    ],
     exclude: [],
     capabilities: [
         {
