@@ -49,8 +49,7 @@ describe('multi remote expect', () => {
             await expect(some(links)).toHaveText('2')
         })
 
-        // TODO: unskip when expect-webdriverio supports v10 empty multi-remote `$$()`, where `elements[0]` is a lazy element and not `undefined`
-        it.skip('should pass on non existing elements with .not', async () => {
+        it('should pass on non existing elements with .not', async () => {
             const elements = multiRemoteBrowser.$$('.doesNotExist')
 
             await expect(elements).not.toExist()
@@ -61,8 +60,7 @@ describe('multi remote expect', () => {
             await expect(multiRemoteBrowser.$('header h1')).toMatchInlineSnapshot('"<h1>WebdriverJS Testpage</h1>"')
         })
 
-        // TODO: unskip when expect-webdriverio supports the v10 `MultiRemoteMock` returned by `multiRemoteBrowser.mock()`
-        it.skip('should assert the mocks of every instance', async () => {
+        it('should assert the mocks of every instance', async () => {
             const mocks = await multiRemoteBrowser.mock('https://cdn.jsdelivr.net/npm/hammerjs@1.1.3/hammer.min.js', {
                 method: 'get',
                 statusCode: 200
@@ -137,8 +135,7 @@ describe('multi remote expect', () => {
             await expect(multiRemoteBrowser.$('.page').select('browserB')).toHaveText('Second page!')
         })
 
-        // TODO: unskip when #15846 is merged: until then, `getInstance()` gives a lazy element for an instance with fewer elements instead of throwing
-        it.skip('should assert the elements of every instance with one expected value per instance', async () => {
+        it('should assert the elements of every instance with one expected value per instance', async () => {
             const links = multiRemoteBrowser.$$('header a')
 
             await expect(links).toBeElementsArrayOfSize(expect.multiRemote({
