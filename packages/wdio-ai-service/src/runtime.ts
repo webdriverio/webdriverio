@@ -4,7 +4,6 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { createAgentSession, type AgentSession } from '@wdio/session/agent'
-import { getContextManager } from 'webdriverio'
 
 import { ActCache, cacheFileFor, cacheKey, resolveMode, type EffectiveMode } from './cache.js'
 import { ActError, type TokenUsage } from './errors.js'
@@ -78,22 +77,29 @@ function isElement (scope: ActScope): scope is WebdriverIO.Element {
     return !isBrowsingContext(scope) && ('elementId' in scope || 'selector' in scope) && 'parent' in scope
 }
 
+interface Scope {
+    /**
+     * ref of the element the call is limited to
+     */
+    ref?: string
+    /**
+     * go back to the context before, for a call on a held tab or frame
+     */
+    leave?: () => Promise<void>
+}
+
 /**
- * The ref of the element a call is scoped to. A browsing context has to be
- * the tab the session works on.
+ * An element call is limited to the element. A call on a held tab, window
+ * or frame runs in that context and goes back afterwards.
  */
-async function scopeOf (agent: AgentSession, scope: ActScope, call: string): Promise<string | undefined> {
+async function scopeOf (agent: AgentSession, scope: ActScope): Promise<Scope> {
     if (isBrowsingContext(scope)) {
-        const current = await getContextManager(scope.browser as WebdriverIO.Browser).getCurrentContext()
-        if (scope.isFrame || scope.contextId !== current) {
-            throw new Error(`[@wdio/ai-service] ${call}() on a frame or a tab other than the current one is not supported yet. Call it on the browser, or activate the tab first.`)
-        }
-        return undefined
+        return { leave: await agent.enter(scope) }
     }
     if (isElement(scope)) {
-        return agent.pin(scope)
+        return { ref: await agent.pin(scope) }
     }
-    return undefined
+    return {}
 }
 
 export interface PlanResult {
@@ -358,8 +364,16 @@ export class AiRuntime {
         }
         const agent = await this.agentFor(browser)
         const recorder = await this.#recorders.get(browser)
+        const scoped = await scopeOf(agent, scope)
+        try {
+            return await this.#actIn(agent, browser, instruction, options, scoped.ref, recorder)
+        } finally {
+            await scoped.leave?.()
+        }
+    }
+
+    async #actIn (agent: AgentSession, browser: WebdriverIO.Browser, instruction: string, options: ActOptions, scopeRef: string | undefined, recorder?: EffectRecorder): Promise<ActOutcome> {
         const effects: EffectCheck | undefined = recorder ? { recorder, mode: this.effects.mode } : undefined
-        const scopeRef = await scopeOf(agent, scope, 'act')
         const mode = this.mode(options.cache)
         const test = this.#test
         if (test) {
@@ -467,7 +481,16 @@ export class AiRuntime {
             throw new ActError({ instruction, reason: 'no model is configured. Set the `model` option of the service or the WDIO_AI_MODEL environment variable.' })
         }
         const agent = await this.agentFor(browser)
-        const scopeRef = await scopeOf(agent, scope, 'extract')
+        const scoped = await scopeOf(agent, scope)
+        try {
+            return await this.#extractIn(agent, instruction, schema, options, usage, scoped.ref)
+        } finally {
+            await scoped.leave?.()
+        }
+    }
+
+    async #extractIn<T> (agent: AgentSession, instruction: string, schema: StandardSchemaV1<unknown, T>, options: ExtractOptions, usage: TokenUsage, scopeRef?: string) {
+        const modelOption = selectModel(options.model, this.options.model)!
         const values = options.values || {}
         const workspace = this.#workspaceFor(instruction)
         workspace.values = values

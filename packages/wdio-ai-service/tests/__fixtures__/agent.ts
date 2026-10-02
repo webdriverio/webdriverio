@@ -31,12 +31,15 @@ export function fakeAgent (responses: (action: string, args: Record<string, unkn
      */
     const matches = new Map<string, number>()
     const $$ = vi.fn((selector: string) => ({ getElements: vi.fn(async () => Array.from({ length: matches.get(selector) ?? 0 }, () => ({}))) }))
+    const browser = { $: vi.fn(() => ({ waitForExist })), $$, options: { waitforTimeout: 100 } }
     const agent = {
         session: { plan: { applies: ['W'], platform: 'browser', label: 'chrome' } },
-        browser: { $: vi.fn(() => ({ waitForExist })), $$, options: { waitforTimeout: 100 } },
+        browser,
+        scope: browser,
         actions: ACTIONS.filter((spec) => !spec.applies || spec.applies.includes('W')),
         run,
         pin: vi.fn(async () => 'e100'),
+        enter: vi.fn(async () => vi.fn(async () => {})),
         snapshot: vi.fn(),
         ref: (id: string) => refs.get(id.replace(/^@/, '')),
         history: [],

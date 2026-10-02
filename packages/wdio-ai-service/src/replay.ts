@@ -39,6 +39,10 @@ export interface ReplayResult {
 }
 
 const TARGET_KEYS = ['target', 'from', 'to'] as const
+/**
+ * `frame top` and `frame parent` name no element to wait for
+ */
+const FRAME_KEYWORDS = new Set(['top', 'parent'])
 
 /**
  * Wait until the targets of a step exist, like an `await $(selector)` in a
@@ -48,8 +52,8 @@ export async function runStep (agent: AgentSession, step: ActStep, values: Recor
     const args = substitute(step.args, values)
     for (const key of TARGET_KEYS) {
         const selector = args[key]
-        if (typeof selector === 'string' && selector) {
-            await agent.browser.$(selector).waitForExist({ timeout: waitTimeout })
+        if (typeof selector === 'string' && selector && !(step.action === 'frame' && FRAME_KEYWORDS.has(selector))) {
+            await agent.scope.$(selector).waitForExist({ timeout: waitTimeout })
         }
     }
     return runChecked(agent, step, args, values, effects)
@@ -106,7 +110,7 @@ export function alternativeSelectors (step: ActStep): string[] {
 export async function healStep (agent: AgentSession, step: ActStep, values: Record<string, string>, effects?: EffectCheck): Promise<ActStep | undefined> {
     for (const selector of alternativeSelectors(step)) {
         try {
-            const matches = await agent.browser.$$(selector).getElements()
+            const matches = await agent.scope.$$(selector).getElements()
             if (matches.length !== 1) {
                 continue
             }

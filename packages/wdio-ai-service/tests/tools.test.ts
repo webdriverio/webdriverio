@@ -82,6 +82,15 @@ describe('pageTools', () => {
         expect(steps[0].args).toEqual({ target: '#password', text: '{{password}}' })
     })
 
+    it('records a move to the top document although it emits no code', async () => {
+        const { agent } = fakeAgent((action) => action === 'frame' ? { text: 'Switched to the top document', code: '' } : undefined)
+        const steps: ActStep[] = []
+        const frame = (await pageTools({ agent, values: {}, onStep: (step) => steps.push(step) })).find((t) => t.name === 'frame')!
+
+        await frame.invoke({ target: 'top' })
+        expect(steps).toEqual([{ action: 'frame', args: { target: 'top' }, code: '' }])
+    })
+
     it('does not record a read and returns action errors as text', async () => {
         const { agent } = fakeAgent((action) => action === 'click' ? { error: 'No element matches "#missing".' } : { text: '- button "Go" [ref=e1]' })
         const steps: ActStep[] = []

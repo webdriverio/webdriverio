@@ -49,6 +49,22 @@ describe('replaySteps', () => {
         expect($).not.toHaveBeenCalled()
         expect(run).toHaveBeenCalledWith('press', { keys: 'Enter' })
     })
+
+    it('waits for targets in the frame the session holds and not for frame keywords', async () => {
+        const { agent, run } = fakeAgent()
+        const page = withBrowser(agent)
+        const waitForExist = vi.fn().mockResolvedValue(true)
+        const frame = { $: vi.fn(() => ({ waitForExist })) }
+        Object.assign(agent, { scope: frame })
+        await replaySteps(agent, [
+            { action: 'click', args: { target: 'role/button[name="Pay now"]' }, code: 'await frame.$(\'role/button[name="Pay now"]\').click()' },
+            { action: 'frame', args: { target: 'top' }, code: '' }
+        ], {}, 3000)
+        expect(frame.$).toHaveBeenCalledTimes(1)
+        expect(frame.$).toHaveBeenCalledWith('role/button[name="Pay now"]')
+        expect(page.$).not.toHaveBeenCalled()
+        expect(run).toHaveBeenNthCalledWith(2, 'frame', { target: 'top' })
+    })
 })
 
 describe('healing without the model', () => {

@@ -186,7 +186,7 @@ export function eject (source: string, cache: CacheFile, options: { test?: strin
         if (call.values) {
             lines.push(`${call.indent}const values = ${call.values}`)
         }
-        lines.push(...candidates[0].steps.map((step) => `${call.indent}${codeWithValues(step.code)}`))
+        lines.push(...candidates[0].steps.filter((step) => step.code).map((step) => `${call.indent}${codeWithValues(step.code)}`))
         const block = call.values
             ? [`${call.indent}{`, ...lines.map((line) => `    ${line}`), `${call.indent}}`].join('\n')
             : lines.join('\n')

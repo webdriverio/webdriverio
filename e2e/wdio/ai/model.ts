@@ -73,3 +73,24 @@ export const effectsModel = new ScriptedChatModel([
     { tool: 'click', args: { target: '[data-testid="add"]' } },
     { tool: 'done', args: { summary: 'Added it' } }
 ])
+
+export const framesModel = new ScriptedChatModel([
+    // acts inside a held cross-origin frame
+    { tool: 'snapshot' },
+    { tool: 'click', args: (snapshot) => ({ target: refOf(/button "Pay now" \[ref=(e\d+)\]/)(snapshot) }) },
+    { tool: 'done', args: { summary: 'Paid' } },
+    // enters a cross-origin frame by itself and the steps replay without the model
+    { tool: 'snapshot' },
+    { tool: 'frame', args: (snapshot) => ({ target: refOf(/iframe "Payment" \[ref=(e\d+)\]/)(snapshot) }) },
+    { tool: 'snapshot' },
+    { tool: 'click', args: (snapshot) => ({ target: refOf(/button "Pay now" \[ref=(e\d+)\]/)(snapshot) }) },
+    { tool: 'frame', args: { target: 'top' } },
+    { tool: 'done', args: { summary: 'Paid in the frame' } },
+    // switches to a window an action opened
+    { tool: 'snapshot' },
+    { tool: 'click', args: (snapshot) => ({ target: refOf(/button "Open help" \[ref=(e\d+)\]/)(snapshot) }) },
+    { tool: 'tabs', args: { sub: 'switch', arg: '1' } },
+    { tool: 'snapshot' },
+    { tool: 'click', args: (snapshot) => ({ target: refOf(/button "Confirm" \[ref=(e\d+)\]/)(snapshot) }) },
+    { tool: 'done', args: { summary: 'Confirmed in the help window' } }
+])

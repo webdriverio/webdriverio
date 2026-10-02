@@ -18,6 +18,14 @@ export const DEFAULT_ACTIONS = [
     'scroll', 'swipe', 'long-press', 'drag', 'navigate', 'back', 'wait', 'frame', 'tabs', 'dialog'
 ]
 
+/**
+ * actions that move between frames and tabs, recorded even without code
+ */
+const CONTEXT_ACTIONS = new Set(['frame', 'tabs'])
+/**
+ * `frame top` and `frame parent` name no element, there is nothing to heal
+ */
+const FRAME_KEYWORDS = new Set(['top', 'parent'])
 const REF = /^@?e\d+$/
 
 export interface ToolContext {
@@ -158,12 +166,18 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                 }
                 let text = result.text || 'done'
                 if (spec.mutation) {
-                    if (result.code) {
-                        const target = describeTarget(agent, input.target)
+                    /**
+                     * Moving back to the top document or an already declared
+                     * tab emits no code, but a replay still has to take it.
+                     */
+                    if (result.code || CONTEXT_ACTIONS.has(spec.name)) {
+                        const target = spec.name === 'frame' && FRAME_KEYWORDS.has(input.target as string)
+                            ? undefined
+                            : describeTarget(agent, input.target)
                         context.onStep({
                             action: spec.name,
                             args: redact(recordedArgs(agent, input), values),
-                            code: redact(result.code, values),
+                            code: redact(result.code || '', values),
                             ...(target ? { target } : {}),
                             ...(effect && !isEmpty(effect) ? { effect } : {})
                         })
@@ -200,7 +214,10 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
 function sourceTool (context: ToolContext, tool: Awaited<ReturnType<typeof loadToolKit>>['tool'], z: typeof Zod) {
     return tool(async () => {
         try {
-            const source = await context.agent.browser.getPageSource()
+            const { agent } = context
+            const source = agent.scope === agent.browser
+                ? await agent.browser.getPageSource()
+                : await agent.scope.execute(() => document.documentElement.outerHTML)
             const native = !context.agent.session.plan.applies.includes('W')
             const file = await context.workspace!.writeSource(source, native)
             return `Saved the ${native ? 'app source' : 'page HTML'} (${source.length} characters) to ${file}. Search it with grep or read parts of it with read_file.`
