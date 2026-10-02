@@ -69,7 +69,11 @@ describe('wdio session contexts and dialogs', () => {
         expect(inner.split('\n')[0]).toBe(`- document "Child frame" url=${server.url.replace('localhost', '127.0.0.1')}/frame-child.html`)
         expect(inner).toMatch(/button "Frame button" \[ref=e\d+\]/)
         expect((await run('info', '--json')).json.result.data.frame).toBe(`${cross} (iframe "Cross origin frame")`)
-        expect((await run('click', 'button=Frame button')).code).toBe(0)
+        const clicked = await run('click', 'button=Frame button')
+        expect(clicked.stdout).toContain("→ await frame.$('button=Frame button').click()")
+        expect((await run('snapshot')).stdout).toMatch(/button "Frame clicked" \[ref=e\d+\]/)
+        const ref = (await run('snapshot')).stdout.match(/button "Frame clicked" \[ref=(e\d+)\]/)![1]
+        expect((await run('click', ref)).code).toBe(0)
 
         expect((await run('frame', 'top')).stdout).toBe('Switched to the top document\n')
         expect((await run('snapshot')).stdout.split('\n')[0]).toContain('"Frames Fixture"')

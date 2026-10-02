@@ -20,13 +20,33 @@ export interface ResolvedTarget {
 }
 
 /**
+ * Where refs resolve and in-page scripts run: the frame the session holds,
+ * otherwise the browser. A BiDi session holds a frame instead of pointing
+ * the browser at it, so element commands know they run in another navigable
+ * than the top-level page.
+ */
+export function scopeOf (session: Session): WebdriverIO.Browser {
+    return (session.get?.<WebdriverIO.BrowsingContext>('activeContext') ?? session.browser) as unknown as WebdriverIO.Browser
+}
+
+/**
+ * Code that queries the held frame through the variable an earlier step
+ * declared for it, e.g. `frame.$('…')`.
+ */
+function inScope (session: Session, code: string) {
+    const held = session.get?.<WebdriverIO.BrowsingContext>('activeContext')
+    const name = held && session.get<{ names: Record<string, string> }>('contextVars')?.names[held.contextId]
+    return name ? `${name}.${code}` : code
+}
+
+/**
  * The element of a ref or selector, without computing a selector for the
  * recorded code, e.g. for the scope of a snapshot.
  */
 export async function resolveElement (session: Session, target: unknown): Promise<WebdriverIO.Element> {
     const id = typeof target === 'string' ? refId(target) : undefined
     if (id) {
-        return session.refs.resolve(session.browser, id)
+        return session.refs.resolve(scopeOf(session), id)
     }
     return (await resolveTarget(session, target)).element
 }
@@ -41,19 +61,19 @@ export async function resolveTarget (session: Session, target: unknown): Promise
     }
     const id = refId(target)
     if (id) {
-        const element = await session.refs.resolve(session.browser, id)
-        const selector = await session.refs.stableSelector(session.browser, id, element)
+        const element = await session.refs.resolve(scopeOf(session), id)
+        const selector = await session.refs.stableSelector(scopeOf(session), id, element)
         const entry = session.refs.get(id)!
         return {
             element,
             selector,
-            code: `$(${quote(selector)})`,
+            code: inScope(session, `$(${quote(selector)})`),
             label: `${id} (${entry.role}${entry.name ? ` ${JSON.stringify(entry.name)}` : ''})`
         }
     }
     let element: WebdriverIO.Element
     try {
-        element = await session.browser.$(target).getElement()
+        element = await scopeOf(session).$(target).getElement()
     } catch (err) {
         if ((err as Error).name === 'StrictSelectorError') {
             throw new SessionError('ELEMENT_NOT_FOUND', (err as Error).message.split('\n')[0], {
@@ -67,5 +87,5 @@ export async function resolveTarget (session: Session, target: unknown): Promise
             hint: `Run \`wdio session find ${JSON.stringify(target.replace(/^aria\//, ''))}\` or take a new snapshot.`
         })
     }
-    return { element, selector: target, code: `$(${quote(target)})`, label: JSON.stringify(target) }
+    return { element, selector: target, code: inScope(session, `$(${quote(target)})`), label: JSON.stringify(target) }
 }

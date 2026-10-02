@@ -9,6 +9,7 @@ import { expect, setDefaultOptions } from 'expect-webdriverio'
 
 import { IMPORT_FN } from './transform.js'
 import type { Session } from '../session.js'
+import { scopeOf } from '../snapshot/target.js'
 
 export type ConsoleSink = (line: string) => void
 
@@ -108,7 +109,7 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
         error: write('error: ')
     }
     const ref = (id: string) => chainable((async () => {
-        const el = await session.refs.resolve(session.browser, String(id))
+        const el = await session.refs.resolve(scopeOf(session), String(id))
         usedRefs.set(String(id), el)
         return el
     })())
