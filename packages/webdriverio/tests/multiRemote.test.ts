@@ -176,6 +176,24 @@ describe('Multi-Remote tests', () => {
                 expect(element.getInstance('browserB').elementId).toBe('elem-2')
             })
 
+            test('gives one multi-remote element for a list chained on a pending element query', async () => {
+                const childElements = /\/element\/[^/]+\/elements$/
+                const fetchMock = fetch as unknown as { customResponseFor: (pattern: RegExp, response: unknown) => void, resetCustomResponses: () => void }
+                fetchMock.customResponseFor(childElements, { value: elementRefs(2) })
+                const browser = await multiRemote(caps())
+
+                const elements = await browser.$('#parent').$$('#foo')
+                expect(elements).toHaveLength(2)
+                setTimeout(() => fetchMock.customResponseFor(childElements, { value: elementRefs(3) }), 50)
+                const element = await elements[2]
+
+                expect(Array.isArray(element)).toBe(false)
+                expect(element.isMultiRemote).toBe(true)
+                expect(element.getInstance('browserA').elementId).toBe('elem-2')
+                expect(element.getInstance('browserB').elementId).toBe('elem-2')
+                fetchMock.resetCustomResponses()
+            })
+
             test('waits on a list that is not loaded yet', async () => {
                 const browser = await multiRemote(caps())
                 growingElements(browser, 3)

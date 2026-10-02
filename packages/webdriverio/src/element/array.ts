@@ -51,6 +51,12 @@ interface ElementArrayState {
 
 const states = new WeakMap<object, ElementArrayState>()
 
+/**
+ * The state of a list by the proxy handed to user code, so a chained query can
+ * read the metadata of the list it got its items from.
+ */
+const proxyStates = new WeakMap<object, ElementArrayState>()
+
 const RETURN_SELF = new Set(['reverse', 'sort', 'fill', 'copyWithin'])
 
 function stateOf (array: object): ElementArrayState {
@@ -448,6 +454,7 @@ function proxify (array: ElementList, state: ElementArrayState): WebdriverIO.Ele
     }) as unknown as WebdriverIO.ElementArray
 
     state.self = proxy
+    proxyStates.set(proxy, state)
     return proxy
 }
 
@@ -528,8 +535,15 @@ function fromResolved (
  * so those calls still return an element list.
  */
 registerElementArrayFactory((loader, metadata) => {
-    return ElementArray.fromAsyncCallback(
-        loader as () => Promise<ElementList>,
-        metadata as ElementArrayMetadata
-    )
+    const chainedMetadata = metadata as ElementArrayMetadata
+    return ElementArray.fromAsyncCallback(async () => {
+        const items = await (loader as () => Promise<ElementList>)()
+        /**
+         * The items come from the list of the resolved parent. For a multi-remote
+         * parent, that list knows how to build a multi-remote element for an index
+         * past the end.
+         */
+        chainedMetadata.wrapMultiRemote ??= proxyStates.get(items)?.metadata.wrapMultiRemote
+        return items
+    }, chainedMetadata)
 })
