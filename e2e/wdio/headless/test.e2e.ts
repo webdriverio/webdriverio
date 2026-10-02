@@ -118,6 +118,16 @@ describe('main suite 1', () => {
     })
 
     describe('async/iterators', () => {
+        let viewport: { width: number, height: number } | undefined
+
+        /**
+         * this test requires the website to be rendered in mobile view
+         */
+        before(async () => {
+            viewport = await browser.getWindowSize()
+            await browser.setViewport({ width: 900, height: 600 })
+        })
+
         it('should be able to use async-iterators', async () => {
             await browser.url('https://guinea-pig.webdriver.io/navbar.html')
             await browser.$('aria/Toggle navigation bar').click()
@@ -129,6 +139,14 @@ describe('main suite 1', () => {
             })
             await contributeLink.click()
             await expect(browser).toHaveTitle('Contribute | WebdriverIO')
+        })
+
+        after(async () => {
+            if (!viewport) {
+                return
+            }
+
+            await browser.setViewport(viewport)
         })
     })
 
@@ -763,11 +781,11 @@ describe('main suite 1', () => {
                 throw new Error('expected browser.url() to return a browsing context')
             }
             await expect(page.$('#A1')).not.toBePresent()
-            const frame = await page.frame(page.$('iframe'))
+            const frame = await page.frame(page.$('#A'))
             await expect(frame.$('#A1')).toBePresent()
             await page.refresh()
             await expect(page.$('#A1')).not.toBePresent()
-            const again = await page.frame(page.$('iframe'))
+            const again = await page.frame(page.$('#A'))
             await expect(again.$('#A1')).toBePresent()
         })
 
