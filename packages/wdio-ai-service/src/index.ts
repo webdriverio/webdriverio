@@ -1,9 +1,12 @@
 import AiService from './service.js'
+import AiLauncher from './launcher.js'
 import { AiRuntime, type ActScope } from './runtime.js'
 import type { ActOptions, ActResult } from './types.js'
 
 export default AiService
+export const launcher = AiLauncher
 export { ActError } from './errors.js'
+export { ACT_EVENT, type ActRecord } from './stats.js'
 export { DEFAULT_ACTIONS } from './tools.js'
 export type * from './types.js'
 

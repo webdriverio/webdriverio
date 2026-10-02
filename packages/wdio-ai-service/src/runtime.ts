@@ -6,12 +6,13 @@ import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { createAgentSession, type AgentSession } from '@wdio/session/agent'
 
 import { ActCache, cacheFileFor, cacheKey, resolveMode, type EffectiveMode } from './cache.js'
-import { ActError } from './errors.js'
+import { ActError, type TokenUsage } from './errors.js'
 import { runLoop } from './loop.js'
 import { describeModel, resolveModel, selectModel } from './model.js'
 import { actPrompt, replayContext, systemPrompt } from './prompts.js'
 import { assertValues } from './redact.js'
-import { replaySteps } from './replay.js'
+import { replaySteps, type HealedStep } from './replay.js'
+import { emitRecord, writeRecords, type ActRecord } from './stats.js'
 import { pageTools } from './tools.js'
 import type { ActOptions, ActResult, ActStep, AiServiceOptions, CacheMode, ModelOption } from './types.js'
 
@@ -61,7 +62,16 @@ export function browserOf (scope: ActScope): WebdriverIO.Browser {
 export interface PlanResult {
     steps: ActStep[]
     summary: string
+    usage: TokenUsage
 }
+
+interface ActOutcome {
+    result: ActResult
+    usage: TokenUsage
+    healedSteps?: HealedStep[]
+}
+
+const NO_USAGE: TokenUsage = { input: 0, output: 0 }
 
 /**
  * State shared by every `act` call of a worker: the agent session per
@@ -75,6 +85,10 @@ export class AiRuntime {
     #instructions?: Promise<string | undefined>
     #test?: TestContext
     modelCalls = 0
+    /**
+     * one record per `act` call, written for the end-of-run summary
+     */
+    readonly records: ActRecord[] = []
 
     constructor (options: RuntimeOptions = {}) {
         this.options = options
@@ -110,6 +124,7 @@ export class AiRuntime {
      * alone and writes to `<outputDir>/act-cache/` instead.
      */
     async flush () {
+        await writeRecords(this.records.splice(0))
         const mode = this.mode()
         for (const cache of this.#caches.values()) {
             if (mode === 'heal') {
@@ -183,10 +198,49 @@ export class AiRuntime {
         if (result.status === 'fail') {
             throw new ActError({ instruction, reason: result.summary, steps, usage: result.usage })
         }
-        return { steps, summary: result.summary }
+        return { steps, summary: result.summary, usage: result.usage }
     }
 
     async act (scope: ActScope, instruction: string, options: ActOptions = {}): Promise<ActResult> {
+        const started = Date.now()
+        const test = this.#test
+        const base = { ...(test ? { spec: test.spec, test: test.title } : {}), instruction }
+        try {
+            const { result, usage, healedSteps } = await this.#act(scope, instruction, options)
+            this.#record({
+                ...base,
+                source: result.source,
+                ...(result.healed ? { healed: result.healed } : {}),
+                ...(healedSteps?.length ? { healedSteps } : {}),
+                usage,
+                durationMs: Date.now() - started
+            })
+            return result
+        } catch (err) {
+            this.#record({
+                ...base,
+                source: 'model',
+                error: (err as Error).message,
+                usage: err instanceof ActError && err.usage ? err.usage : NO_USAGE,
+                durationMs: Date.now() - started
+            })
+            throw err
+        }
+    }
+
+    #record (record: ActRecord) {
+        this.records.push(record)
+        emitRecord(record)
+        if (record.healed === 'cache') {
+            for (const step of record.healedSteps || []) {
+                log.warn(`act("${record.instruction}") healed step ${step.index + 1} without the model: ${step.from} → ${step.to}`)
+            }
+        } else if (record.healed === 'model') {
+            log.warn(`act("${record.instruction}") was continued by the model after a cached step failed`)
+        }
+    }
+
+    async #act (scope: ActScope, instruction: string, options: ActOptions): Promise<ActOutcome> {
         if (typeof instruction !== 'string' || !instruction.trim()) {
             throw new Error('[@wdio/ai-service] act() needs an instruction')
         }
@@ -211,11 +265,18 @@ export class AiRuntime {
         const cache = mode !== 'off' && key && test ? this.#cacheFor(test.spec) : undefined
         const values = options.values || {}
         const entry = cache && key && mode !== 'record' ? await cache.get(key) : undefined
+        const summarize = (steps: ActStep[]) => steps.map(({ action, code }) => ({ action, code }))
 
         if (entry && entry.instruction === instruction) {
             const replay = await replaySteps(agent, entry.steps, values, waitTimeoutOf(browser))
             if (!replay.failed) {
-                return { source: 'cache', steps: entry.steps.map(({ action, code }) => ({ action, code })) }
+                if (replay.healed.length) {
+                    if (mode !== 'locked') {
+                        this.#store(cache!, key!, { instruction, platform, steps: replay.done }, options, entry.model)
+                    }
+                    return { result: { source: 'cache', healed: 'cache', steps: summarize(replay.done) }, usage: NO_USAGE, healedSteps: replay.healed }
+                }
+                return { result: { source: 'cache', steps: summarize(entry.steps) }, usage: NO_USAGE }
             }
             if (mode === 'locked') {
                 throw new ActError({
@@ -228,24 +289,25 @@ export class AiRuntime {
             const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed))
             const steps = [...replay.done, ...rest.steps]
             this.#store(cache!, key!, { instruction, platform, steps }, options)
-            return { source: 'model', healed: 'model', steps: steps.map(({ action, code }) => ({ action, code })), summary: rest.summary }
+            return { result: { source: 'model', healed: 'model', steps: summarize(steps), summary: rest.summary }, usage: rest.usage, healedSteps: replay.healed }
         }
 
         if (mode === 'locked') {
             throw new ActError({ instruction, reason: `no cached steps for "${key}" and the cache is locked` })
         }
-        const { steps, summary } = await this.plan(agent, instruction, options)
+        const { steps, summary, usage } = await this.plan(agent, instruction, options)
         if (cache && key) {
             this.#store(cache, key, { instruction, platform, steps }, options)
         }
-        return { source: 'model', steps: steps.map(({ action, code }) => ({ action, code })), summary }
+        return { result: { source: 'model', steps: summarize(steps), summary }, usage }
     }
 
-    #store (cache: ActCache, key: string, entry: { instruction: string, platform: string, steps: ActStep[] }, options: ActOptions) {
+    #store (cache: ActCache, key: string, entry: { instruction: string, platform: string, steps: ActStep[] }, options: ActOptions, recordedBy?: string) {
         const model = selectModel(options.model, this.options.model)
+        const modelName = recordedBy ?? (model ? describeModel(model) : undefined)
         cache.set(key, {
             ...entry,
-            ...(model ? { model: describeModel(model) } : {}),
+            ...(modelName ? { model: modelName } : {}),
             recordedAt: new Date().toISOString()
         })
     }

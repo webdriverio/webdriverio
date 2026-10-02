@@ -1,13 +1,29 @@
 import type { AgentSession } from '@wdio/session/agent'
 
-import { substitute } from './redact.js'
+import { redact, substitute } from './redact.js'
 import type { ActStep } from './types.js'
+
+export interface HealedStep {
+    index: number
+    /**
+     * selector that failed
+     */
+    from: string
+    /**
+     * selector that worked
+     */
+    to: string
+}
 
 export interface ReplayResult {
     /**
-     * steps that ran
+     * steps that ran, healed steps with their new selector
      */
     done: ActStep[]
+    /**
+     * steps healed without the model
+     */
+    healed: HealedStep[]
     /**
      * the step that failed and why
      */
@@ -31,18 +47,78 @@ export async function runStep (agent: AgentSession, step: ActStep, values: Recor
     return agent.run(step.action, args)
 }
 
+export function roleSelector (role: string, name: string) {
+    return `role/${role}[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`
+}
+
 /**
- * Run recorded steps in order and stop at the first one that fails.
+ * Other ways to find the target of a step, without the model: the other
+ * recorded selector candidates, then role and accessible name through the
+ * `role/` selector, which uses the browser's accessibility engine on BiDi
+ * sessions.
+ */
+export function alternativeSelectors (step: ActStep): string[] {
+    const target = step.target
+    if (!target) {
+        return []
+    }
+    const alternatives = target.candidates.filter((candidate) => candidate !== target.selector)
+    if (target.role && target.name) {
+        const byRole = roleSelector(target.role, target.name)
+        if (!alternatives.includes(byRole) && byRole !== target.selector) {
+            alternatives.push(byRole)
+        }
+    }
+    return alternatives
+}
+
+/**
+ * Run a step with each alternative selector until one matches exactly one
+ * element and the action succeeds. The page already had the wait timeout of
+ * the original selector to settle, so alternatives are not waited for.
+ */
+export async function healStep (agent: AgentSession, step: ActStep, values: Record<string, string>): Promise<ActStep | undefined> {
+    for (const selector of alternativeSelectors(step)) {
+        try {
+            const matches = await agent.browser.$$(selector).getElements()
+            if (matches.length !== 1) {
+                continue
+            }
+            const args = { ...step.args, target: selector }
+            const result = await agent.run(step.action, substitute(args, values))
+            return {
+                ...step,
+                args,
+                code: result.code ? redact(result.code, values) : step.code.split(step.target!.selector).join(selector),
+                target: { ...step.target!, selector }
+            }
+        } catch {
+            // invalid or stale selector, try the next one
+        }
+    }
+    return undefined
+}
+
+/**
+ * Run recorded steps in order. A step whose target is gone is healed with
+ * an alternative selector. Stop at the first step that cannot be healed.
  */
 export async function replaySteps (agent: AgentSession, steps: ActStep[], values: Record<string, string>, waitTimeout: number): Promise<ReplayResult> {
     const done: ActStep[] = []
+    const healed: HealedStep[] = []
     for (const [index, step] of steps.entries()) {
         try {
             await runStep(agent, step, values, waitTimeout)
             done.push(step)
         } catch (err) {
-            return { done, failed: { step, index, error: (err as Error).message } }
+            const fixed = await healStep(agent, step, values)
+            if (fixed) {
+                done.push(fixed)
+                healed.push({ index, from: step.target!.selector, to: fixed.target!.selector })
+                continue
+            }
+            return { done, healed, failed: { step, index, error: (err as Error).message } }
         }
     }
-    return { done }
+    return { done, healed }
 }

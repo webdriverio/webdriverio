@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { replaySteps } from '../src/replay.js'
+import { alternativeSelectors, replaySteps, roleSelector } from '../src/replay.js'
 import type { ActStep } from '../src/types.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
@@ -11,7 +11,7 @@ const steps: ActStep[] = [
 
 function withBrowser (agent: ReturnType<typeof fakeAgent>['agent'], waitForExist = vi.fn().mockResolvedValue(true)) {
     const $ = vi.fn(() => ({ waitForExist }))
-    Object.assign(agent, { browser: { $ } })
+    Object.assign(agent.browser, { $ })
     return { $, waitForExist }
 }
 
@@ -21,7 +21,7 @@ describe('replaySteps', () => {
         const { $, waitForExist } = withBrowser(agent)
         const result = await replaySteps(agent, steps, { email: 'alice@example.com' }, 3000)
 
-        expect(result).toEqual({ done: steps })
+        expect(result).toEqual({ done: steps, healed: [] })
         expect($).toHaveBeenNthCalledWith(1, '#email')
         expect($).toHaveBeenNthCalledWith(2, 'role/button[name="Sign in"]')
         expect(waitForExist).toHaveBeenCalledWith({ timeout: 3000 })
@@ -47,5 +47,59 @@ describe('replaySteps', () => {
         await replaySteps(agent, [{ action: 'press', args: { keys: 'Enter' }, code: 'await browser.keys(\'Enter\')' }], {}, 3000)
         expect($).not.toHaveBeenCalled()
         expect(run).toHaveBeenCalledWith('press', { keys: 'Enter' })
+    })
+})
+
+describe('healing without the model', () => {
+    const recorded: ActStep = {
+        action: 'click',
+        args: { target: '[data-testid="add"]' },
+        code: 'await $(\'[data-testid="add"]\').click()',
+        target: { selector: '[data-testid="add"]', role: 'button', name: 'Add to cart', candidates: ['[data-testid="add"]', 'aria/Add to cart', '#add'] }
+    }
+
+    it('lists the other candidates and then role and name', () => {
+        expect(alternativeSelectors(recorded)).toEqual(['aria/Add to cart', '#add', 'role/button[name="Add to cart"]'])
+        expect(alternativeSelectors({ ...recorded, target: undefined })).toEqual([])
+        expect(roleSelector('button', 'Say "hi" \\ bye')).toBe('role/button[name="Say \\"hi\\" \\\\ bye"]')
+    })
+
+    it('runs the step with the first alternative that matches exactly one element', async () => {
+        const { agent, run, matches, waitForExist } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
+        waitForExist.mockRejectedValueOnce(new Error('still not existing'))
+        matches.set('aria/Add to cart', 2)
+        matches.set('#add', 1)
+
+        const result = await replaySteps(agent, [recorded], {}, 100)
+
+        expect(result.failed).toBeUndefined()
+        expect(result.healed).toEqual([{ index: 0, from: '[data-testid="add"]', to: '#add' }])
+        expect(result.done[0]).toEqual({
+            ...recorded,
+            args: { target: '#add' },
+            code: 'await $(\'#add\').click()',
+            target: { ...recorded.target, selector: '#add' }
+        })
+        expect(run).toHaveBeenLastCalledWith('click', { target: '#add' })
+    })
+
+    it('finds the element by role and name when every recorded selector is gone', async () => {
+        const { agent, matches, waitForExist } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
+        waitForExist.mockRejectedValueOnce(new Error('still not existing'))
+        matches.set('role/button[name="Add to cart"]', 1)
+
+        const result = await replaySteps(agent, [recorded], {}, 100)
+        expect(result.healed).toEqual([{ index: 0, from: '[data-testid="add"]', to: 'role/button[name="Add to cart"]' }])
+    })
+
+    it('reports the step as failed when no alternative matches exactly one element', async () => {
+        const { agent, run, matches, waitForExist } = fakeAgent()
+        waitForExist.mockRejectedValueOnce(new Error('still not existing'))
+        matches.set('role/button[name="Add to cart"]', 3)
+
+        const result = await replaySteps(agent, [recorded], {}, 100)
+        expect(result.healed).toEqual([])
+        expect(result.failed).toMatchObject({ index: 0, error: 'still not existing' })
+        expect(run).not.toHaveBeenCalled()
     })
 })

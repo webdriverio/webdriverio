@@ -33,6 +33,17 @@ const RECORDED = {
                 code: CLICK,
                 target: { selector: 'role/button[name="Add to cart"]', role: 'button', name: 'Add to cart', candidates: ['role/button[name="Add to cart"]', 'aria/Add to cart'] }
             }]
+        },
+        'renamed-test-id': {
+            instruction: 'Add the item to the cart',
+            platform: 'web',
+            recordedAt: '2026-10-01T12:00:00.000Z',
+            steps: [{
+                action: 'click',
+                args: { target: '[data-testid="add-old"]' },
+                code: 'await $(\'[data-testid="add-old"]\').click()',
+                target: { selector: '[data-testid="add-old"]', role: 'button', name: 'Add to cart', candidates: ['[data-testid="add-old"]'] }
+            }]
         }
     }
 }
@@ -83,5 +94,16 @@ describe('browser.act() cache', () => {
         expect(replayed).toEqual({ source: 'cache', steps: [{ action: 'click', code: CLICK }] })
         expect(cacheModel.calls).toHaveLength(calls)
         await expect($('#count')).toHaveText('2')
+    })
+
+    it('heals a step whose test id changed through role and name, without a model', async () => {
+        await browser.url(`${origin}/`)
+        const result = await browser.act('Add the item to the cart', { id: 'renamed-test-id', cache: 'locked', model: cacheModel })
+        expect(result).toEqual({
+            source: 'cache',
+            healed: 'cache',
+            steps: [{ action: 'click', code: CLICK }]
+        })
+        await expect($('#count')).toHaveText('1')
     })
 })

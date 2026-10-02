@@ -86,7 +86,28 @@ The steps of every `act` call are recorded in `__act__/<spec file>.json` next to
 
 An entry is keyed by the full test title and the position of the `act` call in the test (`#1`, `#2`, …), or by the `id` option. When the instruction text changes, the call is recorded again. Placeholders stay placeholders in the file.
 
-When a replayed step fails because the page changed, the model gets the steps that already ran and the failing step, and continues from the current page. The updated steps replace the entry.
+## Healing
+
+When a replayed step fails because the page changed, `act` heals it in two levels and reports every heal:
+
+| Level | What happens | Model call | Reported as |
+| --- | --- | --- | --- |
+| 1 | Try the other recorded selectors of the element, then its role and accessible name with the [`role/` selector](https://webdriver.io/docs/selectors#role-selector). A selector is only used when it matches exactly one element. | no | `healed: 'cache'` |
+| 2 | The model gets the steps that already ran and the failing step, and continues from the current page. | yes | `healed: 'model'` |
+
+The healed steps replace the entry, except in `locked` mode, which heals at level 1 but writes nothing and fails instead of calling the model.
+
+At the end of the run the service prints a summary:
+
+```
+@wdio/ai-service: 42 act calls · 39 from cache · 2 healed without the model · 1 healed by the model · 0 recorded by the model · 3.1k tokens
+Healed:
+  cart.e2e.ts › cart adds a shirt "Add a blue shirt to the cart": step 2 [data-testid="add"] → role/button[name="Add to cart"] (without the model)
+  checkout.e2e.ts › checkout pays "Pay with the test card": continued by the model
+Updated cache entries: ./logs/act-cache
+```
+
+Every call also emits an `ai:act` event on `process` with `{ spec, test, instruction, source, healed, healedSteps, error, usage, durationMs }`, so reporters can show it.
 
 | Mode | Cached | Not cached | Writes |
 | --- | --- | --- | --- |

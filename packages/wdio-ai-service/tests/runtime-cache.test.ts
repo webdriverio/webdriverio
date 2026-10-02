@@ -201,4 +201,86 @@ describe('AiRuntime cache', () => {
         await second.runtime.act(browser, 'Fill in {{email}}', { values: { email: 'second@example.com' } })
         expect(fake.run).toHaveBeenCalledWith('fill', { target: '#email', text: 'second@example.com' })
     })
+
+    it('heals a step without the model, stores the new selector and reports it', async () => {
+        const first = runtime()
+        first.runtime.startTest(spec, 'cart')
+        await first.runtime.act(browser, 'Add the shirt')
+        await first.runtime.flush()
+
+        fake.waitForExist.mockRejectedValueOnce(new Error('not existing'))
+        fake.matches.set('role/button[name="Add to cart"]', 0)
+        const cached = readCache()
+        cached.entries['cart › #1'].steps[0].target.candidates = ['[data-testid="gone"]', '#add']
+        cached.entries['cart › #1'].steps[0].target.selector = '[data-testid="gone"]'
+        cached.entries['cart › #1'].steps[0].args.target = '[data-testid="gone"]'
+        fs.writeFileSync(cacheFile(), JSON.stringify(cached))
+        fake.matches.set('#add', 1)
+        fake.run.mockImplementation(async (action: string, args: Record<string, unknown> = {}) => ({ text: 'ok', code: `await $('${args.target}').click()` }))
+
+        const events: unknown[] = []
+        const listener = (record: unknown) => events.push(record)
+        process.on('ai:act' as 'message', listener)
+        const second = runtime({}, [])
+        second.runtime.startTest(spec, 'cart')
+        const result = await second.runtime.act(browser, 'Add the shirt')
+        process.off('ai:act' as 'message', listener)
+        const [record] = second.runtime.records
+        await second.runtime.flush()
+
+        expect(result).toEqual({ source: 'cache', healed: 'cache', steps: [{ action: 'click', code: 'await $(\'#add\').click()' }] })
+        expect(second.model.calls).toHaveLength(0)
+        expect(readCache().entries['cart › #1'].steps[0].target.selector).toBe('#add')
+        expect(readCache().entries['cart › #1'].model).toBe('ScriptedChatModel')
+        expect(record).toMatchObject({
+            spec,
+            test: 'cart',
+            instruction: 'Add the shirt',
+            source: 'cache',
+            healed: 'cache',
+            healedSteps: [{ index: 0, from: '[data-testid="gone"]', to: '#add' }],
+            usage: { input: 0, output: 0 }
+        })
+        expect(events).toEqual([record])
+    })
+
+    it('heals without the model in locked mode but writes nothing', async () => {
+        const first = runtime()
+        first.runtime.startTest(spec, 'cart')
+        await first.runtime.act(browser, 'Add the shirt')
+        await first.runtime.flush()
+        const cached = readCache()
+        cached.entries['cart › #1'].steps[0].target.candidates.push('#add')
+        fs.writeFileSync(cacheFile(), JSON.stringify(cached))
+        const before = fs.readFileSync(cacheFile(), 'utf-8')
+
+        fake.waitForExist.mockRejectedValueOnce(new Error('not existing'))
+        fake.matches.set('#add', 1)
+        const locked = runtime({ cache: 'locked' }, [])
+        locked.runtime.startTest(spec, 'cart')
+        const result = await locked.runtime.act(browser, 'Add the shirt')
+        await locked.runtime.flush()
+        expect(result.healed).toBe('cache')
+        expect(fs.readFileSync(cacheFile(), 'utf-8')).toBe(before)
+    })
+
+    it('records failed calls with their error and writes the records for the launcher', async () => {
+        const runDir = path.join(dir, 'run')
+        process.env.WDIO_AI_RUN_DIR = runDir
+        try {
+            const { runtime: ai } = runtime({}, [{ tool: 'fail', args: { reason: 'no such button' } }])
+            ai.startTest(spec, 'cart')
+            await expect(ai.act(browser, 'Press the missing button')).rejects.toThrow('no such button')
+            await ai.flush()
+            const [file] = fs.readdirSync(runDir)
+            const records = JSON.parse(fs.readFileSync(path.join(runDir, file), 'utf-8'))
+            expect(records).toEqual([expect.objectContaining({
+                instruction: 'Press the missing button',
+                error: 'act("Press the missing button") failed: no such button',
+                usage: { input: 100, output: 10 }
+            })])
+        } finally {
+            delete process.env.WDIO_AI_RUN_DIR
+        }
+    })
 })
