@@ -183,7 +183,8 @@ A replayed or healed step is only accepted when it has the same effect:
 
 - A healed step that clicks a similar but wrong element, for example a *Add to cart* button that now adds to the wishlist, sends a different request and is rejected.
 - A step that still finds its element but no longer does anything fails with *"ran, but the step no longer causes POST /api/cart → 2xx. The app may have changed behavior, not just markup."*: a regression, not a markup change.
-- Steps the model takes to continue from a failed step have to cause the effect of that step.
+- A step that ran but did something else is never run again, not with another selector and not by the model, because it may already have submitted a form or a payment. `act` fails in every cache mode, and you decide whether the app changed on purpose.
+- Steps the model takes to continue from a step whose element is gone have to cause the effect of that step.
 
 | Mode | Check |
 | --- | --- |

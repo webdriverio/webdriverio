@@ -162,13 +162,23 @@ describe('effect checks during replay', () => {
         expect($$).not.toHaveBeenCalled()
     })
 
-    it('rejects an alternative selector whose element does something else', async () => {
-        const { agent, waitForExist, matches } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
+    it('rejects an alternative selector whose element does something else, and tries no further one', async () => {
+        const { agent, run, waitForExist, matches } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
         waitForExist.mockRejectedValueOnce(new Error('not existing'))
+        matches.set('#add-to-wishlist', 1)
         matches.set('role/button[name="Add to cart"]', 1)
-        const result = await replaySteps(agent, [step], {}, 100, recorder({ requests: ['POST /api/wishlist → 2xx'] }))
+        const withCandidates = { ...step, target: { ...step.target!, candidates: ['[data-testid="add"]', '#add-to-wishlist'] } }
+
+        const result = await replaySteps(agent, [withCandidates], {}, 100, recorder({ requests: ['POST /api/wishlist → 2xx'] }, CART))
         expect(result.healed).toEqual([])
-        expect(result.failed).toMatchObject({ index: 0, error: 'not existing' })
+        expect(result.failed).toEqual({
+            step: withCandidates,
+            index: 0,
+            error: 'the step ran on #add-to-wishlist, which does not cause POST /api/cart → 2xx',
+            kind: 'effect',
+            healedWith: '#add-to-wishlist'
+        })
+        expect(run).toHaveBeenCalledTimes(1)
     })
 
     it('accepts an alternative selector whose element has the recorded effect', async () => {

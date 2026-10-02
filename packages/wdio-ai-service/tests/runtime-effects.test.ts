@@ -71,9 +71,22 @@ describe('AiRuntime effects', () => {
         expect(error.reason).toBe(`cached step 1 (${code}) ran, but the step no longer causes POST /api/cart → 2xx, a change in status "Cart". The app may have changed behavior, not just markup.`)
     })
 
+    it('fails without calling the model when a cached step ran but did something else, in every mode', async () => {
+        await record()
+        effects.push({ requests: ['POST /api/wishlist → 2xx'] })
+        const writing = runtime([{ tool: 'click', args: { target: 'e3' } }, { tool: 'done', args: { summary: 'clicked again' } }])
+        writing.runtime.startTest(spec, 'cart')
+        const error = await writing.runtime.act(browser, 'Add the shirt').catch((err) => err)
+        expect(error).toBeInstanceOf(ActError)
+        expect(error.reason).toContain('ran, but the step no longer causes POST /api/cart → 2xx')
+        expect(writing.model.calls).toHaveLength(0)
+        expect(fake.run.mock.calls.filter(([action]) => action === 'click')).toHaveLength(2)
+    })
+
     it('fails when the steps the model took to continue do not have the recorded effect', async () => {
         await record()
-        effects.push({}, { requests: ['POST /api/wishlist → 2xx'] })
+        fake.waitForExist.mockRejectedValueOnce(new Error('element still not existing'))
+        effects.push({ requests: ['POST /api/wishlist → 2xx'] })
         fake.setRef({ id: 'e9', role: 'button', name: 'Wishlist', candidates: ['role/button[name="Wishlist"]'] })
         const healing = runtime([{ tool: 'click', args: { target: 'e9' } }, { tool: 'done', args: { summary: 'clicked the other button' } }])
         healing.runtime.startTest(spec, 'cart')
@@ -86,7 +99,8 @@ describe('AiRuntime effects', () => {
 
     it('accepts a model continuation that has the recorded effect', async () => {
         await record()
-        effects.push({}, CART)
+        fake.waitForExist.mockRejectedValueOnce(new Error('element still not existing'))
+        effects.push(CART)
         fake.setRef({ id: 'e9', role: 'button', name: 'Add to bag', candidates: ['role/button[name="Add to bag"]'] })
         const healing = runtime([{ tool: 'click', args: { target: 'e9' } }, { tool: 'done', args: { summary: 'ok' } }])
         healing.runtime.startTest(spec, 'cart')

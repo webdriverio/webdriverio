@@ -36,7 +36,20 @@ export interface ReplayResult {
      * the step that failed and why. `effect` when the step ran but did not
      * do what it did when it was recorded.
      */
-    failed?: { step: ActStep, index: number, error: string, kind?: 'effect' }
+    failed?: {
+        step: ActStep
+        index: number
+        error: string
+        /**
+         * the step ran and did something else. It is never run again, by
+         * another selector or by the model: it may have submitted a form.
+         */
+        kind?: 'effect'
+        /**
+         * the alternative selector the step ran with
+         */
+        healedWith?: string
+    }
 }
 
 const TARGET_KEYS = ['target', 'from', 'to'] as const
@@ -123,11 +136,31 @@ export async function healStep (agent: AgentSession, step: ActStep, values: Reco
                 code: result.code ? redact(result.code, values) : step.code.split(step.target!.selector).join(selector),
                 target: { ...step.target!, selector }
             }
-        } catch {
+        } catch (err) {
+            /**
+             * the action ran on the alternative element and did something
+             * else, trying the next one could run another wrong action
+             */
+            if (err instanceof EffectMismatchError) {
+                throw new HealMismatchError(selector, err.missing)
+            }
             // invalid or stale selector, try the next one
         }
     }
     return undefined
+}
+
+/**
+ * an alternative selector found an element, the step ran on it and did not
+ * have its recorded effect
+ */
+export class HealMismatchError extends Error {
+    readonly selector: string
+    constructor (selector: string, missing: string[]) {
+        super(`the step ran on ${selector}, which does not cause ${missing.join(', ')}`)
+        this.name = 'HealMismatchError'
+        this.selector = selector
+    }
 }
 
 /**
@@ -150,7 +183,15 @@ export async function replaySteps (agent: AgentSession, steps: ActStep[], values
             if (err instanceof EffectMismatchError) {
                 return { done, healed, failed: { step, index, error: err.message, kind: 'effect' } }
             }
-            const fixed = await healStep(agent, step, values, effects)
+            let fixed: ActStep | undefined
+            try {
+                fixed = await healStep(agent, step, values, effects)
+            } catch (healErr) {
+                if (healErr instanceof HealMismatchError) {
+                    return { done, healed, failed: { step, index, error: healErr.message, kind: 'effect', healedWith: healErr.selector } }
+                }
+                throw healErr
+            }
             if (fixed) {
                 await heal?.after()
                 done.push(fixed)

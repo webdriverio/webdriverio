@@ -440,12 +440,25 @@ export class AiRuntime {
                 }
                 return { result: { source: 'cache', steps: summarize(entry.steps) }, usage: NO_USAGE }
             }
+            const failed = replay.failed
+            /**
+             * A step that ran but did something else is not handed to the
+             * model in any mode: the model would run it again to cause the
+             * recorded effect, e.g. submit a payment twice.
+             */
+            if (failed.kind === 'effect') {
+                throw new ActError({
+                    instruction,
+                    reason: failed.healedWith
+                        ? `cached step ${failed.index + 1} (${failed.step.code}) no longer finds its element, and ${failed.error}. The app may have changed behavior, not just markup.`
+                        : `cached step ${failed.index + 1} (${failed.step.code}) ran, but ${failed.error}. The app may have changed behavior, not just markup.`,
+                    steps: replay.done
+                })
+            }
             if (mode === 'locked') {
                 throw new ActError({
                     instruction,
-                    reason: replay.failed.kind === 'effect'
-                        ? `cached step ${replay.failed.index + 1} (${replay.failed.step.code}) ran, but ${replay.failed.error}. The app may have changed behavior, not just markup.`
-                        : `cached step ${replay.failed.index + 1} (${replay.failed.step.code}) failed and the cache is locked: ${replay.failed.error}`,
+                    reason: `cached step ${failed.index + 1} (${failed.step.code}) failed and the cache is locked: ${failed.error}`,
                     steps: replay.done
                 })
             }

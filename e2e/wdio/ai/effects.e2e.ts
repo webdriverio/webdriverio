@@ -85,8 +85,12 @@ describe('act() step effects', () => {
         await browser.url(`${origin}/renamed`)
         const error = await browser.act('Add the item to the cart', { id: 'add', cache: 'locked' }).catch((err) => err)
         expect(error).toBeInstanceOf(ActError)
-        expect(error.reason).toContain('failed and the cache is locked')
+        expect(error.reason).toContain('no longer finds its element, and the step ran on role/button[name="Add to cart"], which does not cause POST /api/cart → 2xx')
         await expect($('#cart')).toHaveText('0')
+        /**
+         * the wrong button was clicked once, never again
+         */
+        await expect($('#wishlist')).toHaveText('1')
     })
 
     it('reports a step that ran but no longer does what it did', async () => {
