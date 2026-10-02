@@ -111,9 +111,10 @@ describe('browser.act() cache', () => {
         await expect($('#count')).toHaveText('1')
 
         /**
-         * a screenshot when the cached step failed and one after the heal
+         * a screenshot when the cached step failed and one after the heal,
+         * the video of Firefox is checked in `healVideo.e2e.ts`
          */
-        const artifacts = records[0].artifacts!
+        const artifacts = records[0].artifacts!.filter((file) => file.endsWith('.png'))
         expect(artifacts.map((file) => path.basename(file))).toEqual(['failed.png', 'step-1.png'])
         expect(path.dirname(artifacts[0]).startsWith(path.join(cacheDir, 'workspaces', 'heals'))).toBe(true)
         for (const file of artifacts) {

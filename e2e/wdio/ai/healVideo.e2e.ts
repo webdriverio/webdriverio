@@ -13,7 +13,7 @@ const PAGE = `<!doctype html><title>Shop</title>
     <button data-testid="add-new" onclick="const c = document.getElementById('count'); c.textContent = String(Number(c.textContent) + 1)">Add to cart</button>
 </main>`
 
-describe('heal evidence in Firefox', () => {
+describe('heal videos', () => {
     let server: Server
     let origin: string
 
