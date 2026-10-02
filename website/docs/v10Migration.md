@@ -556,6 +556,8 @@ Command results stay in capability order: the first entry belongs to the first k
 + await items[0].getInstance('myChromeBrowser').click()
 ```
 
+`WebdriverIO.MultiRemoteElement['selector']` has the `Selector` type, as `WebdriverIO.Element['selector']` has. In v9 it had the `string` type, but the value could also be a function or a custom strategy reference. TypeScript code that uses it as a string, for example `element.selector.includes('…')`, must check the type first.
+
 `WDIO_ENABLE_MULTI_REMOTE_SELECT` and `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY` have been removed. `select()` is always available, and `$$()` always returns the element array above. Delete both variables.
 
 ## Binary mock responses
