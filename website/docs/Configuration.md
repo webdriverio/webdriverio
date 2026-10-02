@@ -942,7 +942,7 @@ Hook that gets executed before a WebdriverIO assertion happens.
 Parameters:
 
 - `params`: assertion information
-- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.matcherName` (`string`): name of the matcher that the test called (e.g. `toHaveTitle`). For an alias, it is the name of the alias (e.g. `toBeExisting`, not `toExist`).
 - `params.expectedValue`: value that is passed into the matcher
 - `params.options`: assertion options
 
@@ -953,7 +953,7 @@ Hook that gets executed after a WebdriverIO assertion happened.
 Parameters:
 
 - `params`: assertion information
-- `params.matcherName` (`string`): name of the matcher (e.g. `toHaveTitle`)
+- `params.matcherName` (`string`): name of the matcher that the test called (e.g. `toHaveTitle`). For an alias, it is the name of the alias (e.g. `toBeExisting`, not `toExist`).
 - `params.expectedValue`: value that is passed into the matcher
 - `params.options`: assertion options
 - `params.result`: assertion results
