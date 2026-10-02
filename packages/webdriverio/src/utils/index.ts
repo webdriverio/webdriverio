@@ -14,8 +14,8 @@ import { checkElementsContainedIn, checkElementsConnected } from './elementCheck
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
 import { DEEP_SELECTOR, ROLE_SELECTOR, Key } from '../constants.js'
 import { findStrategy, getAriaXPathSelector, type RoleSelector } from './findStrategy.js'
-import findByRole from '../scripts/findByRole.js'
-import { roleTable } from '../scripts/roles.js'
+import findByRole, { ACCESSIBILITY_API_MISSING } from '../scripts/findByRole.js'
+import { accessibilityScript } from '../commands/constant.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, heldBrowsingContext } from '../session/browsingContext.js'
@@ -351,14 +351,18 @@ async function findRoleElementsByScript(
         )
     }
     const root = getScopedElementId(ctx) ? ctx as WebdriverIO.Element : null
-    const result = await browser.execute(
-        findByRole as unknown as (...args: unknown[]) => ElementReference[],
-        roleTable(),
+    const find = () => browser.execute(
+        findByRole as unknown as (...args: unknown[]) => ElementReference[] | string,
         role,
         name ?? null,
         -1,
         root
     )
+    let result = await find()
+    if (result === ACCESSIBILITY_API_MISSING) {
+        await browser.execute(accessibilityScript)
+        result = await find()
+    }
     return (Array.isArray(result) ? result : []).filter((elem) => getElementFromResponse(elem))
 }
 
@@ -527,7 +531,6 @@ async function findInFrameByScript (
             functionDeclaration: createBidiFunctionDeclaration(findByRole as unknown as Function),
             awaitPromise: true,
             arguments: [
-                LocalValue.getArgument(roleTable()),
                 LocalValue.getArgument(role),
                 LocalValue.getArgument(name ?? null),
                 LocalValue.getArgument(index),
@@ -535,7 +538,11 @@ async function findInFrameByScript (
             ] as remote.ScriptLocalValue[],
             target: { context: held.contextId }
         }
-        const found = parseScriptResult(roleParams, await browser.scriptCallFunction(roleParams))
+        let found = parseScriptResult(roleParams, await browser.scriptCallFunction(roleParams))
+        if (found === ACCESSIBILITY_API_MISSING) {
+            await browser.scriptEvaluate({ expression: accessibilityScript, target: { context: held.contextId }, awaitPromise: false })
+            found = parseScriptResult(roleParams, await browser.scriptCallFunction(roleParams))
+        }
         if (typeof found === 'number') {
             return found
         }

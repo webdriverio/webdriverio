@@ -9,6 +9,7 @@ import { beforeEach, vi } from 'vitest'
 process.env.WDIO_UNIT_TESTS = '1'
 globalThis.WDIO_RESQ_SCRIPT = ''
 globalThis.WDIO_FAKER_SCRIPT = ''
+globalThis.WDIO_A11Y_SCRIPT = ''
 
 const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'

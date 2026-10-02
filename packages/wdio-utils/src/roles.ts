@@ -14,8 +14,8 @@ let cache: RoleRule[] | undefined
 
 /**
  * Implicit ARIA roles of HTML elements from `aria-query`, most specific
- * rules first. Passed to in-page scripts (the `role/` selector fallback and
- * `@wdio/session` snapshots) so the page needs no dependency.
+ * rules first. Passed to the in-page snapshot script of `@wdio/session` so
+ * the page needs no dependency.
  */
 export function roleTable (): RoleRule[] {
     if (cache) {

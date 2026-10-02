@@ -75,6 +75,7 @@ packages/**/cjs/
 /*.mjs
 /*.ts
 !vitest.config.ts
+!vitest.browser.config.ts
 !.oxlintrc.json
 packages/**/package-lock.json
 .DS_Store

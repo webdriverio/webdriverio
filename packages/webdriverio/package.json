@@ -70,6 +70,7 @@
     "@types/archiver": "^8.0.0",
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
+    "dom-accessibility-api": "^0.7.1",
     "puppeteer-core": "^25.11.0",
     "safe-stable-stringify": "^2.4.3"
   },
