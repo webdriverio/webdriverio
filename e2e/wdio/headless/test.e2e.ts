@@ -4,6 +4,7 @@ import url from 'node:url'
 import path from 'node:path'
 import { createServer } from 'node:http'
 import { once } from 'node:events'
+import { createRequire } from 'node:module'
 import type { AddressInfo } from 'node:net'
 import { browser, $, $$, expect } from '@wdio/globals'
 
@@ -15,6 +16,24 @@ import logger from '@wdio/logger'
 import { some } from 'expect-webdriverio/api'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+const require = createRequire(import.meta.url)
+
+/**
+ * a React app with 3 `Item` components and a button that adds one, mounted with `mount`
+ */
+const reactApp = (mount: string) => `<title>React</title><div id="root"></div>
+<script src="/react/react.js"></script><script src="/react/react-dom.js"></script>
+<script>
+const h = React.createElement
+function Item (props) { return h('li', null, props.color) }
+function App () {
+    const [colors, setColors] = React.useState(['red', 'blue', 'red'])
+    return h('div', null,
+        h('ul', null, colors.map((color, index) => h(Item, { key: index, color }))),
+        h('button', { id: 'add', onClick: () => setColors(colors.concat('green')) }, 'add'))
+}
+${mount}
+</script>`
 
 describe('main suite 1', () => {
     const navigationPages: Record<string, string> = {
@@ -22,7 +41,16 @@ describe('main suite 1', () => {
         '/window-b': '<title>Window Beta</title><p id="beta">Beta</p>',
         '/frames': '<title>Frame Demo</title><iframe src="/frame-a"></iframe>',
         '/frame-a': '<title>IFrame A</title><iframe src="/frame-a2"></iframe>',
-        '/frame-a2': '<title>IFrame A2</title><h1>Nested frame</h1>'
+        '/frame-a2': '<title>IFrame A2</title><h1>Nested frame</h1>',
+        '/react-render': reactApp("ReactDOM.render(h(App), document.getElementById('root'))"),
+        '/react-create-root': reactApp("ReactDOM.createRoot(document.getElementById('root')).render(h(App))")
+    }
+    /**
+     * the React 18 builds of the `e2e` package, so the React pages need no network
+     */
+    const reactScripts: Record<string, string> = {
+        '/react/react.js': 'react',
+        '/react/react-dom.js': 'react-dom'
     }
     /**
      * `/basic_auth` accepts only `admin:admin`. It sends no `WWW-Authenticate` header, so a
@@ -31,6 +59,15 @@ describe('main suite 1', () => {
     const BASIC_AUTH = `Basic ${Buffer.from('admin:admin').toString('base64')}`
     const basicAuthHeaders: (string | undefined)[] = []
     const navigationServer = createServer((request, response) => {
+        const reactScript = reactScripts[request.url || '']
+        if (reactScript) {
+            response.setHeader('Content-Type', 'text/javascript; charset=utf-8')
+            /**
+             * the `exports` of the React packages do not include the UMD files
+             */
+            const umd = path.join(path.dirname(require.resolve(`${reactScript}/package.json`)), 'umd', `${reactScript}.production.min.js`)
+            return fs.readFile(umd, 'utf8').then((source) => response.end(source))
+        }
         response.setHeader('Content-Type', 'text/html; charset=utf-8')
         if (request.url === '/basic_auth') {
             basicAuthHeaders.push(request.headers.authorization)
@@ -619,6 +656,27 @@ describe('main suite 1', () => {
             expect((await browser.execute(getDateString)).toLocaleString('en-GB', { timeZone: 'UTC' }))
                 .not.toBe(mockedDateString)
         })
+    })
+
+    describe('react$ and react$$', () => {
+        for (const [page, mount] of [['react-render', 'ReactDOM.render'], ['react-create-root', 'createRoot']]) {
+            it(`finds the components of the current render with ${mount}`, async () => {
+                await browser.url(`${navigationOrigin}/${page}`)
+                await expect(browser.react$$('Item')).toBeElementsArrayOfSize(3)
+                await expect(browser.react$('Item', { props: { color: 'blue' } })).toHaveText('blue')
+                await expect($('ul').react$$('Item')).toBeElementsArrayOfSize(3)
+
+                /**
+                 * React uses the other copy of each fiber after an update: no retry here,
+                 * so a result of the previous render fails
+                 */
+                await $('#add').click()
+                await expect($$('li')).toBeElementsArrayOfSize(4)
+                expect((await browser.react$$('Item')).length).toBe(4)
+                expect((await $('ul').react$$('Item')).length).toBe(4)
+                expect(await browser.react$('Item', { props: { color: 'green' } }).getText()).toBe('green')
+            })
+        }
     })
 
     describe('shadow root piercing', () => {
