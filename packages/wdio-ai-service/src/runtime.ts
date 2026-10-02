@@ -21,7 +21,8 @@ import { slug, Workspace, type KeepPolicy } from './workspace.js'
 import { HealEvidence } from './evidence.js'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 
-import { answerTools, EXTRACT_PROMPT, jsonSchemaOf, READ_ACTIONS, validate, type ExtractOutcome } from './extract.js'
+import { answerTools, EXTRACT_PROMPT, jsonSchemaOf, READ_ACTIONS, RESPONSES_PROMPT, validate, type ExtractOutcome } from './extract.js'
+import { ResponseLog } from './responses.js'
 import type { ActOptions, ActResult, ActStep, AiServiceOptions, CacheMode, ExtractOptions, ModelOption } from './types.js'
 
 const log = logger('@wdio/ai-service')
@@ -128,6 +129,7 @@ export class AiRuntime {
     readonly options: RuntimeOptions
     #agents = new WeakMap<WebdriverIO.Browser, Promise<AgentSession>>()
     #recorders = new WeakMap<WebdriverIO.Browser, Promise<EffectRecorder | undefined>>()
+    #responses = new WeakMap<WebdriverIO.Browser, Promise<ResponseLog | undefined>>()
     readonly effects: EffectsConfig
     #models = new Map<ModelOption, Promise<BaseChatModel>>()
     #caches = new Map<string, ActCache>()
@@ -219,8 +221,16 @@ export class AiRuntime {
             agent = createAgentSession(browser, { name: 'ai', captureEvents: true })
             this.#agents.set(browser, agent)
             this.#recorders.set(browser, agent.then((session) => this.#attachRecorder(browser, session)))
+            this.#responses.set(browser, agent.then((session) => this.#attachResponses(browser, session)))
         }
         return agent
+    }
+
+    async #attachResponses (browser: WebdriverIO.Browser, agent: AgentSession) {
+        if (this.options.responseBodies === false || agent.session.plan.platform !== 'browser') {
+            return undefined
+        }
+        return ResponseLog.attach(browser, this.effects.ignore)
     }
 
     /**
@@ -519,6 +529,8 @@ export class AiRuntime {
         const workspace = this.#workspaceFor(instruction)
         workspace.values = values
         await workspace.writeEvents(agent.logs, agent.network)
+        const responses = await this.#responses.get(agent.browser)?.catch(() => undefined)
+        const withResponses = responses ? await workspace.writeResponses(responses) > 0 : false
         const jsonSchema = jsonSchemaOf(schema)
         const tools = await pageTools({ agent, values, actions: READ_ACTIONS, onStep: () => {}, workspace, scope: scopeRef })
         let feedback = ''
@@ -528,7 +540,7 @@ export class AiRuntime {
                 const result = await runLoop({
                     model: await this.#model(modelOption),
                     tools,
-                    systemPrompt: [EXTRACT_PROMPT, WORKSPACE_PROMPT].join('\n\n'),
+                    systemPrompt: [EXTRACT_PROMPT, WORKSPACE_PROMPT, ...(withResponses ? [RESPONSES_PROMPT] : [])].join('\n\n'),
                     prompt: [
                         `Instruction: ${instruction}`,
                         scopeRef ? SCOPE_PROMPT : '',

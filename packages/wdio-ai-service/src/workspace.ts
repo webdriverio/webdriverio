@@ -6,6 +6,7 @@ import type { AgentMiddleware } from 'langchain'
 import type { LogEntry, NetworkEntry } from '@wdio/session/agent'
 
 import { redact } from './redact.js'
+import type { ResponseLog } from './responses.js'
 import type { ActStep } from './types.js'
 
 export type KeepPolicy = 'on-failure' | 'always' | 'never'
@@ -89,6 +90,33 @@ export class Workspace {
             this.#write('console.ndjson', logs.map((entry) => JSON.stringify(entry)).join('\n')),
             this.#write('network.ndjson', network.map((entry) => JSON.stringify(entry)).join('\n'))
         ])
+    }
+
+    /**
+     * the bodies of the API responses the page received, one file each,
+     * listed in `/responses/index.ndjson`. Returns how many were written.
+     */
+    async writeResponses (log: ResponseLog) {
+        const index: string[] = []
+        for (const [i, response] of log.responses.entries()) {
+            const body = await log.body(response)
+            if (body === undefined) {
+                continue
+            }
+            let pathname = response.url
+            try {
+                pathname = new URL(response.url).pathname
+            } catch {
+                pathname = response.url
+            }
+            const name = `${String(i + 1).padStart(2, '0')}-${response.method}-${slug(pathname)}.${/json/i.test(response.mimeType) ? 'json' : 'txt'}`
+            const file = await this.#write(path.join('responses', name), body)
+            index.push(JSON.stringify({ file, method: response.method, url: response.url, status: response.status, mimeType: response.mimeType }))
+        }
+        if (index.length) {
+            await this.#write(path.join('responses', 'index.ndjson'), index.join('\n'))
+        }
+        return index.length
     }
 
     async writeSteps (steps: ActStep[]) {

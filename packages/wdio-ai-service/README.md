@@ -56,6 +56,7 @@ export const config: WebdriverIO.Config = {
 | `maxModelCalls` | `number` | | Model calls per worker. |
 | `actions` | `string[]` | page actions of `wdio session` | Actions the model may use. Code execution, cookies, storage, mocks and emulation are never offered. |
 | `effects` | `'strict' \| 'loose' \| 'off' \| { mode, ignore }` | `'strict'` | How replayed and healed steps are checked against what they did when recorded, see [Step effects](#step-effects). `ignore` adds URL patterns to the analytics hosts that never count. |
+| `responseBodies` | `boolean` | `true` | Collect fetch and XHR response bodies over WebDriver BiDi so `extract` can read them, see [Extract](#extract). |
 | `healEvidence` | `boolean` | `true` | Save screenshots of every heal and failed replay, plus a video where the browser records one, see [Heal evidence](#heal-evidence). |
 | `workspace.dir` | `string` | `<outputDir>/ai` or `.wdio/ai` | Root of the evidence folders, see [Workspace](#workspace). |
 | `workspace.keep` | `'on-failure' \| 'always' \| 'never'` | `'on-failure'` | Keep a test's folder when an `act` call failed or healed, or the test failed. |
@@ -78,6 +79,13 @@ await browser.act('Log in as {{email}} with password {{password}}', {
 `extract(instruction, schema, options?)` reads information from the page and validates it against a [Standard Schema](https://standardschema.dev): zod, valibot, arktype and others. The model can only read the page (`snapshot`, `find`, `get`, `is`, `scroll`, the workspace), never change it. When the schema library can describe itself as JSON Schema (zod 4 can), the model gets that shape. An answer that does not match is rejected and the model answers again once. `extract` results are never cached: a read has to see the current page.
 
 Keep pass/fail decisions in code: let `extract` find the value, and assert it with `expect`.
+
+Pages often show less than they load: a count instead of the items, a rounded price, a truncated name. Over WebDriver BiDi the service collects the bodies of the fetch and XHR responses with a text body that the page receives, using a network data collector (Chrome and Firefox). Before an `extract` call it writes the latest 50 to `/responses` in the workspace, with an index of method, URL and status. The model can read them and names the file as evidence. Analytics hosts and the `effects.ignore` patterns are left out. Set `responseBodies: false` to turn this off.
+
+```ts
+// the page only shows "2 items in your cart"
+const skus = await browser.extract('the SKUs of the items in the cart', z.array(z.string()))
+```
 
 ## Cache
 

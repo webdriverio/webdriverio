@@ -49,7 +49,23 @@ export const extractModel = new ScriptedChatModel([
     // reads typed data from a real page
     { tool: 'snapshot' },
     { tool: 'get', args: { sub: 'text', target: 'role/row[name="Blue Shirt M 1"]' } },
-    { tool: 'answer', args: { value: [{ name: 'Blue Shirt', size: 'M', qty: 1 }, { name: 'Red Socks', size: 'L', qty: 2 }], evidence: ['role/row[name="Blue Shirt M 1"]'] } }
+    { tool: 'answer', args: { value: [{ name: 'Blue Shirt', size: 'M', qty: 1 }, { name: 'Red Socks', size: 'L', qty: 2 }], evidence: ['role/row[name="Blue Shirt M 1"]'] } },
+    // reads a value the page only received from its API
+    { tool: 'read_file', args: { file_path: '/responses/index.ndjson' } },
+    {
+        tool: 'read_file',
+        args: (index) => {
+            const file = index.match(/(\/responses\/[^"\\]+-api-cart\.json)/)?.[1]
+            if (!file) {
+                throw new Error(`no cart response in:\n${index}`)
+            }
+            return { file_path: file }
+        }
+    },
+    {
+        tool: 'answer',
+        args: (body) => ({ value: [...body.matchAll(/sku\\?":\s*\\?"([^"\\]+)/g)].map((match) => match[1]), evidence: ['/responses/index.ndjson'] })
+    }
 ])
 
 const refOf = (pattern: RegExp) => (snapshot: string) => {

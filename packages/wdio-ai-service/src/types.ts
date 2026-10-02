@@ -79,6 +79,12 @@ export interface AiServiceOptions {
      */
     effects?: EffectsMode | { mode?: EffectsMode, ignore?: (string | RegExp)[] }
     /**
+     * Collect the bodies of the fetch and XHR responses the page receives
+     * with a WebDriver BiDi network data collector, so `extract()` can read
+     * them from the workspace (default `true`)
+     */
+    responseBodies?: boolean
+    /**
      * Save screenshots of every heal, and a video where the browser records
      * a WebDriver BiDi screencast, to `<workspace dir>/heals/` (default
      * `true`). Nothing is captured while cached steps replay fine.

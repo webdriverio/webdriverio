@@ -55,6 +55,27 @@ describe('Workspace', () => {
         expect(JSON.parse(read('steps.json'))[0].code).toContain('{{password}}')
     })
 
+    it('writes response bodies with an index, redacted, and skips bodies the browser no longer has', async () => {
+        const workspace = new Workspace(root, 'cart.e2e.ts', 'responses')
+        workspace.values = { token: 's3cr3t' }
+        const responses = [
+            { request: 'r1', method: 'GET', url: 'https://shop.example/api/cart?x=1', status: 200, mimeType: 'application/json' },
+            { request: 'r2', method: 'POST', url: 'https://shop.example/api/gone', status: 201, mimeType: 'text/plain' },
+            { request: 'r3', method: 'GET', url: 'https://shop.example/api/me', status: 200, mimeType: 'text/plain' }
+        ]
+        const bodies: Record<string, string | undefined> = { r1: '{"items":[{"sku":"blue-shirt"}]}', r3: 'token=s3cr3t' }
+        const log = { responses, body: async (response: { request: string }) => bodies[response.request] }
+
+        expect(await workspace.writeResponses(log as never)).toBe(2)
+        const dir = path.join(workspace.dir, 'responses')
+        expect(fs.readdirSync(dir).sort()).toEqual(['01-GET-api-cart.json', '03-GET-api-me.txt', 'index.ndjson'])
+        expect(fs.readFileSync(path.join(dir, '03-GET-api-me.txt'), 'utf-8')).toBe('token={{token}}')
+        expect(fs.readFileSync(path.join(dir, 'index.ndjson'), 'utf-8').split('\n').map((line) => JSON.parse(line))).toEqual([
+            { file: '/responses/01-GET-api-cart.json', method: 'GET', url: 'https://shop.example/api/cart?x=1', status: 200, mimeType: 'application/json' },
+            { file: '/responses/03-GET-api-me.txt', method: 'GET', url: 'https://shop.example/api/me', status: 200, mimeType: 'text/plain' }
+        ])
+    })
+
     it('moves long tool output to a file and returns a pointer with the first lines', async () => {
         const workspace = new Workspace(root, 'cart.e2e.ts', 'big page')
         expect(await workspace.inline('snapshot', 'short')).toBe('short')
