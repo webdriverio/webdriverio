@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import { ACTIONS, ACTION_MAP, type ActionSpec } from '../../src/actions/specs.js'
 import { buildParser, runSessionCli } from '../../src/cli/command.js'
-import { findHelpRequest, renderActionHelp, renderOverview } from '../../src/cli/help.js'
+import { findHelpRequest, renderActionHelp, renderCommandsMarkdown, renderOverview } from '../../src/cli/help.js'
 
 /**
  * Split one shell command into words. Handles the quoting the examples use:
@@ -43,12 +43,25 @@ function shellWords (line: string) {
 }
 
 /**
+ * Commands other than `wdio session` that an example may chain to.
+ */
+const OTHER_COMMANDS = ['npx wdio run ']
+
+/**
  * The `wdio session` calls in an example, as argument lists. A heredoc runs
- * `exec`, as it does in `runSessionCli`.
+ * `exec`, as it does in `runSessionCli`. `url=$(wdio session …)` is the
+ * call inside the substitution. Any other segment fails the example.
  */
 function sessionCalls (example: string) {
     return example.split('\n')[0].split(/\s*(?:&&|\|\|)\s*/)
-        .filter((segment) => segment.startsWith('wdio session '))
+        .map((segment) => segment.replace(/^\w+=\$\((.*)\)$/, '$1'))
+        .filter((segment) => {
+            if (segment.startsWith('wdio session ')) {
+                return true
+            }
+            expect(OTHER_COMMANDS.some((prefix) => segment.startsWith(prefix)), `unexpected command in example: ${segment}`).toBe(true)
+            return false
+        })
         .map((segment) => shellWords(segment.slice('wdio session '.length)).map((word) => word.startsWith('<<') ? 'exec' : word))
 }
 
@@ -89,6 +102,10 @@ describe('action specs', () => {
         }
     })
 
+    it('rejects chained commands that are not wdio session', () => {
+        expect(() => sessionCalls('wdio session click e3 && wdoi session snapshot')).toThrow('unexpected command')
+    })
+
     it('only links to actions that exist', () => {
         for (const spec of ACTIONS) {
             for (const name of spec.seeAlso || []) {
@@ -124,6 +141,17 @@ describe('help output', () => {
         expect(text).toContain('wdio session click e3 && wdio session wait')
         expect(text).toContain('Run `wdio session <action> --help`')
         expect(text).toContain('4  No session with that name')
+    })
+
+    it('prefixes every chained call with npx in the docs', () => {
+        const markdown = renderCommandsMarkdown()
+        expect(markdown).toContain('npx wdio session status || npx wdio session open chrome')
+        expect(markdown).toContain('url=$(npx wdio session get url -q)')
+        expect(markdown).not.toMatch(/(^|&& |\|\| |\$\()wdio session/m)
+    })
+
+    it('marks a repeatable flag once', () => {
+        expect(renderActionHelp(ACTION_MAP.get('mock')!)).toMatch(/Header k:v \(repeatable\)\n/)
     })
 
     it('describes one action with its own flags, examples and links', () => {

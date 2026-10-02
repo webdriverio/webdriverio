@@ -292,7 +292,7 @@ export function renderCommandsMarkdown () {
                 ...options.map(([key, option]) => `| ${cell(`\`${flagLabel(key, option)}\``)} | ${cell(flagDesc(option))} |`))
         }
         if (spec.examples?.length) {
-            out.push('', '**Examples**', '', '```sh', spec.examples.map(([cmd, desc]) => `# ${desc}\n${cmd.replace(/(^|&& )wdio session/g, '$1npx wdio session')}`).join('\n\n'), '```')
+            out.push('', '**Examples**', '', '```sh', spec.examples.map(([cmd, desc]) => `# ${desc}\n${cmd.replace(/(^|&& |\|\| |\$\()wdio session/g, '$1npx wdio session')}`).join('\n\n'), '```')
         }
         if (spec.seeAlso?.length) {
             out.push('', `See also: ${spec.seeAlso.map((name) => `[\`${name}\`](#${name})`).join(', ')}.`)

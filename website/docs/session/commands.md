@@ -215,7 +215,7 @@ npx wdio session status
 
 ```sh
 # Open a session only when none is running
-npx wdio session status || wdio session open chrome http://localhost:3000
+npx wdio session status || npx wdio session open chrome http://localhost:3000
 ```
 
 See also: [`list`](#list), [`open`](#open).
@@ -499,7 +499,7 @@ See also: [`snapshot`](#snapshot), [`get`](#get).
 
 Read text, html, value, an attribute, the title, the URL, a count or a box. Applies to web.
 
-Prints only the value, so the output works in a shell variable. Read a value before you write an assertion for it.
+Prints the value, then the WebdriverIO code it ran (`→ …`). Pass -q to print only the value, e.g. to capture it in a shell variable. Read a value before you write an assertion for it.
 
 ```sh
 npx wdio session get <sub> [target] [name]
@@ -522,6 +522,9 @@ npx wdio session get text e1
 # Current URL
 npx wdio session get url
 
+# Only the value, for a shell variable
+url=$(npx wdio session get url -q)
+
 # href of a link
 npx wdio session get attr e3 href
 
@@ -535,7 +538,7 @@ See also: [`is`](#is), [`wait`](#wait), [`exec`](#exec).
 
 Check whether an element is visible, enabled or checked. Applies to web.
 
-Prints true or false. The exit code is 0 either way.
+Prints true or false, then the WebdriverIO code it ran; pass -q to print only the value. The exit code is 0 either way.
 
 ```sh
 npx wdio session is <sub> <target>
@@ -1589,7 +1592,7 @@ npx wdio session mock <pattern>
 | --- | --- |
 | `--status <n>` | Status code |
 | `--body <value>` | Body as JSON/text or a file path |
-| `--header <value>` | Header k:v (repeatable) (repeatable) |
+| `--header <value>` | Header k:v (repeatable) |
 | `--abort` | Abort matching requests |
 | `--method <value>` | Only this method |
 | `--once` | Only the next request |

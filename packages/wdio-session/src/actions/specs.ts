@@ -286,7 +286,7 @@ export const ACTIONS: ActionSpec[] = [
     {
         name: 'get', group: 'Observation', applies: ['W'],
         desc: 'Read text, html, value, an attribute, the title, the URL, a count or a box',
-        details: 'Prints only the value, so the output works in a shell variable. Read a value before you write an assertion for it.',
+        details: 'Prints the value, then the WebdriverIO code it ran (`→ …`). Pass -q to print only the value, e.g. to capture it in a shell variable. Read a value before you write an assertion for it.',
         positionals: [
             { name: 'sub', desc: 'text | html | value | attr | title | url | count | box', required: true, choices: ['text', 'html', 'value', 'attr', 'title', 'url', 'count', 'box'] },
             { name: 'target', desc: 'Ref or selector (not used for title and url)' },
@@ -295,6 +295,7 @@ export const ACTIONS: ActionSpec[] = [
         examples: [
             ['wdio session get text e1', 'Text of a ref'],
             ['wdio session get url', 'Current URL'],
+            ['url=$(wdio session get url -q)', 'Only the value, for a shell variable'],
             ['wdio session get attr e3 href', 'href of a link'],
             ['wdio session get count "aria/Remove"', 'How many elements match']
         ],
@@ -303,7 +304,7 @@ export const ACTIONS: ActionSpec[] = [
     {
         name: 'is', group: 'Observation', applies: ['W'],
         desc: 'Check whether an element is visible, enabled or checked',
-        details: 'Prints true or false. The exit code is 0 either way.',
+        details: 'Prints true or false, then the WebdriverIO code it ran; pass -q to print only the value. The exit code is 0 either way.',
         positionals: [
             { name: 'sub', desc: 'visible | enabled | checked', required: true, choices: ['visible', 'enabled', 'checked'] },
             { name: 'target', desc: 'Ref or selector', required: true }
@@ -663,7 +664,7 @@ export const ACTIONS: ActionSpec[] = [
         options: {
             status: { type: 'number', desc: 'Status code' },
             body: { type: 'string', desc: 'Body as JSON/text or a file path' },
-            header: { type: 'string', array: true, desc: 'Header k:v (repeatable)' },
+            header: { type: 'string', array: true, desc: 'Header k:v' },
             abort: { type: 'boolean', desc: 'Abort matching requests' },
             method: { type: 'string', desc: 'Only this method' },
             once: { type: 'boolean', desc: 'Only the next request' }
