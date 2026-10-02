@@ -157,7 +157,14 @@ export const ACTIONS: ActionSpec[] = [
         positionals: [{ name: 'text', desc: 'Text to search for', required: true }],
         options: { regex: { type: 'boolean', desc: 'Treat text as a regular expression' }, context: { type: 'number', desc: 'Lines of context (default 2)' } }
     },
-    { name: 'diff', group: 'Observation', applies: ['W', 'M', 'D'], desc: 'Diff a fresh snapshot against the previous one', options: { baseline: { type: 'string', desc: 'Snapshot file to compare with' } } },
+    {
+        name: 'diff', group: 'Observation', applies: ['W', 'M', 'D'], desc: 'Diff a fresh snapshot against the previous one',
+        options: {
+            baseline: { type: 'string', desc: 'Snapshot file to compare with' },
+            scope: { type: 'string', desc: 'Only snapshot within this ref or selector, like `snapshot --scope`' },
+            interactive: { type: 'boolean', desc: 'Only interactive elements, like `snapshot -i`' }
+        }
+    },
     {
         name: 'screenshot', group: 'Observation', applies: ['W', 'M', 'D'],
         desc: 'Save a PNG of the viewport, an element or the full page',

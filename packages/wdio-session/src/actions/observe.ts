@@ -132,7 +132,10 @@ export const diff: ActionFn = async (session, args) => {
         }
         before = fs.readFileSync(file, 'utf-8').replace(/\n$/, '')
     }
-    const { text } = await takeSnapshot(session)
+    const { text } = await takeSnapshot(session, {
+        scope: typeof args.scope === 'string' ? args.scope : undefined,
+        interactive: Boolean(args.interactive)
+    })
     if (before === undefined) {
         return { text: `No previous snapshot, stored this one as the baseline (${text.split('\n').length} lines).`, data: { changed: false, baseline: true } }
     }

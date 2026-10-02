@@ -61,6 +61,16 @@ describe('@wdio/session/agent', () => {
         expect(text).toContain('button "Add to cart"')
         expect(text).not.toContain('Checkout')
         expect(text).not.toContain('Cart (')
+
+        /**
+         * the click moves the focus inside the scope and changes the cart
+         * outside of it, the diff only shows the scope
+         */
+        await agent.run('click', { target: '[data-testid="add-red"]' })
+        const scoped = await agent.run('diff', { scope, interactive: true })
+        expect(scoped.text).toContain('[focused]')
+        expect(scoped.text).not.toContain('Checkout')
+        expect(scoped.text).not.toContain('Remove Red Hoodie')
     })
 
     it('keeps the history in memory and leaves the browser session open on dispose', async () => {

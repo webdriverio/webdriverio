@@ -216,6 +216,8 @@ Diff a fresh snapshot against the previous one. Applies to web, native mobile, n
 | Flag | Description |
 | --- | --- |
 | `--baseline` | Snapshot file to compare with |
+| `--scope` | Only snapshot within this ref or selector, like `snapshot --scope` |
+| `--interactive` | Only interactive elements, like `snapshot -i` |
 
 ## `screenshot`
 
