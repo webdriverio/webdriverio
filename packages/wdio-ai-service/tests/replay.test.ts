@@ -92,6 +92,19 @@ describe('healing without the model', () => {
         expect(result.healed).toEqual([{ index: 0, from: '[data-testid="add"]', to: 'role/button[name="Add to cart"]' }])
     })
 
+    it('does not run a step of a scoped call on an element outside the scope, and heals inside it', async () => {
+        const { agent, run, matches } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
+        const contains = agent.contains as unknown as ReturnType<typeof vi.fn>
+        contains.mockImplementation(async (_scope: string, target: string) => target === '#add')
+        matches.set('#add', 1)
+
+        const result = await replaySteps(agent, [recorded], {}, 100, 'e100')
+        expect(contains).toHaveBeenCalledWith('e100', '[data-testid="add"]')
+        expect(result.healed).toEqual([{ index: 0, from: '[data-testid="add"]', to: '#add' }])
+        expect(run).toHaveBeenCalledTimes(1)
+        expect(run).toHaveBeenCalledWith('click', { target: '#add' })
+    })
+
     it('reports the step as failed when no alternative matches exactly one element', async () => {
         const { agent, run, matches, waitForExist } = fakeAgent()
         waitForExist.mockRejectedValueOnce(new Error('still not existing'))

@@ -37,6 +37,7 @@ export function fakeAgent (responses: (action: string, args: Record<string, unkn
         actions: ACTIONS.filter((spec) => !spec.applies || spec.applies.includes('W')),
         run,
         pin: vi.fn(async () => 'e100'),
+        contains: vi.fn(async () => true),
         snapshot: vi.fn(),
         ref: (id: string) => refs.get(id.replace(/^@/, '')),
         history: [],

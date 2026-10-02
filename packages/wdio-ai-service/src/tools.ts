@@ -17,6 +17,10 @@ export const DEFAULT_ACTIONS = [
 ]
 
 const REF = /^@?e\d+$/
+/**
+ * action arguments that name an element
+ */
+export const TARGET_KEYS = ['target', 'from', 'to'] as const
 
 export interface ToolContext {
     agent: AgentSession
@@ -161,9 +165,22 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
              */
             const hidden: [string, string][] = [...Object.entries(values), ...(context.secrets || [])]
             try {
-                const args = spec.name === 'snapshot' && context.scope && !input.scope
+                /**
+                 * a scoped call only sees and acts inside its element: every
+                 * snapshot is limited to it, whatever scope the model asks for,
+                 * and targets outside it are refused
+                 */
+                const args = spec.name === 'snapshot' && context.scope
                     ? { ...input, scope: context.scope }
                     : input
+                if (context.scope) {
+                    for (const key of TARGET_KEYS) {
+                        const target = input[key]
+                        if (typeof target === 'string' && target && !await agent.contains(context.scope, substitute(target, values))) {
+                            return redact(`Error: ${target} is outside the element this call is limited to. Pick a target from the latest snapshot.`, hidden)
+                        }
+                    }
+                }
                 const result = await agent.run(spec.name, substitute(args, values))
                 if (spec.name === 'snapshot') {
                     diffArgs = {
@@ -211,10 +228,16 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
 function sourceTool (context: ToolContext, tool: Awaited<ReturnType<typeof loadToolKit>>['tool'], z: typeof Zod) {
     return tool(async () => {
         try {
-            const source = await context.agent.browser.getPageSource()
             const native = !context.agent.session.plan.applies.includes('W')
+            /**
+             * a scoped call saves the HTML of its element, not of the page
+             */
+            const source = context.scope
+                ? (await context.agent.run('get', { sub: 'html', target: context.scope })).text || ''
+                : await context.agent.browser.getPageSource()
             const file = await context.workspace!.writeSource(source, native)
-            return `Saved the ${native ? 'app source' : 'page HTML'} (${source.length} characters) to ${file}. Search it with grep or read parts of it with read_file.`
+            const what = native ? 'app source' : context.scope ? 'HTML of the element this call is limited to' : 'page HTML'
+            return `Saved the ${what} (${source.length} characters) to ${file}. Search it with grep or read parts of it with read_file.`
         } catch (err) {
             return `Error: ${redact((err as Error).message, [...Object.entries(context.values), ...(context.secrets || [])])}`
         }

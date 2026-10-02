@@ -364,7 +364,7 @@ export class AiRuntime {
         const summarize = (steps: ActStep[]) => steps.map(({ action, code }) => ({ action, code }))
 
         if (entry && entry.instruction === instruction) {
-            const replay = await replaySteps(agent, entry.steps, values, waitTimeoutOf(browser))
+            const replay = await replaySteps(agent, entry.steps, values, waitTimeoutOf(browser), scopeRef)
             if (!replay.failed) {
                 if (replay.healed.length) {
                     if (mode !== 'locked') {

@@ -1,9 +1,12 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { createServer, type Server } from 'node:http'
 import { once } from 'node:events'
 import type { AddressInfo } from 'node:net'
 import { browser, $, expect } from '@wdio/globals'
+import { ActError } from '@wdio/ai-service'
 
-import { scopeModel } from './model.js'
+import { cacheDir, scopeModel } from './model.js'
 
 const CHECKOUT = `<!doctype html><title>Checkout</title>
 <form id="billing"><h2>Billing</h2><label>Email <input type="email" id="billing-email"></label></form>
@@ -35,5 +38,37 @@ describe('element.act()', () => {
         await expect($('#billing-email')).toHaveValue('billing@example.com')
         await expect($('#shipping-email')).toHaveValue('')
         expect(scopeModel.sentText()).not.toContain('Shipping')
+    })
+
+    it('refuses a target the model picked outside the element', async () => {
+        await browser.url(`${origin}/`)
+        const error = await $('#billing').act('Fill in the shipping email', { model: scopeModel }).catch((err) => err)
+        expect(error).toBeInstanceOf(ActError)
+        expect(scopeModel.sentText()).toContain('Error: #shipping-email is outside the element this call is limited to.')
+        await expect($('#shipping-email')).toHaveValue('')
+    })
+
+    it('does not replay a cached step on an element outside the element', async () => {
+        fs.writeFileSync(path.join(cacheDir, 'scope.e2e.ts.json'), JSON.stringify({
+            version: 1,
+            entries: {
+                'billing-email': {
+                    instruction: 'Fill in the email',
+                    platform: 'web',
+                    recordedAt: '2026-10-01T12:00:00.000Z',
+                    steps: [{
+                        action: 'fill',
+                        args: { target: '#shipping-email', text: 'billing@example.com' },
+                        code: 'await $(\'#shipping-email\').setValue(\'billing@example.com\')',
+                        target: { selector: '#shipping-email', candidates: ['#shipping-email'] }
+                    }]
+                }
+            }
+        }))
+        await browser.url(`${origin}/`)
+        const error = await $('#billing').act('Fill in the email', { id: 'billing-email', cache: 'locked', model: scopeModel }).catch((err) => err)
+        expect(error).toBeInstanceOf(ActError)
+        expect(error.reason).toContain('#shipping-email is outside the element this act() call is limited to')
+        await expect($('#shipping-email')).toHaveValue('')
     })
 })

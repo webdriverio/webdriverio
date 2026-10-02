@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { ACTIONS } from '@wdio/session'
 
@@ -91,6 +91,31 @@ describe('pageTools', () => {
         expect(output).toContain('{{password}}')
         expect(steps[0].code).toBe('await $(\'#password\').setValue(\'{{password}}\')')
         expect(steps[0].args).toEqual({ target: '#password', text: '{{password}}' })
+    })
+
+    it('keeps a scoped call inside its element: snapshots, targets and the page source', async () => {
+        const { agent, run } = fakeAgent((action, args) => {
+            if (action === 'get' && args.sub === 'html') {
+                return { text: '<form id="billing"><input name="email"></form>' }
+            }
+        })
+        const contains = agent.contains as unknown as ReturnType<typeof vi.fn>
+        contains.mockImplementation(async (_scope: string, target: string) => target !== '#newsletter-email')
+        const writeSource = vi.fn(async () => '/page.html')
+        const tools = await pageTools({ agent, values: {}, onStep: () => {}, scope: 'e100', workspace: { writeSource, inline: async (_name: string, text: string) => text } as never })
+        const byName = (name: string) => tools.find((t) => t.name === name)!
+
+        await byName('snapshot').invoke({ scope: 'e1' })
+        expect(run).toHaveBeenLastCalledWith('snapshot', { scope: 'e100' })
+
+        await expect(byName('fill').invoke({ target: '#newsletter-email', text: 'a@b.c' }))
+            .resolves.toBe('Error: #newsletter-email is outside the element this call is limited to. Pick a target from the latest snapshot.')
+        expect(run).not.toHaveBeenCalledWith('fill', expect.anything())
+        await byName('fill').invoke({ target: 'input[name="email"]', text: 'a@b.c' })
+        expect(run).toHaveBeenCalledWith('fill', { target: 'input[name="email"]', text: 'a@b.c' })
+
+        await expect(byName('source').invoke({})).resolves.toContain('Saved the HTML of the element this call is limited to (46 characters)')
+        expect(writeSource).toHaveBeenCalledWith('<form id="billing"><input name="email"></form>', false)
     })
 
     it('does not record a read and returns action errors as text', async () => {

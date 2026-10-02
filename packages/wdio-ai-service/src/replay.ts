@@ -1,6 +1,7 @@
 import type { AgentSession } from '@wdio/session/agent'
 
 import { redact, substitute } from './redact.js'
+import { TARGET_KEYS } from './tools.js'
 import type { ActStep } from './types.js'
 
 export interface HealedStep {
@@ -30,21 +31,30 @@ export interface ReplayResult {
     failed?: { step: ActStep, index: number, error: string }
 }
 
-const TARGET_KEYS = ['target', 'from', 'to'] as const
-
 /**
  * Wait until the targets of a step exist, like an `await $(selector)` in a
  * spec would, then run the step.
  */
-export async function runStep (agent: AgentSession, step: ActStep, values: Record<string, string>, waitTimeout: number) {
+export async function runStep (agent: AgentSession, step: ActStep, values: Record<string, string>, waitTimeout: number, scope?: string) {
     const args = substitute(step.args, values)
     for (const key of TARGET_KEYS) {
         const selector = args[key]
         if (typeof selector === 'string' && selector) {
             await agent.browser.$(selector).waitForExist({ timeout: waitTimeout })
+            await assertInScope(agent, scope, selector)
         }
     }
     return agent.run(step.action, args)
+}
+
+/**
+ * A step of a call scoped to an element must not act outside it, even when
+ * its selector also matches something else on the page.
+ */
+async function assertInScope (agent: AgentSession, scope: string | undefined, selector: string) {
+    if (scope && !await agent.contains(scope, selector)) {
+        throw new Error(`${selector} is outside the element this act() call is limited to`)
+    }
 }
 
 export function roleSelector (role: string, name: string) {
@@ -77,11 +87,11 @@ export function alternativeSelectors (step: ActStep): string[] {
  * element and the action succeeds. The page already had the wait timeout of
  * the original selector to settle, so alternatives are not waited for.
  */
-export async function healStep (agent: AgentSession, step: ActStep, values: Record<string, string>): Promise<ActStep | undefined> {
+export async function healStep (agent: AgentSession, step: ActStep, values: Record<string, string>, scope?: string): Promise<ActStep | undefined> {
     for (const selector of alternativeSelectors(step)) {
         try {
             const matches = await agent.browser.$$(selector).getElements()
-            if (matches.length !== 1) {
+            if (matches.length !== 1 || (scope && !await agent.contains(scope, selector))) {
                 continue
             }
             const args = { ...step.args, target: selector }
@@ -100,18 +110,19 @@ export async function healStep (agent: AgentSession, step: ActStep, values: Reco
 }
 
 /**
- * Run recorded steps in order. A step whose target is gone is healed with
- * an alternative selector. Stop at the first step that cannot be healed.
+ * Run recorded steps in order. A step whose target is gone, or outside the
+ * element of a scoped call, is healed with an alternative selector. Stop at
+ * the first step that cannot be healed.
  */
-export async function replaySteps (agent: AgentSession, steps: ActStep[], values: Record<string, string>, waitTimeout: number): Promise<ReplayResult> {
+export async function replaySteps (agent: AgentSession, steps: ActStep[], values: Record<string, string>, waitTimeout: number, scope?: string): Promise<ReplayResult> {
     const done: ActStep[] = []
     const healed: HealedStep[] = []
     for (const [index, step] of steps.entries()) {
         try {
-            await runStep(agent, step, values, waitTimeout)
+            await runStep(agent, step, values, waitTimeout, scope)
             done.push(step)
         } catch (err) {
-            const fixed = await healStep(agent, step, values)
+            const fixed = await healStep(agent, step, values, scope)
             if (fixed) {
                 done.push(fixed)
                 healed.push({ index, from: step.target!.selector, to: fixed.target!.selector })

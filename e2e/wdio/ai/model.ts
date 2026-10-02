@@ -62,5 +62,8 @@ export const scopeModel = scriptedModel([
     // acts inside the element it was called on
     { tool: 'snapshot' },
     { tool: 'fill', args: (snapshot) => ({ target: refOf(/textbox "Email" \[ref=(e\d+)\]/)(snapshot), text: '{{email}}' }) },
-    { tool: 'done', args: { summary: 'Filled in the billing email' } }
+    { tool: 'done', args: { summary: 'Filled in the billing email' } },
+    // refuses a target outside the element
+    { tool: 'fill', args: { target: '#shipping-email', text: 'shipping@example.com' } },
+    { tool: 'fail', args: { reason: 'the shipping email is not part of the billing form' } }
 ])
