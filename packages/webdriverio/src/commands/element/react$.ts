@@ -13,8 +13,9 @@ import type { ReactSelectorOptions } from '../../types.js'
  *
  * :::info
  *
- * The command only works with applications using React v16.x. Read more about React
- * selectors in the [Selectors](/docs/selectors#react-selectors) guide.
+ * The command works with applications using React v16 to v19, with `createRoot` or
+ * `ReactDOM.render`. Read more about React selectors in the
+ * [Selectors](/docs/selectors#react-selectors) guide.
  *
  * :::
  *
