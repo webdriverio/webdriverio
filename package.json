@@ -55,6 +55,7 @@
     "test:typings:cucumber": "cd tests/typings/cucumber && npx tsc --skipLibCheck",
     "test:unit": "run-s test:unit:run",
     "test:unit:run": "vitest --config vitest.config.ts --run",
+    "test:unit:browser": "vitest --config vitest.browser.config.ts --run",
     "test:package": "tsx ./infra/repo-tools/src/test-package.ts",
     "test:unit:watch": "vitest --config vitest.config.ts --watch",
     "test:component": "run-s test:component:*",
@@ -95,6 +96,7 @@
     "@vercel/routing-utils": "^6.6.0",
     "@vitejs/plugin-react": "^5.2.0",
     "@vitejs/plugin-vue": "^6.0.9",
+    "@vitest/browser-webdriverio": "^5.0.0",
     "@vitest/coverage-v8": "^5.0.2",
     "@wdio/config": "workspace:*",
     "@wdio/repl": "workspace:*",
@@ -124,7 +126,8 @@
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "unzipper": "^0.12.5",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.2",
+    "webdriverio": "workspace:*"
   },
   "engines": {
     "node": ">=22.19.0",

@@ -1,11 +1,12 @@
-/**
- * @vitest-environment jsdom
- */
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import findByRole from '../../src/scripts/findByRole.js'
+import findByRoleSource from '../../src/scripts/findByRole.js'
 import { roleTable } from '../../src/scripts/roles.js'
 
+/**
+ * the finder runs from its source, like `browser.execute` sends it
+ */
+const findByRole = new Function(`return (${findByRoleSource.toString()})`)() as typeof findByRoleSource
 const rules = roleTable()
 const all = (role: string, name: string | null = null, root: Element | null = null) =>
     findByRole(rules, role, name, -1, root) as Element[]
