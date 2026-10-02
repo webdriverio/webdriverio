@@ -706,22 +706,29 @@ export async function findDeepElement(
      * back-forward cache without a `navigationCommitted` event. Drop them and
      * search the current document instead of falling back to classic.
      */
-    const locateNodes = () => browser.browsingContextLocateNodes({ locator, context, startNodes }).catch((err: Error) => {
+    const locateNodes = () => browser.browsingContextLocateNodes({ locator, context, startNodes }).catch(async (err: Error) => {
         /**
-         * Only a tracked root the error names is gone. A stale scope element
+         * Only a tracked node the error names is gone. A stale scope element
          * is retried by the element middleware instead.
          */
         const message = String(err?.message)
-        if (!message.includes('no such node') || !shadowRoots.some((root) => message.includes(root))) {
+        const staleNodes = message.includes('no such node')
+            ? shadowRoots.filter((root) => message.includes(root))
+            : []
+        if (staleNodes.length === 0) {
             throw err
         }
-        shadowRootManager.forgetContext(context)
-        shadowRoots = []
+        for (const node of staleNodes) {
+            shadowRootManager.forgetNode(context, node)
+        }
         const scope = (this as WebdriverIO.Element).elementId
+        shadowRoots = await shadowRootManager.getShadowElementsByContextId(context, scope)
         return browser.browsingContextLocateNodes({
             locator,
             context,
-            startNodes: scope ? [{ sharedId: scope }] : undefined
+            startNodes: scope
+                ? [{ sharedId: scope }, ...shadowRoots.map((sharedId) => ({ sharedId }))]
+                : shadowRoots.length > 0 ? shadowRoots.map((sharedId) => ({ sharedId })) : undefined
         })
     })
     const deepElementResult = await locateNodes().then(async (result) => {
@@ -889,22 +896,29 @@ export async function findDeepElements(
      * back-forward cache without a `navigationCommitted` event. Drop them and
      * search the current document instead of falling back to classic.
      */
-    const locateNodes = () => browser.browsingContextLocateNodes({ locator, context, startNodes }).catch((err: Error) => {
+    const locateNodes = () => browser.browsingContextLocateNodes({ locator, context, startNodes }).catch(async (err: Error) => {
         /**
-         * Only a tracked root the error names is gone. A stale scope element
+         * Only a tracked node the error names is gone. A stale scope element
          * is retried by the element middleware instead.
          */
         const message = String(err?.message)
-        if (!message.includes('no such node') || !shadowRoots.some((root) => message.includes(root))) {
+        const staleNodes = message.includes('no such node')
+            ? shadowRoots.filter((root) => message.includes(root))
+            : []
+        if (staleNodes.length === 0) {
             throw err
         }
-        shadowRootManager.forgetContext(context)
-        shadowRoots = []
+        for (const node of staleNodes) {
+            shadowRootManager.forgetNode(context, node)
+        }
         const scope = (this as WebdriverIO.Element).elementId
+        shadowRoots = await shadowRootManager.getShadowElementsByContextId(context, scope)
         return browser.browsingContextLocateNodes({
             locator,
             context,
-            startNodes: scope ? [{ sharedId: scope }] : undefined
+            startNodes: scope
+                ? [{ sharedId: scope }, ...shadowRoots.map((sharedId) => ({ sharedId }))]
+                : shadowRoots.length > 0 ? shadowRoots.map((sharedId) => ({ sharedId })) : undefined
         })
     })
     const deepElementResult = await locateNodes().then(async (result) => {

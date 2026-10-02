@@ -439,9 +439,18 @@ describe('browsing contexts', () => {
             await b.setViewport({ width: 500, height: 400 })
 
             const screenshot = await b.saveScreenshot(path.join(screenshots, 'tab.png'))
+            /**
+             * The capture is the viewport without its scrollbars, which are
+             * 15px wide on Linux and Windows and overlay on macOS.
+             */
+            const viewport = await b.execute(() => ({
+                width: document.documentElement.clientWidth,
+                height: document.documentElement.clientHeight
+            }))
+            expect(viewport.width).toBeGreaterThan(450)
             // PNG header: width at byte 16, height at byte 20
-            expect(screenshot.readUInt32BE(16)).toBe(500)
-            expect(screenshot.readUInt32BE(20)).toBe(400)
+            expect(screenshot.readUInt32BE(16)).toBe(viewport.width)
+            expect(screenshot.readUInt32BE(20)).toBe(viewport.height)
         })
     })
 

@@ -6,7 +6,7 @@ import type * as WdioUtils from '@wdio/utils'
  * Mock dependencies before importing the module under test
  */
 const mockGetShadowElementsByContextId = vi.fn()
-const mockForgetContext = vi.fn()
+const mockForgetNode = vi.fn()
 const mockGetCurrentContext = vi.fn()
 
 vi.mock('@wdio/utils', async (importOriginal) => {
@@ -21,7 +21,7 @@ vi.mock('../../src/session/shadowRoot.js', () => ({
     getShadowRootManager: vi.fn(() => ({
         getShadowElementsByContextId: mockGetShadowElementsByContextId,
         deleteShadowRoot: vi.fn(),
-        forgetContext: mockForgetContext,
+        forgetNode: mockForgetNode,
     })),
 }))
 
@@ -95,7 +95,9 @@ describe('findDeepElement - isConnected validation', () => {
          * e.g. Firefox restored a page from its back-forward cache, so the
          * roots tracked for the context belong to the page it left.
          */
-        mockGetShadowElementsByContextId.mockReturnValue(['shadow-of-old-page'])
+        mockGetShadowElementsByContextId
+            .mockReturnValueOnce(['shadow-of-old-page'])
+            .mockReturnValueOnce([])
 
         const browser = createMockBrowser()
         browser.browsingContextLocateNodes
@@ -105,7 +107,7 @@ describe('findDeepElement - isConnected validation', () => {
         const result = await findDeepElement.call(browser, '#where')
 
         expect(result).toEqual(expect.objectContaining({ [ELEMENT_KEY]: 'node-1' }))
-        expect(mockForgetContext).toHaveBeenCalledWith('ctx-1')
+        expect(mockForgetNode).toHaveBeenCalledWith('ctx-1', 'shadow-of-old-page')
         expect(browser.browsingContextLocateNodes).toHaveBeenLastCalledWith(expect.objectContaining({ startNodes: undefined }))
         expect(browser.execute).not.toHaveBeenCalled()
         expect(browser.findElement).not.toHaveBeenCalled()
@@ -120,7 +122,7 @@ describe('findDeepElement - isConnected validation', () => {
 
         await findDeepElement.call(browser, '#where')
 
-        expect(mockForgetContext).not.toHaveBeenCalled()
+        expect(mockForgetNode).not.toHaveBeenCalled()
         expect(browser.browsingContextLocateNodes).toHaveBeenCalledTimes(1)
     })
 

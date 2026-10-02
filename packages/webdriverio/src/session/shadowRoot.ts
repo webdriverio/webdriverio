@@ -80,11 +80,22 @@ export class ShadowRootManager extends SessionManager {
     }
 
     /**
-     * Forget what is known about the document of a context, when it turns
-     * out to be gone without a `navigationCommitted` event.
+     * Forget a tracked node that turned out to be gone. The root of the tree
+     * or the document element stands for the whole document, which happens
+     * when a page is shown again without a `navigationCommitted` event (e.g.
+     * restored from Firefox's back-forward cache). Any other node only takes
+     * its own subtree along, so roots registered for the current document stay.
      */
-    forgetContext (context: string) {
-        this.#clearContext(context)
+    forgetNode (context: string, node: string) {
+        const tree = this.#shadowRoots.get(context)
+        if (!tree || tree.element === node || this.#documentElements.get(context)?.sharedId === node) {
+            this.#clearContext(context)
+            return
+        }
+        const owner = tree.flat().find((entry) => entry.element === node || entry.shadowRoot === node)
+        if (owner) {
+            tree.remove(owner.element)
+        }
     }
 
     #clearContext(context: string) {
