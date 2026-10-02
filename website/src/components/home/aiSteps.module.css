@@ -657,7 +657,11 @@
     }
 
     .cursor,
-    .tabFill {
+    .tab,
+    .tabFill,
+    .shop span.sizeSelected,
+    .addButton,
+    .found {
         transition: none;
     }
 }

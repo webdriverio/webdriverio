@@ -102,6 +102,11 @@ function useBeats<T extends HTMLElement> () {
     const [step, setStep] = useState(LAST_BEAT.heal)
     const [running, setRunning] = useState(false)
     const [reduced, setReduced] = useState(false)
+    /**
+     * keyboard focus is on the tabs: the demo holds still, so the selected
+     * phase stays the focused tab (WAI-ARIA carousel pattern)
+     */
+    const [paused, setPaused] = useState(false)
     const started = useRef(false)
 
     useEffect(() => {
@@ -132,19 +137,19 @@ function useBeats<T extends HTMLElement> () {
     }, [])
 
     useEffect(() => {
-        if (!running || reduced) {
+        if (!running || reduced || paused) {
             return
         }
         const timer = setTimeout(() => setStep((current) => (current + 1) % BEATS.length), BEATS[step].ms)
         return () => clearTimeout(timer)
-    }, [step, running, reduced])
+    }, [step, running, reduced, paused])
 
     const seek = (phase: PhaseId) => {
         started.current = true
         setStep(reduced ? LAST_BEAT[phase] : FIRST_BEAT[phase])
     }
 
-    return { ref, step, running, reduced, seek }
+    return { ref, step, running: running && !paused, reduced, seek, setPaused }
 }
 
 /** strings, keywords and comments of a line of the spec */
@@ -369,7 +374,7 @@ function Browser ({ beat, stageRef }: { beat: Beat, stageRef: React.RefObject<HT
  * The stage is decorative, the section text describes it.
  */
 export default function AiStepsDemo () {
-    const { ref, step, running, reduced, seek } = useBeats<HTMLDivElement>()
+    const { ref, step, running, reduced, seek, setPaused } = useBeats<HTMLDivElement>()
     const beat = BEATS[step]
     const stageRef = useRef<HTMLDivElement>(null)
 
@@ -403,7 +408,13 @@ export default function AiStepsDemo () {
                 className={styles.tabs}
                 role="tablist"
                 aria-label={translate({ id: 'homepage.ai.tabs', message: 'Phases of an AI step' })}
-                onKeyDown={onKeyDown}>
+                onKeyDown={onKeyDown}
+                onFocus={() => setPaused(true)}
+                onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                        setPaused(false)
+                    }
+                }}>
                 {PHASES.map((phase, index) => {
                     const selected = phase === beat.phase
                     return (

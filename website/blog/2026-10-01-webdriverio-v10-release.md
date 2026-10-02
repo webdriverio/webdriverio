@@ -99,7 +99,7 @@ it('adds a shirt to the cart', async () => {
 })
 ```
 
-The first run hands the instruction to your model together with the `wdio session` actions. Every step it takes runs as a regular WebdriverIO command, and the commands are written to `__act__/cart.e2e.ts.json` next to the spec. From then on the steps replay without a model, so a green run costs no tokens and is as fast as hand-written code.
+The first run hands the instruction to your model together with the `wdio session` actions. Every step it takes runs as a regular WebdriverIO command, and the commands are written to `__act__/cart.e2e.ts.json` next to the spec. From then on the steps replay without a model, so a green run spends no tokens on `act()` and is as fast as hand-written code. `extract()` is never cached: it reads the current page, so it calls the model on every run.
 
 When the UI changes, the service heals the step without a model first: it tries the other selectors it recorded, then the element's role and accessible name through the new [`role/` selector](/docs/selectors#role-selector). This is where WebDriver BiDi does something a selector can't. Every recorded step also stores its **effect**: the requests it sent, the navigation it caused and the parts of the page that changed. A healed step only counts when it does the same thing. A heal onto a look-alike "Add to cart" button in the wishlist widget sends a different request, so the test fails instead of passing. A step that still finds its element but no longer works is reported as a behavior change, not a markup change, and it never runs a second time. Every heal leaves screenshots behind, plus a video in Firefox, which records it through BiDi's screencast command.
 
@@ -112,7 +112,7 @@ A few more things it does:
 - **`extract()`** validates the answer against any [Standard Schema](https://standardschema.dev), and reads the API responses the page received, collected with BiDi network data collectors, for values the page only shows in part.
 - **`act()` runs where you call it:** on an element, a held tab or a frame. The model can follow a step into a new window or a cross-origin frame, and those moves replay too.
 - **Bring your own model:** Anthropic, OpenAI, OpenRouter, or a local model through Ollama, LM Studio or llama.cpp. Your key only goes to the model endpoint you configure.
-- **No lock-in:** `npx wdio-ai eject` turns recorded `act()` calls into plain WebdriverIO code whenever you want the model gone for good.
+- **No lock-in:** `npx wdio-ai eject test/specs/cart.e2e.ts` turns recorded `act()` calls in that spec into plain WebdriverIO code whenever you want the model gone for good.
 
 `@wdio/ai-service` grew out of [Vince Graics](https://github.com/Winify)' [`@wdio/deepagent` proposal](https://github.com/webdriverio/webdriverio/pull/15487), which brought LangChain Deep Agents and self-healing to WebdriverIO. The [AI steps guide](/docs/ai-steps) shows how to set it up, and `npm init wdio` adds it for you.
 
