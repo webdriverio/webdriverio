@@ -188,6 +188,18 @@ In this example, the `myFirefoxBrowser` instance will start waiting on a message
 
 MultiRemote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
 
+### What `$` returns
+
+On a multi-remote browser, `$`, `custom$` and `react$` return one `MultiRemoteElement`. On a multi-remote element, `shadow$` also returns one. Its commands run on every instance, and `getInstance` gives the element of one browser.
+
+```js
+const host = await $('my-component')
+const button = await host.shadow$('button')
+
+await button.click()                                  // clicks in every browser
+await button.getInstance('myChromeBrowser').click()  // clicks only in Chrome
+```
+
 ### What `$$` returns
 
 On a multi-remote browser, `$$` returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`. `custom$$` and `react$$` are not zipped this way: each returns one result per instance.

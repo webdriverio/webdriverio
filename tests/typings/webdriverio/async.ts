@@ -75,6 +75,14 @@ async function bar() {
     const mrElem = await mr.$('')
     await mrElem.click()
 
+    // the other single element queries also give a multi-remote element
+    expectType<WebdriverIO.MultiRemoteElement>(await mr.custom$('myStrategy', '.foo'))
+    expectType<WebdriverIO.MultiRemoteElement>(await mr.react$('MyComponent', { props: { foo: 'bar' } }))
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.custom$('myStrategy', '.foo'))
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.react$('MyComponent'))
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.shadow$('.foo'))
+    expectType<boolean[]>(await (await mrElem.shadow$('.foo')).isDisplayed())
+
     // instances array
     expectType<string[]>(mr.instances)
 

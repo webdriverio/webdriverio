@@ -13,6 +13,11 @@ import * as BrowserCommands from './commands/browser.js'
 
 const overridableCommands = new Set(Object.keys(BrowserCommands))
 
+/**
+ * queries that find one element per instance, wrapped into one multi-remote element
+ */
+const SINGLE_QUERIES = new Set(['$', 'custom$', 'react$', 'shadow$'])
+
 type EventEmitter = (args: unknown) => void
 
 /**
@@ -300,7 +305,7 @@ export default class MultiRemote {
                 /**
                  * return element object to call commands directly
                  */
-                if (commandName === '$') {
+                if (SINGLE_QUERIES.has(commandName)) {
                     return MultiRemote.elementWrapper(activeInstances, result, this.__propertiesObject__, self)
                 } else if (commandName === 'mock') {
                     /**

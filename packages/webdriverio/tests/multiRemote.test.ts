@@ -557,6 +557,80 @@ describe('Multi-Remote tests', () => {
         expect(sizeB).toEqual(result)
     })
 
+    describe('single element queries', () => {
+        const elementStrategy = (selector: string) => (
+            { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-foobar` }
+        ) as unknown as HTMLElement
+
+        const expectMultiRemoteElement = (element: WebdriverIO.MultiRemoteElement, elementId: string) => {
+            expect(element.isMultiRemote).toBe(true)
+            expect(element.instances).toEqual(['browserA', 'browserB'])
+            expect(element.getInstance('browserA').elementId).toBe(elementId)
+            expect(element.getInstance('browserB').elementId).toBe(elementId)
+            expect(element.select('browserB').instances).toEqual(['browserB'])
+        }
+
+        test('custom$ on the browser gives a multi-remote element', async () => {
+            const browser = await multiRemote(caps())
+            browser.addLocatorStrategy('test', elementStrategy)
+
+            expectMultiRemoteElement(await browser.custom$('test', '.foo'), '.foo-foobar')
+        })
+
+        test('custom$ on an element gives a multi-remote element', async () => {
+            const browser = await multiRemote(caps())
+            browser.addLocatorStrategy('test', elementStrategy)
+            const parent = await browser.$('#parent')
+
+            expectMultiRemoteElement(await parent.custom$('test', '.foo'), '.foo-foobar')
+        })
+
+        test('custom$ rejects when an instance has no such strategy', async () => {
+            const browser = await multiRemote(caps())
+            browser.getInstance('browserA').addLocatorStrategy('only-a', elementStrategy)
+
+            await expect(browser.custom$('only-a', '.foo')).rejects.toThrow('No strategy found for only-a')
+        })
+
+        test('react$ on the browser gives a multi-remote element', async () => {
+            const browser = await multiRemote(caps())
+
+            expectMultiRemoteElement(await browser.react$('myComp'), 'some-elem-123')
+        })
+
+        test('react$ on an element gives a multi-remote element', async () => {
+            const browser = await multiRemote(caps())
+            const parent = await browser.$('#parent')
+
+            expectMultiRemoteElement(await parent.react$('myComp'), 'some-elem-123')
+        })
+
+        test('shadow$ on an element gives a multi-remote element', async () => {
+            const browser = await multiRemote(caps())
+            const host = await browser.$('#host')
+
+            expectMultiRemoteElement(await host.shadow$('#inner'), 'some-shadow-sub-elem-321')
+        })
+
+        test('shadow$ chained on $ gives a multi-remote element', async () => {
+            const browser = await multiRemote(caps())
+
+            expectMultiRemoteElement(await browser.$('#host').shadow$('#inner'), 'some-shadow-sub-elem-321')
+        })
+
+        test('the element of a query runs the next query on each instance', async () => {
+            const browser = await multiRemote(caps())
+            const host = await browser.$('#host')
+
+            const inner = await host.shadow$('#inner')
+            const child = await inner.$('#child')
+
+            expect(child.isMultiRemote).toBe(true)
+            expect(child.getInstance('browserA').parent).toBe(inner.getInstance('browserA'))
+            expect(child.getInstance('browserB').parent).toBe(inner.getInstance('browserB'))
+        })
+    })
+
     describe('select', () => {
         test('should preserve filtered instances when chaining $ on a selected element', async () => {
             const browser = await multiRemote(caps())
