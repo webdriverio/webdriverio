@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
+import { getContextManager } from 'webdriverio'
+
 import { attachedPlan } from './debug.js'
 import { Session } from './session.js'
 import { ACTIONS, type ActionSpec } from './actions/specs.js'
@@ -11,6 +13,7 @@ import { formatSnapshot, onlyInteractive, type SnapshotNode, type SnapshotRef } 
 import type { RefEntry } from './snapshot/refs.js'
 import type { LogEntry, NetworkEntry } from './daemon/events.js'
 import type { ActionResult, HistoryEntry } from './types.js'
+import { scopeOf } from './snapshot/target.js'
 
 export type { ActionSpec, LogEntry, NetworkEntry, RefEntry, SnapshotNode, SnapshotOptions, SnapshotRef, TakenSnapshot, HistoryEntry }
 export { formatSnapshot, onlyInteractive }
@@ -62,6 +65,14 @@ export class AgentSession {
     }
 
     /**
+     * where refs resolve and selectors are queried: the frame the session
+     * holds, otherwise the browser
+     */
+    get scope () {
+        return scopeOf(this.session)
+    }
+
+    /**
      * actions that apply to this browser, app or desktop session
      */
     get actions (): ActionSpec[] {
@@ -104,6 +115,47 @@ export class AgentSession {
         const selector = (element as { selector?: unknown }).selector
         this.session.refs.set({ id, kind: 'web', role: 'scope', candidates: typeof selector === 'string' ? [selector] : [], generation: this.session.refs.generation })
         return id
+    }
+
+    /**
+     * Make a held tab, window or frame the context the actions run in, like
+     * `tabs switch` and `frame` do. Returns a function that goes back to the
+     * context before.
+     */
+    async enter (context: WebdriverIO.BrowsingContext): Promise<() => Promise<void>> {
+        const manager = getContextManager(this.browser)
+        const previous = await manager.getCurrentContext()
+        const previousActive = this.session.get<WebdriverIO.BrowsingContext>('activeContext')
+        const previousFrame = { frame: this.session.get<string>('frame'), stack: this.session.get<string[]>('frameStack') }
+        const topLevelOf = (held?: WebdriverIO.BrowsingContext): string | undefined => {
+            let current = held
+            while (current?.isFrame) {
+                current = current.parent
+            }
+            return current?.contextId
+        }
+        const page = context.isFrame ? topLevelOf(context) : context.contextId
+        const previousPage = previousActive ? topLevelOf(previousActive) ?? previous : previous
+        if (page && page !== previousPage) {
+            await this.browser.switchToWindow(page)
+        }
+        /**
+         * A frame is held, not pointed at: element commands then know the
+         * element lives in another navigable than the top-level page.
+         */
+        manager.setCurrentContext(page ?? context.contextId)
+        this.session.set('activeContext', context.isFrame ? context : undefined)
+        this.session.set('frame', context.isFrame ? context.url : undefined)
+        this.session.set('frameStack', context.isFrame ? [context.url] : [])
+        return async () => {
+            if (page && page !== previousPage && previousPage) {
+                await this.browser.switchToWindow(previousPage).catch(() => {})
+            }
+            manager.setCurrentContext(previous)
+            this.session.set('activeContext', previousActive)
+            this.session.set('frame', previousFrame.frame)
+            this.session.set('frameStack', previousFrame.stack)
+        }
     }
 
     /**
