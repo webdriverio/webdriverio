@@ -451,6 +451,22 @@ describe('browsing context', () => {
             await vi.waitFor(() => expect(remove).toHaveBeenCalledWith({ intercept: 'i-3' }))
         })
 
+        it('stops watching the tab once a mock of it is restored', async () => {
+            const tab = getBrowsingContext(browser, 'tab-3', { isFrame: false, url: 'https://child.example' })
+            vi.spyOn(browser, 'sessionSubscribe').mockResolvedValue({} as never)
+            vi.spyOn(browser, 'networkAddDataCollector').mockResolvedValue({ collector: 'c' } as never)
+            vi.spyOn(browser, 'networkAddIntercept').mockResolvedValue({ intercept: 'i-4' })
+            vi.spyOn(browser, 'networkRemoveIntercept').mockResolvedValue({})
+            const on = vi.spyOn(browser, 'on')
+            const off = vi.spyOn(browser, 'off')
+
+            const mock = await tab.mock('**/api')
+            const watch = on.mock.calls.find(([event]) => event === 'browsingContext.contextDestroyed')
+            expect(watch).toBeDefined()
+            await mock.restore()
+            expect(off).toHaveBeenCalledWith('browsingContext.contextDestroyed', watch![1])
+        })
+
         it('treats a plain string as a selector before matching frame urls', async () => {
             const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' })
             const tree = vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({

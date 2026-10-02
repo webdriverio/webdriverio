@@ -140,6 +140,10 @@ export default class WebDriverInterception {
      * The `SESSION_MOCKS` key `mock()` stored this interception under
      */
     #sessionKey?: string
+    /**
+     * Restores a mock of a held context when that context closes
+     */
+    #onContextDestroyed?: (params: { context: string }) => void
     #warnedAboutEarlyAnswer = false
     #filterOptions: MockFilterOptions
     #browser: WebdriverIO.Browser
@@ -162,7 +166,8 @@ export default class WebDriverInterception {
         filterOptions: MockFilterOptions,
         browser: WebdriverIO.Browser,
         isCollectingNetworkData = false,
-        sessionKey?: string
+        sessionKey?: string,
+        contexts?: string[]
     ) {
         this.#sessionKey = sessionKey
         this.#pattern = pattern
@@ -178,6 +183,20 @@ export default class WebDriverInterception {
         browser.on('network.beforeRequestSent', this.#handleBeforeRequestSent.bind(this))
         browser.on('network.responseStarted', this.#handleResponseStarted.bind(this))
         browser.on('network.responseCompleted', this.#handleResponseCompleted.bind(this))
+
+        /**
+         * A mock of a held context ends with it. Chromium keeps an intercept
+         * whose only context is gone and then matches it for every context,
+         * which would block requests of the other tabs.
+         */
+        if (contexts?.length) {
+            this.#onContextDestroyed = ({ context }) => {
+                if (contexts.includes(context)) {
+                    this.restore().catch(() => { /* the intercept may already be gone */ })
+                }
+            }
+            browser.on('browsingContext.contextDestroyed', this.#onContextDestroyed)
+        }
     }
 
     static async initiate(
@@ -230,7 +249,7 @@ export default class WebDriverInterception {
             }]
         })
 
-        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData, scope.sessionKey)
+        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData, scope.sessionKey, scope.contexts)
     }
 
     #emit(event: string, args: unknown) {
@@ -934,6 +953,10 @@ export default class WebDriverInterception {
          * still need to continue any in-flight blocked requests after cleanup.
          */
         const blockedRequestIds = Array.from(this.#blockedRequests)
+        if (this.#onContextDestroyed) {
+            this.#browser.off('browsingContext.contextDestroyed', this.#onContextDestroyed)
+            this.#onContextDestroyed = undefined
+        }
         this.reset()
         this.#respondOverwrites = []
         const handle = this.#sessionKey ?? await this.#browser.getWindowHandle()
