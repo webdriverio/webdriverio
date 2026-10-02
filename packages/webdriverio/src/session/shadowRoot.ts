@@ -88,7 +88,7 @@ export class ShadowRootManager extends SessionManager {
      */
     forgetNode (context: string, node: string) {
         const tree = this.#shadowRoots.get(context)
-        if (!tree || tree.element === node || this.#documentElements.get(context)?.sharedId === node) {
+        if (!tree || tree.element === node || tree.shadowRoot === node || this.#documentElements.get(context)?.sharedId === node) {
             this.#clearContext(context)
             return
         }
