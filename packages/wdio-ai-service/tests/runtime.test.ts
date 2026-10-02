@@ -41,7 +41,7 @@ describe('AiRuntime.act', () => {
             { tool: 'click', args: { target: 'e3' } },
             { tool: 'done', args: { summary: 'Added the shirt to the cart' } }
         ])
-        const runtime = new AiRuntime({ workspace, model })
+        const runtime = new AiRuntime({ effects: 'off', workspace, model })
 
         const result = await runtime.act(browser, 'Add the shirt to the cart')
 
@@ -71,7 +71,7 @@ describe('AiRuntime.act', () => {
             { tool: 'fill', args: { target: 'e1', text: '{{email}}' } },
             { tool: 'done', args: { summary: 'Filled the email' } }
         ])
-        const runtime = new AiRuntime({ workspace, model })
+        const runtime = new AiRuntime({ effects: 'off', workspace, model })
 
         const result = await runtime.act(browser, 'Fill in {{email}}', { values: { email: 'alice@example.com' } })
 
@@ -84,7 +84,7 @@ describe('AiRuntime.act', () => {
     it('rejects an instruction with a placeholder that has no value, before calling the model', async () => {
         setup()
         const model = new ScriptedChatModel([])
-        await expect(new AiRuntime({ workspace, model }).act(browser, 'Log in as {{user}}')).rejects.toThrow('No value for {{user}}')
+        await expect(new AiRuntime({ effects: 'off', workspace, model }).act(browser, 'Log in as {{user}}')).rejects.toThrow('No value for {{user}}')
         expect(model.calls).toHaveLength(0)
     })
 
@@ -94,7 +94,7 @@ describe('AiRuntime.act', () => {
             { tool: 'snapshot' },
             { tool: 'fail', args: { reason: 'There is no blue shirt on this page' } }
         ])
-        const error = await new AiRuntime({ workspace, model }).act(browser, 'Add a blue shirt').catch((err) => err)
+        const error = await new AiRuntime({ effects: 'off', workspace, model }).act(browser, 'Add a blue shirt').catch((err) => err)
         expect(error).toBeInstanceOf(ActError)
         expect(error.message).toMatch(/^act\("Add a blue shirt"\) failed: There is no blue shirt on this page\nEvidence: /)
         expect(error.reason).toBe('There is no blue shirt on this page')
@@ -105,26 +105,26 @@ describe('AiRuntime.act', () => {
     it('stops at the step limit', async () => {
         setup()
         const model = new ScriptedChatModel(Array.from({ length: 10 }, () => ({ tool: 'snapshot' })))
-        await expect(new AiRuntime({ workspace, model, maxSteps: 2 }).act(browser, 'Loop forever'))
+        await expect(new AiRuntime({ effects: 'off', workspace, model, maxSteps: 2 }).act(browser, 'Loop forever'))
             .rejects.toThrow('stopped after 2 steps without completing the instruction')
     })
 
     it('accepts a model that answers in text instead of calling done', async () => {
         setup()
         const model = new ScriptedChatModel([{ tool: 'snapshot' }, { text: 'The menu is open now.' }])
-        await expect(new AiRuntime({ workspace, model }).act(browser, 'Open the menu')).resolves.toMatchObject({ summary: 'The menu is open now.' })
+        await expect(new AiRuntime({ effects: 'off', workspace, model }).act(browser, 'Open the menu')).resolves.toMatchObject({ summary: 'The menu is open now.' })
     })
 
     it('explains how to configure a model when none is set', async () => {
         setup()
         delete process.env.WDIO_AI_MODEL
-        await expect(new AiRuntime({ workspace }).act(browser, 'Open the menu'))
+        await expect(new AiRuntime({ effects: 'off', workspace }).act(browser, 'Open the menu'))
             .rejects.toThrow('no model is configured. Set the `model` option of the service or the WDIO_AI_MODEL environment variable.')
     })
 
     it('stops calling the model once the budget is used up', async () => {
         setup()
-        const runtime = new AiRuntime({ workspace, model: new ScriptedChatModel([{ tool: 'done', args: { summary: 'ok' } }]), maxModelCalls: 1 })
+        const runtime = new AiRuntime({ effects: 'off', workspace, model: new ScriptedChatModel([{ tool: 'done', args: { summary: 'ok' } }]), maxModelCalls: 1 })
         await runtime.act(browser, 'First')
         await expect(runtime.act(browser, 'Second')).rejects.toThrow('the budget of 1 model calls is used up')
     })
@@ -135,19 +135,19 @@ describe('AiRuntime.act', () => {
         const file = path.join(dir, 'agent.md')
         fs.writeFileSync(file, 'Prefer the account menu in the header.')
         const model = new ScriptedChatModel([{ tool: 'done', args: { summary: 'ok' } }])
-        await new AiRuntime({ workspace, model, instructions: file }).act(browser, 'Log out')
+        await new AiRuntime({ effects: 'off', workspace, model, instructions: file }).act(browser, 'Log out')
         expect(model.sentText()).toContain('Project conventions:\nPrefer the account menu in the header.')
         fs.rmSync(dir, { recursive: true, force: true })
     })
 
     it('runs on one instance of a multi-remote browser only', async () => {
-        await expect(new AiRuntime({ workspace }).act({ isMultiRemote: true } as unknown as WebdriverIO.Browser, 'Open the menu'))
+        await expect(new AiRuntime({ effects: 'off', workspace }).act({ isMultiRemote: true } as unknown as WebdriverIO.Browser, 'Open the menu'))
             .rejects.toThrow('act() runs on one browser. Call it on an instance')
     })
 
     it('reuses one agent session per browser', async () => {
         setup()
-        const runtime = new AiRuntime({ workspace, model: new ScriptedChatModel([{ tool: 'done', args: { summary: 'a' } }, { tool: 'done', args: { summary: 'b' } }]) })
+        const runtime = new AiRuntime({ effects: 'off', workspace, model: new ScriptedChatModel([{ tool: 'done', args: { summary: 'a' } }, { tool: 'done', args: { summary: 'b' } }]) })
         await runtime.act(browser, 'First')
         await runtime.act(browser, 'Second')
         expect(createAgentSession).toHaveBeenCalledTimes(1)

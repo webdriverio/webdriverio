@@ -64,3 +64,12 @@ export const scopeModel = new ScriptedChatModel([
     { tool: 'fill', args: (snapshot) => ({ target: refOf(/textbox "Email" \[ref=(e\d+)\]/)(snapshot), text: '{{email}}' }) },
     { tool: 'done', args: { summary: 'Filled in the billing email' } }
 ])
+
+export const effectsModel = new ScriptedChatModel([
+    // records what a step did, without the ignored telemetry request
+    { tool: 'click', args: { target: '[data-testid="add"]' } },
+    { tool: 'done', args: { summary: 'Added it' } },
+    // waits until a slow request finished before act returns
+    { tool: 'click', args: { target: '[data-testid="add"]' } },
+    { tool: 'done', args: { summary: 'Added it' } }
+])

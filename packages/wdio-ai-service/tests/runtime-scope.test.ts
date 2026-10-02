@@ -38,7 +38,7 @@ describe('scoped act and extract', () => {
             { tool: 'fill', args: { target: 'e101', text: 'Main St 1' } },
             { tool: 'done', args: { summary: 'ok' } }
         ])
-        await new AiRuntime({ model, workspace, cache: 'off' }).act(form, 'Fill in a German address')
+        await new AiRuntime({ effects: 'off', model, workspace, cache: 'off' }).act(form, 'Fill in a German address')
 
         expect(fake.agent.pin).toHaveBeenCalledWith(form)
         const snapshots = fake.run.mock.calls.filter(([action]) => action === 'snapshot')
@@ -50,14 +50,14 @@ describe('scoped act and extract', () => {
     it('limits extract to the element too', async () => {
         const row = { elementId: 'row-2', selector: '#row-2', parent: browser } as unknown as WebdriverIO.Element
         const model = new ScriptedChatModel([{ tool: 'snapshot' }, { tool: 'answer', args: { value: 'Socks' } }])
-        await expect(new AiRuntime({ model, workspace }).extract(row, 'the product name', z.string())).resolves.toBe('Socks')
+        await expect(new AiRuntime({ effects: 'off', model, workspace }).extract(row, 'the product name', z.string())).resolves.toBe('Socks')
         expect(fake.run).toHaveBeenCalledWith('snapshot', { scope: 'e100' })
     })
 
     it('does not scope a browser act or an act on the current tab', async () => {
         const page = { contextId: 'top', browser, isFrame: false } as unknown as WebdriverIO.BrowsingContext
         const model = new ScriptedChatModel([{ tool: 'snapshot' }, { tool: 'done', args: { summary: 'ok' } }, { tool: 'snapshot' }, { tool: 'done', args: { summary: 'ok' } }])
-        const ai = new AiRuntime({ model, workspace, cache: 'off' })
+        const ai = new AiRuntime({ effects: 'off', model, workspace, cache: 'off' })
         await ai.act(browser, 'Open the menu')
         await ai.act(page, 'Open the menu')
         expect(fake.agent.pin).not.toHaveBeenCalled()
@@ -65,7 +65,7 @@ describe('scoped act and extract', () => {
     })
 
     it('rejects a frame or a background tab for now', async () => {
-        const ai = new AiRuntime({ model: new ScriptedChatModel([]), workspace })
+        const ai = new AiRuntime({ effects: 'off', model: new ScriptedChatModel([]), workspace })
         const frame = { contextId: 'frame-1', browser, isFrame: true } as unknown as WebdriverIO.BrowsingContext
         const tab = { contextId: 'other-tab', browser, isFrame: false } as unknown as WebdriverIO.BrowsingContext
         await expect(ai.act(frame, 'Pay')).rejects.toThrow('act() on a frame or a tab other than the current one is not supported yet')

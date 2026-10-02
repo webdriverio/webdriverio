@@ -57,7 +57,7 @@ describe('AiRuntime.extract', () => {
 
     const runtime = (script: ScriptStep[]) => {
         const model = new ScriptedChatModel(script)
-        return { model, runtime: new AiRuntime({ model, workspace }) }
+        return { model, runtime: new AiRuntime({ effects: 'off', model, workspace }) }
     }
 
     it('returns the validated value and only offers tools that read the page', async () => {

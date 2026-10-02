@@ -12,7 +12,7 @@ export const config: WebdriverIO.Config = {
         webSocketUrl: true,
         'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
     }],
-    services: [['ai', { model: actModel, cache: 'off', cacheDir, workspace: { dir: path.join(cacheDir, 'workspaces') } }]],
+    services: [['ai', { model: actModel, cache: 'off', cacheDir, workspace: { dir: path.join(cacheDir, 'workspaces') }, effects: { ignore: ['/telemetry'] } }]],
     logLevel: 'warn',
     framework: 'mocha',
     reporters: ['spec'],

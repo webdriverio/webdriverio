@@ -12,7 +12,9 @@ import { runLoop } from './loop.js'
 import { describeModel, resolveModel, selectModel } from './model.js'
 import { actPrompt, replayContext, SCOPE_PROMPT, systemPrompt, WORKSPACE_PROMPT } from './prompts.js'
 import { assertValues } from './redact.js'
-import { replaySteps, type HealedStep } from './replay.js'
+import { replaySteps, type EffectCheck, type HealedStep } from './replay.js'
+import { describeEffect, isEmpty, mergeEffects, missingEffects, observableWithoutBidi, resolveEffectsConfig, type EffectsConfig } from './effects.js'
+import { EffectRecorder } from './recorder.js'
 import { emitRecord, writeRecords, type ActRecord } from './stats.js'
 import { pageTools } from './tools.js'
 import { Workspace, type KeepPolicy } from './workspace.js'
@@ -106,6 +108,8 @@ interface ActOutcome {
     healedSteps?: HealedStep[]
 }
 
+export type EffectsCoverage = 'checked' | 'partial' | 'off'
+
 const NO_USAGE: TokenUsage = { input: 0, output: 0 }
 
 /**
@@ -115,6 +119,8 @@ const NO_USAGE: TokenUsage = { input: 0, output: 0 }
 export class AiRuntime {
     readonly options: RuntimeOptions
     #agents = new WeakMap<WebdriverIO.Browser, Promise<AgentSession>>()
+    #recorders = new WeakMap<WebdriverIO.Browser, Promise<EffectRecorder | undefined>>()
+    readonly effects: EffectsConfig
     #models = new Map<ModelOption, Promise<BaseChatModel>>()
     #caches = new Map<string, ActCache>()
     #instructions?: Promise<string | undefined>
@@ -127,6 +133,7 @@ export class AiRuntime {
 
     constructor (options: RuntimeOptions = {}) {
         this.options = options
+        this.effects = resolveEffectsConfig(options.effects)
     }
 
     /**
@@ -203,8 +210,32 @@ export class AiRuntime {
         if (!agent) {
             agent = createAgentSession(browser, { name: 'ai', captureEvents: true })
             this.#agents.set(browser, agent)
+            this.#recorders.set(browser, agent.then((session) => this.#attachRecorder(browser, session)))
         }
         return agent
+    }
+
+    /**
+     * Effects are recorded on web pages. Native apps have no network or DOM
+     * events to watch, their effects are not checked.
+     */
+    async #attachRecorder (browser: WebdriverIO.Browser, agent: AgentSession) {
+        if (this.effects.mode === 'off' || !agent.session.plan.applies.includes('W') || agent.session.plan.platform !== 'browser') {
+            return undefined
+        }
+        return EffectRecorder.attach(browser, this.effects)
+    }
+
+    async recorderFor (browser: WebdriverIO.Browser) {
+        await this.agentFor(browser)
+        return this.#recorders.get(browser)
+    }
+
+    #coverage (recorder?: EffectRecorder): EffectsCoverage {
+        if (this.effects.mode === 'off') {
+            return 'off'
+        }
+        return recorder?.bidi ? 'checked' : 'partial'
     }
 
     #model (option: ModelOption) {
@@ -231,7 +262,7 @@ export class AiRuntime {
     /**
      * Let the model perform an instruction and record the steps it took.
      */
-    async plan (agent: AgentSession, instruction: string, options: ActOptions = {}, context?: string, scope?: string): Promise<PlanResult> {
+    async plan (agent: AgentSession, instruction: string, options: ActOptions = {}, context?: string, scope?: string, recorder?: EffectRecorder): Promise<PlanResult> {
         const modelOption = selectModel(options.model, this.options.model)
         if (!modelOption) {
             throw new ActError({
@@ -248,7 +279,7 @@ export class AiRuntime {
         const workspace = this.#workspaceFor(instruction)
         workspace.values = values
         await workspace.writeEvents(agent.logs, agent.network)
-        const tools = await pageTools({ agent, values, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope })
+        const tools = await pageTools({ agent, values, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope, effects: recorder })
         const maxSteps = options.maxSteps ?? this.options.maxSteps ?? DEFAULT_MAX_STEPS
         log.info(`act("${instruction}") with ${describeModel(modelOption)}`)
         try {
@@ -284,6 +315,7 @@ export class AiRuntime {
             const { result, usage, healedSteps } = await this.#act(scope, instruction, options)
             this.#record({
                 ...base,
+                effects: this.#coverage(await this.recorderFor(browserOf(scope)).catch(() => undefined)),
                 source: result.source,
                 ...(result.healed ? { healed: result.healed } : {}),
                 ...(healedSteps?.length ? { healedSteps } : {}),
@@ -325,6 +357,8 @@ export class AiRuntime {
             throw new Error('[@wdio/ai-service] act() runs on one browser. Call it on an instance, e.g. browser.getInstance(\'myBrowser\').act(...)')
         }
         const agent = await this.agentFor(browser)
+        const recorder = await this.#recorders.get(browser)
+        const effects: EffectCheck | undefined = recorder ? { recorder, mode: this.effects.mode } : undefined
         const scopeRef = await scopeOf(agent, scope, 'act')
         const mode = this.mode(options.cache)
         const test = this.#test
@@ -344,7 +378,7 @@ export class AiRuntime {
         const summarize = (steps: ActStep[]) => steps.map(({ action, code }) => ({ action, code }))
 
         if (entry && entry.instruction === instruction) {
-            const replay = await replaySteps(agent, entry.steps, values, waitTimeoutOf(browser))
+            const replay = await replaySteps(agent, entry.steps, values, waitTimeoutOf(browser), effects)
             if (!replay.failed) {
                 if (replay.healed.length) {
                     if (mode !== 'locked') {
@@ -357,12 +391,28 @@ export class AiRuntime {
             if (mode === 'locked') {
                 throw new ActError({
                     instruction,
-                    reason: `cached step ${replay.failed.index + 1} (${replay.failed.step.code}) failed and the cache is locked: ${replay.failed.error}`,
+                    reason: replay.failed.kind === 'effect'
+                        ? `cached step ${replay.failed.index + 1} (${replay.failed.step.code}) ran, but ${replay.failed.error}. The app may have changed behavior, not just markup.`
+                        : `cached step ${replay.failed.index + 1} (${replay.failed.step.code}) failed and the cache is locked: ${replay.failed.error}`,
                     steps: replay.done
                 })
             }
             log.info(`act("${instruction}"): cached step ${replay.failed.index + 1} failed, asking the model to continue`)
-            const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed), scopeRef)
+            const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed), scopeRef, recorder)
+            /**
+             * the model's steps have to do what the failed step did
+             */
+            const expected = recorder?.bidi ? replay.failed.step.effect : observableWithoutBidi(replay.failed.step.effect)
+            const missing = effects && !isEmpty(expected) ? missingEffects(expected, mergeEffects(rest.steps.map((step) => step.effect)), effects.mode) : []
+            if (missing.length) {
+                throw new ActError({
+                    instruction,
+                    reason: `the app changed behavior: step ${replay.failed.index + 1} (${replay.failed.step.code}) caused ${describeEffect(expected!)} when it was recorded, and the steps the model took now do not cause ${missing.join(', ')}`,
+                    steps: [...replay.done, ...rest.steps],
+                    usage: rest.usage,
+                    workspace: test?.workspace?.dir
+                })
+            }
             if (test?.workspace) {
                 test.workspace.keep = true
             }
@@ -374,7 +424,7 @@ export class AiRuntime {
         if (mode === 'locked') {
             throw new ActError({ instruction, reason: `no cached steps for "${key}" and the cache is locked` })
         }
-        const { steps, summary, usage } = await this.plan(agent, instruction, options, undefined, scopeRef)
+        const { steps, summary, usage } = await this.plan(agent, instruction, options, undefined, scopeRef, recorder)
         if (cache && key) {
             this.#store(cache, key, { instruction, platform, steps }, options)
         }

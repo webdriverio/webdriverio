@@ -24,6 +24,10 @@ export interface ActRecord {
      * refs, selectors or files an `extract` value came from
      */
     evidence?: string[]
+    /**
+     * how thoroughly the effects of replayed and healed steps were checked
+     */
+    effects?: 'checked' | 'partial' | 'off'
     spec?: string
     test?: string
     instruction: string
@@ -106,6 +110,10 @@ export function formatSummary (records: ActRecord[], { mode, outputDir }: { mode
             const steps = (record.healedSteps || []).map((step) => `step ${step.index + 1} ${step.from} → ${step.to}`).join(', ')
             lines.push(`  ${where(record)} "${record.instruction}": ${record.healed === 'cache' ? `${steps} (without the model)` : 'continued by the model'}`)
         }
+    }
+    const partial = records.filter((record) => record.effects === 'partial' && record.source === 'cache').length
+    if (partial) {
+        lines.push(`Effects were only partly checked for ${partial} replayed call${partial === 1 ? '' : 's'}: WebDriver Classic sessions see navigation and page changes, but not requests, new windows or dialogs.`)
     }
     const changed = records.some((record) => !record.error && (record.healed || record.source === 'model'))
     if (changed && mode === 'heal') {

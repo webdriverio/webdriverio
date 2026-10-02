@@ -1,3 +1,5 @@
+import { describeEffect, isEmpty, type StepEffect } from './effects.js'
+
 export const SYSTEM_PROMPT = `You perform one user action in a web page or app, described by an instruction. You control the page only through the tools.
 
 How to work:
@@ -35,11 +37,12 @@ export function actPrompt (instruction: string, context?: string, scoped = false
  * Tell the model which cached steps already ran and which one failed, so it
  * continues from the current page instead of starting over.
  */
-export function replayContext (done: { code: string }[], failed: { index: number, step: { code: string }, error: string }) {
+export function replayContext (done: { code: string }[], failed: { index: number, step: { code: string, effect?: StepEffect }, error: string }) {
     return [
         'Earlier runs recorded steps for this instruction.',
         done.length ? `These steps already ran on this page:\n${done.map((step, i) => `${i + 1}. ${step.code}`).join('\n')}` : 'No step ran yet.',
         `Step ${failed.index + 1} failed: ${failed.step.code}\nError: ${failed.error}`,
+        ...(failed.step.effect && !isEmpty(failed.step.effect) ? [`When it was recorded, this step caused: ${describeEffect(failed.step.effect)}. Your steps have to cause the same.`] : []),
         'The page may have changed. Continue from the current page and complete the instruction.'
     ].join('\n\n')
 }

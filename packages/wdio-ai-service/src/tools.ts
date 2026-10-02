@@ -5,6 +5,8 @@ import type { ActionSpec, AgentSession } from '@wdio/session/agent'
 import { redact, substitute } from './redact.js'
 import type { ActStep, StepTarget } from './types.js'
 import type { Workspace } from './workspace.js'
+import { describeEffect, isEmpty } from './effects.js'
+import type { EffectRecorder } from './recorder.js'
 
 /**
  * `@wdio/session` actions the model may use. Code execution, cookies,
@@ -40,6 +42,10 @@ export interface ToolContext {
      * ref of the element `act` was called on, every snapshot is limited to it
      */
     scope?: string
+    /**
+     * records what each step did, and waits until it settled
+     */
+    effects?: EffectRecorder
 }
 
 /**
@@ -139,7 +145,11 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                 const args = spec.name === 'snapshot' && context.scope && !input.scope
                     ? { ...input, scope: context.scope }
                     : input
+                if (spec.mutation) {
+                    await context.effects?.start()
+                }
                 const result = await agent.run(spec.name, substitute(args, values))
+                const effect = spec.mutation && context.effects ? redact(await context.effects.settle(), values) : undefined
                 if (spec.name === 'snapshot') {
                     diffArgs = {
                         ...(typeof args.scope === 'string' ? { scope: args.scope } : {}),
@@ -154,8 +164,12 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                             action: spec.name,
                             args: redact(recordedArgs(agent, input), values),
                             code: redact(result.code, values),
-                            ...(target ? { target } : {})
+                            ...(target ? { target } : {}),
+                            ...(effect && !isEmpty(effect) ? { effect } : {})
                         })
+                    }
+                    if (effect && !isEmpty(effect)) {
+                        text += `\nEffect: ${describeEffect(effect)}`
                     }
                     const diff = await agent.run('diff', diffArgs).catch(() => undefined)
                     if (diff?.text) {

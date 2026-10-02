@@ -1,7 +1,14 @@
 import type { AgentSession } from '@wdio/session/agent'
 
 import { redact, substitute } from './redact.js'
+import { EffectMismatchError, missingEffects, observableWithoutBidi, type EffectsMode } from './effects.js'
+import type { EffectRecorder } from './recorder.js'
 import type { ActStep } from './types.js'
+
+export interface EffectCheck {
+    recorder: EffectRecorder
+    mode: EffectsMode
+}
 
 export interface HealedStep {
     index: number
@@ -25,9 +32,10 @@ export interface ReplayResult {
      */
     healed: HealedStep[]
     /**
-     * the step that failed and why
+     * the step that failed and why. `effect` when the step ran but did not
+     * do what it did when it was recorded.
      */
-    failed?: { step: ActStep, index: number, error: string }
+    failed?: { step: ActStep, index: number, error: string, kind?: 'effect' }
 }
 
 const TARGET_KEYS = ['target', 'from', 'to'] as const
@@ -36,7 +44,7 @@ const TARGET_KEYS = ['target', 'from', 'to'] as const
  * Wait until the targets of a step exist, like an `await $(selector)` in a
  * spec would, then run the step.
  */
-export async function runStep (agent: AgentSession, step: ActStep, values: Record<string, string>, waitTimeout: number) {
+export async function runStep (agent: AgentSession, step: ActStep, values: Record<string, string>, waitTimeout: number, effects?: EffectCheck) {
     const args = substitute(step.args, values)
     for (const key of TARGET_KEYS) {
         const selector = args[key]
@@ -44,7 +52,25 @@ export async function runStep (agent: AgentSession, step: ActStep, values: Recor
             await agent.browser.$(selector).waitForExist({ timeout: waitTimeout })
         }
     }
-    return agent.run(step.action, args)
+    return runChecked(agent, step, args, values, effects)
+}
+
+/**
+ * run a step and check that it has the effect it had when it was recorded
+ */
+async function runChecked (agent: AgentSession, step: ActStep, args: Record<string, unknown>, values: Record<string, string>, effects?: EffectCheck) {
+    if (!effects || effects.mode === 'off') {
+        return agent.run(step.action, args)
+    }
+    await effects.recorder.start()
+    const result = await agent.run(step.action, args)
+    const actual = redact(await effects.recorder.settle(), values)
+    const expected = effects.recorder.bidi ? step.effect : observableWithoutBidi(step.effect)
+    const missing = missingEffects(expected, actual, effects.mode)
+    if (missing.length) {
+        throw new EffectMismatchError(missing)
+    }
+    return result
 }
 
 export function roleSelector (role: string, name: string) {
@@ -77,7 +103,7 @@ export function alternativeSelectors (step: ActStep): string[] {
  * element and the action succeeds. The page already had the wait timeout of
  * the original selector to settle, so alternatives are not waited for.
  */
-export async function healStep (agent: AgentSession, step: ActStep, values: Record<string, string>): Promise<ActStep | undefined> {
+export async function healStep (agent: AgentSession, step: ActStep, values: Record<string, string>, effects?: EffectCheck): Promise<ActStep | undefined> {
     for (const selector of alternativeSelectors(step)) {
         try {
             const matches = await agent.browser.$$(selector).getElements()
@@ -85,7 +111,7 @@ export async function healStep (agent: AgentSession, step: ActStep, values: Reco
                 continue
             }
             const args = { ...step.args, target: selector }
-            const result = await agent.run(step.action, substitute(args, values))
+            const result = await runChecked(agent, step, substitute(args, values), values, effects)
             return {
                 ...step,
                 args,
@@ -103,15 +129,22 @@ export async function healStep (agent: AgentSession, step: ActStep, values: Reco
  * Run recorded steps in order. A step whose target is gone is healed with
  * an alternative selector. Stop at the first step that cannot be healed.
  */
-export async function replaySteps (agent: AgentSession, steps: ActStep[], values: Record<string, string>, waitTimeout: number): Promise<ReplayResult> {
+export async function replaySteps (agent: AgentSession, steps: ActStep[], values: Record<string, string>, waitTimeout: number, effects?: EffectCheck): Promise<ReplayResult> {
     const done: ActStep[] = []
     const healed: HealedStep[] = []
     for (const [index, step] of steps.entries()) {
         try {
-            await runStep(agent, step, values, waitTimeout)
+            await runStep(agent, step, values, waitTimeout, effects)
             done.push(step)
         } catch (err) {
-            const fixed = await healStep(agent, step, values)
+            /**
+             * the element was there and the step ran, it just did something
+             * else: another selector would hit the same element again
+             */
+            if (err instanceof EffectMismatchError) {
+                return { done, healed, failed: { step, index, error: err.message, kind: 'effect' } }
+            }
+            const fixed = await healStep(agent, step, values, effects)
             if (fixed) {
                 done.push(fixed)
                 healed.push({ index, from: step.target!.selector, to: fixed.target!.selector })

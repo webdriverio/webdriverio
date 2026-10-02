@@ -1,5 +1,7 @@
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 
+import type { EffectsMode, StepEffect } from './effects.js'
+
 export type Provider = 'anthropic' | 'openai' | 'openrouter' | 'ollama' | 'llama-cpp' | 'lm-studio'
 
 /**
@@ -70,6 +72,12 @@ export interface AiServiceOptions {
      * actions the model may use (default: the page actions of `@wdio/session`)
      */
     actions?: string[]
+    /**
+     * How replayed and healed steps are checked against the effect they had
+     * when they were recorded (default `strict`). `ignore` lists requests
+     * that never count, on top of common analytics and telemetry hosts.
+     */
+    effects?: EffectsMode | { mode?: EffectsMode, ignore?: (string | RegExp)[] }
     /**
      * the read-only evidence folder the model can look into
      */
@@ -143,6 +151,10 @@ export interface ActStep {
      */
     code: string
     target?: StepTarget
+    /**
+     * what the step did when it was recorded
+     */
+    effect?: StepEffect
 }
 
 export interface ActResult {

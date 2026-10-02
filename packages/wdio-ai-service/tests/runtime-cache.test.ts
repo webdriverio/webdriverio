@@ -40,7 +40,7 @@ describe('AiRuntime cache', () => {
     ]
     const runtime = (options: RuntimeOptions = {}, script: ScriptStep[] = recordScript) => {
         const model = new ScriptedChatModel(script)
-        return { model, runtime: new AiRuntime({ model, cache: 'write', workspace: { dir: path.join(dir, 'workspaces') }, ...options }) }
+        return { model, runtime: new AiRuntime({ effects: 'off', model, cache: 'write', workspace: { dir: path.join(dir, 'workspaces') }, ...options }) }
     }
 
     it('records the steps of a test and writes them to the cache file next to the spec', async () => {

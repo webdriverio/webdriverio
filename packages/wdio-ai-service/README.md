@@ -55,6 +55,7 @@ export const config: WebdriverIO.Config = {
 | `maxSteps` | `number` | `15` | Tool calls one `act` may make. |
 | `maxModelCalls` | `number` | | Model calls per worker. |
 | `actions` | `string[]` | page actions of `wdio session` | Actions the model may use. Code execution, cookies, storage, mocks and emulation are never offered. |
+| `effects` | `'strict' \| 'loose' \| 'off' \| { mode, ignore }` | `'strict'` | How replayed and healed steps are checked against what they did when recorded, see [Step effects](#step-effects). `ignore` adds URL patterns to the analytics hosts that never count. |
 | `workspace.dir` | `string` | `<outputDir>/ai` or `.wdio/ai` | Root of the evidence folders, see [Workspace](#workspace). |
 | `workspace.keep` | `'on-failure' \| 'always' \| 'never'` | `'on-failure'` | Keep a test's folder when an `act` call failed or healed, or the test failed. |
 
@@ -132,6 +133,30 @@ Every call also emits an `ai:act` event on `process` with `{ spec, test, instruc
 | `off` | always calls the model | | nothing |
 
 `auto` is `heal` when `process.env.CI` is set and `write` otherwise. `wdio run -s` (`updateSnapshots: 'all'`) records every `act` call again.
+
+## Step effects
+
+Every recorded step also stores what it did: the fetch and XHR requests it sent (`POST /api/cart → 2xx`, IDs in the path become `:id`), the navigation it caused, a window it opened, the named parts of the page that changed (`status "Cart"`) and a dialog it opened. WebDriver BiDi delivers all of it as events, the page changes come from a `MutationObserver` the service installs as a preload script.
+
+```json
+"effect": { "requests": ["POST /api/cart → 2xx"], "changed": ["status \"Cart\""] }
+```
+
+A replayed or healed step is only accepted when it has the same effect:
+
+- A healed step that clicks a similar but wrong element, for example a *Add to cart* button that now adds to the wishlist, sends a different request and is rejected.
+- A step that still finds its element but no longer does anything fails with *"ran, but the step no longer causes POST /api/cart → 2xx. The app may have changed behavior, not just markup."*: a regression, not a markup change.
+- Steps the model takes to continue from a failed step have to cause the effect of that step.
+
+| Mode | Check |
+| --- | --- |
+| `strict` | every recorded request, the navigation, the new window, every changed region and the dialog. Extra requests are fine. |
+| `loose` | the navigation and at least one recorded request or changed region |
+| `off` | only the target |
+
+Requests to common analytics and telemetry hosts, websockets, beacons and assets never count. A step is done when its requests finished, no navigation is pending and the page had no changes for 100 ms, so `act` waits for slow requests instead of a fixed time.
+
+WebDriver Classic sessions see navigation and page changes but not requests, new windows or dialogs, so only those parts are checked there, and the summary says so. Native app effects are not checked.
 
 ## Workspace
 
