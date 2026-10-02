@@ -73,7 +73,8 @@ describe('browsing contexts', () => {
             '<select id="grouped"><optgroup label="g" disabled><option id="grouped-option">a</option></optgroup><option id="free">b</option></select>',
             '<a id="hidden-link" href="#">Visible <span style="display:none">secret </span>link</a>',
             '<input id="events" value="abc" oninput="this.dataset.input = (Number(this.dataset.input) || 0) + 1" onchange="this.dataset.change = (Number(this.dataset.change) || 0) + 1">',
-            '<div style="position:relative"><button id="covered">covered</button><div style="position:absolute;inset:0;background:white"></div></div>'
+            '<div style="position:relative"><button id="covered">covered</button><div style="position:absolute;inset:0;background:white"></div></div>',
+            '<select id="multi" multiple onchange="this.dataset.changes = (Number(this.dataset.changes) || 0) + 1"><option id="multi-option" selected>one</option><option>two</option></select>'
         ].join('')),
         '/cross': () => page('Cross origin', `${input}${widgets}`),
         /**
@@ -726,8 +727,17 @@ describe('browsing contexts', () => {
                  * the Element Click endpoint itself: `click()` would wait for the element to become clickable
                  */
                 coveredClick: await outcome(context.$('#covered').getElement().then((el) => el.elementClick(el.elementId))),
+                relativeXPath: await context.$('#text').$('./b').getText(),
+                upperCaseBooleanAttribute: await context.$('#required').getAttribute('REQUIRED'),
                 linksInFrameOrTab: (await context.$$('*=link')).length
             }
+            await context.$('#grouped-option').click()
+            results.optionInDisabledGroupAfterClick = await context.$('#grouped-option').isSelected()
+            await context.$('#multi-option').click()
+            results.deselected = [
+                await context.$('#multi-option').isSelected(),
+                await context.$('#multi').getAttribute('data-changes')
+            ]
             await context.$('#events').clearValue()
             results.clearEvents = [
                 await context.$('#events').getAttribute('data-input'),

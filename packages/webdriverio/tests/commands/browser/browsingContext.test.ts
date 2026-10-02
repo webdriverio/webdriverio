@@ -419,16 +419,26 @@ describe('browsing context', () => {
                 nodes: [{ type: 'node', sharedId: 'child-1' }]
             } as never)
 
-            await expect(elem.findElementFromElement('elem-1', 'xpath', './/span')).resolves.toEqual({ [ELEMENT_KEY]: 'child-1' })
+            await expect(elem.findElementFromElement('elem-1', 'css selector', 'span')).resolves.toEqual({ [ELEMENT_KEY]: 'child-1' })
             expect(locate).toHaveBeenCalledWith({
                 context: 'frame-1',
-                locator: { type: 'xpath', value: './/span' },
+                locator: { type: 'css', value: 'span' },
                 startNodes: [{ sharedId: 'elem-1' }],
                 maxNodeCount: 1
             })
 
             locate.mockResolvedValueOnce({ nodes: [] } as never)
             await expect(elem.findElementFromElement('elem-1', 'css selector', '.missing')).rejects.toThrow('no such element')
+        })
+
+        it('evaluates a relative XPath with the element as context node', async () => {
+            const { context, elem } = heldElement('frame-1', true)
+            const locate = vi.spyOn(browser, 'browsingContextLocateNodes')
+            const execute = vi.spyOn(context, 'execute').mockResolvedValue([{ [ELEMENT_KEY]: 'child-1' }])
+
+            await expect(elem.findElementFromElement('elem-1', 'xpath', './/span')).resolves.toEqual({ [ELEMENT_KEY]: 'child-1' })
+            expect(execute).toHaveBeenCalledWith(expect.any(Function), { [ELEMENT_KEY]: 'elem-1' }, './/span')
+            expect(locate).not.toHaveBeenCalled()
         })
 
         it('reports interactability errors with the classic error codes', async () => {

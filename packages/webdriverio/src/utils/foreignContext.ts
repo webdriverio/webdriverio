@@ -241,9 +241,9 @@ async function prepareInteraction (el: HTMLElement, mode: 'click' | 'clear' | 'k
 }
 
 /**
- * Find Element(s) From Element in the element's own document. CSS, tag name
- * and XPath use `browsingContext.locateNodes` with the element as start
- * node. Link text compares the rendered text of each `<a>` below the
+ * Find Element(s) From Element in the element's own document. CSS and tag
+ * name use `browsingContext.locateNodes` with the element as start node,
+ * XPath is evaluated with the element as context node. Link text compares the rendered text of each `<a>` below the
  * element, like the spec's link text strategies.
  *
  * @see https://w3c.github.io/webdriver/#locator-strategies
@@ -259,11 +259,26 @@ async function findInContext (
         return findLinksInContext(held, using, value, elementId, maxNodeCount)
     }
 
+    /**
+     * XPath is evaluated with the element as context node, like the spec's
+     * XPath strategy, so relative expressions (`./span`, `.//li`) work. The
+     * BiDi xpath locator does not take relative expressions with a start node.
+     */
+    if (using === 'xpath') {
+        const found = await held.execute((root: Element, expression: string) => {
+            const result = root.ownerDocument.evaluate(expression, root, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+            return Array.from({ length: result.snapshotLength }, (_, i) => result.snapshotItem(i))
+                .filter((node): node is Element => node?.nodeType === Node.ELEMENT_NODE)
+        }, ref(elementId), value)
+        /**
+         * `execute` returns DOM nodes as element references.
+         */
+        return (found as unknown as Record<string, string>[]).slice(0, maxNodeCount)
+    }
+
     const locator: remote.BrowsingContextLocator | undefined = using === 'css selector' || using === 'tag name'
         ? { type: 'css', value }
-        : using === 'xpath'
-            ? { type: 'xpath', value }
-            : undefined
+        : undefined
     if (!locator) {
         throw driverError('invalid argument', `Locator strategy "${using}" is not supported for an element of another browsing context`)
     }
@@ -355,12 +370,26 @@ async function clickInContext (held: WebdriverIO.BrowsingContext, elementId: str
         fire('mousemove')
         fire('mousedown')
         parent.focus()
-        const disabled = option.matches(':disabled') || Boolean(option.closest('select')?.disabled)
-        if (!disabled) {
+        /**
+         * Like Is Element Enabled: a disabled `<optgroup>` or `<select>`
+         * around the option disables it too.
+         */
+        const isDisabled = (node: Element): boolean => {
+            if (['option', 'optgroup'].includes(node.localName) && !(node as HTMLOptionElement).disabled) {
+                const ancestor = node.parentElement?.closest('optgroup,select')
+                return ancestor ? isDisabled(ancestor) : false
+            }
+            return node.matches(':disabled')
+        }
+        if (!isDisabled(option)) {
             const previous = option.selected
             option.selected = (parent as HTMLSelectElement).multiple ? !option.selected : true
             parent.dispatchEvent(new Event('input', { bubbles: true }))
-            if (!previous) {
+            /**
+             * Also when a `multiple` select deselects the option, like a user
+             * click and geckodriver.
+             */
+            if (option.selected !== previous) {
                 parent.dispatchEvent(new Event('change', { bubbles: true }))
             }
         }
@@ -603,9 +632,18 @@ export const FOREIGN_ELEMENT_ENDPOINTS: Record<string, Endpoint> = {
     }, ref(elementId)),
     getElementAttribute: (held, elementId, name: string) => held.execute(
         (el: Element, name: string, booleanAttributes: Record<string, string[]>) => {
+            /**
+             * Boolean attributes are an HTML concept: HTML attribute names are
+             * case-insensitive, an XML document keeps the raw value.
+             */
+            const isHTML = el.namespaceURI === 'http://www.w3.org/1999/xhtml' &&
+                !['text/xml', 'application/xml'].includes(el.ownerDocument.contentType)
+            const lowerName = name.toLowerCase()
             const isCustomElement = el.localName.includes('-')
-            const isBoolean = ((name === 'hidden' || name === 'itemscope') && !isCustomElement) ||
-                (booleanAttributes[el.localName] || []).includes(name)
+            const isBoolean = isHTML && (
+                ((lowerName === 'hidden' || lowerName === 'itemscope') && !isCustomElement) ||
+                (booleanAttributes[el.localName] || []).includes(lowerName)
+            )
             if (isBoolean) {
                 return el.hasAttribute(name) ? 'true' : null
             }
