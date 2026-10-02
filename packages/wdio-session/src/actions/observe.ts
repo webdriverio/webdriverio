@@ -2,10 +2,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { imageSize } from 'image-size'
+import { roleTable } from '@wdio/utils'
 
 import { SessionError, notSupported } from '../errors.js'
 import { quote } from '../quote.js'
-import { collectWeb } from '../snapshot/web.js'
+import { collectInPage, type CollectOptions } from '../snapshot/web.js'
 import { countRefs, formatSnapshot, type SnapshotNode } from '../snapshot/format.js'
 import { unifiedDiff } from '../snapshot/diff.js'
 import { takeNativeSnapshot } from '../snapshot/native.js'
@@ -13,6 +14,17 @@ import { resolveElement, resolveTarget, scopeOf } from '../snapshot/target.js'
 import type { ActionFn, Session } from '../session.js'
 
 const DEFAULT_MAX_CHARS = 8000
+
+/**
+ * run the snapshot collector in the page. `web.ts` only holds code that
+ * runs in the browser, the role table comes from here.
+ */
+async function collectWeb (browser: WebdriverIO.Browser, opts: Omit<CollectOptions, 'roles' | 'assignRefs'>, scope?: WebdriverIO.Element) {
+    const args: CollectOptions = { ...opts, roles: roleTable(), assignRefs: true }
+    return scope
+        ? browser.execute(collectInPage, args, scope as unknown as Element)
+        : browser.execute(collectInPage, args)
+}
 
 export interface SnapshotOptions {
     depth?: number

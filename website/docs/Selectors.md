@@ -282,7 +282,7 @@ The syntax is `role/<role>` or `role/<role>[name="<accessible name>"]`. Single q
 
 On a [WebDriver BiDi](https://w3c.github.io/webdriver-bidi/) session, WebdriverIO passes role and name to [`browsingContext.locateNodes`](https://w3c.github.io/webdriver-bidi/#command-browsingContext-locateNodes). The browser computes both itself, the same way assistive technology sees the page. Elements inside open shadow roots and inside frames, including frames from another origin, are found. If the browser finds no element, there is no fallback to a heuristic. Note that the browser decides the role: for example, a `<table>` without headers or caption can be a layout table, and its rows then have no `row` role.
 
-On a WebDriver Classic session, WebdriverIO computes role and accessible name in the page. It uses the same rules as the snapshots of [`wdio session`](/docs/session). The role selector is not available in a native mobile app context. Use an [accessibility id](#accessibility-id) there.
+On a WebDriver Classic session, and when a browser does not support the role locator, WebdriverIO computes role and accessible name in the page with [`dom-accessibility-api`](https://github.com/eps1lon/dom-accessibility-api), the implementation Testing Library uses. A text field without a label is named by its `placeholder`, as browsers do. The role selector is not available in a native mobile app context. Use an [accessibility id](#accessibility-id) there.
 
 ## ARIA - Role Attribute
 

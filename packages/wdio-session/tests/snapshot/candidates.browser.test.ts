@@ -1,25 +1,20 @@
-import { JSDOM } from 'jsdom'
 import { describe, expect, it } from 'vitest'
 
-import { roleTable } from '../../src/snapshot/roles.js'
+/**
+ * from the source: the `@wdio/utils` entry point needs Node.js
+ */
+import { roleTable } from '../../../wdio-utils/src/roles.js'
 import { collectInPage, type CollectOptions } from '../../src/snapshot/web.js'
 
+/**
+ * Runs the collector in a real browser the way a session does: from its
+ * source, so it cannot rely on anything outside its body.
+ */
 function candidatesOf (html: string) {
-    const dom = new JSDOM(`<!doctype html><html><body>${html}</body></html>`, { url: 'https://example.com/', runScripts: 'dangerously' })
-    const win = dom.window as unknown as Window & { __collect?: typeof collectInPage }
-    win.WeakRef = WeakRef
-    win.WeakMap = WeakMap
-    /**
-     * jsdom has no `CSS.escape`
-     */
-    ;(win as unknown as { CSS: { escape: (value: string) => string } }).CSS = {
-        escape: (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, (char) => `\\${char}`)
-    }
-    const script = win.document.createElement('script')
-    script.textContent = `window.__collect = (${collectInPage.toString()})`
-    win.document.documentElement.appendChild(script)
+    document.body.innerHTML = html
+    const collect = new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
     const opts: CollectOptions = { roles: roleTable(), counter: 0, all: false, boxes: false, assignRefs: true }
-    const { refs } = win.__collect!(opts)
+    const { refs } = collect(opts)
     return (role: string, name: string) => refs.find((ref) => ref.role === role && ref.name === name)?.candidates
 }
 

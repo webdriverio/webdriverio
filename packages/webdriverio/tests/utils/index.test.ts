@@ -199,14 +199,14 @@ describe('role selector on a Classic session', () => {
     it('finds the first element by role and name in the page', async () => {
         const browser = classicBrowser([{ [ELEMENT_KEY]: 'el-1' }, { [ELEMENT_KEY]: 'el-2' }])
         expect(await findElement.call(browser, 'role/button[name="Add to cart"]')).toEqual({ [ELEMENT_KEY]: 'el-1' })
-        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), expect.any(Array), 'button', 'Add to cart', -1, null)
+        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), 'button', 'Add to cart', -1, null)
         expect(browser.findElement).not.toHaveBeenCalled()
     })
 
     it('returns every match and passes a null name for a role-only selector', async () => {
         const browser = classicBrowser([{ [ELEMENT_KEY]: 'el-1' }, { [ELEMENT_KEY]: 'el-2' }])
         expect(await findElements.call(browser, 'role/row')).toEqual([{ [ELEMENT_KEY]: 'el-1' }, { [ELEMENT_KEY]: 'el-2' }])
-        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), expect.any(Array), 'row', null, -1, null)
+        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), 'row', null, -1, null)
         expect(browser.findElements).not.toHaveBeenCalled()
     })
 
@@ -215,7 +215,19 @@ describe('role selector on a Classic session', () => {
         const dialog = { elementId: 'dialog-1', [ELEMENT_KEY]: 'dialog-1', parent: browser, ...browser }
         dialog.execute = browser.execute
         await findElements.call(dialog, 'role/button[name="Pay now"]')
-        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), expect.any(Array), 'button', 'Pay now', -1, dialog)
+        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), 'button', 'Pay now', -1, dialog)
+    })
+
+    it('puts the accessibility script on the page when it is missing and searches again', async () => {
+        const browser = classicBrowser([])
+        browser.execute
+            .mockResolvedValueOnce('__wdio_a11y_missing__')
+            .mockResolvedValueOnce(undefined)
+            .mockResolvedValueOnce([{ [ELEMENT_KEY]: 'el-1' }])
+        expect(await findElement.call(browser, 'role/button[name="Pay"]')).toEqual({ [ELEMENT_KEY]: 'el-1' })
+        expect(browser.execute).toHaveBeenCalledTimes(3)
+        expect(typeof browser.execute.mock.calls[1][0]).toBe('string')
+        expect(browser.execute.mock.calls[2]).toEqual(browser.execute.mock.calls[0])
     })
 
     it('returns a not-found error when nothing matches', async () => {

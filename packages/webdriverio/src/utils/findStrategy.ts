@@ -3,7 +3,7 @@ import { roleElements } from 'aria-query'
 
 import { environment } from '../environment.js'
 import { DEEP_SELECTOR, ARIA_SELECTOR, ROLE_SELECTOR } from '../constants.js'
-import { knownRoles, ROLE_SYNONYMS } from '../scripts/roles.js'
+import { knownRoles, ROLE_SYNONYMS } from '@wdio/utils'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/

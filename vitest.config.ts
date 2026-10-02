@@ -12,7 +12,11 @@ export default defineConfig({
          * not to ESM ported packages
          */
         exclude: [
-            'dist', '.idea', '.git', '.cache', '**/node_modules/**'
+            'dist', '.idea', '.git', '.cache', '**/node_modules/**',
+            /**
+             * in-page scripts, run in a real browser by `vitest.browser.config.ts`
+             */
+            '**/*.browser.test.ts'
         ],
         env: {
             WDIO_SKIP_DRIVER_SETUP: '1'

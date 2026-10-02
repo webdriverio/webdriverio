@@ -836,7 +836,7 @@ describe('findDeepElement / findDeepElements - role selector', () => {
             { [ELEMENT_KEY]: 'script-1' },
             { [ELEMENT_KEY]: 'script-2' }
         ])
-        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), expect.any(Array), 'button', 'Pay now', -1, null)
+        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), 'button', 'Pay now', -1, null)
         expect(browser.findElement).not.toHaveBeenCalled()
     })
 })
