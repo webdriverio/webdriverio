@@ -151,6 +151,14 @@ describe('multi remote expect', () => {
             await expect(links).toHaveText(expect.arrayContaining(['2', '1']))
         })
 
+        // TODO: unskip when webdriverio/expect-webdriverio#2297 is released: until then, the snapshot throws `Multi-remote object has no instance named "browserB"` instead of a matcher failure
+        it.skip('should fail the snapshot of an element that one instance does not find', async () => {
+            const links = multiRemoteBrowser.$$('header a')
+
+            await expect(expect(links[2]).toMatchInlineSnapshot('"<a href="index.html">1</a>"'))
+                .rejects.toThrow(/multi-remote<browserA, browserB, browserC>[\s\S]*browserB/)
+        })
+
         it('should re-fetch the elements of every instance between retries', async () => {
             await browserB.execute(() => {
                 setTimeout(() => {
