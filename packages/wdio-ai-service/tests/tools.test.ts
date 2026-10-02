@@ -102,15 +102,16 @@ describe('pageTools', () => {
         expect(steps).toEqual([{ action: 'frame', args: { target: 'top' }, code: '' }])
     })
 
-    it('records no effect for a step that was still running at the timeout', async () => {
+    it('keeps the finished parts of a step that was still running at the timeout', async () => {
         const { agent } = fakeAgent((action) => action === 'click' ? { text: 'Clicked', code: 'await $(\'#pay\').click()' } : undefined)
-        const effects = { start: vi.fn(), settle: vi.fn(async () => ({ changed: ['status "Payment"'] })), unsettled: ['POST /api/pay'] }
+        const effects = { start: vi.fn(), settle: vi.fn(async () => ({ requests: ['POST /api/cart → 2xx'], changed: ['status "Cart"'] })), unsettled: ['GET /api/recommendations'] }
         const steps: ActStep[] = []
         const click = (await pageTools({ agent, values: {}, onStep: (step) => steps.push(step), effects: effects as never })).find((t) => t.name === 'click')!
 
         const output = await click.invoke({ target: '#pay' })
-        expect(steps[0].effect).toBeUndefined()
-        expect(output).toContain('Effect: unknown, still running after the timeout: POST /api/pay')
+        expect(steps[0].effect).toEqual({ requests: ['POST /api/cart → 2xx'], changed: ['status "Cart"'] })
+        expect(output).toContain('Effect: POST /api/cart → 2xx, a change in status "Cart"')
+        expect(output).toContain('Still running after the timeout, not recorded: GET /api/recommendations')
     })
 
     it('records switching to another tab, but not listing the tabs', async () => {

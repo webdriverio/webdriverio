@@ -223,11 +223,12 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                 const result = await agent.run(spec.name, substitute(args, values))
                 const settled = step && context.effects ? redact(await context.effects.settle(), values) : undefined
                 /**
-                 * an effect cut off by the timeout would fail every replay
-                 * that waits long enough, record none instead
+                 * A step still running at the timeout keeps the parts that
+                 * finished: a request that completed did happen, and a replay
+                 * checks it. What was still running is not recorded.
                  */
                 const unsettled = settled ? context.effects!.unsettled : []
-                const effect = unsettled.length ? undefined : settled
+                const effect = settled
                 if (spec.name === 'snapshot') {
                     diffArgs = {
                         ...(typeof args.scope === 'string' ? { scope: args.scope } : {}),
@@ -254,8 +255,9 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                     }
                     if (effect && !isEmpty(effect)) {
                         text += `\nEffect: ${describeEffect(effect)}`
-                    } else if (unsettled.length) {
-                        text += `\nEffect: unknown, still running after the timeout: ${redact(unsettled.join(', '), values)}`
+                    }
+                    if (unsettled.length) {
+                        text += `\nStill running after the timeout, not recorded: ${redact(unsettled.join(', '), values)}`
                     }
                     const diff = await agent.run('diff', diffArgs).catch(() => undefined)
                     if (diff?.text) {

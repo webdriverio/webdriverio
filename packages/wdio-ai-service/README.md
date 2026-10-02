@@ -192,7 +192,7 @@ A replayed or healed step is only accepted when it has the same effect:
 | `loose` | the navigation and at least one recorded request or changed region |
 | `off` | only the target |
 
-Requests to common analytics and telemetry hosts, websockets, beacons and assets never count. A step is done when its requests finished, no navigation is pending and the page had no changes for 100 ms, so `act` waits for slow requests instead of a fixed time. A replay waits up to 5 seconds, or the `waitforTimeout` of your config when it is longer. A step whose request is still running then fails with *"the step was still running after 8000ms (POST /api/cart), so its effect could not be checked"*, not as a behavior change, and a step recorded that way gets no effect.
+Requests to common analytics and telemetry hosts, websockets, beacons and assets never count. A step is done when its requests finished, no navigation is pending and the page had no changes for 100 ms, so `act` waits for slow requests instead of a fixed time. A replay waits up to 5 seconds, or the `waitforTimeout` of your config when it is longer. A step whose request is still running then fails with *"the step was still running after 8000ms (POST /api/cart), so its effect could not be checked"*, not as a behavior change. A step recorded while a request is still running keeps the parts that finished.
 
 WebDriver Classic sessions see navigation and page changes but not requests, new windows or dialogs, so only those parts are checked there, and the summary says so. Native app effects are not checked.
 
