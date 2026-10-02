@@ -13,7 +13,7 @@ import { fakeAgent } from './__fixtures__/agent.js'
 
 const createAgentSession = vi.hoisted(() => vi.fn())
 const effects = vi.hoisted(() => [] as StepEffect[])
-const fakeRecorder = vi.hoisted(() => ({ bidi: true, start: vi.fn(), settle: vi.fn() }))
+const fakeRecorder = vi.hoisted(() => ({ bidi: true, start: vi.fn(), settle: vi.fn(), unsettled: [] as string[] }))
 vi.mock('@wdio/session/agent', () => ({ createAgentSession }))
 vi.mock('../src/recorder.js', () => ({ EffectRecorder: { attach: vi.fn(async () => fakeRecorder) } }))
 
@@ -81,6 +81,22 @@ describe('AiRuntime effects', () => {
         expect(error.reason).toContain('ran, but the step no longer causes POST /api/cart → 2xx')
         expect(writing.model.calls).toHaveLength(0)
         expect(fake.run.mock.calls.filter(([action]) => action === 'click')).toHaveLength(2)
+    })
+
+    it('fails without calling the model when a cached step was still running at the timeout', async () => {
+        await record()
+        effects.push({})
+        fakeRecorder.unsettled = ['POST /api/cart']
+        try {
+            const writing = runtime([{ tool: 'done', args: { summary: 'never' } }])
+            writing.runtime.startTest(spec, 'cart')
+            const error = await writing.runtime.act(browser, 'Add the shirt').catch((err) => err)
+            expect(error).toBeInstanceOf(ActError)
+            expect(error.reason).toContain('ran, but the step was still running after 5000ms (POST /api/cart), so its effect could not be checked. Raise `waitforTimeout` if the app is that slow.')
+            expect(writing.model.calls).toHaveLength(0)
+        } finally {
+            fakeRecorder.unsettled = []
+        }
     })
 
     it('fails when the steps the model took to continue do not have the recorded effect', async () => {

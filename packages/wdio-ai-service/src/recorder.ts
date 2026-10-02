@@ -3,13 +3,14 @@ import { getContextManager } from 'webdriverio'
 import { contextTree } from './contexts.js'
 
 import {
-    isEffectRequest, isIgnored, statusClass, urlTemplate,
+    DEFAULT_SETTLE_TIMEOUT, isEffectRequest, isIgnored, statusClass, urlTemplate,
     type EffectsConfig, type StepEffect
 } from './effects.js'
 
+export { DEFAULT_SETTLE_TIMEOUT }
+
 export const EFFECTS_CHANNEL = 'wdio-ai-effects'
 
-export const DEFAULT_SETTLE_TIMEOUT = 5_000
 export const DEFAULT_QUIET = 100
 const POLL = 25
 
@@ -160,6 +161,7 @@ export class EffectRecorder {
     #changed = new Set<string>()
     #prompt?: string
     #lastActivity = 0
+    #unsettled: string[] = []
     #classicUrl?: string
     #epoch = 0
 
@@ -364,6 +366,7 @@ export class EffectRecorder {
             if (!this.bidi) {
                 return await this.#settleClassic(deadline, quiet)
             }
+            this.#unsettled = []
             while (Date.now() < deadline) {
                 const idle = this.#inflight.size === 0 && this.#pendingNavigations.size === 0
                 if (idle && Date.now() - this.#lastActivity >= quiet) {
@@ -371,13 +374,31 @@ export class EffectRecorder {
                 }
                 await new Promise((resolve) => setTimeout(resolve, POLL))
             }
+            /**
+             * A page that keeps changing is done once its requests and
+             * navigations are. A request still in flight means the effect
+             * is incomplete, not that the step had no such effect.
+             */
+            this.#unsettled = [
+                ...[...this.#inflight.values()].map(({ method, url }) => `${method} ${urlTemplate(url, this.#pageUrl)}`),
+                ...(this.#pendingNavigations.size ? ['a navigation'] : [])
+            ]
             return this.#effect()
         } finally {
             this.#active = false
         }
     }
 
+    /**
+     * what was still running when the last `settle()` timed out, empty when
+     * the step finished
+     */
+    get unsettled (): string[] {
+        return [...this.#unsettled]
+    }
+
     async #settleClassic (deadline: number, quiet: number): Promise<StepEffect> {
+        this.#unsettled = []
         let last = Date.now()
         let seen = 0
         while (Date.now() < deadline) {

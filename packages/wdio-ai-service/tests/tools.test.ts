@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { ACTIONS } from '@wdio/session'
 
@@ -89,6 +89,17 @@ describe('pageTools', () => {
 
         await frame.invoke({ target: 'top' })
         expect(steps).toEqual([{ action: 'frame', args: { target: 'top' }, code: '' }])
+    })
+
+    it('records no effect for a step that was still running at the timeout', async () => {
+        const { agent } = fakeAgent((action) => action === 'click' ? { text: 'Clicked', code: 'await $(\'#pay\').click()' } : undefined)
+        const effects = { start: vi.fn(), settle: vi.fn(async () => ({ changed: ['status "Payment"'] })), unsettled: ['POST /api/pay'] }
+        const steps: ActStep[] = []
+        const click = (await pageTools({ agent, values: {}, onStep: (step) => steps.push(step), effects: effects as never })).find((t) => t.name === 'click')!
+
+        const output = await click.invoke({ target: '#pay' })
+        expect(steps[0].effect).toBeUndefined()
+        expect(output).toContain('Effect: unknown, still running after the timeout: POST /api/pay')
     })
 
     it('records switching to another tab, but not listing the tabs', async () => {

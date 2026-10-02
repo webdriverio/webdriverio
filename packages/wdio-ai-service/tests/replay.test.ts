@@ -146,7 +146,22 @@ describe('effect checks during replay', () => {
     }
     const recorder = (...effects: StepEffect[]): EffectCheck => ({
         mode: 'strict',
-        recorder: { bidi: true, start: vi.fn(), settle: vi.fn(async () => effects.shift() ?? {}) } as unknown as EffectCheck['recorder']
+        recorder: { bidi: true, start: vi.fn(), settle: vi.fn(async () => effects.shift() ?? {}), unsettled: [] as string[] } as unknown as EffectCheck['recorder']
+    })
+
+    it('reports a step still running at the timeout as such, not as a behavior change, and waits at least the wait timeout', async () => {
+        const { agent, run } = fakeAgent()
+        const check = recorder({})
+        Object.assign(check.recorder, { unsettled: ['POST /api/cart'] })
+        const result = await replaySteps(agent, [step], {}, 8000, check)
+        expect(check.recorder.settle).toHaveBeenCalledWith({ timeout: 8000 })
+        expect(result.failed).toEqual({
+            step,
+            index: 0,
+            error: 'the step was still running after 8000ms (POST /api/cart), so its effect could not be checked',
+            kind: 'timeout'
+        })
+        expect(run).toHaveBeenCalledTimes(1)
     })
 
     it('accepts a replayed step that has its recorded effect', async () => {
@@ -194,7 +209,7 @@ describe('effect checks during replay', () => {
         const { agent } = fakeAgent()
         const classic: EffectCheck = {
             mode: 'strict',
-            recorder: { bidi: false, start: vi.fn(), settle: vi.fn(async () => ({ changed: ['status "Cart"'] })) } as unknown as EffectCheck['recorder']
+            recorder: { bidi: false, start: vi.fn(), settle: vi.fn(async () => ({ changed: ['status "Cart"'] })), unsettled: [] } as unknown as EffectCheck['recorder']
         }
         const withRegion = { ...step, effect: { requests: ['POST /api/cart → 2xx'], changed: ['status "Cart"'] } }
         expect((await replaySteps(agent, [withRegion], {}, 100, classic)).failed).toBeUndefined()

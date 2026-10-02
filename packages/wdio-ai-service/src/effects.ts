@@ -29,6 +29,12 @@ export interface StepEffect {
 
 export type EffectsMode = 'strict' | 'loose' | 'off'
 
+/**
+ * how long a step may take to settle, a replay waits at least as long as
+ * the `waitforTimeout` of the config
+ */
+export const DEFAULT_SETTLE_TIMEOUT = 5_000
+
 export interface EffectsConfig {
     mode: EffectsMode
     /**
@@ -212,5 +218,18 @@ export class EffectMismatchError extends Error {
         super(`the step no longer causes ${missing.join(', ')}`)
         this.name = 'EffectMismatchError'
         this.missing = missing
+    }
+}
+
+/**
+ * A replayed step was still running when the settle timeout ended, so its
+ * effect could not be checked. Not a behavior change.
+ */
+export class EffectTimeoutError extends Error {
+    readonly pending: string[]
+    constructor (timeout: number, pending: string[]) {
+        super(`the step was still running after ${timeout}ms (${pending.join(', ')}), so its effect could not be checked`)
+        this.name = 'EffectTimeoutError'
+        this.pending = pending
     }
 }

@@ -446,6 +446,13 @@ export class AiRuntime {
              * model in any mode: the model would run it again to cause the
              * recorded effect, e.g. submit a payment twice.
              */
+            if (failed.kind === 'timeout') {
+                throw new ActError({
+                    instruction,
+                    reason: `cached step ${failed.index + 1} (${failed.step.code}) ran, but ${failed.error}. Raise \`waitforTimeout\` if the app is that slow.`,
+                    steps: replay.done
+                })
+            }
             if (failed.kind === 'effect') {
                 throw new ActError({
                     instruction,

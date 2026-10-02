@@ -1,7 +1,7 @@
 import type { AgentSession } from '@wdio/session/agent'
 
 import { redact, substitute } from './redact.js'
-import { EffectMismatchError, missingEffects, observableWithoutBidi, type EffectsMode } from './effects.js'
+import { DEFAULT_SETTLE_TIMEOUT, EffectMismatchError, EffectTimeoutError, missingEffects, observableWithoutBidi, type EffectsMode } from './effects.js'
 import type { EffectRecorder } from './recorder.js'
 import type { HealHooks } from './evidence.js'
 import type { ActStep } from './types.js'
@@ -44,7 +44,7 @@ export interface ReplayResult {
          * the step ran and did something else. It is never run again, by
          * another selector or by the model: it may have submitted a form.
          */
-        kind?: 'effect'
+        kind?: 'effect' | 'timeout'
         /**
          * the alternative selector the step ran with
          */
@@ -70,23 +70,24 @@ export async function runStep (agent: AgentSession, step: ActStep, values: Recor
             await agent.scope.$(selector).waitForExist({ timeout: waitTimeout })
         }
     }
-    return runChecked(agent, step, args, values, effects)
+    return runChecked(agent, step, args, values, effects, Math.max(DEFAULT_SETTLE_TIMEOUT, waitTimeout))
 }
 
 /**
  * run a step and check that it has the effect it had when it was recorded
  */
-async function runChecked (agent: AgentSession, step: ActStep, args: Record<string, unknown>, values: Record<string, string>, effects?: EffectCheck) {
+async function runChecked (agent: AgentSession, step: ActStep, args: Record<string, unknown>, values: Record<string, string>, effects?: EffectCheck, timeout = DEFAULT_SETTLE_TIMEOUT) {
     if (!effects || effects.mode === 'off') {
         return agent.run(step.action, args)
     }
     await effects.recorder.start()
     const result = await agent.run(step.action, args)
-    const actual = redact(await effects.recorder.settle(), values)
+    const actual = redact(await effects.recorder.settle({ timeout }), values)
     const expected = effects.recorder.bidi ? step.effect : observableWithoutBidi(step.effect)
     const missing = missingEffects(expected, actual, effects.mode)
     if (missing.length) {
-        throw new EffectMismatchError(missing)
+        const pending = effects.recorder.unsettled
+        throw pending.length ? new EffectTimeoutError(timeout, pending) : new EffectMismatchError(missing)
     }
     return result
 }
@@ -144,6 +145,9 @@ export async function healStep (agent: AgentSession, step: ActStep, values: Reco
             if (err instanceof EffectMismatchError) {
                 throw new HealMismatchError(selector, err.missing)
             }
+            if (err instanceof EffectTimeoutError) {
+                throw err
+            }
             // invalid or stale selector, try the next one
         }
     }
@@ -183,12 +187,18 @@ export async function replaySteps (agent: AgentSession, steps: ActStep[], values
             if (err instanceof EffectMismatchError) {
                 return { done, healed, failed: { step, index, error: err.message, kind: 'effect' } }
             }
+            if (err instanceof EffectTimeoutError) {
+                return { done, healed, failed: { step, index, error: err.message, kind: 'timeout' } }
+            }
             let fixed: ActStep | undefined
             try {
                 fixed = await healStep(agent, step, values, effects)
             } catch (healErr) {
                 if (healErr instanceof HealMismatchError) {
                     return { done, healed, failed: { step, index, error: healErr.message, kind: 'effect', healedWith: healErr.selector } }
+                }
+                if (healErr instanceof EffectTimeoutError) {
+                    return { done, healed, failed: { step, index, error: healErr.message, kind: 'timeout' } }
                 }
                 throw healErr
             }

@@ -128,6 +128,11 @@ describe('EffectRecorder on a BiDi session', () => {
         const started = Date.now()
         await recorder.settle({ timeout: 120, quiet: 10 })
         expect(Date.now() - started).toBeLessThan(400)
+        expect(recorder.unsettled).toEqual(['GET /api/poll'])
+
+        await recorder.start()
+        expect(await recorder.settle({ quiet: 10 })).toEqual({})
+        expect(recorder.unsettled).toEqual([])
     })
 
     it('records a window the step opened and a dialog', async () => {
