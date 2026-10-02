@@ -283,4 +283,182 @@ describe('browsing context', () => {
         expect(typeof element.then).toBe('function')
         expect(typeof element.moveTo).toBe('function')
     })
+
+    describe('custom commands', () => {
+        type ContextWith<T extends string> = WebdriverIO.BrowsingContext & Record<T, (...args: unknown[]) => Promise<unknown>>
+
+        it('adds a command to contexts from url(), newWindow(), browsingContexts() and frame()', async () => {
+            browser.addCommand('whereAmI', async function (this: WebdriverIO.BrowsingContext) {
+                return this.contextId
+            }, { attachToBrowsingContext: true })
+
+            vi.spyOn(browser, 'browsingContextNavigate').mockResolvedValue({ navigation: 'nav-1', url: 'https://example.com/' })
+            vi.spyOn(browser, 'browsingContextCreate').mockResolvedValue({ context: 'new-tab', type: 'tab' } as never)
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{
+                    context: 'top-context',
+                    url: 'https://example.com',
+                    children: [{ context: 'child', url: 'https://child.example', children: [] }]
+                }]
+            } as never)
+
+            const page = await browser.url('https://example.com') as ContextWith<'whereAmI'>
+            const tab = await browser.newWindow('https://webdriver.io', { type: 'tab' }) as ContextWith<'whereAmI'>
+            const [listed] = await browser.browsingContexts() as ContextWith<'whereAmI'>[]
+            const frame = await listed.frame('https://child.example') as ContextWith<'whereAmI'>
+
+            expect(await page.whereAmI()).toBe('top-context')
+            expect(await tab.whereAmI()).toBe('new-tab')
+            expect(await listed.whereAmI()).toBe('top-context')
+            expect(await frame.whereAmI()).toBe('child')
+        })
+
+        it('adds a command to a context that was created before the command was registered', async () => {
+            const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' }) as ContextWith<'late'>
+            expect(page.late).toBeUndefined()
+
+            browser.addCommand('late', async function (this: WebdriverIO.BrowsingContext, value: string) {
+                return `${this.contextId}:${value}`
+            }, { attachToBrowsingContext: true })
+
+            expect(await page.late('arg')).toBe('top-context:arg')
+        })
+
+        it('does not add a command to a context that was garbage-collected', () => {
+            const collected = new Set<object>()
+            class FakeWeakRef<T extends object> {
+                #target: T
+                constructor (target: T) {
+                    this.#target = target
+                }
+                deref () {
+                    return collected.has(this.#target) ? undefined : this.#target
+                }
+            }
+            const OriginalWeakRef = globalThis.WeakRef
+            globalThis.WeakRef = FakeWeakRef as unknown as WeakRefConstructor
+            try {
+                const kept = getBrowsingContext(browser, 'kept', { isFrame: false, url: 'https://kept.example' }) as ContextWith<'afterCollect'>
+                const gone = getBrowsingContext(browser, 'gone', { isFrame: false, url: 'https://gone.example' }) as ContextWith<'afterCollect'>
+                collected.add(gone)
+
+                browser.addCommand('afterCollect', async () => 'ok', { attachToBrowsingContext: true })
+
+                expect(typeof kept.afterCollect).toBe('function')
+                expect(gone.afterCollect).toBeUndefined()
+            } finally {
+                globalThis.WeakRef = OriginalWeakRef
+            }
+        })
+
+        it('binds this to the context and gives access to the browser and the parent frame', async () => {
+            browser.addCommand('describeContext', async function (this: WebdriverIO.BrowsingContext) {
+                return {
+                    contextId: this.contextId,
+                    isFrame: this.isFrame,
+                    parent: this.parent?.contextId,
+                    sameBrowser: this.browser === browser
+                }
+            }, { attachToBrowsingContext: true })
+
+            const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' })
+            const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://child.example', parent: page }) as ContextWith<'describeContext'>
+            expect(await frame.describeContext()).toEqual({
+                contextId: 'frame-1',
+                isFrame: true,
+                parent: 'top-context',
+                sameBrowser: true
+            })
+        })
+
+        it('keeps context commands off the browser and off elements', async () => {
+            browser.addCommand('contextOnly', async () => 'context', { attachToBrowsingContext: true })
+            const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' }) as ContextWith<'contextOnly'>
+            const element = getElement.call(browser, '#foo', { [ELEMENT_KEY]: 'el-1' })
+
+            expect(await page.contextOnly()).toBe('context')
+            expect((browser as unknown as Record<string, unknown>).contextOnly).toBeUndefined()
+            expect((element as unknown as Record<string, unknown>).contextOnly).toBeUndefined()
+        })
+
+        it('rejects attaching to elements and contexts at once, and names that a context already has', () => {
+            expect(() => browser.addCommand('both', async () => {}, { attachToElement: true, attachToBrowsingContext: true } as never))
+                .toThrow('cannot attach a command to elements and browsing contexts at once')
+            expect(() => browser.addCommand('getTitle', async () => {}, { attachToBrowsingContext: true }))
+                .toThrow('"getTitle" is already a property of every browsing context')
+            expect(() => browser.addCommand('contextId', async () => {}, { attachToBrowsingContext: true }))
+                .toThrow('"contextId" is already a property of every browsing context')
+            expect(() => browser.addCommand('notAFunction', 'nope' as never, { attachToBrowsingContext: true }))
+                .toThrow('must be a function')
+        })
+
+        it('overwrites a built-in command on new and existing contexts, including frames', async () => {
+            const scriptCallFunction = vi.spyOn(browser, 'scriptCallFunction').mockResolvedValue({
+                type: 'success',
+                result: { type: 'string', value: 'Original Title' }
+            } as never)
+            const existing = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' })
+
+            browser.overwriteCommand('getTitle', async function (this: WebdriverIO.BrowsingContext, origGetTitle) {
+                const title = await origGetTitle()
+                return `${this.contextId}: ${title}`
+            }, { attachToBrowsingContext: true })
+
+            const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://child.example' })
+            expect(await existing.getTitle()).toBe('top-context: Original Title')
+            expect(await frame.getTitle()).toBe('frame-1: Original Title')
+            expect(scriptCallFunction).toHaveBeenCalledWith(expect.objectContaining({ target: { context: 'frame-1' } }))
+        })
+
+        it('composes several overrides and overwrites custom context commands', async () => {
+            browser.addCommand('greet', async (name: string) => `hello ${name}`, { attachToBrowsingContext: true })
+            browser.overwriteCommand('greet' as keyof WebdriverIO.BrowsingContext, async (orig: (name: string) => Promise<string>, name: string) => `${await orig(name)}!`, { attachToBrowsingContext: true })
+            browser.overwriteCommand('greet' as keyof WebdriverIO.BrowsingContext, async (orig: (name: string) => Promise<string>, name: string) => (await orig(name)).toUpperCase(), { attachToBrowsingContext: true })
+
+            const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' }) as ContextWith<'greet'>
+            expect(await page.greet('wdio')).toBe('HELLO WDIO!')
+        })
+
+        it('throws when overwriting a command that contexts do not have', () => {
+            expect(() => browser.overwriteCommand('doesNotExist' as keyof WebdriverIO.BrowsingContext, async () => {}, { attachToBrowsingContext: true }))
+                .toThrow('overwriteCommand: no browsing context command to be overwritten: doesNotExist')
+        })
+
+        it('keeps the commands of one browser off the contexts of another browser', async () => {
+            const other = await remote({ capabilities: { browserName: 'bidi' } })
+            browser.addCommand('mine', async () => 'mine', { attachToBrowsingContext: true })
+
+            const own = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' }) as ContextWith<'mine'>
+            const foreign = getBrowsingContext(other, 'top-context', { isFrame: false, url: 'https://example.com' }) as ContextWith<'mine'>
+            expect(await own.mine()).toBe('mine')
+            expect(foreign.mine).toBeUndefined()
+        })
+
+        it('runs custom context commands through the command hooks and keeps their errors', async () => {
+            const beforeCommand = vi.fn()
+            const afterCommand = vi.fn()
+            browser.options.beforeCommand = beforeCommand
+            browser.options.afterCommand = afterCommand
+            browser.addCommand('hooked', async (value: string) => `got ${value}`, { attachToBrowsingContext: true })
+            browser.addCommand('broken', async () => {
+                throw new Error('boom')
+            }, { attachToBrowsingContext: true })
+
+            const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' }) as ContextWith<'hooked' | 'broken'>
+            expect(await page.hooked('it')).toBe('got it')
+            expect(beforeCommand).toHaveBeenCalledWith('hooked', ['it'])
+            expect(afterCommand).toHaveBeenCalledWith('hooked', ['it'], 'got it', undefined)
+            await expect(page.broken()).rejects.toThrow('boom')
+        })
+
+        it('points context.addCommand to the browser option', async () => {
+            const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' })
+            await expect(page.addCommand('nope', () => {})).rejects.toThrow(
+                'Use `browser.addCommand(name, fn, { attachToBrowsingContext: true })`'
+            )
+            await expect(page.overwriteCommand('nope', () => {})).rejects.toThrow(
+                'Use `browser.overwriteCommand(name, fn, { attachToBrowsingContext: true })`'
+            )
+        })
+    })
 })

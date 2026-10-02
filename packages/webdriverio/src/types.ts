@@ -433,7 +433,26 @@ export type Instances = CustomCommands.Instances
 export type CustomCommandOptions<IsElement extends boolean> = CustomCommands.CustomCommandOptions<IsElement>
 export type AddCommandFunction<IsElement extends boolean, T = any, Instance = WebdriverIO.Browser> = IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn
 
+type BrowsingContextCommandOptions = Omit<CustomCommands.CustomCommandOptions<false>, 'attachToElement' | 'attachToBrowsingContext'> & {
+    attachToElement?: false
+    attachToBrowsingContext: true
+}
+
+type BrowsingContextCommand<Key extends keyof WebdriverIO.BrowsingContext> =
+    WebdriverIO.BrowsingContext[Key] extends (...args: any[]) => any
+        ? OmitThisParameter<WebdriverIO.BrowsingContext[Key]>
+        : never
+
 export interface CustomInstanceCommands<T> {
+
+    /**
+     * add command to every browsing context (tab, window, frame)
+     */
+    addCommand(
+        name: string,
+        func: (this: WebdriverIO.BrowsingContext, ...args: any[]) => any,
+        options: BrowsingContextCommandOptions
+    ): void;
 
     /**
      * add command to `browser`, or to an element when `options.attachToElement` is true
@@ -442,6 +461,15 @@ export interface CustomInstanceCommands<T> {
         name: string,
         func: IsElement extends true ? AddCommandFnScoped<T | Instance, IsElement> : AddCommandFn,
         options?: CustomCommands.CustomCommandOptions<IsElement>
+    ): void;
+
+    /**
+     * overwrite a command of every browsing context (tab, window, frame)
+     */
+    overwriteCommand<Key extends keyof WebdriverIO.BrowsingContext>(
+        name: Key,
+        func: (this: WebdriverIO.BrowsingContext, originalCommand: BrowsingContextCommand<Key>, ...args: any[]) => Promise<any>,
+        options: BrowsingContextCommandOptions
     ): void;
 
     /**

@@ -18,6 +18,10 @@ declare global {
         interface Element {
             elementCustomCommand: (arg: unknown) => Promise<number>
         }
+
+        interface BrowsingContext {
+            contextCustomCommand: (label: string) => Promise<string>
+        }
     }
 }
 
@@ -156,6 +160,25 @@ async function bar() {
     browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
         return pause(ms).catch()
     })
+
+    // browsing context
+    browser.addCommand('contextCustomCommand', async function (label: string) {
+        expectType<WebdriverIO.BrowsingContext>(this)
+        expectType<WebdriverIO.Browser>(this.browser)
+        return `${label}: ${await this.getTitle()}`
+    }, { attachToBrowsingContext: true })
+
+    browser.overwriteCommand('getTitle', async function (origGetTitle) {
+        expectType<WebdriverIO.BrowsingContext>(this)
+        const title: string = await origGetTitle()
+        return title.trim()
+    }, { attachToBrowsingContext: true })
+
+    const [contextWithCommand] = await browser.browsingContexts()
+    expectType<string>(await contextWithCommand.contextCustomCommand('title'))
+
+    // @ts-expect-error a command cannot attach to elements and browsing contexts at once
+    browser.addCommand('both', async function () {}, { attachToElement: true, attachToBrowsingContext: true })
 
     ////////////////////////////////////////////////////////////////////////////////
 

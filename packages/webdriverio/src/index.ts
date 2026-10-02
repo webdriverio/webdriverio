@@ -14,10 +14,10 @@ import { getProtocolDriver } from './utils/driver.js'
 import { WDIO_DEFAULTS, Key as KeyConstant } from './constants.js'
 import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
 import { registerSessionManager } from './session/index.js'
+import { enableBrowsingContextCommands } from './browsingContext.js'
 import { environment } from './environment.js'
 
 import type { AttachOptions, CustomCommandOptions } from './types.js'
-import type * as elementCommands from './commands/element.js'
 import { IMPLICIT_WAIT_EXCLUSION_LIST } from './middlewares.js'
 
 export * from './types.js'
@@ -87,6 +87,9 @@ export const remote = async function (
     const { Driver, options } = await getProtocolDriver({ ...params, ...config })
     const prototype = getPrototype('browser')
     const instance = await Driver.newSession(options, modifier, prototype, wrapCommand, IMPLICIT_WAIT_EXCLUSION_LIST) as WebdriverIO.Browser
+    if (!isStub(options.automationProtocol)) {
+        enableBrowsingContextCommands(instance)
+    }
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
@@ -129,6 +132,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
         prototype,
         wrapCommand
     ) as WebdriverIO.Browser
+    enableBrowsingContextCommands(driver)
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
 
     /**
@@ -234,6 +238,14 @@ export const multiRemote = async function (
                 driver.getInstance(instanceName).addCommand(name, fn, resolved)
             )
 
+            /**
+             * browsing contexts belong to the instances, the multi-remote
+             * object has none
+             */
+            if (resolved.attachToBrowsingContext) {
+                return
+            }
+
             return origAddCommand(
                 name,
                 fn,
@@ -245,10 +257,16 @@ export const multiRemote = async function (
             )
         }
 
-        const origOverwriteCommand = driver.overwriteCommand.bind(driver) as typeof driver.overwriteCommand
-        driver.overwriteCommand = (name, fn, options) => {
+        const origOverwriteCommand = driver.overwriteCommand.bind(driver) as Function
+        driver.overwriteCommand = ((name: string, fn: Function, options?: CustomCommandOptions<boolean>) => {
             const resolved = resolveCustomCommandOptions('overwriteCommand', options)
-            return origOverwriteCommand<keyof typeof elementCommands, any, any>(
+            if (resolved.attachToBrowsingContext) {
+                driver.instances.forEach(instanceName =>
+                    (driver.getInstance(instanceName).overwriteCommand as Function)(name, fn, resolved)
+                )
+                return
+            }
+            return origOverwriteCommand(
                 name,
                 fn,
                 {
@@ -257,7 +275,7 @@ export const multiRemote = async function (
                     instances: Object.fromEntries(multibrowser.instances)
                 }
             )
-        }
+        }) as typeof driver.overwriteCommand
     }
 
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
