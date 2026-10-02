@@ -421,9 +421,6 @@ describe('multi remote test', () => {
 
         before(async () => {
             await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/shadowDom.html')
-            /**
-             * return an array: with WebDriver BiDi, a `NodeList` gives no element references
-             */
             multiRemoteBrowser.addLocatorStrategy('allByCss', (selector: string) => Array.from(document.querySelectorAll(selector)) as HTMLElement[])
         })
 
