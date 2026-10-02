@@ -187,9 +187,14 @@ export default class MultiRemote {
             /**
              * An entry of a list can have no element for the first instance (#15845), so take
              * the selector of the first instance that has one. A command on an element without
-             * a selector would run on the browsers, so on the full page of each one.
+             * a selector runs on the browsers, so on the full page of each one. The queries of
+             * WebdriverIO always give at least one element; only an overwritten query that
+             * returns nothing leaves the selector undefined, as the `null` of before.
              */
-            client.selector = results.find(Boolean)?.selector ?? null
+            const firstElement = results.find(Boolean)
+            if (firstElement) {
+                client.selector = firstElement.selector
+            }
             // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
 
