@@ -125,7 +125,6 @@ function decodeHeader(value: local.NetworkBytesValue) {
         : new TextDecoder('utf-8', { ignoreBOM: true }).decode(decodeBase64(value.value))
 }
 
-// SAFETY: Every supported runtime defines ArrayBuffer.prototype.byteLength as a getter.
 const getArrayBufferByteLength = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'byteLength')!.get!
 
 function isArrayBuffer(value: unknown): value is ArrayBuffer {
