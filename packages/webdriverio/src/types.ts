@@ -244,9 +244,11 @@ type ElementCommandNames = SingleElementCommandNames | MultiElementCommandNames
  * `mock` is wrapped into a `MultiRemoteMock` instead of an array of results.
  */
 type MultiRemoteArrayCommandNames = ElementCommandNames | 'SESSION_MOCKS' | 'CDP_SESSIONS' | 'mock'
-type MultiRemoteElementCommands = {
-    [K in keyof Pick<BrowserCommandsType, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement>
-} & {
+/**
+ * `shadow$` exists only on an element
+ */
+type ElementScopeSingleElementCommandNames = SingleElementCommandNames | 'shadow$'
+type MultiRemoteListQueries = {
     [K in keyof Pick<BrowserCommandsType, '$$'>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElementArray>
 } & {
     /**
@@ -256,15 +258,21 @@ type MultiRemoteElementCommands = {
      */
     [K in keyof Pick<BrowserCommandsType, Exclude<MultiElementCommandNames, '$$'>>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement[]>
 }
+type MultiRemoteBrowserQueries = {
+    [K in keyof Pick<BrowserCommandsType, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement>
+} & MultiRemoteListQueries
+type MultiRemoteElementQueries = {
+    [K in keyof Pick<ElementCommandsType, ElementScopeSingleElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement>
+} & MultiRemoteListQueries
 
 export type MultiRemoteBrowserCommandsType = {
     [K in keyof Omit<BrowserCommandsType, MultiRemoteArrayCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
-} & MultiRemoteElementCommands & {
+} & MultiRemoteBrowserQueries & {
     mock(...args: Parameters<BrowserCommandsType['mock']>): Promise<WebdriverIO.MultiRemoteMock>
 }
 export type MultiRemoteElementCommandsType = {
-    [K in keyof Omit<ElementCommandsType, ElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>
-} & MultiRemoteElementCommands
+    [K in keyof Omit<ElementCommandsType, ElementCommandNames | 'shadow$'>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>
+} & MultiRemoteElementQueries
 export type MultiRemoteProtocolCommandsType = {
     [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => Promise<ThenArg<ReturnType<ProtocolCommands[K]>>[]>
 }
