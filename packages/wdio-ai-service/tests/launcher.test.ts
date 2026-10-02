@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import fs from 'node:fs'
 
 import { describe, expect, it, vi } from 'vitest'
@@ -17,7 +19,7 @@ describe('AiLauncher', () => {
         await launcher.onComplete()
 
         expect(log).toHaveBeenCalledWith(expect.stringContaining('@wdio/ai-service: 1 act call · 0 from cache · 0 healed without the model · 0 healed by the model · 1 recorded by the model · 15 tokens'))
-        expect(log).toHaveBeenCalledWith(expect.stringContaining('Updated cache entries: /project/logs/act-cache'))
+        expect(log).toHaveBeenCalledWith(expect.stringContaining(`Updated cache entries: ${path.resolve('/project/logs', 'act-cache')}`))
         expect(fs.existsSync(dir)).toBe(false)
         expect(process.env[RUN_DIR_ENV]).toBeUndefined()
         log.mockRestore()
