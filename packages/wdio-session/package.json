@@ -16,6 +16,11 @@
       "source": "./src/daemon/main.ts",
       "import": "./build/daemon.js"
     },
+    "./agent": {
+      "types": "./build/agent.d.ts",
+      "source": "./src/agent.ts",
+      "import": "./build/agent.js"
+    },
     "./package.json": "./package.json"
   },
   "bin": {

@@ -44,6 +44,10 @@ export interface SessionInit {
     browser: WebdriverIO.Browser
     plan: OpenPlan
     keepHistory?: boolean
+    /**
+     * `false` keeps the step history in memory instead of `history.json`
+     */
+    persistHistory?: boolean
 }
 
 export interface ActionOutcome extends ActionResult {
@@ -101,7 +105,7 @@ export class Session {
         this.browser = init.browser
         this.plan = init.plan
         fs.mkdirSync(this.artifactsDir, { recursive: true })
-        this.history = new History(this.artifactsDir, { keep: init.keepHistory })
+        this.history = new History(this.artifactsDir, { keep: init.keepHistory, persist: init.persistHistory })
     }
 
     get applies (): Applies[] {
