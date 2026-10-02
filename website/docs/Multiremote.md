@@ -283,6 +283,8 @@ When(/^User (.) types a message into the chat/, async (userId) => {
 The `expect` matchers support multi-remote browsers, elements and mocks. By default, every instance must match the expected value:
 
 ```js
+import { multiRemoteBrowser, expect } from '@wdio/globals'
+
 await expect(multiRemoteBrowser).toHaveTitle('My App')
 await expect(multiRemoteBrowser.$('h1')).toHaveText('Welcome')
 ```
@@ -290,6 +292,8 @@ await expect(multiRemoteBrowser.$('h1')).toHaveText('Welcome')
 To expect a different value per instance, use `expect.multiRemote()` with one value per instance name:
 
 ```js
+import { multiRemoteBrowser, expect } from '@wdio/globals'
+
 await expect(multiRemoteBrowser).toHaveTitle(expect.multiRemote({
     myChromeBrowser: 'My App',
     myFirefoxBrowser: expect.stringContaining('App')
