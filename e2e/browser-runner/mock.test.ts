@@ -36,13 +36,15 @@ describe('WebdriverIO mock command', () => {
             apiMock
                 .respondOnce(Buffer.from(bytes), CORS_PARAMS)
                 .respondOnce(new Uint8Array(bytes), CORS_PARAMS)
+                .respondOnce(new Uint16Array(new Uint8Array(bytes).buffer), CORS_PARAMS)
+                .respondOnce(() => new DataView(new Uint8Array([0, ...bytes, 0]).buffer, 1, bytes.length), CORS_PARAMS)
                 .respondOnce(() => new Uint8Array(bytes).buffer, CORS_PARAMS)
 
-            for (const endpoint of ['buffer', 'typed-array', 'array-buffer']) {
+            for (const endpoint of ['buffer', 'typed-array', 'uint16-array', 'data-view', 'array-buffer']) {
                 const response = await fetch(`https://api.webdriver.io/api/${endpoint}`)
                 expect(new Uint8Array(await response.arrayBuffer())).toEqual(new Uint8Array(bytes))
             }
-            expect(apiMock.calls).toHaveLength(3)
+            expect(apiMock.calls).toHaveLength(5)
             for (const call of apiMock.calls) {
                 expect(apiMock.getBinaryResponse(call.request.request)).toEqual(new Uint8Array(bytes))
             }
@@ -57,8 +59,10 @@ describe('WebdriverIO mock command', () => {
         document.body.append(frame)
         try {
             const FrameUint8Array = (frame.contentWindow as Window & typeof globalThis).Uint8Array
+            const FrameFloat32Array = (frame.contentWindow as Window & typeof globalThis).Float32Array
             const bytes = new FrameUint8Array([0, 137, 80, 78, 71, 0]).subarray(1, 5)
             const buffer = new FrameUint8Array([137, 80, 78, 71]).buffer
+            const floatView = new FrameFloat32Array(buffer)
             Object.defineProperty(buffer, 'constructor', {
                 value: {
                     get [Symbol.species]() {
@@ -68,17 +72,19 @@ describe('WebdriverIO mock command', () => {
             })
             expect(bytes instanceof Uint8Array).toBe(false)
             expect(buffer instanceof ArrayBuffer).toBe(false)
+            expect(floatView instanceof Float32Array).toBe(false)
             apiMock
                 .respondOnce(bytes, CORS_PARAMS)
                 .respondOnce(buffer, CORS_PARAMS)
                 .respondOnce(() => bytes, CORS_PARAMS)
                 .respondOnce(() => buffer, CORS_PARAMS)
+                .respondOnce(floatView, CORS_PARAMS)
 
-            for (const endpoint of ['typed-array', 'array-buffer', 'typed-array-callback', 'array-buffer-callback']) {
+            for (const endpoint of ['typed-array', 'array-buffer', 'typed-array-callback', 'array-buffer-callback', 'float32-array']) {
                 const response = await fetch(`https://api.webdriver.io/api/${endpoint}`)
                 expect(new Uint8Array(await response.arrayBuffer())).toEqual(new Uint8Array([137, 80, 78, 71]))
             }
-            expect(apiMock.calls).toHaveLength(4)
+            expect(apiMock.calls).toHaveLength(5)
         } finally {
             frame.remove()
             await apiMock.restore()

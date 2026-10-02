@@ -4,7 +4,7 @@ Component specs execute `browser.mock()` inside a real browser. Drive this path 
 
 ## Sub-features
 
-- `browser-runner-mocks` replaces API responses using absolute and host-less single-star patterns, handles binary data (including iframe-created buffers with a throwing species getter), redirects an image, and restores the original image request.
+- `browser-runner-mocks` replaces API responses using absolute and host-less single-star patterns, handles binary data (including Uint16Array, offset DataView, iframe-created Float32Array, and buffers with a throwing species getter), redirects an image, and restores the original image request.
 
 ## How to get to it (user POV)
 

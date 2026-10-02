@@ -86,7 +86,7 @@ function pendingDecisions(event: InterceptedEvent) {
     return pending ? pending.slice() : []
 }
 
-type RespondBodyValue = string | JsonCompatible | Uint8Array | ArrayBuffer
+type RespondBodyValue = string | JsonCompatible | ArrayBufferView | ArrayBuffer
 type RespondBody = RespondBodyValue | ((request: local.NetworkResponseCompletedParameters) => RespondBodyValue)
 interface Overwrite {
     overwrite?: RequestWithOptions | RespondWithOptions
@@ -112,7 +112,7 @@ function toStringBody(payload: unknown) {
     if (typeof serialized !== 'string') {
         throw new Error(
             `Failed to serialize mock.respond() payload of type "${typeof payload}". ` +
-            'The response body must be a string, Uint8Array, ArrayBuffer, or JSON-serializable value.'
+            'The response body must be a string, ArrayBufferView, ArrayBuffer, or JSON-serializable value.'
         )
     }
 
@@ -122,10 +122,11 @@ function toStringBody(payload: unknown) {
 function decodeHeader(value: local.NetworkBytesValue) {
     return value.type === 'string'
         ? value.value
-        : new TextDecoder('utf-8', { ignoreBOM: true }).decode(decodeBase64(value.value))
+        : UTF8_DECODER.decode(decodeBase64(value.value))
 }
 
 const getArrayBufferByteLength = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'byteLength')!.get!
+const UTF8_DECODER = new TextDecoder('utf-8', { ignoreBOM: true })
 
 function isArrayBuffer(value: unknown): value is ArrayBuffer {
     try {
@@ -138,7 +139,7 @@ function isArrayBuffer(value: unknown): value is ArrayBuffer {
 }
 
 function toNetworkBody(payload: RespondBodyValue): remote.NetworkBytesValue {
-    if (ArrayBuffer.isView(payload) && Object.prototype.toString.call(payload) === '[object Uint8Array]') {
+    if (ArrayBuffer.isView(payload)) {
         const bytes = new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength)
         return { type: 'base64', value: encodeBase64(bytes) }
     }

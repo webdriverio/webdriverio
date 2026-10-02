@@ -144,6 +144,10 @@ describe('WebDriverInterception', () => {
         ['imported Buffer', Buffer.from([137, 80, 78, 71])],
         ['Uint8Array', new Uint8Array([137, 80, 78, 71])],
         ['offset view', new Uint8Array([0, 137, 80, 78, 71, 0]).subarray(1, 5)],
+        ['Uint16Array', new Uint16Array([0x0102, 0x0304])],
+        ['Int8Array', new Int8Array([-1, 0, 1])],
+        ['Uint8ClampedArray', new Uint8ClampedArray([255, 0, 1])],
+        ['offset DataView', new DataView(new Uint8Array([0, 137, 80, 78, 71, 0]).buffer, 1, 4)],
         ['ArrayBuffer', new Uint8Array([137, 80, 78, 71]).buffer],
         ['ArrayBuffer with throwing species', Object.defineProperty(new Uint8Array([137, 80, 78, 71]).buffer, 'constructor', {
             value: {
@@ -154,13 +158,16 @@ describe('WebDriverInterception', () => {
         })],
         ['cross-realm Uint8Array', runInNewContext('new Uint8Array([137, 80, 78, 71])') as Uint8Array],
         ['cross-realm offset view', runInNewContext('new Uint8Array([0, 137, 80, 78, 71, 0]).subarray(1, 5)') as Uint8Array],
+        ['cross-realm Float32Array', runInNewContext('new Float32Array([1])') as Float32Array],
         ['cross-realm ArrayBuffer', runInNewContext('new Uint8Array([137, 80, 78, 71]).buffer') as ArrayBuffer],
         ['empty bytes', new Uint8Array()],
         ['one byte', new Uint8Array([255])],
         ['two bytes', new Uint8Array([255, 254])],
         ['large payload', Uint8Array.from({ length: 200003 }, (_, index) => index % 256)]
     ])('responds with %s without a global Buffer', async (_name, payload) => {
-        const bytes = ArrayBuffer.isView(payload) ? payload : new Uint8Array(payload)
+        const bytes = ArrayBuffer.isView(payload)
+            ? Buffer.from(payload.buffer, payload.byteOffset, payload.byteLength)
+            : new Uint8Array(payload)
         const expected = Buffer.from(bytes).toString('base64')
         const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://test.com/foo', {}, browser)
