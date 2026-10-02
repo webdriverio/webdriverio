@@ -35,9 +35,17 @@ describe('wdio session harness', () => {
     it('lists every action in --help', async () => {
         const { code, stdout } = await runSession(['--help'])
         expect(code).toBe(0)
+        const listed = stdout.slice(stdout.indexOf('Actions:'), stdout.indexOf('Global flags:'))
         for (const action of ACTIONS) {
-            expect(stdout).toContain(`wdio session ${action.name}`)
+            expect(listed).toMatch(new RegExp(`(^|\\s)${action.name}(\\s|$)`))
         }
+    })
+
+    it('describes one action with <action> --help', async () => {
+        const { code, stdout } = await runSession(['click', '--help'])
+        expect(code).toBe(0)
+        expect(stdout).toContain('wdio session click <target>')
+        expect(stdout).toContain('Examples:')
     })
 
     it('fails with a usage error for unknown actions', async () => {
