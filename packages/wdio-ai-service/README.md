@@ -56,6 +56,7 @@ export const config: WebdriverIO.Config = {
 | `maxModelCalls` | `number` | | Model calls per worker. |
 | `actions` | `string[]` | page actions of `wdio session` | Actions the model may use. Code execution, cookies, storage, mocks and emulation are never offered. |
 | `effects` | `'strict' \| 'loose' \| 'off' \| { mode, ignore }` | `'strict'` | How replayed and healed steps are checked against what they did when recorded, see [Step effects](#step-effects). `ignore` adds URL patterns to the analytics hosts that never count. |
+| `healEvidence` | `boolean` | `true` | Save screenshots of every heal and failed replay, plus a video where the browser records one, see [Heal evidence](#heal-evidence). |
 | `workspace.dir` | `string` | `<outputDir>/ai` or `.wdio/ai` | Root of the evidence folders, see [Workspace](#workspace). |
 | `workspace.keep` | `'on-failure' \| 'always' \| 'never'` | `'on-failure'` | Keep a test's folder when an `act` call failed or healed, or the test failed. |
 
@@ -119,11 +120,23 @@ At the end of the run the service prints a summary:
 @wdio/ai-service: 42 act calls · 39 from cache · 2 healed without the model · 1 healed by the model · 0 recorded by the model · 3.1k tokens
 Healed:
   cart.e2e.ts › cart adds a shirt "Add a blue shirt to the cart": step 2 [data-testid="add"] → role/button[name="Add to cart"] (without the model)
+    evidence: ./logs/ai/heals/cart.e2e.ts-cart-adds-a-shirt-1c71c48d
   checkout.e2e.ts › checkout pays "Pay with the test card": continued by the model
+    evidence: ./logs/ai/heals/checkout.e2e.ts-checkout-pays-24560807
 Updated cache entries: ./logs/act-cache
 ```
 
-Every call also emits an `ai:act` event on `process` with `{ spec, test, instruction, source, healed, healedSteps, error, usage, durationMs }`, so reporters can show it.
+Every call also emits an `ai:act` event on `process` with `{ spec, test, instruction, source, healed, healedSteps, artifacts, error, usage, durationMs }`, so reporters can show it.
+
+### Heal evidence
+
+A heal is a change you should review, so the service shows you what happened. When a cached step fails, it saves:
+
+- `failed.png`, the page when the step failed
+- `step-1.png`, `step-2.png`, …, the page after each step that healed it
+- a WebM video of the whole heal, in browsers that implement the WebDriver BiDi [`browsingContext.startScreencast`](https://w3c.github.io/webdriver-bidi/#command-browsingContext-startScreencast) command (Firefox today)
+
+The files go to `<workspace.dir>/heals/<spec>-<test>-<id>/`, and the summary prints the folder. Nothing is captured while cached steps replay fine. Set `healEvidence: false` to turn it off.
 
 | Mode | Cached | Not cached | Writes |
 | --- | --- | --- | --- |

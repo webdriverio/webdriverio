@@ -18,7 +18,7 @@ export const MAX_INLINE_OUTPUT = 12_000
 /**
  * file and folder names from free text
  */
-function slug (value: string) {
+export function slug (value: string) {
     return value.replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'untitled'
 }
 

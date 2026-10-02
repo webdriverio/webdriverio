@@ -6,9 +6,11 @@ import { ScriptedChatModel } from '../../../packages/wdio-ai-service/tests/__fix
 
 /**
  * Cache files of this suite go to a temporary directory, so a run never
- * writes into the repository.
+ * writes into the repository. The launcher creates it, workers inherit it
+ * through the environment, so a spec and the service always share it.
  */
-export const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-ai-e2e-'))
+process.env.WDIO_AI_E2E_DIR ??= fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-ai-e2e-'))
+export const cacheDir = process.env.WDIO_AI_E2E_DIR
 
 /**
  * The tool calls a model would make, in the order the specs call `act`.

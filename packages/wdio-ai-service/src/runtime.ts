@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
@@ -16,7 +17,8 @@ import { describeEffect, isEmpty, mergeEffects, missingEffects, observableWithou
 import { EffectRecorder } from './recorder.js'
 import { emitRecord, writeRecords, type ActRecord } from './stats.js'
 import { pageTools } from './tools.js'
-import { Workspace, type KeepPolicy } from './workspace.js'
+import { slug, Workspace, type KeepPolicy } from './workspace.js'
+import { HealEvidence } from './evidence.js'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 
 import { answerTools, EXTRACT_PROMPT, jsonSchemaOf, READ_ACTIONS, validate, type ExtractOutcome } from './extract.js'
@@ -317,10 +319,16 @@ export class AiRuntime {
         const started = Date.now()
         const test = this.#test
         const base = { ...(test ? { spec: test.spec, test: test.title } : {}), instruction }
+        const evidence = this.#evidenceFor(scope, instruction)
+        const artifacts = async () => {
+            const files = await evidence?.end() ?? []
+            return files.length ? { artifacts: files } : {}
+        }
         try {
-            const { result, usage, healedSteps } = await this.#act(scope, instruction, options)
+            const { result, usage, healedSteps } = await this.#act(scope, instruction, options, evidence)
             this.#record({
                 ...base,
+                ...await artifacts(),
                 effects: this.#coverage(await this.recorderFor(browserOf(scope)).catch(() => undefined)),
                 source: result.source,
                 ...(result.healed ? { healed: result.healed } : {}),
@@ -332,6 +340,7 @@ export class AiRuntime {
         } catch (err) {
             this.#record({
                 ...base,
+                ...await artifacts(),
                 source: 'model',
                 error: (err as Error).message,
                 usage: err instanceof ActError && err.usage ? err.usage : NO_USAGE,
@@ -339,6 +348,20 @@ export class AiRuntime {
             })
             throw err
         }
+    }
+
+    /**
+     * where the screenshots and video of a heal go, captured only once a
+     * cached step fails
+     */
+    #evidenceFor (scope: ActScope, instruction: string) {
+        const browser = browserOf(scope)
+        if (this.options.healEvidence === false || (browser as unknown as { isMultiRemote?: boolean }).isMultiRemote) {
+            return undefined
+        }
+        const test = this.#test
+        const name = test ? `${path.basename(test.spec)}-${test.title}` : instruction
+        return new HealEvidence(browser, path.join(this.#workspaceRoot, 'heals', `${slug(name)}-${crypto.randomUUID().slice(0, 8)}`))
     }
 
     #record (record: ActRecord) {
@@ -353,7 +376,7 @@ export class AiRuntime {
         }
     }
 
-    async #act (scope: ActScope, instruction: string, options: ActOptions): Promise<ActOutcome> {
+    async #act (scope: ActScope, instruction: string, options: ActOptions, evidence?: HealEvidence): Promise<ActOutcome> {
         if (typeof instruction !== 'string' || !instruction.trim()) {
             throw new Error('[@wdio/ai-service] act() needs an instruction')
         }
@@ -366,13 +389,13 @@ export class AiRuntime {
         const recorder = await this.#recorders.get(browser)
         const scoped = await scopeOf(agent, scope)
         try {
-            return await this.#actIn(agent, browser, instruction, options, scoped.ref, recorder)
+            return await this.#actIn(agent, browser, instruction, options, scoped.ref, recorder, evidence)
         } finally {
             await scoped.leave?.()
         }
     }
 
-    async #actIn (agent: AgentSession, browser: WebdriverIO.Browser, instruction: string, options: ActOptions, scopeRef: string | undefined, recorder?: EffectRecorder): Promise<ActOutcome> {
+    async #actIn (agent: AgentSession, browser: WebdriverIO.Browser, instruction: string, options: ActOptions, scopeRef: string | undefined, recorder?: EffectRecorder, evidence?: HealEvidence): Promise<ActOutcome> {
         const effects: EffectCheck | undefined = recorder ? { recorder, mode: this.effects.mode } : undefined
         const mode = this.mode(options.cache)
         const test = this.#test
@@ -392,7 +415,7 @@ export class AiRuntime {
         const summarize = (steps: ActStep[]) => steps.map(({ action, code }) => ({ action, code }))
 
         if (entry && entry.instruction === instruction) {
-            const replay = await replaySteps(agent, entry.steps, values, waitTimeoutOf(browser), effects)
+            const replay = await replaySteps(agent, entry.steps, values, waitTimeoutOf(browser), effects, evidence)
             if (!replay.failed) {
                 if (replay.healed.length) {
                     if (mode !== 'locked') {
@@ -413,6 +436,7 @@ export class AiRuntime {
             }
             log.info(`act("${instruction}"): cached step ${replay.failed.index + 1} failed, asking the model to continue`)
             const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed), scopeRef, recorder)
+            await evidence?.after()
             /**
              * the model's steps have to do what the failed step did
              */

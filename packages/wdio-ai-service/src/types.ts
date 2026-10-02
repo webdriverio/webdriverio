@@ -79,6 +79,12 @@ export interface AiServiceOptions {
      */
     effects?: EffectsMode | { mode?: EffectsMode, ignore?: (string | RegExp)[] }
     /**
+     * Save screenshots of every heal, and a video where the browser records
+     * a WebDriver BiDi screencast, to `<workspace dir>/heals/` (default
+     * `true`). Nothing is captured while cached steps replay fine.
+     */
+    healEvidence?: boolean
+    /**
      * the read-only evidence folder the model can look into
      */
     workspace?: {

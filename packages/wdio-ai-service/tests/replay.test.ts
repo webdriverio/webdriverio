@@ -109,6 +109,20 @@ describe('healing without the model', () => {
         expect(result.healed).toEqual([{ index: 0, from: '[data-testid="add"]', to: 'role/button[name="Add to cart"]' }])
     })
 
+    it('tells the heal hooks when a step fails and when its heal ran, not while steps replay fine', async () => {
+        const { agent, matches, waitForExist } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
+        const calls: string[] = []
+        const hooks = { begin: async () => { calls.push('begin') }, after: async () => { calls.push('after') } }
+
+        await replaySteps(agent, [recorded], {}, 100, undefined, hooks)
+        expect(calls).toEqual([])
+
+        waitForExist.mockRejectedValueOnce(new Error('still not existing'))
+        matches.set('#add', 1)
+        await replaySteps(agent, [recorded], {}, 100, undefined, hooks)
+        expect(calls).toEqual(['begin', 'after'])
+    })
+
     it('reports the step as failed when no alternative matches exactly one element', async () => {
         const { agent, run, matches, waitForExist } = fakeAgent()
         waitForExist.mockRejectedValueOnce(new Error('still not existing'))

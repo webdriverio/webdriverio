@@ -98,12 +98,26 @@ describe('browser.act() cache', () => {
 
     it('heals a step whose test id changed through role and name, without a model', async () => {
         await browser.url(`${origin}/`)
+        const records: { artifacts?: string[] }[] = []
+        const listener = (record: { artifacts?: string[] }) => records.push(record)
+        process.on('ai:act', listener)
         const result = await browser.act('Add the item to the cart', { id: 'renamed-test-id', cache: 'locked', model: cacheModel })
+            .finally(() => process.off('ai:act', listener))
         expect(result).toEqual({
             source: 'cache',
             healed: 'cache',
             steps: [{ action: 'click', code: CLICK }]
         })
         await expect($('#count')).toHaveText('1')
+
+        /**
+         * a screenshot when the cached step failed and one after the heal
+         */
+        const artifacts = records[0].artifacts!
+        expect(artifacts.map((file) => path.basename(file))).toEqual(['failed.png', 'step-1.png'])
+        expect(path.dirname(artifacts[0]).startsWith(path.join(cacheDir, 'workspaces', 'heals'))).toBe(true)
+        for (const file of artifacts) {
+            expect(fs.readFileSync(file).subarray(1, 4).toString()).toBe('PNG')
+        }
     })
 })

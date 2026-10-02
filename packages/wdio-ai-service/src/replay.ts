@@ -3,6 +3,7 @@ import type { AgentSession } from '@wdio/session/agent'
 import { redact, substitute } from './redact.js'
 import { EffectMismatchError, missingEffects, observableWithoutBidi, type EffectsMode } from './effects.js'
 import type { EffectRecorder } from './recorder.js'
+import type { HealHooks } from './evidence.js'
 import type { ActStep } from './types.js'
 
 export interface EffectCheck {
@@ -133,7 +134,7 @@ export async function healStep (agent: AgentSession, step: ActStep, values: Reco
  * Run recorded steps in order. A step whose target is gone is healed with
  * an alternative selector. Stop at the first step that cannot be healed.
  */
-export async function replaySteps (agent: AgentSession, steps: ActStep[], values: Record<string, string>, waitTimeout: number, effects?: EffectCheck): Promise<ReplayResult> {
+export async function replaySteps (agent: AgentSession, steps: ActStep[], values: Record<string, string>, waitTimeout: number, effects?: EffectCheck, heal?: HealHooks): Promise<ReplayResult> {
     const done: ActStep[] = []
     const healed: HealedStep[] = []
     for (const [index, step] of steps.entries()) {
@@ -141,6 +142,7 @@ export async function replaySteps (agent: AgentSession, steps: ActStep[], values
             await runStep(agent, step, values, waitTimeout, effects)
             done.push(step)
         } catch (err) {
+            await heal?.begin()
             /**
              * the element was there and the step ran, it just did something
              * else: another selector would hit the same element again
@@ -150,6 +152,7 @@ export async function replaySteps (agent: AgentSession, steps: ActStep[], values
             }
             const fixed = await healStep(agent, step, values, effects)
             if (fixed) {
+                await heal?.after()
                 done.push(fixed)
                 healed.push({ index, from: step.target!.selector, to: fixed.target!.selector })
                 continue
