@@ -620,6 +620,15 @@ A find-element body that contains only `{ ELEMENT: '...' }` is not an element. I
 
 Jasmine prints a chained `$()` result through `toJSON`. That value is the same W3C reference, `{ 'element-6066-11e4-a52e-4f735466cecf': elementId }`.
 
+With WebDriver BiDi, a script that returns a `NodeList` (for example from `querySelectorAll`) or an `HTMLCollection` (for example `element.children`) now gives a list of element references, as WebDriver Classic does. In v9 it gave raw BiDi values, so `browser.execute` returned objects that are not elements, and a `custom$` or `custom$$` strategy that returned `querySelectorAll(...)` found no element. A workaround such as `Array.from(document.querySelectorAll(...))` still works, and you can remove it:
+
+```diff
+  browser.addLocatorStrategy('byCss', (selector) =>
+-     Array.from(document.querySelectorAll(selector))
++     document.querySelectorAll(selector)
+  )
+```
+
 ## Component testing
 
 `@wdio/browser-runner` re-exports `fn`, `spyOn` and the mock types from `@vitest/spy` 5 (previously 3). A mock that your code calls with `new` needs a `function` or `class` implementation. An arrow function throws `is not a constructor`, and `mockReturnValue` throws when the mock is called with `new`.
