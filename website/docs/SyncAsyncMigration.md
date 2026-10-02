@@ -116,13 +116,13 @@ for await (const elem of $$('div')) {
 If you use the WebdriverIO assertion helper [`expect-webdriverio`](https://webdriver.io/docs/api/expect-webdriverio) make sure to set an `await` in front of every `expect` call, e.g.:
 
 ```ts
-expect($('input')).toHaveAttributeContaining('class', 'form')
+expect($('input')).toHaveAttribute('class', expect.stringContaining('form'))
 ```
 
 needs to be transformed to:
 
 ```ts
-await expect($('input')).toHaveAttributeContaining('class', 'form')
+await expect($('input')).toHaveAttribute('class', expect.stringContaining('form'))
 ```
 
 ### Sync PageObject Methods and Async Tests

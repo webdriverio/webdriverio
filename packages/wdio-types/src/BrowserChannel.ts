@@ -186,6 +186,12 @@ export interface ExpectRequestEvent {
     scope: any
     args: unknown[]
     element?: any | any[]
+    /**
+     * The kind of `element`, or `undefined` for a copy of an element list
+     * (`WebdriverIO.Element[]`). JSON drops the properties of a list, so without
+     * it an element list arrives as a plain array.
+     */
+    elementKind?: 'element' | 'element-array'
     context?: unknown
     /**
      * propagate error stack for inline snapshots

@@ -3,6 +3,7 @@ import { sleep } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
 import  { WebDriverResponseError, WebDriverRequestError } from './error.js'
+import { clearAbortTimer, createRequestSignal } from './abort.js'
 import { RETRYABLE_STATUS_CODES, RETRYABLE_ERROR_CODES } from './constants.js'
 import type { WebDriverResponse, RequestLibResponse, RequestOptions, RequestEventHandler } from './types.js'
 
@@ -89,13 +90,6 @@ export abstract class WebDriverRequest {
         return this._request(url, requestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    private createAbortSignal (signal?: AbortSignal | null) {
-        return AbortSignal.any([
-            AbortSignal.timeout(this.connectionRetryTimeout),
-            ...(signal ? [signal] : [])
-        ])
-    }
-
     async createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<{ url: URL; requestOptions: RequestInit; }> {
         this.connectionRetryTimeout = options.connectionRetryTimeout || DEFAULTS.connectionRetryTimeout.default!
         const requestOptions: RequestInit = {
@@ -179,12 +173,19 @@ export abstract class WebDriverRequest {
                 body: rawBody ? JSON.parse(rawBody) : {},
             } satisfies Options.RequestLibResponse
         } catch {
-            throw new Error(`Could not parse response body: "${rawBody}"`, {
-                cause: {
+            /**
+             * `Error` `cause` is ES2022. Chrome 90, the oldest browser this
+             * bundle still runs in, does not accept the second argument.
+             */
+            const error = new Error(`Could not parse response body: "${rawBody}"`)
+            Object.defineProperty(error, 'cause', {
+                configurable: true,
+                value: {
                     statusCode: response.status,
                     body: rawBody
                 }
             })
+            throw error
         }
     }
 
@@ -205,13 +206,15 @@ export abstract class WebDriverRequest {
          * every attempt gets its own timeout, a retry must not inherit the
          * already aborted signal of the attempt before it
          */
+        const signal = createRequestSignal(this.connectionRetryTimeout, fullRequestOptions.signal)
         const requestLibOptions = {
             ...fullRequestOptions,
-            signal: this.createAbortSignal(fullRequestOptions.signal)
+            signal
         }
         const startTime = performance.now()
         let response = await this._libRequest(url!, requestLibOptions)
             .catch((err: WebDriverRequestError) => err)
+            .finally(() => clearAbortTimer(signal))
         const durationMillisecond = performance.now() - startTime
 
         /**

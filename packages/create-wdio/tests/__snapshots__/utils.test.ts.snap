@@ -44,9 +44,9 @@ exports[`setupTypeScript 1`] = `
     "compilerOptions": {
         "moduleResolution": "bundler",
         "module": "ESNext",
-        "target": "es2022",
+        "target": "es2024",
         "lib": [
-            "es2022",
+            "es2024",
             "dom"
         ],
         "types": [
@@ -78,9 +78,9 @@ exports[`setupTypeScript creates a dedicated tsconfig even if there is already o
     "compilerOptions": {
         "moduleResolution": "bundler",
         "module": "ESNext",
-        "target": "es2022",
+        "target": "es2024",
         "lib": [
-            "es2022",
+            "es2024",
             "dom"
         ],
         "types": [

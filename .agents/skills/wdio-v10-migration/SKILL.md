@@ -24,9 +24,9 @@ Stop when one of these is true. Do not pick a workaround on your own.
 
 ## Order
 
-1. Use Node.js 22.19.0 or later. Cucumber 13 does not run on Node.js 20, 23, or 25.
+1. Use Node.js 22.19.0 or later. Cucumber 13 does not run on Node.js 20, 23, or 25. A project created with `npm create wdio@latest` gets `compilerOptions.target` and `compilerOptions.lib` of `es2024`. Leave an existing `tsconfig.json` unchanged. Type-checking the generated file needs TypeScript 5.7 or newer.
 2. Install WebdriverIO 10 for `webdriverio`, `webdriver`, and every `@wdio/*` package in the same change. Leave no v9 package behind.
-3. With Mocha, use `expect-webdriverio` 6.1.0 or newer.
+3. If `package.json` lists `expect-webdriverio`, update it to 8. Apply its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8).
 4. With Appium, install `appium@^3` and run `appium driver update installed`.
 5. With `puppeteer-core`, use `>=24 <26`.
 6. With `eslint-plugin-wdio`, use `eslint@^10`. With TypeScript, install `typescript-eslint` 8.56.0 or later, not only `@typescript-eslint/eslint-plugin`, and scope the config with `files: ['**/*.{ts,mts,cts,tsx}']`. Widen it to JavaScript only when `tsconfig.json` has `allowJs` and includes those files.
@@ -75,6 +75,13 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `WDIO_ENABLE_MULTI_REMOTE_SELECT` | delete it. `select()` is always on. |
 | `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY` | delete it. `$$()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteElementArray`. |
 | firefox-profile `legacy: true` | delete it. A leftover `legacy` is written as a Firefox preference. |
+| `setOptions(` from `expect-webdriverio` | `setDefaultOptions(`. `getConfig(` is `getDefaultOptions(`, and `matchers` is `wdioCustomMatchers`. |
+| `toHaveAttr(` | `toHaveAttribute(` |
+| `toHaveClass(` on a WebdriverIO element | `toHaveElementClass(` |
+| `toBeRequestedWithResponse(response)` | `toBeRequestedWith({ response })` |
+| `setFeatureFlags(` or a `featureFlags` option of `expect-webdriverio` | delete it. `toHaveText` on `$$()` always compares index by index: keep an expected array in page order, or use `expect.oneOf()` or `expect.arrayContaining()`. |
+| `toHaveText([...])`, `toHaveHTML([...])`, `toHaveComputedLabel([...])` or `toHaveComputedRole([...])` on a single element | `expect.oneOf(...)` |
+| `expect-webdriverio/types` | `expect-webdriverio/expect-global` |
 | `wdioMatchers.entries()` in a custom framework | `Object.entries(wdioMatchers)`. The `Map` overload of `setupExpect` is gone. |
 | `JSONWPCommandError` | `SessionRequestError` |
 | `isW3C` | delete it. Every session is W3C. Passing it to `attach` is ignored. |
@@ -106,7 +113,7 @@ Drop the `done` callback. Return the value, or return a promise. The `script` ti
 
 ### `switchToFrame`
 
-`switchToFrame` is not a public command. Use `switchFrame` with an element, or `null` for the top frame. On BiDi, a string can be a frame url or context id. Do not pass a numeric frame index. A BiDi session rejects it.
+`switchToFrame` is not a public command. In a BiDi session `switchFrame` and `switchWindow` throw: hold the `WebdriverIO.BrowsingContext` from `browser.url()` or `browser.newWindow()` and call `context.frame()`. In a Classic session, `switchFrame` takes an element, or `null` for the top frame.
 
 ### Strict `$`
 

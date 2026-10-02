@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { WDIO_KIND, WDIO_CHAINABLE, attach, multiRemote, remote } from '../src/index.js'
 import refetchElement from '../src/utils/refetchElement.js'
+import { verifyArgsAndStripIfElement } from '../src/utils/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -137,9 +138,11 @@ describe('WebdriverIO object brand matrix', () => {
         from?: (browser: Loose) => unknown
         make: (receiver: Loose) => unknown
         /**
-         * the brands of the value that `make` returns, omitted when it is a promise of the test itself
+         * before `await`: the rule of the contract (`@wdio/utils` `kind.ts`, rule 2) for a
+         * promise, or the brands of a value that is already loaded (rule 1). Omitted when
+         * it is a promise of the test itself.
          */
-        pending?: Brands
+        pending?: PendingRule | Brands
         awaited: Brands | 'rejects'
         isMultiRemote?: boolean
         /**
@@ -153,6 +156,17 @@ describe('WebdriverIO object brand matrix', () => {
     const E: Brands = { kind: 'element' }
     const A: Brands = { kind: 'element-array' }
     const NONE: Brands = {}
+    /**
+     * rule 2 of the contract in `@wdio/utils` `kind.ts`: before `await`, the command name gives the brands
+     */
+    const PENDING_RULES = {
+        'element query': E_CHAIN,
+        'list item': E_CHAIN,
+        'list query': A,
+        'other promise': NONE
+    } satisfies Record<string, Brands>
+    type PendingRule = keyof typeof PENDING_RULES
+    const pendingBrands = (row: Row) => typeof row.pending === 'string' ? PENDING_RULES[row.pending] : row.pending
     const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
     const isObject = (value: unknown): value is object => (
@@ -170,12 +184,71 @@ describe('WebdriverIO object brand matrix', () => {
         : { kind: false, chainable: false }
     const expectedIn = (brands: Brands) => ({ kind: brands.kind !== undefined, chainable: brands.chainable === true })
 
+    /**
+     * Rules 3 and 4 of the contract in `@wdio/utils` `kind.ts`, for every row
+     */
+    function checkRules (row: Row) {
+        const pending = pendingBrands(row)
+        for (const brands of [pending, row.awaited]) {
+            if (brands && brands !== 'rejects' && brands.chainable) {
+                expect(brands.kind).toBe('element')
+            }
+        }
+        if (row.awaited !== 'rejects') {
+            expect(row.awaited.chainable).toBeUndefined()
+            if (pending?.kind && row.awaited.kind) {
+                expect(row.awaited.kind).toBe(pending.kind)
+            }
+        }
+    }
+
+    /**
+     * The commands that read the brand accept exactly the values that the contract
+     * gives the kind `'element'`: `switchFrame` a loaded or chainable element, and
+     * `execute` (`verifyArgsAndStripIfElement`) a loaded element only.
+     */
+    async function checkConsumers (browser: Loose, value: unknown, brands: Brands, element: { elementId?: string, error?: unknown }) {
+        const isElement = brands.kind === 'element'
+        const stripped = (() => {
+            try {
+                return (verifyArgsAndStripIfElement([value]) as unknown[])[0]
+            } catch (err) {
+                return err
+            }
+        })()
+        if (isElement && !brands.chainable) {
+            expect(stripped).toEqual(element.elementId ? { [ELEMENT_KEY]: element.elementId } : expect.any(Error))
+        } else {
+            expect(stripped).toBe(value)
+        }
+
+        const webdriver = browser as unknown as WebdriverIO.Browser
+        const switchToFrame = vi.spyOn(webdriver, 'switchToFrame')
+        try {
+            const switched = await webdriver.switchFrame(value as WebdriverIO.Element).then(() => true, () => false)
+            const frames = switchToFrame.mock.calls.map(([frame]) => frame)
+            if (isElement && element.elementId) {
+                const frameRefs = frames.map((frame) => (frame as Record<string, unknown>)[ELEMENT_KEY])
+                expect({ switched, frameRefs }).toEqual({ switched: true, frameRefs: [element.elementId] })
+            } else if (!isElement) {
+                /**
+                 * any other value goes to WebDriver Classic `switchToFrame` as it is
+                 */
+                expect(frames.every((frame) => frame === value)).toBe(true)
+            }
+        } finally {
+            switchToFrame.mockRestore()
+        }
+    }
+
     async function check (browser: Loose, row: Row) {
+        checkRules(row)
+        const pending = pendingBrands(row)
         const receiver = row.from ? await row.from(browser) as Loose : browser
         const value = row.make(receiver)
-        if (row.pending) {
+        if (pending) {
             expect({ brands: brandsOfValue(value), in: inOperator(value) })
-                .toEqual({ brands: row.pending, in: expectedIn(row.pending) })
+                .toEqual({ brands: pending, in: expectedIn(pending) })
         }
         if (row.awaited === 'rejects') {
             await expect(Promise.resolve(value)).rejects.toThrow()
@@ -189,6 +262,16 @@ describe('WebdriverIO object brand matrix', () => {
         }
         if (row.hasError !== undefined) {
             expect(Boolean((result as { error?: unknown }).error)).toBe(row.hasError)
+        }
+        /**
+         * `switchFrame` and `execute` run on a single session
+         */
+        if (!(browser as unknown as { isMultiRemote?: boolean }).isMultiRemote) {
+            const element = (result ?? {}) as { elementId?: string, error?: unknown }
+            if (pending) {
+                await checkConsumers(browser, value, pending, element)
+            }
+            await checkConsumers(browser, result, row.awaited, element)
         }
     }
 
@@ -207,6 +290,7 @@ describe('WebdriverIO object brand matrix', () => {
         browser.addCommand('count$$', function () { return 42 })
         browser.addCommand('price$', function () { return 42 })
         browser.addCommand('getHeader', function (this: WebdriverIO.Browser) { return this.$('#foo') })
+        browser.addCommand('getHeaders', function (this: WebdriverIO.Browser) { return this.$$('#foo') })
         browser.addCommand('boom$', function () { throw new Error('boom') })
         browser.addCommand('boomAsync$$', async function () { throw new Error('boomAsync') })
         browser.addCommand('allBar$$', function (this: WebdriverIO.Element) {
@@ -219,39 +303,39 @@ describe('WebdriverIO object brand matrix', () => {
         test.each<[string, Row]>([
             ['#1 browser', { make: (b) => b, pending: B, awaited: B }],
             ['#2 attach()', { make: (b) => attach(b as unknown as WebdriverIO.Browser), awaited: B }],
-            ['#3 $(s)', { make: (b) => b.$('#foo'), pending: E_CHAIN, awaited: E }],
-            ['#4 $(elementReference)', { make: (b) => b.$({ [ELEMENT_KEY]: 'some-elem-123' }), pending: E_CHAIN, awaited: E }],
-            ['#5 $(s) not found', { make: (b) => b.$('#nonexisting'), pending: E_CHAIN, awaited: E, hasError: true }],
-            ['#6 $$(s)', { make: (b) => b.$$('#foo'), pending: A, awaited: A }],
-            ['#7 $$([]) empty', { make: (b) => b.$$([]), pending: A, awaited: A }],
-            ['#8 custom$', { make: (b) => b.custom$('one', 'x'), pending: E_CHAIN, awaited: E }],
-            ['#8 custom$$', { make: (b) => b.custom$$('many', 'x'), pending: A, awaited: A }],
-            ['#9 react$', { make: (b) => b.react$('MyComp'), pending: E_CHAIN, awaited: E }],
-            ['#9 react$$', { make: (b) => b.react$$('MyComp'), pending: A, awaited: A }],
-            ['#10 $(s).$(s2)', { make: (b) => b.$('#foo').$('#bar'), pending: E_CHAIN, awaited: E }],
-            ['#10 $(s).$$(s2)', { make: (b) => b.$('#foo').$$('#bar'), pending: A, awaited: A }],
-            ['#11 $(s).shadow$', { make: (b) => b.$('#foo').shadow$('#bar'), pending: E_CHAIN, awaited: E }],
-            ['#11 $(s).shadow$$', { make: (b) => b.$('#foo').shadow$$('#bar'), pending: A, awaited: A }],
-            ['#12 $(s).custom$', { make: (b) => b.$('#foo').custom$('one', 'x'), pending: E_CHAIN, awaited: E }],
-            ['#12 $(s).custom$$', { make: (b) => b.$('#foo').custom$$('many', 'x'), pending: A, awaited: A }],
-            ['#12 $(s).react$', { make: (b) => b.$('#foo').react$('MyComp'), pending: E_CHAIN, awaited: E }],
-            ['#12 $(s).react$$', { make: (b) => b.$('#foo').react$$('MyComp'), pending: A, awaited: A }],
-            ['#13 parentElement()', { make: (b) => b.$('#foo').$('#bar').parentElement(), pending: E_CHAIN, awaited: E }],
-            ['#13 nextElement()', { make: (b) => b.$('#foo').nextElement(), pending: E_CHAIN, awaited: E }],
-            ['#13 previousElement()', { make: (b) => b.$('#foo').$('#bar').previousElement(), pending: E_CHAIN, awaited: E }],
-            ['#14 resolved element .$(s)', { from: (b) => b.$('#foo'), make: (el) => el.$('#bar'), pending: E_CHAIN, awaited: E }],
-            ['#14 resolved element .parentElement()', { from: (b) => b.$('#foo').$('#bar'), make: (el) => el.parentElement(), pending: E_CHAIN, awaited: E }],
-            ['#15 $$(s)[0]', { make: (b) => b.$$('#foo')[0], pending: E_CHAIN, awaited: E }],
-            ['#15 $$(s).at(0)', { make: (b) => b.$$('#foo').at(0), pending: E_CHAIN, awaited: E }],
-            ['#16 $$(s)[99] out of bounds', { make: (b) => b.$$('#foo')[99], pending: E_CHAIN, awaited: 'rejects' }],
-            ['#17 $$(s)[0].$(s2)', { make: (b) => b.$$('#foo')[0].$('#bar'), pending: E_CHAIN, awaited: E }],
-            ['#17 $$(s)[0].$$(s2)', { make: (b) => b.$$('#foo')[0].$$('#bar'), pending: A, awaited: A }],
-            ['#18 $(s).$$(s2)[0]', { make: (b) => b.$('#foo').$$('#bar')[0], pending: E_CHAIN, awaited: E }],
-            ['#19 $$(s).slice(0, 1)', { make: (b) => b.$$('#foo').slice(0, 1), pending: A, awaited: A }],
-            ['#20 $$(s).filter(fn)', { make: (b) => b.$$('#foo').filter(() => true), pending: NONE, awaited: A }],
-            ['#21 $$(s).map(fn)', { make: (b) => b.$$('#foo').map(() => 1), pending: NONE, awaited: NONE }],
-            ['#22 $$(s).find(fn)', { make: (b) => b.$$('#foo').find(() => true), pending: NONE, awaited: E }],
-            ['#23 $$(s).length', { make: (b) => b.$$('#foo').length, pending: NONE, awaited: NONE }],
+            ['#3 $(s)', { make: (b) => b.$('#foo'), pending: 'element query', awaited: E }],
+            ['#4 $(elementReference)', { make: (b) => b.$({ [ELEMENT_KEY]: 'some-elem-123' }), pending: 'element query', awaited: E }],
+            ['#5 $(s) not found', { make: (b) => b.$('#nonexisting'), pending: 'element query', awaited: E, hasError: true }],
+            ['#6 $$(s)', { make: (b) => b.$$('#foo'), pending: 'list query', awaited: A }],
+            ['#7 $$([]) empty', { make: (b) => b.$$([]), pending: 'list query', awaited: A }],
+            ['#8 custom$', { make: (b) => b.custom$('one', 'x'), pending: 'element query', awaited: E }],
+            ['#8 custom$$', { make: (b) => b.custom$$('many', 'x'), pending: 'list query', awaited: A }],
+            ['#9 react$', { make: (b) => b.react$('MyComp'), pending: 'element query', awaited: E }],
+            ['#9 react$$', { make: (b) => b.react$$('MyComp'), pending: 'list query', awaited: A }],
+            ['#10 $(s).$(s2)', { make: (b) => b.$('#foo').$('#bar'), pending: 'element query', awaited: E }],
+            ['#10 $(s).$$(s2)', { make: (b) => b.$('#foo').$$('#bar'), pending: 'list query', awaited: A }],
+            ['#11 $(s).shadow$', { make: (b) => b.$('#foo').shadow$('#bar'), pending: 'element query', awaited: E }],
+            ['#11 $(s).shadow$$', { make: (b) => b.$('#foo').shadow$$('#bar'), pending: 'list query', awaited: A }],
+            ['#12 $(s).custom$', { make: (b) => b.$('#foo').custom$('one', 'x'), pending: 'element query', awaited: E }],
+            ['#12 $(s).custom$$', { make: (b) => b.$('#foo').custom$$('many', 'x'), pending: 'list query', awaited: A }],
+            ['#12 $(s).react$', { make: (b) => b.$('#foo').react$('MyComp'), pending: 'element query', awaited: E }],
+            ['#12 $(s).react$$', { make: (b) => b.$('#foo').react$$('MyComp'), pending: 'list query', awaited: A }],
+            ['#13 parentElement()', { make: (b) => b.$('#foo').$('#bar').parentElement(), pending: 'element query', awaited: E }],
+            ['#13 nextElement()', { make: (b) => b.$('#foo').nextElement(), pending: 'element query', awaited: E }],
+            ['#13 previousElement()', { make: (b) => b.$('#foo').$('#bar').previousElement(), pending: 'element query', awaited: E }],
+            ['#14 resolved element .$(s)', { from: (b) => b.$('#foo'), make: (el) => el.$('#bar'), pending: 'element query', awaited: E }],
+            ['#14 resolved element .parentElement()', { from: (b) => b.$('#foo').$('#bar'), make: (el) => el.parentElement(), pending: 'element query', awaited: E }],
+            ['#15 $$(s)[0]', { make: (b) => b.$$('#foo')[0], pending: 'list item', awaited: E }],
+            ['#15 $$(s).at(0)', { make: (b) => b.$$('#foo').at(0), pending: 'list item', awaited: E }],
+            ['#16 $$(s)[99] out of bounds', { make: (b) => b.$$('#foo')[99], pending: 'list item', awaited: 'rejects' }],
+            ['#17 $$(s)[0].$(s2)', { make: (b) => b.$$('#foo')[0].$('#bar'), pending: 'element query', awaited: E }],
+            ['#17 $$(s)[0].$$(s2)', { make: (b) => b.$$('#foo')[0].$$('#bar'), pending: 'list query', awaited: A }],
+            ['#18 $(s).$$(s2)[0]', { make: (b) => b.$('#foo').$$('#bar')[0], pending: 'list item', awaited: E }],
+            ['#19 $$(s).slice(0, 1)', { make: (b) => b.$$('#foo').slice(0, 1), pending: 'list query', awaited: A }],
+            ['#20 $$(s).filter(fn)', { make: (b) => b.$$('#foo').filter(() => true), pending: 'other promise', awaited: A }],
+            ['#21 $$(s).map(fn)', { make: (b) => b.$$('#foo').map(() => 1), pending: 'other promise', awaited: NONE }],
+            ['#22 $$(s).find(fn)', { make: (b) => b.$$('#foo').find(() => true), pending: 'other promise', awaited: E }],
+            ['#23 $$(s).length', { make: (b) => b.$$('#foo').length, pending: 'other promise', awaited: NONE }],
             ['#24 for await item', {
                 make: (b) => (async () => {
                     const items: unknown[] = []
@@ -266,20 +350,30 @@ describe('WebdriverIO object brand matrix', () => {
             /**
              * an index past the end of a resolved query waits and refetches, a derived list does not
              */
-            ['#25 (await $$(s))[5] refetches', { from: (b) => b.$$('#foo'), make: (list) => list[5], pending: E_CHAIN, awaited: 'rejects' }],
+            ['#25 (await $$(s))[5] refetches', { from: (b) => b.$$('#foo'), make: (list) => list[5], pending: 'list item', awaited: 'rejects' }],
             ['#25 (await $$(s)).at(-1)', { from: (b) => b.$$('#foo'), make: (list) => list.at(-1), pending: E, awaited: E }],
             ['#25 (await $$(s).slice(0, 1))[5]', { from: (b) => b.$$('#foo').slice(0, 1), make: (list) => list[5], pending: NONE, awaited: NONE }],
             ['#26 [...await $$(s)]', { from: (b) => b.$$('#foo'), make: (list) => [...(list as unknown as unknown[])], pending: NONE, awaited: NONE }],
-            ['#27 $(s).getElement()', { make: (b) => b.$('#foo').getElement(), pending: NONE, awaited: E }],
-            ['#27 $$(s).getElements()', { make: (b) => b.$$('#foo').getElements(), pending: NONE, awaited: A }],
-            ['#28 getTitle()', { make: (b) => b.getTitle(), pending: NONE, awaited: NONE }],
-            ['#28 $(s).getText()', { make: (b) => b.$('#foo').getTagName(), pending: NONE, awaited: NONE }],
+            ['#27 $(s).getElement()', { make: (b) => b.$('#foo').getElement(), pending: 'other promise', awaited: E }],
+            ['#27 $$(s).getElements()', { make: (b) => b.$$('#foo').getElements(), pending: 'other promise', awaited: A }],
+            ['#28 getTitle()', { make: (b) => b.getTitle(), pending: 'other promise', awaited: NONE }],
+            ['#28 $(s).getText()', { make: (b) => b.$('#foo').getTagName(), pending: 'other promise', awaited: NONE }],
             ['#29 action()', { make: (b) => b.action('pointer'), pending: NONE, awaited: NONE }],
             ['#30 execute() that returns an element reference', {
                 make: (b) => b.execute(() => ({ 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' })),
-                pending: NONE,
+                pending: 'other promise',
                 awaited: NONE
-            }]
+            }],
+            ['#78 custom$$()[0]', { make: (b) => b.custom$$('many', 'x')[0], pending: 'list item', awaited: E }],
+            ['#78 react$$()[0]', { make: (b) => b.react$$('MyComp')[0], pending: 'list item', awaited: E }],
+            ['#78 $(s).shadow$$(s2)[0]', { make: (b) => b.$('#foo').shadow$$('#bar')[0], pending: 'list item', awaited: E }],
+            ['#79 $(s).$$(s2).at(-1)', { make: (b) => b.$('#foo').$$('#bar').at(-1), pending: 'list item', awaited: E }],
+            ['#80 resolved element .$$(s)', { from: (b) => b.$('#foo'), make: (el) => el.$$('#bar'), pending: 'list query', awaited: A }],
+            ['#81 $(element)', { from: (b) => b.$('#foo'), make: (el) => el.parent.$(el), pending: 'element query', awaited: E }],
+            ['#81 $$(elementList)', { from: (b) => b.$$('#foo'), make: (list) => list.parent.$$(list), pending: 'list query', awaited: A }],
+            ['#82 (await $$(s)).find(fn)', { from: (b) => b.$$('#foo'), make: (list) => list.find(() => true), pending: 'other promise', awaited: E }],
+            ['#82 (await $$(s)).filter(fn)', { from: (b) => b.$$('#foo'), make: (list) => list.filter(() => true), pending: 'other promise', awaited: A }],
+            ['#82 (await $$(s)).map(fn)', { from: (b) => b.$$('#foo'), make: (list) => list.map((el: unknown) => el), pending: 'other promise', awaited: NONE }]
         ])('%s', async (_, row) => {
             await check(await singleSession(), row)
         })
@@ -295,20 +389,20 @@ describe('WebdriverIO object brand matrix', () => {
             /**
              * the fetch mock finds a child of a not-found element, so only the brands are relevant here
              */
-            ['#63 $(s).$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$('#bar'), pending: E_CHAIN, awaited: E }],
-            ['#64 $(s).$$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$$('#bar'), pending: A, awaited: A }],
+            ['#63 $(s).$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$('#bar'), pending: 'element query', awaited: E }],
+            ['#64 $(s).$$(s2) on a not-found element', { make: (b) => b.$('#nonexisting').$$('#bar'), pending: 'list query', awaited: A }],
             ['#65 parentElement() of a not-found element', {
                 make: (b) => b.$('#nonexisting').parentElement(),
-                pending: E_CHAIN,
+                pending: 'element query',
                 awaited: E,
                 hasError: true
             }],
-            ['#66 a command on a not-found element', { make: (b) => b.$('#nonexisting').getTagName(), pending: NONE, awaited: 'rejects' }],
-            ['#67 custom$ with an unknown strategy', { make: (b) => b.custom$('nope', 'x'), pending: E_CHAIN, awaited: 'rejects' }],
-            ['#68 custom$$ with an unknown strategy', { make: (b) => b.custom$$('nope', 'x'), pending: A, awaited: 'rejects' }],
-            ['#69 react$ of a not-found component', { make: (b) => b.react$('myNonExistingComp'), pending: E_CHAIN, awaited: E, hasError: true }],
-            ['#70 custom boom$ that throws', { make: (b) => b.boom$(), pending: E_CHAIN, awaited: 'rejects' }],
-            ['#71 custom boomAsync$$ that rejects', { make: (b) => b.boomAsync$$(), pending: A, awaited: 'rejects' }]
+            ['#66 a command on a not-found element', { make: (b) => b.$('#nonexisting').getTagName(), pending: 'other promise', awaited: 'rejects' }],
+            ['#67 custom$ with an unknown strategy', { make: (b) => b.custom$('nope', 'x'), pending: 'element query', awaited: 'rejects' }],
+            ['#68 custom$$ with an unknown strategy', { make: (b) => b.custom$$('nope', 'x'), pending: 'list query', awaited: 'rejects' }],
+            ['#69 react$ of a not-found component', { make: (b) => b.react$('myNonExistingComp'), pending: 'element query', awaited: E, hasError: true }],
+            ['#70 custom boom$ that throws', { make: (b) => b.boom$(), pending: 'element query', awaited: 'rejects' }],
+            ['#71 custom boomAsync$$ that rejects', { make: (b) => b.boomAsync$$(), pending: 'list query', awaited: 'rejects' }]
         ])('%s', async (_, row) => {
             await check(await singleSession(), row)
         })
@@ -390,38 +484,55 @@ describe('WebdriverIO object brand matrix', () => {
             overwriteCommand: (name: string, fn: (orig: (...args: unknown[]) => unknown, ...args: unknown[]) => unknown) => void
         }
         test.each<[string, Row & { overwrite?: (browser: Overwritable) => void }]>([
-            ['#31 custom firstFoo$', { make: (b) => b.firstFoo$(), pending: E_CHAIN, awaited: E }],
-            ['#32 custom allFoo$$', { make: (b) => b.allFoo$$(), pending: A, awaited: A }],
-            ['#33 custom element allBar$$ on a pending element', { make: (b) => b.$('#foo').allBar$$(), pending: A, awaited: A }],
-            ['#34 custom element allBar$$ on a resolved element', { from: (b) => b.$('#foo'), make: (el) => el.allBar$$(), pending: A, awaited: A }],
+            ['#31 custom firstFoo$', { make: (b) => b.firstFoo$(), pending: 'element query', awaited: E }],
+            ['#32 custom allFoo$$', { make: (b) => b.allFoo$$(), pending: 'list query', awaited: A }],
+            ['#33 custom element allBar$$ on a pending element', { make: (b) => b.$('#foo').allBar$$(), pending: 'list query', awaited: A }],
+            ['#34 custom element allBar$$ on a resolved element', { from: (b) => b.$('#foo'), make: (el) => el.allBar$$(), pending: 'list query', awaited: A }],
             /**
              * the name of a custom command is the only hint before it resolves
              */
-            ['#35 custom count$$ that returns a number', { make: (b) => b.count$$(), pending: A, awaited: NONE }],
-            ['#36 custom price$ that returns a number', { make: (b) => b.price$(), pending: E_CHAIN, awaited: NONE }],
+            ['#35 custom count$$ that returns a number', { make: (b) => b.count$$(), pending: 'list query', awaited: NONE }],
+            ['#36 custom price$ that returns a number', { make: (b) => b.price$(), pending: 'element query', awaited: NONE }],
             /**
-             * the index proxy of a value that is not an ElementArray does not know its item
+             * an item of a pending custom `$$` is a chainable element, so `switchFrame` accepts it
              */
-            ['#37 custom allFoo$$()[0]', { make: (b) => b.allFoo$$()[0], pending: NONE, awaited: E }],
-            ['#38 custom allFoo$$().map(fn)', { make: (b) => b.allFoo$$().map(() => 1), pending: NONE, awaited: NONE }],
-            ['#39 custom getHeader (no $ in the name)', { make: (b) => b.getHeader(), pending: NONE, awaited: E }],
+            ['#37 custom allFoo$$()[0]', { make: (b) => b.allFoo$$()[0], pending: 'list item', awaited: E }],
+            ['#38 custom allFoo$$().map(fn)', { make: (b) => b.allFoo$$().map(() => 1), pending: 'other promise', awaited: NONE }],
+            ['#39 custom getHeader (no $ in the name)', { make: (b) => b.getHeader(), pending: 'other promise', awaited: E }],
+            ['#83 custom allFoo$$().at(0)', { make: (b) => b.allFoo$$().at(0), pending: 'list item', awaited: E }],
+            ['#83 custom allFoo$$().find(fn)', { make: (b) => b.allFoo$$().find(() => true), pending: 'other promise', awaited: E }],
+            ['#83 custom allFoo$$()[0].$(s)', { make: (b) => b.allFoo$$()[0].$('#bar'), pending: 'element query', awaited: E }],
+            ['#84 custom element allBar$$ on a pending element, [0]', { make: (b) => b.$('#foo').allBar$$()[0], pending: 'list item', awaited: E }],
+            /**
+             * without `$$` at the end the command gives a plain promise, which has no index
+             */
+            ['#85 custom getHeaders()[0] (no $$ in the name)', { make: (b) => b.getHeaders()[0], pending: NONE, awaited: NONE }],
             ['#40 overwriteCommand($)', {
                 overwrite: (browser) => browser.overwriteCommand('$', (orig, ...args) => orig(...args)),
                 make: (b) => b.$('#foo'),
-                pending: E_CHAIN,
+                pending: 'element query',
                 awaited: E
             }],
             ['#41 overwriteCommand($$) that returns the list', {
                 overwrite: (browser) => browser.overwriteCommand('$$', (orig, ...args) => orig(...args)),
                 make: (b) => b.$$('#foo'),
-                pending: A,
+                pending: 'list query',
                 awaited: A
             }],
             ['#41 overwriteCommand($$) async', {
                 overwrite: (browser) => browser.overwriteCommand('$$', async (orig, ...args) => orig(...args)),
                 make: (b) => b.$$('#foo'),
-                pending: NONE,
+                pending: 'list query',
                 awaited: A
+            }],
+            /**
+             * the command gives its value at once, so the value decides (rule 1), not the name
+             */
+            ['#86 overwriteCommand($$) async, [0]', {
+                overwrite: (browser) => browser.overwriteCommand('$$', async (orig, ...args) => orig(...args)),
+                make: (b) => b.$$('#foo')[0],
+                pending: 'list item',
+                awaited: E
             }],
             ['#42 overwriteCommand($$) that returns a plain array', {
                 overwrite: (browser) => browser.overwriteCommand('$$', () => []),
@@ -444,16 +555,18 @@ describe('WebdriverIO object brand matrix', () => {
              * #44 (`mr.browserA`) exists only in the testrunner, see the multi-remote e2e test
              */
             ['#45 select()', { make: (mr) => mr.select('browserA'), pending: B, awaited: B, isMultiRemote: true }],
-            ['#46 $(s)', { make: (mr) => mr.$('#foo'), pending: E_CHAIN, awaited: E, isMultiRemote: true }],
-            ['#47 $$(s)', { make: (mr) => mr.$$('#foo'), pending: A, awaited: A, isMultiRemote: true }],
-            ['#47 $(s).$$(s2)', { make: (mr) => mr.$('#foo').$$('#bar'), pending: A, awaited: A, isMultiRemote: true }],
-            ['#48 $$(s)[0]', { make: (mr) => mr.$$('#foo')[0], pending: E_CHAIN, awaited: E, isMultiRemote: true }],
-            ['#48 $$(s)[0].$$(s2)', { make: (mr) => mr.$$('#foo')[0].$$('#bar'), pending: A, awaited: A, isMultiRemote: true }],
+            ['#46 $(s)', { make: (mr) => mr.$('#foo'), pending: 'element query', awaited: E, isMultiRemote: true }],
+            ['#47 $$(s)', { make: (mr) => mr.$$('#foo'), pending: 'list query', awaited: A, isMultiRemote: true }],
+            ['#47 $(s).$$(s2)', { make: (mr) => mr.$('#foo').$$('#bar'), pending: 'list query', awaited: A, isMultiRemote: true }],
+            ['#48 $$(s)[0]', { make: (mr) => mr.$$('#foo')[0], pending: 'list item', awaited: E, isMultiRemote: true }],
+            ['#48 $$(s)[0].$$(s2)', { make: (mr) => mr.$$('#foo')[0].$$('#bar'), pending: 'list query', awaited: A, isMultiRemote: true }],
             ['#49 element getInstance()', { from: (mr) => mr.$('#foo'), make: (el) => el.getInstance('browserA'), pending: E, awaited: E, isMultiRemote: false }],
             ['#50 element select()', { from: (mr) => mr.$('#foo'), make: (el) => el.select('browserA'), pending: E, awaited: E, isMultiRemote: true }],
-            ['#51 getInstance().$(s)', { make: (mr) => mr.getInstance('browserA').$('#foo'), pending: E_CHAIN, awaited: E, isMultiRemote: false }],
-            ['#52 custom allFoo$$', { make: (mr) => mr.allFoo$$(), pending: A, awaited: A, isMultiRemote: true }],
-            ['#72 $(s) not found', { make: (mr) => mr.$('#nonexisting'), pending: E_CHAIN, awaited: E, isMultiRemote: true }]
+            ['#51 getInstance().$(s)', { make: (mr) => mr.getInstance('browserA').$('#foo'), pending: 'element query', awaited: E, isMultiRemote: false }],
+            ['#52 custom allFoo$$', { make: (mr) => mr.allFoo$$(), pending: 'list query', awaited: A, isMultiRemote: true }],
+            ['#87 custom allFoo$$()[0]', { make: (mr) => mr.allFoo$$()[0], pending: 'list item', awaited: E, isMultiRemote: true }],
+            ['#87 custom allFoo$$().at(0)', { make: (mr) => mr.allFoo$$().at(0), pending: 'list item', awaited: E, isMultiRemote: true }],
+            ['#72 $(s) not found', { make: (mr) => mr.$('#nonexisting'), pending: 'element query', awaited: E, isMultiRemote: true }]
         ])('%s', async (_, row) => {
             const browser = await multiRemote(multiRemoteCapabilities)
             browser.addCommand('allFoo$$', function (this: WebdriverIO.MultiRemoteBrowser) { return this.$$('#foo') })

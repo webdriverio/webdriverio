@@ -31,13 +31,22 @@ describe('wrapCommand', () => {
             }
         })
 
-        it('does not brand a $$-type command that does not return an ElementArray, or its items', () => {
+        it('does not brand a $$-type command that gives a value that is not an ElementArray, or its items', () => {
             for (const command of ['$$', 'custom$$']) {
-                const chain = wrapCommand(command, vi.fn().mockResolvedValue([{ selector: 'li' }])).call(scope) as unknown as Record<string, unknown>
+                const chain = wrapCommand(command, vi.fn().mockReturnValue([{ selector: 'li' }])).call(scope) as unknown as Record<string, unknown>
 
                 expect(brandsOf(chain)).toEqual({ kind: undefined, chainable: undefined })
                 expect(brandsOf(chain[0])).toEqual({ kind: undefined, chainable: undefined })
                 expect(WDIO_KIND in chain).toBe(false)
+            }
+        })
+
+        it('brands a $$-type command that gives a promise as a pending element list, by its name', () => {
+            for (const command of ['$$', 'custom$$']) {
+                const chain = wrapCommand(command, vi.fn().mockResolvedValue([{ selector: 'li' }])).call(scope) as unknown as Record<string, unknown>
+
+                expect(brandsOf(chain)).toEqual({ kind: 'element-array', chainable: undefined })
+                expect(brandsOf(chain[0])).toEqual({ kind: 'element', chainable: true })
             }
         })
 
@@ -54,6 +63,19 @@ describe('wrapCommand', () => {
                 expect(WDIO_KIND in list).toBe(true)
                 expect(WDIO_CHAINABLE in list).toBe(false)
             }
+        })
+
+        it('brands an item of a pending element list as a chainable element', async () => {
+            const element = { elementId: 'foo' }
+            const list = wrapCommand('allFoo$$', vi.fn().mockResolvedValue([element])).call(scope) as unknown as Record<string, unknown>
+
+            const at = (list.at as (index: number) => unknown)(0)
+
+            expect(brandsOf(list[0])).toEqual({ kind: 'element', chainable: true })
+            expect(brandsOf(at)).toEqual({ kind: 'element', chainable: true })
+            expect(WDIO_KIND in (list[0] as object)).toBe(true)
+            await expect(list[0]).resolves.toBe(element)
+            await expect(at).resolves.toBe(element)
         })
 
         it('supports `in` on the chain', () => {

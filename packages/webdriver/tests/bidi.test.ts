@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
 
 import '../src/node.js'
-import { BidiCore, parseBidiCommand } from '../src/bidi/core.js'
+import { BIDI_MASK, BidiCore, maskBidiCommand, parseBidiCommand } from '../src/bidi/core.js'
 import { environment } from '../src/environment.js'
 import '../src/browser.js'
 
@@ -197,8 +197,55 @@ describe('BidiCore', () => {
             expect(vi.mocked(handler.socket?.send)?.mock.calls).toMatchSnapshot()
         })
 
+        it('sends masked params unchanged and emits them masked', async () => {
+            const handler = new BidiCore('ws://foo/bar')
+            const emit = vi.fn()
+            handler.attachClient({ emit } as never)
+            await handler.connect()
+
+            const params = {
+                context: 'frame-1',
+                actions: [{
+                    id: 'keyboard',
+                    type: 'key' as const,
+                    actions: [{ type: 'keyDown' as const, value: 's' }, { type: 'keyUp' as const, value: 's' }]
+                }],
+                [BIDI_MASK]: true
+            }
+            handler.sendAsync({ method: 'input.performActions', params })
+
+            const sent = JSON.parse(vi.mocked(handler.socket?.send)!.mock.calls[0][0] as string)
+            expect(sent.params.actions[0].actions[0].value).toBe('s')
+            expect(emit).toHaveBeenCalledWith('bidiCommand', {
+                method: 'input.performActions',
+                params: {
+                    context: 'frame-1',
+                    actions: [{
+                        id: 'keyboard',
+                        type: 'key',
+                        actions: [{ type: 'keyDown', value: '**MASKED**' }, { type: 'keyUp', value: '**MASKED**' }]
+                    }],
+                    [BIDI_MASK]: true
+                }
+            })
+        })
+
         afterAll(() => {
             process.env.WDIO_UNIT_TESTS = '1'
+        })
+    })
+
+    describe('maskBidiCommand', () => {
+        it('returns the command as is without the mask symbol', () => {
+            const command = { method: 'session.status', params: {} } as const
+            expect(maskBidiCommand(command)).toBe(command)
+        })
+
+        it('hides all params of other masked commands', () => {
+            expect(maskBidiCommand({
+                method: 'script.callFunction',
+                params: { functionDeclaration: otherFn, [BIDI_MASK]: true } as never
+            })).toEqual({ method: 'script.callFunction', params: '**MASKED**' })
         })
     })
 

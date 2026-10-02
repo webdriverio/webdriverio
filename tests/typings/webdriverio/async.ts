@@ -188,6 +188,23 @@ async function bar() {
     })
     expectType<WebdriverIO.ElementArray>(waitUntilElems)
 
+    const page = await browser.url('https://webdriver.io')
+    if (page) {
+        expectType<string>(page.contextId)
+        expectType<string>(page.url)
+        expectType<boolean>(page.isFrame)
+        expectType<WebdriverIO.Browser>(page.browser)
+        const same = await page.navigate('/docs')
+        expectType<WebdriverIO.BrowsingContext>(same)
+        const child = await page.frame('iframe')
+        expectType<WebdriverIO.BrowsingContext>(child)
+        expectType<WebdriverIO.BrowsingContext | undefined>(child.parent)
+        await page.activate()
+        await page.getTitle()
+    }
+    const pages = await browser.browsingContexts()
+    expectType<WebdriverIO.BrowsingContext[]>(pages)
+
     await browser.getCookies()
     await browser.getCookies({ name: 'foobar' })
     // @ts-expect-error string filters were removed in v10
@@ -523,17 +540,17 @@ async function bar() {
         await browser.$('foo').$('bar').error)
     expectType<string>(
         await browser.$('foo').$('bar').elementId)
-    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
+    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext>(
         await browser.$('foo').$('bar').parent)
     expectType<number>(
         await browser.$('foo').$('bar').$$('loo').length)
     expectType<Selector>(
         await browser.$('foo').$('bar').$$('loo').selector)
-    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
+    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext>(
         await browser.$('foo').$('bar').$$('loo').parent)
     expectType<Selector>(browser.$$('.item').selector)
     expectType<string>(browser.$$('.item').foundWith)
-    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
+    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser | WebdriverIO.BrowsingContext>(
         browser.$$('.item').parent)
     // @ts-expect-error selector is available immediately and is not a promise
     browser.$$('.item').selector.then(() => undefined)

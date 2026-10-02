@@ -5,6 +5,7 @@ import { getBrowserObject } from '@wdio/utils'
 import type { remote } from 'webdriver'
 
 import { getContextManager } from '../session/context.js'
+import { contextIdOf } from '../session/browsingContext.js'
 import type { PDFPrintOptions } from '../types.js'
 import { assertDirectoryExists } from './utils.js'
 
@@ -81,10 +82,10 @@ function printClassic (this: WebdriverIO.Browser, options?: PDFPrintOptions) {
  * Render the current top-level browsing context with `browsingContext.print`.
  * The result payload is `{ data }` base64, same as classic `printPage`.
  */
-async function printBidi (this: WebdriverIO.Browser, options?: PDFPrintOptions) {
+async function printBidi (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext, options?: PDFPrintOptions) {
     const browser = getBrowserObject(this)
-    const context = await topLevelBrowsingContext(browser)
-    const { data } = await this.browsingContextPrint(toPrintParameters(context, options))
+    const context = await topLevelBrowsingContext(browser, await contextIdOf(this))
+    const { data } = await browser.browsingContextPrint(toPrintParameters(context, options))
     return data
 }
 
@@ -92,9 +93,9 @@ async function printBidi (this: WebdriverIO.Browser, options?: PDFPrintOptions) 
  * `browsingContext.print` rejects a non-top-level context. Walk from the
  * context manager's current context to the root of the browsing-context tree.
  */
-async function topLevelBrowsingContext (browser: WebdriverIO.Browser) {
+async function topLevelBrowsingContext (browser: WebdriverIO.Browser, start?: string) {
     const contextManager = getContextManager(browser)
-    let context = await contextManager.getCurrentContext()
+    let context = start ?? await contextManager.getCurrentContext()
     const { contexts } = await browser.browsingContextGetTree({})
     let parent = contextManager.findParentContext(context, contexts)
     const seen = new Set<string>()
