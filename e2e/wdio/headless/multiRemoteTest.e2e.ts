@@ -416,7 +416,7 @@ describe('multi remote test', () => {
         })
     })
 
-    describe('custom$, custom$$, shadow$ and shadow$$', () => {
+    describe('element queries other than $ and $$', () => {
         const forEachInstance = <T>(value: T) => multiRemoteBrowser.instances.map(() => value)
 
         before(async () => {
@@ -460,6 +460,19 @@ describe('multi remote test', () => {
 
             expect(paragraph.isMultiRemote).toBe(true)
             expect(await paragraph.getTagName()).toEqual(forEachInstance('p'))
+        })
+
+        it('nextElement, previousElement and parentElement give one multi-remote element', async () => {
+            const first = await multiRemoteBrowser.$('ul[slot="my-text"] li:first-child')
+
+            const next = await first.nextElement()
+            const previous = await next.previousElement()
+            const parent = await first.parentElement()
+
+            expect(next.isMultiRemote).toBe(true)
+            expect(await next.getText()).toEqual(forEachInstance('In a list!'))
+            expect(await previous.getText()).toEqual(forEachInstance('Let\'s have some different text!'))
+            expect(await parent.getTagName()).toEqual(forEachInstance('ul'))
         })
     })
 })

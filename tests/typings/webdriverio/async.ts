@@ -82,6 +82,10 @@ async function bar() {
     expectType<WebdriverIO.MultiRemoteElement>(await mrElem.react$('MyComponent'))
     expectType<WebdriverIO.MultiRemoteElement>(await mrElem.shadow$('.foo'))
     expectType<boolean[]>(await (await mrElem.shadow$('.foo')).isDisplayed())
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.nextElement())
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.previousElement())
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.parentElement())
+    expectType<string[]>(await (await mrElem.parentElement()).getTagName())
 
     // the other list queries also give a multi-remote list
     expectType<WebdriverIO.MultiRemoteElementArray>(await mr.custom$$('myStrategy', '.foo'))

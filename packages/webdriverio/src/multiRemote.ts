@@ -16,7 +16,7 @@ const overridableCommands = new Set(Object.keys(BrowserCommands))
 /**
  * queries that find one element per instance, wrapped into one multi-remote element
  */
-const SINGLE_QUERIES = new Set(['$', 'custom$', 'react$', 'shadow$'])
+const SINGLE_QUERIES = new Set(['$', 'custom$', 'react$', 'shadow$', 'nextElement', 'previousElement', 'parentElement'])
 /**
  * queries that find a list per instance, zipped into one multi-remote list
  */

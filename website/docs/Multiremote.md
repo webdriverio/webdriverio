@@ -190,7 +190,7 @@ MultiRemote makes it easy and convenient to control multiple browsers, whether y
 
 ### What `$` returns
 
-On a multi-remote browser, `$`, `custom$` and `react$` return one `MultiRemoteElement`. On a multi-remote element, `shadow$` also returns one. Its commands run on every instance, and `getInstance` gives the element of one browser.
+On a multi-remote browser, `$`, `custom$` and `react$` return one `MultiRemoteElement`. On a multi-remote element, `shadow$`, `nextElement`, `previousElement` and `parentElement` also return one. Its commands run on every instance, and `getInstance` gives the element of one browser.
 
 ```js
 const host = await $('my-component')
