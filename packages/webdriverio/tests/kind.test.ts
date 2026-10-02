@@ -6,6 +6,7 @@ import { WDIO_KIND, WDIO_CHAINABLE, attach, multiRemote, remote } from '../src/i
 import refetchElement from '../src/utils/refetchElement.js'
 import WebDriverInterception from '../src/utils/interception/index.js'
 import { getBrowsingContext } from '../src/browsingContext.js'
+import { isBrowsingContext } from '../src/session/browsingContext.js'
 import { verifyArgsAndStripIfElement } from '../src/utils/index.js'
 
 vi.mock('fetch')
@@ -18,6 +19,20 @@ const brandsOf = (value: unknown) => ({
 })
 const resolved = (kind: string) => ({ kind, chainable: undefined })
 const chainable = (kind: string) => ({ kind, chainable: true })
+/**
+ * the brands that are enumerable on `value` or on its prototypes (a mock has its brand on the prototype)
+ */
+const enumerableBrands = (value: object) => {
+    const found: symbol[] = []
+    for (let owner: object | null = value; owner; owner = Object.getPrototypeOf(owner)) {
+        for (const symbol of [WDIO_KIND, WDIO_CHAINABLE]) {
+            if (Object.getOwnPropertyDescriptor(owner, symbol)?.enumerable) {
+                found.push(symbol)
+            }
+        }
+    }
+    return found
+}
 
 const multiRemoteCapabilities = {
     browserA: { capabilities: { browserName: 'chrome' } },
@@ -123,16 +138,30 @@ describe('WebdriverIO object brand', () => {
     })
 
     test('mocks have the kind mock, and isMultiRemote tells a multi-remote mock apart', async () => {
-        const mock = await createMock()
-        const browser = await multiRemote(multiRemoteCapabilities)
-        for (const instance of browser.instances) {
-            vi.spyOn(browser.getInstance(instance), 'mock').mockResolvedValue(mock as unknown as WebdriverIO.Mock)
+        const browser = await multiRemote({
+            browserA: { capabilities: { browserName: 'bidi' } },
+            browserB: { port: 4445, capabilities: { browserName: 'bidi' } }
+        })
+        /**
+         * only the BiDi transport is stubbed, so `mock()` of each instance creates a real `WebDriverInterception`
+         */
+        for (const name of browser.instances) {
+            const instance = browser.getInstance(name)
+            vi.spyOn(instance, 'sessionSubscribe').mockResolvedValue(undefined as never)
+            vi.spyOn(instance, 'networkAddIntercept').mockResolvedValue({ intercept: name } as never)
+            vi.spyOn(instance, 'networkAddDataCollector').mockResolvedValue({ collector: name } as never)
         }
         const multiRemoteMock = await browser.mock('**/api')
+        const instanceMocks = multiRemoteMock.instances.map((name) => multiRemoteMock.getInstance(name))
 
-        expect(brandsOf(mock)).toEqual(resolved('mock'))
+        expect(instanceMocks[0]).toBeInstanceOf(WebDriverInterception)
+        expect(instanceMocks[0]).not.toBe(instanceMocks[1])
+        expect(instanceMocks.map(brandsOf)).toEqual([resolved('mock'), resolved('mock')])
         expect(brandsOf(multiRemoteMock)).toEqual(resolved('mock'))
-        expect([Boolean((mock as { isMultiRemote?: boolean }).isMultiRemote), multiRemoteMock.isMultiRemote]).toEqual([false, true])
+        expect([
+            ...instanceMocks.map((mock) => Boolean((mock as { isMultiRemote?: boolean }).isMultiRemote)),
+            multiRemoteMock.isMultiRemote
+        ]).toEqual([false, false, true])
     })
 
     test('browsing contexts have their own kind, not the kind of the browser', async () => {
@@ -143,6 +172,8 @@ describe('WebdriverIO object brand', () => {
         expect(brandsOf(tab)).toEqual(resolved('browsing-context'))
         expect(brandsOf(frame)).toEqual(resolved('browsing-context'))
         expect(brandsOf(tab.browser)).toEqual(resolved('browser'))
+        expect([isBrowsingContext(tab), isBrowsingContext(frame), isBrowsingContext(browser)]).toEqual([true, true, false])
+        expect(isBrowsingContext({ contextId: 'tab-1', browser })).toBe(false)
     })
 
     test('a chained single-session list stays single-session', async () => {
@@ -617,14 +648,14 @@ describe('WebdriverIO object brand matrix', () => {
             element: await browser.$('#foo'),
             list: await browser.$$('#foo'),
             pendingList: browser.$$('#foo'),
+            chainable: browser.$('#foo'),
             mock: await createMock(),
             context: getBrowsingContext(browser as unknown as WebdriverIO.Browser, 'tab-1', { isFrame: false, url: 'https://webdriver.io' })
         }
 
         for (const [name, value] of Object.entries(values)) {
-            const enumerable = Object.getOwnPropertySymbols(value)
-                .filter((symbol) => Object.getOwnPropertyDescriptor(value, symbol)?.enumerable)
-            expect({ name, enumerable }).toEqual({ name, enumerable: expect.not.arrayContaining([WDIO_KIND, WDIO_CHAINABLE]) })
+            expect({ name, branded: brandsOf(value).kind !== undefined }).toEqual({ name, branded: true })
+            expect({ name, enumerable: enumerableBrands(value) }).toEqual({ name, enumerable: [] })
             expect({ name, inspect: inspect(value).includes('wdio.') }).toEqual({ name, inspect: false })
         }
         expect(JSON.stringify(values.list)).not.toContain('element-array')

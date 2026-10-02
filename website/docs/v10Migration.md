@@ -133,7 +133,7 @@ Other effects of this change:
 - Jasmine's spy matchers work without `await`. In v9, `toHaveBeenCalled`, `toHaveSpyInteractions` and `toHaveNoOtherSpyInteractions` failed with "Does not take arguments", and an uncalled spy passed without `await`.
 - `jasmine.addMatchers` is no longer replaced, so Jasmine does not show its "Monkey patching detected" warning anymore.
 
-`toHaveSize` has two meanings. On a WebdriverIO value, it is the WebdriverIO matcher and checks the size of the element: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multiremote element, a browser, the `some()` wrapper, or a promise such as a chainable `$()`. On any other value, it is Jasmine's matcher and checks the length. In v9, Jasmine's matcher always ran.
+`toHaveSize` has two meanings. On a WebdriverIO value, it is the WebdriverIO matcher and checks the size of the element: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multi-remote element, a browser, a browsing context, a mock, the `some()` wrapper, or a promise such as a chainable `$()`. On any other value, it is Jasmine's matcher and checks the length. In v9, Jasmine's matcher always ran.
 
 ```js
 expect([1, 2]).toHaveSize(2)                                   // Jasmine, sync
