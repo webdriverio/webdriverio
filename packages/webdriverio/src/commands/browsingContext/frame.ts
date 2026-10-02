@@ -17,17 +17,57 @@ interface ContextNode {
 }
 
 /**
- * A child browsing context of this one. Say how to find it with a query:
+ * Get a frame (`<iframe>` or `<frame>`) of this browsing context as a browsing
+ * context of its own. Commands on the returned context run in the frame's
+ * document, also for cross-origin frames, while this context and every other one
+ * stay usable. Since v10 this replaces `switchFrame()` in a WebDriver BiDi session.
  *
- * - `{ selector }`: the frame element a CSS or XPath selector finds on this page
- * - `{ url }`: the first frame, at any depth, whose url equals the string or matches the RegExp
+ * Say how to find the frame with a query, the recommended form:
+ *
+ * - `{ selector }`: the frame element a CSS or XPath selector finds in this document
+ * - `{ url }`: the first frame, at any depth, whose URL equals the string or matches the RegExp
  * - `{ id }`: the frame with this browsing context id
  *
- * It also takes a frame element, a predicate run in each descendant, or a
- * string. A string is a shorthand that guesses: a selector first, then a
- * frame url (or a substring of it), then a context id. `parent` on the
- * result is the context this was called on for a direct child, or the
- * intermediate frame when the match is nested.
+ * It also takes a frame element, or a predicate that is called with the `context`
+ * id and `url` of each descendant frame. A string is a shorthand that guesses:
+ * a selector when it finds a frame element, then a frame URL (or a part of it),
+ * then a context id.
+ *
+ * `parent` on the result is the context `frame()` was called on for a direct
+ * child frame, or the frame in between when the match is nested deeper.
+ *
+ * <example>
+    :frame.js
+    it('works with nested frames', async () => {
+        const page = await browser.url('https://the-internet.herokuapp.com/nested_frames')
+        const top = await page.frame({ selector: 'frame[name="frame-top"]' })
+        const middle = await top.frame({ selector: 'frame[name="frame-middle"]' })
+
+        console.log(await middle.$('#content').getText()) // outputs: "MIDDLE"
+        console.log(middle.parent?.contextId === top.contextId) // outputs: true
+        console.log(await page.getTitle()) // the page itself is still usable
+    })
+ * </example>
+ *
+ * <example>
+    :frameQueries.js
+    it('finds frames by url, id or predicate', async () => {
+        const page = await browser.url('https://the-internet.herokuapp.com/nested_frames')
+
+        const top = await page.frame({ url: /frame_top/ })
+        const left = await top.frame({ url: /frame_left/ })
+        const sameFrame = await page.frame({ id: left.contextId })
+        console.log(await sameFrame.$('body').getText()) // outputs: "LEFT"
+
+        const bottom = await page.frame(({ url }) => url.endsWith('/frame_bottom'))
+        console.log(await bottom.$('body').getText()) // outputs: "BOTTOM"
+    })
+ * </example>
+ *
+ * @param {FrameQuery|WebdriverIO.Element|Function|string} target  the frame to get: a query (`{ selector }`, `{ url }` or `{ id }`), a frame element, a predicate, or a string shorthand
+ * @alias browsingContext.frame
+ * @return {WebdriverIO.BrowsingContext}  the browsing context of the frame
+ * @throws {Error} When no frame matches before the `waitforTimeout` passes, or when a selector finds an element that is not a frame.
  */
 export async function frame (
     this: WebdriverIO.BrowsingContext,

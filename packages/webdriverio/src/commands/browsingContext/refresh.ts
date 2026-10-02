@@ -1,5 +1,20 @@
 /**
- * Reload this browsing context and wait until the new document has loaded.
+ * Reload the document of this browsing context and wait until the new document
+ * has loaded. Other tabs and frames are not reloaded. A frame reloads only its own
+ * document and keeps its browsing context, so the object you hold stays usable.
+ *
+ * <example>
+    :refresh.js
+    it('reloads one frame', async () => {
+        const page = await browser.url('https://the-internet.herokuapp.com/nested_frames')
+        const bottom = await page.frame({ selector: 'frame[name="frame-bottom"]' })
+
+        await bottom.refresh()
+        console.log(await bottom.$('body').getText()) // outputs: "BOTTOM", the frame is still usable
+    })
+ * </example>
+ *
+ * @alias browsingContext.refresh
  */
 export async function refresh (this: WebdriverIO.BrowsingContext): Promise<void> {
     if (this.isFrame) {

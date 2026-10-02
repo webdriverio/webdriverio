@@ -149,7 +149,7 @@ import { classicContext } from '../../utils/classicContext.js'
  * mock the environment, e.g. overwrite Web APIs that your application uses.
  * @param {`{user: string, pass: string}`=} options.auth  basic authentication credentials
  * @param {`Record<string, string>`=} options.headers  headers to be sent with the request
- * @returns {WebdriverIO.BrowsingContext} the browsing context that was navigated. In a WebDriver Classic
+ * @returns {WebdriverIO.BrowsingContext} the [browsing context](/docs/api/browsingContext) that was navigated. In a WebDriver Classic
  * session (e.g. Appium or Safari) there are no held browsing contexts, so it stands for the browser: commands
  * such as `$`, `execute` or `getTitle` run on the browser, `url` is the navigated url and `contextId` is
  * `undefined`. The BiDi-only commands `frame()`, `navigate()` and `activate()` reject with an error that

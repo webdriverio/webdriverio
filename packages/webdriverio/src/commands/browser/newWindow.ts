@@ -9,47 +9,25 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
 
 /**
  *
- * Open new window or tab in browser (defaults to a new window if not specified).
- * This command is the equivalent function to `window.open()`. This command does not work in mobile environments.
+ * Open a new window or tab and wait until its page has loaded, the equivalent of `window.open()`.
+ * This command does not work in mobile environments.
  *
- * __Note:__ In a WebDriver BiDi session this command returns the new browsing context
- * and does not switch to it. `browser.url()` keeps navigating the context it
- * returned first. In a Classic session the command still switches to the new
- * window and returns `{ handle, type }`.
+ * In a WebDriver BiDi session (the default since v10) it returns the new
+ * [browsing context](/docs/api/browsingContext) and does not switch to it: run
+ * commands on the returned context, while `browser.url()` keeps navigating the
+ * first one. In a WebDriver Classic session the command switches to the new window
+ * and returns `{ handle, type }`.
  *
  * <example>
-    :newWindowSync.js
-    it('should open a new window', async () => {
-        await browser.url('https://google.com')
-        console.log(await browser.getTitle()) // outputs: "Google"
+    :newWindow.js
+    it('should open a new tab', async () => {
+        const page = await browser.url('https://webdriver.io')
+        const tab = await browser.newWindow('https://webdriver.io/docs/api', { type: 'tab' })
 
-        const result = await browser.newWindow('https://webdriver.io')
-        console.log(await browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
-        console.log(result.type) // outputs: "window"
-        const handles = await browser.getWindowHandles()
-        await browser.switchToWindow(handles[1])
-        await browser.closeWindow()
-        await browser.switchToWindow(handles[0])
-        console.log(await browser.getTitle()) // outputs: "Google"
+        console.log(await tab.getTitle()) // the title of the API page
+        console.log(await page.getTitle()) // the first tab still answers commands
+        await tab.closeWindow()
     });
- * </example>
- * <example>
-      :newTabSync.js
-      it('should open a new tab', async () => {
-          await browser.url('https://google.com')
-          console.log(await browser.getTitle()) // outputs: "Google"
-
-          const result = await browser.newWindow('https://webdriver.io', {
-              type: 'tab'
-          })
-          console.log(await browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
-          console.log(result.type) // outputs: "tab"
-          const handles = await browser.getWindowHandles()
-          await browser.switchToWindow(handles[1])
-          await browser.closeWindow()
-          await browser.switchToWindow(handles[0])
-          console.log(await browser.getTitle()) // outputs: "Google"
-     });
  * </example>
  *
  * @param {string}  url      website URL to open
