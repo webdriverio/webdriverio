@@ -454,6 +454,18 @@ describe('browsing context', () => {
             }))
         })
 
+        it('finds links by their rendered text in another context, like the link text strategy', async () => {
+            const context = getBrowsingContext(browser, 'tab-2', { isFrame: false, url: 'https://child.example' })
+            const locate = vi.spyOn(browser, 'browsingContextLocateNodes')
+            const execute = vi.spyOn(context, 'execute').mockResolvedValue([{ [ELEMENT_KEY]: 'link-1' }])
+
+            const link = await context.$('=Done link')
+            expect(link.elementId).toBe('link-1')
+            expect(execute.mock.calls[0][0]).toEqual(expect.stringContaining('querySelectorAll(\'a\')'))
+            expect(execute.mock.calls[0].slice(1)).toEqual([null, false, 'Done link'])
+            expect(locate).not.toHaveBeenCalled()
+        })
+
         it('reads text with the getVisibleText atom', async () => {
             const { context, elem } = heldElement('tab-2')
             const execute = vi.spyOn(context, 'execute').mockResolvedValue('Hello')

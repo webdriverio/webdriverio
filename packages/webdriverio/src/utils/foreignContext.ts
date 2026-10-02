@@ -256,19 +256,7 @@ async function findInContext (
     maxNodeCount?: number
 ): Promise<Record<string, string>[]> {
     if (using === 'link text' || using === 'partial link text') {
-        const found = await held.execute(
-            `const getVisibleText = ${GET_VISIBLE_TEXT}
-            const [root, partial, value] = arguments
-            return Array.from(root.querySelectorAll('a')).filter((a) => {
-                const text = getVisibleText(a).trim()
-                return partial ? text.includes(value) : text === value
-            })`,
-            ref(elementId), using === 'partial link text', value
-        )
-        /**
-         * `execute` returns DOM nodes as element references.
-         */
-        return (found as unknown as Record<string, string>[]).slice(0, maxNodeCount)
+        return findLinksInContext(held, using, value, elementId, maxNodeCount)
     }
 
     const locator: remote.BrowsingContextLocator | undefined = using === 'css selector' || using === 'tag name'
@@ -288,6 +276,36 @@ async function findInContext (
     return nodes
         .filter((node) => node.sharedId)
         .map((node) => ({ [ELEMENT_KEY]: node.sharedId! }))
+}
+
+/**
+ * The link text strategies of the spec in a held context: every `<a>` below
+ * `elementId` (or in the document) whose rendered text, trimmed, equals or
+ * contains `value`. The rendered text comes from the getVisibleText atom, so
+ * a background tab that is not rendered still skips hidden text.
+ *
+ * @see https://w3c.github.io/webdriver/#link-text
+ */
+export async function findLinksInContext (
+    held: WebdriverIO.BrowsingContext,
+    using: 'link text' | 'partial link text',
+    value: string,
+    elementId?: string,
+    maxNodeCount?: number
+): Promise<Record<string, string>[]> {
+    const found = await held.execute(
+        `const getVisibleText = ${GET_VISIBLE_TEXT}
+        const [root, partial, value] = arguments
+        return Array.from((root || document).querySelectorAll('a')).filter((a) => {
+            const text = getVisibleText(a).trim()
+            return partial ? text.includes(value) : text === value
+        })`,
+        elementId ? ref(elementId) : null, using === 'partial link text', value
+    )
+    /**
+     * `execute` returns DOM nodes as element references.
+     */
+    return (found as unknown as Record<string, string>[]).slice(0, maxNodeCount)
 }
 
 /**

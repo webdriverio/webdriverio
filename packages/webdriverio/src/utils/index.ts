@@ -17,6 +17,7 @@ import { findStrategy, getAriaXPathSelector } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, foreignContextId, heldBrowsingContext } from '../session/browsingContext.js'
+import { findLinksInContext, foreignContext } from './foreignContext.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
@@ -665,6 +666,13 @@ export async function findDeepElement(
         (this as WebdriverIO.Element).elementId
     )
     let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
+    if (using === 'link text' || using === 'partial link text') {
+        const held = await foreignContext(this)
+        if (held) {
+            const [first] = await findLinksInContext(held, using, value, (this as WebdriverIO.Element).elementId, 1)
+            return first as ElementReference | undefined
+        }
+    }
     if (heldBrowsingContext(this)?.isFrame) {
         return findInFrameByScript(this, browser, using, value, 0) as Promise<ElementReference | undefined>
     }
@@ -855,6 +863,12 @@ export async function findDeepElements(
         (this as WebdriverIO.Element).elementId
     )
     let { using, value } = findStrategy(selector as string, this.isMobile, this.isBidi)
+    if (using === 'link text' || using === 'partial link text') {
+        const held = await foreignContext(this)
+        if (held) {
+            return findLinksInContext(held, using, value, (this as WebdriverIO.Element).elementId) as Promise<ElementReference[]>
+        }
+    }
     if (heldBrowsingContext(this)?.isFrame) {
         return findAllInFrame(this, browser, using, value)
     }
