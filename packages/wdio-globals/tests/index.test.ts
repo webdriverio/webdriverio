@@ -11,6 +11,7 @@ const exportedExpect = wdioExpect as unknown as {
     (actual: unknown): unknown
     some (...args: unknown[]): unknown
     closeTo (...args: unknown[]): unknown
+    multiRemote (...args: unknown[]): unknown
 }
 
 describe('global handler', () => {
@@ -94,5 +95,16 @@ describe('global handler', () => {
         expect(exportedExpect.closeTo(10, 2)).toBe('close-result')
         expect(closeTo).toHaveBeenCalledWith(10, 2)
         expect(readGlobal('expect')).toBe(previousExpect)
+    })
+
+    it('forwards multiRemote to the installed expect', () => {
+        const values = { browserA: 'foo', browserB: 'bar' }
+        expect(() => exportedExpect.multiRemote(values)).toThrow(REGISTRATION_ERROR)
+
+        const multiRemote = vi.fn().mockReturnValue('multi-remote-result')
+        _setGlobal('expect', { multiRemote }, false)
+
+        expect(exportedExpect.multiRemote(values)).toBe('multi-remote-result')
+        expect(multiRemote).toHaveBeenCalledWith(values)
     })
 })
