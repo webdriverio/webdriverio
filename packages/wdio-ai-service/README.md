@@ -42,6 +42,8 @@ export const config: WebdriverIO.Config = {
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `model` | `string \| ModelConfig \| BaseChatModel` | `process.env.WDIO_AI_MODEL` | `'provider:model'`, a config object (`provider`, `model`, `baseURL`, `apiKey`, `temperature`, `maxTokens`) or any LangChain chat model. |
+| `cache` | `'auto' \| 'write' \| 'heal' \| 'locked' \| 'off'` | `'auto'` | See [Cache](#cache). |
+| `cacheDir` | `string \| (specPath) => string` | `<spec dir>/__act__/` | Where cache files live. |
 | `instructions` | `string` | | Markdown file with project conventions, appended to the system prompt. |
 | `maxSteps` | `number` | `15` | Tool calls one `act` may make. |
 | `maxModelCalls` | `number` | | Model calls per worker. |
@@ -59,6 +61,41 @@ await browser.act('Log in as {{email}} with password {{password}}', {
 ```
 
 `act` resolves to `{ source, steps, summary }`. `steps` lists the WebdriverIO code that ran. When the model reports that the instruction cannot be completed, or the step limit or timeout (`timeout`, default 60s) is reached, `act` throws an `ActError` with the reason.
+
+## Cache
+
+The steps of every `act` call are recorded in `__act__/<spec file>.json` next to the spec. Commit the file. Later runs replay the steps without calling the model, so a passing run costs no tokens and is as fast as hand-written commands.
+
+```json
+{
+    "version": 1,
+    "entries": {
+        "cart adds a shirt › #1": {
+            "instruction": "Add a blue shirt in size M to the shopping cart",
+            "platform": "web",
+            "model": "anthropic:claude-sonnet-5-5",
+            "recordedAt": "2026-10-01T12:00:00.000Z",
+            "steps": [
+                { "action": "click", "args": { "target": "role/link[name=\"Blue Shirt\"]" }, "code": "await $('role/link[name=\"Blue Shirt\"]').click()" },
+                { "action": "click", "args": { "target": "role/button[name=\"Add to cart\"]" }, "code": "await $('role/button[name=\"Add to cart\"]').click()" }
+            ]
+        }
+    }
+}
+```
+
+An entry is keyed by the full test title and the position of the `act` call in the test (`#1`, `#2`, …), or by the `id` option. When the instruction text changes, the call is recorded again. Placeholders stay placeholders in the file.
+
+When a replayed step fails because the page changed, the model gets the steps that already ran and the failing step, and continues from the current page. The updated steps replace the entry.
+
+| Mode | Cached | Not cached | Writes |
+| --- | --- | --- | --- |
+| `write` | replay | record with the model | the cache files |
+| `heal` | replay | record with the model | `<outputDir>/act-cache/` only, the cache files stay unchanged |
+| `locked` | replay | fail, never calls the model | nothing |
+| `off` | always calls the model | | nothing |
+
+`auto` is `heal` when `process.env.CI` is set and `write` otherwise. `wdio run -s` (`updateSnapshots: 'all'`) records every `act` call again.
 
 Without the testrunner:
 

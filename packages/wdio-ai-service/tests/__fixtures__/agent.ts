@@ -25,7 +25,10 @@ export function fakeAgent (responses: (action: string, args: Record<string, unkn
         }
         return { text: response.text, code: response.code }
     })
+    const waitForExist = vi.fn().mockResolvedValue(true)
     const agent = {
+        session: { plan: { applies: ['W'], platform: 'browser', label: 'chrome' } },
+        browser: { $: vi.fn(() => ({ waitForExist })), options: { waitforTimeout: 100 } },
         actions: ACTIONS.filter((spec) => !spec.applies || spec.applies.includes('W')),
         run,
         snapshot: vi.fn(),
@@ -38,6 +41,7 @@ export function fakeAgent (responses: (action: string, args: Record<string, unkn
     return {
         agent,
         run,
+        waitForExist,
         setRef (entry: Omit<RefEntry, 'kind' | 'generation'>) {
             refs.set(entry.id, { kind: 'web', generation: 1, ...entry })
         }

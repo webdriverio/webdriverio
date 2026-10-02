@@ -4,7 +4,7 @@ import type { AddressInfo } from 'node:net'
 import { browser, $, expect } from '@wdio/globals'
 import { ActError } from '@wdio/ai-service'
 
-import { model } from './model.js'
+import { actModel as model } from './model.js'
 
 const SHOP = `<!doctype html><title>Shop</title>
 <main>

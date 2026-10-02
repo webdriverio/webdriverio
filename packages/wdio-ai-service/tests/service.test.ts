@@ -26,3 +26,29 @@ describe('AiService', () => {
         expect(act).toHaveBeenCalledWith(element, 'Open the menu', { timeout: 5000 })
     })
 })
+
+describe('AiService test tracking', () => {
+    it('starts a test with its spec file and full title, and flushes the cache at the end', async () => {
+        const service = new AiService({}, {}, { updateSnapshots: 'all', outputDir: '/logs' })
+        const startTest = vi.spyOn(service.runtime, 'startTest')
+        const endTest = vi.spyOn(service.runtime, 'endTest')
+        const flush = vi.spyOn(service.runtime, 'flush').mockResolvedValue()
+        expect(service.runtime.options).toMatchObject({ updateSnapshots: 'all', outputDir: '/logs' })
+
+        service.before({}, ['file:///project/test/cart.e2e.ts'], { addCommand: vi.fn() } as unknown as WebdriverIO.Browser)
+        service.beforeTest({ file: '/project/test/cart.e2e.ts', fullTitle: 'cart adds a shirt' })
+        expect(startTest).toHaveBeenLastCalledWith('/project/test/cart.e2e.ts', 'cart adds a shirt')
+        service.afterTest()
+        expect(endTest).toHaveBeenCalled()
+
+        service.beforeTest({ fullName: 'jasmine spec name' })
+        expect(startTest).toHaveBeenLastCalledWith('/project/test/cart.e2e.ts', 'jasmine spec name')
+
+        service.beforeScenario({ pickle: { uri: 'file:///project/features/cart.feature', name: 'Add a shirt' } })
+        expect(startTest).toHaveBeenLastCalledWith('/project/features/cart.feature', 'Add a shirt')
+        service.afterScenario()
+
+        await service.after()
+        expect(flush).toHaveBeenCalled()
+    })
+})

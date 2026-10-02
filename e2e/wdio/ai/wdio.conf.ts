@@ -1,7 +1,7 @@
 import url from 'node:url'
 import path from 'node:path'
 
-import { model } from './model.js'
+import { actModel, cacheDir } from './model.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -12,7 +12,7 @@ export const config: WebdriverIO.Config = {
         webSocketUrl: true,
         'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }
     }],
-    services: [['ai', { model }]],
+    services: [['ai', { model: actModel, cache: 'off', cacheDir }]],
     logLevel: 'warn',
     framework: 'mocha',
     reporters: ['spec'],
