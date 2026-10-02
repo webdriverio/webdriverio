@@ -163,7 +163,7 @@ await $('role/combobox[name="Size"]').selectByVisibleText('M')
 await $('role/button[name="Add to cart"]').click()
 ```
 
-The instruction stays as a comment. Placeholders become references to the `values` of the call. A call is matched by its instruction, or by its `id`. Calls that are not recorded yet, or recorded with different steps in several tests, are left alone and reported. Use `--test <full title>` to pick the entries of one test and `--dry-run` to print the result.
+The instruction stays as a comment. Placeholders become references to the `values` of the call. A call gets the steps recorded for exactly that call: the entry of its `id`, or of its test title and its position among the `act` calls of the test, the same key the service records. A call in a branch, a loop or a callback has no fixed position, give it an `id`. Calls without a matching entry, or whose entry was recorded for another instruction, are left alone and reported. Use `--test <full title>` to eject the calls of one test and `--dry-run` to print the result.
 
 Without the testrunner:
 
