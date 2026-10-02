@@ -27,6 +27,10 @@ describe('names', () => {
         expect(getterName('#email')).toBe('email')
         expect(getterName('[data-testid="add-blue"]')).toBe('addBlue')
         expect(getterName('button=Save')).toBe('save')
+        expect(getterName('role/button[name="Add to cart"]')).toBe('addToCart')
+        expect(getterName("role/link[name='Help']")).toBe('help')
+        expect(getterName('role/button[name="Say \\"hi\\""]')).toBe('sayHi')
+        expect(getterName('role/navigation')).toBe('navigation')
     })
 })
 

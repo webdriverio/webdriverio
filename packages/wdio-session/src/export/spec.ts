@@ -49,12 +49,15 @@ export function pageInstanceName (page: string) {
 
 /**
  * A getter name for a selector: the accessible name when the selector is
- * `aria/…`, otherwise the id, test id or text.
+ * `aria/…` or `role/…[name="…"]`, otherwise the id, test id or text.
  */
 export function getterName (selector: string) {
     let raw = selector
     if (raw.startsWith('aria/')) {
         raw = raw.slice('aria/'.length)
+    } else if (raw.startsWith('role/')) {
+        const role = raw.match(/^role\/([a-zA-Z]+)(?:\[name=(["'])((?:\\.|(?!\2).)*)\2\])?$/)
+        raw = role?.[3]?.replace(/\\(.)/g, '$1') || role?.[1] || raw
     } else if (raw.startsWith('#') || raw.startsWith('.')) {
         raw = raw.slice(1)
     } else {

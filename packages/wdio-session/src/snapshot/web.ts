@@ -356,6 +356,11 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     }
 
     const namesSeen = new Map<string, number>()
+    /**
+     * `role + name` pairs, for `role/<role>[name="..."]` candidates
+     */
+    const roleNamesSeen = new Map<string, number>()
+    const NO_ROLE_SELECTOR = new Set(['generic', 'text', 'none', 'presentation', 'paragraph'])
 
     function looksGenerated (id: string) {
         return /\d{4,}/.test(id) || /[0-9a-f]{8,}/i.test(id) || /^(:r|ember|mui-|radix-)/.test(id)
@@ -401,6 +406,9 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
                     out.push(selector)
                 }
             }
+        }
+        if (name && !NO_ROLE_SELECTOR.has(role) && roleNamesSeen.get(`${role}\n${name}`) === 1 && !/[\n]/.test(name)) {
+            out.push(`role/${role}[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`)
         }
         if (name && namesSeen.get(name) === 1 && !/[\n]/.test(name)) {
             out.push(`aria/${name}`)
@@ -478,6 +486,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         if (name) {
             out.name = truncate(name)
             namesSeen.set(name, (namesSeen.get(name) || 0) + 1)
+            roleNamesSeen.set(`${role}\n${name}`, (roleNamesSeen.get(`${role}\n${name}`) || 0) + 1)
         }
         if (hidden) {
             out.hidden = true

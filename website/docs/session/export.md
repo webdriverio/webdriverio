@@ -4,7 +4,7 @@ title: Export a session as a test
 description: Turn the steps you ran in wdio session into a spec, page objects and custom commands.
 ---
 
-`export` writes a spec from the recorded steps. Refs are replaced with stable selectors.
+`export` writes a spec from the recorded steps. Refs are replaced with stable selectors. For a web page, the first of these that matches exactly one element is used: a test id (`data-testid`, `data-test`, `data-qa`), a [role selector](/docs/selectors#role-selector) such as `role/button[name="Add to cart"]`, an accessible name (`aria/Add to cart`), an id, the text of a button or link, a form field name, and finally a CSS path.
 
 ```sh
 npx wdio session export --out test/specs/cart.e2e.ts
