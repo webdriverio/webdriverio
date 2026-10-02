@@ -31,6 +31,16 @@ describe('browser.extract()', () => {
 
     before(async () => {
         server = createServer((request, response) => {
+            if (request.url === '/api/inbox') {
+                response.setHeader('Content-Type', 'application/json')
+                response.end(JSON.stringify({ messages: ['private'] }))
+                return
+            }
+            if (request.url === '/inbox') {
+                response.setHeader('Content-Type', 'text/html; charset=utf-8')
+                response.end('<!doctype html><title>Inbox</title><p id="inbox">…</p><script>fetch(\'/api/inbox\').then((r) => r.json()).then(() => { document.getElementById(\'inbox\').textContent = \'loaded\' })</script>')
+                return
+            }
             if (request.url === '/api/cart') {
                 response.setHeader('Content-Type', 'application/json')
                 response.end(JSON.stringify({ items: [{ sku: 'SHIRT-BLUE-M', qty: 1 }, { sku: 'SOCKS-RED-L', qty: 2 }] }))
@@ -67,8 +77,18 @@ describe('browser.extract()', () => {
     it('reads a value the page only received from its API, from the collected response body', async () => {
         await browser.url(`${origin}/summary`)
         await expect($('#summary')).toHaveText('2 items in your cart')
+        /**
+         * another tab loads its own API, the extract on the shop page must
+         * not see it
+         */
+        const inbox = await browser.newWindow(`${origin}/inbox`)
+        await expect(inbox.$('#inbox')).toHaveText('loaded')
+
         const skus = await browser.extract('the SKUs of the items in the cart', z.array(z.string()), { model: extractModel })
         expect(skus).toEqual(['SHIRT-BLUE-M', 'SOCKS-RED-L'])
-        expect(extractModel.sentText()).toContain('/responses/index.ndjson')
+        expect(extractModel.sentText()).toContain('/api/cart')
+        expect(extractModel.sentText()).not.toContain('/api/inbox')
+
+        await browser.browsingContextClose({ context: inbox.contextId })
     })
 })

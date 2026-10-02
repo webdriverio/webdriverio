@@ -23,6 +23,7 @@ import type { StandardSchemaV1 } from '@standard-schema/spec'
 
 import { answerTools, EXTRACT_PROMPT, jsonSchemaOf, READ_ACTIONS, RESPONSES_PROMPT, validate, type ExtractOutcome } from './extract.js'
 import { ResponseLog } from './responses.js'
+import { contextTree } from './contexts.js'
 import type { ActOptions, ActResult, ActStep, AiServiceOptions, CacheMode, ExtractOptions, ModelOption } from './types.js'
 
 const log = logger('@wdio/ai-service')
@@ -50,6 +51,10 @@ interface TestContext {
      * `act` calls in this test so far
      */
     calls: number
+    /**
+     * when the test started, `extract` only sees API responses from then on
+     */
+    startedAt: number
     /**
      * created on the first model call of the test
      */
@@ -150,7 +155,7 @@ export class AiRuntime {
      * a test or scenario starts, its `act` calls are counted from 1
      */
     startTest (spec: string, title: string) {
-        this.#test = { spec, title, calls: 0 }
+        this.#test = { spec, title, calls: 0, startedAt: Date.now() }
     }
 
     /**
@@ -530,7 +535,10 @@ export class AiRuntime {
         workspace.values = values
         await workspace.writeEvents(agent.logs, agent.network)
         const responses = await this.#responses.get(agent.browser)?.catch(() => undefined)
-        const withResponses = responses ? await workspace.writeResponses(responses) > 0 : false
+        const withResponses = responses ? await workspace.writeResponses(responses, responses.select({
+            contexts: await contextTree(agent.browser, await agent.browser.getWindowHandle().catch(() => undefined)),
+            since: this.#test?.startedAt
+        })) > 0 : false
         const jsonSchema = jsonSchemaOf(schema)
         const tools = await pageTools({ agent, values, actions: READ_ACTIONS, onStep: () => {}, workspace, scope: scopeRef })
         let feedback = ''

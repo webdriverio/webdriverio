@@ -17,6 +17,14 @@ const TEXTUAL = /json|text\/|xml|graphql|csv/i
 
 export interface CollectedResponse {
     request: string
+    /**
+     * browsing context that received the response
+     */
+    context?: string
+    /**
+     * when the response completed, in ms since the epoch
+     */
+    at: number
     method: string
     url: string
     status: number
@@ -24,6 +32,7 @@ export interface CollectedResponse {
 }
 
 interface ResponseParams {
+    context?: string | null
     navigation?: string | null
     request: { request: string, url: string, method: string, destination?: string, initiatorType?: string | null }
     response: { status: number, mimeType: string }
@@ -66,13 +75,30 @@ export class ResponseLog {
             if (!isEffectRequest({ url, destination, initiatorType, navigation: params.navigation }) || isIgnored(url, ignore) || !TEXTUAL.test(params.response.mimeType || '')) {
                 return
             }
-            responses.#add({ request, method, url, status: params.response.status, mimeType: params.response.mimeType })
+            responses.#add({
+                request,
+                ...(params.context ? { context: params.context } : {}),
+                at: Date.now(),
+                method,
+                url,
+                status: params.response.status,
+                mimeType: params.response.mimeType
+            })
         })
         return responses
     }
 
     get responses (): CollectedResponse[] {
         return [...this.#responses]
+    }
+
+    /**
+     * The responses one page received since a point in time, e.g. the
+     * start of the test. Responses of other tabs and earlier tests never
+     * reach the workspace of an `extract` call.
+     */
+    select ({ contexts, since = 0 }: { contexts: Set<string>, since?: number }): CollectedResponse[] {
+        return this.#responses.filter((response) => response.at >= since && (!response.context || contexts.has(response.context)))
     }
 
     /**

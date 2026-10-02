@@ -20,7 +20,8 @@ function bidiBrowser ({ collectors = true } = {}) {
             handlers.set(event, [...(handlers.get(event) || []), handler])
         }
     }
-    const respond = (request: string, url: string, mimeType = 'application/json', extra: Record<string, unknown> = {}) => (handlers.get('network.responseCompleted') || []).forEach((handler) => handler({
+    const respond = (request: string, url: string, mimeType = 'application/json', extra: Record<string, unknown> = {}, context = 'page') => (handlers.get('network.responseCompleted') || []).forEach((handler) => handler({
+        context,
         navigation: null,
         request: { request, url, method: 'GET', initiatorType: 'fetch', ...extra },
         response: { status: 200, mimeType }
@@ -47,7 +48,25 @@ describe('ResponseLog', () => {
         respond('r5', 'https://shop.example/api/report.csv', 'text/csv', { initiatorType: 'xmlhttprequest' })
 
         expect(log.responses.map((response) => response.request)).toEqual(['r1', 'r5'])
-        expect(log.responses[0]).toEqual({ request: 'r1', method: 'GET', url: 'https://shop.example/api/cart', status: 200, mimeType: 'application/json' })
+        expect(log.responses[0]).toEqual({ request: 'r1', context: 'page', at: expect.any(Number), method: 'GET', url: 'https://shop.example/api/cart', status: 200, mimeType: 'application/json' })
+    })
+
+    it('selects the responses of one page and its frames since the start of the test', async () => {
+        vi.useFakeTimers({ now: 1_000 })
+        try {
+            const { browser, respond } = bidiBrowser()
+            const log = (await ResponseLog.attach(browser, []))!
+            respond('earlier-test', 'https://shop.example/api/me')
+            vi.setSystemTime(2_000)
+            respond('page', 'https://shop.example/api/cart')
+            respond('frame', 'https://pay.example/api/token', 'application/json', {}, 'pay-frame')
+            respond('other-tab', 'https://mail.example/api/inbox', 'application/json', {}, 'mail-tab')
+
+            const selected = log.select({ contexts: new Set(['page', 'pay-frame']), since: 2_000 })
+            expect(selected.map((response) => response.request)).toEqual(['page', 'frame'])
+        } finally {
+            vi.useRealTimers()
+        }
     })
 
     it('keeps the latest responses and reads string and base64 bodies', async () => {

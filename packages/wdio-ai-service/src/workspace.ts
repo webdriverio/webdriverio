@@ -6,7 +6,7 @@ import type { AgentMiddleware } from 'langchain'
 import type { LogEntry, NetworkEntry } from '@wdio/session/agent'
 
 import { redact } from './redact.js'
-import type { ResponseLog } from './responses.js'
+import type { CollectedResponse, ResponseLog } from './responses.js'
 import type { ActStep } from './types.js'
 
 export type KeepPolicy = 'on-failure' | 'always' | 'never'
@@ -96,9 +96,9 @@ export class Workspace {
      * the bodies of the API responses the page received, one file each,
      * listed in `/responses/index.ndjson`. Returns how many were written.
      */
-    async writeResponses (log: ResponseLog) {
+    async writeResponses (log: ResponseLog, responses: CollectedResponse[] = log.responses) {
         const index: string[] = []
-        for (const [i, response] of log.responses.entries()) {
+        for (const [i, response] of responses.entries()) {
             const body = await log.body(response)
             if (body === undefined) {
                 continue
