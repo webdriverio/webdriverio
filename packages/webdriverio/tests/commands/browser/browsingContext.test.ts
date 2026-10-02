@@ -351,6 +351,37 @@ describe('browsing context', () => {
             }
         })
 
+        it('drops the reference of a context once it was garbage-collected, without waiting for another command', () => {
+            const finalizers: { cleanup: (held: unknown) => void, held: unknown[] }[] = []
+            class FakeFinalizationRegistry<T> {
+                #entry: { cleanup: (held: unknown) => void, held: unknown[] }
+                constructor (cleanup: (held: T) => void) {
+                    this.#entry = { cleanup: cleanup as (held: unknown) => void, held: [] }
+                    finalizers.push(this.#entry)
+                }
+                register (_target: object, held: T) {
+                    this.#entry.held.push(held)
+                }
+            }
+            const OriginalRegistry = globalThis.FinalizationRegistry
+            globalThis.FinalizationRegistry = FakeFinalizationRegistry as unknown as FinalizationRegistryConstructor
+            try {
+                const page = getBrowsingContext(browser, 'finalized', { isFrame: false, url: 'https://example.com' }) as ContextWith<'afterFinalize'>
+                const [entry] = finalizers
+                expect(entry.held).toHaveLength(1)
+
+                /**
+                 * the garbage collector reports the context: its reference
+                 * leaves the registry right away
+                 */
+                entry.cleanup(entry.held[0])
+                browser.addCommand('afterFinalize', async () => 'ok', { attachToBrowsingContext: true })
+                expect(page.afterFinalize).toBeUndefined()
+            } finally {
+                globalThis.FinalizationRegistry = OriginalRegistry
+            }
+        })
+
         it('binds this to the context and gives access to the browser and the parent frame', async () => {
             browser.addCommand('describeContext', async function (this: WebdriverIO.BrowsingContext) {
                 return {
@@ -390,6 +421,21 @@ describe('browsing context', () => {
                 .toThrow('"contextId" is already a property of every browsing context')
             expect(() => browser.addCommand('notAFunction', 'nope' as never, { attachToBrowsingContext: true }))
                 .toThrow('must be a function')
+        })
+
+        it('rejects names that would make contexts thenable or clash with WebdriverIO internals', () => {
+            for (const name of ['then', 'catch', 'finally']) {
+                expect(() => browser.addCommand(name, async () => {}, { attachToBrowsingContext: true }))
+                    .toThrow(`addCommand: a browsing context command cannot be named "${name}"`)
+                expect(() => browser.overwriteCommand(name, async () => {}, { attachToBrowsingContext: true }))
+                    .toThrow(`overwriteCommand: a browsing context command cannot be named "${name}"`)
+            }
+            for (const name of ['__propertiesObject__', '__elementOverrides__', 'constructor', '__proto__']) {
+                expect(() => browser.addCommand(name, async () => {}, { attachToBrowsingContext: true }))
+                    .toThrow(`a browsing context command cannot be named "${name}"`)
+            }
+            const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' })
+            expect('then' in page).toBe(false)
         })
 
         it('overwrites a built-in command on new and existing contexts, including frames', async () => {
