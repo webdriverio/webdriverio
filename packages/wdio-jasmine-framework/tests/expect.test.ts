@@ -64,6 +64,8 @@ describe('createHybridExpect', () => {
             'element array': Object.assign([], { [kind]: 'element-array' }),
             'copy of an element list': [element],
             'browser': { [kind]: 'browser' },
+            'mock': { [kind]: 'mock' },
+            'browsing context': { [kind]: 'browsing-context' },
             'browser behind a proxy that only forwards reads': new Proxy({}, { get: (_, prop) => prop === kind ? 'browser' : undefined })
         }
         for (const [name, value] of Object.entries(wdioValues)) {

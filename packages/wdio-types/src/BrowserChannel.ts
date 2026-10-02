@@ -172,6 +172,13 @@ export interface CommandRequestEvent {
 export interface CommandResponseEvent {
     id: number
     result?: unknown
+    /**
+     * The kind of `result` when it is a mock or a browsing context. JSON drops the
+     * `wdio.kind` brand (see `@wdio/utils` `kind.ts`), so the page sets it again.
+     * An element or an element list is not in this list: it is sent as element
+     * references, which are not loaded elements and must not get the brand.
+     */
+    kind?: 'mock' | 'browsing-context'
     error?: ChannelError
 }
 

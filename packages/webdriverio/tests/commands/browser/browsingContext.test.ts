@@ -199,6 +199,18 @@ describe('browsing context', () => {
         })
     })
 
+    it('registers onBeforeLoad in a held tab that is not the focused window', async () => {
+        const tab = getBrowsingContext(browser, 'new-tab', { isFrame: false, url: 'https://example.com' })
+        vi.spyOn(browser, 'browsingContextNavigate').mockResolvedValue({ navigation: null, url: 'https://example.com/next' })
+        vi.spyOn(browser, 'sessionSubscribe').mockResolvedValue(undefined as never)
+        vi.spyOn(browser, 'scriptRemovePreloadScript').mockResolvedValue({} as never)
+        const preload = vi.spyOn(browser, 'scriptAddPreloadScript').mockResolvedValue({ script: 'preload-1' } as never)
+
+        await tab.navigate('https://example.com/next', { onBeforeLoad: () => {} })
+
+        expect(preload).toHaveBeenCalledWith(expect.objectContaining({ contexts: ['new-tab'] }))
+    })
+
     it('sends input actions to the held context', async () => {
         const page = getBrowsingContext(browser, 'top-context', { isFrame: false, url: 'https://example.com' })
         const perform = vi.spyOn(browser, 'inputPerformActions').mockResolvedValue({})

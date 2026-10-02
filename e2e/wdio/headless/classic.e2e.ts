@@ -74,19 +74,19 @@ describe('__name polyfill', () => {
 
 describe('handle windows in webdriver classic', () => {
     it('should handle window closing and switching in WebDriver Classic mode', async () => {
-        await browser.url('https://the-internet.herokuapp.com/iframe')
-        const elementalSeleniumLink = await $('/html/body/div[3]/div/div/a')
-        await elementalSeleniumLink.waitForDisplayed()
-        await elementalSeleniumLink.click()
+        await browser.url('https://guinea-pig.webdriver.io/window.html')
+        const openWindowLink = await $('#openWindow')
+        await openWindowLink.waitForDisplayed()
+        await openWindowLink.click()
         await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 2)
-        await browser.switchWindow('https://elementalselenium.com/')
-        await $('#__docusaurus_skipToContent_fallback').waitForDisplayed()
+        await browser.switchWindow('https://guinea-pig.webdriver.io/windowTarget.html')
+        await $('#windowTarget').waitForDisplayed()
         await browser.closeWindow()
-        await $('#__docusaurus_skipToContent_fallback').waitForDisplayed({ reverse: true })
+        await $('#windowTarget').waitForDisplayed({ reverse: true })
         await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 1)
-        await browser.switchWindow('https://the-internet.herokuapp.com/iframe')
+        await browser.switchWindow('https://guinea-pig.webdriver.io/window.html')
 
         // Verify we're on the original window
-        expect(await $('.example h3').getText()).toBe('An iFrame containing the TinyMCE WYSIWYG Editor')
+        expect(await $('h1').getText()).toBe('Window Demo')
     })
 })

@@ -1,4 +1,4 @@
-import { webdriverMonad, wrapCommand } from '@wdio/utils'
+import { setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
 
 import { $ } from './commands/browser/$.js'
 import { $$ } from './commands/browser/$$.js'
@@ -172,7 +172,10 @@ export function getBrowsingContext (
         client.emit = browser.emit.bind(browser)
         client.removeListener = browser.removeListener.bind(browser)
         client.removeAllListeners = browser.removeAllListeners.bind(browser)
-        return client
+        /**
+         * not `'browser'`: a context has no session commands and no `addCommand`, see `@wdio/utils` `kind.ts`
+         */
+        return setWdioKind(client, 'browsing-context')
     }, commandProperties())
 
     const context = monad(browser.sessionId, wrapCommand) as WebdriverIO.BrowsingContext
