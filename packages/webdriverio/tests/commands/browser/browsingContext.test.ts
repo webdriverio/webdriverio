@@ -238,17 +238,20 @@ describe('browsing context', () => {
         expect(child.parent?.contextId).toBe('top-context')
     })
 
-    it('types setValue into an element of a held context with key actions', async () => {
+    it('sets a value in a held context through Element Clear and Element Send Keys, like classic', async () => {
         const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://child.example' })
         const elem = getElement.call(frame, '#input', { [ELEMENT_KEY]: 'elem-1' })
-        vi.spyOn(frame, 'execute').mockResolvedValue(undefined)
+        vi.spyOn(frame, 'execute').mockResolvedValue(null)
         const clear = vi.spyOn(elem, 'elementClear')
         const sendKeys = vi.spyOn(elem, 'elementSendKeys')
         const perform = vi.spyOn(browser, 'inputPerformActions').mockResolvedValue({})
         const release = vi.spyOn(browser, 'inputReleaseActions').mockResolvedValue({})
+        const classic = vi.spyOn(browser, 'elementSendKeys')
 
         await elem.setValue('ab')
-        expect(frame.execute).toHaveBeenCalledTimes(1)
+        expect(clear).toHaveBeenCalledWith('elem-1')
+        expect(sendKeys).toHaveBeenCalledWith('elem-1', 'ab')
+        expect(classic).not.toHaveBeenCalled()
         expect(perform).toHaveBeenCalledWith({
             context: 'frame-1',
             actions: [{
@@ -263,18 +266,10 @@ describe('browsing context', () => {
             }]
         })
         expect(release).toHaveBeenCalledWith({ context: 'frame-1' })
-        expect(clear).not.toHaveBeenCalled()
-        expect(sendKeys).not.toHaveBeenCalled()
 
+        perform.mockClear()
         await elem.setValue('')
-        expect(perform).toHaveBeenLastCalledWith(expect.objectContaining({
-            actions: [expect.objectContaining({
-                actions: [
-                    { type: 'keyDown', value: '\uE003' },
-                    { type: 'keyUp', value: '\uE003' }
-                ]
-            })]
-        }))
+        expect(perform).not.toHaveBeenCalled()
     })
 
     it('marks setValue key actions in a held context for masking', async () => {
@@ -328,10 +323,13 @@ describe('browsing context', () => {
             await expect(elem.isSelected()).resolves.toBe(true)
             execute.mockResolvedValueOnce('select')
             await expect(elem.getTagName()).resolves.toBe('select')
-            execute.mockResolvedValueOnce(undefined)
+            execute.mockResolvedValueOnce(null).mockResolvedValueOnce(undefined)
             await elem.clearValue()
 
-            expect(execute).toHaveBeenCalledTimes(4)
+            /**
+             * Element Clear checks the element before it clears it.
+             */
+            expect(execute).toHaveBeenCalledTimes(5)
             for (const call of execute.mock.calls) {
                 expect(call[1]).toEqual({ [ELEMENT_KEY]: 'elem-1' })
             }
@@ -347,21 +345,24 @@ describe('browsing context', () => {
             expect(enabled).toHaveBeenCalledWith('elem-1')
         })
 
-        it('reports colors of an element in another context as rgba, like the drivers', async () => {
+        it('reports the computed CSS value unchanged outside Chromium, like geckodriver', async () => {
             const { context, elem } = heldElement('tab-2')
             vi.spyOn(context, 'execute').mockResolvedValue('rgb(255, 0, 0)')
-            const { value } = await elem.getCSSProperty('color')
-            expect(value).toBe('rgba(255,0,0,1)')
+            expect(browser.isChromium).toBe(false)
+            await expect(elem.getElementCSSValue('elem-1', 'color')).resolves.toBe('rgb(255, 0, 0)')
         })
 
-        it('appends with addValue without selecting the current value', async () => {
+        it('appends with addValue after the current value', async () => {
             const { context, elem } = heldElement('frame-1', true)
-            const execute = vi.spyOn(context, 'execute').mockResolvedValue(undefined)
+            const execute = vi.spyOn(context, 'execute').mockResolvedValue(null)
             const perform = vi.spyOn(browser, 'inputPerformActions').mockResolvedValue({})
             vi.spyOn(browser, 'inputReleaseActions').mockResolvedValue({})
 
             await elem.addValue('b')
-            expect(execute).toHaveBeenCalledWith(expect.any(Function), { [ELEMENT_KEY]: 'elem-1' }, false)
+            /**
+             * the element did not have focus, so the caret moves to the end
+             */
+            expect(execute).toHaveBeenLastCalledWith(expect.any(Function), { [ELEMENT_KEY]: 'elem-1' })
             expect(perform).toHaveBeenCalledWith(expect.objectContaining({
                 context: 'frame-1',
                 actions: [expect.objectContaining({
@@ -374,20 +375,90 @@ describe('browsing context', () => {
             expect(perform).not.toHaveBeenCalled()
         })
 
+        it('uploads files to a file input of another context with input.setFiles', async () => {
+            const { context, elem } = heldElement('frame-1', true)
+            vi.spyOn(context, 'execute').mockResolvedValueOnce('files')
+            const setFiles = vi.spyOn(browser, 'inputSetFiles').mockResolvedValue({})
+            const perform = vi.spyOn(browser, 'inputPerformActions')
+
+            await elem.addValue('/tmp/a.png\n/tmp/b.png')
+            expect(setFiles).toHaveBeenCalledWith({
+                context: 'frame-1',
+                element: { sharedId: 'elem-1' },
+                files: ['/tmp/a.png', '/tmp/b.png']
+            })
+            expect(perform).not.toHaveBeenCalled()
+
+            vi.spyOn(context, 'execute').mockResolvedValueOnce('file')
+            await expect(elem.addValue('/tmp/a.png\n/tmp/b.png')).rejects.toThrow('invalid argument')
+        })
+
         it('selects an option by clicking it in the element\'s own document', async () => {
             const { context, elem } = heldElement('tab-2')
             const classicClick = vi.spyOn(browser, 'elementClick')
+            const locate = vi.spyOn(browser, 'browsingContextLocateNodes').mockResolvedValue({
+                nodes: [{ type: 'node', sharedId: 'opt-0' }, { type: 'node', sharedId: 'opt-1' }]
+            } as never)
             const execute = vi.spyOn(context, 'execute').mockImplementation((async (_fn: unknown, ...args: unknown[]) => (
-                args.length === 3
-                    ? [{ [ELEMENT_KEY]: 'opt-0' }, { [ELEMENT_KEY]: 'opt-1' }]
-                    : true
+                args[1] === 'click' ? null : true
             )) as never)
 
             await elem.selectByIndex(1)
+            expect(locate).toHaveBeenCalledWith({
+                context: 'tab-2',
+                locator: { type: 'css', value: 'option' },
+                startNodes: [{ sharedId: 'elem-1' }]
+            })
             expect(execute).toHaveBeenLastCalledWith(expect.any(Function), { [ELEMENT_KEY]: 'opt-1' })
-            await elem.selectByAttribute('value', 'two')
-            expect(execute).toHaveBeenLastCalledWith(expect.any(Function), { [ELEMENT_KEY]: 'opt-0' })
             expect(classicClick).not.toHaveBeenCalled()
+        })
+
+        it('finds elements below an element of another context with browsingContext.locateNodes', async () => {
+            const { elem } = heldElement('frame-1', true)
+            const locate = vi.spyOn(browser, 'browsingContextLocateNodes').mockResolvedValue({
+                nodes: [{ type: 'node', sharedId: 'child-1' }]
+            } as never)
+
+            await expect(elem.findElementFromElement('elem-1', 'xpath', './/span')).resolves.toEqual({ [ELEMENT_KEY]: 'child-1' })
+            expect(locate).toHaveBeenCalledWith({
+                context: 'frame-1',
+                locator: { type: 'xpath', value: './/span' },
+                startNodes: [{ sharedId: 'elem-1' }],
+                maxNodeCount: 1
+            })
+
+            locate.mockResolvedValueOnce({ nodes: [] } as never)
+            await expect(elem.findElementFromElement('elem-1', 'css selector', '.missing')).rejects.toThrow('no such element')
+        })
+
+        it('reports interactability errors with the classic error codes', async () => {
+            const { context, elem } = heldElement('frame-1', true)
+            vi.spyOn(context, 'execute').mockResolvedValueOnce({
+                error: 'element click intercepted',
+                message: 'Element <button> is not clickable at point (1, 2). Other element would receive the click: <div>'
+            })
+            const perform = vi.spyOn(browser, 'inputPerformActions')
+
+            const error = await elem.elementClick('elem-1').catch((err: Error) => err) as Error
+            expect(error.name).toBe('element click intercepted')
+            expect(error.message).toContain('Other element would receive the click: <div>')
+            expect(perform).not.toHaveBeenCalled()
+        })
+
+        it('returns "true" or null for boolean attributes, like Get Element Attribute', async () => {
+            const { context, elem } = heldElement('frame-1', true)
+            const execute = vi.spyOn(context, 'execute').mockResolvedValue('true')
+            await expect(elem.getElementAttribute('elem-1', 'disabled')).resolves.toBe('true')
+            expect(execute).toHaveBeenCalledWith(expect.any(Function), { [ELEMENT_KEY]: 'elem-1' }, 'disabled', expect.objectContaining({
+                input: expect.arrayContaining(['disabled', 'checked'])
+            }))
+        })
+
+        it('reads text with the getVisibleText atom', async () => {
+            const { context, elem } = heldElement('tab-2')
+            const execute = vi.spyOn(context, 'execute').mockResolvedValue('Hello')
+            await expect(elem.getText()).resolves.toBe('Hello')
+            expect(execute.mock.calls[0][0]).toEqual(expect.stringContaining('return (function(){return (function(){'))
         })
 
         it('scrolls an element into view before clicking it in another context', async () => {
@@ -398,7 +469,10 @@ describe('browsing context', () => {
             vi.spyOn(browser, 'inputReleaseActions').mockResolvedValue({})
 
             await elem.click()
-            expect(execute).toHaveBeenCalledTimes(1)
+            /**
+             * the interactability check scrolls it, then the option check
+             */
+            expect(execute).toHaveBeenCalledTimes(2)
             expect(execute.mock.invocationCallOrder[0]).toBeLessThan(perform.mock.invocationCallOrder[0])
             expect(perform).toHaveBeenCalledWith(expect.objectContaining({ context: 'frame-1' }))
         })
