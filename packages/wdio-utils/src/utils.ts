@@ -5,6 +5,7 @@ import path from 'node:path'
 import type { Options, Services } from '@wdio/types'
 
 import { SUPPORTED_BROWSERNAMES, DEFAULT_PROTOCOL, DEFAULT_HOSTNAME, DEFAULT_PATH } from './constants.js'
+import { getWdioKind } from './kind.js'
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
@@ -389,9 +390,8 @@ export function isEdge (browserName?: string) {
  * traverse up the scope chain until browser element was reached
  */
 export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.ElementArray | WebdriverIO.BrowsingContext): WebdriverIO.Browser {
-    const context = elem as WebdriverIO.BrowsingContext
-    if (context && typeof context.contextId === 'string' && context.browser) {
-        return context.browser
+    if (getWdioKind(elem) === 'browsing-context') {
+        return (elem as WebdriverIO.BrowsingContext).browser
     }
     const elemObject = elem as WebdriverIO.Element
     return elemObject.parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser

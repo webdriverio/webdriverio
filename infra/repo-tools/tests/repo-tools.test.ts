@@ -77,6 +77,13 @@ describe('classify', () => {
         expect(report.lanes.code).toBe(false)
     })
 
+    it('runs the Chromedriver suite for driver setup changes', () => {
+        expect(classify(['packages/wdio-utils/src/node/electronChromedriverProvider.ts']).lanes.chromedriver).toBe(true)
+        const report = classify(['e2e/wdio/chromedriver/wdio.conf.ts'])
+        expect(report.lanes.chromedriver).toBe(true)
+        expect(report.lanes.code).toBe(false)
+    })
+
     it('classifies website docs as docs-only', () => {
         const report = classify(['website/docs/GettingStarted.md'])
         expect(report.lanes.docs).toBe(true)
@@ -156,6 +163,12 @@ describe('planChecks', () => {
     it('uses test:local when the CI filter would run-all', () => {
         const steps = planChecks(classify(['vitest.config.ts']))
         expect(steps[0]?.cmd).toEqual(['pnpm', 'run', 'test:local'])
+    })
+
+    it('still runs the touched e2e lanes with --e2e when the CI filter would run-all', () => {
+        const report = classify(['package.json', 'packages/wdio-utils/src/node/utils.ts'])
+        expect(report.runAll).toBe(true)
+        expect(planChecks(report, { e2e: true }).some((step) => step.cmd?.join(' ') === 'pnpm run test:e2e:chromedriver')).toBe(true)
     })
 
     it('recommends smoke for a CLI change and runs it when asked', () => {

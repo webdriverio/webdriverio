@@ -13,8 +13,11 @@
  *
  * The contract (the brand matrix in `webdriverio/tests/kind.test.ts` checks it):
  * 1. A loaded object has the kind of its role: a browser, an element (also one
- *    that was not found, with `error`) or an element list. A copy of a list
- *    (`[...list]`, `list.map()`) is a plain array and has no kind.
+ *    that was not found, with `error`), an element list, a network mock
+ *    (`'mock'`, also a multi-remote mock) or a browsing context (a tab, window or
+ *    frame, `'browsing-context'`). A copy of a list (`[...list]`, `list.map()`) is
+ *    a plain array and has no kind. A browsing context is not a `'browser'`: it has
+ *    no session commands and no `addCommand`.
  * 2. Before `await`, only the command name tells the kind:
  *    - an element query (`$`, a custom command that ends with `$`,
  *      `parentElement`, `nextElement`, `previousElement`), an index or `at()` of a
@@ -39,7 +42,7 @@ export const WDIO_KIND: unique symbol = Symbol.for('wdio.kind') as typeof WDIO_K
  */
 export const WDIO_CHAINABLE: unique symbol = Symbol.for('wdio.chainable') as typeof WDIO_CHAINABLE
 
-export const WDIO_KINDS = ['browser', 'element', 'element-array'] as const
+export const WDIO_KINDS = ['browser', 'element', 'element-array', 'mock', 'browsing-context'] as const
 
 export type WdioKind = typeof WDIO_KINDS[number]
 

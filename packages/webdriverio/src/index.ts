@@ -39,8 +39,9 @@ export { getContextManager } from './session/context.js'
  */
 export { deviceDescriptorsSource, type DeviceName } from './deviceDescriptorsSource.js'
 /**
- * Brands of WebdriverIO objects: `value[WDIO_KIND]` is `'browser'`, `'element'` or
- * `'element-array'`, and `value[WDIO_CHAINABLE]` is `true` on an unresolved `$()`.
+ * Brands of WebdriverIO objects: `value[WDIO_KIND]` is `'browser'`, `'element'`,
+ * `'element-array'`, `'mock'` or `'browsing-context'`, and `value[WDIO_CHAINABLE]` is
+ * `true` on an unresolved `$()`.
  * They are `Symbol.for('wdio.kind')` and `Symbol.for('wdio.chainable')`, so other
  * packages can read them without an import.
  */
