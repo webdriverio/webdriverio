@@ -1,0 +1,79 @@
+{
+  "name": "@wdio/ai-service",
+  "version": "9.32.0",
+  "description": "A WebdriverIO service that adds browser.act() and browser.extract(): steps written as intent, recorded as WebdriverIO commands and healed when the page changes",
+  "author": "Christian Bromann <mail@bromann.dev>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-ai-service",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-ai-service"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-service",
+    "ai",
+    "agent",
+    "llm",
+    "self-healing",
+    "testing"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    }
+  },
+  "typeScriptVersion": "6.0.3",
+  "dependencies": {
+    "@langchain/core": "^1.2.5",
+    "@langchain/langgraph": "^1.4.8",
+    "@wdio/logger": "workspace:*",
+    "@wdio/session": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
+    "langchain": "^1.5.5",
+    "webdriverio": "workspace:*",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "@langchain/anthropic": "^1.5.4",
+    "@langchain/ollama": "^1.3.0",
+    "@langchain/openai": "^1.5.6",
+    "@langchain/openrouter": "^0.4.6"
+  },
+  "peerDependenciesMeta": {
+    "@langchain/anthropic": {
+      "optional": true
+    },
+    "@langchain/ollama": {
+      "optional": true
+    },
+    "@langchain/openai": {
+      "optional": true
+    },
+    "@langchain/openrouter": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@langchain/anthropic": "^1.5.4",
+    "@langchain/ollama": "^1.3.0",
+    "@langchain/openai": "^1.5.6",
+    "@langchain/openrouter": "^0.4.6",
+    "@wdio/globals": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

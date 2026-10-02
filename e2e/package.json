@@ -52,6 +52,7 @@
     "@types/testing-library__jest-dom": "^5.14.9",
     "@vue/compiler-dom": "^3.4.19",
     "@vue/test-utils": "^2.4.3",
+    "@wdio/ai-service": "workspace:*",
     "@wdio/browser-runner": "workspace:*",
     "@wdio/cli": "workspace:*",
     "@wdio/config": "workspace:*",

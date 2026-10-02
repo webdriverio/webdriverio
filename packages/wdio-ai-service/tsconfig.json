@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "outDir": "./build",
+    "rootDir": "./src",
+    "types": ["@wdio/globals/types"]
+  },
+  "include": [
+    "src/**/*",
+    "../../@types"
+  ]
+}
