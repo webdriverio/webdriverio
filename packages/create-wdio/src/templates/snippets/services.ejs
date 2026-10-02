@@ -33,6 +33,15 @@ services: [<%- answers.services.map((service) => {
             // see https://webdriver.io/docs/desktop-testing/dioxus/configuration for all options
         }
     ]`
+    } else if (service === 'ai') {
+        return /*js*/`[
+        'ai',
+        {
+            // "provider:model", e.g. 'anthropic:claude-sonnet-5-5' with @langchain/anthropic installed,
+            // or set WDIO_AI_MODEL. See https://webdriver.io/docs/ai-steps
+            model: process.env.WDIO_AI_MODEL
+        }
+    ]`
     } else if (service === 'sauce' && answers.useSauceConnect) {
         return /*js*/`[
         'sauce',
