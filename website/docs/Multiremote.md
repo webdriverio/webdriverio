@@ -218,7 +218,7 @@ Before v10 this returned a plain array unless `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_
 On a multi-remote browser, `mock()` returns a `MultiRemoteMock`. It is not an array. `respond()`, `restore()`, and the other mock methods run on every instance. Captured requests stay on the mock for one browser, so read them with `getInstance`:
 
 ```ts
-const mock = await browser.mock('**/users/list')
+const mock = await browser.mock('*/users/list')
 
 mock.instances // ['myChromeBrowser', 'myFirefoxBrowser']
 mock.respond([{ id: 1 }])
@@ -232,7 +232,7 @@ const firefoxCalls = mock.getInstance('myFirefoxBrowser').calls
 `instances` follows the order the mocks were created. After `select()`, that order can differ from `browser.instances`:
 
 ```ts
-const selected = await browser.select('myFirefoxBrowser', 'myChromeBrowser').mock('**/users/list')
+const selected = await browser.select('myFirefoxBrowser', 'myChromeBrowser').mock('*/users/list')
 
 selected.instances // ['myFirefoxBrowser', 'myChromeBrowser']
 selected.getInstance('myChromeBrowser') // the Chrome mock, whatever the order
@@ -243,7 +243,7 @@ selected.getInstance('myChromeBrowser') // the Chrome mock, whatever the order
 To mock one browser only, call `mock()` on that instance:
 
 ```ts
-const chromeOnly = await browser.getInstance('myChromeBrowser').mock('**/users/list')
+const chromeOnly = await browser.getInstance('myChromeBrowser').mock('*/users/list')
 ```
 
 ## Accessing browser instances using strings via the browser object

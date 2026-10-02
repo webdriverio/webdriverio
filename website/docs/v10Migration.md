@@ -540,14 +540,26 @@ Command results stay in capability order: the first entry belongs to the first k
 
 `WDIO_ENABLE_MULTI_REMOTE_SELECT` and `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY` have been removed. `select()` is always available, and `$$()` always returns the element array above. Delete both variables.
 
+## Binary mock responses
+
+`mock.respond()` and `mock.respondOnce()` accept `Uint8Array` and `ArrayBuffer` payloads, including a polyfilled `Buffer` in component tests without a global `Buffer`.
+
+`mock.getBinaryResponse()` is now typed as `Uint8Array | null`. It still returns a `Buffer` in Node.js, but returns a `Uint8Array` in the browser. To use Buffer-specific methods in Node.js, convert a non-null result first:
+
+```diff
+- const base64 = mock.getBinaryResponse(requestId)?.toString('base64')
++ const bytes = mock.getBinaryResponse(requestId)
++ const base64 = bytes === null ? undefined : Buffer.from(bytes).toString('base64')
+```
+
 ## Multi-remote network mocks
 
 `browser.mock()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteMock`, not an array of mocks. `respond`, `restore`, and the other mock methods run on every instance. Read captured requests from the mock for one browser. Use the `WebdriverIO.MultiRemoteMock` type from the global `WebdriverIO` namespace.
 
 ```diff
-- const [chromeMock, firefoxMock] = await browser.mock('**/api')
+- const [chromeMock, firefoxMock] = await browser.mock('*/api')
 - expect(chromeMock.calls).toHaveLength(1)
-+ const mock = await browser.mock('**/api')
++ const mock = await browser.mock('*/api')
 + mock.respond({ ok: true })
 + expect(mock.getInstance('myChromeBrowser').calls).toHaveLength(1)
 + expect(mock.instances).toEqual(['myChromeBrowser', 'myFirefoxBrowser'])

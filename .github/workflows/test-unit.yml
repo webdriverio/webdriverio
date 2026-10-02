@@ -26,6 +26,11 @@ jobs:
         include: ${{ fromJSON(inputs.full_matrix && '[{"os":"ubuntu-latest","node":"22.19.0"}]' || '[{"os":"windows-latest","node":"24"},{"os":"macos-latest","node":"24"}]') }}
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Preserve LF on Windows before checkout
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
+        shell: bash
+
       - name: ⬇️ Checkout Code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -50,7 +55,4 @@ jobs:
         shell: bash
 
       - name: Check Git Context
-        # currently fails in Windows: the Linux build archive is unzipped over a CRLF checkout,
-        # so every file not pinned to LF in .gitattributes shows up as modified
-        if: matrix.os != 'windows-latest'
         uses: ./.github/workflows/actions/check-git-context

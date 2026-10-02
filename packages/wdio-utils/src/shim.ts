@@ -55,7 +55,7 @@ const TIME_BUFFER = 3
 
 /**
  * Kind of the result of an element query command, see `kind.ts`. The proxy of the
- * chain also gets the `WDIO_CHAINABLE` brand. `select` returns a multiremote
+ * chain also gets the `WDIO_CHAINABLE` brand. `select` returns a multi-remote
  * browser, not an element, so it gets no brand.
  */
 function chainKind (commandName: string): WdioKind | undefined {

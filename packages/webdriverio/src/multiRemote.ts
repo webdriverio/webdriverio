@@ -391,7 +391,7 @@ export class MultiRemoteDriver {
 }
 
 /**
- * brand every multiremote browser as a browser, see `@wdio/utils` `kind.ts` (multi-remote is
+ * brand every multi-remote browser as a browser, see `@wdio/utils` `kind.ts` (multi-remote is
  * not part of the brand, read `isMultiRemote`). The modifier copies the commands with
  * `Object.entries`, which skips the `browser` brand of the wrapped driver.
  */
