@@ -8,6 +8,7 @@ import { ACTIONS, type ActionSpec } from './actions/specs.js'
 import { takeSnapshot, type SnapshotOptions, type TakenSnapshot } from './actions/observe.js'
 import { startEventCapture } from './daemon/capture.js'
 import { formatSnapshot, onlyInteractive, type SnapshotNode, type SnapshotRef } from './snapshot/format.js'
+import { resolveElement } from './snapshot/target.js'
 import type { RefEntry } from './snapshot/refs.js'
 import type { LogEntry, NetworkEntry } from './daemon/events.js'
 import type { ActionResult, HistoryEntry } from './types.js'
@@ -104,6 +105,29 @@ export class AgentSession {
         const selector = (element as { selector?: unknown }).selector
         this.session.refs.set({ id, kind: 'web', role: 'scope', candidates: typeof selector === 'string' ? [selector] : [], generation: this.session.refs.generation })
         return id
+    }
+
+    /**
+     * Whether the element of `target` (a ref or selector) is inside the
+     * element of `scope`, also across shadow roots. `false` when either
+     * cannot be resolved.
+     */
+    async contains (scope: string, target: string): Promise<boolean> {
+        try {
+            const [outer, inner] = await Promise.all([resolveElement(this.session, scope), resolveElement(this.session, target)])
+            return await this.browser.execute(function (container: Node, node: Node) {
+                let current: Node | null = node
+                while (current) {
+                    if (current === container) {
+                        return true
+                    }
+                    current = current.parentNode || (current as ShadowRoot).host || null
+                }
+                return false
+            }, outer as unknown as Node, inner as unknown as Node)
+        } catch {
+            return false
+        }
     }
 
     /**
