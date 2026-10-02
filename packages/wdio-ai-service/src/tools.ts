@@ -40,6 +40,10 @@ export interface ToolContext {
      * ref of the element `act` was called on, every snapshot is limited to it
      */
     scope?: string
+    /**
+     * placeholder values of earlier calls, redacted from what the model reads
+     */
+    secrets?: [name: string, value: string][]
 }
 
 /**
@@ -151,6 +155,11 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
         .filter((spec) => allowed.has(spec.name))
         .map((spec) => tool(async (input: Record<string, unknown>) => {
             const { agent, values } = context
+            /**
+             * what the model reads hides every value of this and earlier
+             * calls, recorded steps only this call's values
+             */
+            const hidden: [string, string][] = [...Object.entries(values), ...(context.secrets || [])]
             try {
                 const args = spec.name === 'snapshot' && context.scope && !input.scope
                     ? { ...input, scope: context.scope }
@@ -184,9 +193,9 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                     }
                     text = await context.workspace.inline(spec.name, text)
                 }
-                return redact(text, values)
+                return redact(text, hidden)
             } catch (err) {
-                return `Error: ${redact((err as Error).message, values)}`
+                return `Error: ${redact((err as Error).message, hidden)}`
             }
         }, {
             name: spec.name,
@@ -207,7 +216,7 @@ function sourceTool (context: ToolContext, tool: Awaited<ReturnType<typeof loadT
             const file = await context.workspace!.writeSource(source, native)
             return `Saved the ${native ? 'app source' : 'page HTML'} (${source.length} characters) to ${file}. Search it with grep or read parts of it with read_file.`
         } catch (err) {
-            return `Error: ${redact((err as Error).message, context.values)}`
+            return `Error: ${redact((err as Error).message, [...Object.entries(context.values), ...(context.secrets || [])])}`
         }
     }, {
         name: 'source',

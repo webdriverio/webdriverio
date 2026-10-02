@@ -247,8 +247,9 @@ export class AiRuntime {
         const steps: ActStep[] = []
         const workspace = this.#workspaceFor(instruction)
         workspace.values = values
+        workspace.secrets = this.#rememberSecrets(values)
         await workspace.writeEvents(agent.logs, agent.network)
-        const tools = await pageTools({ agent, values, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope })
+        const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope })
         const maxSteps = options.maxSteps ?? this.options.maxSteps ?? DEFAULT_MAX_STEPS
         log.info(`act("${instruction}") with ${describeModel(modelOption)}`)
         try {
@@ -301,6 +302,25 @@ export class AiRuntime {
             })
             throw err
         }
+    }
+
+    /**
+     * every placeholder value of the worker, by value
+     */
+    #secrets = new Map<string, string>()
+
+    /**
+     * Remember the values of a call. Browser events are kept for the whole
+     * session, so a value of an earlier call can show up in the events of a
+     * later one and has to stay hidden.
+     */
+    #rememberSecrets (values: Record<string, string>): [string, string][] {
+        for (const [name, value] of Object.entries(values)) {
+            if (typeof value === 'string' && value) {
+                this.#secrets.set(value, name)
+            }
+        }
+        return [...this.#secrets].map(([value, name]) => [name, value])
     }
 
     #record (record: ActRecord) {
@@ -421,9 +441,10 @@ export class AiRuntime {
         const values = options.values || {}
         const workspace = this.#workspaceFor(instruction)
         workspace.values = values
+        workspace.secrets = this.#rememberSecrets(values)
         await workspace.writeEvents(agent.logs, agent.network)
         const jsonSchema = jsonSchemaOf(schema)
-        const tools = await pageTools({ agent, values, actions: READ_ACTIONS, onStep: () => {}, workspace, scope: scopeRef })
+        const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: READ_ACTIONS, onStep: () => {}, workspace, scope: scopeRef })
         let feedback = ''
         try {
             for (let attempt = 1; attempt <= 2; attempt++) {
