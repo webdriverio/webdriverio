@@ -106,6 +106,7 @@
           },
           "items": [
             "driverbinaries",
+            "arm64-chromedriver",
             {
               "type": "category",
               "label": "Component Testing",
