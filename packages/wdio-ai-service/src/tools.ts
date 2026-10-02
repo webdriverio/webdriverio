@@ -69,6 +69,18 @@ function optionSchema (z: typeof Zod, option: { type?: string, choices?: unknown
 /**
  * zod schema of an action from its positionals and options
  */
+/**
+ * Options the model never gets: `wait --fn` runs a JavaScript expression
+ * in the page, which no page action may do.
+ */
+const MODEL_FORBIDDEN_OPTIONS: Record<string, string[]> = {
+    wait: ['fn']
+}
+
+/**
+ * The input schema of an action's tool. Tool input is validated against
+ * it, so options left out here never reach the action.
+ */
 export function actionSchema (z: typeof Zod, spec: ActionSpec) {
     const shape: Record<string, ZodTypeAny> = {}
     for (const positional of spec.positionals || []) {
@@ -77,7 +89,11 @@ export function actionSchema (z: typeof Zod, spec: ActionSpec) {
             : z.string()
         shape[positional.name] = (positional.required ? base : base.optional()).describe(positional.desc)
     }
+    const forbidden = MODEL_FORBIDDEN_OPTIONS[spec.name] || []
     for (const [name, option] of Object.entries(spec.options || {})) {
+        if (forbidden.includes(name)) {
+            continue
+        }
         shape[name] = optionSchema(z, option as { type?: string, choices?: unknown[], desc?: string })
     }
     return z.object(shape)
