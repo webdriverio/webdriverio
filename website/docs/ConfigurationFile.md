@@ -486,7 +486,8 @@ export const config = {
     /**
      * Runs after a WebdriverIO assertion library makes an assertion.
      * @param {object} params                 assertion information, the same as in `beforeAssertion`
-     * @param {object} params.result          result of the assertion, with `pass` (boolean) and `message()`
+     * @param {object} params.result          result of the matcher, with `pass` (boolean) and `message()`.
+     *                                        `pass` is true when the value matches, also with `.not`
      */
     afterAssertion: function (params) {
     }

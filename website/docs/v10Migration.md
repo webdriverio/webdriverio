@@ -250,6 +250,17 @@ TypeScript 6 also changes the default of `types` to `[]`, so it no longer loads 
 
 An existing `tsconfig.json` is not rewritten. A generated config that extends another config keeps the `target` and `lib` of the parent.
 
+In the `afterAssertion` hook, the type of `params.result` is now `{ pass, message }`, as the matchers give it. In v9, the type was `{ result, message }`, but `params.result.result` was always `undefined` at runtime. Read `params.result.pass`:
+
+```diff
+  afterAssertion (params) {
+-     console.log(params.matcherName, params.result.result)
++     console.log(params.matcherName, params.result.pass)
+  }
+```
+
+`pass` is `true` when the value matches the expected value, also with `.not`. Thus with `.not`, the assertion passes when `pass` is `false`. The hook does not tell if the test used `.not`.
+
 ## Reporters
 
 The browser `result` event is forwarded to reporters as `client:afterCommand`. That payload and the `AfterCommandArgs` type no longer have a `name` property. Read `command` instead. Custom commands already sent `command`.
