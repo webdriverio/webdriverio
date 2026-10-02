@@ -37,13 +37,18 @@ type ChainablePrototype = {
 }
 
 type AsyncElementProto = {
-    [K in keyof Omit<$ElementCommands, keyof ChainablePrototype | 'getSize' | 'getLocation'>]: OmitThisParameter<$ElementCommands[K]>
+    [K in keyof Omit<$ElementCommands, keyof ChainablePrototype | 'getSize' | 'getLocation' | 'execute'>]: OmitThisParameter<$ElementCommands[K]>
 } & ChainablePrototype & {
     // Fixed typings for getSize and getLocation since `OmitThisParameter` does not support overloads
     getSize(prop: keyof RectReturn): Promise<number>
     getSize(): Promise<ElementCommands.Size>
     getLocation(prop: keyof ElementCommands.Location): Promise<number>
     getLocation(): Promise<ElementCommands.Location>
+    // `OmitThisParameter` drops the generics, so the script's arguments would be `unknown`
+    execute<ReturnValue, InnerArguments extends unknown[]>(
+        script: string | ((...innerArgs: TransformElement<[WebdriverIO.Element, ...InnerArguments]>) => ReturnValue | Promise<ReturnValue>),
+        ...args: InnerArguments
+    ): Promise<TransformReturn<Awaited<ReturnValue>>>
 }
 
 interface ChainablePromiseBaseElement {
@@ -74,6 +79,13 @@ interface ChainablePromiseBaseElement {
      * get the `WebdriverIO.Element` reference
      */
     getElement(): Promise<WebdriverIO.Element>
+    /**
+     * The chain resolves to the element, so `await $(...)` is a `WebdriverIO.Element`.
+     */
+    then<TResult1 = WebdriverIO.Element, TResult2 = never>(
+        onfulfilled?: ((value: WebdriverIO.Element) => TResult1 | PromiseLike<TResult1>) | null,
+        onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
+    ): Promise<TResult1 | TResult2>
 }
 export interface ChainablePromiseElement extends
     ChainablePromiseBaseElement,
@@ -942,6 +954,16 @@ export interface PDFPrintOptions {
     pageRanges?: Array<string | number>
 }
 
+/**
+ * How `context.frame()` finds a frame: by the selector of its frame element
+ * on the page, by its url (exact string or RegExp), or by its browsing
+ * context id.
+ */
+export type FrameQuery =
+    | { selector: string, url?: never, id?: never }
+    | { url: string | RegExp, selector?: never, id?: never }
+    | { id: string, selector?: never, url?: never }
+
 export interface SaveScreenshotOptions {
     /**
      * Whether to take a screenshot of the full page or just the current viewport.
@@ -1094,9 +1116,9 @@ declare global {
             action: Browser['action']
             actions: Browser['actions']
             keys: OmitThisParameter<Browser['keys']>
-            scroll: Browser['scroll']
+            scroll: OmitThisParameter<Browser['scroll']>
             saveScreenshot: OmitThisParameter<Browser['saveScreenshot']>
-            savePDF: Browser['savePDF']
+            savePDF: OmitThisParameter<Browser['savePDF']>
             getCookies: Browser['getCookies']
             setCookies: Browser['setCookies']
             deleteCookies: Browser['deleteCookies']
@@ -1108,8 +1130,8 @@ declare global {
             emulate: Browser['emulate']
             restore: OmitThisParameter<Browser['restore']>
             waitUntil: Browser['waitUntil']
-            pause: Browser['pause']
-            frame(target: string | Element | ChainablePromiseElement | ((context: { context: string, url: string }) => boolean | Promise<boolean>)): Promise<BrowsingContext>
+            pause: OmitThisParameter<Browser['pause']>
+            frame(target: FrameQuery | string | Element | ChainablePromiseElement | ((context: { context: string, url: string }) => boolean | Promise<boolean>)): Promise<BrowsingContext>
             navigate(url: string, options?: {
                 wait?: 'none' | 'interactive' | 'networkIdle' | 'complete'
                 headers?: Record<string, string>

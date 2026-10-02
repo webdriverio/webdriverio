@@ -121,7 +121,7 @@ async function getShorthandPropertyCSSValue(
     }
 
     const cssValues = await Promise.all(
-        properties.map((prop) => elementCSSValue(this, prop))
+        properties.map((prop) => this.getElementCSSValue(this.elementId, prop))
     )
 
     return mergeEqualSymmetricalValue(cssValues)
@@ -143,23 +143,7 @@ async function getPropertyCSSValue(
         )
     }
 
-    return await elementCSSValue(this, cssProperty)
-}
-
-/**
- * Get Element CSS Value only sees the session's current document. An element
- * from another held context reads its computed style in its own document.
- * Drivers report colors as `rgba(r, g, b, a)`, so `rgb()` gets an alpha of 1.
- */
-async function elementCSSValue (elem: WebdriverIO.Element, cssProperty: string): Promise<string> {
-    if (await foreignContextId(elem)) {
-        const value = await elem.execute(
-            (el: HTMLElement, name: string) => getComputedStyle(el).getPropertyValue(name),
-            cssProperty
-        ) as string
-        return value.replace(/rgb\((\s*\d+\s*),(\s*\d+\s*),(\s*\d+\s*)\)/g, 'rgba($1,$2,$3, 1)')
-    }
-    return elem.getElementCSSValue(elem.elementId, cssProperty)
+    return await this.getElementCSSValue(this.elementId, cssProperty)
 }
 
 function getShorthandProperties(cssProperty: string) {

@@ -1,7 +1,5 @@
 import type { ElementReference } from '@wdio/protocols'
 import { getElementFromResponse } from '../../utils/index.js'
-import { foreignContextId } from '../../session/browsingContext.js'
-import { selectOptionInContext } from '../../utils/foreignContext.js'
 
 /**
  *
@@ -41,10 +39,6 @@ export async function selectByIndex (
      */
     if (index < 0) {
         throw new Error('Index needs to be 0 or any other positive number')
-    }
-
-    if (await foreignContextId(this)) {
-        return selectOptionInContext(this, { by: 'index', index }, `Option with index "${index}" not found.`)
     }
 
     const fetchOptionElements = async () => {

@@ -156,22 +156,22 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  *
  */
 export function action (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     type: 'key',
     opts?: Pick<BaseActionParams, 'id'>
 ): KeyAction
 export function action (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     type: 'pointer',
     opts?: BaseActionParams
 ): PointerAction
 export function action (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     type: 'wheel',
     opts?: Pick<BaseActionParams, 'id'>
 ): WheelAction
 export function action (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.BrowsingContext,
     type: ActionType,
     opts?: BaseActionParams
 ): KeyAction | PointerAction | WheelAction {

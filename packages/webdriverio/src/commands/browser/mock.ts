@@ -167,5 +167,22 @@ export async function mock(
         sessionKey: context
     })
     SESSION_MOCKS[context].add(networkInterception)
+
+    /**
+     * A mock of a held context ends with it. Chromium keeps an intercept whose
+     * only context is gone and then matches it for every context, which would
+     * block requests of the other tabs.
+     */
+    if (isBrowsingContext(this)) {
+        const onDestroyed = (destroyed: { context: string }) => {
+            if (destroyed.context !== context) {
+                return
+            }
+            browser.off('browsingContext.contextDestroyed', onDestroyed)
+            networkInterception.restore().catch(() => { /* the intercept may already be gone */ })
+        }
+        browser.on('browsingContext.contextDestroyed', onDestroyed)
+    }
+
     return networkInterception satisfies WebdriverIO.Mock
 }

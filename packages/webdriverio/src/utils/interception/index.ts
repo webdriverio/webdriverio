@@ -140,6 +140,7 @@ export default class WebDriverInterception {
      * The `SESSION_MOCKS` key `mock()` stored this interception under
      */
     #sessionKey?: string
+    #warnedAboutEarlyAnswer = false
     #filterOptions: MockFilterOptions
     #browser: WebdriverIO.Browser
 
@@ -416,8 +417,10 @@ export default class WebDriverInterception {
          */
         if (
             responseOverwrite?.overwrite &&
-            'fetchResponse' in responseOverwrite.overwrite &&
-            responseOverwrite.overwrite.fetchResponse === false
+            (
+                ('fetchResponse' in responseOverwrite.overwrite && responseOverwrite.overwrite.fetchResponse === false) ||
+                this.#mustAnswerBeforeRequestSent()
+            )
         ) {
             const { overwrite } = responseOverwrite.once
                 ? this.#respondOverwrites.shift() || {}
@@ -591,7 +594,7 @@ export default class WebDriverInterception {
                     this.#browser.networkProvideResponse({
                         request: requestId,
                         ...responseData,
-                    }).catch(this.#handleNetworkProvideResponseError)
+                    }).catch((err: Error) => this.#handleUnsupportedOverwrite(err, requestId))
                 ))
             } catch (err) {
                 /**
@@ -673,6 +676,46 @@ export default class WebDriverInterception {
      * is marked as "blocked", in these cases we can safely ignore the error.
      * @param err Bidi message error
      */
+    /**
+     * Firefox only takes a response body in `network.provideResponse` while
+     * the request is blocked in `beforeRequestSent`, not once the response
+     * started (https://wpt.fyi/results/webdriver/tests/bidi/network/provide_response).
+     * Answer there, like `fetchResponse: false`, unless the mock filters on the
+     * response, which needs the backend.
+     */
+    #mustAnswerBeforeRequestSent () {
+        if (!this.#browser.isFirefox) {
+            return false
+        }
+        if (this.#filterOptions.statusCode !== undefined || this.#filterOptions.responseHeaders !== undefined) {
+            return false
+        }
+        if (!this.#warnedAboutEarlyAnswer) {
+            this.#warnedAboutEarlyAnswer = true
+            log.warn(
+                'Firefox can not replace a response body after the request was sent. ' +
+                'mock.respond() answers before the request is sent instead, as with `fetchResponse: false`.'
+            )
+        }
+        return true
+    }
+
+    /**
+     * A browser that can't replace the body once the response started rejects
+     * `network.provideResponse`, which would leave the request blocked. Let the
+     * real response through and say so, instead of hanging the test.
+     */
+    #handleUnsupportedOverwrite (err: Error, requestId: string) {
+        if (!err.message.includes('unsupported operation')) {
+            return this.#handleNetworkProvideResponseError(err)
+        }
+        log.warn(
+            `mock.respond() could not replace the response of request ${requestId}: ${err.message}. ` +
+            'The page received the real response. Use `fetchResponse: false` to answer before the request is sent.'
+        )
+        return this.#browser.networkProvideResponse({ request: requestId }).catch(this.#handleNetworkProvideResponseError)
+    }
+
     #handleNetworkProvideResponseError(err: Error) {
         if (err.message.endsWith('no such request')) {
             return

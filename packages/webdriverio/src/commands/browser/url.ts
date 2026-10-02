@@ -148,7 +148,10 @@ import { navigateInContext, type UrlCommandOptions } from './navigateInContext.j
  * mock the environment, e.g. overwrite Web APIs that your application uses.
  * @param {`{user: string, pass: string}`=} options.auth  basic authentication credentials
  * @param {`Record<string, string>`=} options.headers  headers to be sent with the request
- * @returns {WebdriverIO.BrowsingContext|void} the browsing context in a BiDi session, or `void` in a Classic session
+ * @returns {WebdriverIO.BrowsingContext} the browsing context that was navigated. In a WebDriver Classic
+ * session there are no held browsing contexts, so the browser itself is returned: commands such as `$`,
+ * `execute` or `getTitle` work on it, while BiDi-only members such as `frame()`, `navigate()` or the
+ * `url` string do not exist.
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get
  * @see  https://nodejs.org/api/url.html#url_url_resolve_from_to
@@ -159,7 +162,7 @@ export async function url (
     this: WebdriverIO.Browser,
     path: string,
     options: UrlCommandOptions = {}
-): Promise<WebdriverIO.BrowsingContext | void> {
+): Promise<WebdriverIO.BrowsingContext> {
     if (typeof path !== 'string') {
         throw new Error('Parameter for "url" command needs to be type of string')
     }
@@ -183,4 +186,14 @@ export async function url (
     }
 
     await this.navigateTo(validateUrl(path))
+
+    /**
+     * `about:`, `data:` or `file:` urls in a BiDi session still navigated a
+     * held context. A Classic session has none, so it returns the browser.
+     */
+    if (this.isBidi) {
+        const context = await getContextManager(this).getCurrentContext()
+        return getBrowsingContext(this, contextIdValue(context), { isFrame: false, url: path })
+    }
+    return this as unknown as WebdriverIO.BrowsingContext
 }

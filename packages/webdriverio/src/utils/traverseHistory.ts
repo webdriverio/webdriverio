@@ -233,17 +233,19 @@ function parseDocumentSnapshot (value: string | undefined): DocumentSnapshot | u
 }
 
 /**
- * Traverse the joint session history of the current top-level browsing context
- * by one entry and wait for the readiness `pageLoadStrategy` asks for.
+ * Traverse the joint session history of a top-level browsing context by one
+ * entry and wait for the readiness `pageLoadStrategy` asks for. That is the
+ * current top-level context, or `targetContext` for a held tab.
  *
  * `delta` is only `-1` (back) or `1` (forward). `no such history entry` is
  * not caught: classic WebDriver rejects the same way.
  */
 export async function traverseTopLevelHistory (
     browser: WebdriverIO.Browser,
-    delta: -1 | 1
+    delta: -1 | 1,
+    targetContext?: string
 ): Promise<void> {
-    const context = await topLevelBrowsingContext(browser)
+    const context = targetContext ?? await topLevelBrowsingContext(browser)
     const readiness = historyReadiness(browser.capabilities.pageLoadStrategy)
 
     if (readiness === 'none') {

@@ -3,7 +3,6 @@ import logger from '@wdio/logger'
 import { getBrowserObject } from '@wdio/utils'
 import { buttonValue } from '../../utils/actions/index.js'
 
-import { foreignContextId } from '../../session/browsingContext.js'
 import type { ClickOptions } from '../../types.js'
 
 const log = logger('webdriver')
@@ -132,50 +131,6 @@ async function workaround(element: WebdriverIO.Element) {
 }
 
 async function elementClick(element: WebdriverIO.Element) {
-    const context = await foreignContextId(element)
-    if (context) {
-        /**
-         * A DOM `el.click()` is not a trusted pointer gesture. Perform the
-         * click in the element's browsing context instead.
-         */
-        /**
-         * The pointer targets the element's center in the viewport. An element
-         * of a nested frame can be scrolled out of its parent frame, so bring
-         * it (and every frame around it) into view first.
-         */
-        await element.execute((el: Element) => el.scrollIntoView({ block: 'center', inline: 'center' }))
-        const browser = getBrowserObject(element)
-        await browser.inputPerformActions({
-            context,
-            actions: [{
-                id: 'pointer',
-                type: 'pointer',
-                parameters: { pointerType: 'mouse' },
-                actions: [
-                    {
-                        type: 'pointerMove',
-                        duration: 0,
-                        x: 0,
-                        y: 0,
-                        origin: { type: 'element', element: { sharedId: element.elementId } }
-                    },
-                    { type: 'pointerDown', button: 0 },
-                    { type: 'pointerUp', button: 0 }
-                ]
-            }]
-        })
-        /**
-         * A click that navigates the top-level page destroys the frame before
-         * the release. The gesture already landed; there is no context left to
-         * release.
-         */
-        await browser.inputReleaseActions({ context }).catch((err: Error) => {
-            if (!err.message.includes('no such frame')) {
-                throw err
-            }
-        })
-        return
-    }
     try {
         return await element.elementClick(element.elementId)
     } catch (error) {

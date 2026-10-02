@@ -21,7 +21,13 @@ async function reloadFrame (frame: WebdriverIO.BrowsingContext) {
     const token = await frame.execute(() => {
         const marker = Math.random().toString(36).slice(2)
         ;(window as unknown as { __wdioReload?: string }).__wdioReload = marker
-        setTimeout(() => location.reload(), 0)
+        /**
+         * Reload after this script returned. A message, not `setTimeout`:
+         * fake timers (e.g. `emulate('clock')`) replace `setTimeout`.
+         */
+        const channel = new MessageChannel()
+        channel.port1.onmessage = () => location.reload()
+        channel.port2.postMessage(null)
         return marker
     })
     const capabilities = frame.browser.capabilities as { timeouts?: { pageLoad?: number } }

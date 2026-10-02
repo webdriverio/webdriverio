@@ -488,7 +488,7 @@ export async function emulate<Scope extends SupportedScopes> (
     }
 
     if (scope === 'clock') {
-        const clock = new ClockManager(browser)
+        const clock = new ClockManager(target)
         await clock.install(options as FakeTimerInstallOpts)
         storeRestoreFunction(browser, 'clock', clock.restore.bind(clock))
         return clock

@@ -141,7 +141,8 @@ describe('newWindow', () => {
         expect(browsingContextNavigateSpy).toHaveBeenCalledTimes(1)
         expect(browsingContextNavigateSpy).toHaveBeenCalledWith({
             context: 'new-window-handle',
-            url: 'https://webdriver.io'
+            url: 'https://webdriver.io',
+            wait: 'complete'
         })
     })
 
@@ -169,7 +170,8 @@ describe('newWindow', () => {
         expect(browsingContextNavigateSpy).toHaveBeenCalledTimes(1)
         expect(browsingContextNavigateSpy).toHaveBeenCalledWith({
             context: 'new-tab-handle',
-            url: 'https://webdriver.io'
+            url: 'https://webdriver.io',
+            wait: 'complete'
         })
     })
 })

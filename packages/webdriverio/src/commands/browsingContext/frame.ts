@@ -1,12 +1,12 @@
 import type { remote } from 'webdriver'
 
-import type { ChainablePromiseElement } from '../../types.js'
+import type { ChainablePromiseElement, FrameQuery } from '../../types.js'
 import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { getBrowsingContext } from '../../browsingContext.js'
 import { StrictSelectorError } from '../../utils/strictSelectorError.js'
 
-type FrameTarget = string | WebdriverIO.Element | ChainablePromiseElement | FramePredicate
+type FrameTarget = string | WebdriverIO.Element | ChainablePromiseElement | FrameQuery | FramePredicate
 
 type FramePredicate = (context: { context: string, url: string }) => boolean | Promise<boolean>
 
@@ -17,11 +17,17 @@ interface ContextNode {
 }
 
 /**
- * A child browsing context of this one: a frame element, a selector that
- * finds one, a frame url (or a substring of it), a context id, or a
- * predicate run in each descendant. `parent` on the result is the context
- * this was called on for a direct child, or the intermediate frame when
- * the match is nested.
+ * A child browsing context of this one. Say how to find it with a query:
+ *
+ * - `{ selector }`: the frame element a CSS or XPath selector finds on this page
+ * - `{ url }`: the first frame, at any depth, whose url equals the string or matches the RegExp
+ * - `{ id }`: the frame with this browsing context id
+ *
+ * It also takes a frame element, a predicate run in each descendant, or a
+ * string. A string is a shorthand that guesses: a selector first, then a
+ * frame url (or a substring of it), then a context id. `parent` on the
+ * result is the context this was called on for a direct child, or the
+ * intermediate frame when the match is nested.
  */
 export async function frame (
     this: WebdriverIO.BrowsingContext,
@@ -29,6 +35,9 @@ export async function frame (
 ): Promise<WebdriverIO.BrowsingContext> {
     if (typeof target === 'function') {
         return frameByPredicate(this, target)
+    }
+    if (isFrameQuery(target)) {
+        return frameByQuery(this, target)
     }
     if (target && typeof target === 'object') {
         const candidate = target as WebdriverIO.Element
@@ -65,10 +74,12 @@ export async function frame (
             /**
              * Anything else reads as a selector first, so `frame('iframe')`
              * is the iframe element on this page, not a frame whose url
-             * happens to contain "iframe". A url substring is the fallback.
+             * happens to contain "iframe". Only a frame element counts: a
+             * selector that finds something else falls back to the url
+             * substring, so `frame('results')` still finds `/results.html`.
              */
             const element = await existingElement(this, target)
-            if (element) {
+            if (element && ['iframe', 'frame'].includes(await element.getTagName())) {
                 return frameFromElement(this, element)
             }
         }
@@ -80,6 +91,63 @@ export async function frame (
         return frameFromElement(this, element)
     }
     throw new Error('`frame` expects a selector, an element, a url, a context id, or a function')
+}
+
+/**
+ * A plain object with exactly one of `selector`, `url` or `id`. Elements and
+ * chainable element promises are never plain objects.
+ */
+function isFrameQuery (target: unknown): target is FrameQuery {
+    if (!target || typeof target !== 'object' || Object.getPrototypeOf(target) !== Object.prototype) {
+        return false
+    }
+    const keys = Object.keys(target)
+    return keys.length === 1 && ['selector', 'url', 'id'].includes(keys[0])
+}
+
+async function frameByQuery (
+    caller: WebdriverIO.BrowsingContext,
+    query: FrameQuery
+): Promise<WebdriverIO.BrowsingContext> {
+    if ('selector' in query) {
+        if (typeof query.selector !== 'string') {
+            throw new Error('`frame({ selector })` expects a string selector')
+        }
+        return frameFromElement(caller, await caller.$(query.selector) as unknown as WebdriverIO.Element)
+    }
+    let matches: (node: ContextNode) => boolean
+    let description: string
+    if ('id' in query) {
+        if (typeof query.id !== 'string') {
+            throw new Error('`frame({ id })` expects a browsing context id string')
+        }
+        matches = (node) => node.context === query.id
+        description = `id "${query.id}"`
+    } else {
+        const { url } = query
+        if (typeof url !== 'string' && !(url instanceof RegExp)) {
+            throw new Error('`frame({ url })` expects a string or a RegExp')
+        }
+        matches = typeof url === 'string'
+            ? (node) => node.url === url
+            : (node) => {
+                url.lastIndex = 0
+                return url.test(node.url)
+            }
+        description = `url ${typeof url === 'string' ? `"${url}"` : String(url)}`
+    }
+    const found = await caller.waitUntil(
+        async () => (await findInTree(caller, await childNodes(caller), matches)) || false,
+        {
+            timeout: caller.options.waitforTimeout,
+            interval: caller.options.waitforInterval,
+            timeoutMsg: `Could not find a frame with ${description}`
+        }
+    ).catch(() => undefined)
+    if (!found) {
+        throw new Error(`Could not find a frame with ${description}`)
+    }
+    return found
 }
 
 async function frameFromElement (

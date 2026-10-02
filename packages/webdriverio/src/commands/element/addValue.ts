@@ -1,7 +1,5 @@
 import type { InputOptions } from '../../types.js'
 import { CommandRuntimeOptions } from 'webdriver'
-import { foreignContextId } from '../../session/browsingContext.js'
-import { typeInContext } from '../../utils/foreignContext.js'
 
 const VALID_TYPES = ['string', 'number']
 
@@ -33,7 +31,7 @@ const VALID_TYPES = ['string', 'number']
  * @param {InputOptions} additional options, exclusive to Webdriverio
  *
  */
-export async function addValue (
+export function addValue (
     this: WebdriverIO.Element,
     value: string | number,
     options?: InputOptions
@@ -49,10 +47,6 @@ export async function addValue (
         )
     }
 
-    const context = await foreignContextId(this)
-    if (context) {
-        return typeInContext(this, context, value.toString(), { replace: false, mask: options?.mask })
-    }
     if (options) {
         // @ts-ignore bypassing typing to pass the third parameter until we can find a better solution
         return this.elementSendKeys(this.elementId, value.toString(), new CommandRuntimeOptions(options))

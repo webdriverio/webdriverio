@@ -318,6 +318,50 @@ describe('WebDriverInterception', () => {
         expect(mock.calls).toHaveLength(1)
     })
 
+    it('answers before the request is sent in Firefox, which can only replace the body then', async () => {
+        const browser = getResponseCollectionBrowserMock({}, { isFirefox: true } as Partial<WebdriverIO.Browser>)
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+    })
+
+    it('still fetches the backend in Firefox when the mock filters on the response', async () => {
+        const browser = getResponseCollectionBrowserMock({}, { isFirefox: true } as Partial<WebdriverIO.Browser>)
+        const mock = await WebDriverInterception.initiate('http://test.com/**', { statusCode: 200 }, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('lets the real response through when the browser rejects the replaced body', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        vi.mocked(browser.networkProvideResponse)
+            .mockRejectedValueOnce(new Error('unsupported operation: The "body" parameter is only supported for the beforeRequestSent phase'))
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+        browser.emit('network.responseStarted', {
+            ...getBlockedRequestStub(),
+            response: { status: 200, headers: [] }
+        })
+        await new Promise((resolve) => setTimeout(resolve, 0))
+
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(2)
+        expect(browser.networkProvideResponse).toHaveBeenLastCalledWith({ request: 'req-123' })
+    })
+
     it('should fetch the backend by default', async () => {
         const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)

@@ -40,7 +40,7 @@ describe('saveElementScreenshot', () => {
         const elem = getElement.call(frame, '#box', { [ELEMENT_KEY]: 'elem-1' })
         const iframe = getElement.call(page, 'iframe', { [ELEMENT_KEY]: 'iframe-1' })
 
-        vi.spyOn(elem, 'execute')
+        vi.spyOn(frame, 'execute')
             .mockResolvedValueOnce(undefined)
             .mockResolvedValueOnce({ x: 10, y: 20, width: 120, height: 30 })
         vi.spyOn(page, '$$').mockResolvedValue([iframe] as never)
@@ -49,7 +49,6 @@ describe('saveElementScreenshot', () => {
             .mockResolvedValueOnce({ x: 100, y: 200, width: 500, height: 300 })
             .mockResolvedValueOnce({ x: 0, y: 50 })
         const capture = vi.spyOn(browser, 'browsingContextCaptureScreenshot').mockResolvedValue({ data: Buffer.from('png').toString('base64') })
-        const classic = vi.spyOn(elem, 'takeElementScreenshot')
 
         const screenshot = await elem.saveScreenshot('./box.png')
         expect(screenshot.toString()).toBe('png')
@@ -58,7 +57,6 @@ describe('saveElementScreenshot', () => {
             origin: 'document',
             clip: { type: 'box', x: 110, y: 270, width: 120, height: 30 }
         })
-        expect(classic).not.toHaveBeenCalled()
     })
 
     it('keeps classic Take Element Screenshot for the current context', async () => {

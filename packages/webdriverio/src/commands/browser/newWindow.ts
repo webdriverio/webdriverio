@@ -2,6 +2,7 @@ import { sleep } from '@wdio/utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
 import { getBrowsingContext } from '../../browsingContext.js'
+import { historyReadiness } from '../../utils/traverseHistory.js'
 import type { NewWindowOptions } from '../../types.js'
 
 const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
@@ -117,7 +118,11 @@ export async function newWindow (
             type,
             ...(referenceContext ? { referenceContext } : {})
         })
-        await this.browsingContextNavigate({ context, url })
+        /**
+         * Hand back a loaded page, like `browser.url()`. A context returned
+         * mid-load races the next navigation, which Firefox never completes.
+         */
+        await this.browsingContextNavigate({ context, url, wait: historyReadiness(this.capabilities.pageLoadStrategy) })
         return getBrowsingContext(this, context, { isFrame: false, url })
     }
 

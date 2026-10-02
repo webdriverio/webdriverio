@@ -5,6 +5,7 @@ import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
 import { getElement } from '../../utils/getElementObject.js'
 import { getBrowserObject } from '@wdio/utils'
 import { findStrategy } from '../../utils/findStrategy.js'
+import { foreignContext } from '../../utils/foreignContext.js'
 
 const log = logger('webdriverio')
 
@@ -41,6 +42,13 @@ export async function shadow$ (
     selector: string
 ) {
     const browser = getBrowserObject(this)
+    /**
+     * Get Element Shadow Root only sees the session's current context. For an
+     * element of another held context, use the shadow DOM shim directly.
+     */
+    if (await foreignContext(this)) {
+        return this.$(shadowFnFactory(selector), { strict: false })
+    }
     try {
         const shadowRoot = await browser.getElementShadowRoot(this.elementId)
         const { using, value } = findStrategy(selector as string, this.isMobile)

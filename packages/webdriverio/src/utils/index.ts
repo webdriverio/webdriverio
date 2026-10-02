@@ -221,7 +221,24 @@ function fetchElementByJSFunction(
     if (referenceId) {
         args.push(referenceId)
     }
-    return getBrowserObject(scope).executeScript(`return (${script}).apply(null, arguments)`, args)
+    /**
+     * Classic Execute Script only sees the session's current context. An
+     * element of another held context (a frame or a tab) runs the function in
+     * its own context; `execute` passes the element as first argument.
+     */
+    const browser = getBrowserObject(scope)
+    if (browser.isBidi && heldBrowsingContext(scope)) {
+        /**
+         * Classic serializes a `NodeList` (e.g. from `querySelectorAll`) as a
+         * list of elements; make that an array here so BiDi does the same.
+         */
+        return (scope as WebdriverIO.Element).execute(
+            `const result = (${script}).apply(null, arguments); ` +
+            'return result && typeof result.length === "number" && typeof result !== "string" && !result.nodeType ? Array.from(result) : result',
+            ...args.slice(1)
+        ) as unknown as Promise<ElementReference | ElementReference[]>
+    }
+    return browser.executeScript(`return (${script}).apply(null, arguments)`, args)
 }
 
 export function isElement(o: Selector) {
@@ -723,7 +740,8 @@ export async function findDeepElement(
         const containment = await checkElementsContainedIn(
             browser,
             (this as WebdriverIO.Element).elementId,
-            nodes.map((node) => node[ELEMENT_KEY] as string)
+            nodes.map((node) => node[ELEMENT_KEY] as string),
+            context
         )
         const scopedNodes = nodes.filter((_, i) => containment[i])
 
@@ -875,7 +893,8 @@ export async function findDeepElements(
         const containment = await checkElementsContainedIn(
             browser,
             (this as WebdriverIO.Element).elementId,
-            nodes.map((node) => node[ELEMENT_KEY] as string)
+            nodes.map((node) => node[ELEMENT_KEY] as string),
+            context
         )
         const scopedNodes = nodes.filter((_, i) => containment[i])
 
