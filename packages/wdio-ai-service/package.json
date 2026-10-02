@@ -38,6 +38,7 @@
   "dependencies": {
     "@langchain/core": "^1.2.5",
     "@langchain/langgraph": "^1.4.8",
+    "@standard-schema/spec": "^1.0.0",
     "@wdio/logger": "workspace:*",
     "@wdio/session": "workspace:*",
     "@wdio/types": "workspace:*",

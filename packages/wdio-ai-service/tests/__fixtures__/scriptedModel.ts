@@ -26,7 +26,13 @@ export class ScriptedChatModel extends BaseChatModel {
         return 'scripted'
     }
 
-    override bindTools () {
+    /**
+     * names of the tools of the last loop
+     */
+    boundTools: string[] = []
+
+    override bindTools (tools: { name?: string }[]) {
+        this.boundTools = tools.map((t) => t.name || '')
         return this as unknown as ReturnType<BaseChatModel['bindTools']>
     }
 

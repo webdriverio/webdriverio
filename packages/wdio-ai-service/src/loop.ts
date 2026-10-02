@@ -16,6 +16,10 @@ export interface LoopOptions {
     maxSteps: number
     timeout: number
     middleware?: AgentMiddleware[]
+    /**
+     * tools that end the loop and the outcome they write to, default `done` and `fail`
+     */
+    control?: { outcome: Outcome, tools: StructuredToolInterface[] }
 }
 
 export interface LoopResult {
@@ -62,10 +66,11 @@ function textOf (message?: MessageLike) {
  */
 export async function runLoop (options: LoopOptions): Promise<LoopResult> {
     const [{ createAgent }, { GraphRecursionError }] = await Promise.all([import('langchain'), import('@langchain/langgraph')])
-    const outcome: Outcome = {}
+    const outcome: Outcome = options.control?.outcome || {}
+    const control = options.control?.tools || await controlTools(outcome)
     const agent = createAgent({
         model: options.model,
-        tools: [...options.tools, ...await controlTools(outcome)],
+        tools: [...options.tools, ...control],
         systemPrompt: options.systemPrompt,
         middleware: options.middleware || []
     })

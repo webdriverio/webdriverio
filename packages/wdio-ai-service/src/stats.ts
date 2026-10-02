@@ -16,6 +16,14 @@ export const RUN_DIR_ENV = 'WDIO_AI_RUN_DIR'
 export const ACT_EVENT = 'ai:act'
 
 export interface ActRecord {
+    /**
+     * `extract` calls are recorded too, `act` when not set
+     */
+    kind?: 'act' | 'extract'
+    /**
+     * refs, selectors or files an `extract` value came from
+     */
+    evidence?: string[]
     spec?: string
     test?: string
     instruction: string
@@ -75,8 +83,10 @@ export function formatSummary (records: ActRecord[], { mode, outputDir }: { mode
     if (!records.length) {
         return ''
     }
-    const count = (predicate: (record: ActRecord) => boolean) => records.filter(predicate).length
     const used = records.reduce((total, record) => total + record.usage.input + record.usage.output, 0)
+    const extracts = records.filter((record) => record.kind === 'extract')
+    records = records.filter((record) => record.kind !== 'extract')
+    const count = (predicate: (record: ActRecord) => boolean) => records.filter(predicate).length
     const parts = [
         `${records.length} act call${records.length === 1 ? '' : 's'}`,
         `${count((r) => !r.error && r.source === 'cache' && !r.healed)} from cache`,
@@ -84,6 +94,7 @@ export function formatSummary (records: ActRecord[], { mode, outputDir }: { mode
         `${count((r) => r.healed === 'model')} healed by the model`,
         `${count((r) => !r.error && r.source === 'model' && !r.healed)} recorded by the model`,
         ...(count((r) => Boolean(r.error)) ? [`${count((r) => Boolean(r.error))} failed`] : []),
+        ...(extracts.length ? [`${extracts.length} extract call${extracts.length === 1 ? '' : 's'}`] : []),
         `${tokens(used)} tokens`
     ]
     const lines = [`@wdio/ai-service: ${parts.join(' · ')}`]

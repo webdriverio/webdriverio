@@ -42,3 +42,10 @@ export const workspaceModel = new ScriptedChatModel([
     { tool: 'click', args: { target: 'role/button[name="Add to cart"]' } },
     { tool: 'done', args: { summary: 'Added the item after checking the stock warning' } }
 ])
+
+export const extractModel = new ScriptedChatModel([
+    // reads typed data from a real page
+    { tool: 'snapshot' },
+    { tool: 'get', args: { sub: 'text', target: 'role/row[name="Blue Shirt M 1"]' } },
+    { tool: 'answer', args: { value: [{ name: 'Blue Shirt', size: 'M', qty: 1 }, { name: 'Red Socks', size: 'L', qty: 2 }], evidence: ['role/row[name="Blue Shirt M 1"]'] } }
+])

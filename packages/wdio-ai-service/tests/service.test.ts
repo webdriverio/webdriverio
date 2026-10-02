@@ -3,17 +3,20 @@ import { describe, expect, it, vi } from 'vitest'
 import AiService from '../src/service.js'
 
 describe('AiService', () => {
-    it('adds act to the browser, its elements and its browsing contexts, and starts capturing events', async () => {
+    it('adds act and extract to the browser, its elements and its browsing contexts, and starts capturing events', async () => {
         const browser = { addCommand: vi.fn() } as unknown as WebdriverIO.Browser
         const service = new AiService({ model: 'anthropic:claude-sonnet-5-5' })
         const agentFor = vi.spyOn(service.runtime, 'agentFor').mockResolvedValue({} as never)
         await service.before({}, [], browser)
         expect(agentFor).toHaveBeenCalledWith(browser)
 
-        expect(browser.addCommand).toHaveBeenCalledTimes(3)
+        expect(browser.addCommand).toHaveBeenCalledTimes(6)
         expect(browser.addCommand).toHaveBeenNthCalledWith(1, 'act', expect.any(Function))
         expect(browser.addCommand).toHaveBeenNthCalledWith(2, 'act', expect.any(Function), { attachToElement: true })
         expect(browser.addCommand).toHaveBeenNthCalledWith(3, 'act', expect.any(Function), { attachToBrowsingContext: true })
+        expect(browser.addCommand).toHaveBeenNthCalledWith(4, 'extract', expect.any(Function))
+        expect(browser.addCommand).toHaveBeenNthCalledWith(5, 'extract', expect.any(Function), { attachToElement: true })
+        expect(browser.addCommand).toHaveBeenNthCalledWith(6, 'extract', expect.any(Function), { attachToBrowsingContext: true })
     })
 
     it('runs the command on the scope it was called on', async () => {

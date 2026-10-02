@@ -160,3 +160,22 @@ export interface ActResult {
      */
     summary?: string
 }
+
+export interface ExtractOptions {
+    /**
+     * values for `{{name}}` placeholders in the instruction
+     */
+    values?: Record<string, string>
+    /**
+     * tool calls this `extract` may make
+     */
+    maxSteps?: number
+    /**
+     * overall timeout in ms (default 60000)
+     */
+    timeout?: number
+    /**
+     * model for this call
+     */
+    model?: ModelOption
+}

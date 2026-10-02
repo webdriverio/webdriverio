@@ -1,12 +1,19 @@
 WebdriverIO AI Service
 ======================
 
-> Steps written as intent: `browser.act()` performs a user action described in natural language with your own model.
+> Steps written as intent: `browser.act()` performs a user action described in natural language, `browser.extract()` reads typed data, with your own model.
 
 ```ts
+import { z } from 'zod'
+
 await browser.url('/shop')
 await browser.act('Add a blue shirt in size M to the shopping cart')
-await expect($('#cart-count')).toHaveText('1')
+
+const cart = await browser.extract(
+    'the line items in the cart',
+    z.array(z.object({ name: z.string(), size: z.string(), qty: z.number() }))
+)
+expect(cart).toContainEqual({ name: 'Blue Shirt', size: 'M', qty: 1 })
 ```
 
 `act` hands the instruction to a model together with the `wdio session` actions (snapshot, click, fill, press, …). The model works through the page with refs from accessibility snapshots, and every step it takes runs as a regular WebdriverIO command with a stable selector. `act` does not assert, the test checks the outcome.
@@ -63,6 +70,12 @@ await browser.act('Log in as {{email}} with password {{password}}', {
 ```
 
 `act` resolves to `{ source, steps, summary }`. `steps` lists the WebdriverIO code that ran. When the model reports that the instruction cannot be completed, or the step limit or timeout (`timeout`, default 60s) is reached, `act` throws an `ActError` with the reason.
+
+## Extract
+
+`extract(instruction, schema, options?)` reads information from the page and validates it against a [Standard Schema](https://standardschema.dev): zod, valibot, arktype and others. The model can only read the page (`snapshot`, `find`, `get`, `is`, `scroll`, the workspace), never change it. When the schema library can describe itself as JSON Schema (zod 4 can), the model gets that shape. An answer that does not match is rejected and the model answers again once. `extract` results are never cached: a read has to see the current page.
+
+Keep pass/fail decisions in code: let `extract` find the value, and assert it with `expect`.
 
 ## Cache
 

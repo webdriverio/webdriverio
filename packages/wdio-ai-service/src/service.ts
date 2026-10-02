@@ -3,10 +3,12 @@ import url from 'node:url'
 import type { Services } from '@wdio/types'
 
 import { AiRuntime } from './runtime.js'
-import type { ActOptions, AiServiceOptions } from './types.js'
+import type { StandardSchemaV1 } from '@standard-schema/spec'
+
+import type { ActOptions, AiServiceOptions, ExtractOptions } from './types.js'
 
 /**
- * Register `act` on a browser, its elements and its browsing contexts.
+ * Register `act` and `extract` on a browser, its elements and its browsing contexts.
  */
 export function registerCommands (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, runtime: AiRuntime) {
     const act = function (this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.BrowsingContext, instruction: string, options?: ActOptions) {
@@ -16,9 +18,15 @@ export function registerCommands (browser: WebdriverIO.Browser | WebdriverIO.Mul
      * a multi-remote browser forwards the commands to its instances
      */
     const target = browser as WebdriverIO.Browser
+    const extract = function (this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.BrowsingContext, instruction: string, schema: StandardSchemaV1, options?: ExtractOptions) {
+        return runtime.extract(this, instruction, schema, options)
+    }
     target.addCommand('act', act)
     target.addCommand('act', act, { attachToElement: true })
     target.addCommand('act', act, { attachToBrowsingContext: true })
+    target.addCommand('extract', extract)
+    target.addCommand('extract', extract, { attachToElement: true })
+    target.addCommand('extract', extract, { attachToBrowsingContext: true })
 }
 
 interface TestLike {

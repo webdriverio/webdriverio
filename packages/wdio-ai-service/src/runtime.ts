@@ -9,13 +9,16 @@ import { ActCache, cacheFileFor, cacheKey, resolveMode, type EffectiveMode } fro
 import { ActError, type TokenUsage } from './errors.js'
 import { runLoop } from './loop.js'
 import { describeModel, resolveModel, selectModel } from './model.js'
-import { actPrompt, replayContext, systemPrompt } from './prompts.js'
+import { actPrompt, replayContext, systemPrompt, WORKSPACE_PROMPT } from './prompts.js'
 import { assertValues } from './redact.js'
 import { replaySteps, type HealedStep } from './replay.js'
 import { emitRecord, writeRecords, type ActRecord } from './stats.js'
 import { pageTools } from './tools.js'
 import { Workspace, type KeepPolicy } from './workspace.js'
-import type { ActOptions, ActResult, ActStep, AiServiceOptions, CacheMode, ModelOption } from './types.js'
+import type { StandardSchemaV1 } from '@standard-schema/spec'
+
+import { answerTools, EXTRACT_PROMPT, jsonSchemaOf, READ_ACTIONS, validate, type ExtractOutcome } from './extract.js'
+import type { ActOptions, ActResult, ActStep, AiServiceOptions, CacheMode, ExtractOptions, ModelOption } from './types.js'
 
 const log = logger('@wdio/ai-service')
 
@@ -348,6 +351,88 @@ export class AiRuntime {
             this.#store(cache, key, { instruction, platform, steps }, options)
         }
         return { result: { source: 'model', steps: summarize(steps), summary }, usage }
+    }
+
+    /**
+     * Read typed data from the page. Never cached: a read has to see the
+     * current page.
+     */
+    async extract<T> (scope: ActScope, instruction: string, schema: StandardSchemaV1<unknown, T>, options: ExtractOptions = {}): Promise<T> {
+        if (typeof instruction !== 'string' || !instruction.trim()) {
+            throw new Error('[@wdio/ai-service] extract() needs an instruction')
+        }
+        if (!schema || typeof schema !== 'object' || typeof (schema as StandardSchemaV1)['~standard']?.validate !== 'function') {
+            throw new Error('[@wdio/ai-service] extract() needs a Standard Schema, e.g. a zod, valibot or arktype schema')
+        }
+        assertValues(instruction, options.values)
+        const started = Date.now()
+        const test = this.#test
+        const base = { kind: 'extract' as const, ...(test ? { spec: test.spec, test: test.title } : {}), instruction, source: 'model' as const }
+        const usage = { input: 0, output: 0 }
+        try {
+            const { value, evidence } = await this.#extract(scope, instruction, schema, options, usage)
+            this.#record({ ...base, ...(evidence?.length ? { evidence } : {}), usage, durationMs: Date.now() - started })
+            return value
+        } catch (err) {
+            this.#record({ ...base, error: (err as Error).message, usage, durationMs: Date.now() - started })
+            throw err
+        }
+    }
+
+    async #extract<T> (scope: ActScope, instruction: string, schema: StandardSchemaV1<unknown, T>, options: ExtractOptions, usage: TokenUsage) {
+        const browser = browserOf(scope)
+        if ((browser as unknown as { isMultiRemote?: boolean }).isMultiRemote) {
+            throw new Error('[@wdio/ai-service] extract() runs on one browser. Call it on an instance, e.g. browser.getInstance(\'myBrowser\').extract(...)')
+        }
+        const modelOption = selectModel(options.model, this.options.model)
+        if (!modelOption) {
+            throw new ActError({ instruction, reason: 'no model is configured. Set the `model` option of the service or the WDIO_AI_MODEL environment variable.' })
+        }
+        const agent = await this.agentFor(browser)
+        const values = options.values || {}
+        const workspace = this.#workspaceFor(instruction)
+        workspace.values = values
+        await workspace.writeEvents(agent.logs, agent.network)
+        const jsonSchema = jsonSchemaOf(schema)
+        const tools = await pageTools({ agent, values, actions: READ_ACTIONS, onStep: () => {}, workspace })
+        let feedback = ''
+        try {
+            for (let attempt = 1; attempt <= 2; attempt++) {
+                const outcome: ExtractOutcome = {}
+                const result = await runLoop({
+                    model: await this.#model(modelOption),
+                    tools,
+                    systemPrompt: [EXTRACT_PROMPT, WORKSPACE_PROMPT].join('\n\n'),
+                    prompt: [
+                        `Instruction: ${instruction}`,
+                        jsonSchema ? `The value has to match this JSON Schema:\n${JSON.stringify(jsonSchema)}` : '',
+                        feedback
+                    ].filter(Boolean).join('\n\n'),
+                    maxSteps: options.maxSteps ?? this.options.maxSteps ?? DEFAULT_MAX_STEPS,
+                    timeout: options.timeout ?? DEFAULT_TIMEOUT,
+                    middleware: [await workspace.middleware()],
+                    control: { outcome, tools: await answerTools(outcome, jsonSchema) }
+                })
+                this.modelCalls += result.modelCalls
+                usage.input += result.usage.input
+                usage.output += result.usage.output
+                if (result.status === 'fail' || outcome.status !== 'done') {
+                    workspace.keep = true
+                    throw new ActError({ instruction, reason: result.summary, usage, workspace: workspace.dir })
+                }
+                const checked = await validate(schema, outcome.value)
+                if ('value' in checked) {
+                    return { value: checked.value, evidence: outcome.evidence }
+                }
+                feedback = `Your previous answer ${JSON.stringify(outcome.value)} did not match the schema: ${checked.issues}. Answer again.`
+            }
+            workspace.keep = true
+            throw new ActError({ instruction, reason: `the answer did not match the schema. ${feedback}`, usage, workspace: workspace.dir })
+        } finally {
+            if (!this.#test) {
+                await workspace.finish(this.#keepPolicy, !workspace.keep)
+            }
+        }
     }
 
     #store (cache: ActCache, key: string, entry: { instruction: string, platform: string, steps: ActStep[] }, options: ActOptions, recordedBy?: string) {
