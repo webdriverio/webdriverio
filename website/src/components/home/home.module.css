@@ -1817,3 +1817,8 @@ html[data-theme='light'] .codeString { fill: #50a14f; }
     }
 
 }
+
+/* AI steps section */
+.aiFeatures {
+    margin-top: 2rem;
+}

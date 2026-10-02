@@ -9,6 +9,7 @@ import InstallCommand from '../components/home/InstallCommand.tsx'
 import Platforms from '../components/home/Platforms.tsx'
 import AgentDemo from '../components/home/AgentDemo.tsx'
 import SessionDemo from '../components/home/SessionDemo.tsx'
+import AiStepsDemo from '../components/home/AiStepsDemo.tsx'
 import DevToolsDemo from '../components/home/DevToolsDemo.tsx'
 import LogoCarousel from '../components/LogoCarousel.tsx'
 import Sponsors from '../components/Sponsors.tsx'
@@ -134,6 +135,44 @@ export default function Home () {
                         </Translate>
                     </p>
                     <SessionDemo />
+                </section>
+
+                <section id="ai-steps" className={clsx(styles.frame, styles.section)}>
+                    <SectionHeader
+                        eyebrow={translate({ id: 'homepage.ai.eyebrow', message: '@wdio/ai-service' })}
+                        title={translate({ id: 'homepage.ai.heading', message: 'Write the intent. Replay the code.' })}>
+                        <Translate id="homepage.ai.description">
+                            Describe a step in plain words and your own model performs it once. WebdriverIO records the commands it ran, replays them on every later run without a model, and heals them when your UI changes, but only when the healed step does what the recorded one did, checked over WebDriver BiDi.
+                        </Translate>
+                    </SectionHeader>
+                    <p className={styles.sessionLinks}>
+                        <Link className={styles.textLink} to="/docs/ai-steps">
+                            <Translate id="homepage.ai.guide">Read the guide</Translate>
+                        </Link>
+                        <Link className={styles.textLink} to="/docs/ai-service">
+                            <Translate id="homepage.ai.reference">Service options</Translate>
+                        </Link>
+                    </p>
+                    <p className={styles.visuallyHidden}>
+                        <Translate id="homepage.ai.demo">
+                            A looping demo of browser.act(). The model adds a blue T-shirt to the cart once and two WebdriverIO commands are recorded with the request the click sent. The next run replays them with no model calls. After a refactor renames a test id, the step heals without the model, sends the same request, and saves screenshots and a video. Eject turns the act() call into the two commands.
+                        </Translate>
+                    </p>
+                    <AiStepsDemo />
+                    <div className={clsx(styles.grid4, styles.aiFeatures)}>
+                        <Feature to="/docs/ai-steps#write-a-test" title={translate({ id: 'homepage.ai.intent.title', message: 'act() and extract()' })}>
+                            <Translate id="homepage.ai.intent.text">Perform a step from a sentence, or read typed data from the page and the API responses behind it.</Translate>
+                        </Feature>
+                        <Feature to="/docs/ai-steps#record-once-replay-without-a-model" title={translate({ id: 'homepage.ai.cache.title', message: 'Zero tokens when green' })}>
+                            <Translate id="homepage.ai.cache.text">Recorded steps live next to the spec and replay like hand-written commands.</Translate>
+                        </Feature>
+                        <Feature to="/docs/ai-steps#review-heals" title={translate({ id: 'homepage.ai.heal.title', message: 'Heals you can trust' })}>
+                            <Translate id="homepage.ai.heal.text">A healed step has to send the same requests and change the same parts of the page, or the test fails.</Translate>
+                        </Feature>
+                        <Feature to="/docs/ai-service" title={translate({ id: 'homepage.ai.byok.title', message: 'Your model, no lock-in' })}>
+                            <Translate id="homepage.ai.byok.text">Anthropic, OpenAI, OpenRouter or a local model through Ollama. Eject to plain code any time.</Translate>
+                        </Feature>
+                    </div>
                 </section>
 
                 <section className={clsx(styles.frame, styles.section, styles.split)}>
