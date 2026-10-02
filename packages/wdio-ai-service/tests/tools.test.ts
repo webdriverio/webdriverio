@@ -146,6 +146,11 @@ describe('pageTools', () => {
         await byName('fill').invoke({ target: 'input[name="email"]', text: 'a@b.c' })
         expect(run).toHaveBeenCalledWith('fill', { target: 'input[name="email"]', text: 'a@b.c' })
 
+        contains.mockClear()
+        await byName('wait').invoke({ target: '500' })
+        expect(contains).not.toHaveBeenCalled()
+        expect(run).toHaveBeenCalledWith('wait', { target: '500' })
+
         await expect(byName('source').invoke({})).resolves.toContain('Saved the HTML of the element this call is limited to (46 characters)')
         expect(writeSource).toHaveBeenCalledWith('<form id="billing"><input name="email"></form>', false)
     })

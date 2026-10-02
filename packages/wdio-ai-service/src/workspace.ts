@@ -70,7 +70,10 @@ export class Workspace {
         const full = path.join(this.dir, file)
         return fs.mkdir(path.dirname(full), { recursive: true })
             .then(() => fs.writeFile(full, redact(content, [...Object.entries(this.values), ...this.secrets])))
-            .then(() => `/${file}`)
+            /**
+             * the path the model reads with the file tools, with `/` on every platform
+             */
+            .then(() => `/${file.split(path.sep).join('/')}`)
     }
 
     async writeSnapshot (text: string) {

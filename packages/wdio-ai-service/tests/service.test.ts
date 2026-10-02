@@ -1,3 +1,6 @@
+import path from 'node:path'
+import url from 'node:url'
+
 import { describe, expect, it, vi } from 'vitest'
 
 import AiService from '../src/service.js'
@@ -42,17 +45,19 @@ describe('AiService test tracking', () => {
         expect(service.runtime.options).toMatchObject({ updateSnapshots: 'all', outputDir: '/logs' })
 
         vi.spyOn(service.runtime, 'agentFor').mockResolvedValue({} as never)
-        await service.before({}, ['file:///project/test/cart.e2e.ts'], { addCommand: vi.fn() } as unknown as WebdriverIO.Browser)
-        service.beforeTest({ file: '/project/test/cart.e2e.ts', fullTitle: 'cart adds a shirt' })
-        expect(startTest).toHaveBeenLastCalledWith('/project/test/cart.e2e.ts', 'cart adds a shirt')
+        const spec = path.resolve('/project/test/cart.e2e.ts')
+        await service.before({}, [url.pathToFileURL(spec).href], { addCommand: vi.fn() } as unknown as WebdriverIO.Browser)
+        service.beforeTest({ file: spec, fullTitle: 'cart adds a shirt' })
+        expect(startTest).toHaveBeenLastCalledWith(spec, 'cart adds a shirt')
         await service.afterTest({}, {}, { passed: false })
         expect(endTest).toHaveBeenCalledWith(false)
 
         service.beforeTest({ fullName: 'jasmine spec name' })
-        expect(startTest).toHaveBeenLastCalledWith('/project/test/cart.e2e.ts', 'jasmine spec name')
+        expect(startTest).toHaveBeenLastCalledWith(spec, 'jasmine spec name')
 
-        service.beforeScenario({ pickle: { uri: 'file:///project/features/cart.feature', name: 'Add a shirt' } })
-        expect(startTest).toHaveBeenLastCalledWith('/project/features/cart.feature', 'Add a shirt')
+        const feature = path.resolve('/project/features/cart.feature')
+        service.beforeScenario({ pickle: { uri: url.pathToFileURL(feature).href, name: 'Add a shirt' } })
+        expect(startTest).toHaveBeenLastCalledWith(feature, 'Add a shirt')
         await service.afterScenario({}, { passed: true })
         expect(endTest).toHaveBeenLastCalledWith(true)
 

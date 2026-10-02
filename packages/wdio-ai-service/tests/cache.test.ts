@@ -32,9 +32,9 @@ describe('resolveMode', () => {
 
 describe('cacheFileFor and cacheKey', () => {
     it('puts the cache next to the spec unless cacheDir says otherwise', () => {
-        expect(cacheFileFor('/project/test/cart.e2e.ts')).toBe('/project/test/__act__/cart.e2e.ts.json')
-        expect(cacheFileFor('/project/test/cart.e2e.ts', '/project/.wdio/act')).toBe('/project/.wdio/act/cart.e2e.ts.json')
-        expect(cacheFileFor('/project/test/cart.e2e.ts', (spec) => path.join(path.dirname(spec), 'cache'))).toBe('/project/test/cache/cart.e2e.ts.json')
+        expect(cacheFileFor('/project/test/cart.e2e.ts')).toBe(path.join('/project/test/__act__/cart.e2e.ts.json'))
+        expect(cacheFileFor('/project/test/cart.e2e.ts', '/project/.wdio/act')).toBe(path.resolve('/project/.wdio/act/cart.e2e.ts.json'))
+        expect(cacheFileFor('/project/test/cart.e2e.ts', (spec) => path.join(path.dirname(spec), 'cache'))).toBe(path.join('/project/test/cache/cart.e2e.ts.json'))
     })
 
     it('keys a call by test title and position, and the platform when it is not web', () => {

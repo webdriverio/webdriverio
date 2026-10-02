@@ -175,6 +175,20 @@ describe('eject', () => {
         ])
     })
 
+    it('ejects calls from a spec with JSX', () => {
+        const spec = `describe('cart', () => {
+    it('adds a shirt', async () => {
+        await render(<Cart items={[]} />)
+        await browser.act('Add a blue shirt to the cart')
+    })
+})
+`
+        const cache: CacheFile = { version: 1, entries: { 'cart adds a shirt › #1': entry('Add a blue shirt to the cart', ['await $(\'#add\').click()']) } }
+        const result = eject(spec, cache, { filename: '/project/test/cart.e2e.tsx' })
+        expect(result.ejected).toEqual([{ instruction: 'Add a blue shirt to the cart', steps: 1 }])
+        expect(result.source).toContain('        await render(<Cart items={[]} />)\n        // act: Add a blue shirt to the cart\n        await $(\'#add\').click()')
+    })
+
     it('only rewrites the calls of the test passed with --test', () => {
         const result = eject(SPEC, CACHE, { test: 'shop logs in' })
         expect(result.ejected.map(({ instruction }) => instruction)).toEqual(['Log in as {{email}} with {{password}}', 'Open the "account" menu'])
