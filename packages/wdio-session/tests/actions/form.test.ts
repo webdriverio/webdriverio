@@ -1,7 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { setWdioKind } from '@wdio/utils'
 
 import { check, click, focus, uncheck } from '../../src/actions/interact.js'
 import type { Session } from '../../src/session.js'
+
+vi.mock('webdriverio', () => ({
+    getContextManager: () => ({ setCurrentContext: vi.fn() })
+}))
 
 function session (element: Record<string, unknown>) {
     const store = new Map<string, unknown>()
@@ -83,6 +88,26 @@ describe('click --new-tab', () => {
         expect(harness.get('frame')).toBeUndefined()
         expect(harness.get('frameStack')).toEqual([])
         expect(result.history).toContain("type: 'tab'")
+    })
+
+    it('focuses the browsing context that newWindow() gives in a BiDi session, and only a branded one', async () => {
+        for (const [opened, focused] of [
+            [setWdioKind({ contextId: 'tab-3' }, 'browsing-context'), ['tab-3']],
+            [{ contextId: 'tab-3' }, []]
+        ] as const) {
+            const element: Record<string, unknown> = { elementId: '1', getProperty: async () => 'https://example.com/docs' }
+            const harness = session(element) as unknown as { isBidi: boolean, browser: Record<string, unknown> }
+            const switched: string[] = []
+            harness.isBidi = true
+            harness.browser.newWindow = async () => opened
+            harness.browser.switchToWindow = async (id: string) => {
+                switched.push(id)
+            }
+
+            await click(harness as unknown as Session, { target: 'a', newTab: true, $cwd: '/' })
+
+            expect({ opened, switched }).toEqual({ opened, switched: focused })
+        }
     })
 
     it('rejects an element with no href', async () => {

@@ -26,6 +26,12 @@ Strict selectors and bare capability `specs` / `exclude` lists only show up when
 
 WebdriverIO v10 requires Node.js 22.19.0 or later. Node.js 18 and 20 are no longer supported. CI covers Node.js 22, 24, and 26.
 
+## Component tests
+
+The browser runner still runs in Chrome 90, Edge 90, Firefox 90 and Safari 14.1 or newer. See [Browser support](/docs/component-testing#browser-support).
+
+Code passed to `browser.execute` stays at ES2021, so it can run in older browsers under test. That floor did not change.
+
 ## Mocha
 
 `@wdio/mocha-framework` and `@wdio/browser-runner` depend on [Mocha 12](https://mochajs.org/blog/mocha-12-stable/). Mocha 12 needs Node.js `^20.19.0 || >=22.12.0`, which is covered by the v10 floor of 22.19.0.
@@ -39,7 +45,7 @@ WebdriverIO v10 requires Node.js 22.19.0 or later. Node.js 18 and 20 are no long
 
 `failHookAffectedTests` defaults to `true`. A failing `before` or `beforeEach` hook fails the tests that hook skipped. Set `mochaOpts.failHookAffectedTests` to `false` to report only the hook.
 
-Use [`expect-webdriverio` 6.1.0](https://github.com/webdriverio/expect-webdriverio/releases/tag/v6.1.0) or newer with this adapter. Mocha can load that package twice in one process; 6.1.0 shares assertion state across those copies ([expect-webdriverio#2221](https://github.com/webdriverio/expect-webdriverio/pull/2221)).
+Use `expect-webdriverio` 8, see [expect-webdriverio 8](#expect-webdriverio-8). Mocha can load that package twice in one process; it shares assertion state across those copies ([expect-webdriverio#2221](https://github.com/webdriverio/expect-webdriverio/pull/2221)).
 
 Mocha 12 changes that can leak through `mochaOpts`:
 
@@ -127,7 +133,7 @@ Other effects of this change:
 - Jasmine's spy matchers work without `await`. In v9, `toHaveBeenCalled`, `toHaveSpyInteractions` and `toHaveNoOtherSpyInteractions` failed with "Does not take arguments", and an uncalled spy passed without `await`.
 - `jasmine.addMatchers` is no longer replaced, so Jasmine does not show its "Monkey patching detected" warning anymore.
 
-`toHaveSize` has two meanings. On a WebdriverIO value, it is the WebdriverIO matcher and checks the size of the element: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multi-remote element, a browser, the `some()` wrapper, or a promise such as a chainable `$()`. On any other value, it is Jasmine's matcher and checks the length. In v9, Jasmine's matcher always ran.
+`toHaveSize` has two meanings. On a WebdriverIO value, it is the WebdriverIO matcher and checks the size of the element: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multi-remote element, a browser, a browsing context, a mock, the `some()` wrapper, or a promise such as a chainable `$()`. On any other value, it is Jasmine's matcher and checks the length. In v9, Jasmine's matcher always ran.
 
 ```js
 expect([1, 2]).toHaveSize(2)                                   // Jasmine, sync
@@ -146,6 +152,21 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
 ```
 
 `expect.oneOf()` now also works in Jasmine specs. Before, it had a type but was not on the Jasmine `expect` at runtime.
+
+## expect-webdriverio 8
+
+`@wdio/globals`, `@wdio/runner` and `@wdio/browser-runner` require `expect-webdriverio` 8 as a peer dependency. In v9, it was `expect-webdriverio` 7. If your `package.json` lists `expect-webdriverio`, update it to version 8 in the same change as the `@wdio/*` packages.
+
+`expect-webdriverio` 8 has its own breaking changes. Its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8) lists each change and its replacement. These changes are the most likely to affect a test suite:
+
+- `toHaveText` on `$$()` compares the elements index by index. An expected array in another order than the page fails. Use the page order, `expect.oneOf()` or `expect.arrayContaining()`.
+- An array of expected values on a single element fails `toHaveText`, `toHaveHTML`, `toHaveComputedLabel` and `toHaveComputedRole`. Use `expect.oneOf()`.
+- `setFeatureFlags()` and the `featureFlags` option were removed.
+- These deprecated APIs were removed: `setOptions` (use `setDefaultOptions`), `getConfig` (use `getDefaultOptions`), `matchers` (use `wdioCustomMatchers`), `toHaveAttr` (use `toHaveAttribute`), `toHaveClass` (use `toHaveElementClass`), `toBeRequestedWithResponse()` (use `toBeRequestedWith({ response })`), and `expect-webdriverio/types` (use `expect-webdriverio/expect-global`).
+- The `beforeAssertion` and `afterAssertion` hooks get the name of the alias that the test called, for `toBeExisting`, `toBePresent`, `toHaveLink`, `toHaveValue` and `toBeRequested`. In v9, they got the name of the matcher behind the alias, for example `toExist` for `toBeExisting`.
+- On a multi-remote browser, give the result of `$$()` to `expect`. A plain array such as `[...elements]`, `Array.from(elements)` or the result of `custom$$()` is not recognized as elements, and the assertion fails.
+
+On a multi-remote browser, one assertion checks every instance, and `expect.multiRemote()` gives one expected value per instance. See [Multiremote assertions](/docs/multiremote#assertions).
 
 ## Multi-remote Global
 
@@ -224,6 +245,21 @@ TypeScript 6 also changes the default of `types` to `[]`, so it no longer loads 
      }
  }
 ```
+
+`npm create wdio@latest` writes `compilerOptions.target` and `compilerOptions.lib` as `es2024`. Type-checking that file needs TypeScript 5.7 or newer. `tsx`, which runs the config and the tests, does not type-check, so an older compiler only matters when you run `tsc` yourself.
+
+An existing `tsconfig.json` is not rewritten. A generated config that extends another config keeps the `target` and `lib` of the parent.
+
+In the `afterAssertion` hook, the type of `params.result` is now `{ pass, message }`, as the matchers give it. In v9, the type was `{ result, message }`, but `params.result.result` was always `undefined` at runtime. Read `params.result.pass`:
+
+```diff
+  afterAssertion (params) {
+-     console.log(params.matcherName, params.result.result)
++     console.log(params.matcherName, params.result.pass)
+  }
+```
+
+`pass` is `true` when the value matches the expected value, also with `.not`. Thus with `.not`, the assertion passes when `pass` is `false`. The hook does not tell if the test used `.not`.
 
 ## Reporters
 
@@ -628,6 +664,14 @@ A matched JavaScript file that is not in the TypeScript project, such as `wdio.c
 Every session is a [W3C WebDriver](https://w3c.github.io/webdriver/) session. WebdriverIO does not speak the JSON Wire Protocol or the Mobile JSON Wire Protocol. v9 removed those commands. v10 also drops the response envelope those protocols used, so a server that still returns it cannot start a session.
 
 `browser.isW3C` is removed, including the value previously forwarded on the worker `sessionStarted` message. Passing `isW3C` to `attach` is ignored. The BiDi command set stays on the client. A live BiDi connection still depends on `webSocketUrl`.
+
+### `browser.back()` and `browser.forward()` on BiDi
+
+Call sites stay `await browser.back()` and `await browser.forward()`. Neither command takes an argument or returns a value.
+
+On a BiDi session these commands call `browsingContext.traverseHistory` with `delta` `-1` or `1` on the top-level browsing context, then wait for the document readiness `pageLoadStrategy` maps to. `none` returns when the traversal command is accepted. `eager` waits for `browsingContext.domContentLoaded`. `normal`, the default, waits for `browsingContext.load`. A back-forward cache restore does not emit those events; the command returns when the committed document's `readyState` already matches the strategy. The wait uses the session page-load timeout (`timeouts.pageLoad`, 300000 ms when unset). Classic sessions still post to `POST /session/:sessionId/back` and `POST /session/:sessionId/forward`.
+
+A missing history entry still rejects. On BiDi the message comes from `browsingContext.traverseHistory` and contains `no such history entry`, rather than the classic WebDriver error text. A traversal that never reaches the expected readiness rejects with `History traversal timed out after <ms>ms waiting for browsingContext.domContentLoaded` or `browsingContext.load`.
 
 ### New session response
 

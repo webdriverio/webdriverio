@@ -710,4 +710,46 @@ describe('bidi e2e test', () => {
             })
         })
     })
+
+    describe('history', () => {
+        it('goes back and forward between two pages', async function () {
+            if (!browser.isBidi) {
+                return this.skip()
+            }
+
+            /**
+             * Both pages are free of iframes. Chrome keeps a child frame of a
+             * page restored from the back/forward cache after it is gone, and
+             * a later `input.setFiles` rejects with `no such frame`.
+             */
+            const firstUrl = 'https://guinea-pig.webdriver.io/'
+            const secondUrl = 'https://guinea-pig.webdriver.io/reloadCounter.html'
+            await browser.url(firstUrl)
+            await browser.url(secondUrl)
+
+            await browser.back()
+            const afterBack = await browser.getUrl()
+            expect(afterBack).not.toContain('reloadCounter.html')
+            expect(new URL(afterBack).hostname).toBe('guinea-pig.webdriver.io')
+
+            await browser.forward()
+            expect(await browser.getUrl()).toContain('reloadCounter.html')
+        })
+
+        it('rejects back when the browsing context has no history entry', async function () {
+            if (!browser.isBidi) {
+                return this.skip()
+            }
+
+            const original = await browser.getWindowHandle()
+            const { context } = await browser.browsingContextCreate({ type: 'tab' })
+            await browser.switchToWindow(context)
+            try {
+                await expect(browser.back()).rejects.toThrow(/no such history entry/)
+            } finally {
+                await browser.closeWindow()
+                await browser.switchToWindow(original)
+            }
+        })
+    })
 })

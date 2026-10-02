@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "website",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "website", "exec", "docusaurus", "start", "--port", "3123", "--no-open"],
+      "port": 3123
+    }
+  ]
+}

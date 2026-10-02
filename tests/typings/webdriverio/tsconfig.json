@@ -3,10 +3,10 @@
     "outDir": "dist",
     "noImplicitAny": true,
     "strict": false,
-    "lib": ["es2020", "DOM"],
+    "lib": ["es2024", "DOM"],
     "module": "NodeNext",
     "moduleResolution": "Node16",
-    "target": "ES2020",
+    "target": "ES2024",
     "types": [
       "node",
       "webdriverio",

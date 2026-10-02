@@ -29,6 +29,11 @@ interface ElementArrayMetadata {
      * or a `filter`) must not: their bounds are not the query's bounds.
      */
     refetch?: boolean
+    /**
+     * Builds one multi-remote element from one element per instance, in the
+     * instance order of `parent`. Set by a multi-remote `$$`.
+     */
+    wrapMultiRemote?: (elements: unknown[]) => WebdriverIO.MultiRemoteElement
 }
 
 interface ElementArrayState {
@@ -45,6 +50,12 @@ interface ElementArrayState {
 }
 
 const states = new WeakMap<object, ElementArrayState>()
+
+/**
+ * The state of a list by the proxy handed to user code, so a chained query can
+ * read the metadata of the list it got its items from.
+ */
+const proxyStates = new WeakMap<object, ElementArrayState>()
 
 const RETURN_SELF = new Set(['reverse', 'sort', 'fill', 'copyWithin'])
 
@@ -171,35 +182,50 @@ function readIndex (array: ElementList, index: number) {
     return chainElementPromise(elementAt(array, normalized), multiRemote)
 }
 
-async function elementAt (array: ElementList, index: number): Promise<WebdriverIO.Element | undefined> {
+async function elementAt (array: ElementList, index: number): Promise<WebdriverIO.Element | WebdriverIO.MultiRemoteElement | undefined> {
     const items = await load(array)
     if (index < 0) {
-        return items.at(index) as WebdriverIO.Element | undefined
+        return items.at(index)
     }
     if (index < items.length) {
-        return items[index] as WebdriverIO.Element
+        return items[index]
     }
 
-    const { parent, foundWith, selector, refetch } = stateOf(array).metadata
+    const { parent, foundWith, selector, refetch, wrapMultiRemote } = stateOf(array).metadata
     if (refetch === false || !parent) {
         return undefined
     }
 
-    const browser = getBrowserObject(parent as WebdriverIO.Element)
-    return await browser.waitUntil(async () => {
-        const query = (parent as unknown as Record<string, (selector?: Selector) => Promise<WebdriverIO.ElementArray>>)[foundWith]
+    const timeoutMsg = `Index out of bounds! $$(${String(selector)}) returned only ${items.length} elements.`
+    const findIn = async (target: object) => {
+        const query = (target as Record<string, (selector?: Selector) => Promise<WebdriverIO.ElementArray>>)[foundWith]
         if (typeof query !== 'function') {
             return false
         }
-        const refetched = await query.call(parent, selector as Selector | undefined)
-        if (refetched && refetched.length > index) {
-            return refetched[index]
-        }
-        return false
-    }, {
+        const refetched = await query.call(target, selector as Selector | undefined)
+        return refetched && refetched.length > index ? refetched[index] : false
+    }
+
+    if (wrapMultiRemote) {
+        /**
+         * A multi-remote `waitUntil` runs the condition once per instance, with `this`
+         * as the browser or the element of that instance and with the timeout of that
+         * instance. So every instance queries and waits for itself, and their elements
+         * build one multi-remote element. A multi-remote element has no `parent`, so a
+         * multi-remote parent waits itself.
+         */
+        const multiRemoteParent = parent as WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement
+        const elements = await multiRemoteParent.waitUntil(function (this: WebdriverIO.Browser | WebdriverIO.Element) {
+            return findIn(this)
+        }, { timeoutMsg })
+        return wrapMultiRemote(elements)
+    }
+
+    const browser = getBrowserObject(parent as WebdriverIO.Element)
+    return browser.waitUntil(() => findIn(parent), {
         timeout: browser.options?.waitforTimeout,
-        timeoutMsg: `Index out of bounds! $$(${String(selector)}) returned only ${items.length} elements.`
-    }) as WebdriverIO.Element
+        timeoutMsg
+    })
 }
 
 const methods: Record<string, Function> = {
@@ -428,6 +454,7 @@ function proxify (array: ElementList, state: ElementArrayState): WebdriverIO.Ele
     }) as unknown as WebdriverIO.ElementArray
 
     state.self = proxy
+    proxyStates.set(proxy, state)
     return proxy
 }
 
@@ -508,8 +535,15 @@ function fromResolved (
  * so those calls still return an element list.
  */
 registerElementArrayFactory((loader, metadata) => {
-    return ElementArray.fromAsyncCallback(
-        loader as () => Promise<ElementList>,
-        metadata as ElementArrayMetadata
-    )
+    const chainedMetadata = metadata as ElementArrayMetadata
+    return ElementArray.fromAsyncCallback(async () => {
+        const items = await (loader as () => Promise<ElementList>)()
+        /**
+         * The items come from the list of the resolved parent. For a multi-remote
+         * parent, that list knows how to build a multi-remote element for an index
+         * past the end.
+         */
+        chainedMetadata.wrapMultiRemote ??= proxyStates.get(items)?.metadata.wrapMultiRemote
+        return items
+    }, chainedMetadata)
 })

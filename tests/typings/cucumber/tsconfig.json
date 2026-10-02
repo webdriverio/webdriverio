@@ -3,7 +3,10 @@
     "outDir": "dist",
     "noImplicitAny": true,
     "strict": false,
-    "lib": ["es2018", "dom"],
+    "lib": ["es2024", "dom"],
+    "module": "NodeNext",
+    "moduleResolution": "Node16",
+    "target": "ES2024",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "types": [

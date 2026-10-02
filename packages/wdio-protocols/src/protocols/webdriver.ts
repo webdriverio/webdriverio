@@ -133,9 +133,11 @@ export default {
         POST: {
             command: 'back',
             description:
-                'The Back command causes the browser to traverse one step backward in the joint session history of the current top-level browsing context. This is equivalent to pressing the back button in the browser chrome or calling `window.history.back`.',
+                'The Back command causes the browser to traverse one step backward in the joint session history of the current top-level browsing context. This is equivalent to pressing the back button in the browser chrome or calling `window.history.back`. ' +
+                'WebdriverIO\'s `browser.back()` uses this endpoint for a classic session. On a WebDriver BiDi session it calls `browsingContext.traverseHistory` with `{ context, delta: -1 }` on the top-level browsing context (a frame selected with `switchFrame` is not the target), then waits for the document readiness mapped from `pageLoadStrategy`: `none` does not wait, `eager` waits for `browsingContext.domContentLoaded`, and `normal` waits for `browsingContext.load`. The wait uses the session page-load timeout. A missing previous entry rejects with `no such history entry`.',
             ref: 'https://w3c.github.io/webdriver/#dfn-back',
             parameters: [],
+            alternativeCommands: ['browser/back'],
             exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/api/webdriver/examples.js#L55-L59'],
         },
     },
@@ -143,9 +145,11 @@ export default {
         POST: {
             command: 'forward',
             description:
-                'The Forward command causes the browser to traverse one step forwards in the joint session history of the current top-level browsing context.',
+                'The Forward command causes the browser to traverse one step forwards in the joint session history of the current top-level browsing context. ' +
+                'WebdriverIO\'s `browser.forward()` uses this endpoint for a classic session. On a WebDriver BiDi session it calls `browsingContext.traverseHistory` with `{ context, delta: 1 }` on the top-level browsing context (a frame selected with `switchFrame` is not the target), then waits for the document readiness mapped from `pageLoadStrategy`: `none` does not wait, `eager` waits for `browsingContext.domContentLoaded`, and `normal` waits for `browsingContext.load`. The wait uses the session page-load timeout. A missing next entry rejects with `no such history entry`.',
             ref: 'https://w3c.github.io/webdriver/#dfn-forward',
             parameters: [],
+            alternativeCommands: ['browser/forward'],
             exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/api/webdriver/examples.js#L63-L69']
         },
     },

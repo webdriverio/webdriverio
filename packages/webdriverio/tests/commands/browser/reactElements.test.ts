@@ -72,4 +72,26 @@ describe('react$', () => {
         ).toBe(3)
         expect(elems.foundWith).toBe('react$$')
     })
+
+    it('should query the list again with the same props and state', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const elems = await browser.react$$('myComp', {
+            props: { some: 'props' },
+            state: { some: 'state' }
+        })
+        /**
+         * expect-webdriverio queries a list again with `parent[foundWith](selector, ...props)`
+         */
+        const parent = elems.parent as unknown as Record<string, (...args: unknown[]) => WebdriverIO.ElementArray>
+        await parent[elems.foundWith](elems.selector, ...elems.props)
+
+        expect(JSON.parse(vi.mocked(fetch).mock.calls.pop()![1]!.body as any).args)
+            .toEqual(['myComp', { some: 'props' }, { some: 'state' }])
+    })
 })

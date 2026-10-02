@@ -278,6 +278,30 @@ When(/^User (.) types a message into the chat/, async (userId) => {
 })
 ```
 
+## Assertions
+
+The `expect` matchers support multi-remote browsers, elements and mocks. By default, every instance must match the expected value:
+
+```js
+import { multiRemoteBrowser, expect } from '@wdio/globals'
+
+await expect(multiRemoteBrowser).toHaveTitle('My App')
+await expect(multiRemoteBrowser.$('h1')).toHaveText('Welcome')
+```
+
+To expect a different value per instance, use `expect.multiRemote()` with one value per instance name:
+
+```js
+import { multiRemoteBrowser, expect } from '@wdio/globals'
+
+await expect(multiRemoteBrowser).toHaveTitle(expect.multiRemote({
+    myChromeBrowser: 'My App',
+    myFirefoxBrowser: expect.stringContaining('App')
+}))
+```
+
+For all the supported matchers and the required configuration, see the [expect-webdriverio multi-remote guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/MultiRemote.md).
+
 ## Accessing one instance
 
 Instance names are not properties of the multi-remote browser or of a multi-remote element. `browser.myChromeBrowser` and `elem.myChromeDriver` are not set. Ask for the session with `getInstance`, or narrow the multi-remote object with `select`:

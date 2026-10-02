@@ -30,7 +30,7 @@ With the Jasmine framework, `expect` combines Jasmine's matchers and the Webdriv
 
 ## Soft Assertions
 
-WebdriverIO includes soft assertions by default from expect-webdriver(5.2.0). Soft assertions allow your tests to continue execution even when an assertion fails. All failures are collected and reported at the end of the test.
+WebdriverIO includes soft assertions by default from `expect-webdriverio` (since 5.2.0). Soft assertions allow your tests to continue execution even when an assertion fails. All failures are collected and reported at the end of the test.
 
 ### Usage
 

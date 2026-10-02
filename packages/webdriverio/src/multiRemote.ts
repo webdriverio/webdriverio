@@ -1,4 +1,3 @@
-import zip from 'lodash.zip'
 import clone from 'lodash.clonedeep'
 import { setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
@@ -15,6 +14,16 @@ import * as BrowserCommands from './commands/browser.js'
 const overridableCommands = new Set(Object.keys(BrowserCommands))
 
 type EventEmitter = (args: unknown) => void
+
+/**
+ * Groups the elements of each instance by index. An index past the end of an
+ * `ElementArray` is a lazy element that waits and then rejects, so an instance
+ * with fewer elements gets `undefined` (#15845).
+ */
+function zipElements (lists: WebdriverIO.Element[][]) {
+    const length = Math.max(0, ...lists.map((list) => list.length))
+    return Array.from({ length }, (_, index) => lists.map((list) => index < list.length ? list[index] : undefined))
+}
 type WrappedClient = {
     options: Options.WebdriverIO,
     commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'select')[],
@@ -264,22 +273,25 @@ export default class MultiRemote {
              */
             if (commandName === '$$') {
                 const selector = args[0] as Selector
+                let loadedInstances = instances
+                const wrapMultiRemote = (elements: unknown) => MultiRemote.elementWrapper(
+                    loadedInstances,
+                    elements,
+                    this.__propertiesObject__,
+                    self,
+                    typeof selector === 'string' ? selector : undefined
+                )
                 return ElementArray.fromAsyncCallback(async () => {
                     const { result, activeInstances } = await execute()
-                    const zippedResult = zip(...(result as unknown[][]))
-                    return zippedResult.map((singleResult) => MultiRemote.elementWrapper(
-                        activeInstances,
-                        singleResult,
-                        this.__propertiesObject__,
-                        self,
-                        typeof selector === 'string' ? selector : undefined
-                    ))
+                    loadedInstances = activeInstances
+                    return zipElements(result as WebdriverIO.Element[][]).map(wrapMultiRemote)
                 }, {
                     selector,
                     foundWith: '$$',
                     parent: this,
                     props: [],
-                    isMultiRemote: true
+                    isMultiRemote: true,
+                    wrapMultiRemote
                 })
             }
 

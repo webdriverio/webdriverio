@@ -40,13 +40,15 @@ describe('uninstallExtension', () => {
                 browserName: 'bidi'
             }
         })
-        vi.spyOn(browser, 'webExtensionUninstall').mockRejectedValue(new Error(
+        const cause = new Error(
             'WebDriver Bidi command "webExtension.uninstall" failed with error: unknown error - Method not available.'
-        ))
-
-        await expect(browser.uninstallExtension('ext-id')).rejects.toThrow(
-            /Method not available[\s\S]*--enable-unsafe-extension-debugging[\s\S]*--remote-debugging-pipe[\s\S]*webExtension\.uninstall/
         )
+        vi.spyOn(browser, 'webExtensionUninstall').mockRejectedValue(cause)
+
+        await expect(browser.uninstallExtension('ext-id')).rejects.toSatisfy((error: Error) => (
+            /Method not available[\s\S]*--enable-unsafe-extension-debugging[\s\S]*--remote-debugging-pipe[\s\S]*webExtension\.uninstall/.test(error.message) &&
+            error.cause === cause
+        ))
     })
 
     it('rejects an empty id', async () => {

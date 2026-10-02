@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "NodeNext",
-    "target": "es2022",
+    "target": "es2024",
     "moduleResolution": "node16",
 
     "strict": true,
@@ -17,7 +17,7 @@
     "removeComments": false,
     "strictFunctionTypes": false,
     "experimentalDecorators": true,
-    "lib": ["es2023", "dom", "es2021"],
+    "lib": ["es2024", "dom"],
     "types": ["node", "mocha"]
   },
 
