@@ -532,6 +532,46 @@ describe('back and forward', () => {
             vi.mocked(browser.scriptEvaluate).mockRestore()
         })
 
+        it('waits for a new document when the read after a load event fails', async () => {
+            let reads = 0
+            let current: 'outgoing' | 'destination' = 'outgoing'
+            vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
+                const expression = params?.expression ?? ''
+                if (!expression.includes('__wdioHistoryTokens')) {
+                    return scriptValue('unsupported')
+                }
+                reads += 1
+                /**
+                 * the read right after the late load event fails
+                 */
+                if (reads === 2) {
+                    throw new Error('realm not ready')
+                }
+                return scriptValue(JSON.stringify({
+                    href: `https://example.test/${current}`,
+                    readyState: 'complete',
+                    marked: current === 'outgoing'
+                }))
+            })
+            vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
+                browser.emit('browsingContext.navigationStarted', navigationInfo('top-level'))
+                return {}
+            })
+
+            let resolved = false
+            const pending = browser.back().then(() => {
+                resolved = true
+            })
+            await vi.waitFor(() => expect(browser.browsingContextTraverseHistory).toHaveBeenCalled())
+            browser.emit('browsingContext.load', navigationInfo('top-level'))
+            await delay(50)
+            expect(resolved).toBe(false)
+
+            current = 'destination'
+            await pending
+            vi.mocked(browser.scriptEvaluate).mockRestore()
+        })
+
         it('returns when a committed document is already complete', async () => {
             vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
                 if ((params?.expression ?? '').includes('document.readyState')) {

@@ -375,7 +375,15 @@ export async function traverseTopLevelHistory (
             .then((snapshot) => parseDocumentSnapshot(snapshot))
             .catch(() => undefined)
             .then((sample) => {
-                if (!sample?.marked) {
+                if (!sample) {
+                    /**
+                     * The read failed, so this event can't be told apart
+                     * from a late one. Wait for a new document instead.
+                     */
+                    void watchTraversalReadyState(true)
+                    return
+                }
+                if (!sample.marked) {
                     succeed(params)
                 }
             })

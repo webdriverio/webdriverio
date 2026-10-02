@@ -74,6 +74,13 @@ describe('url', () => {
             expect(getTitle.mock.contexts[0]).toBe(browser)
         })
 
+        it('updates url when getUrl reads the current one, like a BiDi context', async () => {
+            const page = await browser.url('http://google.com')
+            vi.spyOn(browser, 'getUrl').mockResolvedValue('http://google.com/redirected')
+            await expect(page.getUrl()).resolves.toBe('http://google.com/redirected')
+            expect(page.url).toBe('http://google.com/redirected')
+        })
+
         it('rejects BiDi-only commands with the Classic alternative', async () => {
             const page = await browser.url('http://google.com')
             await expect(page.frame('iframe')).rejects.toThrow(/`frame\(\)` needs a WebDriver BiDi session[\s\S]*browser\.switchFrame\(\)/)

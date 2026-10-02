@@ -111,6 +111,19 @@ describe('findDeepElement - isConnected validation', () => {
         expect(browser.findElement).not.toHaveBeenCalled()
     })
 
+    it('keeps the tracked shadow roots when the missing node is not one of them', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('WebDriver Bidi command "browsingContext.locateNodes" failed with error: no such node - The node with the reference scope-element is not known'))
+        browser.findElement.mockResolvedValue({ [ELEMENT_KEY]: 'classic' })
+
+        await findDeepElement.call(browser, '#where')
+
+        expect(mockForgetContext).not.toHaveBeenCalled()
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledTimes(1)
+    })
+
     it('should fall back to Classic findElement when all BiDi nodes are detached (unscoped)', async () => {
         mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
 

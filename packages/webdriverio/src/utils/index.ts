@@ -707,7 +707,12 @@ export async function findDeepElement(
      * search the current document instead of falling back to classic.
      */
     const locateNodes = () => browser.browsingContextLocateNodes({ locator, context, startNodes }).catch((err: Error) => {
-        if (shadowRoots.length === 0 || !String(err?.message).includes('no such node')) {
+        /**
+         * Only a tracked root the error names is gone. A stale scope element
+         * is retried by the element middleware instead.
+         */
+        const message = String(err?.message)
+        if (!message.includes('no such node') || !shadowRoots.some((root) => message.includes(root))) {
             throw err
         }
         shadowRootManager.forgetContext(context)
@@ -885,7 +890,12 @@ export async function findDeepElements(
      * search the current document instead of falling back to classic.
      */
     const locateNodes = () => browser.browsingContextLocateNodes({ locator, context, startNodes }).catch((err: Error) => {
-        if (shadowRoots.length === 0 || !String(err?.message).includes('no such node')) {
+        /**
+         * Only a tracked root the error names is gone. A stale scope element
+         * is retried by the element middleware instead.
+         */
+        const message = String(err?.message)
+        if (!message.includes('no such node') || !shadowRoots.some((root) => message.includes(root))) {
             throw err
         }
         shadowRootManager.forgetContext(context)

@@ -13,14 +13,22 @@ const BIDI_ONLY_COMMANDS: Record<string, string> = {
  * Appium or Safari. There are no held browsing contexts, only the session's
  * current one, so this is the browser: `$`, `execute`, `getTitle` and every
  * other shared command run on it. `url`, `isFrame`, `parent` and `browser`
- * describe that current context. The BiDi-only commands reject with an
+ * describe that current context. Like on a BiDi context, `url` is the URL
+ * it was navigated to, until `getUrl()` reads the current one. The BiDi-only commands reject with an
  * error that names the Classic alternative, instead of being undefined.
  */
 export function classicContext (browser: WebdriverIO.Browser, url: string): WebdriverIO.BrowsingContext {
+    let currentUrl = url
     return new Proxy(browser, {
         get (target, prop) {
             if (prop === 'url') {
-                return url
+                return currentUrl
+            }
+            if (prop === 'getUrl') {
+                return async () => {
+                    currentUrl = await target.getUrl()
+                    return currentUrl
+                }
             }
             if (prop === 'isFrame') {
                 return false
