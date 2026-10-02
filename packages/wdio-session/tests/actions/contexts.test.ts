@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { setWdioKind } from '@wdio/utils'
 
 import type { Session } from '../../src/session.js'
 
@@ -137,6 +138,25 @@ describe('frame (BiDi) with sibling frames on the same URL', () => {
             "const frame = await page.frame(page.$$('iframe, frame')[1])\n" +
             "const frame2 = await frame.frame(frame.$('iframe#inner'))"
         )
+    })
+})
+
+describe('tabs new (BiDi)', () => {
+    it('focuses the browsing context that newWindow() gives, and only a branded one', async () => {
+        for (const [opened, focused] of [
+            [setWdioKind({ contextId: 'tab-3' }, 'browsing-context'), true],
+            [{ contextId: 'tab-3' }, false],
+            [{ handle: 'tab-3', type: 'tab' }, false]
+        ] as const) {
+            const { session } = harness()
+            const browser = session.browser as unknown as Record<string, unknown>
+            browser.newWindow = vi.fn().mockResolvedValue(opened)
+
+            await tabs(session, { sub: 'new', arg: 'https://c.test/', $cwd: '/' })
+
+            expect({ opened, focused: (browser.switchToWindow as ReturnType<typeof vi.fn>).mock.calls.some(([id]) => id === 'tab-3') })
+                .toEqual({ opened, focused })
+        }
     })
 })
 
