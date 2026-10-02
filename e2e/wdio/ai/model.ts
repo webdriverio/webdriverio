@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { ScriptedChatModel } from '../../../packages/wdio-ai-service/tests/__fixtures__/scriptedModel.js'
+import { scriptedModel } from '../../../packages/wdio-ai-service/tests/__fixtures__/scriptedModel.js'
 
 /**
  * Cache files of this suite go to a temporary directory, so a run never
@@ -17,7 +17,7 @@ export const cacheDir = process.env.WDIO_AI_E2E_DIR
  * Each spec runs in its own worker and imports its own model, so the specs
  * can check what the model was sent.
  */
-export const actModel = new ScriptedChatModel([
+export const actModel = scriptedModel([
     // performs the steps the model chose in a real browser
     { tool: 'snapshot' },
     { tool: 'click', args: { target: 'role/button[name="Add to cart"]' } },
@@ -29,13 +29,13 @@ export const actModel = new ScriptedChatModel([
     { tool: 'fail', args: { reason: 'There is no checkout button on this page' } }
 ])
 
-export const cacheModel = new ScriptedChatModel([
+export const cacheModel = scriptedModel([
     // records once, then replays without the model
     { tool: 'click', args: { target: 'role/button[name="Add to cart"]' } },
     { tool: 'done', args: { summary: 'Added the item' } }
 ])
 
-export const workspaceModel = new ScriptedChatModel([
+export const workspaceModel = scriptedModel([
     // reads console output and page source from the workspace
     { tool: 'snapshot' },
     { tool: 'read_file', args: { file_path: '/console.ndjson' } },
@@ -45,7 +45,7 @@ export const workspaceModel = new ScriptedChatModel([
     { tool: 'done', args: { summary: 'Added the item after checking the stock warning' } }
 ])
 
-export const extractModel = new ScriptedChatModel([
+export const extractModel = scriptedModel([
     // reads typed data from a real page
     { tool: 'snapshot' },
     { tool: 'get', args: { sub: 'text', target: 'role/row[name="Blue Shirt M 1"]' } },
@@ -76,14 +76,17 @@ const refOf = (pattern: RegExp) => (snapshot: string) => {
     return ref
 }
 
-export const scopeModel = new ScriptedChatModel([
+export const scopeModel = scriptedModel([
     // acts inside the element it was called on
     { tool: 'snapshot' },
     { tool: 'fill', args: (snapshot) => ({ target: refOf(/textbox "Email" \[ref=(e\d+)\]/)(snapshot), text: '{{email}}' }) },
-    { tool: 'done', args: { summary: 'Filled in the billing email' } }
+    { tool: 'done', args: { summary: 'Filled in the billing email' } },
+    // refuses a target outside the element
+    { tool: 'fill', args: { target: '#shipping-email', text: 'shipping@example.com' } },
+    { tool: 'fail', args: { reason: 'the shipping email is not part of the billing form' } }
 ])
 
-export const effectsModel = new ScriptedChatModel([
+export const effectsModel = scriptedModel([
     // records what a step did, without the ignored telemetry request
     { tool: 'click', args: { target: '[data-testid="add"]' } },
     { tool: 'done', args: { summary: 'Added it' } },
@@ -92,7 +95,7 @@ export const effectsModel = new ScriptedChatModel([
     { tool: 'done', args: { summary: 'Added it' } }
 ])
 
-export const framesModel = new ScriptedChatModel([
+export const framesModel = scriptedModel([
     // acts inside a held cross-origin frame
     { tool: 'snapshot' },
     { tool: 'click', args: (snapshot) => ({ target: refOf(/button "Pay now" \[ref=(e\d+)\]/)(snapshot) }) },

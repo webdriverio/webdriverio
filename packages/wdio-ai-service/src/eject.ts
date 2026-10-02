@@ -1,18 +1,39 @@
-import type { CacheEntry, CacheFile } from './cache.js'
+import { parse } from '@babel/parser'
+
+import { cacheKey, type CacheEntry, type CacheFile } from './cache.js'
 
 export interface ActCall {
     /**
-     * offsets of the whole statement, from `await` to the optional `;`
+     * offsets of the whole `await <scope>.act(...)` statement
      */
     start: number
     end: number
     indent: string
-    instruction: string
+    /**
+     * `undefined` when the instruction is not a plain string literal
+     */
+    instruction?: string
     id?: string
     /**
      * source of the `values` object, e.g. `{ email: process.env.USER }`
      */
     values?: string
+    /**
+     * full title of the test the call is in, like Mocha's `fullTitle()`,
+     * `undefined` when a title is not a plain string
+     */
+    test?: string
+    /**
+     * position of the call among the `act` calls of its test, the same
+     * count the service uses for the cache key. `undefined` when an earlier
+     * or this call runs in a branch, a loop or a callback, so the position
+     * is not known from the source.
+     */
+    position?: number
+    /**
+     * the call is a statement of its own, so it can be replaced
+     */
+    statement: boolean
 }
 
 export interface EjectResult {
@@ -21,121 +42,155 @@ export interface EjectResult {
     skipped: { instruction: string, reason: string }[]
 }
 
-const QUOTES = new Set(['\'', '"', '`'])
+interface AstNode {
+    type: string
+    start?: number | null
+    end?: number | null
+    [key: string]: unknown
+}
 
+const SUITES = new Set(['describe', 'context', 'suite'])
+const TESTS = new Set(['it', 'test', 'specify'])
 /**
- * end of a string literal that starts at `start`, or -1
+ * an `act` call inside one of these may run any number of times
  */
-function skipString (source: string, start: number) {
-    const quote = source[start]
-    for (let i = start + 1; i < source.length; i++) {
-        if (source[i] === '\\') {
-            i++
-        } else if (quote === '`' && source[i] === '$' && source[i + 1] === '{') {
-            return -1
-        } else if (source[i] === quote) {
-            return i
-        }
-    }
-    return -1
+const CONDITIONAL = new Set([
+    'IfStatement', 'ConditionalExpression', 'LogicalExpression', 'SwitchStatement',
+    'ForStatement', 'ForInStatement', 'ForOfStatement', 'WhileStatement', 'DoWhileStatement',
+    'FunctionExpression', 'ArrowFunctionExpression', 'FunctionDeclaration', 'ClassMethod', 'ObjectMethod'
+])
+const SKIPPED_KEYS = new Set(['loc', 'start', 'end', 'extra', 'leadingComments', 'trailingComments', 'innerComments', 'range'])
+
+function isNode (value: unknown): value is AstNode {
+    return Boolean(value && typeof value === 'object' && typeof (value as AstNode).type === 'string')
 }
 
 /**
- * offset of the bracket that closes the one at `start`
+ * the text of a string literal or a template literal without expressions
  */
-function matchBracket (source: string, start: number) {
-    const open = source[start]
-    const close = open === '(' ? ')' : open === '{' ? '}' : ']'
-    let depth = 0
-    for (let i = start; i < source.length; i++) {
-        const char = source[i]
-        if (QUOTES.has(char)) {
-            const end = skipString(source, i)
-            if (end === -1) {
-                return -1
-            }
-            i = end
-        } else if (char === open) {
-            depth++
-        } else if (char === close && --depth === 0) {
-            return i
-        }
-    }
-    return -1
-}
-
-function unquote (literal: string) {
-    const quote = literal[0]
-    return literal.slice(1, -1).replace(new RegExp(`\\\\(${quote === '`' ? '`' : quote}|\\\\)`, 'g'), '$1')
-}
-
-/**
- * the value of a top-level property in an object literal source
- */
-function property (object: string, name: string): string | undefined {
-    const match = new RegExp(`(?:^|[{,\\s])${name}\\s*:\\s*`).exec(object)
-    if (!match) {
+function literal (node: unknown): string | undefined {
+    if (!isNode(node)) {
         return undefined
     }
-    const start = match.index + match[0].length
-    const char = object[start]
-    if (QUOTES.has(char)) {
-        const end = skipString(object, start)
-        return end === -1 ? undefined : object.slice(start, end + 1)
+    if (node.type === 'StringLiteral') {
+        return node.value as string
     }
-    if (char === '{' || char === '[' || char === '(') {
-        const end = matchBracket(object, start)
-        return end === -1 ? undefined : object.slice(start, end + 1)
+    if (node.type === 'TemplateLiteral' && !(node.expressions as unknown[]).length) {
+        return ((node.quasis as AstNode[])[0].value as { cooked: string }).cooked
     }
-    const end = object.slice(start).search(/[,}]/)
-    return object.slice(start, end === -1 ? undefined : start + end).trim()
+    return undefined
 }
 
 /**
- * Find the `await <scope>.act('instruction', options?)` statements of a
- * spec whose instruction is a plain string literal.
+ * `describe`, `describe.only`, `it.skip`, … of a call
  */
-export function findActCalls (source: string): ActCall[] {
-    const calls: ActCall[] = []
-    const pattern = /\.act\(/g
-    let match: RegExpExecArray | null
-    while ((match = pattern.exec(source))) {
-        const open = match.index + match[0].length - 1
-        const close = matchBracket(source, open)
-        if (close === -1) {
-            continue
-        }
-        const lineStart = source.lastIndexOf('\n', match.index) + 1
-        const statement = source.slice(lineStart, match.index)
-        const prefix = /^(\s*)await\s+[\w$.]+(?:\([^]*\))?$/.exec(statement)
-        if (!prefix) {
-            continue
-        }
-        const args = source.slice(open + 1, close).trim()
-        if (!QUOTES.has(args[0])) {
-            continue
-        }
-        const literalEnd = skipString(args, 0)
-        if (literalEnd === -1) {
-            continue
-        }
-        const rest = args.slice(literalEnd + 1).trim().replace(/^,/, '').trim()
-        const options = rest.startsWith('{') ? rest.slice(0, matchBracket(rest, 0) + 1) : ''
-        const id = options ? property(options, 'id') : undefined
-        let end = close + 1
-        if (source[end] === ';') {
-            end++
-        }
-        calls.push({
-            start: lineStart,
-            end,
-            indent: prefix[1],
-            instruction: unquote(args.slice(0, literalEnd + 1)),
-            ...(id && QUOTES.has(id[0]) ? { id: unquote(id) } : {}),
-            ...(options && property(options, 'values') ? { values: property(options, 'values') } : {})
-        })
+function frameworkName (callee: unknown): string | undefined {
+    if (!isNode(callee)) {
+        return undefined
     }
-    return calls
+    if (callee.type === 'Identifier') {
+        return callee.name as string
+    }
+    if (callee.type === 'MemberExpression' && isNode(callee.object) && callee.object.type === 'Identifier') {
+        return callee.object.name as string
+    }
+    return undefined
+}
+
+function isActCall (node: AstNode) {
+    const callee = node.callee
+    return isNode(callee) && callee.type === 'MemberExpression' && !callee.computed &&
+        isNode(callee.property) && callee.property.type === 'Identifier' && callee.property.name === 'act'
+}
+
+function property (object: unknown, name: string): AstNode | undefined {
+    if (!isNode(object) || object.type !== 'ObjectExpression') {
+        return undefined
+    }
+    const found = (object.properties as AstNode[]).find((prop) => prop.type === 'ObjectProperty' && !prop.computed &&
+        isNode(prop.key) && (prop.key.name === name || prop.key.value === name))
+    return found?.value as AstNode | undefined
+}
+
+interface TestScope {
+    title?: string
+    count: number
+    /**
+     * an `act` call ran conditionally, positions after it are unknown
+     */
+    uncertain: boolean
+}
+
+/**
+ * Find the `act` calls of a spec with `@babel/parser`, with the test they
+ * are in and their position in it.
+ */
+export function findActCalls (source: string, filename = 'spec.ts'): ActCall[] {
+    /**
+     * JSX only for `.tsx` and `.jsx` specs: with it, `<T>value` casts of
+     * `.ts` files would not parse
+     */
+    const plugins: ('typescript' | 'jsx')[] = /\.[jt]sx$/i.test(filename) ? ['typescript', 'jsx'] : ['typescript']
+    const ast = parse(source, { sourceType: 'module', plugins, errorRecovery: true }) as unknown as AstNode
+    const calls: ActCall[] = []
+
+    const visit = (node: AstNode, parents: AstNode[], titles: (string | undefined)[], test: TestScope | undefined, conditional: boolean) => {
+        if (node.type === 'CallExpression') {
+            const name = frameworkName(node.callee)
+            const args = node.arguments as AstNode[]
+            const body = args.find((arg) => arg.type === 'ArrowFunctionExpression' || arg.type === 'FunctionExpression')
+            if (name && body && (SUITES.has(name) || TESTS.has(name))) {
+                const title = literal(args[0])
+                if (SUITES.has(name)) {
+                    visit(body.body as AstNode, [], [...titles, title], undefined, false)
+                } else {
+                    const known = [...titles, title].every((part) => part !== undefined)
+                    visit(body.body as AstNode, [], titles, { title: known ? [...titles, title].join(' ') : undefined, count: 0, uncertain: false }, false)
+                }
+                return
+            }
+            if (isActCall(node)) {
+                const [parent, grandparent] = [parents.at(-1), parents.at(-2)]
+                const statement = parent?.type === 'AwaitExpression' && grandparent?.type === 'ExpressionStatement'
+                if (test) {
+                    test.count++
+                    test.uncertain ||= conditional
+                }
+                const target = statement ? grandparent! : node
+                const start = target.start!
+                const lineStart = source.lastIndexOf('\n', start - 1) + 1
+                const indent = source.slice(lineStart, start)
+                const options = args[1]
+                const id = literal(property(options, 'id'))
+                const values = property(options, 'values')
+                calls.push({
+                    start: /^\s*$/.test(indent) ? lineStart : start,
+                    end: target.end!,
+                    indent: /^\s*$/.test(indent) ? indent : '',
+                    instruction: literal(args[0]),
+                    ...(id !== undefined ? { id } : {}),
+                    ...(values ? { values: source.slice(values.start!, values.end!) } : {}),
+                    ...(test?.title !== undefined ? { test: test.title } : {}),
+                    ...(test && !test.uncertain ? { position: test.count } : {}),
+                    statement: statement && /^\s*$/.test(indent)
+                })
+                return
+            }
+        }
+        const nested = conditional || (parents.length > 0 && CONDITIONAL.has(node.type))
+        for (const [key, value] of Object.entries(node)) {
+            if (SKIPPED_KEYS.has(key)) {
+                continue
+            }
+            for (const child of Array.isArray(value) ? value : [value]) {
+                if (isNode(child)) {
+                    visit(child, [...parents, node], titles, test, nested)
+                }
+            }
+        }
+    }
+    visit(ast, [], [], undefined, false)
+    return calls.sort((a, b) => a.start - b.start)
 }
 
 /**
@@ -143,56 +198,81 @@ export function findActCalls (source: string): ActCall[] {
  * `values.name` expressions.
  */
 export function codeWithValues (code: string, values = 'values') {
-    return code.replace(/(['"`])((?:\\.|(?!\1).)*)\1/g, (literal, _quote: string, body: string) => {
+    return code.replace(/(['"`])((?:\\.|(?!\1).)*)\1/g, (literalSource, _quote: string, body: string) => {
         if (!/\{\{\s*[\w.-]+\s*\}\}/.test(body)) {
-            return literal
+            return literalSource
         }
         const whole = /^\{\{\s*([\w.-]+)\s*\}\}$/.exec(body)
         if (whole) {
             return `${values}[${JSON.stringify(whole[1])}]`
         }
-        return '`' + body.replace(/`/g, '\\`').replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_m, name: string) => `\${${values}[${JSON.stringify(name)}]}`) + '`'
+        /**
+         * the text becomes a template literal: backticks and `${` that were
+         * plain text must stay plain text
+         */
+        const escaped = body.replace(/`/g, '\\`').replace(/\$\{/g, '\\${')
+        return '`' + escaped.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_m, name: string) => `\${${values}[${JSON.stringify(name)}]}`) + '`'
     })
 }
 
-function sameSteps (entries: CacheEntry[]) {
-    const first = JSON.stringify(entries[0].steps.map((step) => step.code))
-    return entries.every((entry) => JSON.stringify(entry.steps.map((step) => step.code)) === first)
+/**
+ * the cache entry of a call: its `id`, or its test and position, with the
+ * platform suffix of an app entry
+ */
+function entryFor (call: ActCall, cache: CacheFile): { key?: string, entry?: CacheEntry } {
+    const key = call.id ?? (call.test !== undefined && call.position !== undefined ? cacheKey(call.test, call.position) : undefined)
+    if (!key) {
+        return {}
+    }
+    if (cache.entries[key]) {
+        return { key, entry: cache.entries[key] }
+    }
+    const platformKeys = Object.keys(cache.entries).filter((candidate) => candidate.startsWith(`${key} (`))
+    return platformKeys.length === 1 ? { key: platformKeys[0], entry: cache.entries[platformKeys[0]] } : { key }
 }
 
 /**
- * Replace `act()` calls with the code recorded in the cache. The instruction
- * stays as a comment. Calls that are not cached, or cached with different
- * steps under several keys, are left alone and reported.
+ * Replace `act()` calls with the code recorded for exactly that call: the
+ * entry of its `id`, or of its test and position in the test. The
+ * instruction stays as a comment. Calls without a matching entry are left
+ * alone and reported.
  */
-export function eject (source: string, cache: CacheFile, options: { test?: string } = {}): EjectResult {
+export function eject (source: string, cache: CacheFile, options: { test?: string, filename?: string } = {}): EjectResult {
     const result: EjectResult = { source, ejected: [], skipped: [] }
-    const keys = Object.keys(cache.entries).filter((key) => !options.test || key.startsWith(`${options.test} › `))
     let output = ''
     let cursor = 0
-    for (const call of findActCalls(source)) {
-        const candidates = call.id
-            ? (cache.entries[call.id] && cache.entries[call.id].instruction === call.instruction ? [cache.entries[call.id]] : [])
-            : keys.map((key) => cache.entries[key]).filter((entry) => entry.instruction === call.instruction)
-        if (!candidates.length) {
+    for (const call of findActCalls(source, options.filename)) {
+        if (call.instruction === undefined || (options.test && call.test !== options.test)) {
+            continue
+        }
+        const { key, entry } = entryFor(call, cache)
+        if (!key) {
+            result.skipped.push({ instruction: call.instruction, reason: 'the call has no fixed position in a test with a plain string title, pass `id` to the call' })
+            continue
+        }
+        if (!entry) {
             result.skipped.push({ instruction: call.instruction, reason: 'no cached steps, run the test once to record them' })
             continue
         }
-        if (!sameSteps(candidates)) {
-            result.skipped.push({ instruction: call.instruction, reason: 'recorded with different steps in several tests, pass `id` or `--test`' })
+        if (entry.instruction !== call.instruction) {
+            result.skipped.push({ instruction: call.instruction, reason: `the steps cached as "${key}" are for "${entry.instruction}", run the test again to record this call` })
+            continue
+        }
+        if (!call.statement) {
+            result.skipped.push({ instruction: call.instruction, reason: 'only `await <scope>.act(...)` statements on their own line are replaced' })
             continue
         }
         const lines = [`${call.indent}// act: ${call.instruction.replace(/\n/g, ' ')}`]
         if (call.values) {
             lines.push(`${call.indent}const values = ${call.values}`)
         }
-        lines.push(...candidates[0].steps.filter((step) => step.code).map((step) => `${call.indent}${codeWithValues(step.code)}`))
+        lines.push(...entry.steps.filter((step) => step.code).map((step) => `${call.indent}${codeWithValues(step.code)}`))
         const block = call.values
             ? [`${call.indent}{`, ...lines.map((line) => `    ${line}`), `${call.indent}}`].join('\n')
             : lines.join('\n')
         output += source.slice(cursor, call.start) + block
         cursor = call.end
-        result.ejected.push({ instruction: call.instruction, steps: candidates[0].steps.length })
+        result.ejected.push({ instruction: call.instruction, steps: entry.steps.length })
     }
     result.source = output + source.slice(cursor)
     return result

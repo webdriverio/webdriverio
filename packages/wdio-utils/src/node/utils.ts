@@ -7,13 +7,15 @@ import cp from 'node:child_process'
 import decamelize from 'decamelize'
 import logger from '@wdio/logger'
 import {
-    install, canDownload, resolveBuildId, detectBrowserPlatform, Browser, ChromeReleaseChannel,
-    computeExecutablePath, type InstallOptions, type BrowserPlatform
+    install, canDownload, resolveBuildId, detectBrowserPlatform, getVersionComparator, Browser, BrowserPlatform,
+    Cache, ChromeReleaseChannel, computeExecutablePath, type InstallOptions
 } from '@puppeteer/browsers'
 import { download as downloadGeckodriver } from 'geckodriver'
 import { locateChrome, locateFirefox, locateApp } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
+
+import { ElectronChromedriverProvider, getElectronVersionForChromium } from './electronChromedriverProvider.js'
 
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
@@ -243,14 +245,34 @@ function locateChromeSafely () {
     return locateChrome().catch(() => undefined)
 }
 
+function locateInstalledBrowser (browserName: Browser) {
+    if (browserName === Browser.CHROME) {
+        return locateChromeSafely()
+    }
+    if (browserName === Browser.CHROMIUM) {
+        return locateApp({
+            appName: Browser.CHROMIUM,
+            macOsName: Browser.CHROMIUM,
+            linuxWhich: 'chromium-browser'
+        }).catch(() => undefined)
+    }
+    return locateFirefox().catch(() => undefined)
+}
+
+function getPuppeteerBrowser (browserName?: string) {
+    if (browserName === Browser.FIREFOX) {
+        return Browser.FIREFOX
+    }
+    if (browserName === Browser.CHROMIUM) {
+        return Browser.CHROMIUM
+    }
+    return Browser.CHROME
+}
+
 export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.Capabilities) {
     caps.browserName = caps.browserName?.toLowerCase()
 
-    const browserName = caps.browserName === Browser.FIREFOX
-        ? Browser.FIREFOX
-        : caps.browserName === Browser.CHROMIUM
-            ? Browser.CHROMIUM
-            : Browser.CHROME
+    const browserName = getPuppeteerBrowser(caps.browserName)
     const exist = await fsp.access(cacheDir).then(() => true, () => false)
     const isChromeOrChromium = browserName === Browser.CHROME || caps.browserName === Browser.CHROMIUM
     if (!exist) {
@@ -273,6 +295,10 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
         : caps['moz:firefoxOptions']
     ) || {}
     if (typeof browserOptions.binary === 'string') {
+        // don't probe an Electron app: running it with `--version` starts the app
+        if (caps['wdio:electronVersion']) {
+            return { executablePath: browserOptions.binary, browserVersion: caps.browserVersion }
+        }
         return {
             executablePath: browserOptions.binary,
             browserVersion: (
@@ -292,15 +318,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     }
 
     if (!caps.browserVersion) {
-        const executablePath = browserName === Browser.CHROME
-            ? await locateChromeSafely()
-            : browserName === Browser.CHROMIUM
-                ? await locateApp({
-                    appName: Browser.CHROMIUM,
-                    macOsName: Browser.CHROMIUM,
-                    linuxWhich: 'chromium-browser'
-                }).catch(() => undefined)
-                : await locateFirefox().catch(() => undefined)
+        const executablePath = await locateInstalledBrowser(browserName)
         const browserVersion = isChromeOrChromium
             ? getBuildIdByChromePath(executablePath)
             : await getBuildIdByFirefoxPath(executablePath)
@@ -411,11 +429,30 @@ function chromedriverSetupKey (cacheDir: string, platform: string, buildId: stri
     return `chromedriver:${driverCacheKey(cacheDir)}:${platform}:${buildId}`
 }
 
-export async function setupChromedriver (cacheDir: string, driverVersion?: string) {
+/**
+ * Chrome for Testing ships linux-arm64 Chromedriver from this build. For older builds,
+ * `@puppeteer/browsers` resolves LINUX_ARM to the linux64 (x64) archive.
+ */
+const CFT_LINUX_ARM64_FLOOR = '153.0.8001.0'
+
+export async function setupChromedriver (cacheDir: string, driverVersion?: string, electronVersion?: string) {
     const platform = detectBrowserPlatform()
     if (!platform) {
         throw new Error('The current platform is not supported.')
     }
+
+    if (electronVersion && !(driverVersion && getChromedriverCdnUrl())) {
+        const electronChromedriver = await installElectronChromedriver(cacheDir, platform, electronVersion).catch((err) => {
+            if (!driverVersion) {
+                throw err
+            }
+            log.warn(`Couldn't download Chromedriver from Electron v${electronVersion}, using the one for Chrome v${driverVersion}: ${describeRejection(err)}`)
+        })
+        if (electronChromedriver) {
+            return electronChromedriver
+        }
+    }
+
     const version = driverVersion || getBuildIdByChromePath(await locateChromeSafely()) || ChromeReleaseChannel.STABLE
     /**
      * resolve before sharing, so that requests which only look different - `undefined`,
@@ -423,10 +460,55 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
      * same key. Resolving reads no state and writes nothing, so doing it twice is free.
      */
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
+    if (platform === BrowserPlatform.LINUX_ARM && getVersionComparator(Browser.CHROMEDRIVER)(buildId, CFT_LINUX_ARM64_FLOOR) < 0) {
+        const matchingElectronVersion = getElectronVersionForChromium(buildId)
+        if (!matchingElectronVersion) {
+            throw new Error(
+                `Chrome for Testing has no linux-arm64 Chromedriver before v${CFT_LINUX_ARM64_FLOOR}, and no Electron release ships one for Chrome v${buildId}. ` +
+                'See https://webdriver.io/docs/arm64-chromedriver'
+            )
+        }
+        return installElectronChromedriver(cacheDir, platform, matchingElectronVersion)
+    }
+
     return shareDriverSetup(
         chromedriverSetupKey(cacheDir, platform, buildId),
         () => installChromedriver(cacheDir, platform, version, buildId)
-    )
+    ).catch((err) => {
+        const fallbackElectronVersion = !getChromedriverCdnUrl() && getElectronVersionForChromium(buildId)
+        if (!fallbackElectronVersion) {
+            throw err
+        }
+        log.warn(`Couldn't download Chromedriver v${buildId} from Chrome for Testing, using the one from Electron v${fallbackElectronVersion}: ${describeRejection(err)}`)
+        return installElectronChromedriver(cacheDir, platform, fallbackElectronVersion).catch((electronErr) => {
+            log.warn(`Couldn't download Chromedriver from Electron v${fallbackElectronVersion} either: ${describeRejection(electronErr)}`)
+            throw err
+        })
+    })
+}
+
+function installElectronChromedriver (cacheDir: string, platform: BrowserPlatform, electronVersion: string) {
+    return shareDriverSetup(chromedriverSetupKey(cacheDir, platform, electronVersion), async () => {
+        const cache = new Cache(cacheDir)
+        const provider = new ElectronChromedriverProvider()
+        const relativeExecutablePath = provider.getExecutablePath()
+        const executablePath = path.join(cache.installationDir(Browser.CHROMEDRIVER, platform, electronVersion), relativeExecutablePath)
+        if (!await fsp.access(executablePath).then(() => true, () => false)) {
+            // write the executable path to the cache to avoid `install()` throwing for prerelease versions on LINUX_ARM
+            cache.writeExecutablePath(Browser.CHROMEDRIVER, platform, electronVersion, relativeExecutablePath)
+            await _install({
+                cacheDir,
+                buildId: electronVersion,
+                platform,
+                browser: Browser.CHROMEDRIVER,
+                unpack: true,
+                providers: [provider],
+                downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
+            })
+        }
+        log.info(`Using Chromedriver from Electron v${electronVersion} at ${executablePath}`)
+        return { executablePath }
+    })
 }
 
 async function installChromedriver (cacheDir: string, platform: BrowserPlatform, version: string, buildId: string): Promise<{ executablePath: string }> {

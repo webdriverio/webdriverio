@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import { expect, describe, it, vi } from 'vitest'
+import { setWdioKind } from '@wdio/utils'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../../src/session/context.js', () => ({
@@ -43,7 +44,7 @@ describe('setFiles', () => {
     it('uses the browsing context the element was found in', async () => {
         const inputSetFiles = vi.fn(async () => ({}))
         const browser = { isBidi: true, inputSetFiles }
-        const frame = { contextId: 'held-frame', browser, parent: browser }
+        const frame = setWdioKind({ contextId: 'held-frame', browser, parent: browser }, 'browsing-context')
         const elem = { elementId: 'shared-id', parent: frame } as unknown as WebdriverIO.Element
         const absolute = path.resolve('/tmp/file.png')
 

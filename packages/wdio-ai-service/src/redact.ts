@@ -36,11 +36,12 @@ export function substitute<T> (input: T, values: Record<string, string> = {}): T
 
 /**
  * Replace every value with its `{{name}}`, in a string, an array or a plain
- * object. Longer values go first, so a value that contains another value is
+ * object. Values are a record, or name and value pairs when one name had
+ * several values. Longer values go first, so a value that contains another value is
  * replaced as a whole.
  */
-export function redact<T> (input: T, values: Record<string, string> = {}): T {
-    const entries = Object.entries(values)
+export function redact<T> (input: T, values: Record<string, string> | [name: string, value: string][] = {}): T {
+    const entries = (Array.isArray(values) ? values : Object.entries(values))
         .filter(([, value]) => typeof value === 'string' && value.length > 0)
         .sort(([, a], [, b]) => b.length - a.length)
     if (!entries.length) {

@@ -3,6 +3,11 @@ import type { SnapshotNode, SnapshotRef } from './format.js'
 
 export interface CollectOptions {
     roles: RoleRule[]
+    /**
+     * roles the `role/` selector accepts, other roles get no `role/`
+     * candidate (`knownRoles()` of `@wdio/utils`)
+     */
+    knownRoles?: string[]
     counter: number
     all: boolean
     boxes: boolean
@@ -356,10 +361,6 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     }
 
     const namesSeen = new Map<string, number>()
-    /**
-     * `role + name` pairs, for `role/<role>[name="..."]` candidates
-     */
-    const roleNamesSeen = new Map<string, number>()
     const NO_ROLE_SELECTOR = new Set(['generic', 'text', 'none', 'presentation', 'paragraph'])
 
     function looksGenerated (id: string) {
@@ -395,6 +396,48 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return parts.join(' > ')
     }
 
+    /**
+     * Whether an element or one of its ancestors, across shadow hosts, is
+     * hidden: it is not part of the accessibility tree.
+     */
+    function hiddenInTree (el: Element) {
+        let current: Element | null = el
+        while (current) {
+            /**
+             * a light DOM child of a shadow host that no slot takes is not
+             * rendered, the snapshot walk does not see it either
+             */
+            if (isHidden(current) || (current.parentElement?.shadowRoot && !current.assignedSlot)) {
+                return true
+            }
+            current = current.parentElement || ((current.getRootNode() as ShadowRoot).host ?? null)
+        }
+        return false
+    }
+
+    /**
+     * How many elements of the whole document, open shadow roots included,
+     * have a role and name, counted the way the `role/` selector matches:
+     * also inside named controls the snapshot does not walk into. One pass
+     * per role, on demand.
+     */
+    const roleNameCounts = new Map<string, Map<string, number>>()
+    function roleNameCount (role: string, name: string) {
+        let counts = roleNameCounts.get(role)
+        if (!counts) {
+            counts = new Map()
+            for (const candidate of deepQueryAll(document, '*')) {
+                if (roleOf(candidate) !== role || hiddenInTree(candidate)) {
+                    continue
+                }
+                const candidateName = collapse(accessibleName(candidate, role))
+                counts.set(candidateName, (counts.get(candidateName) || 0) + 1)
+            }
+            roleNameCounts.set(role, counts)
+        }
+        return counts.get(name) || 0
+    }
+
     function candidates (el: Element, role: string, name: string): string[] {
         const unique = (selector: string) => deepQueryAll(document, selector).length === 1
         const out: string[] = []
@@ -407,7 +450,8 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
                 }
             }
         }
-        if (name && !NO_ROLE_SELECTOR.has(role) && roleNamesSeen.get(`${role}\n${name}`) === 1 && !/[\n]/.test(name)) {
+        const selectable = !NO_ROLE_SELECTOR.has(role) && (!opts.knownRoles || opts.knownRoles.includes(role))
+        if (name && selectable && !/[\n]/.test(name) && roleNameCount(role, name) === 1) {
             out.push(`role/${role}[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`)
         }
         if (name && namesSeen.get(name) === 1 && !/[\n]/.test(name)) {
@@ -486,7 +530,6 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         if (name) {
             out.name = truncate(name)
             namesSeen.set(name, (namesSeen.get(name) || 0) + 1)
-            roleNamesSeen.set(`${role}\n${name}`, (roleNamesSeen.get(`${role}\n${name}`) || 0) + 1)
         }
         if (hidden) {
             out.hidden = true

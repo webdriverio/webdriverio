@@ -139,9 +139,27 @@ Sometimes "does it work" means "does it look right", and sometimes "the app" is 
 
 **One family of services for app frameworks.** Not every app lives in a browser tab. [goosewobbler](https://github.com/goosewobbler) built and maintains [WebdriverIO Desktop & Mobile](https://github.com/webdriverio/desktop-mobile), and has carried nearly all of the work on it. It is a set of services that test apps the way their frameworks build them. [Electron](/docs/desktop-testing/electron) is now `@wdio/electron-service`. [Tauri](/docs/desktop-testing/tauri) (including the CrabNebula driver on macOS) and [Dioxus](/docs/desktop-testing/dioxus) are stable. React Native and Flutter services are feature-complete on the `next` tag, and Electrobun has early support. Each service sets up, starts and tears down the right driver for you, so a desktop test starts as simply as a browser test.
 
-**The same toolbox in every framework.** Across all of them you get the same API: mock the app's native APIs for deterministic tests, run code in the app's own runtime (such as Electron's main process or the Dart VM in Flutter), test deeplinks and multiple windows, run several app instances with multiremote, and capture the app's logs. A browser mode tests the app's UI in Chrome against its dev server, without building the native binary. For agents, that means verifying a desktop feature works just like verifying a web page, and `wdio session open electron`, `open tauri` and `open dioxus` build on exactly these services.
+**The same toolbox in every framework.** Across all of them you get the same API: mock the app's native APIs for deterministic tests, run code in the app's own runtime (such as Electron's main process or the Dart VM in Flutter), test deeplinks and multiple windows, run several app instances with multi-remote, and capture the app's logs. A browser mode tests the app's UI in Chrome against its dev server, without building the native binary. For agents, that means verifying a desktop feature works just like verifying a web page, and `wdio session open electron`, `open tauri` and `open dioxus` build on exactly these services.
 
 **Real apps in CI, without a screen.** Agents run in CI, and CI machines have no display. goosewobbler first solved this in v9 with `@wdio/xvfb`, which gave Linux runners a virtual display automatically. In v10 it grew into `@wdio/display-server`, which adds native headless Wayland through Weston. The testrunner now starts one display server for the whole run: Weston first, with Xvfb as the fallback. Browsers and desktop apps run on a headless Linux machine without extra setup. The [headless and display server guide](/docs/headless-and-display-servers) covers the options, and the [migration guide](/docs/v10-migration#virtual-displays-on-linux) shows how to rename the old `xvfb*` settings.
+
+### Tabs, windows and frames you can hold
+
+Until v10, a WebdriverIO session had one implicit "current" browsing context. `switchWindow` and `switchFrame` moved that pointer, and every following command ran wherever it pointed. Checking a payment iframe, a second tab and the main page in one test meant switching back and forth, and forgetting a single switch sent the next command to the wrong place.
+
+In a WebDriver BiDi session, a tab, a window and a frame are now a `WebdriverIO.BrowsingContext` value you hold. `browser.url()` returns the page it opened, `browser.newWindow()` returns the new tab without switching to it, and `context.frame()` returns a frame of that page. Commands on each value run in that context, so you can work with several at once:
+
+```ts
+const checkout = await browser.url('https://example.com/checkout')
+const docs = await browser.newWindow('https://webdriver.io', { type: 'tab' })
+const payment = await checkout.frame('#payment')
+
+await payment.$('#card').setValue('4242')
+await checkout.$('h1').getText()
+await docs.getTitle()
+```
+
+Windows the test didn't open, like a `window.open` popup, come from `browser.browsingContexts()`. Because nothing moves a hidden pointer anymore, `switchWindow` and `switchFrame` throw in BiDi sessions. Classic sessions keep them, and the [migration guide](/docs/v10-migration#switchtoframe) shows the new calls.
 
 ### Small API changes you will notice
 

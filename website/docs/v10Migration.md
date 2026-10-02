@@ -45,7 +45,7 @@ Code passed to `browser.execute` stays at ES2021, so it can run in older browser
 
 `failHookAffectedTests` defaults to `true`. A failing `before` or `beforeEach` hook fails the tests that hook skipped. Set `mochaOpts.failHookAffectedTests` to `false` to report only the hook.
 
-Use [`expect-webdriverio` 6.1.0](https://github.com/webdriverio/expect-webdriverio/releases/tag/v6.1.0) or newer with this adapter. Mocha can load that package twice in one process; 6.1.0 shares assertion state across those copies ([expect-webdriverio#2221](https://github.com/webdriverio/expect-webdriverio/pull/2221)).
+Use `expect-webdriverio` 8, see [expect-webdriverio 8](#expect-webdriverio-8). Mocha can load that package twice in one process; it shares assertion state across those copies ([expect-webdriverio#2221](https://github.com/webdriverio/expect-webdriverio/pull/2221)).
 
 Mocha 12 changes that can leak through `mochaOpts`:
 
@@ -133,7 +133,7 @@ Other effects of this change:
 - Jasmine's spy matchers work without `await`. In v9, `toHaveBeenCalled`, `toHaveSpyInteractions` and `toHaveNoOtherSpyInteractions` failed with "Does not take arguments", and an uncalled spy passed without `await`.
 - `jasmine.addMatchers` is no longer replaced, so Jasmine does not show its "Monkey patching detected" warning anymore.
 
-`toHaveSize` has two meanings. On a WebdriverIO value, it is the WebdriverIO matcher and checks the size of the element: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multiremote element, a browser, the `some()` wrapper, or a promise such as a chainable `$()`. On any other value, it is Jasmine's matcher and checks the length. In v9, Jasmine's matcher always ran.
+`toHaveSize` has two meanings. On a WebdriverIO value, it is the WebdriverIO matcher and checks the size of the element: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multi-remote element, a browser, a browsing context, a mock, the `some()` wrapper, or a promise such as a chainable `$()`. On any other value, it is Jasmine's matcher and checks the length. In v9, Jasmine's matcher always ran.
 
 ```js
 expect([1, 2]).toHaveSize(2)                                   // Jasmine, sync
@@ -152,6 +152,21 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
 ```
 
 `expect.oneOf()` now also works in Jasmine specs. Before, it had a type but was not on the Jasmine `expect` at runtime.
+
+## expect-webdriverio 8
+
+`@wdio/globals`, `@wdio/runner` and `@wdio/browser-runner` require `expect-webdriverio` 8 as a peer dependency. In v9, it was `expect-webdriverio` 7. If your `package.json` lists `expect-webdriverio`, update it to version 8 in the same change as the `@wdio/*` packages.
+
+`expect-webdriverio` 8 has its own breaking changes. Its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8) lists each change and its replacement. These changes are the most likely to affect a test suite:
+
+- `toHaveText` on `$$()` compares the elements index by index. An expected array in another order than the page fails. Use the page order, `expect.oneOf()` or `expect.arrayContaining()`.
+- An array of expected values on a single element fails `toHaveText`, `toHaveHTML`, `toHaveComputedLabel` and `toHaveComputedRole`. Use `expect.oneOf()`.
+- `setFeatureFlags()` and the `featureFlags` option were removed.
+- These deprecated APIs were removed: `setOptions` (use `setDefaultOptions`), `getConfig` (use `getDefaultOptions`), `matchers` (use `wdioCustomMatchers`), `toHaveAttr` (use `toHaveAttribute`), `toHaveClass` (use `toHaveElementClass`), `toBeRequestedWithResponse()` (use `toBeRequestedWith({ response })`), and `expect-webdriverio/types` (use `expect-webdriverio/expect-global`).
+- The `beforeAssertion` and `afterAssertion` hooks get the name of the alias that the test called, for `toBeExisting`, `toBePresent`, `toHaveLink`, `toHaveValue` and `toBeRequested`. In v9, they got the name of the matcher behind the alias, for example `toExist` for `toBeExisting`.
+- On a multi-remote browser, give the result of `$$()` to `expect`. A plain array such as `[...elements]` or `Array.from(elements)` is not recognized as elements, and the assertion fails.
+
+On a multi-remote browser, one assertion checks every instance, and `expect.multiRemote()` gives one expected value per instance. See [Multiremote assertions](/docs/multiremote#assertions).
 
 ## Multi-remote Global
 
@@ -234,6 +249,17 @@ TypeScript 6 also changes the default of `types` to `[]`, so it no longer loads 
 `npm create wdio@latest` writes `compilerOptions.target` and `compilerOptions.lib` as `es2024`. Type-checking that file needs TypeScript 5.7 or newer. `tsx`, which runs the config and the tests, does not type-check, so an older compiler only matters when you run `tsc` yourself.
 
 An existing `tsconfig.json` is not rewritten. A generated config that extends another config keeps the `target` and `lib` of the parent.
+
+In the `afterAssertion` hook, the type of `params.result` is now `{ pass, message }`, as the matchers give it. In v9, the type was `{ result, message }`, but `params.result.result` was always `undefined` at runtime. Read `params.result.pass`:
+
+```diff
+  afterAssertion (params) {
+-     console.log(params.matcherName, params.result.result)
++     console.log(params.matcherName, params.result.pass)
+  }
+```
+
+`pass` is `true` when the value matches the expected value, also with `.not`. Thus with `.not`, the assertion passes when `pass` is `false`. The hook does not tell if the test used `.not`.
 
 ## Reporters
 
@@ -510,18 +536,48 @@ With the testrunner and `injectGlobals` left on, the instance name is still a gl
 
 Command results stay in capability order: the first entry belongs to the first key in the capabilities object.
 
-`browser.$$()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteElementArray`, not a plain `MultiRemoteElement[]`. It is still an array, so an index read such as `elements[0]` keeps working. `custom$$` and `react$$` still return one result per instance. They are not zipped into one array.
+`browser.$$()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteElementArray`, not a plain `MultiRemoteElement[]`. It is still an array, so an index read such as `elements[0]` keeps working.
+
+`custom$()`, `react$()` and, on an element, `shadow$()`, `nextElement()`, `previousElement()` and `parentElement()` return one `WebdriverIO.MultiRemoteElement`, as `$()` does. In v9 they returned one element per instance in a plain array. Read the element of one browser with `getInstance`:
+
+```diff
+- const [chromeHost, firefoxHost] = await browser.custom$('byTestId', 'host')
+- await chromeHost.click()
++ const host = await browser.custom$('byTestId', 'host')
++ await host.getInstance('myChromeBrowser').click()
+```
+
+`custom$$()`, `react$$()` and, on an element, `shadow$$()` return one `WebdriverIO.MultiRemoteElementArray`, as `$$()` does. In v9 they returned one list per instance in a plain array. Each entry addresses every instance. An instance that finds fewer elements has no element at that index:
+
+```diff
+- const [chromeItems, firefoxItems] = await browser.custom$$('byTestId', 'item')
+- await chromeItems[0].click()
++ const items = await browser.custom$$('byTestId', 'item')
++ await items[0].getInstance('myChromeBrowser').click()
+```
 
 `WDIO_ENABLE_MULTI_REMOTE_SELECT` and `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY` have been removed. `select()` is always available, and `$$()` always returns the element array above. Delete both variables.
+
+## Binary mock responses
+
+`mock.respond()` and `mock.respondOnce()` accept `Uint8Array` and `ArrayBuffer` payloads, including a polyfilled `Buffer` in component tests without a global `Buffer`.
+
+`mock.getBinaryResponse()` is now typed as `Uint8Array | null`. It still returns a `Buffer` in Node.js, but returns a `Uint8Array` in the browser. To use Buffer-specific methods in Node.js, convert a non-null result first:
+
+```diff
+- const base64 = mock.getBinaryResponse(requestId)?.toString('base64')
++ const bytes = mock.getBinaryResponse(requestId)
++ const base64 = bytes === null ? undefined : Buffer.from(bytes).toString('base64')
+```
 
 ## Multi-remote network mocks
 
 `browser.mock()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteMock`, not an array of mocks. `respond`, `restore`, and the other mock methods run on every instance. Read captured requests from the mock for one browser. Use the `WebdriverIO.MultiRemoteMock` type from the global `WebdriverIO` namespace.
 
 ```diff
-- const [chromeMock, firefoxMock] = await browser.mock('**/api')
+- const [chromeMock, firefoxMock] = await browser.mock('*/api')
 - expect(chromeMock.calls).toHaveLength(1)
-+ const mock = await browser.mock('**/api')
++ const mock = await browser.mock('*/api')
 + mock.respond({ ok: true })
 + expect(mock.getInstance('myChromeBrowser').calls).toHaveLength(1)
 + expect(mock.instances).toEqual(['myChromeBrowser', 'myFirefoxBrowser'])

@@ -188,14 +188,26 @@ In this example, the `myFirefoxBrowser` instance will start waiting on a message
 
 MultiRemote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
 
+### What `$` returns
+
+On a multi-remote browser, `$`, `custom$` and `react$` return one `MultiRemoteElement`. On a multi-remote element, `shadow$`, `nextElement`, `previousElement` and `parentElement` also return one. Its commands run on every instance, and `getInstance` gives the element of one browser.
+
+```js
+const host = await $('my-component')
+const button = await host.shadow$('button')
+
+await button.click()                                  // clicks in every browser
+await button.getInstance('myChromeBrowser').click()  // clicks only in Chrome
+```
+
 ### What `$$` returns
 
-On a multi-remote browser, `$$` returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`. `custom$$` and `react$$` are not zipped this way: each returns one result per instance.
+On a multi-remote browser, `$$` returns a `MultiRemoteElementArray`. Each entry is a `MultiRemoteElement` that addresses every instance at once, and the array itself carries the same information as a regular `ElementArray`. `custom$$`, `react$$` and, on a multi-remote element, `shadow$$` return the same kind of list.
 
 ```js
 const messages = await $$('.messages')
 
-messages.length      // how many elements were found
+messages.length      // the largest number of elements that one instance found
 messages[0]          // a MultiRemoteElement, addressing all instances
 messages.selector    // '.messages'
 messages.foundWith   // '$$'
@@ -205,6 +217,20 @@ messages.isMultiRemote // true, so it can be told apart from a plain ElementArra
 // the async array helpers are available, as on a single browser
 await messages.map((m) => m.getText())
 await messages.filter(async (m) => await m.isDisplayed())
+```
+
+When the instances find a different number of elements, an entry has no element for an instance that found fewer. For that instance, `getInstance()` throws, and a command on the entry fails. Use `select()` with the instances that have the element. An `expect` matcher on the whole list checks each instance with its own elements:
+
+```js
+// myChromeBrowser finds 3 messages, myFirefoxBrowser finds 2
+const messages = await $$('.messages')
+
+messages.length                                       // 3
+await messages[2].select('myChromeBrowser').click()  // only Chrome has a third message
+await expect(messages).toBeElementsArrayOfSize(expect.multiRemote({
+    myChromeBrowser: 3,
+    myFirefoxBrowser: 2
+}))
 ```
 
 :::info
@@ -218,7 +244,7 @@ Before v10 this returned a plain array unless `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_
 On a multi-remote browser, `mock()` returns a `MultiRemoteMock`. It is not an array. `respond()`, `restore()`, and the other mock methods run on every instance. Captured requests stay on the mock for one browser, so read them with `getInstance`:
 
 ```ts
-const mock = await browser.mock('**/users/list')
+const mock = await browser.mock('*/users/list')
 
 mock.instances // ['myChromeBrowser', 'myFirefoxBrowser']
 mock.respond([{ id: 1 }])
@@ -232,7 +258,7 @@ const firefoxCalls = mock.getInstance('myFirefoxBrowser').calls
 `instances` follows the order the mocks were created. After `select()`, that order can differ from `browser.instances`:
 
 ```ts
-const selected = await browser.select('myFirefoxBrowser', 'myChromeBrowser').mock('**/users/list')
+const selected = await browser.select('myFirefoxBrowser', 'myChromeBrowser').mock('*/users/list')
 
 selected.instances // ['myFirefoxBrowser', 'myChromeBrowser']
 selected.getInstance('myChromeBrowser') // the Chrome mock, whatever the order
@@ -243,7 +269,7 @@ selected.getInstance('myChromeBrowser') // the Chrome mock, whatever the order
 To mock one browser only, call `mock()` on that instance:
 
 ```ts
-const chromeOnly = await browser.getInstance('myChromeBrowser').mock('**/users/list')
+const chromeOnly = await browser.getInstance('myChromeBrowser').mock('*/users/list')
 ```
 
 ## Accessing browser instances using strings via the browser object
@@ -277,6 +303,30 @@ When(/^User (.) types a message into the chat/, async (userId) => {
     await browser.getInstance(`user${userId}`).$('#send').click()
 })
 ```
+
+## Assertions
+
+The `expect` matchers support multi-remote browsers, elements and mocks. By default, every instance must match the expected value:
+
+```js
+import { multiRemoteBrowser, expect } from '@wdio/globals'
+
+await expect(multiRemoteBrowser).toHaveTitle('My App')
+await expect(multiRemoteBrowser.$('h1')).toHaveText('Welcome')
+```
+
+To expect a different value per instance, use `expect.multiRemote()` with one value per instance name:
+
+```js
+import { multiRemoteBrowser, expect } from '@wdio/globals'
+
+await expect(multiRemoteBrowser).toHaveTitle(expect.multiRemote({
+    myChromeBrowser: 'My App',
+    myFirefoxBrowser: expect.stringContaining('App')
+}))
+```
+
+For all the supported matchers and the required configuration, see the [expect-webdriverio multi-remote guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/MultiRemote.md).
 
 ## Accessing one instance
 

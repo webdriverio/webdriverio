@@ -39,12 +39,28 @@ export default function findByRole (
     const wanted = normalize(role)
 
     /**
+     * A light DOM child of a shadow host is only rendered when a slot of
+     * the shadow tree takes it. Without one it is not exposed, although it
+     * is still in the document.
+     */
+    const rendered = (el: Element) => {
+        let current: Element | null = el
+        while (current?.parentElement) {
+            if (current.parentElement.shadowRoot && !current.assignedSlot) {
+                return false
+            }
+            current = current.parentElement
+        }
+        return true
+    }
+
+    /**
      * `isInaccessible` stops at a shadow root, continue at its host
      */
     const inAccessibilityTree = (el: Element) => {
         let current: Element | null = el
         while (current) {
-            if (a11y.isInaccessible(current)) {
+            if (!rendered(current) || a11y.isInaccessible(current)) {
                 return false
             }
             const rootNode = current.getRootNode() as ShadowRoot

@@ -32,7 +32,7 @@ describe('formatSummary', () => {
             'Healed:',
             '  cart.e2e.ts › cart adds a shirt "Add a shirt": step 2 [data-testid="add"] → role/button[name="Add to cart"] (without the model)',
             '  cart.e2e.ts › cart adds a shirt "Check out": continued by the model',
-            'Updated cache entries: /project/logs/act-cache'
+            `Updated cache entries: ${path.resolve('/project/logs', 'act-cache')}`
         ])
     })
 

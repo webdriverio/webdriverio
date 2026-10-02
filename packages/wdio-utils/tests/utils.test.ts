@@ -9,6 +9,7 @@ import {
     userImport, getBrowserObject, enableFileLogging, isAppiumCapability,
     isAbsolute
 } from '../src/utils.js'
+import { setWdioKind } from '../src/kind.js'
 
 vi.mock('node:fs/promises', () => ({
     default: {
@@ -296,6 +297,17 @@ describe('getBrowserObject', () => {
                 }
             }
         } as any)).toEqual({ foo: 'bar' })
+    })
+
+    it('should return the browser of a browsing context, found by its kind', () => {
+        const browser = { foo: 'bar' }
+        const context = setWdioKind({ contextId: 'tab-1', browser }, 'browsing-context')
+        expect(getBrowserObject({ parent: context } as any)).toBe(browser)
+    })
+
+    it('should not take an object with only the shape of a browsing context for one', () => {
+        const lookalike = { contextId: 'tab-1', browser: { foo: 'bar' } }
+        expect(getBrowserObject(lookalike as any)).toBe(lookalike)
     })
 })
 

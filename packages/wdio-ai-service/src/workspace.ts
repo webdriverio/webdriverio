@@ -52,6 +52,11 @@ export class Workspace {
      * placeholder values of the current `act` call, redacted from every file
      */
     values: Record<string, string> = {}
+    /**
+     * placeholder values of every earlier call of the worker: browser events
+     * collected since then may contain them
+     */
+    secrets: [name: string, value: string][] = []
     #snapshots = 0
     #outputs = 0
     keep = false
@@ -64,8 +69,11 @@ export class Workspace {
     #write (file: string, content: string) {
         const full = path.join(this.dir, file)
         return fs.mkdir(path.dirname(full), { recursive: true })
-            .then(() => fs.writeFile(full, redact(content, this.values)))
-            .then(() => `/${file}`)
+            .then(() => fs.writeFile(full, redact(content, [...Object.entries(this.values), ...this.secrets])))
+            /**
+             * the path the model reads with the file tools, with `/` on every platform
+             */
+            .then(() => `/${file.split(path.sep).join('/')}`)
     }
 
     async writeSnapshot (text: string) {

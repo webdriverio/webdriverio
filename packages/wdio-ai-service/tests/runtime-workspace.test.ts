@@ -5,7 +5,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AiRuntime } from '../src/runtime.js'
-import { ScriptedChatModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
+import { scriptedModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
 const createAgentSession = vi.hoisted(() => vi.fn())
@@ -41,7 +41,7 @@ describe('AiRuntime workspace', () => {
     })
 
     const runtime = (script: ScriptStep[], options = {}) => {
-        const model = new ScriptedChatModel(script)
+        const model = scriptedModel(script)
         return { model, runtime: new AiRuntime({ effects: 'off', model, cache: 'off', workspace: { dir }, ...options }) }
     }
     let testDir: string
@@ -70,6 +70,28 @@ describe('AiRuntime workspace', () => {
         expect(JSON.parse(fs.readFileSync(path.join(testDir, 'steps.json'), 'utf-8'))[0].code).toBe('await $(\'#add\').click()')
         await ai.endTest(true)
         expect(fs.existsSync(testDir)).toBe(true)
+    })
+
+    it('keeps the values of earlier calls hidden from later calls', async () => {
+        const { runtime: ai, model } = runtime([
+            { tool: 'click', args: { target: 'e3' } },
+            { tool: 'done', args: { summary: 'logged in' } },
+            { tool: 'read_file', args: { file_path: '/console.ndjson' } },
+            { tool: 'done', args: { summary: 'ok' } }
+        ], { workspace: { dir, keep: 'always' } })
+        ai.startTest('/project/test/cart.e2e.ts', 'cart adds a shirt')
+        await ai.act(browser, 'Log in with {{password}}', { values: { password: 's3cr3t-pass' } })
+
+        /**
+         * the page logged the password after the first call, the second
+         * call has other values
+         */
+        fake.agent.logs.push({ seq: 2, time: 2, level: 'log', source: 'console', text: 'login with s3cr3t-pass' } as never)
+        await ai.act(browser, 'Add the shirt', { values: { size: 'M' } })
+
+        expect(model.sentText()).not.toContain('s3cr3t-pass')
+        expect(model.sentText()).toContain('login with {{password}}')
+        expect(fs.readFileSync(path.join(testDir, 'console.ndjson'), 'utf-8')).not.toContain('s3cr3t-pass')
     })
 
     it('deletes the folder of a passing test and keeps the one of a failing act', async () => {

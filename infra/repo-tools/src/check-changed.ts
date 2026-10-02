@@ -5,7 +5,7 @@
 import { spawnSync } from 'node:child_process'
 import { buildReport, collectChangedFiles, parseArgs, resolveBase } from './changed-lanes.js'
 import { hasPackageTests, resolvePackageDir } from './test-package.js'
-import type { ChangeReport, CheckArgs, CheckStep } from './types.js'
+import type { ChangeReport, CheckArgs, CheckStep, LaneName } from './types.js'
 import { isMainModule, workspaceRoot } from './workspace.js'
 
 const TYPINGS_SCRIPT: Readonly<Record<string, string>> = {
@@ -17,6 +17,19 @@ const TYPINGS_SCRIPT: Readonly<Record<string, string>> = {
     'wdio-protocols': 'test:typings:webdriver',
     'wdio-types': 'test:typings:webdriverio',
     'wdio-globals': 'test:typings:webdriverio'
+}
+
+const E2E_LANES: ReadonlyArray<{ lane: LaneName, name: string, script: string }> = [
+    { lane: 'component', name: 'component', script: 'test:component' },
+    { lane: 'session', name: 'session', script: 'test:e2e:session' },
+    { lane: 'display_server', name: 'display-server', script: 'test:e2e:display-server' },
+    { lane: 'chromedriver', name: 'chromedriver', script: 'test:e2e:chromedriver' }
+]
+
+function e2eSteps (report: Omit<ChangeReport, 'base'> | ChangeReport, e2e: boolean): CheckStep[] {
+    return E2E_LANES.filter(({ lane }) => report.lanes[lane]).map(({ name, script }) => e2e
+        ? { name: script, cmd: ['pnpm', 'run', script] }
+        : { name, reason: `pass --e2e to run pnpm run ${script}` })
 }
 
 export function parseCheckArgs (argv: readonly string[]): CheckArgs {
@@ -47,7 +60,7 @@ export function planChecks (
         } else {
             steps.push({ name: 'smoke', reason: 'toolchain change; run pnpm run test:smoke or pass --smoke' })
         }
-        return steps
+        return [...steps, ...e2eSteps(report, e2e)]
     }
 
     if (report.lanes.code || report.lanes.component || report.lanes.session || report.lanes.display_server) {
@@ -89,31 +102,9 @@ export function planChecks (
         }
     }
 
-    if (report.lanes.component) {
-        if (e2e) {
-            steps.push({ name: 'test:component', cmd: ['pnpm', 'run', 'test:component'] })
-        } else {
-            steps.push({ name: 'component', reason: 'pass --e2e to run pnpm run test:component' })
-        }
-    }
+    steps.push(...e2eSteps(report, e2e))
 
-    if (report.lanes.session) {
-        if (e2e) {
-            steps.push({ name: 'test:e2e:session', cmd: ['pnpm', 'run', 'test:e2e:session'] })
-        } else {
-            steps.push({ name: 'session', reason: 'pass --e2e to run pnpm run test:e2e:session' })
-        }
-    }
-
-    if (report.lanes.display_server) {
-        if (e2e) {
-            steps.push({ name: 'test:e2e:display-server', cmd: ['pnpm', 'run', 'test:e2e:display-server'] })
-        } else {
-            steps.push({ name: 'display-server', reason: 'pass --e2e to run pnpm run test:e2e:display-server' })
-        }
-    }
-
-    if (report.lanes.docs && !report.lanes.code && !report.lanes.component && !report.lanes.session && !report.lanes.display_server && !report.runAll) {
+    if (report.lanes.docs && !report.lanes.code && !report.lanes.component && !report.lanes.session && !report.lanes.display_server && !report.lanes.chromedriver && !report.runAll) {
         steps.push({
             name: 'docs',
             reason: 'docs lane only; run pnpm run docs:list and regenerate if you changed JSDoc, protocols, or package READMEs'

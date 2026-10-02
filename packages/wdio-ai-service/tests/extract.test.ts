@@ -10,7 +10,7 @@ import { ActError } from '../src/errors.js'
 import { jsonSchemaOf, validate } from '../src/extract.js'
 import { AiRuntime } from '../src/runtime.js'
 import { formatSummary } from '../src/stats.js'
-import { ScriptedChatModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
+import { scriptedModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
 const createAgentSession = vi.hoisted(() => vi.fn())
@@ -55,9 +55,9 @@ describe('AiRuntime.extract', () => {
         createAgentSession.mockReset().mockResolvedValue(fake.agent)
     })
 
-    const runtime = (script: ScriptStep[]) => {
-        const model = new ScriptedChatModel(script)
-        return { model, runtime: new AiRuntime({ effects: 'off', model, workspace }) }
+    const runtime = (script: ScriptStep[], options = {}) => {
+        const model = scriptedModel(script)
+        return { model, runtime: new AiRuntime({ effects: 'off', model, workspace, ...options }) }
     }
 
     it('returns the validated value and only offers tools that read the page', async () => {
@@ -73,6 +73,16 @@ describe('AiRuntime.extract', () => {
         expect(model.boundTools).not.toContain('click')
         expect(model.boundTools).not.toContain('fill')
         expect(ai.records.at(-1)).toMatchObject({ kind: 'extract', instruction: 'the cart line items', evidence: ['e3', 'e4'] })
+    })
+
+    it('spends the model call budget of the worker', async () => {
+        const { runtime: ai, model } = runtime([
+            { tool: 'answer', args: { value: [{ name: 'Shirt', qty: 1 }] } },
+            { tool: 'answer', args: { value: [{ name: 'Socks', qty: 2 }] } }
+        ], { maxModelCalls: 1 })
+        await expect(ai.extract(browser, 'the cart line items', Cart)).resolves.toEqual([{ name: 'Shirt', qty: 1 }])
+        await expect(ai.extract(browser, 'the cart line items', Cart)).rejects.toThrow('the budget of 1 model calls is used up')
+        expect(model.callCount).toBe(1)
     })
 
     it('lets the model correct an answer the JSON Schema of the answer tool rejects', async () => {

@@ -41,6 +41,7 @@ jobs:
       session: ${{ github.event_name != 'pull_request' || steps.filter.outputs.session == 'true' }}
       display_server: ${{ github.event_name != 'pull_request' || steps.filter.outputs.display_server == 'true' }}
       display_server_images: ${{ github.event_name != 'pull_request' || steps.filter.outputs.display_server_images == 'true' }}
+      chromedriver: ${{ github.event_name != 'pull_request' || steps.filter.outputs.chromedriver == 'true' }}
     steps:
       - name: 🔎 Filter changed paths
         if: github.event_name == 'pull_request'
@@ -74,6 +75,13 @@ jobs:
             # Most distro images only build in the full display-server matrix.
             display_server_images:
               - 'e2e/wdio/display-server/docker/**'
+            chromedriver:
+              - 'packages/wdio-utils/src/node/utils.ts'
+              - 'packages/wdio-utils/src/node/electronChromedriverProvider.ts'
+              - 'packages/wdio-utils/src/node/startWebDriver.ts'
+              - 'packages/wdio-utils/src/node/manager.ts'
+              - 'packages/wdio-utils/package.json'
+              - 'e2e/wdio/chromedriver/**'
             # Core product / test code. Display-server, browser-runner, and session
             # trees are excluded so those dedicated suites can run on their own.
             code:
@@ -86,6 +94,7 @@ jobs:
               - '!e2e/wdio/display-server/**'
               - '!e2e/browser-runner/**'
               - '!e2e/session/**'
+              - '!e2e/wdio/chromedriver/**'
               - 'infra/**'
               # @wdio/docs unit tests run in the docs workflow. Leaving this
               # package out of the code lane keeps smoke and e2e off a docs-only PR.
@@ -96,7 +105,7 @@ jobs:
   build_core:
     name: Build
     needs: [changes]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.session == 'true' || needs.changes.outputs.display_server == 'true'
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.session == 'true' || needs.changes.outputs.display_server == 'true' || needs.changes.outputs.chromedriver == 'true'
     uses: ./.github/workflows/build.yml
 
   static_code_analysis:
@@ -193,6 +202,12 @@ jobs:
     with:
       full_matrix: ${{ needs.changes.outputs.run-all == 'true' || needs.changes.outputs.display_server_images == 'true' }}
 
+  chromedriver_tests:
+    name: Chromedriver E2E Tests
+    needs: [changes, build_core, static_code_analysis]
+    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.chromedriver == 'true'
+    uses: ./.github/workflows/test-chromedriver.yml
+
   # Stable required check. Individual matrix cells are skipped on most PRs;
   # this job succeeds when every job that *did* run succeeded (skipped is OK).
   ci:
@@ -215,6 +230,7 @@ jobs:
       - multi_remote_tests
       - standalone_tests
       - display_server_tests
+      - chromedriver_tests
     runs-on: ubuntu-latest
     permissions: {}
     steps:

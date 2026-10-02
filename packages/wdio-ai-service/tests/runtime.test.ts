@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ActError } from '../src/errors.js'
 import { AiRuntime, browserOf } from '../src/runtime.js'
-import { ScriptedChatModel } from './__fixtures__/scriptedModel.js'
+import { scriptedModel } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
 const createAgentSession = vi.hoisted(() => vi.fn())
@@ -36,7 +36,7 @@ describe('AiRuntime.act', () => {
             }
         })
         setRef({ id: 'e3', role: 'button', name: 'Add to cart', candidates: ['role/button[name="Add to cart"]'] })
-        const model = new ScriptedChatModel([
+        const model = scriptedModel([
             { tool: 'snapshot' },
             { tool: 'click', args: { target: 'e3' } },
             { tool: 'done', args: { summary: 'Added the shirt to the cart' } }
@@ -66,7 +66,7 @@ describe('AiRuntime.act', () => {
             }
         })
         setRef({ id: 'e1', role: 'textbox', name: 'Email', candidates: ['#email'] })
-        const model = new ScriptedChatModel([
+        const model = scriptedModel([
             { tool: 'snapshot' },
             { tool: 'fill', args: { target: 'e1', text: '{{email}}' } },
             { tool: 'done', args: { summary: 'Filled the email' } }
@@ -83,14 +83,14 @@ describe('AiRuntime.act', () => {
 
     it('rejects an instruction with a placeholder that has no value, before calling the model', async () => {
         setup()
-        const model = new ScriptedChatModel([])
+        const model = scriptedModel([])
         await expect(new AiRuntime({ effects: 'off', workspace, model }).act(browser, 'Log in as {{user}}')).rejects.toThrow('No value for {{user}}')
         expect(model.calls).toHaveLength(0)
     })
 
     it('throws an ActError with the reason when the model calls fail', async () => {
         setup()
-        const model = new ScriptedChatModel([
+        const model = scriptedModel([
             { tool: 'snapshot' },
             { tool: 'fail', args: { reason: 'There is no blue shirt on this page' } }
         ])
@@ -102,17 +102,23 @@ describe('AiRuntime.act', () => {
         expect(error.usage).toEqual({ input: 200, output: 20 })
     })
 
-    it('stops at the step limit', async () => {
+    it('stops at the step limit and still counts the model calls it made', async () => {
         setup()
-        const model = new ScriptedChatModel(Array.from({ length: 10 }, () => ({ tool: 'snapshot' })))
-        await expect(new AiRuntime({ effects: 'off', workspace, model, maxSteps: 2 }).act(browser, 'Loop forever'))
-            .rejects.toThrow('stopped after 2 steps without completing the instruction')
+        const model = scriptedModel(Array.from({ length: 10 }, () => ({ tool: 'snapshot' })))
+        const ai = new AiRuntime({ effects: 'off', workspace, model, maxSteps: 2 })
+        const error = await ai.act(browser, 'Loop forever').catch((err) => err)
+        expect(error.message).toContain('stopped after 2 steps without completing the instruction')
+        expect(ai.modelCalls).toBe(model.callCount)
+        expect(ai.modelCalls).toBeGreaterThan(0)
+        expect(error.usage).toEqual({ input: 100 * model.callCount, output: 10 * model.callCount })
     })
 
-    it('accepts a model that answers in text instead of calling done', async () => {
+    it('fails when the model answers in text instead of calling done, and records nothing', async () => {
         setup()
-        const model = new ScriptedChatModel([{ tool: 'snapshot' }, { text: 'The menu is open now.' }])
-        await expect(new AiRuntime({ effects: 'off', workspace, model }).act(browser, 'Open the menu')).resolves.toMatchObject({ summary: 'The menu is open now.' })
+        const model = scriptedModel([{ tool: 'click', args: { target: 'e3' } }, { text: 'The menu is open now.' }])
+        const ai = new AiRuntime({ effects: 'off', workspace, model })
+        await expect(ai.act(browser, 'Open the menu')).rejects.toThrow('the model stopped without calling `done`: The menu is open now.')
+        expect(ai.records.at(-1)).toMatchObject({ error: expect.stringContaining('without calling `done`') })
     })
 
     it('explains how to configure a model when none is set', async () => {
@@ -124,7 +130,7 @@ describe('AiRuntime.act', () => {
 
     it('stops calling the model once the budget is used up', async () => {
         setup()
-        const runtime = new AiRuntime({ effects: 'off', workspace, model: new ScriptedChatModel([{ tool: 'done', args: { summary: 'ok' } }]), maxModelCalls: 1 })
+        const runtime = new AiRuntime({ effects: 'off', workspace, model: scriptedModel([{ tool: 'done', args: { summary: 'ok' } }]), maxModelCalls: 1 })
         await runtime.act(browser, 'First')
         await expect(runtime.act(browser, 'Second')).rejects.toThrow('the budget of 1 model calls is used up')
     })
@@ -134,7 +140,7 @@ describe('AiRuntime.act', () => {
         const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-ai-'))
         const file = path.join(dir, 'agent.md')
         fs.writeFileSync(file, 'Prefer the account menu in the header.')
-        const model = new ScriptedChatModel([{ tool: 'done', args: { summary: 'ok' } }])
+        const model = scriptedModel([{ tool: 'done', args: { summary: 'ok' } }])
         await new AiRuntime({ effects: 'off', workspace, model, instructions: file }).act(browser, 'Log out')
         expect(model.sentText()).toContain('Project conventions:\nPrefer the account menu in the header.')
         fs.rmSync(dir, { recursive: true, force: true })
@@ -147,7 +153,7 @@ describe('AiRuntime.act', () => {
 
     it('reuses one agent session per browser', async () => {
         setup()
-        const runtime = new AiRuntime({ effects: 'off', workspace, model: new ScriptedChatModel([{ tool: 'done', args: { summary: 'a' } }, { tool: 'done', args: { summary: 'b' } }]) })
+        const runtime = new AiRuntime({ effects: 'off', workspace, model: scriptedModel([{ tool: 'done', args: { summary: 'a' } }, { tool: 'done', args: { summary: 'b' } }]) })
         await runtime.act(browser, 'First')
         await runtime.act(browser, 'Second')
         expect(createAgentSession).toHaveBeenCalledTimes(1)

@@ -22,7 +22,10 @@ The session is named `default`. Pass `-s <name>` only when you need two sessions
 
 ```sh
 npx wdio session --help
+npx wdio session click --help
 ```
+
+`--help` prints the workflow, the actions by group, global flags and exit codes. `<action> --help` prints that action's arguments, flags, platforms, examples and related actions. The same text is on the [commands](/docs/session-commands) page. The agent skill keeps only the core loop and sends agents to `--help` for the rest, so it does not go stale when the CLI changes.
 
 Scaffold a project with:
 

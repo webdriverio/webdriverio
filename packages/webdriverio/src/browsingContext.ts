@@ -1,4 +1,4 @@
-import { resolveCustomCommandOptions, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { resolveCustomCommandOptions, setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
 
 import { $ } from './commands/browser/$.js'
 import { $$ } from './commands/browser/$$.js'
@@ -90,6 +90,29 @@ const RESERVED_PROPERTIES = new Set([
 ])
 
 /**
+ * Names a custom command can never have. `then`, `catch` and `finally`
+ * would make every context a thenable, so `await browser.url()` would call
+ * the command instead of resolving to the context. The others are the
+ * monad's own bookkeeping and object internals.
+ */
+const FORBIDDEN_COMMAND_NAMES = new Map([
+    ['then', 'it would make every browsing context a thenable, and awaiting a command that returns a context would call it'],
+    ['catch', 'it would make every browsing context look like a promise'],
+    ['finally', 'it would make every browsing context look like a promise'],
+    ['__propertiesObject__', 'WebdriverIO uses it internally'],
+    ['__elementOverrides__', 'WebdriverIO uses it internally'],
+    ['constructor', 'it is an object internal'],
+    ['__proto__', 'it is an object internal']
+])
+
+function assertCommandName (command: 'addCommand' | 'overwriteCommand', name: string) {
+    const reason = FORBIDDEN_COMMAND_NAMES.get(name)
+    if (reason) {
+        throw new Error(`${command}: a browsing context command cannot be named "${name}": ${reason}.`)
+    }
+}
+
+/**
  * Custom commands registered with `attachToBrowsingContext: true` for one
  * browser. Contexts created later read `commands` and `overrides`. `contexts`
  * holds the contexts created so far, so a command registered later reaches
@@ -99,6 +122,10 @@ interface BrowsingContextCommands {
     commands: Map<string, Function>
     overrides: Map<string, Function[]>
     contexts: Set<WeakRef<WebdriverIO.BrowsingContext>>
+    /**
+     * drops the reference of a context once it was garbage collected
+     */
+    finalizer: FinalizationRegistry<WeakRef<WebdriverIO.BrowsingContext>>
 }
 
 const registries = new WeakMap<WebdriverIO.Browser, BrowsingContextCommands>()
@@ -106,7 +133,13 @@ const registries = new WeakMap<WebdriverIO.Browser, BrowsingContextCommands>()
 function getRegistry (browser: WebdriverIO.Browser): BrowsingContextCommands {
     let registry = registries.get(browser)
     if (!registry) {
-        registry = { commands: new Map(), overrides: new Map(), contexts: new Set() }
+        const contexts = new Set<WeakRef<WebdriverIO.BrowsingContext>>()
+        registry = {
+            commands: new Map(),
+            overrides: new Map(),
+            contexts,
+            finalizer: new FinalizationRegistry((ref) => contexts.delete(ref))
+        }
         registries.set(browser, registry)
     }
     return registry
@@ -176,6 +209,7 @@ export function addBrowsingContextCommand (browser: WebdriverIO.Browser, name: s
     if (typeof fn !== 'function') {
         throw new Error(`addCommand: the browsing context command "${name}" must be a function`)
     }
+    assertCommandName('addCommand', name)
     if (RESERVED_PROPERTIES.has(name) || name in commandProperties()) {
         throw new Error(
             `addCommand: "${name}" is already a property of every browsing context. ` +
@@ -194,6 +228,7 @@ export function overwriteBrowsingContextCommand (browser: WebdriverIO.Browser, n
     if (typeof fn !== 'function') {
         throw new Error(`overwriteCommand: the browsing context command "${name}" must be overwritten with a function`)
     }
+    assertCommandName('overwriteCommand', name)
     const registry = getRegistry(browser)
     if (!registry.commands.has(name) && typeof commandProperties()[name]?.value !== 'function') {
         throw new Error(`overwriteCommand: no browsing context command to be overwritten: ${name}`)
@@ -320,13 +355,18 @@ export function getBrowsingContext (
         client.emit = browser.emit.bind(browser)
         client.removeListener = browser.removeListener.bind(browser)
         client.removeAllListeners = browser.removeAllListeners.bind(browser)
-        return client
+        /**
+         * not `'browser'`: a context has no session commands and no `addCommand`, see `@wdio/utils` `kind.ts`
+         */
+        return setWdioKind(client, 'browsing-context')
     }, contextProperties(registry))
 
     const context = monad(browser.sessionId, wrapCommand) as WebdriverIO.BrowsingContext
     context.addCommand = rejectCommand('addCommand')
     context.overwriteCommand = rejectCommand('overwriteCommand')
-    registry.contexts.add(new WeakRef(context))
+    const ref = new WeakRef(context)
+    registry.contexts.add(ref)
+    registry.finalizer.register(context, ref)
     return context
 }
 

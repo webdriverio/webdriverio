@@ -43,6 +43,10 @@ function isStep (spec: { name: string, mutation?: boolean }, input: Record<strin
  */
 const FRAME_KEYWORDS = new Set(['top', 'parent'])
 const REF = /^@?e\d+$/
+/**
+ * action arguments that name an element
+ */
+export const TARGET_KEYS = ['target', 'from', 'to'] as const
 
 export interface ToolContext {
     agent: AgentSession
@@ -70,6 +74,10 @@ export interface ToolContext {
      * records what each step did, and waits until it settled
      */
     effects?: EffectRecorder
+    /**
+     * placeholder values of earlier calls, redacted from what the model reads
+     */
+    secrets?: [name: string, value: string][]
 }
 
 /**
@@ -99,6 +107,18 @@ function optionSchema (z: typeof Zod, option: { type?: string, choices?: unknown
 /**
  * zod schema of an action from its positionals and options
  */
+/**
+ * Options the model never gets: `wait --fn` runs a JavaScript expression
+ * in the page, which no page action may do.
+ */
+const MODEL_FORBIDDEN_OPTIONS: Record<string, string[]> = {
+    wait: ['fn']
+}
+
+/**
+ * The input schema of an action's tool. Tool input is validated against
+ * it, so options left out here never reach the action.
+ */
 export function actionSchema (z: typeof Zod, spec: ActionSpec) {
     const shape: Record<string, ZodTypeAny> = {}
     for (const positional of spec.positionals || []) {
@@ -107,7 +127,11 @@ export function actionSchema (z: typeof Zod, spec: ActionSpec) {
             : z.string()
         shape[positional.name] = (positional.required ? base : base.optional()).describe(positional.desc)
     }
+    const forbidden = MODEL_FORBIDDEN_OPTIONS[spec.name] || []
     for (const [name, option] of Object.entries(spec.options || {})) {
+        if (forbidden.includes(name)) {
+            continue
+        }
         shape[name] = optionSchema(z, option as { type?: string, choices?: unknown[], desc?: string })
     }
     return z.object(shape)
@@ -165,10 +189,33 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
         .filter((spec) => allowed.has(spec.name))
         .map((spec) => tool(async (input: Record<string, unknown>) => {
             const { agent, values } = context
+            /**
+             * what the model reads hides every value of this and earlier
+             * calls, recorded steps only this call's values
+             */
+            const hidden: [string, string][] = [...Object.entries(values), ...(context.secrets || [])]
             try {
-                const args = spec.name === 'snapshot' && context.scope && !input.scope
+                /**
+                 * a scoped call only sees and acts inside its element: every
+                 * snapshot is limited to it, whatever scope the model asks for,
+                 * and targets outside it are refused
+                 */
+                const args = spec.name === 'snapshot' && context.scope
                     ? { ...input, scope: context.scope }
                     : input
+                if (context.scope) {
+                    for (const key of TARGET_KEYS) {
+                        const target = input[key]
+                        /**
+                         * `wait 500` waits a duration and `frame top` names no
+                         * element, there is nothing to check
+                         */
+                        const noElement = (spec.name === 'wait' && /^\d+$/.test(target as string)) || (spec.name === 'frame' && FRAME_KEYWORDS.has(target as string))
+                        if (typeof target === 'string' && target && !noElement && !await agent.contains(context.scope, substitute(target, values))) {
+                            return redact(`Error: ${target} is outside the element this call is limited to. Pick a target from the latest snapshot.`, hidden)
+                        }
+                    }
+                }
                 const step = isStep(spec, input)
                 if (step) {
                     await context.effects?.start()
@@ -176,11 +223,12 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                 const result = await agent.run(spec.name, substitute(args, values))
                 const settled = step && context.effects ? redact(await context.effects.settle(), values) : undefined
                 /**
-                 * an effect cut off by the timeout would fail every replay
-                 * that waits long enough, record none instead
+                 * A step still running at the timeout keeps the parts that
+                 * finished: a request that completed did happen, and a replay
+                 * checks it. What was still running is not recorded.
                  */
                 const unsettled = settled ? context.effects!.unsettled : []
-                const effect = unsettled.length ? undefined : settled
+                const effect = settled
                 if (spec.name === 'snapshot') {
                     diffArgs = {
                         ...(typeof args.scope === 'string' ? { scope: args.scope } : {}),
@@ -207,8 +255,9 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                     }
                     if (effect && !isEmpty(effect)) {
                         text += `\nEffect: ${describeEffect(effect)}`
-                    } else if (unsettled.length) {
-                        text += `\nEffect: unknown, still running after the timeout: ${redact(unsettled.join(', '), values)}`
+                    }
+                    if (unsettled.length) {
+                        text += `\nStill running after the timeout, not recorded: ${redact(unsettled.join(', '), values)}`
                     }
                     const diff = await agent.run('diff', diffArgs).catch(() => undefined)
                     if (diff?.text) {
@@ -221,9 +270,9 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                     }
                     text = await context.workspace.inline(spec.name, text)
                 }
-                return redact(text, values)
+                return redact(text, hidden)
             } catch (err) {
-                return `Error: ${redact((err as Error).message, values)}`
+                return `Error: ${redact((err as Error).message, hidden)}`
             }
         }, {
             name: spec.name,
@@ -239,15 +288,22 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
 function sourceTool (context: ToolContext, tool: Awaited<ReturnType<typeof loadToolKit>>['tool'], z: typeof Zod) {
     return tool(async () => {
         try {
-            const { agent } = context
-            const source = agent.scope === agent.browser
-                ? await agent.browser.getPageSource()
-                : await agent.scope.execute(() => document.documentElement.outerHTML)
             const native = !context.agent.session.plan.applies.includes('W')
+            const { agent } = context
+            /**
+             * a scoped call saves the HTML of its element, a call in a held
+             * frame the frame's document, otherwise the page
+             */
+            const source = context.scope
+                ? (await agent.run('get', { sub: 'html', target: context.scope })).text || ''
+                : agent.scope === agent.browser
+                    ? await agent.browser.getPageSource()
+                    : await agent.scope.execute(() => document.documentElement.outerHTML)
             const file = await context.workspace!.writeSource(source, native)
-            return `Saved the ${native ? 'app source' : 'page HTML'} (${source.length} characters) to ${file}. Search it with grep or read parts of it with read_file.`
+            const what = native ? 'app source' : context.scope ? 'HTML of the element this call is limited to' : 'page HTML'
+            return `Saved the ${what} (${source.length} characters) to ${file}. Search it with grep or read parts of it with read_file.`
         } catch (err) {
-            return `Error: ${redact((err as Error).message, context.values)}`
+            return `Error: ${redact((err as Error).message, [...Object.entries(context.values), ...(context.secrets || [])])}`
         }
     }, {
         name: 'source',

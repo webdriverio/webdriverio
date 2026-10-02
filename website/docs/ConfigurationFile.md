@@ -476,17 +476,18 @@ export const config = {
     },
     /**
      * Runs before a WebdriverIO assertion library makes an assertion.
-     * @param commandName command name
-     * @param args        arguments that command would receive
+     * @param {object} params                 assertion information
+     * @param {string} params.matcherName     name of the matcher that the test called (for an alias, the alias name)
+     * @param {*}      params.expectedValue   value that is passed into the matcher
+     * @param {object} params.options         assertion options
      */
     beforeAssertion: function (params) {
     },
     /**
-     * Runs after a WebdriverIO command gets executed
-     * @param commandName  command name
-     * @param args         arguments that command would receive
-     * @param result       result of the command
-     * @param error        error in case something went wrong
+     * Runs after a WebdriverIO assertion library makes an assertion.
+     * @param {object} params                 assertion information, the same as in `beforeAssertion`
+     * @param {object} params.result          result of the matcher, with `pass` (boolean) and `message()`.
+     *                                        `pass` is true when the value matches, also with `.not`
      */
     afterAssertion: function (params) {
     }

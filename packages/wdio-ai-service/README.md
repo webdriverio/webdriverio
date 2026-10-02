@@ -24,14 +24,14 @@ expect(cart).toContainEqual({ name: 'Blue Shirt', size: 'M', qty: 1 })
 npm install @wdio/ai-service --save-dev
 ```
 
-Install the LangChain package of the provider you use:
+Install the LangChain package of the provider you use. Models are created with LangChain's [`initChatModel`](https://docs.langchain.com/oss/javascript/langchain/models#initialize-a-model), so every provider it supports works, e.g. `google`, `mistralai`, `groq` or `bedrock`:
 
 | Provider | Package | API key |
 | --- | --- | --- |
 | `anthropic` | `@langchain/anthropic` | `ANTHROPIC_API_KEY` |
 | `openai` | `@langchain/openai` | `OPENAI_API_KEY` |
-| `openrouter` | `@langchain/openrouter` | `OPENROUTER_API_KEY` |
-| `ollama` | `@langchain/ollama` | none, runs locally |
+| `openrouter` | `@langchain/openai` | `OPENROUTER_API_KEY` |
+| `ollama` | `@langchain/ollama` | none, runs locally (`OLLAMA_BASE_URL` for another host) |
 | `llama-cpp`, `lm-studio` | `@langchain/openai` | none, set `baseURL` |
 
 ## Configuration
@@ -165,11 +165,11 @@ The files go to `<workspace.dir>/heals/<spec>-<test>-<id>/`, and the summary pri
 | Mode | Cached | Not cached | Writes |
 | --- | --- | --- | --- |
 | `write` | replay | record with the model | the cache files |
-| `heal` | replay | record with the model | `<outputDir>/act-cache/` only, the cache files stay unchanged |
+| `heal` | replay | record with the model | `<outputDir>/act-cache/<path of the cache file>` only, the cache files stay unchanged |
 | `locked` | replay | fail, never calls the model | nothing |
 | `off` | always calls the model | | nothing |
 
-`auto` is `heal` when `process.env.CI` is set and `write` otherwise. `wdio run -s` (`updateSnapshots: 'all'`) records every `act` call again.
+`auto` is `heal` when `process.env.CI` is set and `write` otherwise. A call's own `cache` option decides where its entry goes. Workers that write the same cache file take turns, so none loses the entries of another. `wdio run -s` (`updateSnapshots: 'all'`) records every `act` call again.
 
 ## Step effects
 
@@ -192,7 +192,7 @@ A replayed or healed step is only accepted when it has the same effect:
 | `loose` | the navigation and at least one recorded request or changed region |
 | `off` | only the target |
 
-Requests to common analytics and telemetry hosts, websockets, beacons and assets never count. A step is done when its requests finished, no navigation is pending and the page had no changes for 100 ms, so `act` waits for slow requests instead of a fixed time. A replay waits up to 5 seconds, or the `waitforTimeout` of your config when it is longer. A step whose request is still running then fails with *"the step was still running after 8000ms (POST /api/cart), so its effect could not be checked"*, not as a behavior change, and a step recorded that way gets no effect.
+Requests to common analytics and telemetry hosts, websockets, beacons and assets never count. A step is done when its requests finished, no navigation is pending and the page had no changes for 100 ms, so `act` waits for slow requests instead of a fixed time. A replay waits up to 5 seconds, or the `waitforTimeout` of your config when it is longer. A step whose request is still running then fails with *"the step was still running after 8000ms (POST /api/cart), so its effect could not be checked"*, not as a behavior change. A step recorded while a request is still running keeps the parts that finished.
 
 WebDriver Classic sessions see navigation and page changes but not requests, new windows or dialogs, so only those parts are checked there, and the summary says so. Native app effects are not checked.
 
@@ -226,7 +226,7 @@ await $('role/combobox[name="Size"]').selectByVisibleText('M')
 await $('role/button[name="Add to cart"]').click()
 ```
 
-The instruction stays as a comment. Placeholders become references to the `values` of the call. A call is matched by its instruction, or by its `id`. Calls that are not recorded yet, or recorded with different steps in several tests, are left alone and reported. Use `--test <full title>` to pick the entries of one test and `--dry-run` to print the result.
+The instruction stays as a comment. Placeholders become references to the `values` of the call. A call gets the steps recorded for exactly that call: the entry of its `id`, or of its test title and its position among the `act` calls of the test, the same key the service records. A call in a branch, a loop or a callback has no fixed position, give it an `id`. Calls without a matching entry, or whose entry was recorded for another instruction, are left alone and reported. Use `--test <full title>` to eject the calls of one test and `--dry-run` to print the result.
 
 Without the testrunner:
 

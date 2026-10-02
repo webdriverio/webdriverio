@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../../../src/commands/constant.js'
 import { createFunctionDeclarationFromString } from '../../../src/utils/index.js'
@@ -93,6 +93,16 @@ describe('BiDi blob serialization', () => {
         expect(blob.size).toBe(0)
         expect(blob.type).toBe('text/plain')
         expect(await blob.text()).toBe('')
+    })
+
+    it('round-trips binary bytes without a global Buffer', async () => {
+        vi.stubGlobal('Buffer', undefined)
+        try {
+            const blob = await roundTrip<Blob>(() => new Blob([new Uint8Array([0, 127, 128, 255])]))
+            expect(await bytesOf(blob)).toEqual([0, 127, 128, 255])
+        } finally {
+            vi.unstubAllGlobals()
+        }
     })
 
     it('restores a File name, timestamp, type, and bytes', async () => {

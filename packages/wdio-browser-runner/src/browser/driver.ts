@@ -12,7 +12,7 @@ import safeStringify from 'safe-stringify'
 // eslint-disable-next-line unicorn/prefer-node-protocol
 import EventEmitter from 'events'
 
-import { getCID, sanitizeConsoleArgs } from './utils.js'
+import { commandResult, getCID, sanitizeConsoleArgs } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
@@ -244,7 +244,7 @@ export default class ProxyDriver {
             clearTimeout(commandMessage.commandTimeout)
         }
         console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - RESULT: ${JSON.stringify(value.result)}`)
-        commandMessage.resolve(value.result)
+        commandMessage.resolve(commandResult(value))
         this.#commandMessages.delete(value.id)
     }
 
