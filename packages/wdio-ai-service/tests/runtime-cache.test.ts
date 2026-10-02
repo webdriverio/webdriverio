@@ -5,8 +5,9 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ActError } from '../src/errors.js'
+import { healFileFor } from '../src/cache.js'
 import { AiRuntime, type RuntimeOptions } from '../src/runtime.js'
-import { ScriptedChatModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
+import { scriptedModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
 const createAgentSession = vi.hoisted(() => vi.fn())
@@ -39,7 +40,7 @@ describe('AiRuntime cache', () => {
         { tool: 'done', args: { summary: 'Added it' } }
     ]
     const runtime = (options: RuntimeOptions = {}, script: ScriptStep[] = recordScript) => {
-        const model = new ScriptedChatModel(script)
+        const model = scriptedModel(script)
         return { model, runtime: new AiRuntime({ effects: 'off', model, cache: 'write', workspace: { dir: path.join(dir, 'workspaces') }, ...options }) }
     }
 
@@ -54,7 +55,7 @@ describe('AiRuntime cache', () => {
         expect(written.entries['cart adds a shirt › #1']).toMatchObject({
             instruction: 'Add the shirt to the cart',
             platform: 'web',
-            model: 'ScriptedChatModel',
+            model: 'FakeBuiltModel',
             steps: [{
                 action: 'click',
                 args: { target: 'role/button[name="Add to cart"]' },
@@ -155,8 +156,18 @@ describe('AiRuntime cache', () => {
         await ai.act(browser, 'Add the shirt')
         await ai.flush()
         expect(fs.existsSync(cacheFile())).toBe(false)
-        const healed = JSON.parse(fs.readFileSync(path.join(outputDir, 'act-cache', 'cart.e2e.ts.json'), 'utf-8'))
+        const healed = JSON.parse(fs.readFileSync(healFileFor(cacheFile(), outputDir), 'utf-8'))
         expect(healed.entries['cart › #1'].instruction).toBe('Add the shirt')
+    })
+
+    it('writes the entry of a call with cache: heal to the heal output, under a service in write mode', async () => {
+        const outputDir = path.join(dir, 'logs')
+        const { runtime: ai } = runtime({ cache: 'write', outputDir })
+        ai.startTest(spec, 'cart')
+        await ai.act(browser, 'Add the shirt', { cache: 'heal' })
+        await ai.flush()
+        expect(fs.existsSync(cacheFile())).toBe(false)
+        expect(JSON.parse(fs.readFileSync(healFileFor(cacheFile(), outputDir), 'utf-8')).entries['cart › #1'].instruction).toBe('Add the shirt')
     })
 
     it('records every call again with updateSnapshots: all', async () => {
@@ -231,7 +242,7 @@ describe('AiRuntime cache', () => {
         expect(result).toEqual({ source: 'cache', healed: 'cache', steps: [{ action: 'click', code: 'await $(\'#add\').click()' }] })
         expect(second.model.calls).toHaveLength(0)
         expect(readCache().entries['cart › #1'].steps[0].target.selector).toBe('#add')
-        expect(readCache().entries['cart › #1'].model).toBe('ScriptedChatModel')
+        expect(readCache().entries['cart › #1'].model).toBe('FakeBuiltModel')
         expect(record).toMatchObject({
             spec,
             test: 'cart',

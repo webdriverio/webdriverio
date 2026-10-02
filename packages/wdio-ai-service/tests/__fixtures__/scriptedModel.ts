@@ -1,6 +1,5 @@
-import { BaseChatModel } from '@langchain/core/language_models/chat_models'
-import { AIMessage, type BaseMessage } from '@langchain/core/messages'
-import type { ChatResult } from '@langchain/core/outputs'
+import { AIMessage, ToolMessage, type BaseMessage } from '@langchain/core/messages'
+import { fakeModel } from 'langchain'
 
 export type ScriptStep =
     /**
@@ -10,62 +9,62 @@ export type ScriptStep =
     | { tool: string, args?: Record<string, unknown> | ((lastToolResult: string) => Record<string, unknown>) }
     | { text: string }
 
+const USAGE = { input_tokens: 100, output_tokens: 10, total_tokens: 110 }
+
 /**
- * A chat model that answers with a fixed list of tool calls, for tests. It
- * records the messages of every call, so a test can check what the model
- * was sent.
+ * `fakeModel` keeps the tools of a `bindTools` call on the copy it returns.
+ * Copies share their call state, so the tool names are recorded by it.
  */
-export class ScriptedChatModel extends BaseChatModel {
-    lc_namespace = ['wdio', 'ai-service', 'tests']
-    readonly calls: BaseMessage[][] = []
-    #script: ScriptStep[]
-    #count = 0
+type FakeModel = ReturnType<typeof fakeModel>
+const boundToolsByState = new WeakMap<object, string[]>()
+const prototype = Object.getPrototypeOf(fakeModel()) as FakeModel & { __wdioRecordsTools?: true }
+if (!prototype.__wdioRecordsTools) {
+    const bindTools = prototype.bindTools
+    prototype.bindTools = function (this: FakeModel & { _state: object }, tools: { name?: string }[]) {
+        boundToolsByState.set(this._state, tools.map((tool) => tool.name || ''))
+        return bindTools.call(this, tools as Parameters<typeof bindTools>[0])
+    } as FakeModel['bindTools']
+    prototype.__wdioRecordsTools = true
+}
 
-    constructor (script: ScriptStep[]) {
-        super({})
-        this.#script = [...script]
-    }
-
-    _llmType () {
-        return 'scripted'
-    }
-
+export type ScriptedModel = ReturnType<typeof fakeModel> & {
     /**
      * names of the tools of the last loop
      */
-    boundTools: string[] = []
-
-    override bindTools (tools: { name?: string }[]) {
-        this.boundTools = tools.map((t) => t.name || '')
-        return this as unknown as ReturnType<BaseChatModel['bindTools']>
-    }
-
-    async _generate (messages: BaseMessage[]): Promise<ChatResult> {
-        this.calls.push(messages)
-        const next = this.#script.shift() ?? { text: 'out of script' }
-        const last = messages.at(-1)
-        const lastToolResult = last && last.getType() === 'tool' ? String(typeof last.content === 'string' ? last.content : JSON.stringify(last.content)) : ''
-        const message = 'tool' in next
-            ? new AIMessage({
-                content: '',
-                tool_calls: [{ id: `call_${++this.#count}`, name: next.tool, args: typeof next.args === 'function' ? next.args(lastToolResult) : next.args || {}, type: 'tool_call' }],
-                usage_metadata: { input_tokens: 100, output_tokens: 10, total_tokens: 110 }
-            })
-            : new AIMessage({ content: next.text, usage_metadata: { input_tokens: 100, output_tokens: 10, total_tokens: 110 } })
-        return { generations: [{ message, text: typeof message.content === 'string' ? message.content : '' }] }
-    }
-
+    readonly boundTools: string[]
     /**
      * text of every message the model was sent so far
      */
-    sentText () {
-        return this.calls.flat().map((message) => {
-            if (typeof message.content === 'string') {
-                return message.content
+    sentText (): string
+}
+
+/**
+ * LangChain's `fakeModel` answering with a fixed list of tool calls, one
+ * per model call. It records every call, so a test can check what the
+ * model was sent and which tools it was given.
+ */
+export function scriptedModel (script: ScriptStep[]): ScriptedModel {
+    const model = fakeModel()
+    let id = 0
+    for (const step of script) {
+        model.respond((messages: BaseMessage[]) => {
+            const last = messages.at(-1)
+            const lastToolResult = last && ToolMessage.isInstance(last) ? last.text : ''
+            if ('text' in step) {
+                return new AIMessage({ content: step.text, usage_metadata: USAGE })
             }
-            return (message.content as { type?: string, text?: string }[])
-                .map((block) => block.type === 'text' ? block.text : JSON.stringify(block))
-                .join('\n')
-        }).join('\n')
+            const args = typeof step.args === 'function' ? step.args(lastToolResult) : step.args || {}
+            return new AIMessage({ content: '', tool_calls: [{ id: `call_${++id}`, name: step.tool, args, type: 'tool_call' }], usage_metadata: USAGE })
+        })
     }
+
+    const state = (model as unknown as { _state: object })._state
+    return Object.defineProperties(model, {
+        boundTools: {
+            get: () => boundToolsByState.get(state) ?? []
+        },
+        sentText: {
+            value: () => model.calls.flatMap((call) => call.messages).map((message) => message.text).join('\n')
+        }
+    }) as ScriptedModel
 }

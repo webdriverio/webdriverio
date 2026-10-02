@@ -54,6 +54,25 @@ describe('@wdio/session/agent', () => {
         expect(agent.ref(ref!)?.candidates).toContain('role/button[name="Remove Blue T-Shirt"]')
     })
 
+    it('tells whether an element is inside a pinned element, also across shadow roots', async () => {
+        const products = await agent.pin(await browser.$('#products'))
+        expect(await agent.contains(products, '[data-testid="add-red"]')).toBe(true)
+        expect(await agent.contains(products, '#checkout')).toBe(false)
+        expect(await agent.contains(products, '#does-not-exist')).toBe(false)
+
+        await browser.execute(() => {
+            const host = document.createElement('div')
+            host.id = 'shadow-host'
+            document.getElementById('products')!.appendChild(host)
+            host.attachShadow({ mode: 'open' }).innerHTML = '<button id="in-shadow">Gift wrap</button>'
+        })
+        try {
+            expect(await agent.contains(products, 'aria/Gift wrap')).toBe(true)
+        } finally {
+            await browser.execute(() => document.getElementById('shadow-host')?.remove())
+        }
+    })
+
     it('scopes a snapshot to a pinned element', async () => {
         const products = await browser.$('#products')
         const scope = await agent.pin(products)

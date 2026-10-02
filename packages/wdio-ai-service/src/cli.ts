@@ -7,11 +7,12 @@ import { eject } from './eject.js'
 
 const USAGE = `Usage: wdio-ai eject <spec...> [--test <title>] [--cache-dir <dir>] [--dry-run]
 
-Replace act() calls in specs with the WebdriverIO code recorded in their
-cache files. The instruction stays as a comment.
+Replace act() calls in specs with the WebdriverIO code recorded for them in
+their cache files: the entry of the call's \`id\`, or of its test and position
+in the test. The instruction stays as a comment.
 
 Options:
-  --test <title>      only use cache entries of this test (full title)
+  --test <title>      only eject the calls of this test (full title)
   --cache-dir <dir>   where the cache files are (default: __act__ next to the spec)
   --dry-run           print the result instead of writing the spec`
 

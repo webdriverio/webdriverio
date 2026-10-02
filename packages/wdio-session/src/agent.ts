@@ -13,7 +13,7 @@ import { formatSnapshot, onlyInteractive, type SnapshotNode, type SnapshotRef } 
 import type { RefEntry } from './snapshot/refs.js'
 import type { LogEntry, NetworkEntry } from './daemon/events.js'
 import type { ActionResult, HistoryEntry } from './types.js'
-import { scopeOf } from './snapshot/target.js'
+import { resolveElement, scopeOf } from './snapshot/target.js'
 
 export type { ActionSpec, LogEntry, NetworkEntry, RefEntry, SnapshotNode, SnapshotOptions, SnapshotRef, TakenSnapshot, HistoryEntry }
 export { formatSnapshot, onlyInteractive }
@@ -155,6 +155,29 @@ export class AgentSession {
             this.session.set('activeContext', previousActive)
             this.session.set('frame', previousFrame.frame)
             this.session.set('frameStack', previousFrame.stack)
+        }
+    }
+
+    /**
+     * Whether the element of `target` (a ref or selector) is inside the
+     * element of `scope`, also across shadow roots. `false` when either
+     * cannot be resolved.
+     */
+    async contains (scope: string, target: string): Promise<boolean> {
+        try {
+            const [outer, inner] = await Promise.all([resolveElement(this.session, scope), resolveElement(this.session, target)])
+            return await this.browser.execute(function (container: Node, node: Node) {
+                let current: Node | null = node
+                while (current) {
+                    if (current === container) {
+                        return true
+                    }
+                    current = current.parentNode || (current as ShadowRoot).host || null
+                }
+                return false
+            }, outer as unknown as Node, inner as unknown as Node)
+        } catch {
+            return false
         }
     }
 

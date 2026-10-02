@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
 import { AiRuntime } from '../src/runtime.js'
-import { ScriptedChatModel } from './__fixtures__/scriptedModel.js'
+import { scriptedModel } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
 const createAgentSession = vi.hoisted(() => vi.fn())
@@ -29,7 +29,7 @@ describe('scoped act and extract', () => {
         fake.run.mockImplementation(async (action: string) => action === 'fill'
             ? { text: 'Filled', code: 'await $(\'#street\').setValue(\'Main St 1\')' }
             : { text: '- textbox "Street" [ref=e101]' })
-        const model = new ScriptedChatModel([
+        const model = scriptedModel([
             { tool: 'snapshot' },
             { tool: 'snapshot', args: { interactive: true } },
             { tool: 'fill', args: { target: 'e101', text: 'Main St 1' } },
@@ -46,13 +46,13 @@ describe('scoped act and extract', () => {
 
     it('limits extract to the element too', async () => {
         const row = { elementId: 'row-2', selector: '#row-2', parent: browser } as unknown as WebdriverIO.Element
-        const model = new ScriptedChatModel([{ tool: 'snapshot' }, { tool: 'answer', args: { value: 'Socks' } }])
+        const model = scriptedModel([{ tool: 'snapshot' }, { tool: 'answer', args: { value: 'Socks' } }])
         await expect(new AiRuntime({ effects: 'off', model, workspace }).extract(row, 'the product name', z.string())).resolves.toBe('Socks')
         expect(fake.run).toHaveBeenCalledWith('snapshot', { scope: 'e100' })
     })
 
     it('does not scope a browser act', async () => {
-        const model = new ScriptedChatModel([{ tool: 'snapshot' }, { tool: 'done', args: { summary: 'ok' } }])
+        const model = scriptedModel([{ tool: 'snapshot' }, { tool: 'done', args: { summary: 'ok' } }])
         await new AiRuntime({ effects: 'off', model, workspace, cache: 'off' }).act(browser, 'Open the menu')
         expect(fake.agent.pin).not.toHaveBeenCalled()
         expect(fake.agent.enter).not.toHaveBeenCalled()
@@ -63,7 +63,7 @@ describe('scoped act and extract', () => {
         const leave = vi.fn(async () => {})
         vi.mocked(fake.agent.enter).mockResolvedValue(leave)
         const frame = { contextId: 'frame-1', browser, isFrame: true } as unknown as WebdriverIO.BrowsingContext
-        const model = new ScriptedChatModel([{ tool: 'snapshot' }, { tool: 'done', args: { summary: 'paid' } }, { tool: 'snapshot' }, { tool: 'answer', args: { value: 'Paid' } }])
+        const model = scriptedModel([{ tool: 'snapshot' }, { tool: 'done', args: { summary: 'paid' } }, { tool: 'snapshot' }, { tool: 'answer', args: { value: 'Paid' } }])
         const ai = new AiRuntime({ effects: 'off', model, workspace, cache: 'off' })
 
         await ai.act(frame, 'Pay')
@@ -78,7 +78,7 @@ describe('scoped act and extract', () => {
         const leave = vi.fn(async () => {})
         vi.mocked(fake.agent.enter).mockResolvedValue(leave)
         const tab = { contextId: 'tab-2', browser, isFrame: false } as unknown as WebdriverIO.BrowsingContext
-        const model = new ScriptedChatModel([{ tool: 'fail', args: { reason: 'no such button' } }])
+        const model = scriptedModel([{ tool: 'fail', args: { reason: 'no such button' } }])
         await expect(new AiRuntime({ effects: 'off', model, workspace, cache: 'off' }).act(tab, 'Pay')).rejects.toThrow('no such button')
         expect(leave).toHaveBeenCalledTimes(1)
     })

@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { createAgentSession, type AgentSession } from '@wdio/session/agent'
 
-import { ActCache, cacheFileFor, cacheKey, resolveMode, type EffectiveMode } from './cache.js'
+import { ActCache, cacheFileFor, cacheKey, healFileFor, resolveMode, type EffectiveMode } from './cache.js'
 import { ActError, type TokenUsage } from './errors.js'
 import { runLoop } from './loop.js'
 import { describeModel, resolveModel, selectModel } from './model.js'
@@ -209,14 +209,8 @@ export class AiRuntime {
      */
     async flush () {
         await writeRecords(this.records.splice(0))
-        const mode = this.mode()
         for (const cache of this.#caches.values()) {
-            if (mode === 'heal') {
-                const dir = path.join(outputDirOf(this.options), 'act-cache')
-                await cache.flush(path.join(dir, path.basename(cache.file)))
-            } else {
-                await cache.flush()
-            }
+            await cache.flush(healFileFor(cache.file, outputDirOf(this.options)))
         }
     }
 
@@ -293,16 +287,15 @@ export class AiRuntime {
                 reason: 'no model is configured. Set the `model` option of the service or the WDIO_AI_MODEL environment variable.'
             })
         }
-        if (this.options.maxModelCalls !== undefined && this.modelCalls >= this.options.maxModelCalls) {
-            throw new ActError({ instruction, reason: `the budget of ${this.options.maxModelCalls} model calls is used up` })
-        }
+        this.#assertBudget(instruction)
 
         const values = options.values || {}
         const steps: ActStep[] = []
         const workspace = this.#workspaceFor(instruction)
         workspace.values = values
+        workspace.secrets = this.#rememberSecrets(values)
         await workspace.writeEvents(agent.logs, agent.network)
-        const tools = await pageTools({ agent, values, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope, effects: recorder })
+        const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope, effects: recorder })
         const maxSteps = options.maxSteps ?? this.options.maxSteps ?? DEFAULT_MAX_STEPS
         log.info(`act("${instruction}") with ${describeModel(modelOption)}`)
         try {
@@ -379,6 +372,34 @@ export class AiRuntime {
         return new HealEvidence(browser, path.join(this.#workspaceRoot, 'heals', `${slug(name)}-${crypto.randomUUID().slice(0, 8)}`))
     }
 
+    /**
+     * fail before a model call once the worker used up `maxModelCalls`
+     */
+    #assertBudget (instruction: string, usage?: TokenUsage) {
+        if (this.options.maxModelCalls !== undefined && this.modelCalls >= this.options.maxModelCalls) {
+            throw new ActError({ instruction, reason: `the budget of ${this.options.maxModelCalls} model calls is used up`, ...(usage ? { usage } : {}) })
+        }
+    }
+
+    /**
+     * every placeholder value of the worker, by value
+     */
+    #secrets = new Map<string, string>()
+
+    /**
+     * Remember the values of a call. Browser events are kept for the whole
+     * session, so a value of an earlier call can show up in the events of a
+     * later one and has to stay hidden.
+     */
+    #rememberSecrets (values: Record<string, string>): [string, string][] {
+        for (const [name, value] of Object.entries(values)) {
+            if (typeof value === 'string' && value) {
+                this.#secrets.set(value, name)
+            }
+        }
+        return [...this.#secrets].map(([value, name]) => [name, value])
+    }
+
     #record (record: ActRecord) {
         this.records.push(record)
         emitRecord(record)
@@ -430,7 +451,7 @@ export class AiRuntime {
         const summarize = (steps: ActStep[]) => steps.map(({ action, code }) => ({ action, code }))
 
         if (entry && entry.instruction === instruction) {
-            const replay = await replaySteps(agent, entry.steps, values, waitTimeoutOf(browser), effects, evidence)
+            const replay = await replaySteps(agent, entry.steps, values, waitTimeoutOf(browser), effects, evidence, scopeRef)
             if (!replay.failed) {
                 if (replay.healed.length) {
                     if (mode !== 'locked') {
@@ -553,6 +574,7 @@ export class AiRuntime {
         const values = options.values || {}
         const workspace = this.#workspaceFor(instruction)
         workspace.values = values
+        workspace.secrets = this.#rememberSecrets(values)
         await workspace.writeEvents(agent.logs, agent.network)
         const responses = await this.#responses.get(agent.browser)?.catch(() => undefined)
         const withResponses = responses ? await workspace.writeResponses(responses, responses.select({
@@ -560,10 +582,14 @@ export class AiRuntime {
             since: this.#test?.startedAt
         })) > 0 : false
         const jsonSchema = jsonSchemaOf(schema)
-        const tools = await pageTools({ agent, values, actions: READ_ACTIONS, onStep: () => {}, workspace, scope: scopeRef })
+        const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: READ_ACTIONS, onStep: () => {}, workspace, scope: scopeRef })
         let feedback = ''
         try {
             for (let attempt = 1; attempt <= 2; attempt++) {
+                /**
+                 * `extract` and its retry spend the same budget as `act`
+                 */
+                this.#assertBudget(instruction, usage)
                 const outcome: ExtractOutcome = {}
                 const result = await runLoop({
                     model: await this.#model(modelOption),
@@ -605,11 +631,14 @@ export class AiRuntime {
     #store (cache: ActCache, key: string, entry: { instruction: string, platform: string, steps: ActStep[] }, options: ActOptions, recordedBy?: string) {
         const model = selectModel(options.model, this.options.model)
         const modelName = recordedBy ?? (model ? describeModel(model) : undefined)
+        /**
+         * heal mode, of the service or of this call, leaves the cache file alone
+         */
         cache.set(key, {
             ...entry,
             ...(modelName ? { model: modelName } : {}),
             recordedAt: new Date().toISOString()
-        })
+        }, this.mode(options.cache) === 'heal' ? 'heal' : 'cache')
     }
 }
 

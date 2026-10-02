@@ -4,6 +4,7 @@ import { redact, substitute } from './redact.js'
 import { DEFAULT_SETTLE_TIMEOUT, EffectMismatchError, EffectTimeoutError, missingEffects, observableWithoutBidi, type EffectsMode } from './effects.js'
 import type { EffectRecorder } from './recorder.js'
 import type { HealHooks } from './evidence.js'
+import { TARGET_KEYS } from './tools.js'
 import type { ActStep } from './types.js'
 
 export interface EffectCheck {
@@ -52,7 +53,6 @@ export interface ReplayResult {
     }
 }
 
-const TARGET_KEYS = ['target', 'from', 'to'] as const
 /**
  * `frame top` and `frame parent` name no element to wait for
  */
@@ -62,12 +62,13 @@ const FRAME_KEYWORDS = new Set(['top', 'parent'])
  * Wait until the targets of a step exist, like an `await $(selector)` in a
  * spec would, then run the step.
  */
-export async function runStep (agent: AgentSession, step: ActStep, values: Record<string, string>, waitTimeout: number, effects?: EffectCheck) {
+export async function runStep (agent: AgentSession, step: ActStep, values: Record<string, string>, waitTimeout: number, effects?: EffectCheck, scope?: string) {
     const args = substitute(step.args, values)
     for (const key of TARGET_KEYS) {
         const selector = args[key]
         if (typeof selector === 'string' && selector && !(step.action === 'frame' && FRAME_KEYWORDS.has(selector))) {
             await agent.scope.$(selector).waitForExist({ timeout: waitTimeout })
+            await assertInScope(agent, scope, selector)
         }
     }
     return runChecked(agent, step, args, values, effects, Math.max(DEFAULT_SETTLE_TIMEOUT, waitTimeout))
@@ -90,6 +91,16 @@ async function runChecked (agent: AgentSession, step: ActStep, args: Record<stri
         throw pending.length ? new EffectTimeoutError(timeout, pending) : new EffectMismatchError(missing)
     }
     return result
+}
+
+/**
+ * A step of a call scoped to an element must not act outside it, even when
+ * its selector also matches something else on the page.
+ */
+async function assertInScope (agent: AgentSession, scope: string | undefined, selector: string) {
+    if (scope && !await agent.contains(scope, selector)) {
+        throw new Error(`${selector} is outside the element this act() call is limited to`)
+    }
 }
 
 export function roleSelector (role: string, name: string) {
@@ -122,11 +133,11 @@ export function alternativeSelectors (step: ActStep): string[] {
  * element and the action succeeds. The page already had the wait timeout of
  * the original selector to settle, so alternatives are not waited for.
  */
-export async function healStep (agent: AgentSession, step: ActStep, values: Record<string, string>, effects?: EffectCheck): Promise<ActStep | undefined> {
+export async function healStep (agent: AgentSession, step: ActStep, values: Record<string, string>, effects?: EffectCheck, scope?: string): Promise<ActStep | undefined> {
     for (const selector of alternativeSelectors(step)) {
         try {
             const matches = await agent.scope.$$(selector).getElements()
-            if (matches.length !== 1) {
+            if (matches.length !== 1 || (scope && !await agent.contains(scope, selector))) {
                 continue
             }
             const args = { ...step.args, target: selector }
@@ -168,15 +179,16 @@ export class HealMismatchError extends Error {
 }
 
 /**
- * Run recorded steps in order. A step whose target is gone is healed with
- * an alternative selector. Stop at the first step that cannot be healed.
+ * Run recorded steps in order. A step whose target is gone, or outside the
+ * element of a scoped call, is healed with an alternative selector. Stop at
+ * the first step that cannot be healed.
  */
-export async function replaySteps (agent: AgentSession, steps: ActStep[], values: Record<string, string>, waitTimeout: number, effects?: EffectCheck, heal?: HealHooks): Promise<ReplayResult> {
+export async function replaySteps (agent: AgentSession, steps: ActStep[], values: Record<string, string>, waitTimeout: number, effects?: EffectCheck, heal?: HealHooks, scope?: string): Promise<ReplayResult> {
     const done: ActStep[] = []
     const healed: HealedStep[] = []
     for (const [index, step] of steps.entries()) {
         try {
-            await runStep(agent, step, values, waitTimeout, effects)
+            await runStep(agent, step, values, waitTimeout, effects, scope)
             done.push(step)
         } catch (err) {
             await heal?.begin()
@@ -192,7 +204,7 @@ export async function replaySteps (agent: AgentSession, steps: ActStep[], values
             }
             let fixed: ActStep | undefined
             try {
-                fixed = await healStep(agent, step, values, effects)
+                fixed = await healStep(agent, step, values, effects, scope)
             } catch (healErr) {
                 if (healErr instanceof HealMismatchError) {
                     return { done, healed, failed: { step, index, error: healErr.message, kind: 'effect', healedWith: healErr.selector } }

@@ -49,21 +49,44 @@ const CACHE: CacheFile = {
 }
 
 describe('findActCalls', () => {
-    it('finds single and multi-line act statements with a literal instruction', () => {
+    it('finds act calls with their test, position and options', () => {
         const calls = findActCalls(SPEC)
-        expect(calls.map(({ instruction, id, values, indent }) => ({ instruction, id, values, indent }))).toEqual([
-            { instruction: 'Add a blue shirt to the cart', id: undefined, values: undefined, indent: '        ' },
-            { instruction: 'Log in as {{email}} with {{password}}', id: undefined, values: '{ email: process.env.SHOP_USER!, password: process.env.SHOP_PASS! }', indent: '        ' },
-            { instruction: 'Open the "account" menu', id: 'menu', values: undefined, indent: '        ' }
+        expect(calls.map(({ instruction, id, values, indent, test, position, statement }) => ({ instruction, id, values, indent, test, position, statement }))).toEqual([
+            { instruction: 'Add a blue shirt to the cart', id: undefined, values: undefined, indent: '        ', test: 'shop adds a shirt', position: 1, statement: true },
+            { instruction: 'Log in as {{email}} with {{password}}', id: undefined, values: '{ email: process.env.SHOP_USER!, password: process.env.SHOP_PASS! }', indent: '        ', test: 'shop logs in', position: 1, statement: true },
+            { instruction: 'Open the "account" menu', id: 'menu', values: undefined, indent: '        ', test: 'shop logs in', position: 2, statement: true },
+            { instruction: undefined, id: undefined, values: undefined, indent: '        ', test: 'shop logs in', position: 3, statement: true }
         ])
     })
 
-    it('leaves out instructions that are not plain strings', () => {
-        expect(findActCalls('await browser.act(`Add ${item}`)\nawait browser.act(instruction)')).toEqual([])
+    it('has no position for calls in or after a branch, a loop or a callback', () => {
+        const calls = findActCalls(`describe('cart', () => {
+    it('adds items', async () => {
+        await browser.act('Open the shop')
+        for (const item of items) {
+            await browser.act('Add the item')
+        }
+        await browser.act('Check out')
+    })
+    it(name, async () => {
+        await browser.act('Open the shop')
+    })
+})`)
+        expect(calls.map(({ instruction, test, position }) => ({ instruction, test, position }))).toEqual([
+            { instruction: 'Open the shop', test: 'cart adds items', position: 1 },
+            { instruction: 'Add the item', test: 'cart adds items', position: undefined },
+            { instruction: 'Check out', test: 'cart adds items', position: undefined },
+            { instruction: 'Open the shop', test: undefined, position: 1 }
+        ])
     })
 })
 
 describe('codeWithValues', () => {
+    it('keeps backticks and ${ of the recorded text as plain text', () => {
+        expect(codeWithValues('await $(\'#q\').setValue(\'{{name}} costs ${price} `now`\')'))
+            .toBe('await $(\'#q\').setValue(`${values["name"]} costs \\${price} \\`now\\``)')
+    })
+
     it('turns placeholders into value expressions', () => {
         expect(codeWithValues('await $(\'#email\').setValue(\'{{email}}\')')).toBe('await $(\'#email\').setValue(values["email"])')
         expect(codeWithValues('await $(\'#q\').setValue(\'Hello {{name}}!\')')).toBe('await $(\'#q\').setValue(`Hello ${values["name"]}!`)')
@@ -99,7 +122,7 @@ describe('eject', () => {
     })
 
     it('leaves out steps without code, e.g. moving back to the top document', () => {
-        const result = eject("        await browser.act('Pay')\n", {
+        const result = eject("        await browser.act('Pay', { id: 'pay' })\n", {
             version: 1,
             entries: {
                 pay: entry('Pay', [
@@ -117,25 +140,45 @@ describe('eject', () => {
         ].join('\n'))
     })
 
-    it('skips calls without cached steps or with different steps in several tests', () => {
-        const cache: CacheFile = {
-            version: 1,
-            entries: {
-                'a › #1': entry('Add a blue shirt to the cart', ['await $(\'#a\').click()']),
-                'b › #1': entry('Add a blue shirt to the cart', ['await $(\'#b\').click()'])
-            }
-        }
-        const result = eject(SPEC, cache)
-        expect(result.ejected).toEqual([])
-        expect(result.skipped).toEqual([
-            { instruction: 'Add a blue shirt to the cart', reason: 'recorded with different steps in several tests, pass `id` or `--test`' },
-            { instruction: 'Log in as {{email}} with {{password}}', reason: 'no cached steps, run the test once to record them' },
-            { instruction: 'Open the "account" menu', reason: 'no cached steps, run the test once to record them' }
-        ])
+    it('uses the steps of exactly that call and leaves other calls with the same instruction alone', () => {
+        const spec = `describe('shop', () => {
+    it('adds a shirt', async () => {
+        await browser.act('Add a blue shirt to the cart')
+    })
+    it('adds another shirt', async () => {
+        await browser.act('Add a blue shirt to the cart')
+    })
+})
+`
+        const cache: CacheFile = { version: 1, entries: { 'shop adds a shirt › #1': entry('Add a blue shirt to the cart', ['await $(\'#a\').click()']) } }
+        const result = eject(spec, cache)
+        expect(result.ejected).toEqual([{ instruction: 'Add a blue shirt to the cart', steps: 1 }])
+        expect(result.skipped).toEqual([{ instruction: 'Add a blue shirt to the cart', reason: 'no cached steps, run the test once to record them' }])
+        expect(result.source.match(/#a/g)).toHaveLength(1)
+        expect(result.source).toContain('    it(\'adds another shirt\', async () => {\n        await browser.act(\'Add a blue shirt to the cart\')')
+    })
 
-        const filtered = eject(SPEC, cache, { test: 'b' })
-        expect(filtered.ejected).toEqual([{ instruction: 'Add a blue shirt to the cart', steps: 1 }])
-        expect(filtered.source).toContain('await $(\'#b\').click()')
+    it('skips a call whose cached entry is for another instruction, or that has no fixed position', () => {
+        const spec = `describe('shop', () => {
+    it('adds a shirt', async () => {
+        await browser.act('Add a red shirt to the cart')
+        if (sale) {
+            await browser.act('Apply the coupon')
+        }
+    })
+})
+`
+        const cache: CacheFile = { version: 1, entries: { 'shop adds a shirt › #1': entry('Add a blue shirt to the cart', ['await $(\'#a\').click()']) } }
+        expect(eject(spec, cache).skipped).toEqual([
+            { instruction: 'Add a red shirt to the cart', reason: 'the steps cached as "shop adds a shirt › #1" are for "Add a blue shirt to the cart", run the test again to record this call' },
+            { instruction: 'Apply the coupon', reason: 'the call has no fixed position in a test with a plain string title, pass `id` to the call' }
+        ])
+    })
+
+    it('only rewrites the calls of the test passed with --test', () => {
+        const result = eject(SPEC, CACHE, { test: 'shop logs in' })
+        expect(result.ejected.map(({ instruction }) => instruction)).toEqual(['Log in as {{email}} with {{password}}', 'Open the "account" menu'])
+        expect(result.source).toContain('await browser.act(\'Add a blue shirt to the cart\')')
     })
 })
 

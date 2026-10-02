@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { ActCache, cacheFileFor, cacheKey, CACHE_VERSION, resolveMode, writeEntries, type CacheEntry } from '../src/cache.js'
+import { ActCache, cacheFileFor, cacheKey, CACHE_VERSION, healFileFor, resolveMode, writeEntries, type CacheEntry } from '../src/cache.js'
 
 const entry = (instruction: string): CacheEntry => ({
     instruction,
@@ -79,14 +79,35 @@ describe('ActCache', () => {
         expect(Object.keys(written.entries)).toEqual(['b › #1', 'c › #1'])
     })
 
-    it('writes the changes to another file in heal mode', async () => {
+    it('writes each change to its destination: the cache file or the heal output', async () => {
         const file = tmpFile()
         const cache = new ActCache(file)
-        cache.set('a › #1', entry('Healed'))
+        cache.set('a › #1', entry('Healed'), 'heal')
+        cache.set('b › #1', entry('Recorded'))
         const healed = path.join(path.dirname(path.dirname(file)), 'logs', 'act-cache', 'cart.e2e.ts.json')
         await cache.flush(healed)
-        expect(fs.existsSync(file)).toBe(false)
-        expect(JSON.parse(fs.readFileSync(healed, 'utf-8')).entries['a › #1'].instruction).toBe('Healed')
+        expect(Object.keys(JSON.parse(fs.readFileSync(file, 'utf-8')).entries)).toEqual(['b › #1'])
+        expect(Object.keys(JSON.parse(fs.readFileSync(healed, 'utf-8')).entries)).toEqual(['a › #1'])
+    })
+
+    it('keeps the entries of workers that write the same file at the same time', async () => {
+        const file = tmpFile()
+        const workers = Array.from({ length: 5 }, (_, i) => {
+            const cache = new ActCache(file)
+            cache.set(`worker ${i} › #1`, entry(`Step of worker ${i}`))
+            return cache
+        })
+        await Promise.all(workers.map((cache) => cache.flush(`${file}.heal.json`)))
+        expect(Object.keys(JSON.parse(fs.readFileSync(file, 'utf-8')).entries)).toHaveLength(5)
+    })
+
+    it('keeps the path of the cache file in the heal output', () => {
+        expect(healFileFor('/project/test/a/__act__/login.e2e.ts.json', '/project/logs', '/project'))
+            .toBe(path.join('/project/logs', 'act-cache', 'test/a/__act__/login.e2e.ts.json'))
+        expect(healFileFor('/project/test/b/__act__/login.e2e.ts.json', '/project/logs', '/project'))
+            .toBe(path.join('/project/logs', 'act-cache', 'test/b/__act__/login.e2e.ts.json'))
+        expect(healFileFor('/elsewhere/__act__/login.e2e.ts.json', '/project/logs', '/project'))
+            .toBe(path.join('/project/logs', 'act-cache', 'elsewhere/__act__/login.e2e.ts.json'))
     })
 
     it('rejects a cache file of another version', async () => {

@@ -8,7 +8,7 @@ import { ActError } from '../src/errors.js'
 import { AiRuntime } from '../src/runtime.js'
 import { formatSummary } from '../src/stats.js'
 import type { StepEffect } from '../src/effects.js'
-import { ScriptedChatModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
+import { scriptedModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
 const createAgentSession = vi.hoisted(() => vi.fn())
@@ -40,7 +40,7 @@ describe('AiRuntime effects', () => {
     })
 
     const runtime = (script: ScriptStep[], options = {}) => {
-        const model = new ScriptedChatModel(script)
+        const model = scriptedModel(script)
         return { model, runtime: new AiRuntime({ model, cache: 'write', workspace: { dir: path.join(dir, 'ws') }, ...options }) }
     }
     const readCache = () => JSON.parse(fs.readFileSync(path.join(dir, '__act__', 'cart.e2e.ts.json'), 'utf-8'))
