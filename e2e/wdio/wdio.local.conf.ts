@@ -68,7 +68,15 @@ const profileDirs: string[] = []
 
 function removeProfileDirs () {
     for (const dir of profileDirs.splice(0)) {
-        fs.rmSync(dir, { recursive: true, force: true })
+        try {
+            /**
+             * Windows keeps the profile locked until the browser process
+             * finishes. A throw here becomes the run's exit code.
+             */
+            fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })
+        } catch {
+            // leftover profiles are temporary directories
+        }
     }
 }
 

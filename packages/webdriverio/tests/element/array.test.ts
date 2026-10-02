@@ -253,6 +253,110 @@ describe('ElementArray', () => {
         expect(await sliced.map((el) => el.elementId)).toEqual(['a', 'b'])
     })
 
+    describe('index past the end', () => {
+        /**
+         * A `waitUntil` that runs the condition once and, like the real command,
+         * rejects with `timeoutMsg` when it gives no element.
+         */
+        const waitOnce = () => vi.fn(async (condition: () => Promise<WebdriverIO.Element | false>, options: { timeoutMsg: string }) => {
+            const match = await condition()
+            if (!match) {
+                throw new Error(options.timeoutMsg)
+            }
+            return match
+        })
+
+        it('rejects with the browser timeout and an out of bounds message', async () => {
+            const browser = {
+                options: { waitforTimeout: 50 },
+                $$: vi.fn(async () => ElementArray.fromResolved([element('a')], { selector: '.item', foundWith: '$$', props: [] })),
+                waitUntil: waitOnce()
+            }
+            const elements = await ElementArray.fromAsyncCallback(async () => [element('a')], {
+                selector: '.item',
+                foundWith: '$$',
+                parent: browser as unknown as WebdriverIO.Browser,
+                props: []
+            })
+
+            await expect(elements[1].getText()).rejects.toThrow('Index out of bounds! $$(.item) returned only 1 elements.')
+            expect(browser.waitUntil).toHaveBeenCalledWith(expect.any(Function), {
+                timeout: 50,
+                timeoutMsg: 'Index out of bounds! $$(.item) returned only 1 elements.'
+            })
+        })
+
+        it('waits with the browser and queries the parent element of the list', async () => {
+            const late = element('late')
+            const browser = { options: { waitforTimeout: 50 }, waitUntil: waitOnce() }
+            const parent = {
+                parent: browser,
+                $$: vi.fn(async () => ElementArray.fromResolved([element('a'), late], { selector: '.item', foundWith: '$$', props: [] }))
+            }
+            const elements = await ElementArray.fromAsyncCallback(async () => [element('a')], {
+                selector: '.item',
+                foundWith: '$$',
+                parent: parent as unknown as WebdriverIO.Element,
+                props: []
+            })
+
+            await expect(elements[1].elementId).resolves.toBe('late')
+            expect(browser.waitUntil).toHaveBeenCalledOnce()
+            expect(parent.$$).toHaveBeenCalledWith('.item')
+        })
+
+        it('does not wait when the list has no parent', async () => {
+            const elements = ElementArray.fromResolved([element('a')], {
+                selector: '.item',
+                foundWith: '$$',
+                props: []
+            })
+
+            await expect(elements[1].getText()).rejects.toThrow(/could not be found/)
+        })
+
+        it('does not find an element when the parent has no query of that name', async () => {
+            const browser = { options: { waitforTimeout: 50 }, waitUntil: waitOnce() }
+            const elements = await ElementArray.fromAsyncCallback(async () => [element('a')], {
+                selector: 'one',
+                foundWith: 'custom$$',
+                parent: browser as unknown as WebdriverIO.Browser,
+                props: []
+            })
+
+            await expect(elements[1].getText()).rejects.toThrow('Index out of bounds! $$(one) returned only 1 elements.')
+            expect(browser.waitUntil).toHaveBeenCalledOnce()
+        })
+    })
+
+    it('gives an index of a pending list that is in range without a wait', async () => {
+        const browser = { options: { waitforTimeout: 50 }, $$: vi.fn(), waitUntil: vi.fn() }
+        const elements = ElementArray.fromAsyncCallback(async () => [element('a'), element('b')], {
+            selector: '.item',
+            foundWith: '$$',
+            parent: browser as unknown as WebdriverIO.Browser,
+            props: []
+        })
+
+        await expect(elements[1].elementId).resolves.toBe('b')
+        expect(browser.waitUntil).not.toHaveBeenCalled()
+        expect(browser.$$).not.toHaveBeenCalled()
+    })
+
+    it('reads a negative at() of a pending list from the end, without a wait', async () => {
+        const browser = { options: { waitforTimeout: 50 }, $$: vi.fn(), waitUntil: vi.fn() }
+        const elements = ElementArray.fromAsyncCallback(async () => [element('a'), element('b'), element('c')], {
+            selector: '.item',
+            foundWith: '$$',
+            parent: browser as unknown as WebdriverIO.Browser,
+            props: []
+        })
+
+        await expect(elements.at(-1).elementId).resolves.toBe('c')
+        expect(browser.waitUntil).not.toHaveBeenCalled()
+        expect(browser.$$).not.toHaveBeenCalled()
+    })
+
     it('gives a resolved list from plain elements the same metadata', () => {
         const elements = ElementArray.fromResolved([element('a')], {
             selector: '.ready',
