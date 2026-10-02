@@ -54,6 +54,15 @@ describe('@wdio/session/agent', () => {
         expect(agent.ref(ref!)?.candidates).toContain('role/button[name="Remove Blue T-Shirt"]')
     })
 
+    it('scopes a snapshot to a pinned element', async () => {
+        const products = await browser.$('#products')
+        const scope = await agent.pin(products)
+        const { text } = await agent.run('snapshot', { scope, interactive: true }) as { text: string }
+        expect(text).toContain('button "Add to cart"')
+        expect(text).not.toContain('Checkout')
+        expect(text).not.toContain('Cart (')
+    })
+
     it('keeps the history in memory and leaves the browser session open on dispose', async () => {
         expect(fs.existsSync(path.join(agent.session.artifactsDir, 'history.json'))).toBe(false)
         await agent.dispose()

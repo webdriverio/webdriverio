@@ -90,6 +90,23 @@ export class AgentSession {
     }
 
     /**
+     * Register an element as a ref, e.g. to scope snapshots to it with
+     * `run('snapshot', { scope: ref })`.
+     */
+    async pin (element: WebdriverIO.Element): Promise<string> {
+        const id = this.session.refs.allocate()
+        await this.browser.execute(function (el: Element, refId: string) {
+            const w = window as unknown as { __wdioSession?: { refs: Map<string, WeakRef<Element>>, ids: WeakMap<Element, string> } }
+            const store = w.__wdioSession || (w.__wdioSession = { refs: new Map(), ids: new WeakMap() })
+            store.refs.set(refId, new WeakRef(el))
+            store.ids.set(el, refId)
+        }, element as unknown as Element, id)
+        const selector = (element as { selector?: unknown }).selector
+        this.session.refs.set({ id, kind: 'web', role: 'scope', candidates: typeof selector === 'string' ? [selector] : [], generation: this.session.refs.generation })
+        return id
+    }
+
+    /**
      * the steps that recorded code so far
      */
     get history (): HistoryEntry[] {

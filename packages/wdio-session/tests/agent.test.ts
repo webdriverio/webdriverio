@@ -102,4 +102,16 @@ describe('createAgentSession', () => {
         expect(browser.off).toHaveBeenCalledWith('log.entryAdded', expect.any(Function))
         expect(browser.deleteSession).not.toHaveBeenCalled()
     })
+
+    it('pins an element as a ref the session can resolve', async () => {
+        const execute = vi.fn().mockResolvedValue(undefined)
+        const agent = await createAgentSession(mockBrowser({ execute }), { artifactsDir: tmp() })
+        const element = { elementId: 'el-1', selector: '#products' } as unknown as WebdriverIO.Element
+        const first = await agent.pin(element)
+        const second = await agent.pin(element)
+        expect(first).toMatch(/^e\d+$/)
+        expect(second).not.toBe(first)
+        expect(execute).toHaveBeenCalledWith(expect.any(Function), element, first)
+        expect(agent.ref(first)).toMatchObject({ id: first, kind: 'web', role: 'scope', candidates: ['#products'] })
+    })
 })

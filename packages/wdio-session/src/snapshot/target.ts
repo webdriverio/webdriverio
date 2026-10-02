@@ -20,6 +20,18 @@ export interface ResolvedTarget {
 }
 
 /**
+ * The element of a ref or selector, without computing a selector for the
+ * recorded code, e.g. for the scope of a snapshot.
+ */
+export async function resolveElement (session: Session, target: unknown): Promise<WebdriverIO.Element> {
+    const id = typeof target === 'string' ? refId(target) : undefined
+    if (id) {
+        return session.refs.resolve(session.browser, id)
+    }
+    return (await resolveTarget(session, target)).element
+}
+
+/**
  * Resolve an action target: a ref from the latest snapshot or any
  * WebdriverIO selector matching exactly one element (RFC §4.6).
  */
