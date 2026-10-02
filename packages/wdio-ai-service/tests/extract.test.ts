@@ -10,7 +10,7 @@ import { ActError } from '../src/errors.js'
 import { jsonSchemaOf, validate } from '../src/extract.js'
 import { AiRuntime } from '../src/runtime.js'
 import { formatSummary } from '../src/stats.js'
-import { ScriptedChatModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
+import { scriptedModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
 const createAgentSession = vi.hoisted(() => vi.fn())
@@ -56,7 +56,7 @@ describe('AiRuntime.extract', () => {
     })
 
     const runtime = (script: ScriptStep[]) => {
-        const model = new ScriptedChatModel(script)
+        const model = scriptedModel(script)
         return { model, runtime: new AiRuntime({ model, workspace }) }
     }
 

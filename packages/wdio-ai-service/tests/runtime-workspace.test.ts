@@ -5,7 +5,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AiRuntime } from '../src/runtime.js'
-import { ScriptedChatModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
+import { scriptedModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
 const createAgentSession = vi.hoisted(() => vi.fn())
@@ -41,7 +41,7 @@ describe('AiRuntime workspace', () => {
     })
 
     const runtime = (script: ScriptStep[], options = {}) => {
-        const model = new ScriptedChatModel(script)
+        const model = scriptedModel(script)
         return { model, runtime: new AiRuntime({ model, cache: 'off', workspace: { dir }, ...options }) }
     }
     let testDir: string

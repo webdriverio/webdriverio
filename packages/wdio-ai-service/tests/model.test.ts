@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { describeModel, parseModelString, resolveModel, selectModel, MODEL_ENV } from '../src/model.js'
-import { ScriptedChatModel } from './__fixtures__/scriptedModel.js'
+import { scriptedModel } from './__fixtures__/scriptedModel.js'
 
 describe('parseModelString', () => {
     it('splits provider and model at the first colon', () => {
@@ -34,7 +34,7 @@ describe('selectModel', () => {
 
 describe('resolveModel', () => {
     it('returns a chat model instance as is', async () => {
-        const model = new ScriptedChatModel([])
+        const model = scriptedModel([])
         await expect(resolveModel(model)).resolves.toBe(model)
     })
 
@@ -75,6 +75,6 @@ describe('describeModel', () => {
     it('names string, config and instance models', () => {
         expect(describeModel('anthropic:claude-sonnet-5-5')).toBe('anthropic:claude-sonnet-5-5')
         expect(describeModel({ provider: 'ollama', model: 'qwen3:8b' })).toBe('ollama:qwen3:8b')
-        expect(describeModel(new ScriptedChatModel([]))).toBe('ScriptedChatModel')
+        expect(describeModel(scriptedModel([]))).toBe('FakeBuiltModel')
     })
 })
