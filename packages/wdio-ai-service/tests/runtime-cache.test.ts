@@ -5,6 +5,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ActError } from '../src/errors.js'
+import { healFileFor } from '../src/cache.js'
 import { AiRuntime, type RuntimeOptions } from '../src/runtime.js'
 import { scriptedModel, type ScriptStep } from './__fixtures__/scriptedModel.js'
 import { fakeAgent } from './__fixtures__/agent.js'
@@ -155,8 +156,18 @@ describe('AiRuntime cache', () => {
         await ai.act(browser, 'Add the shirt')
         await ai.flush()
         expect(fs.existsSync(cacheFile())).toBe(false)
-        const healed = JSON.parse(fs.readFileSync(path.join(outputDir, 'act-cache', 'cart.e2e.ts.json'), 'utf-8'))
+        const healed = JSON.parse(fs.readFileSync(healFileFor(cacheFile(), outputDir), 'utf-8'))
         expect(healed.entries['cart › #1'].instruction).toBe('Add the shirt')
+    })
+
+    it('writes the entry of a call with cache: heal to the heal output, under a service in write mode', async () => {
+        const outputDir = path.join(dir, 'logs')
+        const { runtime: ai } = runtime({ cache: 'write', outputDir })
+        ai.startTest(spec, 'cart')
+        await ai.act(browser, 'Add the shirt', { cache: 'heal' })
+        await ai.flush()
+        expect(fs.existsSync(cacheFile())).toBe(false)
+        expect(JSON.parse(fs.readFileSync(healFileFor(cacheFile(), outputDir), 'utf-8')).entries['cart › #1'].instruction).toBe('Add the shirt')
     })
 
     it('records every call again with updateSnapshots: all', async () => {

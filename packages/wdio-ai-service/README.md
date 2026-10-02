@@ -127,11 +127,11 @@ Every call also emits an `ai:act` event on `process` with `{ spec, test, instruc
 | Mode | Cached | Not cached | Writes |
 | --- | --- | --- | --- |
 | `write` | replay | record with the model | the cache files |
-| `heal` | replay | record with the model | `<outputDir>/act-cache/` only, the cache files stay unchanged |
+| `heal` | replay | record with the model | `<outputDir>/act-cache/<path of the cache file>` only, the cache files stay unchanged |
 | `locked` | replay | fail, never calls the model | nothing |
 | `off` | always calls the model | | nothing |
 
-`auto` is `heal` when `process.env.CI` is set and `write` otherwise. `wdio run -s` (`updateSnapshots: 'all'`) records every `act` call again.
+`auto` is `heal` when `process.env.CI` is set and `write` otherwise. A call's own `cache` option decides where its entry goes. Workers that write the same cache file take turns, so none loses the entries of another. `wdio run -s` (`updateSnapshots: 'all'`) records every `act` call again.
 
 ## Workspace
 

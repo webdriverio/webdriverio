@@ -6,7 +6,7 @@ import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { createAgentSession, type AgentSession } from '@wdio/session/agent'
 import { getContextManager } from 'webdriverio'
 
-import { ActCache, cacheFileFor, cacheKey, resolveMode, type EffectiveMode } from './cache.js'
+import { ActCache, cacheFileFor, cacheKey, healFileFor, resolveMode, type EffectiveMode } from './cache.js'
 import { ActError, type TokenUsage } from './errors.js'
 import { runLoop } from './loop.js'
 import { describeModel, resolveModel, selectModel } from './model.js'
@@ -187,14 +187,8 @@ export class AiRuntime {
      */
     async flush () {
         await writeRecords(this.records.splice(0))
-        const mode = this.mode()
         for (const cache of this.#caches.values()) {
-            if (mode === 'heal') {
-                const dir = path.join(outputDirOf(this.options), 'act-cache')
-                await cache.flush(path.join(dir, path.basename(cache.file)))
-            } else {
-                await cache.flush()
-            }
+            await cache.flush(healFileFor(cache.file, outputDirOf(this.options)))
         }
     }
 
@@ -500,11 +494,14 @@ export class AiRuntime {
     #store (cache: ActCache, key: string, entry: { instruction: string, platform: string, steps: ActStep[] }, options: ActOptions, recordedBy?: string) {
         const model = selectModel(options.model, this.options.model)
         const modelName = recordedBy ?? (model ? describeModel(model) : undefined)
+        /**
+         * heal mode, of the service or of this call, leaves the cache file alone
+         */
         cache.set(key, {
             ...entry,
             ...(modelName ? { model: modelName } : {}),
             recordedAt: new Date().toISOString()
-        })
+        }, this.mode(options.cache) === 'heal' ? 'heal' : 'cache')
     }
 }
 
