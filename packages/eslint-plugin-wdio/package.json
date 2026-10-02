@@ -39,7 +39,7 @@
     "@types/estree": "^1.0.9",
     "@wdio/types": "workspace:*",
     "eslint": "^10.11.0",
-    "expect-webdriverio": "^8.0.0-alpha.1",
+    "expect-webdriverio": "^8.0.0-alpha.2",
     "globals": "^17.12.0",
     "typescript-eslint": "^8.71.0"
   },
