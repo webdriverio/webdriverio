@@ -78,7 +78,7 @@ export class HealEvidence implements HealHooks {
             const video = await stopScreencast(this.#browser, this.#screencast)
             this.#screencast = undefined
             if (video) {
-                this.#files.push(video)
+                this.#files.push(await moveInto(video, this.dir))
             }
         }
         return [...this.#files]
@@ -120,5 +120,34 @@ async function stopScreencast (browser: WebdriverIO.Browser, screencast: string)
     } catch (err) {
         log.debug(`could not stop the screencast: ${(err as Error).message}`)
         return undefined
+    }
+}
+
+/**
+ * Move the video next to the screenshots of the heal. Some browsers ignore
+ * `destinationFolder` (Firefox 156 saves to the downloads folder). When the
+ * file cannot be reached, e.g. the browser runs on a remote machine, the
+ * path the browser reported is kept.
+ */
+async function moveInto (file: string, dir: string) {
+    if (path.resolve(path.dirname(file)) === path.resolve(dir)) {
+        return file
+    }
+    const target = path.join(dir, path.basename(file))
+    try {
+        await fs.rename(file, target)
+        return target
+    } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === 'EXDEV') {
+            try {
+                await fs.copyFile(file, target)
+                await fs.rm(file, { force: true })
+                return target
+            } catch {
+                return file
+            }
+        }
+        log.debug(`could not move the screencast into ${dir}: ${(err as Error).message}`)
+        return file
     }
 }

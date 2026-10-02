@@ -7,10 +7,13 @@ import { scriptedModel } from '../../../packages/wdio-ai-service/tests/__fixture
 /**
  * Cache files of this suite go to a temporary directory, so a run never
  * writes into the repository. The launcher creates it, workers inherit it
- * through the environment, so a spec and the service always share it.
+ * through the environment, so a spec and the service always share it. Each
+ * worker gets its own folder: a spec runs in Chrome and Firefox at the same
+ * time, and one browser must not replay what the other just recorded.
  */
 process.env.WDIO_AI_E2E_DIR ??= fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-ai-e2e-'))
-export const cacheDir = process.env.WDIO_AI_E2E_DIR
+export const cacheDir = path.join(process.env.WDIO_AI_E2E_DIR, process.env.WDIO_WORKER_ID || 'launcher')
+fs.mkdirSync(cacheDir, { recursive: true })
 
 /**
  * The tool calls a model would make, in the order the specs call `act`.
