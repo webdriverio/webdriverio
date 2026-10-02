@@ -441,6 +441,15 @@ describe('browsing context', () => {
             expect(locate).not.toHaveBeenCalled()
         })
 
+        it('rejects a malformed XPath with invalid selector, like the drivers', async () => {
+            const { context, elem } = heldElement('frame-1', true)
+            vi.spyOn(context, 'execute').mockResolvedValue({ error: 'invalid selector', message: 'Unable to locate an element with the xpath expression .//[: not a valid XPath expression' })
+
+            const error = await elem.findElementsFromElement('elem-1', 'xpath', './/[').catch((err: Error) => err) as Error
+            expect(error.name).toBe('invalid selector')
+            expect(error.message).toContain('xpath expression .//[')
+        })
+
         it('reports interactability errors with the classic error codes', async () => {
             const { context, elem } = heldElement('frame-1', true)
             vi.spyOn(context, 'execute').mockResolvedValueOnce({

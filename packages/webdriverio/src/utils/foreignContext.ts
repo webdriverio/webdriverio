@@ -266,14 +266,22 @@ async function findInContext (
      */
     if (using === 'xpath') {
         const found = await held.execute((root: Element, expression: string) => {
-            const result = root.ownerDocument.evaluate(expression, root, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+            let result: XPathResult
+            try {
+                result = root.ownerDocument.evaluate(expression, root, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+            } catch (err) {
+                /**
+                 * like the spec: an expression that does not evaluate is an invalid selector
+                 */
+                return { error: 'invalid selector', message: `Unable to locate an element with the xpath expression ${expression}: ${(err as Error).message}` }
+            }
             return Array.from({ length: result.snapshotLength }, (_, i) => result.snapshotItem(i))
                 .filter((node): node is Element => node?.nodeType === Node.ELEMENT_NODE)
         }, ref(elementId), value)
         /**
          * `execute` returns DOM nodes as element references.
          */
-        return (found as unknown as Record<string, string>[]).slice(0, maxNodeCount)
+        return (throwOnFailure(found) as unknown as Record<string, string>[]).slice(0, maxNodeCount)
     }
 
     const locator: remote.BrowsingContextLocator | undefined = using === 'css selector' || using === 'tag name'
