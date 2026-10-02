@@ -3,6 +3,7 @@ import { getContextManager } from '../../session/context.js'
 import { contextIdValue } from '../../session/browsingContext.js'
 import { getBrowsingContext } from '../../browsingContext.js'
 import { navigateInContext, type UrlCommandOptions } from './navigateInContext.js'
+import { classicContext } from '../../utils/classicContext.js'
 
 /**
  *
@@ -149,9 +150,10 @@ import { navigateInContext, type UrlCommandOptions } from './navigateInContext.j
  * @param {`{user: string, pass: string}`=} options.auth  basic authentication credentials
  * @param {`Record<string, string>`=} options.headers  headers to be sent with the request
  * @returns {WebdriverIO.BrowsingContext} the browsing context that was navigated. In a WebDriver Classic
- * session there are no held browsing contexts, so the browser itself is returned: commands such as `$`,
- * `execute` or `getTitle` work on it, while BiDi-only members such as `frame()`, `navigate()` or the
- * `url` string do not exist.
+ * session (e.g. Appium or Safari) there are no held browsing contexts, so it stands for the browser: commands
+ * such as `$`, `execute` or `getTitle` run on the browser, `url` is the navigated url and `contextId` is
+ * `undefined`. The BiDi-only commands `frame()`, `navigate()` and `activate()` reject with an error that
+ * names the Classic alternative.
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get
  * @see  https://nodejs.org/api/url.html#url_url_resolve_from_to
@@ -195,5 +197,5 @@ export async function url (
         const context = await getContextManager(this).getCurrentContext()
         return getBrowsingContext(this, contextIdValue(context), { isFrame: false, url: path })
     }
-    return this as unknown as WebdriverIO.BrowsingContext
+    return classicContext(this, path)
 }
