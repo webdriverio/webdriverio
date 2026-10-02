@@ -372,7 +372,14 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 }))).filter(Boolean)
             }
 
-            const resultMsg = browserChannelMessage(MESSAGE_TYPES.commandResponseMessage, { id: payload.id, result })
+            /**
+             * a mock or a browsing context is sent as JSON, which drops its brand, so send its kind
+             */
+            const response: Workers.CommandResponseEvent = { id: payload.id, result }
+            if (kind === 'mock' || kind === 'browsing-context') {
+                response.kind = kind
+            }
+            const resultMsg = browserChannelMessage(MESSAGE_TYPES.commandResponseMessage, response)
             log.debug(`Return command result: ${resultMsg}`)
             return this.#sendWorkerResponse(id, resultMsg)
         } catch (error: unknown) {

@@ -1,3 +1,4 @@
+import { setWdioKind } from '@wdio/utils'
 import type { local } from 'webdriver'
 
 import type { Response as MockResponse } from './utils/interception/types.js'
@@ -160,3 +161,8 @@ export class MultiRemoteMock implements WebdriverIO.MultiRemoteMock {
         )
     }
 }
+
+/**
+ * the same kind as a mock of one instance, `isMultiRemote` tells them apart, see `@wdio/utils` `kind.ts`
+ */
+setWdioKind(MultiRemoteMock.prototype, 'mock')

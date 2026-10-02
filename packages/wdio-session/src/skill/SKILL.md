@@ -7,54 +7,45 @@ description: Drive browsers, mobile apps and desktop apps with WebdriverIO from 
 
 `wdio session` keeps a WebdriverIO session alive between short shell commands. Use it to explore a UI, check a change, and turn the steps that worked into a test.
 
-## 1. When to use it
+Use it when you need to see or drive a real browser, mobile app, or desktop app. Use `curl` or `fetch` instead when the question is only about an HTTP API.
 
-Use `wdio session` when you need to see or drive a real browser, mobile app, or desktop app.
+## 1. Discover commands with `--help`
 
-Use `curl` or `fetch` instead when the question is only about an HTTP API and no UI is involved.
+This file covers the core loop only. The CLI documents itself, and its help always matches the installed version:
 
-## 2. Start
+```sh
+npx wdio session --help            # the workflow, every action by group, global flags, exit codes
+npx wdio session <action> --help   # arguments, flags, platforms, examples and related actions
+```
 
-Reuse the `default` session. Pass `-s <name>` only when you need two sessions at once.
+Run `<action> --help` before you use an action for the first time in a task. Don't guess flags: an unknown flag fails with exit code 2.
+
+## 2. The loop
 
 ```sh
 npx wdio session open chrome http://localhost:3000
-npx wdio session open firefox http://localhost:3000
-npx wdio session open android --app ./shop.apk
-npx wdio session open ios --bundle-id com.example.shop
-npx wdio session open electron ./dist/shop
-npx wdio session open macos --bundle-id com.example.shop
-npx wdio session open windows --app Root
+npx wdio session snapshot -i
+npx wdio session click e3 && npx wdio session wait --text "Cart (1)" && npx wdio session snapshot -i
+npx wdio session export --out test/specs/cart.e2e.ts
+npx wdio session close
 ```
 
-Cloud: `open chrome --provider browserstack` (also `saucelabs`, `testingbot`, `testmu`).
+- **Open once.** Reuse the `default` session. Pass `-s <name>` only when you need two sessions at once. `open --help` lists every target: browsers, Android, iOS, macOS, Windows, Electron, Tauri, Dioxus, a wdio config, and cloud providers.
+- **Observe before acting.** `snapshot -i` lists interactive elements with refs like `button "Add to cart" [ref=e3]`. Use `find <text>` on large pages. Take a screenshot only when the question is about layout.
+- **Act on refs.** Refs stay valid while the element exists. After navigation, take a fresh snapshot.
+- **Chain steps with `&&`.** One shell call per act-wait-observe step is faster than separate calls, and a failing step stops the chain.
+- **Wait for a condition, not a time.** Use `wait <ref>`, `wait --text`, `wait --url` or `wait --load networkidle` instead of `sleep`.
+- **Read before you assert.** `get text e1`, `get url` and `is visible e1` print values. Put assertions in `exec`.
 
-## 3. Observe before acting
+## 3. Code
 
-```sh
-npx wdio session snapshot --interactive
-npx wdio session snapshot --compact
-npx wdio session snapshot --urls
-npx wdio session find "Add to cart"
-npx wdio session diff
-```
-
-Refs look like `button "Add to cart" [ref=e3]`. Take a screenshot only when the question is about layout. `pdf report.pdf` saves the page as a PDF.
-
-## 4. Act
-
-Use refs from the latest snapshot. Snapshot again after navigation. Prefer `exec` when a step is more than one command.
+Use `exec` for loops, conditions and assertions. Pipe longer code on stdin:
 
 ```sh
-npx wdio session click e3
-npx wdio session focus e2
-npx wdio session check e4
-npx wdio session click e5 --new-tab
-npx wdio session fill e2 ada@example.com
-npx wdio session wait --text "Cart (1)"
-npx wdio session wait --url "**/cart"
+npx wdio session exec -e 'await expect($("h1")).toHaveText("Cart")'
 npx wdio session <<'JS'
-await $('aria/Cart (1)').waitForDisplayed()
+await $('aria/Sign in').click()
+await expect(browser).toHaveUrl(expect.stringContaining('/dashboard'))
 JS
 ```
 
@@ -63,62 +54,37 @@ WebdriverIO v10 rules:
 - Always `await` commands.
 - `$` returns exactly one element. More than one match throws `StrictSelectorError`. A missing element stays unresolved until a command uses it.
 - There is no sync mode and no `browser.element`.
+- In the shell, wrap code in single quotes so `$(…)` is not run as command substitution.
 
-## 5. Verify
+Add a helper under `.wdio/helpers/` instead of a long `exec` script. Helpers become custom commands in the exported test.
 
-Read the page with `get` before writing an assertion. Put assertions in `exec`. Use `visual check` when the question is how the screen looks.
+## 4. Turn it into a test
 
-```sh
-npx wdio session get title
-npx wdio session get url
-npx wdio session get text e1
-npx wdio session get value e2
-npx wdio session is visible e1
-npx wdio session is enabled e2
-npx wdio session is checked e3
-npx wdio session dialog status
-```
-
-```sh
-npx wdio session exec -e "await expect($('h1')).toHaveText('Cart')"
-npx wdio session visual check cart
-```
-
-## 6. Turn it into a test
+Every action prints the WebdriverIO code it ran (`→ …`). `export` writes those steps as a spec:
 
 ```sh
 npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio run wdio.conf.ts --spec test/specs/cart.e2e.ts
 ```
 
-## 7. Missing tool
-
-Add a helper under `.wdio/helpers/` instead of a long `exec` script. Helpers become custom commands in the exported test.
-
-## 8. Debugging a failing test
+## 5. Debug a failing test
 
 ```sh
 npx wdio run wdio.conf.ts --debug=agent
-npx wdio session -s debug-0-0 snapshot
+npx wdio session -s debug-0-0 snapshot -i
 npx wdio session -s debug-0-0 resume
 ```
 
 `close` on that session fails the paused test.
 
-## 9. Errors
+## 6. Errors
 
 | Exit | Meaning |
 | --- | --- |
 | 0 | Success |
 | 1 | The action or your code failed |
-| 2 | Usage error |
+| 2 | Usage error: check `<action> --help` |
 | 3 | Missing dependency or credentials |
 | 4 | No session with that name |
 
-`npx wdio session doctor` checks the machine. `doctor <target>` checks one target.
-
-## 10. Clean up
-
-```sh
-npx wdio session close
-```
+Errors print a hint on the next line. `npx wdio session doctor` checks the machine; `doctor <target>` checks one target.

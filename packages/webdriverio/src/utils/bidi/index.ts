@@ -152,7 +152,11 @@ function deserializeValue(result: remote.ScriptLocalValue & { value?: unknown })
     if (type === NonPrimitiveType.RegularExpression) {
         return new RegExp(value.pattern, value.flags)
     }
-    if (type === NonPrimitiveType.Array) {
+    /**
+     * a `NodeList` (`querySelectorAll`) and an `HTMLCollection` (`children`) hold
+     * nodes, so they become a list of element references, as WebDriver Classic does
+     */
+    if (type === NonPrimitiveType.Array || type === RemoteType.NodeList || type === RemoteType.HTMLCollection) {
         return value.map((element: remote.ScriptLocalValue) => deserializeValue(element))
     }
     if (type === NonPrimitiveType.Date) {

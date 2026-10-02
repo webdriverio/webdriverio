@@ -1,19 +1,14 @@
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject, getWdioKind } from '@wdio/utils'
 
 import { getContextManager } from './context.js'
 
 /**
  * A browsing context is a value you hold. It has a context id and a pointer
  * back to the session. An element found in one keeps that object as `parent`.
+ * Its `wdio.kind` brand tells it apart, see `@wdio/utils` `kind.ts`.
  */
 export function isBrowsingContext (value: unknown): value is WebdriverIO.BrowsingContext {
-    const context = value as WebdriverIO.BrowsingContext
-    return Boolean(
-        context &&
-        typeof context === 'object' &&
-        typeof context.contextId === 'string' &&
-        context.browser
-    )
+    return getWdioKind(value) === 'browsing-context'
 }
 
 /**

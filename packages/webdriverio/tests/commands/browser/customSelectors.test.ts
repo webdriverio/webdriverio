@@ -59,6 +59,21 @@ describe('custom$', () => {
         expect(elems[0].elementId).toBe('.test-foobar')
     })
 
+    it('should run the strategy with the same arguments for an index past the end', async () => {
+        browser.addLocatorStrategy('test', () => [] as any)
+        let queries = 0
+        const execute = vi.spyOn(browser, 'execute').mockImplementation(async () => Array.from(
+            { length: ++queries > 1 ? 2 : 1 },
+            (_, index) => ({ 'element-6066-11e4-a52e-4f735466cecf': `elem-${index}` })
+        ) as any)
+
+        const elems = await browser.custom$$('test', '.test')
+        expect(elems).toHaveLength(1)
+
+        await expect(elems[1].elementId).resolves.toBe('elem-1')
+        expect(execute.mock.calls.map(([, ...args]) => args)).toEqual([['.test'], ['.test']])
+    })
+
     it('should return an empty array if no elements are returned from script', async () => {
         browser.addLocatorStrategy('test-no-element', () => null as any)
         const elems = await browser.custom$$('test-no-element', '.test')
