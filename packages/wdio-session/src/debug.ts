@@ -31,7 +31,11 @@ export function classifyCapabilities (caps: WebdriverIO.Capabilities = {}): { la
     if (platformName === 'android' || platformName === 'ios') {
         return { label: platformName, platform: 'mobile', applies: record.browserName ? ['W', 'M'] : ['M'] }
     }
-    if (platformName === 'mac' || platformName === 'windows') {
+    /**
+     * a desktop browser reports its OS as `platformName` too, only an app
+     * session without `browserName` is a desktop app
+     */
+    if ((platformName === 'mac' || platformName === 'windows') && !record.browserName) {
         return { label: platformName, platform: 'desktop', applies: ['D'] }
     }
     const browserName = typeof record.browserName === 'string' ? record.browserName : 'browser'

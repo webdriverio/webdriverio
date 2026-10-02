@@ -3,9 +3,27 @@ import os from 'node:os'
 import path from 'node:path'
 import { describe, expect, it, afterEach } from 'vitest'
 
-import { applyDebugAgentTimeouts, DEBUG_AGENT_CLOSED, DEBUG_AGENT_TIMEOUT, pauseDebugSession } from '../src/debug.js'
+import { applyDebugAgentTimeouts, classifyCapabilities, DEBUG_AGENT_CLOSED, DEBUG_AGENT_TIMEOUT, pauseDebugSession } from '../src/debug.js'
 import { send } from '../src/cli/client.js'
 import { readState } from '../src/daemon/state.js'
+
+describe('classifyCapabilities', () => {
+    it('classifies a desktop browser as a browser even though it reports its OS', () => {
+        expect(classifyCapabilities({ browserName: 'chrome', platformName: 'mac' })).toEqual({ label: 'chrome', platform: 'browser', applies: ['W'] })
+        expect(classifyCapabilities({ browserName: 'msedge', platformName: 'windows' })).toEqual({ label: 'msedge', platform: 'browser', applies: ['W'] })
+    })
+
+    it('classifies a macOS or Windows app session as a desktop app', () => {
+        expect(classifyCapabilities({ platformName: 'mac', 'appium:automationName': 'Mac2' } as WebdriverIO.Capabilities))
+            .toEqual({ label: 'mac', platform: 'desktop', applies: ['D'] })
+        expect(classifyCapabilities({ platformName: 'Windows' })).toEqual({ label: 'windows', platform: 'desktop', applies: ['D'] })
+    })
+
+    it('classifies mobile web and native app sessions', () => {
+        expect(classifyCapabilities({ platformName: 'Android', browserName: 'chrome' })).toEqual({ label: 'android', platform: 'mobile', applies: ['W', 'M'] })
+        expect(classifyCapabilities({ platformName: 'iOS' })).toEqual({ label: 'ios', platform: 'mobile', applies: ['M'] })
+    })
+})
 
 describe('applyDebugAgentTimeouts', () => {
     it('raises Mocha, Jasmine and Cucumber timeouts to 24h', () => {
