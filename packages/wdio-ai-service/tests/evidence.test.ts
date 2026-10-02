@@ -49,6 +49,22 @@ describe('HealEvidence', () => {
         expect(fs.existsSync(path.join(dir, 'failed.png'))).toBe(true)
     })
 
+    it('moves a video the browser saved elsewhere next to the screenshots', async () => {
+        const downloads = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-ai-downloads-'))
+        const saved = path.join(downloads, 'screencast-1.webm')
+        fs.writeFileSync(saved, 'webm')
+        const browser = fakeBrowser()
+        browser.browsingContextStopScreencast.mockResolvedValue({ path: saved })
+        const dir = tmp()
+        const evidence = new HealEvidence(browser as unknown as WebdriverIO.Browser, dir)
+        await evidence.begin()
+
+        const files = await evidence.end()
+        expect(files.at(-1)).toBe(path.join(dir, 'screencast-1.webm'))
+        expect(fs.readFileSync(path.join(dir, 'screencast-1.webm'), 'utf-8')).toBe('webm')
+        expect(fs.existsSync(saved)).toBe(false)
+    })
+
     it('keeps the screenshots when the browser does not record a screencast', async () => {
         for (const browser of [fakeBrowser({ screencast: false }), fakeBrowser({ bidi: false })]) {
             const dir = tmp()
