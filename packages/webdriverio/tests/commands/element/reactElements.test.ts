@@ -56,4 +56,33 @@ describe('elem.react$', () => {
             },
         ])
     })
+
+    it('queries the list again with the same props and state', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const elem = await browser.$('#foo')
+        const elems = await elem.react$$('MyComp', {
+            props: { some: 'props' },
+            state: { some: 'state' }
+        })
+        /**
+         * expect-webdriverio queries a list again with `parent[foundWith](selector, ...props)`
+         */
+        const parent = elems.parent as unknown as Record<string, (...args: unknown[]) => WebdriverIO.ElementArray>
+        await parent[elems.foundWith](elems.selector, ...elems.props)
+
+        expect(JSON.parse(vi.mocked(fetch).mock.calls.pop()![1]!.body as any).args).toEqual([
+            'MyComp',
+            { some: 'props' },
+            { some: 'state' },
+            {
+                [ELEMENT_KEY]: elem.elementId
+            },
+        ])
+    })
 })
