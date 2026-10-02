@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { imageSize } from 'image-size'
-import { roleTable } from '@wdio/utils'
+import { knownRoles, roleTable } from '@wdio/utils'
 
 import { SessionError, notSupported } from '../errors.js'
 import { quote } from '../quote.js'
@@ -20,7 +20,7 @@ const DEFAULT_MAX_CHARS = 8000
  * runs in the browser, the role table comes from here.
  */
 async function collectWeb (browser: WebdriverIO.Browser, opts: Omit<CollectOptions, 'roles' | 'assignRefs'>, scope?: WebdriverIO.Element) {
-    const args: CollectOptions = { ...opts, roles: roleTable(), assignRefs: true }
+    const args: CollectOptions = { ...opts, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true }
     return scope
         ? browser.execute(collectInPage, args, scope as unknown as Element)
         : browser.execute(collectInPage, args)

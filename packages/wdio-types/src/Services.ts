@@ -64,7 +64,8 @@ export interface ServiceInstance extends HookFunctions {
 
 interface AssertionHookParams {
     /**
-     * name of the matcher, e.g. `toHaveText` or `toBeClickable`
+     * name of the matcher that the test called, e.g. `toHaveText` or `toBeClickable`.
+     * For an alias, it is the name of the alias, e.g. `toBeExisting` and not `toExist`.
      */
     matcherName: string
     /**
@@ -84,9 +85,13 @@ interface AssertionHookParams {
     options: object
 }
 interface AfterAssertionHookParams extends AssertionHookParams {
+    /**
+     * result of the matcher. `pass` is `true` when the value matches the expected value,
+     * also with `.not`: with `.not`, the assertion passes when `pass` is `false`.
+     */
     result: {
         message: () => string
-        result: boolean
+        pass: boolean
     }
 }
 
@@ -323,17 +328,13 @@ export interface HookFunctions {
 
     /**
      * Runs before a WebdriverIO assertion library makes an assertion.
-     * @param commandName command name
-     * @param args        arguments that command would receive
+     * @param params  assertion information: matcher name, expected value and options
      */
     beforeAssertion?(params: AssertionHookParams): unknown | Promise<unknown>
 
     /**
-     * Runs after a WebdriverIO command gets executed
-     * @param commandName  command name
-     * @param args         arguments that command would receive
-     * @param result       result of the command
-     * @param error        error in case something went wrong
+     * Runs after a WebdriverIO assertion library makes an assertion.
+     * @param params  assertion information, the same as in `beforeAssertion`, and the result of the assertion
      */
     afterAssertion?(params: AfterAssertionHookParams): unknown | Promise<unknown>
 }

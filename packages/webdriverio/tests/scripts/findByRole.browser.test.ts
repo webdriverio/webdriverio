@@ -78,6 +78,20 @@ describe('findByRole script', () => {
         expect(found?.id).toBe('in-shadow')
     })
 
+    it('leaves out light DOM children of a shadow host that no slot takes', () => {
+        const slotted = document.createElement('div')
+        slotted.innerHTML = '<button id="slotted">Pay now</button>'
+        document.body.appendChild(slotted)
+        slotted.attachShadow({ mode: 'open' }).innerHTML = '<slot></slot>'
+
+        const unslotted = document.createElement('div')
+        unslotted.innerHTML = '<span><button id="unslotted">Pay now</button></span>'
+        document.body.appendChild(unslotted)
+        unslotted.attachShadow({ mode: 'open' }).innerHTML = '<button id="in-shadow">Pay now</button>'
+
+        expect(ids(all('button', 'Pay now'))).toEqual(['slotted', 'in-shadow'])
+    })
+
     it('searches within a root element only', () => {
         document.body.innerHTML = `
             <div id="row-1"><button id="remove-1">Remove</button></div>
