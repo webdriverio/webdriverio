@@ -415,4 +415,54 @@ describe('multi remote test', () => {
             expect(await h1.isDisplayed()).toEqual(expect.arrayContaining([false, true, true]))
         })
     })
+
+    describe('custom$, custom$$, shadow$ and shadow$$', () => {
+        const forEachInstance = <T>(value: T) => multiRemoteBrowser.instances.map(() => value)
+
+        before(async () => {
+            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/shadowDom.html')
+            /**
+             * return an array: with WebDriver BiDi, a `NodeList` gives no element references
+             */
+            multiRemoteBrowser.addLocatorStrategy('allByCss', (selector: string) => Array.from(document.querySelectorAll(selector)) as HTMLElement[])
+        })
+
+        it('custom$ gives one multi-remote element', async () => {
+            const heading = await multiRemoteBrowser.custom$('allByCss', 'h1')
+
+            expect(heading.isMultiRemote).toBe(true)
+            expect(heading.instances).toEqual(multiRemoteBrowser.instances)
+            expect(await heading.getText()).toEqual(forEachInstance('Simple template'))
+        })
+
+        it('custom$$ gives one multi-remote list', async () => {
+            const items = await multiRemoteBrowser.custom$$('allByCss', 'ul[slot="my-text"] li')
+
+            expect(items.isMultiRemote).toBe(true)
+            expect(items.foundWith).toBe('custom$$')
+            expect(items.props).toEqual(['ul[slot="my-text"] li'])
+            await expect(items).toBeElementsArrayOfSize(2)
+            expect(await items[1].getText()).toEqual(forEachInstance('In a list!'))
+            expect(await items[1].getInstance('browserB').getText()).toBe('In a list!')
+        })
+
+        it('shadow$ and shadow$$ give multi-remote objects', async () => {
+            const host = await multiRemoteBrowser.$$('my-paragraph')[1]
+            const paragraph = await host.shadow$('p')
+            const slots = await host.shadow$$('slot')
+
+            expect(paragraph.isMultiRemote).toBe(true)
+            expect(await paragraph.getTagName()).toEqual(forEachInstance('p'))
+            expect(slots.isMultiRemote).toBe(true)
+            expect(slots.foundWith).toBe('shadow$$')
+            await expect(slots).toBeElementsArrayOfSize(1)
+        })
+
+        it('shadow$ chained on $ gives one multi-remote element', async () => {
+            const paragraph = await multiRemoteBrowser.$('my-paragraph:last-of-type').shadow$('p')
+
+            expect(paragraph.isMultiRemote).toBe(true)
+            expect(await paragraph.getTagName()).toEqual(forEachInstance('p'))
+        })
+    })
 })
