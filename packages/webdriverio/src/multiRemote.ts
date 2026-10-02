@@ -170,7 +170,6 @@ export default class MultiRemote {
         result: unknown,
         propertiesObject: Record<string, PropertyDescriptor>,
         scope: MultiRemote,
-        selector?: string,
     ): WebdriverIO.MultiRemoteElement {
         const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
         const results = Array.isArray(result) ? result as WebdriverIO.Element[] : []
@@ -185,9 +184,12 @@ export default class MultiRemote {
             client.instances = [...instances.keys()]
             client.isMultiRemote = true
             setWdioKind(client, 'element')
-            client.selector = selector ?? (Array.isArray(result) && result[0]
-                ? result[0].selector
-                : null)
+            /**
+             * An entry of a list can have no element for the first instance (#15845), so take
+             * the selector of the first instance that has one. A command on an element without
+             * a selector would run on the browsers, so on the full page of each one.
+             */
+            client.selector = results.find(Boolean)?.selector ?? null
             // @ts-expect-error ToDo(Christian): remove eventually
             delete client.sessionId
 
@@ -287,8 +289,7 @@ export default class MultiRemote {
                     loadedInstances,
                     elements,
                     this.__propertiesObject__,
-                    self,
-                    typeof selector === 'string' ? selector : undefined
+                    self
                 )
                 return ElementArray.fromAsyncCallback(async () => {
                     const { result, activeInstances } = await execute()
