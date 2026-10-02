@@ -102,6 +102,19 @@ describe('EffectRecorder on a BiDi session', () => {
         })
     })
 
+    it('waits the quiet time after the action, so a slow action does not miss the page changes', async () => {
+        const { browser, emit } = bidiBrowser()
+        const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())
+        await recorder.start()
+        /**
+         * the action took longer than the quiet time, its change arrives
+         * right after it returned
+         */
+        await new Promise((resolve) => setTimeout(resolve, 60))
+        setTimeout(() => emit('script.message', { channel: EFFECTS_CHANNEL, source: { context: 'page' }, data: { type: 'array', value: [{ type: 'string', value: '1' }, { type: 'string', value: 'main' }] } }), 20)
+        expect(await recorder.settle({ quiet: 50 })).toEqual({ changed: ['main'] })
+    })
+
     it('waits for the requests a step started before it returns', async () => {
         const { browser, emit, request } = bidiBrowser()
         const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())

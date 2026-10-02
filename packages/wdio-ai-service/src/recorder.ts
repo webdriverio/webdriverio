@@ -367,6 +367,11 @@ export class EffectRecorder {
                 return await this.#settleClassic(deadline, quiet)
             }
             this.#unsettled = []
+            /**
+             * the quiet time counts from when the action returned: a slow
+             * click must not use it up before the page reported its changes
+             */
+            this.#touch()
             while (Date.now() < deadline) {
                 const idle = this.#inflight.size === 0 && this.#pendingNavigations.size === 0
                 if (idle && Date.now() - this.#lastActivity >= quiet) {
