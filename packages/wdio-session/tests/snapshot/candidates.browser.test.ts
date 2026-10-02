@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 /**
  * from the source: the `@wdio/utils` entry point needs Node.js
  */
-import { roleTable } from '../../../wdio-utils/src/roles.js'
+import { knownRoles, roleTable } from '../../../wdio-utils/src/roles.js'
 import { collectInPage, type CollectOptions } from '../../src/snapshot/web.js'
 
 /**
@@ -13,7 +13,7 @@ import { collectInPage, type CollectOptions } from '../../src/snapshot/web.js'
 function candidatesOf (html: string) {
     document.body.innerHTML = html
     const collect = new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
-    const opts: CollectOptions = { roles: roleTable(), counter: 0, all: false, boxes: false, assignRefs: true }
+    const opts: CollectOptions = { roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true }
     const { refs } = collect(opts)
     return (role: string, name: string) => refs.find((ref) => ref.role === role && ref.name === name)?.candidates
 }
@@ -45,6 +45,17 @@ describe('snapshot selector candidates', () => {
     it('leaves out the role selector when role and name are not unique', () => {
         const candidates = candidatesOf('<button>Remove</button><button>Remove</button>')
         expect(candidates('button', 'Remove')?.some((candidate) => candidate.startsWith('role/'))).toBe(false)
+    })
+
+    it('counts elements the snapshot does not walk into, e.g. an image inside a named button', () => {
+        const candidates = candidatesOf('<img alt="Save" width="16" height="16"><button><img alt="Save" width="16" height="16"></button>')
+        expect(candidates('img', 'Save')?.some((candidate) => candidate.startsWith('role/'))).toBe(false)
+    })
+
+    it('suggests no role selector for a role the selector does not accept', () => {
+        const candidates = candidatesOf('<div role="bogus" tabindex="0" aria-label="Unique action">Unique action</div>')
+        expect(candidates('bogus', 'Unique action')).toBeDefined()
+        expect(candidates('bogus', 'Unique action')?.some((candidate) => candidate.startsWith('role/'))).toBe(false)
     })
 
     it('escapes quotes and backslashes in the name', () => {
