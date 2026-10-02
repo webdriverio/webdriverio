@@ -52,6 +52,7 @@
     "test:typings:mocha": "cd tests/typings/mocha && npx tsc --skipLibCheck",
     "test:typings:jasmine": "cd tests/typings/jasmine && npx tsc --skipLibCheck",
     "test:typings:cucumber": "cd tests/typings/cucumber && npx tsc --skipLibCheck",
+    "test:typings:e2e": "tsc -p e2e/tsconfig.typecheck.json && tsc --noEmit -p e2e/wdio/jasmine/tsconfig.json",
     "test:unit": "run-s test:unit:run",
     "test:unit:run": "vitest --config vitest.config.ts --run",
     "test:package": "tsx ./infra/repo-tools/src/test-package.ts",

@@ -1,10 +1,13 @@
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
+import url from 'node:url'
 import { createServer } from 'node:http'
 import { once } from 'node:events'
 import type { AddressInfo } from 'node:net'
 import { browser, expect } from '@wdio/globals'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 /**
  * A tab, a window, and a frame are a `WebdriverIO.BrowsingContext` you hold
@@ -30,18 +33,27 @@ describe('browsing contexts', () => {
     const input = '<input id="input">'
     const widgets = [
         '<input id="check" type="checkbox" checked>',
+        '<input id="readonly" value="keep" readonly>',
         '<button id="disabled" disabled>off</button>',
-        '<select id="select"><option>one</option><option>two</option></select>',
+        '<select id="select"><option value="one">one</option><option value="two">two</option></select>',
         '<div id="box" style="width:120px;height:30px;color:rgb(255, 0, 0)">box</div>',
-        '<div id="double" ondblclick="this.textContent = \'double clicked\'">double</div>'
+        '<div id="double" ondblclick="this.textContent = \'double clicked\'">double</div>',
+        '<div id="hover" onmouseover="this.textContent = \'hovered\'">hover me</div>',
+        '<div id="drag" onmousedown="window.dragged = true" style="display:inline-block;width:60px;height:20px">drag</div>',
+        '<div id="drop" onmouseup="if (window.dragged) this.textContent = \'dropped\'" style="display:inline-block;width:60px;height:20px;margin-left:20px">drop</div>',
+        '<ul id="list"><li class="item">one</li><li class="item">two</li><li class="item">three</li></ul>',
+        '<a id="link" href="#done">Done link</a>',
+        '<input id="file" type="file">',
+        '<div id="host"></div><script>document.getElementById("host").attachShadow({ mode: "open" }).innerHTML = \'<span class="inside">shadow text</span>\'</script>',
+        '<div id="far" style="margin-top:1500px">far</div>'
     ].join('')
     const pages: Record<string, () => string> = {
         '/tab-a': () => page('Tab A', `${input}<p id="result"></p><a id="next" href="/tab-a-2">next</a>`),
         '/tab-a-2': () => page('Tab A 2'),
         '/tab-b': () => page('Tab B', `${input}<p id="result"></p>${widgets}`),
         '/tab-b-2': () => page('Tab B 2'),
-        '/outer': () => page('Outer', `${input}<iframe id="middle" src="/middle" style="width:500px;height:500px"></iframe><iframe id="cross" src="${crossOrigin}/cross" style="width:500px;height:300px"></iframe>`),
-        '/middle': () => page('Middle', `${input}<p id="result"></p><iframe id="inner" src="/inner" style="width:400px;height:300px"></iframe>`),
+        '/outer': () => page('Outer', `${input}<iframe id="middle" src="/middle" style="width:560px;height:800px"></iframe><iframe id="cross" src="${crossOrigin}/cross" style="width:560px;height:800px"></iframe>`),
+        '/middle': () => page('Middle', `${input}<p id="result"></p><iframe id="inner" src="/inner" style="width:500px;height:600px"></iframe>`),
         '/inner': () => page('Inner', `${input}${widgets}`),
         /**
          * The nested frame sits below the visible area of its parent frame,
@@ -57,13 +69,19 @@ describe('browsing contexts', () => {
          */
         '/selector-trap': () => page('Selector trap', '<iframe id="first" src="/plain"></iframe>'),
         '/plain': () => page('Plain', '<iframe src="/iframe-nested"></iframe>'),
+        /**
+         * `results` matches a non-frame element and, as a url substring, the frame
+         */
+        '/results-trap': () => page('Results trap', '<results>not a frame</results><iframe src="/results.html"></iframe>'),
+        '/results.html': () => page('Results'),
         '/iframe-nested': () => page('Nested by url'),
         '/fetch': () => page('Fetch', `<p id="result"></p><script>
             const endpoint = new URLSearchParams(location.search).get('endpoint')
             fetch('/api/' + endpoint).then((r) => r.text()).then((t) => { document.getElementById('result').textContent = t })
         </script>`),
         '/api/scoped': () => 'real',
-        '/api/restored': () => 'real'
+        '/api/restored': () => 'real',
+        '/api/closed': () => 'real'
     }
 
     const server = createServer((request, response) => {
@@ -76,13 +94,7 @@ describe('browsing contexts', () => {
     /**
      * `browser.url()` always returns the session's initial top-level context.
      */
-    const open = async (path: string) => {
-        const context = await browser.url(`${origin}${path}`)
-        if (!context) {
-            throw new Error('expected browser.url() to return a browsing context')
-        }
-        return context
-    }
+    const open = (path: string) => browser.url(`${origin}${path}`)
 
     const openTab = async (path: string) => {
         const context = await browser.newWindow(`${origin}${path}`, { type: 'tab' })
@@ -163,6 +175,14 @@ describe('browsing contexts', () => {
     })
 
     describe('tabs and windows', () => {
+        it('returns a browsing context for every url, also about: and data: urls', async () => {
+            const blank = await browser.url('about:blank')
+            expect(blank.contextId).toEqual(expect.any(String))
+            const data = await browser.url('data:text/html,<title>Data</title><h1 id="where">Data</h1>')
+            expect(data.contextId).toBe(blank.contextId)
+            expect(await where(data)).toBe('Data')
+        })
+
         it('keeps browser.url() on the initial context after a new tab opens', async () => {
             const first = await open('/tab-a')
             const tab = await openTab('/tab-b')
@@ -347,6 +367,22 @@ describe('browsing contexts', () => {
             }
         })
 
+        it('installs the clock in the tab it was called on', async () => {
+            const a = await open('/tab-a')
+            const b = await openTab('/tab-b')
+            const now = new Date('2020-01-01T00:00:00Z')
+
+            const clock = await b.emulate('clock', { now })
+            try {
+                expect(await b.execute(() => Date.now())).toBe(now.getTime())
+                expect(await a.execute(() => Date.now())).not.toBe(now.getTime())
+                await clock.tick(1000)
+                expect(await b.execute(() => Date.now())).toBe(now.getTime() + 1000)
+            } finally {
+                await clock.restore()
+            }
+        })
+
         it('mocks requests of the tab it was called on only', async () => {
             const a = await open('/tab-a')
             const b = await openTab('/tab-a')
@@ -356,6 +392,18 @@ describe('browsing contexts', () => {
             await b.navigate(`${origin}/fetch?endpoint=scoped`)
             await a.navigate(`${origin}/fetch?endpoint=scoped`)
             await expect(b.$('#result')).toHaveText('mocked')
+            await expect(a.$('#result')).toHaveText('real')
+        })
+
+        it('ends a mock of a tab when that tab closes', async () => {
+            const a = await open('/tab-a')
+            const b = await openTab('/tab-a')
+
+            const mock = await b.mock('**/api/closed')
+            mock.respond('mocked', { headers: { 'Content-Type': 'text/plain' }, fetchResponse: false })
+            await b.closeWindow()
+
+            await a.navigate(`${origin}/fetch?endpoint=closed`)
             await expect(a.$('#result')).toHaveText('real')
         })
 
@@ -435,10 +483,37 @@ describe('browsing contexts', () => {
             }
         })
 
+        it('finds a frame with an explicit selector, url, RegExp or id query', async () => {
+            const { outer, middle, inner } = await openFrames()
+
+            expect((await outer.frame({ selector: '#middle' })).contextId).toBe(middle.contextId)
+            expect((await outer.frame({ url: `${origin}/inner` })).contextId).toBe(inner.contextId)
+            expect((await outer.frame({ url: /\/inner$/ })).contextId).toBe(inner.contextId)
+            expect((await outer.frame({ id: inner.contextId })).parent?.contextId).toBe(middle.contextId)
+        })
+
+        it('does not treat a url query as a substring', async () => {
+            const page = await open('/outer')
+            expect(await rejection(page.frame({ url: '/inner' }))).toBe('Could not find a frame with url "/inner"')
+        })
+
+        it('rejects an ambiguous selector query', async () => {
+            const page = await open('/selector-trap')
+            const plain = await page.frame({ selector: 'iframe' })
+            expect(await plain.getTitle()).toBe('Plain')
+            expect(await rejection(plain.frame({ selector: 'iframe, h1' }))).toContain('strict mode violation')
+        })
+
         it('treats a plain selector as an element on this page, not a url substring', async () => {
             const page = await open('/selector-trap')
             const first = await page.frame('iframe')
             expect(await first.getTitle()).toBe('Plain')
+        })
+
+        it('falls back to the url when a string selector finds no frame element', async () => {
+            const page = await open('/results-trap')
+            const results = await page.frame('results')
+            expect(await results.getTitle()).toBe('Results')
         })
 
         it('reads the title and url of each frame', async () => {
@@ -517,6 +592,17 @@ describe('browsing contexts', () => {
             expect(await markOf(outer)).toBe('keep me')
         })
 
+        it('reloads a frame whose timers are faked', async () => {
+            const { middle } = await openFrames()
+            await mark(middle, 'reset me')
+            await middle.execute(() => {
+                window.setTimeout = (() => 0) as unknown as typeof window.setTimeout
+            })
+
+            await middle.refresh()
+            expect(await markOf(middle)).toBeNull()
+        })
+
         it('rejects commands on a frame after its page navigated away', async () => {
             const { outer, middle } = await openFrames()
 
@@ -582,10 +668,12 @@ describe('browsing contexts', () => {
     })
 
     /**
-     * Element commands must reach the document the element was found in,
-     * also when that is not the session's current context.
+     * Every element command must reach the document its element was found
+     * in, also when that is not the session's current context. The list of
+     * commands comes from the source, so a new command without a scenario
+     * here (or a reason it doesn't apply) fails this suite.
      */
-    describe('element commands', () => {
+    describe('every element command', () => {
         const targets: Record<string, () => Promise<WebdriverIO.BrowsingContext>> = {
             'a nested frame': async () => (await openFrames()).inner,
             'a cross-origin frame': async () => (await openFrames()).cross,
@@ -594,44 +682,170 @@ describe('browsing contexts', () => {
                 return openTab('/tab-b')
             }
         }
-        const commands: Record<string, (context: WebdriverIO.BrowsingContext) => Promise<void>> = {
-            isDisplayed: async (context) => expect(await context.$('#box').isDisplayed()).toBe(true),
+
+        const box = (context: WebdriverIO.BrowsingContext) => context.$('#box')
+        const second = (context: WebdriverIO.BrowsingContext) => context.$$('.item')[1]
+        const unsupported = 'not supported for an element of another browsing context'
+
+        const scenarios: Record<string, (context: WebdriverIO.BrowsingContext) => Promise<void>> = {
+            $: async (context) => expect(await context.$('#list').$('li:first-child').getText()).toBe('one'),
+            $$: async (context) => expect(await context.$('#list').$$('.item').length).toBe(3),
+            custom$: async (context) => expect(await context.$('#list').custom$('listItems', '.item').getText()).toBe('one'),
+            custom$$: async (context) => expect(await context.$('#list').custom$$('listItems', '.item').length).toBe(3),
+            shadow$: async (context) => expect(await context.$('#host').shadow$('.inside').getText()).toBe('shadow text'),
+            shadow$$: async (context) => expect(await context.$('#host').shadow$$('.inside').length).toBe(1),
+            getElement: async (context) => expect(await (await box(context).getElement()).getText()).toBe('box'),
+            getElements: async (context) => expect((await context.$$('.item').getElements()).length).toBe(3),
+            nextElement: async (context) => expect(await second(context).nextElement().getText()).toBe('three'),
+            previousElement: async (context) => expect(await second(context).previousElement().getText()).toBe('one'),
+            parentElement: async (context) => expect(await second(context).parentElement().getAttribute('id')).toBe('list'),
+            execute: async (context) => expect(await box(context).execute((el) => el.id)).toBe('box'),
+            getAttribute: async (context) => expect(await box(context).getAttribute('id')).toBe('box'),
+            getProperty: async (context) => expect(await context.$('#check').getProperty('checked')).toBe(true),
+            getHTML: async (context) => expect(await box(context).getHTML()).toContain('>box</div>'),
+            getText: async (context) => expect(await box(context).getText()).toBe('box'),
+            getTagName: async (context) => expect(await context.$('#select').getTagName()).toBe('select'),
+            getCSSProperty: async (context) => expect((await box(context).getCSSProperty('color')).value).toBe('rgba(255,0,0,1)'),
+            getSize: async (context) => expect(await box(context).getSize()).toEqual({ width: 120, height: 30 }),
+            getLocation: async (context) => {
+                const expected = await context.execute(() => {
+                    const rect = document.getElementById('box')!.getBoundingClientRect()
+                    return { x: Math.round(rect.x + window.scrollX), y: Math.round(rect.y + window.scrollY) }
+                })
+                const location = await box(context).getLocation()
+                expect({ x: Math.round(location.x), y: Math.round(location.y) }).toEqual(expected)
+            },
+            getComputedRole: async (context) => expect(await rejection(box(context).getComputedRole())).toContain(unsupported),
+            getComputedLabel: async (context) => expect(await rejection(box(context).getComputedLabel())).toContain(unsupported),
+            getValue: async (context) => {
+                await context.$('#input').setValue('typed')
+                expect(await context.$('#input').getValue()).toBe('typed')
+            },
+            isDisplayed: async (context) => expect(await box(context).isDisplayed()).toBe(true),
             isEnabled: async (context) => expect(await context.$('#disabled').isEnabled()).toBe(false),
             isSelected: async (context) => expect(await context.$('#check').isSelected()).toBe(true),
-            isClickable: async (context) => expect(await context.$('#box').isClickable()).toBe(true),
-            getTagName: async (context) => expect(await context.$('#select').getTagName()).toBe('select'),
-            getSize: async (context) => expect(await context.$('#box').getSize()).toEqual({ width: 120, height: 30 }),
-            getCSSProperty: async (context) => expect((await context.$('#box').getCSSProperty('color')).value).toBe('rgba(255,0,0,1)'),
-            getText: async (context) => expect(await context.$('#box').getText()).toBe('box'),
-            waitForDisplayed: async (context) => expect(await context.$('#box').waitForDisplayed()).toBe(true),
-            clearValue: async (context) => {
-                await context.$('#input').setValue('clear me')
-                await context.$('#input').clearValue()
-                expect(await context.$('#input').getValue()).toBe('')
+            isClickable: async (context) => expect(await box(context).isClickable()).toBe(true),
+            isExisting: async (context) => {
+                expect(await box(context).isExisting()).toBe(true)
+                expect(await context.$('#missing').isExisting()).toBe(false)
+            },
+            isEqual: async (context) => {
+                const element = await box(context)
+                expect(await element.isEqual(await box(context))).toBe(true)
+                expect(await element.isEqual(await context.$('#double'))).toBe(false)
+            },
+            isFocused: async (context) => {
+                await context.$('#input').click()
+                expect(await context.$('#input').isFocused()).toBe(true)
+                expect(await box(context).isFocused()).toBe(false)
+            },
+            isStable: async (context) => expect(await box(context).isStable()).toBe(true),
+            click: async (context) => {
+                await context.$('#check').click()
+                expect(await context.$('#check').isSelected()).toBe(false)
+            },
+            doubleClick: async (context) => {
+                await context.$('#double').doubleClick()
+                await expect(context.$('#double')).toHaveText('double clicked')
+            },
+            moveTo: async (context) => {
+                await context.$('#hover').moveTo({ xOffset: 2, yOffset: 2 })
+                await expect(context.$('#hover')).toHaveText('hovered')
+            },
+            dragAndDrop: async (context) => {
+                await context.$('#drag').dragAndDrop(context.$('#drop'))
+                await expect(context.$('#drop')).toHaveText('dropped')
+            },
+            scrollIntoView: async (context) => {
+                await context.$('#far').scrollIntoView()
+                expect(await context.execute(() => window.scrollY)).toBeGreaterThan(0)
+            },
+            setValue: async (context) => {
+                await context.$('#input').setValue('first')
+                await context.$('#input').setValue('second')
+                expect(await context.$('#input').getValue()).toBe('second')
             },
             addValue: async (context) => {
                 await context.$('#input').setValue('a')
                 await context.$('#input').addValue('b')
                 expect(await context.$('#input').getValue()).toBe('ab')
             },
+            clearValue: async (context) => {
+                await context.$('#input').setValue('clear me')
+                await context.$('#input').clearValue()
+                expect(await context.$('#input').getValue()).toBe('')
+                expect(await rejection(context.$('#readonly').clearValue())).toContain('invalid element state')
+                expect(await context.$('#readonly').getValue()).toBe('keep')
+            },
             selectByVisibleText: async (context) => {
                 await context.$('#select').selectByVisibleText('two')
                 expect(await context.$('#select').getValue()).toBe('two')
             },
-            doubleClick: async (context) => {
-                await context.$('#double').doubleClick()
-                await expect(context.$('#double')).toHaveText('double clicked')
+            selectByIndex: async (context) => {
+                await context.$('#select').selectByIndex(1)
+                expect(await context.$('#select').getValue()).toBe('two')
+            },
+            selectByAttribute: async (context) => {
+                await context.$('#select').selectByAttribute('value', 'two')
+                expect(await context.$('#select').getValue()).toBe('two')
+            },
+            setFiles: async (context) => {
+                const file = path.join(screenshots, 'upload.txt')
+                await fs.writeFile(file, 'upload')
+                await context.$('#file').setFiles(file)
+                expect(await context.$('#file').execute((el) => (el as HTMLInputElement).files?.[0]?.name)).toBe('upload.txt')
             },
             saveScreenshot: async (context) => {
-                const screenshot = await context.$('#box').saveScreenshot(path.join(screenshots, 'box.png'))
+                const screenshot = await box(context).saveScreenshot(path.join(screenshots, 'box.png'))
                 expect(screenshot.readUInt32BE(16)).toBeGreaterThanOrEqual(120)
                 expect(screenshot.readUInt32BE(20)).toBeGreaterThanOrEqual(30)
+            },
+            waitForExist: async (context) => expect(await box(context).waitForExist()).toBe(true),
+            waitForDisplayed: async (context) => expect(await box(context).waitForDisplayed()).toBe(true),
+            waitForEnabled: async (context) => expect(await context.$('#input').waitForEnabled()).toBe(true),
+            waitForClickable: async (context) => expect(await box(context).waitForClickable()).toBe(true),
+            waitForStable: async (context) => {
+                await box(context).waitForStable()
+            },
+            waitUntil: async (context) => {
+                await box(context).waitUntil(async function (this: WebdriverIO.Element) {
+                    return (await this.getText()) === 'box'
+                })
             }
         }
 
+        /**
+         * Commands without a scenario, and why.
+         */
+        const notApplicable: Record<string, string> = {
+            react$: 'needs a React application in the fixture',
+            react$$: 'needs a React application in the fixture'
+        }
+
+        before(() => {
+            browser.addLocatorStrategy('listItems', (selector: string, root?: HTMLElement) => (
+                Array.from((root ?? document).querySelectorAll(selector)) as HTMLElement[]
+            ))
+        })
+
+        it('has a scenario for every element command', async () => {
+            const source = await fs.readFile(
+                path.resolve(__dirname, '..', '..', '..', 'packages', 'webdriverio', 'src', 'commands', 'element.ts'),
+                'utf8'
+            )
+            /**
+             * `export * from './element/x.js'` and `export { x } from './element/x.js'`
+             */
+            const commands = [...source.matchAll(/export (?:\* |\{ [\w$]+ \} )from '\.\/element\/(.+)\.js'/g)]
+                .map(([, name]) => name)
+                .sort()
+            expect(commands.length).toBeGreaterThan(40)
+            expect([...Object.keys(scenarios), ...Object.keys(notApplicable)].sort()).toEqual(commands)
+        })
+
         for (const [where, target] of Object.entries(targets)) {
             describe(`in ${where}`, () => {
-                for (const [command, run] of Object.entries(commands)) {
+                for (const [command, run] of Object.entries(scenarios)) {
                     it(command, async () => run(await target()))
                 }
             })

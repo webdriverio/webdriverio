@@ -137,7 +137,7 @@ describe('main suite 1', () => {
             await browser.url('https://webdriver.io')
             await browser.$('aria/Toggle navigation bar').click()
             const contributeLink = await browser.waitUntil(async () => {
-                const contributeLink = await browser.$$('.navbar-sidebar a.menu__link').find<WebdriverIO.Element>(
+                const contributeLink = await browser.$$('.navbar-sidebar a.menu__link').find(
                     async (link) => await link.getText() === 'Contribute')
                 expect(contributeLink).toBeDefined()
                 return contributeLink

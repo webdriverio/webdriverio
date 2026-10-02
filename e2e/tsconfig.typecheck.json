@@ -1,0 +1,11 @@
+{
+  "//": "Type-checks the WebdriverIO testrunner e2e specs (`pnpm run test:typings:e2e`). Not named tsconfig.json so `tsx` doesn't pick it up when the specs run. The Jasmine specs have their own config in wdio/jasmine.",
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["node", "mocha", "@wdio/globals/types", "expect-webdriverio"]
+  },
+  "include": ["wdio/**/*.ts"],
+  "exclude": ["wdio/jasmine/**"]
+}
