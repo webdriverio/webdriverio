@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Workers } from '@wdio/types'
+import { setWdioKind } from '@wdio/utils'
+
 /**
  * Absolute files are imported through Vite's `/@fs/` prefix so the browser
  * requests a module URL rather than a bare filesystem path.
@@ -10,6 +13,16 @@ export function toViteFsUrl (file: string) {
     const normalized = file.replace(/\\/g, '/')
     const absolute = normalized.startsWith('/') ? normalized.slice(1) : normalized
     return `/@fs/${absolute}`
+}
+
+/**
+ * The result of a command that ran in the worker. JSON drops the `wdio.kind` brand
+ * of a mock or a browsing context (see `@wdio/utils` `kind.ts`), so set it again,
+ * for example for the name in the timeout message of an assertion.
+ */
+export function commandResult (value: Workers.CommandResponseEvent): unknown {
+    const { result, kind } = value
+    return kind && result && typeof result === 'object' ? setWdioKind(result, kind) : result
 }
 
 export function getCID() {

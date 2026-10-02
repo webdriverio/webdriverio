@@ -17,7 +17,7 @@ describe('WebdriverIO object brand', () => {
     })
 
     it('has only the role kinds', () => {
-        expect(WDIO_KINDS).toEqual(['browser', 'element', 'element-array'])
+        expect(WDIO_KINDS).toEqual(['browser', 'element', 'element-array', 'mock', 'browsing-context'])
     })
 
     it('sets a non-enumerable kind', () => {
@@ -35,6 +35,8 @@ describe('WebdriverIO object brand', () => {
             expect(getWdioKind(setWdioKind({}, 'element'))).toBe('element')
             expect(getWdioKind(setWdioKind([], 'element-array'))).toBe('element-array')
             expect(getWdioKind(setWdioKind(() => {}, 'browser'))).toBe('browser')
+            expect(getWdioKind(setWdioKind({}, 'mock'))).toBe('mock')
+            expect(getWdioKind(setWdioKind({}, 'browsing-context'))).toBe('browsing-context')
         })
 
         it('gives no kind to a value without a brand', () => {
@@ -84,6 +86,8 @@ describe('WebdriverIO object brand', () => {
             expect(isLoadedElement(chainable)).toBe(false)
             expect(isLoadedElement(setWdioKind({}, 'browser'))).toBe(false)
             expect(isLoadedElement(setWdioKind([], 'element-array'))).toBe(false)
+            expect(isLoadedElement(setWdioKind({}, 'mock'))).toBe(false)
+            expect(isLoadedElement(setWdioKind({}, 'browsing-context'))).toBe(false)
             expect(isLoadedElement({ selector: '#foo', elementId: 'foo' })).toBe(false)
         })
     })

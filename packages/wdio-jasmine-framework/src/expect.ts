@@ -32,10 +32,10 @@ function isWebdriverIOObject (actual: unknown) {
     }
     /**
      * The `wdio.kind` brand (see `@wdio/utils` `kind.ts`) is set on browsers, elements,
-     * element lists (also multi-remote) and chainable `$()`, and it passes through the
-     * `@wdio/globals` proxies, which forward reads. A copy of an element list
-     * (`[...await $$()]`) is a plain array of elements. `[]` is a Jasmine value, for
-     * example `expect([]).toHaveSize(0)`.
+     * element lists, mocks (also multi-remote), browsing contexts and chainable `$()`,
+     * and it passes through the `@wdio/globals` proxies, which forward reads. A copy of
+     * an element list (`[...await $$()]`) is a plain array of elements. `[]` is a
+     * Jasmine value, for example `expect([]).toHaveSize(0)`.
      */
     return getWdioKind(actual) !== undefined ||
         isArrayOfElements(actual) ||

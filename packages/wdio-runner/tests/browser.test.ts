@@ -2,6 +2,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 import { MESSAGE_TYPES, browserChannelMessage, type Workers } from '@wdio/types'
+import { setWdioKind } from '@wdio/utils'
 import { remote } from 'webdriverio'
 
 import BrowserFramework from '../src/browser.js'
@@ -76,6 +77,18 @@ describe('BrowserFramework command results', () => {
         const { result } = await runCommand(handler, 'getElements')
         expect(result).toEqual([...elems].map((elem) => ({ [ELEMENT_KEY]: elem.elementId })))
         expect(result.length).toBeGreaterThan(0)
+    })
+
+    it('sends the kind of a mock or a browsing context, because JSON drops the brand', async () => {
+        const mock = setWdioKind({ url: '**/api' }, 'mock')
+        const context = setWdioKind({ contextId: 'tab-1' }, 'browsing-context')
+        browser.addCommand('getMock', () => mock)
+        browser.addCommand('getBrowsingContext', () => context)
+        browser.addCommand('getElement', () => browser.$('#foo'))
+
+        expect(await runCommand(handler, 'getMock')).toEqual({ id: 1, result: mock, kind: 'mock' })
+        expect(await runCommand(handler, 'getBrowsingContext')).toEqual({ id: 1, result: context, kind: 'browsing-context' })
+        expect(await runCommand(handler, 'getElement')).not.toHaveProperty('kind')
     })
 
     it('sends a plain object as it is, also when it looks like an element', async () => {

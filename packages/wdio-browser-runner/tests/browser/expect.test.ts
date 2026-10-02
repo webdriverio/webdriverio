@@ -4,6 +4,7 @@ import { getLoadedWdioKind, isArrayOfElements, setWdioKind } from '@wdio/utils'
 import { remote } from 'webdriverio'
 import { ElementArray } from '../../../webdriverio/src/element/array.js'
 import { expect as browserExpect, contextNameOf, shouldLoadAssertionContext } from '../../src/browser/expect.js'
+import { commandResult } from '../../src/browser/utils.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -130,6 +131,15 @@ describe('expect', () => {
             expect(contextNameOf(elems)).toBe('WebdriverIO.ElementArray')
             expect(contextNameOf([...elems])).toBe('WebdriverIO.Element[]')
             expect(contextNameOf('foo')).toBe('foo')
+        })
+
+        it('names a mock and a browsing context that come from the worker as JSON', () => {
+            const mock = commandResult({ id: 1, result: { url: '**/api' }, kind: 'mock' })
+            const context = commandResult({ id: 2, result: { contextId: 'tab-1' }, kind: 'browsing-context' })
+
+            expect(contextNameOf(mock)).toBe('WebdriverIO.Mock')
+            expect(contextNameOf(context)).toBe('WebdriverIO.BrowsingContext')
+            expect(contextNameOf(commandResult({ id: 3, result: { url: '**/api' } }))).toBe('WebdriverIO.Browser')
         })
     })
 })
