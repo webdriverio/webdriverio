@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { UNICODE_CHARACTERS } from '@wdio/utils'
+import { UNICODE_CHARACTERS, getWdioKind } from '@wdio/utils'
 import { getContextManager } from 'webdriverio'
 
 import { usage } from '../errors.js'
@@ -130,9 +130,13 @@ export const click: ActionFn = async (session, args) => {
         const base = await session.currentUrl()
         const url = new URL(href, base || undefined).href
         const opened = await session.browser.newWindow(url, { type: 'tab' })
-        if (session.isBidi && opened && typeof opened === 'object' && 'contextId' in opened) {
-            await session.browser.switchToWindow(opened.contextId)
-            getContextManager(session.browser).setCurrentContext(opened.contextId)
+        /**
+         * in a BiDi session `newWindow()` gives a browsing context, see `@wdio/utils` `kind.ts`
+         */
+        if (session.isBidi && getWdioKind(opened) === 'browsing-context') {
+            const { contextId } = opened as WebdriverIO.BrowsingContext
+            await session.browser.switchToWindow(contextId)
+            getContextManager(session.browser).setCurrentContext(contextId)
         }
         if (session.get?.('frame') && !session.isBidi) {
             await session.browser.switchFrame(null)

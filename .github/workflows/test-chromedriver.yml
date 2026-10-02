@@ -1,0 +1,48 @@
+name: Chromedriver E2E Tests
+
+on:
+  workflow_call:
+
+jobs:
+  check:
+    name: Chromedriver Tests (${{ matrix.os }})
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu-24.04-arm', 'macos-15', 'windows-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: Download Build Archive
+        uses: ./.github/workflows/actions/download-archive
+        with:
+          name: webdriverio
+          path: .
+          filename: webdriverio-build.zip
+
+      # Chrome for Testing has no linux-arm64 Chrome before 153.0.8001.0; Playwright 1.48.2 pins an arm64 Chromium 130
+      - name: Install Chromium 130
+        working-directory: ${{ runner.temp }}
+        env:
+          PLAYWRIGHT_DOWNLOAD_HOST: https://cdn.playwright.dev
+        run: |
+          npm install --no-save playwright-core@1.48.2
+          npx playwright-core install ${{ runner.os == 'Linux' && '--with-deps' || '' }} chromium
+          echo "CHROMIUM_130_BINARY=$(node -p "require('playwright-core').chromium.executablePath()")" >> "$GITHUB_ENV"
+        shell: bash
+
+      - name: Chromedriver Tests
+        run: pnpm run test:e2e:chromedriver
+        shell: bash
+
+      - name: Check Git Context
+        if: matrix.os != 'windows-latest'
+        uses: ./.github/workflows/actions/check-git-context

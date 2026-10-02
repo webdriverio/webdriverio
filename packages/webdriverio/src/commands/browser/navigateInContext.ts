@@ -1,3 +1,5 @@
+import { setWdioKind } from '@wdio/utils'
+
 import { validateUrl } from '../../utils/index.js'
 import { getNetworkManager } from '../../session/networkManager.js'
 import { getContextManager } from '../../session/context.js'
@@ -75,11 +77,14 @@ export async function navigateInContext (
                 this: WebdriverIO.BrowsingContext,
                 script: () => void
             ) => Promise<InitScript>
-            resetPreloadScript = await register.call({
+            /**
+             * the brand makes `addInitScript` take this object for a browsing context, see `@wdio/utils` `kind.ts`
+             */
+            resetPreloadScript = await register.call(setWdioKind({
                 contextId: target,
                 browser,
                 isFrame: false
-            } as WebdriverIO.BrowsingContext, fn)
+            }, 'browsing-context') as WebdriverIO.BrowsingContext, fn)
         }
     }
 

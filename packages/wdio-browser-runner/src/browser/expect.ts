@@ -243,7 +243,9 @@ export function shouldLoadAssertionContext (context: unknown): boolean {
 const CONTEXT_NAMES: Record<WdioKind, string> = {
     browser: 'WebdriverIO.Browser',
     element: 'WebdriverIO.Element',
-    'element-array': 'WebdriverIO.ElementArray'
+    'element-array': 'WebdriverIO.ElementArray',
+    mock: 'WebdriverIO.Mock',
+    'browsing-context': 'WebdriverIO.BrowsingContext'
 }
 
 /**

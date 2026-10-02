@@ -66,6 +66,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `setTimeout({ 'page load': n })` | `setTimeout({ pageLoad: n })` |
 | `browser.chromeBrowser.url(...)` on a multi-remote browser | `browser.getInstance('chromeBrowser').url(...)`. The testrunner global `chromeBrowser` is the single session. |
 | `const [a, b] = await browser.mock(...)` | `const mock = await browser.mock(...)`, then `mock.getInstance('name')` |
+| Buffer-specific methods on `mock.getBinaryResponse()` | The result is typed as `Uint8Array \| null`. Check for null, then use `Buffer.from(bytes)` in Node.js before calling Buffer-specific methods. |
 | `element.ELEMENT` | `element.elementId`, or `element['element-6066-11e4-a52e-4f735466cecf']` inside `execute` |
 | `executeAsync` | `execute` with an `async` function. See below. |
 | `switchToFrame` | `switchFrame` |

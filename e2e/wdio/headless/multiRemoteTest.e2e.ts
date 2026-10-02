@@ -14,17 +14,17 @@ describe('multi remote test', () => {
         it('should open chat application', async () => {
             browserA = await multiRemoteBrowser.getInstance('browserA')
             browserB = await multiRemoteBrowser.getInstance('browserB')
-            await multiRemoteBrowser.url('https://socketio-chat-h9jt.herokuapp.com/')
+            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/chat.html')
         })
 
-        it.skip('should login the browser A', async () => {
+        it('should login the browser A', async () => {
             const nameInput = await browserA.$('.usernameInput')
             await nameInput.addValue('Browser A')
             await browserA.keys(Key.Enter)
             await expect(browserA.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
         })
 
-        it.skip('should login the browser B', async () => {
+        it('should login the browser B', async () => {
             const nameInput = await browserB.$('.usernameInput')
             await nameInput.addValue('Browser B')
             await browserB.keys(Key.Enter)
@@ -413,6 +413,66 @@ describe('multi remote test', () => {
             expect(await browserBH1.isDisplayed()).toBe(true)
             expect(await browserCH1.isDisplayed()).toBe(true)
             expect(await h1.isDisplayed()).toEqual(expect.arrayContaining([false, true, true]))
+        })
+    })
+
+    describe('element queries other than $ and $$', () => {
+        const forEachInstance = <T>(value: T) => multiRemoteBrowser.instances.map(() => value)
+
+        before(async () => {
+            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/shadowDom.html')
+            multiRemoteBrowser.addLocatorStrategy('allByCss', (selector: string) => Array.from(document.querySelectorAll(selector)) as HTMLElement[])
+        })
+
+        it('custom$ gives one multi-remote element', async () => {
+            const heading = await multiRemoteBrowser.custom$('allByCss', 'h1')
+
+            expect(heading.isMultiRemote).toBe(true)
+            expect(heading.instances).toEqual(multiRemoteBrowser.instances)
+            expect(await heading.getText()).toEqual(forEachInstance('Simple template'))
+        })
+
+        it('custom$$ gives one multi-remote list', async () => {
+            const items = await multiRemoteBrowser.custom$$('allByCss', 'ul[slot="my-text"] li')
+
+            expect(items.isMultiRemote).toBe(true)
+            expect(items.foundWith).toBe('custom$$')
+            expect(items.props).toEqual(['ul[slot="my-text"] li'])
+            await expect(items).toBeElementsArrayOfSize(2)
+            expect(await items[1].getText()).toEqual(forEachInstance('In a list!'))
+            expect(await items[1].getInstance('browserB').getText()).toBe('In a list!')
+        })
+
+        it('shadow$ and shadow$$ give multi-remote objects', async () => {
+            const host = await multiRemoteBrowser.$$('my-paragraph')[1]
+            const paragraph = await host.shadow$('p')
+            const slots = await host.shadow$$('slot')
+
+            expect(paragraph.isMultiRemote).toBe(true)
+            expect(await paragraph.getTagName()).toEqual(forEachInstance('p'))
+            expect(slots.isMultiRemote).toBe(true)
+            expect(slots.foundWith).toBe('shadow$$')
+            await expect(slots).toBeElementsArrayOfSize(1)
+        })
+
+        it('shadow$ chained on $ gives one multi-remote element', async () => {
+            const paragraph = await multiRemoteBrowser.$('my-paragraph:last-of-type').shadow$('p')
+
+            expect(paragraph.isMultiRemote).toBe(true)
+            expect(await paragraph.getTagName()).toEqual(forEachInstance('p'))
+        })
+
+        it('nextElement, previousElement and parentElement give one multi-remote element', async () => {
+            const first = await multiRemoteBrowser.$('ul[slot="my-text"] li:first-child')
+
+            const next = await first.nextElement()
+            const previous = await next.previousElement()
+            const parent = await first.parentElement()
+
+            expect(next.isMultiRemote).toBe(true)
+            expect(await next.getText()).toEqual(forEachInstance('In a list!'))
+            expect(await previous.getText()).toEqual(forEachInstance('Let\'s have some different text!'))
+            expect(await parent.getTagName()).toEqual(forEachInstance('ul'))
         })
     })
 })

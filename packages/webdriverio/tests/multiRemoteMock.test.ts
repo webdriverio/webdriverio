@@ -60,7 +60,7 @@ describe('MultiRemoteMock', () => {
         )
     })
 
-    it.each(CHAINABLE)('%s runs on every instance and returns the multiremote mock', (method) => {
+    it.each(CHAINABLE)('%s runs on every instance and returns the multi-remote mock', (method) => {
         const { chrome, firefox, multi } = create()
         const args = method === 'on' ? ['request', () => undefined] : ['payload', { statusCode: 201 }]
 
@@ -71,7 +71,7 @@ describe('MultiRemoteMock', () => {
         expect(firefox[method]).toHaveBeenCalledWith(...args)
     })
 
-    it('restores every instance and resolves to the multiremote mock', async () => {
+    it('restores every instance and resolves to the multi-remote mock', async () => {
         const { chrome, firefox, multi } = create()
 
         await expect(multi.restore()).resolves.toBe(multi)

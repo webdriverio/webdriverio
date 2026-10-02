@@ -191,18 +191,21 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
         return items[index]
     }
 
-    const { parent, foundWith, selector, refetch, wrapMultiRemote } = stateOf(array).metadata
+    const { parent, foundWith, selector, props, refetch, wrapMultiRemote } = stateOf(array).metadata
     if (refetch === false || !parent) {
         return undefined
     }
 
     const timeoutMsg = `Index out of bounds! $$(${String(selector)}) returned only ${items.length} elements.`
     const findIn = async (target: object) => {
-        const query = (target as Record<string, (selector?: Selector) => Promise<WebdriverIO.ElementArray>>)[foundWith]
+        const query = (target as Record<string, (selector?: Selector, ...props: unknown[]) => Promise<WebdriverIO.ElementArray>>)[foundWith]
         if (typeof query !== 'function') {
             return false
         }
-        const refetched = await query.call(target, selector as Selector | undefined)
+        /**
+         * `custom$$` and `react$$` need the arguments after the selector to run the same query
+         */
+        const refetched = await query.call(target, selector as Selector | undefined, ...props)
         return refetched && refetched.length > index ? refetched[index] : false
     }
 

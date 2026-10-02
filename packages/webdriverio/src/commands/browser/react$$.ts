@@ -57,6 +57,10 @@ export function react$$ (
         selector,
         foundWith: 'react$$',
         parent: this,
-        props: [props, state]
+        /**
+         * the arguments after the selector, so that
+         * `parent[foundWith](selector, ...props)` runs the same query again
+         */
+        props: [{ props, state }]
     })
 }
