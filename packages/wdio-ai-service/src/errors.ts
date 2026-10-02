@@ -9,6 +9,10 @@ export interface ActErrorDetails {
      */
     snapshot?: string
     usage?: TokenUsage
+    /**
+     * evidence folder of the test
+     */
+    workspace?: string
 }
 
 export interface TokenUsage {
@@ -26,14 +30,16 @@ export class ActError extends Error {
     readonly steps: ActStep[]
     readonly snapshot?: string
     readonly usage?: TokenUsage
+    readonly workspace?: string
 
     constructor (details: ActErrorDetails) {
-        super(`act("${details.instruction}") failed: ${details.reason}`)
+        super(`act("${details.instruction}") failed: ${details.reason}${details.workspace ? `\nEvidence: ${details.workspace}` : ''}`)
         this.name = 'ActError'
         this.instruction = details.instruction
         this.reason = details.reason
         this.steps = details.steps || []
         this.snapshot = details.snapshot
         this.usage = details.usage
+        this.workspace = details.workspace
     }
 }

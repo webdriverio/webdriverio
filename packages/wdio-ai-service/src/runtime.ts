@@ -14,6 +14,7 @@ import { assertValues } from './redact.js'
 import { replaySteps, type HealedStep } from './replay.js'
 import { emitRecord, writeRecords, type ActRecord } from './stats.js'
 import { pageTools } from './tools.js'
+import { Workspace, type KeepPolicy } from './workspace.js'
 import type { ActOptions, ActResult, ActStep, AiServiceOptions, CacheMode, ModelOption } from './types.js'
 
 const log = logger('@wdio/ai-service')
@@ -41,6 +42,10 @@ interface TestContext {
      * `act` calls in this test so far
      */
     calls: number
+    /**
+     * created on the first model call of the test
+     */
+    workspace?: Workspace
 }
 
 export type ActScope = WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.BrowsingContext
@@ -101,8 +106,35 @@ export class AiRuntime {
         this.#test = { spec, title, calls: 0 }
     }
 
-    endTest () {
+    /**
+     * the test ended, its workspace is kept on failure or heal (by default)
+     */
+    async endTest (passed = true) {
+        const test = this.#test
         this.#test = undefined
+        await test?.workspace?.finish(this.#keepPolicy, passed)
+    }
+
+    get #keepPolicy (): KeepPolicy {
+        return this.options.workspace?.keep ?? 'on-failure'
+    }
+
+    get #workspaceRoot () {
+        return this.options.workspace?.dir
+            ? path.resolve(this.options.workspace.dir)
+            : path.join(outputDirOf(this.options), 'ai')
+    }
+
+    /**
+     * the workspace of the current test, or one for a standalone call
+     */
+    #workspaceFor (instruction: string) {
+        const test = this.#test
+        if (!test) {
+            return new Workspace(this.#workspaceRoot, 'standalone', instruction)
+        }
+        test.workspace ??= new Workspace(this.#workspaceRoot, test.spec, test.title)
+        return test.workspace
     }
 
     mode (override?: CacheMode): EffectiveMode {
@@ -128,7 +160,7 @@ export class AiRuntime {
         const mode = this.mode()
         for (const cache of this.#caches.values()) {
             if (mode === 'heal') {
-                const dir = path.join(this.options.outputDir || process.cwd(), 'act-cache')
+                const dir = path.join(outputDirOf(this.options), 'act-cache')
                 await cache.flush(path.join(dir, path.basename(cache.file)))
             } else {
                 await cache.flush()
@@ -139,7 +171,7 @@ export class AiRuntime {
     agentFor (browser: WebdriverIO.Browser): Promise<AgentSession> {
         let agent = this.#agents.get(browser)
         if (!agent) {
-            agent = createAgentSession(browser, { name: 'ai' })
+            agent = createAgentSession(browser, { name: 'ai', captureEvents: true })
             this.#agents.set(browser, agent)
         }
         return agent
@@ -183,22 +215,35 @@ export class AiRuntime {
 
         const values = options.values || {}
         const steps: ActStep[] = []
-        const tools = await pageTools({ agent, values, actions: this.options.actions, onStep: (step) => steps.push(step) })
+        const workspace = this.#workspaceFor(instruction)
+        workspace.values = values
+        await workspace.writeEvents(agent.logs, agent.network)
+        const tools = await pageTools({ agent, values, actions: this.options.actions, onStep: (step) => steps.push(step), workspace })
         const maxSteps = options.maxSteps ?? this.options.maxSteps ?? DEFAULT_MAX_STEPS
         log.info(`act("${instruction}") with ${describeModel(modelOption)}`)
-        const result = await runLoop({
-            model: await this.#model(modelOption),
-            tools,
-            systemPrompt: systemPrompt(await this.#projectInstructions()),
-            prompt: actPrompt(instruction, context),
-            maxSteps,
-            timeout: options.timeout ?? DEFAULT_TIMEOUT
-        })
-        this.modelCalls += result.modelCalls
-        if (result.status === 'fail') {
-            throw new ActError({ instruction, reason: result.summary, steps, usage: result.usage })
+        try {
+            const result = await runLoop({
+                model: await this.#model(modelOption),
+                tools,
+                systemPrompt: systemPrompt(await this.#projectInstructions(), true),
+                prompt: actPrompt(instruction, context),
+                maxSteps,
+                timeout: options.timeout ?? DEFAULT_TIMEOUT,
+                middleware: [await workspace.middleware()]
+            })
+            this.modelCalls += result.modelCalls
+            if (result.status === 'fail') {
+                workspace.keep = true
+                throw new ActError({ instruction, reason: result.summary, steps, usage: result.usage, workspace: workspace.dir })
+            }
+            return { steps, summary: result.summary, usage: result.usage }
+        } finally {
+            await workspace.writeEvents(agent.logs, agent.network)
+            await workspace.writeSteps(steps)
+            if (!this.#test) {
+                await workspace.finish(this.#keepPolicy, !workspace.keep)
+            }
         }
-        return { steps, summary: result.summary, usage: result.usage }
     }
 
     async act (scope: ActScope, instruction: string, options: ActOptions = {}): Promise<ActResult> {
@@ -287,6 +332,9 @@ export class AiRuntime {
             }
             log.info(`act("${instruction}"): cached step ${replay.failed.index + 1} failed, asking the model to continue`)
             const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed))
+            if (test?.workspace) {
+                test.workspace.keep = true
+            }
             const steps = [...replay.done, ...rest.steps]
             this.#store(cache!, key!, { instruction, platform, steps }, options)
             return { result: { source: 'model', healed: 'model', steps: summarize(steps), summary: rest.summary }, usage: rest.usage, healedSteps: replay.healed }
@@ -323,4 +371,11 @@ function platformOf (agent: AgentSession) {
 
 function waitTimeoutOf (browser: WebdriverIO.Browser) {
     return browser.options?.waitforTimeout ?? DEFAULT_WAIT_TIMEOUT
+}
+
+/**
+ * `outputDir` of the config, or `.wdio` in the project like `wdio session`
+ */
+export function outputDirOf (options: { outputDir?: string }) {
+    return options.outputDir ? path.resolve(options.outputDir) : path.join(process.cwd(), '.wdio')
 }

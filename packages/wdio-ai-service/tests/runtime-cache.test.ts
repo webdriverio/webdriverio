@@ -40,7 +40,7 @@ describe('AiRuntime cache', () => {
     ]
     const runtime = (options: RuntimeOptions = {}, script: ScriptStep[] = recordScript) => {
         const model = new ScriptedChatModel(script)
-        return { model, runtime: new AiRuntime({ model, cache: 'write', ...options }) }
+        return { model, runtime: new AiRuntime({ model, cache: 'write', workspace: { dir: path.join(dir, 'workspaces') }, ...options }) }
     }
 
     it('records the steps of a test and writes them to the cache file next to the spec', async () => {
@@ -276,7 +276,7 @@ describe('AiRuntime cache', () => {
             const records = JSON.parse(fs.readFileSync(path.join(runDir, file), 'utf-8'))
             expect(records).toEqual([expect.objectContaining({
                 instruction: 'Press the missing button',
-                error: 'act("Press the missing button") failed: no such button',
+                error: expect.stringMatching(/^act\("Press the missing button"\) failed: no such button\nEvidence: /),
                 usage: { input: 100, output: 10 }
             })])
         } finally {

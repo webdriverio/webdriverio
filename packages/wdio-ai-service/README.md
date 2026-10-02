@@ -48,6 +48,8 @@ export const config: WebdriverIO.Config = {
 | `maxSteps` | `number` | `15` | Tool calls one `act` may make. |
 | `maxModelCalls` | `number` | | Model calls per worker. |
 | `actions` | `string[]` | page actions of `wdio session` | Actions the model may use. Code execution, cookies, storage, mocks and emulation are never offered. |
+| `workspace.dir` | `string` | `<outputDir>/ai` or `.wdio/ai` | Root of the evidence folders, see [Workspace](#workspace). |
+| `workspace.keep` | `'on-failure' \| 'always' \| 'never'` | `'on-failure'` | Keep a test's folder when an `act` call failed or healed, or the test failed. |
 
 Your model key never leaves your machine except to the model endpoint you configure.
 
@@ -117,6 +119,21 @@ Every call also emits an `ai:act` event on `process` with `{ spec, test, instruc
 | `off` | always calls the model | | nothing |
 
 `auto` is `heal` when `process.env.CI` is set and `write` otherwise. `wdio run -s` (`updateSnapshots: 'all'`) records every `act` call again.
+
+## Workspace
+
+When the model works on a test, the service collects what happened in a folder per test, `<outputDir>/ai/<worker>/<spec>/<test>/`:
+
+```
+snapshots/003.txt   every snapshot the model took
+console.ndjson      browser console, from the start of the session (BiDi)
+network.ndjson      requests and responses (BiDi)
+page.html           page source, when the model saves it with the `source` tool
+outputs/            tool results too long for the prompt
+steps.json          the steps that ran
+```
+
+The model can read the folder with the read-only file tools of [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview) (`ls`, `read_file`, `glob`, `grep`). It cannot write files or read anything outside the folder. Placeholder values are redacted from every file. A test that replays from the cache creates no folder. A failed `act` error names the folder, so you can look at what the model saw.
 
 Without the testrunner:
 

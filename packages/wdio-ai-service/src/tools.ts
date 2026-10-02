@@ -4,6 +4,7 @@ import type { ActionSpec, AgentSession } from '@wdio/session/agent'
 
 import { redact, substitute } from './redact.js'
 import type { ActStep, StepTarget } from './types.js'
+import type { Workspace } from './workspace.js'
 
 /**
  * `@wdio/session` actions the model may use. Code execution, cookies,
@@ -31,6 +32,10 @@ export interface ToolContext {
      * called for every step that changed the page and ran WebdriverIO code
      */
     onStep: (step: ActStep) => void
+    /**
+     * evidence folder: snapshots are saved there and long output moves there
+     */
+    workspace?: Workspace
 }
 
 /**
@@ -140,6 +145,12 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                         text += `\n${diff.text}`
                     }
                 }
+                if (context.workspace) {
+                    if (spec.name === 'snapshot') {
+                        await context.workspace.writeSnapshot(text)
+                    }
+                    text = await context.workspace.inline(spec.name, text)
+                }
                 return redact(text, values)
             } catch (err) {
                 return `Error: ${redact((err as Error).message, values)}`
@@ -149,6 +160,27 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
             description: spec.desc,
             schema: actionSchema(z, spec)
         }))
+        .concat(context.workspace ? [sourceTool(context, tool, z)] : [])
+}
+
+/**
+ * save the page source into the workspace instead of the prompt
+ */
+function sourceTool (context: ToolContext, tool: Awaited<ReturnType<typeof loadToolKit>>['tool'], z: typeof Zod) {
+    return tool(async () => {
+        try {
+            const source = await context.agent.browser.getPageSource()
+            const native = !context.agent.session.plan.applies.includes('W')
+            const file = await context.workspace!.writeSource(source, native)
+            return `Saved the ${native ? 'app source' : 'page HTML'} (${source.length} characters) to ${file}. Search it with grep or read parts of it with read_file.`
+        } catch (err) {
+            return `Error: ${redact((err as Error).message, context.values)}`
+        }
+    }, {
+        name: 'source',
+        description: 'Save the page HTML or app source to the workspace, for searching attributes and text that the snapshot leaves out',
+        schema: z.object({})
+    })
 }
 
 export interface Outcome {

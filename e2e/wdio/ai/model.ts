@@ -32,3 +32,13 @@ export const cacheModel = new ScriptedChatModel([
     { tool: 'click', args: { target: 'role/button[name="Add to cart"]' } },
     { tool: 'done', args: { summary: 'Added the item' } }
 ])
+
+export const workspaceModel = new ScriptedChatModel([
+    // reads console output and page source from the workspace
+    { tool: 'snapshot' },
+    { tool: 'read_file', args: { file_path: '/console.ndjson' } },
+    { tool: 'source' },
+    { tool: 'grep', args: { pattern: 'data-sku' } },
+    { tool: 'click', args: { target: 'role/button[name="Add to cart"]' } },
+    { tool: 'done', args: { summary: 'Added the item after checking the stock warning' } }
+])

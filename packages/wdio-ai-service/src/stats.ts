@@ -98,7 +98,7 @@ export function formatSummary (records: ActRecord[], { mode, outputDir }: { mode
     }
     const changed = records.some((record) => !record.error && (record.healed || record.source === 'model'))
     if (changed && mode === 'heal') {
-        lines.push(`Updated cache entries: ${path.join(outputDir || process.cwd(), 'act-cache')}`)
+        lines.push(`Updated cache entries: ${path.join(outputDir ? path.resolve(outputDir) : path.join(process.cwd(), '.wdio'), 'act-cache')}`)
     } else if (changed && mode === 'write') {
         lines.push('Cache files changed, review and commit the __act__ directories.')
     }

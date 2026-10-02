@@ -42,6 +42,7 @@
     "@wdio/session": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
+    "deepagents": "^1.12.2",
     "langchain": "^1.5.5",
     "webdriverio": "workspace:*",
     "zod": "^4.4.3"

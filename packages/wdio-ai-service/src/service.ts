@@ -48,9 +48,17 @@ export default class AiService implements Services.ServiceInstance {
         })
     }
 
-    before (_capabilities: unknown, specs: string[], browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+    async before (_capabilities: unknown, specs: string[], browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
         this.#specs = specs
         registerCommands(browser, this.runtime)
+        /**
+         * start capturing console and network events with the session, so
+         * the workspace has what happened before the first `act` call
+         */
+        const instances = (browser as WebdriverIO.MultiRemoteBrowser).isMultiRemote
+            ? (browser as WebdriverIO.MultiRemoteBrowser).instances.map((name) => (browser as WebdriverIO.MultiRemoteBrowser).getInstance(name))
+            : [browser as WebdriverIO.Browser]
+        await Promise.all(instances.map((instance) => this.runtime.agentFor(instance)))
     }
 
     /**
@@ -61,8 +69,8 @@ export default class AiService implements Services.ServiceInstance {
         this.runtime.startTest(specPath(test.file || this.#specs[0]), title)
     }
 
-    afterTest () {
-        this.runtime.endTest()
+    async afterTest (_test: TestLike, _context: unknown, result?: { passed?: boolean }) {
+        await this.runtime.endTest(result?.passed ?? true)
     }
 
     /**
@@ -72,8 +80,8 @@ export default class AiService implements Services.ServiceInstance {
         this.runtime.startTest(specPath(world.pickle?.uri || this.#specs[0]), world.pickle?.name || 'scenario')
     }
 
-    afterScenario () {
-        this.runtime.endTest()
+    async afterScenario (_world: CucumberWorld, result?: { passed?: boolean }) {
+        await this.runtime.endTest(result?.passed ?? true)
     }
 
     async after () {

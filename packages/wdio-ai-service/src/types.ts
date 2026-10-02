@@ -70,6 +70,20 @@ export interface AiServiceOptions {
      * actions the model may use (default: the page actions of `@wdio/session`)
      */
     actions?: string[]
+    /**
+     * the read-only evidence folder the model can look into
+     */
+    workspace?: {
+        /**
+         * root of the per-test folders (default `<outputDir>/ai`)
+         */
+        dir?: string
+        /**
+         * keep a test's folder when an `act` call failed or healed (default),
+         * always, or never
+         */
+        keep?: 'on-failure' | 'always' | 'never'
+    }
 }
 
 export interface ActOptions {
