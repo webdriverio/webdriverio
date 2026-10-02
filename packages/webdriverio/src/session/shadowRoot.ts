@@ -79,6 +79,14 @@ export class ShadowRootManager extends SessionManager {
         this.#clearContext(context)
     }
 
+    /**
+     * Forget what is known about the document of a context, when it turns
+     * out to be gone without a `navigationCommitted` event.
+     */
+    forgetContext (context: string) {
+        this.#clearContext(context)
+    }
+
     #clearContext(context: string) {
         this.#shadowRoots.delete(context)
         this.#currentDocumentIds.delete(context)

@@ -16,7 +16,7 @@ import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy, getAriaXPathSelector } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
-import { contextIdOf, heldBrowsingContext } from '../session/browsingContext.js'
+import { contextIdOf, foreignContextId, heldBrowsingContext } from '../session/browsingContext.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
@@ -447,7 +447,7 @@ async function findInFrameByScript (
     index: number | null
 ): Promise<ElementReference | number | undefined> {
     const held = heldBrowsingContext(scope)
-    if (!held?.isFrame) {
+    if (!held || (!held.isFrame && !await foreignContextId(scope))) {
         return undefined
     }
 
@@ -660,7 +660,7 @@ export async function findDeepElement(
     const shadowRootManager = getShadowRootManager(browser)
     const context = await contextIdOf(this)
 
-    const shadowRoots = await shadowRootManager.getShadowElementsByContextId(
+    let shadowRoots = await shadowRootManager.getShadowElementsByContextId(
         context,
         (this as WebdriverIO.Element).elementId
     )
@@ -700,7 +700,26 @@ export async function findDeepElement(
         : shadowRoots.length > 0
             ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
             : undefined
-    const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
+    /**
+     * The shadow roots tracked for a context can belong to a document that is
+     * no longer shown, e.g. after Firefox restored a page from its
+     * back-forward cache without a `navigationCommitted` event. Drop them and
+     * search the current document instead of falling back to classic.
+     */
+    const locateNodes = () => browser.browsingContextLocateNodes({ locator, context, startNodes }).catch((err: Error) => {
+        if (shadowRoots.length === 0 || !String(err?.message).includes('no such node')) {
+            throw err
+        }
+        shadowRootManager.forgetContext(context)
+        shadowRoots = []
+        const scope = (this as WebdriverIO.Element).elementId
+        return browser.browsingContextLocateNodes({
+            locator,
+            context,
+            startNodes: scope ? [{ sharedId: scope }] : undefined
+        })
+    })
+    const deepElementResult = await locateNodes().then(async (result) => {
         let nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId)).map((node) => ({
             [ELEMENT_KEY]: node.sharedId as string,
             locator
@@ -785,14 +804,17 @@ export async function findDeepElement(
             )
         }
         return found
-    }, (err) => {
+    }, async (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
         if (using === 'aria') {
             return findAriaElementViaXPathFallback(
                 this, browser, using, value, context, startNodes, shadowRoots
             )
         }
-        if (heldBrowsingContext(this)?.isFrame) {
+        /**
+         * Classic only searches the session's current context.
+         */
+        if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findInFrameByScript(this, browser, using, value, 0) as Promise<ElementReference | undefined>
         }
         return findElementViaClassic(this, browser, using, value, shadowRoots)
@@ -816,7 +838,7 @@ export async function findDeepElements(
     const shadowRootManager = getShadowRootManager(browser)
     const context = await contextIdOf(this)
 
-    const shadowRoots = await shadowRootManager.getShadowElementsByContextId(
+    let shadowRoots = await shadowRootManager.getShadowElementsByContextId(
         context,
         (this as WebdriverIO.Element).elementId
     )
@@ -856,7 +878,26 @@ export async function findDeepElements(
         : shadowRoots.length > 0
             ? shadowRoots.map((shadowRootNodeId) => ({ sharedId: shadowRootNodeId }))
             : undefined
-    const deepElementResult = await browser.browsingContextLocateNodes({ locator, context, startNodes }).then(async (result) => {
+    /**
+     * The shadow roots tracked for a context can belong to a document that is
+     * no longer shown, e.g. after Firefox restored a page from its
+     * back-forward cache without a `navigationCommitted` event. Drop them and
+     * search the current document instead of falling back to classic.
+     */
+    const locateNodes = () => browser.browsingContextLocateNodes({ locator, context, startNodes }).catch((err: Error) => {
+        if (shadowRoots.length === 0 || !String(err?.message).includes('no such node')) {
+            throw err
+        }
+        shadowRootManager.forgetContext(context)
+        shadowRoots = []
+        const scope = (this as WebdriverIO.Element).elementId
+        return browser.browsingContextLocateNodes({
+            locator,
+            context,
+            startNodes: scope ? [{ sharedId: scope }] : undefined
+        })
+    })
+    const deepElementResult = await locateNodes().then(async (result) => {
         let nodes: ExtendedElementReference[] = result.nodes.filter((node) => Boolean(node.sharedId))
             .map((node) => ({
                 [ELEMENT_KEY]: node.sharedId as string,
@@ -927,14 +968,17 @@ export async function findDeepElements(
             )
         }
         return found
-    }, (err) => {
+    }, async (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
         if (using === 'aria') {
             return findAriaElementsViaXPathFallback(
                 this, browser, using, value, context, startNodes, shadowRoots
             )
         }
-        if (heldBrowsingContext(this)?.isFrame) {
+        /**
+         * Classic only searches the session's current context.
+         */
+        if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findAllInFrame(this, browser, using, value)
         }
         return findElementsViaClassic(this, browser, using, value, shadowRoots)

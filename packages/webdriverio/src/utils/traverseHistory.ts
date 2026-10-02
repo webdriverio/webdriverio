@@ -357,13 +357,36 @@ export async function traverseTopLevelHistory (
         }
         void watchTraversalReadyState(false)
     }
+    /**
+     * Firefox can deliver the `load` of the previous navigation after its
+     * command returned, so after this traversal started. When the outgoing
+     * document is marked, a load event that still finds it is that late
+     * event and is ignored. The event of the new document ends the wait.
+     */
+    const onReadyEvent = (params: local.BrowsingContextNavigationInfo) => {
+        if (!armed || !matchesContext(params, context)) {
+            return
+        }
+        if (!outgoing) {
+            succeed(params)
+            return
+        }
+        void evaluateString(browser, context, documentSnapshot(markerId, false))
+            .then((snapshot) => parseDocumentSnapshot(snapshot))
+            .catch(() => undefined)
+            .then((sample) => {
+                if (!sample?.marked) {
+                    succeed(params)
+                }
+            })
+    }
     const onDomContentLoaded = (params: local.BrowsingContextNavigationInfo) => {
         if (readiness === 'interactive') {
-            succeed(params)
+            onReadyEvent(params)
         }
     }
     const onLoad = (params: local.BrowsingContextNavigationInfo) => {
-        succeed(params)
+        onReadyEvent(params)
     }
     const onFragmentNavigated = (params: local.BrowsingContextNavigationInfo) => {
         /**
