@@ -1384,9 +1384,6 @@ importers:
       appium:
         specifier: ^3.0.0
         version: 3.8.0(debug@4.4.3(supports-color@11.0.0))(supports-color@11.0.0)
-      aria-query:
-        specifier: ^5.3.0
-        version: 5.3.2
       expect-webdriverio:
         specifier: ^8.0.0-alpha.1
         version: 8.0.0-alpha.1(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio)
@@ -1412,9 +1409,6 @@ importers:
         specifier: ^18.2.0
         version: 18.2.0
     devDependencies:
-      '@types/aria-query':
-        specifier: ^5.0.4
-        version: 5.0.4
       '@types/picomatch':
         specifier: ^4.0.2
         version: 4.0.3

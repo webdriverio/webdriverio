@@ -56,7 +56,8 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'launch.e2e.ts'),
         path.join(__dirname, 'headless', 'bidi.e2e.ts'),
         path.join(__dirname, 'headless', 'setFiles.e2e.ts'),
-        path.join(__dirname, 'headless', 'browsingContextCommands.e2e.ts')
+        path.join(__dirname, 'headless', 'browsingContextCommands.e2e.ts'),
+        path.join(__dirname, 'headless', 'roleSelector.e2e.ts')
     ]],
 
     /**

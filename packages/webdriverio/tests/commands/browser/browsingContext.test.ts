@@ -284,6 +284,25 @@ describe('browsing context', () => {
         expect(typeof element.moveTo).toBe('function')
     })
 
+    it('finds an element by role and name inside a held frame', async () => {
+        const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://pay.example' })
+        const scriptCallFunction = vi.spyOn(browser, 'scriptCallFunction')
+            .mockResolvedValue({ type: 'success', result: { type: 'node', sharedId: 'pay-button', value: { nodeType: 1 } } } as never)
+
+        const button = await frame.$('role/button[name="Pay now"]')
+
+        expect(button.elementId).toBe('pay-button')
+        const [params] = scriptCallFunction.mock.calls[0]
+        expect(params.target).toEqual({ context: 'frame-1' })
+        expect(params.functionDeclaration).toContain('inAccessibilityTree')
+        expect(params.arguments?.slice(1)).toEqual([
+            { type: 'string', value: 'button' },
+            { type: 'string', value: 'Pay now' },
+            { type: 'number', value: 0 },
+            { type: 'null' }
+        ])
+    })
+
     describe('custom commands', () => {
         type ContextWith<T extends string> = WebdriverIO.BrowsingContext & Record<T, (...args: unknown[]) => Promise<unknown>>
 

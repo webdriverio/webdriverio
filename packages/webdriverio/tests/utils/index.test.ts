@@ -3,6 +3,7 @@ import { ELEMENT_KEY, type local } from 'webdriver'
 
 import {
     findElement,
+    findElements,
     isStaleElementError,
     elementPromiseHandler,
     transformClassicToBidiSelector,
@@ -170,6 +171,66 @@ describe('transformClassicToBidiSelector', () => {
         const bidiSelector = transformClassicToBidiSelector('aria', 'Submit')
         expect(bidiSelector.type).toBe('accessibility')
         expect(bidiSelector.value).toEqual({ name: 'Submit' })
+    })
+
+    it('transforms a role selector to a BiDi accessibility locator with role and name', () => {
+        expect(transformClassicToBidiSelector('role', '{"role":"button","name":"Add to cart"}'))
+            .toEqual({ type: 'accessibility', value: { role: 'button', name: 'Add to cart' } })
+        expect(transformClassicToBidiSelector('role', '{"role":"row"}'))
+            .toEqual({ type: 'accessibility', value: { role: 'row' } })
+        expect(transformClassicToBidiSelector('role', '{"role":"img","name":""}'))
+            .toEqual({ type: 'accessibility', value: { role: 'img', name: '' } })
+    })
+})
+
+describe('role selector on a Classic session', () => {
+    function classicBrowser (result: unknown) {
+        const browser: any = {
+            on: vi.fn(),
+            isBidi: false,
+            isMobile: false,
+            execute: vi.fn().mockResolvedValue(result),
+            findElement: vi.fn(),
+            findElements: vi.fn()
+        }
+        return browser
+    }
+
+    it('finds the first element by role and name in the page', async () => {
+        const browser = classicBrowser([{ [ELEMENT_KEY]: 'el-1' }, { [ELEMENT_KEY]: 'el-2' }])
+        expect(await findElement.call(browser, 'role/button[name="Add to cart"]')).toEqual({ [ELEMENT_KEY]: 'el-1' })
+        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), expect.any(Array), 'button', 'Add to cart', -1, null)
+        expect(browser.findElement).not.toHaveBeenCalled()
+    })
+
+    it('returns every match and passes a null name for a role-only selector', async () => {
+        const browser = classicBrowser([{ [ELEMENT_KEY]: 'el-1' }, { [ELEMENT_KEY]: 'el-2' }])
+        expect(await findElements.call(browser, 'role/row')).toEqual([{ [ELEMENT_KEY]: 'el-1' }, { [ELEMENT_KEY]: 'el-2' }])
+        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), expect.any(Array), 'row', null, -1, null)
+        expect(browser.findElements).not.toHaveBeenCalled()
+    })
+
+    it('searches within the element a selector is chained from', async () => {
+        const browser = classicBrowser([{ [ELEMENT_KEY]: 'pay' }])
+        const dialog = { elementId: 'dialog-1', [ELEMENT_KEY]: 'dialog-1', parent: browser, ...browser }
+        dialog.execute = browser.execute
+        await findElements.call(dialog, 'role/button[name="Pay now"]')
+        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), expect.any(Array), 'button', 'Pay now', -1, dialog)
+    })
+
+    it('returns a not-found error when nothing matches', async () => {
+        const browser = classicBrowser([])
+        const result = await findElement.call(browser, 'role/button[name="Missing"]')
+        expect(result).toBeInstanceOf(Error)
+        expect((result as Error).message).toBe('Couldn\'t find element with selector "role/button[name="Missing"]"')
+    })
+
+    it('rejects the selector in a native app context', async () => {
+        const browser = classicBrowser([])
+        browser.isMobile = true
+        browser.isNativeContext = Promise.resolve(true)
+        await expect(findElements.call(browser, 'role/button')).rejects.toThrow('is not supported in a native app context')
+        expect(browser.execute).not.toHaveBeenCalled()
     })
 })
 

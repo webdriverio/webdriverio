@@ -12,8 +12,10 @@ import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { checkElementsContainedIn, checkElementsConnected } from './elementChecks.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
-import { DEEP_SELECTOR, Key } from '../constants.js'
-import { findStrategy, getAriaXPathSelector } from './findStrategy.js'
+import { DEEP_SELECTOR, ROLE_SELECTOR, Key } from '../constants.js'
+import { findStrategy, getAriaXPathSelector, type RoleSelector } from './findStrategy.js'
+import findByRole from '../scripts/findByRole.js'
+import { roleTable } from '../scripts/roles.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, heldBrowsingContext } from '../session/browsingContext.js'
@@ -277,6 +279,14 @@ export function elementPromiseHandler<T extends object>(handle: string, shadowRo
 }
 
 export function transformClassicToBidiSelector(using: string, value: string): remote.BrowsingContextLocator {
+    if (using === 'role') {
+        const { role, name } = JSON.parse(value) as RoleSelector
+        return {
+            type: 'accessibility',
+            value: name === undefined ? { role } : { role, name }
+        }
+    }
+
     if (using === 'css selector' || using === 'tag name') {
         return { type: 'css', value }
     }
@@ -322,6 +332,34 @@ function toAriaXPathLocator(value: string): remote.BrowsingContextLocator {
 
 function getScopedElementId(ctx: WebdriverIO.Browser | WebdriverIO.Element) {
     return ctx && 'elementId' in ctx ? ctx.elementId : undefined
+}
+
+/**
+ * `role/` selector without the BiDi accessibility locator: compute role and
+ * accessible name in the page.
+ */
+async function findRoleElementsByScript(
+    ctx: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    value: string
+): Promise<ElementReference[]> {
+    const { role, name } = JSON.parse(value) as RoleSelector
+    if (browser.isMobile && await browser.isNativeContext) {
+        throw new Error(
+            `The role selector "role/${role}" is not supported in a native app context. ` +
+            'Use an accessibility id (`~id`) or a platform selector instead.'
+        )
+    }
+    const root = getScopedElementId(ctx) ? ctx as WebdriverIO.Element : null
+    const result = await browser.execute(
+        findByRole as unknown as (...args: unknown[]) => ElementReference[],
+        roleTable(),
+        role,
+        name ?? null,
+        -1,
+        root
+    )
+    return (Array.isArray(result) ? result : []).filter((elem) => getElementFromResponse(elem))
 }
 
 /**
@@ -482,10 +520,30 @@ async function findInFrameByScript (
         }
         return nodes[at] || null
     }
+    const rootId = (scope as { [ELEMENT_KEY]?: string })[ELEMENT_KEY]
+    if (using === 'role') {
+        const { role, name } = JSON.parse(value) as RoleSelector
+        const roleParams: remote.ScriptCallFunctionParameters = {
+            functionDeclaration: createBidiFunctionDeclaration(findByRole as unknown as Function),
+            awaitPromise: true,
+            arguments: [
+                LocalValue.getArgument(roleTable()),
+                LocalValue.getArgument(role),
+                LocalValue.getArgument(name ?? null),
+                LocalValue.getArgument(index),
+                rootId ? { sharedId: rootId } : LocalValue.getArgument(null)
+            ] as remote.ScriptLocalValue[],
+            target: { context: held.contextId }
+        }
+        const found = parseScriptResult(roleParams, await browser.scriptCallFunction(roleParams))
+        if (typeof found === 'number') {
+            return found
+        }
+        return found && typeof found === 'object' && ELEMENT_KEY in found ? found as ElementReference : undefined
+    }
     const resolved = using === 'aria'
         ? { using: 'xpath', value: getAriaXPathSelector(value) }
         : { using, value }
-    const rootId = (scope as { [ELEMENT_KEY]?: string })[ELEMENT_KEY]
     const params: remote.ScriptCallFunctionParameters = {
         functionDeclaration: createBidiFunctionDeclaration(query as unknown as Function),
         awaitPromise: true,
@@ -767,8 +825,11 @@ export async function findDeepElement(
             )
         }
         return found
-    }, (err) => {
+    }, async (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
+        if (using === 'role') {
+            return (await findRoleElementsByScript(this, browser, value))[0]
+        }
         if (using === 'aria') {
             return findAriaElementViaXPathFallback(
                 this, browser, using, value, context, startNodes, shadowRoots
@@ -910,6 +971,9 @@ export async function findDeepElements(
         return found
     }, (err) => {
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
+        if (using === 'role') {
+            return findRoleElementsByScript(this, browser, value)
+        }
         if (using === 'aria') {
             return findAriaElementsViaXPathFallback(
                 this, browser, using, value, context, startNodes, shadowRoots
@@ -1010,6 +1074,15 @@ export async function findElement(
     }
 
     /**
+     * fetch element by role and accessible name in the page
+     */
+    if (typeof selector === 'string' && selector.startsWith(ROLE_SELECTOR)) {
+        const { value } = findStrategy(selector, this.isMobile)
+        const [elem] = await findRoleElementsByScript(this, browserObject, value)
+        return elem || new Error(`Couldn't find element with selector "${selector}"`)
+    }
+
+    /**
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
@@ -1091,6 +1164,14 @@ export async function findElements(
         const elems = await browserObject.execute(strategy, ...strategyArguments)
         const elemArray = Array.isArray(elems) ? elems as ElementReference[] : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
+    }
+
+    /**
+     * fetch elements by role and accessible name in the page
+     */
+    if (typeof selector === 'string' && selector.startsWith(ROLE_SELECTOR)) {
+        const { value } = findStrategy(selector, this.isMobile)
+        return findRoleElementsByScript(this, browserObject, value)
     }
 
     /**
