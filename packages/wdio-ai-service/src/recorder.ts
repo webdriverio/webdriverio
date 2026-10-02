@@ -1,5 +1,7 @@
 import { getContextManager } from 'webdriverio'
 
+import { contextTree } from './contexts.js'
+
 import {
     isEffectRequest, isIgnored, statusClass, urlTemplate,
     type EffectsConfig, type StepEffect
@@ -144,6 +146,10 @@ export class EffectRecorder {
     readonly bidi: boolean
     #active = false
     #page?: string
+    /**
+     * the page of the step and its frames, events of other tabs do not count
+     */
+    #contexts = new Set<string>()
     #pageUrl?: string
     #inflight = new Map<string, { method: string, url: string }>()
     #requests = new Set<string>()
@@ -200,21 +206,36 @@ export class EffectRecorder {
                 }
             })
         }
-        on('browsingContext.contextCreated', (params: { context: string, parent?: string | null, url: string }) => {
-            if (this.#active && !params.parent && params.context !== this.#page) {
+        on('browsingContext.contextCreated', (params: { context: string, parent?: string | null, originalOpener?: string | null, url: string }) => {
+            if (!this.#active) {
+                return
+            }
+            /**
+             * a frame the step added to the page
+             */
+            if (params.parent) {
+                if (this.#contexts.has(params.parent)) {
+                    this.#contexts.add(params.context)
+                }
+                return
+            }
+            /**
+             * a window the page opened, not one another tab opened
+             */
+            if (params.context !== this.#page && (!params.originalOpener || this.#inPage(params.originalOpener))) {
                 this.#openedContexts.add(params.context)
                 this.#opened ??= urlTemplate(params.url, this.#pageUrl)
                 this.#touch()
             }
         })
-        on('browsingContext.userPromptOpened', (params: { type: string }) => {
-            if (this.#active) {
+        on('browsingContext.userPromptOpened', (params: { context: string, type: string }) => {
+            if (this.#active && this.#inPage(params.context)) {
                 this.#prompt = params.type
                 this.#touch()
             }
         })
-        on('script.message', (params: { channel: string, data: { type?: string, value?: { type?: string, value?: string }[] } }) => {
-            if (!this.#active || params.channel !== EFFECTS_CHANNEL || params.data?.type !== 'array') {
+        on('script.message', (params: { channel: string, source?: { context?: string }, data: { type?: string, value?: { type?: string, value?: string }[] } }) => {
+            if (!this.#active || params.channel !== EFFECTS_CHANNEL || params.data?.type !== 'array' || !this.#inPage(params.source?.context)) {
                 return
             }
             const [epoch, ...regions] = (params.data.value || []).map((item) => item.value)
@@ -247,8 +268,18 @@ export class EffectRecorder {
         this.#lastActivity = Date.now()
     }
 
+    /**
+     * whether an event belongs to the page of the step or one of its frames
+     */
+    #inPage (context?: string | null) {
+        return !context || !this.#contexts.size || this.#contexts.has(context)
+    }
+
     #requestStarted (params: RequestParams) {
         if (!this.#active) {
+            return
+        }
+        if (!this.#inPage(params.context)) {
             return
         }
         const { request, url, method, destination, initiatorType } = params.request
@@ -300,6 +331,7 @@ export class EffectRecorder {
         this.#pageUrl = await this.browser.getUrl().catch(() => undefined)
         if (this.bidi) {
             this.#page = await getContextManager(this.browser).getCurrentContext().catch(() => undefined)
+            this.#contexts = await contextTree(this.browser, this.#page)
             await this.#nextEpoch()
         } else {
             this.#classicUrl = this.#pageUrl
@@ -314,16 +346,7 @@ export class EffectRecorder {
      */
     async #nextEpoch () {
         const epoch = ++this.#epoch
-        const { contexts } = await this.browser.browsingContextGetTree({}).catch(() => ({ contexts: [] as { context: string, children?: unknown[] | null }[] }))
-        const all: string[] = []
-        const walk = (nodes: { context: string, children?: unknown[] | null }[]) => {
-            for (const node of nodes) {
-                all.push(node.context)
-                walk((node.children || []) as { context: string, children?: unknown[] | null }[])
-            }
-        }
-        walk(contexts as { context: string, children?: unknown[] | null }[])
-        await Promise.all(all.map((context) => this.browser.scriptCallFunction({
+        await Promise.all([...this.#contexts].map((context) => this.browser.scriptCallFunction({
             functionDeclaration: '(epoch) => { window.__wdioAiEpoch && window.__wdioAiEpoch(epoch) }',
             arguments: [{ type: 'number', value: epoch }],
             target: { context },

@@ -79,6 +79,29 @@ describe('EffectRecorder on a BiDi session', () => {
         })
     })
 
+    it('leaves out what other tabs do during the step, and counts frames the step added', async () => {
+        const { browser, emit, request } = bidiBrowser()
+        const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())
+        await recorder.start()
+        expect(browser.browsingContextGetTree).toHaveBeenLastCalledWith({ root: 'page' })
+
+        emit('network.beforeRequestSent', { ...request('other', 'https://shop.example/api/poll'), context: 'other-tab' })
+        emit('network.responseCompleted', { ...request('other', 'https://shop.example/api/poll'), context: 'other-tab', response: { status: 200 } })
+        emit('script.message', { channel: EFFECTS_CHANNEL, source: { context: 'other-tab' }, data: { type: 'array', value: [{ type: 'string', value: '1' }, { type: 'string', value: 'list "Inbox"' }] } })
+        emit('browsingContext.userPromptOpened', { context: 'other-tab', type: 'alert' })
+        emit('browsingContext.contextCreated', { context: 'popup-of-other-tab', parent: null, originalOpener: 'other-tab', url: 'https://mail.example/' })
+
+        emit('browsingContext.contextCreated', { context: 'new-frame', parent: 'page', url: 'https://pay.example/' })
+        emit('network.beforeRequestSent', { ...request('pay', 'https://pay.example/api/token'), context: 'new-frame' })
+        emit('network.responseCompleted', { ...request('pay', 'https://pay.example/api/token'), context: 'new-frame', response: { status: 200 } })
+        emit('script.message', { channel: EFFECTS_CHANNEL, source: { context: 'new-frame' }, data: { type: 'array', value: [{ type: 'string', value: '1' }, { type: 'string', value: 'form "Card"' }] } })
+
+        expect(await recorder.settle({ quiet: 10 })).toEqual({
+            requests: ['POST pay.example/api/token → 2xx'],
+            changed: ['form "Card"']
+        })
+    })
+
     it('waits for the requests a step started before it returns', async () => {
         const { browser, emit, request } = bidiBrowser()
         const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())
