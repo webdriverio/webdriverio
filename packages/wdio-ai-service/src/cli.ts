@@ -50,7 +50,7 @@ export async function runCli (argv: string[], out: (line: string) => void = cons
             continue
         }
         const source = await fs.readFile(specPath, 'utf-8')
-        const result = eject(source, cache, { test: parsed.values.test })
+        const result = eject(source, cache, { test: parsed.values.test, filename: specPath })
         for (const { instruction, steps } of result.ejected) {
             out(`${spec}: ejected "${instruction}" (${steps} step${steps === 1 ? '' : 's'})`)
         }

@@ -125,8 +125,13 @@ interface TestScope {
  * Find the `act` calls of a spec with `@babel/parser`, with the test they
  * are in and their position in it.
  */
-export function findActCalls (source: string): ActCall[] {
-    const ast = parse(source, { sourceType: 'module', plugins: ['typescript'], errorRecovery: true }) as unknown as AstNode
+export function findActCalls (source: string, filename = 'spec.ts'): ActCall[] {
+    /**
+     * JSX only for `.tsx` and `.jsx` specs: with it, `<T>value` casts of
+     * `.ts` files would not parse
+     */
+    const plugins: ('typescript' | 'jsx')[] = /\.[jt]sx$/i.test(filename) ? ['typescript', 'jsx'] : ['typescript']
+    const ast = parse(source, { sourceType: 'module', plugins, errorRecovery: true }) as unknown as AstNode
     const calls: ActCall[] = []
 
     const visit = (node: AstNode, parents: AstNode[], titles: (string | undefined)[], test: TestScope | undefined, conditional: boolean) => {
@@ -232,11 +237,11 @@ function entryFor (call: ActCall, cache: CacheFile): { key?: string, entry?: Cac
  * instruction stays as a comment. Calls without a matching entry are left
  * alone and reported.
  */
-export function eject (source: string, cache: CacheFile, options: { test?: string } = {}): EjectResult {
+export function eject (source: string, cache: CacheFile, options: { test?: string, filename?: string } = {}): EjectResult {
     const result: EjectResult = { source, ejected: [], skipped: [] }
     let output = ''
     let cursor = 0
-    for (const call of findActCalls(source)) {
+    for (const call of findActCalls(source, options.filename)) {
         if (call.instruction === undefined || (options.test && call.test !== options.test)) {
             continue
         }

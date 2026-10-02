@@ -176,7 +176,11 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                 if (context.scope) {
                     for (const key of TARGET_KEYS) {
                         const target = input[key]
-                        if (typeof target === 'string' && target && !await agent.contains(context.scope, substitute(target, values))) {
+                        /**
+                         * `wait 500` waits a duration, there is no element to check
+                         */
+                        const duration = spec.name === 'wait' && /^\d+$/.test(target as string)
+                        if (typeof target === 'string' && target && !duration && !await agent.contains(context.scope, substitute(target, values))) {
                             return redact(`Error: ${target} is outside the element this call is limited to. Pick a target from the latest snapshot.`, hidden)
                         }
                     }
