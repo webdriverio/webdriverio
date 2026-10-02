@@ -239,9 +239,7 @@ export class AiRuntime {
                 reason: 'no model is configured. Set the `model` option of the service or the WDIO_AI_MODEL environment variable.'
             })
         }
-        if (this.options.maxModelCalls !== undefined && this.modelCalls >= this.options.maxModelCalls) {
-            throw new ActError({ instruction, reason: `the budget of ${this.options.maxModelCalls} model calls is used up` })
-        }
+        this.#assertBudget(instruction)
 
         const values = options.values || {}
         const steps: ActStep[] = []
@@ -301,6 +299,15 @@ export class AiRuntime {
                 durationMs: Date.now() - started
             })
             throw err
+        }
+    }
+
+    /**
+     * fail before a model call once the worker used up `maxModelCalls`
+     */
+    #assertBudget (instruction: string, usage?: TokenUsage) {
+        if (this.options.maxModelCalls !== undefined && this.modelCalls >= this.options.maxModelCalls) {
+            throw new ActError({ instruction, reason: `the budget of ${this.options.maxModelCalls} model calls is used up`, ...(usage ? { usage } : {}) })
         }
     }
 
@@ -448,6 +455,10 @@ export class AiRuntime {
         let feedback = ''
         try {
             for (let attempt = 1; attempt <= 2; attempt++) {
+                /**
+                 * `extract` and its retry spend the same budget as `act`
+                 */
+                this.#assertBudget(instruction, usage)
                 const outcome: ExtractOutcome = {}
                 const result = await runLoop({
                     model: await this.#model(modelOption),
