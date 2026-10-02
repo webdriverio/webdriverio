@@ -10,10 +10,9 @@ describe('parseModelString', () => {
         expect(parseModelString('openrouter:moonshotai/kimi-k3')).toEqual({ provider: 'openrouter', model: 'moonshotai/kimi-k3' })
     })
 
-    it('rejects a string without a provider or with an unknown provider', () => {
+    it('rejects a string without a provider', () => {
         expect(() => parseModelString('claude-sonnet-5-5')).toThrow('Use "provider:model"')
         expect(() => parseModelString('anthropic:')).toThrow('Use "provider:model"')
-        expect(() => parseModelString('acme:model')).toThrow('Unknown provider "acme"')
     })
 })
 
@@ -47,27 +46,36 @@ describe('resolveModel', () => {
         await expect(resolveModel('lm-studio:qwen3', {})).rejects.toThrow('set `baseURL` to your server')
     })
 
-    it('creates the provider model with temperature 0 by default', async () => {
-        const anthropic = await resolveModel('anthropic:claude-sonnet-5-5', { ANTHROPIC_API_KEY: 'sk-test' }) as unknown as { model: string, temperature: number }
+    it('creates the model with initChatModel, temperature 0 and the token limit', async () => {
+        const init = vi.fn(async () => scriptedModel([]))
+        await resolveModel('anthropic:claude-sonnet-5-5', { ANTHROPIC_API_KEY: 'sk-test' }, init)
+        expect(init).toHaveBeenLastCalledWith('claude-sonnet-5-5', { modelProvider: 'anthropic', temperature: 0, maxTokens: 4096, apiKey: 'sk-test' })
+
+        await resolveModel('ollama:qwen3:8b', { OLLAMA_BASE_URL: 'http://gpu-box:11434' }, init)
+        expect(init).toHaveBeenLastCalledWith('qwen3:8b', { modelProvider: 'ollama', temperature: 0, numPredict: 4096, baseUrl: 'http://gpu-box:11434' })
+
+        await resolveModel({ provider: 'mistralai', model: 'mistral-large', temperature: 0.2 }, {}, init)
+        expect(init).toHaveBeenLastCalledWith('mistral-large', { modelProvider: 'mistralai', temperature: 0.2, maxTokens: 4096 })
+    })
+
+    it('creates OpenRouter and local servers as OpenAI-compatible models', async () => {
+        const init = vi.fn(async () => scriptedModel([]))
+        await resolveModel('openrouter:moonshotai/kimi-k3', { OPENROUTER_API_KEY: 'or-key' }, init)
+        expect(init).toHaveBeenLastCalledWith('moonshotai/kimi-k3', {
+            modelProvider: 'openai', temperature: 0, maxTokens: 4096, apiKey: 'or-key', configuration: { baseURL: 'https://openrouter.ai/api/v1' }
+        })
+        await resolveModel({ provider: 'lm-studio', model: 'qwen3', baseURL: 'http://localhost:1234/v1' }, {}, init)
+        expect(init).toHaveBeenLastCalledWith('qwen3', {
+            modelProvider: 'openai', temperature: 0, maxTokens: 4096, apiKey: 'local', configuration: { baseURL: 'http://localhost:1234/v1' }
+        })
+    })
+
+    it('creates a real provider model through initChatModel', async () => {
+        const configurable = await resolveModel('anthropic:claude-sonnet-5-5', { ANTHROPIC_API_KEY: 'sk-test' }) as unknown as { _getModelInstance: () => Promise<{ model: string, temperature: number }> }
+        const anthropic = await configurable._getModelInstance()
         expect(anthropic.constructor.name).toBe('ChatAnthropic')
         expect(anthropic.model).toBe('claude-sonnet-5-5')
         expect(anthropic.temperature).toBe(0)
-
-        const ollama = await resolveModel('ollama:qwen3:8b', {}) as unknown as { model: string, baseUrl: string }
-        expect(ollama.constructor.name).toBe('ChatOllama')
-        expect(ollama.model).toBe('qwen3:8b')
-        expect(ollama.baseUrl).toBe('http://localhost:11434')
-    })
-
-    it('names the package to install when a provider package is missing', async () => {
-        const importer = vi.fn(async () => {
-            const error = new Error('Cannot find package \'@langchain/openrouter\'') as NodeJS.ErrnoException
-            error.code = 'ERR_MODULE_NOT_FOUND'
-            throw error
-        })
-        await expect(resolveModel('openrouter:moonshotai/kimi-k3', { OPENROUTER_API_KEY: 'key' }, importer))
-            .rejects.toThrow('The "openrouter" provider needs "@langchain/openrouter". Install it with `npm install --save-dev @langchain/openrouter`.')
-        expect(importer).toHaveBeenCalledWith('@langchain/openrouter')
     })
 })
 

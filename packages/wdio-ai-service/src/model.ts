@@ -2,29 +2,43 @@ import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 
 import type { ModelConfig, ModelOption, Provider } from './types.js'
 
-interface ProviderMeta {
-    package: string
-    envKey?: string
-    baseUrlEnvKey?: string
-    /**
-     * local server, no API key
-     */
-    keyless?: boolean
+/**
+ * API key variables, checked up front for a clear error. Providers not
+ * listed here read their own variables when LangChain creates them.
+ */
+const API_KEY_ENV: Record<string, string> = {
+    anthropic: 'ANTHROPIC_API_KEY',
+    openai: 'OPENAI_API_KEY',
+    openrouter: 'OPENROUTER_API_KEY'
 }
 
-export const PROVIDERS: Record<Provider, ProviderMeta> = {
-    anthropic: { package: '@langchain/anthropic', envKey: 'ANTHROPIC_API_KEY', baseUrlEnvKey: 'ANTHROPIC_BASE_URL' },
-    openai: { package: '@langchain/openai', envKey: 'OPENAI_API_KEY', baseUrlEnvKey: 'OPENAI_BASE_URL' },
-    openrouter: { package: '@langchain/openrouter', envKey: 'OPENROUTER_API_KEY' },
-    ollama: { package: '@langchain/ollama', baseUrlEnvKey: 'OLLAMA_BASE_URL', keyless: true },
-    'llama-cpp': { package: '@langchain/openai', keyless: true },
-    'lm-studio': { package: '@langchain/openai', keyless: true }
+/**
+ * Providers with an OpenAI-compatible API, created as `openai` models
+ * with their endpoint
+ */
+const OPENAI_COMPATIBLE: Record<string, { baseURL?: string, keyless?: boolean }> = {
+    openrouter: { baseURL: 'https://openrouter.ai/api/v1' },
+    'llama-cpp': { keyless: true },
+    'lm-studio': { keyless: true }
+}
+
+/**
+ * how each provider's model takes a custom endpoint
+ */
+function endpoint (provider: string, baseURL: string): Record<string, unknown> {
+    switch (provider) {
+    case 'anthropic':
+        return { anthropicApiUrl: baseURL }
+    case 'ollama':
+        return { baseUrl: baseURL }
+    default:
+        return { configuration: { baseURL } }
+    }
 }
 
 export const MODEL_ENV = 'WDIO_AI_MODEL'
 export const DEFAULT_TEMPERATURE = 0
 export const DEFAULT_MAX_TOKENS = 4096
-const OLLAMA_DEFAULT_BASE_URL = 'http://localhost:11434'
 
 function isChatModel (value: unknown): value is BaseChatModel {
     return Boolean(value && typeof value === 'object' && typeof (value as BaseChatModel).invoke === 'function' && typeof (value as BaseChatModel).bindTools === 'function')
@@ -40,9 +54,6 @@ export function parseModelString (value: string): ModelConfig {
     const model = value.slice(index + 1)
     if (index === -1 || !model) {
         throw new Error(`[@wdio/ai-service] Invalid model "${value}". Use "provider:model", e.g. "anthropic:claude-sonnet-5-5".`)
-    }
-    if (!(provider in PROVIDERS)) {
-        throw new Error(`[@wdio/ai-service] Unknown provider "${provider}". Use one of: ${Object.keys(PROVIDERS).join(', ')}.`)
     }
     return { provider, model }
 }
@@ -71,67 +82,44 @@ export function describeModel (option: ModelOption): string {
     return `${option.provider}:${option.model}`
 }
 
-type ProviderModule = Record<string, new (args: Record<string, unknown>) => BaseChatModel>
-export type Importer = (pkg: string) => Promise<unknown>
+export type InitChatModel = (model: string, fields: Record<string, unknown>) => Promise<BaseChatModel>
 
-const defaultImporter: Importer = (pkg) => import(pkg)
-
-async function importProvider (provider: Provider, importer: Importer): Promise<ProviderModule> {
-    const pkg = PROVIDERS[provider].package
-    try {
-        return await importer(pkg) as ProviderModule
-    } catch (err) {
-        if ((err as NodeJS.ErrnoException).code === 'ERR_MODULE_NOT_FOUND') {
-            throw new Error(`[@wdio/ai-service] The "${provider}" provider needs "${pkg}". Install it with \`npm install --save-dev ${pkg}\`.`)
-        }
-        throw err
-    }
+const defaultInit: InitChatModel = async (model, fields) => {
+    const { initChatModel } = await import('langchain')
+    return initChatModel(model, fields) as unknown as Promise<BaseChatModel>
 }
 
 /**
- * Create the LangChain chat model for a model option. Provider packages are
- * optional peer dependencies and are imported only here.
+ * Create the LangChain chat model for a model option with LangChain's
+ * `initChatModel`, which imports the provider package (an optional peer
+ * dependency) on first use. OpenRouter and local OpenAI-compatible servers
+ * are created as `openai` models with their endpoint.
  */
-export async function resolveModel (option: ModelOption, env: NodeJS.ProcessEnv = process.env, importer: Importer = defaultImporter): Promise<BaseChatModel> {
+export async function resolveModel (option: ModelOption, env: NodeJS.ProcessEnv = process.env, init: InitChatModel = defaultInit): Promise<BaseChatModel> {
     if (isChatModel(option)) {
         return option
     }
     const config = typeof option === 'string' ? parseModelString(option) : option
-    const meta = PROVIDERS[config.provider]
-    if (!meta) {
-        throw new Error(`[@wdio/ai-service] Unknown provider "${config.provider}". Use one of: ${Object.keys(PROVIDERS).join(', ')}.`)
+    const compatible = OPENAI_COMPATIBLE[config.provider]
+    const keyEnv = API_KEY_ENV[config.provider]
+    const apiKey = config.apiKey ?? (keyEnv ? env[keyEnv] : undefined)
+    if (keyEnv && !apiKey) {
+        throw new Error(`[@wdio/ai-service] No API key for "${config.provider}". Set ${keyEnv} or pass \`apiKey\` in the model config.`)
     }
-    const apiKey = config.apiKey ?? (meta.envKey ? env[meta.envKey] : undefined)
-    if (!meta.keyless && !apiKey) {
-        throw new Error(`[@wdio/ai-service] No API key for "${config.provider}". Set ${meta.envKey} or pass \`apiKey\` in the model config.`)
-    }
-    const baseURL = config.baseURL ?? (meta.baseUrlEnvKey ? env[meta.baseUrlEnvKey] : undefined)
-    if ((config.provider === 'llama-cpp' || config.provider === 'lm-studio') && !baseURL) {
+    const baseURL = config.baseURL ?? (config.provider === 'ollama' ? env.OLLAMA_BASE_URL : undefined) ?? compatible?.baseURL
+    if (compatible?.keyless && !baseURL) {
         throw new Error(`[@wdio/ai-service] "${config.provider}" runs locally, set \`baseURL\` to your server, e.g. http://localhost:1234/v1.`)
     }
-    const temperature = config.temperature ?? DEFAULT_TEMPERATURE
+    const provider = compatible ? 'openai' : config.provider
     const maxTokens = config.maxTokens ?? DEFAULT_MAX_TOKENS
-    const module = await importProvider(config.provider, importer)
-
-    switch (config.provider) {
-    case 'anthropic':
-        return new module.ChatAnthropic({ model: config.model, apiKey, temperature, maxTokens, ...(baseURL ? { anthropicApiUrl: baseURL } : {}) })
-    case 'openrouter':
-        return new module.ChatOpenRouter({ model: config.model, apiKey, temperature, maxTokens, ...(baseURL ? { baseURL } : {}) })
-    case 'ollama':
-        return new module.ChatOllama({ model: config.model, baseUrl: baseURL ?? OLLAMA_DEFAULT_BASE_URL, temperature, numPredict: maxTokens })
-    case 'openai':
-    case 'llama-cpp':
-    case 'lm-studio':
-        return new module.ChatOpenAI({
-            model: config.model,
-            /**
-             * local OpenAI-compatible servers ignore the key, the SDK still needs one
-             */
-            apiKey: apiKey ?? 'local',
-            temperature,
-            maxTokens,
-            ...(baseURL ? { configuration: { baseURL } } : {})
-        })
-    }
+    return init(config.model, {
+        modelProvider: provider,
+        temperature: config.temperature ?? DEFAULT_TEMPERATURE,
+        ...(provider === 'ollama' ? { numPredict: maxTokens } : { maxTokens }),
+        /**
+         * local OpenAI-compatible servers ignore the key, the SDK still needs one
+         */
+        ...(apiKey || compatible?.keyless ? { apiKey: apiKey ?? 'local' } : {}),
+        ...(baseURL ? endpoint(provider, baseURL) : {})
+    })
 }

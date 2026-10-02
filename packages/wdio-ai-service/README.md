@@ -24,14 +24,14 @@ expect(cart).toContainEqual({ name: 'Blue Shirt', size: 'M', qty: 1 })
 npm install @wdio/ai-service --save-dev
 ```
 
-Install the LangChain package of the provider you use:
+Install the LangChain package of the provider you use. Models are created with LangChain's [`initChatModel`](https://docs.langchain.com/oss/javascript/langchain/models#initialize-a-model), so every provider it supports works, e.g. `google`, `mistralai`, `groq` or `bedrock`:
 
 | Provider | Package | API key |
 | --- | --- | --- |
 | `anthropic` | `@langchain/anthropic` | `ANTHROPIC_API_KEY` |
 | `openai` | `@langchain/openai` | `OPENAI_API_KEY` |
-| `openrouter` | `@langchain/openrouter` | `OPENROUTER_API_KEY` |
-| `ollama` | `@langchain/ollama` | none, runs locally |
+| `openrouter` | `@langchain/openai` | `OPENROUTER_API_KEY` |
+| `ollama` | `@langchain/ollama` | none, runs locally (`OLLAMA_BASE_URL` for another host) |
 | `llama-cpp`, `lm-studio` | `@langchain/openai` | none, set `baseURL` |
 
 ## Configuration

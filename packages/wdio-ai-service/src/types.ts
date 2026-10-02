@@ -1,6 +1,10 @@
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 
-export type Provider = 'anthropic' | 'openai' | 'openrouter' | 'ollama' | 'llama-cpp' | 'lm-studio'
+/**
+ * any provider of LangChain's `initChatModel`, plus `openrouter`,
+ * `llama-cpp` and `lm-studio` (OpenAI-compatible endpoints)
+ */
+export type Provider = 'anthropic' | 'openai' | 'openrouter' | 'ollama' | 'llama-cpp' | 'lm-studio' | (string & {})
 
 /**
  * Bring your own model: provider, model id and optional endpoint.
