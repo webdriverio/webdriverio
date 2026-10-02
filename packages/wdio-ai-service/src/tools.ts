@@ -23,6 +23,22 @@ export const DEFAULT_ACTIONS = [
  */
 const CONTEXT_ACTIONS = new Set(['frame', 'tabs'])
 /**
+ * `tabs` without one of these only lists the tabs
+ */
+const TAB_CHANGES = new Set(['switch', 'new', 'close'])
+
+/**
+ * A step a replay has to take: a page action, or a move to another frame
+ * or tab. `tabs switch` is not a page mutation, but later steps run in the
+ * tab it switched to.
+ */
+function isStep (spec: { name: string, mutation?: boolean }, input: Record<string, unknown>) {
+    if (spec.name === 'tabs') {
+        return TAB_CHANGES.has(input.sub as string)
+    }
+    return Boolean(spec.mutation)
+}
+/**
  * `frame top` and `frame parent` name no element, there is nothing to heal
  */
 const FRAME_KEYWORDS = new Set(['top', 'parent'])
@@ -153,11 +169,12 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                 const args = spec.name === 'snapshot' && context.scope && !input.scope
                     ? { ...input, scope: context.scope }
                     : input
-                if (spec.mutation) {
+                const step = isStep(spec, input)
+                if (step) {
                     await context.effects?.start()
                 }
                 const result = await agent.run(spec.name, substitute(args, values))
-                const effect = spec.mutation && context.effects ? redact(await context.effects.settle(), values) : undefined
+                const effect = step && context.effects ? redact(await context.effects.settle(), values) : undefined
                 if (spec.name === 'snapshot') {
                     diffArgs = {
                         ...(typeof args.scope === 'string' ? { scope: args.scope } : {}),
@@ -165,7 +182,7 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                     }
                 }
                 let text = result.text || 'done'
-                if (spec.mutation) {
+                if (step) {
                     /**
                      * Moving back to the top document or an already declared
                      * tab emits no code, but a replay still has to take it.

@@ -91,6 +91,18 @@ describe('pageTools', () => {
         expect(steps).toEqual([{ action: 'frame', args: { target: 'top' }, code: '' }])
     })
 
+    it('records switching to another tab, but not listing the tabs', async () => {
+        const { agent } = fakeAgent((action, args) => action === 'tabs'
+            ? (args.sub ? { text: 'Switched to tab 1', code: 'await browser.switchToWindow(handles[1])' } : { text: '0 shop\n1 help' })
+            : undefined)
+        const steps: ActStep[] = []
+        const tabs = (await pageTools({ agent, values: {}, onStep: (step) => steps.push(step) })).find((t) => t.name === 'tabs')!
+
+        await tabs.invoke({})
+        await tabs.invoke({ sub: 'switch', arg: '1' })
+        expect(steps).toEqual([{ action: 'tabs', args: { sub: 'switch', arg: '1' }, code: 'await browser.switchToWindow(handles[1])' }])
+    })
+
     it('does not record a read and returns action errors as text', async () => {
         const { agent } = fakeAgent((action) => action === 'click' ? { error: 'No element matches "#missing".' } : { text: '- button "Go" [ref=e1]' })
         const steps: ActStep[] = []

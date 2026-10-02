@@ -68,12 +68,33 @@ describe('act() across frames and windows', () => {
         expect(await (await page.frame(`${payments.origin}/pay`)).$('#status').getText()).toBe('Paid')
     })
 
-    it('switches to a window an action opened', async () => {
+    it('switches to a window an action opened and replays the switch', async () => {
+        const [page] = await browser.browsingContexts()
+        const closeHelp = async () => {
+            for (const context of await browser.browsingContexts()) {
+                if (context.url.endsWith('/help')) {
+                    await browser.browsingContextClose({ context: context.contextId })
+                }
+            }
+            await browser.switchToWindow(page.contextId)
+        }
+
         await browser.url(`${shop.origin}/support`)
-        const result = await browser.act('Open the help and confirm it', { model: framesModel, cache: 'off' })
-        expect(result.summary).toBe('Confirmed in the help window')
+        const recorded = await browser.act('Open the help and confirm it', { id: 'help', cache: 'write', model: framesModel })
+        expect(recorded.summary).toBe('Confirmed in the help window')
+        expect(recorded.steps.map((step) => step.action)).toEqual(['click', 'tabs', 'click'])
         expect(framesModel.sentText()).toContain('a new window with /help')
-        const help = (await browser.browsingContexts()).find((context) => context.url.endsWith('/help'))
+        let help = (await browser.browsingContexts()).find((context) => context.url.endsWith('/help'))
         expect(await help!.$('#status').getText()).toBe('Confirmed')
+
+        await closeHelp()
+        await browser.url(`${shop.origin}/support`)
+        const calls = framesModel.calls.length
+        const replayed = await browser.act('Open the help and confirm it', { id: 'help', cache: 'locked', model: framesModel })
+        expect(replayed.source).toBe('cache')
+        expect(framesModel.calls).toHaveLength(calls)
+        help = (await browser.browsingContexts()).find((context) => context.url.endsWith('/help'))
+        expect(await help!.$('#status').getText()).toBe('Confirmed')
+        await closeHelp()
     })
 })
