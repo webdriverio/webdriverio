@@ -256,27 +256,30 @@ type ElementCommandNames = SingleElementCommandNames | MultiElementCommandNames
  * `mock` is wrapped into a `MultiRemoteMock` instead of an array of results.
  */
 type MultiRemoteArrayCommandNames = ElementCommandNames | 'SESSION_MOCKS' | 'CDP_SESSIONS' | 'mock'
-type MultiRemoteElementCommands = {
+/**
+ * `shadow$`, `shadow$$` and the sibling and parent queries exist only on an element
+ */
+type ElementScopeSingleElementCommandNames = SingleElementCommandNames | 'shadow$' | 'nextElement' | 'previousElement' | 'parentElement'
+type ElementScopeMultiElementCommandNames = MultiElementCommandNames | 'shadow$$'
+type MultiRemoteBrowserQueries = {
     [K in keyof Pick<BrowserCommandsType, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement>
 } & {
-    [K in keyof Pick<BrowserCommandsType, '$$'>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElementArray>
+    [K in keyof Pick<BrowserCommandsType, MultiElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElementArray>
+}
+type MultiRemoteElementQueries = {
+    [K in keyof Pick<ElementCommandsType, ElementScopeSingleElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement>
 } & {
-    /**
-     * only `$$` zips the per-instance results into one multi-remote array; `custom$$`
-     * and `react$$` still resolve to one result per instance, so they keep the
-     * element-list type rather than claiming to be a `MultiRemoteElementArray`
-     */
-    [K in keyof Pick<BrowserCommandsType, Exclude<MultiElementCommandNames, '$$'>>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement[]>
+    [K in keyof Pick<ElementCommandsType, ElementScopeMultiElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElementArray>
 }
 
 export type MultiRemoteBrowserCommandsType = {
     [K in keyof Omit<BrowserCommandsType, MultiRemoteArrayCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
-} & MultiRemoteElementCommands & {
+} & MultiRemoteBrowserQueries & {
     mock(...args: Parameters<BrowserCommandsType['mock']>): Promise<WebdriverIO.MultiRemoteMock>
 }
 export type MultiRemoteElementCommandsType = {
-    [K in keyof Omit<ElementCommandsType, ElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>
-} & MultiRemoteElementCommands
+    [K in keyof Omit<ElementCommandsType, ElementScopeSingleElementCommandNames | ElementScopeMultiElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>
+} & MultiRemoteElementQueries
 export type MultiRemoteProtocolCommandsType = {
     [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => Promise<ThenArg<ReturnType<ProtocolCommands[K]>>[]>
 }
@@ -1054,8 +1057,8 @@ declare global {
         interface MultiRemoteElement extends MultiRemoteElementType {}
         /**
          * WebdriverIO multi-remote element array
-         * What `$$` returns on a multi-remote browser. `custom$$` and `react$$`
-         * return one result per instance and are not this type. Like `ElementArray`
+         * What `$$`, `custom$$`, `react$$` and `shadow$$` return on a multi-remote
+         * browser or element. Like `ElementArray`
          * it carries the selector, parent and properties of the fetched set, and
          * `isMultiRemote` marks it as the multi-remote variant.
          *

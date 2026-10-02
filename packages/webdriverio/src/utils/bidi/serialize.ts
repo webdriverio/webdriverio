@@ -18,6 +18,7 @@
  */
 
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../../commands/constant.js'
+import { decodeBase64 } from '../base64.js'
 
 export const SERIALIZED_BLOB_KEY = '__wdioSerializedBlob__'
 export const SERIALIZED_BLOB_KIND_BLOB = 'blob'
@@ -306,19 +307,6 @@ function decodedByteLength (data: string) {
     }
     const padding = data.endsWith('==') ? 2 : data.endsWith('=') ? 1 : 0
     return (data.length / 4) * 3 - padding
-}
-
-function decodeBase64 (data: string) {
-    if (typeof Buffer !== 'undefined') {
-        return Buffer.from(data, 'base64')
-    }
-
-    const binary = atob(data)
-    const bytes = new Uint8Array(binary.length)
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i)
-    }
-    return bytes
 }
 
 export function isSerializedBlobValue (value: unknown): value is SerializedBlobValue {

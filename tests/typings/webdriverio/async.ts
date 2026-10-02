@@ -75,6 +75,27 @@ async function bar() {
     const mrElem = await mr.$('')
     await mrElem.click()
 
+    // the other single element queries also give a multi-remote element
+    expectType<WebdriverIO.MultiRemoteElement>(await mr.custom$('myStrategy', '.foo'))
+    expectType<WebdriverIO.MultiRemoteElement>(await mr.react$('MyComponent', { props: { foo: 'bar' } }))
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.custom$('myStrategy', '.foo'))
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.react$('MyComponent'))
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.shadow$('.foo'))
+    expectType<boolean[]>(await (await mrElem.shadow$('.foo')).isDisplayed())
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.nextElement())
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.previousElement())
+    expectType<WebdriverIO.MultiRemoteElement>(await mrElem.parentElement())
+    expectType<string[]>(await (await mrElem.parentElement()).getTagName())
+
+    // the other list queries also give a multi-remote list
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mr.custom$$('myStrategy', '.foo'))
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mr.react$$('MyComponent', { props: { foo: 'bar' } }))
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mrElem.custom$$('myStrategy', '.foo'))
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mrElem.react$$('MyComponent'))
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mrElem.shadow$$('.foo'))
+    expectType<WebdriverIO.MultiRemoteElement>((await mrElem.shadow$$('.foo'))[0])
+    expectType<string[][]>(await (await mr.custom$$('myStrategy', '.foo')).map((el) => el.instances))
+
     // instances array
     expectType<string[]>(mr.instances)
 
@@ -511,10 +532,20 @@ async function bar() {
         fetchResponse: false
     })
     mock.respond(Buffer.from('foobar'))
+    mock.respond(new Uint8Array([137, 80, 78, 71]))
+    mock.respond(new Uint16Array([0x0102]))
+    mock.respond(new DataView(new ArrayBuffer(6), 1, 4))
+    mock.respond(new Uint8Array([137, 80, 78, 71]).buffer)
     mock.respond({ foo: 'bar' })
     mock.respond((request) => ({ url: request.request.url, foo: 'bar' }))
     mock.respond((request) => `id=${request.request.request}`)
     mock.respond(() => Buffer.from('foobar'))
+    mock.respond(() => new Uint8Array([137, 80, 78, 71]))
+    mock.respond(() => new Float32Array([1]))
+    mock.respondOnce(new Int8Array([-1]))
+    mock.respondOnce(() => new DataView(new ArrayBuffer(6), 1, 4))
+    mock.respondOnce(() => new Uint8Array([137, 80, 78, 71]).buffer)
+    expectType<Uint8Array | null>(mock.getBinaryResponse('request-id'))
     mock.respondOnce('/other/resource.jpg')
     mock.respondOnce('/other/resource.jpg', {
         statusCode: 100,

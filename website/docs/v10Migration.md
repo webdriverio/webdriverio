@@ -164,7 +164,7 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
 - `setFeatureFlags()` and the `featureFlags` option were removed.
 - These deprecated APIs were removed: `setOptions` (use `setDefaultOptions`), `getConfig` (use `getDefaultOptions`), `matchers` (use `wdioCustomMatchers`), `toHaveAttr` (use `toHaveAttribute`), `toHaveClass` (use `toHaveElementClass`), `toBeRequestedWithResponse()` (use `toBeRequestedWith({ response })`), and `expect-webdriverio/types` (use `expect-webdriverio/expect-global`).
 - The `beforeAssertion` and `afterAssertion` hooks get the name of the alias that the test called, for `toBeExisting`, `toBePresent`, `toHaveLink`, `toHaveValue` and `toBeRequested`. In v9, they got the name of the matcher behind the alias, for example `toExist` for `toBeExisting`.
-- On a multi-remote browser, give the result of `$$()` to `expect`. A plain array such as `[...elements]`, `Array.from(elements)` or the result of `custom$$()` is not recognized as elements, and the assertion fails.
+- On a multi-remote browser, give the result of `$$()` to `expect`. A plain array such as `[...elements]` or `Array.from(elements)` is not recognized as elements, and the assertion fails.
 
 On a multi-remote browser, one assertion checks every instance, and `expect.multiRemote()` gives one expected value per instance. See [Multiremote assertions](/docs/multiremote#assertions).
 
@@ -536,18 +536,48 @@ With the testrunner and `injectGlobals` left on, the instance name is still a gl
 
 Command results stay in capability order: the first entry belongs to the first key in the capabilities object.
 
-`browser.$$()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteElementArray`, not a plain `MultiRemoteElement[]`. It is still an array, so an index read such as `elements[0]` keeps working. `custom$$` and `react$$` still return one result per instance. They are not zipped into one array.
+`browser.$$()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteElementArray`, not a plain `MultiRemoteElement[]`. It is still an array, so an index read such as `elements[0]` keeps working.
+
+`custom$()`, `react$()` and, on an element, `shadow$()`, `nextElement()`, `previousElement()` and `parentElement()` return one `WebdriverIO.MultiRemoteElement`, as `$()` does. In v9 they returned one element per instance in a plain array. Read the element of one browser with `getInstance`:
+
+```diff
+- const [chromeHost, firefoxHost] = await browser.custom$('byTestId', 'host')
+- await chromeHost.click()
++ const host = await browser.custom$('byTestId', 'host')
++ await host.getInstance('myChromeBrowser').click()
+```
+
+`custom$$()`, `react$$()` and, on an element, `shadow$$()` return one `WebdriverIO.MultiRemoteElementArray`, as `$$()` does. In v9 they returned one list per instance in a plain array. Each entry addresses every instance. An instance that finds fewer elements has no element at that index:
+
+```diff
+- const [chromeItems, firefoxItems] = await browser.custom$$('byTestId', 'item')
+- await chromeItems[0].click()
++ const items = await browser.custom$$('byTestId', 'item')
++ await items[0].getInstance('myChromeBrowser').click()
+```
 
 `WDIO_ENABLE_MULTI_REMOTE_SELECT` and `WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY` have been removed. `select()` is always available, and `$$()` always returns the element array above. Delete both variables.
+
+## Binary mock responses
+
+`mock.respond()` and `mock.respondOnce()` accept `Uint8Array` and `ArrayBuffer` payloads, including a polyfilled `Buffer` in component tests without a global `Buffer`.
+
+`mock.getBinaryResponse()` is now typed as `Uint8Array | null`. It still returns a `Buffer` in Node.js, but returns a `Uint8Array` in the browser. To use Buffer-specific methods in Node.js, convert a non-null result first:
+
+```diff
+- const base64 = mock.getBinaryResponse(requestId)?.toString('base64')
++ const bytes = mock.getBinaryResponse(requestId)
++ const base64 = bytes === null ? undefined : Buffer.from(bytes).toString('base64')
+```
 
 ## Multi-remote network mocks
 
 `browser.mock()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteMock`, not an array of mocks. `respond`, `restore`, and the other mock methods run on every instance. Read captured requests from the mock for one browser. Use the `WebdriverIO.MultiRemoteMock` type from the global `WebdriverIO` namespace.
 
 ```diff
-- const [chromeMock, firefoxMock] = await browser.mock('**/api')
+- const [chromeMock, firefoxMock] = await browser.mock('*/api')
 - expect(chromeMock.calls).toHaveLength(1)
-+ const mock = await browser.mock('**/api')
++ const mock = await browser.mock('*/api')
 + mock.respond({ ok: true })
 + expect(mock.getInstance('myChromeBrowser').calls).toHaveLength(1)
 + expect(mock.instances).toEqual(['myChromeBrowser', 'myFirefoxBrowser'])

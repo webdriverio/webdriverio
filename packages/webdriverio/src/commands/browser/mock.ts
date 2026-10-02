@@ -53,7 +53,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
     :mock.js
     it('should mock network resources', async () => {
         // via static string
-        const userListMock = await browser.mock('**' + '/users/list')
+        const userListMock = await browser.mock('*' + '/users/list')
         // you can also specifying the mock even more by filtering resources
         // by request or response headers, status code, postData, e.g. mock only responses with specific
         // header set and statusCode
@@ -66,7 +66,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
         })
 
         // comparator function
-        const apiV1Mock = await browser.mock('**' + '/api/v1', {
+        const apiV1Mock = await browser.mock('*' + '/api/v1', {
             statusCode: (statusCode) => statusCode >= 200 && statusCode <= 203,
             requestHeaders: (headers) => headers['Authorization'] && headers['Authorization'].startsWith('Bearer '),
             responseHeaders: (headers) => headers['Impersonation'],
@@ -76,7 +76,7 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
 
     it('should modify API responses', async () => {
         // filter by method
-        const todoMock = await browser.mock('**' + '/todos', {
+        const todoMock = await browser.mock('*' + '/todos', {
             method: 'get'
         })
 
@@ -103,12 +103,12 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
     })
 
     it('should modify text assets', async () => {
-        const scriptMock = await browser.mock('**' + '/script.min.js')
+        const scriptMock = await browser.mock('*' + '/script.min.js')
         scriptMock.respond('./tests/fixtures/script.js')
     })
 
     it('should redirect web resources', async () => {
-        const headerMock = await browser.mock('**' + '/header.png')
+        const headerMock = await browser.mock('*' + '/header.png')
         headerMock.respond('https://media.giphy.com/media/F9hQLAVhWnL56/giphy.gif')
 
         const pageMock = await browser.mock('https://google.com/')

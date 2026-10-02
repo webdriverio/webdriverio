@@ -3,6 +3,7 @@ import { ELEMENT_KEY } from 'webdriver'
 import { expect, describe, it, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { react$$ as react$$Script } from '../../../src/scripts/resq.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -93,5 +94,36 @@ describe('react$', () => {
 
         expect(JSON.parse(vi.mocked(fetch).mock.calls.pop()![1]!.body as any).args)
             .toEqual(['myComp', { some: 'props' }, { some: 'state' }])
+    })
+
+    it('should query with the same props and state for an index past the end', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const isQuery = (script: unknown) => script === react$$Script
+        let queries = 0
+        const execute = vi.spyOn(browser, 'execute').mockImplementation((async (script: unknown) => (
+            isQuery(script)
+                ? Array.from(
+                    { length: ++queries > 1 ? 2 : 1 },
+                    (_, index) => ({ 'element-6066-11e4-a52e-4f735466cecf': `elem-${index}` })
+                )
+                : undefined
+        )) as any)
+
+        const elems = await browser.react$$('myComp', {
+            props: { some: 'props' },
+            state: { some: 'state' }
+        })
+        expect(elems).toHaveLength(1)
+
+        await expect(elems[1].elementId).resolves.toBe('elem-1')
+        expect(execute.mock.calls.filter(([script]) => isQuery(script)).map(([, ...args]) => args)).toEqual([
+            ['myComp', { some: 'props' }, { some: 'state' }],
+            ['myComp', { some: 'props' }, { some: 'state' }]
+        ])
     })
 })
