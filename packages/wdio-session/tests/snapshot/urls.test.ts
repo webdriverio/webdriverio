@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 
 import { snapshot } from '../../src/actions/observe.js'
 import { RefRegistry } from '../../src/snapshot/refs.js'
-import { roleTable } from '../../src/snapshot/roles.js'
+import { roleTable } from '@wdio/utils'
 import { collectInPage, type CollectOptions } from '../../src/snapshot/web.js'
 import { formatSnapshot } from '../../src/snapshot/format.js'
 import type { Session } from '../../src/session.js'

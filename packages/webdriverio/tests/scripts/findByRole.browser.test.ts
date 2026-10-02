@@ -1,15 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import findByRoleSource from '../../src/scripts/findByRole.js'
-import { roleTable } from '../../src/scripts/roles.js'
+import '../../src/injected/accessibility.js'
+import findByRoleSource, { ACCESSIBILITY_API_MISSING } from '../../src/scripts/findByRole.js'
 
 /**
  * the finder runs from its source, like `browser.execute` sends it
  */
 const findByRole = new Function(`return (${findByRoleSource.toString()})`)() as typeof findByRoleSource
-const rules = roleTable()
 const all = (role: string, name: string | null = null, root: Element | null = null) =>
-    findByRole(rules, role, name, -1, root) as Element[]
+    findByRole(role, name, -1, root) as Element[]
 const ids = (elements: Element[]) => elements.map((el) => el.id)
 
 describe('findByRole script', () => {
@@ -87,11 +86,22 @@ describe('findByRole script', () => {
         expect(ids(all('button', 'Remove', document.getElementById('row-2')))).toEqual(['remove-2'])
     })
 
+    it('reports when the page does not have the accessibility API yet', () => {
+        const w = window as unknown as { __wdioA11y?: unknown }
+        const api = w.__wdioA11y
+        delete w.__wdioA11y
+        try {
+            expect(findByRole('button', 'Go', -1, null)).toBe(ACCESSIBILITY_API_MISSING)
+        } finally {
+            w.__wdioA11y = api
+        }
+    })
+
     it('returns a count, one match or every match depending on `at`', () => {
         document.body.innerHTML = '<button id="a">Go</button><button id="b">Go</button>'
-        expect(findByRole(rules, 'button', 'Go', null, null)).toBe(2)
-        expect((findByRole(rules, 'button', 'Go', 1, null) as Element).id).toBe('b')
-        expect(findByRole(rules, 'button', 'Go', 5, null)).toBeNull()
-        expect(ids(findByRole(rules, 'button', 'Go', -1, null) as Element[])).toEqual(['a', 'b'])
+        expect(findByRole('button', 'Go', null, null)).toBe(2)
+        expect((findByRole('button', 'Go', 1, null) as Element).id).toBe('b')
+        expect(findByRole('button', 'Go', 5, null)).toBeNull()
+        expect(ids(findByRole('button', 'Go', -1, null) as Element[])).toEqual(['a', 'b'])
     })
 })

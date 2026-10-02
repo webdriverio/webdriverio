@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { roleTable } from '../../src/snapshot/roles.js'
+/**
+ * from the source: the `@wdio/utils` entry point needs Node.js
+ */
+import { roleTable } from '../../../wdio-utils/src/roles.js'
 import { collectInPage, type CollectOptions } from '../../src/snapshot/web.js'
 
 /**

@@ -1,4 +1,4 @@
-import { roleTable, type RoleRule } from './roles.js'
+import type { RoleRule } from '@wdio/utils'
 import type { SnapshotNode, SnapshotRef } from './format.js'
 
 export interface CollectOptions {
@@ -585,10 +585,3 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     return { tree, counter, refs }
 }
 /* c8 ignore stop */
-
-export async function collectWeb (browser: WebdriverIO.Browser, opts: Omit<CollectOptions, 'roles' | 'assignRefs'>, scope?: WebdriverIO.Element) {
-    const args: CollectOptions = { ...opts, roles: roleTable(), assignRefs: true }
-    return scope
-        ? browser.execute(collectInPage, args, scope as unknown as Element)
-        : browser.execute(collectInPage, args)
-}

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { knownRoles, roleTable } from '../../src/scripts/roles.js'
+import { knownRoles, roleTable } from '../src/roles.js'
 
 describe('roleTable', () => {
     const table = roleTable()

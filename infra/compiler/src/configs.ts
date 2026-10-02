@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import fss from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
-import { type BuildOptions, type Plugin } from 'esbuild'
+import { build, type BuildOptions, type Plugin } from 'esbuild'
 import type { PackageJson } from 'type-fest'
 
 import { getExternal } from './utils.js'
@@ -74,6 +74,21 @@ export async function createBuildConfigs (values: CompilerArgs): Promise<BuildOp
 
     const WDIO_RESQ_SCRIPT = JSON.stringify(await fs.readFile(path.resolve(rootDir, 'packages', 'webdriverio', 'node_modules', 'resq', 'dist', 'index.js'), 'utf-8'))
     const WDIO_FAKER_SCRIPT = JSON.stringify(await fs.readFile(path.resolve(rootDir, 'packages', 'webdriverio', 'third_party', 'fake-timers.js'), 'utf-8'))
+    /**
+     * role and accessible name computation for the `role/` selector fallback,
+     * `dom-accessibility-api` bundled into one script the page can run
+     */
+    const accessibility = await build({
+        entryPoints: [path.resolve(rootDir, 'packages', 'webdriverio', 'src', 'injected', 'accessibility.ts')],
+        absWorkingDir: path.resolve(rootDir, 'packages', 'webdriverio'),
+        bundle: true,
+        format: 'iife',
+        platform: 'browser',
+        target: [...BROWSER_BUILD_TARGET],
+        minify: true,
+        write: false
+    })
+    const WDIO_A11Y_SCRIPT = JSON.stringify(accessibility.outputFiles[0].text)
 
     return packages.map(([packageDir, pkg]) => {
         const packageBuilds: BuildOptions[] = []
@@ -107,7 +122,8 @@ export async function createBuildConfigs (values: CompilerArgs): Promise<BuildOp
                 absWorkingDir,
                 define: {
                     WDIO_RESQ_SCRIPT,
-                    WDIO_FAKER_SCRIPT
+                    WDIO_FAKER_SCRIPT,
+                    WDIO_A11Y_SCRIPT
                 }
             }
 
