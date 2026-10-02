@@ -113,6 +113,17 @@ for (const matcher of ASYNC_MATCHERS) {
     return globals.get('expect')['some'](...args)
 }
 
+/**
+ * One expected value per multi-remote instance, e.g. `expect.multiRemote({ chrome: 'A', firefox: 'B' })`.
+ * Not part of `ASYNC_MATCHERS` since there is no `expect.not.multiRemote`.
+ */
+expect.multiRemote = (...args: any) => {
+    if (!globals.has('expect')) {
+        throw new Error(GLOBALS_ERROR_MESSAGE)
+    }
+    return globals.get('expect').multiRemote(...args)
+}
+
 expect.not = ASYNC_MATCHERS.reduce((acc, matcher) => {
     acc[matcher] = (...args: any) => {
         if (!globals.has('expect')) {

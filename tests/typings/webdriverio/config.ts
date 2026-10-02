@@ -48,6 +48,18 @@ const configA: WebdriverIO.Config = {
         name.toLowerCase()
         const title = await browser.getTitle()
         title.slice(0, 1)
+    },
+
+    beforeAssertion (params) {
+        expectType<string>(params.matcherName)
+    },
+
+    afterAssertion (params) {
+        expectType<string>(params.matcherName)
+        expectType<boolean>(params.result.pass)
+        expectType<string>(params.result.message())
+        // @ts-expect-error the boolean of the result is `pass`
+        params.result.result
     }
 }
 

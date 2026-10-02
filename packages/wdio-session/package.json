@@ -49,7 +49,7 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "acorn": "^8.15.0",
-    "expect-webdriverio": "^8.0.0-alpha.1",
+    "expect-webdriverio": "^8.0.0-alpha.2",
     "get-port": "^7.1.0",
     "image-size": "^2.0.4",
     "picomatch": "^4.0.7",
