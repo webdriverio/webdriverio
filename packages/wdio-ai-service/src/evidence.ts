@@ -6,6 +6,15 @@ import logger from '@wdio/logger'
 const log = logger('@wdio/ai-service')
 
 /**
+ * Whether heals are captured: `healEvidence` is on and the workspace
+ * retention keeps evidence at all. `workspace.keep: 'never'` keeps no
+ * screenshots or videos either.
+ */
+export function capturesHealEvidence (options: { healEvidence?: boolean, workspace?: { keep?: 'on-failure' | 'always' | 'never' } }) {
+    return options.healEvidence !== false && options.workspace?.keep !== 'never'
+}
+
+/**
  * What a replay calls when a cached step fails and while it is healed.
  */
 export interface HealHooks {

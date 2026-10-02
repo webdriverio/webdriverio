@@ -160,7 +160,7 @@ A heal is a change you should review, so the service shows you what happened. Wh
 - `step-1.png`, `step-2.png`, …, the page after each step that healed it
 - a WebM video of the whole heal, in browsers that implement the WebDriver BiDi [`browsingContext.startScreencast`](https://w3c.github.io/webdriver-bidi/#command-browsingContext-startScreencast) command (Firefox today)
 
-The files go to `<workspace.dir>/heals/<spec>-<test>-<id>/`, and the summary prints the folder. Nothing is captured while cached steps replay fine. Set `healEvidence: false` to turn it off.
+The files go to `<workspace.dir>/heals/<spec>-<test>-<id>/`, and the summary prints the folder. Nothing is captured while cached steps replay fine. Set `healEvidence: false` to turn it off. `workspace.keep: 'never'` also captures no heal evidence, so no screenshots of your app stay on disk.
 
 | Mode | Cached | Not cached | Writes |
 | --- | --- | --- | --- |

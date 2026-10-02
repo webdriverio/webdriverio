@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { describe, expect, it, vi } from 'vitest'
 
-import { HealEvidence } from '../src/evidence.js'
+import { capturesHealEvidence, HealEvidence } from '../src/evidence.js'
 
 function fakeBrowser ({ bidi = true, screencast = true } = {}) {
     return {
@@ -57,5 +57,15 @@ describe('HealEvidence', () => {
             expect(await evidence.end()).toEqual([path.join(dir, 'failed.png')])
             expect(browser.browsingContextStopScreencast).not.toHaveBeenCalled()
         }
+    })
+})
+
+describe('capturesHealEvidence', () => {
+    it('captures by default and follows the workspace retention', () => {
+        expect(capturesHealEvidence({})).toBe(true)
+        expect(capturesHealEvidence({ workspace: { keep: 'always' } })).toBe(true)
+        expect(capturesHealEvidence({ workspace: { keep: 'on-failure' } })).toBe(true)
+        expect(capturesHealEvidence({ workspace: { keep: 'never' } })).toBe(false)
+        expect(capturesHealEvidence({ healEvidence: false })).toBe(false)
     })
 })

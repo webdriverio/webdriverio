@@ -18,7 +18,7 @@ import { EffectRecorder } from './recorder.js'
 import { emitRecord, writeRecords, type ActRecord } from './stats.js'
 import { pageTools } from './tools.js'
 import { slug, Workspace, type KeepPolicy } from './workspace.js'
-import { HealEvidence } from './evidence.js'
+import { capturesHealEvidence, HealEvidence } from './evidence.js'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 
 import { answerTools, EXTRACT_PROMPT, jsonSchemaOf, READ_ACTIONS, RESPONSES_PROMPT, validate, type ExtractOutcome } from './extract.js'
@@ -371,7 +371,7 @@ export class AiRuntime {
      */
     #evidenceFor (scope: ActScope, instruction: string) {
         const browser = browserOf(scope)
-        if (this.options.healEvidence === false || (browser as unknown as { isMultiRemote?: boolean }).isMultiRemote) {
+        if (!capturesHealEvidence(this.options) || (browser as unknown as { isMultiRemote?: boolean }).isMultiRemote) {
             return undefined
         }
         const test = this.#test
