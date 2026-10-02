@@ -435,22 +435,18 @@ describe('browsing contexts', () => {
 
         it('takes a screenshot of a background tab', async () => {
             await open('/tab-a')
-            const b = await openTab('/tab-b')
+            /**
+             * A page that does not scroll: browsers disagree whether a
+             * screenshot includes the scrollbar (Firefox) or not (Chromium).
+             */
+            const b = await openTab('/tab-b-2')
             await b.setViewport({ width: 500, height: 400 })
+            expect(await b.execute(() => document.documentElement.scrollHeight <= document.documentElement.clientHeight)).toBe(true)
 
             const screenshot = await b.saveScreenshot(path.join(screenshots, 'tab.png'))
-            /**
-             * The capture is the viewport without its scrollbars, which are
-             * 15px wide on Linux and Windows and overlay on macOS.
-             */
-            const viewport = await b.execute(() => ({
-                width: document.documentElement.clientWidth,
-                height: document.documentElement.clientHeight
-            }))
-            expect(viewport.width).toBeGreaterThan(450)
             // PNG header: width at byte 16, height at byte 20
-            expect(screenshot.readUInt32BE(16)).toBe(viewport.width)
-            expect(screenshot.readUInt32BE(20)).toBe(viewport.height)
+            expect(screenshot.readUInt32BE(16)).toBe(500)
+            expect(screenshot.readUInt32BE(20)).toBe(400)
         })
     })
 
