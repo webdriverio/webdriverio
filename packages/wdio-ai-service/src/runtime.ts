@@ -4,12 +4,13 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { createAgentSession, type AgentSession } from '@wdio/session/agent'
+import { getContextManager } from 'webdriverio'
 
 import { ActCache, cacheFileFor, cacheKey, resolveMode, type EffectiveMode } from './cache.js'
 import { ActError, type TokenUsage } from './errors.js'
 import { runLoop } from './loop.js'
 import { describeModel, resolveModel, selectModel } from './model.js'
-import { actPrompt, replayContext, systemPrompt, WORKSPACE_PROMPT } from './prompts.js'
+import { actPrompt, replayContext, SCOPE_PROMPT, systemPrompt, WORKSPACE_PROMPT } from './prompts.js'
 import { assertValues } from './redact.js'
 import { replaySteps, type HealedStep } from './replay.js'
 import { emitRecord, writeRecords, type ActRecord } from './stats.js'
@@ -65,6 +66,32 @@ export function browserOf (scope: ActScope): WebdriverIO.Browser {
         current = current.parent as WebdriverIO.Browser | WebdriverIO.Element
     }
     return current as WebdriverIO.Browser
+}
+
+function isBrowsingContext (scope: ActScope): scope is WebdriverIO.BrowsingContext {
+    return 'contextId' in scope && 'browser' in scope
+}
+
+function isElement (scope: ActScope): scope is WebdriverIO.Element {
+    return !isBrowsingContext(scope) && ('elementId' in scope || 'selector' in scope) && 'parent' in scope
+}
+
+/**
+ * The ref of the element a call is scoped to. A browsing context has to be
+ * the tab the session works on.
+ */
+async function scopeOf (agent: AgentSession, scope: ActScope, call: string): Promise<string | undefined> {
+    if (isBrowsingContext(scope)) {
+        const current = await getContextManager(scope.browser as WebdriverIO.Browser).getCurrentContext()
+        if (scope.isFrame || scope.contextId !== current) {
+            throw new Error(`[@wdio/ai-service] ${call}() on a frame or a tab other than the current one is not supported yet. Call it on the browser, or activate the tab first.`)
+        }
+        return undefined
+    }
+    if (isElement(scope)) {
+        return agent.pin(scope)
+    }
+    return undefined
 }
 
 export interface PlanResult {
@@ -204,7 +231,7 @@ export class AiRuntime {
     /**
      * Let the model perform an instruction and record the steps it took.
      */
-    async plan (agent: AgentSession, instruction: string, options: ActOptions = {}, context?: string): Promise<PlanResult> {
+    async plan (agent: AgentSession, instruction: string, options: ActOptions = {}, context?: string, scope?: string): Promise<PlanResult> {
         const modelOption = selectModel(options.model, this.options.model)
         if (!modelOption) {
             throw new ActError({
@@ -221,7 +248,7 @@ export class AiRuntime {
         const workspace = this.#workspaceFor(instruction)
         workspace.values = values
         await workspace.writeEvents(agent.logs, agent.network)
-        const tools = await pageTools({ agent, values, actions: this.options.actions, onStep: (step) => steps.push(step), workspace })
+        const tools = await pageTools({ agent, values, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope })
         const maxSteps = options.maxSteps ?? this.options.maxSteps ?? DEFAULT_MAX_STEPS
         log.info(`act("${instruction}") with ${describeModel(modelOption)}`)
         try {
@@ -229,7 +256,7 @@ export class AiRuntime {
                 model: await this.#model(modelOption),
                 tools,
                 systemPrompt: systemPrompt(await this.#projectInstructions(), true),
-                prompt: actPrompt(instruction, context),
+                prompt: actPrompt(instruction, context, Boolean(scope)),
                 maxSteps,
                 timeout: options.timeout ?? DEFAULT_TIMEOUT,
                 middleware: [await workspace.middleware()]
@@ -298,6 +325,7 @@ export class AiRuntime {
             throw new Error('[@wdio/ai-service] act() runs on one browser. Call it on an instance, e.g. browser.getInstance(\'myBrowser\').act(...)')
         }
         const agent = await this.agentFor(browser)
+        const scopeRef = await scopeOf(agent, scope, 'act')
         const mode = this.mode(options.cache)
         const test = this.#test
         if (test) {
@@ -334,7 +362,7 @@ export class AiRuntime {
                 })
             }
             log.info(`act("${instruction}"): cached step ${replay.failed.index + 1} failed, asking the model to continue`)
-            const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed))
+            const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed), scopeRef)
             if (test?.workspace) {
                 test.workspace.keep = true
             }
@@ -346,7 +374,7 @@ export class AiRuntime {
         if (mode === 'locked') {
             throw new ActError({ instruction, reason: `no cached steps for "${key}" and the cache is locked` })
         }
-        const { steps, summary, usage } = await this.plan(agent, instruction, options)
+        const { steps, summary, usage } = await this.plan(agent, instruction, options, undefined, scopeRef)
         if (cache && key) {
             this.#store(cache, key, { instruction, platform, steps }, options)
         }
@@ -389,12 +417,13 @@ export class AiRuntime {
             throw new ActError({ instruction, reason: 'no model is configured. Set the `model` option of the service or the WDIO_AI_MODEL environment variable.' })
         }
         const agent = await this.agentFor(browser)
+        const scopeRef = await scopeOf(agent, scope, 'extract')
         const values = options.values || {}
         const workspace = this.#workspaceFor(instruction)
         workspace.values = values
         await workspace.writeEvents(agent.logs, agent.network)
         const jsonSchema = jsonSchemaOf(schema)
-        const tools = await pageTools({ agent, values, actions: READ_ACTIONS, onStep: () => {}, workspace })
+        const tools = await pageTools({ agent, values, actions: READ_ACTIONS, onStep: () => {}, workspace, scope: scopeRef })
         let feedback = ''
         try {
             for (let attempt = 1; attempt <= 2; attempt++) {
@@ -405,6 +434,7 @@ export class AiRuntime {
                     systemPrompt: [EXTRACT_PROMPT, WORKSPACE_PROMPT].join('\n\n'),
                     prompt: [
                         `Instruction: ${instruction}`,
+                        scopeRef ? SCOPE_PROMPT : '',
                         jsonSchema ? `The value has to match this JSON Schema:\n${JSON.stringify(jsonSchema)}` : '',
                         feedback
                     ].filter(Boolean).join('\n\n'),

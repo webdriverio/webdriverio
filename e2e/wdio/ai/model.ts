@@ -49,3 +49,18 @@ export const extractModel = new ScriptedChatModel([
     { tool: 'get', args: { sub: 'text', target: 'role/row[name="Blue Shirt M 1"]' } },
     { tool: 'answer', args: { value: [{ name: 'Blue Shirt', size: 'M', qty: 1 }, { name: 'Red Socks', size: 'L', qty: 2 }], evidence: ['role/row[name="Blue Shirt M 1"]'] } }
 ])
+
+const refOf = (pattern: RegExp) => (snapshot: string) => {
+    const ref = snapshot.match(pattern)?.[1]
+    if (!ref) {
+        throw new Error(`no ref for ${pattern} in:\n${snapshot}`)
+    }
+    return ref
+}
+
+export const scopeModel = new ScriptedChatModel([
+    // acts inside the element it was called on
+    { tool: 'snapshot' },
+    { tool: 'fill', args: (snapshot) => ({ target: refOf(/textbox "Email" \[ref=(e\d+)\]/)(snapshot), text: '{{email}}' }) },
+    { tool: 'done', args: { summary: 'Filled in the billing email' } }
+])

@@ -21,9 +21,12 @@ export function systemPrompt (instructions?: string, workspace = false) {
     ].join('\n\n')
 }
 
-export function actPrompt (instruction: string, context?: string) {
+export const SCOPE_PROMPT = 'The instruction is about one part of the page. Snapshots only show that part, act only inside it.'
+
+export function actPrompt (instruction: string, context?: string, scoped = false) {
     return [
         `Instruction: ${instruction}`,
+        ...(scoped ? [SCOPE_PROMPT] : []),
         ...(context ? [context] : [])
     ].join('\n\n')
 }

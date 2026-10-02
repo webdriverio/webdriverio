@@ -36,6 +36,10 @@ export interface ToolContext {
      * evidence folder: snapshots are saved there and long output moves there
      */
     workspace?: Workspace
+    /**
+     * ref of the element `act` was called on, every snapshot is limited to it
+     */
+    scope?: string
 }
 
 /**
@@ -123,12 +127,25 @@ function recordedArgs (agent: AgentSession, input: Record<string, unknown>) {
 export async function pageTools (context: ToolContext): Promise<StructuredToolInterface[]> {
     const { tool, z } = await loadToolKit()
     const allowed = new Set(context.actions || DEFAULT_ACTIONS)
+    /**
+     * the diff after an action uses the scope and filter of the last snapshot
+     */
+    let diffArgs: Record<string, unknown> = context.scope ? { scope: context.scope } : {}
     return context.agent.actions
         .filter((spec) => allowed.has(spec.name))
         .map((spec) => tool(async (input: Record<string, unknown>) => {
             const { agent, values } = context
             try {
-                const result = await agent.run(spec.name, substitute(input, values))
+                const args = spec.name === 'snapshot' && context.scope && !input.scope
+                    ? { ...input, scope: context.scope }
+                    : input
+                const result = await agent.run(spec.name, substitute(args, values))
+                if (spec.name === 'snapshot') {
+                    diffArgs = {
+                        ...(typeof args.scope === 'string' ? { scope: args.scope } : {}),
+                        ...(args.interactive ? { interactive: true } : {})
+                    }
+                }
                 let text = result.text || 'done'
                 if (spec.mutation) {
                     if (result.code) {
@@ -140,7 +157,7 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                             ...(target ? { target } : {})
                         })
                     }
-                    const diff = await agent.run('diff').catch(() => undefined)
+                    const diff = await agent.run('diff', diffArgs).catch(() => undefined)
                     if (diff?.text) {
                         text += `\n${diff.text}`
                     }
