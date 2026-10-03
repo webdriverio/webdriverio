@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import { getBrowserObject } from '@wdio/utils'
 
-import { findElementAgain } from './index.js'
+import { findElementAgain } from './findElementAgain.js'
 
 const log = logger('webdriverio')
 

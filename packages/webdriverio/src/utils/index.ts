@@ -16,6 +16,7 @@ import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
+import { findElementAgain } from './findElementAgain.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -835,29 +836,6 @@ export function validateUrl(url: string, origError?: Error): string {
 
         return validateUrl(`http://${url}`, new Error(`Invalid URL: ${url}`))
     }
-}
-
-/**
- * Look an element up again from its parent. An element that came from `$$` is looked up at its
- * index, so it resolves to nothing once the list is shorter, rather than to the first match.
- */
-export async function findElementAgain(element: WebdriverIO.Element): Promise<WebdriverIO.Element | undefined> {
-    const { parent, index } = element
-    const selector = element.selector as string
-    if (index) {
-        const elements = element.isReactElement
-            ? await parent.react$$(selector).getElements()
-            : element.isShadowElement
-                ? await parent.shadow$$(selector).getElements()
-                : await parent.$$(selector).getElements()
-        return elements[index]
-    }
-    const command = element.isReactElement
-        ? parent.react$.bind(parent)
-        : element.isShadowElement
-            ? parent.shadow$.bind(parent)
-            : parent.$.bind(parent)
-    return command(selector).getElement()
 }
 
 export async function hasElementId(element: WebdriverIO.Element) {

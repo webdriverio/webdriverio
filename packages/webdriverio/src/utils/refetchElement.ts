@@ -1,5 +1,4 @@
 import implicitWait from './implicitWait.js'
-import { getElement } from './getElementObject.js'
 import type { Selector } from '../types.js'
 
 /**
@@ -40,6 +39,10 @@ export default async function refetchElement (
              * so return a missing element rather than falling back to the first match
              */
             if (!elements[index]) {
+                /**
+                 * imported here because getElementObject imports the middleware, which imports this file
+                 */
+                const { getElement } = await import('./getElementObject.js')
                 const notFound = new Error(`Index out of bounds! $$(${selector}) returned only ${elements.length} elements.`)
                 let missingElement = getElement.call(resolvedElement, selector, notFound)
                 missingElement.index = index
