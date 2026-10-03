@@ -48,6 +48,14 @@ describe('strict selectors', () => {
         expect(browser.options.strictSelectors).toBe(true)
     })
 
+    it('keeps maxSpyCollectedBodySize in standalone mode', async () => {
+        const browser = await remote({
+            maxSpyCollectedBodySize: 0,
+            capabilities: { browserName: 'foobar' }
+        })
+        expect(browser.options.maxSpyCollectedBodySize).toBe(0)
+    })
+
     it('returns the element if the selector matches exactly one element', async () => {
         matches(SINGLE_MATCH)
         const browser = await strictSession()

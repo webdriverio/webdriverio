@@ -79,6 +79,19 @@ export const WDIO_DEFAULTS: Options.Definition<Capabilities.WebdriverIOConfig> =
         default: true
     },
     /**
+     * Maximum size of the response body (in bytes) that `browser.mock` collects.
+     * Use 0 to disable data collection of the spied response payload. Without
+     * this entry, `remote()` drops the option in standalone mode.
+     */
+    maxSpyCollectedBodySize: {
+        type: 'number',
+        validate: (param: number) => {
+            if (!Number.isInteger(param) || param < 0) {
+                throw new Error('maxSpyCollectedBodySize should be an integer of 0 or more')
+            }
+        }
+    },
+    /**
      * Hooks
      */
     onReload: HOOK_DEFINITION,

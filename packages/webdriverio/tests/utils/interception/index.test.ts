@@ -121,6 +121,31 @@ describe('WebDriverInterception', () => {
         `)
     })
 
+    it('subscribes to the network events one time for each session', async () => {
+        vi.resetModules()
+        const { default: Interception } = await import('../../../src/utils/interception/index.js')
+        const sessionBrowser = (sessionId: string) => ({
+            sessionId,
+            options: {},
+            on: vi.fn(),
+            sessionSubscribe: vi.fn().mockReturnValue(Promise.resolve()),
+            networkAddIntercept: vi.fn().mockReturnValue(Promise.resolve({ intercept: '123' })),
+            networkAddDataCollector: vi.fn().mockReturnValue(Promise.resolve({ collector: '123' }))
+        } satisfies Partial<WebdriverIO.Browser> as unknown as WebdriverIO.Browser)
+
+        const first = sessionBrowser('session-1')
+        await Interception.initiate('http://foobar.com/a', {}, first)
+        await Interception.initiate('http://foobar.com/b', {}, first)
+        expect(first.sessionSubscribe).toHaveBeenCalledTimes(1)
+        expect(first.networkAddDataCollector).toHaveBeenCalledTimes(1)
+
+        // a second session in the same process, e.g. after `reloadSession()` or another multi-remote instance
+        const second = sessionBrowser('session-2')
+        await Interception.initiate('http://foobar.com/a', {}, second)
+        expect(second.sessionSubscribe).toHaveBeenCalledTimes(1)
+        expect(second.networkAddDataCollector).toHaveBeenCalledTimes(1)
+    })
+
     it('responds with JSON and text without a global Buffer', async () => {
         const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://test.com/foo', {}, browser)

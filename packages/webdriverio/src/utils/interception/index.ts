@@ -15,7 +15,12 @@ const log = logger('WebDriverInterception')
 
 const DEFAULT_SPY_COLLECTED_BODY_SIZE = 10 * 1024 * 1024
 
-let hasSubscribedToEvents = false
+/**
+ * sessions that are subscribed to the network events and have a data collector.
+ * Each session needs its own: a second session in the same process, a new session
+ * after `reloadSession()` and each multi-remote instance.
+ */
+const subscribedSessions = new Set<string | undefined>()
 
 /**
  * A request paused by the driver is released exactly once, however many mocks
@@ -233,7 +238,7 @@ export default class WebDriverInterception {
         const pattern = parseUrlPattern(url)
         const isCollectingNetworkData = browser.options.maxSpyCollectedBodySize !== 0
 
-        if (!hasSubscribedToEvents) {
+        if (!subscribedSessions.has(browser.sessionId)) {
             await browser.sessionSubscribe({
                 events: [
                     'network.beforeRequestSent',
@@ -255,7 +260,7 @@ export default class WebDriverInterception {
                 log.warn(`[BiDi] network.addDataCollector not supported: ${(error as Error)?.message}`)
             }
             log.info('subscribed to network events')
-            hasSubscribedToEvents = true
+            subscribedSessions.add(browser.sessionId)
         }
 
         /**
