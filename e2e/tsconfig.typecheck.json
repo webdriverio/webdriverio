@@ -3,6 +3,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "noEmit": true,
+    "rootDir": "..",
     "skipLibCheck": true,
     "types": [
       "node",
