@@ -45,6 +45,12 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
+      # Once per OS: the browser selection does not depend on the browser.
+      - name: Browser Selection Tests
+        if: matrix.browser == 'chrome'
+        run: pnpm vitest --config ./e2e/vitest.config.ts --run e2e/wdio/
+        shell: bash
+
       - name: E2E Launch Tests
         run: pnpm run test:e2e:webdriver
         shell: bash
