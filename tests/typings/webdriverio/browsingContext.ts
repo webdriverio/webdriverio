@@ -119,7 +119,9 @@ async function browsingContextTypes (browser: WebdriverIO.Browser) {
         saveScreenshot: true, savePDF: true, getCookies: true, setCookies: true, deleteCookies: true,
         setViewport: true, addInitScript: true, mock: true, mockClearAll: true, mockRestoreAll: true,
         emulate: true, restore: true, on: true, off: true, once: true, emit: true, removeListener: true,
-        removeAllListeners: true, addCommand: true, overwriteCommand: true
+        removeAllListeners: true, addCommand: true, overwriteCommand: true,
+        // custom command declared in `async.ts`
+        contextCustomCommand: true
     }
     return covered
 }
