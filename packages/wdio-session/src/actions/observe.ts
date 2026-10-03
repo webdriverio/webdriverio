@@ -95,9 +95,39 @@ export const snapshot: ActionFn = async (session, args) => {
     }
 }
 
+/** lines a `find` block may have before it is cut to a window around the match */
+const MAX_BLOCK_LINES = 12
+
+const indentOf = (line: string) => line.length - line.trimStart().length
+
+/**
+ * Lines to print for a match: its parent node with everything under it, so
+ * the answer next to the match (a default value, a price, a status) comes
+ * along. A big parent is cut to a window around the match.
+ */
+function blockAround (lines: string[], idx: number): [number, number] {
+    const indent = indentOf(lines[idx])
+    let start = idx
+    while (start > 0 && indentOf(lines[start]) >= indent) {
+        start--
+    }
+    const parentIndent = indentOf(lines[start])
+    let end = idx
+    while (end + 1 < lines.length && indentOf(lines[end + 1]) > parentIndent) {
+        end++
+    }
+    if (end - start + 1 > MAX_BLOCK_LINES) {
+        return [Math.max(start, idx - 2), Math.min(end, idx + MAX_BLOCK_LINES - 3)]
+    }
+    return [start, end]
+}
+
 export const find: ActionFn = async (session, args) => {
     const query = String(args.text ?? '')
-    const context = typeof args.context === 'number' ? args.context : 2
+    // grep habits: -A/-B/-C switch to plain line context
+    const lineMode = [args.context, args.afterContext, args.beforeContext].some((n) => typeof n === 'number')
+    const before = typeof args.beforeContext === 'number' ? args.beforeContext : typeof args.context === 'number' ? args.context : 0
+    const after = typeof args.afterContext === 'number' ? args.afterContext : typeof args.context === 'number' ? args.context : 0
     let test: (line: string) => boolean
     if (args.regex) {
         let re: RegExp
@@ -122,15 +152,20 @@ export const find: ActionFn = async (session, args) => {
     const out: string[] = []
     let last = -1
     for (const idx of matches) {
-        const start = Math.max(0, idx - context, last + 1)
-        const end = Math.min(lines.length - 1, idx + context)
+        if (idx <= last) {
+            continue
+        }
+        const [blockStart, blockEnd] = lineMode
+            ? [Math.max(0, idx - before), Math.min(lines.length - 1, idx + after)]
+            : blockAround(lines, idx)
+        const start = Math.max(blockStart, last + 1)
         if (last >= 0 && start > last + 1) {
             out.push('--')
         }
-        for (let i = start; i <= end; i++) {
+        for (let i = start; i <= blockEnd; i++) {
             out.push(`${i + 1}${matches.includes(i) ? ':' : '-'}${lines[i]}`)
         }
-        last = end
+        last = blockEnd
     }
     return { text: out.join('\n'), data: { matches: matches.map((i) => ({ line: i + 1, text: lines[i] })) } }
 }

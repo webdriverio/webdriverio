@@ -24,12 +24,32 @@ Refs come from the latest snapshot. After navigation, snapshot again. An old ref
 | Command | Use it for |
 | --- | --- |
 | `snapshot --interactive` | The elements you can act on, each with a ref |
-| `find "Add to cart"` | One line from a fresh snapshot |
+| `find "Add to cart"` | Each match with the node around it, e.g. a whole list item, so a value next to the match comes along. `-A`, `-B` and `-C` print plain line context like grep |
 | `diff` | What changed since the previous snapshot |
 | `screenshot` | Layout. Skip it when a snapshot answers the question |
 | `source` | The page HTML or the native XML |
 
 `snapshot` without `--interactive` includes more of the tree. Prefer `--interactive` when you are about to click or type.
+
+## What an action changed
+
+In a web session, `open` prints the interactive snapshot of the page it opened, and every action that can change the page (`click`, `fill`, `type`, `press`, `select`, `check`, `navigate`, `frame`, …) reports what changed:
+
+```text
+Clicked e6 (button "Start subscription")
+Changes:
++ - status "Subscription started. Confirmation code: 4F2A9C"
+```
+
+On the same page you get the new or changed lines with their refs, including text that is not interactive, like the status above. After a navigation you get the new page's interactive elements, or for a large page a one-line summary that points to `find`. So you rarely need a separate `snapshot` after an action. Set `WDIO_SESSION_CHANGES=0` to turn the report off, and pass `open --no-snapshot` to skip the snapshot after `open`.
+
+## Shadow DOM and clickable elements without a role
+
+With WebDriver BiDi, the snapshot also covers closed shadow roots, and elements that only have a click listener (an icon wired up with `addEventListener`) get a ref. Such an element has no accessible name, so the snapshot describes it instead:
+
+```text
+- generic [ref=e8] (icon 3 of 3 in "Invoice #1002 · Contoso Ltd · $860.00")
+```
 
 On Android, iOS, macOS and Windows the snapshot comes from the Appium page source. Two controls that share an accessibility id stay separate refs when the rest of their selectors differ. `snapshot --scope e3` limits the tree to that ref.
 

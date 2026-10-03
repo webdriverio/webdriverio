@@ -107,7 +107,8 @@ describe('wdio session interaction shortcuts', () => {
     it('prints the action and the code in text mode', async () => {
         await load('cart')
         const res = await run('click', 'aria/Cart (0)')
-        expect(res.stdout).toBe('Clicked "aria/Cart (0)"\n→ await $(\'aria/Cart (0)\').click()\n')
+        expect(res.stdout.startsWith('Clicked "aria/Cart (0)"\n')).toBe(true)
+        expect(res.stdout.endsWith('→ await $(\'aria/Cart (0)\').click()\n')).toBe(true)
         const quiet = await run('click', '[data-testid="add-blue"]', '-q')
         expect(quiet.stdout).toBe('')
     })
@@ -115,18 +116,28 @@ describe('wdio session interaction shortcuts', () => {
     it('reports navigation caused by a click', async () => {
         await load('index')
         const res = await run('click', 'aria/Form')
-        expect(res.stdout).toBe(`Clicked "aria/Form"\nNavigated to ${server.url}/form.html\n→ await $('aria/Form').click()\n`)
+        // a navigation lists the new page's elements, so the next step needs no snapshot
+        expect(res.stdout.startsWith(`Clicked "aria/Form"\nNavigated to ${server.url}/form.html\nPage: ${server.url}/form.html\n- document "Form Fixture"`)).toBe(true)
+        expect(res.stdout).toMatch(/textbox "Email" \[ref=e\d+\]/)
+        expect(res.stdout.endsWith('→ await $(\'aria/Form\').click()\n')).toBe(true)
     })
 
     it('navigates, goes back and forward and reloads', async () => {
         const nav = await run('navigate', `localhost:${server.port}/index.html`)
-        expect(nav.stdout).toBe(`Navigated to ${server.url}/index.html — Session Fixture\n→ await browser.url('${server.url}/index.html')\n`)
+        expect(nav.stdout.startsWith(`Navigated to ${server.url}/index.html — Session Fixture\nPage: ${server.url}/index.html\n`)).toBe(true)
+        expect(nav.stdout.endsWith(`→ await browser.url('${server.url}/index.html')\n`)).toBe(true)
         await load('cart')
-        expect((await run('back')).stdout).toBe(`Went back → ${server.url}/index.html\n→ await browser.back()\n`)
-        expect((await run('forward')).stdout).toBe(`Went forward → ${server.url}/cart.html\n→ await browser.forward()\n`)
+        const back = (await run('back')).stdout
+        expect(back.startsWith(`Went back → ${server.url}/index.html\nPage: ${server.url}/index.html\n`)).toBe(true)
+        expect(back.endsWith('→ await browser.back()\n')).toBe(true)
+        const forward = (await run('forward')).stdout
+        expect(forward.startsWith(`Went forward → ${server.url}/cart.html\nPage: ${server.url}/cart.html\n`)).toBe(true)
+        expect(forward.endsWith('→ await browser.forward()\n')).toBe(true)
         await run('click', '[data-testid="add-blue"]')
         expect(await read("document.getElementById('cart-link').textContent")).toBe('Cart (1)')
-        expect((await run('reload')).stdout).toBe(`Reloaded → ${server.url}/cart.html\n→ await browser.refresh()\n`)
+        const reloaded = (await run('reload')).stdout
+        expect(reloaded.startsWith(`Reloaded → ${server.url}/cart.html\n`)).toBe(true)
+        expect(reloaded.endsWith('→ await browser.refresh()\n')).toBe(true)
         expect(await read("document.getElementById('cart-link').textContent")).toBe('Cart (0)')
     })
 

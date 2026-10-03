@@ -10,6 +10,7 @@ import { History } from './history.js'
 import { RingBuffer, type LogEntry, type NetworkEntry } from './daemon/events.js'
 import { RefRegistry } from './snapshot/refs.js'
 import { dialogOpenError, openDialog } from './actions/contexts.js'
+import { OBSERVED_ACTIONS, describeChanges, pageState, type PageState } from './actions/changes.js'
 import type { ActionResult, Applies, OpenPlan, PlatformKind, Request } from './types.js'
 
 const log = logger('@wdio/session')
@@ -75,6 +76,8 @@ export class Session {
     logs = new RingBuffer<LogEntry>()
     network = new RingBuffer<NetworkEntry>()
     lastSnapshot?: string
+    /** page as of the last observed action, the baseline for the next one's changes */
+    lastPage?: PageState
     /**
      * arbitrary per-feature state (mocks, emulation, trace, visual, …)
      */
@@ -205,8 +208,27 @@ export class Session {
         const trace = this.get<{ before: (a: string, args: ActionArgs) => Promise<void>, after: (a: string, args: ActionArgs, r?: ActionOutcome, e?: SessionError) => Promise<void> }>('trace')
         const pagePath = spec.mutation || req.action === 'exec' ? await this.currentPath() : undefined
         await trace?.before(req.action, args)
+        // page scripts can't run while a dialog is open, so there is no report then
+        const observe = this.isWeb && OBSERVED_ACTIONS.has(req.action) && process.env.WDIO_SESSION_CHANGES !== '0' && !dialog
+        const before = observe ? (this.lastPage ?? await pageState(this)) : undefined
         try {
             const outcome = await impl(this, args)
+            if (before && openDialog(this)) {
+                this.lastPage = undefined
+            } else if (before) {
+                // another frame is another document: list it rather than diff it
+                const { text, after } = req.action === 'frame'
+                    ? await describeChanges(this, {}, this.get('frame') ? 'Frame' : 'Page')
+                    : await describeChanges(this, before)
+                // no text means no answer in time (see describeChanges): start over next time
+                this.lastPage = after.text ? after : undefined
+                if (text) {
+                    outcome.text = [outcome.text, text].filter(Boolean).join('\n')
+                }
+            } else if (req.action === 'exec') {
+                // code can change the page in ways no action recorded
+                this.lastPage = undefined
+            }
             if (outcome.history) {
                 this.history.append({
                     kind: req.action === 'exec' ? 'exec' : 'action',

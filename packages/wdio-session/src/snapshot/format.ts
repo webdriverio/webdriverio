@@ -10,6 +10,11 @@ export interface SnapshotNode {
      * `cross-origin` for iframes whose content cannot be read
      */
     note?: string
+    /**
+     * what an unnamed clickable element looks like and where it is, e.g.
+     * `icon 3 of 3 in "Invoice #1002"`; printed, never used in selectors
+     */
+    hint?: string
     hidden?: boolean
     interactive?: boolean
     children?: SnapshotNode[]
@@ -66,6 +71,7 @@ export function compactTree (node: SnapshotNode): SnapshotNode | undefined {
         || Boolean(node.states?.length)
         || Boolean(node.url)
         || Boolean(node.note)
+        || Boolean(node.hint)
         || Boolean(node.interactive)
         || children.length > 0
     if (!keep) {
@@ -87,6 +93,9 @@ export function formatLine (node: SnapshotNode, opts: FormatOptions = {}, trunca
     }
     if (node.ref) {
         parts.push(`[ref=${node.ref}]`)
+    }
+    if (node.hint) {
+        parts.push(`(${node.hint})`)
     }
     if (node.value !== undefined) {
         parts.push(`value=${JSON.stringify(node.value)}`)

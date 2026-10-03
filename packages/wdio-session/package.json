@@ -12,6 +12,11 @@
       "types": "./build/index.d.ts",
       "import": "./build/index.js"
     },
+    "./cli": {
+      "types": "./build/cli.d.ts",
+      "source": "./src/cli.ts",
+      "import": "./build/cli.js"
+    },
     "./daemon": {
       "source": "./src/daemon/main.ts",
       "import": "./build/daemon.js"
