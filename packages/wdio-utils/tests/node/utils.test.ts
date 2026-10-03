@@ -646,6 +646,7 @@ describe('driver utils', () => {
                 } as never)
                 vi.mocked(computeExecutablePath).mockReturnValue(executablePath)
                 vi.mocked(fsp.rm).mockClear()
+                logMock.info.mockClear()
                 logMock.warn.mockClear()
             })
 
@@ -714,6 +715,7 @@ describe('driver utils', () => {
 
                 expect(fsp.access).toHaveBeenCalledWith(executablePath)
                 expect(fsp.rm).not.toHaveBeenCalled()
+                expect(logMock.info).toHaveBeenCalledWith(`Keeping firefox vstable_157.0 at ${installationDir}: the executable is there`)
                 expect(logMock.warn).not.toHaveBeenCalled()
                 expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
             })

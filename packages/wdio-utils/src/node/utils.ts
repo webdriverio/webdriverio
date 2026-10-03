@@ -231,10 +231,12 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
             if (platform) {
                 const cache = new Cache(args.cacheDir)
                 const executablePath = cache.computeExecutablePath({ browser: args.browser, platform, buildId: args.buildId })
+                const buildDir = cache.installationDir(args.browser, platform, args.buildId)
                 if (!await fsp.access(executablePath).then(() => true, () => false)) {
-                    const buildDir = cache.installationDir(args.browser, platform, args.buildId)
                     log.warn(`Removing the incomplete ${args.browser} v${args.buildId} install at ${buildDir} before the retry`)
                     await fsp.rm(buildDir, { recursive: true, force: true }).catch(() => {})
+                } else {
+                    log.info(`Keeping ${args.browser} v${args.buildId} at ${buildDir}: the executable is there`)
                 }
             } else {
                 log.warn(`Couldn't clean up ${args.browser} v${args.buildId} before the retry: the platform is not supported`)
