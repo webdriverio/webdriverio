@@ -2,6 +2,7 @@ import { diffLines } from '../snapshot/diff.js'
 import { formatSnapshot } from '../snapshot/format.js'
 import { takeSnapshot } from './observe.js'
 import { openDialog } from './contexts.js'
+import { scopeOf } from '../snapshot/target.js'
 import type { Session } from '../session.js'
 
 /**
@@ -81,7 +82,45 @@ export async function describeChanges (session: Session, before: PageState, labe
     }
 }
 
+/**
+ * An action's effect often lands after the action returns: a client-side
+ * router swaps the page, a request fills in a result. The report waits until
+ * the DOM has been quiet for a moment, so it shows the new state rather than
+ * the old page, and the agent doesn't have to look again.
+ */
+const QUIET_MS = 100
+const MAX_SETTLE_MS = 1000
+
+async function settle (session: Session) {
+    try {
+        await scopeOf(session).execute(function (quiet: number, max: number) {
+            return new Promise<void>((resolve) => {
+                const finish = () => {
+                    observer.disconnect()
+                    clearTimeout(timer)
+                    clearTimeout(limit)
+                    resolve()
+                }
+                let timer = setTimeout(finish, quiet)
+                const limit = setTimeout(finish, max)
+                const observer = new MutationObserver(() => {
+                    clearTimeout(timer)
+                    timer = setTimeout(finish, quiet)
+                })
+                // no `style` or `class`: animations change those all the time
+                observer.observe(document, {
+                    subtree: true, childList: true, characterData: true,
+                    attributeFilter: ['value', 'checked', 'disabled', 'hidden', 'open', 'aria-expanded', 'aria-checked', 'aria-selected', 'aria-hidden', 'aria-invalid']
+                })
+            })
+        }, QUIET_MS, MAX_SETTLE_MS)
+    } catch {
+        // a navigation replaced the document; the snapshot waits for the new one
+    }
+}
+
 async function compare (session: Session, before: PageState, label: string, isCurrent: () => boolean): Promise<{ text?: string, after: PageState }> {
+    await settle(session)
     let after: PageState
     let tree
     try {
