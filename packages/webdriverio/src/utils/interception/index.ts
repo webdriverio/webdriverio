@@ -15,7 +15,13 @@ const log = logger('WebDriverInterception')
 
 const DEFAULT_SPY_COLLECTED_BODY_SIZE = 10 * 1024 * 1024
 
-let hasSubscribedToEvents = false
+/**
+ * the session id that each browser subscribed to the network events and added a data
+ * collector for. Each session needs its own: a second session in the same process, a
+ * new session after `reloadSession()` and each multi-remote instance. A WeakMap keeps
+ * one entry per browser object, so ended sessions are not retained.
+ */
+const subscribedSessions = new WeakMap<WebdriverIO.Browser, string | undefined>()
 
 /**
  * A request paused by the driver is released exactly once, however many mocks
@@ -182,6 +188,7 @@ export default class WebDriverInterception {
     #requestPostData = new Map<string, string>()
     #isCollectingNetworkData: boolean
     #hasOneResponseCollected = false
+    #hasOneBodyReadStarted = false
     #blockedRequests = new Set<string>()
     #requestsRespondedWithoutFetch = new Set<string>()
 
@@ -233,7 +240,7 @@ export default class WebDriverInterception {
         const pattern = parseUrlPattern(url)
         const isCollectingNetworkData = browser.options.maxSpyCollectedBodySize !== 0
 
-        if (!hasSubscribedToEvents) {
+        if (!subscribedSessions.has(browser) || subscribedSessions.get(browser) !== browser.sessionId) {
             await browser.sessionSubscribe({
                 events: [
                     'network.beforeRequestSent',
@@ -255,7 +262,7 @@ export default class WebDriverInterception {
                 log.warn(`[BiDi] network.addDataCollector not supported: ${(error as Error)?.message}`)
             }
             log.info('subscribed to network events')
-            hasSubscribedToEvents = true
+            subscribedSessions.set(browser, browser.sessionId)
         }
 
         /**
@@ -697,6 +704,7 @@ export default class WebDriverInterception {
         }
 
         this.#attachPostData(call)
+        this.#hasOneBodyReadStarted = true
 
         /**
          * try populate response body
@@ -713,7 +721,13 @@ export default class WebDriverInterception {
         } catch (err: unknown) {
             log.debug(`Failed to get response body for ${response.request.request}: ${(err as Error).message}`)
         } finally {
-            this.#hasOneResponseCollected = true
+            /**
+             * the body read can settle after `waitForResponse()` continued without it and
+             * `clear()` removed this call: it must not count for the next responses
+             */
+            if (this.#calls.includes(call)) {
+                this.#hasOneResponseCollected = true
+            }
             this.#requestPostData.delete(response.request.request)
         }
     }
@@ -948,6 +962,7 @@ export default class WebDriverInterception {
         this.#overwrittenResponseBodies.clear()
         this.#requestPostData.clear()
         this.#hasOneResponseCollected = false
+        this.#hasOneBodyReadStarted = false
         this.#blockedRequests.clear()
         this.#requestsRespondedWithoutFetch.clear()
         return this
@@ -1167,6 +1182,17 @@ export default class WebDriverInterception {
 
         return this.#browser.call(() => timer.catch((e) => {
             if (e.message === 'timeout') {
+                /**
+                 * The response completed, but the browser did not return its body in time.
+                 * Firefox can leave `network.getData` unanswered for a response that it
+                 * revalidated with 304 Not Modified (https://bugzilla.mozilla.org/show_bug.cgi?id=2077785).
+                 * Continue without the body: it is still added to `calls` if it arrives later.
+                 * A response that started but did not complete (e.g. it failed) still times out.
+                 */
+                if (this.#hasOneBodyReadStarted) {
+                    log.warn(`waitForResponse: a response was received, but its body was not collected within ${timeout}ms, continuing without it`)
+                    return true
+                }
                 if (typeof timeoutMsg === 'string') {
                     throw new Error(timeoutMsg)
                 }

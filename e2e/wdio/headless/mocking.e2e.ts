@@ -139,15 +139,24 @@ describe('network mocking', () => {
     })
 
     it('should be able to see the response body', async () => {
-        // Navigate away or clear cache to force a fresh request
-        await browser.url('about:blank')
-        const mock = await browser.mock('https://guinea-pig.webdriver.io/')
+        /**
+         * Bypass the HTTP cache: earlier tests load this page, so the browser
+         * can revalidate it and get 304 Not Modified. Firefox can then leave
+         * `network.getData` for the body unanswered
+         * (https://bugzilla.mozilla.org/show_bug.cgi?id=2077785).
+         */
+        await browser.networkSetCacheBehavior({ cacheBehavior: 'bypass' })
+        try {
+            await browser.url('about:blank')
+            const mock = await browser.mock('https://guinea-pig.webdriver.io/')
 
-        await browser.url('https://guinea-pig.webdriver.io/')
+            await browser.url('https://guinea-pig.webdriver.io/')
 
-        await mock.waitForResponse()
-
-        expect(mock.calls[0].body).toContain('<title>WebdriverJS Testpage</title>')
+            await mock.waitForResponse()
+            expect(mock.calls[0].body).toContain('<title>WebdriverJS Testpage</title>')
+        } finally {
+            await browser.networkSetCacheBehavior({ cacheBehavior: 'default' })
+        }
     })
 
     it('should mock with complex mixed wildcards', async () => {

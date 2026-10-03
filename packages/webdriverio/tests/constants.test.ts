@@ -16,6 +16,14 @@ describe('WDIO_DEFAULTS', () => {
             .toThrow('Couldn\'t find automation protocol "somethingelse"')
         expect(() => WDIO_DEFAULTS.automationProtocol!.validate!('webdriver')).not.toThrow()
     })
+
+    it('should keep and check maxSpyCollectedBodySize', () => {
+        expect(WDIO_DEFAULTS.maxSpyCollectedBodySize?.type).toBe('number')
+        expect(() => WDIO_DEFAULTS.maxSpyCollectedBodySize!.validate!(0)).not.toThrow()
+        expect(() => WDIO_DEFAULTS.maxSpyCollectedBodySize!.validate!(1024)).not.toThrow()
+        expect(() => WDIO_DEFAULTS.maxSpyCollectedBodySize!.validate!(-1)).toThrow('an integer of 0 or more')
+        expect(() => WDIO_DEFAULTS.maxSpyCollectedBodySize!.validate!(1.5)).toThrow('an integer of 0 or more')
+    })
 })
 
 describe('restoreFunctions', () => {
