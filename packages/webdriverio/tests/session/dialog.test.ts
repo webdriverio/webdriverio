@@ -153,25 +153,47 @@ describe('Dialog - Browser', () => {
         })
     })
 
-    it('should return early if context does not match', async () => {
+    it('answers the dialog in its own context, also when that is not the current one', async () => {
         vi.mocked(contextModule.getContextManager).mockReturnValue({
             getCurrentContext: vi.fn().mockResolvedValue('different-context'),
             initialize: vi.fn().mockResolvedValue(true)
         })
 
         const dialog = new Dialog(
-            { context: 'ctx-1', message: 'Hello', type: 'alert' } as any,
+            { context: 'ctx-1', message: 'Hello', type: 'confirm' } as any,
             browser
         )
 
         await dialog.accept()
-
-        expect(browser.browsingContextHandleUserPrompt).not.toHaveBeenCalled()
-        expect(contextModule.getContextManager).toHaveBeenCalledWith(browser)
+        expect(browser.browsingContextHandleUserPrompt).toHaveBeenLastCalledWith({ context: 'ctx-1', accept: true, userText: undefined })
+        await dialog.dismiss()
+        expect(browser.browsingContextHandleUserPrompt).toHaveBeenLastCalledWith({ context: 'ctx-1', accept: false })
 
         vi.mocked(contextModule.getContextManager).mockReturnValue({
             getCurrentContext: vi.fn().mockResolvedValue('ctx-1'),
             initialize: vi.fn().mockResolvedValue(true)
         })
+    })
+
+    it('ignores a dialog that was already answered or whose context closed', async () => {
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Hello', type: 'alert' } as any,
+            browser
+        )
+
+        vi.mocked(browser.browsingContextHandleUserPrompt).mockRejectedValueOnce(new Error('no such alert'))
+        await expect(dialog.accept()).resolves.toBeUndefined()
+        vi.mocked(browser.browsingContextHandleUserPrompt).mockRejectedValueOnce(new Error('no such frame'))
+        await expect(dialog.dismiss()).resolves.toBeUndefined()
+    })
+
+    it('rethrows other errors', async () => {
+        const dialog = new Dialog(
+            { context: 'ctx-1', message: 'Hello', type: 'alert' } as any,
+            browser
+        )
+
+        vi.mocked(browser.browsingContextHandleUserPrompt).mockRejectedValueOnce(new Error('boom'))
+        await expect(dialog.accept()).rejects.toThrow('boom')
     })
 })

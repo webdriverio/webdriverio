@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import type { FakeTimerInstallOpts, InstalledClock, install } from '@sinonjs/fake-timers'
+import { isBrowsingContext } from './session/browsingContext.js'
 
 const log = logger('webdriverio:ClockManager')
 
@@ -25,11 +26,21 @@ const fakerScript = WDIO_FAKER_SCRIPT
 
 export class ClockManager {
     #browser: WebdriverIO.Browser
+    /**
+     * Where the clock runs: the session's current context, or a held tab
+     * when `emulate('clock')` was called on one.
+     */
+    #scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext
     #resetFn: (() => Promise<unknown>) = () => Promise.resolve()
     #isInstalled = false
 
-    constructor(browser: WebdriverIO.Browser) {
-        this.#browser = browser
+    constructor(scope: WebdriverIO.Browser | WebdriverIO.BrowsingContext) {
+        this.#scope = scope
+        this.#browser = isBrowsingContext(scope) ? scope.browser : scope
+    }
+
+    #execute<Fn extends (...args: never[]) => unknown> (script: Fn, ...args: Parameters<Fn>) {
+        return (this.#scope as WebdriverIO.Browser).execute(script as never, ...(args as never[]))
     }
 
     /**
@@ -65,18 +76,24 @@ export class ClockManager {
             /**
              * install fake timers for current ex
              */
-            this.#browser.executeScript(`return (${functionDeclaration}).apply(null, arguments)`, []).then(() => (
-                this.#browser.execute(installFakeTimers, installOptions)
+            (isBrowsingContext(this.#scope)
+                ? this.#scope.execute(`return (${functionDeclaration}).apply(null, arguments)`)
+                : this.#browser.executeScript(`return (${functionDeclaration}).apply(null, arguments)`, [])
+            ).then(() => (
+                this.#execute(installFakeTimers, installOptions)
             )),
             /**
              * add preload script to to emulate clock for upcoming page loads
              */
-            this.#browser.scriptAddPreloadScript({ functionDeclaration }),
-            this.#browser.addInitScript(installFakeTimers, installOptions)
+            this.#browser.scriptAddPreloadScript({
+                functionDeclaration,
+                ...(isBrowsingContext(this.#scope) ? { contexts: [this.#scope.contextId] } : {})
+            }),
+            this.#scope.addInitScript(installFakeTimers, installOptions)
         ])
         this.#resetFn = async () => Promise.all([
             this.#browser.scriptRemovePreloadScript({ script: libScript.script }),
-            this.#browser.execute(uninstallFakeTimers),
+            this.#execute(uninstallFakeTimers),
             restoreInstallScript
         ])
         this.#isInstalled = true
@@ -125,7 +142,7 @@ export class ClockManager {
      * @returns  {Promise<void>}
      */
     async tick(ms: number) {
-        await this.#browser.execute((ms) => window.__clock.tick(ms), ms)
+        await this.#execute((ms: number) => window.__clock.tick(ms), ms)
     }
 
     /**
@@ -147,6 +164,6 @@ export class ClockManager {
      */
     async setSystemTime(date: number | Date) {
         const serializableSystemTime = date instanceof Date ? date.getTime() : date
-        await this.#browser.execute((date) => window.__clock.setSystemTime(date), serializableSystemTime)
+        await this.#execute((date: number | Date) => window.__clock.setSystemTime(date), serializableSystemTime)
     }
 }

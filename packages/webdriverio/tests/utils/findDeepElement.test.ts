@@ -6,6 +6,7 @@ import type * as WdioUtils from '@wdio/utils'
  * Mock dependencies before importing the module under test
  */
 const mockGetShadowElementsByContextId = vi.fn()
+const mockForgetNode = vi.fn()
 const mockGetCurrentContext = vi.fn()
 
 vi.mock('@wdio/utils', async (importOriginal) => {
@@ -20,6 +21,7 @@ vi.mock('../../src/session/shadowRoot.js', () => ({
     getShadowRootManager: vi.fn(() => ({
         getShadowElementsByContextId: mockGetShadowElementsByContextId,
         deleteShadowRoot: vi.fn(),
+        forgetNode: mockForgetNode,
     })),
 }))
 
@@ -86,6 +88,42 @@ describe('findDeepElement - isConnected validation', () => {
         expect(browser.execute).toHaveBeenCalledTimes(1)
         // Should NOT fall back to Classic
         expect(browser.findElement).not.toHaveBeenCalled()
+    })
+
+    it('searches the current document when a tracked shadow root is gone', async () => {
+        /**
+         * e.g. Firefox restored a page from its back-forward cache, so the
+         * roots tracked for the context belong to the page it left.
+         */
+        mockGetShadowElementsByContextId
+            .mockReturnValueOnce(['shadow-of-old-page'])
+            .mockReturnValueOnce([])
+
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes
+            .mockRejectedValueOnce(new Error('WebDriver Bidi command "browsingContext.locateNodes" failed with error: no such node - The node with the reference shadow-of-old-page is not known'))
+            .mockResolvedValueOnce({ nodes: [{ sharedId: 'node-1' }] })
+
+        const result = await findDeepElement.call(browser, '#where')
+
+        expect(result).toEqual(expect.objectContaining({ [ELEMENT_KEY]: 'node-1' }))
+        expect(mockForgetNode).toHaveBeenCalledWith('ctx-1', 'shadow-of-old-page')
+        expect(browser.browsingContextLocateNodes).toHaveBeenLastCalledWith(expect.objectContaining({ startNodes: undefined }))
+        expect(browser.execute).not.toHaveBeenCalled()
+        expect(browser.findElement).not.toHaveBeenCalled()
+    })
+
+    it('keeps the tracked shadow roots when the missing node is not one of them', async () => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('WebDriver Bidi command "browsingContext.locateNodes" failed with error: no such node - The node with the reference scope-element is not known'))
+        browser.findElement.mockResolvedValue({ [ELEMENT_KEY]: 'classic' })
+
+        await findDeepElement.call(browser, '#where')
+
+        expect(mockForgetNode).not.toHaveBeenCalled()
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledTimes(1)
     })
 
     it('should fall back to Classic findElement when all BiDi nodes are detached (unscoped)', async () => {
