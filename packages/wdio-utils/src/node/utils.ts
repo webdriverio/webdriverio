@@ -220,16 +220,30 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
          * Without this, @puppeteer/browsers may see an existing (incomplete)
          * output directory and skip re-downloading, causing the retry to fail
          * with "exists but executable is missing" (see issue #15608).
+         * Remove the whole build folder: the executable can sit in a sub-folder of
+         * it (`core/firefox.exe` on Windows), and the check is on the build folder.
+         * Keep the folder when the executable is there: the install can fail after
+         * the browser was extracted, e.g. when Windows still locks the Firefox
+         * installer that it tries to delete, and the retry then uses that browser.
          */
         try {
-            const executablePath = computeExecutablePath({
-                browser: args.browser,
-                buildId: args.buildId,
-                platform: detectBrowserPlatform(),
-                cacheDir: args.cacheDir,
-            })
-            const buildDir = path.dirname(executablePath)
-            await fsp.rm(buildDir, { recursive: true, force: true }).catch(() => {})
+            const platform = args.platform ?? detectBrowserPlatform()
+            if (platform) {
+                const cache = new Cache(args.cacheDir)
+                const executablePath = cache.computeExecutablePath({ browser: args.browser, platform, buildId: args.buildId })
+                const buildDir = cache.installationDir(args.browser, platform, args.buildId)
+                if (await fsp.access(executablePath).then(() => true, () => false)) {
+                    log.info(`Keeping ${args.browser} v${args.buildId} at ${buildDir}: the executable is there`)
+                } else if (await fsp.access(buildDir).then(() => true, () => false)) {
+                    log.warn(`Removing ${buildDir} before the retry: the executable ${executablePath} is missing`)
+                    await fsp.rm(buildDir, { recursive: true, force: true }).catch((err) => {
+                        log.warn(`Couldn't remove ${buildDir}, the retry can fail: ${describeRejection(err)}`)
+                    })
+                }
+                // otherwise the download failed before the build folder was made, so there is nothing to clean
+            } else {
+                log.warn(`Couldn't clean up ${args.browser} v${args.buildId} before the retry: the platform is not supported`)
+            }
         } catch {
             /**
              * If cleanup fails, continue with retry anyway — it may still succeed

@@ -38,7 +38,8 @@ describe('scripts run in standalone mode', () => {
             assert.equal(await remoteBrowser.getTitle(), 'Mock Page Title')
             assert.equal(beforeCmdCounter, 1)
             assert.equal(afterCmdCounter, 1)
-            assert.ok((Date.now() - start) > 200)
+            // each hook sleeps 100ms, but a timer can fire about 1ms early when measured with Date.now()
+            assert.ok((Date.now() - start) >= 195)
         })
 
         it('should not have testrunner options since we initiating it as standalone instance', async () => {

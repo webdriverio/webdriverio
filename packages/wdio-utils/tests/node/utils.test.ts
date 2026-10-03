@@ -1,10 +1,11 @@
 import os from 'node:os'
+import fsp from 'node:fs/promises'
 import path from 'node:path'
 import url from 'node:url'
 import cp from 'node:child_process'
 import fs from 'node:fs'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { canDownload, resolveBuildId, detectBrowserPlatform, install } from '@puppeteer/browsers'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
+import { Cache, canDownload, resolveBuildId, detectBrowserPlatform, install, computeExecutablePath } from '@puppeteer/browsers'
 import { locateChrome, locateApp } from 'locate-app'
 import { download as downloadGeckodriver } from 'geckodriver'
 
@@ -17,6 +18,8 @@ import { getElectronVersionForChromium } from '../../src/node/electronChromedriv
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 vi.mock('fs', () => import(path.join(process.cwd(), '__mocks__', 'fs')))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+const { logMock } = await import(path.join(process.cwd(), '__mocks__', '@wdio/logger')) as { logMock: Record<string, Mock> }
 
 vi.mock('node:os', () => ({
     default: {
@@ -52,6 +55,7 @@ vi.mock('node:fs/promises', () => ({
     default: {
         mkdir: vi.fn().mockResolvedValue({}),
         access: vi.fn().mockResolvedValue({}),
+        rm: vi.fn().mockResolvedValue(undefined),
         readFile: vi.fn(async () => {
             const { readFileSync } = await vi.importActual<typeof fs>('node:fs')
             return readFileSync(path.resolve(__dirname, '__fixtures__', 'application.ini'))
@@ -623,6 +627,119 @@ describe('driver utils', () => {
                 executablePath: '/foo/bar/executable',
             })
             expect(resolveBuildId).toBeCalledWith('chrome', 'windows', '1.2.3')
+        })
+
+        describe('retry after a failed install', () => {
+            const installationDir = path.join('/cache', 'firefox', 'win64-stable_157.0')
+            const executablePath = path.join(installationDir, 'core', 'firefox.exe')
+            let cacheExecutablePath: () => string
+
+            beforeEach(() => {
+                cacheExecutablePath = () => executablePath
+                vi.mocked(detectBrowserPlatform).mockReturnValue('win64' as any)
+                vi.mocked(resolveBuildId).mockResolvedValueOnce('stable_157.0' as never)
+                vi.mocked(Cache).mockImplementationOnce(function () {
+                    return {
+                        installationDir: () => installationDir,
+                        computeExecutablePath: () => cacheExecutablePath()
+                    }
+                } as never)
+                vi.mocked(computeExecutablePath).mockReturnValue(executablePath)
+                vi.mocked(fsp.rm).mockClear()
+                logMock.info.mockClear()
+                logMock.warn.mockClear()
+            })
+
+            afterEach(() => {
+                vi.mocked(detectBrowserPlatform).mockReset()
+                vi.mocked(computeExecutablePath).mockReturnValue('/foo/bar/executable')
+                vi.mocked(fsp.access).mockReset().mockResolvedValue({} as never)
+                vi.mocked(fsp.rm).mockReset().mockResolvedValue(undefined)
+            })
+
+            const executableIsMissing = () => vi.mocked(fsp.access).mockImplementation(async (file) => {
+                if (file === executablePath) {
+                    throw new Error('ENOENT')
+                }
+            })
+
+            /**
+             * The Firefox executable sits in a `core` sub-folder of the build folder on
+             * Windows. Removing only that sub-folder left the build folder in place, so
+             * the retry failed with "exists but the executable is missing" again.
+             */
+            it('removes the whole build folder when the executable is missing', async () => {
+                executableIsMissing()
+                vi.mocked(install).mockRejectedValueOnce(new Error('The browser folder exists but the executable is missing'))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                expect(fsp.rm).toHaveBeenCalledTimes(1)
+                expect(fsp.rm).toHaveBeenCalledWith(installationDir, { recursive: true, force: true })
+                expect(logMock.warn).toHaveBeenCalledWith(`Removing ${installationDir} before the retry: the executable ${executablePath} is missing`)
+                expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
+            })
+
+            /**
+             * a failed download stops before the build folder is made, so there is
+             * nothing to remove and nothing to warn about
+             */
+            it('does not remove or warn when the build folder does not exist', async () => {
+                vi.mocked(fsp.access).mockImplementation(async (file) => {
+                    if (file === executablePath || file === installationDir) {
+                        throw new Error('ENOENT')
+                    }
+                })
+                vi.mocked(install).mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                expect(fsp.rm).not.toHaveBeenCalled()
+                expect(logMock.warn).not.toHaveBeenCalled()
+                expect(logMock.info).not.toHaveBeenCalledWith(expect.stringContaining('Keeping'))
+                expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
+            })
+
+            it('still retries when the build folder cannot be removed', async () => {
+                executableIsMissing()
+                vi.mocked(fsp.rm).mockRejectedValueOnce(new Error('EPERM: operation not permitted'))
+                vi.mocked(install).mockRejectedValueOnce(new Error('The browser folder exists but the executable is missing'))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                expect(logMock.warn).toHaveBeenCalledWith(`Couldn't remove ${installationDir}, the retry can fail: EPERM: operation not permitted`)
+                expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
+            })
+
+            it('still retries when the cleanup fails', async () => {
+                cacheExecutablePath = () => {
+                    throw new Error('.metadata is not an object')
+                }
+                vi.mocked(install).mockRejectedValueOnce(new Error('download failed'))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                expect(fsp.rm).not.toHaveBeenCalled()
+                expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
+            })
+
+            /**
+             * On Windows the Firefox installer can stay locked after it extracted the
+             * browser, so the install fails when it deletes the installer. The browser
+             * is complete, so the retry uses it. Removing it makes the retry download
+             * and extract it again, and Windows can lock the installer again.
+             */
+            it('keeps the build folder when the executable is there', async () => {
+                vi.mocked(install).mockRejectedValueOnce(new Error('EBUSY: resource busy or locked, unlink \'Firefox Setup 157.0.exe\''))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                expect(fsp.access).toHaveBeenCalledWith(executablePath)
+                expect(fsp.rm).not.toHaveBeenCalled()
+                expect(logMock.info).toHaveBeenCalledWith(`Keeping firefox vstable_157.0 at ${installationDir}: the executable is there`)
+                expect(logMock.warn).not.toHaveBeenCalled()
+                expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
+            })
         })
     })
 })
