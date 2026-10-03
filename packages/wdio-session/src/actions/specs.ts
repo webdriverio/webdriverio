@@ -211,7 +211,8 @@ export const ACTIONS: ActionSpec[] = [
         desc: 'Accessibility snapshot with refs',
         details: [
             'Prints the accessibility tree, one node per line, e.g. `button "Add to cart" [ref=e3]`. Pass a ref to click, fill, get and the other actions. Refs stay valid while the element exists; an action on a removed element fails with REF_STALE.',
-            'Every snapshot is written to the artifacts dir. Output longer than --max-chars is not printed; you get the file path and a hint to narrow it with --interactive, --depth, --scope or `find`.'
+            'Every snapshot is written to the artifacts dir. Output longer than --max-chars is not printed; you get the file path and a hint to narrow it with --interactive, --depth, --scope or `find`.',
+            'The text layout and the --json shape are experimental and may change in a minor release. The ref syntax and the actions that take a ref stay stable.'
         ].join('\n'),
         options: {
             depth: { type: 'number', desc: 'Maximum depth' },

@@ -304,6 +304,8 @@ Prints the accessibility tree, one node per line, e.g. `button "Add to cart" [re
 
 Every snapshot is written to the artifacts dir. Output longer than --max-chars is not printed; you get the file path and a hint to narrow it with --interactive, --depth, --scope or `find`.
 
+The text layout and the --json shape are experimental and may change in a minor release. The ref syntax and the actions that take a ref stay stable.
+
 ```sh
 npx wdio session snapshot
 ```

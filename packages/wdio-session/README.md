@@ -31,6 +31,10 @@ Check a machine with `npx wdio session doctor`. Agents install the skill with
 your code already owns, for example in a test or a `remote()` script. There is
 no daemon. `dispose()` leaves the browser session open.
 
+> **Experimental:** the `@wdio/session/agent` API, the snapshot text and the
+> `RefEntry` fields `ref()` returns may change in a minor release. The ref
+> syntax (`e3`) and the code an action records stay stable.
+
 ```ts
 import { remote } from 'webdriverio'
 import { createAgentSession } from '@wdio/session/agent'
