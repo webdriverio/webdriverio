@@ -4,7 +4,7 @@ import path from 'node:path'
 import url from 'node:url'
 import cp from 'node:child_process'
 import fs from 'node:fs'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import { Cache, canDownload, resolveBuildId, detectBrowserPlatform, install, computeExecutablePath } from '@puppeteer/browsers'
 import { locateChrome, locateApp } from 'locate-app'
 import { download as downloadGeckodriver } from 'geckodriver'
@@ -18,6 +18,8 @@ import { getElectronVersionForChromium } from '../../src/node/electronChromedriv
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 vi.mock('fs', () => import(path.join(process.cwd(), '__mocks__', 'fs')))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+const { logMock } = await import(path.join(process.cwd(), '__mocks__', '@wdio/logger')) as { logMock: Record<string, Mock> }
 
 vi.mock('node:os', () => ({
     default: {
@@ -630,24 +632,35 @@ describe('driver utils', () => {
         describe('retry after a failed install', () => {
             const installationDir = path.join('/cache', 'firefox', 'win64-stable_157.0')
             const executablePath = path.join(installationDir, 'core', 'firefox.exe')
+            let cacheExecutablePath: () => string
 
             beforeEach(() => {
+                cacheExecutablePath = () => executablePath
                 vi.mocked(detectBrowserPlatform).mockReturnValue('win64' as any)
                 vi.mocked(resolveBuildId).mockResolvedValueOnce('stable_157.0' as never)
                 vi.mocked(Cache).mockImplementationOnce(function () {
                     return {
                         installationDir: () => installationDir,
-                        computeExecutablePath: () => executablePath
+                        computeExecutablePath: () => cacheExecutablePath()
                     }
                 } as never)
                 vi.mocked(computeExecutablePath).mockReturnValue(executablePath)
                 vi.mocked(fsp.rm).mockClear()
+                logMock.info.mockClear()
+                logMock.warn.mockClear()
             })
 
             afterEach(() => {
                 vi.mocked(detectBrowserPlatform).mockReset()
                 vi.mocked(computeExecutablePath).mockReturnValue('/foo/bar/executable')
                 vi.mocked(fsp.access).mockReset().mockResolvedValue({} as never)
+                vi.mocked(fsp.rm).mockReset().mockResolvedValue(undefined)
+            })
+
+            const executableIsMissing = () => vi.mocked(fsp.access).mockImplementation(async (file) => {
+                if (file === executablePath) {
+                    throw new Error('ENOENT')
+                }
             })
 
             /**
@@ -656,17 +669,38 @@ describe('driver utils', () => {
              * the retry failed with "exists but the executable is missing" again.
              */
             it('removes the whole build folder when the executable is missing', async () => {
-                vi.mocked(fsp.access).mockImplementation(async (file) => {
-                    if (file === executablePath) {
-                        throw new Error('ENOENT')
-                    }
-                })
+                executableIsMissing()
                 vi.mocked(install).mockRejectedValueOnce(new Error('The browser folder exists but the executable is missing'))
 
                 await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
                 expect(fsp.rm).toHaveBeenCalledTimes(1)
-                expect(fsp.rm).toHaveBeenCalledWith(installationDir, { recursive: true, force: true })
+                expect(fsp.rm).toHaveBeenCalledWith(installationDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 500 })
+                expect(logMock.warn).toHaveBeenCalledWith(`Removing the incomplete firefox vstable_157.0 install at ${installationDir} before the retry`)
+                expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
+            })
+
+            it('still retries when the build folder cannot be removed', async () => {
+                executableIsMissing()
+                vi.mocked(fsp.rm).mockRejectedValueOnce(new Error('EPERM: operation not permitted'))
+                vi.mocked(install).mockRejectedValueOnce(new Error('The browser folder exists but the executable is missing'))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                expect(logMock.warn).toHaveBeenCalledWith(`Couldn't remove ${installationDir}, the retry can fail: EPERM: operation not permitted`)
+                expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
+            })
+
+            it('still retries when the cleanup fails', async () => {
+                cacheExecutablePath = () => {
+                    throw new Error('.metadata is not an object')
+                }
+                vi.mocked(install).mockRejectedValueOnce(new Error('download failed'))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                expect(logMock.warn).toHaveBeenCalledWith('Couldn\'t clean up before the retry: .metadata is not an object')
+                expect(fsp.rm).not.toHaveBeenCalled()
                 expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
             })
 
@@ -683,6 +717,7 @@ describe('driver utils', () => {
 
                 expect(fsp.access).toHaveBeenCalledWith(executablePath)
                 expect(fsp.rm).not.toHaveBeenCalled()
+                expect(logMock.info).toHaveBeenCalledWith(`Keeping firefox vstable_157.0 at ${installationDir}: the executable is there`)
                 expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
             })
         })
