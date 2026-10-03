@@ -2,11 +2,28 @@ import { contextIdValue } from '../../session/browsingContext.js'
 import { getBrowsingContext } from '../../browsingContext.js'
 
 /**
- * Top-level browsing contexts of this session: the open tabs and windows.
- * Frames are reached with `context.frame()`, not this list.
+ * Get every open tab and window of the session as a [browsing context](/docs/api/browsingContext),
+ * in the order the browser reports them. This includes tabs the page opened itself,
+ * e.g. through `target="_blank"` or `window.open()`. Frames are not in this list,
+ * get them with [`frame()`](/docs/api/browsingContext/frame) on their tab.
+ *
+ * Only available in a WebDriver BiDi session.
+ *
+ * <example>
+    :browsingContexts.js
+    it('finds a tab the page opened', async () => {
+        const page = await browser.url('https://the-internet.herokuapp.com/windows')
+        await page.$('a[href="/windows/new"]').click()
+
+        const tab = await browser.waitUntil(async () => (
+            (await browser.browsingContexts()).find((context) => context.url.endsWith('/windows/new'))
+        ))
+        console.log(await tab.$('h3').getText()) // outputs: "New Window"
+    })
+ * </example>
  *
  * @alias browser.browsingContexts
- * @return {BrowsingContext[]} open top-level browsing contexts
+ * @return {BrowsingContext[]} the open tabs and windows
  */
 export async function browsingContexts (
     this: WebdriverIO.Browser

@@ -4,7 +4,7 @@ import { environment } from '../../environment.js'
 import { Key } from '../../constants.js'
 
 export default class KeyAction extends BaseAction {
-    constructor (instance: WebdriverIO.Browser, params?: BaseActionParams) {
+    constructor (instance: WebdriverIO.Browser | WebdriverIO.BrowsingContext, params?: BaseActionParams) {
         super(instance, 'key', params)
     }
 

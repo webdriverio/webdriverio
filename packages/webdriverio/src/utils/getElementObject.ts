@@ -6,6 +6,7 @@ import type { ElementReference } from '@wdio/protocols'
 
 import { getPrototype as getWDIOPrototype, getElementFromResponse } from './index.js'
 import { elementErrorHandler } from '../middlewares.js'
+import { routeElementEndpoints } from './foreignContext.js'
 import * as browserCommands from '../commands/browser.js'
 import type { Selector, AddCommandFn, ExtendedElementReference } from '../types.js'
 
@@ -67,6 +68,11 @@ export function getElement(
         ...getWDIOPrototype('element'),
         scope: { value: 'element' }
     }
+    /**
+     * An element of another held browsing context runs the classic element
+     * endpoints in its own context.
+     */
+    routeElementEndpoints(propertiesObject)
 
     propertiesObject.emit = { value: this.emit.bind(this) }
     const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
@@ -144,6 +150,7 @@ export const getElements = function getElements(
         }, {} as Record<string, PropertyDescriptor>)),
         ...getWDIOPrototype('element')
     }
+    routeElementEndpoints(propertiesObject)
 
     if (elemResponse.length === 0) {
         return []

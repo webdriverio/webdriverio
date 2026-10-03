@@ -92,3 +92,29 @@ export function assertTopLevel (context: WebdriverIO.BrowsingContext, command: s
         throw new Error(`\`${command}\` is only available on a top-level browsing context`)
     }
 }
+
+interface TreeNode {
+    context: string
+    children?: TreeNode[] | null
+}
+
+function containsContext (nodes: TreeNode[], contextId: string): boolean {
+    return nodes.some((node) => node.context === contextId || containsContext(node.children ?? [], contextId))
+}
+
+/**
+ * A frame belongs to one document of its parent. When that page navigates
+ * away, the frame is gone. Firefox can keep the old document (and its
+ * frames) in the back/forward cache, where scripts never settle, so check
+ * that the frame is still in its top-level context's tree before using it.
+ */
+export async function assertFrameAttached (frame: WebdriverIO.BrowsingContext) {
+    let top = frame
+    while (top.parent) {
+        top = top.parent
+    }
+    const { contexts } = await frame.browser.browsingContextGetTree({ root: top.contextId })
+    if (!containsContext(contexts as TreeNode[], frame.contextId)) {
+        throw new Error(`no such frame: the frame "${frame.contextId}" was discarded because the page it belongs to navigated away`)
+    }
+}

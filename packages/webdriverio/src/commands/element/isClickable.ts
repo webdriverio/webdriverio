@@ -2,6 +2,7 @@ import { ELEMENT_KEY } from 'webdriver'
 
 import { getBrowserObject } from '@wdio/utils'
 import isElementClickableScript from '../../scripts/isElementClickable.js'
+import { foreignContextId } from '../../session/browsingContext.js'
 
 /**
  *
@@ -49,6 +50,10 @@ export async function isClickable (this: WebdriverIO.Element) {
 
     if (this.isMobile && this.isNativeContext) {
         throw new Error('Method not supported in mobile native environment. It is unlikely that you need to use this command.')
+    }
+
+    if (await foreignContextId(this)) {
+        return this.execute(isElementClickableScript as unknown as (el: HTMLElement) => boolean)
     }
 
     const browser = getBrowserObject(this)

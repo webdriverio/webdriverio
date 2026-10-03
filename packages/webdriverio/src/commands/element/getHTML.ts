@@ -7,6 +7,7 @@ import { getShadowRootManager } from '../../session/shadowRoot.js'
 import { contextIdOf } from '../../session/browsingContext.js'
 import getHTMLScript from '../../scripts/getHTML.js'
 import getHTMLShadowScript from '../../scripts/getHTMLShadow.js'
+import { executeInContext } from '../../utils/bidi/index.js'
 
 const SHADOW_ID_ATTR_NAME = 'data-wdio-shadow-id'
 const SHADOW_ID_ATTR = `[${SHADOW_ID_ATTR_NAME}]`
@@ -124,7 +125,7 @@ export async function getHTML(
         const elementsWithShadowRootAndIdVerified = ((
             await Promise.all(
                 shadowRootElementPairs.map(([elemId, elem]) => (
-                    browser.execute((elem) => elem.tagName, { [ELEMENT_KEY]: elemId } as unknown as HTMLElement).then(
+                    executeInContext(browser, context, (elem: HTMLElement) => elem.tagName, { [ELEMENT_KEY]: elemId }).then(
                         () => [elemId, elem],
                         () => undefined
                     )

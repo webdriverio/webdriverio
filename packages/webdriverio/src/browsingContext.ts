@@ -28,10 +28,15 @@ import { pause } from './commands/browser/pause.js'
 import { frame } from './commands/browsingContext/frame.js'
 import { navigate } from './commands/browsingContext/navigate.js'
 import { refresh } from './commands/browsingContext/refresh.js'
-import { closeWindow, activate } from './commands/browsingContext/window.js'
-import { back, forward } from './commands/browsingContext/history.js'
-import { getTitle, getUrl } from './commands/browsingContext/document.js'
-import { acceptAlert, dismissAlert, getAlertText } from './commands/browsingContext/dialog.js'
+import { closeWindow } from './commands/browsingContext/closeWindow.js'
+import { activate } from './commands/browsingContext/activate.js'
+import { back } from './commands/browsingContext/back.js'
+import { forward } from './commands/browsingContext/forward.js'
+import { getTitle } from './commands/browsingContext/getTitle.js'
+import { getUrl } from './commands/browsingContext/getUrl.js'
+import { acceptAlert } from './commands/browsingContext/acceptAlert.js'
+import { dismissAlert } from './commands/browsingContext/dismissAlert.js'
+import { getAlertText } from './commands/browsingContext/getAlertText.js'
 import { assertTopLevel } from './session/browsingContext.js'
 
 const SESSION_FLAGS = [
@@ -116,7 +121,7 @@ function commandProperties (): Record<string, PropertyDescriptor> {
         acceptAlert,
         dismissAlert,
         getAlertText,
-        emulate: onBrowser('emulate', emulate),
+        emulate: topLevel('emulate', emulate),
         restore: onBrowser('restore', restore)
     }
     const properties: Record<string, PropertyDescriptor> = {

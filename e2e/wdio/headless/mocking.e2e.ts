@@ -1,8 +1,20 @@
 import { browser } from '@wdio/globals'
 
 describe('network mocking', () => {
+    before(function () {
+        /**
+         * Network mocking is a WebDriver BiDi feature. This suite also runs in
+         * the browser matrix, where Safari still uses WebDriver Classic.
+         */
+        if (!browser.isBidi) {
+            this.skip()
+        }
+    })
+
     afterEach(async () => {
-        await browser.mockRestoreAll()
+        if (browser.isBidi) {
+            await browser.mockRestoreAll()
+        }
     })
 
     it('marks a request as mocked even without overwrites', async () => {

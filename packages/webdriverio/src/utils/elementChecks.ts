@@ -4,8 +4,22 @@ import logger from '@wdio/logger'
 import elementContains from '../scripts/elementContains.js'
 import elementsContainedIn from '../scripts/elementsContainedIn.js'
 import elementsConnected from '../scripts/elementsConnected.js'
+import { executeInContext } from './bidi/index.js'
 
 const log = logger('webdriverio')
+
+/**
+ * The checks only hold element ids. In a BiDi session they run in the
+ * context those elements were found in, which is not always the session's
+ * current one (a held frame or tab).
+ */
+function run (browser: WebdriverIO.Browser, contextId?: string) {
+    return <ReturnValue>(script: Function, ...args: unknown[]): Promise<ReturnValue> => (
+        contextId && browser.isBidi
+            ? executeInContext<ReturnValue>(browser, contextId, script, ...args)
+            : browser.execute(script as never, ...(args as never[])) as Promise<ReturnValue>
+    )
+}
 
 /**
  * Run a boolean check for each of `elementIds` in a single batched round trip; if the
@@ -78,12 +92,12 @@ export async function checkElementsContainedIn (
         `containment for scope ${scope}`,
         contextId,
         onElementCheckError,
-        () => browser.execute(
+        () => run(browser, contextId)(
             elementsContainedIn,
             { [ELEMENT_KEY]: scope } as unknown as HTMLElement,
             elementIds.map((elementId) => ({ [ELEMENT_KEY]: elementId })) as unknown as HTMLElement[]
         ),
-        (elementId) => browser.execute(
+        (elementId) => run(browser, contextId)(
             elementContains,
             { [ELEMENT_KEY]: scope } as unknown as HTMLElement,
             { [ELEMENT_KEY]: elementId } as unknown as HTMLElement
@@ -107,11 +121,11 @@ export async function checkElementsConnected (
         'connectivity',
         contextId,
         onElementCheckError,
-        () => browser.execute(
+        () => run(browser, contextId)(
             elementsConnected,
             elementIds.map((elementId) => ({ [ELEMENT_KEY]: elementId })) as unknown as HTMLElement[]
         ),
-        (elementId) => browser.execute(
+        (elementId) => run(browser, contextId)(
             (el: Element) => el.isConnected,
             { [ELEMENT_KEY]: elementId } as unknown as HTMLElement
         )

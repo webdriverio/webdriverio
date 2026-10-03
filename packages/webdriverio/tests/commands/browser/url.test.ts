@@ -61,6 +61,33 @@ describe('url', () => {
             )
         })
 
+        it('returns a context that runs shared commands on the browser', async () => {
+            const page = await browser.url('http://google.com')
+            expect(page.url).toBe('http://google.com/')
+            expect(page.isFrame).toBe(false)
+            expect(page.parent).toBeUndefined()
+            expect(page.contextId).toBeUndefined()
+            expect(page.browser).toBe(browser)
+
+            const getTitle = vi.spyOn(browser, 'getTitle').mockResolvedValue('Google')
+            await expect(page.getTitle()).resolves.toBe('Google')
+            expect(getTitle.mock.contexts[0]).toBe(browser)
+        })
+
+        it('updates url when getUrl reads the current one, like a BiDi context', async () => {
+            const page = await browser.url('http://google.com')
+            vi.spyOn(browser, 'getUrl').mockResolvedValue('http://google.com/redirected')
+            await expect(page.getUrl()).resolves.toBe('http://google.com/redirected')
+            expect(page.url).toBe('http://google.com/redirected')
+        })
+
+        it('rejects BiDi-only commands with the Classic alternative', async () => {
+            const page = await browser.url('http://google.com')
+            await expect(page.frame('iframe')).rejects.toThrow(/`frame\(\)` needs a WebDriver BiDi session[\s\S]*browser\.switchFrame\(\)/)
+            await expect(page.navigate('/foo')).rejects.toThrow(/`navigate\(\)` needs a WebDriver BiDi session[\s\S]*browser\.url\(\)/)
+            await expect(page.activate()).rejects.toThrow(/`activate\(\)` needs a WebDriver BiDi session[\s\S]*browser\.switchWindow\(\)/)
+        })
+
         it('should throw an exception when a non-string value passed in', async () => {
             // @ts-ignore uses expect-webdriverio
             expect.assertions(1)
