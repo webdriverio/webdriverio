@@ -25,6 +25,21 @@ describe('resolveCustomCommandOptions', () => {
         )
     })
 
+    it('accepts attachToBrowsingContext on its own', () => {
+        const options = { attachToBrowsingContext: true }
+        expect(resolveCustomCommandOptions('addCommand', options)).toBe(options)
+        expect(resolveCustomCommandOptions('overwriteCommand', options)).toBe(options)
+    })
+
+    it('rejects attaching to elements and browsing contexts at once', () => {
+        expect(() => resolveCustomCommandOptions('addCommand', { attachToElement: true, attachToBrowsingContext: true })).toThrow(
+            '`addCommand` cannot attach a command to elements and browsing contexts at once.'
+        )
+        expect(() => resolveCustomCommandOptions('overwriteCommand', { attachToElement: true, attachToBrowsingContext: true })).toThrow(
+            '`overwriteCommand` cannot attach a command to elements and browsing contexts at once.'
+        )
+    })
+
     it('rejects a non-object third argument', () => {
         expect(() => resolveCustomCommandOptions('addCommand', 'element')).toThrow(
             'The third argument to `addCommand` must be an options object.'

@@ -20,7 +20,7 @@ A name that defines the command and will be attached to the browser or element s
 
 <Option type="Function">
 
-A function that is being executed when the command is called. The `this` scope is either [`WebdriverIO.Browser`](/docs/api/browser) or [`WebdriverIO.Element`](/docs/api/element) depending whether the command gets attached to the browser or element scope.
+A function that is being executed when the command is called. The `this` scope is [`WebdriverIO.Browser`](/docs/api/browser), [`WebdriverIO.Element`](/docs/api/element) or `WebdriverIO.BrowsingContext`, depending on whether the command gets attached to the browser, to elements or to browsing contexts.
 
 </Option>
 
@@ -33,6 +33,12 @@ Object with configuration options modifying the custom command behavior
 <Option type="Boolean" default="false" name="attachToElement">
 
 Flag to decide whether to attach the command to the browser or element scope. If set to `true` the command will be an element command.
+
+</Option>
+
+<Option type="Boolean" default="false" name="attachToBrowsingContext">
+
+Flag to attach the command to every browsing context: the tabs, windows and frames that `browser.url()`, `browser.newWindow()`, `browser.browsingContexts()` and `context.frame()` return in a WebDriver BiDi session. It cannot be combined with `attachToElement`. See [Browsing contexts](#browsing-contexts).
 
 </Option>
 
@@ -124,6 +130,27 @@ await browser.user$('foo').user$('bar').click()
 Be careful to not overload the `browser` scope with too many custom commands.
 
 We recommend defining custom logic in [page objects](pageobjects), so they are bound to a specific page.
+
+### Browsing contexts
+
+In a WebDriver BiDi session, a tab, a window and a frame are each a `WebdriverIO.BrowsingContext`. Set `attachToBrowsingContext` to `true` to add a command to all of them. The scope (`this`) is the context the command was called on, and `this.browser` is the browser it belongs to:
+
+```js
+browser.addCommand('heading', async function () {
+    // `this` is the tab, window or frame
+    return this.$('h1').getText()
+}, { attachToBrowsingContext: true })
+
+const page = await browser.url('https://webdriver.io')
+console.log(await page.heading())
+
+const frame = await page.frame('iframe')
+console.log(await frame.heading())
+```
+
+The command is available on contexts that exist already and on every context created later, including frames from another origin. A command that only makes sense for a tab or window can check `this.isFrame`.
+
+`addCommand` and `overwriteCommand` on a browsing context itself throw. Register the command on the browser.
 
 ### Multi-remote
 
@@ -232,6 +259,10 @@ declare global {
         interface Element {
             elementCustomCommand: (arg: any) => Promise<number>
         }
+
+        interface BrowsingContext {
+            contextCustomCommand: (arg: any) => Promise<string>
+        }
     }
 }
 ```
@@ -251,6 +282,10 @@ declare namespace WebdriverIO {
 
     interface Element {
         elementCustomCommand: (arg: any) => Promise<number>
+    }
+
+    interface BrowsingContext {
+        contextCustomCommand: (arg: any) => Promise<string>
     }
 }
 ```
@@ -362,6 +397,21 @@ await elem.click()
 
 // or pass params
 await elem.click({ force: true })
+```
+
+### Overwriting Browsing Context Commands
+
+Set `attachToBrowsingContext` to `true` to overwrite a built-in or custom command of every tab, window and frame. The original command is bound to the context it was called on:
+
+```js
+browser.overwriteCommand('getTitle', async function (this, originalGetTitle) {
+    const title = await originalGetTitle()
+    return this.isFrame ? `frame: ${title}` : title
+}, { attachToBrowsingContext: true })
+
+const page = await browser.url('https://webdriver.io')
+const frame = await page.frame('iframe')
+console.log(await frame.getTitle()) // "frame: ..."
 ```
 
 ## Add More WebDriver Commands

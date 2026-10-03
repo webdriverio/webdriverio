@@ -662,7 +662,8 @@ describe('browsing contexts', () => {
         it('does not take session commands', async () => {
             const page = await open('/tab-a')
             expect(await rejection(page.addCommand('never', () => {}) as unknown as Promise<unknown>))
-                .toBe('`addCommand` is only available on the browser, not on a browsing context')
+                .toBe('`addCommand` is only available on the browser, not on a browsing context. ' +
+                    'Use `browser.addCommand(name, fn, { attachToBrowsingContext: true })` to change the commands of every browsing context.')
         })
 
         it('rejects a frame that does not exist', async () => {

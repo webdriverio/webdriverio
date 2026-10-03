@@ -3,6 +3,7 @@ import { describe, test, expect, vi } from 'vitest'
 import type { Capabilities } from '@wdio/types'
 
 import { remote, multiRemote } from '../src/index.js'
+import { getBrowsingContext } from '../src/browsingContext.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -390,6 +391,28 @@ describe('addCommand', () => {
     })
 
     describe('multi-remote', () => {
+        test('registers browsing context commands on the contexts of every instance', async () => {
+            const browser = await multiRemote(multiRemoteConfig)
+            browser.addCommand('instanceName', async function (this: WebdriverIO.BrowsingContext) {
+                const name = browser.instances.find((instanceName) => browser.getInstance(instanceName) === this.browser)
+                return `${name}:${this.contextId}`
+            }, { attachToBrowsingContext: true })
+            browser.overwriteCommand('getUrl', async function (this: WebdriverIO.BrowsingContext) {
+                return `overwritten:${this.contextId}`
+            }, { attachToBrowsingContext: true })
+
+            type Context = WebdriverIO.BrowsingContext & { instanceName: () => Promise<string> }
+            const contextA = getBrowsingContext(browser.getInstance('browserA'), 'ctx-a', { isFrame: false, url: 'https://a.example' }) as Context
+            const contextB = getBrowsingContext(browser.getInstance('browserB'), 'ctx-b', { isFrame: false, url: 'https://b.example' }) as Context
+            expect(await contextA.instanceName()).toBe('browserA:ctx-a')
+            expect(await contextB.instanceName()).toBe('browserB:ctx-b')
+            expect(await contextA.getUrl()).toBe('overwritten:ctx-a')
+            expect(await contextB.getUrl()).toBe('overwritten:ctx-b')
+
+            expect((browser as unknown as Record<string, unknown>).instanceName).toBeUndefined()
+            expect((browser.getInstance('browserA') as unknown as Record<string, unknown>).instanceName).toBeUndefined()
+        })
+
         test('should allow to register custom commands to multi-remote instance', async () => {
             const browser = await multiRemote(multiRemoteConfig)
             expect(typeof browser.myCustomCommand).toBe('undefined')

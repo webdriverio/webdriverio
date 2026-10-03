@@ -23,5 +23,13 @@ export function resolveCustomCommandOptions(
         throw new Error(`The third argument to \`${commandName}\` must be an options object.`)
     }
 
-    return options
+    const resolved = options as CustomCommands.CustomCommandOptions<boolean>
+    if (resolved.attachToElement && resolved.attachToBrowsingContext) {
+        throw new Error(
+            `\`${commandName}\` cannot attach a command to elements and browsing contexts at once. ` +
+            'Register it twice, once with `attachToElement` and once with `attachToBrowsingContext`.'
+        )
+    }
+
+    return resolved
 }
