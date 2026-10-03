@@ -233,7 +233,7 @@ The properties of a non-awaited `$$()` changed type. They are available at once,
 | Property | v9 | v10 |
 |---|---|---|
 | `selector` | `Promise<Selector>` | `Selector \| undefined` |
-| `parent` | `Promise<...>` | the parent, not a promise |
+| `parent` | `Promise<...>` | the parent, not a promise (see below) |
 | `foundWith` | none | the command that found the list, e.g. `$$` or `custom$$` |
 | `props` | none | the extra arguments of that command |
 
@@ -242,7 +242,11 @@ The properties of a non-awaited `$$()` changed type. They are available at once,
 + const selector = $$('li').selector
 ```
 
-`filter()`, `filterSeries()` and `slice()` on a `$$()` list return an element list, not a plain array. The result keeps the `selector`, `foundWith`, `parent` and `props` of the source list, but WebdriverIO never runs the query again for it: an index past its end does not wait for more matches, and it never returns an element that the filter excluded. In v9, `filter()` returned a plain array without these properties. Code that re-runs a list's query from these properties, for example `parent[foundWith](selector, ...props)`, gets the full list, not the filtered one.
+On a chained query such as `$('form').$$('input')`, `parent` is the chainable `$('form')` until the list resolves, and the resolved element after that. Await the list before you use `parent` as an element.
+
+At runtime, `filter()`, `filterSeries()` and `slice()` on a `$$()` list return an element list, not a plain array. The result keeps the `selector`, `foundWith`, `parent` and `props` of the source list. In v9, `filter()` returned a plain array without these properties. The types do not show this yet: `filter()` and `filterSeries()` are declared to return `Promise<WebdriverIO.Element[]>`, and `slice()` returns `WebdriverIO.Element[]`, so TypeScript reports an error when you read these properties on the result.
+
+WebdriverIO does not run the query again for the derived list itself: an index past its end does not wait for more matches, and it never returns an element that the filter excluded. Its members are still the elements of the source query, with their original `selector` and `index`. If a member becomes stale, WebdriverIO fetches it again from the source query at that index, which can be another element if the page changed. Code that re-runs a list's query from the list's properties, for example `parent[foundWith](selector, ...props)`, gets the full list, not the filtered one.
 
 Published packages set `typeScriptVersion` to 6.0.3, matching the TypeScript version this repository compiles with.
 
