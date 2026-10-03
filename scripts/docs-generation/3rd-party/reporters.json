@@ -86,7 +86,7 @@
   },
   {
     "packageName": "@qualflare/webdriverio",
-    "title": "Qualflare Reporter",
+    "title": "Qualflare",
     "githubUrl": "https://github.com/Qualflare/qualflare-webdriverio",
     "npmUrl": "https://www.npmjs.com/package/@qualflare/webdriverio"
   }
