@@ -63,6 +63,68 @@ describe('Multi-Remote tests', () => {
             expect(elements[2].getInstance('browserA').elementId).toBe('some-elem-789')
         })
 
+        describe('entry that the first instance does not have', () => {
+            const cardsSelector = () => document.querySelectorAll('.card') as unknown as HTMLElement[]
+
+            /**
+             * browserA finds 1 card, browserB finds 2: the selector is a function,
+             * so the entries cannot take the selector of the list
+             */
+            const findCards = async () => {
+                const browser = await multiRemote(caps())
+                vi.spyOn(browser.getInstance('browserA'), 'execute')
+                    .mockResolvedValue([{ 'element-6066-11e4-a52e-4f735466cecf': 'a-0' }])
+                vi.spyOn(browser.getInstance('browserB'), 'execute')
+                    .mockResolvedValue([
+                        { 'element-6066-11e4-a52e-4f735466cecf': 'b-0' },
+                        { 'element-6066-11e4-a52e-4f735466cecf': 'b-1' }
+                    ])
+                const cards = await browser.$$(cardsSelector)
+                return { browser, cards }
+            }
+
+            test('takes the selector of the instance that has the element', async () => {
+                const { cards } = await findCards()
+
+                expect(cards).toHaveLength(2)
+                expect(cards[1].selector).toBe(cardsSelector)
+            })
+
+            test('does not query the page of the browsers', async () => {
+                const { browser, cards } = await findCards()
+                const findOnPage = ['browserA', 'browserB'].map((name) => vi.spyOn(browser.getInstance(name), 'findElements'))
+
+                await expect(cards[1].$$('span.price')).rejects.toThrow('Multi-remote object has no instance named "browserA"')
+                for (const find of findOnPage) {
+                    expect(find).not.toHaveBeenCalled()
+                }
+            })
+
+            test('queries inside the element after select()', async () => {
+                const { browser, cards } = await findCards()
+                const findOnPage = vi.spyOn(browser.getInstance('browserB'), 'findElements')
+                const findInCard = vi.spyOn(cards[1].getInstance('browserB'), 'findElementsFromElement')
+
+                const prices = await cards[1].select('browserB').$$('span.price')
+
+                expect(prices.isMultiRemote).toBe(true)
+                expect(findInCard).toHaveBeenCalledTimes(1)
+                expect(findOnPage).not.toHaveBeenCalled()
+            })
+        })
+
+        test('gives the entries of custom$$ the strategy of their elements as selector', async () => {
+            const browser = await multiRemote(caps())
+            browser.addLocatorStrategy('test', (selector: string) => [
+                { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-0` }
+            ] as unknown as HTMLElement[])
+
+            const list = await browser.custom$$('test', '.foo')
+
+            expect(list[0].selector).toEqual(list[0].getInstance('browserA').selector)
+            expect((list[0].selector as unknown as { strategyName: string }).strategyName).toBe('test')
+        })
+
         test('gives an empty list when no instance finds an element', async () => {
             const browser = await multiRemote(caps())
             for (const name of ['browserA', 'browserB']) {

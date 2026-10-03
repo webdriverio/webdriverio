@@ -474,5 +474,125 @@ describe('multi remote test', () => {
             expect(await previous.getText()).toEqual(forEachInstance('Let\'s have some different text!'))
             expect(await parent.getTagName()).toEqual(forEachInstance('ul'))
         })
+
+        /**
+         * expect-webdriverio queries a list again with `parent[foundWith](selector, ...props)`,
+         * and an index past the end of a list runs the same query. Each case changes the page
+         * 500 ms after the first query.
+         */
+        describe('query a multi-remote list again', () => {
+            const ITEMS = 'ul[slot="my-text"] li'
+            const LATE_ITEMS = 'ul[slot="my-text"] li.late'
+            const itemsByFunction = () => Array.from(document.querySelectorAll('ul[slot="my-text"] li')) as HTMLElement[]
+            const lateItemsByFunction = () => Array.from(document.querySelectorAll('ul[slot="my-text"] li.late')) as HTMLElement[]
+
+            const addLateItems = (scope: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, count: number) => scope.execute((itemCount: number) => {
+                setTimeout(() => {
+                    for (let index = 1; index <= itemCount; index++) {
+                        const item = document.createElement('li')
+                        item.className = 'late'
+                        item.textContent = `late ${index}`
+                        document.querySelector('ul[slot="my-text"]')!.appendChild(item)
+                    }
+                }, 500)
+            }, count)
+            const removeItems = () => multiRemoteBrowser.execute(() => {
+                setTimeout(() => document.querySelector('ul[slot="my-text"]')!.replaceChildren(), 500)
+            })
+            const queryAgain = (list: WebdriverIO.MultiRemoteElementArray) => {
+                const parent = list.parent as unknown as Record<string, (...args: unknown[]) => WebdriverIO.MultiRemoteElementArray>
+                return parent[list.foundWith](list.selector, ...list.props)
+            }
+
+            beforeEach(async () => {
+                await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/shadowDom.html')
+            })
+
+            const queries: [string, () => WebdriverIO.MultiRemoteElementArray, () => WebdriverIO.MultiRemoteElementArray][] = [
+                ['$$ with a string selector', () => multiRemoteBrowser.$$(ITEMS), () => multiRemoteBrowser.$$(LATE_ITEMS)],
+                ['$$ with a function selector', () => multiRemoteBrowser.$$(itemsByFunction), () => multiRemoteBrowser.$$(lateItemsByFunction)],
+                ['custom$$', () => multiRemoteBrowser.custom$$('allByCss', ITEMS), () => multiRemoteBrowser.custom$$('allByCss', LATE_ITEMS)]
+            ]
+            for (const [name, queryItems, queryLateItems] of queries) {
+                describe(name, () => {
+                    it('finds an element that appears later', async () => {
+                        const items = await queryItems()
+                        expect(items).toHaveLength(2)
+                        await addLateItems(multiRemoteBrowser, 1)
+
+                        await expect(items).toBeElementsArrayOfSize(3)
+                        const again = await queryAgain(items)
+                        expect(again.isMultiRemote).toBe(true)
+                        expect(again.foundWith).toBe(items.foundWith)
+                        expect(await again[2].getText()).toEqual(forEachInstance('late 1'))
+                    })
+
+                    it('finds the elements of a list that was empty', async () => {
+                        const items = await queryLateItems()
+                        expect(items).toHaveLength(0)
+                        expect(items.isMultiRemote).toBe(true)
+                        await addLateItems(multiRemoteBrowser, 2)
+
+                        /**
+                         * an index past the end waits and runs the query again
+                         */
+                        expect(await (await items[1]).getText()).toEqual(forEachInstance('late 2'))
+                        await expect(items).toBeElementsArrayOfSize(2)
+                        expect(await queryAgain(items)).toHaveLength(2)
+                    })
+
+                    it('gives an empty list when the elements disappear', async () => {
+                        const items = await queryItems()
+                        expect(items).toHaveLength(2)
+                        const first = items[0]
+                        await removeItems()
+
+                        await expect(items).toBeElementsArrayOfSize(0)
+                        const again = await queryAgain(items)
+                        expect(again.isMultiRemote).toBe(true)
+                        expect(again).toHaveLength(0)
+                        expect(await first.isExisting()).toEqual(forEachInstance(false))
+                    })
+
+                    it('finds an element that appears in one browser only', async () => {
+                        const items = await queryItems()
+                        expect(items).toHaveLength(2)
+                        await addLateItems(multiRemoteBrowser.getInstance('browserB'), 1)
+
+                        await expect(items).toBeElementsArrayOfSize(expect.multiRemote({ browserA: 2, browserB: 3, browserC: 2 }))
+                        await expect(items).toHaveText(expect.multiRemote({
+                            browserA: ['Let\'s have some different text!', 'In a list!'],
+                            browserB: ['Let\'s have some different text!', 'In a list!', 'late 1'],
+                            browserC: ['Let\'s have some different text!', 'In a list!']
+                        }))
+
+                        /**
+                         * the third entry exists only in browserB, the second instance: it keeps
+                         * the scope of that element and does not query the page of the browsers
+                         */
+                        const again = await queryAgain(items)
+                        expect(again).toHaveLength(3)
+                        expect(await again[2].select('browserB').getText()).toEqual(['late 1'])
+                        await expect(again[2].getText()).rejects.toThrow('Multi-remote object has no instance named "browserA"')
+                    })
+                })
+            }
+
+            it('shadow$$ finds an element that appears later', async () => {
+                const host = await multiRemoteBrowser.$$('my-paragraph')[1]
+                const slots = await host.shadow$$('slot')
+                expect(slots).toHaveLength(1)
+                await multiRemoteBrowser.execute(() => {
+                    setTimeout(() => {
+                        document.querySelectorAll('my-paragraph')[1].shadowRoot!.appendChild(document.createElement('slot'))
+                    }, 500)
+                })
+
+                await expect(slots).toBeElementsArrayOfSize(2)
+                const again = await queryAgain(slots)
+                expect(again.foundWith).toBe('shadow$$')
+                expect(again).toHaveLength(2)
+            })
+        })
     })
 })

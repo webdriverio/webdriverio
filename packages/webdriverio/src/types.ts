@@ -635,7 +635,7 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
 
 }
 interface MultiRemoteElementBase {
-    selector: string
+    selector: Selector
     /**
      * Multi-remote browser instance names
      */

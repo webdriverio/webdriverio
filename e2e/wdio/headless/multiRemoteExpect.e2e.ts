@@ -159,18 +159,6 @@ describe('multi remote expect', () => {
                 .rejects.toThrow(/multi-remote<browserA, browserB, browserC>[\s\S]*browserB/)
         })
 
-        it('should re-fetch the elements of every instance between retries', async () => {
-            await browserB.execute(() => {
-                setTimeout(() => {
-                    const link = document.createElement('a')
-                    link.textContent = '3'
-                    document.querySelector('header')!.prepend(link)
-                }, 500)
-            })
-
-            await expect(multiRemoteBrowser.$$('header a')).toHaveText(['3', '2', '1'])
-        })
-
         it('should assert an element with one expected value per instance', async () => {
             await Promise.all(Object.entries(LOCALES).map(([instance, locale]) => (
                 multiRemoteBrowser.getInstance(instance).execute((locale, width) => {
