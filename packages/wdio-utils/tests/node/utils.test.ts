@@ -646,7 +646,6 @@ describe('driver utils', () => {
                 } as never)
                 vi.mocked(computeExecutablePath).mockReturnValue(executablePath)
                 vi.mocked(fsp.rm).mockClear()
-                logMock.info.mockClear()
                 logMock.warn.mockClear()
             })
 
@@ -675,7 +674,7 @@ describe('driver utils', () => {
                 await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
                 expect(fsp.rm).toHaveBeenCalledTimes(1)
-                expect(fsp.rm).toHaveBeenCalledWith(installationDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 500 })
+                expect(fsp.rm).toHaveBeenCalledWith(installationDir, { recursive: true, force: true })
                 expect(logMock.warn).toHaveBeenCalledWith(`Removing the incomplete firefox vstable_157.0 install at ${installationDir} before the retry`)
                 expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
             })
@@ -687,7 +686,6 @@ describe('driver utils', () => {
 
                 await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
-                expect(logMock.warn).toHaveBeenCalledWith(`Couldn't remove ${installationDir}, the retry can fail: EPERM: operation not permitted`)
                 expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
             })
 
@@ -699,7 +697,6 @@ describe('driver utils', () => {
 
                 await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
-                expect(logMock.warn).toHaveBeenCalledWith('Couldn\'t clean up before the retry: .metadata is not an object')
                 expect(fsp.rm).not.toHaveBeenCalled()
                 expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
             })
@@ -717,7 +714,7 @@ describe('driver utils', () => {
 
                 expect(fsp.access).toHaveBeenCalledWith(executablePath)
                 expect(fsp.rm).not.toHaveBeenCalled()
-                expect(logMock.info).toHaveBeenCalledWith(`Keeping firefox vstable_157.0 at ${installationDir}: the executable is there`)
+                expect(logMock.warn).not.toHaveBeenCalled()
                 expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
             })
         })

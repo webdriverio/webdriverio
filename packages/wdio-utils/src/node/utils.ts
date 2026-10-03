@@ -231,26 +231,19 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
             if (platform) {
                 const cache = new Cache(args.cacheDir)
                 const executablePath = cache.computeExecutablePath({ browser: args.browser, platform, buildId: args.buildId })
-                const buildDir = cache.installationDir(args.browser, platform, args.buildId)
-                if (await fsp.access(executablePath).then(() => true, () => false)) {
-                    log.info(`Keeping ${args.browser} v${args.buildId} at ${buildDir}: the executable is there`)
-                } else {
+                if (!await fsp.access(executablePath).then(() => true, () => false)) {
+                    const buildDir = cache.installationDir(args.browser, platform, args.buildId)
                     log.warn(`Removing the incomplete ${args.browser} v${args.buildId} install at ${buildDir} before the retry`)
-                    /**
-                     * on Windows a file of the build can still be locked, e.g. while it is
-                     * scanned, so retry the removal the way `@puppeteer/browsers` uninstalls
-                     */
-                    await fsp.rm(buildDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 500 }).catch((err) => {
-                        log.warn(`Couldn't remove ${buildDir}, the retry can fail: ${describeRejection(err)}`)
-                    })
+                    await fsp.rm(buildDir, { recursive: true, force: true }).catch(() => {})
                 }
+            } else {
+                log.warn(`Couldn't clean up ${args.browser} v${args.buildId} before the retry: the platform is not supported`)
             }
-        } catch (err) {
+        } catch {
             /**
              * If cleanup fails, continue with retry anyway — it may still succeed
              * if the partial directory issue resolves itself.
              */
-            log.warn(`Couldn't clean up before the retry: ${describeRejection(err)}`)
         }
         return _install(args, true)
     })
