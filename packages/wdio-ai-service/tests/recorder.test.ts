@@ -134,6 +134,26 @@ describe('EffectRecorder on a BiDi session', () => {
         expect(browser.scriptEvaluate).toHaveBeenCalledWith(expect.objectContaining({ target: { context: 'page' }, awaitPromise: true }))
     })
 
+    it('settles when the page cannot run the round trip because a dialog is open', async () => {
+        const { browser, emit } = bidiBrowser()
+        const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())
+
+        await recorder.start()
+        browser.scriptEvaluate.mockClear()
+        emit('browsingContext.userPromptOpened', { context: 'page', type: 'alert' })
+        expect(await recorder.settle({ quiet: 10 })).toEqual({ prompt: 'alert' })
+        expect(browser.scriptEvaluate).not.toHaveBeenCalled()
+
+        /**
+         * a dialog that opens during the round trip holds the script forever
+         */
+        await recorder.start()
+        browser.scriptEvaluate.mockImplementationOnce(() => new Promise(() => {}))
+        const started = Date.now()
+        await recorder.settle({ quiet: 10 })
+        expect(Date.now() - started).toBeLessThan(1000)
+    })
+
     it('waits for the requests a step started before it returns', async () => {
         const { browser, emit, request } = bidiBrowser()
         const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())

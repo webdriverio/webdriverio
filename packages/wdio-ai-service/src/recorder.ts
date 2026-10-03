@@ -12,6 +12,10 @@ export { DEFAULT_SETTLE_TIMEOUT }
 export const EFFECTS_CHANNEL = 'wdio-ai-effects'
 
 export const DEFAULT_QUIET = 100
+/**
+ * longest wait for the page to render a frame after an action
+ */
+const FLUSH_TIMEOUT = 200
 const POLL = 25
 
 const EVENTS = [
@@ -402,18 +406,27 @@ export class EffectRecorder {
      * events otherwise arrived after a short quiet time had already passed.
      */
     async #flush () {
-        if (!this.#page) {
+        /**
+         * a dialog the step opened blocks scripts in the page until it is
+         * handled, the step settles without the round trip
+         */
+        if (!this.#page || this.#prompt) {
             return
         }
-        try {
-            await this.browser.scriptEvaluate({
-                expression: 'new Promise((resolve) => { requestAnimationFrame(() => setTimeout(resolve, 0)); setTimeout(resolve, 100) })',
-                awaitPromise: true,
-                target: { context: this.#page }
-            })
-        } catch {
+        const roundTrip = this.browser.scriptEvaluate({
+            expression: 'new Promise((resolve) => { requestAnimationFrame(() => setTimeout(resolve, 0)); setTimeout(resolve, 100) })',
+            awaitPromise: true,
+            target: { context: this.#page }
+        }).catch(() => {
             // the page navigated away or is gone, its events are already in
-        }
+        })
+        /**
+         * never wait for the page longer than this: a dialog that opens
+         * during the round trip would hold the script until it is handled
+         */
+        let timer: ReturnType<typeof setTimeout> | undefined
+        await Promise.race([roundTrip, new Promise((resolve) => { timer = setTimeout(resolve, FLUSH_TIMEOUT) })])
+        clearTimeout(timer)
     }
 
     /**
