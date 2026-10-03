@@ -4,7 +4,12 @@ import type { Package as normalizePackage } from 'normalize-package-data'
 export type NormalizedPackageJson = PackageJson & normalizePackage
 export type PackageJson = typeFestPackageJson
 
-export interface ProgramOpts {
+/**
+ * Wizard answers passed as flags, see `ANSWER_FLAGS`
+ */
+export type AnswerFlagArguments = Record<string, string | string[] | boolean | number | undefined>
+
+export interface ProgramOpts extends AnswerFlagArguments {
     info: boolean
     dev: boolean
     yes: boolean
@@ -92,7 +97,7 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     wdioConfigPath: string
 }
 
-export interface ConfigCommandArguments {
+export interface ConfigCommandArguments extends AnswerFlagArguments {
     yarn: boolean
     yes: boolean
     npmTag: string

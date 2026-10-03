@@ -7,6 +7,7 @@ import {
     parseAnswers,
     runConfigCommand,
 } from './utils.js'
+import { ANSWER_FLAGS_HELP, getAnswerFlagYargsOptions, AnswerFlagError, parseAnswerFlags } from '../answerFlags.js'
 import type { ConfigCommandArguments } from '../types.js'
 
 let hasYarnLock = false
@@ -42,14 +43,28 @@ export const cmdArgs = {
 
 export const builder = (yargs: Argv) => {
     return yargs
-        .options(cmdArgs)
-        .epilogue(CLI_EPILOGUE)
+        .options({ ...cmdArgs, ...getAnswerFlagYargsOptions() })
+        .example('$0 config', 'Answer every question in the wizard')
+        .example('$0 config --yes', 'Use the defaults: Mocha, Chrome and page objects')
+        .example('$0 config --yes --framework cucumber --no-typescript', 'Use the defaults, but Cucumber in JavaScript')
+        .example('$0 config --yes --environment mobile --mobile-environment android', 'Android app tests with the Appium service')
+        .example('$0 config --runner component --preset react --framework mocha', 'Answer some questions, the wizard asks the rest')
+        .epilogue(`${ANSWER_FLAGS_HELP}\n\n${CLI_EPILOGUE}`)
         .help()
 }
 
 export async function handler(argv: ConfigCommandArguments, runConfigCmd = runConfigCommand) {
-    const parsedAnswers = await parseAnswers(argv.yes)
-    await runConfigCmd(parsedAnswers, argv.npmTag)
+    let parsedAnswers: Awaited<ReturnType<typeof parseAnswers>>
+    try {
+        parsedAnswers = await parseAnswers(argv.yes, parseAnswerFlags(argv))
+    } catch (err) {
+        if (!(err instanceof AnswerFlagError)) {
+            throw err
+        }
+        console.error(`Error: ${err.message}\nRun "wdio config --help" for all flags.`)
+        return process.exit(2)
+    }
+    await runConfigCmd(parsedAnswers, argv.npmTag, argv.yes)
     return {
         success: true,
         parsedAnswers,

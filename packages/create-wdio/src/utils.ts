@@ -20,6 +20,7 @@ import { COMMUNITY_PACKAGES_WITH_TS_SUPPORT, DEPENDENCIES_INSTALLATION_MESSAGE, 
 import type { ParsedAnswers, ProjectProps, Questionnair, SupportedPackage } from './types.js'
 import chalk from 'chalk'
 import { getInstallCommand, installPackages } from './install.js'
+import { assertAnswerFlagsApply } from './answerFlags.js'
 
 const NPM_COMMAND = /^win/.test(process.platform) ? 'npm.cmd' : 'npm'
 
@@ -35,12 +36,21 @@ const TEMPLATE_ROOT_DIR = process.env.WDIO_UNIT_TESTS
     ? path.join(__dirname, 'templates', 'exampleFiles')
     : path.join(__dirname, '..', 'templates', 'exampleFiles')
 
-export function runProgram(command: string, args: string[], options: SpawnOptions) {
+/**
+ * @param passUsageError  exit with the child's code 2 (a usage error the child
+ *                        already explained, e.g. `wdio config` rejecting a flag)
+ *                        instead of reporting a generic failure
+ */
+export function runProgram(command: string, args: string[], options: SpawnOptions, passUsageError = false) {
     const child = spawn(command, args, { stdio: 'inherit', ...options })
     return new Promise<void>((resolve, rejects) => {
         let error: Error
         child.on('error', (e) => (error = e))
         child.on('close', (code, signal) => {
+            if (passUsageError && code === 2) {
+                process.exit(2)
+                return rejects(`Usage error calling: ${command} ${args.join(' ')}`)
+            }
             if (code !== 0) {
                 const errorMessage = (error && error.message) || `Error calling: ${command} ${args.join(' ')}`
                 printAndExit(errorMessage, signal)
@@ -77,52 +87,79 @@ export function convertPackageHashToObject(pkg: string, hash = '$--$'): Supporte
     return { package: p, short, purpose }
 }
 
-export async function getAnswers(yes: boolean): Promise<Questionnair> {
-    if (yes) {
-        const ignoredQuestions = ['e2eEnvironment']
-        const filteredQuestionaire = QUESTIONNAIRE.filter((question) => !ignoredQuestions.includes(question.name))
-        const answers = {} as Questionnair
-        for (const question of filteredQuestionaire) {
-            /**
-             * set nothing if question doesn't apply
-             */
-            if (question.when && !question.when(answers)) {
-                continue
-            }
+/**
+ * @param yes            fill in defaults instead of prompting
+ * @param flagAnswers    answers given as command line flags, these questions are not asked
+ */
+export async function getAnswers(yes: boolean, flagAnswers: Partial<Questionnair> = {}): Promise<Questionnair> {
+    const answers = yes
+        ? await getDefaultAnswers(flagAnswers)
+        : await promptAnswers(flagAnswers)
+    assertAnswerFlagsApply(flagAnswers, answers)
+    return answers
+}
 
-            Object.assign(answers, {
-                [question.name]: typeof question.default !== 'undefined'
-                    /**
-                     * set default value if existing
-                     */
-                    ? typeof question.default === 'function'
-                        ? await question.default(answers)
-                        : question.default
-                    : question.choices && question.choices.length
-                        /**
-                         * pick first choice, select value if it exists
-                         */
-                        ? typeof question.choices === 'function'
-                            ? (question.choices(answers)[0] as unknown as { value: unknown }).value
-                                ? (question.choices(answers)[0] as unknown as { value: unknown }).value
-                                : question.choices(answers)[0]
-                            : (question.choices[0] as { value: unknown }).value
-                                ? question.type === 'checkbox'
-                                    ? [(question.choices[0] as { value: unknown }).value]
-                                    : (question.choices[0] as { value: unknown }).value
-                                : question.choices[0]
-                        : {}
-            })
-        }
+async function getDefaultAnswers(flagAnswers: Partial<Questionnair>): Promise<Questionnair> {
+    const ignoredQuestions = ['e2eEnvironment']
+    const filteredQuestionaire = QUESTIONNAIRE.filter((question) => !ignoredQuestions.includes(question.name))
+    const answers = { ...flagAnswers } as Questionnair
+    for (const question of filteredQuestionaire) {
         /**
-         * some questions have async defaults
+         * keep answers given as flags
          */
-        answers.isUsingTypeScript = await answers.isUsingTypeScript
-        answers.specs = await answers.specs
-        answers.pages = await answers.pages
-        return answers
-    }
+        if (Object.prototype.hasOwnProperty.call(flagAnswers, question.name)) {
+            continue
+        }
 
+        /**
+         * set nothing if question doesn't apply
+         */
+        if (question.when && !question.when(answers)) {
+            continue
+        }
+
+        /**
+         * leave a free text question without a default unanswered, so the
+         * templates use their own fallback (e.g. the default Tauri binary)
+         */
+        if (typeof question.default === 'undefined' && !question.choices) {
+            continue
+        }
+
+        Object.assign(answers, {
+            [question.name]: typeof question.default !== 'undefined'
+                /**
+                 * set default value if existing
+                 */
+                ? typeof question.default === 'function'
+                    ? await question.default(answers)
+                    : question.default
+                : question.choices && question.choices.length
+                    /**
+                     * pick first choice, select value if it exists
+                     */
+                    ? typeof question.choices === 'function'
+                        ? (question.choices(answers)[0] as unknown as { value: unknown }).value
+                            ? (question.choices(answers)[0] as unknown as { value: unknown }).value
+                            : question.choices(answers)[0]
+                        : (question.choices[0] as { value: unknown }).value
+                            ? question.type === 'checkbox'
+                                ? [(question.choices[0] as { value: unknown }).value]
+                                : (question.choices[0] as { value: unknown }).value
+                            : question.choices[0]
+                    : {}
+        })
+    }
+    /**
+     * some questions have async defaults
+     */
+    answers.isUsingTypeScript = await answers.isUsingTypeScript
+    answers.specs = await answers.specs
+    answers.pages = await answers.pages
+    return answers
+}
+
+async function promptAnswers(flagAnswers: Partial<Questionnair>): Promise<Questionnair> {
     const projectProps = await getProjectProps(process.cwd())
     const isProjectExisting = Boolean(projectProps)
     const nameInPackageJsonIsNotCreateWdioDefault = projectProps?.packageJson?.name !== 'my-new-project'
@@ -159,7 +196,7 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
     }
 
     // @ts-ignore
-    return inquirer.prompt(QUESTIONNAIRE, answers)
+    return inquirer.prompt(QUESTIONNAIRE, { ...answers, ...flagAnswers })
 }
 
 /**
@@ -652,9 +689,23 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
 }
 /* c8 ignore stop */
 
-export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
+/**
+ * @param yes  `--yes` was passed, so don't prompt
+ */
+export async function runAppiumInstaller(parsedAnswers: ParsedAnswers, yes = false) {
     if (parsedAnswers.e2eEnvironment !== 'mobile') {
         return
+    }
+
+    /**
+     * appium-installer is interactive, so skip it with `--yes` and when a
+     * coding agent or a CI job runs the wizard without a terminal
+     */
+    if (yes || !process.stdin.isTTY) {
+        return console.log(
+            'Skipping the interactive Appium installer. ' +
+            'Run `npx appium-installer` later, or see https://appium.io/docs/en/latest/quickstart/'
+        )
     }
 
     const answer = await inquirer.prompt({

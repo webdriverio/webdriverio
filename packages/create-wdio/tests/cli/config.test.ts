@@ -56,10 +56,15 @@ test('builder', () => {
     const yargs = {} as any
     yargs.options = vi.fn().mockReturnValue(yargs)
     yargs.epilogue = vi.fn().mockReturnValue(yargs)
+    yargs.example = vi.fn().mockReturnValue(yargs)
     yargs.help = vi.fn().mockReturnValue(yargs)
     builder(yargs)
     expect(yargs.options).toBeCalledTimes(1)
-    expect(yargs.options).toBeCalledWith(expect.any(Object))
+    expect(yargs.options).toBeCalledWith(expect.objectContaining({
+        yes: expect.any(Object),
+        framework: expect.objectContaining({ group: 'Wizard answers:' }),
+        'npm-install': expect.objectContaining({ type: 'boolean' })
+    }))
     expect(yargs.epilogue).toBeCalledTimes(1)
     expect(yargs.help).toBeCalledTimes(1)
 })
@@ -81,4 +86,34 @@ test.skipIf(isUsingWindows)('handler', async () => {
     const runConfigCmd = vi.fn()
     expect(await handler({} as any, runConfigCmd)).toMatchSnapshot()
     expect(runConfigCmd).toBeCalledTimes(1)
+})
+
+test('handler passes flag answers to the wizard', async () => {
+    vi.mocked(getAnswers).mockResolvedValue({
+        runner: '@wdio/local-runner$--$local',
+        framework: '@wdio/jasmine-framework$--$jasmine',
+        isUsingTypeScript: false,
+        reporters: [],
+        plugins: [],
+        services: []
+    } as any)
+    const runConfigCmd = vi.fn()
+    await handler({ yes: true, npmTag: 'latest', framework: 'jasmine', typescript: false } as any, runConfigCmd)
+    expect(getAnswers).toBeCalledWith(true, {
+        framework: '@wdio/jasmine-framework$--$jasmine',
+        isUsingTypeScript: false
+    })
+    expect(runConfigCmd).toBeCalledWith(expect.any(Object), 'latest', true)
+})
+
+test('handler exits with code 2 on an invalid flag', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const exit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any)
+    const runConfigCmd = vi.fn()
+    await handler({ framework: 'cucumbr' } as any, runConfigCmd)
+    expect(consoleError).toBeCalledWith(expect.stringContaining('Invalid value "cucumbr" for --framework'))
+    expect(exit).toBeCalledWith(2)
+    expect(runConfigCmd).toBeCalledTimes(0)
+    consoleError.mockRestore()
+    exit.mockRestore()
 })

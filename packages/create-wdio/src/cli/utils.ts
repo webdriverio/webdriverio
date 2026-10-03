@@ -2,11 +2,11 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import inquirer from 'inquirer'
 import { buildTauriBanner, buildDioxusBanner, configHelperSuccessMessage, CONFIG_HELPER_SERENITY_BANNER, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_INTRO, getResolvedPurpose, isNuxtProject, SUPPORTED_PACKAGES } from '../constants.js'
-import type { ParsedAnswers } from '../types.js'
+import type { ParsedAnswers, Questionnair } from '../types.js'
 import { createPackageJSON, setupTypeScript, npmInstall, createWDIOConfig, createWDIOScript, runAppiumInstaller, convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps, getProjectRoot, getSerenityPackages } from '../utils.js'
 import { writeAgentSupport } from './agent.js'
 
-export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: string) {
+export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: string, yes = false) {
     console.log('\n')
 
     await createPackageJSON(parsedAnswers)
@@ -41,7 +41,7 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: str
         }),
     )
 
-    await runAppiumInstaller(parsedAnswers)
+    await runAppiumInstaller(parsedAnswers, yes)
     if (parsedAnswers.rawAnswers?.agentSupport) {
         writeAgentSupport(parsedAnswers.projectRootDir)
     }
@@ -119,9 +119,9 @@ export function resolveTsConfigFilePath({
         : candidate
 }
 
-export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers> {
+export const parseAnswers = async function (yes: boolean, flagAnswers: Partial<Questionnair> = {}): Promise<ParsedAnswers> {
     console.log(CONFIG_HELPER_INTRO)
-    const answers = await getAnswers(yes)
+    const answers = await getAnswers(yes, flagAnswers)
     const frameworkPackage = convertPackageHashToObject(answers.framework)
     const runnerPackage = convertPackageHashToObject(answers.runner || SUPPORTED_PACKAGES.runner[0].value)
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))

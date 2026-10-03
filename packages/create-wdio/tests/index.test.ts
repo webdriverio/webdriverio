@@ -89,7 +89,8 @@ test('createWebdriverIO with Yarn', async () => {
     expect(runProgram).toBeCalledWith(
         'yarn',
         ['exec', 'wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -107,7 +108,8 @@ test('createWebdriverIO with NPM', async () => {
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -125,7 +127,8 @@ test('createWebdriverIO with invalid agent should run npm commands', async () =>
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -143,7 +146,8 @@ test('createWebdriverIO with no npm user agent should run npm commands', async (
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -161,7 +165,8 @@ test('createWebdriverIO with pnpm', async () => {
     expect(runProgram).toBeCalledWith(
         'pnpm',
         ['exec', 'wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -179,7 +184,8 @@ test('createWebdriverIO with bun', async () => {
     expect(runProgram).toBeCalledWith(
         'bunx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -197,7 +203,8 @@ test('createWebdriverIO with dev true installs @wdio/cli as a devDependency', as
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -211,7 +218,8 @@ test('does not install the @wdio/cli package when the @wdio/cli package is alrea
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(1)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -230,7 +238,8 @@ test('does not install the @wdio/cli package when the @wdio/cli package is alrea
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(1)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -248,11 +257,40 @@ test('runs the wdio config command with --yes when the yes option is set to true
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--yes', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
     expect(fs.writeFile).toBeCalledTimes(0)
+})
+
+test('forwards wizard answers to the wdio config command', async () => {
+    vi.stubEnv('npm_config_user_agent', 'npm/10.2.4 node/v20.11.0 darwin arm64 workspaces/false')
+    await createWebdriverIO({
+        npmTag: 'latest',
+        yes: true,
+        framework: 'cucumber',
+        typescript: false,
+        reporters: 'spec,junit'
+    } as ProgramOpts)
+    expect(runProgram).toBeCalledWith(
+        'npx',
+        ['wdio', 'config', '--yes', '--npm-tag', 'latest', '--framework', 'cucumber', '--no-typescript', '--reporters', 'spec,junit'],
+        expect.any(Object),
+        true
+    )
+})
+
+test('exits on an invalid wizard answer before installing anything', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const exit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any)
+    await createWebdriverIO({ npmTag: 'latest', framework: 'cucumbr' } as ProgramOpts)
+    expect(consoleError).toBeCalledWith(expect.stringContaining('Invalid value "cucumbr" for --framework'))
+    expect(exit).toBeCalledWith(2)
+    expect(runProgram).toBeCalledTimes(0)
+    consoleError.mockRestore()
+    exit.mockRestore()
 })
 
 test('does create a package.json to be used by the wdio config command when one does not exist', async () => {
@@ -267,7 +305,8 @@ test('does create a package.json to be used by the wdio config command when one 
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'next'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(1)
@@ -289,7 +328,8 @@ test('installs the next version when the npmTag option is set to "next"', async 
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'next'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)

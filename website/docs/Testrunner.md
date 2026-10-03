@@ -77,12 +77,22 @@ Example:
 wdio config
 ```
 
+Pass `--yes` to use the defaults without prompting. Every wizard question also has a flag, so you can answer some or all of them on the command line:
+
+```sh
+wdio config --yes --framework cucumber --no-typescript --reporters spec,junit
+```
+
 Options:
 
 ```
---help            prints WebdriverIO help menu                                [boolean]
---npm             Wether to install the packages using NPM instead of yarn    [boolean]
+--help            Show help, including a flag for every wizard question      [boolean]
+-y, --yes         Fill in all config defaults without prompting               [boolean]
+-t, --npm-tag     NPM tag to use for WebdriverIO related packages             [string]
+--yarn            Install packages via Yarn package manager                   [boolean]
 ```
+
+`wdio config --help` lists the wizard flags and the values they accept. See [Answer the wizard with flags](/docs/gettingstarted#answer-the-wizard-with-flags) for examples.
 
 ### `wdio run`
 

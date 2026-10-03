@@ -89,6 +89,19 @@ test('runProgram', async () => {
 
     expect(vi.mocked(console.log).mock.calls[1][0]).toMatch(/spawn foobarloo (ENOENT|EACCES)/)
     expect(process.exit).toBeCalledTimes(2)
+    expect(process.exit).toHaveBeenLastCalledWith(1)
+})
+
+test('runProgram passes a usage error exit code on when asked to', async () => {
+    await runProgram('node', ['-e', 'process.exit(2)'], {}, true).catch((e) => e)
+    expect(process.exit).toBeCalledWith(2)
+    expect(console.log).not.toBeCalledWith(expect.stringContaining('Ups, something went wrong'))
+})
+
+test('runProgram reports exit code 2 as a failure by default', async () => {
+    await runProgram('node', ['-e', 'process.exit(2)'], {}).catch((e) => e)
+    expect(process.exit).toBeCalledWith(1)
+    expect(console.log).toBeCalledWith(expect.stringContaining('Ups, something went wrong'))
 })
 
 test('getPackageVersion prefixes the version from package.json', async () => {
@@ -499,6 +512,61 @@ test('getAnswers', async () => {
     expect(vi.mocked(inquirer.prompt).mock.calls[0][0][0].when).toBe(true)
 })
 
+test('getAnswers with --yes keeps answers given as flags', async () => {
+    const answers = await getAnswers(true, {
+        framework: '@wdio/cucumber-framework$--$cucumber',
+        isUsingTypeScript: false,
+        reporters: ['@wdio/dot-reporter$--$dot'],
+        browserEnvironment: ['firefox'],
+        e2eEnvironment: 'web'
+    })
+    expect(answers.framework).toBe('@wdio/cucumber-framework$--$cucumber')
+    expect(answers.isUsingTypeScript).toBe(false)
+    expect(answers.reporters).toEqual(['@wdio/dot-reporter$--$dot'])
+    expect(answers.browserEnvironment).toEqual(['firefox'])
+    // defaults still apply to the questions that weren't answered
+    expect(answers.runner).toBe('@wdio/local-runner$--$local$--$e2e')
+    expect(answers.stepDefinitions).toContain('step-definitions')
+    expect(answers.usePageObjects).toBe(true)
+})
+
+test('getAnswers with --yes leaves free text questions without a default unanswered', async () => {
+    for (const [desktopFramework, pathAnswer] of [
+        ['Tauri (https://tauri.app/)', 'tauriAppBinaryPath'],
+        ['Dioxus (https://dioxuslabs.com/)', 'dioxusAppBinaryPath']
+    ] as const) {
+        const answers = await getAnswers(true, {
+            runner: '@wdio/local-runner$--$local$--$desktop',
+            desktopFramework: desktopFramework as Questionnair['desktopFramework']
+        })
+        expect(answers).not.toHaveProperty(pathAnswer)
+    }
+    const answers = await getAnswers(true, { backend: 'In the cloud using Testingbot or LambdaTest or a different service' as Questionnair['backend'] })
+    expect(answers).not.toHaveProperty('hostname')
+    expect(answers.port).toBe('80')
+})
+
+test('getAnswers with --yes rejects a flag that does not apply', async () => {
+    await expect(getAnswers(true, { preset: '@vitejs/plugin-react$--$react' }))
+        .rejects.toThrow('--preset does not apply to this setup')
+})
+
+test('getAnswers passes flag answers to the wizard', async () => {
+    vi.mocked(inquirer.prompt).mockImplementation((async (_: unknown, answers: object) => ({
+        ...answers,
+        runner: '@wdio/local-runner$--$local$--$e2e',
+        backend: 'On my local machine',
+        reporters: [],
+        plugins: [],
+        services: []
+    })) as any)
+    const answers = await getAnswers(false, { framework: '@wdio/jasmine-framework$--$jasmine' })
+    expect(vi.mocked(inquirer.prompt).mock.calls[1][1]).toEqual(expect.objectContaining({
+        framework: '@wdio/jasmine-framework$--$jasmine'
+    }))
+    expect(answers.framework).toBe('@wdio/jasmine-framework$--$jasmine')
+})
+
 test('getProjectProps', async () => {
     vi.mocked(readPackageUp).mockResolvedValue(undefined)
     expect(await getProjectProps('/foo/bar')).toBe(undefined)
@@ -676,6 +744,8 @@ test('createWDIOConfig', async () => {
 })
 
 test('runAppiumInstaller', async () => {
+    const isTTY = process.stdin.isTTY
+    process.stdin.isTTY = true
     expect(await runAppiumInstaller({ e2eEnvironment: 'web' } as any))
         .toBe(undefined)
     expect(console.log).toBeCalledTimes(0)
@@ -696,6 +766,29 @@ test('runAppiumInstaller', async () => {
     expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toEqual(['npx appium-installer'])
     expect($).toBeCalledTimes(1)
+    process.stdin.isTTY = isTTY
+})
+
+test('runAppiumInstaller skips the installer with --yes', async () => {
+    const isTTY = process.stdin.isTTY
+    process.stdin.isTTY = true
+    expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any, true))
+        .toBe(undefined)
+    expect(inquirer.prompt).toBeCalledTimes(0)
+    expect($).toBeCalledTimes(0)
+    expect(console.log).toBeCalledWith(expect.stringContaining('npx appium-installer'))
+    process.stdin.isTTY = isTTY
+})
+
+test('runAppiumInstaller skips the installer without a terminal', async () => {
+    const isTTY = process.stdin.isTTY
+    process.stdin.isTTY = false
+    expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
+        .toBe(undefined)
+    expect(inquirer.prompt).toBeCalledTimes(0)
+    expect($).toBeCalledTimes(0)
+    expect(console.log).toBeCalledWith(expect.stringContaining('npx appium-installer'))
+    process.stdin.isTTY = isTTY
 })
 afterEach(()=>{
     vi.mocked(inquirer.prompt).mockClear()

@@ -28,3 +28,13 @@ that is a smoke or example run.
   the absence of Testing Library must pass `installTestingLibrary: false`.
 - Declining the missing-config prompt exits the process. Mock `process.exit`
   so that it throws; a non-throwing mock falls through into the wizard.
+
+## Wizard flags
+
+`src/answerFlags.ts` maps a command line flag to every `QUESTIONNAIRE`
+question. `npm init wdio` (commander) and `wdio config` (yargs) both read it,
+and `npm init wdio` forwards the flags to `wdio config`. When you add or
+rename a question or a choice, update its entry and the flag table in
+`website/docs/GettingStarted.md`. A flag for a question whose `when` is false,
+or a value outside its `choices`, is rejected after the answers are collected
+(`assertAnswerFlagsApply`).

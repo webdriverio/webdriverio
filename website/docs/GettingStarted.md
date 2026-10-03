@@ -126,6 +126,53 @@ bun create wdio@latest . --yes
 </TabItem>
 </Tabs>
 
+### Answer the wizard with flags
+
+Every question in the wizard has a command line flag. A flag answers its question and the wizard asks only the rest. Together with `--yes`, the wizard uses the defaults for the rest and never prompts, which is what a coding agent or a CI job needs:
+
+```sh
+# Cucumber in JavaScript, with the spec and JUnit reporters
+npm init wdio@latest . -- --yes --framework cucumber --no-typescript --reporters spec,junit
+
+# Firefox and Edge instead of Chrome
+npm init wdio@latest . -- --yes --browsers firefox,edge
+
+# An Android app with Appium
+npm init wdio@latest . -- --yes --mobile-environment android
+
+# React component tests
+npm init wdio@latest . -- --yes --runner component --preset react
+
+# Write the config, but install the dependencies yourself
+npm init wdio@latest . -- --yes --no-npm-install
+```
+
+With Yarn, pnpm and bun, pass the flags without the `--` separator, e.g. `pnpm create wdio@latest . --yes --framework cucumber`.
+
+The most common flags:
+
+| Flag | Values |
+| --- | --- |
+| `--runner` | `e2e` (default), `component`, `desktop`, `vscode`, `roku` |
+| `--framework` | `mocha` (default), `jasmine`, `cucumber`, `serenity-mocha`, `serenity-jasmine`, `serenity-cucumber` |
+| `--typescript` / `--no-typescript` | TypeScript is the default when the project has a `tsconfig.json` |
+| `--browsers` | Comma-separated list of `chrome` (default), `firefox`, `safari`, `edge` |
+| `--mobile-environment` | `android`, `ios` |
+| `--backend` | `local` (default), `saucelabs`, `browserstack`, `experitest`, `grid`, `other` |
+| `--preset` | `lit`, `vue`, `svelte`, `solid`, `stencil`, `react`, `preact`, `other`, with `--runner component` |
+| `--desktop-framework` | `electron`, `tauri`, `dioxus`, `macos`, with `--runner desktop` |
+| `--reporters`, `--services`, `--plugins` | Comma-separated short names, e.g. `--reporters spec,junit --services visual` |
+| `--agent-support` / `--no-agent-support` | Write the `AGENTS.md` section and the `wdio-session` skill (on by default) |
+| `--npm-install` / `--no-npm-install` | Install the dependencies (on by default) |
+
+`npm init wdio@latest -- --help` lists every flag, the values it accepts and the question it answers. Boolean flags take a `--no-` prefix. The same flags work with `npx wdio config`.
+
+The wizard checks each flag against your setup. An unknown value, a flag for a question it would not ask, or a value it would not offer for your setup stops it with exit code 2 before it writes any file:
+
+```
+Error: --preset does not apply to this setup. UI framework of your components (with --runner component).
+```
+
 ## Install CLI Manually
 
 You can also add the CLI package to your project manually via:

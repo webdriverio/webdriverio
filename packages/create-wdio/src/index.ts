@@ -5,10 +5,13 @@ import { execSync } from 'node:child_process'
 
 import chalk from 'chalk'
 import semver from 'semver'
-import { Command } from 'commander'
+import { Command, Option } from 'commander'
 import { resolve } from 'import-meta-resolve'
 
 import { runProgram, getPackageVersion } from './utils.js'
+import {
+    ANSWER_FLAGS, ANSWER_FLAGS_HELP, AnswerFlagError, answerFlagUsage, answerFlagsToArgs, describeAnswerFlag, parseAnswerFlags
+} from './answerFlags.js'
 import {
     ASCII_ROBOT, PROGRAM_TITLE, UNSUPPORTED_NODE_VERSION, DEFAULT_NPM_TAG,
     INSTALL_COMMAND, DEV_FLAG, SUPPORTED_PACKAGE_MANAGERS, EXECUTER, EXECUTE_COMMAND
@@ -47,8 +50,29 @@ export async function run(operation = createWebdriverIO) {
         .option('-y, --yes', 'will fill in all config defaults without prompting', false)
         .option('-d, --dev', 'Install all packages as into devDependencies', true)
 
+    /**
+     * every wizard question, forwarded to `wdio config`
+     */
+    for (const flag of ANSWER_FLAGS) {
+        program.option(answerFlagUsage(flag), describeAnswerFlag(flag))
+        if (flag.type === 'boolean') {
+            program.addOption(new Option(answerFlagUsage(flag).replace('--', '--no-')).hideHelp())
+        }
+    }
+
+    program
         .allowUnknownOption()
-        .on('--help', () => console.log())
+        .addHelpText('after', [
+            '',
+            ANSWER_FLAGS_HELP,
+            '',
+            'Examples:',
+            '  npm init wdio@latest . -- --yes',
+            '  npm init wdio@latest ./e2e -- --yes --framework cucumber --no-typescript',
+            '  npm init wdio@latest . -- --yes --environment mobile --mobile-environment android',
+            '  npm init wdio@latest . -- --runner component --preset react',
+            ''
+        ].join('\n'))
         .parse(process.argv)
 
     return operation(program.opts())
@@ -71,6 +95,19 @@ function detectPackageManager() {
 }
 
 export async function createWebdriverIO(opts: ProgramOpts) {
+    /**
+     * fail on a bad flag before installing anything
+     */
+    try {
+        parseAnswerFlags(opts)
+    } catch (err) {
+        if (!(err instanceof AnswerFlagError)) {
+            throw err
+        }
+        console.error(`Error: ${err.message}\nRun "npm init wdio -- --help" for all flags.`)
+        return process.exit(2)
+    }
+
     const npmTag = opts.npmTag.startsWith('@') ? opts.npmTag : `@${opts.npmTag}`
     const root = path.resolve(process.cwd(), projectDir || '')
 
@@ -105,8 +142,9 @@ export async function createWebdriverIO(opts: ProgramOpts) {
         WDIO_COMMAND,
         'config',
         ...(opts.yes ? ['--yes'] : []),
-        ...(opts.npmTag ? ['--npm-tag', opts.npmTag] : [])
-    ].filter(i => !!i), { cwd: root })
+        ...(opts.npmTag ? ['--npm-tag', opts.npmTag] : []),
+        ...answerFlagsToArgs(opts)
+    ].filter(i => !!i), { cwd: root }, true)
 }
 
 async function isCLIInstalled(path: string) {
