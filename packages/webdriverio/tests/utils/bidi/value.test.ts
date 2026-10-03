@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ELEMENT_KEY } from 'webdriver'
+import { ELEMENT_KEY, SHADOW_ELEMENT_KEY } from 'webdriver'
 import stringify from 'safe-stable-stringify'
 
 import { deserialize } from '../../../src/utils/bidi/index.js'
@@ -219,6 +219,37 @@ describe('LocalValue', () => {
         expect(deserialize({ type: 'nodelist', value: nodes } as any)).toEqual(references)
         expect(deserialize({ type: 'htmlcollection', value: nodes } as any)).toEqual(references)
         expect(deserialize({ type: 'nodelist', value: [] } as any)).toEqual([])
+    })
+
+    it('should deserialize a node by its node type, as WebDriver Classic does', () => {
+        const comment = { nodeType: 8, childNodeCount: 0, nodeValue: ' a comment ' }
+        const text = { nodeType: 3, childNodeCount: 0, nodeValue: ' text ' }
+        const nodes = [
+            { type: 'node', sharedId: 'f.1.d.1.e.1', value: comment },
+            { type: 'node', sharedId: 'f.1.d.1.e.2', value: { localName: 'li', nodeType: 1, childNodeCount: 1 } },
+            { type: 'node', sharedId: 'f.1.d.1.e.3', value: text },
+            { type: 'node', sharedId: 'f.1.d.1.e.4', value: { localName: 'li', nodeType: 1, childNodeCount: 1 } }
+        ]
+        const expected = [comment, { [ELEMENT_KEY]: 'f.1.d.1.e.2' }, text, { [ELEMENT_KEY]: 'f.1.d.1.e.4' }]
+
+        expect(deserialize({ type: 'nodelist', value: nodes } as any)).toEqual(expected)
+        expect(deserialize({ type: 'array', value: nodes } as any)).toEqual(expected)
+        expect(deserialize(nodes[2] as any)).toEqual(text)
+        expect(deserialize(nodes[0] as any)).toEqual(comment)
+
+        expect(deserialize({ type: 'node', sharedId: 'f.1.d.1.e.5', value: { nodeType: 9, childNodeCount: 2 } }))
+            .toEqual({ [ELEMENT_KEY]: 'f.1.d.1.e.5' })
+        expect(deserialize({ type: 'node', sharedId: 'f.1.d.1.e.6', value: { nodeType: 11, childNodeCount: 1, mode: 'open' } }))
+            .toEqual({ [SHADOW_ELEMENT_KEY]: 'f.1.d.1.e.6' })
+        expect(deserialize({ type: 'node', sharedId: 'f.1.d.1.e.7', value: { nodeType: 11, childNodeCount: 1 } }))
+            .toEqual({ nodeType: 11, childNodeCount: 1 })
+        expect(deserialize({ type: 'node', sharedId: 'f.1.d.1.e.8' }))
+            .toEqual({ [ELEMENT_KEY]: 'f.1.d.1.e.8' })
+    })
+
+    it('should pass a shadow root reference as a shared id', () => {
+        expect(LocalValue.getArgument({ [SHADOW_ELEMENT_KEY]: 'f.1.d.1.e.6' }).asMap())
+            .toEqual({ sharedId: 'f.1.d.1.e.6' })
     })
 
     it('should resolve references', () => {

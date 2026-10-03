@@ -1,4 +1,4 @@
-import { ELEMENT_KEY, type remote, type local } from 'webdriver'
+import { ELEMENT_KEY, SHADOW_ELEMENT_KEY, type remote, type local } from 'webdriver'
 
 import { EvaluateResultType, NonPrimitiveType, PrimitiveType, RemoteType } from './constants.js'
 import { WebdriverBidiExeception } from './error.js'
@@ -220,10 +220,39 @@ function deserializeValue(result: remote.ScriptLocalValue & { value?: unknown })
         return obj
     }
     if (type === RemoteType.Node) {
-        return { [ELEMENT_KEY]: (result as { sharedId: string }).sharedId }
+        return deserializeNode(result as unknown as remote.ScriptNodeRemoteValue)
     }
     if (type === RemoteType.Error) {
         return new Error('<unserializable error>')
     }
     return value
+}
+
+const ELEMENT_NODE = 1
+const DOCUMENT_NODE = 9
+const DOCUMENT_FRAGMENT_NODE = 11
+
+/**
+ * Turn a BiDi node into the value WebDriver Classic returns for it: an element
+ * (or the document) becomes an element reference, a shadow root becomes a shadow
+ * root reference and any other node (e.g. a text or comment node) is not an
+ * element, so it is returned as a plain object of the node data BiDi sends.
+ */
+function deserializeNode (node: remote.ScriptNodeRemoteValue) {
+    const props = node.value
+    /**
+     * the node data is optional in BiDi, without it we can't tell the
+     * node type apart, so keep treating it as an element
+     */
+    if (!props || props.nodeType === ELEMENT_NODE || props.nodeType === DOCUMENT_NODE) {
+        return { [ELEMENT_KEY]: node.sharedId as string }
+    }
+    /**
+     * only a shadow root has a `mode`, other document fragments
+     * (e.g. `template.content`) don't
+     */
+    if (props.nodeType === DOCUMENT_FRAGMENT_NODE && props.mode) {
+        return { [SHADOW_ELEMENT_KEY]: node.sharedId as string }
+    }
+    return { ...props }
 }

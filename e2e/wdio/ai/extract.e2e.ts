@@ -82,6 +82,9 @@ describe('browser.extract()', () => {
          * not see it
          */
         const inbox = await browser.newWindow(`${origin}/inbox`)
+        if (!('contextId' in inbox)) {
+            throw new Error('expected newWindow() to return a browsing context')
+        }
         await expect(inbox.$('#inbox')).toHaveText('loaded')
 
         const skus = await browser.extract('the SKUs of the items in the cart', z.array(z.string()), { model: extractModel })

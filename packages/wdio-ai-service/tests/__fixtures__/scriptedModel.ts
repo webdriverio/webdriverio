@@ -20,8 +20,11 @@ const boundToolsByState = new WeakMap<object, string[]>()
 const prototype = Object.getPrototypeOf(fakeModel()) as FakeModel & { __wdioRecordsTools?: true }
 if (!prototype.__wdioRecordsTools) {
     const bindTools = prototype.bindTools
-    prototype.bindTools = function (this: FakeModel & { _state: object }, tools: { name?: string }[]) {
-        boundToolsByState.set(this._state, tools.map((tool) => tool.name || ''))
+    prototype.bindTools = function (this: FakeModel, tools: { name?: string }[]) {
+        /**
+         * `_state` is private on the model, so it can't be intersected into `this`
+         */
+        boundToolsByState.set((this as unknown as { _state: object })._state, tools.map((tool) => tool.name || ''))
         return bindTools.call(this, tools as Parameters<typeof bindTools>[0])
     } as FakeModel['bindTools']
     prototype.__wdioRecordsTools = true

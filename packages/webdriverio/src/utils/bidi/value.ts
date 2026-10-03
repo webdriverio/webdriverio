@@ -1,4 +1,4 @@
-import { ELEMENT_KEY, type remote } from 'webdriver'
+import { ELEMENT_KEY, SHADOW_ELEMENT_KEY, type remote } from 'webdriver'
 import type { ElementReference } from '@wdio/protocols'
 
 import { PrimitiveType, NonPrimitiveType } from './constants.js'
@@ -256,6 +256,12 @@ export class LocalValue {
                 return LocalValue.createReferenceValue(
                     RemoteReferenceType.SharedId,
                     (argument as ElementReference)[ELEMENT_KEY]
+                )
+            }
+            if (argument && SHADOW_ELEMENT_KEY in (argument as object)) {
+                return LocalValue.createReferenceValue(
+                    RemoteReferenceType.SharedId,
+                    (argument as Record<typeof SHADOW_ELEMENT_KEY, string>)[SHADOW_ELEMENT_KEY]
                 )
             }
 
