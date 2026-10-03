@@ -8,7 +8,8 @@ export const config: WebdriverIO.Config = {
      * specify test files
      */
     specs: [
-        path.join(__dirname, 'headless', 'classic.e2e.ts')
+        path.join(__dirname, 'headless', 'classic.e2e.ts'),
+        path.join(__dirname, 'headless', 'roleSelector.e2e.ts')
     ],
 
     /**

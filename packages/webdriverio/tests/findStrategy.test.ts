@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import { describe, it, expect, vi } from 'vitest'
-import { escapeXPathString, findStrategy } from '../src/utils/findStrategy.js'
+import { escapeXPathString, findStrategy, parseRoleSelector } from '../src/utils/findStrategy.js'
 
 import '../src/node.js'
 
@@ -571,5 +571,48 @@ describe('selector strategies helper', () => {
 
         const mixed = findStrategy('aria/foo"bar\'baz')
         expect(mixed.value).toContain('concat("foo", \'"\', "bar\'baz")')
+    })
+
+    describe('role selector', () => {
+        it('parses a role without a name', () => {
+            expect(findStrategy('role/row')).toEqual({ using: 'role', value: '{"role":"row"}' })
+            expect(findStrategy('role/row', false, true)).toEqual({ using: 'role', value: '{"role":"row"}' })
+        })
+
+        it('parses a role with a name in double or single quotes', () => {
+            expect(parseRoleSelector('role/button[name="Add to cart"]')).toEqual({ role: 'button', name: 'Add to cart' })
+            expect(parseRoleSelector("role/button[name='Add to cart']")).toEqual({ role: 'button', name: 'Add to cart' })
+            expect(findStrategy('role/heading[name="Order summary"]').value).toBe('{"role":"heading","name":"Order summary"}')
+        })
+
+        it('unescapes quotes and backslashes in the name', () => {
+            expect(parseRoleSelector('role/button[name="Say \\"hi\\""]')).toEqual({ role: 'button', name: 'Say "hi"' })
+            expect(parseRoleSelector("role/button[name='It\\'s']")).toEqual({ role: 'button', name: "It's" })
+            expect(parseRoleSelector('role/button[name="a\\\\b"]')).toEqual({ role: 'button', name: 'a\\b' })
+        })
+
+        it('keeps an empty name as an empty name', () => {
+            expect(parseRoleSelector('role/heading[name=""]')).toEqual({ role: 'heading', name: '' })
+        })
+
+        it('sends the ARIA 1.3 role `image` for `img` and accepts both spellings', () => {
+            expect(parseRoleSelector('role/img[name="Logo"]')).toEqual({ role: 'image', name: 'Logo' })
+            expect(parseRoleSelector('role/image[name="Logo"]')).toEqual({ role: 'image', name: 'Logo' })
+        })
+
+        it('rejects a selector that does not follow the syntax', () => {
+            expect(() => findStrategy('role/button[label="x"]')).toThrow('Expected `role/<role>` or `role/<role>[name="<accessible name>"]`')
+            expect(() => findStrategy('role/')).toThrow('InvalidSelectorMatch')
+            expect(() => findStrategy('role/button[name="unterminated]')).toThrow('InvalidSelectorMatch')
+        })
+
+        it('rejects an unknown role and suggests the closest one', () => {
+            expect(() => findStrategy('role/buton')).toThrow('"buton" is not an ARIA role. Did you mean "button"?')
+            expect(() => findStrategy('role/widget')).toThrow('"widget" is not an ARIA role')
+        })
+
+        it('does not change the [role=...] attribute selector', () => {
+            expect(findStrategy('[role=button]').using).toBe('css selector')
+        })
     })
 })

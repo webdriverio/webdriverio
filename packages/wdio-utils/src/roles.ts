@@ -1,4 +1,4 @@
-import { elementRoles } from 'aria-query'
+import { elementRoles, roles } from 'aria-query'
 
 /**
  * attribute test: exact value, `set`, `undefined` (absent) or `>1`
@@ -14,16 +14,16 @@ let cache: RoleRule[] | undefined
 
 /**
  * Implicit ARIA roles of HTML elements from `aria-query`, most specific
- * rules first. Passed to the in-page collector so the page needs no
- * dependency.
+ * rules first. Passed to the in-page snapshot script of `@wdio/session` so
+ * the page needs no dependency.
  */
 export function roleTable (): RoleRule[] {
     if (cache) {
         return cache
     }
     const rules: RoleRule[] = []
-    for (const [element, roles] of elementRoles.entries()) {
-        const role = [...roles][0]
+    for (const [element, elementRoleSet] of elementRoles.entries()) {
+        const role = [...elementRoleSet][0]
         if (!role) {
             continue
         }
@@ -35,4 +35,25 @@ export function roleTable (): RoleRule[] {
     }
     cache = rules.sort((a, b) => b[1].length - a[1].length || b[2].length - a[2].length)
     return cache
+}
+
+/**
+ * ARIA 1.3 renamed `img` to `image`. Browsers report `image`, `aria-query`
+ * still uses `img`. The `role/` selector accepts both and sends `image`.
+ */
+export const ROLE_SYNONYMS: Record<string, string> = {
+    img: 'image'
+}
+
+/**
+ * Every role name `aria-query` knows, abstract roles excluded, plus the
+ * ARIA 1.3 names in `ROLE_SYNONYMS`.
+ */
+export function knownRoles (): string[] {
+    return [
+        ...[...roles.entries()]
+            .filter(([, definition]) => !definition.abstract)
+            .map(([name]) => String(name)),
+        ...Object.values(ROLE_SYNONYMS)
+    ]
 }

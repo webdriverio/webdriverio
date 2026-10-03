@@ -296,6 +296,39 @@ describe('browsing context', () => {
         expect(typeof element.moveTo).toBe('function')
     })
 
+    it('finds an element by role and name inside a held frame', async () => {
+        const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://pay.example' })
+        const scriptCallFunction = vi.spyOn(browser, 'scriptCallFunction')
+            .mockResolvedValue({ type: 'success', result: { type: 'node', sharedId: 'pay-button', value: { nodeType: 1 } } } as never)
+
+        const button = await frame.$('role/button[name="Pay now"]')
+
+        expect(button.elementId).toBe('pay-button')
+        const [params] = scriptCallFunction.mock.calls[0]
+        expect(params.target).toEqual({ context: 'frame-1' })
+        expect(params.functionDeclaration).toContain('inAccessibilityTree')
+        expect(params.arguments).toEqual([
+            { type: 'string', value: 'button' },
+            { type: 'string', value: 'Pay now' },
+            { type: 'number', value: 0 },
+            { type: 'null' }
+        ])
+    })
+
+    it('puts the accessibility script into a held frame when it is missing', async () => {
+        const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://pay.example' })
+        const scriptCallFunction = vi.spyOn(browser, 'scriptCallFunction')
+            .mockResolvedValueOnce({ type: 'success', result: { type: 'string', value: '__wdio_a11y_missing__' } } as never)
+            .mockResolvedValueOnce({ type: 'success', result: { type: 'node', sharedId: 'pay-button', value: { nodeType: 1 } } } as never)
+        const scriptEvaluate = vi.spyOn(browser, 'scriptEvaluate').mockResolvedValue({ type: 'success', result: { type: 'undefined' } } as never)
+
+        const button = await frame.$('role/button[name="Pay now"]')
+
+        expect(button.elementId).toBe('pay-button')
+        expect(scriptEvaluate).toHaveBeenCalledWith(expect.objectContaining({ target: { context: 'frame-1' }, awaitPromise: false }))
+        expect(scriptCallFunction).toHaveBeenCalledTimes(2)
+    })
+
     describe('custom commands', () => {
         type ContextWith<T extends string> = WebdriverIO.BrowsingContext & Record<T, (...args: unknown[]) => Promise<unknown>>
 

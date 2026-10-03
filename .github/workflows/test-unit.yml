@@ -54,5 +54,11 @@ jobs:
         run: pnpm run test:unit:run
         shell: bash
 
+      - name: Unit Tests in the Browser
+        # scripts that run in the page, in Chrome through Vitest browser mode with WebdriverIO
+        if: matrix.os == 'ubuntu-latest'
+        run: pnpm run test:unit:browser
+        shell: bash
+
       - name: Check Git Context
         uses: ./.github/workflows/actions/check-git-context

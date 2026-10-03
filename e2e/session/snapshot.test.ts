@@ -93,7 +93,7 @@ describe('wdio session snapshot', () => {
             expect(shot.code, shot.stderr).toBe(0)
             selectors[id] = shot.json.result.data.selector
         }
-        expect(selectors[refOf(text, 'textbox "Email"')]).toBe('aria/Email')
+        expect(selectors[refOf(text, 'textbox "Email"')]).toBe('role/textbox[name="Email"]')
         const res = await run('exec', '-e', `
             const out = []
             for (const [id, selector] of Object.entries(${JSON.stringify(selectors)})) {

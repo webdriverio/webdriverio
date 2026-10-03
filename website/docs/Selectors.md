@@ -257,9 +257,36 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L114-L115
 ```
 
+## Role Selector
+
+Query elements by their ARIA role and accessible name, the way a screen reader describes them: "the *Add to cart* button". A role plus a name keeps matching when class names, test ids or the DOM structure change.
+
+```js
+await $('role/button[name="Add to cart"]').click()
+await expect($('role/heading[name="Order summary"]')).toBeDisplayed()
+
+// role only
+const rows = await $$('role/row')
+
+// scoped to a parent element
+const dialog = $('role/dialog[name="Checkout"]')
+await dialog.$('role/button[name="Pay now"]').click()
+```
+
+The syntax is `role/<role>` or `role/<role>[name="<accessible name>"]`. Single quotes work too, and a quote inside the name is escaped with a backslash: `role/button[name="Say \"hi\""]`.
+
+- The name has to match the full accessible name.
+- The role has to be an ARIA role. A typo fails with the closest valid role, for example `"buton" is not an ARIA role. Did you mean "button"?`.
+- `img` and its ARIA 1.3 name `image` are the same role.
+- The selector follows the [strict mode](#strict-mode) of `$` like every other selector.
+
+On a [WebDriver BiDi](https://w3c.github.io/webdriver-bidi/) session, WebdriverIO passes role and name to [`browsingContext.locateNodes`](https://w3c.github.io/webdriver-bidi/#command-browsingContext-locateNodes). The browser computes both itself, the same way assistive technology sees the page. Elements inside open shadow roots and inside frames, including frames from another origin, are found. If the browser finds no element, there is no fallback to a heuristic. Note that the browser decides the role: for example, a `<table>` without headers or caption can be a layout table, and its rows then have no `row` role.
+
+On a WebDriver Classic session, and when a browser does not support the role locator, WebdriverIO computes role and accessible name in the page with [`dom-accessibility-api`](https://github.com/eps1lon/dom-accessibility-api), the implementation Testing Library uses. A text field without a label is named by its `placeholder`, as browsers do. The role selector is not available in a native mobile app context. Use an [accessibility id](#accessibility-id) there.
+
 ## ARIA - Role Attribute
 
-For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#docconformance), you can directly specify role of the element like `[role=button]` as selector parameter:
+For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#docconformance), you can directly specify role of the element like `[role=button]` as selector parameter. This selector approximates the role from the element name and attributes. Prefer the [role selector](#role-selector), which uses the role the browser computes and can also match the accessible name:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L13

@@ -2,7 +2,8 @@ import type { ARIARoleDefinitionKey, ARIARoleRelationConcept, ARIARoleRelationCo
 import { roleElements } from 'aria-query'
 
 import { environment } from '../environment.js'
-import { DEEP_SELECTOR, ARIA_SELECTOR } from '../constants.js'
+import { DEEP_SELECTOR, ARIA_SELECTOR, ROLE_SELECTOR } from '../constants.js'
+import { knownRoles, ROLE_SYNONYMS } from '@wdio/utils'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -77,6 +78,10 @@ const defineStrategy = function (selector: SelectorStrategy) {
     // use aria selector
     if (stringSelector.startsWith(ARIA_SELECTOR)) {
         return 'aria'
+    }
+    // use role selector, e.g. role/button[name="Add to cart"]
+    if (stringSelector.startsWith(ROLE_SELECTOR)) {
+        return 'role selector'
     }
     // Recursive element search using the UiAutomator library (Android only)
     if (stringSelector.startsWith('android=')) {
@@ -189,6 +194,55 @@ export function getAriaXPathSelector(label: string) {
     return conditions.join(' | ')
 }
 
+export interface RoleSelector {
+    role: string
+    name?: string
+}
+
+const ROLE_SELECTOR_REGEXP = /^role\/([a-zA-Z]+)(?:\[name=(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')\])?$/
+
+function editDistance (a: string, b: string) {
+    const row = Array.from({ length: b.length + 1 }, (_, i) => i)
+    for (let i = 1; i <= a.length; i++) {
+        let previous = row[0]
+        row[0] = i
+        for (let j = 1; j <= b.length; j++) {
+            const current = row[j]
+            row[j] = Math.min(row[j] + 1, row[j - 1] + 1, previous + (a[i - 1] === b[j - 1] ? 0 : 1))
+            previous = current
+        }
+    }
+    return row[b.length]
+}
+
+/**
+ * Parse `role/<role>` or `role/<role>[name="<accessible name>"]`. Quotes
+ * inside the name are escaped with a backslash.
+ */
+export function parseRoleSelector (selector: string): RoleSelector {
+    const match = selector.match(ROLE_SELECTOR_REGEXP)
+    if (!match) {
+        throw new Error(
+            `InvalidSelectorMatch. Strategy 'role' has failed to match '${selector}'. ` +
+            'Expected `role/<role>` or `role/<role>[name="<accessible name>"]`.'
+        )
+    }
+    const role = match[1]
+    const roles = knownRoles()
+    if (!roles.includes(role)) {
+        const closest = roles.reduce((best, candidate) => editDistance(role, candidate) < editDistance(role, best) ? candidate : best)
+        throw new Error(
+            `InvalidSelectorMatch. Strategy 'role' has failed to match '${selector}': ` +
+            `"${role}" is not an ARIA role. Did you mean "${closest}"?`
+        )
+    }
+    const canonicalRole = ROLE_SYNONYMS[role] || role
+    const rawName = match[2] ?? match[3]
+    return rawName === undefined
+        ? { role: canonicalRole }
+        : { role: canonicalRole, name: rawName.replace(/\\(.)/g, '$1') }
+}
+
 export const findStrategy = function (
     selector: SelectorStrategy,
     isMobile?: boolean,
@@ -232,6 +286,11 @@ export const findStrategy = function (
         using = 'shadow'
         value = stringSelector.slice(DEEP_SELECTOR.length)
         break
+    case 'role selector': {
+        using = 'role'
+        value = JSON.stringify(parseRoleSelector(stringSelector))
+        break
+    }
     case 'aria': {
         const label = stringSelector.slice(ARIA_SELECTOR.length)
         if (isBidi) {

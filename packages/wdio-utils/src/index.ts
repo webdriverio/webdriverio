@@ -20,6 +20,7 @@ import { TimingTracker, type TimingMetrics, type TimingPhase } from './profiler.
 import {
     WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements, type WdioKind
 } from './kind.js'
+import { knownRoles, roleTable, ROLE_SYNONYMS, type AttributeTest, type RoleRule } from './roles.js'
 
 export {
     startWebDriver,
@@ -87,5 +88,14 @@ export {
     getLoadedWdioKind,
     isLoadedElement,
     isArrayOfElements,
-    type WdioKind
+    type WdioKind,
+
+    /**
+     * implicit ARIA roles from `aria-query`
+     */
+    roleTable,
+    knownRoles,
+    ROLE_SYNONYMS,
+    type AttributeTest,
+    type RoleRule
 }

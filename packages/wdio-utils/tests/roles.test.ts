@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { roleTable } from '../../src/snapshot/roles.js'
+import { knownRoles, roleTable } from '../src/roles.js'
 
 describe('roleTable', () => {
     const table = roleTable()
@@ -27,5 +27,12 @@ describe('roleTable', () => {
         const checkbox = input.findIndex(([, , , role]) => role === 'checkbox')
         expect(combobox).toBeLessThan(checkbox)
         expect(roleTable()).toBe(table)
+    })
+
+    it('lists concrete ARIA roles and leaves out abstract ones', () => {
+        const roles = knownRoles()
+        expect(roles).toEqual(expect.arrayContaining(['button', 'link', 'heading', 'dialog', 'row']))
+        expect(roles).not.toContain('widget')
+        expect(roles).not.toContain('landmark')
     })
 })

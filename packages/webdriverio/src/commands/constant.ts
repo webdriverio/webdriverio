@@ -9,3 +9,8 @@ export const SCRIPT_SUFFIX = '/* __wdio script end__ */'
  */
 declare const WDIO_RESQ_SCRIPT: string
 export const resqScript = WDIO_RESQ_SCRIPT
+/**
+ * `src/injected/accessibility.ts` bundled with `dom-accessibility-api`
+ */
+declare const WDIO_A11Y_SCRIPT: string
+export const accessibilityScript = WDIO_A11Y_SCRIPT

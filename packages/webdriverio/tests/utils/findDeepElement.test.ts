@@ -822,3 +822,59 @@ describe.each([
         )
     })
 })
+
+describe('findDeepElement / findDeepElements - role selector', () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockGetCurrentContext.mockResolvedValue('ctx-1')
+        mockGetShadowElementsByContextId.mockReturnValue([])
+    })
+
+    it('uses the BiDi accessibility locator with role and name', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'add-to-cart' }] })
+
+        const result = await findDeepElement.call(browser, 'role/button[name="Add to cart"]')
+
+        const locator = { type: 'accessibility', value: { role: 'button', name: 'Add to cart' } }
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(expect.objectContaining({ locator, context: 'ctx-1' }))
+        expect(result).toEqual({ [ELEMENT_KEY]: 'add-to-cart', locator })
+    })
+
+    it('returns every match for a role-only selector', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'row-1' }, { sharedId: 'row-2' }] })
+
+        const result = await findDeepElements.call(browser, 'role/row')
+
+        expect(browser.browsingContextLocateNodes).toHaveBeenCalledWith(expect.objectContaining({
+            locator: { type: 'accessibility', value: { role: 'row' } }
+        }))
+        expect(result.map((node) => node[ELEMENT_KEY])).toEqual(['row-1', 'row-2'])
+    })
+
+    it('does not fall back to a heuristic when the browser finds nothing', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+
+        expect(await findDeepElement.call(browser, 'role/button[name="Missing"]')).toBeUndefined()
+        expect(await findDeepElements.call(browser, 'role/button[name="Missing"]')).toEqual([])
+        expect(browser.execute).not.toHaveBeenCalled()
+        expect(browser.findElement).not.toHaveBeenCalled()
+        expect(browser.findElements).not.toHaveBeenCalled()
+    })
+
+    it('computes role and name in the page when the browser rejects the locator', async () => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('unsupported locator'))
+        browser.execute.mockResolvedValue([{ [ELEMENT_KEY]: 'script-1' }, { [ELEMENT_KEY]: 'script-2' }])
+
+        expect(await findDeepElement.call(browser, 'role/button[name="Pay now"]')).toEqual({ [ELEMENT_KEY]: 'script-1' })
+        expect(await findDeepElements.call(browser, 'role/button[name="Pay now"]')).toEqual([
+            { [ELEMENT_KEY]: 'script-1' },
+            { [ELEMENT_KEY]: 'script-2' }
+        ])
+        expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), 'button', 'Pay now', -1, null)
+        expect(browser.findElement).not.toHaveBeenCalled()
+    })
+})

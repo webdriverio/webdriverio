@@ -75,6 +75,9 @@ packages/**/cjs/
 /*.mjs
 /*.ts
 !vitest.config.ts
+!vitest.browser.config.ts
+# Vitest browser mode attachments, e.g. failure screenshots
+.vitest/
 !.oxlintrc.json
 packages/**/package-lock.json
 .DS_Store

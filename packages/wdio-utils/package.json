@@ -37,10 +37,11 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/split2": "^4.2.3",
     "@puppeteer/browsers": "^3.2.1",
+    "@types/split2": "^4.2.3",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
+    "aria-query": "^5.3.2",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^8.0.0",
     "edgedriver": "^7.0.0",
@@ -56,5 +57,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@types/aria-query": "^5.0.4"
   }
 }
