@@ -1485,6 +1485,63 @@ describe('WebDriverInterception', () => {
 
             await expect(mock.waitForResponse()).resolves.toBeDefined()
         })
+
+        it('should resolve without the body when the browser does not answer the response body read', async () => {
+            let resolveGetData: (value: unknown) => void
+            const getDataPromise = new Promise((resolve) => {
+                resolveGetData = resolve
+            })
+            const browser = getResponseCollectionBrowserMock({
+                maxSpyCollectedBodySize: 1024,
+                waitforTimeout: 100,
+                waitforInterval: 10
+            }, {
+                call: vi.fn().mockImplementation((fn) => fn()),
+                networkGetData: vi.fn().mockImplementation(({ dataType }) => dataType === 'response'
+                    ? getDataPromise
+                    : Promise.reject(new Error('no such network data')))
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            const request = getResponseCollectionRequestStub()
+            loggerMock.warn.mockClear()
+
+            browser.emit('network.responseStarted', request)
+            browser.emit('network.responseCompleted', { ...request, isBlocked: false } as Partial<local.NetworkResponseCompletedParameters> as local.NetworkResponseCompletedParameters)
+
+            await expect(mock.waitForResponse()).resolves.toBe(true)
+            expect(mock.calls[0].body).toBeUndefined()
+            expect(loggerMock.warn).toHaveBeenCalledWith(
+                'waitForResponse: a response was received, but its body was not collected within 100ms, continuing without it'
+            )
+
+            resolveGetData!({
+                bytes: { type: 'string', value: 'late-body' }
+            })
+            await waitForAsyncHandlers()
+            expect(mock.calls[0].body).toBe('late-body')
+            expect(mock.hasAtLeastOneResponseReceived).toBe(true)
+        })
+
+        it('should keep a body that the browser returns before the timeout', async () => {
+            const browser = getResponseCollectionBrowserMock({
+                maxSpyCollectedBodySize: 1024,
+                waitforTimeout: 1000,
+                waitforInterval: 10
+            }, {
+                call: vi.fn().mockImplementation((fn) => fn()),
+                networkGetData: vi.fn().mockImplementation(({ dataType }) => dataType === 'response'
+                    ? new Promise((resolve) => setTimeout(() => resolve({ bytes: { type: 'string', value: 'slow-body' } }), 200))
+                    : Promise.reject(new Error('no such network data')))
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            const request = getResponseCollectionRequestStub()
+
+            browser.emit('network.responseStarted', request)
+            browser.emit('network.responseCompleted', { ...request, isBlocked: false } as Partial<local.NetworkResponseCompletedParameters> as local.NetworkResponseCompletedParameters)
+
+            await expect(mock.waitForResponse()).resolves.toBe(true)
+            expect(mock.calls[0].body).toBe('slow-body')
+        })
     })
 
     describe('clear', () => {

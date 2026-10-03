@@ -1167,6 +1167,16 @@ export default class WebDriverInterception {
 
         return this.#browser.call(() => timer.catch((e) => {
             if (e.message === 'timeout') {
+                /**
+                 * The response arrived, but the browser did not return its body in time.
+                 * Firefox can leave `network.getData` unanswered for a response that it
+                 * revalidated with 304 Not Modified (https://bugzilla.mozilla.org/show_bug.cgi?id=2077785).
+                 * Continue without the body: it is still added to `calls` if it arrives later.
+                 */
+                if (this.calls.length > 0) {
+                    log.warn(`waitForResponse: a response was received, but its body was not collected within ${timeout}ms, continuing without it`)
+                    return true
+                }
                 if (typeof timeoutMsg === 'string') {
                     throw new Error(timeoutMsg)
                 }
