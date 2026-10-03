@@ -62,6 +62,20 @@ describe('browsing contexts', () => {
         '/clipped-outer': () => page('Clipped outer', `${input}<iframe id="middle" src="/clipped-middle"></iframe>`),
         '/clipped-middle': () => page('Clipped middle', '<div style="height:400px"></div><iframe id="inner" src="/inner"></iframe>'),
         '/inner-2': () => page('Inner 2'),
+        /**
+         * Cases where reading the DOM naively differs from what the drivers
+         * report, to compare a held context with classic WebDriver.
+         */
+        '/parity': () => page('Parity', [
+            '<div id="text">  Hello <b>bold</b>\n   world<span style="display:none">hidden</span><br>next line  </div>',
+            '<p id="upper" style="text-transform:uppercase;color:rgb(0, 128, 0)">shout</p>',
+            '<input id="required" required><input id="plain" value="x"><input id="unchecked" type="checkbox">',
+            '<select id="grouped"><optgroup label="g" disabled><option id="grouped-option">a</option></optgroup><option id="free">b</option></select>',
+            '<a id="hidden-link" href="#">Visible <span style="display:none">secret </span>link</a>',
+            '<input id="events" value="abc" oninput="this.dataset.input = (Number(this.dataset.input) || 0) + 1" onchange="this.dataset.change = (Number(this.dataset.change) || 0) + 1">',
+            '<div style="position:relative"><button id="covered">covered</button><div style="position:absolute;inset:0;background:white"></div></div>',
+            '<select id="multi" multiple onchange="this.dataset.changes = (Number(this.dataset.changes) || 0) + 1"><option id="multi-option" selected>one</option><option>two</option></select>'
+        ].join('')),
         '/cross': () => page('Cross origin', `${input}${widgets}`),
         /**
          * `/plain` is the only `<iframe>` element on this page. The frame
@@ -577,6 +591,12 @@ describe('browsing contexts', () => {
             expect(await valueOf(outer)).toBe('')
         })
 
+        it('finds links by their text in a nested frame', async () => {
+            const { inner } = await openFrames()
+            expect(await inner.$('=Done link').getAttribute('id')).toBe('link')
+            expect(await inner.$$('*=Done').length).toBe(1)
+        })
+
         it('navigates a nested frame without moving its parents', async () => {
             const { outer, middle, inner } = await openFrames()
 
@@ -678,6 +698,82 @@ describe('browsing contexts', () => {
      * commands comes from the source, so a new command without a scenario
      * here (or a reason it doesn't apply) fails this suite.
      */
+    describe('matches classic WebDriver', () => {
+        /**
+         * The same page in the session's current tab (classic WebDriver) and
+         * in a background tab (the held-context endpoints).
+         */
+        const report = async (context: WebdriverIO.BrowsingContext) => {
+            const outcome = (promise: Promise<unknown>) => promise.then(
+                (value) => ({ value }),
+                (err: Error) => ({ error: err.name })
+            )
+            const results: Record<string, unknown> = {
+                text: await context.$('#text').getText(),
+                transformedText: await context.$('#upper').getText(),
+                booleanAttribute: await context.$('#required').getAttribute('required'),
+                missingBooleanAttribute: await context.$('#unchecked').getAttribute('checked'),
+                attribute: await context.$('#plain').getAttribute('value'),
+                missingProperty: await context.$('#plain').getProperty('doesNotExist'),
+                property: await context.$('#plain').getProperty('tagName'),
+                optionInDisabledGroup: await context.$('#grouped-option').isEnabled(),
+                option: await context.$('#free').isEnabled(),
+                selected: await context.$('#free').isSelected(),
+                tagName: await context.$('#upper').getTagName(),
+                color: (await context.$('#upper').getCSSProperty('color')).value,
+                linkText: await context.$('=Visible link').getAttribute('id'),
+                partialLinkText: await context.$('*=Visible').getAttribute('id'),
+                /**
+                 * the Element Click endpoint itself: `click()` would wait for the element to become clickable
+                 */
+                coveredClick: await outcome(context.$('#covered').getElement().then((el) => el.elementClick(el.elementId))),
+                relativeXPath: await context.$('#text').$('./b').getText(),
+                upperCaseBooleanAttribute: await context.$('#required').getAttribute('REQUIRED'),
+                linksInFrameOrTab: (await context.$$('*=link')).length
+            }
+            await context.$('#grouped-option').click()
+            results.optionInDisabledGroupAfterClick = await context.$('#grouped-option').isSelected()
+            await context.$('#multi-option').click()
+            results.deselected = [
+                await context.$('#multi-option').isSelected(),
+                await context.$('#multi').getAttribute('data-changes')
+            ]
+            await context.$('#events').clearValue()
+            results.clearEvents = [
+                await context.$('#events').getAttribute('data-input'),
+                await context.$('#events').getAttribute('data-change')
+            ]
+            return results
+        }
+
+        it('reports the same as classic WebDriver for an element of a background tab', async () => {
+            const current = await open('/parity')
+            const background = await openTab('/parity')
+            const classic = await report(current)
+            const held = await report(background)
+            expect(classic.coveredClick).toEqual({ error: 'element click intercepted' })
+
+            /**
+             * The spec values, which chromedriver reports too: HTML attribute
+             * names are case-insensitive, and an option in a disabled
+             * `<optgroup>` is disabled, so a click does not select it.
+             */
+            expect(held.upperCaseBooleanAttribute).toBe('true')
+            expect(held.optionInDisabledGroupAfterClick).toBe(false)
+            if (browser.capabilities.browserName === 'firefox') {
+                /**
+                 * geckodriver matches boolean attribute names case-sensitively
+                 * and selects an option of a disabled `<optgroup>`.
+                 */
+                for (const key of ['upperCaseBooleanAttribute', 'optionInDisabledGroupAfterClick']) {
+                    delete classic[key]
+                    delete held[key]
+                }
+            }
+            expect(held).toEqual(classic)
+        })
+    })
+
     describe('every element command', () => {
         const targets: Record<string, () => Promise<WebdriverIO.BrowsingContext>> = {
             'a nested frame': async () => (await openFrames()).inner,
@@ -710,7 +806,11 @@ describe('browsing contexts', () => {
             getHTML: async (context) => expect(await box(context).getHTML()).toContain('>box</div>'),
             getText: async (context) => expect(await box(context).getText()).toBe('box'),
             getTagName: async (context) => expect(await context.$('#select').getTagName()).toBe('select'),
-            getCSSProperty: async (context) => expect((await box(context).getCSSProperty('color')).value).toBe('rgba(255,0,0,1)'),
+            /**
+             * The drivers differ: chromedriver reports `rgba()`, geckodriver the computed `rgb()`.
+             */
+            getCSSProperty: async (context) => expect((await box(context).getCSSProperty('color')).value)
+                .toBe(browser.capabilities.browserName === 'firefox' ? 'rgb(255,0,0)' : 'rgba(255,0,0,1)'),
             getSize: async (context) => expect(await box(context).getSize()).toEqual({ width: 120, height: 30 }),
             getLocation: async (context) => {
                 const expected = await context.execute(() => {

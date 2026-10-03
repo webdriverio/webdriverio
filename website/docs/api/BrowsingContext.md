@@ -129,7 +129,7 @@ Session commands, such as `deleteSession`, `newWindow` or `browsingContexts`, ar
 
 ## Elements of a browsing context
 
-An element you get through a context belongs to that context. Element commands such as `click`, `setValue` or `getText` run in that context's document, also when it is a background tab or a frame. `getComputedRole` and `getComputedLabel` reject for an element of a context other than the session's first one.
+An element you get through a context belongs to that context. Element commands such as `click`, `setValue` or `getText` run in that context's document, also when it is a background tab or a frame. They follow the WebDriver spec like the drivers do, so they return the same results and the same errors (e.g. `element click intercepted`) as for an element of the page in front. `getComputedRole` and `getComputedLabel` reject for an element of a context other than the session's first one.
 
 ```ts
 const page = await browser.url('https://the-internet.herokuapp.com/nested_frames')

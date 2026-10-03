@@ -1,5 +1,3 @@
-import { foreignContextId } from '../../session/browsingContext.js'
-
 /**
  *
  * Get the value of a `<textarea>`, `<select>` or text `<input>` found by given selector.
@@ -22,11 +20,7 @@ import { foreignContextId } from '../../session/browsingContext.js'
  * @uses protocol/elements, protocol/elementIdProperty
  *
  */
-export async function getValue (this: WebdriverIO.Element): Promise<string> {
-    if (await foreignContextId(this)) {
-        const value = await this.execute((el: HTMLInputElement) => el.value)
-        return typeof value === 'string' ? value : ''
-    }
+export function getValue (this: WebdriverIO.Element): Promise<string> {
     const value = this.getElementProperty(this.elementId, 'value')
 
     return value.then((res) => typeof res === 'string' ? res : '')

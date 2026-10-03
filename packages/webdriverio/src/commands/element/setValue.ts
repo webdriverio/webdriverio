@@ -1,6 +1,4 @@
-
 import type { InputOptions } from '../../types.js'
-import { foreignContext, typeInContext } from '../../utils/foreignContext.js'
 
 /**
  * Send a sequence of key strokes to an element after the input has been cleared before. If the element doesn't need
@@ -34,17 +32,6 @@ export async function setValue (
     value: string | number,
     options?: InputOptions,
 ) {
-    const held = await foreignContext(this)
-    if (held) {
-        /**
-         * Classic `elementClear` and `elementSendKeys` only reach the session
-         * pointer's document. Select the current content, then type over it
-         * with key actions in the element's own context, so controlled inputs
-         * see the same keystrokes a user would send.
-         */
-        await typeInContext(held, this.elementId, String(value), { replace: true, mask: options?.mask })
-        return
-    }
     await this.clearValue()
     return this.addValue(value, options)
 }
