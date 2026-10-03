@@ -367,6 +367,7 @@ export class EffectRecorder {
                 return await this.#settleClassic(deadline, quiet)
             }
             this.#unsettled = []
+            await this.#flush()
             /**
              * the quiet time counts from when the action returned: a slow
              * click must not use it up before the page reported its changes
@@ -391,6 +392,27 @@ export class EffectRecorder {
             return this.#effect()
         } finally {
             this.#active = false
+        }
+    }
+
+    /**
+     * One round trip to the page after the action: the page renders a frame
+     * (at most 100 ms), so requests the action started and the changes it
+     * made are reported before the quiet time starts. On a slow machine their
+     * events otherwise arrived after a short quiet time had already passed.
+     */
+    async #flush () {
+        if (!this.#page) {
+            return
+        }
+        try {
+            await this.browser.scriptEvaluate({
+                expression: 'new Promise((resolve) => { requestAnimationFrame(() => setTimeout(resolve, 0)); setTimeout(resolve, 100) })',
+                awaitPromise: true,
+                target: { context: this.#page }
+            })
+        } catch {
+            // the page navigated away or is gone, its events are already in
         }
     }
 

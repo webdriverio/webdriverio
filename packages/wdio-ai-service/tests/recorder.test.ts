@@ -13,6 +13,7 @@ function bidiBrowser () {
         scriptAddPreloadScript: vi.fn().mockResolvedValue({ script: 'p' }),
         browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [{ context: 'page' }] }),
         scriptCallFunction: vi.fn().mockResolvedValue({}),
+        scriptEvaluate: vi.fn().mockResolvedValue({}),
         getUrl: vi.fn().mockResolvedValue('https://shop.example/products'),
         on (event: string, handler: (params: unknown) => void) {
             handlers.set(event, [...(handlers.get(event) || []), handler])
@@ -113,6 +114,24 @@ describe('EffectRecorder on a BiDi session', () => {
         await new Promise((resolve) => setTimeout(resolve, 60))
         setTimeout(() => emit('script.message', { channel: EFFECTS_CHANNEL, source: { context: 'page' }, data: { type: 'array', value: [{ type: 'string', value: '1' }, { type: 'string', value: 'main' }] } }), 20)
         expect(await recorder.settle({ quiet: 50 })).toEqual({ changed: ['main'] })
+    })
+
+    it('lets the page report what the action did before the quiet time starts', async () => {
+        const { browser, emit, request } = bidiBrowser()
+        const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())
+        await recorder.start()
+        /**
+         * the request event of the click arrives while the page renders the
+         * next frame, after the action returned
+         */
+        browser.scriptEvaluate.mockImplementationOnce(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 30))
+            emit('network.beforeRequestSent', request('late', 'https://shop.example/api/cart'))
+            emit('network.responseCompleted', { ...request('late', 'https://shop.example/api/cart'), response: { status: 200 } })
+            return {}
+        })
+        expect(await recorder.settle({ quiet: 10 })).toEqual({ requests: ['POST /api/cart → 2xx'] })
+        expect(browser.scriptEvaluate).toHaveBeenCalledWith(expect.objectContaining({ target: { context: 'page' }, awaitPromise: true }))
     })
 
     it('waits for the requests a step started before it returns', async () => {
