@@ -6,6 +6,7 @@ import { loadHelpers } from '../helpers.js'
 import { quote } from '../quote.js'
 import type { Session } from '../session.js'
 import { startEventCapture } from './capture.js'
+import { installPageRecorder } from '../snapshot/recorder.js'
 
 const log = logger('@wdio/session:init')
 
@@ -32,6 +33,7 @@ export async function initSession (session: Session) {
 
     await startEventCapture(session).catch((err) => log.warn(`Event capture unavailable: ${err.message}`))
     await installNetworkProbe(session).catch((err) => log.warn(`Network probe unavailable: ${(err as Error).message}`))
+    await installPageRecorder(session).catch((err) => log.warn(`Page recorder unavailable: ${(err as Error).message}`))
     await trackDialogs(session).catch((err) => log.warn(`Dialog tracking unavailable: ${err.message}`))
     await loadHelpers(session, { watch: true }).catch((err) => log.warn(`Helpers failed to load: ${err.message}`))
 

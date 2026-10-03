@@ -14,6 +14,28 @@ export interface OutputOptions {
 
 const paint = (enabled: boolean | undefined, code: number, text: string) => enabled ? `\u001b[${code}m${text}\u001b[0m` : text
 
+/** code up to this size is printed as is after an action */
+const MAX_CODE_LINES = 4
+const MAX_CODE_CHARS = 320
+/** longest `→ …` line printed for code above that size */
+const MAX_CODE_LINE = 160
+
+/**
+ * The code an action ran. Short code is printed as is. The full code is
+ * always recorded in the session history for `export` and `history`; on the
+ * terminal, and in a coding agent's context, a long helper (e.g. the
+ * network-idle probe behind `wait --load networkidle`) is noise that is paid
+ * for on every turn, so it is cut to its first line.
+ */
+function shortCode (code: string) {
+    const lines = code.split('\n')
+    if (lines.length <= MAX_CODE_LINES && code.length <= MAX_CODE_CHARS) {
+        return code
+    }
+    const first = `${lines[0].trim()} …`
+    return first.length > MAX_CODE_LINE ? `${first.slice(0, MAX_CODE_LINE - 1)}…` : first
+}
+
 export function useColor (flag: unknown, stream: NodeJS.WriteStream = process.stdout, env = process.env) {
     if (flag === false || env.NO_COLOR) {
         return false
@@ -33,7 +55,7 @@ export function renderResult (result: ActionResult, opts: OutputOptions) {
         lines.push(result.text)
     }
     if (result.code && !opts.quiet) {
-        lines.push(paint(opts.color, 2, `→ ${result.code}`))
+        lines.push(paint(opts.color, 2, `→ ${shortCode(result.code)}`))
     }
     return lines.length ? lines.join('\n') + '\n' : ''
 }

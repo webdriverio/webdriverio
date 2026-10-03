@@ -73,7 +73,7 @@ describe('wdio session history and export', () => {
         await run('navigate', `${server.url}/cart.html`)
         const add = await refOf('button "Add to cart"')
         const checkout = await refOf('button "Checkout"')
-        expect(add).toBe('e3')
+        expect(add).toMatch(/^e\d+$/)
         await run('click', add)
         await run('exec', '-e', `await expect(ref('${checkout}')).toBeDisplayed()`)
 

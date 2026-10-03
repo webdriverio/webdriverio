@@ -1,12 +1,13 @@
 import { startDisplayDaemonFromConfig } from '@wdio/display-server'
 import logger from '@wdio/logger'
-import { remote } from 'webdriverio'
 
 import { startAppium } from './appium.js'
 import { startCloudTunnel } from './cloud.js'
 import { launchElectron } from './electron.js'
 import { launchWebview, startDriver } from './webview.js'
 import type { OpenPlan } from '../types.js'
+// a value import would load webdriverio for every `wdio session` command (see cli.ts)
+import type { remote } from 'webdriverio'
 
 const log = logger('@wdio/session:launch')
 
@@ -77,7 +78,7 @@ export async function launch (plan: OpenPlan): Promise<Launched> {
                 pids.push(driver.pid)
                 cleanups.push(() => driver.stop())
             }
-            browser = await remote({
+            browser = await (await import('webdriverio')).remote({
                 ...plan.remote,
                 logLevel: plan.remote.logLevel as 'warn',
                 logLevels: SESSION_LOG_LEVELS,

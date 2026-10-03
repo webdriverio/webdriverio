@@ -179,6 +179,8 @@ Every recorded step also stores what it did: the fetch and XHR requests it sent 
 "effect": { "requests": ["POST /api/cart → 2xx"], "changed": ["status \"Cart\""] }
 ```
 
+> **Experimental:** the names in `changed` are experimental. A minor release may name the parts of a page differently, and a cached step whose `changed` names no longer match then has to be recorded again (`wdio run -s`). Requests, navigation, new windows and dialogs are stable.
+
 A replayed or healed step is only accepted when it has the same effect:
 
 - A healed step that clicks a similar but wrong element, for example a *Add to cart* button that now adds to the wishlist, sends a different request and is rejected.
@@ -208,6 +210,8 @@ page.html           page source, when the model saves it with the `source` tool
 outputs/            tool results too long for the prompt
 steps.json          the steps that ran
 ```
+
+The files in `snapshots/` use the [`wdio session` snapshot](https://webdriver.io/docs/session/snapshots) layout, which is experimental: read them, but don't parse them in tooling.
 
 The model can read the folder with the read-only file tools of [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview) (`ls`, `read_file`, `glob`, `grep`). It cannot write files or read anything outside the folder. Placeholder values are redacted from every file. A test that replays from the cache creates no folder. A failed `act` error names the folder, so you can look at what the model saw.
 

@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, it, expect } from 'vitest'
 
-import { normalizeUrl, parseKeys, upload } from '../../src/actions/interact.js'
+import { fill, normalizeUrl, parseKeys, type, upload } from '../../src/actions/interact.js'
 import { quote } from '../../src/quote.js'
 import type { Session } from '../../src/session.js'
 
@@ -132,5 +132,85 @@ describe('normalizeUrl', () => {
 
     it('leaves other strings to baseUrl handling', () => {
         expect(normalizeUrl('login')).toBe('login')
+    })
+})
+
+/** a session with one ref, e2, that resolves to `element` */
+function refSession (element: Record<string, unknown>, browser: Record<string, unknown> = {}) {
+    return {
+        browser,
+        refs: {
+            resolve: async () => element,
+            stableSelector: async () => 'role/textbox[name="Name"]',
+            get: () => ({ id: 'e2', kind: 'web', role: 'textbox', name: 'Name', candidates: [], generation: 1 })
+        }
+    } as unknown as Session
+}
+
+describe('type', () => {
+    it('types into the element when the text starts with a ref', async () => {
+        const added: string[] = []
+        const keys: string[] = []
+        const session = refSession({ addValue: async (v: string) => added.push(v) }, { keys: async (v: string) => keys.push(v) })
+        const result = await type(session, { text: 'e2 Ada Lovelace', $cwd: '/' })
+        expect(added).toEqual(['Ada Lovelace'])
+        expect(keys).toEqual([])
+        expect(result.code).toBe('await $(\'role/textbox[name="Name"]\').addValue(\'Ada Lovelace\')')
+    })
+
+    it('types into the focused element otherwise', async () => {
+        const keys: string[] = []
+        const session = refSession({}, { keys: async (v: string) => keys.push(v) })
+        await type(session, { text: 'hello world', $cwd: '/' })
+        await type(session, { text: 'e2', $cwd: '/' })
+        expect(keys).toEqual(['hello world', 'e2'])
+    })
+})
+
+describe('fill', () => {
+    it('clicks the element and types when the driver cannot reach it', async () => {
+        const actions: string[] = []
+        const keys: string[] = []
+        const element = {
+            setValue: async () => {
+                const err = new Error('Element <input> did not become interactable')
+                err.name = 'webdriverio(middleware): element did not become interactable'
+                throw err
+            },
+            execute: async (fn: (el: unknown) => unknown) => fn.toString().includes('getBoundingClientRect')
+                ? { x: 10, y: 20, hit: true }
+                : actions.push('select')
+        }
+        const pointer = {
+            move: (opts: { x: number, y: number }) => {
+                actions.push(`move ${opts.x},${opts.y}`)
+                return pointer
+            },
+            down: () => (actions.push('down'), pointer),
+            up: () => (actions.push('up'), pointer),
+            perform: async () => actions.push('perform')
+        }
+        const session = refSession(element, { action: () => pointer, keys: async (v: string) => keys.push(v) })
+        await fill(session, { target: 'e2', text: 'SAVE20', $cwd: '/' })
+        expect(actions).toEqual(['move 10,20', 'down', 'up', 'perform', 'select'])
+        expect(keys).toEqual(['SAVE20'])
+    })
+
+    it('does not click when something else is at the element\'s center', async () => {
+        const actions: string[] = []
+        const element = {
+            setValue: async () => {
+                throw new Error('element not interactable')
+            },
+            execute: async () => ({ x: 10, y: 20, hit: false })
+        }
+        const session = refSession(element, { action: () => { actions.push('action'); return {} }, keys: async () => actions.push('keys') })
+        await expect(fill(session, { target: 'e2', text: 'x', $cwd: '/' })).rejects.toThrow('element not interactable')
+        expect(actions).toEqual([])
+    })
+
+    it('rethrows other errors', async () => {
+        const element = { setValue: async () => { throw new Error('stale element reference') } }
+        await expect(fill(refSession(element), { target: 'e2', text: 'x', $cwd: '/' })).rejects.toThrow('stale element reference')
     })
 })

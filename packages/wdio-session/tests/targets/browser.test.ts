@@ -35,6 +35,12 @@ describe('browser targets', () => {
         expect(plan.display).toBe(false)
     })
 
+    it('accepts --headless, the default, even with --headed or WDIO_SESSION_HEADED set', () => {
+        expect(browserPlan('chrome', { target: 'chrome', headless: true }, { cwd: '/', platform: 'linux', env: {} }).headless).toBe(true)
+        expect(browserPlan('chrome', { target: 'chrome', headless: true, headed: true }, { cwd: '/', platform: 'linux', env: {} }).headless).toBe(true)
+        expect(browserPlan('chrome', { target: 'chrome', headless: true }, { cwd: '/', platform: 'linux', env: { WDIO_SESSION_HEADED: '1' } }).headless).toBe(true)
+    })
+
     it('starts a virtual display for headed sessions on Linux without DISPLAY', () => {
         expect(browserPlan('chrome', { target: 'chrome' }, { cwd: '/', platform: 'linux', env: { WDIO_SESSION_HEADED: '1' } }).display).toBe(true)
         expect(browserPlan('chrome', { target: 'chrome', headed: true }, { cwd: '/', platform: 'darwin', env: {} }).display).toBe(false)

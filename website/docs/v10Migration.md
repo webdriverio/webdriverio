@@ -133,7 +133,7 @@ Other effects of this change:
 - Jasmine's spy matchers work without `await`. In v9, `toHaveBeenCalled`, `toHaveSpyInteractions` and `toHaveNoOtherSpyInteractions` failed with "Does not take arguments", and an uncalled spy passed without `await`.
 - `jasmine.addMatchers` is no longer replaced, so Jasmine does not show its "Monkey patching detected" warning anymore.
 
-`toHaveSize` has two meanings. On a WebdriverIO value, it is the WebdriverIO matcher and checks the size of the element: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multi-remote element, a browser, a browsing context, a mock, the `some()` wrapper, or a promise such as a chainable `$()`. On any other value, it is Jasmine's matcher and checks the length. In v9, Jasmine's matcher always ran.
+`toHaveSize` has two meanings. On a WebdriverIO value, it is the WebdriverIO matcher and checks the size of the element: an element, an element array (including the result of `$$().filter()`), an `Element[]`, a multi-remote element, a browser, a browsing context, a mock, the `some()` wrapper, or a promise such as a chainable `$()`. On any other value, it is Jasmine's matcher and checks the length. In v9, Jasmine's matcher always ran.
 
 ```js
 expect([1, 2]).toHaveSize(2)                                   // Jasmine, sync
@@ -204,6 +204,49 @@ The `Element`, `MultiRemoteBrowser` and `MultiRemoteElement` types exported by `
 - const elem: Element = await $('#foo')
 + const elem: WebdriverIO.Element = await $('#foo')
 ```
+
+`ChainablePromiseElement` now declares `then`, and `ChainablePromiseArray` declares `then`, `catch` and `finally`. The chainable types describe the value before `await`. They no longer fit the awaited value:
+
+```ts
+let elem: ChainablePromiseElement
+elem = await $('h1')
+// TS2741: Property 'then' is missing in type 'Element' but required in type 'ChainablePromiseElement'.
+
+let elems: ChainablePromiseArray
+elems = await $$('li')
+// TS2322: Type 'ElementArray' is not assignable to type 'ChainablePromiseArray'.
+```
+
+Type the awaited value as `WebdriverIO.Element` or `WebdriverIO.ElementArray`:
+
+```diff
+- let elem: ChainablePromiseElement = await $('h1')
+- let elems: ChainablePromiseArray = await $$('li')
++ let elem: WebdriverIO.Element = await $('h1')
++ let elems: WebdriverIO.ElementArray = await $$('li')
+```
+
+Both chainable types now match `T extends PromiseLike<unknown>`. A conditional type that checks for `PromiseLike` takes another branch for `$()` and `$$()` than in v9. For example, `Awaited<ChainablePromiseElement>` is now `WebdriverIO.Element`, and `Awaited<ChainablePromiseArray>` is `WebdriverIO.ElementArray`.
+
+The properties of a non-awaited `$$()` changed type. They are available at once, before the query resolves, so read them without `await` or `.then()`:
+
+| Property | v9 | v10 |
+|---|---|---|
+| `selector` | `Promise<Selector>` | `Selector \| undefined` |
+| `parent` | `Promise<...>` | the parent, not a promise (see below) |
+| `foundWith` | none | the command that found the list, e.g. `$$` or `custom$$` |
+| `props` | none | the extra arguments of that command |
+
+```diff
+- const selector = await $$('li').selector
++ const selector = $$('li').selector
+```
+
+On a chained query such as `$('form').$$('input')`, `parent` is the chainable `$('form')` until the list resolves, and the resolved element after that. Await the list before you use `parent` as an element.
+
+At runtime, `filter()`, `filterSeries()` and `slice()` on a `$$()` list return an element list, not a plain array. The result keeps the `selector`, `foundWith`, `parent` and `props` of the source list. In v9, `filter()` returned a plain array without these properties. The types do not show this yet: `filter()` and `filterSeries()` are declared to return `Promise<WebdriverIO.Element[]>`, and `slice()` returns `WebdriverIO.Element[]`, so TypeScript reports an error when you read these properties on the result.
+
+WebdriverIO does not run the query again for the derived list itself: an index past its end does not wait for more matches, and it never returns an element that the filter excluded. Its members are still the elements of the source query, with their original `selector` and `index`. If a member becomes stale, WebdriverIO fetches it again from the source query at that index, which can be another element if the page changed. Code that re-runs a list's query from the list's properties, for example `parent[foundWith](selector, ...props)`, gets the full list, not the filtered one.
 
 Published packages set `typeScriptVersion` to 6.0.3, matching the TypeScript version this repository compiles with.
 
@@ -537,6 +580,14 @@ With the testrunner and `injectGlobals` left on, the instance name is still a gl
 Command results stay in capability order: the first entry belongs to the first key in the capabilities object.
 
 `browser.$$()` on a multi-remote browser returns a `WebdriverIO.MultiRemoteElementArray`, not a plain `MultiRemoteElement[]`. It is still an array, so an index read such as `elements[0]` keeps working.
+
+Its `map`, `filter`, `forEach`, `find`, `findIndex`, `some`, `every` and `reduce` methods are async, as on a `WebdriverIO.ElementArray`, and return a promise, also after `await`. The same is true for the lists that `custom$$()`, `react$$()` and `shadow$$()` return. In v9 these were the sync methods of a plain array:
+
+```diff
+  const items = await browser.$$('li')
+- const ids = items.map((item) => item.selector)
++ const ids = await items.map((item) => item.selector)
+```
 
 `custom$()`, `react$()` and, on an element, `shadow$()`, `nextElement()`, `previousElement()` and `parentElement()` return one `WebdriverIO.MultiRemoteElement`, as `$()` does. In v9 they returned one element per instance in a plain array. Read the element of one browser with `getInstance`:
 

@@ -9,6 +9,7 @@ import { Session } from './session.js'
 import { ACTIONS, type ActionSpec } from './actions/specs.js'
 import { takeSnapshot, type SnapshotOptions, type TakenSnapshot } from './actions/observe.js'
 import { startEventCapture } from './daemon/capture.js'
+import { installPageRecorder } from './snapshot/recorder.js'
 import { formatSnapshot, onlyInteractive, type SnapshotNode, type SnapshotRef } from './snapshot/format.js'
 import type { RefEntry } from './snapshot/refs.js'
 import type { LogEntry, NetworkEntry } from './daemon/events.js'
@@ -38,6 +39,12 @@ export interface AgentSessionOptions {
      * (default `false`)
      */
     captureEvents?: boolean
+    /**
+     * Record closed shadow roots and click listeners in every page loaded
+     * from now on, so snapshots include them (needs WebDriver BiDi,
+     * default `false`)
+     */
+    recordPage?: boolean
 }
 
 export interface AgentActionResult extends ActionResult {
@@ -52,6 +59,9 @@ export interface AgentActionResult extends ActionResult {
  * something else started and owns: a test worker, `remote()` or an agent.
  * There is no daemon, socket or state file, and `dispose()` never ends the
  * browser session.
+ *
+ * @experimental the API, the snapshot text and the `RefEntry` fields may
+ * change in a minor release, the ref syntax and recorded code stay stable
  */
 export class AgentSession {
     readonly session: Session
@@ -81,6 +91,8 @@ export class AgentSession {
 
     /**
      * take a snapshot and register its refs for the next actions
+     *
+     * @experimental the text layout of the snapshot may change
      */
     snapshot (opts: SnapshotOptions = {}): Promise<TakenSnapshot> {
         return takeSnapshot(this.session, opts)
@@ -95,6 +107,8 @@ export class AgentSession {
 
     /**
      * role, name and selector candidates of a ref from the latest snapshot
+     *
+     * @experimental the fields of `RefEntry` may change
      */
     ref (id: string): RefEntry | undefined {
         return this.session.refs.get(id.startsWith('@') ? id.slice(1) : id)
@@ -222,6 +236,9 @@ export async function createAgentSession (browser: WebdriverIO.Browser, opts: Ag
     })
     if (opts.captureEvents) {
         await startEventCapture(session)
+    }
+    if (opts.recordPage) {
+        await installPageRecorder(session).catch(() => {})
     }
     return new AgentSession(session)
 }

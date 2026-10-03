@@ -5,11 +5,24 @@ import yargs, { type Argv } from 'yargs'
 
 import { ACTIONS, ACTION_MAP, actionIsMutation, actionTimeout, type ActionSpec } from '../actions/specs.js'
 import { DEFAULT_SESSION, SESSION_NAME_PATTERN } from '../constants.js'
-import { checkVisualDependency } from '../deps.js'
-import { runDoctor } from '../doctor.js'
 import { SessionError, usage } from '../errors.js'
-import { skill } from '../skill.js'
-import { buildPlan } from '../targets/index.js'
+import type * as Targets from '../targets/index.js'
+import type * as Doctor from '../doctor.js'
+import type * as Skill from '../skill.js'
+import type * as Deps from '../deps.js'
+
+/**
+ * Most invocations are one action on a running session: parse the
+ * arguments, send them to the daemon, print the answer. Opening a session,
+ * the doctor, the skill installer and the visual check need much heavier
+ * code (target plans pull in webdriverio), so they load it when they run.
+ */
+const lazy = {
+    buildPlan: async (...args: Parameters<typeof Targets.buildPlan>) => (await import('../targets/index.js')).buildPlan(...args),
+    runDoctor: async (...args: Parameters<typeof Doctor.runDoctor>) => (await import('../doctor.js')).runDoctor(...args),
+    skill: async (...args: Parameters<typeof Skill.skill>) => (await import('../skill.js')).skill(...args),
+    checkVisualDependency: async (...args: Parameters<typeof Deps.checkVisualDependency>) => (await import('../deps.js')).checkVisualDependency(...args)
+}
 import { getArtifactsDir, getRuntimeDir, isPidAlive, listStates, readState, removeStaleState } from '../daemon/state.js'
 import { getLiveState, send } from './client.js'
 import { GLOBAL_OPTIONS, GLOBAL_VALUE_FLAGS, commandString, findHelpRequest, helpWidth, renderHelp } from './help.js'
@@ -53,6 +66,8 @@ export function buildParser (onAction: (spec: ActionSpec, argv: Record<string, u
         .options(GLOBAL_OPTIONS)
         .updateStrings({ 'Commands:': 'Actions:' })
         .strict()
+        // `setvalue e2 x` → "Did you mean fill?" instead of a bare unknown-argument error
+        .recommendCommands()
         .exitProcess(false)
         .version(false)
         .help(false)
@@ -84,8 +99,9 @@ export function pickArgs (spec: ActionSpec, argv: Record<string, unknown>) {
     const args: Record<string, unknown> = {}
     const camel = (s: string) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase())
     for (const p of spec.positionals || []) {
-        if (argv[p.name] !== undefined) {
-            args[camel(p.name)] = argv[p.name]
+        const value = argv[p.name]
+        if (value !== undefined) {
+            args[camel(p.name)] = p.variadic && Array.isArray(value) ? value.map(String).join(' ') : value
         }
     }
     for (const key of Object.keys(spec.options || {})) {
@@ -212,14 +228,14 @@ async function runAction (spec: ActionSpec, args: Record<string, unknown>, ctx: 
     case 'restart':
         return restart(ctx)
     case 'doctor':
-        return runDoctor(args, ctx)
+        return lazy.runDoctor(args, ctx)
     case 'skill':
-        return skill(args, ctx)
+        return lazy.skill(args, ctx)
     case 'exec':
         return send(ctx.name, 'exec', await execArgs(args, ctx), { runtimeDir: ctx.runtimeDir, timeout: ctx.timeout ?? actionTimeout('exec'), cwd: ctx.cwd })
     default:
         if (spec.name === 'visual') {
-            await checkVisualDependency(ctx.cwd, getLiveState(ctx.name, ctx.runtimeDir).cwd)
+            await lazy.checkVisualDependency(ctx.cwd, getLiveState(ctx.name, ctx.runtimeDir).cwd)
         }
         return send(ctx.name, spec.name, args, { runtimeDir: ctx.runtimeDir, timeout: ctx.timeout ?? actionTimeout(spec.name), cwd: ctx.cwd })
     }
@@ -256,7 +272,7 @@ function describe (state: StateFile) {
 }
 
 async function open (args: Record<string, unknown>, ctx: RunContext): Promise<ActionResult> {
-    const plan = await buildPlan(args as { target: string }, {
+    const plan = await lazy.buildPlan(args as { target: string }, {
         name: ctx.name,
         cwd: ctx.cwd,
         runtimeDir: ctx.runtimeDir,
@@ -285,8 +301,18 @@ async function open (args: Record<string, unknown>, ctx: RunContext): Promise<Ac
     })
     const mode = plan.platform === 'browser' ? (plan.headless ? ' (headless)' : ' (headed)') : ''
     const url = state.url ? ` · ${state.url}` : ''
+    // the first thing anyone does after `open` is look at the page
+    let page = ''
+    if (plan.platform === 'browser' && state.url && args.snapshot !== false) {
+        try {
+            const snapshot = await send(ctx.name, 'snapshot', { interactive: true, maxChars: 1500 }, { runtimeDir: ctx.runtimeDir, cwd: ctx.cwd })
+            page = snapshot.text ? `\n${snapshot.text}` : ''
+        } catch {
+            // the session is up; a failed snapshot must not fail `open`
+        }
+    }
     return {
-        text: `Session "${ctx.name}" ready: ${describe(state)}${mode}${url}\nArtifacts: ${state.artifactsDir}`,
+        text: `Session "${ctx.name}" ready: ${describe(state)}${mode}${url}\nArtifacts: ${state.artifactsDir}${page}`,
         data: {
             name: ctx.name,
             sessionId: state.sessionId,

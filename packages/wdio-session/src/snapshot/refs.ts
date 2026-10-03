@@ -15,6 +15,11 @@ export interface RefEntry {
      */
     selector?: string
     /**
+     * no candidate matched the element alone, e.g. it is inside a closed
+     * shadow root: `selector` is a best guess that may not replay
+     */
+    unverified?: boolean
+    /**
      * snapshot generation the ref was last seen in
      */
     generation: number
@@ -52,6 +57,7 @@ export class RefRegistry {
         const previous = this.#entries.get(entry.id)
         if (previous && previous.candidates.join('\n') === entry.candidates.join('\n')) {
             entry.selector = previous.selector
+            entry.unverified = previous.unverified
         }
         this.#entries.set(entry.id, entry)
     }
@@ -124,6 +130,7 @@ export class RefRegistry {
         }
         const last = entry.candidates.at(-1)!
         entry.selector = last
+        entry.unverified = true
         return last
     }
 }

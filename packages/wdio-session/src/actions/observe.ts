@@ -16,14 +16,38 @@ import type { ActionFn, Session } from '../session.js'
 const DEFAULT_MAX_CHARS = 8000
 
 /**
+ * The collector as a classic WebDriver script. Built once: it is sent with
+ * every snapshot.
+ */
+const COLLECT_SCRIPT = `return (${collectInPage.toString()})(arguments[0])`
+
+/**
  * run the snapshot collector in the page. `web.ts` only holds code that
  * runs in the browser, the role table comes from here.
+ *
+ * In a BiDi session `execute` goes through the driver's BiDi layer, which
+ * is slow for large messages: a snapshot (a 6 KB role table in, up to
+ * ~100 KB of tree out) took 300-800 ms in Chrome while the collector itself
+ * ran in 1-40 ms. The classic `executeScript` endpoint carries the same
+ * plain JSON in a few milliseconds, so the top-level document uses it.
+ * Frames and other tabs the session holds as BiDi browsing contexts keep
+ * using `execute`, which targets them.
  */
-async function collectWeb (browser: WebdriverIO.Browser, opts: Omit<CollectOptions, 'roles' | 'assignRefs'>, scope?: WebdriverIO.Element) {
+async function collectWeb (session: Session, opts: Omit<CollectOptions, 'roles' | 'assignRefs'>, scope?: WebdriverIO.Element) {
+    const browser = scopeOf(session)
     const args: CollectOptions = { ...opts, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true }
-    return scope
-        ? browser.execute(collectInPage, args, scope as unknown as Element)
-        : browser.execute(collectInPage, args)
+    if (scope) {
+        return browser.execute(collectInPage, args, scope as unknown as Element)
+    }
+    if (session.isBidi && browser === session.browser && session.get('classicScripts') !== false) {
+        try {
+            return await session.browser.executeScript(COLLECT_SCRIPT, [args]) as ReturnType<typeof collectInPage>
+        } catch {
+            // a driver without the classic endpoint in BiDi sessions: stay on BiDi
+            session.set('classicScripts', false)
+        }
+    }
+    return browser.execute(collectInPage, args)
 }
 
 export interface SnapshotOptions {
@@ -43,20 +67,29 @@ export interface TakenSnapshot {
 
 /**
  * Collect a snapshot, register its refs and remember it for `diff`.
+ *
+ * `isCurrent` is asked once the page answered: when it returns false the
+ * caller has given up on this snapshot, so it leaves the session untouched.
  */
-export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}): Promise<TakenSnapshot> {
+export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}, isCurrent = () => true): Promise<TakenSnapshot> {
     if (!session.isWeb || (session.applies.includes('M') && !session.applies.includes('W'))) {
         const native = await takeNativeSnapshot(session, opts)
+        if (!isCurrent()) {
+            throw new SessionError('INTERNAL', 'Snapshot was abandoned.')
+        }
         session.lastSnapshot = native.text
         return native
     }
     const scope = opts.scope ? await resolveElement(session, opts.scope) : undefined
-    const result = await collectWeb(scopeOf(session), {
+    const result = await collectWeb(session, {
         counter: session.refs.counter,
         all: Boolean(opts.all),
         boxes: Boolean(opts.boxes),
         urls: Boolean(opts.urls)
     }, scope)
+    if (!isCurrent()) {
+        throw new SessionError('INTERNAL', 'Snapshot was abandoned.')
+    }
     session.refs.counter = result.counter
     session.refs.generation++
     for (const ref of result.refs) {
@@ -95,9 +128,74 @@ export const snapshot: ActionFn = async (session, args) => {
     }
 }
 
+/** lines a `find` block may have before it is cut to a window around the match */
+const MAX_BLOCK_LINES = 12
+
+const indentOf = (line: string) => line.length - line.trimStart().length
+
+/**
+ * Lines to print for a match: its parent node with everything under it, so
+ * the answer next to the match (a default value, a price, a status) comes
+ * along. A big parent is cut to a window around the match.
+ */
+function blockAround (lines: string[], idx: number): [number, number] {
+    const indent = indentOf(lines[idx])
+    let start = idx
+    while (start > 0 && indentOf(lines[start]) >= indent) {
+        start--
+    }
+    const parentIndent = indentOf(lines[start])
+    let end = idx
+    while (end + 1 < lines.length && indentOf(lines[end + 1]) > parentIndent) {
+        end++
+    }
+    if (end - start + 1 > MAX_BLOCK_LINES) {
+        return [Math.max(start, idx - 2), Math.min(end, idx + MAX_BLOCK_LINES - 3)]
+    }
+    return [start, end]
+}
+
+const LINK_URL = / url=(\S+)$/
+
+/** `https://en.wikipedia.org/wiki/World_Wide_Web` → `… World Wide Web` */
+export function readableUrl (url: string) {
+    let decoded = url
+    try {
+        decoded = decodeURIComponent(url)
+    } catch {
+        // keep it as is
+    }
+    return decoded.replace(/[_+]/g, ' ')
+}
+
+/**
+ * Snapshot lines that match, from a snapshot taken with link URLs. A link's
+ * target counts as well as its text: "World Wide Web" finds a link reading
+ * "web technologies" to /wiki/World_Wide_Web. URLs are printed only on the
+ * lines they made match.
+ */
+export function matchLines (withUrls: string[], test: (line: string) => boolean) {
+    const lines = withUrls.map((line) => line.replace(LINK_URL, ''))
+    const shown = [...lines]
+    const matches: number[] = []
+    lines.forEach((line, i) => {
+        const url = withUrls[i].match(LINK_URL)?.[1]
+        if (test(line)) {
+            matches.push(i)
+        } else if (url && test(readableUrl(url))) {
+            matches.push(i)
+            shown[i] = withUrls[i]
+        }
+    })
+    return { lines, shown, matches }
+}
+
 export const find: ActionFn = async (session, args) => {
     const query = String(args.text ?? '')
-    const context = typeof args.context === 'number' ? args.context : 2
+    // grep habits: -A/-B/-C switch to plain line context
+    const lineMode = [args.context, args.afterContext, args.beforeContext].some((n) => typeof n === 'number')
+    const before = typeof args.beforeContext === 'number' ? args.beforeContext : typeof args.context === 'number' ? args.context : 0
+    const after = typeof args.afterContext === 'number' ? args.afterContext : typeof args.context === 'number' ? args.context : 0
     let test: (line: string) => boolean
     if (args.regex) {
         let re: RegExp
@@ -111,9 +209,9 @@ export const find: ActionFn = async (session, args) => {
         const needle = query.toLowerCase()
         test = (line) => line.toLowerCase().includes(needle)
     }
-    const { text } = await takeSnapshot(session)
-    const lines = text.split('\n')
-    const matches = lines.map((l, i) => test(l) ? i : -1).filter((i) => i >= 0)
+    const { text: linked } = await takeSnapshot(session, { urls: true })
+    const { lines, shown, matches } = matchLines(linked.split('\n'), test)
+    session.lastSnapshot = lines.join('\n')
     if (!matches.length) {
         throw new SessionError('NO_MATCH', `No match for ${JSON.stringify(query)}.`, {
             hint: 'Try a shorter text, --regex, or `wdio session snapshot --all` for hidden elements.'
@@ -122,15 +220,20 @@ export const find: ActionFn = async (session, args) => {
     const out: string[] = []
     let last = -1
     for (const idx of matches) {
-        const start = Math.max(0, idx - context, last + 1)
-        const end = Math.min(lines.length - 1, idx + context)
+        if (idx <= last) {
+            continue
+        }
+        const [blockStart, blockEnd] = lineMode
+            ? [Math.max(0, idx - before), Math.min(lines.length - 1, idx + after)]
+            : blockAround(lines, idx)
+        const start = Math.max(blockStart, last + 1)
         if (last >= 0 && start > last + 1) {
             out.push('--')
         }
-        for (let i = start; i <= end; i++) {
-            out.push(`${i + 1}${matches.includes(i) ? ':' : '-'}${lines[i]}`)
+        for (let i = start; i <= blockEnd; i++) {
+            out.push(`${i + 1}${matches.includes(i) ? ':' : '-'}${shown[i]}`)
         }
-        last = end
+        last = blockEnd
     }
     return { text: out.join('\n'), data: { matches: matches.map((i) => ({ line: i + 1, text: lines[i] })) } }
 }

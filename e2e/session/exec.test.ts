@@ -91,7 +91,7 @@ describe('wdio session exec', () => {
 
     it('renders elements, element arrays and buffers', async () => {
         expect((await project.run(['exec', '-e', "await $('h1')"])).stdout).toBe('<h1 "Welcome" selector="h1">\n')
-        expect((await project.run(['exec', '-e', "await $$('nav a')"])).stdout).toMatch(/^ElementArray\(\d+\) \[\n {2}<a "[^"]+" selector="nav a">/)
+        expect((await project.run(['exec', '-e', "await $$('nav a')"])).stdout).toMatch(/^ElementArray\(\d+\) \[\n {2}<a "[^"]+"( ref=e\d+)? selector="nav a">/)
         expect((await project.run(['exec', '-e', 'Buffer.from(await browser.takeScreenshot(), "base64")'])).stdout).toMatch(/^<Buffer \d+ bytes>\n$/)
     })
 

@@ -68,6 +68,8 @@ export const OPEN_OPTIONS: Record<string, Options> = {
     'log-level': { type: 'string', desc: 'WebdriverIO log level written to daemon.log' },
     bidi: { type: 'boolean', default: true, desc: 'Request WebDriver BiDi (use --no-bidi to disable)' },
     headed: { type: 'boolean', desc: 'Show the browser window' },
+    headless: { type: 'boolean', desc: 'Run without a window (the default for browsers; overrides --headed)' },
+    snapshot: { type: 'boolean', default: true, desc: 'Print the interactive snapshot of the opened page (use --no-snapshot to skip)' },
     viewport: { type: 'string', desc: 'Initial viewport, e.g. 1280x720' },
     'browser-version': { type: 'string', desc: 'Browser version' },
     binary: { type: 'string', desc: 'Browser binary' },
@@ -108,7 +110,7 @@ export const ACTIONS: ActionSpec[] = [
         name: 'open', group: 'Lifecycle', local: true,
         desc: 'Start a session: browser, android, ios, macos, windows, electron, tauri, dioxus or a wdio config file',
         details: [
-            'Starts a background daemon that keeps the session alive until `close`, or until it was idle for --idle-timeout (default 30m). Browsers run headless unless you pass --headed. Prints the session name, the target and the artifacts directory where snapshots, screenshots and exports go.',
+            'Starts a background daemon that keeps the session alive until `close`, or until it was idle for --idle-timeout (default 30m). Browsers run headless unless you pass --headed. Prints the session name, the target, the artifacts directory where snapshots, screenshots and exports go, and for a browser opened on a URL the interactive snapshot of that page.',
             'One session per name. Opening a name that is already running fails; use it, close it, or pass --replace. Pass `-s <name>` only when you need two sessions at once.'
         ].join('\n'),
         positionals: [
@@ -209,7 +211,8 @@ export const ACTIONS: ActionSpec[] = [
         desc: 'Accessibility snapshot with refs',
         details: [
             'Prints the accessibility tree, one node per line, e.g. `button "Add to cart" [ref=e3]`. Pass a ref to click, fill, get and the other actions. Refs stay valid while the element exists; an action on a removed element fails with REF_STALE.',
-            'Every snapshot is written to the artifacts dir. Output longer than --max-chars is not printed; you get the file path and a hint to narrow it with --interactive, --depth, --scope or `find`.'
+            'Every snapshot is written to the artifacts dir. Output longer than --max-chars is not printed; you get the file path and a hint to narrow it with --interactive, --depth, --scope or `find`.',
+            'The text layout and the --json shape are experimental and may change in a minor release. The ref syntax and the actions that take a ref stay stable.'
         ].join('\n'),
         options: {
             depth: { type: 'number', desc: 'Maximum depth' },
@@ -233,9 +236,14 @@ export const ACTIONS: ActionSpec[] = [
     {
         name: 'find', group: 'Observation', applies: ['W', 'M', 'D'],
         desc: 'Search a fresh snapshot for text',
-        details: 'Takes a new snapshot and prints matching lines with their line numbers and refs, like grep. Matching ignores case. Cheaper than reading a whole snapshot of a large page.',
+        details: 'Takes a new snapshot and prints each match with the node around it (e.g. the whole list item, so a value next to the match is included), with line numbers and refs. Matching ignores case. Cheaper than reading a whole snapshot of a large page. -A/-B/-C print plain line context instead, like grep.',
         positionals: [{ name: 'text', desc: 'Text to search for', required: true }],
-        options: { regex: { type: 'boolean', desc: 'Treat text as a regular expression' }, context: { type: 'number', desc: 'Lines of context (default 2)' } },
+        options: {
+            regex: { type: 'boolean', desc: 'Treat text as a regular expression' },
+            context: { type: 'number', alias: 'C', desc: 'Lines of context before and after instead of the surrounding node' },
+            'after-context': { type: 'number', alias: 'A', desc: 'Lines of context after each match' },
+            'before-context': { type: 'number', alias: 'B', desc: 'Lines of context before each match' }
+        },
         examples: [
             ['wdio session find "Add to cart"', 'Find the ref of a button'],
             ['wdio session find "^\\s*link" --regex --context 0', 'List every link']
@@ -406,7 +414,8 @@ export const ACTIONS: ActionSpec[] = [
         name: 'fill', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true,
         desc: 'Replace the value of an input',
         details: 'Clears the field first. To type into whatever has focus, use `type`; to send keys like Enter, use `press`.',
-        positionals: [target(), { name: 'text', desc: 'Text', required: true }],
+        // variadic: `fill e2 Ada Lovelace` fills "Ada Lovelace" instead of failing on an unquoted space
+        positionals: [target(), { name: 'text', desc: 'Text (words after the target are joined with spaces)', required: true, variadic: true }],
         examples: [
             ['wdio session fill e2 ada@example.com', 'Fill a field'],
             ['wdio session fill e2 ada@example.com && wdio session fill e4 secret && wdio session press Enter', 'Fill a form and submit it']
@@ -415,10 +424,10 @@ export const ACTIONS: ActionSpec[] = [
     },
     {
         name: 'type', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true,
-        desc: 'Type into the focused element',
-        details: 'Sends the text as key presses without clearing anything. Focus the element first with `click` or `focus`.',
-        positionals: [{ name: 'text', desc: 'Text', required: true }],
-        examples: [['wdio session focus e5 && wdio session type "hello"', 'Type into a field']],
+        desc: 'Type into an element or the focused element',
+        details: 'Sends the text as key presses without clearing anything: `type e2 Ada` types into e2, `type Ada` into whatever has focus. To replace a value, use `fill`.',
+        positionals: [{ name: 'text', desc: 'Text (words are joined with spaces). Start with a ref, e.g. `type e2 Ada`, to type into that element instead of the focused one', required: true, variadic: true }],
+        examples: [['wdio session type e5 hello', 'Type into a field'], ['wdio session focus e5 && wdio session type "hello"', 'Type into whatever has focus']],
         seeAlso: ['fill', 'press', 'focus']
     },
     {

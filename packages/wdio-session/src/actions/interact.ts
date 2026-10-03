@@ -6,7 +6,8 @@ import { getContextManager } from 'webdriverio'
 
 import { usage } from '../errors.js'
 import { quote } from '../quote.js'
-import { resolveTarget, scopeOf } from '../snapshot/target.js'
+import { resolveTarget, scopeOf, type ResolvedTarget } from '../snapshot/target.js'
+import { refId } from '../snapshot/refs.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
 const DEFAULT_SCROLL_PX = 600
@@ -150,7 +151,7 @@ export const click: ActionFn = async (session, args) => {
         ? ['Double-clicked', 'doubleClick()', () => target.element.doubleClick()]
         : args.right
             ? ['Right-clicked', "click({ button: 'right' })", () => target.element.click({ button: 'right' })]
-            : ['Clicked', 'click()', () => target.element.click()]
+            : ['Clicked', 'click()', () => withPointerFallback(session, target, () => target.element.click())]
     const text = await withNavigation(session, `${verb} ${target.label}`, run)
     return done(text, `await ${target.code}.${call}`)
 }
@@ -164,12 +165,58 @@ export const tap: ActionFn = async (session, args) => {
 export const fill: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)
     const value = String(args.text ?? '')
-    await target.element.setValue(value)
+    await withPointerFallback(session, target, () => target.element.setValue(value), async () => {
+        await target.element.execute((el) => (el as unknown as HTMLInputElement).select?.())
+        await session.browser.keys(value)
+    })
     return done(`Filled ${target.label}`, `await ${target.code}.setValue(${quote(value)})`)
 }
 
+/**
+ * The driver's "is it interactable" check looks at what is at the element's
+ * position. For an element inside a closed shadow root that is the shadow
+ * host, so the command fails although the element is visible and enabled.
+ * In that case: scroll it into view, click its center with a real pointer
+ * action (trusted events, like a user) and continue with `after`. Only when
+ * the element's own shadow root sees it at that point: anything else there
+ * (an overlay, a clipped edge) would get the click instead.
+ */
+async function withPointerFallback (session: Session, target: ResolvedTarget, run: () => Promise<unknown>, after?: () => Promise<unknown>) {
+    try {
+        await run()
+    } catch (err) {
+        if (!/not interactable|did not become interactable/i.test(`${(err as Error).name} ${(err as Error).message}`)) {
+            throw err
+        }
+        const center = await target.element.execute((el) => {
+            el.scrollIntoView({ block: 'center', inline: 'center' })
+            const rect = el.getBoundingClientRect()
+            const x = Math.round(rect.x + rect.width / 2)
+            const y = Math.round(rect.y + rect.height / 2)
+            // asked of the element's own (possibly closed) root, the hit is not retargeted to a host
+            const root = el.getRootNode() as Document | ShadowRoot
+            const hit = root.elementFromPoint(x, y)
+            return { x, y, hit: Boolean(hit && (hit === el || el.contains(hit))) }
+        })
+        if (!center.hit) {
+            throw err
+        }
+        await session.browser.action('pointer').move({ x: center.x, y: center.y, origin: 'viewport' }).down().up().perform()
+        await after?.()
+    }
+}
+
 export const type: ActionFn = async (session, args) => {
-    const value = String(args.text ?? '')
+    let value = String(args.text ?? '')
+    // `type e2 Ada` types into e2, the way other agent browsers take an
+    // element first; without a leading ref it types into the focused element
+    const [first, ...rest] = value.split(' ')
+    if (rest.length && refId(first)) {
+        const target = await resolveTarget(session, first)
+        value = rest.join(' ')
+        await target.element.addValue(value)
+        return done(`Typed ${value.length} character${value.length === 1 ? '' : 's'} into ${target.label}`, `await ${target.code}.addValue(${quote(value)})`)
+    }
     if (!value) {
         throw usage('No text given.')
     }

@@ -64,7 +64,9 @@ describe('wdio session contexts and dialogs', () => {
         expect(top).toContain('(cross-origin: run `wdio session frame')
 
         const switched = await run('frame', cross)
-        expect(switched.stdout).toBe(`Switched to frame ${cross} (iframe "Cross origin frame")\n→ const frame = await page.frame(page.$('aria/Cross origin frame'))\n`)
+        expect(switched.stdout).toMatch(new RegExp(`^Switched to frame ${cross} \\(iframe "Cross origin frame"\\)\nFrame:\n- document "Child frame"`))
+        expect(switched.stdout).toMatch(/button "Frame button" \[ref=e\d+\]/)
+        expect(switched.stdout).toContain("→ const frame = await page.frame(page.$('aria/Cross origin frame'))")
         const inner = (await run('snapshot')).stdout
         expect(inner.split('\n')[0]).toBe(`- document "Child frame" url=${server.url.replace('localhost', '127.0.0.1')}/frame-child.html`)
         expect(inner).toMatch(/button "Frame button" \[ref=e\d+\]/)
@@ -75,12 +77,12 @@ describe('wdio session contexts and dialogs', () => {
         const ref = (await run('snapshot')).stdout.match(/button "Frame clicked" \[ref=(e\d+)\]/)![1]
         expect((await run('click', ref)).code).toBe(0)
 
-        expect((await run('frame', 'top')).stdout).toBe('Switched to the top document\n')
+        expect((await run('frame', 'top')).stdout.startsWith('Switched to the top document\nPage: ')).toBe(true)
         expect((await run('snapshot')).stdout.split('\n')[0]).toContain('"Frames Fixture"')
         expect((await run('info', '--json')).json.result.data.frame).toBe('top')
 
         await run('frame', cross)
-        expect((await run('frame', 'parent')).stdout).toBe('Switched to the top document\n')
+        expect((await run('frame', 'parent')).stdout.startsWith('Switched to the top document\n')).toBe(true)
         const notFrame = await project.run(['frame', 'aria/Frames'])
         expect(notFrame.code).toBe(2)
         expect(notFrame.stderr).toContain('is not a frame')

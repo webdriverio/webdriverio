@@ -4,12 +4,13 @@ import { spawn, type ChildProcess } from 'node:child_process'
 
 import getPort from 'get-port'
 import { importOptionalDependency } from '@wdio/utils/node'
-import { remote } from 'webdriverio'
 
 import { HINT_DOCTOR, checkBinary, checkDisplayServer, requirePackage } from '../deps.js'
 import { usage } from '../errors.js'
 import { hasDisplay, toArray, type OpenArgs } from './utils.js'
 import type { DriverPlan, OpenPlan, RemoteOptions, TargetPlan } from '../types.js'
+// a value import would load webdriverio for every `wdio session` command (see cli.ts)
+import type { remote } from 'webdriverio'
 
 const LOG_LEVELS = { '@wdio/session': 'info' } as const
 
@@ -178,7 +179,7 @@ export async function launchWebview (plan: OpenPlan): Promise<{ browser: Webdriv
     let browser: WebdriverIO.Browser
     try {
         await driver.ready
-        browser = await remote({
+        browser = await (await import('webdriverio')).remote({
             ...plan.remote,
             logLevel: plan.remote.logLevel as 'warn',
             logLevels: LOG_LEVELS,
