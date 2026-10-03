@@ -16,14 +16,38 @@ import type { ActionFn, Session } from '../session.js'
 const DEFAULT_MAX_CHARS = 8000
 
 /**
+ * The collector as a classic WebDriver script. Built once: it is sent with
+ * every snapshot.
+ */
+const COLLECT_SCRIPT = `return (${collectInPage.toString()})(arguments[0])`
+
+/**
  * run the snapshot collector in the page. `web.ts` only holds code that
  * runs in the browser, the role table comes from here.
+ *
+ * In a BiDi session `execute` goes through the driver's BiDi layer, which
+ * is slow for large messages: a snapshot (a 6 KB role table in, up to
+ * ~100 KB of tree out) took 300-800 ms in Chrome while the collector itself
+ * ran in 1-40 ms. The classic `executeScript` endpoint carries the same
+ * plain JSON in a few milliseconds, so the top-level document uses it.
+ * Frames and other tabs the session holds as BiDi browsing contexts keep
+ * using `execute`, which targets them.
  */
-async function collectWeb (browser: WebdriverIO.Browser, opts: Omit<CollectOptions, 'roles' | 'assignRefs'>, scope?: WebdriverIO.Element) {
+async function collectWeb (session: Session, opts: Omit<CollectOptions, 'roles' | 'assignRefs'>, scope?: WebdriverIO.Element) {
+    const browser = scopeOf(session)
     const args: CollectOptions = { ...opts, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true }
-    return scope
-        ? browser.execute(collectInPage, args, scope as unknown as Element)
-        : browser.execute(collectInPage, args)
+    if (scope) {
+        return browser.execute(collectInPage, args, scope as unknown as Element)
+    }
+    if (session.isBidi && browser === session.browser && session.get('classicScripts') !== false) {
+        try {
+            return await session.browser.executeScript(COLLECT_SCRIPT, [args]) as ReturnType<typeof collectInPage>
+        } catch {
+            // a driver without the classic endpoint in BiDi sessions: stay on BiDi
+            session.set('classicScripts', false)
+        }
+    }
+    return browser.execute(collectInPage, args)
 }
 
 export interface SnapshotOptions {
@@ -57,7 +81,7 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
         return native
     }
     const scope = opts.scope ? await resolveElement(session, opts.scope) : undefined
-    const result = await collectWeb(scopeOf(session), {
+    const result = await collectWeb(session, {
         counter: session.refs.counter,
         all: Boolean(opts.all),
         boxes: Boolean(opts.boxes),
