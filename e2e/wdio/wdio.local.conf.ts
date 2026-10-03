@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import os from 'node:os'
+import { spawnSync } from 'node:child_process'
 import url from 'node:url'
 import path from 'node:path'
 
@@ -8,6 +9,54 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const isLinux = os.platform() === 'linux'
 const isApple = os.platform() === 'darwin'
 const isWindows = os.platform() === 'win32'
+
+/**
+ * Pick browsers with `WDIO_E2E_BROWSERS`, e.g. `WDIO_E2E_BROWSERS=chrome,firefox`.
+ *
+ * Without it, a local run leaves out browsers that can't start on this
+ * machine instead of aborting the whole run: Edge when it isn't installed,
+ * and Safari, which needs "Allow remote automation" in its settings. Chrome,
+ * Chromium and Firefox are downloaded when missing. CI runs every browser, so
+ * a missing one still fails there.
+ */
+const requestedBrowsers = process.env.WDIO_E2E_BROWSERS
+    ?.split(',')
+    .map((name) => name.trim().toLowerCase())
+    .filter(Boolean)
+
+function isEdgeInstalled () {
+    if (isApple) {
+        return fs.existsSync('/Applications/Microsoft Edge.app')
+    }
+    if (isWindows) {
+        return [process.env['PROGRAMFILES(X86)'], process.env.PROGRAMFILES]
+            .filter((dir): dir is string => Boolean(dir))
+            .some((dir) => fs.existsSync(path.join(dir, 'Microsoft', 'Edge', 'Application', 'msedge.exe')))
+    }
+    return ['microsoft-edge', 'microsoft-edge-stable'].some((bin) => spawnSync('which', [bin]).status === 0)
+}
+
+function canRunLocally (browserName: string) {
+    if (browserName === 'edge') {
+        return isEdgeInstalled()
+    }
+    return browserName !== 'safari'
+}
+
+function selectBrowsers (capabilities: WebdriverIO.Capabilities[]) {
+    const selected = capabilities.filter((cap) => {
+        const name = (cap.browserName ?? '').toLowerCase()
+        if (requestedBrowsers) {
+            return requestedBrowsers.includes(name)
+        }
+        return Boolean(process.env.CI) || canRunLocally(name)
+    })
+    const skipped = capabilities.filter((cap) => !selected.includes(cap)).map((cap) => cap.browserName)
+    if (skipped.length) {
+        console.log(`Skipping ${skipped.join(', ')} (set WDIO_E2E_BROWSERS to choose browsers)`)
+    }
+    return selected
+}
 
 /**
  * Chrome and Edge implement `webExtension.install` only when these arguments
@@ -56,6 +105,8 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'launch.e2e.ts'),
         path.join(__dirname, 'headless', 'bidi.e2e.ts'),
         path.join(__dirname, 'headless', 'setFiles.e2e.ts'),
+        path.join(__dirname, 'headless', 'browsingContexts.e2e.ts'),
+        path.join(__dirname, 'headless', 'mocking.e2e.ts'),
         path.join(__dirname, 'headless', 'browsingContextCommands.e2e.ts'),
         path.join(__dirname, 'headless', 'roleSelector.e2e.ts')
     ]],
@@ -63,7 +114,7 @@ export const config: WebdriverIO.Config = {
     /**
      * capabilities
      */
-    capabilities: [
+    capabilities: selectBrowsers([
         {
             browserName: 'chrome',
             webSocketUrl: true,
@@ -118,7 +169,7 @@ export const config: WebdriverIO.Config = {
             // webSocketUrl: true,
             browserName: 'safari'
         }] : [])
-    ],
+    ]),
 
     /**
      * test configurations

@@ -36,12 +36,12 @@ describe('getProperty test', () => {
         vi.spyOn(getContextManager(browser), 'getCurrentContext').mockResolvedValue('top-context')
         const frame = getBrowsingContext(browser, 'frame-1', { isFrame: true, url: 'https://child.example' })
         const elem = getElement.call(frame, '#text', { [ELEMENT_KEY]: 'elem-1' })
-        vi.spyOn(elem, 'execute').mockResolvedValue('center')
-        const propertyCommand = vi.spyOn(elem, 'getElementProperty')
+        const execute = vi.spyOn(frame, 'execute').mockResolvedValue('center')
+        const classic = vi.spyOn(browser, 'getElementProperty')
 
         await expect(elem.getProperty('value')).resolves.toBe('center')
-        expect(elem.execute).toHaveBeenCalled()
-        expect(propertyCommand).not.toHaveBeenCalled()
+        expect(execute).toHaveBeenCalledWith(expect.any(Function), { [ELEMENT_KEY]: 'elem-1' }, 'value')
+        expect(classic).not.toHaveBeenCalled()
     })
 
     afterEach(() => {

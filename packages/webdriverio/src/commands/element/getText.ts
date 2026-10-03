@@ -1,5 +1,3 @@
-import { foreignContextId } from '../../session/browsingContext.js'
-
 /**
  *
  * Get the text content from a DOM-element. Make sure the element
@@ -40,9 +38,6 @@ import { foreignContextId } from '../../session/browsingContext.js'
  * @type property
  *
  */
-export async function getText (this: WebdriverIO.Element) {
-    if (await foreignContextId(this)) {
-        return this.execute((el: HTMLElement) => el.innerText)
-    }
+export function getText (this: WebdriverIO.Element) {
     return this.getElementText(this.elementId)
 }

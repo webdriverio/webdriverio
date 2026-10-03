@@ -1,5 +1,4 @@
 import logger from '@wdio/logger'
-import { ELEMENT_KEY } from 'webdriver'
 
 import { getBrowserObject } from '@wdio/utils'
 import type { ChainablePromiseElement, CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from '../../types.js'
@@ -153,9 +152,7 @@ export async function scrollIntoView (
                 },
                 isPainted
             }
-        }, {
-            [ELEMENT_KEY]: this.elementId
-        } as unknown as HTMLElement)
+        }, this as unknown as HTMLElement)
 
         /**
          * Whether the element is already fully (or, for an element bigger than the
@@ -319,9 +316,7 @@ export async function scrollIntoView (
             } catch {
                 // element can disappear between the scroll and the settle check
             }
-        }, {
-            [ELEMENT_KEY]: this.elementId
-        } as unknown as HTMLElement)
+        }, this as unknown as HTMLElement)
 
         /**
          * Not every WebDriver implementation performs the element-origin pre-scroll
@@ -453,9 +448,7 @@ function scrollIntoViewWeb (
     const browser = getBrowserObject(this)
     return browser.execute(
         (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options),
-        {
-            [ELEMENT_KEY]: this.elementId
-        } as unknown as HTMLElement,
+        this as unknown as HTMLElement,
         options,
     )
 }

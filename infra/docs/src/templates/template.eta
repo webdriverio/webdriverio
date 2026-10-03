@@ -9,7 +9,7 @@
 const sectionHeading = it.hasHeader ? '###' : '##'
 
 /**
- * Every command on `browser`, `element`, `dialog` and `clock` is awaited.
+ * Every command on `browser`, `browsingContext`, `element`, `dialog` and `clock` is awaited.
  * `mock` methods are not, and a command can opt out with `@skipAwait` when
  * it returns something chainable rather than a promise.
  */
@@ -138,6 +138,9 @@ await dialog.<%= it.command %>(<%= it.paramString %>)
 <% } else if (it.isClockScope) { %>
 const clock = await browser.emulate('clock', { ... })
 await clock.<%= it.command %>(<%= it.paramString %>)
+<% } else if (it.isBrowsingContextScope) { %>
+const context = await browser.url('https://webdriver.io')
+<%= awaitPrefix %>context.<%= it.command %>(<%= it.paramString %>)
 <% } else { %>
 <%= awaitPrefix %><%= it.isMobile ? 'driver' : 'browser' %>.<%= it.command %>(<%= it.paramString %>)
 <% } %>
