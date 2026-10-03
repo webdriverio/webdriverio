@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@wdio/runner": "workspace:*",
-    "expect-webdriverio": "^8.0.0-alpha.2",
+    "expect-webdriverio": "^8.0.0-alpha.3",
     "webdriverio": "workspace:*"
   },
   "peerDependencies": {
