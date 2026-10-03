@@ -19,6 +19,12 @@ npx wdio session click e3
 
 Refs come from the latest snapshot. After navigation, snapshot again. An old ref fails with `REF_STALE`. An unknown ref fails with `REF_NOT_FOUND`.
 
+:::caution Experimental
+
+The text layout of a snapshot, and the shape `--json` prints for it, are experimental: a minor release may change them, for example to share one snapshot engine with the [DevTools trace](/docs/devtools/wdio/trace-mode). The ref syntax (`e3`, `@e3`), the actions that take a ref and the code they record stay stable. Take refs from a snapshot and don't parse the rest of its lines.
+
+:::
+
 ## What to run
 
 | Command | Use it for |
