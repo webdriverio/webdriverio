@@ -852,7 +852,7 @@ importers:
         specifier: ^30.5.2
         version: 30.5.2
       expect-webdriverio:
-        specifier: ^8.0.0-alpha.3
+        specifier: ^8.0.0-0 || ^8.0.0-alpha.3
         version: 8.0.0-alpha.3(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio)
       get-port:
         specifier: ^7.1.0
@@ -1137,7 +1137,7 @@ importers:
   packages/wdio-globals:
     dependencies:
       expect-webdriverio:
-        specifier: ^8.0.0-alpha.3
+        specifier: ^8.0.0-0 || ^8.0.0-alpha.3
         version: 8.0.0-alpha.3(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio)
     devDependencies:
       '@wdio/types':
@@ -1388,7 +1388,7 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       expect-webdriverio:
-        specifier: ^8.0.0-alpha.3
+        specifier: ^8.0.0-0 || ^8.0.0-alpha.3
         version: 8.0.0-alpha.3(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio)
       webdriver:
         specifier: workspace:*
