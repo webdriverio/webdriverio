@@ -255,6 +255,33 @@ test('runs the wdio config command with --yes when the yes option is set to true
     expect(fs.writeFile).toBeCalledTimes(0)
 })
 
+test('forwards wizard answers to the wdio config command', async () => {
+    vi.stubEnv('npm_config_user_agent', 'npm/10.2.4 node/v20.11.0 darwin arm64 workspaces/false')
+    await createWebdriverIO({
+        npmTag: 'latest',
+        yes: true,
+        framework: 'cucumber',
+        typescript: false,
+        reporters: 'spec,junit'
+    } as ProgramOpts)
+    expect(runProgram).toBeCalledWith(
+        'npx',
+        ['wdio', 'config', '--yes', '--npm-tag', 'latest', '--framework', 'cucumber', '--no-typescript', '--reporters', 'spec,junit'],
+        expect.any(Object)
+    )
+})
+
+test('exits on an invalid wizard answer before installing anything', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const exit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any)
+    await createWebdriverIO({ npmTag: 'latest', framework: 'cucumbr' } as ProgramOpts)
+    expect(consoleError).toBeCalledWith(expect.stringContaining('Invalid value "cucumbr" for --framework'))
+    expect(exit).toBeCalledWith(2)
+    expect(runProgram).toBeCalledTimes(0)
+    consoleError.mockRestore()
+    exit.mockRestore()
+})
+
 test('does create a package.json to be used by the wdio config command when one does not exist', async () => {
     vi.stubEnv('npm_config_user_agent', 'npm/10.2.4 node/v20.11.0 darwin arm64 workspaces/false')
     vi.mocked(fs.access).mockRejectedValue(new Error('not existing'))

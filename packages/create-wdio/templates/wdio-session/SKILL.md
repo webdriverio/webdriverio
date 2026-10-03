@@ -67,6 +67,12 @@ npx wdio session export --out test/specs/cart.e2e.ts
 npx wdio run wdio.conf.ts --spec test/specs/cart.e2e.ts
 ```
 
+No `wdio.conf.ts` yet? Create the project without prompts. Every wizard question has a flag, `npm init wdio@latest -- --help` lists them:
+
+```sh
+npm init wdio@latest . -- --yes --typescript --framework mocha --browsers chrome --reporters spec
+```
+
 ## 5. Debug a failing test
 
 ```sh

@@ -64,6 +64,14 @@ You can pass the following command line flags to modify the bootstrap mechanism:
 * `--yes` - Will fill in all config defaults without prompting (default: `false`)
 * `--npm-tag` - use a specific NPM tag for `@wdio/cli` package (default: `latest`)
 
+Every question of the configuration wizard also has a flag, e.g. `--runner`, `--framework`, `--typescript`, `--browsers`, `--reporters` or `--services`. A flag answers its question and the wizard only asks the rest. Combined with `--yes` the setup runs without any prompt, e.g. for a coding agent or a CI job:
+
+```sh
+npm init wdio@latest ./e2e -- --yes --framework cucumber --no-typescript --reporters spec,junit
+```
+
+Run `npm init wdio@latest -- --help` for every flag and the values it accepts. Boolean flags take a `--no-` prefix. An invalid value, or a flag for a question that does not apply to your setup, exits with code 2.
+
 ----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).

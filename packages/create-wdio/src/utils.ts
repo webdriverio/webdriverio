@@ -20,6 +20,7 @@ import { COMMUNITY_PACKAGES_WITH_TS_SUPPORT, DEPENDENCIES_INSTALLATION_MESSAGE, 
 import type { ParsedAnswers, ProjectProps, Questionnair, SupportedPackage } from './types.js'
 import chalk from 'chalk'
 import { getInstallCommand, installPackages } from './install.js'
+import { assertAnswerFlagsApply } from './answerFlags.js'
 
 const NPM_COMMAND = /^win/.test(process.platform) ? 'npm.cmd' : 'npm'
 
@@ -77,52 +78,71 @@ export function convertPackageHashToObject(pkg: string, hash = '$--$'): Supporte
     return { package: p, short, purpose }
 }
 
-export async function getAnswers(yes: boolean): Promise<Questionnair> {
-    if (yes) {
-        const ignoredQuestions = ['e2eEnvironment']
-        const filteredQuestionaire = QUESTIONNAIRE.filter((question) => !ignoredQuestions.includes(question.name))
-        const answers = {} as Questionnair
-        for (const question of filteredQuestionaire) {
-            /**
-             * set nothing if question doesn't apply
-             */
-            if (question.when && !question.when(answers)) {
-                continue
-            }
+/**
+ * @param yes            fill in defaults instead of prompting
+ * @param flagAnswers    answers given as command line flags, these questions are not asked
+ */
+export async function getAnswers(yes: boolean, flagAnswers: Partial<Questionnair> = {}): Promise<Questionnair> {
+    const answers = yes
+        ? await getDefaultAnswers(flagAnswers)
+        : await promptAnswers(flagAnswers)
+    assertAnswerFlagsApply(flagAnswers, answers)
+    return answers
+}
 
-            Object.assign(answers, {
-                [question.name]: typeof question.default !== 'undefined'
-                    /**
-                     * set default value if existing
-                     */
-                    ? typeof question.default === 'function'
-                        ? await question.default(answers)
-                        : question.default
-                    : question.choices && question.choices.length
-                        /**
-                         * pick first choice, select value if it exists
-                         */
-                        ? typeof question.choices === 'function'
-                            ? (question.choices(answers)[0] as unknown as { value: unknown }).value
-                                ? (question.choices(answers)[0] as unknown as { value: unknown }).value
-                                : question.choices(answers)[0]
-                            : (question.choices[0] as { value: unknown }).value
-                                ? question.type === 'checkbox'
-                                    ? [(question.choices[0] as { value: unknown }).value]
-                                    : (question.choices[0] as { value: unknown }).value
-                                : question.choices[0]
-                        : {}
-            })
-        }
+async function getDefaultAnswers(flagAnswers: Partial<Questionnair>): Promise<Questionnair> {
+    const ignoredQuestions = ['e2eEnvironment']
+    const filteredQuestionaire = QUESTIONNAIRE.filter((question) => !ignoredQuestions.includes(question.name))
+    const answers = { ...flagAnswers } as Questionnair
+    for (const question of filteredQuestionaire) {
         /**
-         * some questions have async defaults
+         * keep answers given as flags
          */
-        answers.isUsingTypeScript = await answers.isUsingTypeScript
-        answers.specs = await answers.specs
-        answers.pages = await answers.pages
-        return answers
-    }
+        if (Object.prototype.hasOwnProperty.call(flagAnswers, question.name)) {
+            continue
+        }
 
+        /**
+         * set nothing if question doesn't apply
+         */
+        if (question.when && !question.when(answers)) {
+            continue
+        }
+
+        Object.assign(answers, {
+            [question.name]: typeof question.default !== 'undefined'
+                /**
+                 * set default value if existing
+                 */
+                ? typeof question.default === 'function'
+                    ? await question.default(answers)
+                    : question.default
+                : question.choices && question.choices.length
+                    /**
+                     * pick first choice, select value if it exists
+                     */
+                    ? typeof question.choices === 'function'
+                        ? (question.choices(answers)[0] as unknown as { value: unknown }).value
+                            ? (question.choices(answers)[0] as unknown as { value: unknown }).value
+                            : question.choices(answers)[0]
+                        : (question.choices[0] as { value: unknown }).value
+                            ? question.type === 'checkbox'
+                                ? [(question.choices[0] as { value: unknown }).value]
+                                : (question.choices[0] as { value: unknown }).value
+                            : question.choices[0]
+                    : {}
+        })
+    }
+    /**
+     * some questions have async defaults
+     */
+    answers.isUsingTypeScript = await answers.isUsingTypeScript
+    answers.specs = await answers.specs
+    answers.pages = await answers.pages
+    return answers
+}
+
+async function promptAnswers(flagAnswers: Partial<Questionnair>): Promise<Questionnair> {
     const projectProps = await getProjectProps(process.cwd())
     const isProjectExisting = Boolean(projectProps)
     const nameInPackageJsonIsNotCreateWdioDefault = projectProps?.packageJson?.name !== 'my-new-project'
@@ -159,7 +179,7 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
     }
 
     // @ts-ignore
-    return inquirer.prompt(QUESTIONNAIRE, answers)
+    return inquirer.prompt(QUESTIONNAIRE, { ...answers, ...flagAnswers })
 }
 
 /**
@@ -655,6 +675,16 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
 export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
     if (parsedAnswers.e2eEnvironment !== 'mobile') {
         return
+    }
+
+    /**
+     * appium-installer is interactive, so a coding agent or a CI job can't use it
+     */
+    if (!process.stdin.isTTY) {
+        return console.log(
+            'Skipping the Appium installer because the terminal is not interactive. ' +
+            'Run `npx appium-installer` later, or see https://appium.io/docs/en/latest/quickstart/'
+        )
     }
 
     const answer = await inquirer.prompt({

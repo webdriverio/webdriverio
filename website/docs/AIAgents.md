@@ -45,7 +45,15 @@ Install the skill into the project:
 npx wdio session skill --install .
 ```
 
-That writes `.agents/skills/wdio-session/SKILL.md`. `npm init wdio` writes the same file when you accept coding agent support, and adds the project rules below. The [WebdriverIO Session](/docs/session) section covers targets, snapshots, `exec`, export and debugging. Command reference: [wdio session commands](/docs/session-commands).
+That writes `.agents/skills/wdio-session/SKILL.md`. `npm init wdio` writes the same file when you accept coding agent support, and adds the project rules below.
+
+An agent can create the project itself. The wizard takes a flag for every question, and `--yes` fills in the defaults for the rest, so it never waits for input:
+
+```sh
+npm init wdio@latest . -- --yes --typescript --framework mocha --browsers chrome --reporters spec
+```
+
+`npm init wdio@latest -- --help` lists every flag and its values. See [Answer the wizard with flags](/docs/gettingstarted#answer-the-wizard-with-flags). The [WebdriverIO Session](/docs/session) section covers targets, snapshots, `exec`, export and debugging. Command reference: [wdio session commands](/docs/session-commands).
 
 ### Add the docs to your agent
 
