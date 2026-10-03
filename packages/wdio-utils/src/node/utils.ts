@@ -236,7 +236,9 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
                     log.info(`Keeping ${args.browser} v${args.buildId} at ${buildDir}: the executable is there`)
                 } else if (await fsp.access(buildDir).then(() => true, () => false)) {
                     log.warn(`Removing ${buildDir} before the retry: the executable ${executablePath} is missing`)
-                    await fsp.rm(buildDir, { recursive: true, force: true }).catch(() => {})
+                    await fsp.rm(buildDir, { recursive: true, force: true }).catch((err) => {
+                        log.warn(`Couldn't remove ${buildDir}, the retry can fail: ${describeRejection(err)}`)
+                    })
                 }
                 // otherwise the download failed before the build folder was made, so there is nothing to clean
             } else {

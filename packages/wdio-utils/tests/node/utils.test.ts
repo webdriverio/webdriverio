@@ -707,6 +707,7 @@ describe('driver utils', () => {
 
                 await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
+                expect(logMock.warn).toHaveBeenCalledWith(`Couldn't remove ${installationDir}, the retry can fail: EPERM: operation not permitted`)
                 expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
             })
 
