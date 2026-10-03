@@ -121,6 +121,25 @@ describe('eject', () => {
         expect(result.source).not.toContain('.act(\'Add a blue shirt')
     })
 
+    it('leaves out steps without code, e.g. moving back to the top document', () => {
+        const result = eject("        await browser.act('Pay', { id: 'pay' })\n", {
+            version: 1,
+            entries: {
+                pay: entry('Pay', [
+                    'const frame = await page.frame(page.$(\'aria/Payment\'))',
+                    'await frame.$(\'role/button[name="Pay now"]\').click()',
+                    ''
+                ])
+            }
+        })
+        expect(result.source).toBe([
+            '        // act: Pay',
+            '        const frame = await page.frame(page.$(\'aria/Payment\'))',
+            '        await frame.$(\'role/button[name="Pay now"]\').click()',
+            ''
+        ].join('\n'))
+    })
+
     it('uses the steps of exactly that call and leaves other calls with the same instruction alone', () => {
         const spec = `describe('shop', () => {
     it('adds a shirt', async () => {

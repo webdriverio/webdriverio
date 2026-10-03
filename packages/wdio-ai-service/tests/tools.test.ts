@@ -93,6 +93,39 @@ describe('pageTools', () => {
         expect(steps[0].args).toEqual({ target: '#password', text: '{{password}}' })
     })
 
+    it('records a move to the top document although it emits no code', async () => {
+        const { agent } = fakeAgent((action) => action === 'frame' ? { text: 'Switched to the top document', code: '' } : undefined)
+        const steps: ActStep[] = []
+        const frame = (await pageTools({ agent, values: {}, onStep: (step) => steps.push(step) })).find((t) => t.name === 'frame')!
+
+        await frame.invoke({ target: 'top' })
+        expect(steps).toEqual([{ action: 'frame', args: { target: 'top' }, code: '' }])
+    })
+
+    it('keeps the finished parts of a step that was still running at the timeout', async () => {
+        const { agent } = fakeAgent((action) => action === 'click' ? { text: 'Clicked', code: 'await $(\'#pay\').click()' } : undefined)
+        const effects = { start: vi.fn(), settle: vi.fn(async () => ({ requests: ['POST /api/cart → 2xx'], changed: ['status "Cart"'] })), unsettled: ['GET /api/recommendations'] }
+        const steps: ActStep[] = []
+        const click = (await pageTools({ agent, values: {}, onStep: (step) => steps.push(step), effects: effects as never })).find((t) => t.name === 'click')!
+
+        const output = await click.invoke({ target: '#pay' })
+        expect(steps[0].effect).toEqual({ requests: ['POST /api/cart → 2xx'], changed: ['status "Cart"'] })
+        expect(output).toContain('Effect: POST /api/cart → 2xx, a change in status "Cart"')
+        expect(output).toContain('Still running after the timeout, not recorded: GET /api/recommendations')
+    })
+
+    it('records switching to another tab, but not listing the tabs', async () => {
+        const { agent } = fakeAgent((action, args) => action === 'tabs'
+            ? (args.sub ? { text: 'Switched to tab 1', code: 'await browser.switchToWindow(handles[1])' } : { text: '0 shop\n1 help' })
+            : undefined)
+        const steps: ActStep[] = []
+        const tabs = (await pageTools({ agent, values: {}, onStep: (step) => steps.push(step) })).find((t) => t.name === 'tabs')!
+
+        await tabs.invoke({})
+        await tabs.invoke({ sub: 'switch', arg: '1' })
+        expect(steps).toEqual([{ action: 'tabs', args: { sub: 'switch', arg: '1' }, code: 'await browser.switchToWindow(handles[1])' }])
+    })
+
     it('keeps a scoped call inside its element: snapshots, targets and the page source', async () => {
         const { agent, run } = fakeAgent((action, args) => {
             if (action === 'get' && args.sub === 'html') {

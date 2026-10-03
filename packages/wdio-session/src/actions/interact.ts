@@ -6,7 +6,7 @@ import { getContextManager } from 'webdriverio'
 
 import { usage } from '../errors.js'
 import { quote } from '../quote.js'
-import { resolveTarget } from '../snapshot/target.js'
+import { resolveTarget, scopeOf } from '../snapshot/target.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
 const DEFAULT_SCROLL_PX = 600
@@ -228,7 +228,7 @@ export const upload: ActionFn = async (session, args) => {
 
 export const focus: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)
-    await session.browser.execute((el: HTMLElement) => el.focus(), target.element)
+    await scopeOf(session).execute((el: HTMLElement) => el.focus(), target.element)
     return done(`Focused ${target.label}`, `await browser.execute((el) => el.focus(), ${target.code})`)
 }
 
@@ -272,14 +272,14 @@ export const scroll: ActionFn = async (session, args) => {
     const px = typeof args.px === 'number' ? args.px : DEFAULT_SCROLL_PX
     if (where === 'up' || where === 'down') {
         const dy = where === 'up' ? -px : px
-        await session.browser.scroll(0, dy)
+        await scopeOf(session).scroll(0, dy)
         return done(`Scrolled ${where} ${px}px`, `await browser.scroll(0, ${dy})`)
     }
     if (where === 'top' || where === 'bottom') {
         const fn = where === 'top'
             ? '() => window.scrollTo(0, 0)'
             : '() => window.scrollTo(0, document.documentElement.scrollHeight)'
-        await session.browser.execute(where === 'top'
+        await scopeOf(session).execute(where === 'top'
             ? () => window.scrollTo(0, 0)
             : () => window.scrollTo(0, document.documentElement.scrollHeight))
         return done(`Scrolled to the ${where}`, `await browser.execute(${fn})`)

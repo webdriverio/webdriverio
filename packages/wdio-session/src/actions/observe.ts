@@ -10,7 +10,7 @@ import { collectInPage, type CollectOptions } from '../snapshot/web.js'
 import { countRefs, formatSnapshot, type SnapshotNode } from '../snapshot/format.js'
 import { unifiedDiff } from '../snapshot/diff.js'
 import { takeNativeSnapshot } from '../snapshot/native.js'
-import { resolveElement, resolveTarget } from '../snapshot/target.js'
+import { resolveElement, resolveTarget, scopeOf } from '../snapshot/target.js'
 import type { ActionFn, Session } from '../session.js'
 
 const DEFAULT_MAX_CHARS = 8000
@@ -51,7 +51,7 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
         return native
     }
     const scope = opts.scope ? await resolveElement(session, opts.scope) : undefined
-    const result = await collectWeb(session.browser, {
+    const result = await collectWeb(scopeOf(session), {
         counter: session.refs.counter,
         all: Boolean(opts.all),
         boxes: Boolean(opts.boxes),

@@ -4,6 +4,15 @@ import path from 'node:path'
 import { IGNORED_SUBPACKAGES_FOR_DOCS } from '@wdio/repo-utils/protocols'
 import { getSubPackages, buildPreface, getRootDir } from '@wdio/repo-utils'
 
+/**
+ * name parts written in capitals in page titles, e.g. "AI Service"
+ */
+const ACRONYMS = new Set(['ai'])
+
+export function pluginTitle (nameParts: string[]) {
+    return nameParts.map((n) => ACRONYMS.has(n) ? n.toUpperCase() : n[0].toUpperCase() + n.slice(1)).join(' ')
+}
+
 const plugins = {
     reporter: ['Reporters', 'Reporter'],
     service: ['Services', 'Service']
@@ -28,7 +37,7 @@ export function generateReportersAndServicesDocs (sidebars: any, options: Packag
         for (const pkg of pkgs) {
             const name = pkg.split('-').slice(1, -1)
             const id = `${name.join('-')}-${type}`
-            const pkgName = name.map((n) => n[0].toUpperCase() + n.slice(1)).join(' ')
+            const pkgName = pluginTitle(name)
             const readme = fs.readFileSync(path.join(rootDir, 'packages', pkg, 'README.md')).toString()
             const { description } = JSON.parse(fs.readFileSync(path.join(rootDir, 'packages', pkg, 'package.json'), 'utf-8'))
             const preface = buildPreface(id, pkgName, nameSingular, `https://github.com/webdriverio/webdriverio/edit/main/packages/${pkg}/README.md`, description)

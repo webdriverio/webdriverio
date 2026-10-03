@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { alternativeSelectors, replaySteps, roleSelector } from '../src/replay.js'
+import { alternativeSelectors, replaySteps, roleSelector, type EffectCheck } from '../src/replay.js'
+import type { StepEffect } from '../src/effects.js'
 import type { ActStep } from '../src/types.js'
 import { fakeAgent } from './__fixtures__/agent.js'
 
@@ -48,6 +49,22 @@ describe('replaySteps', () => {
         expect($).not.toHaveBeenCalled()
         expect(run).toHaveBeenCalledWith('press', { keys: 'Enter' })
     })
+
+    it('waits for targets in the frame the session holds and not for frame keywords', async () => {
+        const { agent, run } = fakeAgent()
+        const page = withBrowser(agent)
+        const waitForExist = vi.fn().mockResolvedValue(true)
+        const frame = { $: vi.fn(() => ({ waitForExist })) }
+        Object.assign(agent, { scope: frame })
+        await replaySteps(agent, [
+            { action: 'click', args: { target: 'role/button[name="Pay now"]' }, code: 'await frame.$(\'role/button[name="Pay now"]\').click()' },
+            { action: 'frame', args: { target: 'top' }, code: '' }
+        ], {}, 3000)
+        expect(frame.$).toHaveBeenCalledTimes(1)
+        expect(frame.$).toHaveBeenCalledWith('role/button[name="Pay now"]')
+        expect(page.$).not.toHaveBeenCalled()
+        expect(run).toHaveBeenNthCalledWith(2, 'frame', { target: 'top' })
+    })
 })
 
 describe('healing without the model', () => {
@@ -92,13 +109,27 @@ describe('healing without the model', () => {
         expect(result.healed).toEqual([{ index: 0, from: '[data-testid="add"]', to: 'role/button[name="Add to cart"]' }])
     })
 
+    it('tells the heal hooks when a step fails and when its heal ran, not while steps replay fine', async () => {
+        const { agent, matches, waitForExist } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
+        const calls: string[] = []
+        const hooks = { begin: async () => { calls.push('begin') }, after: async () => { calls.push('after') } }
+
+        await replaySteps(agent, [recorded], {}, 100, undefined, hooks)
+        expect(calls).toEqual([])
+
+        waitForExist.mockRejectedValueOnce(new Error('still not existing'))
+        matches.set('#add', 1)
+        await replaySteps(agent, [recorded], {}, 100, undefined, hooks)
+        expect(calls).toEqual(['begin', 'after'])
+    })
+
     it('does not run a step of a scoped call on an element outside the scope, and heals inside it', async () => {
         const { agent, run, matches } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
         const contains = agent.contains as unknown as ReturnType<typeof vi.fn>
         contains.mockImplementation(async (_scope: string, target: string) => target === '#add')
         matches.set('#add', 1)
 
-        const result = await replaySteps(agent, [recorded], {}, 100, 'e100')
+        const result = await replaySteps(agent, [recorded], {}, 100, undefined, undefined, 'e100')
         expect(contains).toHaveBeenCalledWith('e100', '[data-testid="add"]')
         expect(result.healed).toEqual([{ index: 0, from: '[data-testid="add"]', to: '#add' }])
         expect(run).toHaveBeenCalledTimes(1)
@@ -116,3 +147,88 @@ describe('healing without the model', () => {
         expect(run).not.toHaveBeenCalled()
     })
 })
+
+describe('effect checks during replay', () => {
+    const CART: StepEffect = { requests: ['POST /api/cart → 2xx'] }
+    const step: ActStep = {
+        action: 'click',
+        args: { target: '[data-testid="add"]' },
+        code: 'await $(\'[data-testid="add"]\').click()',
+        target: { selector: '[data-testid="add"]', role: 'button', name: 'Add to cart', candidates: ['[data-testid="add"]'] },
+        effect: CART
+    }
+    const recorder = (...effects: StepEffect[]): EffectCheck => ({
+        mode: 'strict',
+        recorder: { bidi: true, start: vi.fn(), settle: vi.fn(async () => effects.shift() ?? {}), unsettled: [] as string[] } as unknown as EffectCheck['recorder']
+    })
+
+    it('reports a step still running at the timeout as such, not as a behavior change, and waits at least the wait timeout', async () => {
+        const { agent, run } = fakeAgent()
+        const check = recorder({})
+        Object.assign(check.recorder, { unsettled: ['POST /api/cart'] })
+        const result = await replaySteps(agent, [step], {}, 8000, check)
+        expect(check.recorder.settle).toHaveBeenCalledWith({ timeout: 8000 })
+        expect(result.failed).toEqual({
+            step,
+            index: 0,
+            error: 'the step was still running after 8000ms (POST /api/cart), so its effect could not be checked',
+            kind: 'timeout'
+        })
+        expect(run).toHaveBeenCalledTimes(1)
+    })
+
+    it('accepts a replayed step that has its recorded effect', async () => {
+        const { agent } = fakeAgent()
+        const result = await replaySteps(agent, [step], {}, 100, recorder({ requests: ['POST /api/cart → 2xx', 'GET /api/stock → 2xx'] }))
+        expect(result.failed).toBeUndefined()
+    })
+
+    it('fails a step that ran but did something else, without trying other selectors', async () => {
+        const { agent, $$ } = fakeAgent()
+        const result = await replaySteps(agent, [step], {}, 100, recorder({ requests: ['POST /api/wishlist → 2xx'] }))
+        expect(result.failed).toEqual({ step, index: 0, error: 'the step no longer causes POST /api/cart → 2xx', kind: 'effect' })
+        expect($$).not.toHaveBeenCalled()
+    })
+
+    it('rejects an alternative selector whose element does something else, and tries no further one', async () => {
+        const { agent, run, waitForExist, matches } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
+        waitForExist.mockRejectedValueOnce(new Error('not existing'))
+        matches.set('#add-to-wishlist', 1)
+        matches.set('role/button[name="Add to cart"]', 1)
+        const withCandidates = { ...step, target: { ...step.target!, candidates: ['[data-testid="add"]', '#add-to-wishlist'] } }
+
+        const result = await replaySteps(agent, [withCandidates], {}, 100, recorder({ requests: ['POST /api/wishlist → 2xx'] }, CART))
+        expect(result.healed).toEqual([])
+        expect(result.failed).toEqual({
+            step: withCandidates,
+            index: 0,
+            error: 'the step ran on #add-to-wishlist, which does not cause POST /api/cart → 2xx',
+            kind: 'effect',
+            healedWith: '#add-to-wishlist'
+        })
+        expect(run).toHaveBeenCalledTimes(1)
+    })
+
+    it('accepts an alternative selector whose element has the recorded effect', async () => {
+        const { agent, waitForExist, matches } = fakeAgent((action, args) => action === 'click' ? { code: `await $('${args.target}').click()` } : undefined)
+        waitForExist.mockRejectedValueOnce(new Error('not existing'))
+        matches.set('role/button[name="Add to cart"]', 1)
+        const result = await replaySteps(agent, [step], {}, 100, recorder(CART))
+        expect(result.healed).toEqual([{ index: 0, from: '[data-testid="add"]', to: 'role/button[name="Add to cart"]' }])
+        expect(result.done[0].effect).toEqual(CART)
+    })
+
+    it('only checks navigation and changed regions on a Classic session', async () => {
+        const { agent } = fakeAgent()
+        const classic: EffectCheck = {
+            mode: 'strict',
+            recorder: { bidi: false, start: vi.fn(), settle: vi.fn(async () => ({ changed: ['status "Cart"'] })), unsettled: [] } as unknown as EffectCheck['recorder']
+        }
+        const withRegion = { ...step, effect: { requests: ['POST /api/cart → 2xx'], changed: ['status "Cart"'] } }
+        expect((await replaySteps(agent, [withRegion], {}, 100, classic)).failed).toBeUndefined()
+
+        const missingRegion = { ...step, effect: { requests: ['POST /api/cart → 2xx'], changed: ['status "Wishlist"'] } }
+        expect((await replaySteps(agent, [missingRegion], {}, 100, classic)).failed?.kind).toBe('effect')
+    })
+})
+

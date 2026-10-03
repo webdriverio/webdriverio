@@ -6,6 +6,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createAgentSession } from '../src/agent.js'
 
+const contextManager = vi.hoisted(() => ({ current: 'page', getCurrentContext: vi.fn(), setCurrentContext: vi.fn() }))
+vi.mock('webdriverio', () => ({
+    getContextManager: () => contextManager
+}))
+
 function mockBrowser (overrides: Record<string, unknown> = {}) {
     return {
         capabilities: { browserName: 'chrome' },
@@ -114,4 +119,40 @@ describe('createAgentSession', () => {
         expect(execute).toHaveBeenCalledWith(expect.any(Function), element, first)
         expect(agent.ref(first)).toMatchObject({ id: first, kind: 'web', role: 'scope', candidates: ['#products'] })
     })
+
+    it('enters a held frame and goes back to the context before', async () => {
+        contextManager.getCurrentContext.mockResolvedValue('page')
+        contextManager.setCurrentContext.mockClear()
+        const switchToWindow = vi.fn().mockResolvedValue(undefined)
+        const agent = await createAgentSession(mockBrowser({ switchToWindow }), { artifactsDir: tmp() })
+        const page = { contextId: 'page', isFrame: false } as unknown as WebdriverIO.BrowsingContext
+        const frame = { contextId: 'frame-1', isFrame: true, url: 'https://pay.example/', parent: page } as unknown as WebdriverIO.BrowsingContext
+
+        const leave = await agent.enter(frame)
+        expect(contextManager.setCurrentContext).toHaveBeenLastCalledWith('page')
+        expect(contextManager.setCurrentContext).not.toHaveBeenCalledWith('frame-1')
+        expect(agent.session.get('activeContext')).toBe(frame)
+        expect(agent.scope).toBe(frame)
+        expect(switchToWindow).not.toHaveBeenCalled()
+
+        await leave()
+        expect(contextManager.setCurrentContext).toHaveBeenLastCalledWith('page')
+        expect(agent.session.get('activeContext')).toBeUndefined()
+        expect(agent.scope).toBe(agent.browser)
+    })
+
+    it('switches to a held tab and back', async () => {
+        contextManager.getCurrentContext.mockResolvedValue('page')
+        const switchToWindow = vi.fn().mockResolvedValue(undefined)
+        const agent = await createAgentSession(mockBrowser({ switchToWindow }), { artifactsDir: tmp() })
+        const tab = { contextId: 'tab-2', isFrame: false } as unknown as WebdriverIO.BrowsingContext
+
+        const leave = await agent.enter(tab)
+        expect(switchToWindow).toHaveBeenLastCalledWith('tab-2')
+        expect(contextManager.setCurrentContext).toHaveBeenLastCalledWith('tab-2')
+        await leave()
+        expect(switchToWindow).toHaveBeenLastCalledWith('page')
+        expect(contextManager.setCurrentContext).toHaveBeenLastCalledWith('page')
+    })
 })
+

@@ -360,7 +360,6 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
         session.set('frameStack', stack)
         let code = ''
         if (parent?.isFrame) {
-            adopt(session, parent.contextId)
             session.set('activeContext', parent)
             session.set('frame', stack.at(-1))
             code = (await declareHeld(session, parent)).code
@@ -392,7 +391,6 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
     const childVar = ownerVar.name
         ? await declareContext(session, 'frame', child.contextId, () => `await ${ownerVar.name}.frame(${ownerVar.name}.${resolved.code})`)
         : { code: '' }
-    adopt(session, child.contextId)
     session.set('activeContext', child)
     const stack = [...(session.get<string[]>('frameStack') || []), resolved.label]
     session.set('frameStack', stack)

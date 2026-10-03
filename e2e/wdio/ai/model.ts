@@ -6,9 +6,14 @@ import { scriptedModel } from '../../../packages/wdio-ai-service/tests/__fixture
 
 /**
  * Cache files of this suite go to a temporary directory, so a run never
- * writes into the repository.
+ * writes into the repository. The launcher creates it, workers inherit it
+ * through the environment, so a spec and the service always share it. Each
+ * worker gets its own folder: a spec runs in Chrome and Firefox at the same
+ * time, and one browser must not replay what the other just recorded.
  */
-export const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-ai-e2e-'))
+process.env.WDIO_AI_E2E_DIR ??= fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-ai-e2e-'))
+export const cacheDir = path.join(process.env.WDIO_AI_E2E_DIR, process.env.WDIO_WORKER_ID || 'launcher')
+fs.mkdirSync(cacheDir, { recursive: true })
 
 /**
  * The tool calls a model would make, in the order the specs call `act`.
@@ -47,7 +52,23 @@ export const extractModel = scriptedModel([
     // reads typed data from a real page
     { tool: 'snapshot' },
     { tool: 'get', args: { sub: 'text', target: 'role/row[name="Blue Shirt M 1"]' } },
-    { tool: 'answer', args: { value: [{ name: 'Blue Shirt', size: 'M', qty: 1 }, { name: 'Red Socks', size: 'L', qty: 2 }], evidence: ['role/row[name="Blue Shirt M 1"]'] } }
+    { tool: 'answer', args: { value: [{ name: 'Blue Shirt', size: 'M', qty: 1 }, { name: 'Red Socks', size: 'L', qty: 2 }], evidence: ['role/row[name="Blue Shirt M 1"]'] } },
+    // reads a value the page only received from its API
+    { tool: 'read_file', args: { file_path: '/responses/index.ndjson' } },
+    {
+        tool: 'read_file',
+        args: (index) => {
+            const file = index.match(/(\/responses\/[^"\\]+-api-cart\.json)/)?.[1]
+            if (!file) {
+                throw new Error(`no cart response in:\n${index}`)
+            }
+            return { file_path: file }
+        }
+    },
+    {
+        tool: 'answer',
+        args: (body) => ({ value: [...body.matchAll(/sku\\?":\s*\\?"([^"\\]+)/g)].map((match) => match[1]), evidence: ['/responses/index.ndjson'] })
+    }
 ])
 
 const refOf = (pattern: RegExp) => (snapshot: string) => {
@@ -66,4 +87,34 @@ export const scopeModel = scriptedModel([
     // refuses a target outside the element
     { tool: 'fill', args: { target: '#shipping-email', text: 'shipping@example.com' } },
     { tool: 'fail', args: { reason: 'the shipping email is not part of the billing form' } }
+])
+
+export const effectsModel = scriptedModel([
+    // records what a step did, without the ignored telemetry request
+    { tool: 'click', args: { target: '[data-testid="add"]' } },
+    { tool: 'done', args: { summary: 'Added it' } },
+    // waits until a slow request finished before act returns
+    { tool: 'click', args: { target: '[data-testid="add"]' } },
+    { tool: 'done', args: { summary: 'Added it' } }
+])
+
+export const framesModel = scriptedModel([
+    // acts inside a held cross-origin frame
+    { tool: 'snapshot' },
+    { tool: 'click', args: (snapshot) => ({ target: refOf(/button "Pay now" \[ref=(e\d+)\]/)(snapshot) }) },
+    { tool: 'done', args: { summary: 'Paid' } },
+    // enters a cross-origin frame by itself and the steps replay without the model
+    { tool: 'snapshot' },
+    { tool: 'frame', args: (snapshot) => ({ target: refOf(/iframe "Payment" \[ref=(e\d+)\]/)(snapshot) }) },
+    { tool: 'snapshot' },
+    { tool: 'click', args: (snapshot) => ({ target: refOf(/button "Pay now" \[ref=(e\d+)\]/)(snapshot) }) },
+    { tool: 'frame', args: { target: 'top' } },
+    { tool: 'done', args: { summary: 'Paid in the frame' } },
+    // switches to a window an action opened
+    { tool: 'snapshot' },
+    { tool: 'click', args: (snapshot) => ({ target: refOf(/button "Open help" \[ref=(e\d+)\]/)(snapshot) }) },
+    { tool: 'tabs', args: { sub: 'switch', arg: '1' } },
+    { tool: 'snapshot' },
+    { tool: 'click', args: (snapshot) => ({ target: refOf(/button "Confirm" \[ref=(e\d+)\]/)(snapshot) }) },
+    { tool: 'done', args: { summary: 'Confirmed in the help window' } }
 ])

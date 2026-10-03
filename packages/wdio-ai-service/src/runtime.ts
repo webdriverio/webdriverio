@@ -1,10 +1,10 @@
+import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { createAgentSession, type AgentSession } from '@wdio/session/agent'
-import { getContextManager } from 'webdriverio'
 
 import { ActCache, cacheFileFor, cacheKey, healFileFor, resolveMode, type EffectiveMode } from './cache.js'
 import { ActError, type TokenUsage } from './errors.js'
@@ -12,13 +12,18 @@ import { runLoop } from './loop.js'
 import { describeModel, resolveModel, selectModel } from './model.js'
 import { actPrompt, replayContext, SCOPE_PROMPT, systemPrompt, WORKSPACE_PROMPT } from './prompts.js'
 import { assertValues } from './redact.js'
-import { replaySteps, type HealedStep } from './replay.js'
+import { replaySteps, type EffectCheck, type HealedStep } from './replay.js'
+import { describeEffect, isEmpty, mergeEffects, missingEffects, observableWithoutBidi, resolveEffectsConfig, type EffectsConfig } from './effects.js'
+import { EffectRecorder } from './recorder.js'
 import { emitRecord, writeRecords, type ActRecord } from './stats.js'
 import { pageTools } from './tools.js'
-import { Workspace, type KeepPolicy } from './workspace.js'
+import { slug, Workspace, type KeepPolicy } from './workspace.js'
+import { capturesHealEvidence, HealEvidence } from './evidence.js'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 
-import { answerTools, EXTRACT_PROMPT, jsonSchemaOf, READ_ACTIONS, validate, type ExtractOutcome } from './extract.js'
+import { answerTools, EXTRACT_PROMPT, jsonSchemaOf, READ_ACTIONS, RESPONSES_PROMPT, validate, type ExtractOutcome } from './extract.js'
+import { ResponseLog } from './responses.js'
+import { contextTree } from './contexts.js'
 import type { ActOptions, ActResult, ActStep, AiServiceOptions, CacheMode, ExtractOptions, ModelOption } from './types.js'
 
 const log = logger('@wdio/ai-service')
@@ -46,6 +51,10 @@ interface TestContext {
      * `act` calls in this test so far
      */
     calls: number
+    /**
+     * when the test started, `extract` only sees API responses from then on
+     */
+    startedAt: number
     /**
      * created on the first model call of the test
      */
@@ -76,22 +85,29 @@ function isElement (scope: ActScope): scope is WebdriverIO.Element {
     return !isBrowsingContext(scope) && ('elementId' in scope || 'selector' in scope) && 'parent' in scope
 }
 
+interface Scope {
+    /**
+     * ref of the element the call is limited to
+     */
+    ref?: string
+    /**
+     * go back to the context before, for a call on a held tab or frame
+     */
+    leave?: () => Promise<void>
+}
+
 /**
- * The ref of the element a call is scoped to. A browsing context has to be
- * the tab the session works on.
+ * An element call is limited to the element. A call on a held tab, window
+ * or frame runs in that context and goes back afterwards.
  */
-async function scopeOf (agent: AgentSession, scope: ActScope, call: string): Promise<string | undefined> {
+async function scopeOf (agent: AgentSession, scope: ActScope): Promise<Scope> {
     if (isBrowsingContext(scope)) {
-        const current = await getContextManager(scope.browser as WebdriverIO.Browser).getCurrentContext()
-        if (scope.isFrame || scope.contextId !== current) {
-            throw new Error(`[@wdio/ai-service] ${call}() on a frame or a tab other than the current one is not supported yet. Call it on the browser, or activate the tab first.`)
-        }
-        return undefined
+        return { leave: await agent.enter(scope) }
     }
     if (isElement(scope)) {
-        return agent.pin(scope)
+        return { ref: await agent.pin(scope) }
     }
-    return undefined
+    return {}
 }
 
 export interface PlanResult {
@@ -106,6 +122,8 @@ interface ActOutcome {
     healedSteps?: HealedStep[]
 }
 
+export type EffectsCoverage = 'checked' | 'partial' | 'off'
+
 const NO_USAGE: TokenUsage = { input: 0, output: 0 }
 
 /**
@@ -115,6 +133,9 @@ const NO_USAGE: TokenUsage = { input: 0, output: 0 }
 export class AiRuntime {
     readonly options: RuntimeOptions
     #agents = new WeakMap<WebdriverIO.Browser, Promise<AgentSession>>()
+    #recorders = new WeakMap<WebdriverIO.Browser, Promise<EffectRecorder | undefined>>()
+    #responses = new WeakMap<WebdriverIO.Browser, Promise<ResponseLog | undefined>>()
+    readonly effects: EffectsConfig
     #models = new Map<ModelOption, Promise<BaseChatModel>>()
     #caches = new Map<string, ActCache>()
     #instructions?: Promise<string | undefined>
@@ -127,13 +148,14 @@ export class AiRuntime {
 
     constructor (options: RuntimeOptions = {}) {
         this.options = options
+        this.effects = resolveEffectsConfig(options.effects)
     }
 
     /**
      * a test or scenario starts, its `act` calls are counted from 1
      */
     startTest (spec: string, title: string) {
-        this.#test = { spec, title, calls: 0 }
+        this.#test = { spec, title, calls: 0, startedAt: Date.now() }
     }
 
     /**
@@ -197,8 +219,40 @@ export class AiRuntime {
         if (!agent) {
             agent = createAgentSession(browser, { name: 'ai', captureEvents: true })
             this.#agents.set(browser, agent)
+            this.#recorders.set(browser, agent.then((session) => this.#attachRecorder(browser, session)))
+            this.#responses.set(browser, agent.then((session) => this.#attachResponses(browser, session)))
         }
         return agent
+    }
+
+    async #attachResponses (browser: WebdriverIO.Browser, agent: AgentSession) {
+        if (this.options.responseBodies === false || agent.session.plan.platform !== 'browser') {
+            return undefined
+        }
+        return ResponseLog.attach(browser, this.effects.ignore)
+    }
+
+    /**
+     * Effects are recorded on web pages. Native apps have no network or DOM
+     * events to watch, their effects are not checked.
+     */
+    async #attachRecorder (browser: WebdriverIO.Browser, agent: AgentSession) {
+        if (this.effects.mode === 'off' || !agent.session.plan.applies.includes('W') || agent.session.plan.platform !== 'browser') {
+            return undefined
+        }
+        return EffectRecorder.attach(browser, this.effects)
+    }
+
+    async recorderFor (browser: WebdriverIO.Browser) {
+        await this.agentFor(browser)
+        return this.#recorders.get(browser)
+    }
+
+    #coverage (recorder?: EffectRecorder): EffectsCoverage {
+        if (this.effects.mode === 'off') {
+            return 'off'
+        }
+        return recorder?.bidi ? 'checked' : 'partial'
     }
 
     #model (option: ModelOption) {
@@ -225,7 +279,7 @@ export class AiRuntime {
     /**
      * Let the model perform an instruction and record the steps it took.
      */
-    async plan (agent: AgentSession, instruction: string, options: ActOptions = {}, context?: string, scope?: string): Promise<PlanResult> {
+    async plan (agent: AgentSession, instruction: string, options: ActOptions = {}, context?: string, scope?: string, recorder?: EffectRecorder): Promise<PlanResult> {
         const modelOption = selectModel(options.model, this.options.model)
         if (!modelOption) {
             throw new ActError({
@@ -241,7 +295,7 @@ export class AiRuntime {
         workspace.values = values
         workspace.secrets = this.#rememberSecrets(values)
         await workspace.writeEvents(agent.logs, agent.network)
-        const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope })
+        const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: this.options.actions, onStep: (step) => steps.push(step), workspace, scope, effects: recorder })
         const maxSteps = options.maxSteps ?? this.options.maxSteps ?? DEFAULT_MAX_STEPS
         log.info(`act("${instruction}") with ${describeModel(modelOption)}`)
         try {
@@ -273,10 +327,17 @@ export class AiRuntime {
         const started = Date.now()
         const test = this.#test
         const base = { ...(test ? { spec: test.spec, test: test.title } : {}), instruction }
+        const evidence = this.#evidenceFor(scope, instruction)
+        const artifacts = async () => {
+            const files = await evidence?.end() ?? []
+            return files.length ? { artifacts: files } : {}
+        }
         try {
-            const { result, usage, healedSteps } = await this.#act(scope, instruction, options)
+            const { result, usage, healedSteps } = await this.#act(scope, instruction, options, evidence)
             this.#record({
                 ...base,
+                ...await artifacts(),
+                effects: this.#coverage(await this.recorderFor(browserOf(scope)).catch(() => undefined)),
                 source: result.source,
                 ...(result.healed ? { healed: result.healed } : {}),
                 ...(healedSteps?.length ? { healedSteps } : {}),
@@ -287,6 +348,7 @@ export class AiRuntime {
         } catch (err) {
             this.#record({
                 ...base,
+                ...await artifacts(),
                 source: 'model',
                 error: (err as Error).message,
                 usage: err instanceof ActError && err.usage ? err.usage : NO_USAGE,
@@ -294,6 +356,20 @@ export class AiRuntime {
             })
             throw err
         }
+    }
+
+    /**
+     * where the screenshots and video of a heal go, captured only once a
+     * cached step fails
+     */
+    #evidenceFor (scope: ActScope, instruction: string) {
+        const browser = browserOf(scope)
+        if (!capturesHealEvidence(this.options) || (browser as unknown as { isMultiRemote?: boolean }).isMultiRemote) {
+            return undefined
+        }
+        const test = this.#test
+        const name = test ? `${path.basename(test.spec)}-${test.title}` : instruction
+        return new HealEvidence(browser, path.join(this.#workspaceRoot, 'heals', `${slug(name)}-${crypto.randomUUID().slice(0, 8)}`))
     }
 
     /**
@@ -336,7 +412,7 @@ export class AiRuntime {
         }
     }
 
-    async #act (scope: ActScope, instruction: string, options: ActOptions): Promise<ActOutcome> {
+    async #act (scope: ActScope, instruction: string, options: ActOptions, evidence?: HealEvidence): Promise<ActOutcome> {
         if (typeof instruction !== 'string' || !instruction.trim()) {
             throw new Error('[@wdio/ai-service] act() needs an instruction')
         }
@@ -346,7 +422,17 @@ export class AiRuntime {
             throw new Error('[@wdio/ai-service] act() runs on one browser. Call it on an instance, e.g. browser.getInstance(\'myBrowser\').act(...)')
         }
         const agent = await this.agentFor(browser)
-        const scopeRef = await scopeOf(agent, scope, 'act')
+        const recorder = await this.#recorders.get(browser)
+        const scoped = await scopeOf(agent, scope)
+        try {
+            return await this.#actIn(agent, browser, instruction, options, scoped.ref, recorder, evidence)
+        } finally {
+            await scoped.leave?.()
+        }
+    }
+
+    async #actIn (agent: AgentSession, browser: WebdriverIO.Browser, instruction: string, options: ActOptions, scopeRef: string | undefined, recorder?: EffectRecorder, evidence?: HealEvidence): Promise<ActOutcome> {
+        const effects: EffectCheck | undefined = recorder ? { recorder, mode: this.effects.mode } : undefined
         const mode = this.mode(options.cache)
         const test = this.#test
         if (test) {
@@ -365,7 +451,7 @@ export class AiRuntime {
         const summarize = (steps: ActStep[]) => steps.map(({ action, code }) => ({ action, code }))
 
         if (entry && entry.instruction === instruction) {
-            const replay = await replaySteps(agent, entry.steps, values, waitTimeoutOf(browser), scopeRef)
+            const replay = await replaySteps(agent, entry.steps, values, waitTimeoutOf(browser), effects, evidence, scopeRef)
             if (!replay.failed) {
                 if (replay.healed.length) {
                     if (mode !== 'locked') {
@@ -375,15 +461,52 @@ export class AiRuntime {
                 }
                 return { result: { source: 'cache', steps: summarize(entry.steps) }, usage: NO_USAGE }
             }
+            const failed = replay.failed
+            /**
+             * A step that ran but did something else is not handed to the
+             * model in any mode: the model would run it again to cause the
+             * recorded effect, e.g. submit a payment twice.
+             */
+            if (failed.kind === 'timeout') {
+                throw new ActError({
+                    instruction,
+                    reason: `cached step ${failed.index + 1} (${failed.step.code}) ran, but ${failed.error}. Raise \`waitforTimeout\` if the app is that slow.`,
+                    steps: replay.done
+                })
+            }
+            if (failed.kind === 'effect') {
+                throw new ActError({
+                    instruction,
+                    reason: failed.healedWith
+                        ? `cached step ${failed.index + 1} (${failed.step.code}) no longer finds its element, and ${failed.error}. The app may have changed behavior, not just markup.`
+                        : `cached step ${failed.index + 1} (${failed.step.code}) ran, but ${failed.error}. The app may have changed behavior, not just markup.`,
+                    steps: replay.done
+                })
+            }
             if (mode === 'locked') {
                 throw new ActError({
                     instruction,
-                    reason: `cached step ${replay.failed.index + 1} (${replay.failed.step.code}) failed and the cache is locked: ${replay.failed.error}`,
+                    reason: `cached step ${failed.index + 1} (${failed.step.code}) failed and the cache is locked: ${failed.error}`,
                     steps: replay.done
                 })
             }
             log.info(`act("${instruction}"): cached step ${replay.failed.index + 1} failed, asking the model to continue`)
-            const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed), scopeRef)
+            const rest = await this.plan(agent, instruction, options, replayContext(replay.done, replay.failed), scopeRef, recorder)
+            await evidence?.after()
+            /**
+             * the model's steps have to do what the failed step did
+             */
+            const expected = recorder?.bidi ? replay.failed.step.effect : observableWithoutBidi(replay.failed.step.effect)
+            const missing = effects && !isEmpty(expected) ? missingEffects(expected, mergeEffects(rest.steps.map((step) => step.effect)), effects.mode) : []
+            if (missing.length) {
+                throw new ActError({
+                    instruction,
+                    reason: `the app changed behavior: step ${replay.failed.index + 1} (${replay.failed.step.code}) caused ${describeEffect(expected!)} when it was recorded, and the steps the model took now do not cause ${missing.join(', ')}`,
+                    steps: [...replay.done, ...rest.steps],
+                    usage: rest.usage,
+                    workspace: test?.workspace?.dir
+                })
+            }
             if (test?.workspace) {
                 test.workspace.keep = true
             }
@@ -395,7 +518,7 @@ export class AiRuntime {
         if (mode === 'locked') {
             throw new ActError({ instruction, reason: `no cached steps for "${key}" and the cache is locked` })
         }
-        const { steps, summary, usage } = await this.plan(agent, instruction, options, undefined, scopeRef)
+        const { steps, summary, usage } = await this.plan(agent, instruction, options, undefined, scopeRef, recorder)
         if (cache && key) {
             this.#store(cache, key, { instruction, platform, steps }, options)
         }
@@ -438,12 +561,26 @@ export class AiRuntime {
             throw new ActError({ instruction, reason: 'no model is configured. Set the `model` option of the service or the WDIO_AI_MODEL environment variable.' })
         }
         const agent = await this.agentFor(browser)
-        const scopeRef = await scopeOf(agent, scope, 'extract')
+        const scoped = await scopeOf(agent, scope)
+        try {
+            return await this.#extractIn(agent, instruction, schema, options, usage, scoped.ref)
+        } finally {
+            await scoped.leave?.()
+        }
+    }
+
+    async #extractIn<T> (agent: AgentSession, instruction: string, schema: StandardSchemaV1<unknown, T>, options: ExtractOptions, usage: TokenUsage, scopeRef?: string) {
+        const modelOption = selectModel(options.model, this.options.model)!
         const values = options.values || {}
         const workspace = this.#workspaceFor(instruction)
         workspace.values = values
         workspace.secrets = this.#rememberSecrets(values)
         await workspace.writeEvents(agent.logs, agent.network)
+        const responses = await this.#responses.get(agent.browser)?.catch(() => undefined)
+        const withResponses = responses ? await workspace.writeResponses(responses, responses.select({
+            contexts: await contextTree(agent.browser, await agent.browser.getWindowHandle().catch(() => undefined)),
+            since: this.#test?.startedAt
+        })) > 0 : false
         const jsonSchema = jsonSchemaOf(schema)
         const tools = await pageTools({ agent, values, secrets: workspace.secrets, actions: READ_ACTIONS, onStep: () => {}, workspace, scope: scopeRef })
         let feedback = ''
@@ -457,7 +594,7 @@ export class AiRuntime {
                 const result = await runLoop({
                     model: await this.#model(modelOption),
                     tools,
-                    systemPrompt: [EXTRACT_PROMPT, WORKSPACE_PROMPT].join('\n\n'),
+                    systemPrompt: [EXTRACT_PROMPT, WORKSPACE_PROMPT, ...(withResponses ? [RESPONSES_PROMPT] : [])].join('\n\n'),
                     prompt: [
                         `Instruction: ${instruction}`,
                         scopeRef ? SCOPE_PROMPT : '',

@@ -24,6 +24,10 @@ export interface ActRecord {
      * refs, selectors or files an `extract` value came from
      */
     evidence?: string[]
+    /**
+     * how thoroughly the effects of replayed and healed steps were checked
+     */
+    effects?: 'checked' | 'partial' | 'off'
     spec?: string
     test?: string
     instruction: string
@@ -33,6 +37,10 @@ export interface ActRecord {
      * steps healed without the model
      */
     healedSteps?: HealedStep[]
+    /**
+     * screenshots and video of a heal or of a failed replay
+     */
+    artifacts?: string[]
     /**
      * set when the call failed
      */
@@ -105,7 +113,21 @@ export function formatSummary (records: ActRecord[], { mode, outputDir }: { mode
         for (const record of healed) {
             const steps = (record.healedSteps || []).map((step) => `step ${step.index + 1} ${step.from} → ${step.to}`).join(', ')
             lines.push(`  ${where(record)} "${record.instruction}": ${record.healed === 'cache' ? `${steps} (without the model)` : 'continued by the model'}`)
+            if (record.artifacts?.length) {
+                lines.push(`    evidence: ${path.dirname(record.artifacts[0])}`)
+            }
         }
+    }
+    const failedReplays = records.filter((record) => record.error && record.artifacts?.length)
+    if (failedReplays.length) {
+        lines.push('Failed replays:')
+        for (const record of failedReplays) {
+            lines.push(`  ${where(record)} "${record.instruction}": ${path.dirname(record.artifacts![0])}`)
+        }
+    }
+    const partial = records.filter((record) => record.effects === 'partial' && record.source === 'cache').length
+    if (partial) {
+        lines.push(`Effects were only partly checked for ${partial} replayed call${partial === 1 ? '' : 's'}: WebDriver Classic sessions see navigation and page changes, but not requests, new windows or dialogs.`)
     }
     const changed = records.some((record) => !record.error && (record.healed || record.source === 'model'))
     if (changed && mode === 'heal') {

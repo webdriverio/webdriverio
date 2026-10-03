@@ -12,6 +12,7 @@ import { isError, serialize, type ElementInfo } from '../exec/serialize.js'
 import { transform } from '../exec/transform.js'
 import { quote } from '../quote.js'
 import type { ActionFn, Session } from '../session.js'
+import { scopeOf } from '../snapshot/target.js'
 
 const log = logger('@wdio/session:exec')
 
@@ -39,7 +40,7 @@ function describeInPage (el: HTMLElement) {
 
 async function describeElement (session: Session, el: WebdriverIO.Element): Promise<ElementInfo> {
     if (session.isWeb && !session.applies.includes('M')) {
-        return session.browser.execute(describeInPage, el as unknown as HTMLElement)
+        return scopeOf(session).execute(describeInPage, el as unknown as HTMLElement)
     }
     const tag = await el.getTagName().catch(() => undefined)
     const name = await el.getText().catch(() => undefined)
@@ -52,7 +53,7 @@ async function describeElement (session: Session, el: WebdriverIO.Element): Prom
 export async function rewriteRefs (session: Session, code: string, used: Map<string, WebdriverIO.Element>) {
     let out = code
     for (const [id, el] of used) {
-        const selector = await session.refs.stableSelector(session.browser, id, el).catch(() => undefined)
+        const selector = await session.refs.stableSelector(scopeOf(session), id, el).catch(() => undefined)
         if (selector) {
             out = out.replace(new RegExp(`\\bref\\((['"\`])${id}\\1\\)`, 'g'), `$(${quote(selector)})`)
         }

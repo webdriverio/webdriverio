@@ -36,6 +36,20 @@ describe('formatSummary', () => {
         ])
     })
 
+    it('points to the screenshots and video of heals and failed replays', () => {
+        const summary = formatSummary([
+            record({ healed: 'cache', healedSteps: [{ index: 0, from: '#add', to: '#cart-add' }], artifacts: ['/out/ai/heals/cart-1/failed.png', '/out/ai/heals/cart-1/step-1.png'] }),
+            record({ instruction: 'Pay', error: 'act("Pay") failed', artifacts: ['/out/ai/heals/pay-2/failed.png', '/out/ai/heals/pay-2/heal.webm'] })
+        ])
+        expect(summary.split('\n').slice(1)).toEqual([
+            'Healed:',
+            '  cart.e2e.ts › cart adds a shirt "Add a shirt": step 1 #add → #cart-add (without the model)',
+            '    evidence: /out/ai/heals/cart-1',
+            'Failed replays:',
+            '  cart.e2e.ts › cart adds a shirt "Pay": /out/ai/heals/pay-2'
+        ])
+    })
+
     it('asks to commit the cache in write mode and prints nothing without calls', () => {
         expect(formatSummary([record({ source: 'model' })], { mode: 'write' }))
             .toContain('Cache files changed, review and commit the __act__ directories.')

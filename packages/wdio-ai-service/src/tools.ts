@@ -5,6 +5,8 @@ import type { ActionSpec, AgentSession } from '@wdio/session/agent'
 import { redact, substitute } from './redact.js'
 import type { ActStep, StepTarget } from './types.js'
 import type { Workspace } from './workspace.js'
+import { describeEffect, isEmpty } from './effects.js'
+import type { EffectRecorder } from './recorder.js'
 
 /**
  * `@wdio/session` actions the model may use. Code execution, cookies,
@@ -16,6 +18,30 @@ export const DEFAULT_ACTIONS = [
     'scroll', 'swipe', 'long-press', 'drag', 'navigate', 'back', 'wait', 'frame', 'tabs', 'dialog'
 ]
 
+/**
+ * actions that move between frames and tabs, recorded even without code
+ */
+const CONTEXT_ACTIONS = new Set(['frame', 'tabs'])
+/**
+ * `tabs` without one of these only lists the tabs
+ */
+const TAB_CHANGES = new Set(['switch', 'new', 'close'])
+
+/**
+ * A step a replay has to take: a page action, or a move to another frame
+ * or tab. `tabs switch` is not a page mutation, but later steps run in the
+ * tab it switched to.
+ */
+function isStep (spec: { name: string, mutation?: boolean }, input: Record<string, unknown>) {
+    if (spec.name === 'tabs') {
+        return TAB_CHANGES.has(input.sub as string)
+    }
+    return Boolean(spec.mutation)
+}
+/**
+ * `frame top` and `frame parent` name no element, there is nothing to heal
+ */
+const FRAME_KEYWORDS = new Set(['top', 'parent'])
 const REF = /^@?e\d+$/
 /**
  * action arguments that name an element
@@ -44,6 +70,10 @@ export interface ToolContext {
      * ref of the element `act` was called on, every snapshot is limited to it
      */
     scope?: string
+    /**
+     * records what each step did, and waits until it settled
+     */
+    effects?: EffectRecorder
     /**
      * placeholder values of earlier calls, redacted from what the model reads
      */
@@ -177,15 +207,28 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                     for (const key of TARGET_KEYS) {
                         const target = input[key]
                         /**
-                         * `wait 500` waits a duration, there is no element to check
+                         * `wait 500` waits a duration and `frame top` names no
+                         * element, there is nothing to check
                          */
-                        const duration = spec.name === 'wait' && /^\d+$/.test(target as string)
-                        if (typeof target === 'string' && target && !duration && !await agent.contains(context.scope, substitute(target, values))) {
+                        const noElement = (spec.name === 'wait' && /^\d+$/.test(target as string)) || (spec.name === 'frame' && FRAME_KEYWORDS.has(target as string))
+                        if (typeof target === 'string' && target && !noElement && !await agent.contains(context.scope, substitute(target, values))) {
                             return redact(`Error: ${target} is outside the element this call is limited to. Pick a target from the latest snapshot.`, hidden)
                         }
                     }
                 }
+                const step = isStep(spec, input)
+                if (step) {
+                    await context.effects?.start()
+                }
                 const result = await agent.run(spec.name, substitute(args, values))
+                const settled = step && context.effects ? redact(await context.effects.settle(), values) : undefined
+                /**
+                 * A step still running at the timeout keeps the parts that
+                 * finished: a request that completed did happen, and a replay
+                 * checks it. What was still running is not recorded.
+                 */
+                const unsettled = settled ? context.effects!.unsettled : []
+                const effect = settled
                 if (spec.name === 'snapshot') {
                     diffArgs = {
                         ...(typeof args.scope === 'string' ? { scope: args.scope } : {}),
@@ -193,15 +236,28 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                     }
                 }
                 let text = result.text || 'done'
-                if (spec.mutation) {
-                    if (result.code) {
-                        const target = describeTarget(agent, input.target)
+                if (step) {
+                    /**
+                     * Moving back to the top document or an already declared
+                     * tab emits no code, but a replay still has to take it.
+                     */
+                    if (result.code || CONTEXT_ACTIONS.has(spec.name)) {
+                        const target = spec.name === 'frame' && FRAME_KEYWORDS.has(input.target as string)
+                            ? undefined
+                            : describeTarget(agent, input.target)
                         context.onStep({
                             action: spec.name,
                             args: redact(recordedArgs(agent, input), values),
-                            code: redact(result.code, values),
-                            ...(target ? { target } : {})
+                            code: redact(result.code || '', values),
+                            ...(target ? { target } : {}),
+                            ...(effect && !isEmpty(effect) ? { effect } : {})
                         })
+                    }
+                    if (effect && !isEmpty(effect)) {
+                        text += `\nEffect: ${describeEffect(effect)}`
+                    }
+                    if (unsettled.length) {
+                        text += `\nStill running after the timeout, not recorded: ${redact(unsettled.join(', '), values)}`
                     }
                     const diff = await agent.run('diff', diffArgs).catch(() => undefined)
                     if (diff?.text) {
@@ -233,12 +289,16 @@ function sourceTool (context: ToolContext, tool: Awaited<ReturnType<typeof loadT
     return tool(async () => {
         try {
             const native = !context.agent.session.plan.applies.includes('W')
+            const { agent } = context
             /**
-             * a scoped call saves the HTML of its element, not of the page
+             * a scoped call saves the HTML of its element, a call in a held
+             * frame the frame's document, otherwise the page
              */
             const source = context.scope
-                ? (await context.agent.run('get', { sub: 'html', target: context.scope })).text || ''
-                : await context.agent.browser.getPageSource()
+                ? (await agent.run('get', { sub: 'html', target: context.scope })).text || ''
+                : agent.scope === agent.browser
+                    ? await agent.browser.getPageSource()
+                    : await agent.scope.execute(() => document.documentElement.outerHTML)
             const file = await context.workspace!.writeSource(source, native)
             const what = native ? 'app source' : context.scope ? 'HTML of the element this call is limited to' : 'page HTML'
             return `Saved the ${what} (${source.length} characters) to ${file}. Search it with grep or read parts of it with read_file.`

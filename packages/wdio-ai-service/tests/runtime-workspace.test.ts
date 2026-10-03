@@ -42,7 +42,7 @@ describe('AiRuntime workspace', () => {
 
     const runtime = (script: ScriptStep[], options = {}) => {
         const model = scriptedModel(script)
-        return { model, runtime: new AiRuntime({ model, cache: 'off', workspace: { dir }, ...options }) }
+        return { model, runtime: new AiRuntime({ effects: 'off', model, cache: 'off', workspace: { dir }, ...options }) }
     }
     let testDir: string
     beforeEach(() => {

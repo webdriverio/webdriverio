@@ -1,5 +1,7 @@
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models'
 
+import type { EffectsMode, StepEffect } from './effects.js'
+
 /**
  * any provider of LangChain's `initChatModel`, plus `openrouter`,
  * `llama-cpp` and `lm-studio` (OpenAI-compatible endpoints)
@@ -75,6 +77,24 @@ export interface AiServiceOptions {
      */
     actions?: string[]
     /**
+     * How replayed and healed steps are checked against the effect they had
+     * when they were recorded (default `strict`). `ignore` lists requests
+     * that never count, on top of common analytics and telemetry hosts.
+     */
+    effects?: EffectsMode | { mode?: EffectsMode, ignore?: (string | RegExp)[] }
+    /**
+     * Collect the bodies of the fetch and XHR responses the page receives
+     * with a WebDriver BiDi network data collector, so `extract()` can read
+     * them from the workspace (default `true`)
+     */
+    responseBodies?: boolean
+    /**
+     * Save screenshots of every heal, and a video where the browser records
+     * a WebDriver BiDi screencast, to `<workspace dir>/heals/` (default
+     * `true`). Nothing is captured while cached steps replay fine.
+     */
+    healEvidence?: boolean
+    /**
      * the read-only evidence folder the model can look into
      */
     workspace?: {
@@ -147,6 +167,10 @@ export interface ActStep {
      */
     code: string
     target?: StepTarget
+    /**
+     * what the step did when it was recorded
+     */
+    effect?: StepEffect
 }
 
 export interface ActResult {
