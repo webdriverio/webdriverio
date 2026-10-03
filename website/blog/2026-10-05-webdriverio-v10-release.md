@@ -1,13 +1,26 @@
 ---
-title: "WebdriverIO v10: Still Here, Still Shipping"
+title: "WebdriverIO v10: Verification Loops for Coding Agents, on Every Platform"
 authors: bromann
+date: 2026-10-05T06:00:00-07:00
 ---
 
-Wait, WebdriverIO still ships major releases?
+**WebdriverIO v10 is out today, and it is built for agent verification loops.** Your coding agent can open your app in a real browser, on an Android or iOS device, or as a desktop app, check that the feature it just wrote actually works, and leave behind a regular test that keeps proving it on every change.
 
-If that was your first thought, fair enough. Over the last few years a lot of people decided the end-to-end testing question was settled: Playwright won, and everything else is legacy. We hear it at conferences, in issue threads, and in the occasional "is this project still maintained?" message on Discord.
+The highlights:
 
-So here is the answer: **yes. WebdriverIO v10 is out today.** It was built in the open by a governed community of people who care about one thing other tools treat as an afterthought: testing on the real browsers and devices your users have, on every platform. That means real browsers automated through open web standards, native iOS and Android apps, Electron, Tauri and native desktop apps, and the TVs in people's living rooms.
+- **[`wdio session`](/docs/session)**: a CLI that lets an agent drive browsers, phones and desktop apps step by step, then export what worked as a test.
+- **[`browser.act()`](/docs/ai-steps)**: write a step as intent, let a model work it out once, then replay it as plain code without spending a token.
+- **[WebdriverIO DevTools](/docs/devtools)**: a live debugger and portable traces, for you and for your agent.
+- **Tabs, windows and frames as values** you hold, instead of a hidden pointer you switch.
+- **Breaking changes worth knowing**: W3C-only sessions, Appium 3, Node.js 22.19+ and a strict `$`.
+
+Upgrading an existing suite? Let your agent do it:
+
+```sh
+npx skills add webdriverio/webdriverio --skill wdio-v10-migration
+```
+
+Starting fresh? Run `npm init wdio` and say yes to coding agent support.
 
 <!-- truncate -->
 
@@ -16,13 +29,17 @@ import AiStepsDemo from '@site/src/components/home/AiStepsDemo'
 
 ## Fifteen years of changing with the job
 
+If you had WebdriverIO filed under "legacy", fair enough. Over the last few years a lot of people decided the end-to-end testing question was settled: Playwright won, and everything else is legacy. We hear it at conferences, in issue threads, and in the occasional "is this project still maintained?" message on Discord. v10 is our answer. It was built in the open by a governed community of people who care about one thing other tools treat as an afterthought: testing on the real browsers and devices your users have, on every platform.
+
 WebdriverIO has been around for about fifteen years, and it has never stayed the same project for long. It started as a small Node.js binding for the Selenium JSON Wire Protocol. Then it became a test runner. Then it added mobile automation through Appium, component testing in the browser, visual testing, and full [WebDriver BiDi](https://w3c.github.io/webdriver-bidi/) support in v9. Each time, the industry changed how software gets built and tested, and WebdriverIO changed with it.
 
 The next change is already underway. More and more code is written by coding agents rather than typed by hand. [Addy Osmani](https://x.com/addyosmani) describes what this does to engineering in [The Code Nobody Reads](https://addyo.substack.com/p/the-code-nobody-reads). Line-by-line review stops scaling once agents produce most of the diff, but someone still has to own what ships. Trust has to come from somewhere else: from **independent verification**, checks that prove a change works instead of a human reading every line of it. As Addy puts it, "the team that wins isn't the one that reads nothing."
 
-That is where a testing framework comes in. An agent that writes a feature should also be able to open the app, click through the feature, check what it sees, and leave behind a test that keeps proving it. Run that loop on every change and you get code you can trust without reading all of it.
+That is where a testing framework comes in. Addy calls the next step [loop engineering](https://addyosmani.com/blog/loop-engineering/): instead of prompting an agent turn by turn, you design the loop that prompts it. A loop is only as good as the check that tells it when the work is done. For a feature in an app, that check is a **verification loop**: the agent opens the app, clicks through the feature, checks what it sees, and leaves behind a test that keeps proving it. Run that loop on every change and you get code you can trust without reading all of it.
 
-**With v10, WebdriverIO is becoming the best tool for agents to automate and verify features in applications on every platform.** The protocols, drivers, services and assertions we built over fifteen years are what make that possible. v10 points all of it at the agent.
+The check has to be independent of the agent, though. An agent that writes both a feature and its test can get both wrong in the same way, and the test passes anyway. WebdriverIO keeps the verdict out of the model's hands. Checks run against the real browser or device, not a simulation of it. What the agent did is exported as a plain, deterministic test that you can read and rerun without a model. And when [`browser.act()`](#browseract-steps-written-as-intent-replayed-as-code) repairs a step after a UI change, the repair only counts if it causes the same network requests, navigation and page changes as before. A green run means the app did what the test says, not that a model thinks it did.
+
+**With v10, WebdriverIO brings verification loops to every platform your users are on.** Most browser tools for agents stop at the browser tab and automate their own bundled browser builds. WebdriverIO drives the real Chrome, Firefox, Edge and Safari, iOS and Android apps, Electron, Tauri and native desktop apps, and the TVs in people's living rooms, all through the same API and the same `wdio session` commands. The protocols, drivers, services and assertions we built over fifteen years are what make that possible. v10 points all of it at the agent.
 
 ## What's new in v10
 
@@ -60,18 +77,6 @@ The agent opens the app, reads a snapshot of what is on screen, acts on element 
 `npm init wdio` now offers to set up coding agent support. It installs a `wdio-session` [agent skill](/docs/ai-agents) into your project so Claude Code, Cursor, Codex, Copilot and others know how to use it.
 
 `wdio session` started as [`wdiox`](https://github.com/Winify/webdriverio-execute) (WebdriverIO Execute), a side project by [Vince Graics](https://github.com/Winify). It kept a session on disk between commands, gave every element on screen a short ref, and recorded each step. That turned out to be exactly how agents like to work, so for v10 we moved it into the core CLI. It now ships with every WebdriverIO project.
-
-### Traces an agent can debug
-
-A verification loop is only useful if a failure tells you why it failed. For years, this was where other frameworks were ahead of us. Playwright's trace viewer and Cypress's time-travel debugging set the standard for seeing what a test actually did, and WebdriverIO users had to piece the same story together from logs and screenshots.
-
-[WebdriverIO DevTools](/docs/devtools) closes that gap. It has two parts. A live dashboard opens while your tests run: you see every command, the page, console and network logs, and you can rerun a single test with one click. Trace mode records a portable `trace.zip` that you can replay offline, attach to a CI run, or hand to an agent to compare against a passing run. Read the [tracing announcement](/blog/2026/06/18/webdriverio-tracing) for the details. This is where we are catching up, and it is only the start: more powerful debugging features are coming during the v10 cycle.
-
-DevTools exists thanks to [BrowserStack](https://www.browserstack.com/automation-webdriverio), one of the project's Premium sponsors. [Vishnu Vardhan](https://github.com/vishnuv688) from BrowserStack has been the driving force behind the [DevTools repository](https://github.com/webdriverio/devtools), building everything from the live debugger to per-test trace slices and hybrid-app webview capture. BrowserStack also did not keep the work to WebdriverIO alone. They extended the trace format and the UI to [Selenium WebDriver and Nightwatch.js](/docs/devtools/cross-framework), so teams on those frameworks get the same debugging experience. That helps the whole WebDriver ecosystem, not just our users, and it is exactly the kind of contribution that makes an open project stronger. [Mrunal Chaudhari](https://github.com/mccmrunal) and [Vince Graics](https://github.com/Winify) contributed tracing follow-ups.
-
-Here is what DevTools shows you, from the live dashboard and native mobile tests to the trace player. Click a recording to enlarge it:
-
-<DevToolsDemo />
 
 ### MCP: one server for browsers, phones and desktop apps
 
@@ -116,32 +121,17 @@ A few more things it does:
 
 `@wdio/ai-service` grew out of [Vince Graics](https://github.com/Winify)' [`@wdio/deepagent` proposal](https://github.com/webdriverio/webdriverio/pull/15487), which brought LangChain Deep Agents and self-healing to WebdriverIO. The [AI steps guide](/docs/ai-steps) shows how to set it up, and `npm init wdio` adds it for you.
 
-### Assertions, protocols and drivers
+### Traces an agent can debug
 
-Verification needs precise assertions and a typed protocol underneath them. [David Prevost](https://github.com/dprevost-LMI) has been one of the most active contributors across the whole organization, with work across every layer that verification depends on:
+A verification loop is only useful if a failure tells you why it failed. For years, this was where other frameworks were ahead of us. Playwright's trace viewer and Cypress's time-travel debugging set the standard for seeing what a test actually did, and WebdriverIO users had to piece the same story together from logs and screenshots.
 
-- **expect-webdriverio 8**, the assertion library v10 ships with. Types are published the way users compile them, and the real matcher name now reaches the `beforeAssertion` / `afterAssertion` hooks. Finally, robust multi-remote support: browser, element, network and snapshot matchers now check every instance of a multi-remote session.
-- **[cddl](https://github.com/webdriverio/cddl)**, the parser and code generator behind our typed WebDriver BiDi client.
-- **The new [driver](https://github.com/webdriverio/driver) monorepo** with `geckodriver`, `edgedriver` and `safaridriver`.
-- **The v10 upgrades** to Vitest 5 in the browser runner, pnpm 11, and Jasmine matchers that stay synchronous.
+[WebdriverIO DevTools](/docs/devtools) closes that gap. It has two parts. A live dashboard opens while your tests run: you see every command, the page, console and network logs, and you can rerun a single test with one click. Trace mode records a portable `trace.zip` that you can replay offline, attach to a CI run, or hand to an agent to compare against a passing run. Read the [tracing announcement](/blog/2026/06/18/webdriverio-tracing) for the details. This is where we are catching up, and it is only the start: more powerful debugging features are coming during the v10 cycle.
 
-### Visual and mobile verification
+DevTools exists thanks to [BrowserStack](https://www.browserstack.com/automation-webdriverio), one of the project's Premium sponsors. [Vishnu Vardhan](https://github.com/vishnuv688) from BrowserStack has been the driving force behind the [DevTools repository](https://github.com/webdriverio/devtools), building everything from the live debugger to per-test trace slices and hybrid-app webview capture. BrowserStack also did not keep the work to WebdriverIO alone. They extended the trace format and the UI to [Selenium WebDriver and Nightwatch.js](/docs/devtools/cross-framework), so teams on those frameworks get the same debugging experience. That helps the whole WebDriver ecosystem, not just our users, and it is exactly the kind of contribution that makes an open project stronger. [Mrunal Chaudhari](https://github.com/mccmrunal) and [Vince Graics](https://github.com/Winify) contributed tracing follow-ups.
 
-Sometimes "does it work" means "does it look right", and sometimes "the app" is a native app on a phone. [Wim Selles](https://github.com/wswebcreation) has spent these two years making WebdriverIO great at both, and much of what makes visual and mobile verification in v10 feel effortless is Wim's work.
+Here is what DevTools shows you, from the live dashboard and native mobile tests to the trace player. Click a recording to enlarge it:
 
-**Visual testing on a new engine.** In v10, [visual testing](/docs/visual-testing) compares screenshots with [Pixelmatch](https://github.com/mapbox/pixelmatch) instead of ResembleJS, and handles images with `fast-png` instead of the no-longer-maintained Jimp: still pure JavaScript, now on actively maintained libraries. Wim made sure the existing `ignore*` options keep their meaning, and the [FAQ](/docs/visual-testing/faq) explains the one-time baseline update. The comparison logic now lives in its own package, `@wdio/image-comparison-core`. Web screenshots use WebDriver BiDi where available, full-page screenshots on iOS and desktop Safari are stitched correctly, and the [Visual Reporter](/docs/visual-testing/visual-reporter) lets you review differences in the browser.
-
-**Native mobile commands.** Wim gave WebdriverIO mobile commands that work the same on Android and iOS: [`tap`](/docs/api/mobile/tap), [`swipe`](/docs/api/mobile/swipe), [`longPress`](/docs/api/mobile/longPress), [`dragAndDrop`](/docs/api/mobile/dragAndDrop), [`pinch`](/docs/api/mobile/pinch), [`zoom`](/docs/api/mobile/zoom), native [`scrollIntoView`](/docs/api/mobile/scrollIntoView) and [`deepLink`](/docs/api/mobile/deepLink). [`getContext`](/docs/api/mobile/getContext) and [`switchContext`](/docs/api/mobile/switchContext) tell you much more about the webviews in a hybrid app, and `isDisplayed` works for Windows and macOS apps. These are the commands an agent reaches for when it verifies a feature on a phone, and they hide the platform differences that used to make mobile tests brittle.
-
-**Appium 3 and a place to start.** Wim updated the protocol and mobile commands for Appium 3, the version v10 now requires. The Appium service gained the [Native Mobile Selector Performance Optimizer](/docs/appium-service#native-mobile-selector-performance-optimizer) (beta, iOS for now), which times your XPath selectors during a run and reports faster replacements, and `npx start-appium-inspector` opens [Appium Inspector](https://github.com/appium/appium-inspector) in one step. To try it all, start with the [native demo app](https://github.com/webdriverio/native-demo-app) that Wim moved to Expo, the updated [Appium boilerplate](https://github.com/webdriverio/appium-boilerplate), and the [mobile automation workshop](https://github.com/webdriverio/setup-workshop-mobile-automation-with-appium).
-
-### Desktop apps, mobile frameworks and headless CI
-
-**One family of services for app frameworks.** Not every app lives in a browser tab. [goosewobbler](https://github.com/goosewobbler) built and maintains [WebdriverIO Desktop & Mobile](https://github.com/webdriverio/desktop-mobile), and has carried nearly all of the work on it. It is a set of services that test apps the way their frameworks build them. [Electron](/docs/desktop-testing/electron) is now `@wdio/electron-service`. [Tauri](/docs/desktop-testing/tauri) (including the CrabNebula driver on macOS) and [Dioxus](/docs/desktop-testing/dioxus) are stable. React Native and Flutter services are feature-complete on the `next` tag, and Electrobun has early support. Each service sets up, starts and tears down the right driver for you, so a desktop test starts as simply as a browser test.
-
-**The same toolbox in every framework.** Across all of them you get the same API: mock the app's native APIs for deterministic tests, run code in the app's own runtime (such as Electron's main process or the Dart VM in Flutter), test deeplinks and multiple windows, run several app instances with multi-remote, and capture the app's logs. A browser mode tests the app's UI in Chrome against its dev server, without building the native binary. For agents, that means verifying a desktop feature works just like verifying a web page, and `wdio session open electron`, `open tauri` and `open dioxus` build on exactly these services.
-
-**Real apps in CI, without a screen.** Agents run in CI, and CI machines have no display. goosewobbler first solved this in v9 with `@wdio/xvfb`, which gave Linux runners a virtual display automatically. In v10 it grew into `@wdio/display-server`, which adds native headless Wayland through Weston. The testrunner now starts one display server for the whole run: Weston first, with Xvfb as the fallback. Browsers and desktop apps run on a headless Linux machine without extra setup. The [headless and display server guide](/docs/headless-and-display-servers) covers the options, and the [migration guide](/docs/v10-migration#virtual-displays-on-linux) shows how to rename the old `xvfb*` settings.
+<DevToolsDemo />
 
 ### Tabs, windows and frames you can hold
 
@@ -161,6 +151,33 @@ await docs.getTitle()
 
 Windows the test didn't open, like a `window.open` popup, come from `browser.browsingContexts()`. Because nothing moves a hidden pointer anymore, `switchWindow` and `switchFrame` throw in BiDi sessions. Classic sessions keep them, and the [migration guide](/docs/v10-migration#switchtoframe) shows the new calls.
 
+### Assertions, protocols and drivers
+
+Verification needs precise assertions and a typed protocol underneath them. [David Prevost](https://github.com/dprevost-LMI) has been one of the most active contributors across the whole organization, with work across every layer that verification depends on:
+
+- **expect-webdriverio 8**, the assertion library v10 ships with. Types are published the way users compile them, and the real matcher name now reaches the `beforeAssertion` / `afterAssertion` hooks. Finally, robust multi-remote support: browser, element, network and snapshot matchers now check every instance of a multi-remote session.
+- **[cddl](https://github.com/webdriverio/cddl)**, the parser and code generator behind our typed WebDriver BiDi client.
+- **The new [driver](https://github.com/webdriverio/driver) monorepo** with `geckodriver`, `edgedriver` and `safaridriver`.
+- **The v10 upgrades** to Vitest 5 in the browser runner, pnpm 11, and Jasmine matchers that stay synchronous.
+
+### Visual and mobile verification
+
+Sometimes "does it work" means "does it look right", and sometimes "the app" is a native app on a phone. [Wim Selles](https://github.com/wswebcreation) has spent the last two years making WebdriverIO great at both, and much of what makes visual and mobile verification in v10 feel effortless is Wim's work.
+
+**Visual testing on a new engine.** In v10, [visual testing](/docs/visual-testing) compares screenshots with [Pixelmatch](https://github.com/mapbox/pixelmatch) instead of ResembleJS, and handles images with `fast-png` instead of the no-longer-maintained Jimp: still pure JavaScript, now on actively maintained libraries. Wim made sure the existing `ignore*` options keep their meaning, and the [FAQ](/docs/visual-testing/faq) explains the one-time baseline update. The comparison logic now lives in its own package, `@wdio/image-comparison-core`. Web screenshots use WebDriver BiDi where available, full-page screenshots on iOS and desktop Safari are stitched correctly, and the [Visual Reporter](/docs/visual-testing/visual-reporter) lets you review differences in the browser.
+
+**Native mobile commands.** Wim gave WebdriverIO mobile commands that work the same on Android and iOS: [`tap`](/docs/api/mobile/tap), [`swipe`](/docs/api/mobile/swipe), [`longPress`](/docs/api/mobile/longPress), [`dragAndDrop`](/docs/api/mobile/dragAndDrop), [`pinch`](/docs/api/mobile/pinch), [`zoom`](/docs/api/mobile/zoom), native [`scrollIntoView`](/docs/api/mobile/scrollIntoView) and [`deepLink`](/docs/api/mobile/deepLink). [`getContext`](/docs/api/mobile/getContext) and [`switchContext`](/docs/api/mobile/switchContext) tell you much more about the webviews in a hybrid app, and `isDisplayed` works for Windows and macOS apps. These are the commands an agent reaches for when it verifies a feature on a phone, and they hide the platform differences that used to make mobile tests brittle.
+
+**Appium 3 and a place to start.** Wim updated the protocol and mobile commands for Appium 3, the version v10 now requires. The Appium service gained the [Native Mobile Selector Performance Optimizer](/docs/appium-service#native-mobile-selector-performance-optimizer) (beta, iOS for now), which times your XPath selectors during a run and reports faster replacements, and `npx start-appium-inspector` opens [Appium Inspector](https://github.com/appium/appium-inspector) in one step. To try it all, start with the [native demo app](https://github.com/webdriverio/native-demo-app) that Wim moved to Expo, the updated [Appium boilerplate](https://github.com/webdriverio/appium-boilerplate), and the [mobile automation workshop](https://github.com/webdriverio/setup-workshop-mobile-automation-with-appium).
+
+### Desktop apps, mobile frameworks and headless CI
+
+**One family of services for app frameworks.** Not every app lives in a browser tab. [goosewobbler](https://github.com/goosewobbler) built and maintains [WebdriverIO Desktop & Mobile](https://github.com/webdriverio/desktop-mobile), and has carried nearly all of the work on it. It is a set of services that test apps the way their frameworks build them. [Electron](/docs/desktop-testing/electron) is now `@wdio/electron-service`. [Tauri](/docs/desktop-testing/tauri) (including the CrabNebula driver on macOS) and [Dioxus](/docs/desktop-testing/dioxus) are stable. React Native and Flutter services are feature-complete on the `next` tag, and Electrobun has early support. Each service sets up, starts and tears down the right driver for you, so a desktop test starts as simply as a browser test.
+
+**The same toolbox in every framework.** Across all of them you get the same API: mock the app's native APIs for deterministic tests, run code in the app's own runtime (such as Electron's main process or the Dart VM in Flutter), test deeplinks and multiple windows, run several app instances with multi-remote, and capture the app's logs. A browser mode tests the app's UI in Chrome against its dev server, without building the native binary. For agents, that means verifying a desktop feature works just like verifying a web page, and `wdio session open electron`, `open tauri` and `open dioxus` build on exactly these services.
+
+**Real apps in CI, without a screen.** Agents run in CI, and CI machines have no display. goosewobbler first solved this in v9 with `@wdio/xvfb`, which gave Linux runners a virtual display automatically. In v10 it grew into `@wdio/display-server`, which adds native headless Wayland through Weston. The testrunner now starts one display server for the whole run: Weston first, with Xvfb as the fallback. Browsers and desktop apps run on a headless Linux machine without extra setup. The [headless and display server guide](/docs/headless-and-display-servers) covers the options, and the [migration guide](/docs/v10-migration#virtual-displays-on-linux) shows how to rename the old `xvfb*` settings.
+
 ### Small API changes you will notice
 
 - **`$` is strict.** [Mrunal Chaudhari](https://github.com/mccmrunal) made `$` throw when a selector matches more than one element. An ambiguous selector is a common source of flaky tests, and agents write a lot of them. The [migration guide](/docs/v10-migration#-is-strict) shows how to audit your suite and how to opt out.
@@ -169,7 +186,7 @@ Windows the test didn't open, like a `window.open` popup, come from `browser.bro
 - **Multi-remote cleanup.** [Plone Mraz](https://github.com/PloneMraz) made multi-remote `$$` return a `MultiRemoteElementArray`, stabilized `select()`, and added a lock so concurrent setups share one driver install.
 - **Lighthouse 13** in the Lighthouse service, **Allure 3** support in the Allure reporter from [Alex](https://github.com/todti), and the soft assertion service now included automatically by the runner thanks to [JustasM](https://github.com/JustasMonkev).
 
-### Clearing out fifteen years of legacy
+## Upgrading to v10
 
 v10 removes a lot of old code, which makes WebdriverIO smaller, faster and easier for humans and agents to reason about:
 
@@ -188,7 +205,11 @@ The [migration guide](/docs/v10-migration) covers every breaking change. Most of
 npx skills add webdriverio/webdriverio --skill wdio-v10-migration
 ```
 
-### The people keeping the core trustworthy
+## Thank you
+
+A few people carried an outsized share of v10, and everyone who merged a pull request is listed below.
+
+### Keeping the core trustworthy
 
 A framework that agents rely on has to hold up under the large volume of tests they generate. Few people did more for that over the last two years than [Mrunal Chaudhari](https://github.com/mccmrunal), who fixed bugs across nearly every part of the core:
 
