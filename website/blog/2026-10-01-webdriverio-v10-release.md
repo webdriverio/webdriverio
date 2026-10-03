@@ -12,6 +12,7 @@ So here is the answer: **yes. WebdriverIO v10 is out today.** It was built in th
 <!-- truncate -->
 
 import DevToolsDemo from '@site/src/components/home/DevToolsDemo'
+import AiStepsDemo from '@site/src/components/home/AiStepsDemo'
 
 ## Fifteen years of changing with the job
 
@@ -77,6 +78,43 @@ Here is what DevTools shows you, from the live dashboard and native mobile tests
 If your agent prefers tools over the shell, [`@wdio/mcp`](/docs/mcp) gives it the same reach. [Vince Graics](https://github.com/Winify) turned it into a cross-platform MCP server: browsers, Appium mobile sessions, Electron, session logs, browser mocking, a `query_docs` tool, and cloud sessions on Sauce Labs, BrowserStack and TestMu AI. Read the [launch post](/blog/2026/02/04/introducing-webdriverio-mcp) if you missed it.
 
 Other people kept adding to it. [Ned Thompson](https://github.com/nthompson-bitwarden) added Electron support and session-scoped API mocking. [Arundoss](https://github.com/Arundoss-digitalai) added Digital.ai Testing as a cloud provider, and [Jochen](https://github.com/jochen-testingbot) added TestingBot. [ned](https://github.com/nathom791) added browser extension install and uninstall. [Aaron Zhou](https://github.com/Clarkkkk) added external WebDriver providers, and [faiz](https://github.com/fbmcipher) made it possible to attach to an existing session. [Ben Atkinson](https://github.com/apuck) added iframe switching, [Netzulo](https://github.com/netzulo) added capability passthrough, and [Vansh Sukhija](https://github.com/VanshSukhija) fixed Sauce Labs options.
+
+### `browser.act()`: steps written as intent, replayed as code
+
+Models are good at finding their way through a UI. They are not cheap, fast or deterministic, and a test suite has to be all three. v10 introduces [`@wdio/ai-service`](/docs/ai-steps), which uses a model where it helps and keeps it out of the run everywhere else:
+
+```ts title="test/specs/cart.e2e.ts"
+import { browser, expect } from '@wdio/globals'
+import { z } from 'zod'
+
+it('adds a shirt to the cart', async () => {
+    await browser.url('/shirts/blue')
+    await browser.act('Add the blue T-shirt in size M to the cart')
+
+    const cart = await browser.extract(
+        'the line items in the cart',
+        z.array(z.object({ name: z.string(), size: z.string(), qty: z.number() }))
+    )
+    expect(cart).toContainEqual({ name: 'Blue T-Shirt', size: 'M', qty: 1 })
+})
+```
+
+The first run hands the instruction to your model together with the `wdio session` actions. Every step it takes runs as a regular WebdriverIO command, and the commands are written to `__act__/cart.e2e.ts.json` next to the spec. From then on the steps replay without a model, so a green run spends no tokens on `act()` and is as fast as hand-written code. `extract()` is never cached: it reads the current page, so it calls the model on every run.
+
+When the UI changes, the service heals the step without a model first: it tries the other selectors it recorded, then the element's role and accessible name through the new [`role/` selector](/docs/selectors#role-selector). This is where WebDriver BiDi does something a selector can't. Every recorded step also stores its **effect**: the requests it sent, the navigation it caused and the parts of the page that changed. A healed step only counts when it does the same thing. A heal onto a look-alike "Add to cart" button in the wishlist widget sends a different request, so the test fails instead of passing. A step that still finds its element but no longer works is reported as a behavior change, not a markup change, and it never runs a second time. Every heal leaves screenshots behind, plus a video in Firefox, which records it through BiDi's screencast command.
+
+Pick a phase to see what happens to the same step on its first run, on every run after that, after a refactor, and when you eject it:
+
+<AiStepsDemo />
+
+A few more things it does:
+
+- **`extract()`** validates the answer against any [Standard Schema](https://standardschema.dev), and reads the API responses the page received, collected with BiDi network data collectors, for values the page only shows in part.
+- **`act()` runs where you call it:** on an element, a held tab or a frame. The model can follow a step into a new window or a cross-origin frame, and those moves replay too.
+- **Bring your own model:** Anthropic, OpenAI, OpenRouter, or a local model through Ollama, LM Studio or llama.cpp. Your key only goes to the model endpoint you configure.
+- **No lock-in:** `npx wdio-ai eject test/specs/cart.e2e.ts` turns recorded `act()` calls in that spec into plain WebdriverIO code whenever you want the model gone for good.
+
+`@wdio/ai-service` grew out of [Vince Graics](https://github.com/Winify)' [`@wdio/deepagent` proposal](https://github.com/webdriverio/webdriverio/pull/15487), which brought LangChain Deep Agents and self-healing to WebdriverIO. The [AI steps guide](/docs/ai-steps) shows how to set it up, and `npm init wdio` adds it for you.
 
 ### Assertions, protocols and drivers
 
