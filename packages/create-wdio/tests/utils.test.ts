@@ -517,6 +517,22 @@ test('getAnswers with --yes keeps answers given as flags', async () => {
     expect(answers.usePageObjects).toBe(true)
 })
 
+test('getAnswers with --yes leaves free text questions without a default unanswered', async () => {
+    for (const [desktopFramework, pathAnswer] of [
+        ['Tauri (https://tauri.app/)', 'tauriAppBinaryPath'],
+        ['Dioxus (https://dioxuslabs.com/)', 'dioxusAppBinaryPath']
+    ] as const) {
+        const answers = await getAnswers(true, {
+            runner: '@wdio/local-runner$--$local$--$desktop',
+            desktopFramework: desktopFramework as Questionnair['desktopFramework']
+        })
+        expect(answers).not.toHaveProperty(pathAnswer)
+    }
+    const answers = await getAnswers(true, { backend: 'In the cloud using Testingbot or LambdaTest or a different service' as Questionnair['backend'] })
+    expect(answers).not.toHaveProperty('hostname')
+    expect(answers.port).toBe('80')
+})
+
 test('getAnswers with --yes rejects a flag that does not apply', async () => {
     await expect(getAnswers(true, { preset: '@vitejs/plugin-react$--$react' }))
         .rejects.toThrow('--preset does not apply to this setup')

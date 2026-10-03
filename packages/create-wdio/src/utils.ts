@@ -109,6 +109,14 @@ async function getDefaultAnswers(flagAnswers: Partial<Questionnair>): Promise<Qu
             continue
         }
 
+        /**
+         * leave a free text question without a default unanswered, so the
+         * templates use their own fallback (e.g. the default Tauri binary)
+         */
+        if (typeof question.default === 'undefined' && !question.choices) {
+            continue
+        }
+
         Object.assign(answers, {
             [question.name]: typeof question.default !== 'undefined'
                 /**
