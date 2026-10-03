@@ -42,6 +42,14 @@ export function runProgram(command: string, args: string[], options: SpawnOption
         let error: Error
         child.on('error', (e) => (error = e))
         child.on('close', (code, signal) => {
+            /**
+             * exit code 2 is a usage error the child already explained, e.g.
+             * `wdio config` rejecting a flag, so pass it on as is
+             */
+            if (code === 2) {
+                process.exit(2)
+                return rejects(`Usage error calling: ${command} ${args.join(' ')}`)
+            }
             if (code !== 0) {
                 const errorMessage = (error && error.message) || `Error calling: ${command} ${args.join(' ')}`
                 printAndExit(errorMessage, signal)
@@ -680,17 +688,21 @@ export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
 }
 /* c8 ignore stop */
 
-export async function runAppiumInstaller(parsedAnswers: ParsedAnswers) {
+/**
+ * @param yes  `--yes` was passed, so don't prompt
+ */
+export async function runAppiumInstaller(parsedAnswers: ParsedAnswers, yes = false) {
     if (parsedAnswers.e2eEnvironment !== 'mobile') {
         return
     }
 
     /**
-     * appium-installer is interactive, so a coding agent or a CI job can't use it
+     * appium-installer is interactive, so skip it with `--yes` and when a
+     * coding agent or a CI job runs the wizard without a terminal
      */
-    if (!process.stdin.isTTY) {
+    if (yes || !process.stdin.isTTY) {
         return console.log(
-            'Skipping the Appium installer because the terminal is not interactive. ' +
+            'Skipping the interactive Appium installer. ' +
             'Run `npx appium-installer` later, or see https://appium.io/docs/en/latest/quickstart/'
         )
     }

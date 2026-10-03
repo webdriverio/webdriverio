@@ -6,7 +6,7 @@ import type { ParsedAnswers, Questionnair } from '../types.js'
 import { createPackageJSON, setupTypeScript, npmInstall, createWDIOConfig, createWDIOScript, runAppiumInstaller, convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps, getProjectRoot, getSerenityPackages } from '../utils.js'
 import { writeAgentSupport } from './agent.js'
 
-export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: string) {
+export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: string, yes = false) {
     console.log('\n')
 
     await createPackageJSON(parsedAnswers)
@@ -41,7 +41,7 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: str
         }),
     )
 
-    await runAppiumInstaller(parsedAnswers)
+    await runAppiumInstaller(parsedAnswers, yes)
     if (parsedAnswers.rawAnswers?.agentSupport) {
         writeAgentSupport(parsedAnswers.projectRootDir)
     }

@@ -97,11 +97,13 @@ test('handler passes flag answers to the wizard', async () => {
         plugins: [],
         services: []
     } as any)
-    await handler({ yes: true, framework: 'jasmine', typescript: false } as any, vi.fn())
+    const runConfigCmd = vi.fn()
+    await handler({ yes: true, npmTag: 'latest', framework: 'jasmine', typescript: false } as any, runConfigCmd)
     expect(getAnswers).toBeCalledWith(true, {
         framework: '@wdio/jasmine-framework$--$jasmine',
         isUsingTypeScript: false
     })
+    expect(runConfigCmd).toBeCalledWith(expect.any(Object), 'latest', true)
 })
 
 test('handler exits with code 2 on an invalid flag', async () => {

@@ -89,6 +89,13 @@ test('runProgram', async () => {
 
     expect(vi.mocked(console.log).mock.calls[1][0]).toMatch(/spawn foobarloo (ENOENT|EACCES)/)
     expect(process.exit).toBeCalledTimes(2)
+    expect(process.exit).toHaveBeenLastCalledWith(1)
+})
+
+test('runProgram passes a usage error exit code on', async () => {
+    await runProgram('node', ['-e', 'process.exit(2)'], {}).catch((e) => e)
+    expect(process.exit).toBeCalledWith(2)
+    expect(console.log).not.toBeCalledWith(expect.stringContaining('Ups, something went wrong'))
 })
 
 test('getPackageVersion prefixes the version from package.json', async () => {
@@ -753,6 +760,17 @@ test('runAppiumInstaller', async () => {
     expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any))
         .toEqual(['npx appium-installer'])
     expect($).toBeCalledTimes(1)
+    process.stdin.isTTY = isTTY
+})
+
+test('runAppiumInstaller skips the installer with --yes', async () => {
+    const isTTY = process.stdin.isTTY
+    process.stdin.isTTY = true
+    expect(await runAppiumInstaller({ e2eEnvironment: 'mobile' } as any, true))
+        .toBe(undefined)
+    expect(inquirer.prompt).toBeCalledTimes(0)
+    expect($).toBeCalledTimes(0)
+    expect(console.log).toBeCalledWith(expect.stringContaining('npx appium-installer'))
     process.stdin.isTTY = isTTY
 })
 

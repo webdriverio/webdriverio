@@ -64,7 +64,7 @@ export async function handler(argv: ConfigCommandArguments, runConfigCmd = runCo
         console.error(`Error: ${err.message}\nRun "wdio config --help" for all flags.`)
         return process.exit(2)
     }
-    await runConfigCmd(parsedAnswers, argv.npmTag)
+    await runConfigCmd(parsedAnswers, argv.npmTag, argv.yes)
     return {
         success: true,
         parsedAnswers,
