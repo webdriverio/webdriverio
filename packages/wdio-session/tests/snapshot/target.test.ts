@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { refId } from '../../src/snapshot/refs.js'
+import { RefRegistry, refId } from '../../src/snapshot/refs.js'
 import { resolveTarget } from '../../src/snapshot/target.js'
 import type { Session } from '../../src/session.js'
 
@@ -33,5 +33,15 @@ describe('resolveTarget', () => {
         expect(resolved.selector).toBe('aria/Go')
         expect(resolved.label).toBe('e3 (link "Go")')
         expect(resolved.code).toBe('$(\'aria/Go\')')
+    })
+
+    it('notes in the recorded code when no selector matches only the element', async () => {
+        const refs = new RefRegistry()
+        refs.set({ id: 'e4', kind: 'web', role: 'button', name: 'Go', candidates: ['button'], generation: 1 })
+        const element = { elementId: '1', isEqual: async () => false }
+        const browser = { $: () => ({ getElement: async () => element }), $$: () => ({ getElements: async () => [element, element] }) }
+        const resolved = await resolveTarget({ browser, refs } as unknown as Session, 'e4')
+        expect(resolved.selector).toBe('button')
+        expect(resolved.code).toMatch(/^\$\('button'\) \/\* .*may not replay \*\/$/)
     })
 })

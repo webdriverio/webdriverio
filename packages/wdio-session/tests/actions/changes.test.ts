@@ -55,4 +55,28 @@ describe('describeChanges', () => {
         expect(text).toMatch(/^Page: http:\/\/x\/wiki · "Wiki" · 200 interactive elements\./)
         expect(text).not.toContain('Article 1"')
     })
+
+    it('drops a snapshot that only answers after a dialog took over', async () => {
+        let answer: (value: unknown) => void = () => {}
+        const state: { dialog?: unknown } = {}
+        const session = {
+            isWeb: true,
+            applies: ['W'],
+            refs: new RefRegistry(),
+            lastSnapshot: 'baseline',
+            browser: { execute: () => new Promise((resolve) => { answer = resolve }) },
+            currentUrl: async () => 'http://x/',
+            get: (key: string) => key === 'dialog' ? state.dialog : undefined
+        } as unknown as Session
+        const report = describeChanges(session, { url: 'http://x/', text: '- document "Shop"' })
+        state.dialog = { type: 'alert', message: 'Hi' }
+        expect(await report).toEqual({ after: {} })
+        // the dialog is handled, the user took a new snapshot, then the old one answers
+        session.lastSnapshot = 'newer'
+        answer({ tree: doc([button]), refs: [{ id: 'e9', role: 'button', candidates: ['#pay'] }], counter: 9 })
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        expect(session.lastSnapshot).toBe('newer')
+        expect(session.refs.get('e9')).toBeUndefined()
+        expect(session.refs.counter).toBe(0)
+    })
 })

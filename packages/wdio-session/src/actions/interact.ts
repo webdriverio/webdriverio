@@ -177,7 +177,9 @@ export const fill: ActionFn = async (session, args) => {
  * position. For an element inside a closed shadow root that is the shadow
  * host, so the command fails although the element is visible and enabled.
  * In that case: scroll it into view, click its center with a real pointer
- * action (trusted events, like a user) and continue with `after`.
+ * action (trusted events, like a user) and continue with `after`. Only when
+ * the element's own shadow root sees it at that point: anything else there
+ * (an overlay, a clipped edge) would get the click instead.
  */
 async function withPointerFallback (session: Session, target: ResolvedTarget, run: () => Promise<unknown>, after?: () => Promise<unknown>) {
     try {
@@ -189,9 +191,14 @@ async function withPointerFallback (session: Session, target: ResolvedTarget, ru
         const center = await target.element.execute((el) => {
             el.scrollIntoView({ block: 'center', inline: 'center' })
             const rect = el.getBoundingClientRect()
-            return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2), visible: rect.width > 0 && rect.height > 0 }
+            const x = Math.round(rect.x + rect.width / 2)
+            const y = Math.round(rect.y + rect.height / 2)
+            // asked of the element's own (possibly closed) root, the hit is not retargeted to a host
+            const root = el.getRootNode() as Document | ShadowRoot
+            const hit = root.elementFromPoint(x, y)
+            return { x, y, hit: Boolean(hit && (hit === el || el.contains(hit))) }
         })
-        if (!center.visible) {
+        if (!center.hit) {
             throw err
         }
         await session.browser.action('pointer').move({ x: center.x, y: center.y, origin: 'viewport' }).down().up().perform()

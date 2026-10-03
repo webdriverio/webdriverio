@@ -36,13 +36,11 @@ export interface PageState {
  * A snapshot for the report only. It must not move the baseline of the
  * user-facing `diff` action, which is the last snapshot the user took.
  */
-async function reportSnapshot (session: Session) {
+async function reportSnapshot (session: Session, isCurrent?: () => boolean) {
     const baseline = session.lastSnapshot
-    try {
-        return await takeSnapshot(session)
-    } finally {
-        session.lastSnapshot = baseline
-    }
+    const taken = await takeSnapshot(session, {}, isCurrent)
+    session.lastSnapshot = baseline
+    return taken
 }
 
 export async function pageState (session: Session): Promise<PageState> {
@@ -62,29 +60,32 @@ export async function pageState (session: Session): Promise<PageState> {
 /**
  * A dialog that an action opened blocks page scripts until it is handled,
  * and its "opened" event can arrive after the action returned. So the
- * report stops as soon as a dialog shows up. It never stops on a timer: an
- * abandoned snapshot would keep running next to the following command.
+ * report stops as soon as a dialog shows up. Its snapshot only answers once
+ * the dialog is handled, by then other commands may have run: it is marked
+ * as abandoned and drops its result instead of touching refs or `diff`.
  */
 const DIALOG_POLL = 100
 
 export async function describeChanges (session: Session, before: PageState, label = 'Page'): Promise<{ text?: string, after: PageState }> {
     let timer: NodeJS.Timeout | undefined
+    let current = true
     const dialog = new Promise<{ after: PageState }>((resolve) => {
         const poll = () => openDialog(session) ? resolve({ after: {} }) : (timer = setTimeout(poll, DIALOG_POLL))
         timer = setTimeout(poll, DIALOG_POLL)
     })
     try {
-        return await Promise.race([compare(session, before, label), dialog])
+        return await Promise.race([compare(session, before, label, () => current), dialog])
     } finally {
+        current = false
         clearTimeout(timer)
     }
 }
 
-async function compare (session: Session, before: PageState, label: string): Promise<{ text?: string, after: PageState }> {
+async function compare (session: Session, before: PageState, label: string, isCurrent: () => boolean): Promise<{ text?: string, after: PageState }> {
     let after: PageState
     let tree
     try {
-        const taken = await reportSnapshot(session)
+        const taken = await reportSnapshot(session, isCurrent)
         tree = taken.tree
         after = { url: await session.currentUrl(), text: taken.text }
     } catch {

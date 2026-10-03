@@ -43,10 +43,16 @@ export interface TakenSnapshot {
 
 /**
  * Collect a snapshot, register its refs and remember it for `diff`.
+ *
+ * `isCurrent` is asked once the page answered: when it returns false the
+ * caller has given up on this snapshot, so it leaves the session untouched.
  */
-export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}): Promise<TakenSnapshot> {
+export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}, isCurrent = () => true): Promise<TakenSnapshot> {
     if (!session.isWeb || (session.applies.includes('M') && !session.applies.includes('W'))) {
         const native = await takeNativeSnapshot(session, opts)
+        if (!isCurrent()) {
+            throw new SessionError('INTERNAL', 'Snapshot was abandoned.')
+        }
         session.lastSnapshot = native.text
         return native
     }
@@ -57,6 +63,9 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
         boxes: Boolean(opts.boxes),
         urls: Boolean(opts.urls)
     }, scope)
+    if (!isCurrent()) {
+        throw new SessionError('INTERNAL', 'Snapshot was abandoned.')
+    }
     session.refs.counter = result.counter
     session.refs.generation++
     for (const ref of result.refs) {

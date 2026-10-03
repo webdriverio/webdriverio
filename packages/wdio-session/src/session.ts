@@ -225,8 +225,9 @@ export class Session {
                 if (text) {
                     outcome.text = [outcome.text, text].filter(Boolean).join('\n')
                 }
-            } else if (req.action === 'exec') {
-                // code can change the page in ways no action recorded
+            } else if (spec.mutation || req.action === 'exec' || req.action === 'wait') {
+                // the page may have changed without a report (scroll, drag, code,
+                // content that loaded while waiting): the next report starts over
                 this.lastPage = undefined
             }
             if (outcome.history) {
@@ -242,6 +243,10 @@ export class Session {
             const { history: _history, ...result } = outcome
             return result
         } catch (err) {
+            // a failed action may still have changed the page
+            if (before || spec.mutation || req.action === 'exec') {
+                this.lastPage = undefined
+            }
             let error = SessionError.from(err, req.action === 'exec' ? 'EXEC_ERROR' : 'INTERNAL')
             if (!(err instanceof SessionError) && isDeadSessionError(err)) {
                 error = new SessionError('SESSION_DIED', `The ${this.plan.label} session went away: ${error.message}`, {

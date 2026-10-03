@@ -17,6 +17,9 @@ if (!process.env.NODE_ENV) {
      * agents, so it skips loading the rest of the CLI (and webdriverio)
      */
     if (process.argv[2] === 'session') {
+        // like the rest of the CLI, but quiet: agents read the session's output
+        const { default: dotenv } = await import('dotenv')
+        dotenv.config({ quiet: true })
         const { runSessionCli } = await import('@wdio/session/cli')
         process.exitCode = await runSessionCli(process.argv.slice(3))
         return

@@ -178,7 +178,7 @@ describe('fill', () => {
                 throw err
             },
             execute: async (fn: (el: unknown) => unknown) => fn.toString().includes('getBoundingClientRect')
-                ? { x: 10, y: 20, visible: true }
+                ? { x: 10, y: 20, hit: true }
                 : actions.push('select')
         }
         const pointer = {
@@ -194,6 +194,19 @@ describe('fill', () => {
         await fill(session, { target: 'e2', text: 'SAVE20', $cwd: '/' })
         expect(actions).toEqual(['move 10,20', 'down', 'up', 'perform', 'select'])
         expect(keys).toEqual(['SAVE20'])
+    })
+
+    it('does not click when something else is at the element\'s center', async () => {
+        const actions: string[] = []
+        const element = {
+            setValue: async () => {
+                throw new Error('element not interactable')
+            },
+            execute: async () => ({ x: 10, y: 20, hit: false })
+        }
+        const session = refSession(element, { action: () => { actions.push('action'); return {} }, keys: async () => actions.push('keys') })
+        await expect(fill(session, { target: 'e2', text: 'x', $cwd: '/' })).rejects.toThrow('element not interactable')
+        expect(actions).toEqual([])
     })
 
     it('rethrows other errors', async () => {
