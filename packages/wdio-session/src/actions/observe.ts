@@ -10,7 +10,7 @@ import { collectInPage, type CollectOptions } from '../snapshot/web.js'
 import { countRefs, formatSnapshot, type SnapshotNode } from '../snapshot/format.js'
 import { unifiedDiff } from '../snapshot/diff.js'
 import { takeNativeSnapshot } from '../snapshot/native.js'
-import { resolveTarget } from '../snapshot/target.js'
+import { resolveElement, resolveTarget } from '../snapshot/target.js'
 import type { ActionFn, Session } from '../session.js'
 
 const DEFAULT_MAX_CHARS = 8000
@@ -50,7 +50,7 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
         session.lastSnapshot = native.text
         return native
     }
-    const scope = opts.scope ? (await resolveTarget(session, opts.scope)).element : undefined
+    const scope = opts.scope ? await resolveElement(session, opts.scope) : undefined
     const result = await collectWeb(session.browser, {
         counter: session.refs.counter,
         all: Boolean(opts.all),
@@ -144,7 +144,10 @@ export const diff: ActionFn = async (session, args) => {
         }
         before = fs.readFileSync(file, 'utf-8').replace(/\n$/, '')
     }
-    const { text } = await takeSnapshot(session)
+    const { text } = await takeSnapshot(session, {
+        scope: typeof args.scope === 'string' ? args.scope : undefined,
+        interactive: Boolean(args.interactive)
+    })
     if (before === undefined) {
         return { text: `No previous snapshot, stored this one as the baseline (${text.split('\n').length} lines).`, data: { changed: false, baseline: true } }
     }

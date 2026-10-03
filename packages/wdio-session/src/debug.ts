@@ -31,11 +31,43 @@ export function classifyCapabilities (caps: WebdriverIO.Capabilities = {}): { la
     if (platformName === 'android' || platformName === 'ios') {
         return { label: platformName, platform: 'mobile', applies: record.browserName ? ['W', 'M'] : ['M'] }
     }
-    if (platformName === 'mac' || platformName === 'windows') {
+    /**
+     * a desktop browser reports its OS as `platformName` too, only an app
+     * session without `browserName` is a desktop app
+     */
+    if ((platformName === 'mac' || platformName === 'windows') && !record.browserName) {
         return { label: platformName, platform: 'desktop', applies: ['D'] }
     }
     const browserName = typeof record.browserName === 'string' ? record.browserName : 'browser'
     return { label: browserName, platform: 'browser', applies: ['W'] }
+}
+
+/**
+ * Plan for a session around a browser something else started and owns,
+ * e.g. a test worker. It is detached on shutdown, never deleted.
+ */
+export function attachedPlan (
+    browser: WebdriverIO.Browser,
+    opts: Pick<OpenPlan, 'name' | 'cwd' | 'artifactsDir' | 'runtimeDir' | 'target'>
+): OpenPlan {
+    const caps = browser.capabilities || {}
+    const kind = classifyCapabilities(caps)
+    return {
+        ...opts,
+        label: kind.label,
+        platform: kind.platform,
+        applies: kind.applies,
+        mode: 'remote',
+        capabilities: caps as OpenPlan['capabilities'],
+        remote: {},
+        headless: true,
+        bidi: Boolean((browser as { isBidi?: boolean }).isBidi),
+        idleTimeout: 0,
+        launchTimeout: 0,
+        argv: [],
+        notes: [],
+        detach: true
+    }
 }
 
 export interface PauseDebugOptions {
@@ -61,26 +93,7 @@ export async function pauseDebugSession (opts: PauseDebugOptions): Promise<void>
     const kind = classifyCapabilities(caps)
     const spec = opts.spec ? path.basename(opts.spec) : 'spec'
     const test = opts.test || 'test'
-    const plan: OpenPlan = {
-        name,
-        cwd,
-        artifactsDir,
-        runtimeDir,
-        target: 'wdio run',
-        label: kind.label,
-        platform: kind.platform,
-        applies: kind.applies,
-        mode: 'remote',
-        capabilities: caps as OpenPlan['capabilities'],
-        remote: {},
-        headless: true,
-        bidi: Boolean((opts.browser as { isBidi?: boolean }).isBidi),
-        idleTimeout: 0,
-        launchTimeout: 0,
-        argv: [],
-        notes: [],
-        detach: true
-    }
+    const plan = attachedPlan(opts.browser, { name, cwd, artifactsDir, runtimeDir, target: 'wdio run' })
     const session = new Session({
         name,
         cwd,

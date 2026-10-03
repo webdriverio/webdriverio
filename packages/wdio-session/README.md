@@ -24,3 +24,25 @@ you do not install `@wdio/session` or `@wdio/cli` first. For the full guide, see
 [webdriver.io/docs/session](https://webdriver.io/docs/session).
 Check a machine with `npx wdio session doctor`. Agents install the skill with
 `npx wdio session skill --install .`.
+
+## Use the actions from code
+
+`@wdio/session/agent` runs the same actions, snapshots and refs on a browser
+your code already owns, for example in a test or a `remote()` script. There is
+no daemon. `dispose()` leaves the browser session open.
+
+```ts
+import { remote } from 'webdriverio'
+import { createAgentSession } from '@wdio/session/agent'
+
+const browser = await remote({ capabilities: { browserName: 'chrome' } })
+const agent = await createAgentSession(browser, { captureEvents: true })
+
+await browser.url('http://localhost:3000')
+const { text } = await agent.snapshot({ interactive: true })
+const { code } = await agent.run('click', { target: 'e3' })
+console.log(code) // await $('role/button[name="Add to cart"]').click()
+
+await agent.dispose()
+await browser.deleteSession()
+```

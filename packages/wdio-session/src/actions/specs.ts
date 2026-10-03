@@ -246,7 +246,11 @@ export const ACTIONS: ActionSpec[] = [
         name: 'diff', group: 'Observation', applies: ['W', 'M', 'D'],
         desc: 'Diff a fresh snapshot against the previous one',
         details: 'Prints a unified diff of what changed since the last snapshot, or "No changes". The first call stores a baseline. Use it after an action to see what the action did without reading the whole page again.',
-        options: { baseline: { type: 'string', desc: 'Snapshot file to compare with' } },
+        options: {
+            baseline: { type: 'string', desc: 'Snapshot file to compare with' },
+            scope: { type: 'string', desc: 'Only snapshot within this ref or selector, like `snapshot --scope`' },
+            interactive: { type: 'boolean', desc: 'Only interactive elements, like `snapshot -i`' }
+        },
         examples: [
             ['wdio session click e7 && wdio session diff', 'See what a click changed'],
             ['wdio session diff --baseline before.yml', 'Compare with a saved snapshot']

@@ -388,6 +388,8 @@ npx wdio session diff
 | Flag | Description |
 | --- | --- |
 | `--baseline <value>` | Snapshot file to compare with |
+| `--scope <value>` | Only snapshot within this ref or selector, like `snapshot --scope` |
+| `--interactive` | Only interactive elements, like `snapshot -i` |
 
 **Examples**
 

@@ -9,8 +9,17 @@ export class History {
     /** changes on every `clear()`, so state tied to recorded code can reset */
     generation = 0
 
-    constructor (artifactsDir: string, { keep = false } = {}) {
+    /**
+     * `false` keeps the history in memory only
+     */
+    readonly persist: boolean
+
+    constructor (artifactsDir: string, { keep = false, persist = true } = {}) {
         this.file = path.join(artifactsDir, 'history.json')
+        this.persist = persist
+        if (!persist) {
+            return
+        }
         if (keep) {
             try {
                 this.entries = JSON.parse(fs.readFileSync(this.file, 'utf-8'))
@@ -40,6 +49,9 @@ export class History {
     }
 
     #write () {
+        if (!this.persist) {
+            return
+        }
         fs.mkdirSync(path.dirname(this.file), { recursive: true })
         const fd = fs.openSync(this.file, 'w', 0o600)
         try {

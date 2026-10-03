@@ -1,0 +1,88 @@
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import { describeModel, parseModelString, resolveModel, selectModel, MODEL_ENV } from '../src/model.js'
+import { scriptedModel } from './__fixtures__/scriptedModel.js'
+
+describe('parseModelString', () => {
+    it('splits provider and model at the first colon', () => {
+        expect(parseModelString('anthropic:claude-sonnet-5-5')).toEqual({ provider: 'anthropic', model: 'claude-sonnet-5-5' })
+        expect(parseModelString('ollama:qwen3:8b')).toEqual({ provider: 'ollama', model: 'qwen3:8b' })
+        expect(parseModelString('openrouter:moonshotai/kimi-k3')).toEqual({ provider: 'openrouter', model: 'moonshotai/kimi-k3' })
+    })
+
+    it('rejects a string without a provider', () => {
+        expect(() => parseModelString('claude-sonnet-5-5')).toThrow('Use "provider:model"')
+        expect(() => parseModelString('anthropic:')).toThrow('Use "provider:model"')
+    })
+})
+
+describe('selectModel', () => {
+    afterEach(() => {
+        delete process.env[MODEL_ENV]
+    })
+
+    it('prefers the call option, then the service option, then WDIO_AI_MODEL', () => {
+        process.env[MODEL_ENV] = 'ollama:from-env'
+        expect(selectModel('openai:call', 'anthropic:service')).toBe('openai:call')
+        expect(selectModel(undefined, 'anthropic:service')).toBe('anthropic:service')
+        expect(selectModel(undefined, undefined)).toBe('ollama:from-env')
+        delete process.env[MODEL_ENV]
+        expect(selectModel(undefined, undefined)).toBeUndefined()
+    })
+})
+
+describe('resolveModel', () => {
+    it('returns a chat model instance as is', async () => {
+        const model = scriptedModel([])
+        await expect(resolveModel(model)).resolves.toBe(model)
+    })
+
+    it('fails with the environment variable to set when the API key is missing', async () => {
+        await expect(resolveModel('anthropic:claude-sonnet-5-5', {})).rejects.toThrow('No API key for "anthropic". Set ANTHROPIC_API_KEY')
+        await expect(resolveModel({ provider: 'openai', model: 'gpt-5.2' }, {})).rejects.toThrow('Set OPENAI_API_KEY')
+    })
+
+    it('requires a baseURL for local OpenAI-compatible servers', async () => {
+        await expect(resolveModel('lm-studio:qwen3', {})).rejects.toThrow('set `baseURL` to your server')
+    })
+
+    it('creates the model with initChatModel, temperature 0 and the token limit', async () => {
+        const init = vi.fn(async () => scriptedModel([]))
+        await resolveModel('anthropic:claude-sonnet-5-5', { ANTHROPIC_API_KEY: 'sk-test' }, init)
+        expect(init).toHaveBeenLastCalledWith('claude-sonnet-5-5', { modelProvider: 'anthropic', temperature: 0, maxTokens: 4096, apiKey: 'sk-test' })
+
+        await resolveModel('ollama:qwen3:8b', { OLLAMA_BASE_URL: 'http://gpu-box:11434' }, init)
+        expect(init).toHaveBeenLastCalledWith('qwen3:8b', { modelProvider: 'ollama', temperature: 0, numPredict: 4096, baseUrl: 'http://gpu-box:11434' })
+
+        await resolveModel({ provider: 'mistralai', model: 'mistral-large', temperature: 0.2 }, {}, init)
+        expect(init).toHaveBeenLastCalledWith('mistral-large', { modelProvider: 'mistralai', temperature: 0.2, maxTokens: 4096 })
+    })
+
+    it('creates OpenRouter and local servers as OpenAI-compatible models', async () => {
+        const init = vi.fn(async () => scriptedModel([]))
+        await resolveModel('openrouter:moonshotai/kimi-k3', { OPENROUTER_API_KEY: 'or-key' }, init)
+        expect(init).toHaveBeenLastCalledWith('moonshotai/kimi-k3', {
+            modelProvider: 'openai', temperature: 0, maxTokens: 4096, apiKey: 'or-key', configuration: { baseURL: 'https://openrouter.ai/api/v1' }
+        })
+        await resolveModel({ provider: 'lm-studio', model: 'qwen3', baseURL: 'http://localhost:1234/v1' }, {}, init)
+        expect(init).toHaveBeenLastCalledWith('qwen3', {
+            modelProvider: 'openai', temperature: 0, maxTokens: 4096, apiKey: 'local', configuration: { baseURL: 'http://localhost:1234/v1' }
+        })
+    })
+
+    it('creates a real provider model through initChatModel', async () => {
+        const configurable = await resolveModel('anthropic:claude-sonnet-5-5', { ANTHROPIC_API_KEY: 'sk-test' }) as unknown as { _getModelInstance: () => Promise<{ model: string, temperature: number }> }
+        const anthropic = await configurable._getModelInstance()
+        expect(anthropic.constructor.name).toBe('ChatAnthropic')
+        expect(anthropic.model).toBe('claude-sonnet-5-5')
+        expect(anthropic.temperature).toBe(0)
+    })
+})
+
+describe('describeModel', () => {
+    it('names string, config and instance models', () => {
+        expect(describeModel('anthropic:claude-sonnet-5-5')).toBe('anthropic:claude-sonnet-5-5')
+        expect(describeModel({ provider: 'ollama', model: 'qwen3:8b' })).toBe('ollama:qwen3:8b')
+        expect(describeModel(scriptedModel([]))).toBe('FakeBuiltModel')
+    })
+})
