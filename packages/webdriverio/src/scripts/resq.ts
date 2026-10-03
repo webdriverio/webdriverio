@@ -30,7 +30,7 @@ declare let window: CustomWindow
  * React node, then takes `current` of that root, which is always the current tree. Then
  * it waits until the page has a React root, for at most 5 seconds as resq does.
  */
-export const waitToLoadReact = function waitToLoadReact () {
+export const waitToLoadReact = async function waitToLoadReact () {
     const HOST_ROOT = 3
     const isReactKey = (key: string) => (
         key.startsWith('__reactFiber$') ||
