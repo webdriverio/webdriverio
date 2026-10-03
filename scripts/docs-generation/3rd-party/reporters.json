@@ -83,5 +83,11 @@
     "githubUrl": "https://github.com/serenity-js/serenity-js",
     "npmUrl": "https://www.npmjs.com/package/@serenity-js/html-reporter",
     "location": "packages/html-reporter/README.md"
+  },
+  {
+    "packageName": "@qualflare/webdriverio",
+    "title": "Qualflare",
+    "githubUrl": "https://github.com/Qualflare/qualflare-webdriverio",
+    "npmUrl": "https://www.npmjs.com/package/@qualflare/webdriverio"
   }
 ]
