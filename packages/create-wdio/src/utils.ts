@@ -36,17 +36,18 @@ const TEMPLATE_ROOT_DIR = process.env.WDIO_UNIT_TESTS
     ? path.join(__dirname, 'templates', 'exampleFiles')
     : path.join(__dirname, '..', 'templates', 'exampleFiles')
 
-export function runProgram(command: string, args: string[], options: SpawnOptions) {
+/**
+ * @param passUsageError  exit with the child's code 2 (a usage error the child
+ *                        already explained, e.g. `wdio config` rejecting a flag)
+ *                        instead of reporting a generic failure
+ */
+export function runProgram(command: string, args: string[], options: SpawnOptions, passUsageError = false) {
     const child = spawn(command, args, { stdio: 'inherit', ...options })
     return new Promise<void>((resolve, rejects) => {
         let error: Error
         child.on('error', (e) => (error = e))
         child.on('close', (code, signal) => {
-            /**
-             * exit code 2 is a usage error the child already explained, e.g.
-             * `wdio config` rejecting a flag, so pass it on as is
-             */
-            if (code === 2) {
+            if (passUsageError && code === 2) {
                 process.exit(2)
                 return rejects(`Usage error calling: ${command} ${args.join(' ')}`)
             }

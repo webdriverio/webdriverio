@@ -144,7 +144,7 @@ export async function createWebdriverIO(opts: ProgramOpts) {
         ...(opts.yes ? ['--yes'] : []),
         ...(opts.npmTag ? ['--npm-tag', opts.npmTag] : []),
         ...answerFlagsToArgs(opts)
-    ].filter(i => !!i), { cwd: root })
+    ].filter(i => !!i), { cwd: root }, true)
 }
 
 async function isCLIInstalled(path: string) {

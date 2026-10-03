@@ -89,7 +89,8 @@ test('createWebdriverIO with Yarn', async () => {
     expect(runProgram).toBeCalledWith(
         'yarn',
         ['exec', 'wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -107,7 +108,8 @@ test('createWebdriverIO with NPM', async () => {
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -125,7 +127,8 @@ test('createWebdriverIO with invalid agent should run npm commands', async () =>
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -143,7 +146,8 @@ test('createWebdriverIO with no npm user agent should run npm commands', async (
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -161,7 +165,8 @@ test('createWebdriverIO with pnpm', async () => {
     expect(runProgram).toBeCalledWith(
         'pnpm',
         ['exec', 'wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -179,7 +184,8 @@ test('createWebdriverIO with bun', async () => {
     expect(runProgram).toBeCalledWith(
         'bunx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -197,7 +203,8 @@ test('createWebdriverIO with dev true installs @wdio/cli as a devDependency', as
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -211,7 +218,8 @@ test('does not install the @wdio/cli package when the @wdio/cli package is alrea
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(1)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -230,7 +238,8 @@ test('does not install the @wdio/cli package when the @wdio/cli package is alrea
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(1)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -248,7 +257,8 @@ test('runs the wdio config command with --yes when the yes option is set to true
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--yes', '--npm-tag', 'latest'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)
@@ -267,7 +277,8 @@ test('forwards wizard answers to the wdio config command', async () => {
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--yes', '--npm-tag', 'latest', '--framework', 'cucumber', '--no-typescript', '--reporters', 'spec,junit'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
 })
 
@@ -294,7 +305,8 @@ test('does create a package.json to be used by the wdio config command when one 
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'next'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(1)
@@ -316,7 +328,8 @@ test('installs the next version when the npmTag option is set to "next"', async 
     expect(runProgram).toBeCalledWith(
         'npx',
         ['wdio', 'config', '--npm-tag', 'next'],
-        expect.any(Object)
+        expect.any(Object),
+        true
     )
     expect(runProgram).toBeCalledTimes(2)
     expect(fs.mkdir).toBeCalledTimes(0)

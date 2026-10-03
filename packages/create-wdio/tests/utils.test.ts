@@ -92,10 +92,16 @@ test('runProgram', async () => {
     expect(process.exit).toHaveBeenLastCalledWith(1)
 })
 
-test('runProgram passes a usage error exit code on', async () => {
-    await runProgram('node', ['-e', 'process.exit(2)'], {}).catch((e) => e)
+test('runProgram passes a usage error exit code on when asked to', async () => {
+    await runProgram('node', ['-e', 'process.exit(2)'], {}, true).catch((e) => e)
     expect(process.exit).toBeCalledWith(2)
     expect(console.log).not.toBeCalledWith(expect.stringContaining('Ups, something went wrong'))
+})
+
+test('runProgram reports exit code 2 as a failure by default', async () => {
+    await runProgram('node', ['-e', 'process.exit(2)'], {}).catch((e) => e)
+    expect(process.exit).toBeCalledWith(1)
+    expect(console.log).toBeCalledWith(expect.stringContaining('Ups, something went wrong'))
 })
 
 test('getPackageVersion prefixes the version from package.json', async () => {
