@@ -1,9 +1,10 @@
 import path from 'node:path'
-import { describe, it, beforeAll, expect, vi } from 'vitest'
+import { describe, it, afterEach, beforeAll, expect, vi } from 'vitest'
 
 import { remote } from '../../src/index.js'
 import refetchElement from '../../src/utils/refetchElement.js'
 import { waitForExist } from '../../src/commands/element/waitForExist.js'
+import { hasElementId } from '../../src/utils/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -24,6 +25,11 @@ describe('refetchElement', () => {
             waitforInterval: 20,
             waitforTimeout: 100
         })
+    })
+
+    afterEach(() => {
+        // @ts-ignore mock feature
+        vi.mocked(fetch).resetCustomResponses()
     })
 
     it('should successfully refetch a non chained element', async () => {
@@ -56,6 +62,55 @@ describe('refetchElement', () => {
         const refetchedElement2 = await refetchElement(subElem2, '$')
         expect(refetchedElement1.elementId).toEqual(subElem1.elementId)
         expect(refetchedElement2.elementId).toEqual(subElem2.elementId)
+    })
+
+    it('should not throw if the element list is empty when refetching an indexed element', async () => {
+        const elems = await browser.$$('#foo')
+        const elem = elems[1]
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/\/elements$/, { value: [] })
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/\/element$/, { value: { elementId: null } })
+        const refetchedElement = await refetchElement(elem, 'isDisplayed')
+        expect(refetchedElement.elementId).toBeUndefined()
+    })
+
+    it('should not resolve to the first match if the element list shrunk below the index', async () => {
+        const elems = await browser.$$('#foo')
+        const elem = elems[2]
+        expect(elem.elementId).toBe('some-elem-789')
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/\/elements$/, { value: [{ 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' }] })
+        const refetchedElement = await refetchElement(elem, 'click')
+        expect(refetchedElement.elementId).toBeUndefined()
+        expect(refetchedElement.selector).toBe('#foo')
+        expect(refetchedElement.index).toBe(2)
+    })
+
+    it('should not look a missing indexed element up again as the first match', async () => {
+        const elem = (await browser.$$('#foo'))[2]
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/\/elements$/, { value: [{ 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' }] })
+        const refetchedElement = await refetchElement(elem, 'isDisplayed')
+        expect(await hasElementId(refetchedElement)).toBe(false)
+        expect(refetchedElement.elementId).toBeUndefined()
+    })
+
+    it('should keep the rest of the chain under a missing indexed ancestor', async () => {
+        const section = (await browser.$$('#foo'))[2]
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/some-elem-789\/element$/, { value: { 'element-6066-11e4-a52e-4f735466cecf': 'some-sub-elem-321' } })
+        const button = await section.$('#subfoo')
+        expect(button.elementId).toBe('some-sub-elem-321')
+        // @ts-ignore mock feature
+        vi.mocked(fetch).customResponseFor(/\/elements$/, { value: [{ 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' }] })
+        const refetchedElement = await refetchElement(button, 'click')
+        expect(refetchedElement.elementId).toBeUndefined()
+        expect(refetchedElement.selector).toBe('#subfoo')
+        const parent = refetchedElement.parent as WebdriverIO.Element
+        expect(parent.selector).toBe('#foo')
+        expect(parent.index).toBe(2)
+        expect(parent.elementId).toBeUndefined()
     })
 
     it('should successfully refetch an element that isn\'t immediately present', async () => {

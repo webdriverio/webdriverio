@@ -16,6 +16,7 @@ import { DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy, getAriaXPathSelector } from './findStrategy.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
+import { findElementAgain } from './findElementAgain.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -1066,12 +1067,7 @@ export async function hasElementId(element: WebdriverIO.Element) {
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
     if (!element.elementId) {
-        const command = element.isReactElement
-            ? element.parent.react$.bind(element.parent)
-            : element.isShadowElement
-                ? element.parent.shadow$.bind(element.parent)
-                : element.parent.$.bind(element.parent)
-        element.elementId = (await command(element.selector as string).getElement()).elementId
+        element.elementId = (await findElementAgain(element))?.elementId as string
     }
 
     /*

@@ -28,14 +28,46 @@ export default async function refetchElement (
     /**
      * Beginning with the browser object, re-chain
      */
-    return selectors.reduce(async (elementPromise, { selector, index }, currentIndex) => {
-        const resolvedElement = await elementPromise
-        let nextElement = index > 0 ? await resolvedElement.$$(selector as string)[index]?.getElement() : null
-        nextElement = nextElement || await resolvedElement.$(selector).getElement()
+    let resolvedElement = currentElement
+    for (const [currentIndex, { selector, index }] of selectors.entries()) {
+        let nextElement: WebdriverIO.Element
+        if (index > 0) {
+            const elements = await resolvedElement.$$(selector as string).getElements()
+
+            /**
+             * if the list shrunk below the index we are looking for, the element is gone,
+             * so return a missing element rather than falling back to the first match
+             */
+            if (!elements[index]) {
+                /**
+                 * imported here because getElementObject imports the middleware, which imports this file
+                 */
+                const { getElement } = await import('./getElementObject.js')
+                const notFound = new Error(`Index out of bounds! $$(${selector}) returned only ${elements.length} elements.`)
+                let missingElement = getElement.call(resolvedElement, selector, notFound)
+                missingElement.index = index
+                /**
+                 * keep the rest of the chain under the missing element, so a descendant is never
+                 * looked up from a parent further up the tree
+                 */
+                for (const rest of selectors.slice(currentIndex + 1)) {
+                    missingElement = getElement.call(missingElement, rest.selector, notFound)
+                    missingElement.index = rest.index
+                }
+                return missingElement
+            }
+
+            nextElement = elements[index]
+        } else {
+            nextElement = await resolvedElement.$(selector).getElement()
+        }
+
         /**
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array
          */
-        return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
-    }, Promise.resolve(currentElement))
+        resolvedElement = await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
+    }
+
+    return resolvedElement
 }
