@@ -713,7 +713,13 @@ export default class WebDriverInterception {
         } catch (err: unknown) {
             log.debug(`Failed to get response body for ${response.request.request}: ${(err as Error).message}`)
         } finally {
-            this.#hasOneResponseCollected = true
+            /**
+             * the body read can settle after `waitForResponse()` continued without it and
+             * `clear()` removed this call: it must not count for the next responses
+             */
+            if (this.#calls.includes(call)) {
+                this.#hasOneResponseCollected = true
+            }
             this.#requestPostData.delete(response.request.request)
         }
     }

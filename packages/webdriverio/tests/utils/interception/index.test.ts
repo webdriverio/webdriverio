@@ -1542,6 +1542,149 @@ describe('WebDriverInterception', () => {
             await expect(mock.waitForResponse()).resolves.toBe(true)
             expect(mock.calls[0].body).toBe('slow-body')
         })
+
+        it('should resolve without the custom timeout message when a response arrived without its body', async () => {
+            const browser = getResponseCollectionBrowserMock({
+                maxSpyCollectedBodySize: 1024,
+                waitforTimeout: 100,
+                waitforInterval: 10
+            }, {
+                call: vi.fn().mockImplementation((fn) => fn()),
+                networkGetData: vi.fn().mockImplementation(({ dataType }) => dataType === 'response'
+                    ? new Promise(() => {})
+                    : Promise.reject(new Error('no such network data')))
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            const request = getResponseCollectionRequestStub()
+
+            browser.emit('network.responseStarted', request)
+            browser.emit('network.responseCompleted', { ...request, isBlocked: false } as Partial<local.NetworkResponseCompletedParameters> as local.NetworkResponseCompletedParameters)
+
+            await expect(mock.waitForResponse({ timeoutMsg: 'Custom timeout message' })).resolves.toBe(true)
+        })
+
+        it('should resolve without a warning when the browser rejects the body read', async () => {
+            const browser = getResponseCollectionBrowserMock({
+                maxSpyCollectedBodySize: 1024,
+                waitforTimeout: 5000,
+                waitforInterval: 10
+            }, {
+                call: vi.fn().mockImplementation((fn) => fn()),
+                networkGetData: vi.fn().mockRejectedValue(new Error('no such network data'))
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            const request = getResponseCollectionRequestStub()
+            loggerMock.warn.mockClear()
+
+            browser.emit('network.responseStarted', request)
+            browser.emit('network.responseCompleted', { ...request, isBlocked: false } as Partial<local.NetworkResponseCompletedParameters> as local.NetworkResponseCompletedParameters)
+
+            const start = Date.now()
+            await expect(mock.waitForResponse()).resolves.toBe(true)
+            expect(Date.now() - start).toBeLessThan(1000)
+            expect(mock.calls[0].body).toBeUndefined()
+            expect(loggerMock.warn).not.toHaveBeenCalled()
+        })
+
+        it('should resolve without reading the body when data collection is disabled', async () => {
+            const browser = getResponseCollectionBrowserMock({
+                maxSpyCollectedBodySize: 0,
+                waitforTimeout: 5000,
+                waitforInterval: 10
+            }, {
+                call: vi.fn().mockImplementation((fn) => fn())
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            loggerMock.warn.mockClear()
+
+            browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+
+            await expect(mock.waitForResponse()).resolves.toBe(true)
+            expect(browser.networkGetData).not.toHaveBeenCalled()
+            expect(loggerMock.warn).not.toHaveBeenCalled()
+        })
+
+        it('should resolve with the body of a later response when an earlier body read gets no reply', async () => {
+            const browser = getResponseCollectionBrowserMock({
+                maxSpyCollectedBodySize: 1024,
+                waitforTimeout: 5000,
+                waitforInterval: 10
+            }, {
+                call: vi.fn().mockImplementation((fn) => fn()),
+                networkGetData: vi.fn().mockImplementation(({ request, dataType }) => dataType === 'request'
+                    ? Promise.reject(new Error('no such network data'))
+                    : request === 'req-1'
+                        ? new Promise(() => {})
+                        : Promise.resolve({ bytes: { type: 'string', value: 'second-body' } }))
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            loggerMock.warn.mockClear()
+
+            for (const id of ['req-1', 'req-2']) {
+                const request = getResponseCollectionRequestStub()
+                request.request = { ...request.request, request: id }
+                browser.emit('network.responseStarted', request)
+                browser.emit('network.responseCompleted', { ...request, isBlocked: false } as Partial<local.NetworkResponseCompletedParameters> as local.NetworkResponseCompletedParameters)
+            }
+
+            await expect(mock.waitForResponse()).resolves.toBe(true)
+            expect(mock.calls.map((call) => call.body)).toEqual([undefined, 'second-body'])
+            expect(loggerMock.warn).not.toHaveBeenCalled()
+        })
+
+        it('should not count a body read that settles after clear() for the next response', async () => {
+            const reads = new Map<string, (value: unknown) => void>()
+            const browser = getResponseCollectionBrowserMock({
+                maxSpyCollectedBodySize: 1024,
+                waitforTimeout: 100,
+                waitforInterval: 10
+            }, {
+                call: vi.fn().mockImplementation((fn) => fn()),
+                networkGetData: vi.fn().mockImplementation(({ request, dataType }) => dataType === 'request'
+                    ? Promise.reject(new Error('no such network data'))
+                    : new Promise((resolve) => reads.set(request, resolve)))
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            const emitResponse = (id: string) => {
+                const request = getResponseCollectionRequestStub()
+                request.request = { ...request.request, request: id }
+                browser.emit('network.responseStarted', request)
+                browser.emit('network.responseCompleted', { ...request, isBlocked: false } as Partial<local.NetworkResponseCompletedParameters> as local.NetworkResponseCompletedParameters)
+            }
+
+            emitResponse('req-1')
+            await expect(mock.waitForResponse()).resolves.toBe(true)
+            mock.clear()
+            reads.get('req-1')!({ bytes: { type: 'string', value: 'cleared-body' } })
+            await waitForAsyncHandlers()
+            expect(mock.hasAtLeastOneResponseReceived).toBe(false)
+
+            emitResponse('req-2')
+            await waitForAsyncHandlers()
+            expect(mock.hasAtLeastOneResponseReceived).toBe(false)
+            const wait = mock.waitForResponse({ timeout: 2000 })
+            reads.get('req-2')!({ bytes: { type: 'string', value: 'second-body' } })
+            await expect(wait).resolves.toBe(true)
+            expect(mock.calls.map((call) => call.body)).toEqual(['second-body'])
+        })
+
+        it('should still time out when the only response does not match the mock filter', async () => {
+            const browser = getResponseCollectionBrowserMock({
+                maxSpyCollectedBodySize: 1024,
+                waitforTimeout: 100,
+                waitforInterval: 10
+            }, {
+                call: vi.fn().mockImplementation((fn) => fn())
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', { method: 'post' }, browser)
+            const request = getResponseCollectionRequestStub()
+
+            browser.emit('network.responseStarted', request)
+            browser.emit('network.responseCompleted', { ...request, isBlocked: false } as Partial<local.NetworkResponseCompletedParameters> as local.NetworkResponseCompletedParameters)
+
+            expect(mock.calls).toHaveLength(0)
+            await expect(mock.waitForResponse()).rejects.toThrow('waitForResponse timed out after 100ms')
+        })
     })
 
     describe('clear', () => {
