@@ -1,0 +1,96 @@
+# Debug only, not for merge: why Firefox on Windows does not answer
+# `network.getData` for the body of https://guinea-pig.webdriver.io/
+name: Debug Firefox getData
+
+on:
+  push:
+    branches:
+      - 'debug/firefox-getdata*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build_core:
+    name: Build
+    uses: ./.github/workflows/build.yml
+
+  probe:
+    name: Probe (${{ matrix.os }})
+    needs: [build_core]
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['windows-latest', 'ubuntu-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: Download Build Archive
+        uses: ./.github/workflows/actions/download-archive
+        with:
+          name: webdriverio
+          path: .
+          filename: webdriverio-build.zip
+
+      - name: Runner info
+        shell: bash
+        run: |
+          echo "ImageOS=$ImageOS ImageVersion=$ImageVersion RUNNER_ARCH=$RUNNER_ARCH"
+          curl -sS -D - -o /dev/null -H 'Accept-Encoding: gzip, deflate, br, zstd' https://guinea-pig.webdriver.io/ || true
+
+      - name: Probe getData
+        shell: bash
+        env:
+          PROBE_OUT: ${{ github.workspace }}/probe-out
+          WDIO_LOG_PATH: ${{ github.workspace }}/probe-out/wdio.log
+        run: node e2e/debug/firefox-getdata.mjs
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: probe-${{ matrix.os }}
+          path: probe-out
+
+  e2e_firefox:
+    name: E2E Launch Firefox trace (${{ matrix.os }})
+    needs: [build_core]
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['windows-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 🧑‍🔧 Get Core Dependencies
+        uses: ./.github/workflows/actions/get-core-dependencies
+
+      - name: Download Build Archive
+        uses: ./.github/workflows/actions/download-archive
+        with:
+          name: webdriverio
+          path: .
+          filename: webdriverio-build.zip
+
+      - name: E2E Launch Tests (Firefox only, Remote Agent trace)
+        run: pnpm run test:e2e:webdriver
+        shell: bash
+        env:
+          WDIO_E2E_BROWSERS: firefox
+          WDIO_FF_TRACE: '1'
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: e2e-firefox-trace-${{ matrix.os }}
+          path: e2e/wdio/*.log

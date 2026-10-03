@@ -131,7 +131,12 @@ export const config: WebdriverIO.Config = {
             browserName: 'firefox',
             webSocketUrl: true,
             'moz:firefoxOptions': {
-                args: ['-headless']
+                args: ['-headless'],
+                // debug branch only: Firefox Remote Agent trace (all BiDi packets) in the geckodriver log
+                ...(process.env.WDIO_FF_TRACE ? {
+                    log: { level: 'trace' as const },
+                    prefs: { 'remote.log.truncate': false }
+                } : {})
             }
         },
         {
