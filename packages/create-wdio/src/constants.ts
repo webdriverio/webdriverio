@@ -144,7 +144,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service$--$delta' },
         { name: 'testrail', value: '@wdio/testrail-reporter$--$testrail' },
         { name: 'light', value: 'wdio-light-reporter$--$light' },
-        { name: 'wdio-json-html-reporter', value: 'wdio-json-html-reporter$--$jsonhtml' }
+        { name: 'wdio-json-html-reporter', value: 'wdio-json-html-reporter$--$jsonhtml' },
+        { name: 'qualflare', value: '@qualflare/webdriverio$--$@qualflare/webdriverio' }
     ],
     plugin: [
         { name: 'wait-for: utilities that provide functionalities to wait for certain conditions till a defined task is complete.\n   > https://www.npmjs.com/package/wdio-wait-for', value: 'wdio-wait-for$--$wait-for' },
