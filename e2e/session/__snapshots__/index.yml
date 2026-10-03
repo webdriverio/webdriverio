@@ -1,10 +1,10 @@
 - document "Session Fixture" url=http://localhost:PORT/index.html
   - banner
     - navigation "Main"
-      - link "Home" [ref=e1]
-      - link "Form" [ref=e2]
-      - link "Cart" [ref=e3]
+      - link "Home" [ref=e5]
+      - link "Form" [ref=e6]
+      - link "Cart" [ref=e7]
   - main
     - heading "Welcome" [level=1]
     - paragraph "This page is used by the wdio session end-to-end tests."
-    - button "Say hello" [ref=e4]
+    - button "Say hello" [ref=e8]

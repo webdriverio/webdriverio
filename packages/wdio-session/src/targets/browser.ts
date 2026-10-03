@@ -26,7 +26,8 @@ export function browserPlan (target: BrowserTarget, args: OpenArgs, { cwd, platf
     if (attach && target !== 'chrome' && target !== 'edge') {
         throw usage('--attach is only supported for chrome and edge.')
     }
-    let headless = !(args.headed || env.WDIO_SESSION_HEADED === '1')
+    // `--headless` is the default; it's accepted because agents and people reach for it
+    let headless = args.headless === true || !(args.headed || env.WDIO_SESSION_HEADED === '1')
     if (target === 'safari' && headless) {
         headless = false
         notes.push('Safari has no headless mode, opening a visible window.')

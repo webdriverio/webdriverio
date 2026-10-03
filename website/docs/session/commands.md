@@ -29,7 +29,7 @@ Exit codes: 0 success, 1 the action or your code failed, 2 usage error, 3 missin
 
 Start a session: browser, android, ios, macos, windows, electron, tauri, dioxus or a wdio config file.
 
-Starts a background daemon that keeps the session alive until `close`, or until it was idle for --idle-timeout (default 30m). Browsers run headless unless you pass --headed. Prints the session name, the target and the artifacts directory where snapshots, screenshots and exports go.
+Starts a background daemon that keeps the session alive until `close`, or until it was idle for --idle-timeout (default 30m). Browsers run headless unless you pass --headed. Prints the session name, the target, the artifacts directory where snapshots, screenshots and exports go, and for a browser opened on a URL the interactive snapshot of that page.
 
 One session per name. Opening a name that is already running fails; use it, close it, or pass --replace. Pass `-s <name>` only when you need two sessions at once.
 
@@ -59,6 +59,8 @@ npx wdio session open <target> [url]
 | `--log-level <value>` | WebdriverIO log level written to daemon.log |
 | `--bidi` | Request WebDriver BiDi (use --no-bidi to disable) |
 | `--headed` | Show the browser window |
+| `--headless` | Run without a window (the default for browsers; overrides --headed) |
+| `--snapshot` | Print the interactive snapshot of the opened page (use --no-snapshot to skip) |
 | `--viewport <value>` | Initial viewport, e.g. 1280x720 |
 | `--browser-version <value>` | Browser version |
 | `--binary <value>` | Browser binary |
@@ -342,7 +344,7 @@ See also: [`find`](#find), [`diff`](#diff), [`screenshot`](#screenshot).
 
 Search a fresh snapshot for text. Applies to web, native mobile, native desktop.
 
-Takes a new snapshot and prints matching lines with their line numbers and refs, like grep. Matching ignores case. Cheaper than reading a whole snapshot of a large page.
+Takes a new snapshot and prints each match with the node around it (e.g. the whole list item, so a value next to the match is included), with line numbers and refs. Matching ignores case. Cheaper than reading a whole snapshot of a large page. -A/-B/-C print plain line context instead, like grep.
 
 ```sh
 npx wdio session find <text>
@@ -359,7 +361,9 @@ npx wdio session find <text>
 | Flag | Description |
 | --- | --- |
 | `--regex` | Treat text as a regular expression |
-| `--context <n>` | Lines of context (default 2) |
+| `-C, --context <n>` | Lines of context before and after instead of the surrounding node |
+| `-A, --after-context <n>` | Lines of context after each match |
+| `-B, --before-context <n>` | Lines of context before each match |
 
 **Examples**
 
@@ -801,7 +805,7 @@ Replace the value of an input. Applies to web, native mobile, native desktop.
 Clears the field first. To type into whatever has focus, use `type`; to send keys like Enter, use `press`.
 
 ```sh
-npx wdio session fill <target> <text>
+npx wdio session fill <target> <text..>
 ```
 
 **Arguments**
@@ -809,7 +813,7 @@ npx wdio session fill <target> <text>
 | Name | Required | Description |
 | --- | --- | --- |
 | `target` | yes | Ref (e12) or WebdriverIO selector |
-| `text` | yes | Text |
+| `text` | yes | Text (words after the target are joined with spaces) |
 
 **Examples**
 
@@ -825,24 +829,27 @@ See also: [`type`](#type), [`press`](#press), [`select`](#select), [`check`](#ch
 
 ## `type`
 
-Type into the focused element. Applies to web, native mobile, native desktop.
+Type into an element or the focused element. Applies to web, native mobile, native desktop.
 
-Sends the text as key presses without clearing anything. Focus the element first with `click` or `focus`.
+Sends the text as key presses without clearing anything: `type e2 Ada` types into e2, `type Ada` into whatever has focus. To replace a value, use `fill`.
 
 ```sh
-npx wdio session type <text>
+npx wdio session type <text..>
 ```
 
 **Arguments**
 
 | Name | Required | Description |
 | --- | --- | --- |
-| `text` | yes | Text |
+| `text` | yes | Text (words are joined with spaces). Start with a ref, e.g. `type e2 Ada`, to type into that element instead of the focused one |
 
 **Examples**
 
 ```sh
 # Type into a field
+npx wdio session type e5 hello
+
+# Type into whatever has focus
 npx wdio session focus e5 && npx wdio session type "hello"
 ```
 

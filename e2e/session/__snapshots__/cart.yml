@@ -1,16 +1,16 @@
 - document "Shop · Cart" url=http://localhost:PORT/cart.html
   - banner
     - navigation "Main"
-      - link "Home" [ref=e24]
-      - link "Cart (0)" [ref=e25] [current=page]
+      - link "Home" [ref=e28]
+      - link "Cart (0)" [ref=e29] [current=page]
   - main
     - heading "Products" [level=1]
     - list
       - listitem
         - text "Blue T-Shirt"
-        - button "Add to cart" [ref=e26]
+        - button "Add to cart" [ref=e30]
       - listitem
         - text "Red Hoodie"
-        - button "Add to cart" [ref=e27]
+        - button "Add to cart" [ref=e31]
     - heading "Your cart" [level=2]
-    - button "Checkout" [ref=e28] [disabled]
+    - button "Checkout" [ref=e32] [disabled]

@@ -1,6 +1,6 @@
 - document "Frames Fixture" url=http://localhost:PORT/frames.html?cross=http://127.0.0.1:PORT
   - heading "Frames" [level=1]
-  - iframe "Same origin frame" [ref=e29]
+  - iframe "Same origin frame" [ref=e33]
     - heading "Inside frame" [level=2]
     - button "Frame button"
-  - iframe "Cross origin frame" [ref=e30] (cross-origin: run `wdio session frame e30`)
+  - iframe "Cross origin frame" [ref=e34] (cross-origin: run `wdio session frame e34`)

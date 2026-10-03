@@ -67,7 +67,8 @@ export async function resolveTarget (session: Session, target: unknown): Promise
         return {
             element,
             selector,
-            code: inScope(session, `$(${quote(selector)})`),
+            // a replay with a selector that misses the element would fail or act on another one
+            code: inScope(session, `$(${quote(selector)})`) + (entry.unverified ? ' /* no selector matches only this element (closed shadow root?), this step may not replay */' : ''),
             label: `${id} (${entry.role}${entry.name ? ` ${JSON.stringify(entry.name)}` : ''})`
         }
     }

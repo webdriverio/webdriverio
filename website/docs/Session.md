@@ -43,14 +43,13 @@ npx wdio session skill --install .
 
 ## Open a page and act on it
 
-Open headless Chrome (add `--headed` to show the window) and read the page before clicking:
+Open headless Chrome (add `--headed` to show the window). `open` prints the page's interactive elements:
 
 ```sh
 npx wdio session open chrome http://localhost:3000
-npx wdio session snapshot --interactive
 ```
 
-A snapshot line looks like `button "Add to cart" [ref=e3]`. Use that ref:
+An element looks like `button "Add to cart" [ref=e3]`. Use that ref. Every action reports what it changed on the page, with refs for new elements, so you rarely need a separate `snapshot`:
 
 ```sh
 npx wdio session click e3

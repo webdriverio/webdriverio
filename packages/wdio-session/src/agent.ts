@@ -9,6 +9,7 @@ import { Session } from './session.js'
 import { ACTIONS, type ActionSpec } from './actions/specs.js'
 import { takeSnapshot, type SnapshotOptions, type TakenSnapshot } from './actions/observe.js'
 import { startEventCapture } from './daemon/capture.js'
+import { installPageRecorder } from './snapshot/recorder.js'
 import { formatSnapshot, onlyInteractive, type SnapshotNode, type SnapshotRef } from './snapshot/format.js'
 import type { RefEntry } from './snapshot/refs.js'
 import type { LogEntry, NetworkEntry } from './daemon/events.js'
@@ -38,6 +39,12 @@ export interface AgentSessionOptions {
      * (default `false`)
      */
     captureEvents?: boolean
+    /**
+     * Record closed shadow roots and click listeners in every page loaded
+     * from now on, so snapshots include them (needs WebDriver BiDi,
+     * default `false`)
+     */
+    recordPage?: boolean
 }
 
 export interface AgentActionResult extends ActionResult {
@@ -222,6 +229,9 @@ export async function createAgentSession (browser: WebdriverIO.Browser, opts: Ag
     })
     if (opts.captureEvents) {
         await startEventCapture(session)
+    }
+    if (opts.recordPage) {
+        await installPageRecorder(session).catch(() => {})
     }
     return new AgentSession(session)
 }

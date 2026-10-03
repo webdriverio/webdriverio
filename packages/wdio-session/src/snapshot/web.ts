@@ -138,10 +138,17 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return rect.width === 0 || rect.height === 0
     }
 
+    // shadow roots and click listeners recorded by the page recorder (recorder.ts)
+    const recorded = (window as unknown as Record<symbol, { roots: WeakMap<Element, ShadowRoot>, clickable: WeakSet<EventTarget> } | undefined>)[Symbol.for('wdio.page')]
+    function shadowRootOf (el: Element): ShadowRoot | null {
+        return el.shadowRoot || recorded?.roots.get(el) || null
+    }
+
     function childNodesOf (node: Element | ShadowRoot | Document): globalThis.Node[] {
         const el = node as Element
-        if (el.shadowRoot) {
-            return [...el.shadowRoot.childNodes]
+        const root = el.nodeType === 1 ? shadowRootOf(el) : null
+        if (root) {
+            return [...root.childNodes]
         }
         if (el.tagName === 'SLOT') {
             const assigned = (el as HTMLSlotElement).assignedNodes()
@@ -339,7 +346,47 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         if ((el as HTMLElement).isContentEditable && !el.parentElement?.isContentEditable) {
             return true
         }
+        if (recorded?.clickable.has(el) && !delegatesToChildren(el)) {
+            return true
+        }
         return el.hasAttribute('onclick') && getComputedStyle(el).cursor === 'pointer'
+    }
+
+    /**
+     * An unnamed clickable element (an icon wired up in JS) has nothing an
+     * agent can tell apart. Describe what it is, its place among identical
+     * siblings and the nearest text around it.
+     */
+    function hintOf (el: Element) {
+        const label = el.getAttribute('title') || el.getAttribute('data-testid') || el.getAttribute('alt') ||
+            el.querySelector('svg title')?.textContent || el.classList[0] || el.tagName.toLowerCase()
+        let hint = collapse(label)
+        const siblings = el.parentElement ? [...el.parentElement.children].filter((c) => c.tagName === el.tagName && c.className === el.className) : []
+        if (siblings.length > 1) {
+            hint += ` ${siblings.indexOf(el) + 1} of ${siblings.length}`
+        }
+        let ancestor = el.parentElement
+        for (let depth = 0; ancestor && depth < 4; depth++, ancestor = ancestor.parentElement) {
+            // a group of icons only describes itself; the row around it says what they act on
+            if ([...ancestor.children].every((c) => c.tagName === el.tagName && c.className === el.className)) {
+                continue
+            }
+            const text = collapse((ancestor as HTMLElement).innerText || ancestor.textContent)
+            if (text) {
+                return `${hint} in ${JSON.stringify(text.length > 48 ? `${text.slice(0, 47)}…` : text)}`
+            }
+        }
+        return hint
+    }
+
+    /** a listener on a list or a row delegates for its children; only the innermost listener counts */
+    function delegatesToChildren (el: Element) {
+        for (let node = el.firstElementChild; node; node = node.nextElementSibling) {
+            if (recorded?.clickable.has(node) || node.querySelector('a,button,input,select,textarea')) {
+                return true
+            }
+        }
+        return false
     }
 
     /**
@@ -353,8 +400,9 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             return []
         }
         for (const el of root.querySelectorAll('*')) {
-            if (el.shadowRoot) {
-                out = out.concat(deepQueryAll(el.shadowRoot, selector))
+            const shadow = shadowRootOf(el)
+            if (shadow) {
+                out = out.concat(deepQueryAll(shadow, selector))
             }
         }
         return out
@@ -544,6 +592,9 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         }
         if (interactive) {
             out.interactive = true
+            if (!name) {
+                out.hint = hintOf(el)
+            }
         }
         if (opts.urls && (el.tagName === 'A' || el.tagName === 'AREA' || role === 'link')) {
             const linked = el as HTMLAnchorElement
