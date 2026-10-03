@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 
 import { getBrowserObject } from '@wdio/utils'
 import type { MoveToOptions } from '../../types.js'
+import { foreignContext } from '../../utils/foreignContext.js'
 
 const log = logger('webdriver')
 
@@ -25,13 +26,26 @@ export async function moveTo (
 ) {
     const browser = getBrowserObject(this)
     if (xOffset || yOffset) {
-        const { width, height } = await browser.getElementRect(this.elementId)
+        const { width, height } = await this.getElementRect(this.elementId)
         if ((xOffset && xOffset < (-Math.floor(width / 2))) || (xOffset && xOffset > Math.floor(width / 2))) {
             log.warn('xOffset would cause a out of bounds error as it goes outside of element')
         }
         if ((yOffset && yOffset < (-Math.floor(height / 2))) || (yOffset && yOffset > Math.floor(height / 2))) {
             log.warn('yOffset would cause a out of bounds error as it goes outside of element')
         }
+    }
+    /**
+     * Classic WebDriver rejects a move to an element outside the viewport,
+     * which the fallback below answers with a scroll. A move in the context of
+     * a held frame lands outside the viewport without an error. Scroll the
+     * element and the frames around it into view first. `nearest` leaves a
+     * visible element in place.
+     */
+    const held = await foreignContext(this)
+    if (held) {
+        await held.execute((elem: HTMLElement) => {
+            elem.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+        }, this as unknown as HTMLElement)
     }
     const moveToNested = async () => {
         await browser.action('pointer', { parameters: { pointerType: 'mouse' } })

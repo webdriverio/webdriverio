@@ -3,6 +3,7 @@ import { getContextManager } from '../../session/context.js'
 import { contextIdValue } from '../../session/browsingContext.js'
 import { getBrowsingContext } from '../../browsingContext.js'
 import { navigateInContext, type UrlCommandOptions } from './navigateInContext.js'
+import { classicContext } from '../../utils/classicContext.js'
 
 /**
  *
@@ -148,7 +149,11 @@ import { navigateInContext, type UrlCommandOptions } from './navigateInContext.j
  * mock the environment, e.g. overwrite Web APIs that your application uses.
  * @param {`{user: string, pass: string}`=} options.auth  basic authentication credentials
  * @param {`Record<string, string>`=} options.headers  headers to be sent with the request
- * @returns {WebdriverIO.BrowsingContext|void} the browsing context in a BiDi session, or `void` in a Classic session
+ * @returns {WebdriverIO.BrowsingContext} the [browsing context](/docs/api/browsingContext) that was navigated. In a WebDriver Classic
+ * session (e.g. Appium or Safari) there are no held browsing contexts, so it stands for the browser: commands
+ * such as `$`, `execute` or `getTitle` run on the browser, `url` is the navigated url and `contextId` is
+ * `undefined`. The BiDi-only commands `frame()`, `navigate()` and `activate()` reject with an error that
+ * names the Classic alternative.
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get
  * @see  https://nodejs.org/api/url.html#url_url_resolve_from_to
@@ -159,7 +164,7 @@ export async function url (
     this: WebdriverIO.Browser,
     path: string,
     options: UrlCommandOptions = {}
-): Promise<WebdriverIO.BrowsingContext | void> {
+): Promise<WebdriverIO.BrowsingContext> {
     if (typeof path !== 'string') {
         throw new Error('Parameter for "url" command needs to be type of string')
     }
@@ -183,4 +188,14 @@ export async function url (
     }
 
     await this.navigateTo(validateUrl(path))
+
+    /**
+     * `about:`, `data:` or `file:` urls in a BiDi session still navigated a
+     * held context. A Classic session has none, so it returns the browser.
+     */
+    if (this.isBidi) {
+        const context = await getContextManager(this).getCurrentContext()
+        return getBrowsingContext(this, contextIdValue(context), { isFrame: false, url: path })
+    }
+    return classicContext(this, path)
 }

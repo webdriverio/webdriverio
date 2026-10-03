@@ -713,7 +713,10 @@ describe('WebdriverIO object brand matrix', () => {
             ['#M5 context mock()', { from: tab, make: (context) => context.mock('**/api'), pending: 'other promise', awaited: M, isMultiRemote: false }],
             ['#M6 frame mock() (top-level only)', { from: frameOf, make: (frame) => frame.mock('**/api'), pending: 'other promise', awaited: 'rejects' }],
             ['#C1 url(http)', { make: (b) => b.url('https://example.com'), pending: 'other promise', awaited: C, isMultiRemote: false }],
-            ['#C2 url() of a page that is not http', { make: (b) => b.url('about:blank'), pending: 'other promise', awaited: NONE }],
+            /**
+             * `browser.url()` always returns a browsing context, also for a page that is not http
+             */
+            ['#C2 url() of a page that is not http', { make: (b) => b.url('about:blank'), pending: 'other promise', awaited: C, isMultiRemote: false }],
             ['#C3 newWindow()', { make: (b) => b.newWindow('https://webdriver.io'), pending: 'other promise', awaited: C, isMultiRemote: false }],
             ['#C4 browsingContexts(), a plain list', { make: (b) => b.browsingContexts(), pending: 'other promise', awaited: NONE }],
             ['#C4 browsingContexts()[0]', { make: (b) => (b.browsingContexts() as unknown as Promise<Loose[]>).then((list) => list[0]), awaited: C, isMultiRemote: false }],
@@ -748,7 +751,11 @@ describe('WebdriverIO object brand matrix', () => {
     describe('single session (Classic): no mock and no browsing context', () => {
         test.each<[string, Row]>([
             ['#M7 mock() (BiDi only)', { make: (b) => b.mock('**/api'), pending: 'other promise', awaited: 'rejects' }],
-            ['#C11 url(http)', { make: (b) => b.url('https://example.com'), pending: 'other promise', awaited: NONE }],
+            /**
+             * A Classic session has no held contexts: `browser.url()` returns a
+             * stand-in for the browser, so it carries the browser brand.
+             */
+            ['#C11 url(http)', { make: (b) => b.url('https://example.com'), pending: 'other promise', awaited: B, isMultiRemote: false }],
             ['#C12 newWindow(), a window handle', {
                 from: (b) => {
                     const browser = b as unknown as WebdriverIO.Browser

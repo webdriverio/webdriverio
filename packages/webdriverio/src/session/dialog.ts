@@ -1,6 +1,5 @@
 import { type local } from 'webdriver'
 import { SessionManager } from './session.js'
-import { getContextManager } from './context.js'
 
 export function getDialogManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, DialogManager)
@@ -137,37 +136,35 @@ export class Dialog {
      * @returns {Promise<void>}
      */
     async accept(userText?: string) {
-        const browser = this.#browser
-
-        const contextManager = getContextManager(browser)
-        const context = await contextManager.getCurrentContext()
-
-        if (this.#context !== context) {
-            return
-        }
-
-        await browser.browsingContextHandleUserPrompt({
-            accept: true,
-            context: this.#context,
-            userText
-        })
-        getDialogManager(browser).clearPrompt(this.#context)
+        await this.#handle({ accept: true, userText })
     }
 
     async dismiss() {
+        await this.#handle({ accept: false })
+    }
+
+    /**
+     * Answer the dialog in the context that opened it, which is not always
+     * the session's current context (a held tab, for example). A dialog whose
+     * context closed, or that another handler answered first, is done.
+     */
+    async #handle (params: { accept: boolean, userText?: string }) {
         const browser = this.#browser
-
-        const contextManager = getContextManager(browser)
-        const context = await contextManager.getCurrentContext()
-
-        if (this.#context !== context) {
-            return
+        try {
+            await browser.browsingContextHandleUserPrompt({
+                context: this.#context,
+                ...params
+            })
+        } catch (err) {
+            if (
+                err instanceof Error &&
+                (err.message.includes('no such alert') || err.message.includes('no such frame'))
+            ) {
+                return
+            }
+            throw err
+        } finally {
+            getDialogManager(browser).clearPrompt(this.#context)
         }
-
-        await browser.browsingContextHandleUserPrompt({
-            accept: false,
-            context: this.#context
-        })
-        getDialogManager(browser).clearPrompt(this.#context)
     }
 }

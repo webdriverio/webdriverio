@@ -1,5 +1,3 @@
-import { ELEMENT_KEY } from 'webdriver'
-
 import { getBrowserObject } from '@wdio/utils'
 import isElementStable from '../../scripts/isElementStable.js'
 
@@ -82,7 +80,5 @@ export async function isStable (this: WebdriverIO.Element) {
         throw new Error('The `isStable` command is only available for desktop and mobile browsers.')
     }
 
-    return await browser.execute(isElementStable, {
-        [ELEMENT_KEY]: this.elementId
-    } as unknown as HTMLElement)
+    return await browser.execute(isElementStable, this as unknown as HTMLElement)
 }

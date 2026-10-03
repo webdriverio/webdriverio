@@ -37,6 +37,7 @@ export async function generateWdioDocs (sidebars: any, options: WdioDocsOptions 
     const COMMAND_DIR = path.join(rootDir, 'packages', 'webdriverio', 'src', 'commands')
     const COMMANDS = {
         browser: ['api/browser', fs.readdirSync(path.join(COMMAND_DIR, 'browser'))],
+        browsingContext: ['api/browsingContext', fs.readdirSync(path.join(COMMAND_DIR, 'browsingContext'))],
         element: ['api/element', fs.readdirSync(path.join(COMMAND_DIR, 'element'))],
         mobile: ['api/mobile', fs.readdirSync(path.join(COMMAND_DIR, 'mobile'))],
         mock: ['api/mock', fs.readdirSync(path.join(COMMAND_DIR, 'mock'))],

@@ -42,6 +42,10 @@ Match that locally. A reporter-only change does not need this folder.
 
 - Requires Chrome / Firefox / Edge as in CONTRIBUTING. Headless configs live
   under `e2e/wdio/headless/`.
+- `test:e2e:webdriver` runs a browser matrix. Locally it skips Edge when it is
+  not installed and Safari (needs "Allow remote automation"); CI runs all of
+  them. Pick browsers with `WDIO_E2E_BROWSERS=chrome,firefox`.
+- `pnpm run test:typings:e2e` type-checks the testrunner specs in `e2e/wdio`.
 - Do not commit screenshots (`e2e/screenshot.png`, `e2e/wdio/headless/*.png`).
 - Framework-specific browser-runner scripts are in `e2e/package.json`
   (`test:browser:react`, …).
