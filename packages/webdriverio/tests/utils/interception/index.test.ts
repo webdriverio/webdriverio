@@ -139,11 +139,17 @@ describe('WebDriverInterception', () => {
         expect(first.sessionSubscribe).toHaveBeenCalledTimes(1)
         expect(first.networkAddDataCollector).toHaveBeenCalledTimes(1)
 
-        // a second session in the same process, e.g. after `reloadSession()` or another multi-remote instance
+        // a second session in the same process, e.g. another multi-remote instance
         const second = sessionBrowser('session-2')
         await Interception.initiate('http://foobar.com/a', {}, second)
         expect(second.sessionSubscribe).toHaveBeenCalledTimes(1)
         expect(second.networkAddDataCollector).toHaveBeenCalledTimes(1)
+
+        // `reloadSession()` keeps the browser object but changes its session id
+        ;(first as { sessionId: string }).sessionId = 'session-3'
+        await Interception.initiate('http://foobar.com/a', {}, first)
+        expect(first.sessionSubscribe).toHaveBeenCalledTimes(2)
+        expect(first.networkAddDataCollector).toHaveBeenCalledTimes(2)
     })
 
     it('responds with JSON and text without a global Buffer', async () => {
@@ -1691,6 +1697,26 @@ describe('WebDriverInterception', () => {
             reads.get('req-2')!({ bytes: { type: 'string', value: 'second-body' } })
             await expect(wait).resolves.toBe(true)
             expect(mock.calls.map((call) => call.body)).toEqual(['second-body'])
+        })
+
+        it('should still time out when a response started but did not complete', async () => {
+            const browser = getResponseCollectionBrowserMock({
+                maxSpyCollectedBodySize: 1024,
+                waitforTimeout: 100,
+                waitforInterval: 10
+            }, {
+                call: vi.fn().mockImplementation((fn) => fn())
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+            // e.g. the request failed after its headers arrived: no `network.responseCompleted`
+            browser.emit('network.responseStarted', getResponseCollectionRequestStub())
+
+            expect(mock.calls).toHaveLength(1)
+            await expect(mock.waitForResponse()).rejects.toThrow('waitForResponse timed out after 100ms')
+            await expect(mock.waitForResponse({ timeout: 50, timeoutMsg: 'Custom timeout message' }))
+                .rejects.toThrow('Custom timeout message')
+            expect(browser.networkGetData).not.toHaveBeenCalled()
         })
 
         it('should still time out when the only response does not match the mock filter', async () => {
