@@ -205,6 +205,57 @@ describe('ShadowRootManager', () => {
         ])
     })
 
+    it('forgets only the subtree of a stale nested node, and everything for a stale document', async () => {
+        const manager = getShadowRootManager({ ...defaultBrowser } as any)
+        const register = (host: string, root: string, isDocument: boolean) => manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: host, value: {
+                    localName: 'div',
+                    shadowRoot: { sharedId: `${host}-shadow`, value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: root },
+                { type: 'boolean', value: isDocument },
+                { type: 'node', sharedId: 'forget-document-element' }
+            ],
+            source: { context: 'forget-context' }
+        } as any)
+        register('first-host', 'forget-root', true)
+        register('second-host', 'forget-root', true)
+
+        manager.forgetNode('forget-context', 'first-host-shadow')
+        const pairs = await manager.getShadowElementPairsByContextId('forget-context')
+        expect(pairs.filter(([, shadow]) => shadow)).toEqual([['second-host', 'second-host-shadow']])
+
+        manager.forgetNode('forget-context', 'forget-root')
+        expect(await manager.getShadowElementsByContextId('forget-context')).toEqual([])
+    })
+
+    it('forgets the context when the shadow root of the tree root is stale', async () => {
+        const manager = getShadowRootManager({ ...defaultBrowser } as any)
+        manager.handleLogEntry({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'root-host', value: {
+                    localName: 'div',
+                    shadowRoot: { sharedId: 'root-host-shadow', value: { nodeType: 11, mode: 'open' } }
+                } },
+                { type: 'node', sharedId: 'root-host' },
+                { type: 'boolean', value: false },
+                { type: 'node', sharedId: 'root-host-document' }
+            ],
+            source: { context: 'root-host-context' }
+        } as any)
+        expect(await manager.getShadowElementsByContextId('root-host-context')).toContain('root-host-shadow')
+
+        manager.forgetNode('root-host-context', 'root-host-shadow')
+        expect(await manager.getShadowElementsByContextId('root-host-context')).toEqual([])
+    })
+
     it('should capture shadow root elements', async () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)

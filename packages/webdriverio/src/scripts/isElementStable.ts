@@ -10,8 +10,17 @@ export default async function isElementStable(elem: HTMLElement): Promise<boolea
 
     try {
         const previousPosition = elem.getBoundingClientRect()
+        /**
+         * Two animation frames, or 100ms when the browser renders no frames for
+         * this document (Chromium throttles cross-origin frames it doesn't
+         * render). Without rendering, nothing can animate either.
+         */
         await new Promise<void>((resolve) => {
-            requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+            const timer = setTimeout(resolve, 100)
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                clearTimeout(timer)
+                resolve()
+            }))
         })
         const currentPosition = elem.getBoundingClientRect()
         for (const prop in previousPosition) {

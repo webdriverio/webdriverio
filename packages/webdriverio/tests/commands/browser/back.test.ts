@@ -455,6 +455,10 @@ describe('back and forward', () => {
              * it under its own token, so neither may take it for the destination.
              */
             const tokens: Record<string, true> = {}
+            /**
+             * After `load` the destination document is current, which has no mark.
+             */
+            let loaded = false
             vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
                 const expression = params?.expression ?? ''
                 if (!expression.includes('__wdioHistoryTokens')) {
@@ -467,7 +471,7 @@ describe('back and forward', () => {
                 return scriptValue(JSON.stringify({
                     href: 'https://example.test/same',
                     readyState: 'complete',
-                    marked: tokens[key] === true
+                    marked: tokens[key] === true && !loaded
                 }))
             })
             vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
@@ -485,8 +489,86 @@ describe('back and forward', () => {
             await delay(150)
             expect(settled).toBe(0)
 
+            loaded = true
             browser.emit('browsingContext.load', navigationInfo('top-level'))
             await Promise.all([first, second])
+            vi.mocked(browser.scriptEvaluate).mockRestore()
+        })
+
+        it('ignores a late load event of the outgoing document', async () => {
+            /**
+             * Firefox can send the `load` of the previous navigation after
+             * the traversal started, while the outgoing document is current.
+             */
+            let current: 'outgoing' | 'destination' = 'outgoing'
+            vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
+                const expression = params?.expression ?? ''
+                if (!expression.includes('__wdioHistoryTokens')) {
+                    return scriptValue('unsupported')
+                }
+                return scriptValue(JSON.stringify({
+                    href: `https://example.test/${current}`,
+                    readyState: current === 'outgoing' ? 'complete' : 'loading',
+                    marked: current === 'outgoing'
+                }))
+            })
+            vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
+                browser.emit('browsingContext.navigationStarted', navigationInfo('top-level'))
+                return {}
+            })
+
+            let resolved = false
+            const pending = browser.back().then(() => {
+                resolved = true
+            })
+            await vi.waitFor(() => expect(browser.browsingContextTraverseHistory).toHaveBeenCalled())
+            browser.emit('browsingContext.load', navigationInfo('top-level'))
+            await delay(50)
+            expect(resolved).toBe(false)
+
+            current = 'destination'
+            browser.emit('browsingContext.load', navigationInfo('top-level'))
+            await pending
+            vi.mocked(browser.scriptEvaluate).mockRestore()
+        })
+
+        it('waits for a new document when the read after a load event fails', async () => {
+            let reads = 0
+            let current: 'outgoing' | 'destination' = 'outgoing'
+            vi.spyOn(browser, 'scriptEvaluate').mockImplementation(async (params) => {
+                const expression = params?.expression ?? ''
+                if (!expression.includes('__wdioHistoryTokens')) {
+                    return scriptValue('unsupported')
+                }
+                reads += 1
+                /**
+                 * the read right after the late load event fails
+                 */
+                if (reads === 2) {
+                    throw new Error('realm not ready')
+                }
+                return scriptValue(JSON.stringify({
+                    href: `https://example.test/${current}`,
+                    readyState: 'complete',
+                    marked: current === 'outgoing'
+                }))
+            })
+            vi.mocked(browser.browsingContextTraverseHistory).mockImplementation(async () => {
+                browser.emit('browsingContext.navigationStarted', navigationInfo('top-level'))
+                return {}
+            })
+
+            let resolved = false
+            const pending = browser.back().then(() => {
+                resolved = true
+            })
+            await vi.waitFor(() => expect(browser.browsingContextTraverseHistory).toHaveBeenCalled())
+            browser.emit('browsingContext.load', navigationInfo('top-level'))
+            await delay(50)
+            expect(resolved).toBe(false)
+
+            current = 'destination'
+            await pending
             vi.mocked(browser.scriptEvaluate).mockRestore()
         })
 

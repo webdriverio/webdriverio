@@ -38,7 +38,7 @@ const DEFAULT_SCROLL_PARAMS: ScrollParams = {
 }
 
 export default class WheelAction extends BaseAction {
-    constructor(instance: WebdriverIO.Browser, params?: BaseActionParams) {
+    constructor(instance: WebdriverIO.Browser | WebdriverIO.BrowsingContext, params?: BaseActionParams) {
         super(instance, 'wheel', params)
     }
 

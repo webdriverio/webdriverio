@@ -320,6 +320,7 @@ export default function (docfile: {
         isMockScope : scope === 'mock',
         isDialogScope : scope === 'dialog',
         isClockScope : scope === 'clock',
+        isBrowsingContextScope : scope === 'browsingContext',
         support: tagSupport,
     }
 

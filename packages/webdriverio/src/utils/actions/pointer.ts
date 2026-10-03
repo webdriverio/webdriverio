@@ -74,7 +74,7 @@ function mapButton(params: PointerActionParams | ButtonNames | Button) {
 }
 
 export default class PointerAction extends BaseAction {
-    constructor (instance: WebdriverIO.Browser, params: BaseActionParams = {}) {
+    constructor (instance: WebdriverIO.Browser | WebdriverIO.BrowsingContext, params: BaseActionParams = {}) {
         if (!params.parameters) {
             params.parameters = { pointerType: POINTER_TYPE_DEFAULT }
         }

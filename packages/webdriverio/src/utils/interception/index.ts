@@ -161,6 +161,15 @@ export default class WebDriverInterception {
     #pattern: URLPattern
     #patternId: string
     #mockId: string
+    /**
+     * The `SESSION_MOCKS` key `mock()` stored this interception under
+     */
+    #sessionKey?: string
+    /**
+     * Restores a mock of a held context when that context closes
+     */
+    #onContextDestroyed?: (params: { context: string }) => void
+    #warnedAboutEarlyAnswer = false
     #filterOptions: MockFilterOptions
     #browser: WebdriverIO.Browser
 
@@ -181,8 +190,11 @@ export default class WebDriverInterception {
         mockId: string,
         filterOptions: MockFilterOptions,
         browser: WebdriverIO.Browser,
-        isCollectingNetworkData = false
+        isCollectingNetworkData = false,
+        sessionKey?: string,
+        contexts?: string[]
     ) {
+        this.#sessionKey = sessionKey
         this.#pattern = pattern
         this.#patternId = getPatternId(pattern)
         this.#mockId = mockId
@@ -196,12 +208,27 @@ export default class WebDriverInterception {
         browser.on('network.beforeRequestSent', this.#handleBeforeRequestSent.bind(this))
         browser.on('network.responseStarted', this.#handleResponseStarted.bind(this))
         browser.on('network.responseCompleted', this.#handleResponseCompleted.bind(this))
+
+        /**
+         * A mock of a held context ends with it. Chromium keeps an intercept
+         * whose only context is gone and then matches it for every context,
+         * which would block requests of the other tabs.
+         */
+        if (contexts?.length) {
+            this.#onContextDestroyed = ({ context }) => {
+                if (contexts.includes(context)) {
+                    this.restore().catch(() => { /* the intercept may already be gone */ })
+                }
+            }
+            browser.on('browsingContext.contextDestroyed', this.#onContextDestroyed)
+        }
     }
 
     static async initiate(
         url: string | URLPattern | globalThis.URLPattern,
         filterOptions: MockFilterOptions,
-        browser: WebdriverIO.Browser
+        browser: WebdriverIO.Browser,
+        scope: { contexts?: string[], sessionKey?: string } = {}
     ) {
         const pattern = parseUrlPattern(url)
         const isCollectingNetworkData = browser.options.maxSpyCollectedBodySize !== 0
@@ -235,6 +262,7 @@ export default class WebDriverInterception {
          * register network intercept
          */
         const interception = await browser.networkAddIntercept({
+            ...(scope.contexts ? { contexts: scope.contexts } : {}),
             phases: ['beforeRequestSent', 'responseStarted'],
             urlPatterns: [{
                 type: 'pattern',
@@ -246,7 +274,7 @@ export default class WebDriverInterception {
             }]
         })
 
-        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData)
+        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData, scope.sessionKey, scope.contexts)
     }
 
     #emit(event: string, args: unknown) {
@@ -433,8 +461,10 @@ export default class WebDriverInterception {
          */
         if (
             responseOverwrite?.overwrite &&
-            'fetchResponse' in responseOverwrite.overwrite &&
-            responseOverwrite.overwrite.fetchResponse === false
+            (
+                ('fetchResponse' in responseOverwrite.overwrite && responseOverwrite.overwrite.fetchResponse === false) ||
+                this.#mustAnswerBeforeRequestSent()
+            )
         ) {
             const { overwrite } = responseOverwrite.once
                 ? this.#respondOverwrites.shift() || {}
@@ -608,7 +638,7 @@ export default class WebDriverInterception {
                     this.#browser.networkProvideResponse({
                         request: requestId,
                         ...responseData,
-                    }).catch(this.#handleNetworkProvideResponseError)
+                    }).catch((err: Error) => this.#handleUnsupportedOverwrite(err, requestId))
                 ))
             } catch (err) {
                 /**
@@ -639,6 +669,9 @@ export default class WebDriverInterception {
     }
 
     async #handleResponseCompleted(response: Response) {
+        if (this.#restored) {
+            return
+        }
         /**
          * don't do anything if:
          * - request is not matching the pattern
@@ -690,6 +723,46 @@ export default class WebDriverInterception {
      * is marked as "blocked", in these cases we can safely ignore the error.
      * @param err Bidi message error
      */
+    /**
+     * Firefox only takes a response body in `network.provideResponse` while
+     * the request is blocked in `beforeRequestSent`, not once the response
+     * started (https://wpt.fyi/results/webdriver/tests/bidi/network/provide_response).
+     * Answer there, like `fetchResponse: false`, unless the mock filters on the
+     * response, which needs the backend.
+     */
+    #mustAnswerBeforeRequestSent () {
+        if (!this.#browser.isFirefox) {
+            return false
+        }
+        if (this.#filterOptions.statusCode !== undefined || this.#filterOptions.responseHeaders !== undefined) {
+            return false
+        }
+        if (!this.#warnedAboutEarlyAnswer) {
+            this.#warnedAboutEarlyAnswer = true
+            log.warn(
+                'Firefox can not replace a response body after the request was sent. ' +
+                'mock.respond() answers before the request is sent instead, as with `fetchResponse: false`.'
+            )
+        }
+        return true
+    }
+
+    /**
+     * A browser that can't replace the body once the response started rejects
+     * `network.provideResponse`, which would leave the request blocked. Let the
+     * real response through and say so, instead of hanging the test.
+     */
+    #handleUnsupportedOverwrite (err: Error, requestId: string) {
+        if (!err.message.includes('unsupported operation')) {
+            return this.#handleNetworkProvideResponseError(err)
+        }
+        log.warn(
+            `mock.respond() could not replace the response of request ${requestId}: ${err.message}. ` +
+            'The page received the real response. Use `fetchResponse: false` to answer before the request is sent.'
+        )
+        return this.#browser.networkProvideResponse({ request: requestId }).catch(this.#handleNetworkProvideResponseError)
+    }
+
     #handleNetworkProvideResponseError(err: Error) {
         if (err.message.endsWith('no such request')) {
             return
@@ -902,12 +975,16 @@ export default class WebDriverInterception {
          * still need to continue any in-flight blocked requests after cleanup.
          */
         const blockedRequestIds = Array.from(this.#blockedRequests)
+        if (this.#onContextDestroyed) {
+            this.#browser.off('browsingContext.contextDestroyed', this.#onContextDestroyed)
+            this.#onContextDestroyed = undefined
+        }
         this.reset()
         this.#respondOverwrites = []
-        const handle = await this.#browser.getWindowHandle()
+        const handle = this.#sessionKey ?? await this.#browser.getWindowHandle()
 
         log.trace(`Restoring mock for ${handle}`)
-        SESSION_MOCKS[handle].delete(this as WebDriverInterception)
+        SESSION_MOCKS[handle]?.delete(this as WebDriverInterception)
 
         // Continue any in-flight blocked requests before removing the intercept
         // to prevent them from hanging
@@ -1113,6 +1190,15 @@ export function parseUrlPattern(url: string | URLPattern | globalThis.URLPattern
     if (typeof url === 'object') {
         return url as URLPattern
     }
+
+    /**
+     * A URLPattern `*` already matches any characters, `/` included, so a
+     * glob like `**` + `/api` means the same as `*` + `/api`. Each extra `*`
+     * adds a group to the compiled regular expression, though, and testing
+     * it against a long URL that does not match (e.g. a `data:` URL) then
+     * backtracks for seconds to minutes, which blocks the process.
+     */
+    url = url.replace(/(?<!\\)\*{2,}/g, '*')
 
     /**
      * parse URLPattern from absolute URL

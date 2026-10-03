@@ -1,10 +1,4 @@
-import { ELEMENT_KEY } from 'webdriver'
-
 import { getBrowserObject } from '@wdio/utils'
-
-const getWebElement = (el: WebdriverIO.Element) => ({
-    [ELEMENT_KEY]: el.elementId
-})
 
 /**
  *
@@ -55,8 +49,8 @@ export async function isEqual (
     try {
         result = await browser.execute(
             /* istanbul ignore next */
-            function (el1: WebdriverIO.Element, el2: WebdriverIO.Element) { return el1 === el2 },
-            getWebElement(this), getWebElement(el))
+            function (el1: HTMLElement, el2: HTMLElement) { return el1 === el2 },
+            this as unknown as HTMLElement, el as unknown as HTMLElement)
     } catch {
         result = false
     }

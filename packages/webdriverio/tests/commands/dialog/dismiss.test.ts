@@ -31,7 +31,7 @@ describe('dismiss', () => {
             .mockResolvedValue({})
     })
 
-    it('should NOT call browsingContextHandleUserPrompt if contexts differ', async () => {
+    it('answers the dialog in its own context while another context is current', async () => {
         const fakeEvent = {
             context: 'ctx-A',
             message: 'some message',
@@ -45,7 +45,10 @@ describe('dismiss', () => {
         mockContextManager.getCurrentContext = vi.fn().mockResolvedValue('ctx-B')
         await dialog.dismiss()
 
-        expect(browseStub).not.toHaveBeenCalled()
+        expect(browseStub).toHaveBeenCalledWith({
+            accept: false,
+            context: 'ctx-A'
+        })
     })
 
     it('should call browsingContextHandleUserPrompt if contexts match', async () => {
@@ -69,7 +72,7 @@ describe('dismiss', () => {
         expect(browseStub).toHaveBeenCalledTimes(1)
     })
 
-    it('should call getCurrentContext once', async () => {
+    it('does not consult the current context', async () => {
         const fakeEvent = {
             context: 'ctx-A',
             message: 'msg',
@@ -82,7 +85,7 @@ describe('dismiss', () => {
 
         await dialog.dismiss()
 
-        expect(mockContextManager.getCurrentContext).toHaveBeenCalledTimes(1)
+        expect(mockContextManager.getCurrentContext).not.toHaveBeenCalled()
 
         expect(browseStub).toHaveBeenCalledWith({
             accept: false,

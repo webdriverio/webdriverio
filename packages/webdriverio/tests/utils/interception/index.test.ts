@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { type local } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
-import WebDriverInterception from '../../../src/utils/interception/index.js'
+import WebDriverInterception, { parseUrlPattern } from '../../../src/utils/interception/index.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 
 type WebDriverInterceptionClass = typeof WebDriverInterception
@@ -433,6 +433,50 @@ describe('WebDriverInterception', () => {
         expect(mock.calls).toHaveLength(1)
     })
 
+    it('answers before the request is sent in Firefox, which can only replace the body then', async () => {
+        const browser = getResponseCollectionBrowserMock({}, { isFirefox: true } as Partial<WebdriverIO.Browser>)
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+        expect(browser.networkProvideResponse).toHaveBeenCalledWith({
+            request: 'req-123',
+            statusCode: 200,
+            body: { type: 'string', value: 'mocked response' }
+        })
+    })
+
+    it('still fetches the backend in Firefox when the mock filters on the response', async () => {
+        const browser = getResponseCollectionBrowserMock({}, { isFirefox: true } as Partial<WebdriverIO.Browser>)
+        const mock = await WebDriverInterception.initiate('http://test.com/**', { statusCode: 200 }, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+
+        expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+        expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('lets the real response through when the browser rejects the replaced body', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        vi.mocked(browser.networkProvideResponse)
+            .mockRejectedValueOnce(new Error('unsupported operation: The "body" parameter is only supported for the beforeRequestSent phase'))
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        mock.respond('mocked response')
+        browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+        browser.emit('network.responseStarted', {
+            ...getBlockedRequestStub(),
+            response: { status: 200, headers: [] }
+        })
+        await new Promise((resolve) => setTimeout(resolve, 0))
+
+        expect(browser.networkProvideResponse).toHaveBeenCalledTimes(2)
+        expect(browser.networkProvideResponse).toHaveBeenLastCalledWith({ request: 'req-123' })
+    })
+
     it('should fetch the backend by default', async () => {
         const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
@@ -707,6 +751,28 @@ describe('WebDriverInterception', () => {
 
         expect(mock.calls.length).toBe(0)
         expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('does not collect response data once the mock is restored', async () => {
+        const browser = getResponseCollectionBrowserMock({
+            waitforTimeout: 5000,
+            waitforInterval: 100
+        }, {
+            call: vi.fn().mockImplementation((fn) => fn())
+        })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { sessionKey: 'window-1' })
+        Object.assign(browser, { networkRemoveIntercept: vi.fn().mockResolvedValue({}) })
+        await mock.restore()
+        vi.mocked(browser.networkGetData).mockClear()
+
+        browser.emit('network.responseCompleted', {
+            isBlocked: false,
+            request: { request: 'req-1', url: 'http://test.com/api', method: 'GET', headers: [] },
+            response: { status: 200, headers: [] }
+        })
+        await new Promise((resolve) => setTimeout(resolve, 0))
+        expect(browser.networkGetData).not.toHaveBeenCalled()
+        expect(mock.calls).toHaveLength(0)
     })
 
     it('should resolve waitForResponse for a matching response reported as not blocked (regression test)', async () => {
@@ -1119,6 +1185,24 @@ describe('WebDriverInterception', () => {
         }))
         expect(browser.networkContinueRequest).toHaveBeenCalledWith({
             request: 'req-123'
+        })
+    })
+
+    describe('parseUrlPattern', () => {
+        it('collapses repeated wildcards, which match the same URLs', () => {
+            const pattern = parseUrlPattern('**/api/users')
+            expect(pattern.pathname).toBe('*/api/users')
+            expect(pattern.test('https://example.test/v1/api/users')).toBe(true)
+            expect(pattern.test('https://example.test/api/users')).toBe(true)
+            expect(pattern.test('https://example.test/api/other')).toBe(false)
+            expect(parseUrlPattern('https://**.example.test/**').hostname).toBe('*.example.test')
+        })
+
+        it('tests a long URL that does not match without backtracking', () => {
+            const pattern = parseUrlPattern('**/api/nothing')
+            const start = Date.now()
+            expect(pattern.test(`data:image/png;base64,${'A'.repeat(100_000)}`)).toBe(false)
+            expect(Date.now() - start).toBeLessThan(1000)
         })
     })
 
