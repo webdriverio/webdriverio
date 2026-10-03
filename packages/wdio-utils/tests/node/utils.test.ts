@@ -676,7 +676,27 @@ describe('driver utils', () => {
 
                 expect(fsp.rm).toHaveBeenCalledTimes(1)
                 expect(fsp.rm).toHaveBeenCalledWith(installationDir, { recursive: true, force: true })
-                expect(logMock.warn).toHaveBeenCalledWith(`Removing the incomplete firefox vstable_157.0 install at ${installationDir} before the retry`)
+                expect(logMock.warn).toHaveBeenCalledWith(`Removing ${installationDir} before the retry: the executable ${executablePath} is missing`)
+                expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
+            })
+
+            /**
+             * a failed download stops before the build folder is made, so there is
+             * nothing to remove and nothing to warn about
+             */
+            it('does not remove or warn when the build folder does not exist', async () => {
+                vi.mocked(fsp.access).mockImplementation(async (file) => {
+                    if (file === executablePath || file === installationDir) {
+                        throw new Error('ENOENT')
+                    }
+                })
+                vi.mocked(install).mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                expect(fsp.rm).not.toHaveBeenCalled()
+                expect(logMock.warn).not.toHaveBeenCalled()
+                expect(logMock.info).not.toHaveBeenCalledWith(expect.stringContaining('Keeping'))
                 expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ browser: 'firefox', buildId: 'stable_157.0' }))
             })
 
