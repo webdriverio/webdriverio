@@ -17,6 +17,25 @@ describe('constants', () => {
             const pluginsWithoutShorts = supportedInstallations.filter((plugin) => !plugin.short)
             expect(pluginsWithoutShorts).toHaveLength(0)
         })
+
+        it('should only use a scoped short name when it is the package itself', () => {
+            // The short name is written verbatim into `reporters`/`services`, and
+            // initializePlugin imports a name starting with `@` as-is, so a scoped
+            // short must be the installed package or the generated config breaks.
+            const scopedShorts = supportedInstallations.filter((plugin) => plugin.short.startsWith('@'))
+            for (const plugin of scopedShorts) {
+                expect(plugin.short).toBe(plugin.package)
+            }
+        })
+
+        it('should install and configure the Qualflare reporter by its scoped name', () => {
+            const qualflare = SUPPORTED_PACKAGES.reporter.find(({ name }) => name === 'qualflare')!
+            expect(convertPackageHashToObject(qualflare.value)).toEqual({
+                package: '@qualflare/webdriverio',
+                short: '@qualflare/webdriverio',
+                purpose: undefined
+            })
+        })
     })
 
     describe('desktop testing runner', () => {
