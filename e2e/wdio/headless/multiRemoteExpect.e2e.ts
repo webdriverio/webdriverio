@@ -159,11 +159,6 @@ describe('multi remote expect', () => {
                 .rejects.toThrow(/multi-remote<browserA, browserB, browserC>[\s\S]*browserB/)
         })
 
-        /**
-         * A list that changes in one instance between retries: see "query a multi-remote list
-         * again" in `multiRemoteTest.e2e.ts`, for `$$`, `custom$$` and `shadow$$`.
-         */
-
         it('should assert an element with one expected value per instance', async () => {
             await Promise.all(Object.entries(LOCALES).map(([instance, locale]) => (
                 multiRemoteBrowser.getInstance(instance).execute((locale, width) => {
