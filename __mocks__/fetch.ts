@@ -365,6 +365,10 @@ const requestMock: any = vi.fn().mockImplementation(async (uri, params) => {
         value = Boolean(result) || result === false || result === 0 || result === null ? result : {}
         break
     } case `/session/${sessionId}/execute/async`: {
+        if (body.script.includes('waitToLoadReact')) {
+            value = null
+            break
+        }
         const script = Function(body.script)
         const pending = Symbol('pending')
         let result: any = pending
