@@ -2,6 +2,7 @@ import cssShorthandProps from 'css-shorthand-properties'
 import { getBrowserObject } from '@wdio/utils'
 
 import { parseCSS } from '../../utils/index.js'
+import { foreignContextId } from '../../session/browsingContext.js'
 
 type PseudoElement = '::before' | '::after'
 
@@ -183,21 +184,24 @@ async function getPseudoElementCSSValue(
     elem: WebdriverIO.Element,
     options: Required<Options>
 ): Promise<string> {
-    const browser = getBrowserObject(elem)
     const { cssProperty, pseudoElement } = options
-    const cssValue = await browser.execute(
-        (elem: Element, pseudoElement: string, cssProperty: string) => {
-            // Check if element is still connected to the DOM
-            // This helps detect stale elements in BiDi mode
-            if (typeof elem.isConnected === 'boolean' && !elem.isConnected) {
-                throw new Error('stale element reference: element is not attached to the page document')
-            }
-            return (window.getComputedStyle(elem, pseudoElement))[cssProperty as unknown as number]
-        },
-        elem as unknown as Element,
-        pseudoElement,
-        cssProperty
-    )
+    const read = (elem: Element, pseudoElement: string, cssProperty: string) => {
+        // Check if element is still connected to the DOM
+        // This helps detect stale elements in BiDi mode
+        if (typeof elem.isConnected === 'boolean' && !elem.isConnected) {
+            throw new Error('stale element reference: element is not attached to the page document')
+        }
+        return (window.getComputedStyle(elem, pseudoElement))[cssProperty as unknown as number]
+    }
+
+    /**
+     * `browser.execute` runs in the session's current context, which can't
+     * resolve an element from a frame or another tab. `elem.execute` runs in
+     * the element's own context and passes the element as first argument.
+     */
+    const cssValue = await foreignContextId(elem)
+        ? await elem.execute(read as unknown as (el: HTMLElement, pseudoElement: string, cssProperty: string) => string, pseudoElement, cssProperty)
+        : await getBrowserObject(elem).execute(read, elem as unknown as Element, pseudoElement, cssProperty)
 
     return cssValue
 }

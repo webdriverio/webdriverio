@@ -232,20 +232,12 @@ async function bar() {
     })
     expectType<WebdriverIO.ElementArray>(waitUntilElems)
 
+    /**
+     * `browser.url()` always returns a context; every member is checked in browsingContext.ts
+     */
     const page = await browser.url('https://webdriver.io')
-    if (page) {
-        expectType<string>(page.contextId)
-        expectType<string>(page.url)
-        expectType<boolean>(page.isFrame)
-        expectType<WebdriverIO.Browser>(page.browser)
-        const same = await page.navigate('/docs')
-        expectType<WebdriverIO.BrowsingContext>(same)
-        const child = await page.frame('iframe')
-        expectType<WebdriverIO.BrowsingContext>(child)
-        expectType<WebdriverIO.BrowsingContext | undefined>(child.parent)
-        await page.activate()
-        await page.getTitle()
-    }
+    expectType<WebdriverIO.BrowsingContext>(page)
+    expectType<WebdriverIO.BrowsingContext>(await page.frame('iframe'))
     const pages = await browser.browsingContexts()
     expectType<WebdriverIO.BrowsingContext[]>(pages)
 
@@ -257,6 +249,9 @@ async function bar() {
     await browser.getCookies(['foobar'])
 
     const htmlElement = await browser.$('h1')
+    expectType<WebdriverIO.Element>(htmlElement)
+    expectType<number>(await browser.$$('li')[0].execute((elem, a: number) => elem.innerText.length + a, 1))
+    expectType<WebdriverIO.Element>(await (await browser.$('main')).$('h1'))
     await htmlElement.getHTML({ includeSelectorTag: false })
     // @ts-expect-error boolean argument was removed in v10
     await htmlElement.getHTML(false)

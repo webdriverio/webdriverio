@@ -6,6 +6,7 @@ import type { remote } from 'webdriver'
 import { assertDirectoryExists } from './utils.js'
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, isBrowsingContext } from '../session/browsingContext.js'
+import { frameOffset } from '../utils/frameOffset.js'
 import type { SaveScreenshotOptions } from '../types.js'
 /**
  *
@@ -77,30 +78,6 @@ export function takeScreenshotClassic (this: WebdriverIO.Browser, filepath: stri
  * takeScreenshotBidi
  * @returns {string} a base64 encoded screenshot
  */
-async function frameRect (parent: WebdriverIO.BrowsingContext, contextId: string) {
-    const frames = await parent.$$('iframe, frame')
-    for (const frame of frames) {
-        const element = await frame.getElement()
-        const win = await parent.execute(
-            (node: HTMLIFrameElement) => node.contentWindow,
-            element
-        ) as { context?: string } | null
-        if (win?.context !== contextId) {
-            continue
-        }
-        return parent.execute((node: HTMLElement) => {
-            const rect = node.getBoundingClientRect()
-            return {
-                x: Math.round(rect.x),
-                y: Math.round(rect.y),
-                width: Math.round(rect.width),
-                height: Math.round(rect.height)
-            }
-        }, element)
-    }
-    throw new Error(`Could not find a frame element for browsing context ${contextId}`)
-}
-
 export async function takeScreenshotBidi (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext, filepath: string, options?: SaveScreenshotOptions): Promise<string> {
     const browser = getBrowserObject(this)
     const contextManager = getContextManager(browser)
@@ -154,21 +131,7 @@ export async function takeScreenshotBidi (this: WebdriverIO.Browser | WebdriverI
     }
 
     if (isBrowsingContext(this) && this.isFrame) {
-        let top: WebdriverIO.BrowsingContext = this
-        const chain: WebdriverIO.BrowsingContext[] = []
-        while (top.parent) {
-            chain.unshift(top)
-            top = top.parent
-        }
-        let x = 0
-        let y = 0
-        let parent = top
-        for (const child of chain) {
-            const rect = await frameRect(parent, child.contextId)
-            x += rect.x
-            y += rect.y
-            parent = child
-        }
+        const { top, x, y } = await frameOffset(this)
         const html = await this.execute(() => {
             const rect = document.documentElement.getBoundingClientRect()
             return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }

@@ -1,5 +1,3 @@
-import { ELEMENT_KEY } from 'webdriver'
-import type { ElementReference } from '@wdio/protocols'
 import { getBrowserObject, isLoadedElement } from '@wdio/utils'
 import type { ChainablePromiseElement, DragAndDropCoordinate, DragAndDropOptions } from '../../types.js'
 
@@ -77,11 +75,12 @@ export async function dragAndDrop (
     const defaultOptions = { duration: browser.isMobile ? 250 : 10 }
     const { duration } = { ...defaultOptions, ...options }
 
-    const sourceRef: ElementReference = { [ELEMENT_KEY]: this[ELEMENT_KEY] }
-    const targetRef: ElementReference = { [ELEMENT_KEY]: moveToElement[ELEMENT_KEY] }
-
-    const origin = sourceRef
-    const targetOrigin = isMovingToElement ? targetRef : 'pointer'
+    /**
+     * Pass the elements themselves, not bare references: the action sequence
+     * uses them to send the gesture to the context they were found in.
+     */
+    const origin = this
+    const targetOrigin = isMovingToElement ? moveToElement : 'pointer'
 
     const targetX = isMovingToElement ? 0 : moveToCoordinates.x
     const targetY = isMovingToElement ? 0 : moveToCoordinates.y

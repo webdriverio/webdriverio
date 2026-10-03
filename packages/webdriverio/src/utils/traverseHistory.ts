@@ -233,17 +233,19 @@ function parseDocumentSnapshot (value: string | undefined): DocumentSnapshot | u
 }
 
 /**
- * Traverse the joint session history of the current top-level browsing context
- * by one entry and wait for the readiness `pageLoadStrategy` asks for.
+ * Traverse the joint session history of a top-level browsing context by one
+ * entry and wait for the readiness `pageLoadStrategy` asks for. That is the
+ * current top-level context, or `targetContext` for a held tab.
  *
  * `delta` is only `-1` (back) or `1` (forward). `no such history entry` is
  * not caught: classic WebDriver rejects the same way.
  */
 export async function traverseTopLevelHistory (
     browser: WebdriverIO.Browser,
-    delta: -1 | 1
+    delta: -1 | 1,
+    targetContext?: string
 ): Promise<void> {
-    const context = await topLevelBrowsingContext(browser)
+    const context = targetContext ?? await topLevelBrowsingContext(browser)
     const readiness = historyReadiness(browser.capabilities.pageLoadStrategy)
 
     if (readiness === 'none') {
@@ -355,13 +357,44 @@ export async function traverseTopLevelHistory (
         }
         void watchTraversalReadyState(false)
     }
+    /**
+     * Firefox can deliver the `load` of the previous navigation after its
+     * command returned, so after this traversal started. When the outgoing
+     * document is marked, a load event that still finds it is that late
+     * event and is ignored. The event of the new document ends the wait.
+     */
+    const onReadyEvent = (params: local.BrowsingContextNavigationInfo) => {
+        if (!armed || !matchesContext(params, context)) {
+            return
+        }
+        if (!outgoing) {
+            succeed(params)
+            return
+        }
+        void evaluateString(browser, context, documentSnapshot(markerId, false))
+            .then((snapshot) => parseDocumentSnapshot(snapshot))
+            .catch(() => undefined)
+            .then((sample) => {
+                if (!sample) {
+                    /**
+                     * The read failed, so this event can't be told apart
+                     * from a late one. Wait for a new document instead.
+                     */
+                    void watchTraversalReadyState(true)
+                    return
+                }
+                if (!sample.marked) {
+                    succeed(params)
+                }
+            })
+    }
     const onDomContentLoaded = (params: local.BrowsingContextNavigationInfo) => {
         if (readiness === 'interactive') {
-            succeed(params)
+            onReadyEvent(params)
         }
     }
     const onLoad = (params: local.BrowsingContextNavigationInfo) => {
-        succeed(params)
+        onReadyEvent(params)
     }
     const onFragmentNavigated = (params: local.BrowsingContextNavigationInfo) => {
         /**

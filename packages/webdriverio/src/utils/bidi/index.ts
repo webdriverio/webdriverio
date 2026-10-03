@@ -2,7 +2,29 @@ import { ELEMENT_KEY, type remote, type local } from 'webdriver'
 
 import { EvaluateResultType, NonPrimitiveType, PrimitiveType, RemoteType } from './constants.js'
 import { WebdriverBidiExeception } from './error.js'
-import { createBlobFromSerializedValue, isSerializedBlobValue } from './serialize.js'
+import { createBidiFunctionDeclaration, createBlobFromSerializedValue, isSerializedBlobValue } from './serialize.js'
+import { LocalValue } from './value.js'
+
+/**
+ * `execute` in an explicit browsing context. Element references in `args`
+ * are only valid in the context they were found in, so use this when the
+ * caller knows that context but only holds element ids.
+ */
+export async function executeInContext<ReturnValue> (
+    browser: WebdriverIO.Browser,
+    context: string,
+    script: string | Function,
+    ...args: unknown[]
+): Promise<ReturnValue> {
+    const params: remote.ScriptCallFunctionParameters = {
+        functionDeclaration: createBidiFunctionDeclaration(script),
+        awaitPromise: true,
+        arguments: args.map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
+        target: { context }
+    }
+    const result = await browser.scriptCallFunction(params)
+    return parseScriptResult(params, result) as ReturnValue
+}
 
 export function parseScriptResult(params: remote.ScriptCallFunctionParameters, result: local.ScriptEvaluateResult) {
     const type = result.type

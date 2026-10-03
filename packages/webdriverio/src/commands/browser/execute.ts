@@ -5,7 +5,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
-import { contextIdOf, heldBrowsingContext } from '../../session/browsingContext.js'
+import { contextIdOf, heldBrowsingContext, assertFrameAttached } from '../../session/browsingContext.js'
 import { polyfillFn } from '../../scripts/polyfill.js'
 import type { TransformElement, TransformReturn } from '../../types.js'
 
@@ -76,6 +76,9 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
             (found, arg) => found ?? heldBrowsingContext(arg),
             undefined
         )
+        if (held?.isFrame) {
+            await assertFrameAttached(held)
+        }
         const context = held ? held.contextId : await contextIdOf(this)
         const functionDeclaration = createBidiFunctionDeclaration(script)
         const params: remote.ScriptCallFunctionParameters = {
