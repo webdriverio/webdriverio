@@ -155,6 +155,41 @@ function blockAround (lines: string[], idx: number): [number, number] {
     return [start, end]
 }
 
+const LINK_URL = / url=(\S+)$/
+
+/** `https://en.wikipedia.org/wiki/World_Wide_Web` → `… World Wide Web` */
+export function readableUrl (url: string) {
+    let decoded = url
+    try {
+        decoded = decodeURIComponent(url)
+    } catch {
+        // keep it as is
+    }
+    return decoded.replace(/[_+]/g, ' ')
+}
+
+/**
+ * Snapshot lines that match, from a snapshot taken with link URLs. A link's
+ * target counts as well as its text: "World Wide Web" finds a link reading
+ * "web technologies" to /wiki/World_Wide_Web. URLs are printed only on the
+ * lines they made match.
+ */
+export function matchLines (withUrls: string[], test: (line: string) => boolean) {
+    const lines = withUrls.map((line) => line.replace(LINK_URL, ''))
+    const shown = [...lines]
+    const matches: number[] = []
+    lines.forEach((line, i) => {
+        const url = withUrls[i].match(LINK_URL)?.[1]
+        if (test(line)) {
+            matches.push(i)
+        } else if (url && test(readableUrl(url))) {
+            matches.push(i)
+            shown[i] = withUrls[i]
+        }
+    })
+    return { lines, shown, matches }
+}
+
 export const find: ActionFn = async (session, args) => {
     const query = String(args.text ?? '')
     // grep habits: -A/-B/-C switch to plain line context
@@ -174,9 +209,9 @@ export const find: ActionFn = async (session, args) => {
         const needle = query.toLowerCase()
         test = (line) => line.toLowerCase().includes(needle)
     }
-    const { text } = await takeSnapshot(session)
-    const lines = text.split('\n')
-    const matches = lines.map((l, i) => test(l) ? i : -1).filter((i) => i >= 0)
+    const { text: linked } = await takeSnapshot(session, { urls: true })
+    const { lines, shown, matches } = matchLines(linked.split('\n'), test)
+    session.lastSnapshot = lines.join('\n')
     if (!matches.length) {
         throw new SessionError('NO_MATCH', `No match for ${JSON.stringify(query)}.`, {
             hint: 'Try a shorter text, --regex, or `wdio session snapshot --all` for hidden elements.'
@@ -196,7 +231,7 @@ export const find: ActionFn = async (session, args) => {
             out.push('--')
         }
         for (let i = start; i <= blockEnd; i++) {
-            out.push(`${i + 1}${matches.includes(i) ? ':' : '-'}${lines[i]}`)
+            out.push(`${i + 1}${matches.includes(i) ? ':' : '-'}${shown[i]}`)
         }
         last = blockEnd
     }
