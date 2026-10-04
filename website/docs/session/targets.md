@@ -23,6 +23,26 @@ npx wdio session open safari http://localhost:3000
 
 Chrome opens headless. Add `--headed` to show the window. Chrome, Firefox and Edge are downloaded on first use when they are not installed. Safari requires macOS.
 
+### User agent in headless mode
+
+Headless Chrome and Edge identify themselves as `HeadlessChrome/<version>` in the user agent. A visible window of the same browser sends `Chrome/<version>`. Many sites refuse requests with the headless token: Akamai answers "Access Denied" and Cloudflare shows "Just a moment...". They decide from the request, before any page script runs. An agent would then see a block page that a person opening the same site never gets.
+
+A headless Chrome or Edge session therefore sends the user agent that a visible window of the same browser would send. This only changes the token. It doesn't hide automation:
+
+- `navigator.webdriver` stays `true`.
+- chromedriver's own markers are still on the page.
+- Sites that check for automation still see it.
+
+While the user agent is overridden, Chrome sends no user agent client hints, so `navigator.userAgentData.brands` is empty. The override needs WebDriver BiDi, so a session opened with `--no-bidi` keeps the headless user agent.
+
+To send a specific user agent, pass it as a browser argument. The session then leaves the user agent alone:
+
+```sh
+npx wdio session open chrome https://example.com --arg=--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36"
+```
+
+If a site still shows a bot check, try a visible window with `--headed`. If that is blocked too, the site doesn't let automated browsers in. Report that instead of trying to get past the check.
+
 A headed Chrome window keeps its tab strip and address bar, which is how you tell it from an Electron window. `--viewport 1280x800` is a normal browser page. On web the app uses a left sidebar. The WebdriverIO logo is at the top of that sidebar. The items are Home, Weather, Web, Login, Forms, Swipe, Drag, Perms and Data. The home screen lists browser and desktop next to iOS and Android.
 
 Weather reads `navigator.geolocation` and `Date`. `geolocation 35.6762 139.6503` is Tokyo. It applies on the next load, so run `reload` before `click "aria/Weather"`. The widget then shows Tokyo, 21° and rain. `emulate clock 2026-06-21T23:30:00Z` switches the same card from a day sky to a night sky and sets the clock to 11:30 PM. A second `emulate clock` replaces the first.
