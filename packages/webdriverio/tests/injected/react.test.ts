@@ -6,9 +6,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
-import * as resq from 'resq'
 
-import type { Fiber, ReactNode, ReactQueryApi } from '../../src/injected/react.js'
+import type { Fiber, ReactQueryApi } from '../../src/injected/react.js'
 import { react$, react$$, waitToLoadReact } from '../../src/scripts/react.js'
 
 const require = createRequire(import.meta.url)
@@ -353,26 +352,6 @@ const mountApp = (mount: Mount, ReactDOM: any, ReactDOMServer: any, element: unk
 }
 
 /**
- * The nodes of the components that resq 1.11 finds in each root, flattened as the
- * commands did. `react$` used `resq$`, which ignores `props` when `state` is also
- * given.
- */
-const resqNodes = (roots: Fiber[], selector: string, props: unknown = {}, state: unknown = {}) => roots.flatMap((root) => {
-    Object.assign(globalThis, { isReactLoaded: true, rootReactElement: root })
-    let found: any = (resq as any).resq$$(selector)
-    if (Object.keys(props as object).length) {
-        found = found.byProps(props)
-    }
-    if (Object.keys(state as object).length) {
-        found = found.byState(state)
-    }
-    /**
-     * resq nests the nodes of a fragment inside a fragment
-     */
-    return (found as ReactNode[]).flatMap((tree) => [tree.node].flat(Infinity).filter(Boolean))
-})
-
-/**
  * the query of each root, in document order, as the commands do without a scope
  */
 const ourNodes = (roots: Fiber[], selector: string, props: unknown = {}, state: unknown = {}) => roots.flatMap((root) => (
@@ -474,10 +453,10 @@ for (const build of BUILDS) {
 
                 /**
                  * `hydrateRoot` hydrates a Suspense boundary later, at a low priority. Until
-                 * then, its children have no fiber, for resq as for this script.
+                 * then, its children have no fiber.
                  */
                 if (mount === 'hydrateRoot') {
-                    await vi.waitFor(() => expect(resqNodes(roots(), 'SuspenseChild')).toHaveLength(1))
+                    await vi.waitFor(() => expect(ourNodes(roots(), 'SuspenseChild')).toHaveLength(1))
                 }
             })
 
@@ -498,7 +477,6 @@ for (const build of BUILDS) {
                     const expected = testCase.expected()
                     const nodes = ourNodes(roots(), testCase.selector, testCase.props, testCase.state)
                     expect(nodes).toEqual(expected)
-                    expect(nodes).toEqual(resqNodes(roots(), testCase.selector, testCase.props, testCase.state))
                     expect(react$$(testCase.selector, testCase.props || {}, testCase.state || {})).toEqual(testCase.commandExpected?.() || expected)
                 })
             }
@@ -516,8 +494,6 @@ for (const build of BUILDS) {
             it('react$ applies both props and state (resq ignored props)', () => {
                 expect(react$('Header', { level: 2 }, { open: true })).toEqual({ message: 'React element with selector "Header" wasn\'t found' })
                 expect(react$('Header', { level: 1 }, { open: true })).toBe(byId('header'))
-                Object.assign(globalThis, { isReactLoaded: true, rootReactElement: roots()[0] })
-                expect((resq as any).resq$('Header').byProps({ level: 2 }).byState({ open: true }).node).toBe(byId('header'))
             })
 
             it('scopes the query to an element', () => {
@@ -577,7 +553,7 @@ for (const build of BUILDS) {
                 update(() => controls.addItem('white'))
                 expect(react$$('Item', {}, {})).toEqual(allItems())
                 expect(items()).toHaveLength(5)
-                expect(ourNodes(roots(), 'Item')).toEqual(resqNodes(roots(), 'Item'))
+                expect(ourNodes(roots(), 'Item')).toEqual(allItems())
             })
         })
     }
@@ -897,9 +873,10 @@ for (const build of BUILDS) {
                 expect(ids(react$$('NiceInput', {}, {}))).toEqual(['named-ref'])
                 expect(ids(react$$('Deep', {}, {}))).toEqual(['deep'])
                 expect(ids(react$$('StaticName', {}, {}))).toEqual(['static'])
-                for (const selector of ['ComparedLabel', 'RawLabel', 'NiceMemo', 'NiceInput', 'Deep', 'StaticName']) {
-                    expect(ourNodes(api().findRoots(), selector)).toEqual(resqNodes(api().findRoots(), selector))
-                }
+                /**
+                 * the query finds the higher-order component and its child, react$$ gives the node once
+                 */
+                expect(ids(ourNodes(api().findRoots(), 'Deep'))).toEqual(['deep', 'deep'])
             })
 
             it('reads the state of the first hook', () => {
@@ -951,7 +928,6 @@ for (const build of BUILDS) {
                  * Item i2 is in both lists: the query gives it twice (as resq), react$$ once
                  */
                 expect(ids(ourNodes(roots, 'List Item'))).toEqual(['i1', 'i2', 'i2'])
-                expect(ourNodes(roots, 'List Item')).toEqual(resqNodes(roots, 'List Item'))
                 expect(ids(react$$('List Item', {}, {}))).toEqual(['i1', 'i2'])
             })
 
