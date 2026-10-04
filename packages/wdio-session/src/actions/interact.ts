@@ -4,7 +4,7 @@ import path from 'node:path'
 import { UNICODE_CHARACTERS, getWdioKind } from '@wdio/utils'
 import { getContextManager } from 'webdriverio'
 
-import { usage } from '../errors.js'
+import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
 import { resolveTarget, scopeOf, type ResolvedTarget } from '../snapshot/target.js'
 import { refId } from '../snapshot/refs.js'
@@ -282,9 +282,73 @@ export const click: ActionFn = async (session, args) => {
         ? ['Double-clicked', 'doubleClick()', () => target.element.doubleClick()]
         : args.right
             ? ['Right-clicked', "click({ button: 'right' })", () => target.element.click({ button: 'right' })]
-            : ['Clicked', 'click()', () => clickChecked(session, target)]
+            : ['Clicked', 'click()', () => clickChecked(session, target).catch((err) => retryStale(err, () => findAgain(session, args.target).then((fresh) => clickChecked(session, fresh)), target.label))]
     const text = await withNavigation(session, `${verb} ${target.label}`, run)
     return done(text, `await ${target.code}.${call}`)
+}
+
+/** the stale element errors of each driver, as webdriverio's `isStaleElementError` knows them */
+const STALE = /stale element reference|is no longer attached to the DOM|stale element found|stale element not found|belongs to different document|no such node - The node with the reference/i
+
+/**
+ * A CSS path or position (`ul > li:nth-of-type(2)`), as opposed to a
+ * selector that names the element. A name can contain " > " too ("Home >
+ * Shoes"): `aria/`, `role/` and `tag=text` selectors are names, and in CSS
+ * only what is outside quoted attribute values counts.
+ */
+function isPath (candidate: string) {
+    if (/^(aria\/|role\/|[a-z][\w-]*\*?=)/i.test(candidate)) {
+        return false
+    }
+    return /:nth-|\s>\s/.test(candidate.replace(/"(?:[^"\\]|\\.)*"/g, '""'))
+}
+
+/**
+ * The element a target names now. A ref's page-side record keeps the node
+ * the snapshot saw, which is the one the page replaced; its selector
+ * candidates find the replacement. Other targets are looked up again.
+ */
+async function findAgain (session: Session, given: unknown): Promise<ResolvedTarget> {
+    const id = typeof given === 'string' ? refId(given) : undefined
+    const entry = id ? session.refs.get(id) : undefined
+    if (!entry || entry.kind !== 'web') {
+        return resolveTarget(session, given)
+    }
+    /**
+     * Only candidates that name the element itself (its role and name, an
+     * id, a test id, its text). A path or a position (`li:nth-of-type(1)`)
+     * can match another item of a list that re-rendered.
+     */
+    const naming = entry.candidates.filter((candidate) => !isPath(candidate))
+    for (const candidate of naming) {
+        const found = await scopeOf(session).$$(candidate).getElements().catch(() => [])
+        if (found.length === 1) {
+            return resolveTarget(session, candidate)
+        }
+    }
+    throw new Error('stale element reference: no selector finds the element again')
+}
+
+/**
+ * A page that re-renders a list (a dropdown that opened) replaces the
+ * element between finding and clicking it. One more try on the element
+ * found again; if that is stale too, say what happened instead of passing
+ * on the driver's error.
+ */
+async function retryStale (err: unknown, retry: () => Promise<unknown>, label: string) {
+    if (!STALE.test((err as Error)?.message ?? '')) {
+        throw err
+    }
+    try {
+        return await retry()
+    } catch (again) {
+        if (!STALE.test((again as Error)?.message ?? '')) {
+            throw again
+        }
+        throw new SessionError('REF_STALE', `${label} was replaced by the page while it was clicked.`, {
+            hint: 'Take a new snapshot (`wdio session snapshot -i`) and click the new ref, or click it by its text, e.g. `wdio session click "aria/<name>"`.'
+        })
+    }
 }
 
 export const tap: ActionFn = async (session, args) => {

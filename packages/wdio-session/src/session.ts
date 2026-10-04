@@ -13,7 +13,7 @@ import { RingBuffer, type LogEntry, type NetworkEntry } from './daemon/events.js
 import { RefRegistry, refId } from './snapshot/refs.js'
 import { backToTop, describeNewTabs, dialogOpenError, frame as enterFrame, holdFrame, openDialog } from './actions/contexts.js'
 import { OBSERVED_ACTIONS, describeChanges, pageState, type PageState } from './actions/changes.js'
-import { botCheckNote, detectBotCheck } from './actions/botcheck.js'
+import { botCheckNote, detectBotCheck, detectLoadError } from './actions/botcheck.js'
 import type { ActionResult, Applies, OpenPlan, PlatformKind, Request } from './types.js'
 
 const log = logger('@wdio/session')
@@ -34,6 +34,21 @@ const DEAD_SESSION_PATTERNS = [
  * that reloaded (bot checks replace their widget every few seconds) or a page
  * that navigated while the action ran
  */
+/**
+ * A change report that is empty, or whose changed lines differ only in which
+ * element has focus. A report without changed lines but with text (a new
+ * page's summary) is a change.
+ */
+function onlyFocusMoved (report = '') {
+    if (!report.trim()) {
+        return true
+    }
+    const changed = report.split('\n').filter((line) => /^[+-] /.test(line))
+    return changed.length > 0 && changed.every((line) => / \[focused\]/.test(line))
+}
+
+/** actions that say so when the page shows no change after them */
+const NO_EFFECT_NOTED = new Set(['click', 'tap'])
 const CONTEXT_GONE = /browsing context has been discarded|no such frame/i
 
 /**
@@ -311,6 +326,10 @@ export class Session {
                 if (text) {
                     outcome.text = [outcome.text, text].filter(Boolean).join('\n')
                 }
+                // a click that did nothing looks like one that worked; agents repeat it
+                if (after.text && NO_EFFECT_NOTED.has(req.action) && onlyFocusMoved(text)) {
+                    outcome.text = [outcome.text, 'No visible change on the page.'].filter(Boolean).join('\n')
+                }
             } else if (spec.mutation || req.action === 'exec' || req.action === 'wait') {
                 // the page may have changed without a report (scroll, drag, code,
                 // content that loaded while waiting): the next report starts over
@@ -318,7 +337,7 @@ export class Session {
             }
             const page = req.action === 'snapshot' ? outcome.text : observe ? this.lastPage?.text : undefined
             if (this.isWeb && page) {
-                outcome.text = [outcome.text, await this.#botCheck(page)].filter(Boolean).join('\n')
+                outcome.text = [outcome.text, detectLoadError(page) ?? await this.#botCheck(page)].filter(Boolean).join('\n')
             }
             if (outcome.history) {
                 this.history.append({

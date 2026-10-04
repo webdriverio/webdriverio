@@ -305,8 +305,55 @@ describe('click', () => {
     })
 
     it('still fails for other errors', async () => {
+        const element = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('unknown error: chrome not reachable') } }
+        await expect(click(clickSession(element), { target: 'e2', $cwd: '/' })).rejects.toThrow('chrome not reachable')
+    })
+
+    it('clicks the element that replaced the ref\'s, found by its selector', async () => {
+        const replaced = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('stale element reference: stale element not found in the current frame') } }
+        const clicked: string[] = []
+        const replacement = { elementId: 'new-1', execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => clicked.push('new') }
+        const browser = {
+            $$: () => ({ getElements: async () => [replacement] }),
+            $: () => ({ getElement: async () => replacement })
+        }
+        const session = clickSession(replaced, browser)
+        ;(session.refs as unknown as { get: () => unknown }).get = () => ({ id: 'e2', kind: 'web', role: 'textbox', name: 'Name', candidates: ['#name'], generation: 1 })
+        const result = await click(session, { target: 'e2', $cwd: '/' })
+        expect(clicked).toEqual(['new'])
+        expect(result.text).toContain('Clicked e2')
+    })
+
+    it('does not find a replaced element again by its position in a list', async () => {
+        const replaced = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('stale element reference') } }
+        const other = { elementId: 'other-1', execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('should not click another item') } }
+        const browser = { $$: () => ({ getElements: async () => [other] }), $: () => ({ getElement: async () => other }) }
+        const session = clickSession(replaced, browser)
+        ;(session.refs as unknown as { get: () => unknown }).get = () => ({ id: 'e2', kind: 'web', role: 'textbox', name: 'Name', candidates: ['ul > li:nth-of-type(1)'], generation: 1 })
+        await expect(click(session, { target: 'e2', $cwd: '/' })).rejects.toThrow('was replaced by the page while it was clicked')
+    })
+
+    it('finds a replaced element again by a name that contains " > "', async () => {
+        const replaced = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('stale element reference') } }
+        const clicked: string[] = []
+        const replacement = { elementId: 'new-2', execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => clicked.push('new') }
+        const browser = { $$: () => ({ getElements: async () => [replacement] }), $: () => ({ getElement: async () => replacement }) }
+        const session = clickSession(replaced, browser)
+        ;(session.refs as unknown as { get: () => unknown }).get = () => ({ id: 'e2', kind: 'web', role: 'link', name: 'Home > Shoes', candidates: ['aria/Home > Shoes', 'a[title="Home > Shoes"]'], generation: 1 })
+        await click(session, { target: 'e2', $cwd: '/' })
+        expect(clicked).toEqual(['new'])
+    })
+
+    it('treats every driver\'s stale element error the same', async () => {
+        for (const message of ['is no longer attached to the DOM', 'SharedId "f.1" belongs to different document', 'no such node - The node with the reference f.1 is not known']) {
+            const element = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error(message) } }
+            await expect(click(clickSession(element), { target: 'e2', $cwd: '/' })).rejects.toThrow('was replaced by the page while it was clicked')
+        }
+    })
+
+    it('says the element was replaced when it is stale twice', async () => {
         const element = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('stale element reference') } }
-        await expect(click(clickSession(element), { target: 'e2', $cwd: '/' })).rejects.toThrow('stale element reference')
+        await expect(click(clickSession(element), { target: 'e2', $cwd: '/' })).rejects.toThrow('e2 (textbox "Name") was replaced by the page while it was clicked.')
     })
 })
 

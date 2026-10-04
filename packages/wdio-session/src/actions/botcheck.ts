@@ -39,3 +39,17 @@ export function botCheckNote (vendor: string, { headless, target, url, userAgent
         ? `${page} Waiting, reloading or clicking it rarely gets a headless browser through. A visible window often does: ${reopen('--headed')}.`
         : `${page} The site doesn't let this browser in; retrying rarely helps. Say so in your answer rather than trying to get past it.`
 }
+
+/**
+ * The browser's own error page: the site never loaded (refused, reset, a
+ * protocol error). Its URL is chrome-error://, and agents otherwise read it
+ * as a page that is still loading and reload it for dozens of steps.
+ */
+export function detectLoadError (snapshot: string): string | undefined {
+    const first = snapshot.split('\n', 1)[0]
+    if (!/url=chrome-error:\/\//.test(first) && !/^\s*- document "[^"]*" url=about:neterror/m.test(snapshot)) {
+        return undefined
+    }
+    const code = /\b(?:net::)?(ERR_[A-Z0-9_]+)\b/.exec(snapshot)?.[1]
+    return `The page did not load: the browser shows its error page${code ? ` (${code})` : ''}. Reloading rarely helps; the site may refuse this browser. Try another page of the site or another way to the answer.`
+}
