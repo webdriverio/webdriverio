@@ -20,9 +20,10 @@ const require = createRequire(import.meta.url)
 
 /**
  * a React app with 3 `Item` components and a button that adds one, mounted with `mount`
+ * and the React build of `/{build}/`
  */
-const reactApp = (mount: string) => `<title>React</title><div id="root"></div>
-<script src="/react/react.js"></script><script src="/react/react-dom.js"></script>
+const reactApp = (build: string, mount: string) => `<title>React</title><div id="root"></div>
+<script src="/${build}/react.js"></script><script src="/${build}/react-dom.js"></script>
 <script>
 const h = React.createElement
 function Item (props) { return h('li', null, props.color) }
@@ -42,15 +43,19 @@ describe('main suite 1', () => {
         '/frames': '<title>Frame Demo</title><iframe src="/frame-a"></iframe>',
         '/frame-a': '<title>IFrame A</title><iframe src="/frame-a2"></iframe>',
         '/frame-a2': '<title>IFrame A2</title><h1>Nested frame</h1>',
-        '/react-render': reactApp("ReactDOM.render(h(App), document.getElementById('root'))"),
-        '/react-create-root': reactApp("ReactDOM.createRoot(document.getElementById('root')).render(h(App))")
+        '/react17-render': reactApp('react17', "ReactDOM.render(h(App), document.getElementById('root'))"),
+        '/react18-render': reactApp('react18', "ReactDOM.render(h(App), document.getElementById('root'))"),
+        '/react18-create-root': reactApp('react18', "ReactDOM.createRoot(document.getElementById('root')).render(h(App))")
     }
     /**
-     * the React 18 builds of the `e2e` package, so the React pages need no network
+     * the React builds of the `e2e` package, so the React pages need no network. They cover
+     * the 3 root structures: `_reactRootContainer._internalRoot` (React 16 and 17
+     * `render`), `_reactRootContainer` (React 18 `render`) and `__reactContainer$`
+     * (`createRoot`, the same in React 18 and 19, which has no UMD build)
      */
-    const reactScripts: Record<string, string> = {
-        '/react/react.js': 'react',
-        '/react/react-dom.js': 'react-dom'
+    const reactBuilds: Record<string, Record<string, string>> = {
+        react17: { react: 'react-17', 'react-dom': 'react-dom-17' },
+        react18: { react: 'react', 'react-dom': 'react-dom' }
     }
     /**
      * `/basic_auth` accepts only `admin:admin`. It sends no `WWW-Authenticate` header, so a
@@ -59,13 +64,14 @@ describe('main suite 1', () => {
     const BASIC_AUTH = `Basic ${Buffer.from('admin:admin').toString('base64')}`
     const basicAuthHeaders: (string | undefined)[] = []
     const navigationServer = createServer((request, response) => {
-        const reactScript = reactScripts[request.url || '']
-        if (reactScript) {
+        const [, build, reactScript] = (request.url || '').match(/^\/(react\d+)\/(react|react-dom)\.js$/) || []
+        const reactPackage = build && reactBuilds[build]?.[reactScript]
+        if (reactPackage) {
             response.setHeader('Content-Type', 'text/javascript; charset=utf-8')
             /**
              * the `exports` of the React packages do not include the UMD files
              */
-            const umd = path.join(path.dirname(require.resolve(`${reactScript}/package.json`)), 'umd', `${reactScript}.production.min.js`)
+            const umd = path.join(path.dirname(require.resolve(`${reactPackage}/package.json`)), 'umd', `${reactScript}.production.min.js`)
             return fs.readFile(umd, 'utf8').then((source) => response.end(source))
         }
         response.setHeader('Content-Type', 'text/html; charset=utf-8')
@@ -659,7 +665,11 @@ describe('main suite 1', () => {
     })
 
     describe('react$ and react$$', () => {
-        for (const [page, mount] of [['react-render', 'ReactDOM.render'], ['react-create-root', 'createRoot']]) {
+        for (const [page, mount] of [
+            ['react17-render', 'React 17 ReactDOM.render'],
+            ['react18-render', 'React 18 ReactDOM.render'],
+            ['react18-create-root', 'React 18 createRoot']
+        ]) {
             it(`finds the components of the current render with ${mount}`, async () => {
                 await browser.url(`${navigationOrigin}/${page}`)
                 await expect(browser.react$$('Item')).toBeElementsArrayOfSize(3)
