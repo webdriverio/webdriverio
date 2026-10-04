@@ -360,7 +360,8 @@ async function slideTo (session: Session, target: ResolvedTarget, want: number):
 async function nudge (session: Session, target: ResolvedTarget) {
     const atMax = await scopeOf(session).execute((el: HTMLInputElement) => {
         el.focus()
-        return el.max !== '' && Number(el.value) >= Number(el.max)
+        // a range input without a max goes up to 100
+        return Number(el.value) >= (el.max === '' ? 100 : Number(el.max))
     }, target.element as unknown as HTMLInputElement).catch(() => false)
     const keys = atMax ? ['ArrowLeft', 'ArrowRight'] : ['ArrowRight', 'ArrowLeft']
     for (const key of keys) {
@@ -404,6 +405,11 @@ export const fill: ActionFn = async (session, args) => {
              * same value, with the key and input events a user's drag makes.
              */
             const keys = await nudge(session, target)
+            // a step the slider couldn't take back (a min or max it didn't report) leaves it elsewhere
+            const now = await target.element.getValue()
+            if (now !== took) {
+                await target.element.setValue(took)
+            }
             return done(`Set ${target.label} to ${took}${note}`, [
                 `await ${target.code}.setValue(${quote(value)})`,
                 `await browser.execute((el) => el.focus(), await ${target.code})`,
@@ -481,17 +487,14 @@ async function clickPoint (target: ResolvedTarget): Promise<ClickPoint> {
          * host only the host, so an overlay on the page is found one level up.
          * Asked of each (possibly closed) root, hits are not retargeted.
          */
-        const isRange = (node: Element) => Element.prototype.matches.call(node, 'input[type="range"]')
         const coverAt = (node: Element, x: number, y: number): Element | undefined => {
             let target: Element = node
             while (true) {
                 const root = target.getRootNode() as Document | ShadowRoot
                 const hit = root.elementFromPoint(x, y)
                 const label = hit ? Element.prototype.closest.call(hit, 'label') as HTMLLabelElement | null : null
-                // the other thumb of a two-handle slider lies over this one by design
-                const otherThumb = isRange(target) && hit && isRange(hit) && hit.parentElement === target.parentElement
                 // a label of the element, or one that wraps it, forwards the click
-                if (hit && hit !== target && !otherThumb && !target.contains(hit) && !Node.prototype.contains.call(hit, target) && label?.control !== target) {
+                if (hit && hit !== target && !target.contains(hit) && !Node.prototype.contains.call(hit, target) && label?.control !== target) {
                     return hit
                 }
                 if (!(root instanceof ShadowRoot)) {
@@ -700,8 +703,28 @@ export const select: ActionFn = async (session, args) => {
  * apart from case and spacing ("used" for "Used"). Without a match the
  * options are listed at once, instead of waiting for one that never comes.
  */
+/** how long `select` waits for options a page adds after the select (hydration) */
+const OPTION_WAIT_MS = 5000
+
 async function optionText (session: Session, target: ResolvedTarget, wanted: string) {
-    const found = await scopeOf(session).execute((el: HTMLSelectElement, value: string) => {
+    const deadline = Date.now() + OPTION_WAIT_MS
+    let found = await lookUpOption(session, target, wanted)
+    while (found && found.match === undefined && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 250))
+        found = await lookUpOption(session, target, wanted)
+    }
+    if (!found) {
+        return wanted
+    }
+    if (found.match === undefined) {
+        const list = found.options.slice(0, 30).map((o) => JSON.stringify(o)).join(', ')
+        throw usage(`${target.label} has no option ${JSON.stringify(wanted)}.`, `Its options: ${list}${found.options.length > 30 ? ', …' : ''}.`)
+    }
+    return found.match
+}
+
+async function lookUpOption (session: Session, target: ResolvedTarget, wanted: string) {
+    return await scopeOf(session).execute((el: HTMLSelectElement, value: string) => {
         if (el.tagName !== 'SELECT') {
             return undefined
         }
@@ -712,14 +735,6 @@ async function optionText (session: Session, target: ResolvedTarget, wanted: str
             Array.from(el.options).find((o) => o.value.toLowerCase() === value.trim().toLowerCase())?.text
         return { match: exact ?? (loose === undefined ? undefined : normalize(loose)), options }
     }, target.element as unknown as HTMLSelectElement, wanted).catch(() => undefined) as { match?: string, options: string[] } | undefined
-    if (!found) {
-        return wanted
-    }
-    if (found.match === undefined) {
-        const list = found.options.slice(0, 30).map((o) => JSON.stringify(o)).join(', ')
-        throw usage(`${target.label} has no option ${JSON.stringify(wanted)}.`, `Its options: ${list}${found.options.length > 30 ? ', …' : ''}.`)
-    }
-    return found.match
 }
 
 export const upload: ActionFn = async (session, args) => {
@@ -763,6 +778,16 @@ export const setChecked: ActionFn = async (session, args) => {
             viaLabel = await scopeOf(session).execute((el: HTMLInputElement) => {
                 const label = el.labels?.[0] || el.closest('label')
                 if (!label || !['checkbox', 'radio'].includes(el.type)) {
+                    return false
+                }
+                // only a label a user can click: not one a popup lies over
+                label.scrollIntoView({ block: 'center', inline: 'nearest' })
+                const rect = label.getBoundingClientRect()
+                if (!rect.width || !rect.height) {
+                    return false
+                }
+                const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)
+                if (!hit || !(hit === label || label.contains(hit) || hit === el)) {
                     return false
                 }
                 label.click()

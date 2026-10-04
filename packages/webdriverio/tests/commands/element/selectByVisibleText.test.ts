@@ -190,4 +190,21 @@ describe('selectByVisibleText test', () => {
         expect(mockElem.elementClick).toHaveBeenCalledWith('shadow-option-1')
         expect(waitForExist).not.toHaveBeenCalled()
     })
+
+    it('takes the option as a raw WebDriver element reference too', async () => {
+        const mockElem = {
+            $: vi.fn().mockResolvedValue({ isExisting: vi.fn().mockResolvedValue(false), waitForExist: vi.fn() }),
+            execute: vi.fn().mockResolvedValue({ [ELEMENT_KEY]: 'shadow-option-2' }),
+            elementClick: vi.fn().mockResolvedValue(undefined),
+            options: {},
+            selector: 'foobar2',
+            elementId: 'some-elem-123'
+        }
+        // @ts-ignore mock feature
+        mockElem.selectByVisibleText = elem.selectByVisibleText.bind(mockElem)
+
+        // @ts-expect-error
+        await mockElem.selectByVisibleText('Used')
+        expect(mockElem.elementClick).toHaveBeenCalledWith('shadow-option-2')
+    })
 })
