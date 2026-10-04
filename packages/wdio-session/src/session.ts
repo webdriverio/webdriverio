@@ -312,7 +312,8 @@ export class Session {
             return result
         } catch (err) {
             if (epoch !== this.#epoch) {
-                throw err instanceof SessionError && err.message.includes('given up') ? err : abandoned()
+                // a timeout says so itself (exec gives up on its code and reports what it printed)
+                throw err instanceof SessionError && (err.code === 'TIMEOUT' || err.message.includes('given up')) ? err : abandoned()
             }
             // a failed action may still have changed the page
             if (before || spec.mutation || req.action === 'exec') {
