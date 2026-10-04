@@ -686,6 +686,13 @@ With WebDriver BiDi, a script that returns a `NodeList` (for example from `query
 
 On a page without React, the commands now wait up to 5 seconds for a React root before they fail. Before, they failed at once, so an app that started late was not found.
 
+The commands no longer use the [resq](https://github.com/baruchvlz/resq) library, and WebdriverIO no longer installs it. The selector rules do not change (see [React Selectors](/docs/selectors#react-selectors)), with two exceptions:
+
+- `react$` with both `props` and `state` finds a component that matches both. Before, it ignored `props` when `state` was also given.
+- `react$$` gives each DOM node once. Before, a higher-order component and its child gave the same element twice in some browsers.
+
+The internal script `webdriverio/scripts/resq` is removed.
+
 ## Component testing
 
 `@wdio/browser-runner` re-exports `fn`, `spyOn` and the mock types from `@vitest/spy` 5 (previously 3). A mock that your code calls with `new` needs a `function` or `class` implementation. An arrow function throws `is not a constructor`, and `mockReturnValue` throws when the mock is called with `new`.
