@@ -125,6 +125,19 @@ describe('wdio session contexts and dialogs', () => {
         expect(after.split('\n').slice(after.split('\n').findIndex((l) => l.includes('Cross origin frame'))).join('\n')).toContain('button "Frame clicked"')
     })
 
+    it('goes back to the top document when the entered frame was removed by the action', async () => {
+        await run('navigate', `${server.url}/frames-remove.html`)
+        const top = (await run('snapshot', '-i')).stdout
+        const kept = top.match(/iframe "Frame to remove" \[ref=(e\d+)\]/)![1]
+        const remover = top.match(/button "Remove the other frame" \[ref=(e\d+)\]/)![1]
+        await run('frame', kept)
+        await run('click', remover)
+        expect((await run('info', '--json')).json.result.data.frame).toBe('top')
+        const after = (await run('snapshot', '-i')).stdout
+        expect(after.split('\n')[0]).toContain('"Removed Frame Fixture"')
+        expect(after).not.toContain('Frame to remove')
+    })
+
     it('reads a ref of an inlined frame with --scope', async () => {
         await run('navigate', `${server.url}/frames.html?cross=${server.url.replace('localhost', '127.0.0.1')}`)
         const top = (await run('snapshot', '-i')).stdout

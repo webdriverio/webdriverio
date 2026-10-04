@@ -479,7 +479,10 @@ export async function holdFrame (session: Session, frameRef: string) {
                 delete vars.names[child.contextId]
             }
             await backToTop(session)
-            if (entered.context) {
+            // the action may have removed that frame; then the session stays on the top document
+            const stillThere = entered.context && await session.browser.browsingContextGetTree({ root: entered.context.contextId, maxDepth: 0 })
+                .then(({ contexts }) => contexts.length > 0, () => false)
+            if (entered.context && stillThere) {
                 session.set('activeContext', entered.context)
                 session.set('frameStack', entered.stack)
                 session.set('frame', entered.frame)
