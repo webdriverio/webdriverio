@@ -301,7 +301,13 @@ async function findAgain (session: Session, given: unknown): Promise<ResolvedTar
     if (!entry || entry.kind !== 'web') {
         return resolveTarget(session, given)
     }
-    for (const candidate of entry.candidates) {
+    /**
+     * Only candidates that name the element itself (its role and name, an
+     * id, a test id, its text). A path or a position (`li:nth-of-type(1)`)
+     * can match another item of a list that re-rendered.
+     */
+    const naming = entry.candidates.filter((candidate) => !/:nth-|\s>\s/.test(candidate))
+    for (const candidate of naming) {
         const found = await scopeOf(session).$$(candidate).getElements().catch(() => [])
         if (found.length === 1) {
             return resolveTarget(session, candidate)

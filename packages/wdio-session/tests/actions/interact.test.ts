@@ -324,6 +324,15 @@ describe('click', () => {
         expect(result.text).toContain('Clicked e2')
     })
 
+    it('does not find a replaced element again by its position in a list', async () => {
+        const replaced = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('stale element reference') } }
+        const other = { elementId: 'other-1', execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('should not click another item') } }
+        const browser = { $$: () => ({ getElements: async () => [other] }), $: () => ({ getElement: async () => other }) }
+        const session = clickSession(replaced, browser)
+        ;(session.refs as unknown as { get: () => unknown }).get = () => ({ id: 'e2', kind: 'web', role: 'textbox', name: 'Name', candidates: ['ul > li:nth-of-type(1)'], generation: 1 })
+        await expect(click(session, { target: 'e2', $cwd: '/' })).rejects.toThrow('was replaced by the page while it was clicked')
+    })
+
     it('treats every driver\'s stale element error the same', async () => {
         for (const message of ['is no longer attached to the DOM', 'SharedId "f.1" belongs to different document', 'no such node - The node with the reference f.1 is not known']) {
             const element = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error(message) } }
