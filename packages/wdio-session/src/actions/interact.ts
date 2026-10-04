@@ -291,6 +291,19 @@ export const click: ActionFn = async (session, args) => {
 const STALE = /stale element reference|is no longer attached to the DOM|stale element found|stale element not found|belongs to different document|no such node - The node with the reference/i
 
 /**
+ * A CSS path or position (`ul > li:nth-of-type(2)`), as opposed to a
+ * selector that names the element. A name can contain " > " too ("Home >
+ * Shoes"): `aria/`, `role/` and `tag=text` selectors are names, and in CSS
+ * only what is outside quoted attribute values counts.
+ */
+function isPath (candidate: string) {
+    if (/^(aria\/|role\/|[a-z][\w-]*\*?=)/i.test(candidate)) {
+        return false
+    }
+    return /:nth-|\s>\s/.test(candidate.replace(/"(?:[^"\\]|\\.)*"/g, '""'))
+}
+
+/**
  * The element a target names now. A ref's page-side record keeps the node
  * the snapshot saw, which is the one the page replaced; its selector
  * candidates find the replacement. Other targets are looked up again.
@@ -306,7 +319,7 @@ async function findAgain (session: Session, given: unknown): Promise<ResolvedTar
      * id, a test id, its text). A path or a position (`li:nth-of-type(1)`)
      * can match another item of a list that re-rendered.
      */
-    const naming = entry.candidates.filter((candidate) => !/:nth-|\s>\s/.test(candidate))
+    const naming = entry.candidates.filter((candidate) => !isPath(candidate))
     for (const candidate of naming) {
         const found = await scopeOf(session).$$(candidate).getElements().catch(() => [])
         if (found.length === 1) {

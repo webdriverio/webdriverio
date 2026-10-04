@@ -333,6 +333,17 @@ describe('click', () => {
         await expect(click(session, { target: 'e2', $cwd: '/' })).rejects.toThrow('was replaced by the page while it was clicked')
     })
 
+    it('finds a replaced element again by a name that contains " > "', async () => {
+        const replaced = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('stale element reference') } }
+        const clicked: string[] = []
+        const replacement = { elementId: 'new-2', execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => clicked.push('new') }
+        const browser = { $$: () => ({ getElements: async () => [replacement] }), $: () => ({ getElement: async () => replacement }) }
+        const session = clickSession(replaced, browser)
+        ;(session.refs as unknown as { get: () => unknown }).get = () => ({ id: 'e2', kind: 'web', role: 'link', name: 'Home > Shoes', candidates: ['aria/Home > Shoes', 'a[title="Home > Shoes"]'], generation: 1 })
+        await click(session, { target: 'e2', $cwd: '/' })
+        expect(clicked).toEqual(['new'])
+    })
+
     it('treats every driver\'s stale element error the same', async () => {
         for (const message of ['is no longer attached to the DOM', 'SharedId "f.1" belongs to different document', 'no such node - The node with the reference f.1 is not known']) {
             const element = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error(message) } }
