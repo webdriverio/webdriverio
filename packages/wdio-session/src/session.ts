@@ -116,6 +116,9 @@ export class Session {
     #pageLoadLimited = false
     // the frame an action entered for one of its refs went away while it ran
     #heldFrameGone = false
+    // grows when the server gives up on a running action (see `abandon`)
+    #epoch = 0
+    #restoreHeldFrame?: () => void
 
     constructor (init: SessionInit) {
         this.name = init.name
@@ -223,7 +226,21 @@ export class Session {
         }
     }
 
+    /**
+     * The server stopped waiting for the running action and serves the next
+     * request. The action can't be cancelled, but when it finishes it no
+     * longer changes the session: no frame switch, page state or history.
+     */
+    abandon () {
+        this.#epoch++
+        // the frame the action entered for a ref goes back at once, not when it finishes
+        this.#restoreHeldFrame?.()
+        this.#restoreHeldFrame = undefined
+    }
+
     async dispatch (req: Pick<Request, 'action' | 'args' | 'cwd'>): Promise<ActionResult> {
+        const epoch = this.#epoch
+        const abandoned = () => new SessionError('TIMEOUT', `"${req.action}" finished after it was given up; its result is dropped.`)
         await this.limitPageLoad()
         const spec = ACTION_MAP.get(req.action)
         const impl = IMPLEMENTATIONS[req.action]
@@ -253,6 +270,9 @@ export class Session {
             : undefined
         try {
             const outcome = await this.#inFrameOf(req.action, args, () => impl(this, args))
+            if (epoch !== this.#epoch) {
+                throw abandoned()
+            }
             const newTabs = tabsBefore && await describeNewTabs(this, tabsBefore)
             if (newTabs) {
                 outcome.text = [outcome.text, newTabs].filter(Boolean).join('\n')
@@ -291,6 +311,9 @@ export class Session {
             const { history: _history, ...result } = outcome
             return result
         } catch (err) {
+            if (epoch !== this.#epoch) {
+                throw err instanceof SessionError && err.message.includes('given up') ? err : abandoned()
+            }
             // a failed action may still have changed the page
             if (before || spec.mutation || req.action === 'exec') {
                 this.lastPage = undefined
@@ -331,6 +354,7 @@ export class Session {
      */
     async #inFrameOf (action: string, args: ActionArgs, run: () => Promise<ActionOutcome>): Promise<ActionOutcome> {
         this.#heldFrameGone = false
+        const epoch = this.#epoch
         if (!this.isBidi) {
             return run()
         }
@@ -356,6 +380,7 @@ export class Session {
             return run()
         }
         const held = await holdFrame(this, frame)
+        this.#restoreHeldFrame = held.restore
         let outcome: ActionOutcome
         try {
             outcome = await run()
@@ -363,7 +388,11 @@ export class Session {
             this.#heldFrameGone = !(err instanceof SessionError) && CONTEXT_GONE.test((err as Error)?.message ?? '')
             throw err
         } finally {
-            await held.release().catch(() => {})
+            // an abandoned action gave the frame back in `abandon` already
+            if (epoch === this.#epoch) {
+                this.#restoreHeldFrame = undefined
+                await held.release().catch(() => {})
+            }
         }
         const wrap = (code?: string) => code
             ? ['{', ...[...held.lines, ...code.split('\n')].map((line) => `    ${line}`), '}'].join('\n')

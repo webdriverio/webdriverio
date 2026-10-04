@@ -222,8 +222,12 @@ async function clickAt (session: Session, x: number, y: number, args: ActionArgs
         if (!el) {
             return undefined
         }
-        const role = el.getAttribute('role') || el.tagName.toLowerCase()
-        const name = (el.getAttribute('aria-label') || (el as HTMLElement).innerText || '').trim().replace(/\s+/g, ' ').slice(0, 60)
+        // native accessors: bot checks plant elements that shadow them (see `isDecoy` in web.ts)
+        const tag = Object.getOwnPropertyDescriptor(Element.prototype, 'tagName')!.get!.call(el) as string
+        const attr = (name: string) => Element.prototype.getAttribute.call(el, name)
+        const text = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'innerText')?.get?.call(el) as string | undefined
+        const role = attr('role') || tag.toLowerCase()
+        const name = (attr('aria-label') || text || '').trim().replace(/\s+/g, ' ').slice(0, 60)
         return name ? `${role} "${name}"` : role
     }, x, y) as string | undefined
     if (!what) {
@@ -436,9 +440,13 @@ async function clickPoint (target: ResolvedTarget): Promise<ClickPoint> {
             const rect = node.getBoundingClientRect()
             return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) }
         }
+        // native accessors: bot checks plant elements that shadow them (see `isDecoy` in web.ts)
         const describe = (node: Element) => {
-            const role = node.getAttribute('role') || node.tagName.toLowerCase()
-            const name = (node.getAttribute('aria-label') || (node as HTMLElement).innerText || '').trim().replace(/\s+/g, ' ').slice(0, 60)
+            const tag = Object.getOwnPropertyDescriptor(Element.prototype, 'tagName')!.get!.call(node) as string
+            const attr = (name: string) => Element.prototype.getAttribute.call(node, name)
+            const text = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'innerText')?.get?.call(node) as string | undefined
+            const role = attr('role') || tag.toLowerCase()
+            const name = (attr('aria-label') || text || '').trim().replace(/\s+/g, ' ').slice(0, 60)
             return name ? `${role} "${name}"` : role
         }
         /**
@@ -452,9 +460,9 @@ async function clickPoint (target: ResolvedTarget): Promise<ClickPoint> {
             while (true) {
                 const root = target.getRootNode() as Document | ShadowRoot
                 const hit = root.elementFromPoint(x, y)
-                const label = hit?.closest('label') as HTMLLabelElement | null
+                const label = hit ? Element.prototype.closest.call(hit, 'label') as HTMLLabelElement | null : null
                 // a label of the element, or one that wraps it, forwards the click
-                if (hit && hit !== target && !target.contains(hit) && !hit.contains(target) && label?.control !== target) {
+                if (hit && hit !== target && !target.contains(hit) && !Node.prototype.contains.call(hit, target) && label?.control !== target) {
                     return hit
                 }
                 if (!(root instanceof ShadowRoot)) {

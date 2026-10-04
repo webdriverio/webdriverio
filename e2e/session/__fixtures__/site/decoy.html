@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Decoy Fixture</title>
+</head>
+<body>
+    <h1>Decoy</h1>
+    <button type="button">Real button</button>
+    <iframe title="Verification" srcdoc="<h2>Quick verification</h2><button type=button>Hold to verify</button><script>
+        // like PerimeterX: an element whose own properties hide every DOM property
+        const decoy = document.createElement('iframe');
+        for (let proto = Object.getPrototypeOf(decoy); proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto)) {
+            for (const key of Object.getOwnPropertyNames(proto)) {
+                if (key !== 'constructor') {
+                    try { Object.defineProperty(decoy, key, { get: () => undefined, configurable: true }); } catch {}
+                }
+            }
+        }
+        document.body.appendChild(decoy);
+    </script>"></iframe>
+    <p>This page stands in for a bot check that plants decoy elements. It checks nothing.</p>
+</body>
+</html>

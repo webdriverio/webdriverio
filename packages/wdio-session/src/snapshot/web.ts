@@ -144,17 +144,27 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return el.shadowRoot || recorded?.roots.get(el) || null
     }
 
+    /**
+     * Bot checks (PerimeterX) plant elements whose DOM properties are all
+     * shadowed by properties of their own, so `tagName`, `getAttribute` and
+     * the rest read `undefined`. Real elements get them from the prototype.
+     * Such a decoy is no content: it is left out of the snapshot.
+     */
+    function isDecoy (node: globalThis.Node) {
+        return Object.prototype.hasOwnProperty.call(node, 'tagName')
+    }
+
     function childNodesOf (node: Element | ShadowRoot | Document): globalThis.Node[] {
         const el = node as Element
         const root = el.nodeType === 1 ? shadowRootOf(el) : null
         if (root) {
-            return [...root.childNodes]
+            return [...root.childNodes].filter((c) => !isDecoy(c))
         }
         if (el.tagName === 'SLOT') {
             const assigned = (el as HTMLSlotElement).assignedNodes()
-            return assigned.length ? assigned : [...el.childNodes]
+            return (assigned.length ? assigned : [...el.childNodes]).filter((c) => !isDecoy(c))
         }
-        return [...node.childNodes]
+        return [...node.childNodes].filter((c) => !isDecoy(c))
     }
 
     function textContentOf (node: globalThis.Node, skipControls = false): string {
@@ -395,12 +405,12 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     function deepQueryAll (root: Document | ShadowRoot, selector: string): Element[] {
         let out: Element[] = []
         try {
-            out = [...root.querySelectorAll(selector)]
+            out = [...root.querySelectorAll(selector)].filter((el) => !isDecoy(el))
         } catch {
             return []
         }
         for (const el of root.querySelectorAll('*')) {
-            const shadow = shadowRootOf(el)
+            const shadow = isDecoy(el) ? null : shadowRootOf(el)
             if (shadow) {
                 out = out.concat(deepQueryAll(shadow, selector))
             }
@@ -555,6 +565,10 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     }
 
     function walk (node: globalThis.Node): Node[] {
+        // also a scope the caller picked
+        if (isDecoy(node)) {
+            return []
+        }
         if (node.nodeType === 3) {
             const text = collapse(node.textContent)
             return text ? [{ role: 'text', name: truncate(text) }] : []
@@ -642,6 +656,9 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         }
 
         const leaf = NAME_FROM_CONTENT.has(role) && Boolean(name) && ![...el.querySelectorAll('*')].some((c) => {
+            if (isDecoy(c)) {
+                return false
+            }
             const r = roleOf(c)
             return INTERACTIVE.has(r) || c.tagName === 'INPUT' || c.tagName === 'SELECT' || c.tagName === 'TEXTAREA'
         })

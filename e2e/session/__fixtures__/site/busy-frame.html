@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Busy Frame Fixture</title>
+</head>
+<body>
+    <h1>Busy frame</h1>
+    <!-- blocks the page's main thread for a while from inside a frame -->
+    <iframe title="Busy widget" srcdoc="<button type=button onclick='const end = Date.now() + 12000; while (Date.now() < end) {}'>Freeze for a while</button>"></iframe>
+</body>
+</html>

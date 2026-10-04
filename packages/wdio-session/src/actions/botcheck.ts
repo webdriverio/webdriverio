@@ -15,7 +15,8 @@ const CHECKS: { vendor: string, markers: RegExp[] }[] = [
         ]
     },
     { vendor: 'DataDome', markers: [/captcha-delivery\.com/, /iframe "DataDome/] },
-    { vendor: 'HUMAN (PerimeterX)', markers: [/"Press & Hold"/, /Access to this page has been denied/] },
+    // "Press & Hold" on its own page, "Press & hold to confirm you're a human" in a site's modal
+    { vendor: 'HUMAN (PerimeterX)', markers: [/"Press & hold\b/i, /Access to this page has been denied/] },
     { vendor: 'Akamai', markers: [/^\s*- document "Access Denied"/m] },
     { vendor: 'Imperva', markers: [/Incapsula incident ID/, /Request unsuccessful\. Incapsula/] },
     { vendor: 'Google', markers: [/Our systems have detected unusual traffic/] }

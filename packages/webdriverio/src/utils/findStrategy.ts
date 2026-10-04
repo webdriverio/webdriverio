@@ -155,20 +155,27 @@ export function escapeXPathString(value: string) {
  */
 export function getAriaXPathSelector(label: string) {
     const escaped = escapeXPathString(label)
+    /**
+     * A path inside a predicate that starts at the document root is evaluated
+     * again for every node the outer path visits, so `.//*[@a = (//*[…]/@id)]`
+     * scans the document once per element: minutes on a large page, during
+     * which the page can't run anything else. `id()` looks the referenced
+     * elements up instead, and the attribute test first keeps the outer set small.
+     */
     const conditions = [
         // aria label is recevied by other element with aria-labelledBy
         // https://www.w3.org/TR/accname-1.1/#step2B
-        `.//*[@aria-labelledby=(//*[normalize-space(text()) = ${escaped}]/@id)]`,
+        `.//*[@aria-labelledby][id(@aria-labelledby)[normalize-space(text()) = ${escaped}]]`,
         // aria label is recevied by other element with aria-labelledBy
         // https://www.w3.org/TR/accname-1.1/#step2B
-        `.//*[@aria-describedby=(//*[normalize-space(text()) = ${escaped}]/@id)]`,
+        `.//*[@aria-describedby][id(@aria-describedby)[normalize-space(text()) = ${escaped}]]`,
         // element has direct aria label
         // https://www.w3.org/TR/accname-1.1/#step2C
         `.//*[@aria-label = ${escaped}]`,
         // input and textarea with a label
         // https://www.w3.org/TR/accname-1.1/#step2D
-        `.//input[@id = (//label[normalize-space() = ${escaped}]/@for)]`,
-        `.//textarea[@id = (//label[normalize-space() = ${escaped}]/@for)]`,
+        `.//input[@id][@id = (//label[normalize-space() = ${escaped}]/@for)]`,
+        `.//textarea[@id][@id = (//label[normalize-space() = ${escaped}]/@for)]`,
         // input and textarea with a label as parent
         // https://www.w3.org/TR/accname-1.1/#step2D
         `.//input[ancestor::label[normalize-space(text()) = ${escaped}]]`,

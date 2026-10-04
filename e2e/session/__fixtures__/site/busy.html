@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Busy Fixture</title>
+</head>
+<body>
+    <h1>Busy</h1>
+    <!-- blocks the page's main thread, like a slow script on a live site -->
+    <button type="button" onclick="const end = Date.now() + 60000; while (Date.now() < end) {}">Freeze the page</button>
+</body>
+</html>
