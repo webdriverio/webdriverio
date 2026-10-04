@@ -591,6 +591,9 @@ export const type: ActionFn = async (session, args) => {
 /** most times `press --times` repeats a key */
 const MAX_PRESS_TIMES = 100
 
+/** how long `press` waits for a key that was on its way when the action ended */
+const KEY_SETTLE_MS = 5_000
+
 export const press: ActionFn = async (session, args) => {
     const keys = parseKeys(String(args.keys ?? ''))
     const times = args.times === undefined ? 1 : Number(args.times)
@@ -615,9 +618,20 @@ export const press: ActionFn = async (session, args) => {
     }).finally(() => {
         stopped = true
     })
-    // a key that was already on its way finishes before the next command
-    await pressing.catch(() => {})
-    return done(text, code)
+    /**
+     * A key that was already on its way finishes before the next command, for
+     * a few seconds at most: a driver that never answers must not hold the
+     * session. A key that fails meanwhile is reported, not hidden.
+     */
+    let timer: NodeJS.Timeout | undefined
+    const late = await Promise.race([
+        pressing.then(() => undefined, (err: Error) => err),
+        new Promise<'pending'>((resolve) => { timer = setTimeout(() => resolve('pending'), KEY_SETTLE_MS) })
+    ]).finally(() => clearTimeout(timer))
+    if (late instanceof Error) {
+        throw late
+    }
+    return done(late === 'pending' ? `${text}\nA key press was still pending when the action ended.` : text, code)
 }
 
 export const select: ActionFn = async (session, args) => {

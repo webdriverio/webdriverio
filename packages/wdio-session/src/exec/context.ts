@@ -138,6 +138,12 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
                 if (prop === 'length') {
                     return target.then((els) => els.length)
                 }
+                // `for await (const el of $$('e12'))`, as with other `$$` results
+                if (prop === Symbol.asyncIterator) {
+                    return async function * () {
+                        yield * await target
+                    }
+                }
                 return (...a: unknown[]) => target.then((els) => {
                     const fn = (els as unknown as Record<string | symbol, unknown>)[prop]
                     if (typeof fn !== 'function') {

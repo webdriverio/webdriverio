@@ -364,6 +364,33 @@ describe('navigate', () => {
 })
 
 describe('press --times', () => {
+    it('does not wait forever for a key the driver never finishes', async () => {
+        vi.useFakeTimers()
+        try {
+            const keys = () => new Promise<void>(() => {})
+            const result = press(clickSession({}, { keys }), { keys: 'Enter', $cwd: '/' })
+            await vi.advanceTimersByTimeAsync(30_000)
+            const { text } = await result
+            expect(text).toContain('The page is still loading')
+            expect(text).toContain('A key press was still pending when the action ended.')
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
+    it('reports a key that fails after the action ended', async () => {
+        vi.useFakeTimers()
+        try {
+            const keys = () => new Promise<void>((_, reject) => setTimeout(() => reject(new Error('session deleted')), 21_000))
+            const result = press(clickSession({}, { keys }), { keys: 'Enter', $cwd: '/' })
+            const failed = expect(result).rejects.toThrow('session deleted')
+            await vi.advanceTimersByTimeAsync(30_000)
+            await failed
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
     it('presses no key after the action reported back', async () => {
         vi.useFakeTimers()
         try {
