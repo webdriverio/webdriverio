@@ -36,6 +36,38 @@ function App () {
 ${mount}
 </script>`
 
+/**
+ * React 19 has no UMD build. Its CommonJS files run in the page with a small module
+ * loader, which sets the `React` and `ReactDOM` globals as the UMD builds do.
+ */
+const react19Script = async () => {
+    const reactDir = path.dirname(require.resolve('react-19/package.json'))
+    const reactDomDir = path.dirname(require.resolve('react-dom-19/package.json'))
+    const schedulerDir = path.dirname(createRequire(path.join(reactDomDir, 'package.json')).resolve('scheduler/package.json'))
+    const modules: Record<string, string> = {
+        react: path.join(reactDir, 'cjs', 'react.production.js'),
+        'react-dom': path.join(reactDomDir, 'cjs', 'react-dom.production.js'),
+        'react-dom/client': path.join(reactDomDir, 'cjs', 'react-dom-client.production.js'),
+        scheduler: path.join(schedulerDir, 'cjs', 'scheduler.production.js')
+    }
+    const sources = await Promise.all(Object.entries(modules).map(async ([name, file]) => (
+        `${JSON.stringify(name)}: function (module, exports, require) {\n${await fs.readFile(file, 'utf8')}\n}`
+    )))
+    return `(() => {
+const sources = {${sources.join(',\n')}}
+const cache = {}
+const load = (name) => {
+    if (!cache[name]) {
+        cache[name] = { exports: {} }
+        sources[name](cache[name], cache[name].exports, load)
+    }
+    return cache[name].exports
+}
+window.React = load('react')
+window.ReactDOM = Object.assign({}, load('react-dom'), load('react-dom/client'))
+})()`
+}
+
 describe('main suite 1', () => {
     const navigationPages: Record<string, string> = {
         '/window-a': '<title>Window Alpha</title><p id="alpha">Alpha</p>',
@@ -45,13 +77,14 @@ describe('main suite 1', () => {
         '/frame-a2': '<title>IFrame A2</title><h1>Nested frame</h1>',
         '/react17-render': reactApp('react17', "ReactDOM.render(h(App), document.getElementById('root'))"),
         '/react18-render': reactApp('react18', "ReactDOM.render(h(App), document.getElementById('root'))"),
-        '/react18-create-root': reactApp('react18', "ReactDOM.createRoot(document.getElementById('root')).render(h(App))")
+        '/react18-create-root': reactApp('react18', "ReactDOM.createRoot(document.getElementById('root')).render(h(App))"),
+        '/react19-create-root': reactApp('react19', "ReactDOM.createRoot(document.getElementById('root')).render(h(App))")
     }
     /**
      * the React builds of the `e2e` package, so the React pages need no network. They cover
      * the 3 root structures: `_reactRootContainer._internalRoot` (React 16 and 17
      * `render`), `_reactRootContainer` (React 18 `render`) and `__reactContainer$`
-     * (`createRoot`, the same in React 18 and 19, which has no UMD build)
+     * (`createRoot` in React 18 and 19). React 19 comes from `react19Script`.
      */
     const reactBuilds: Record<string, Record<string, string>> = {
         react17: { react: 'react-17', 'react-dom': 'react-dom-17' },
@@ -65,6 +98,13 @@ describe('main suite 1', () => {
     const basicAuthHeaders: (string | undefined)[] = []
     const navigationServer = createServer((request, response) => {
         const [, build, reactScript] = (request.url || '').match(/^\/(react\d+)\/(react|react-dom)\.js$/) || []
+        if (build === 'react19') {
+            response.setHeader('Content-Type', 'text/javascript; charset=utf-8')
+            /**
+             * the loader already sets `ReactDOM`
+             */
+            return reactScript === 'react' ? react19Script().then((source) => response.end(source)) : response.end('')
+        }
         const reactPackage = build && reactBuilds[build]?.[reactScript]
         if (reactPackage) {
             response.setHeader('Content-Type', 'text/javascript; charset=utf-8')
@@ -668,7 +708,8 @@ describe('main suite 1', () => {
         for (const [page, mount] of [
             ['react17-render', 'React 17 ReactDOM.render'],
             ['react18-render', 'React 18 ReactDOM.render'],
-            ['react18-create-root', 'React 18 createRoot']
+            ['react18-create-root', 'React 18 createRoot'],
+            ['react19-create-root', 'React 19 createRoot']
         ]) {
             it(`finds the components of the current render with ${mount}`, async () => {
                 await browser.url(`${navigationOrigin}/${page}`)
