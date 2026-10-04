@@ -40,6 +40,15 @@ describe('wdio session output for agents', () => {
         expect(second).toMatch(new RegExp(`… lines ${next![1]}–\\d+ of \\d+`))
     })
 
+    it('cuts a line longer than the budget and says how to read it whole', async () => {
+        await load('findable')
+        const res = (await run('snapshot', '--max-chars', '20')).stdout
+        expect(res.split('\n')[0].length).toBeLessThanOrEqual(20)
+        const whole = res.match(/Line 1 is cut; `wdio session snapshot --max-chars (\d+) --offset 1` shows all of it\./)
+        expect(whole, res).toBeTruthy()
+        expect((await run('snapshot', '--max-chars', whole![1], '--offset', '1')).stdout.split('\n')[0]).toMatch(/^- document "Findable Fixture" url=\S+findable\.html$/)
+    })
+
     it('finds text split by markup, ignoring spaces', async () => {
         await load('findable')
         const res = await run('find', 'SO2')
