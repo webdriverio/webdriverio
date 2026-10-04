@@ -7,6 +7,7 @@ import { quote } from '../quote.js'
 import type { Session } from '../session.js'
 import { startEventCapture } from './capture.js'
 import { installPageRecorder } from '../snapshot/recorder.js'
+import { waitForLoad } from '../actions/interact.js'
 
 const log = logger('@wdio/session:init')
 
@@ -42,6 +43,7 @@ export async function initSession (session: Session) {
     }
     if (plan.url) {
         await session.browser.url(plan.url)
+        await waitForLoad(session)
         session.history.append({ kind: 'open', code: `await browser.url(${quote(plan.url)})`, path: await session.currentPath() })
     }
 }

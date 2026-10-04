@@ -382,7 +382,22 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
     if (!owner) {
         throw usage('No browsing context to enter a frame from.')
     }
-    const child = await owner.frame(resolved.element)
+    const child = await owner.frame(resolved.element).catch(async (err: Error) => {
+        /**
+         * The frame's context is found by evaluating `iframe.contentWindow` in
+         * the parent page, which throws for some cross-site frames (site
+         * isolation). The frame's own URL identifies it just as well.
+         */
+        if (!/SecurityError|cross-origin frame/i.test(`${err.name} ${err.message}`)) {
+            throw err
+        }
+        const src = await resolved.element.getProperty('src').catch(() => '') as string
+        if (!src) {
+            throw err
+        }
+        const withoutHash = (url: string) => url.split('#')[0]
+        return owner.frame(({ url }) => withoutHash(url) === withoutHash(src))
+    })
     /**
      * The frame element belongs to the owner's document, so the recorded
      * selector is queried on the owner, not on the top-level page.

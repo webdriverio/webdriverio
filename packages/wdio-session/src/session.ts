@@ -4,6 +4,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 
 import { ACTION_MAP } from './actions/specs.js'
+import { PAGE_LOAD_TIMEOUT_MS } from './actions/interact.js'
 import { IMPLEMENTATIONS, type ActionArgs } from './actions/index.js'
 import { SessionError, usage } from './errors.js'
 import { History } from './history.js'
@@ -99,6 +100,7 @@ export class Session {
      */
     disposers: (() => unknown)[] = []
     #pending = new Set<string>()
+    #pageLoadLimited = false
 
     constructor (init: SessionInit) {
         this.name = init.name
@@ -188,7 +190,26 @@ export class Session {
     /**
      * Run a request. Requests are serialized by the server.
      */
+    /**
+     * WebDriver waits up to five minutes for a page to load after a click or
+     * a navigation. Pages full of ads and trackers can take that long, and the
+     * session can't do anything else meanwhile. An agent is better served by
+     * the page as it is after a while: actions report "still loading" instead
+     * (see `withNavigation`). A `timeouts.pageLoad` capability wins.
+     */
+    async #limitPageLoad () {
+        if (this.#pageLoadLimited || !this.isWeb) {
+            return
+        }
+        this.#pageLoadLimited = true
+        const requested = (this.plan?.capabilities as { timeouts?: { pageLoad?: number } } | undefined)?.timeouts?.pageLoad
+        if (requested === undefined && typeof this.browser.setTimeout === 'function') {
+            await Promise.resolve(this.browser.setTimeout({ pageLoad: PAGE_LOAD_TIMEOUT_MS })).catch(() => {})
+        }
+    }
+
     async dispatch (req: Pick<Request, 'action' | 'args' | 'cwd'>): Promise<ActionResult> {
+        await this.#limitPageLoad()
         const spec = ACTION_MAP.get(req.action)
         const impl = IMPLEMENTATIONS[req.action]
         if (!spec) {

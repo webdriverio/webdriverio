@@ -190,6 +190,9 @@ export function matchLines (withUrls: string[], test: (line: string) => boolean)
     return { lines, shown, matches }
 }
 
+/** printed `find` output stops after about this many characters */
+const MAX_FIND_CHARS = 6000
+
 export const find: ActionFn = async (session, args) => {
     const query = String(args.text ?? '')
     // grep habits: -A/-B/-C switch to plain line context
@@ -210,7 +213,14 @@ export const find: ActionFn = async (session, args) => {
         test = (line) => line.toLowerCase().includes(needle)
     }
     const { text: linked } = await takeSnapshot(session, { urls: true })
-    const { lines, shown, matches } = matchLines(linked.split('\n'), test)
+    let { lines, shown, matches } = matchLines(linked.split('\n'), test)
+    // "give gift donate": agents search with keywords, not with a line of the page
+    const words = query.toLowerCase().split(/\s+/).filter(Boolean)
+    let note = ''
+    if (!matches.length && !args.regex && words.length > 1) {
+        ({ lines, shown, matches } = matchLines(linked.split('\n'), (line) => words.every((w) => line.toLowerCase().includes(w))))
+        note = matches.length ? `No line contains ${JSON.stringify(query)}; lines with all of its words:\n` : ''
+    }
     session.lastSnapshot = lines.join('\n')
     if (!matches.length) {
         throw new SessionError('NO_MATCH', `No match for ${JSON.stringify(query)}.`, {
@@ -219,10 +229,17 @@ export const find: ActionFn = async (session, args) => {
     }
     const out: string[] = []
     let last = -1
+    let size = 0
+    let shownMatches = 0
     for (const idx of matches) {
         if (idx <= last) {
             continue
         }
+        // a common word on a big page can match hundreds of lines
+        if (size > MAX_FIND_CHARS) {
+            break
+        }
+        shownMatches++
         const [blockStart, blockEnd] = lineMode
             ? [Math.max(0, idx - before), Math.min(lines.length - 1, idx + after)]
             : blockAround(lines, idx)
@@ -231,11 +248,17 @@ export const find: ActionFn = async (session, args) => {
             out.push('--')
         }
         for (let i = start; i <= blockEnd; i++) {
-            out.push(`${i + 1}${matches.includes(i) ? ':' : '-'}${shown[i]}`)
+            const line = `${i + 1}${matches.includes(i) ? ':' : '-'}${shown[i]}`
+            out.push(line)
+            size += line.length + 1
         }
         last = blockEnd
     }
-    return { text: out.join('\n'), data: { matches: matches.map((i) => ({ line: i + 1, text: lines[i] })) } }
+    const rest = matches.filter((i) => i > last).length
+    if (rest) {
+        out.push(`… ${rest} more matching line${rest === 1 ? '' : 's'} not shown. Search for a longer text, or narrow it with --scope.`)
+    }
+    return { text: note + out.join('\n'), data: { matches: matches.map((i) => ({ line: i + 1, text: lines[i] })), shown: shownMatches } }
 }
 
 export const diff: ActionFn = async (session, args) => {
