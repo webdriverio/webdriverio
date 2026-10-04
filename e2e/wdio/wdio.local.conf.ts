@@ -51,6 +51,14 @@ function selectBrowsers (capabilities: WebdriverIO.Capabilities[]) {
         }
         return Boolean(process.env.CI) || canRunLocally(name)
     })
+    /**
+     * CI runs one browser per job. Without this a job whose browser is not
+     * in the list for its platform would start no session and still pass.
+     */
+    if (requestedBrowsers && selected.length === 0) {
+        const available = capabilities.map((cap) => cap.browserName).join(', ')
+        throw new Error(`WDIO_E2E_BROWSERS=${process.env.WDIO_E2E_BROWSERS} matches none of the browsers on this platform (${available})`)
+    }
     const skipped = capabilities.filter((cap) => !selected.includes(cap)).map((cap) => cap.browserName)
     if (skipped.length) {
         console.log(`Skipping ${skipped.join(', ')} (set WDIO_E2E_BROWSERS to choose browsers)`)

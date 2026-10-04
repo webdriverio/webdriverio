@@ -7,14 +7,29 @@ on:
 
 jobs:
   launch_check:
-    name: E2E Launch Test (${{ matrix.os }})
+    name: E2E Launch Test (${{ matrix.os }}, ${{ matrix.browser }})
     permissions:
       contents: read
     timeout-minutes: 20
     strategy:
       fail-fast: false
+      # One browser per job. A hosted runner cannot run every browser of
+      # `wdio.local.conf.ts` at the same time within the timeout, macOS least
+      # of all. Keep this list in sync with the capabilities in that file.
       matrix:
-        os: ['ubuntu-latest', 'windows-latest', 'macos-15']
+        include:
+          - { os: ubuntu-latest, browser: chrome }
+          - { os: ubuntu-latest, browser: firefox }
+          - { os: ubuntu-latest, browser: edge }
+          - { os: ubuntu-latest, browser: chromium }
+          - { os: windows-latest, browser: chrome }
+          - { os: windows-latest, browser: firefox }
+          - { os: windows-latest, browser: edge }
+          - { os: macos-15, browser: chrome }
+          - { os: macos-15, browser: firefox }
+          - { os: macos-15, browser: edge }
+          - { os: macos-15, browser: chromium }
+          - { os: macos-15, browser: safari }
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout Code
@@ -30,14 +45,22 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
+      # Once per OS: the browser selection does not depend on the browser.
+      - name: Browser Selection Tests
+        if: matrix.browser == 'chrome'
+        run: pnpm vitest --config ./e2e/vitest.config.ts --run e2e/wdio/
+        shell: bash
+
       - name: E2E Launch Tests
         run: pnpm run test:e2e:webdriver
         shell: bash
+        env:
+          WDIO_E2E_BROWSERS: ${{ matrix.browser }}
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
-          name: e2e-launch-tests-logs-${{ matrix.os }}
+          name: e2e-launch-tests-logs-${{ matrix.os }}-${{ matrix.browser }}
           path: e2e/wdio/*.log
 
       - name: Check Git Context
