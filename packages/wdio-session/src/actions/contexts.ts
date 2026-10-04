@@ -395,6 +395,15 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
         if (!src) {
             throw err
         }
+        // only when the URL names this frame alone: another frame with it would be picked as well
+        const sameSrc = await resolved.element.execute((el: Element) => Array.from((el.getRootNode() as Document | ShadowRoot).querySelectorAll('iframe, frame'))
+            .filter((frame) => (frame as HTMLIFrameElement).src === (el as HTMLIFrameElement).src).length) as number
+        if (sameSrc !== 1) {
+            throw usage(
+                `${resolved.label} can't be entered: the browser blocks looking into it, and ${sameSrc} frames on the page load ${src}.`,
+                'Run `wdio session exec` with `browser.switchFrame(...)` on a selector that matches only this frame.'
+            )
+        }
         const withoutHash = (url: string) => url.split('#')[0]
         return owner.frame(({ url }) => withoutHash(url) === withoutHash(src))
     })

@@ -197,7 +197,7 @@ export class Session {
      * the page as it is after a while: actions report "still loading" instead
      * (see `withNavigation`). A `timeouts.pageLoad` capability wins.
      */
-    async #limitPageLoad () {
+    async limitPageLoad () {
         if (this.#pageLoadLimited || !this.isWeb) {
             return
         }
@@ -209,7 +209,7 @@ export class Session {
     }
 
     async dispatch (req: Pick<Request, 'action' | 'args' | 'cwd'>): Promise<ActionResult> {
-        await this.#limitPageLoad()
+        await this.limitPageLoad()
         const spec = ACTION_MAP.get(req.action)
         const impl = IMPLEMENTATIONS[req.action]
         if (!spec) {

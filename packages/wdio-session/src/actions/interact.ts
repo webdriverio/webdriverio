@@ -93,7 +93,7 @@ const isPageLoadTimeout = (err: unknown) => /timed out receiving message from re
  * only its last ads and trackers are missing. Resolves `true` in that case.
  * A WebDriver BiDi navigation has no such limit, so it gets one here.
  */
-async function untilLoaded (navigation: Promise<unknown>): Promise<boolean> {
+export async function untilLoaded (navigation: Promise<unknown>): Promise<boolean> {
     let timer: NodeJS.Timeout | undefined
     const limit = new Promise<'loading'>((resolve) => { timer = setTimeout(() => resolve('loading'), PAGE_LOAD_TIMEOUT_MS) })
     try {
@@ -166,14 +166,16 @@ export const navigate: ActionFn = async (session, args) => {
         session.set('activeContext', undefined)
     }
     const before = await session.currentUrl()
-    let loading = await untilLoaded(session.browser.url(url)) || !await waitForLoad(session)
+    const timedOut = await untilLoaded(session.browser.url(url))
+    let loading = timedOut || !await waitForLoad(session)
     let current = await session.currentUrl()
     /**
      * A navigation the page started itself a moment before (a click that
      * leads somewhere, a redirect) can win the race: then the page is still
-     * where it was. The requested navigation goes after it.
+     * where it was. The requested navigation goes after it. Only when the
+     * first one finished: one that is still under way is just slow.
      */
-    if (before && current === before && !sameUrl(before, url)) {
+    if (!timedOut && before && current === before && !sameUrl(before, url)) {
         loading = await untilLoaded(session.browser.url(url)) || !await waitForLoad(session)
         current = await session.currentUrl()
         // the browser reports a refused connection (net::ERR_ABORTED) like a raced navigation
@@ -301,26 +303,45 @@ async function clickPoint (target: ResolvedTarget): Promise<ClickPoint> {
             const name = (node.getAttribute('aria-label') || (node as HTMLElement).innerText || '').trim().replace(/\s+/g, ' ').slice(0, 60)
             return name ? `${role} "${name}"` : role
         }
+        /**
+         * What is at (x, y) on every level from the node up to the document:
+         * a shadow root sees only its own tree, and the page around a shadow
+         * host only the host, so an overlay on the page is found one level up.
+         * Asked of each (possibly closed) root, hits are not retargeted.
+         */
+        const coverAt = (node: Element, x: number, y: number): Element | undefined => {
+            let target: Element = node
+            while (true) {
+                const root = target.getRootNode() as Document | ShadowRoot
+                const hit = root.elementFromPoint(x, y)
+                const label = hit?.closest('label') as HTMLLabelElement | null
+                // a label of the element, or one that wraps it, forwards the click
+                if (hit && hit !== target && !target.contains(hit) && !hit.contains(target) && label?.control !== target) {
+                    return hit
+                }
+                if (!(root instanceof ShadowRoot)) {
+                    return undefined
+                }
+                target = root.host
+            }
+        }
         const href = (el as HTMLAnchorElement).href || undefined
         if (!visible(el)) {
             const label = (el as HTMLInputElement).labels?.[0]
             if (label && visible(label)) {
-                return { state: 'label' as const, ...center(label) }
+                const point = center(label)
+                const cover = coverAt(label, point.x, point.y)
+                return cover
+                    ? { state: 'covered' as const, ...point, cover: describe(cover) }
+                    : { state: 'label' as const, ...point }
             }
             return { state: 'hidden' as const, x: 0, y: 0, href }
         }
         const { x, y } = center(el)
-        // asked of the element's own (possibly closed) root, the hit is not retargeted to a host
-        const root = el.getRootNode() as Document | ShadowRoot
-        const hit = root.elementFromPoint(x, y)
-        if (!hit || hit === el || el.contains(hit) || hit.contains(el)) {
-            return { state: 'ok' as const, x, y }
-        }
-        // a label of the element, or one that wraps it, forwards the click
-        if (hit.closest('label') && (hit.closest('label') as HTMLLabelElement).control === el) {
-            return { state: 'ok' as const, x, y }
-        }
-        return { state: 'covered' as const, x, y, cover: describe(hit), href }
+        const cover = coverAt(el, x, y)
+        return cover
+            ? { state: 'covered' as const, x, y, cover: describe(cover), href }
+            : { state: 'ok' as const, x, y }
     }) as Promise<ClickPoint>
 }
 

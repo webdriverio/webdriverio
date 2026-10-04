@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 import { click, fill, navigate, normalizeUrl, parseKeys, type, upload } from '../../src/actions/interact.js'
 import { quote } from '../../src/quote.js'
@@ -279,6 +279,29 @@ describe('click', () => {
         expect(result.text).toBe('Clicked e2 (textbox "Name")\nNavigated to https://a.test/next\nThe page is still loading; what is shown below is what has loaded so far.')
     })
 
+    it('does not click a covered label of a hidden radio button', async () => {
+        const element = {
+            execute: async () => ({ state: 'covered', x: 40, y: 60, cover: 'dialog "Cookie settings"' }),
+            click: async () => { throw new Error('should not click') }
+        }
+        await expect(click(clickSession(element, { action: () => { throw new Error('should not use the pointer') } }), { target: 'e2', $cwd: '/' }))
+            .rejects.toThrow('is covered by dialog "Cookie settings".')
+    })
+
+    it('does not pointer-click after an intercepted click when the second check finds an overlay', async () => {
+        let checks = 0
+        const element = {
+            execute: async () => ++checks === 1 ? { state: 'ok', x: 5, y: 5 } : { state: 'covered', x: 5, y: 5, cover: 'div' },
+            click: async () => {
+                const err = new Error('element click intercepted: Other element would receive the click')
+                err.name = 'element click intercepted'
+                throw err
+            }
+        }
+        await expect(click(clickSession(element, { action: () => { throw new Error('should not use the pointer') } }), { target: 'e2', $cwd: '/' }))
+            .rejects.toThrow('is covered by div.')
+    })
+
     it('still fails for other errors', async () => {
         const element = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('stale element reference') } }
         await expect(click(clickSession(element), { target: 'e2', $cwd: '/' })).rejects.toThrow('stale element reference')
@@ -286,6 +309,35 @@ describe('click', () => {
 })
 
 describe('navigate', () => {
+    it('does not start a navigation again while the first is still loading', async () => {
+        vi.useFakeTimers()
+        try {
+            let calls = 0
+            const session = clickSession({}, {
+                url: () => {
+                    calls++
+                    return new Promise(() => {})
+                },
+                getTitle: async () => ''
+            }, ['https://a.test/'])
+            session.get = () => undefined
+            const result = navigate(session, { url: 'https://slow.test/', $cwd: '/' })
+            await vi.advanceTimersByTimeAsync(25_000)
+            expect((await result).text).toContain('The page is still loading')
+            expect(calls).toBe(1)
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
+    it('navigates again once when a raced navigation left the page where it was, and reports a refused one', async () => {
+        let calls = 0
+        const session = clickSession({}, { url: async () => { calls++ }, getTitle: async () => '' }, ['https://a.test/'])
+        session.get = () => undefined
+        await expect(navigate(session, { url: 'https://refused.test/', $cwd: '/' })).rejects.toThrow('https://refused.test/ did not open; the page is still https://a.test/.')
+        expect(calls).toBe(2)
+    })
+
     it('reports a page that is still loading instead of failing', async () => {
         const session = clickSession({}, {
             url: async () => {

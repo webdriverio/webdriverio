@@ -230,7 +230,6 @@ export const find: ActionFn = async (session, args) => {
     const out: string[] = []
     let last = -1
     let size = 0
-    let shownMatches = 0
     for (const idx of matches) {
         if (idx <= last) {
             continue
@@ -239,7 +238,6 @@ export const find: ActionFn = async (session, args) => {
         if (size > MAX_FIND_CHARS) {
             break
         }
-        shownMatches++
         const [blockStart, blockEnd] = lineMode
             ? [Math.max(0, idx - before), Math.min(lines.length - 1, idx + after)]
             : blockAround(lines, idx)
@@ -258,7 +256,9 @@ export const find: ActionFn = async (session, args) => {
     if (rest) {
         out.push(`… ${rest} more matching line${rest === 1 ? '' : 's'} not shown. Search for a longer text, or narrow it with --scope.`)
     }
-    return { text: note + out.join('\n'), data: { matches: matches.map((i) => ({ line: i + 1, text: lines[i] })), shown: shownMatches } }
+    // the data is capped like the text: `--json` output must not explode either
+    const listed = matches.filter((i) => i <= last)
+    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: lines[i] })), total: matches.length } }
 }
 
 export const diff: ActionFn = async (session, args) => {
