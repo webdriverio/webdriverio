@@ -47,7 +47,21 @@ Changes:
 + - status "Subscription started. Confirmation code: 4F2A9C"
 ```
 
+When the action opened a tab, the report says so (`Opened a new tab [1]: https://…`); the session stays on the current tab until you run `tabs switch`. When the page is a bot check (Cloudflare, DataDome, Akamai, …) rather than the site, the report says that too, once per page. The session doesn't try to get past it; in a headless browser it suggests reopening with `--headed`.
+
 On the same page you get the new or changed lines with their refs, including text that is not interactive, like the status above. After a navigation you get the new page's interactive elements, or for a large page a one-line summary that points to `find`. So you rarely need a separate `snapshot` after an action. Set `WDIO_SESSION_CHANGES=0` to turn the report off, and pass `open --no-snapshot` to skip the snapshot after `open`.
+
+## Frames
+
+In a WebDriver BiDi session the snapshot shows the content of the page's iframes, cross-origin ones included, under the iframe they are in:
+
+```text
+- iframe "Payment" [ref=e4]
+  - textbox "Card number" [ref=e5]
+  - button "Pay" [ref=e6]
+```
+
+Actions on these refs enter the frame, act, and come back to the page, and the printed code does the same. Up to five iframes are shown, each cut at 300 elements; `frame e4` and `snapshot` show all of a frame that was cut short. Iframes smaller than 100 square pixels, like tracking pixels, are left out.
 
 ## Shadow DOM and clickable elements without a role
 

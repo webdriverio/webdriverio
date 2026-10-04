@@ -7,7 +7,8 @@ export interface SnapshotNode {
     url?: string
     box?: number[]
     /**
-     * `cross-origin` for iframes whose content cannot be read
+     * `cross-origin` for iframes whose content cannot be read, `cut` for
+     * a frame shown inline that has more than fits
      */
     note?: string
     /**
@@ -114,6 +115,9 @@ export function formatLine (node: SnapshotNode, opts: FormatOptions = {}, trunca
     }
     if (node.url) {
         parts.push(`url=${node.url}`)
+    }
+    if (node.note === 'cut') {
+        parts.push(node.ref ? `(frame cut short: \`wdio session frame ${node.ref}\` and \`snapshot\` show all of it)` : '(frame cut short)')
     }
     if (node.note === 'cross-origin') {
         parts.push(node.ref ? `(cross-origin: run \`wdio session frame ${node.ref}\`)` : '(cross-origin)')

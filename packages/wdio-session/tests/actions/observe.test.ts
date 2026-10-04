@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { describe, expect, it, vi } from 'vitest'
 
-import { inViewport, matchLines, pngSize, readableUrl } from '../../src/actions/observe.js'
+import { inViewport, matchLines, pngSize, readableUrl, stem } from '../../src/actions/observe.js'
 
 const PNG = Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
@@ -91,5 +91,20 @@ describe('inViewport', () => {
     it('leaves out text directly in a container taller than the viewport', () => {
         const tree = { role: 'main', box: [0, -2000, 800, 4000], children: [{ role: 'text', name: 'Somewhere in main' }, { role: 'button', name: 'Buy', ref: 'e4', box: [0, 100, 80, 30] }] }
         expect(inViewport(tree, 1280, 800)!.children!.map((c) => c.role)).toEqual(['button'])
+    })
+})
+
+describe('stem', () => {
+    it.each([
+        ['Give', 'giv'],
+        ['giving', 'giv'],
+        ['donate', 'donat'],
+        ['donations', 'don'],
+        ['shipping', 'shipp'],
+        ['careers', 'care'],
+        ['cart', 'cart'],
+        ['use', 'use']
+    ])('%s → %s', (word, expected) => {
+        expect(stem(word)).toBe(expected)
     })
 })

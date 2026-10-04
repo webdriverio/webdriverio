@@ -561,7 +561,7 @@ export const ACTIONS: ActionSpec[] = [
     {
         name: 'frame', group: 'Contexts', applies: ['W'], mutation: true,
         desc: 'Switch into an iframe, to the parent or to the top',
-        details: 'Snapshots and actions apply to the current frame until you switch back. `navigate` returns to the top document.',
+        details: 'The page snapshot already shows the content of its iframes, with refs that actions use directly, so `frame` is only needed to work inside one frame for a while or to see a frame the snapshot cut short. Snapshots and actions apply to the current frame until you switch back. `navigate` returns to the top document.',
         positionals: [{ name: 'target', desc: 'Ref, selector, parent or top', required: true }],
         examples: [
             ['wdio session frame e12 && wdio session snapshot -i', 'Enter an iframe and look inside'],

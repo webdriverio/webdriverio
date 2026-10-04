@@ -61,7 +61,8 @@ describe('wdio session contexts and dialogs', () => {
         await run('navigate', `${server.url}/frames.html?cross=${server.url.replace('localhost', '127.0.0.1')}`)
         const top = (await run('snapshot')).stdout
         const cross = top.match(/iframe "Cross origin frame" \[ref=(e\d+)\]/)![1]
-        expect(top).toContain('(cross-origin: run `wdio session frame')
+        // the frame's content is part of the page's snapshot, with refs
+        expect(top).toMatch(new RegExp(`iframe "Cross origin frame" \\[ref=${cross}\\]\n    - heading "Inside frame" \\[level=2\\]\n    - button "Frame button" \\[ref=e\\d+\\]`))
 
         const switched = await run('frame', cross)
         expect(switched.stdout).toMatch(new RegExp(`^Switched to frame ${cross} \\(iframe "Cross origin frame"\\)\nFrame:\n- document "Child frame"`))
@@ -86,6 +87,24 @@ describe('wdio session contexts and dialogs', () => {
         const notFrame = await project.run(['frame', 'aria/Frames'])
         expect(notFrame.code).toBe(2)
         expect(notFrame.stderr).toContain('is not a frame')
+    })
+
+    it('acts on a ref inside a cross-origin frame from the top document', async () => {
+        const page = `${server.url}/frames.html?cross=${server.url.replace('localhost', '127.0.0.1')}`
+        await run('navigate', page)
+        const top = (await run('snapshot', '-i')).stdout
+        const button = top.split('\n').slice(top.split('\n').findIndex((l) => l.includes('Cross origin frame'))).find((l) => l.includes('Frame button'))!.match(/\[ref=(e\d+)\]/)![1]
+        const res = await run('click', button, '--json')
+        expect(res.json.result.text).toContain('button "Frame clicked"')
+        const code: string = res.json.result.code
+        expect(code).toMatch(/^\{\n {4}const page = \(await browser\.browsingContexts\(\)\)\.find\(.*\)!\n {4}const frame = await page\.frame\(page\.\$\('aria\/Cross origin frame'\)\)\n {4}await frame\.\$\('role\/button\[name="Frame button"\]'\)\.click\(\)\n\}$/)
+        // the session is back on the top document
+        expect((await run('info', '--json')).json.result.data.frame).toBe('top')
+
+        await run('navigate', page)
+        await run('exec', '-e', code)
+        const after = (await run('snapshot', '-i')).stdout
+        expect(after.split('\n').slice(after.split('\n').findIndex((l) => l.includes('Cross origin frame'))).join('\n'), `replaying ${code}`).toContain('button "Frame clicked"')
     })
 
     it('navigating from inside a frame navigates the tab', async () => {

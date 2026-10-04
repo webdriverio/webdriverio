@@ -12,7 +12,7 @@ describe('browser targets', () => {
             browserName: 'chrome',
             webSocketUrl: true,
             pageLoadStrategy: 'eager',
-            'goog:chromeOptions': { args: ['--headless=new', '--disable-gpu', '--window-size=1280,720'] }
+            'goog:chromeOptions': { args: ['--headless=new', '--enable-unsafe-swiftshader', '--window-size=1280,720'] }
         })
         expect(plan).toMatchObject({ headless: true, display: false, detach: false, viewport: { width: 1280, height: 720 } })
     })
@@ -25,7 +25,7 @@ describe('browser targets', () => {
             pageLoadStrategy: 'eager',
             browserVersion: '130',
             'ms:edgeOptions': {
-                args: ['--headless=new', '--disable-gpu', '--window-size=800,600', '--user-data-dir=/repo/p', '--lang=de'],
+                args: ['--headless=new', '--enable-unsafe-swiftshader', '--window-size=800,600', '--user-data-dir=/repo/p', '--lang=de'],
                 binary: '/repo/bin/edge'
             }
         })

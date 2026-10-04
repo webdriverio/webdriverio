@@ -11,6 +11,7 @@ import { countRefs, formatSnapshot, type SnapshotNode } from '../snapshot/format
 import { unifiedDiff } from '../snapshot/diff.js'
 import { takeNativeSnapshot } from '../snapshot/native.js'
 import { resolveElement, resolveTarget, scopeOf } from '../snapshot/target.js'
+import { currentPage, frameContext } from './contexts.js'
 import type { ActionFn, Session } from '../session.js'
 
 const DEFAULT_MAX_CHARS = 8000
@@ -48,6 +49,107 @@ async function collectWeb (session: Session, opts: Omit<CollectOptions, 'roles' 
         }
     }
     return browser.execute(collectInPage, args)
+}
+
+/** iframes of the page whose content a snapshot shows inline, with refs */
+const MAX_INLINE_FRAMES = 5
+/** nodes of one inline frame, the rest is a `wdio session frame` away */
+const MAX_FRAME_NODES = 300
+const FRAME_TIMEOUT_MS = 2000
+
+function withTimeout<T> (promise: Promise<T>, ms: number): Promise<T | undefined> {
+    let timer: NodeJS.Timeout | undefined
+    return Promise.race([
+        promise.catch(() => undefined),
+        new Promise<undefined>((resolve) => { timer = setTimeout(() => resolve(undefined), ms) })
+    ]).finally(() => clearTimeout(timer))
+}
+
+/** the first `max` nodes of a tree, depth first */
+function prune (nodes: SnapshotNode[], max: number): { nodes: SnapshotNode[], cut: boolean } {
+    let left = max
+    let cut = false
+    const keep = (list: SnapshotNode[]): SnapshotNode[] => {
+        const out: SnapshotNode[] = []
+        for (const node of list) {
+            if (left <= 0) {
+                cut = true
+                break
+            }
+            left--
+            out.push(node.children ? { ...node, children: keep(node.children) } : node)
+        }
+        return out
+    }
+    return { nodes: keep(nodes), cut }
+}
+
+/**
+ * The content of the page's iframes, collected in each frame's own browsing
+ * context, so elements in a cross-origin frame (a payment form, a bot check's
+ * checkbox) get refs like the rest of the page. Without it, every action in a
+ * frame takes `frame`, `snapshot`, the action and `frame top`. Actions on these
+ * refs enter the frame by themselves (see `Session.dispatch`).
+ *
+ * Only top-level iframes, at most MAX_INLINE_FRAMES of them, MAX_FRAME_NODES
+ * nodes each, FRAME_TIMEOUT_MS per frame. A frame that doesn't answer keeps
+ * what the page could see of it.
+ */
+async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<CollectOptions, 'roles' | 'assignRefs' | 'counter'>) {
+    const frames: SnapshotNode[] = []
+    const visit = (node: SnapshotNode) => {
+        if (node.role === 'iframe' && node.ref && !node.hidden) {
+            frames.push(node)
+            return
+        }
+        node.children?.forEach(visit)
+    }
+    visit(tree)
+    if (!frames.length) {
+        return []
+    }
+    const owner = await currentPage(session).catch(() => undefined)
+    if (!owner) {
+        return []
+    }
+    const refs: { id: string, role: string, name?: string, candidates: string[], frame: string }[] = []
+    for (const node of frames.slice(0, MAX_INLINE_FRAMES)) {
+        const frameRef = node.ref!
+        const result = await withTimeout((async () => {
+            const element = await session.refs.resolve(session.browser, frameRef)
+            const child = await frameContext(session, owner, element, frameRef)
+            const collected = await child.execute(collectInPage, { ...opts, counter: session.refs.counter, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true }) as ReturnType<typeof collectInPage>
+            // boxes in the frame are relative to its viewport, the snapshot's to the page's
+            const origin = opts.boxes
+                ? await session.browser.execute((el: HTMLElement) => {
+                    const rect = el.getBoundingClientRect()
+                    return [rect.x + el.clientLeft, rect.y + el.clientTop]
+                }, element as unknown as HTMLElement)
+                : undefined
+            return { collected, origin }
+        })(), FRAME_TIMEOUT_MS)
+        if (!result?.collected?.tree) {
+            continue
+        }
+        const { collected, origin } = result
+        if (origin) {
+            const shift = (n: SnapshotNode) => {
+                if (n.box) {
+                    n.box = [Math.round(n.box[0] + origin[0]), Math.round(n.box[1] + origin[1]), n.box[2], n.box[3]]
+                }
+                n.children?.forEach(shift)
+            }
+            collected.tree.children?.forEach(shift)
+        }
+        session.refs.counter = collected.counter
+        const { nodes, cut } = prune(collected.tree.children ?? [], MAX_FRAME_NODES)
+        node.children = nodes
+        node.note = cut ? 'cut' : undefined
+        for (const ref of collected.refs) {
+            refs.push({ ...ref, frame: frameRef })
+        }
+    }
+    return refs
 }
 
 export interface SnapshotOptions {
@@ -94,6 +196,16 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
     session.refs.generation++
     for (const ref of result.refs) {
         session.refs.set({ ...ref, kind: 'web', generation: session.refs.generation })
+    }
+    // in a frame the session holds already, the snapshot is that frame's
+    if (session.isBidi && !scope && !session.get('activeContext')) {
+        const frameRefs = await inlineFrames(session, result.tree, { all: Boolean(opts.all), boxes: Boolean(opts.boxes), urls: Boolean(opts.urls) })
+        if (!isCurrent()) {
+            throw new SessionError('INTERNAL', 'Snapshot was abandoned.')
+        }
+        for (const ref of frameRefs) {
+            session.refs.set({ ...ref, kind: 'web', generation: session.refs.generation })
+        }
     }
     const text = formatSnapshot(result.tree, { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes, compact: opts.compact })
     session.lastSnapshot = text
@@ -193,6 +305,25 @@ export function matchLines (withUrls: string[], test: (line: string) => boolean)
 /** printed `find` output stops after about this many characters */
 const MAX_FIND_CHARS = 6000
 
+const SUFFIXES = ['ations', 'ation', 'ions', 'ion', 'ing', 'ers', 'er', 'ed', 'es', 'e', 's']
+
+/**
+ * The stem of a search word, so that "give" finds "Giving" and "donate"
+ * finds "Donation": the word without a common English ending, at least
+ * three letters long.
+ */
+export function stem (word: string) {
+    const lower = word.toLowerCase()
+    for (const suffix of SUFFIXES) {
+        if (lower.endsWith(suffix) && lower.length - suffix.length >= 3) {
+            return lower.slice(0, -suffix.length)
+        }
+    }
+    return lower
+}
+
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 export const find: ActionFn = async (session, args) => {
     const query = String(args.text ?? '')
     // grep habits: -A/-B/-C switch to plain line context
@@ -220,6 +351,12 @@ export const find: ActionFn = async (session, args) => {
     if (!matches.length && !args.regex && words.length > 1) {
         ({ lines, shown, matches } = matchLines(linked.split('\n'), (line) => words.every((w) => line.toLowerCase().includes(w))))
         note = matches.length ? `No line contains ${JSON.stringify(query)}; lines with all of its words:\n` : ''
+    }
+    // "Give" when the page says "Giving": words that start like the query's
+    if (!matches.length && !args.regex && words.length) {
+        const stems = words.map((w) => new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRegExp(stem(w))}`, 'iu'))
+        ;({ lines, shown, matches } = matchLines(linked.split('\n'), (line) => stems.every((re) => re.test(line))))
+        note = matches.length ? `No line contains ${JSON.stringify(query)}; lines with words like it:\n` : ''
     }
     session.lastSnapshot = lines.join('\n')
     if (!matches.length) {

@@ -61,7 +61,9 @@ export function browserPlan (target: BrowserTarget, args: OpenArgs, { cwd, platf
             options.debuggerAddress = /^\d+$/.test(attach) ? `localhost:${attach}` : attach.replace(/^https?:\/\//, '').replace(/\/$/, '')
         } else {
             const browserArgs = [
-                ...(headless ? ['--headless=new', '--disable-gpu'] : []),
+                // WebGL stays on: maps, charts and 3D pages need it. Without a GPU
+                // (CI, containers) Chrome renders it in software only when allowed to
+                ...(headless ? ['--headless=new', '--enable-unsafe-swiftshader'] : []),
                 `--window-size=${viewport.width},${viewport.height}`,
                 ...(args.profile ? [`--user-data-dir=${fsPath.resolve(cwd, String(args.profile))}`] : []),
                 ...extraArgs

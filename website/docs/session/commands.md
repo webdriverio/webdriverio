@@ -1269,7 +1269,7 @@ See also: [`tabs`](#tabs).
 
 Switch into an iframe, to the parent or to the top. Applies to web.
 
-Snapshots and actions apply to the current frame until you switch back. `navigate` returns to the top document.
+The page snapshot already shows the content of its iframes, with refs that actions use directly, so `frame` is only needed to work inside one frame for a while or to see a frame the snapshot cut short. Snapshots and actions apply to the current frame until you switch back. `navigate` returns to the top document.
 
 ```sh
 npx wdio session frame <target>

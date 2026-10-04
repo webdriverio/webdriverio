@@ -34,7 +34,7 @@ npx wdio session get text e9
 | Read | `get text e9` · `get value e2` · `get url` · `get title` · `is visible e3` |
 | Wait | `wait e3` · `wait --text "Saved"` · `wait --url /done` · `wait --load networkidle` |
 | Navigate | `navigate https://…` · `back` · `reload` · `tabs` · `tabs switch 1` |
-| Frames | `frame e1` (into the iframe e1) · `frame top` |
+| Frames | refs inside iframes work as they are · `frame e1` scopes snapshots to the iframe e1 · `frame top` |
 | Code | `exec -e 'console.log(await $("h1").getText())'` |
 
 Run `npx wdio session <action> --help` only when an action fails or you need a flag that isn't shown here.

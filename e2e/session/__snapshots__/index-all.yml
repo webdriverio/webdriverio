@@ -1,13 +1,13 @@
 - document "Session Fixture" url=http://localhost:PORT/index.html
   - banner
     - navigation "Main"
-      - link "Home" [ref=e35]
-      - link "Form" [ref=e36]
-      - link "Cart" [ref=e37]
+      - link "Home" [ref=e37]
+      - link "Form" [ref=e38]
+      - link "Cart" [ref=e39]
   - main
     - heading "Welcome" [level=1]
     - paragraph "This page is used by the wdio session end-to-end tests."
-    - button "Say hello" [ref=e38]
+    - button "Say hello" [ref=e40]
     - paragraph
     - text "Secret text" [hidden]
     - text "Decorative text" [hidden]

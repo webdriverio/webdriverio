@@ -4,4 +4,4 @@
   - main
     - heading "Welcome" [level=1]
     - paragraph "This page is used by the wdio session end-to-end tests."
-    - button "Say hello" [ref=e38]
+    - button "Say hello" [ref=e40]
