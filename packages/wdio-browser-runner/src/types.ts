@@ -6,6 +6,7 @@ import type { IstanbulPluginOptions } from 'vite-plugin-istanbul'
 declare global {
     interface Window {
         __wdioEnv__: Environment
+        __wdioNetworkIntercepts__?: Set<string | symbol>
         wdioDebugContinue: (value: unknown) => void
     }
 }

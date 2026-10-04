@@ -42,6 +42,11 @@ describe('WebdriverIO mock command', () => {
         } finally {
             await apiMock.restore()
         }
+
+        /**
+         * the stack maps to the source again once the mock is restored
+         */
+        expect(getStack()).toContain('stack.ts:6:')
     })
 
     it('supports binary responses without a global Buffer', async () => {

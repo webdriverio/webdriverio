@@ -12,7 +12,7 @@ import safeStringify from 'safe-stringify'
 // eslint-disable-next-line unicorn/prefer-node-protocol
 import EventEmitter from 'events'
 
-import { commandResult, getCID, sanitizeConsoleArgs } from './utils.js'
+import { commandResult, getCID, sanitizeConsoleArgs, trackNetworkIntercepts } from './utils.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
@@ -86,6 +86,7 @@ export default class ProxyDriver {
             : params.capabilities!.webSocketUrl
         if (webSocketUrl) {
             Object.assign(bidiPrototype, initiateBidi(webSocketUrl as unknown as string, undefined, undefined, params.bidiResponseTimeout))
+            trackNetworkIntercepts(bidiPrototype)
         }
 
         /**
