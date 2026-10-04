@@ -452,13 +452,16 @@ export const fill: ActionFn = async (session, args) => {
             const keys = await nudge(session, target)
             // a step the slider couldn't take back (a min or max it didn't report) leaves it elsewhere
             const now = await target.element.getValue()
-            if (now !== took) {
+            const repaired = now !== took
+            if (repaired) {
                 await target.element.setValue(took)
             }
             return done(`Set ${target.label} to ${took}${note}`, [
                 `await ${target.code}.setValue(${quote(value)})`,
                 `await browser.execute((el) => el.focus(), await ${target.code})`,
-                ...keys.map((key) => `await browser.keys(${quote(key)})`)
+                ...keys.map((key) => `await browser.keys(${quote(key)})`),
+                // the replay ends on the value this run reported, as the run did
+                ...(repaired ? [`await ${target.code}.setValue(${quote(took)})`] : [])
             ].join('\n'))
         }
         return done(`Set ${target.label} to ${took}${note}`, `await ${target.code}.setValue(${quote(value)})`)
