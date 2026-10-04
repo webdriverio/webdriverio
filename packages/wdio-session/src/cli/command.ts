@@ -313,7 +313,8 @@ async function open (args: Record<string, unknown>, ctx: RunContext): Promise<Ac
     let page = ''
     if (plan.platform === 'browser' && state.url && args.snapshot !== false) {
         try {
-            const snapshot = await send(ctx.name, 'snapshot', { interactive: true, maxChars: 1500 }, { runtimeDir: ctx.runtimeDir, cwd: ctx.cwd })
+            // the start of a large page rather than only its file
+            const snapshot = await send(ctx.name, 'snapshot', { interactive: true, maxChars: 1500, head: true }, { runtimeDir: ctx.runtimeDir, cwd: ctx.cwd })
             page = snapshot.text ? `\n${snapshot.text}` : ''
         } catch {
             // the session is up; a failed snapshot must not fail `open`
@@ -339,7 +340,20 @@ async function open (args: Record<string, unknown>, ctx: RunContext): Promise<Ac
 
 async function closeOne (name: string, ctx: RunContext, clean = false) {
     const state = getLiveState(name, ctx.runtimeDir)
-    await send(name, 'close', {}, { runtimeDir: ctx.runtimeDir, timeout: 30_000, cwd: ctx.cwd })
+    try {
+        await send(name, 'close', {}, { runtimeDir: ctx.runtimeDir, timeout: 30_000, cwd: ctx.cwd })
+    } catch (err) {
+        // a daemon that can't answer is stopped instead; waitForExit kills it if it doesn't exit
+        if (state.debug || !state.pid || (err as SessionError).code === 'SESSION_NOT_FOUND') {
+            throw err
+        }
+        ctx.io.stderr.write(`Session "${name}" did not answer \`close\`, stopping it.\n`)
+        try {
+            process.kill(state.pid, 'SIGTERM')
+        } catch {
+            // already gone
+        }
+    }
     if (!state.debug) {
         await waitForExit(ctx.runtimeDir, name, state.pid)
     }

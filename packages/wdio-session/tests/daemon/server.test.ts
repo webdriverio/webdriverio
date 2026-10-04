@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 import { SessionServer, type RequestHandler, type SessionServerOptions } from '../../src/daemon/server.js'
 import { sendRaw } from '../../src/cli/client.js'
@@ -102,6 +102,42 @@ describe('SessionServer', () => {
         expect(await slow).toMatchObject({ ok: false, error: { code: 'TIMEOUT' } })
         expect(await fast).toMatchObject({ ok: true, result: { text: 'fast' } })
         expect(order).toEqual(['start slow', 'end slow', 'start fast', 'end fast'])
+    })
+
+    it('moves on from a request that never finishes', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        try {
+            const s = await start(async (req) => {
+                if (req.action === 'hang') {
+                    await new Promise(() => {})
+                }
+                return { text: req.action }
+            })
+            const hang = s.enqueue(request(s.token, 'hang', { timeout: 20 }))
+            const next = s.enqueue(request(s.token, 'next'))
+            await vi.advanceTimersByTimeAsync(20)
+            expect(await hang).toMatchObject({ ok: false, error: { code: 'TIMEOUT' } })
+            // the hung request may hold the queue for a short grace period only
+            await vi.advanceTimersByTimeAsync(5_000)
+            expect(await next).toMatchObject({ ok: true, result: { text: 'next' } })
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
+    it('runs close while another request is still running', async () => {
+        let release: () => void = () => {}
+        const s = await start(async (req) => {
+            if (req.action === 'busy') {
+                await new Promise<void>((r) => { release = r })
+            }
+            return { text: req.action }
+        })
+        const busy = s.enqueue(request(s.token, 'busy', { timeout: 60_000 }))
+        await new Promise((r) => setTimeout(r, 5))
+        expect(await s.enqueue(request(s.token, 'close'))).toMatchObject({ ok: true, result: { text: 'close' } })
+        release()
+        expect(await busy).toMatchObject({ ok: true })
     })
 
     it('maps handler errors to error responses', async () => {

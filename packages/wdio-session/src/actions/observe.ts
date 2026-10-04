@@ -245,10 +245,33 @@ export const snapshot: ActionFn = async (session, args) => {
     const summary = `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars → ${file}`
     const inline = !args.fileOnly && text.length <= maxChars
     return {
-        text: inline ? text : `${summary}\nUse \`wdio session find <text>\`, --interactive, --depth or --scope to narrow it down.`,
+        text: inline
+            ? text
+            : args.head
+                ? pageHead(text, maxChars, file)
+                : `${summary}\nUse \`wdio session find <text>\`, --interactive, --depth or --scope to narrow it down.`,
         data: { file, lines, refs, chars: text.length, ...(args.$internal ? { snapshot: text } : {}) },
         files: [file]
     }
+}
+
+/**
+ * The start of a snapshot, cut at a line, for `open`. Only a file path for a
+ * large page leaves an agent with nothing to act on, so it often gives up on
+ * the page.
+ */
+function pageHead (snapshot: string, maxChars: number, file: string) {
+    const lines = snapshot.split('\n')
+    const shown: string[] = []
+    let size = 0
+    for (const line of lines) {
+        if (size + line.length + 1 > maxChars) {
+            break
+        }
+        shown.push(line)
+        size += line.length + 1
+    }
+    return `${shown.join('\n')}\n… ${lines.length - shown.length} more lines in ${file}. Use \`wdio session find <text>\` or \`snapshot -i\` for the rest.`
 }
 
 /** lines a `find` block may have before it is cut to a window around the match */

@@ -28,6 +28,13 @@ export interface SessionServerOptions {
     onRequest?: (req: Request) => void
 }
 
+/**
+ * How long a request that ran past its timeout may still hold the queue. A
+ * page whose main thread is blocked can keep a browser command waiting for
+ * minutes; the requests after it shouldn't wait with it.
+ */
+const ABANDONED_GRACE_MS = 5_000
+
 interface QueueItem {
     req: Request
     resolve: (res: Response) => void
@@ -129,6 +136,11 @@ export class SessionServer {
             return Promise.resolve(errorResponse(req.id, new SessionError('BUSY', `More than ${MAX_QUEUE_LENGTH} requests are queued for this session.`)))
         }
         return new Promise((resolve) => {
+            // `close` must work while an action hangs, so it doesn't wait in line
+            if (req.action === 'close' && this.#running) {
+                void this.#run({ req, resolve })
+                return
+            }
             this.#queue.push({ req, resolve })
             this.#next()
         })
@@ -143,7 +155,13 @@ export class SessionServer {
             return
         }
         this.#running = true
-        const { req, resolve } = item
+        await this.#run(item)
+        this.#running = false
+        this.#resetIdle()
+        this.#next()
+    }
+
+    async #run ({ req, resolve }: QueueItem) {
         const timeout = req.timeout || actionTimeout(req.action)
         let timer: NodeJS.Timeout | undefined
         const action = this.#handler(req)
@@ -168,16 +186,19 @@ export class SessionServer {
         } finally {
             clearTimeout(timer)
             if (timedOut) {
-                await action.catch(() => {})
+                // let it finish if it's about to, but don't hold the queue for it
+                let grace: NodeJS.Timeout | undefined
+                await Promise.race([
+                    action.catch(() => {}),
+                    new Promise<void>((done) => { grace = setTimeout(done, ABANDONED_GRACE_MS) })
+                ])
+                clearTimeout(grace)
             }
-            this.#running = false
-            this.#resetIdle()
             try {
                 this.#onRequest?.(req)
             } catch {
                 // ignore
             }
-            this.#next()
         }
     }
 

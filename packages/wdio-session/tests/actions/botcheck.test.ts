@@ -8,6 +8,7 @@ describe('detectBotCheck', () => {
         ['Cloudflare', '- heading "umich.edu" [level=1, ref=e1]\n- heading "Performing security verification" [level=2, ref=e2]'],
         ['DataDome', '- document "zara.com" url=https://www.zara.com/\n  - iframe "DataDome CAPTCHA" [ref=e2]'],
         ['HUMAN (PerimeterX)', '- document "Access to this page has been denied"\n  - button "Press & Hold" [ref=e3]'],
+        ['HUMAN (PerimeterX)', '- iframe [ref=e8]\n    - text "Quick verification"\n    - text "Press & hold to confirm you\'re a human (and not a bot)."'],
         ['Akamai', '- document "Access Denied" url=https://www.example.com/\n  - heading "Access Denied"'],
         ['Google', '- document "https://www.google.com/sorry/index"\n  - text "Our systems have detected unusual traffic from your computer network."']
     ])('recognizes a %s check', (vendor, snapshot) => {

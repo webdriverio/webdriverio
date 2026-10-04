@@ -90,6 +90,49 @@ describe('wdio session on live-web pages', () => {
         expect((await run('snapshot', '-i')).stdout).toContain('"Live Web Fixture"')
     })
 
+    it('leaves out decoy elements a bot check plants', async () => {
+        await load('decoy')
+        const page = (await run('snapshot', '-i')).stdout
+        expect(page).toContain('button "Real button"')
+        expect(page).toContain('button "Hold to verify"')
+        await run('frame', page.match(/iframe "Verification" \[ref=(e\d+)\]/)![1])
+        const frame = (await run('snapshot')).stdout
+        expect(frame).toContain('heading "Quick verification"')
+        expect((await run('find', 'Hold')).stdout).toContain('button "Hold to verify"')
+        await run('frame', 'top')
+    })
+
+    it('prints the start of a long page on open', async () => {
+        const other = createProject('live-web-long')
+        try {
+            const res = await other.run(['open', 'chrome', `${server.url}/long.html`])
+            expect(res.code, res.stderr).toBe(0)
+            expect(res.stdout).toMatch(/link "Item 1" \[ref=e\d+\]/)
+            expect(res.stdout).toMatch(/… \d+ more lines in .+\.yml\. Use `wdio session find <text>` or `snapshot -i` for the rest\./)
+        } finally {
+            await other.cleanup()
+        }
+    })
+
+    it('closes a session whose page is frozen', async () => {
+        const other = createProject('live-web-busy')
+        try {
+            const opened = await other.run(['open', 'chrome', `${server.url}/busy.html`])
+            expect(opened.code, opened.stderr).toBe(0)
+            const frozen = await other.run(['click', 'aria/Freeze the page', '--timeout', '3000'])
+            expect(frozen.code).not.toBe(0)
+            expect(frozen.stderr).toContain('did not finish within 3000ms')
+            const started = Date.now()
+            const closed = await other.run(['close'])
+            expect(closed.code, closed.stderr).toBe(0)
+            // the page stays frozen for a minute; close doesn't wait for it
+            expect(Date.now() - started).toBeLessThan(30_000)
+            expect((await other.run(['list', '--json'])).json.result.data.sessions).toEqual([])
+        } finally {
+            await other.cleanup()
+        }
+    }, 90_000)
+
     it('has WebGL in headless Chrome', async () => {
         await load()
         const res = await run('exec', '-e', "JSON.stringify(await browser.execute(() => Boolean(document.getElementById('gl').getContext('webgl'))))")
