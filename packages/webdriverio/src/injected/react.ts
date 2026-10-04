@@ -250,9 +250,15 @@ function* elementsOf (root: Document | ShadowRoot): Generator<Element> {
 }
 
 /**
- * The container of the first root that React has rendered. A root of `createRoot`
- * marks its container before `render` and keeps the mark after `unmount`: without
- * a rendered root, the first container.
+ * The root fiber gets its other copy (`alternate`) at the first render, also when
+ * the app renders nothing. `waitToLoadReact` uses the same rule.
+ */
+const isRendered = (root?: Fiber) => Boolean(root && (root.child || root.alternate))
+
+/**
+ * The container of the first root that React has rendered, also when it renders
+ * nothing. A root of `createRoot` marks its container before `render` and keeps the
+ * mark after `unmount`: without a rendered root, the first container.
  */
 const findContainer = () => {
     let first: HTMLElement | undefined
@@ -260,7 +266,7 @@ const findContainer = () => {
         if (!isContainer(node)) {
             continue
         }
-        if (currentRootOf(node)?.child) {
+        if (isRendered(currentRootOf(node))) {
             return node as HTMLElement
         }
         first = first || node as HTMLElement

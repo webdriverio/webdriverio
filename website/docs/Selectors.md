@@ -614,7 +614,7 @@ A filter matches when each of its keys that the component also has matches. A ke
 - The name of a component is its `displayName`, or else the name of its function or class. A component of `React.memo` has the name of its function (the development build of React 17 also gives it the `displayName` of the memo object). A component of `React.forwardRef` has no name, unless it has a `displayName`.
 - For a higher-order component with a name like `withRouter(MyComponent)`, the name inside the parentheses is used: `MyComponent`.
 - The results come in the order of the component tree, level by level, not in the order of the document. `react$$` gives each DOM node once.
-- Without an element scope, the commands search the first root that React has rendered, in the order of the document, also in open shadow roots. To search another root, for example a root inside another root, call the command on an element of that root or on its container: `$('#other-root').react$$('MyComponent')`.
+- Without an element scope, the commands search the first root that React has rendered, in the order of the document, also in open shadow roots. If that root renders nothing, the commands find nothing in it: they do not go to the next root. To search another root, for example a root inside another root, call the command on an element of that root or on its container: `$('#other-root').react$$('MyComponent')`.
 - For an app in a frame, call the command on the browsing context of the frame, or on an element of the frame: `(await page.frame({ selector: 'iframe' })).react$$('MyComponent')`.
 
 Known limits:

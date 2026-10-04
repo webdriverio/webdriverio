@@ -672,6 +672,33 @@ for (const build of BUILDS) {
                 expect(ids(react$$('Item', {}, {}))).toEqual(['two'])
             })
 
+            it('uses the first rendered root without a scope, also when it renders nothing', () => {
+                document.body.innerHTML = '<div id="first"></div><div id="second"></div>'
+                function Item (props: { id: string }) {
+                    return h('li', { id: props.id })
+                }
+                let renderFirst: (element: unknown) => void
+                if (build.mounts.includes('createRoot')) {
+                    const root = ReactDOM.createRoot(byId('first'))
+                    unmounts.push(() => root.unmount())
+                    renderFirst = (element) => update(() => root.render(element))
+                } else {
+                    unmounts.push(() => ReactDOM.unmountComponentAtNode(byId('first')))
+                    renderFirst = (element) => update(() => ReactDOM.render(element, byId('first')))
+                }
+                renderFirst(null)
+                mount(h(Item, { id: 'two' }), byId('second'))
+
+                expect(api().findContainer()).toBe(byId('first'))
+                expect(ids(react$$('Item', {}, {}))).toEqual([])
+                expect(react$('Item', {}, {})).toEqual({ message: 'React element with selector "Item" wasn\'t found' })
+                expect(ids(react$$('Item', {}, {}, byId('second')))).toEqual(['two'])
+
+                renderFirst(h(Item, { id: 'one' }))
+                expect(api().findContainer()).toBe(byId('first'))
+                expect(ids(react$$('Item', {}, {}))).toEqual(['one'])
+            })
+
             it.skipIf(!build.mounts.includes('createRoot'))('skips a root that has not rendered yet', () => {
                 document.body.innerHTML = '<div id="empty"></div><div id="app"></div>'
                 const root = ReactDOM.createRoot(byId('empty'))
