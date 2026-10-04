@@ -4,7 +4,7 @@ import path from 'node:path'
 import { UNICODE_CHARACTERS, getWdioKind } from '@wdio/utils'
 import { getContextManager } from 'webdriverio'
 
-import { usage } from '../errors.js'
+import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
 import { resolveTarget, scopeOf, type ResolvedTarget } from '../snapshot/target.js'
 import { refId } from '../snapshot/refs.js'
@@ -282,9 +282,33 @@ export const click: ActionFn = async (session, args) => {
         ? ['Double-clicked', 'doubleClick()', () => target.element.doubleClick()]
         : args.right
             ? ['Right-clicked', "click({ button: 'right' })", () => target.element.click({ button: 'right' })]
-            : ['Clicked', 'click()', () => clickChecked(session, target)]
+            : ['Clicked', 'click()', () => clickChecked(session, target).catch((err) => retryStale(err, () => resolveTarget(session, args.target).then((fresh) => clickChecked(session, fresh)), target.label))]
     const text = await withNavigation(session, `${verb} ${target.label}`, run)
     return done(text, `await ${target.code}.${call}`)
+}
+
+const STALE = /stale element/i
+
+/**
+ * A page that re-renders a list (a dropdown that opened) replaces the
+ * element between finding and clicking it. One more try on the element
+ * found again; if that is stale too, say what happened instead of passing
+ * on the driver's error.
+ */
+async function retryStale (err: unknown, retry: () => Promise<unknown>, label: string) {
+    if (!STALE.test((err as Error)?.message ?? '')) {
+        throw err
+    }
+    try {
+        return await retry()
+    } catch (again) {
+        if (!STALE.test((again as Error)?.message ?? '')) {
+            throw again
+        }
+        throw new SessionError('REF_STALE', `${label} was replaced by the page while it was clicked.`, {
+            hint: 'Take a new snapshot (`wdio session snapshot -i`) and click the new ref, or click it by its text, e.g. `wdio session click "aria/<name>"`.'
+        })
+    }
 }
 
 export const tap: ActionFn = async (session, args) => {

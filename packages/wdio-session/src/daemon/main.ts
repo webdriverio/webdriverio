@@ -62,6 +62,17 @@ async function main () {
     for (const signal of ['SIGTERM', 'SIGINT', 'SIGHUP'] as const) {
         process.on(signal, () => shutdown('signal'))
     }
+    /**
+     * Code run with `exec` can leave a rejected promise nobody awaits, e.g. a
+     * command on a chainable it never awaited. That fails the code, not the
+     * session: without these handlers Node ends the daemon and the browser.
+     */
+    process.on('unhandledRejection', (reason) => {
+        log.warn(`Unhandled rejection: ${(reason as Error)?.stack || reason}`)
+    })
+    process.on('uncaughtException', (err) => {
+        log.error(`Uncaught exception: ${err?.stack || err}`)
+    })
 
     try {
         launched = await launch(plan)

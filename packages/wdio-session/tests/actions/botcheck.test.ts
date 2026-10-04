@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { botCheckNote, detectBotCheck } from '../../src/actions/botcheck.js'
+import { botCheckNote, detectBotCheck, detectLoadError } from '../../src/actions/botcheck.js'
 
 describe('detectBotCheck', () => {
     it.each([
@@ -41,5 +41,16 @@ describe('botCheckNote', () => {
         const note = botCheckNote('Akamai', { headless: false, target: 'chrome' })
         expect(note).not.toContain('--headed')
         expect(note).toContain('Say so in your answer')
+    })
+})
+
+describe('detectLoadError', () => {
+    it('names the browser error page and its error code', () => {
+        const page = '- document "www.bestbuy.com" url=chrome-error://chromewebdata/\n  - heading "This site can’t be reached"\n  - text "ERR_QUIC_PROTOCOL_ERROR"'
+        expect(detectLoadError(page)).toBe('The page did not load: the browser shows its error page (ERR_QUIC_PROTOCOL_ERROR). Reloading rarely helps; the site may refuse this browser. Try another page of the site or another way to the answer.')
+    })
+
+    it('leaves pages that loaded alone', () => {
+        expect(detectLoadError('- document "Shop" url=https://shop.test/\n  - heading "chrome-error://"')).toBeUndefined()
     })
 })

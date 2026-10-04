@@ -156,6 +156,26 @@ describe('wdio session on live-web pages', () => {
         expect((await run('snapshot', '-i')).stdout).toContain('"Busy Frame Fixture"')
     }, 60_000)
 
+    it('says when a page did not load', async () => {
+        await load('broken')
+        const res = await run('click', 'aria/A site that refuses the connection')
+        expect(res.stdout).toMatch(/The page did not load: the browser shows its error page \(ERR_[A-Z_]+\)\./)
+    })
+
+    it('says when a click changed nothing', async () => {
+        await load('broken')
+        const res = await run('click', 'aria/Does nothing')
+        expect(res.stdout).toContain('No visible change on the page.')
+    })
+
+    it('keeps the session when code leaves a rejected promise behind', async () => {
+        await load('broken')
+        // a command on a chainable that is never awaited rejects with nobody listening
+        await project.run(['exec', '-e', 'const el = $("#does-not-exist"); el.click(); await new Promise((r) => setTimeout(r, 200))'])
+        await new Promise((resolve) => setTimeout(resolve, 6000))
+        expect((await run('get', 'title')).stdout).toContain('Broken Links Fixture')
+    }, 60_000)
+
     it('has WebGL in headless Chrome', async () => {
         await load()
         const res = await run('exec', '-e', "JSON.stringify(await browser.execute(() => Boolean(document.getElementById('gl').getContext('webgl'))))")

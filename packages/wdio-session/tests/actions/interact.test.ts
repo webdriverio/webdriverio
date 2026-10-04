@@ -305,8 +305,21 @@ describe('click', () => {
     })
 
     it('still fails for other errors', async () => {
+        const element = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('unknown error: chrome not reachable') } }
+        await expect(click(clickSession(element), { target: 'e2', $cwd: '/' })).rejects.toThrow('chrome not reachable')
+    })
+
+    it('clicks once more when the page replaced the element in between', async () => {
+        let clicks = 0
+        const element = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { if (clicks++ === 0) { throw new Error('stale element reference: stale element not found in the current frame') } } }
+        const result = await click(clickSession(element), { target: 'e2', $cwd: '/' })
+        expect(clicks).toBe(2)
+        expect(result.text).toContain('Clicked e2')
+    })
+
+    it('says the element was replaced when it is stale twice', async () => {
         const element = { execute: async () => ({ state: 'ok', x: 5, y: 5 }), click: async () => { throw new Error('stale element reference') } }
-        await expect(click(clickSession(element), { target: 'e2', $cwd: '/' })).rejects.toThrow('stale element reference')
+        await expect(click(clickSession(element), { target: 'e2', $cwd: '/' })).rejects.toThrow('e2 (textbox "Name") was replaced by the page while it was clicked.')
     })
 })
 
