@@ -8,6 +8,7 @@ import { _setGlobal } from '@wdio/globals'
 
 import './frameworks/mocha.js'
 import { showPopupWarning } from './utils.js'
+import { guardSourceMapLookups } from './intercepts.js'
 import type { MochaFramework } from './frameworks/mocha.js'
 
 type WDIOErrorEvent = Pick<ErrorEvent, 'filename' | 'message'>
@@ -24,6 +25,14 @@ declare global {
 globalThis.alert = showPopupWarning('alert', undefined)
 globalThis.confirm = showPopupWarning('confirm', false, true)
 globalThis.prompt = showPopupWarning('prompt', null, 'your value')
+
+/**
+ * keep source-map-support from blocking the page on its own network mocks,
+ * installed before `remote()` gives the page a way to add one
+ */
+if (typeof Error.prepareStackTrace === 'function') {
+    Error.prepareStackTrace = guardSourceMapLookups(Error.prepareStackTrace)
+}
 
 /**
  * Setup fake browser instance and attach to global scope if necessary

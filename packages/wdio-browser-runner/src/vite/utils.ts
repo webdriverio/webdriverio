@@ -31,18 +31,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
     try {
         const sourceMapSupportDir = await resolve('source-map-support', import.meta.url)
         sourceMapScript = /*html*/`<script src="/@fs/${url.fileURLToPath(path.dirname(sourceMapSupportDir))}/browser-source-map-support.js"></script>`
-        /**
-         * source-map-support reads a file with a synchronous request. While a
-         * mock of this page intercepts requests, that request stays paused
-         * until the page releases it, which the blocked page never does. Then
-         * format the stack without source maps, so that source-map-support
-         * does not cache an empty map for the file.
-         */
-        sourceMapSetupCommand = `sourceMapSupport.install()
-                const mapStackTrace = Error.prepareStackTrace
-                Error.prepareStackTrace = (error, frames) => window.__wdioNetworkIntercepts__?.size
-                    ? Error.prototype.toString.call(error) + frames.map((frame) => '\\n    at ' + frame).join('')
-                    : mapStackTrace(error, frames)`
+        sourceMapSetupCommand = 'sourceMapSupport.install()'
     } catch (err) {
         log.error(`Failed to setup source-map-support: ${(err as Error).message}`)
     }

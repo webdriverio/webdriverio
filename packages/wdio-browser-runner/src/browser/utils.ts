@@ -25,50 +25,6 @@ export function commandResult (value: Workers.CommandResponseEvent): unknown {
     return kind && result && typeof result === 'object' ? setWdioKind(result, kind) : result
 }
 
-/**
- * Keep the network intercepts this page registered in
- * `window.__wdioNetworkIntercepts__`. A request matching one of them is paused
- * until the page releases it, so the page must not wait for one synchronously.
- */
-export function trackNetworkIntercepts (bidiPrototype: PropertyDescriptorMap) {
-    const intercepts = new Set<string | symbol>()
-    window.__wdioNetworkIntercepts__ = intercepts
-
-    const addIntercept = bidiPrototype.networkAddIntercept?.value
-    const removeIntercept = bidiPrototype.networkRemoveIntercept?.value
-    if (typeof addIntercept !== 'function' || typeof removeIntercept !== 'function') {
-        return
-    }
-
-    bidiPrototype.networkAddIntercept = {
-        value: async function (this: unknown, ...args: unknown[]) {
-            /**
-             * the intercept pauses requests before its id gets back to the page
-             */
-            const pending = Symbol('pending intercept')
-            intercepts.add(pending)
-            try {
-                const result = await addIntercept.apply(this, args)
-                if (result?.intercept) {
-                    intercepts.add(result.intercept)
-                }
-                return result
-            } finally {
-                intercepts.delete(pending)
-            }
-        }
-    }
-    bidiPrototype.networkRemoveIntercept = {
-        value: async function (this: unknown, params: { intercept: string }, ...args: unknown[]) {
-            try {
-                return await removeIntercept.apply(this, [params, ...args])
-            } finally {
-                intercepts.delete(params?.intercept)
-            }
-        }
-    }
-}
-
 export function getCID() {
     const urlParamString = new URLSearchParams(window.location.search)
     const cid = (

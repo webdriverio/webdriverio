@@ -39,10 +39,6 @@ exports[`getTemplate > renders template correctly 1`] = `
             <script src="/@fs//foo/bar/browser-source-map-support.js"></script>
             <script type="module">
                 sourceMapSupport.install()
-                const mapStackTrace = Error.prepareStackTrace
-                Error.prepareStackTrace = (error, frames) => window.__wdioNetworkIntercepts__?.size
-                    ? Error.prototype.toString.call(error) + frames.map((frame) => '\\n    at ' + frame).join('')
-                    : mapStackTrace(error, frames)
 
                 /**
                  * Inject environment variables

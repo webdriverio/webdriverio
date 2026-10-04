@@ -12,7 +12,8 @@ import safeStringify from 'safe-stringify'
 // eslint-disable-next-line unicorn/prefer-node-protocol
 import EventEmitter from 'events'
 
-import { commandResult, getCID, sanitizeConsoleArgs, trackNetworkIntercepts } from './utils.js'
+import { commandResult, getCID, sanitizeConsoleArgs } from './utils.js'
+import { trackNetworkIntercepts } from './intercepts.js'
 import { WDIO_EVENT_NAME } from '../constants.js'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s

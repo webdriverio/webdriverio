@@ -4,6 +4,7 @@ import type { RespondWithOptions } from 'webdriverio'
 import { html, render } from 'lit'
 
 import { getStack } from './__fixtures__/stack.js'
+import { getOtherStack } from './__fixtures__/otherStack.js'
 
 const CORS_PARAMS: RespondWithOptions = {
     headers: { 'Access-Control-Allow-Origin': '*' }
@@ -47,6 +48,25 @@ describe('WebdriverIO mock command', () => {
          * the stack maps to the source again once the mock is restored
          */
         expect(getStack()).toContain('stack.ts:6:')
+
+        /**
+         * a source map in the cache needs no request, so it maps during a mock
+         */
+        const cachedMock = await browser.mock('*/api/*')
+        try {
+            expect(getStack()).toContain('stack.ts:6:')
+        } finally {
+            await cachedMock.restore()
+        }
+    })
+
+    it('maps a stack while a mock intercepts requests of another origin only', async () => {
+        const apiMock = await browser.mock('https://api.webdriver.io/api/*')
+        try {
+            expect(getOtherStack()).toContain('otherStack.ts:6:')
+        } finally {
+            await apiMock.restore()
+        }
     })
 
     it('supports binary responses without a global Buffer', async () => {
