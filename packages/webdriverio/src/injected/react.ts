@@ -32,6 +32,7 @@ export interface Fiber {
     type?: unknown
     stateNode?: any
     return?: Fiber | null
+    alternate?: Fiber | null
     child?: Fiber | null
     sibling?: Fiber | null
     memoizedProps?: unknown

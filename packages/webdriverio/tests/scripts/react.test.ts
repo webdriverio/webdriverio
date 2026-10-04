@@ -145,6 +145,27 @@ describe('waitToLoadReact', () => {
         expect(api().findFiber).toBeCalledWith()
     })
 
+    it('should stop to wait when React has rendered nothing', async () => {
+        vi.useFakeTimers()
+        api().findFiber.mockReturnValue({ tag: 3, child: null, alternate: null })
+        let loaded = false
+        const loading = waitToLoadReact().then(() => {
+            loaded = true
+        })
+
+        await vi.advanceTimersByTimeAsync(400)
+        expect(loaded).toBe(false)
+
+        /**
+         * `root.render(null)`: no child, but the root fiber has its other copy
+         */
+        api().findFiber.mockReturnValue({ tag: 3, child: null, alternate: { tag: 3 } })
+        await vi.advanceTimersByTimeAsync(200)
+        await loading
+
+        expect(loaded).toBe(true)
+    })
+
     it('should stop to wait after 5 seconds when the page has no React root', async () => {
         vi.useFakeTimers()
         api().findFiber.mockReturnValue(undefined)

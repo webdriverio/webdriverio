@@ -9,7 +9,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest
 import * as resq from 'resq'
 
 import type { Fiber, ReactNode, ReactQueryApi } from '../../src/injected/react.js'
-import { react$, react$$ } from '../../src/scripts/react.js'
+import { react$, react$$, waitToLoadReact } from '../../src/scripts/react.js'
 
 const require = createRequire(import.meta.url)
 
@@ -544,23 +544,44 @@ for (const build of BUILDS) {
 }
 
 /**
- * `waitToLoadReact` waits for a child of the root: `createRoot` marks the
- * container before the app calls `render`
+ * `waitToLoadReact` ends when the root has a child or its other copy: `createRoot`
+ * marks the container before the app calls `render`, and an app can render nothing
  */
-for (const build of BUILDS.filter((build) => build.mounts.includes('createRoot'))) {
-    it(`React ${build.version}: a createRoot root has a child only after render`, () => {
-        document.body.innerHTML = '<div id="late"></div>'
-        const { React, ReactDOM } = loadReact(build)
-        const root = ReactDOM.createRoot(byId('late'))
+for (const build of BUILDS) {
+    for (const mode of MODES) {
+        it(`React ${build.version} ${mode}: the root shows when React has rendered, also nothing`, async () => {
+            const restoreConsole = mode === 'development' ? quiet() : () => {}
+            document.body.innerHTML = '<div id="late"></div>'
+            const { React, ReactDOM } = loadReact(build, mode)
+            const update = (change: () => void) => (ReactDOM.flushSync ? ReactDOM.flushSync(change) : change())
+            const rendered = () => {
+                const root = api().findFiber()
+                return Boolean(root && (root.child || root.alternate))
+            }
+            const waitEnds = () => Promise.race([
+                waitToLoadReact().then(() => 'rendered'),
+                new Promise((resolve) => setTimeout(() => resolve('still waiting'), 1000))
+            ])
 
-        expect(api().findContainer()).toBe(byId('late'))
-        expect(api().findFiber()?.child).toBeNull()
-        ReactDOM.flushSync(() => root.render(React.createElement('p', null, 'late')))
-        expect(api().findFiber()?.child).toBeTruthy()
+            let unmount: () => void
+            if (build.mounts.includes('createRoot')) {
+                const root = ReactDOM.createRoot(byId('late'))
+                expect(rendered()).toBe(false)
+                update(() => root.render(null))
+                unmount = () => root.unmount()
+            } else {
+                update(() => ReactDOM.render(null, byId('late')))
+                unmount = () => ReactDOM.unmountComponentAtNode(byId('late'))
+            }
+            expect(api().findFiber()?.child).toBeNull()
+            expect(rendered()).toBe(true)
+            await expect(waitEnds()).resolves.toBe('rendered')
 
-        root.unmount()
-        document.body.innerHTML = ''
-    })
+            update(unmount)
+            document.body.innerHTML = ''
+            restoreConsole()
+        })
+    }
 }
 
 /**
