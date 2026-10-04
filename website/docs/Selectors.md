@@ -526,7 +526,7 @@ These commands allow you to select components off the [React VirtualDOM](https:/
 
 **Note**: The commands `react$` and `react$$` are similar in functionality, except that `react$$` will return *all* matching instances as an array of WebdriverIO elements, and `react$` will return the first found instance.
 
-The commands work with React 16 to 19, for an app that starts with `createRoot` or with `ReactDOM.render`. They read the components of the current render, so they also find components that a state change added. If the page has no React app yet, they wait up to 5 seconds for it.
+The commands work with React 16 to 19, for an app that starts with `createRoot` or with `ReactDOM.render`. They read the components of the current render, so they also find components that a state change added. If React has not rendered the app yet, they wait up to 5 seconds for it.
 
 #### Basic example
 

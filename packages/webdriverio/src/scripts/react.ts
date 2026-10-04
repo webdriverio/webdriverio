@@ -10,14 +10,17 @@ interface CustomWindow extends Window {
 declare let window: CustomWindow
 
 /**
- * Wait until the page has a React root, for at most 5 seconds as resq did. An async
- * function, so that `execute` waits for it on WebDriver Classic sessions too.
+ * Wait until React has rendered the first root of the page, for at most 5 seconds
+ * as resq did. `createRoot` marks the container before the app calls `render`, so
+ * the root must also have a child. An async function, so that `execute` waits for
+ * it on WebDriver Classic sessions too.
  */
 export const waitToLoadReact = async function waitToLoadReact () {
     return new Promise<void>((resolve) => {
         const start = Date.now()
         const check = () => {
-            if ((window.__wdioReact && window.__wdioReact.findContainer()) || Date.now() - start >= 5000) {
+            const root = window.__wdioReact && window.__wdioReact.findFiber()
+            if ((root && root.child) || Date.now() - start >= 5000) {
                 return resolve()
             }
             setTimeout(check, 200)

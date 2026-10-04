@@ -119,8 +119,9 @@ describe('waitToLoadReact', () => {
         expect(waitToLoadReact.constructor.name).toBe('AsyncFunction')
     })
 
-    it('should wait until the page has a React root', async () => {
+    it('should wait until React has rendered the root', async () => {
         vi.useFakeTimers()
+        api().findFiber.mockReturnValue(undefined)
         let loaded = false
         const loading = waitToLoadReact().then(() => {
             loaded = true
@@ -128,15 +129,25 @@ describe('waitToLoadReact', () => {
 
         await vi.advanceTimersByTimeAsync(400)
         expect(loaded).toBe(false)
-        api().findContainer.mockReturnValue(div())
+
+        /**
+         * `createRoot` marks the container before the app calls `render`
+         */
+        api().findFiber.mockReturnValue({ tag: 3, child: null })
+        await vi.advanceTimersByTimeAsync(400)
+        expect(loaded).toBe(false)
+
+        api().findFiber.mockReturnValue({ tag: 3, child: { tag: 0 } })
         await vi.advanceTimersByTimeAsync(200)
         await loading
 
         expect(loaded).toBe(true)
+        expect(api().findFiber).toBeCalledWith()
     })
 
     it('should stop to wait after 5 seconds when the page has no React root', async () => {
         vi.useFakeTimers()
+        api().findFiber.mockReturnValue(undefined)
         let loaded = false
         const loading = waitToLoadReact().then(() => {
             loaded = true

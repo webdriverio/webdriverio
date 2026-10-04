@@ -684,7 +684,7 @@ With WebDriver BiDi, a script that returns a `NodeList` (for example from `query
 
 `react$` and `react$$` now work with React 16 to 19, for an app that starts with `createRoot` or with `ReactDOM.render`. Before, `browser.react$` and `browser.react$$` failed with React 18 and later (`Could not find the root element of your application`), and in every version a result could come from the render before the last update, so a component that a state change added was not found.
 
-On a page without React, the commands now wait up to 5 seconds for a React root before they fail. Before, they failed at once, so an app that started late was not found.
+On a page where React has not rendered the app yet, the commands now wait up to 5 seconds for it before they fail. Before, they failed at once, so an app that started late was not found.
 
 The commands no longer use the [resq](https://github.com/baruchvlz/resq) library, and WebdriverIO no longer installs it. The selector rules do not change (see [React Selectors](/docs/selectors#react-selectors)), with two exceptions:
 
