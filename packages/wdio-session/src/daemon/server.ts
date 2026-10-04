@@ -26,6 +26,11 @@ export interface SessionServerOptions {
      * called after every request, e.g. to persist `lastRequestAt`
      */
     onRequest?: (req: Request) => void
+    /**
+     * called when a request that ran past its timeout no longer holds the
+     * queue, so whatever it still does can be kept from later requests
+     */
+    onAbandon?: (req: Request) => void
 }
 
 /**
@@ -51,7 +56,10 @@ export class SessionServer {
     #idleTimer?: NodeJS.Timeout
     #onIdle?: () => void
     #onRequest?: (req: Request) => void
+    #onAbandon?: (req: Request) => void
     #closed = false
+    #active = new Set<QueueItem>()
+    #sockets = new Set<net.Socket>()
 
     constructor (opts: SessionServerOptions) {
         this.socketPath = opts.socketPath
@@ -60,10 +68,11 @@ export class SessionServer {
         this.#idleTimeout = opts.idleTimeout ?? 0
         this.#onIdle = opts.onIdle
         this.#onRequest = opts.onRequest
+        this.#onAbandon = opts.onAbandon
     }
 
     get busy () {
-        return this.#running || this.#queue.length > 0
+        return this.#active.size > 0 || this.#queue.length > 0
     }
 
     listen () {
@@ -86,6 +95,8 @@ export class SessionServer {
 
     #onConnection (socket: net.Socket) {
         let buffer = ''
+        this.#sockets.add(socket)
+        socket.on('close', () => this.#sockets.delete(socket))
         socket.setEncoding('utf-8')
         socket.on('error', () => {})
         socket.on('data', (chunk: string) => {
@@ -132,15 +143,14 @@ export class SessionServer {
         if (this.#closed) {
             return Promise.resolve(errorResponse(req.id, new SessionError('SESSION_DIED', 'The session is shutting down.')))
         }
+        // `close` must work while an action hangs or the queue is full, so it doesn't wait in line
+        if (req.action === 'close' && this.#running) {
+            return new Promise((resolve) => void this.#run({ req, resolve }))
+        }
         if (this.#queue.length >= MAX_QUEUE_LENGTH) {
             return Promise.resolve(errorResponse(req.id, new SessionError('BUSY', `More than ${MAX_QUEUE_LENGTH} requests are queued for this session.`)))
         }
         return new Promise((resolve) => {
-            // `close` must work while an action hangs, so it doesn't wait in line
-            if (req.action === 'close' && this.#running) {
-                void this.#run({ req, resolve })
-                return
-            }
             this.#queue.push({ req, resolve })
             this.#next()
         })
@@ -161,7 +171,20 @@ export class SessionServer {
         this.#next()
     }
 
-    async #run ({ req, resolve }: QueueItem) {
+    async #run (item: QueueItem) {
+        // a request counts as active until it is answered
+        const active: QueueItem = {
+            req: item.req,
+            resolve: (res) => {
+                this.#active.delete(active)
+                item.resolve(res)
+            }
+        }
+        this.#active.add(active)
+        await this.#runItem(active)
+    }
+
+    async #runItem ({ req, resolve }: QueueItem) {
         const timeout = req.timeout || actionTimeout(req.action)
         let timer: NodeJS.Timeout | undefined
         const action = this.#handler(req)
@@ -188,11 +211,18 @@ export class SessionServer {
             if (timedOut) {
                 // let it finish if it's about to, but don't hold the queue for it
                 let grace: NodeJS.Timeout | undefined
-                await Promise.race([
-                    action.catch(() => {}),
-                    new Promise<void>((done) => { grace = setTimeout(done, ABANDONED_GRACE_MS) })
+                const settled = await Promise.race([
+                    action.then(() => true, () => true),
+                    new Promise<false>((done) => { grace = setTimeout(() => done(false), ABANDONED_GRACE_MS) })
                 ])
                 clearTimeout(grace)
+                if (!settled) {
+                    try {
+                        this.#onAbandon?.(req)
+                    } catch {
+                        // ignore
+                    }
+                }
             }
             try {
                 this.#onRequest?.(req)
@@ -223,6 +253,14 @@ export class SessionServer {
         clearTimeout(this.#idleTimer)
         for (const item of this.#queue.splice(0)) {
             item.resolve(errorResponse(item.req.id, reason))
+        }
+        // a request that hangs keeps its connection open, and the server would wait for it
+        for (const item of this.#active) {
+            item.resolve(errorResponse(item.req.id, reason))
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50))
+        for (const socket of this.#sockets) {
+            socket.destroy()
         }
         await new Promise<void>((resolve) => this.#server ? this.#server.close(() => resolve()) : resolve())
         if (process.platform !== 'win32') {

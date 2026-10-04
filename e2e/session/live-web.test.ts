@@ -128,10 +128,21 @@ describe('wdio session on live-web pages', () => {
             // the page stays frozen for a minute; close doesn't wait for it
             expect(Date.now() - started).toBeLessThan(30_000)
             expect((await other.run(['list', '--json'])).json.result.data.sessions).toEqual([])
+
+            // and while the click is still waiting on the frozen page
+            const reopened = await other.run(['open', 'chrome', `${server.url}/busy.html`])
+            expect(reopened.code, reopened.stderr).toBe(0)
+            const waiting = other.run(['click', 'aria/Freeze the page'])
+            await new Promise((resolve) => setTimeout(resolve, 2000))
+            const startedAgain = Date.now()
+            const closedAgain = await other.run(['close'])
+            expect(closedAgain.code, closedAgain.stderr).toBe(0)
+            expect(Date.now() - startedAgain).toBeLessThan(30_000)
+            expect((await waiting).code).not.toBe(0)
         } finally {
             await other.cleanup()
         }
-    }, 90_000)
+    }, 150_000)
 
     it('has WebGL in headless Chrome', async () => {
         await load()

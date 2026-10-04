@@ -106,20 +106,23 @@ describe('SessionServer', () => {
 
     it('moves on from a request that never finishes', async () => {
         vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+        const abandoned: string[] = []
         try {
             const s = await start(async (req) => {
                 if (req.action === 'hang') {
                     await new Promise(() => {})
                 }
                 return { text: req.action }
-            })
+            }, { onAbandon: (req) => abandoned.push(req.action) })
             const hang = s.enqueue(request(s.token, 'hang', { timeout: 20 }))
             const next = s.enqueue(request(s.token, 'next'))
             await vi.advanceTimersByTimeAsync(20)
             expect(await hang).toMatchObject({ ok: false, error: { code: 'TIMEOUT' } })
+            expect(abandoned).toEqual([])
             // the hung request may hold the queue for a short grace period only
             await vi.advanceTimersByTimeAsync(5_000)
             expect(await next).toMatchObject({ ok: true, result: { text: 'next' } })
+            expect(abandoned).toEqual(['hang'])
         } finally {
             vi.useRealTimers()
         }
@@ -138,6 +141,26 @@ describe('SessionServer', () => {
         expect(await s.enqueue(request(s.token, 'close'))).toMatchObject({ ok: true, result: { text: 'close' } })
         release()
         expect(await busy).toMatchObject({ ok: true })
+    })
+
+    it('takes close with a full queue, and answers the hung request when it closes', async () => {
+        const s = await start(async (req) => {
+            if (req.action === 'hang') {
+                await new Promise(() => {})
+            }
+            return { text: req.action }
+        })
+        const hang = s.enqueue(request(s.token, 'hang', { timeout: 60_000 }))
+        await new Promise((r) => setTimeout(r, 5))
+        const queued = Array.from({ length: MAX_QUEUE_LENGTH }, () => s.enqueue(request(s.token, 'info')))
+        expect(await s.enqueue(request(s.token, 'info'))).toMatchObject({ ok: false, error: { code: 'BUSY' } })
+        expect(await s.enqueue(request(s.token, 'close'))).toMatchObject({ ok: true, result: { text: 'close' } })
+        await s.close()
+        server = undefined
+        expect(await hang).toMatchObject({ ok: false, error: { code: 'SESSION_DIED' } })
+        for (const res of await Promise.all(queued)) {
+            expect(res).toMatchObject({ ok: false, error: { code: 'SESSION_DIED' } })
+        }
     })
 
     it('maps handler errors to error responses', async () => {

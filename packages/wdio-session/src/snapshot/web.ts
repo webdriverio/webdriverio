@@ -565,6 +565,10 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     }
 
     function walk (node: globalThis.Node): Node[] {
+        // also a scope the caller picked
+        if (isDecoy(node)) {
+            return []
+        }
         if (node.nodeType === 3) {
             const text = collapse(node.textContent)
             return text ? [{ role: 'text', name: truncate(text) }] : []

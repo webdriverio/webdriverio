@@ -271,6 +271,10 @@ function pageHead (snapshot: string, maxChars: number, file: string) {
         shown.push(line)
         size += line.length + 1
     }
+    if (!shown.length) {
+        // one line longer than the whole budget, e.g. a document with a long url
+        shown.push(`${lines[0].slice(0, maxChars - 1)}…`)
+    }
     return `${shown.join('\n')}\n… ${lines.length - shown.length} more lines in ${file}. Use \`wdio session find <text>\` or \`snapshot -i\` for the rest.`
 }
 

@@ -84,6 +84,7 @@ async function main () {
             handler: (req) => session!.dispatch(req),
             idleTimeout: plan.idleTimeout,
             onIdle: () => shutdown('idle'),
+            onAbandon: () => session?.abandon(),
             onRequest: () => {
                 const now = Date.now()
                 if (now - lastWrite > 1000) {
