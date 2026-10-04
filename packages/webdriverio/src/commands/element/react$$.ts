@@ -49,8 +49,12 @@ export function react$$(
 ): WebdriverIO.ElementArray {
     return ElementArray.fromAsyncCallback(async () => {
         const browser = await getBrowserObject(this)
-        await this.executeScript(reactScript, [])
-        await browser.execute(waitToLoadReact)
+        /**
+         * `execute` of the element runs in the context of the element, also in a frame.
+         * It gives the element as first argument, which these two scripts do not use.
+         */
+        await this.execute(reactScript)
+        await this.execute(waitToLoadReact)
         const res = await browser.execute(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             react$$Script as any, selector, props, state, this

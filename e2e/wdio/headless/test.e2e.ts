@@ -78,7 +78,8 @@ describe('main suite 1', () => {
         '/react17-render': reactApp('react17', "ReactDOM.render(h(App), document.getElementById('root'))"),
         '/react18-render': reactApp('react18', "ReactDOM.render(h(App), document.getElementById('root'))"),
         '/react18-create-root': reactApp('react18', "ReactDOM.createRoot(document.getElementById('root')).render(h(App))"),
-        '/react19-create-root': reactApp('react19', "ReactDOM.createRoot(document.getElementById('root')).render(h(App))")
+        '/react19-create-root': reactApp('react19', "ReactDOM.createRoot(document.getElementById('root')).render(h(App))"),
+        '/react-frame': '<title>React frame</title><iframe id="react-frame" src="/react18-create-root"></iframe>'
     }
     /**
      * the React builds of the `e2e` package, so the React pages need no network. They cover
@@ -728,6 +729,21 @@ describe('main suite 1', () => {
                 expect(await browser.react$('Item', { props: { color: 'green' } }).getText()).toBe('green')
             })
         }
+
+        /**
+         * the commands inject their script and wait in the context of the frame
+         */
+        it('finds the components in a frame', async function () {
+            if (!browser.isBidi) {
+                return this.skip()
+            }
+            const page = await browser.url(`${navigationOrigin}/react-frame`)
+            const frame = await page.frame({ selector: '#react-frame' })
+            await expect(frame.react$$('Item')).toBeElementsArrayOfSize(3)
+            await expect(frame.$('ul').react$$('Item')).toBeElementsArrayOfSize(3)
+            expect(await frame.react$('Item', { props: { color: 'blue' } }).getText()).toBe('blue')
+            expect(await frame.$('ul').react$('Item', { props: { color: 'red' } }).getText()).toBe('red')
+        })
     })
 
     describe('shadow root piercing', () => {

@@ -54,7 +54,11 @@ export async function react$ (
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ): Promise<WebdriverIO.Element> {
-    await this.executeScript(reactScript, [])
+    /**
+     * `execute` runs in the context of this command, also a frame of a browsing
+     * context. The protocol command `executeScript` does not follow a frame.
+     */
+    await this.execute(reactScript)
     await this.execute(waitToLoadReact)
     const res = await this.execute(
         react$Script, selector, props, state
