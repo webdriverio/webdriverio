@@ -488,6 +488,25 @@ export async function holdFrame (session: Session, frameRef: string) {
             session.set('activeContext', entered.context)
             session.set('frameStack', entered.context ? entered.stack : [])
             session.set('frame', entered.context ? entered.frame : undefined)
+            const context = entered.context
+            if (!context) {
+                return
+            }
+            /**
+             * The frame may be gone by now. The check runs in the background
+             * because the page may not answer; once it says so, and nothing
+             * has switched frames since, the session is on the top document.
+             */
+            void Promise.resolve(session.browser.browsingContextGetTree({ root: context.contextId, maxDepth: 0 })).then(
+                ({ contexts }) => contexts.length > 0,
+                (err: Error) => !/no such frame/i.test(err?.message ?? '')
+            ).then((stillThere) => {
+                if (!stillThere && session.get('activeContext') === context) {
+                    session.set('activeContext', undefined)
+                    session.set('frameStack', [])
+                    session.set('frame', undefined)
+                }
+            })
         },
         release: async () => {
             restoreNames()
