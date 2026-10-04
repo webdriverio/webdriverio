@@ -144,6 +144,18 @@ describe('wdio session on live-web pages', () => {
         }
     }, 150_000)
 
+    it('leaves the frame of an action it gave up on', async () => {
+        await load('busy-frame')
+        const page = (await run('snapshot', '-i')).stdout
+        const button = page.match(/button "Freeze for a while" \[ref=(e\d+)\]/)![1]
+        const frozen = await project.run(['click', button, '--timeout', '2000'])
+        expect(frozen.code).not.toBe(0)
+        // the page is frozen for 12s; the session gives the click up after a grace period
+        await new Promise((resolve) => setTimeout(resolve, 12_000))
+        expect((await run('info', '--json')).json.result.data.frame).toBe('top')
+        expect((await run('snapshot', '-i')).stdout).toContain('"Busy Frame Fixture"')
+    }, 60_000)
+
     it('has WebGL in headless Chrome', async () => {
         await load()
         const res = await run('exec', '-e', "JSON.stringify(await browser.execute(() => Boolean(document.getElementById('gl').getContext('webgl'))))")

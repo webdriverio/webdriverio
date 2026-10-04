@@ -470,14 +470,27 @@ export async function holdFrame (session: Session, frameRef: string) {
     session.set('activeContext', child)
     session.set('frameStack', [resolved.label])
     session.set('frame', resolved.label)
+    const restoreNames = () => {
+        if (previous) {
+            vars.names[child.contextId] = previous
+        } else {
+            delete vars.names[child.contextId]
+        }
+    }
     return {
         lines: [`const page = ${page}`, `const frame = await page.frame(page.${resolved.code})`],
+        /**
+         * Back to where the session was, without asking the browser, for an
+         * action that is given up while the page may not answer at all.
+         */
+        restore: () => {
+            restoreNames()
+            session.set('activeContext', entered.context)
+            session.set('frameStack', entered.context ? entered.stack : [])
+            session.set('frame', entered.context ? entered.frame : undefined)
+        },
         release: async () => {
-            if (previous) {
-                vars.names[child.contextId] = previous
-            } else {
-                delete vars.names[child.contextId]
-            }
+            restoreNames()
             await backToTop(session)
             /**
              * The action may have removed that frame; then the session stays

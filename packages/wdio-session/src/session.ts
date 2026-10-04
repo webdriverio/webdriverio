@@ -118,6 +118,7 @@ export class Session {
     #heldFrameGone = false
     // grows when the server gives up on a running action (see `abandon`)
     #epoch = 0
+    #restoreHeldFrame?: () => void
 
     constructor (init: SessionInit) {
         this.name = init.name
@@ -232,6 +233,9 @@ export class Session {
      */
     abandon () {
         this.#epoch++
+        // the frame the action entered for a ref goes back at once, not when it finishes
+        this.#restoreHeldFrame?.()
+        this.#restoreHeldFrame = undefined
     }
 
     async dispatch (req: Pick<Request, 'action' | 'args' | 'cwd'>): Promise<ActionResult> {
@@ -376,6 +380,7 @@ export class Session {
             return run()
         }
         const held = await holdFrame(this, frame)
+        this.#restoreHeldFrame = held.restore
         let outcome: ActionOutcome
         try {
             outcome = await run()
@@ -383,8 +388,9 @@ export class Session {
             this.#heldFrameGone = !(err instanceof SessionError) && CONTEXT_GONE.test((err as Error)?.message ?? '')
             throw err
         } finally {
-            // an abandoned action leaves the frames to the requests after it
+            // an abandoned action gave the frame back in `abandon` already
             if (epoch === this.#epoch) {
+                this.#restoreHeldFrame = undefined
                 await held.release().catch(() => {})
             }
         }
