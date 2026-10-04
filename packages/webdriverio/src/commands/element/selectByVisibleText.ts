@@ -76,9 +76,13 @@ export async function selectByVisibleText (
         const option = await getBrowserObject(this).execute(function (select: HTMLSelectElement, wanted: string) {
             const normalize = (value: string) => value.replace(/\s+/g, ' ').trim()
             return Array.from(select.options || []).find((o) => normalize(o.text) === wanted || normalize(o.label) === wanted) || null
-        }, this as unknown as HTMLSelectElement, normalized) as unknown as WebdriverIO.Element | null
-        if (option && option.elementId) {
-            return this.elementClick(option.elementId)
+        }, this as unknown as HTMLSelectElement, normalized) as unknown
+        // an element object, or a raw WebDriver element reference, depending on the protocol
+        const optionId = option && typeof option === 'object'
+            ? (option as { elementId?: string }).elementId ?? getElementFromResponse(option as Parameters<typeof getElementFromResponse>[0])
+            : undefined
+        if (optionId) {
+            return this.elementClick(optionId)
         }
     }
     await optionElement.waitForExist({
