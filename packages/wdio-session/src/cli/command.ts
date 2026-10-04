@@ -314,7 +314,7 @@ async function open (args: Record<string, unknown>, ctx: RunContext): Promise<Ac
     if (plan.platform === 'browser' && state.url && args.snapshot !== false) {
         try {
             // a large page prints its start and how to see the rest
-            const snapshot = await send(ctx.name, 'snapshot', { interactive: true, maxChars: 1500 }, { runtimeDir: ctx.runtimeDir, cwd: ctx.cwd })
+            const snapshot = await send(ctx.name, 'snapshot', { interactive: true, maxChars: 1500, $preview: true }, { runtimeDir: ctx.runtimeDir, cwd: ctx.cwd })
             page = snapshot.text ? `\n${snapshot.text}` : ''
         } catch {
             // the session is up; a failed snapshot must not fail `open`

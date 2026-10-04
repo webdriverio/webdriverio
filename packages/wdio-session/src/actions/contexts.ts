@@ -413,11 +413,22 @@ async function framesShowing (session: Session, owner: WebdriverIO.BrowsingConte
  * chromedriver then holds classic commands of the whole page.
  */
 export async function frameBySrc (session: Session, owner: WebdriverIO.BrowsingContext, element: WebdriverIO.Element) {
-    const src = await owner.execute((el: HTMLIFrameElement) => el.src, element as unknown as HTMLIFrameElement).catch(() => '')
-    if (typeof src !== 'string' || !/^https?:/.test(src)) {
+    const found = await owner.execute((el: HTMLIFrameElement) => ({
+        src: el.src,
+        // iframes of this document that load the same URL; a frame can't be told from them by it
+        same: Array.from(el.ownerDocument.querySelectorAll('iframe, frame')).filter((other) => (other as HTMLIFrameElement).src === el.src).length
+    }), element as unknown as HTMLIFrameElement).catch(() => undefined) as { src?: string, same?: number } | undefined
+    if (!found || typeof found.src !== 'string' || !/^https?:/.test(found.src) || found.same !== 1) {
         return undefined
     }
-    const matches = await framesShowing(session, owner, src).catch(() => [])
+    /**
+     * Only a child frame of this document that shows exactly that URL. A
+     * frame that redirected away from its src isn't found, rather than
+     * mistaken for another frame that happens to show the URL.
+     */
+    const { contexts } = await session.browser.browsingContextGetTree({ root: owner.contextId, maxDepth: 1 }).catch(() => ({ contexts: [] }))
+    const children = contexts.flatMap((context) => (context.children ?? []) as TreeNode[])
+    const matches = children.filter(({ url }) => withoutHash(url) === withoutHash(found.src!))
     return matches.length === 1 ? owner.frame({ id: matches[0].context }) : undefined
 }
 

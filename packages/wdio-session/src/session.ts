@@ -180,7 +180,7 @@ export class Session {
      * frame of the page navigates, which on pages full of ads is most of
      * the time, for up to the page load timeout.
      */
-    async currentUrl () {
+    async currentUrl ({ throwOnError = false } = {}) {
         if (!this.isWeb) {
             return undefined
         }
@@ -197,7 +197,11 @@ export class Session {
         }
         try {
             return await this.browser.getUrl()
-        } catch {
+        } catch (err) {
+            // `get url` and `wait --url` report the driver's error, not a missing URL
+            if (throwOnError) {
+                throw err
+            }
             return undefined
         }
     }
@@ -330,7 +334,8 @@ export class Session {
             return result
         } catch (err) {
             if (epoch !== this.#epoch) {
-                throw err instanceof SessionError && err.message.includes('given up') ? err : abandoned()
+                // a timeout says so itself (exec gives up on its code and reports what it printed)
+                throw err instanceof SessionError && (err.code === 'TIMEOUT' || err.message.includes('given up')) ? err : abandoned()
             }
             // a failed action may still have changed the page
             if (before || spec.mutation || req.action === 'exec') {

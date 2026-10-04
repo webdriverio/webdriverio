@@ -32,7 +32,8 @@ describe('wdio session output for agents', () => {
         await load('long')
         const first = (await run('snapshot', '-i', '--max-chars', '1000')).stdout
         expect(first).toMatch(/link "Item 1" \[ref=e\d+\]/)
-        const next = first.match(/`wdio session snapshot -i --offset (\d+)`/)
+        // the hint repeats the flags, the part size included
+        const next = first.match(/`wdio session snapshot -i --max-chars 1000 --offset (\d+)`/)
         expect(next, first).toBeTruthy()
         const second = (await run('snapshot', '-i', '--max-chars', '1000', '--offset', next![1])).stdout
         expect(second).not.toContain('link "Item 1" ')
