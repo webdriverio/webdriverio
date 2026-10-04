@@ -49,5 +49,9 @@ export const config: WebdriverIO.Config = {
         ui: 'bdd',
         timeout: 60000
     },
-    maxInstances: os.cpus().length - 1
+    /**
+     * Keep at least one worker. With one CPU, `length - 1` is 0, the launcher
+     * starts no worker and waits for one to end.
+     */
+    maxInstances: Math.max(1, os.cpus().length - 1)
 }
