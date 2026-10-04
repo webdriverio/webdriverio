@@ -10,18 +10,18 @@ interface CustomWindow extends Window {
 declare let window: CustomWindow
 
 /**
- * Wait until React has rendered the first root of the page, for at most 5 seconds
- * as resq did. `createRoot` marks the container before the app calls `render`, so
- * the container is not enough: the wait ends when React has committed the root,
- * also when the app renders nothing (`isRendered`). An async function, so that
- * `execute` waits for it on WebDriver Classic sessions too.
+ * Wait until React has rendered a root of the page, for at most 5 seconds as resq
+ * did. `createRoot` marks the container before the app calls `render`, so the
+ * container is not enough: the wait ends when React has committed a root, also when
+ * the app renders nothing (`isRendered`). An async function, so that `execute`
+ * waits for it on WebDriver Classic sessions too.
  */
 export const waitToLoadReact = async function waitToLoadReact () {
     return new Promise<void>((resolve) => {
         const start = Date.now()
         const check = () => {
             const api = window.__wdioReact
-            if ((api && api.isRendered(api.findFiber())) || Date.now() - start >= 5000) {
+            if ((api && api.findRoots().some(api.isRendered)) || Date.now() - start >= 5000) {
                 return resolve()
             }
             setTimeout(check, 200)
@@ -36,16 +36,20 @@ export const react$ = function react$ (
     state: Record<string, unknown>,
     reactElement?: HTMLElement
 ) {
+    /**
+     * without a scope, all roots of the page in document order
+     */
     const api = window.__wdioReact
-    const fiber = api && api.findFiber(reactElement)
-    if (!api || !fiber) {
+    const fiber = api && reactElement && api.findFiber(reactElement)
+    const fibers = !api ? [] : !reactElement ? api.findRoots() : fiber ? [fiber] : []
+    if (!api || !fibers.length) {
         throw new Error(reactElement
             ? 'Could not find instance of React in given element'
             : 'Could not find the root element of your application'
         )
     }
 
-    const [element] = api.query(selector, props || {}, state || {}, fiber) as (ReactNode | undefined)[]
+    const [element] = fibers.flatMap((fiber) => api.query(selector, props || {}, state || {}, fiber)) as (ReactNode | undefined)[]
     if (!element) {
         return { message: `React element with selector "${selector}" wasn't found` }
     }
@@ -65,9 +69,13 @@ export const react$$ = function react$$ (
     state: Record<string, unknown>,
     reactElement?: HTMLElement
 ) {
+    /**
+     * without a scope, all roots of the page in document order
+     */
     const api = window.__wdioReact
-    const fiber = api && api.findFiber(reactElement)
-    if (!api || !fiber) {
+    const fiber = api && reactElement && api.findFiber(reactElement)
+    const fibers = !api ? [] : !reactElement ? api.findRoots() : fiber ? [fiber] : []
+    if (!api || !fibers.length) {
         throw new Error(reactElement
             ? 'Could not find instance of React in given element'
             : 'Could not find the root element of your application'
@@ -81,7 +89,7 @@ export const react$$ = function react$$ (
      * browsers do not all send a node twice in the same result.
      */
     const nodes: (HTMLElement | Text)[] = []
-    for (const element of api.query(selector, props || {}, state || {}, fiber)) {
+    for (const element of fibers.flatMap((fiber) => api.query(selector, props || {}, state || {}, fiber))) {
         for (const node of [element.node].flat()) {
             if (node && !nodes.includes(node)) {
                 nodes.push(node)

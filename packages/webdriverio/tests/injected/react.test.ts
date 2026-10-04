@@ -54,8 +54,7 @@ describe('findFiber', () => {
         Object.assign(container, { __reactContainer$abc: previous })
         Object.assign(list, { __reactFiber$abc: previousList })
 
-        expect(api().findContainer()).toBe(container)
-        expect(api().findFiber()).toBe(current)
+        expect(api().findRoots()).toEqual([current])
         expect(api().findFiber(container)).toBe(current)
         expect(api().findFiber(list)).toBe(currentList)
     })
@@ -65,7 +64,7 @@ describe('findFiber', () => {
         Object.assign(container, { _reactRootContainer: { _internalRoot: fiberRoot } })
         Object.assign(list, { __reactInternalInstance$abc: previousList })
 
-        expect(api().findFiber()).toBe(current)
+        expect(api().findRoots()).toEqual([current])
         expect(api().findFiber(container)).toBe(current)
         expect(api().findFiber(list)).toBe(currentList)
     })
@@ -75,7 +74,7 @@ describe('findFiber', () => {
         Object.assign(container, { _reactRootContainer: fiberRoot })
         Object.assign(list, { __reactFiber$abc: previousList })
 
-        expect(api().findFiber()).toBe(current)
+        expect(api().findRoots()).toEqual([current])
         expect(api().findFiber(container)).toBe(current)
         expect(api().findFiber(list)).toBe(currentList)
     })
@@ -88,8 +87,19 @@ describe('findFiber', () => {
     })
 
     it('should find no root on a page without React', () => {
-        expect(api().findContainer()).toBeUndefined()
-        expect(api().findFiber()).toBeUndefined()
+        expect(api().findRoots()).toEqual([])
+    })
+
+    it('should find all roots in document order, without an unmounted one', () => {
+        const first = createTree()
+        const second = createTree()
+        const unmounted = document.createElement('div')
+        document.body.prepend(unmounted)
+        Object.assign(second.container, { __reactContainer$abc: second.previous })
+        Object.assign(first.container, { _reactRootContainer: { _internalRoot: first.fiberRoot } })
+        Object.assign(unmounted, { __reactContainer$abc: null })
+
+        expect(api().findRoots()).toEqual([first.current, second.current])
     })
 
     it('should tell a committed root from a root that has not committed', () => {
@@ -343,10 +353,11 @@ const mountApp = (mount: Mount, ReactDOM: any, ReactDOMServer: any, element: unk
 }
 
 /**
- * The nodes of the components that resq 1.11 finds, flattened as the commands
- * did. `react$` used `resq$`, which ignores `props` when `state` is also given.
+ * The nodes of the components that resq 1.11 finds in each root, flattened as the
+ * commands did. `react$` used `resq$`, which ignores `props` when `state` is also
+ * given.
  */
-const resqNodes = (root: Fiber, selector: string, props: unknown = {}, state: unknown = {}) => {
+const resqNodes = (roots: Fiber[], selector: string, props: unknown = {}, state: unknown = {}) => roots.flatMap((root) => {
     Object.assign(globalThis, { isReactLoaded: true, rootReactElement: root })
     let found: any = (resq as any).resq$$(selector)
     if (Object.keys(props as object).length) {
@@ -359,16 +370,20 @@ const resqNodes = (root: Fiber, selector: string, props: unknown = {}, state: un
      * resq nests the nodes of a fragment inside a fragment
      */
     return (found as ReactNode[]).flatMap((tree) => [tree.node].flat(Infinity).filter(Boolean))
-}
+})
 
-const ourNodes = (root: Fiber, selector: string, props: unknown = {}, state: unknown = {}) => (
+/**
+ * the query of each root, in document order, as the commands do without a scope
+ */
+const ourNodes = (roots: Fiber[], selector: string, props: unknown = {}, state: unknown = {}) => roots.flatMap((root) => (
     api().query(selector, props, state, root).flatMap((tree) => [tree.node].flat().filter(Boolean))
-)
+))
 
 /**
  * A case: what `react$$` must give, as DOM nodes found without React. The results
- * come in the order of the component tree, breadth first, as in resq: not in the
- * order of the document.
+ * come root after root, and in a root in the order of the component tree, breadth
+ * first, as in resq: not in the order of the document. The second root of the
+ * fixture has one `Item`.
  */
 interface QueryCase {
     title: string
@@ -385,11 +400,12 @@ interface QueryCase {
 
 const byId = (id: string) => document.getElementById(id) as HTMLElement
 const items = () => [...document.querySelectorAll('#root li.item')]
+const allItems = () => [...document.querySelectorAll('li.item')]
 
 const QUERY_CASES: QueryCase[] = [
-    { title: 'a function component', selector: 'Item', expected: items },
-    { title: 'a wildcard at the end', selector: 'It*', expected: items },
-    { title: 'a wildcard at the start (one or more characters)', selector: '*tem', expected: () => [...(byId('portal-item') ? [byId('portal-item')] : []), ...items()] },
+    { title: 'a function component', selector: 'Item', expected: allItems },
+    { title: 'a wildcard at the end', selector: 'It*', expected: allItems },
+    { title: 'a wildcard at the start (one or more characters)', selector: '*tem', expected: () => [...(byId('portal-item') ? [byId('portal-item')] : []), ...allItems()] },
     { title: 'a wildcard in the middle', selector: 'Me*el', expected: () => [byId('memo')] },
     { title: 'a nested selector', selector: 'List Item', expected: items },
     { title: 'a nested selector with a wildcard', selector: 'App L* It*', expected: items },
@@ -436,7 +452,7 @@ for (const build of BUILDS) {
             let restoreConsole = () => {}
 
             const update = (change: () => void) => (ReactDOM.flushSync ? ReactDOM.flushSync(change) : change())
-            const root = () => api().findFiber() as Fiber
+            const roots = () => api().findRoots()
 
             beforeAll(async () => {
                 document.body.innerHTML = '<div id="root"></div><div id="root2"></div><div id="portal"></div><div id="plain"></div>'
@@ -461,7 +477,7 @@ for (const build of BUILDS) {
                  * then, its children have no fiber, for resq as for this script.
                  */
                 if (mount === 'hydrateRoot') {
-                    await vi.waitFor(() => expect(resqNodes(root(), 'SuspenseChild')).toHaveLength(1))
+                    await vi.waitFor(() => expect(resqNodes(roots(), 'SuspenseChild')).toHaveLength(1))
                 }
             })
 
@@ -480,9 +496,9 @@ for (const build of BUILDS) {
                 const skip = (testCase.needs === 'portal' && !hasPortal) || (testCase.needs === 'suspense' && !hasSuspense)
                 it.skipIf(skip)(`finds ${testCase.title}: ${testCase.selector}`, () => {
                     const expected = testCase.expected()
-                    const nodes = ourNodes(root(), testCase.selector, testCase.props, testCase.state)
+                    const nodes = ourNodes(roots(), testCase.selector, testCase.props, testCase.state)
                     expect(nodes).toEqual(expected)
-                    expect(nodes).toEqual(resqNodes(root(), testCase.selector, testCase.props, testCase.state))
+                    expect(nodes).toEqual(resqNodes(roots(), testCase.selector, testCase.props, testCase.state))
                     expect(react$$(testCase.selector, testCase.props || {}, testCase.state || {})).toEqual(testCase.commandExpected?.() || expected)
                 })
             }
@@ -500,7 +516,7 @@ for (const build of BUILDS) {
             it('react$ applies both props and state (resq ignored props)', () => {
                 expect(react$('Header', { level: 2 }, { open: true })).toEqual({ message: 'React element with selector "Header" wasn\'t found' })
                 expect(react$('Header', { level: 1 }, { open: true })).toBe(byId('header'))
-                Object.assign(globalThis, { isReactLoaded: true, rootReactElement: root() })
+                Object.assign(globalThis, { isReactLoaded: true, rootReactElement: roots()[0] })
                 expect((resq as any).resq$('Header').byProps({ level: 2 }).byState({ open: true }).node).toBe(byId('header'))
             })
 
@@ -513,9 +529,11 @@ for (const build of BUILDS) {
                 expect(react$('Item', {}, {}, byId('list2'))).toBe(document.querySelector('#list2 li'))
             })
 
-            it('uses the first root without a scope', () => {
-                expect(api().findContainer()).toBe(byId('root'))
-                expect(react$$('Item', { color: 'other' }, {})).toEqual([])
+            it('searches all roots without a scope, in document order', () => {
+                expect(roots().map((root) => root.stateNode.containerInfo)).toEqual([byId('root'), byId('root2')])
+                expect(react$$('Item', { color: 'other' }, {})).toEqual([...document.querySelectorAll('#list2 li')])
+                expect(react$('Item', { color: 'other' }, {})).toBe(document.querySelector('#list2 li'))
+                expect(react$('Item', {}, {})).toBe(items()[0])
             })
 
             it('fails for an element that React did not render', () => {
@@ -531,7 +549,7 @@ for (const build of BUILDS) {
             it('sees the current render after each update', () => {
                 const list = byId('list')
                 update(() => controls.addItem('green'))
-                expect(react$$('Item', {}, {})).toEqual(items())
+                expect(react$$('Item', {}, {})).toEqual(allItems())
                 expect(items()).toHaveLength(4)
                 expect(react$$('Item', {}, {}, list)).toHaveLength(4)
                 expect(react$$('Item', { color: 'green' }, {})).toEqual([items()[3]])
@@ -541,7 +559,7 @@ for (const build of BUILDS) {
                 expect(react$$('Item', { color: 'red' }, {})).toEqual([items()[2]])
 
                 update(() => controls.removeItem())
-                expect(react$$('Item', {}, {})).toEqual(items())
+                expect(react$$('Item', {}, {})).toEqual(allItems())
                 expect(items()).toHaveLength(3)
                 expect(react$$('Item', { color: 'green' }, {})).toEqual([])
 
@@ -557,9 +575,9 @@ for (const build of BUILDS) {
                  */
                 update(() => controls.addItem('black'))
                 update(() => controls.addItem('white'))
-                expect(react$$('Item', {}, {})).toEqual(items())
+                expect(react$$('Item', {}, {})).toEqual(allItems())
                 expect(items()).toHaveLength(5)
-                expect(ourNodes(root(), 'Item')).toEqual(resqNodes(root(), 'Item'))
+                expect(ourNodes(roots(), 'Item')).toEqual(resqNodes(roots(), 'Item'))
             })
         })
     }
@@ -577,7 +595,7 @@ for (const build of BUILDS) {
             document.body.innerHTML = '<div id="late"></div>'
             const { React, ReactDOM } = loadReact(build, mode)
             const update = (change: () => void) => (ReactDOM.flushSync ? ReactDOM.flushSync(change) : change())
-            const rendered = () => api().isRendered(api().findFiber())
+            const rendered = () => api().findRoots().some(api().isRendered)
             const waitEnds = () => Promise.race([
                 waitToLoadReact().then(() => 'rendered'),
                 new Promise((resolve) => setTimeout(() => resolve('still waiting'), 1000))
@@ -593,7 +611,7 @@ for (const build of BUILDS) {
                 update(() => ReactDOM.render(null, byId('late')))
                 unmount = () => ReactDOM.unmountComponentAtNode(byId('late'))
             }
-            expect(api().findFiber()?.child).toBeNull()
+            expect(api().findRoots()[0].child).toBeNull()
             expect(rendered()).toBe(true)
             await expect(waitEnds()).resolves.toBe('rendered')
 
@@ -661,7 +679,7 @@ for (const build of BUILDS) {
                 expect(ids(react$$('Option', { meta: null }, {}))).toEqual(['a'])
             })
 
-            it('finds the components of a root inside another root through its container', () => {
+            it('finds the components of a root inside another root, also through its container', () => {
                 document.body.innerHTML = '<div id="app"></div>'
                 function Inner () {
                     return h('i', { id: 'inner' }, 'inner')
@@ -673,30 +691,49 @@ for (const build of BUILDS) {
                 mount(h(Inner), byId('nested'))
 
                 expect(ids(react$$('Outer', {}, {}))).toEqual(['nested'])
-                expect(ids(react$$('Inner', {}, {}))).toEqual([])
+                expect(ids(react$$('Inner', {}, {}))).toEqual(['inner'])
                 expect(ids(react$$('Inner', {}, {}, byId('nested')))).toEqual(['inner'])
+                expect(ids(react$$('Outer', {}, {}, byId('nested')))).toEqual([])
                 expect(ids(react$$('Outer', {}, {}, byId('app')))).toEqual(['nested'])
             })
 
-            it('uses the first rendered root without a scope', () => {
+            const containers = () => api().findRoots().map((root) => root.stateNode.containerInfo)
+            const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+            const waitEnds = (ms: number) => Promise.race([
+                waitToLoadReact().then(() => 'rendered'),
+                sleep(ms).then(() => 'still waiting')
+            ])
+            /**
+             * one component for the root cases: a component of the same name in a
+             * test would get another name from the compiler
+             */
+            function Entry (props: { id: string }) {
+                return h('li', { id: props.id })
+            }
+            const lateEntry = () => {
+                const loader: { load: () => void, Late?: unknown } = { load: () => {} }
+                loader.Late = React.lazy(() => new Promise((resolve) => {
+                    loader.load = () => resolve({ default: Entry })
+                }))
+                return loader
+            }
+
+            it('searches all roots without a scope, in document order', () => {
                 document.body.innerHTML = '<div id="first"></div><div id="second"></div>'
-                function Item (props: { id: string }) {
-                    return h('li', { id: props.id })
-                }
-                const unmountFirst = mount(h(Item, { id: 'one' }), byId('first'))
-                mount(h(Item, { id: 'two' }), byId('second'))
-                expect(ids(react$$('Item', {}, {}))).toEqual(['one'])
+                const unmountFirst = mount(h(Entry, { id: 'one' }), byId('first'))
+                mount(h(Entry, { id: 'two' }), byId('second'))
+                expect(containers()).toEqual([byId('first'), byId('second')])
+                expect(ids(react$$('Entry', {}, {}))).toEqual(['one', 'two'])
+                expect(ids([react$('Entry', {}, {})])).toEqual(['one'])
 
                 update(unmountFirst)
-                expect(api().findContainer()).toBe(byId('second'))
-                expect(ids(react$$('Item', {}, {}))).toEqual(['two'])
+                expect(containers()).toEqual([byId('second')])
+                expect(ids(react$$('Entry', {}, {}))).toEqual(['two'])
+                expect(ids([react$('Entry', {}, {})])).toEqual(['two'])
             })
 
-            it('uses the first rendered root without a scope, also when it renders nothing', () => {
+            it('adds nothing for a root that renders nothing', () => {
                 document.body.innerHTML = '<div id="first"></div><div id="second"></div>'
-                function Item (props: { id: string }) {
-                    return h('li', { id: props.id })
-                }
                 let renderFirst: (element: unknown) => void
                 if (build.mounts.includes('createRoot')) {
                     const root = ReactDOM.createRoot(byId('first'))
@@ -707,89 +744,103 @@ for (const build of BUILDS) {
                     renderFirst = (element) => update(() => ReactDOM.render(element, byId('first')))
                 }
                 renderFirst(null)
-                mount(h(Item, { id: 'two' }), byId('second'))
+                mount(h(Entry, { id: 'two' }), byId('second'))
 
-                expect(api().findContainer()).toBe(byId('first'))
-                expect(ids(react$$('Item', {}, {}))).toEqual([])
-                expect(react$('Item', {}, {})).toEqual({ message: 'React element with selector "Item" wasn\'t found' })
-                expect(ids(react$$('Item', {}, {}, byId('second')))).toEqual(['two'])
+                expect(containers()).toEqual([byId('first'), byId('second')])
+                expect(ids(react$$('Entry', {}, {}))).toEqual(['two'])
+                expect(ids([react$('Entry', {}, {})])).toEqual(['two'])
 
-                renderFirst(h(Item, { id: 'one' }))
-                expect(api().findContainer()).toBe(byId('first'))
-                expect(ids(react$$('Item', {}, {}))).toEqual(['one'])
+                renderFirst(h(Entry, { id: 'one' }))
+                expect(ids(react$$('Entry', {}, {}))).toEqual(['one', 'two'])
+
+                renderFirst(null)
+                expect(ids(react$$('Entry', {}, {}))).toEqual(['two'])
+            })
+
+            it.skipIf(!build.mounts.includes('createRoot'))('adds nothing for a root that has not rendered yet', () => {
+                document.body.innerHTML = '<div id="empty"></div><div id="app"></div>'
+                const root = ReactDOM.createRoot(byId('empty'))
+                unmounts.push(() => root.unmount())
+                expect(api().findRoots()[0].child).toBeNull()
+                expect(() => react$$('Entry', {}, {})).not.toThrow()
+                expect(react$$('Entry', {}, {})).toEqual([])
+
+                mount(h(Entry, { id: 'item' }), byId('app'))
+                expect(containers()).toEqual([byId('empty'), byId('app')])
+                expect(ids(react$$('Entry', {}, {}))).toEqual(['item'])
             })
 
             /**
              * A first render that suspends without a `Suspense` boundary does not
              * commit, but the root fiber already has its other copy (`alternate`).
              */
-            it.skipIf(!build.mounts.includes('createRoot'))('skips a root whose first render has suspended', async () => {
+            it.skipIf(!build.mounts.includes('createRoot'))('adds nothing for a root whose first render has suspended, and waits for it', async () => {
                 document.body.innerHTML = '<div id="first"></div><div id="second"></div>'
-                function Item (props: { id: string }) {
-                    return h('li', { id: props.id })
-                }
-                let load = () => {}
-                const Late = React.lazy(() => new Promise((resolve) => {
-                    load = () => resolve({ default: () => h(Item, { id: 'one' }) })
-                }))
+                const loader = lateEntry()
                 const root = ReactDOM.createRoot(byId('first'))
                 unmounts.push(() => root.unmount())
-                root.render(h(Late))
-                await new Promise((resolve) => setTimeout(resolve, 50))
-                expect(api().findFiber()?.alternate).toBeTruthy()
-                expect(api().findFiber()?.child).toBeNull()
+                root.render(h(loader.Late, { id: 'one' }))
+                await sleep(50)
+                expect(api().findRoots()[0].alternate).toBeTruthy()
+                expect(api().findRoots()[0].child).toBeNull()
+                await expect(waitEnds(500)).resolves.toBe('still waiting')
+                expect(react$$('Entry', {}, {})).toEqual([])
 
-                const waitEnds = () => Promise.race([
-                    waitToLoadReact().then(() => 'rendered'),
-                    new Promise((resolve) => setTimeout(() => resolve('still waiting'), 500))
-                ])
-                await expect(waitEnds()).resolves.toBe('still waiting')
+                mount(h(Entry, { id: 'two' }), byId('second'))
+                await expect(waitEnds(500)).resolves.toBe('rendered')
+                expect(ids(react$$('Entry', {}, {}))).toEqual(['two'])
 
-                mount(h(Item, { id: 'two' }), byId('second'))
-                expect(api().findContainer()).toBe(byId('second'))
-                expect(ids(react$$('Item', {}, {}))).toEqual(['two'])
-
-                load()
-                await new Promise((resolve) => setTimeout(resolve, 50))
-                expect(api().findContainer()).toBe(byId('first'))
-                expect(ids(react$$('Item', {}, {}))).toEqual(['one'])
+                loader.load()
+                await vi.waitFor(() => expect(byId('one')).not.toBeNull())
+                expect(ids(react$$('Entry', {}, {}))).toEqual(['one', 'two'])
             })
 
             it.skipIf(!build.mounts.includes('createRoot'))('waits until a suspended first render commits', async () => {
                 document.body.innerHTML = '<div id="app"></div>'
-                let load = () => {}
-                const Late = React.lazy(() => new Promise((resolve) => {
-                    load = () => resolve({ default: () => h('li', { id: 'late' }) })
-                }))
+                const loader = lateEntry()
                 const root = ReactDOM.createRoot(byId('app'))
                 unmounts.push(() => root.unmount())
-                root.render(h(Late))
-                await new Promise((resolve) => setTimeout(resolve, 50))
+                root.render(h(loader.Late, { id: 'late' }))
+                await sleep(50)
 
                 let rendered = false
                 const loading = waitToLoadReact().then(() => {
                     rendered = true
                 })
-                await new Promise((resolve) => setTimeout(resolve, 500))
+                await sleep(500)
                 expect(rendered).toBe(false)
 
-                load()
+                loader.load()
                 await loading
                 expect(byId('late')).toBeTruthy()
             })
 
-            it.skipIf(!build.mounts.includes('createRoot'))('skips a root that has not rendered yet', () => {
-                document.body.innerHTML = '<div id="empty"></div><div id="app"></div>'
-                const root = ReactDOM.createRoot(byId('empty'))
+            /**
+             * A root that rendered nothing and then has an update that suspends has
+             * pending lanes, as a first render that suspended: the wait goes on until
+             * the update commits (React keeps no field that tells if a root has
+             * committed once). The query is not affected: the root adds nothing.
+             */
+            it.skipIf(!build.mounts.includes('createRoot'))('adds nothing for a root that rendered nothing and has a suspended update', async () => {
+                document.body.innerHTML = '<div id="first"></div><div id="second"></div>'
+                const loader = lateEntry()
+                const root = ReactDOM.createRoot(byId('first'))
                 unmounts.push(() => root.unmount())
-                expect(api().findFiber()?.child).toBeNull()
+                update(() => root.render(null))
+                await expect(waitEnds(500)).resolves.toBe('rendered')
 
-                function Item () {
-                    return h('li', { id: 'item' })
-                }
-                mount(h(Item), byId('app'))
-                expect(api().findContainer()).toBe(byId('app'))
-                expect(ids(react$$('Item', {}, {}))).toEqual(['item'])
+                root.render(h(loader.Late, { id: 'one' }))
+                await sleep(50)
+                expect(api().findRoots()[0].child).toBeNull()
+                await expect(waitEnds(500)).resolves.toBe('still waiting')
+
+                mount(h(Entry, { id: 'two' }), byId('second'))
+                expect(ids(react$$('Entry', {}, {}))).toEqual(['two'])
+
+                loader.load()
+                await vi.waitFor(() => expect(byId('one')).not.toBeNull())
+                await expect(waitEnds(500)).resolves.toBe('rendered')
+                expect(ids(react$$('Entry', {}, {}))).toEqual(['one', 'two'])
             })
 
             it('finds a root in an open shadow root', () => {
@@ -801,7 +852,7 @@ for (const build of BUILDS) {
                 }
                 mount(h(Item), container)
 
-                expect(api().findContainer()).toBe(container)
+                expect(containers()).toEqual([container])
                 expect(ids(react$$('Item', {}, {}))).toEqual(['in-shadow'])
                 expect(ids(react$$('Item', {}, {}, container))).toEqual(['in-shadow'])
             })
@@ -847,7 +898,7 @@ for (const build of BUILDS) {
                 expect(ids(react$$('Deep', {}, {}))).toEqual(['deep'])
                 expect(ids(react$$('StaticName', {}, {}))).toEqual(['static'])
                 for (const selector of ['ComparedLabel', 'RawLabel', 'NiceMemo', 'NiceInput', 'Deep', 'StaticName']) {
-                    expect(ourNodes(api().findFiber() as Fiber, selector)).toEqual(resqNodes(api().findFiber() as Fiber, selector))
+                    expect(ourNodes(api().findRoots(), selector)).toEqual(resqNodes(api().findRoots(), selector))
                 }
             })
 
@@ -891,7 +942,7 @@ for (const build of BUILDS) {
                     return h('li', { id: props.id })
                 }
                 mount(h(List, { id: 'outer' }, h(Item, { id: 'i1' }), h('li', null, h(List, { id: 'inner' }, h(Item, { id: 'i2' })))), byId('app'))
-                const root = api().findFiber() as Fiber
+                const roots = api().findRoots()
 
                 expect(ids(react$$('Li.t', {}, {}))).toEqual([])
                 expect(ids(react$$('L*t', {}, {}))).toEqual(['outer', 'inner'])
@@ -899,8 +950,8 @@ for (const build of BUILDS) {
                 /**
                  * Item i2 is in both lists: the query gives it twice (as resq), react$$ once
                  */
-                expect(ids(ourNodes(root, 'List Item'))).toEqual(['i1', 'i2', 'i2'])
-                expect(ourNodes(root, 'List Item')).toEqual(resqNodes(root, 'List Item'))
+                expect(ids(ourNodes(roots, 'List Item'))).toEqual(['i1', 'i2', 'i2'])
+                expect(ourNodes(roots, 'List Item')).toEqual(resqNodes(roots, 'List Item'))
                 expect(ids(react$$('List Item', {}, {}))).toEqual(['i1', 'i2'])
             })
 

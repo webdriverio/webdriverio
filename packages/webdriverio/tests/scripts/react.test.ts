@@ -9,7 +9,7 @@ const div = () => global.document.createElement('div')
 
 beforeEach(() => {
     (global.window as any).__wdioReact = {
-        findContainer: vi.fn(),
+        findRoots: vi.fn().mockReturnValue([fiber]),
         findFiber: vi.fn().mockReturnValue(fiber),
         isRendered: vi.fn().mockReturnValue(false),
         query: vi.fn().mockReturnValue([])
@@ -60,6 +60,17 @@ describe('react$', () => {
         api().query.mockReturnValue([{ node: null }])
         expect(react$('Test', {}, {})).toBeNull()
     })
+
+    it('should search each root without a scope, in order, and return the first match', () => {
+        const roots = [{ tag: 3 }, { tag: 3 }]
+        const found = div()
+        api().findRoots.mockReturnValue(roots)
+        api().query.mockImplementation((_: string, __: unknown, ___: unknown, root: unknown) => root === roots[1] ? [{ node: found }] : [])
+
+        expect(react$('Test', {}, {})).toBe(found)
+        expect(api().query.mock.calls.map((call: unknown[]) => call[3])).toEqual(roots)
+        expect(api().findFiber).not.toBeCalled()
+    })
 })
 
 describe('react$$', () => {
@@ -83,6 +94,17 @@ describe('react$$', () => {
         expect(react$$('Test', {}, {})).toEqual(nodes)
     })
 
+    it('should give the nodes of each root without a scope, root after root', () => {
+        const roots = [{ tag: 3 }, { tag: 3 }]
+        const nodes = [div(), div(), div()]
+        api().findRoots.mockReturnValue(roots)
+        api().query.mockImplementation((_: string, __: unknown, ___: unknown, root: unknown) => (
+            root === roots[0] ? [{ node: nodes[0] }, { node: nodes[1] }] : [{ node: nodes[2] }]
+        ))
+
+        expect(react$$('Test', {}, {})).toEqual(nodes)
+    })
+
     it('should flatten the nodes of fragments', () => {
         const nodes = [div(), div(), div(), div()]
         api().query.mockReturnValue([
@@ -95,7 +117,7 @@ describe('react$$', () => {
 
 describe('missing React', () => {
     it('should fail when the page has no React root', () => {
-        api().findFiber.mockReturnValue(undefined)
+        api().findRoots.mockReturnValue([])
 
         expect(() => react$('Test', {}, {})).toThrow('Could not find the root element of your application')
         expect(() => react$$('Test', {}, {})).toThrow('Could not find the root element of your application')
@@ -120,9 +142,9 @@ describe('waitToLoadReact', () => {
         expect(waitToLoadReact.constructor.name).toBe('AsyncFunction')
     })
 
-    it('should wait until React has rendered the root', async () => {
+    it('should wait until React has rendered a root', async () => {
         vi.useFakeTimers()
-        api().findFiber.mockReturnValue(undefined)
+        api().findRoots.mockReturnValue([])
         let loaded = false
         const loading = waitToLoadReact().then(() => {
             loaded = true
@@ -134,23 +156,25 @@ describe('waitToLoadReact', () => {
         /**
          * `createRoot` marks the container before the app calls `render`
          */
-        const root = { tag: 3, child: null }
-        api().findFiber.mockReturnValue(root)
+        const roots = [{ tag: 3, child: null }, { tag: 3, child: null }]
+        api().findRoots.mockReturnValue(roots)
         await vi.advanceTimersByTimeAsync(400)
         expect(loaded).toBe(false)
-        expect(api().isRendered).toBeCalledWith(root)
+        expect(api().isRendered.mock.calls.map((call: unknown[]) => call[0])).toContain(roots[1])
 
-        api().isRendered.mockReturnValue(true)
+        /**
+         * one rendered root is enough
+         */
+        api().isRendered.mockImplementation((root: unknown) => root === roots[1])
         await vi.advanceTimersByTimeAsync(200)
         await loading
 
         expect(loaded).toBe(true)
-        expect(api().findFiber).toBeCalledWith()
     })
 
     it('should stop to wait after 5 seconds when the page has no React root', async () => {
         vi.useFakeTimers()
-        api().findFiber.mockReturnValue(undefined)
+        api().findRoots.mockReturnValue([])
         let loaded = false
         const loading = waitToLoadReact().then(() => {
             loaded = true

@@ -21,6 +21,8 @@
  * `HostRoot` tag (`3`), `stateNode.current`, `return`, `child`, `sibling`,
  * `memoizedProps`, `memoizedState`, and the `__reactFiber$`,
  * `__reactInternalInstance$`, `__reactContainer$` and `_reactRootContainer` keys.
+ * The wait also reads `alternate` and `pendingLanes` of the root (React 17 and
+ * later).
  */
 type HostNode = HTMLElement | Text
 
@@ -51,9 +53,9 @@ export interface ReactNode {
 }
 
 export interface ReactQueryApi {
-    findContainer: () => HTMLElement | undefined
+    findRoots: () => Fiber[]
+    findFiber: (scope: HTMLElement) => Fiber | undefined
     isRendered: (root?: Fiber) => boolean
-    findFiber: (scope?: HTMLElement) => Fiber | undefined
     query: (selector: string, props: unknown, state: unknown, fiber: Fiber) => ReactNode[]
 }
 
@@ -251,11 +253,13 @@ function* elementsOf (root: Document | ShadowRoot): Generator<Element> {
 }
 
 /**
- * A root that React has committed at least once, also when the app renders nothing.
- * The root fiber gets its other copy (`alternate`) when the first render starts, so
- * a first render that suspends without a `Suspense` boundary also has one: it has
- * not committed while the root has pending lanes (React 17 and later; a root of
- * React 16 commits its render at once). `waitToLoadReact` uses this rule too.
+ * For `waitToLoadReact`: a root that React has rendered, also when the app renders
+ * nothing. The root fiber gets its other copy (`alternate`) when the first render
+ * starts, so a first render that suspends without a `Suspense` boundary also has
+ * one: it has not committed while the root has pending lanes (React 17 and later;
+ * a root of React 16 commits its render at once). A root that rendered nothing and
+ * has an update pending also has pending lanes: the wait goes on until that update
+ * commits. React keeps no field that tells if a root has committed once.
  */
 const isRendered = (root?: Fiber) => Boolean(root && (
     root.child ||
@@ -263,22 +267,22 @@ const isRendered = (root?: Fiber) => Boolean(root && (
 ))
 
 /**
- * The container of the first root that React has rendered, also when it renders
- * nothing. A root of `createRoot` marks its container before `render` and keeps the
- * mark after `unmount`: without a rendered root, the first container.
+ * The current root fibers of the page, in document order, also in open shadow
+ * roots. A query without a scope searches all of them: a root that has not
+ * rendered yet, that is suspended, that renders nothing or that was unmounted adds
+ * nothing, so no rule must choose one root from a state that changes while React
+ * works. A root of `createRoot` marks its container before `render` and keeps the
+ * mark after `unmount` (with no fiber).
  */
-const findContainer = () => {
-    let first: HTMLElement | undefined
+const findRoots = () => {
+    const roots: Fiber[] = []
     for (const node of elementsOf(document)) {
-        if (!isContainer(node)) {
-            continue
+        const root = isContainer(node) ? currentRootOf(node) : undefined
+        if (root && !roots.includes(root)) {
+            roots.push(root)
         }
-        if (isRendered(currentRootOf(node))) {
-            return node as HTMLElement
-        }
-        first = first || node as HTMLElement
     }
-    return first
+    return roots
 }
 
 /**
@@ -306,16 +310,9 @@ const currentRootOf = (node: any): Fiber | undefined => {
 }
 
 /**
- * The fiber of `scope` in the current render, or the current root without a scope.
- * With more than one root, the first rendered root in document order (see
- * `findContainer`).
+ * the fiber of `scope` in the current render
  */
-const findFiber = (scope?: HTMLElement): Fiber | undefined => {
-    if (!scope) {
-        const container = findContainer()
-        return container && currentRootOf(container)
-    }
-
+const findFiber = (scope: HTMLElement): Fiber | undefined => {
     const root = currentRootOf(scope)
     if (!root || root.stateNode.containerInfo === scope) {
         return root
@@ -336,4 +333,4 @@ const findFiber = (scope?: HTMLElement): Fiber | undefined => {
     }
 }
 
-;(window as unknown as { __wdioReact?: ReactQueryApi }).__wdioReact = { findContainer, findFiber, isRendered, query }
+;(window as unknown as { __wdioReact?: ReactQueryApi }).__wdioReact = { findRoots, findFiber, isRendered, query }
