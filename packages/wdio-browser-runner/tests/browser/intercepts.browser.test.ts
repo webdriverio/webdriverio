@@ -63,6 +63,10 @@ describe('guardSourceMapLookups with source-map-support', () => {
     })
 
     it('maps a file it mapped before without a request while an intercept is active', () => {
+        window.__wdioNetworkIntercepts__ = new Map()
+        expect(getStack()).toContain(MAPPED_FRAME)
+        requests = []
+
         window.__wdioNetworkIntercepts__ = new Map([['intercept-1', [{ type: 'pattern' }]]])
         expect(getStack()).toContain(MAPPED_FRAME)
         expect(requests).toEqual([])
