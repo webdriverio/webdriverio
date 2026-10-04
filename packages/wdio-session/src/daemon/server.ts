@@ -11,7 +11,7 @@ import type { ActionResult, Request, Response } from '../types.js'
 
 const log = logger('@wdio/session:server')
 
-export type RequestHandler = (req: Request) => Promise<ActionResult>
+export type RequestHandler = (req: Request, opts?: { timeout: number }) => Promise<ActionResult>
 
 export interface SessionServerOptions {
     socketPath: string
@@ -187,7 +187,8 @@ export class SessionServer {
     async #runItem ({ req, resolve }: QueueItem) {
         const timeout = req.timeout || actionTimeout(req.action)
         let timer: NodeJS.Timeout | undefined
-        const action = this.#handler(req)
+        // an action that can report its own timeout (exec) learns it here
+        const action = this.#handler(req, { timeout })
         let timedOut = false
         try {
             const result = await Promise.race([

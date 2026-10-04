@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Findable Fixture</title>
+</head>
+<body>
+    <h1>Air quality</h1>
+    <h2>SO <span>2</span> Excellent</h2>
+    <button type="button" onclick="document.getElementById('more').style.display = 'block'">More terms</button>
+    <div id="more" style="display: none">
+        <button type="button">Fall 2023</button>
+    </div>
+    <fieldset>
+        <legend>Term</legend>
+        <button type="button">Show more</button>
+    </fieldset>
+    <fieldset>
+        <legend>Subject</legend>
+        <button type="button">Show more</button>
+    </fieldset>
+    <button type="button" id="add" onclick="document.getElementById('status').textContent = 'Added to cart'">Add</button>
+    <p id="status">Nothing yet</p>
+</body>
+</html>

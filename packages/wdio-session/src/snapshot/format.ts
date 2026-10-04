@@ -45,11 +45,17 @@ function count (node: SnapshotNode): number {
 }
 
 /**
- * Keep interactive nodes and the landmarks around them.
+ * Named containers kept around their controls, so that two "Show more"
+ * buttons of a filter sidebar read as `group "Term"` and `group "Subject"`.
+ */
+const NAMED_GROUPS = new Set(['group', 'radiogroup', 'tablist', 'toolbar', 'menu', 'menubar', 'listbox', 'tree'])
+
+/**
+ * Keep interactive nodes and the landmarks and named groups around them.
  */
 export function onlyInteractive (node: SnapshotNode): SnapshotNode[] {
     const children = (node.children || []).flatMap(onlyInteractive)
-    if (node.interactive || node.role === 'document' || (LANDMARKS.has(node.role) && (children.length || node.ref))) {
+    if (node.interactive || node.role === 'document' || (LANDMARKS.has(node.role) && (children.length || node.ref)) || (NAMED_GROUPS.has(node.role) && node.name && children.length)) {
         return [{ ...node, children }]
     }
     return children
