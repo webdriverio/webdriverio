@@ -461,6 +461,16 @@ describe('fill on inputs that are not typed into', () => {
         expect(keys).toEqual(['ArrowRight', 'ArrowLeft'])
     })
 
+    it('records the repair when the steps did not come back to the value', async () => {
+        const values = ['40', '39']
+        const setValue = vi.fn()
+        const element = { execute: async () => ({ kind: 'direct', type: 'range' }), setValue, getValue: async () => values.shift() ?? '40' }
+        const browser = { execute: async () => false, keys: async () => {} }
+        const result = await fill(refSession(element, browser), { target: 'e2', text: '40', $cwd: '/' })
+        expect(setValue).toHaveBeenLastCalledWith('40')
+        expect(result.code!.split('\n').at(-1)).toBe('await $(\'role/textbox[name="Name"]\').setValue(\'40\')')
+    })
+
     it('steps a range input at its maximum the other way', async () => {
         const element = { execute: async () => ({ kind: 'direct', type: 'range' }), setValue: async () => {}, getValue: async () => '100' }
         const keys: string[] = []
