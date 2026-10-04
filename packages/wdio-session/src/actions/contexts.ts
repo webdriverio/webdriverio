@@ -479,9 +479,13 @@ export async function holdFrame (session: Session, frameRef: string) {
                 delete vars.names[child.contextId]
             }
             await backToTop(session)
-            // the action may have removed that frame; then the session stays on the top document
+            /**
+             * The action may have removed that frame; then the session stays
+             * on the top document. Only "no such frame" says it is gone, any
+             * other failure of the lookup keeps the user's frame.
+             */
             const stillThere = entered.context && await session.browser.browsingContextGetTree({ root: entered.context.contextId, maxDepth: 0 })
-                .then(({ contexts }) => contexts.length > 0, () => false)
+                .then(({ contexts }) => contexts.length > 0, (err: Error) => !/no such frame/i.test(err?.message ?? ''))
             if (entered.context && stillThere) {
                 session.set('activeContext', entered.context)
                 session.set('frameStack', entered.stack)
