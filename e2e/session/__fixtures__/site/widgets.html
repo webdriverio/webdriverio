@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Widgets Fixture</title>
+    <style>
+        .tabs li { cursor: pointer; display: inline-block; margin-right: 8px; }
+        .swatch { position: relative; display: inline-block; }
+        .swatch input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; }
+        .swatch span { display: inline-block; width: 40px; height: 20px; background: black; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Widgets</h1>
+    <!-- chart range tabs: no role, no listener of their own (handled at the document), only a pointer cursor -->
+    <ul class="tabs">
+        <li data-range="1D">1D</li>
+        <li data-range="1Y">1Y</li>
+        <li data-range="more">More</li>
+    </ul>
+    <p id="range">Range: 1D</p>
+    <div role="tooltip" id="more" hidden>
+        <ul class="tabs"><li data-range="5Y">5 years</li><li data-range="All">All</li></ul>
+    </div>
+
+    <table>
+        <tr><th>No foreign transaction fees</th><td><svg role="img" aria-labelledby="ok-title" width="10" height="10"><title id="ok-title">Benefit available</title><circle cx="5" cy="5" r="5"/></svg></td></tr>
+    </table>
+
+    <label class="swatch"><input type="checkbox" id="black"><span>Black</span></label>
+
+    <label for="age">Retirement age</label>
+    <input type="range" id="age" min="50" max="80" value="75">
+    <p id="age-result">Retire at 75</p>
+
+    <shadow-select></shadow-select>
+    <p id="condition">Condition: any</p>
+
+    <label for="where">Location</label>
+    <input id="where" value="Phoenix, AZ">
+
+    <script>
+        document.addEventListener('click', (event) => {
+            const tab = event.target.closest('[data-range]')
+            if (!tab) return
+            if (tab.dataset.range === 'more') {
+                document.getElementById('more').hidden = false
+                return
+            }
+            document.getElementById('range').textContent = `Range: ${tab.dataset.range}`
+        })
+        // a slider widget that keeps its own state and only listens to the keyboard
+        const age = document.getElementById('age')
+        age.addEventListener('keyup', () => {
+            document.getElementById('age-result').textContent = `Retire at ${age.value}`
+        })
+        customElements.define('shadow-select', class extends HTMLElement {
+            connectedCallback () {
+                const root = this.attachShadow({ mode: 'open' })
+                root.innerHTML = '<label>Condition <select><option>Any</option><option> New </option><option value="used"> Used </option></select></label>'
+                root.querySelector('select').addEventListener('change', (event) => {
+                    document.getElementById('condition').textContent = `Condition: ${event.target.selectedOptions[0].text.trim()}`
+                })
+            }
+        })
+        // a controlled field: its framework puts the value back when it is cleared
+        const where = document.getElementById('where')
+        where.addEventListener('change', () => {
+            if (where.value === '') {
+                where.value = 'Phoenix, AZ'
+            }
+        })
+    </script>
+</body>
+</html>

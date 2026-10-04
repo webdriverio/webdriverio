@@ -452,9 +452,21 @@ describe('fill on inputs that are not typed into', () => {
             setValue,
             getValue: async () => '65'
         }
-        const result = await fill(refSession(element), { target: 'e2', text: '67', $cwd: '/' })
+        const keys: string[] = []
+        const browser = { execute: async () => false, keys: async (key: string) => keys.push(key) }
+        const result = await fill(refSession(element, browser), { target: 'e2', text: '67', $cwd: '/' })
         expect(setValue).toHaveBeenCalledWith('67')
         expect(result.text).toBe('Set e2 (textbox "Name") to 65 (it took 65: the nearest allowed value)')
+        // one step away and back, so a slider widget sees the keyboard set it
+        expect(keys).toEqual(['ArrowRight', 'ArrowLeft'])
+    })
+
+    it('steps a range input at its maximum the other way', async () => {
+        const element = { execute: async () => ({ kind: 'direct', type: 'range' }), setValue: async () => {}, getValue: async () => '100' }
+        const keys: string[] = []
+        const browser = { execute: async () => true, keys: async (key: string) => keys.push(key) }
+        await fill(refSession(element, browser), { target: 'e2', text: '100', $cwd: '/' })
+        expect(keys).toEqual(['ArrowLeft', 'ArrowRight'])
     })
 
     it('rejects a date the input does not take', async () => {

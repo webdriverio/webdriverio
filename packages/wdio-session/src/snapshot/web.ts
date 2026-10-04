@@ -44,6 +44,8 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         'menuitem', 'menuitemcheckbox', 'menuitemradio', 'tab', 'slider', 'spinbutton', 'treeitem'])
     const NAME_FROM_CONTENT = new Set(['button', 'link', 'heading', 'option', 'tab', 'menuitem', 'menuitemcheckbox', 'menuitemradio',
         'cell', 'gridcell', 'columnheader', 'rowheader', 'treeitem', 'tooltip', 'switch', 'checkbox', 'radio', 'legend', 'caption'])
+    /** longest text that names a clickable element without a role; longer text is a card, not a label */
+    const MAX_TEXT_NAME = 80
     const VALUE_ROLES = new Set(['textbox', 'searchbox', 'combobox', 'spinbutton', 'slider'])
     const PRUNE = new Set(['generic', 'presentation', 'none'])
     const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'HEAD', 'META', 'LINK', 'TITLE', 'SVG'])
@@ -191,6 +193,14 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         const inline = getComputedStyle(el).display.startsWith('inline')
         const inner = childNodesOf(el).map((c) => textContentOf(c, skipControls)).join('')
         return inline ? inner : ` ${inner} `
+    }
+
+    /** the text of the elements `aria-labelledby` names, as they are (an svg `<title>` included) */
+    function labelledBy (el: Element) {
+        return (el.getAttribute('aria-labelledby') || '').split(/\s+/).filter(Boolean).map((id) => {
+            const ref = (el.getRootNode() as Document).getElementById?.(id) || document.getElementById(id)
+            return ref?.textContent || ''
+        }).join(' ')
     }
 
     function accessibleName (el: Element, role: string): string {
@@ -359,7 +369,21 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         if (recorded?.clickable.has(el) && !delegatesToChildren(el)) {
             return true
         }
-        return el.hasAttribute('onclick') && getComputedStyle(el).cursor === 'pointer'
+        return (el.hasAttribute('onclick') && getComputedStyle(el).cursor === 'pointer') || pointerTarget(el)
+    }
+
+    /**
+     * The outermost element with a pointer cursor: frameworks that handle
+     * clicks at the document root (React) leave no listener on the element
+     * itself, so the cursor is what tells a chart's "1Y" tab from text.
+     * Its descendants inherit the cursor; only where it starts counts.
+     */
+    function pointerTarget (el: Element) {
+        if (el === document.body || el === document.documentElement || getComputedStyle(el).cursor !== 'pointer') {
+            return false
+        }
+        const parent = el.parentElement
+        return !parent || getComputedStyle(parent).cursor !== 'pointer'
     }
 
     /**
@@ -578,6 +602,11 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         }
         const el = node as Element
         const order = seq++
+        if (el.tagName.toUpperCase() === 'SVG') {
+            // an icon that says something (a checkmark "Benefit available") is content; decoration is not
+            const svgName = collapse(el.getAttribute('aria-label') || labelledBy(el) || el.querySelector(':scope > title')?.textContent)
+            return svgName && el.getAttribute('aria-hidden') !== 'true' && !isHidden(el) ? [{ role: 'img', name: truncate(svgName) }] : []
+        }
         if (SKIP_TAGS.has(el.tagName.toUpperCase())) {
             return []
         }
@@ -586,8 +615,14 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             return []
         }
         const role = roleOf(el)
-        const name = accessibleName(el, role)
         const interactive = isInteractive(el, role)
+        // a clickable element without a role ("1Y" in a chart's list) is named by its text, like a button
+        const namedByText = interactive && !INTERACTIVE.has(role) && !NAME_FROM_CONTENT.has(role)
+        let name = accessibleName(el, role)
+        if (!name && namedByText) {
+            const text = collapse(textContentOf(el, true))
+            name = text.length <= MAX_TEXT_NAME ? text : ''
+        }
         const out: Node = { role }
         if (name) {
             out.name = truncate(name)
@@ -655,12 +690,14 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             return [out]
         }
 
-        const leaf = NAME_FROM_CONTENT.has(role) && Boolean(name) && ![...el.querySelectorAll('*')].some((c) => {
+        const leaf = (NAME_FROM_CONTENT.has(role) || namedByText) && Boolean(name) && ![...el.querySelectorAll('*')].some((c) => {
             if (isDecoy(c)) {
                 return false
             }
             const r = roleOf(c)
-            return INTERACTIVE.has(r) || c.tagName === 'INPUT' || c.tagName === 'SELECT' || c.tagName === 'TEXTAREA'
+            return INTERACTIVE.has(r) || c.tagName === 'INPUT' || c.tagName === 'SELECT' || c.tagName === 'TEXTAREA' ||
+                // the options of a popover ("24 hours 1 week 1 year") are each clickable, not one name
+                (!INTERACTIVE.has(role) && pointerTarget(c))
         })
         const children = leaf || VALUE_ROLES.has(role) || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA'
             ? []

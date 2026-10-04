@@ -356,6 +356,19 @@ async function slideTo (session: Session, target: ResolvedTarget, want: number):
     return { reached: current, pressed }
 }
 
+/** focus a range input and step it away and back, toward the side it can move to */
+async function nudge (session: Session, target: ResolvedTarget) {
+    const atMax = await scopeOf(session).execute((el: HTMLInputElement) => {
+        el.focus()
+        return el.max !== '' && Number(el.value) >= Number(el.max)
+    }, target.element as unknown as HTMLInputElement).catch(() => false)
+    const keys = atMax ? ['ArrowLeft', 'ArrowRight'] : ['ArrowRight', 'ArrowLeft']
+    for (const key of keys) {
+        await session.browser.keys(key)
+    }
+    return keys
+}
+
 /** replayable code for the keys `slideTo` pressed: one loop per run of the same key */
 function pressCode (keys: string[]) {
     const runs: [string, number][] = []
@@ -384,6 +397,19 @@ export const fill: ActionFn = async (session, args) => {
             throw usage(`${target.label} did not take ${JSON.stringify(value)}; it has ${JSON.stringify(took)}.`, `A ${kind.type} input takes values like ${FORMATS[kind.type!] ?? 'its own format'}.`)
         }
         const note = took !== value ? ` (it took ${took}: the nearest allowed value)` : ''
+        if (kind.type === 'range') {
+            /**
+             * A slider widget can keep its own state and miss a value set
+             * from code. One step away and back with the keyboard ends on the
+             * same value, with the key and input events a user's drag makes.
+             */
+            const keys = await nudge(session, target)
+            return done(`Set ${target.label} to ${took}${note}`, [
+                `await ${target.code}.setValue(${quote(value)})`,
+                `await browser.execute((el) => el.focus(), await ${target.code})`,
+                ...keys.map((key) => `await browser.keys(${quote(key)})`)
+            ].join('\n'))
+        }
         return done(`Set ${target.label} to ${took}${note}`, `await ${target.code}.setValue(${quote(value)})`)
     }
     if (kind.kind === 'slider') {
@@ -455,14 +481,17 @@ async function clickPoint (target: ResolvedTarget): Promise<ClickPoint> {
          * host only the host, so an overlay on the page is found one level up.
          * Asked of each (possibly closed) root, hits are not retargeted.
          */
+        const isRange = (node: Element) => Element.prototype.matches.call(node, 'input[type="range"]')
         const coverAt = (node: Element, x: number, y: number): Element | undefined => {
             let target: Element = node
             while (true) {
                 const root = target.getRootNode() as Document | ShadowRoot
                 const hit = root.elementFromPoint(x, y)
                 const label = hit ? Element.prototype.closest.call(hit, 'label') as HTMLLabelElement | null : null
+                // the other thumb of a two-handle slider lies over this one by design
+                const otherThumb = isRange(target) && hit && isRange(hit) && hit.parentElement === target.parentElement
                 // a label of the element, or one that wraps it, forwards the click
-                if (hit && hit !== target && !target.contains(hit) && !Node.prototype.contains.call(hit, target) && label?.control !== target) {
+                if (hit && hit !== target && !otherThumb && !target.contains(hit) && !Node.prototype.contains.call(hit, target) && label?.control !== target) {
                     return hit
                 }
                 if (!(root instanceof ShadowRoot)) {
@@ -658,10 +687,39 @@ export const select: ActionFn = async (session, args) => {
         await target.element.selectByAttribute('value', value)
         call = `selectByAttribute('value', ${quote(value)})`
     } else {
-        await target.element.selectByVisibleText(value)
-        call = `selectByVisibleText(${quote(value)})`
+        const text = await optionText(session, target, value)
+        await target.element.selectByVisibleText(text)
+        call = `selectByVisibleText(${quote(text)})`
+        return done(`Selected ${JSON.stringify(text)} in ${target.label}`, `await ${target.code}.${call}`)
     }
     return done(`Selected ${JSON.stringify(value)} in ${target.label}`, `await ${target.code}.${call}`)
+}
+
+/**
+ * The text of the option `wanted` means in a native select: as given, or
+ * apart from case and spacing ("used" for "Used"). Without a match the
+ * options are listed at once, instead of waiting for one that never comes.
+ */
+async function optionText (session: Session, target: ResolvedTarget, wanted: string) {
+    const found = await scopeOf(session).execute((el: HTMLSelectElement, value: string) => {
+        if (el.tagName !== 'SELECT') {
+            return undefined
+        }
+        const normalize = (text: string) => text.replace(/\s+/g, ' ').trim()
+        const options = Array.from(el.options).map((o) => normalize(o.text))
+        const exact = options.find((o) => o === normalize(value))
+        const loose = options.find((o) => o.toLowerCase() === normalize(value).toLowerCase()) ??
+            Array.from(el.options).find((o) => o.value.toLowerCase() === value.trim().toLowerCase())?.text
+        return { match: exact ?? (loose === undefined ? undefined : normalize(loose)), options }
+    }, target.element as unknown as HTMLSelectElement, wanted).catch(() => undefined) as { match?: string, options: string[] } | undefined
+    if (!found) {
+        return wanted
+    }
+    if (found.match === undefined) {
+        const list = found.options.slice(0, 30).map((o) => JSON.stringify(o)).join(', ')
+        throw usage(`${target.label} has no option ${JSON.stringify(wanted)}.`, `Its options: ${list}${found.options.length > 30 ? ', …' : ''}.`)
+    }
+    return found.match
 }
 
 export const upload: ActionFn = async (session, args) => {
@@ -692,8 +750,28 @@ export const setChecked: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)
     const want = args.uncheck !== true
     const selected = await target.element.isSelected()
+    let viaLabel = false
     if (selected !== want) {
-        await clickChecked(session, target)
+        try {
+            await clickChecked(session, target)
+        } catch (err) {
+            /**
+             * Styled checkboxes and swatches hide the input behind (or inside)
+             * their label: the input reports covered or not interactable,
+             * while a click on the label is what toggles it for a user.
+             */
+            viaLabel = await scopeOf(session).execute((el: HTMLInputElement) => {
+                const label = el.labels?.[0] || el.closest('label')
+                if (!label || !['checkbox', 'radio'].includes(el.type)) {
+                    return false
+                }
+                label.click()
+                return true
+            }, target.element as unknown as HTMLInputElement).catch(() => false) as boolean
+            if (!viaLabel) {
+                throw err
+            }
+        }
     }
     const after = await target.element.isSelected()
     if (after !== want) {
@@ -703,8 +781,11 @@ export const setChecked: ActionFn = async (session, args) => {
         )
     }
     const verb = want ? 'Checked' : 'Unchecked'
-    const guard = `if ((await ${target.code}.isSelected()) !== ${want}) {\n    await ${target.code}.click()\n}`
-    return done(`${verb} ${target.label}`, guard)
+    const toggle = viaLabel
+        ? `await browser.execute((el) => (el.labels[0] || el.closest('label')).click(), await ${target.code})`
+        : `await ${target.code}.click()`
+    const guard = `if ((await ${target.code}.isSelected()) !== ${want}) {\n    ${toggle}\n}`
+    return done(`${verb} ${target.label}${viaLabel ? ' (with its label: the box itself is covered)' : ''}`, guard)
 }
 
 export const check: ActionFn = async (session, args) => setChecked(session, { ...args, uncheck: false })
