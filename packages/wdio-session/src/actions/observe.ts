@@ -120,10 +120,12 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
     for (const node of frames.slice(0, MAX_INLINE_FRAMES)) {
         const frameRef = node.ref!
         let collecting = false
+        // a lookup given up on must not start collecting later, alongside the next frame
+        let givenUp = false
         const result = await withTimeout((async () => {
             const element = await session.refs.resolve(session.browser, frameRef)
             const child = await frameBySrc(session, owner, element) ?? (busy ? undefined : await frameContext(session, owner, element, frameRef))
-            if (!child) {
+            if (!child || givenUp) {
                 return undefined
             }
             collecting = true
@@ -154,6 +156,7 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
             break
         }
         if (result === TIMED_OUT) {
+            givenUp = true
             busy = true
             continue
         }
@@ -291,18 +294,24 @@ function pageOf (lines: string[], from: number, maxChars: number) {
         shown.push(line)
         size += line.length + 1
     }
+    let cut: { line: number, length: number } | undefined
     if (!shown.length) {
-        // one line longer than the whole budget (a link with a long url) is printed whole: cut, its rest would be lost
-        shown.push(lines[start])
+        // one line longer than the whole budget (a link with a long url): its start, and how to read all of it
+        shown.push(`${lines[start].slice(0, maxChars - 1)}…`)
+        cut = { line: start + 1, length: lines[start].length }
     }
-    return { text: shown.join('\n'), from: start + 1, to: start + shown.length }
+    return { text: shown.join('\n'), from: start + 1, to: start + shown.length, cut }
 }
 
-function pageFooter (page: { from: number, to: number }, total: number, file: string, flags: string) {
+function pageFooter (page: { from: number, to: number, cut?: { line: number, length: number } }, total: number, file: string, flags: string) {
     const range = `lines ${page.from}–${page.to} of ${total}`
-    return page.to < total
+    const whole = page.cut
+        ? ` Line ${page.cut.line} is cut; \`wdio session snapshot${flags.replace(/ --max-chars \d+/, '')} --max-chars ${page.cut.length + 1} --offset ${page.cut.line}\` shows all of it.`
+        : ''
+    const main = (page.to < total
         ? `… ${range}. \`wdio session snapshot${flags} --offset ${page.to + 1}\` shows the next part, \`find <text>\` searches all of it. Full snapshot: ${file}`
-        : `… ${range}. Full snapshot: ${file}`
+        : `… ${range}. Full snapshot: ${file}`)
+    return whole ? `${main}\n${whole.trim()}` : main
 }
 
 /** the flags that took this snapshot, to take the next part the same way */
