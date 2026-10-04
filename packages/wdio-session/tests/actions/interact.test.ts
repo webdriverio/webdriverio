@@ -310,6 +310,14 @@ describe('click', () => {
     })
 })
 
+describe('click at coordinates', () => {
+    it('refuses inside a frame: the coordinates are the page\'s', async () => {
+        const session = clickSession({}, { action: () => { throw new Error('should not click') } })
+        session.get = (key: string) => key === 'frame' ? 'e5' : undefined
+        await expect(click(session, { target: '120,80', $cwd: '/' })).rejects.toThrow('Coordinates are viewport pixels of the page, and the session is inside a frame.')
+    })
+})
+
 describe('navigate', () => {
     it('does not start a navigation again while the first is still loading', async () => {
         vi.useFakeTimers()
@@ -356,6 +364,25 @@ describe('navigate', () => {
 })
 
 describe('press --times', () => {
+    it('presses no key after the action reported back', async () => {
+        vi.useFakeTimers()
+        try {
+            let pressed = 0
+            // every key press makes the page load for 15 s
+            const keys = () => new Promise<void>((resolve) => setTimeout(() => {
+                pressed++
+                resolve()
+            }, 15_000))
+            const result = press(clickSession({}, { keys }), { keys: 'Enter', times: 5, $cwd: '/' })
+            await vi.advanceTimersByTimeAsync(120_000)
+            expect((await result).text).toContain('The page is still loading')
+            // the 20 s limit ends the action during the second press: it finishes, no third starts
+            expect(pressed).toBe(2)
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
     it('presses a key the given number of times', async () => {
         const keys: unknown[] = []
         const result = await press(clickSession({}, { keys: async (k: unknown) => keys.push(k) }), { keys: 'ArrowRight', times: 3, $cwd: '/' })

@@ -417,7 +417,10 @@ export function inViewport (node: SnapshotNode, width: number, height: number): 
  */
 export async function describeViewport (session: Session): Promise<string> {
     const [width, height] = await scopeOf(session).execute(() => [window.innerWidth, window.innerHeight]) as [number, number]
+    // a report, not a snapshot the user took: `diff` keeps comparing against theirs
+    const baseline = session.lastSnapshot
     const { tree } = await takeSnapshot(session, { boxes: true })
+    session.lastSnapshot = baseline
     const view = inViewport(tree, width, height)
     if (!view) {
         return ''
@@ -459,8 +462,11 @@ export const read: ActionFn = async (session, args) => {
         const flush = (prefix = '') => {
             const text = line.replace(/\s+/g, ' ').trim()
             if (text && size < limit) {
-                out.push(prefix + text)
-                size += prefix.length + text.length + 1
+                // one long paragraph is cut too, not only the lines after it
+                const room = Math.max(0, limit - size - prefix.length)
+                const kept = text.length > room ? `${text.slice(0, room)}…` : text
+                out.push(prefix + kept)
+                size += prefix.length + kept.length + 1
             }
             line = ''
         }

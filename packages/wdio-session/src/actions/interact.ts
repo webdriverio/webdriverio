@@ -213,6 +213,10 @@ async function clickAt (session: Session, x: number, y: number, args: ActionArgs
     if (args.double || args.right || args.newTab) {
         throw usage('Coordinates take a plain click.', 'Click a ref or selector for --double, --right or --new-tab.')
     }
+    // they are viewport pixels of the page, as in a screenshot, not of a frame inside it
+    if (session.get?.('frame')) {
+        throw usage('Coordinates are viewport pixels of the page, and the session is inside a frame.', 'Run `wdio session frame top` first, or click a ref from the frame.')
+    }
     const what = await scopeOf(session).execute(function (px: number, py: number) {
         const el = document.elementFromPoint(px, py)
         if (!el) {
@@ -598,11 +602,21 @@ export const press: ActionFn = async (session, args) => {
         : `await browser.keys([${keys.map(quote).join(', ')}])`
     const code = times === 1 ? once : `for (let i = 0; i < ${times}; i++) {\n    ${once}\n}`
     const label = `Pressed ${keys.join('+')}${times === 1 ? '' : ` ${times} times`}`
-    const text = await withNavigation(session, label, async () => {
-        for (let i = 0; i < times; i++) {
-            await session.browser.keys(keys.length === 1 ? keys[0] : keys)
-        }
+    // once the action reports back (also when a page is still loading) no key may follow
+    let stopped = false
+    let pressing: Promise<void> = Promise.resolve()
+    const text = await withNavigation(session, label, () => {
+        pressing = (async () => {
+            for (let i = 0; i < times && !stopped; i++) {
+                await session.browser.keys(keys.length === 1 ? keys[0] : keys)
+            }
+        })()
+        return pressing
+    }).finally(() => {
+        stopped = true
     })
+    // a key that was already on its way finishes before the next command
+    await pressing.catch(() => {})
     return done(text, code)
 }
 

@@ -121,6 +121,33 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
         usedRefs.set(String(id), el)
         return el
     })())
+    /**
+     * `$$('e12')`: a list of the one element, used like other `$$` results:
+     * awaited, indexed (`$$('e12')[0].click()`) or with array methods.
+     */
+    const chainableList = (id: string) => {
+        const list = ref(id).then((el) => [el])
+        return new Proxy(list, {
+            get (target, prop) {
+                if (prop === 'then' || prop === 'catch' || prop === 'finally') {
+                    return (target[prop] as (...a: unknown[]) => unknown).bind(target)
+                }
+                if (prop === '0') {
+                    return ref(id)
+                }
+                if (prop === 'length') {
+                    return target.then((els) => els.length)
+                }
+                return (...a: unknown[]) => target.then((els) => {
+                    const fn = (els as unknown as Record<string | symbol, unknown>)[prop]
+                    if (typeof fn !== 'function') {
+                        throw new TypeError(`$$(...).${String(prop)} is not a function`)
+                    }
+                    return (fn as (...b: unknown[]) => unknown).apply(els, a)
+                })
+            }
+        })
+    }
 
     const globals: Record<string, unknown> = {
         browser: session.browser,
@@ -132,7 +159,7 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
         },
         $$: (...args: Parameters<WebdriverIO.Browser['$$']>) => {
             const id = refSelector(args[0])
-            return id ? ref(id).then((el) => [el]) : session.browser.$$(...args)
+            return id ? chainableList(id) : session.browser.$$(...args)
         },
         expect,
         ref,
