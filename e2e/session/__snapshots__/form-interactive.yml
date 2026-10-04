@@ -1,18 +1,18 @@
 - document "Form Fixture" url=http://localhost:PORT/form.html
   - main
-    - textbox "Email" [ref=e39] [required]
-    - textbox "Password" [ref=e40] value="••••"
-    - checkbox "Remember me" [ref=e41] [checked]
-    - radio "Free" [ref=e42] [checked]
-    - radio "Pro" [ref=e43]
-    - combobox "Country" [ref=e44] value="Germany"
-    - spinbutton "Quantity" [ref=e45] value="1" [min=1] [max=9]
-    - textbox "Your message" [ref=e46]
-    - textbox "Avatar" [ref=e47]
-    - textbox "Account id" [ref=e48] value="A-1" [readonly]
-    - button "Delete account" [ref=e49] [disabled]
-    - button "Submit" [ref=e50]
-    - button "Drag me" [ref=e51]
-    - region "Drop zone" [ref=e52]
-    - textbox "Key log" [ref=e53]
-    - button "Bottom button" [ref=e54]
+    - textbox "Email" [ref=e41] [required]
+    - textbox "Password" [ref=e42] value="••••"
+    - checkbox "Remember me" [ref=e43] [checked]
+    - radio "Free" [ref=e44] [checked]
+    - radio "Pro" [ref=e45]
+    - combobox "Country" [ref=e46] value="Germany"
+    - spinbutton "Quantity" [ref=e47] value="1" [min=1] [max=9]
+    - textbox "Your message" [ref=e48]
+    - textbox "Avatar" [ref=e49]
+    - textbox "Account id" [ref=e50] value="A-1" [readonly]
+    - button "Delete account" [ref=e51] [disabled]
+    - button "Submit" [ref=e52]
+    - button "Drag me" [ref=e53]
+    - region "Drop zone" [ref=e54]
+    - textbox "Key log" [ref=e55]
+    - button "Bottom button" [ref=e56]

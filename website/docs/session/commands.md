@@ -342,6 +342,35 @@ npx wdio session click e3 && npx wdio session snapshot -i
 
 See also: [`find`](#find), [`diff`](#diff), [`screenshot`](#screenshot).
 
+## `read`
+
+Read the page text as Markdown. Applies to web.
+
+Headings, paragraphs, list items, table rows and links with their URL, from the main content when the page marks it (main, article), else the whole page; navigation, footers and hidden text are left out. Cut at --max-chars (default 6000). Use it to answer "what does the page say"; use snapshot or find for refs to act on.
+
+```sh
+npx wdio session read
+```
+
+**Flags**
+
+| Flag | Description |
+| --- | --- |
+| `--scope <value>` | Only read below this ref or selector |
+| `--max-chars <n>` | Print up to this many characters (default 6000) |
+
+**Examples**
+
+```sh
+# Read the main content
+npx wdio session read
+
+# Read one section
+npx wdio session read --scope e12
+```
+
+See also: [`find`](#find), [`snapshot`](#snapshot), [`get`](#get).
+
 ## `find`
 
 Search a fresh snapshot for text. Applies to web, native mobile, native desktop.
@@ -739,7 +768,7 @@ See also: [`find`](#find), [`is`](#is), [`get`](#get).
 
 Click an element. Applies to web, native mobile, native desktop.
 
-Prints what was clicked and, when the click navigated, the new URL. Take a new snapshot before you use refs on the next page.
+Prints what was clicked and, when the click navigated, the new URL. Take a new snapshot before you use refs on the next page. A hidden or covered element fails at once with what is in the way. `x,y` clicks a point of the viewport (pixels from the top left, as in a screenshot) for what has no ref, like a canvas or map.
 
 ```sh
 npx wdio session click <target>
@@ -749,7 +778,7 @@ npx wdio session click <target>
 
 | Name | Required | Description |
 | --- | --- | --- |
-| `target` | yes | Ref (e12) or WebdriverIO selector |
+| `target` | yes | Ref (e12), WebdriverIO selector, or x,y viewport coordinates |
 
 **Flags**
 
@@ -773,6 +802,9 @@ npx wdio session click e3 && npx wdio session wait --load networkidle && npx wdi
 
 # Open a link in a new tab
 npx wdio session click e8 --new-tab
+
+# Click a point of the viewport, e.g. on a map
+npx wdio session click 320,480
 ```
 
 See also: [`tap`](#tap), [`fill`](#fill), [`wait`](#wait), [`snapshot`](#snapshot).
@@ -873,11 +905,20 @@ npx wdio session press <keys>
 | --- | --- | --- |
 | `keys` | yes | Key combination |
 
+**Flags**
+
+| Flag | Description |
+| --- | --- |
+| `--times <n>` | Press it this many times (up to 100), e.g. to move a slider |
+
 **Examples**
 
 ```sh
 # Submit a form
 npx wdio session press Enter
+
+# Move a focused slider five steps
+npx wdio session press ArrowRight --times 5
 
 # Select all
 npx wdio session press Control+a
@@ -1228,7 +1269,7 @@ See also: [`tabs`](#tabs).
 
 Switch into an iframe, to the parent or to the top. Applies to web.
 
-Snapshots and actions apply to the current frame until you switch back. `navigate` returns to the top document.
+The page snapshot already shows the content of its iframes, with refs that actions use directly, so `frame` is only needed to work inside one frame for a while or to see a frame the snapshot cut short. Snapshots and actions apply to the current frame until you switch back. `navigate` returns to the top document.
 
 ```sh
 npx wdio session frame <target>

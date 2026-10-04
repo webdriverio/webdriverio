@@ -51,6 +51,41 @@ async function listTabs (session: Session): Promise<Tab[]> {
     return tabs
 }
 
+const NEW_TAB_URL_WAIT_MS = 1000
+
+/**
+ * Tabs an action opened (a `target="_blank"` link, `window.open`), by
+ * comparing the window handles with the ones from before it. The agent
+ * otherwise sees no change in its own tab and goes looking. A new tab starts
+ * on about:blank, so its URL is awaited for a moment.
+ */
+export async function describeNewTabs (session: Session, before: string[]): Promise<string | undefined> {
+    const handles = await session.browser.getWindowHandles().catch(() => [] as string[])
+    const opened = handles.map((handle, index) => ({ handle, index })).filter(({ handle }) => !before.includes(handle))
+    if (!opened.length) {
+        return undefined
+    }
+    const urls = new Map<string, string>()
+    if (session.isBidi) {
+        const deadline = Date.now() + NEW_TAB_URL_WAIT_MS
+        for (;;) {
+            const tree = await session.browser.browsingContextGetTree({ maxDepth: 0 }).catch(() => undefined)
+            for (const context of tree?.contexts ?? []) {
+                urls.set(context.context, context.url)
+            }
+            const blank = opened.some(({ handle }) => !urls.get(handle) || urls.get(handle) === 'about:blank')
+            if (!blank || Date.now() > deadline) {
+                break
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100))
+        }
+    }
+    return opened.map(({ handle, index }) => {
+        const url = urls.get(handle)
+        return `Opened a new tab [${index}]${url ? `: ${url}` : ''}. This tab stays current; \`wdio session tabs switch ${index}\` works in the new one.`
+    }).join('\n')
+}
+
 function formatTabs (tabs: Tab[]) {
     return tabs.map((t) => `[${t.index}]${t.current ? '*' : ' '} ${t.title || '(no title)'} — ${t.url}`).join('\n')
 }
@@ -149,6 +184,19 @@ const joinCode = (...lines: string[]) => lines.filter(Boolean).join('\n')
 function resetFrame (session: Session) {
     session.set('frame', undefined)
     session.set('frameStack', [])
+}
+
+/**
+ * Back to the top document of the current tab, e.g. after the held frame
+ * went away (it reloaded or was removed, like a bot check's widget does).
+ */
+export async function backToTop (session: Session) {
+    const handle = await session.browser.getWindowHandle().catch(() => undefined)
+    if (handle && session.isBidi) {
+        adopt(session, handle)
+    }
+    session.set('activeContext', undefined)
+    resetFrame(session)
 }
 
 async function switchTo (session: Session, tab: Tab) {
@@ -266,7 +314,7 @@ export const frame: ActionFn = async (session, args) => {
     return done(`Switched to frame ${resolved.label}`, `await browser.switchFrame(${resolved.code})`)
 }
 
-async function currentPage (session: Session) {
+export async function currentPage (session: Session) {
     const held = session.get<WebdriverIO.BrowsingContext>('activeContext')
     if (held && !held.isFrame) {
         return held
@@ -343,6 +391,110 @@ function adopt (session: Session, contextId: string) {
     getContextManager(session.browser).setCurrentContext(contextId)
 }
 
+/**
+ * The browsing context of an iframe element that belongs to `owner`.
+ */
+export async function frameContext (session: Session, owner: WebdriverIO.BrowsingContext, element: WebdriverIO.Element, label: string): Promise<WebdriverIO.BrowsingContext> {
+    return owner.frame(element).catch(async (err: Error) => {
+        /**
+         * The frame's context is found by evaluating `iframe.contentWindow` in
+         * the parent page, which throws for some cross-site frames (site
+         * isolation). The frame's own URL identifies it just as well.
+         */
+        if (!/SecurityError|cross-origin frame/i.test(`${err.name} ${err.message}`)) {
+            throw err
+        }
+        const src = await element.getProperty('src').catch(() => '') as string
+        if (!src) {
+            throw err
+        }
+        /**
+         * Only when the URL names this frame alone. Counted the way `frame()`
+         * matches below (any depth under this context, shadow roots and
+         * nested frames included, fragments ignored), so another frame it
+         * would pick as well can't be mistaken for this one.
+         */
+        const withoutHash = (url: string) => url.split('#')[0]
+        type TreeNode = { url: string, children?: unknown[] | null }
+        const descendants = (nodes: TreeNode[]): TreeNode[] => nodes.flatMap((node) => [node, ...descendants((node.children ?? []) as TreeNode[])])
+        const countSameUrl = async () => {
+            const { contexts } = await session.browser.browsingContextGetTree({ root: owner.contextId })
+            return descendants(contexts.flatMap((context) => (context.children ?? []) as TreeNode[]))
+                .filter(({ url }) => withoutHash(url) === withoutHash(src)).length
+        }
+        // a frame that is still loading has its element before its context has the URL
+        const limit = Date.now() + ((session.browser.options as { waitforTimeout?: number } | undefined)?.waitforTimeout ?? 5000)
+        let sameUrl = await countSameUrl()
+        while (sameUrl === 0 && Date.now() < limit) {
+            await new Promise((resolve) => setTimeout(resolve, 250))
+            sameUrl = await countSameUrl()
+        }
+        if (sameUrl !== 1) {
+            throw usage(
+                sameUrl
+                    ? `${label} can't be entered: the browser blocks looking into it, and ${sameUrl} frames on the page load ${withoutHash(src)}.`
+                    : `${label} can't be entered: the browser blocks looking into it, and no frame on the page has loaded ${withoutHash(src)}.`,
+                sameUrl
+                    ? 'Run `wdio session exec` with `browser.switchFrame(...)` on a selector that matches only this frame.'
+                    : 'Wait for the frame to load (`wdio session wait`), then try again.'
+            )
+        }
+        return owner.frame(({ url }) => withoutHash(url) === withoutHash(src))
+    })
+}
+
+/**
+ * Hold the frame of an iframe ref for one action. The action's code then
+ * queries `frame`, declared by the returned lines in a block of its own, so
+ * the code replays alone and doesn't clash with names declared before.
+ * `release` goes back to the frame the user entered, or the top document.
+ */
+export async function holdFrame (session: Session, frameRef: string) {
+    // the frame the user entered, if any, is where `release` goes back to
+    const entered = {
+        context: session.get<WebdriverIO.BrowsingContext>('activeContext'),
+        stack: session.get<string[]>('frameStack'),
+        frame: session.get<string>('frame')
+    }
+    await backToTop(session)
+    const resolved = await resolveTarget(session, frameRef)
+    const owner = await currentPage(session)
+    if (!owner) {
+        throw usage('No browsing context to enter a frame from.')
+    }
+    const child = await frameContext(session, owner, resolved.element, resolved.label)
+    const page = await pageExpression(session, owner.contextId, owner.url)
+    const vars = contextVars(session)
+    const previous = vars.names[child.contextId]
+    vars.names[child.contextId] = 'frame'
+    session.set('activeContext', child)
+    session.set('frameStack', [resolved.label])
+    session.set('frame', resolved.label)
+    return {
+        lines: [`const page = ${page}`, `const frame = await page.frame(page.${resolved.code})`],
+        release: async () => {
+            if (previous) {
+                vars.names[child.contextId] = previous
+            } else {
+                delete vars.names[child.contextId]
+            }
+            await backToTop(session)
+            /**
+             * The action may have removed that frame; then the session stays
+             * on the top document. Only "no such frame" says it is gone, any
+             * other failure of the lookup keeps the user's frame.
+             */
+            const stillThere = entered.context && await session.browser.browsingContextGetTree({ root: entered.context.contextId, maxDepth: 0 })
+                .then(({ contexts }) => contexts.length > 0, (err: Error) => !/no such frame/i.test(err?.message ?? ''))
+            if (entered.context && stillThere) {
+                session.set('activeContext', entered.context)
+                session.set('frameStack', entered.stack)
+                session.set('frame', entered.frame)
+            }
+        }
+    }
+}
+
 async function frameBidi (session: Session, target: string): Promise<ActionOutcome> {
     if (target === 'top') {
         const handle = await session.browser.getWindowHandle()
@@ -382,14 +534,16 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
     if (!owner) {
         throw usage('No browsing context to enter a frame from.')
     }
-    const child = await owner.frame(resolved.element)
+    const child = await frameContext(session, owner, resolved.element, resolved.label)
     /**
      * The frame element belongs to the owner's document, so the recorded
      * selector is queried on the owner, not on the top-level page.
      */
     const ownerVar = await declareHeld(session, owner)
+    // in a held frame the selector code already queries through its variable
+    const query = ownerVar.name && resolved.code.startsWith(`${ownerVar.name}.`) ? resolved.code : `${ownerVar.name}.${resolved.code}`
     const childVar = ownerVar.name
-        ? await declareContext(session, 'frame', child.contextId, () => `await ${ownerVar.name}.frame(${ownerVar.name}.${resolved.code})`)
+        ? await declareContext(session, 'frame', child.contextId, () => `await ${ownerVar.name}.frame(${query})`)
         : { code: '' }
     session.set('activeContext', child)
     const stack = [...(session.get<string[]>('frameStack') || []), resolved.label]

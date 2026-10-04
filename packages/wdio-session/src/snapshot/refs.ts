@@ -23,6 +23,11 @@ export interface RefEntry {
      * snapshot generation the ref was last seen in
      */
     generation: number
+    /**
+     * ref of the iframe the element is in, for elements of a frame the
+     * snapshot showed inline (actions on it enter that frame first)
+     */
+    frame?: string
 }
 
 /**

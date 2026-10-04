@@ -2,5 +2,7 @@
   - heading "Frames" [level=1]
   - iframe "Same origin frame" [ref=e33]
     - heading "Inside frame" [level=2]
-    - button "Frame button"
-  - iframe "Cross origin frame" [ref=e34] (cross-origin: run `wdio session frame e34`)
+    - button "Frame button" [ref=e35]
+  - iframe "Cross origin frame" [ref=e34]
+    - heading "Inside frame" [level=2]
+    - button "Frame button" [ref=e36]

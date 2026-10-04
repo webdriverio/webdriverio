@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Live Web Fixture</title>
+</head>
+<body>
+    <nav><a href="/giving.html">Giving</a> <a href="/index.html" target="_blank">Open home in a new tab</a></nav>
+    <main>
+        <h1>Live web</h1>
+        <button id="popup" onclick="window.open('/form.html')">Open the form</button>
+        <canvas id="gl" width="10" height="10"></canvas>
+        <iframe id="widget" title="Reloading widget" src="/frame-child.html" width="300" height="120"></iframe>
+        <button id="reload-widget" onclick="document.getElementById('widget').remove()">Remove widget</button>
+    </main>
+</body>
+</html>

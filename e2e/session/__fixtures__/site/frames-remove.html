@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Removed Frame Fixture</title></head>
+<body>
+  <h1>Removed frame</h1>
+  <iframe id="kept" title="Frame to remove" src="/frame-child.html" width="400" height="150"></iframe>
+  <iframe title="Remover frame" srcdoc="<button type=button onclick=&quot;parent.document.getElementById('kept').remove()&quot;>Remove the other frame</button>" width="400" height="80"></iframe>
+</body>
+</html>

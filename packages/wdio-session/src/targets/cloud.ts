@@ -160,6 +160,7 @@ function stripLocalBrowserOptions (caps: Record<string, unknown>) {
             !arg.startsWith('--window-size') &&
             !arg.startsWith('--user-data-dir') &&
             arg !== '--disable-gpu' &&
+            arg !== '--enable-unsafe-swiftshader' &&
             arg !== '-headless' &&
             !arg.startsWith('--width') &&
             !arg.startsWith('--height') &&

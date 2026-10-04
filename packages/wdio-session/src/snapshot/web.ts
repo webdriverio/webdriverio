@@ -616,6 +616,11 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         }
 
         if (role === 'iframe') {
+            // tracking pixels and ad beacons: nothing to see or use in them
+            const area = el.getBoundingClientRect()
+            if (!opts.all && area.width * area.height < 100) {
+                return []
+            }
             pendingRefs.push({ el, node: out, order })
             try {
                 const doc = (el as HTMLIFrameElement).contentDocument

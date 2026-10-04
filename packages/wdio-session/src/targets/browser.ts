@@ -40,7 +40,15 @@ export function browserPlan (target: BrowserTarget, args: OpenArgs, { cwd, platf
     const fsPath = platform === 'win32' ? path.win32 : path.posix
     const capabilities: Record<string, unknown> = {
         browserName: BROWSER_NAMES[target],
-        webSocketUrl: args.bidi !== false && target !== 'safari'
+        webSocketUrl: args.bidi !== false && target !== 'safari',
+        /**
+         * With the default `normal` strategy the driver holds every command
+         * until the page and all its ads and trackers have loaded, which on
+         * busy sites takes tens of seconds or minutes. `eager` waits for the
+         * document only; `open` and `navigate` then give the page a few more
+         * seconds to finish (see `waitForLoad`). `--capabilities` can override it.
+         */
+        pageLoadStrategy: 'eager'
     }
     if (args.browserVersion) {
         capabilities.browserVersion = String(args.browserVersion)
@@ -53,7 +61,9 @@ export function browserPlan (target: BrowserTarget, args: OpenArgs, { cwd, platf
             options.debuggerAddress = /^\d+$/.test(attach) ? `localhost:${attach}` : attach.replace(/^https?:\/\//, '').replace(/\/$/, '')
         } else {
             const browserArgs = [
-                ...(headless ? ['--headless=new', '--disable-gpu'] : []),
+                // WebGL stays on: maps, charts and 3D pages need it. Without a GPU
+                // (CI, containers) Chrome renders it in software only when allowed to
+                ...(headless ? ['--headless=new', '--enable-unsafe-swiftshader'] : []),
                 `--window-size=${viewport.width},${viewport.height}`,
                 ...(args.profile ? [`--user-data-dir=${fsPath.resolve(cwd, String(args.profile))}`] : []),
                 ...extraArgs

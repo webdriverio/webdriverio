@@ -1,4 +1,4 @@
 - document "Frames Fixture" url=http://localhost:PORT/frames.html
-  - iframe "Same origin frame" [ref=e55] [box=8,80,404,154]
-    - button "Frame button" [box=18,149,95,21]
-  - iframe "Cross origin frame" [ref=e56] [box=416,80,404,154]
+  - iframe "Same origin frame" [ref=e57] [box=8,80,404,154]
+    - button "Frame button" [ref=e59] [box=18,149,95,21]
+  - iframe "Cross origin frame" [ref=e58] [box=416,80,404,154]

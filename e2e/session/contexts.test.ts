@@ -61,7 +61,8 @@ describe('wdio session contexts and dialogs', () => {
         await run('navigate', `${server.url}/frames.html?cross=${server.url.replace('localhost', '127.0.0.1')}`)
         const top = (await run('snapshot')).stdout
         const cross = top.match(/iframe "Cross origin frame" \[ref=(e\d+)\]/)![1]
-        expect(top).toContain('(cross-origin: run `wdio session frame')
+        // the frame's content is part of the page's snapshot, with refs
+        expect(top).toMatch(new RegExp(`iframe "Cross origin frame" \\[ref=${cross}\\]\n    - heading "Inside frame" \\[level=2\\]\n    - button "Frame button" \\[ref=e\\d+\\]`))
 
         const switched = await run('frame', cross)
         expect(switched.stdout).toMatch(new RegExp(`^Switched to frame ${cross} \\(iframe "Cross origin frame"\\)\nFrame:\n- document "Child frame"`))
@@ -86,6 +87,79 @@ describe('wdio session contexts and dialogs', () => {
         const notFrame = await project.run(['frame', 'aria/Frames'])
         expect(notFrame.code).toBe(2)
         expect(notFrame.stderr).toContain('is not a frame')
+    })
+
+    it('acts on a ref inside a cross-origin frame from the top document', async () => {
+        const page = `${server.url}/frames.html?cross=${server.url.replace('localhost', '127.0.0.1')}`
+        await run('navigate', page)
+        const top = (await run('snapshot', '-i')).stdout
+        const button = top.split('\n').slice(top.split('\n').findIndex((l) => l.includes('Cross origin frame'))).find((l) => l.includes('Frame button'))!.match(/\[ref=(e\d+)\]/)![1]
+        const res = await run('click', button, '--json')
+        expect(res.json.result.text).toContain('button "Frame clicked"')
+        const code: string = res.json.result.code
+        expect(code).toMatch(/^\{\n {4}const page = \(await browser\.browsingContexts\(\)\)\.find\(.*\)!\n {4}const frame = await page\.frame\(page\.\$\('aria\/Cross origin frame'\)\)\n {4}await frame\.\$\('role\/button\[name="Frame button"\]'\)\.click\(\)\n\}$/)
+        // the session is back on the top document
+        expect((await run('info', '--json')).json.result.data.frame).toBe('top')
+
+        await run('navigate', page)
+        await run('exec', '-e', code)
+        const after = (await run('snapshot', '-i')).stdout
+        expect(after.split('\n').slice(after.split('\n').findIndex((l) => l.includes('Cross origin frame'))).join('\n'), `replaying ${code}`).toContain('button "Frame clicked"')
+    })
+
+    it('keeps the frame the user entered when acting on a ref of another frame', async () => {
+        await run('navigate', `${server.url}/frames.html?cross=${server.url.replace('localhost', '127.0.0.1')}`)
+        const top = (await run('snapshot', '-i')).stdout
+        const same = top.match(/iframe "Same origin frame" \[ref=(e\d+)\]/)![1]
+        const lines = top.split('\n')
+        const button = lines.slice(lines.findIndex((l) => l.includes('Cross origin frame'))).find((l) => l.includes('Frame button'))!.match(/\[ref=(e\d+)\]/)![1]
+        await run('frame', same)
+        await run('click', button)
+        expect((await run('info', '--json')).json.result.data.frame).toContain(same)
+        // the button that changed is in the cross-origin frame, not in the one the session holds
+        const held = (await run('snapshot')).stdout
+        expect(held.split('\n')[0]).toBe(`- document "Child frame" url=${server.url}/frame-child.html`)
+        expect(held).toContain('button "Frame button"')
+        await run('frame', 'top')
+        const after = (await run('snapshot', '-i')).stdout
+        expect(after.split('\n').slice(after.split('\n').findIndex((l) => l.includes('Cross origin frame'))).join('\n')).toContain('button "Frame clicked"')
+    })
+
+    it('goes back to the top document when the entered frame was removed by the action', async () => {
+        await run('navigate', `${server.url}/frames-remove.html`)
+        const top = (await run('snapshot', '-i')).stdout
+        const kept = top.match(/iframe "Frame to remove" \[ref=(e\d+)\]/)![1]
+        const remover = top.match(/button "Remove the other frame" \[ref=(e\d+)\]/)![1]
+        await run('frame', kept)
+        await run('click', remover)
+        expect((await run('info', '--json')).json.result.data.frame).toBe('top')
+        const after = (await run('snapshot', '-i')).stdout
+        expect(after.split('\n')[0]).toContain('"Removed Frame Fixture"')
+        expect(after).not.toContain('Frame to remove')
+    })
+
+    it('reads a ref of an inlined frame with --scope', async () => {
+        await run('navigate', `${server.url}/frames.html?cross=${server.url.replace('localhost', '127.0.0.1')}`)
+        const top = (await run('snapshot', '-i')).stdout
+        const lines = top.split('\n')
+        const button = lines.slice(lines.findIndex((l) => l.includes('Cross origin frame'))).find((l) => l.includes('Frame button'))!.match(/\[ref=(e\d+)\]/)![1]
+        expect((await run('snapshot', '--scope', button)).stdout).toContain('button "Frame button"')
+        expect((await run('info', '--json')).json.result.data.frame).toBe('top')
+    })
+
+    it('enters an iframe nested in an inlined frame by its ref', async () => {
+        await run('navigate', `${server.url}/nested-frames.html`)
+        const top = (await run('snapshot')).stdout
+        const inner = top.match(/iframe "Inner frame" \[ref=(e\d+)\]/)![1]
+        const entered = await run('frame', inner)
+        expect(entered.stdout).toContain(`Switched to frame ${inner}`)
+        expect(entered.stdout).toContain('button "Frame button"')
+        expect(entered.stdout).toMatch(/const (frame\d*) = await page\.frame\(page\.\$\('aria\/Outer frame'\)\)\nconst frame\d* = await \1\.frame\(\1\.\$\('aria\/Inner frame'\)\)/)
+        expect((await run('snapshot')).stdout.split('\n')[0]).toBe(`- document "Child frame" url=${server.url}/frame-child.html`)
+        expect((await run('info', '--json')).json.result.data.frame).toContain(inner)
+        await run('frame', 'parent')
+        expect((await run('snapshot')).stdout.split('\n')[0]).toBe(`- document "Outer frame" url=${server.url}/nested-outer.html`)
+        await run('frame', 'top')
     })
 
     it('navigating from inside a frame navigates the tab', async () => {
