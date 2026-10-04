@@ -34,9 +34,17 @@ const DEAD_SESSION_PATTERNS = [
  * that reloaded (bot checks replace their widget every few seconds) or a page
  * that navigated while the action ran
  */
-/** a change report that is empty, or whose changed lines differ only in which element has focus */
+/**
+ * A change report that is empty, or whose changed lines differ only in which
+ * element has focus. A report without changed lines but with text (a new
+ * page's summary) is a change.
+ */
 function onlyFocusMoved (report = '') {
-    return report.split('\n').filter((line) => /^[+-] /.test(line)).every((line) => / \[focused\]/.test(line))
+    if (!report.trim()) {
+        return true
+    }
+    const changed = report.split('\n').filter((line) => /^[+-] /.test(line))
+    return changed.length > 0 && changed.every((line) => / \[focused\]/.test(line))
 }
 
 /** actions that say so when the page shows no change after them */

@@ -282,12 +282,33 @@ export const click: ActionFn = async (session, args) => {
         ? ['Double-clicked', 'doubleClick()', () => target.element.doubleClick()]
         : args.right
             ? ['Right-clicked', "click({ button: 'right' })", () => target.element.click({ button: 'right' })]
-            : ['Clicked', 'click()', () => clickChecked(session, target).catch((err) => retryStale(err, () => resolveTarget(session, args.target).then((fresh) => clickChecked(session, fresh)), target.label))]
+            : ['Clicked', 'click()', () => clickChecked(session, target).catch((err) => retryStale(err, () => findAgain(session, args.target).then((fresh) => clickChecked(session, fresh)), target.label))]
     const text = await withNavigation(session, `${verb} ${target.label}`, run)
     return done(text, `await ${target.code}.${call}`)
 }
 
-const STALE = /stale element/i
+/** the stale element errors of each driver, as webdriverio's `isStaleElementError` knows them */
+const STALE = /stale element reference|is no longer attached to the DOM|stale element found|stale element not found|belongs to different document|no such node - The node with the reference/i
+
+/**
+ * The element a target names now. A ref's page-side record keeps the node
+ * the snapshot saw, which is the one the page replaced; its selector
+ * candidates find the replacement. Other targets are looked up again.
+ */
+async function findAgain (session: Session, given: unknown): Promise<ResolvedTarget> {
+    const id = typeof given === 'string' ? refId(given) : undefined
+    const entry = id ? session.refs.get(id) : undefined
+    if (!entry || entry.kind !== 'web') {
+        return resolveTarget(session, given)
+    }
+    for (const candidate of entry.candidates) {
+        const found = await scopeOf(session).$$(candidate).getElements().catch(() => [])
+        if (found.length === 1) {
+            return resolveTarget(session, candidate)
+        }
+    }
+    throw new Error('stale element reference: no selector finds the element again')
+}
 
 /**
  * A page that re-renders a list (a dropdown that opened) replaces the

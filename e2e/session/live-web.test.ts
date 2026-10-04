@@ -168,6 +168,13 @@ describe('wdio session on live-web pages', () => {
         expect(res.stdout).toContain('No visible change on the page.')
     })
 
+    it('does not call a navigation to a large page no change', async () => {
+        await load('broken')
+        const res = await run('click', 'aria/A long page')
+        expect(res.stdout).toContain('Navigated to')
+        expect(res.stdout).not.toContain('No visible change on the page.')
+    })
+
     it('keeps the session when code leaves a rejected promise behind', async () => {
         await load('broken')
         // a command on a chainable that is never awaited rejects with nobody listening
