@@ -1843,6 +1843,9 @@ importers:
       react-17:
         specifier: npm:react@17.0.2
         version: react@17.0.2
+      react-19:
+        specifier: npm:react@19.3.0
+        version: react@19.3.0
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
@@ -1852,6 +1855,9 @@ importers:
       react-dom-17:
         specifier: npm:react-dom@17.0.2
         version: react-dom@17.0.2(react@18.3.1)
+      react-dom-19:
+        specifier: npm:react-dom@19.3.0
+        version: react-dom@19.3.0(react@18.3.1)
       resq:
         specifier: ^1.11.0
         version: 1.11.0

@@ -94,43 +94,80 @@ describe('findFiber', () => {
 })
 
 /**
- * The React builds of the matrix. The UMD builds run in the jsdom window, as in a
- * browser, so each React DOM uses the React of its own version. React 19 has no
- * UMD build: the browser matrix in the pull request covers it.
+ * The React builds of the matrix. They run in the jsdom window, as in a browser, so
+ * each React DOM uses the React of its own version: the UMD builds of React 16 to
+ * 18, and the CommonJS files of React 19, which has no UMD build.
  */
+type Mount = 'render' | 'hydrate' | 'createRoot' | 'hydrateRoot'
+interface ReactApi {
+    React: any
+    ReactDOM: any
+    ReactDOMServer: any
+}
 interface ReactBuild {
     version: string
-    react: string
-    reactDom: string
-    server: string
     mounts: Mount[]
+    load: () => ReactApi
 }
-type Mount = 'render' | 'hydrate' | 'createRoot' | 'hydrateRoot'
 
-const umd = (pkg: string, file: string) => (
-    fs.readFileSync(path.join(path.dirname(require.resolve(`${pkg}/package.json`)), 'umd', file), 'utf8')
-)
-const BUILDS: ReactBuild[] = [
-    { version: '16', react: 'react-16', reactDom: 'react-dom-16', server: 'react-dom-server.browser.production.min.js', mounts: ['render', 'hydrate'] },
-    { version: '17', react: 'react-17', reactDom: 'react-dom-17', server: 'react-dom-server.browser.production.min.js', mounts: ['render', 'hydrate'] },
-    { version: '18', react: 'react', reactDom: 'react-dom', server: 'react-dom-server-legacy.browser.production.min.js', mounts: ['render', 'hydrate', 'createRoot', 'hydrateRoot'] }
-]
+const packageDir = (pkg: string) => path.dirname(require.resolve(`${pkg}/package.json`))
 
-const loadReact = (build: ReactBuild) => {
+const loadUmd = (react: string, reactDom: string, server: string) => (): ReactApi => {
     for (const name of ['React', 'ReactDOM', 'ReactDOMServer']) {
         delete (globalThis as any)[name]
     }
-    for (const source of [
-        umd(build.react, 'react.production.min.js'),
-        umd(build.reactDom, 'react-dom.production.min.js'),
-        umd(build.reactDom, build.server)
+    for (const file of [
+        path.join(packageDir(react), 'umd', 'react.production.min.js'),
+        path.join(packageDir(reactDom), 'umd', 'react-dom.production.min.js'),
+        path.join(packageDir(reactDom), 'umd', server)
     ]) {
         // eslint-disable-next-line no-new-func
-        new Function(source).call(globalThis)
+        new Function(fs.readFileSync(file, 'utf8')).call(globalThis)
     }
     const { React, ReactDOM, ReactDOMServer } = globalThis as any
-    expect(React.version.split('.')[0]).toBe(build.version)
     return { React, ReactDOM, ReactDOMServer }
+}
+
+/**
+ * a small CommonJS module loader for the React 19 files
+ */
+const loadReact19 = (): ReactApi => {
+    const reactDomDir = packageDir('react-dom-19')
+    const files: Record<string, string> = {
+        react: path.join(packageDir('react-19'), 'cjs', 'react.production.js'),
+        'react-dom': path.join(reactDomDir, 'cjs', 'react-dom.production.js'),
+        'react-dom/client': path.join(reactDomDir, 'cjs', 'react-dom-client.production.js'),
+        'react-dom/server': path.join(reactDomDir, 'cjs', 'react-dom-server-legacy.browser.production.js'),
+        scheduler: path.join(path.dirname(createRequire(path.join(reactDomDir, 'package.json')).resolve('scheduler/package.json')), 'cjs', 'scheduler.production.js')
+    }
+    const cache: Record<string, { exports: any }> = {}
+    const load = (name: string) => {
+        if (!cache[name]) {
+            cache[name] = { exports: {} }
+            // eslint-disable-next-line no-new-func
+            new Function('module', 'exports', 'require', fs.readFileSync(files[name], 'utf8'))(cache[name], cache[name].exports, load)
+        }
+        return cache[name].exports
+    }
+    return {
+        React: load('react'),
+        ReactDOM: { ...load('react-dom'), ...load('react-dom/client') },
+        ReactDOMServer: load('react-dom/server')
+    }
+}
+
+const BUILDS: ReactBuild[] = [
+    { version: '16', mounts: ['render', 'hydrate'], load: loadUmd('react-16', 'react-dom-16', 'react-dom-server.browser.production.min.js') },
+    { version: '17', mounts: ['render', 'hydrate'], load: loadUmd('react-17', 'react-dom-17', 'react-dom-server.browser.production.min.js') },
+    { version: '18', mounts: ['render', 'hydrate', 'createRoot', 'hydrateRoot'], load: loadUmd('react', 'react-dom', 'react-dom-server-legacy.browser.production.min.js') },
+    { version: '19', mounts: ['createRoot', 'hydrateRoot'], load: loadReact19 }
+]
+
+const loadReact = (build: ReactBuild) => {
+    const api = build.load()
+    expect(api.React.version.split('.')[0]).toBe(build.version)
+    expect(api.ReactDOM.version.split('.')[0]).toBe(build.version)
+    return api
 }
 
 /**
