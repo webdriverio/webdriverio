@@ -686,10 +686,15 @@ With WebDriver BiDi, a script that returns a `NodeList` (for example from `query
 
 On a page where React has not rendered the app yet, the commands now wait up to 5 seconds for it before they fail. Before, they failed at once, so an app that started late was not found.
 
-The commands no longer use the [resq](https://github.com/baruchvlz/resq) library, and WebdriverIO no longer installs it. The selector rules do not change (see [React Selectors](/docs/selectors#react-selectors)), with two exceptions:
+The commands no longer use the [resq](https://github.com/baruchvlz/resq) library, and WebdriverIO no longer installs it. The selector rules do not change (see [React Selectors](/docs/selectors#react-selectors)), with these exceptions:
 
 - `react$` with both `props` and `state` finds a component that matches both. Before, it ignored `props` when `state` was also given.
 - `react$$` gives each DOM node once. Before, a higher-order component and its child gave the same element twice in some browsers.
+- A fragment that contains a fragment gives one flat list of nodes. Before, `react$` could return a list.
+- A filter with a `null` value works. Before, it failed with `Cannot convert undefined or null to object`.
+- Without an element scope, the commands use the first root that React has rendered, also in an open shadow root. Before, they used the first root, even an empty or unmounted one, and did not search shadow roots.
+- On the container of a root inside another root, the commands search the inner root. Before, they searched the outer root.
+- On the browsing context of a frame, and on an element of a frame, the commands work. Before, the context command failed with `this.executeScript is not a function`, and the element command failed with `Could not find instance of React in given element`.
 
 The internal script `webdriverio/scripts/resq` is removed.
 
