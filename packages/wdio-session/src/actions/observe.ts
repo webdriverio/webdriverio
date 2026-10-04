@@ -120,10 +120,12 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
     for (const node of frames.slice(0, MAX_INLINE_FRAMES)) {
         const frameRef = node.ref!
         let collecting = false
+        // a lookup given up on must not start collecting later, alongside the next frame
+        let givenUp = false
         const result = await withTimeout((async () => {
             const element = await session.refs.resolve(session.browser, frameRef)
             const child = await frameBySrc(session, owner, element) ?? (busy ? undefined : await frameContext(session, owner, element, frameRef))
-            if (!child) {
+            if (!child || givenUp) {
                 return undefined
             }
             collecting = true
@@ -154,6 +156,7 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
             break
         }
         if (result === TIMED_OUT) {
+            givenUp = true
             busy = true
             continue
         }
