@@ -17,6 +17,7 @@ function session () {
         isSelected: async () => true
     }
     return {
+        currentUrl: async () => 'https://example.com/shop',
         browser: {
             getTitle: async () => 'Shop',
             getUrl: async () => 'https://example.com/shop',
