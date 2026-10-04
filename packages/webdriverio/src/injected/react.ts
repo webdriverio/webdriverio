@@ -66,6 +66,13 @@ const isObject = (value: unknown): value is Record<string, unknown> => (
     typeof value === 'object' && !Array.isArray(value)
 )
 
+/**
+ * an object that a filter goes into, key by key
+ */
+const isNestedObject = (value: unknown): value is Record<string, unknown> => (
+    value !== null && isObject(value)
+)
+
 const keysOf = (value: unknown) => Object.keys(value as object)
 
 const withoutChildren = (props: unknown) => {
@@ -108,7 +115,7 @@ const matches = (filter: unknown = {}, value: unknown = {}): boolean => {
     const keys = keysOf(filterObject).filter((key) => keysOf(valueObject).includes(key))
     const results: unknown[] = []
     for (const key of keys) {
-        if (isObject(filterObject[key]) && isObject(valueObject[key])) {
+        if (isNestedObject(filterObject[key]) && isNestedObject(valueObject[key])) {
             results.push(matches(filterObject[key], valueObject[key]))
         }
         if (filterObject[key] === valueObject[key] || arraysOverlap(filterObject[key], valueObject[key])) {
@@ -228,13 +235,36 @@ const isContainer = (node: Element) => (
     Object.keys(node).some((key) => key.startsWith('__reactContainer$'))
 )
 
-const findContainer = () => {
-    const walker = document.createTreeWalker(document, NodeFilter.SHOW_ELEMENT)
+/**
+ * the elements of the document and of its open shadow roots, in document order
+ */
+function* elementsOf (root: Document | ShadowRoot): Generator<Element> {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT)
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-        if (isContainer(node as Element)) {
-            return node as HTMLElement
+        yield node as Element
+        if ((node as Element).shadowRoot) {
+            yield* elementsOf((node as Element).shadowRoot as ShadowRoot)
         }
     }
+}
+
+/**
+ * The container of the first root that React has rendered. A root of `createRoot`
+ * marks its container before `render` and keeps the mark after `unmount`: without
+ * a rendered root, the first container.
+ */
+const findContainer = () => {
+    let first: HTMLElement | undefined
+    for (const node of elementsOf(document)) {
+        if (!isContainer(node)) {
+            continue
+        }
+        if (currentRootOf(node)?.child) {
+            return node as HTMLElement
+        }
+        first = first || node as HTMLElement
+    }
+    return first
 }
 
 /**
@@ -248,7 +278,12 @@ const currentRootOf = (node: any): Fiber | undefined => {
     if (legacyRoot) {
         return (legacyRoot._internalRoot || legacyRoot).current
     }
-    const key = Object.keys(node).find(isReactKey)
+    /**
+     * The container of a root inside another root also has the fiber of the outer
+     * root: the key of its own root comes first.
+     */
+    const keys = Object.keys(node)
+    const key = keys.find((name) => name.startsWith('__reactContainer$')) || keys.find(isReactKey)
     let fiber: Fiber | undefined = key ? node[key] : undefined
     while (fiber && fiber.return) {
         fiber = fiber.return
@@ -258,7 +293,8 @@ const currentRootOf = (node: any): Fiber | undefined => {
 
 /**
  * The fiber of `scope` in the current render, or the current root without a scope.
- * With more than one root, the first root in document order, as resq did.
+ * With more than one root, the first rendered root in document order (see
+ * `findContainer`).
  */
 const findFiber = (scope?: HTMLElement): Fiber | undefined => {
     if (!scope) {

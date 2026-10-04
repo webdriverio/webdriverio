@@ -94,11 +94,14 @@ describe('findFiber', () => {
 })
 
 /**
- * The React builds of the matrix. They run in the jsdom window, as in a browser, so
- * each React DOM uses the React of its own version: the UMD builds of React 16 to
- * 18, and the CommonJS files of React 19, which has no UMD build.
+ * The React builds of the matrix, in production and in development mode (the mode
+ * of a dev server). They run in the jsdom window, as in a browser, so each React
+ * DOM uses the React of its own version: the UMD builds of React 16 to 18, and the
+ * CommonJS files of React 19, which has no UMD build.
  */
 type Mount = 'render' | 'hydrate' | 'createRoot' | 'hydrateRoot'
+type Mode = 'production' | 'development'
+const MODES: Mode[] = ['production', 'development']
 interface ReactApi {
     React: any
     ReactDOM: any
@@ -107,19 +110,20 @@ interface ReactApi {
 interface ReactBuild {
     version: string
     mounts: Mount[]
-    load: () => ReactApi
+    load: (mode: Mode) => ReactApi
 }
 
 const packageDir = (pkg: string) => path.dirname(require.resolve(`${pkg}/package.json`))
 
-const loadUmd = (react: string, reactDom: string, server: string) => (): ReactApi => {
+const loadUmd = (react: string, reactDom: string, server: string) => (mode: Mode): ReactApi => {
+    const suffix = mode === 'production' ? 'production.min.js' : 'development.js'
     for (const name of ['React', 'ReactDOM', 'ReactDOMServer']) {
         delete (globalThis as any)[name]
     }
     for (const file of [
-        path.join(packageDir(react), 'umd', 'react.production.min.js'),
-        path.join(packageDir(reactDom), 'umd', 'react-dom.production.min.js'),
-        path.join(packageDir(reactDom), 'umd', server)
+        path.join(packageDir(react), 'umd', `react.${suffix}`),
+        path.join(packageDir(reactDom), 'umd', `react-dom.${suffix}`),
+        path.join(packageDir(reactDom), 'umd', `${server}.${suffix}`)
     ]) {
         // eslint-disable-next-line no-new-func
         new Function(fs.readFileSync(file, 'utf8')).call(globalThis)
@@ -131,14 +135,14 @@ const loadUmd = (react: string, reactDom: string, server: string) => (): ReactAp
 /**
  * a small CommonJS module loader for the React 19 files
  */
-const loadReact19 = (): ReactApi => {
+const loadReact19 = (mode: Mode): ReactApi => {
     const reactDomDir = packageDir('react-dom-19')
     const files: Record<string, string> = {
-        react: path.join(packageDir('react-19'), 'cjs', 'react.production.js'),
-        'react-dom': path.join(reactDomDir, 'cjs', 'react-dom.production.js'),
-        'react-dom/client': path.join(reactDomDir, 'cjs', 'react-dom-client.production.js'),
-        'react-dom/server': path.join(reactDomDir, 'cjs', 'react-dom-server-legacy.browser.production.js'),
-        scheduler: path.join(path.dirname(createRequire(path.join(reactDomDir, 'package.json')).resolve('scheduler/package.json')), 'cjs', 'scheduler.production.js')
+        react: path.join(packageDir('react-19'), 'cjs', `react.${mode}.js`),
+        'react-dom': path.join(reactDomDir, 'cjs', `react-dom.${mode}.js`),
+        'react-dom/client': path.join(reactDomDir, 'cjs', `react-dom-client.${mode}.js`),
+        'react-dom/server': path.join(reactDomDir, 'cjs', `react-dom-server-legacy.browser.${mode}.js`),
+        scheduler: path.join(path.dirname(createRequire(path.join(reactDomDir, 'package.json')).resolve('scheduler/package.json')), 'cjs', `scheduler.${mode}.js`)
     }
     const cache: Record<string, { exports: any }> = {}
     const load = (name: string) => {
@@ -157,14 +161,23 @@ const loadReact19 = (): ReactApi => {
 }
 
 const BUILDS: ReactBuild[] = [
-    { version: '16', mounts: ['render', 'hydrate'], load: loadUmd('react-16', 'react-dom-16', 'react-dom-server.browser.production.min.js') },
-    { version: '17', mounts: ['render', 'hydrate'], load: loadUmd('react-17', 'react-dom-17', 'react-dom-server.browser.production.min.js') },
-    { version: '18', mounts: ['render', 'hydrate', 'createRoot', 'hydrateRoot'], load: loadUmd('react', 'react-dom', 'react-dom-server-legacy.browser.production.min.js') },
+    { version: '16', mounts: ['render', 'hydrate'], load: loadUmd('react-16', 'react-dom-16', 'react-dom-server.browser') },
+    { version: '17', mounts: ['render', 'hydrate'], load: loadUmd('react-17', 'react-dom-17', 'react-dom-server.browser') },
+    { version: '18', mounts: ['render', 'hydrate', 'createRoot', 'hydrateRoot'], load: loadUmd('react', 'react-dom', 'react-dom-server-legacy.browser') },
     { version: '19', mounts: ['createRoot', 'hydrateRoot'], load: loadReact19 }
 ]
 
-const loadReact = (build: ReactBuild) => {
-    const api = build.load()
+/**
+ * development builds warn about deprecated APIs (`ReactDOM.render` in React 18)
+ * and server-rendered content: the tests check the results, not the warnings
+ */
+const quiet = () => {
+    const spies = [vi.spyOn(console, 'error').mockImplementation(() => {}), vi.spyOn(console, 'warn').mockImplementation(() => {})]
+    return () => spies.forEach((spy) => spy.mockRestore())
+}
+
+const loadReact = (build: ReactBuild, mode: Mode = 'production') => {
+    const api = build.load(mode)
     expect(api.React.version.split('.')[0]).toBe(build.version)
     expect(api.ReactDOM.version.split('.')[0]).toBe(build.version)
     return api
@@ -390,21 +403,25 @@ const QUERY_CASES: QueryCase[] = [
 ]
 
 for (const build of BUILDS) {
-    for (const mount of build.mounts) {
-        describe(`React ${build.version} ${mount}`, () => {
+    for (const [mode, mount] of MODES.flatMap((mode) => build.mounts.map((mount) => [mode, mount] as const))) {
+        describe(`React ${build.version} ${mode} ${mount}`, () => {
             const hydrated = mount === 'hydrate' || mount === 'hydrateRoot'
             const hasSuspense = !hydrated || build.version !== '16' && build.version !== '17'
             const hasPortal = !hydrated
             let ReactDOM: any
             let controls: Record<string, (...args: any[]) => void>
             let unmount: (() => void)[] = []
+            let restoreConsole = () => {}
 
             const update = (change: () => void) => (ReactDOM.flushSync ? ReactDOM.flushSync(change) : change())
             const root = () => api().findFiber() as Fiber
 
             beforeAll(async () => {
                 document.body.innerHTML = '<div id="root"></div><div id="root2"></div><div id="portal"></div><div id="plain"></div>'
-                const loaded = loadReact(build)
+                if (mode === 'development') {
+                    restoreConsole = quiet()
+                }
+                const loaded = loadReact(build, mode)
                 ReactDOM = loaded.ReactDOM
                 const fixture = createFixture(loaded.React, ReactDOM, {
                     portal: hasPortal ? byId('portal') : null,
@@ -428,6 +445,7 @@ for (const build of BUILDS) {
 
             afterAll(() => {
                 unmount.forEach((fn) => fn())
+                restoreConsole()
                 document.body.innerHTML = ''
             })
 
@@ -543,4 +561,275 @@ for (const build of BUILDS.filter((build) => build.mounts.includes('createRoot')
         root.unmount()
         document.body.innerHTML = ''
     })
+}
+
+/**
+ * Edge cases, each with its own small app, for each version in both modes. An app
+ * mounts with `createRoot` (React 18 and 19) or `ReactDOM.render` (React 16 and 17).
+ */
+for (const build of BUILDS) {
+    for (const mode of MODES) {
+        describe(`React ${build.version} ${mode} edge cases`, () => {
+            let React: any
+            let ReactDOM: any
+            let h: any
+            let restoreConsole = () => {}
+            const unmounts: (() => void)[] = []
+
+            const update = (change: () => void) => (ReactDOM.flushSync ? ReactDOM.flushSync(change) : change())
+            const mount = (element: unknown, container: Element) => {
+                if (build.mounts.includes('createRoot')) {
+                    const root = ReactDOM.createRoot(container)
+                    update(() => root.render(element))
+                    unmounts.push(() => root.unmount())
+                    return () => root.unmount()
+                }
+                ReactDOM.render(element, container)
+                unmounts.push(() => ReactDOM.unmountComponentAtNode(container))
+                return () => ReactDOM.unmountComponentAtNode(container)
+            }
+            const ids = (nodes: unknown) => (nodes as Element[]).map((node) => node.id || node.nodeName)
+
+            beforeAll(() => {
+                restoreConsole = mode === 'development' ? quiet() : () => {}
+                ;({ React, ReactDOM } = loadReact(build, mode))
+                h = React.createElement
+            })
+
+            afterEach(() => {
+                unmounts.splice(0).reverse().forEach((unmount) => unmount())
+                document.body.innerHTML = ''
+            })
+
+            afterAll(() => restoreConsole())
+
+            it('matches null, false and 0 in a filter, and does not go into null', () => {
+                document.body.innerHTML = '<div id="app"></div>'
+                function Option (props: { id: string }) {
+                    return h('option', { id: props.id })
+                }
+                mount(h('select', null,
+                    h(Option, { id: 'a', value: null, flag: false, count: 0, meta: null }),
+                    h(Option, { id: 'b', value: 'x', flag: true, count: 1, meta: { size: 'L' } })
+                ), byId('app'))
+
+                expect(ids(react$$('Option', { value: null }, {}))).toEqual(['a'])
+                expect(ids(react$$('Option', { flag: false }, {}))).toEqual(['a'])
+                expect(ids(react$$('Option', { count: 0 }, {}))).toEqual(['a'])
+                expect(ids(react$$('Option', { meta: { size: 'L' } }, {}))).toEqual(['b'])
+                expect(ids(react$$('Option', { meta: null }, {}))).toEqual(['a'])
+            })
+
+            it('finds the components of a root inside another root through its container', () => {
+                document.body.innerHTML = '<div id="app"></div>'
+                function Inner () {
+                    return h('i', { id: 'inner' }, 'inner')
+                }
+                function Outer () {
+                    return h('section', { id: 'nested' })
+                }
+                mount(h(Outer), byId('app'))
+                mount(h(Inner), byId('nested'))
+
+                expect(ids(react$$('Outer', {}, {}))).toEqual(['nested'])
+                expect(ids(react$$('Inner', {}, {}))).toEqual([])
+                expect(ids(react$$('Inner', {}, {}, byId('nested')))).toEqual(['inner'])
+                expect(ids(react$$('Outer', {}, {}, byId('app')))).toEqual(['nested'])
+            })
+
+            it('uses the first rendered root without a scope', () => {
+                document.body.innerHTML = '<div id="first"></div><div id="second"></div>'
+                function Item (props: { id: string }) {
+                    return h('li', { id: props.id })
+                }
+                const unmountFirst = mount(h(Item, { id: 'one' }), byId('first'))
+                mount(h(Item, { id: 'two' }), byId('second'))
+                expect(ids(react$$('Item', {}, {}))).toEqual(['one'])
+
+                update(unmountFirst)
+                expect(api().findContainer()).toBe(byId('second'))
+                expect(ids(react$$('Item', {}, {}))).toEqual(['two'])
+            })
+
+            it.skipIf(!build.mounts.includes('createRoot'))('skips a root that has not rendered yet', () => {
+                document.body.innerHTML = '<div id="empty"></div><div id="app"></div>'
+                const root = ReactDOM.createRoot(byId('empty'))
+                unmounts.push(() => root.unmount())
+                expect(api().findFiber()?.child).toBeNull()
+
+                function Item () {
+                    return h('li', { id: 'item' })
+                }
+                mount(h(Item), byId('app'))
+                expect(api().findContainer()).toBe(byId('app'))
+                expect(ids(react$$('Item', {}, {}))).toEqual(['item'])
+            })
+
+            it('finds a root in an open shadow root', () => {
+                document.body.innerHTML = '<div id="host"></div>'
+                const container = document.createElement('div')
+                byId('host').attachShadow({ mode: 'open' }).appendChild(container)
+                function Item () {
+                    return h('li', { id: 'in-shadow' })
+                }
+                mount(h(Item), container)
+
+                expect(api().findContainer()).toBe(container)
+                expect(ids(react$$('Item', {}, {}))).toEqual(['in-shadow'])
+                expect(ids(react$$('Item', {}, {}, container))).toEqual(['in-shadow'])
+            })
+
+            it('names memo, forwardRef and higher-order components', () => {
+                document.body.innerHTML = '<div id="app"></div>'
+                const Compared = React.memo(function ComparedLabel () {
+                    return h('em', { id: 'compared' })
+                }, () => false)
+                const NamedMemo = React.memo(function RawLabel () {
+                    return h('em', { id: 'named-memo' })
+                })
+                NamedMemo.displayName = 'NiceMemo'
+                const NamedRef = React.forwardRef(function RawInput (_: unknown, ref: unknown) {
+                    return h('input', { id: 'named-ref', ref })
+                })
+                NamedRef.displayName = 'NiceInput'
+                function Deep () {
+                    return h('span', { id: 'deep' })
+                }
+                function WithAB () {
+                    return h(Deep)
+                }
+                WithAB.displayName = 'withA(withB(Deep))'
+                class Static extends React.Component {
+                    static displayName = 'StaticName'
+                    render () {
+                        return h('s', { id: 'static' })
+                    }
+                }
+                mount(h(React.StrictMode, null, h('div', null, h(Compared), h(NamedMemo), h(NamedRef), h(WithAB), h(Static))), byId('app'))
+
+                expect(ids(react$$('ComparedLabel', {}, {}))).toEqual(['compared'])
+                /**
+                 * A memo component has the name of its function. Only the development
+                 * build of React 17 copies the displayName of the memo object to the
+                 * function.
+                 */
+                const renamed = build.version === '17' && mode === 'development'
+                expect(ids(react$$('RawLabel', {}, {}))).toEqual(renamed ? [] : ['named-memo'])
+                expect(ids(react$$('NiceMemo', {}, {}))).toEqual(renamed ? ['named-memo'] : [])
+                expect(ids(react$$('NiceInput', {}, {}))).toEqual(['named-ref'])
+                expect(ids(react$$('Deep', {}, {}))).toEqual(['deep'])
+                expect(ids(react$$('StaticName', {}, {}))).toEqual(['static'])
+                for (const selector of ['ComparedLabel', 'RawLabel', 'NiceMemo', 'NiceInput', 'Deep', 'StaticName']) {
+                    expect(ourNodes(api().findFiber() as Fiber, selector)).toEqual(resqNodes(api().findFiber() as Fiber, selector))
+                }
+            })
+
+            it('reads the state of the first hook', () => {
+                document.body.innerHTML = '<div id="app"></div>'
+                function WithReducer () {
+                    React.useReducer((state: unknown) => state, { mode: 'edit' })
+                    return h('u', { id: 'reducer' })
+                }
+                function RefFirst () {
+                    React.useRef(null)
+                    React.useState({ open: true })
+                    return h('u', { id: 'ref-first' })
+                }
+                mount(h('div', null, h(WithReducer), h(RefFirst)), byId('app'))
+
+                expect(ids(react$$('WithReducer', {}, { mode: 'edit' }))).toEqual(['reducer'])
+                /**
+                 * the first hook of RefFirst is useRef, so its state does not match, as in resq
+                 */
+                expect(ids(react$$('RefFirst', {}, { open: true }))).toEqual([])
+            })
+
+            it('gives the nodes of a component that returns an array', () => {
+                document.body.innerHTML = '<div id="app"></div>'
+                function Rows () {
+                    return [h('li', { key: 1, id: 'row1' }), h('li', { key: 2, id: 'row2' })]
+                }
+                mount(h('ul', null, h(Rows)), byId('app'))
+
+                expect(ids(react$$('Rows', {}, {}))).toEqual(['row1', 'row2'])
+                expect(ids([react$('Rows', {}, {})])).toEqual(['row1'])
+            })
+
+            it('reads a selector as names and wildcards only', () => {
+                document.body.innerHTML = '<div id="app"></div>'
+                function List (props: { id: string, children?: unknown }) {
+                    return h('ul', { id: props.id }, props.children)
+                }
+                function Item (props: { id: string }) {
+                    return h('li', { id: props.id })
+                }
+                mount(h(List, { id: 'outer' }, h(Item, { id: 'i1' }), h('li', null, h(List, { id: 'inner' }, h(Item, { id: 'i2' })))), byId('app'))
+                const root = api().findFiber() as Fiber
+
+                expect(ids(react$$('Li.t', {}, {}))).toEqual([])
+                expect(ids(react$$('L*t', {}, {}))).toEqual(['outer', 'inner'])
+                expect(ids(react$$('  List   Item  ', {}, {}))).toEqual(['i1', 'i2'])
+                /**
+                 * Item i2 is in both lists: the query gives it twice (as resq), react$$ once
+                 */
+                expect(ids(ourNodes(root, 'List Item'))).toEqual(['i1', 'i2', 'i2'])
+                expect(ourNodes(root, 'List Item')).toEqual(resqNodes(root, 'List Item'))
+                expect(ids(react$$('List Item', {}, {}))).toEqual(['i1', 'i2'])
+            })
+
+            it('finds a lazy component once it has loaded', async () => {
+                document.body.innerHTML = '<div id="app"></div>'
+                let load = (_: unknown) => {}
+                const Lazy = React.lazy(() => new Promise((resolve) => {
+                    load = resolve
+                }))
+                mount(h(React.Suspense, { fallback: h('span', { id: 'fallback' }) }, h(Lazy)), byId('app'))
+                expect(ids(react$$('LazyPanel', {}, {}))).toEqual([])
+
+                load({ default: function LazyPanel () {
+                    return h('mark', { id: 'lazy' })
+                } })
+                await vi.waitFor(() => expect(byId('lazy')).not.toBeNull())
+                expect(ids(react$$('LazyPanel', {}, {}))).toEqual(['lazy'])
+            })
+
+            it('follows context, conditions and keys', () => {
+                document.body.innerHTML = '<div id="app"></div>'
+                const controls: Record<string, (value: any) => void> = {}
+                const Theme = React.createContext('light')
+                function Reader () {
+                    return h('q', { id: `reader-${React.useContext(Theme)}` })
+                }
+                function Optional () {
+                    return h('aside', { id: 'optional' })
+                }
+                function Keyed (props: { id: string }) {
+                    return h('b', { id: props.id })
+                }
+                function App () {
+                    const [state, setState] = React.useState({ theme: 'light', show: true, key: 'k1' })
+                    controls.set = (change) => setState((current: object) => ({ ...current, ...change }))
+                    return h(Theme.Provider, { value: state.theme },
+                        h(Reader),
+                        state.show ? h(Optional) : null,
+                        h(Keyed, { key: state.key, id: state.key }))
+                }
+                mount(h(App), byId('app'))
+                expect(ids(react$$('Reader', {}, {}))).toEqual(['reader-light'])
+
+                update(() => controls.set({ theme: 'dark' }))
+                expect(ids(react$$('Reader', {}, {}))).toEqual(['reader-dark'])
+
+                update(() => controls.set({ show: false }))
+                expect(ids(react$$('Optional', {}, {}))).toEqual([])
+
+                const before = byId('k1')
+                update(() => controls.set({ key: 'k2' }))
+                const nodes = react$$('Keyed', {}, {}) as Element[]
+                expect(ids(nodes)).toEqual(['k2'])
+                expect(nodes[0]).not.toBe(before)
+                expect(nodes[0].isConnected).toBe(true)
+            })
+        })
+    }
 }
