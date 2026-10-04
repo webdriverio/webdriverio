@@ -395,16 +395,24 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
         if (!src) {
             throw err
         }
-        // only when the URL names this frame alone: another frame with it would be picked as well
-        const sameSrc = await resolved.element.execute((el: Element) => Array.from((el.getRootNode() as Document | ShadowRoot).querySelectorAll('iframe, frame'))
-            .filter((frame) => (frame as HTMLIFrameElement).src === (el as HTMLIFrameElement).src).length) as number
-        if (sameSrc !== 1) {
+        /**
+         * Only when the URL names this frame alone. Counted the way `frame()`
+         * matches below (any depth under this context, shadow roots and
+         * nested frames included, fragments ignored), so another frame it
+         * would pick as well can't be mistaken for this one.
+         */
+        const withoutHash = (url: string) => url.split('#')[0]
+        const { contexts } = await session.browser.browsingContextGetTree({ root: owner.contextId })
+        const descendants = (nodes: { url: string, children?: unknown[] | null }[]): { url: string }[] =>
+            nodes.flatMap((node) => [node, ...descendants((node.children ?? []) as { url: string, children?: unknown[] | null }[])])
+        const sameUrl = descendants(contexts.flatMap((context) => (context.children ?? []) as { url: string, children?: unknown[] | null }[]))
+            .filter(({ url }) => withoutHash(url) === withoutHash(src)).length
+        if (sameUrl !== 1) {
             throw usage(
-                `${resolved.label} can't be entered: the browser blocks looking into it, and ${sameSrc} frames on the page load ${src}.`,
+                `${resolved.label} can't be entered: the browser blocks looking into it, and ${sameUrl} frames on the page load ${withoutHash(src)}.`,
                 'Run `wdio session exec` with `browser.switchFrame(...)` on a selector that matches only this frame.'
             )
         }
-        const withoutHash = (url: string) => url.split('#')[0]
         return owner.frame(({ url }) => withoutHash(url) === withoutHash(src))
     })
     /**
