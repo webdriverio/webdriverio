@@ -134,8 +134,12 @@ const buildTree = (fiber: Fiber | null | undefined): ReactNode => {
         tree.children.push(buildTree(child))
     }
 
+    /**
+     * A child can be a fragment too: its nodes go into the same flat list, in order
+     * (resq made a nested list, so `react$` could return a list).
+     */
     if (typeof fiber.type === 'function' && tree.children.length > 1) {
-        tree.node = tree.children.map((child) => child.node).filter(Boolean) as HostNode[]
+        tree.node = tree.children.flatMap((child) => child.node || [])
         tree.isFragment = true
     } else if (isHostNode(fiber.stateNode)) {
         tree.node = fiber.stateNode

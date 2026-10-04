@@ -228,6 +228,12 @@ const createFixture = (React: any, ReactDOM: any, { portal, suspense }: { portal
     function Wrapper () {
         return h(Pair)
     }
+    function Terms () {
+        return h(React.Fragment, null, h('dt', { id: 'term2' }, 'term'), h('dd', { id: 'def2' }, 'definition'))
+    }
+    function Glossary () {
+        return h(React.Fragment, null, h(Terms), h('dd', { id: 'note' }, 'note'))
+    }
     function Empty () {
         return null
     }
@@ -264,6 +270,7 @@ const createFixture = (React: any, ReactDOM: any, { portal, suspense }: { portal
             h(LabelledBadge),
             h(Named),
             h('dl', null, h(Wrapper)),
+            h('dl', { id: 'glossary' }, h(Glossary)),
             h(Empty),
             h('span', { id: 'text' }, h(TextOnly)),
             h(Context.Provider, { value: 'provided' }, h(UsesContext)),
@@ -313,7 +320,10 @@ const resqNodes = (root: Fiber, selector: string, props: unknown = {}, state: un
     if (Object.keys(state as object).length) {
         found = found.byState(state)
     }
-    return (found as ReactNode[]).flatMap((tree) => [tree.node].flat().filter(Boolean))
+    /**
+     * resq nests the nodes of a fragment inside a fragment
+     */
+    return (found as ReactNode[]).flatMap((tree) => [tree.node].flat(Infinity).filter(Boolean))
 }
 
 const ourNodes = (root: Fiber, selector: string, props: unknown = {}, state: unknown = {}) => (
@@ -369,6 +379,8 @@ const QUERY_CASES: QueryCase[] = [
     { title: 'a function name hidden by its displayName', selector: 'Named', expected: () => [] },
     { title: 'a fragment', selector: 'Pair', expected: () => [byId('dt'), byId('dd')] },
     { title: 'a component without a DOM node of its own', selector: 'Wrapper', expected: () => [byId('dt'), byId('dd')] },
+    { title: 'a fragment that contains a fragment', selector: 'Glossary', expected: () => [byId('term2'), byId('def2'), byId('note')] },
+    { title: 'a fragment inside a fragment', selector: 'Terms', expected: () => [byId('term2'), byId('def2')] },
     { title: 'a component that renders nothing', selector: 'Empty', expected: () => [] },
     { title: 'a component that renders text', selector: 'TextOnly', expected: () => [byId('text').firstChild as Node] },
     { title: 'a context consumer', selector: 'UsesContext', expected: () => [byId('ctx')] },
@@ -440,6 +452,7 @@ for (const build of BUILDS) {
                 expect(react$('Item', { color: 'blue' }, {})).toBe(items()[1])
                 expect(react$('Pair', {}, {})).toBe(byId('dt'))
                 expect(react$('Wrapper', {}, {})).toBe(byId('dt'))
+                expect(react$('Glossary', {}, {})).toBe(byId('term2'))
                 expect(react$('Empty', {}, {})).toBeUndefined()
                 expect(react$('Nope', {}, {})).toEqual({ message: 'React element with selector "Nope" wasn\'t found' })
             })
@@ -510,4 +523,24 @@ for (const build of BUILDS) {
             })
         })
     }
+}
+
+/**
+ * `waitToLoadReact` waits for a child of the root: `createRoot` marks the
+ * container before the app calls `render`
+ */
+for (const build of BUILDS.filter((build) => build.mounts.includes('createRoot'))) {
+    it(`React ${build.version}: a createRoot root has a child only after render`, () => {
+        document.body.innerHTML = '<div id="late"></div>'
+        const { React, ReactDOM } = loadReact(build)
+        const root = ReactDOM.createRoot(byId('late'))
+
+        expect(api().findContainer()).toBe(byId('late'))
+        expect(api().findFiber()?.child).toBeNull()
+        ReactDOM.flushSync(() => root.render(React.createElement('p', null, 'late')))
+        expect(api().findFiber()?.child).toBeTruthy()
+
+        root.unmount()
+        document.body.innerHTML = ''
+    })
 }
