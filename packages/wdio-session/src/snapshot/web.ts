@@ -621,7 +621,8 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         let name = accessibleName(el, role)
         if (!name && namedByText) {
             const text = collapse(textContentOf(el, true))
-            name = text.length <= MAX_TEXT_NAME ? text : ''
+            // a glyph ("✎", "🗑") says less than the hint: what it is and the row it acts on
+            name = text.length <= MAX_TEXT_NAME && /[\p{L}\p{N}]/u.test(text) ? text : ''
         }
         const out: Node = { role }
         if (name) {
