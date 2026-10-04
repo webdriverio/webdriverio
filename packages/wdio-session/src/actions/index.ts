@@ -29,6 +29,7 @@ export const IMPLEMENTATIONS: Record<string, ActionFn> = {
     helpers,
     snapshot: observe.snapshot,
     find: observe.find,
+    read: observe.read,
     diff: observe.diff,
     screenshot: observe.screenshot,
     pdf: observe.pdf,

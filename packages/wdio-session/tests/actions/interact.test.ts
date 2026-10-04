@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, it, expect, vi } from 'vitest'
 
-import { click, fill, navigate, normalizeUrl, parseKeys, type, upload } from '../../src/actions/interact.js'
+import { click, fill, navigate, normalizeUrl, parseKeys, press, type, upload } from '../../src/actions/interact.js'
 import { quote } from '../../src/quote.js'
 import type { Session } from '../../src/session.js'
 
@@ -177,9 +177,11 @@ describe('fill', () => {
                 err.name = 'webdriverio(middleware): element did not become interactable'
                 throw err
             },
-            execute: async (fn: (el: unknown) => unknown) => fn.toString().includes('getBoundingClientRect')
-                ? { x: 10, y: 20, hit: true }
-                : actions.push('select')
+            execute: async (fn: (el: unknown) => unknown) => fn.toString().includes('aria-valuenow')
+                ? { kind: 'text' }
+                : fn.toString().includes('getBoundingClientRect')
+                    ? { x: 10, y: 20, hit: true }
+                    : actions.push('select')
         }
         const pointer = {
             move: (opts: { x: number, y: number }) => {
@@ -350,5 +352,91 @@ describe('navigate', () => {
         session.get = () => undefined
         const result = await navigate(session, { url: 'https://shop.test/', $cwd: '/' })
         expect(result.text).toBe('Navigated to https://shop.test/ — Shop\nThe page is still loading; what is shown below is what has loaded so far.')
+    })
+})
+
+describe('press --times', () => {
+    it('presses a key the given number of times', async () => {
+        const keys: unknown[] = []
+        const result = await press(clickSession({}, { keys: async (k: unknown) => keys.push(k) }), { keys: 'ArrowRight', times: 3, $cwd: '/' })
+        expect(keys).toEqual(['ArrowRight', 'ArrowRight', 'ArrowRight'])
+        expect(result.text).toBe('Pressed ArrowRight 3 times')
+        expect(result.code).toBe("for (let i = 0; i < 3; i++) {\n    await browser.keys('ArrowRight')\n}")
+    })
+
+    it('rejects counts outside 1 to 100', async () => {
+        await expect(press(clickSession({}, { keys: async () => {} }), { keys: 'Tab', times: 101, $cwd: '/' })).rejects.toThrow('--times must be a whole number from 1 to 100.')
+    })
+})
+
+describe('click at coordinates', () => {
+    it('clicks the point and says what was there', async () => {
+        const actions: string[] = []
+        const pointer = {
+            move: (opts: { x: number, y: number }) => (actions.push(`move ${opts.x},${opts.y}`), pointer),
+            down: () => (actions.push('down'), pointer),
+            up: () => (actions.push('up'), pointer),
+            perform: async () => actions.push('perform')
+        }
+        const session = clickSession({}, { action: () => pointer, execute: async () => 'canvas "Map"' })
+        const result = await click(session, { target: '320,480', $cwd: '/' })
+        expect(actions).toEqual(['move 320,480', 'down', 'up', 'perform'])
+        expect(result.text).toBe('Clicked canvas "Map" at 320,480')
+    })
+
+    it('fails when nothing is at the point', async () => {
+        const session = clickSession({}, { execute: async () => undefined })
+        await expect(click(session, { target: '5000,5000', $cwd: '/' })).rejects.toThrow('Nothing is at 5000,5000.')
+    })
+})
+
+describe('fill on inputs that are not typed into', () => {
+    it('sets a range input with setValue and reports the value it took', async () => {
+        const setValue = vi.fn()
+        const element = {
+            execute: async () => ({ kind: 'direct', type: 'range' }),
+            setValue,
+            getValue: async () => '65'
+        }
+        const result = await fill(refSession(element), { target: 'e2', text: '67', $cwd: '/' })
+        expect(setValue).toHaveBeenCalledWith('67')
+        expect(result.text).toBe('Set e2 (textbox "Name") to 65 (it took 65: the nearest allowed value)')
+    })
+
+    it('rejects a date the input does not take', async () => {
+        const element = {
+            execute: async () => ({ kind: 'direct', type: 'date' }),
+            setValue: async () => {},
+            getValue: async () => ''
+        }
+        await expect(fill(refSession(element), { target: 'e2', text: '10/04/2026', $cwd: '/' }))
+            .rejects.toThrow('e2 (textbox "Name") did not take "10/04/2026"; it has "".')
+    })
+
+    it('moves an ARIA slider with arrow keys until it has the value', async () => {
+        let now = 25
+        const keys: string[] = []
+        const element = {
+            execute: async () => ({ kind: 'slider', now, min: 18, max: 85 }),
+            getAttribute: async () => String(now)
+        }
+        const session = refSession(element, {
+            keys: async (k: string) => {
+                keys.push(k)
+                now += k === 'ArrowRight' ? 1 : -1
+            },
+            execute: async () => {}
+        })
+        const result = await fill(session, { target: 'e2', text: '30', $cwd: '/' })
+        expect(keys).toEqual(Array(5).fill('ArrowRight'))
+        expect(result.text).toBe('Set e2 (textbox "Name") to 30')
+        expect(result.history).toContain('el.focus()')
+        expect(result.history).toContain('for (let i = 0; i < 5; i++) {\n    await browser.keys(\'ArrowRight\')\n}')
+    })
+
+    it('reports where an ARIA slider stopped when it cannot reach the value', async () => {
+        const element = { execute: async () => ({ kind: 'slider', now: 85, min: 18, max: 85 }), getAttribute: async () => '85' }
+        const session = refSession(element, { keys: async () => {}, execute: async () => {} })
+        await expect(fill(session, { target: 'e2', text: '99', $cwd: '/' })).rejects.toThrow('e2 (textbox "Name") stopped at 85, not 99.')
     })
 })

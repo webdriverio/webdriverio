@@ -31,6 +31,14 @@ export interface ExecContext {
 
 const CONTEXT_KEY = 'exec:context'
 
+/** the ref a selector names, if it is one: `e12`, `[ref=e12]`, `[ref="e12"]` */
+export function refSelector (selector: unknown): string | undefined {
+    if (typeof selector !== 'string') {
+        return undefined
+    }
+    return /^\s*(?:\[ref=["']?(e\d+)["']?\]|(e\d+))\s*$/.exec(selector)?.slice(1).find(Boolean)
+}
+
 /**
  * `ref('e3')` returns a thenable that also forwards element commands, so
  * both `await ref('e3')` and `await ref('e3').click()` work.
@@ -117,8 +125,15 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
     const globals: Record<string, unknown> = {
         browser: session.browser,
         driver: session.browser,
-        $: (...args: Parameters<WebdriverIO.Browser['$']>) => session.browser.$(...args),
-        $$: (...args: Parameters<WebdriverIO.Browser['$$']>) => session.browser.$$(...args),
+        // a ref from the snapshot works as a selector too: `$('e12')`, `$('[ref=e12]')`
+        $: (...args: Parameters<WebdriverIO.Browser['$']>) => {
+            const id = refSelector(args[0])
+            return id ? ref(id) : session.browser.$(...args)
+        },
+        $$: (...args: Parameters<WebdriverIO.Browser['$$']>) => {
+            const id = refSelector(args[0])
+            return id ? ref(id).then((el) => [el]) : session.browser.$$(...args)
+        },
         expect,
         ref,
         session: {

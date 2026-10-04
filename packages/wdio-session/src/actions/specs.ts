@@ -234,6 +234,20 @@ export const ACTIONS: ActionSpec[] = [
         seeAlso: ['find', 'diff', 'screenshot']
     },
     {
+        name: 'read', group: 'Observation', applies: ['W'],
+        desc: 'Read the page text as Markdown',
+        details: 'Headings, paragraphs, list items, table rows and links with their URL, from the main content when the page marks it (main, article), else the whole page; navigation, footers and hidden text are left out. Cut at --max-chars (default 6000). Use it to answer "what does the page say"; use snapshot or find for refs to act on.',
+        options: {
+            scope: { type: 'string', desc: 'Only read below this ref or selector' },
+            'max-chars': { type: 'number', desc: 'Print up to this many characters (default 6000)' }
+        },
+        examples: [
+            ['wdio session read', 'Read the main content'],
+            ['wdio session read --scope e12', 'Read one section']
+        ],
+        seeAlso: ['find', 'snapshot', 'get']
+    },
+    {
         name: 'find', group: 'Observation', applies: ['W', 'M', 'D'],
         desc: 'Search a fresh snapshot for text',
         details: 'Takes a new snapshot and prints each match with the node around it (e.g. the whole list item, so a value next to the match is included), with line numbers and refs. Matching ignores case. Cheaper than reading a whole snapshot of a large page. -A/-B/-C print plain line context instead, like grep.',
@@ -392,14 +406,15 @@ export const ACTIONS: ActionSpec[] = [
     {
         name: 'click', group: 'Interaction', applies: ['W', 'M', 'D'], mutation: true,
         desc: 'Click an element',
-        details: 'Prints what was clicked and, when the click navigated, the new URL. Take a new snapshot before you use refs on the next page.',
-        positionals: [target()],
+        details: 'Prints what was clicked and, when the click navigated, the new URL. Take a new snapshot before you use refs on the next page. A hidden or covered element fails at once with what is in the way. `x,y` clicks a point of the viewport (pixels from the top left, as in a screenshot) for what has no ref, like a canvas or map.',
+        positionals: [target('Ref (e12), WebdriverIO selector, or x,y viewport coordinates')],
         options: { double: { type: 'boolean', desc: 'Double click' }, right: { type: 'boolean', desc: 'Right click' }, 'new-tab': { type: 'boolean', desc: 'Open the link in a new tab and switch to it' } },
         examples: [
             ['wdio session click e3', 'Click a ref from the latest snapshot'],
             ['wdio session click "aria/Add to cart"', 'Click by accessible name'],
             ['wdio session click e3 && wdio session wait --load networkidle && wdio session snapshot -i', 'Click, wait, look again'],
-            ['wdio session click e8 --new-tab', 'Open a link in a new tab']
+            ['wdio session click e8 --new-tab', 'Open a link in a new tab'],
+            ['wdio session click 320,480', 'Click a point of the viewport, e.g. on a map'],
         ],
         seeAlso: ['tap', 'fill', 'wait', 'snapshot']
     },
@@ -435,8 +450,10 @@ export const ACTIONS: ActionSpec[] = [
         desc: 'Press keys, e.g. Enter, Control+a',
         details: 'Combine keys with +. Names ignore case; ctrl, cmd, esc, up, down, left and right are accepted as short forms.',
         positionals: [{ name: 'keys', desc: 'Key combination', required: true }],
+        options: { times: { type: 'number', desc: 'Press it this many times (up to 100), e.g. to move a slider' } },
         examples: [
             ['wdio session press Enter', 'Submit a form'],
+            ['wdio session press ArrowRight --times 5', 'Move a focused slider five steps'],
             ['wdio session press Control+a', 'Select all'],
             ['wdio session press Shift+Tab', 'Move focus back']
         ],

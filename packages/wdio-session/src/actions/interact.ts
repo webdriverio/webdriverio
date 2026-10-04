@@ -8,7 +8,9 @@ import { usage } from '../errors.js'
 import { quote } from '../quote.js'
 import { resolveTarget, scopeOf, type ResolvedTarget } from '../snapshot/target.js'
 import { refId } from '../snapshot/refs.js'
+import { describeViewport } from './observe.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
+import type { ActionArgs } from './index.js'
 
 const DEFAULT_SCROLL_PX = 600
 
@@ -200,7 +202,38 @@ export const back = historyStep('back', 'Went back')
 export const forward = historyStep('forward', 'Went forward')
 export const reload = historyStep('refresh', 'Reloaded')
 
+/** `click 320,480`: viewport coordinates, as read off a screenshot */
+const POINT = /^\s*(\d{1,5})\s*,\s*(\d{1,5})\s*$/
+
+/**
+ * Click at a point of the viewport, for what has no ref: a canvas, a map, a
+ * custom widget the snapshot doesn't see. Says what was there.
+ */
+async function clickAt (session: Session, x: number, y: number, args: ActionArgs) {
+    if (args.double || args.right || args.newTab) {
+        throw usage('Coordinates take a plain click.', 'Click a ref or selector for --double, --right or --new-tab.')
+    }
+    const what = await scopeOf(session).execute(function (px: number, py: number) {
+        const el = document.elementFromPoint(px, py)
+        if (!el) {
+            return undefined
+        }
+        const role = el.getAttribute('role') || el.tagName.toLowerCase()
+        const name = (el.getAttribute('aria-label') || (el as HTMLElement).innerText || '').trim().replace(/\s+/g, ' ').slice(0, 60)
+        return name ? `${role} "${name}"` : role
+    }, x, y) as string | undefined
+    if (!what) {
+        throw usage(`Nothing is at ${x},${y}.`, 'Coordinates are viewport pixels from the top left, as in a screenshot; take one to check.')
+    }
+    const text = await withNavigation(session, `Clicked ${what} at ${x},${y}`, () => pointerClick(session, { state: 'ok', x, y }))
+    return done(text, `await browser.action('pointer').move({ x: ${x}, y: ${y}, origin: 'viewport' }).down().up().perform()`)
+}
+
 export const click: ActionFn = async (session, args) => {
+    const point = typeof args.target === 'string' ? POINT.exec(args.target) : null
+    if (point) {
+        return clickAt(session, Number(point[1]), Number(point[2]), args)
+    }
     const target = await resolveTarget(session, args.target)
     if (args.double && args.right) {
         throw usage('Use either --double or --right.')
@@ -252,9 +285,110 @@ export const tap: ActionFn = async (session, args) => {
     return done(`Tapped ${target.label}`, `await ${target.code}.tap()`)
 }
 
+/** how each input type `setValue` sets directly writes its value, for the error when one isn't taken */
+const FORMATS: Record<string, string> = {
+    date: '2026-10-04',
+    time: '14:30',
+    'datetime-local': '2026-10-04T14:30',
+    month: '2026-10',
+    week: '2026-W40',
+    color: '#ff8800'
+}
+
+/** most arrow key presses `fill` spends on an ARIA slider */
+const MAX_SLIDER_STEPS = 200
+
+interface FillKind { kind: 'direct' | 'slider' | 'text', type?: string, now?: number, min?: number, max?: number }
+
+async function fillKind (target: ResolvedTarget): Promise<FillKind> {
+    if (typeof target.element.execute !== 'function') {
+        return { kind: 'text' }
+    }
+    const kind = await target.element.execute((el: Element) => {
+        const type = (el as HTMLInputElement).type
+        if (el.tagName === 'INPUT' && ['range', 'date', 'time', 'datetime-local', 'month', 'week', 'color'].includes(type)) {
+            return { kind: 'direct' as const, type }
+        }
+        if (el.getAttribute('role') === 'slider' && !['INPUT', 'TEXTAREA'].includes(el.tagName)) {
+            const num = (name: string) => el.hasAttribute(name) ? Number(el.getAttribute(name)) : undefined
+            return { kind: 'slider' as const, now: num('aria-valuenow'), min: num('aria-valuemin'), max: num('aria-valuemax') }
+        }
+        return { kind: 'text' as const }
+    }).catch(() => undefined) as FillKind | undefined
+    return kind && typeof kind === 'object' && 'kind' in kind ? kind : { kind: 'text' }
+}
+
+/**
+ * An ARIA slider (role="slider", no input behind it) takes its value from
+ * the keyboard: focus it and press arrow keys until aria-valuenow reaches
+ * the value, at most MAX_SLIDER_STEPS times. Returns where it stopped and
+ * the keys it pressed.
+ */
+async function slideTo (session: Session, target: ResolvedTarget, want: number): Promise<{ reached?: number, pressed: string[] }> {
+    const now = async () => {
+        const raw = await target.element.getAttribute('aria-valuenow')
+        return raw === null ? undefined : Number(raw)
+    }
+    await scopeOf(session).execute((el: HTMLElement) => el.focus(), target.element)
+    let current = await now()
+    const pressed: string[] = []
+    for (let step = 0; step < MAX_SLIDER_STEPS && current !== undefined && current !== want; step++) {
+        const key = current < want ? 'ArrowRight' : 'ArrowLeft'
+        await session.browser.keys(key)
+        pressed.push(key)
+        const next = await now()
+        const stuck = next === undefined || next === current
+        const overshot = next !== undefined && next !== want && (current < want) !== (next < want)
+        current = next
+        // a value that doesn't move, or jumps past the target, is as close as the keyboard gets
+        if (stuck || overshot) {
+            break
+        }
+    }
+    return { reached: current, pressed }
+}
+
+/** replayable code for the keys `slideTo` pressed: one loop per run of the same key */
+function pressCode (keys: string[]) {
+    const runs: [string, number][] = []
+    for (const key of keys) {
+        const last = runs[runs.length - 1]
+        if (last?.[0] === key) {
+            last[1]++
+        } else {
+            runs.push([key, 1])
+        }
+    }
+    return runs.map(([key, count]) => count === 1
+        ? `await browser.keys(${quote(key)})`
+        : `for (let i = 0; i < ${count}; i++) {\n    await browser.keys(${quote(key)})\n}`)
+}
+
 export const fill: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)
     const value = String(args.text ?? '')
+    const kind = await fillKind(target)
+    if (kind.kind === 'direct') {
+        // setValue sets these directly, as their picker does (see webdriverio's setValue)
+        await target.element.setValue(value)
+        const took = await target.element.getValue()
+        if (took !== value && kind.type !== 'range') {
+            throw usage(`${target.label} did not take ${JSON.stringify(value)}; it has ${JSON.stringify(took)}.`, `A ${kind.type} input takes values like ${FORMATS[kind.type!] ?? 'its own format'}.`)
+        }
+        const note = took !== value ? ` (it took ${took}: the nearest allowed value)` : ''
+        return done(`Set ${target.label} to ${took}${note}`, `await ${target.code}.setValue(${quote(value)})`)
+    }
+    if (kind.kind === 'slider') {
+        const want = Number(value)
+        if (!Number.isFinite(want)) {
+            throw usage(`${target.label} is a slider and takes a number.`, kind.min !== undefined && kind.max !== undefined ? `Pass a number from ${kind.min} to ${kind.max}.` : 'Pass a number.')
+        }
+        const { reached, pressed } = await slideTo(session, target, want)
+        if (reached !== want) {
+            throw usage(`${target.label} stopped at ${reached ?? 'an unknown value'}, not ${want}.`, kind.min !== undefined && kind.max !== undefined ? `Its range is ${kind.min} to ${kind.max}.` : 'Use `press` with arrow keys to adjust it.')
+        }
+        return done(`Set ${target.label} to ${reached}`, [`await browser.execute((el) => el.focus(), await ${target.code})`, ...pressCode(pressed)].join('\n'))
+    }
     await withPointerFallback(session, target, () => target.element.setValue(value), async () => {
         await target.element.execute((el) => (el as unknown as HTMLInputElement).select?.())
         await session.browser.keys(value)
@@ -450,12 +584,25 @@ export const type: ActionFn = async (session, args) => {
     return done(`Typed ${value.length} character${value.length === 1 ? '' : 's'}`, `await browser.keys(${quote(value)})`)
 }
 
+/** most times `press --times` repeats a key */
+const MAX_PRESS_TIMES = 100
+
 export const press: ActionFn = async (session, args) => {
     const keys = parseKeys(String(args.keys ?? ''))
-    const code = keys.length === 1
+    const times = args.times === undefined ? 1 : Number(args.times)
+    if (!Number.isInteger(times) || times < 1 || times > MAX_PRESS_TIMES) {
+        throw usage(`--times must be a whole number from 1 to ${MAX_PRESS_TIMES}.`)
+    }
+    const once = keys.length === 1
         ? `await browser.keys(${quote(keys[0])})`
         : `await browser.keys([${keys.map(quote).join(', ')}])`
-    const text = await withNavigation(session, `Pressed ${keys.join('+')}`, () => session.browser.keys(keys.length === 1 ? keys[0] : keys))
+    const code = times === 1 ? once : `for (let i = 0; i < ${times}; i++) {\n    ${once}\n}`
+    const label = `Pressed ${keys.join('+')}${times === 1 ? '' : ` ${times} times`}`
+    const text = await withNavigation(session, label, async () => {
+        for (let i = 0; i < times; i++) {
+            await session.browser.keys(keys.length === 1 ? keys[0] : keys)
+        }
+    })
     return done(text, code)
 }
 
@@ -502,7 +649,7 @@ export const upload: ActionFn = async (session, args) => {
 export const focus: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)
     await scopeOf(session).execute((el: HTMLElement) => el.focus(), target.element)
-    return done(`Focused ${target.label}`, `await browser.execute((el) => el.focus(), ${target.code})`)
+    return done(`Focused ${target.label}`, `await browser.execute((el) => el.focus(), await ${target.code})`)
 }
 
 export const setChecked: ActionFn = async (session, args) => {
@@ -546,7 +693,7 @@ export const scroll: ActionFn = async (session, args) => {
     if (where === 'up' || where === 'down') {
         const dy = where === 'up' ? -px : px
         await scopeOf(session).scroll(0, dy)
-        return done(`Scrolled ${where} ${px}px`, `await browser.scroll(0, ${dy})`)
+        return done(await withViewport(session, `Scrolled ${where} ${px}px`), `await browser.scroll(0, ${dy})`)
     }
     if (where === 'top' || where === 'bottom') {
         const fn = where === 'top'
@@ -555,11 +702,17 @@ export const scroll: ActionFn = async (session, args) => {
         await scopeOf(session).execute(where === 'top'
             ? () => window.scrollTo(0, 0)
             : () => window.scrollTo(0, document.documentElement.scrollHeight))
-        return done(`Scrolled to the ${where}`, `await browser.execute(${fn})`)
+        return done(await withViewport(session, `Scrolled to the ${where}`), `await browser.execute(${fn})`)
     }
     const target = await resolveTarget(session, where)
     await target.element.scrollIntoView()
-    return done(`Scrolled ${target.label} into view`, `await ${target.code}.scrollIntoView()`)
+    return done(await withViewport(session, `Scrolled ${target.label} into view`), `await ${target.code}.scrollIntoView()`)
+}
+
+/** after a scroll: what is now in view (see describeViewport), so no screenshot is needed to see it */
+async function withViewport (session: Session, text: string) {
+    const view = await describeViewport(session).catch(() => '')
+    return view ? `${text}\nIn view:\n${view}` : text
 }
 
 export const swipe: ActionFn = async (session, args) => {

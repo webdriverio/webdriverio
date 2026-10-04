@@ -39,6 +39,11 @@ const HINTS: Hint[] = [
         hint: 'Take a new `wdio session snapshot`; the page may have changed.'
     },
     {
+        // page code run in Node
+        test: (e) => /\b(document|window|location|navigator|localStorage) is not defined/.test(e.message),
+        hint: '`exec` runs in Node, not in the page. Run page code with `await browser.execute(() => document.title)`, or pass an element: `await browser.execute((el) => el.value, await ref(\'e12\'))`.'
+    },
+    {
         test: (e) => /^ref is not defined|REF_STALE|no longer exists on the page/.test(e.message),
         hint: 'Run `wdio session snapshot` to get fresh refs.'
     }

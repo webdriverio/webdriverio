@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { describe, expect, it, vi } from 'vitest'
 
-import { matchLines, pngSize, readableUrl } from '../../src/actions/observe.js'
+import { inViewport, matchLines, pngSize, readableUrl } from '../../src/actions/observe.js'
 
 const PNG = Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
@@ -69,5 +69,27 @@ describe('matchLines', () => {
     it('does not match on URLs when the text matches nothing there', () => {
         expect(matchLines(snapshot, has('Consortium')).matches).toEqual([2])
         expect(matchLines(snapshot, has('Tim Berners-Lee')).matches).toEqual([])
+    })
+})
+
+describe('inViewport', () => {
+    it('keeps elements overlapping the viewport, with their text', () => {
+        const tree = {
+            role: 'document',
+            children: [
+                { role: 'heading', name: 'Above', box: [0, -400, 800, 40], children: [{ role: 'text', name: 'Above' }] },
+                { role: 'paragraph', box: [0, 100, 800, 60], children: [{ role: 'text', name: 'Visible text' }] },
+                { role: 'button', name: 'Buy', ref: 'e4', box: [10, 700, 80, 30] },
+                { role: 'link', name: 'Below', ref: 'e5', box: [0, 1200, 100, 20] }
+            ]
+        }
+        const view = inViewport(tree, 1280, 800)!
+        expect(view.children!.map((c) => c.role)).toEqual(['paragraph', 'button'])
+        expect(view.children![0].children).toEqual([{ role: 'text', name: 'Visible text' }])
+    })
+
+    it('leaves out text directly in a container taller than the viewport', () => {
+        const tree = { role: 'main', box: [0, -2000, 800, 4000], children: [{ role: 'text', name: 'Somewhere in main' }, { role: 'button', name: 'Buy', ref: 'e4', box: [0, 100, 80, 30] }] }
+        expect(inViewport(tree, 1280, 800)!.children!.map((c) => c.role)).toEqual(['button'])
     })
 })
