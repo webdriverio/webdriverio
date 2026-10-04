@@ -69,7 +69,7 @@ const TIMEOUT_MARGIN_MS = 1000
  * includes what the code printed so far: a loop that set five sliders and
  * ran out of time on the sixth still says what it did.
  */
-async function withinTimeout<T> (running: Promise<T>, timeout: number | undefined, lines: string[]): Promise<T> {
+async function withinTimeout<T> (running: Promise<T>, timeout: number | undefined, lines: string[], onTimeout: () => void): Promise<T> {
     if (!timeout || timeout <= TIMEOUT_MARGIN_MS * 2) {
         return running
     }
@@ -78,10 +78,14 @@ async function withinTimeout<T> (running: Promise<T>, timeout: number | undefine
         return await Promise.race([
             running,
             new Promise<never>((_, reject) => {
-                timer = setTimeout(() => reject(new SessionError('TIMEOUT', `"exec" did not finish within ${timeout}ms; the code may still be running.`, {
-                    hint: 'Split the work into smaller steps, or pass --timeout.',
-                    details: lines.length ? ['Output so far:', ...lines].join('\n') : undefined
-                })), timeout - TIMEOUT_MARGIN_MS)
+                timer = setTimeout(() => {
+                    const output = [...lines]
+                    onTimeout()
+                    reject(new SessionError('TIMEOUT', `"exec" did not finish within ${timeout}ms; the code may still be running.`, {
+                        hint: 'Split the work into smaller steps, or pass --timeout.',
+                        details: output.length ? ['Output so far:', ...output].join('\n') : undefined
+                    }))
+                }, timeout - TIMEOUT_MARGIN_MS)
             })
         ])
     } finally {
@@ -107,7 +111,15 @@ export const exec: ActionFn = async (session, args) => {
             () => undefined,
             (err) => log.debug(`exec failed: ${err?.message}`)
         ))
-        value = await withinTimeout(running, typeof args.$timeout === 'number' ? args.$timeout : undefined, lines)
+        value = await withinTimeout(running, typeof args.$timeout === 'number' ? args.$timeout : undefined, lines, () => {
+            /**
+             * The code can't be stopped. Given up on, it no longer changes the
+             * session (see `Session.abandon`), and what it prints later is
+             * dropped rather than shown with the next command.
+             */
+            session.abandon?.()
+            ctx.setSink(() => {})
+        })
         if (isError(value)) {
             throw value
         }

@@ -282,8 +282,8 @@ function pageOf (lines: string[], from: number, maxChars: number) {
         size += line.length + 1
     }
     if (!shown.length) {
-        // one line longer than the whole budget, e.g. a document with a long url
-        shown.push(`${lines[start].slice(0, maxChars - 1)}…`)
+        // one line longer than the whole budget (a link with a long url) is printed whole: cut, its rest would be lost
+        shown.push(lines[start])
     }
     return { text: shown.join('\n'), from: start + 1, to: start + shown.length }
 }
@@ -304,8 +304,15 @@ function repeatFlags (args: Record<string, unknown>) {
         args.urls ? ' --urls' : '',
         args.boxes ? ' --boxes' : '',
         typeof args.depth === 'number' ? ` --depth ${args.depth}` : '',
-        typeof args.scope === 'string' ? ` --scope ${JSON.stringify(args.scope)}` : ''
+        // the short preview `open` prints is no size to read the rest in
+        typeof args.maxChars === 'number' && !args.$preview ? ` --max-chars ${args.maxChars}` : '',
+        typeof args.scope === 'string' ? ` --scope ${shellQuote(args.scope)}` : ''
     ].join('')
+}
+
+/** a shell word that stays as it is: single quotes, which expand nothing */
+function shellQuote (text: string) {
+    return `'${text.replace(/'/g, '\'\\\'\'')}'`
 }
 
 /** lines a `find` block may have before it is cut to a window around the match */
@@ -412,38 +419,47 @@ export const find: ActionFn = async (session, args) => {
         const needle = query.toLowerCase()
         test = (line) => line.toLowerCase().includes(needle)
     }
-    const { text: linked } = await takeSnapshot(session, { urls: true, scope })
-    let { lines, shown, matches } = matchLines(linked.split('\n'), test)
     const words = query.toLowerCase().split(/\s+/).filter(Boolean)
     // "SO2" when the page says "SO 2" (a subscript), "1 Y" for "1Y"
     const squeezed = query.toLowerCase().replace(/\s+/g, '')
-    const withoutSpaces = (line: string) => line.toLowerCase().replace(/\s+/g, '').includes(squeezed)
-    let note = ''
-    if (!matches.length && !args.regex && squeezed.length > 1) {
-        ({ lines, shown, matches } = matchLines(linked.split('\n'), withoutSpaces))
-        note = matches.length ? `No line contains ${JSON.stringify(query)}; lines that do without the spaces:\n` : ''
+    /**
+     * The query as given, then without spaces, then all of its words, then
+     * words like them ("give" finds "Giving"): agents search with keywords,
+     * not with a line of the page.
+     */
+    const search = (snapshotText: string) => {
+        const all = snapshotText.split('\n')
+        let found = matchLines(all, test)
+        if (found.matches.length || args.regex) {
+            return { ...found, note: '' }
+        }
+        const tries: [boolean, (line: string) => boolean, string][] = [
+            [squeezed.length > 1, (line) => line.toLowerCase().replace(/\s+/g, '').includes(squeezed), 'lines that do without the spaces'],
+            [words.length > 1, (line) => words.every((w) => line.toLowerCase().includes(w)), 'lines with all of its words'],
+            [words.length > 0, (line) => words.every((w) => new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRegExp(stem(w))}`, 'iu').test(line)), 'lines with words like it']
+        ]
+        for (const [applies, fallback, what] of tries) {
+            if (applies && (found = matchLines(all, fallback)).matches.length) {
+                return { ...found, note: `No line contains ${JSON.stringify(query)}; ${what}:\n` }
+            }
+        }
+        return { ...found, note: '' }
     }
-    // "give gift donate": agents search with keywords, not with a line of the page
-    if (!matches.length && !args.regex && words.length > 1) {
-        ({ lines, shown, matches } = matchLines(linked.split('\n'), (line) => words.every((w) => line.toLowerCase().includes(w))))
-        note = matches.length ? `No line contains ${JSON.stringify(query)}; lines with all of its words:\n` : ''
-    }
-    // "Give" when the page says "Giving": words that start like the query's
-    if (!matches.length && !args.regex && words.length) {
-        const stems = words.map((w) => new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRegExp(stem(w))}`, 'iu'))
-        ;({ lines, shown, matches } = matchLines(linked.split('\n'), (line) => stems.every((re) => re.test(line))))
-        note = matches.length ? `No line contains ${JSON.stringify(query)}; lines with words like it:\n` : ''
-    }
+    const { text: linked } = await takeSnapshot(session, { urls: true, scope })
+    let { lines, shown, matches, note } = search(linked)
     session.lastSnapshot = lines.join('\n')
     let hidden = false
     if (!matches.length) {
         // in a closed menu, tab, accordion or behind "Show more": say so instead of "no match"
         const { text: all } = await takeSnapshot(session, { urls: true, scope, all: true })
-        const found = matchLines(all.split('\n'), args.regex ? test : (line) => test(line) || (squeezed.length > 1 && withoutSpaces(line)))
+        const found = search(all)
         if (found.matches.length) {
             ({ lines, shown, matches } = found)
-            hidden = true
-            note = `No visible line contains ${JSON.stringify(query)}. It is on the page but hidden ([hidden]): open the menu, tab or section it is in (e.g. a "Show more" button) first.\n`
+            hidden = matches.some((i) => / \[hidden\]/.test(lines[i]))
+            note = hidden
+                ? `No visible line contains ${JSON.stringify(query)}. It is on the page but hidden ([hidden]): open the menu, tab or section it is in (e.g. a "Show more" button) first.\n`
+                // e.g. the options of a closed select: there, but not in a snapshot without --all
+                : `No line of the page contains ${JSON.stringify(query)}; lines of \`snapshot --all\` that do:\n`
         }
     }
     if (!matches.length) {
@@ -481,7 +497,7 @@ export const find: ActionFn = async (session, args) => {
         out.push(`… ${rest} more matching line${rest === 1 ? '' : 's'} not shown. Search for a longer text, or narrow it with --scope.`)
     }
     if (!hidden) {
-        await scrollToFirst(session, matches.map((i) => lines[i]))
+        await scrollToFirst(session, lines, matches[0])
     }
     // the data is capped like the text: `--json` output must not explode either
     const listed = matches.filter((i) => i <= last)
@@ -493,11 +509,14 @@ export const find: ActionFn = async (session, args) => {
  * screenshot of it, shows what was found. Best effort: a match that can't
  * be scrolled to still counts.
  */
-async function scrollToFirst (session: Session, matched: string[]) {
+async function scrollToFirst (session: Session, lines: string[], first: number) {
     if (!session.isWeb) {
         return
     }
-    const id = matched.map((line) => /\[ref=(e\d+)\]/.exec(line)?.[1]).find(Boolean)
+    // a heading or text has no ref: the closest element that has one, above it in its block or below it
+    const [start, end] = blockAround(lines, first)
+    const order = [first, ...Array.from({ length: first - start }, (_, i) => first - 1 - i), ...Array.from({ length: end - first }, (_, i) => first + 1 + i)]
+    const id = order.map((i) => /\[ref=(e\d+)\]/.exec(lines[i])?.[1]).find(Boolean)
     if (!id) {
         return
     }
