@@ -38,6 +38,21 @@ describe('react$', () => {
         expect(JSON.parse(vi.mocked(fetch).mock.calls.pop()![1]?.body as any).args).toEqual(['myComp', {}, {}])
     })
 
+    it('should wait for React through Execute Async Script on a Classic session', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        await browser.react$('myComp')
+        const waitCalls = vi.mocked(fetch).mock.calls.filter(([, params]) => (
+            (params?.body as string | undefined)?.includes('waitToLoadReact')
+        ))
+        expect(waitCalls.map(([uri]) => String(uri).split('/').slice(-2).join('/'))).toEqual(['execute/async'])
+    })
+
     it('should call getElement with React flag true', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
