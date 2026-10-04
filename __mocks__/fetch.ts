@@ -7,7 +7,7 @@ import { beforeEach, vi } from 'vitest'
  * the process or enter code sections that are hard to mock out.
  */
 process.env.WDIO_UNIT_TESTS = '1'
-globalThis.WDIO_RESQ_SCRIPT = ''
+globalThis.WDIO_REACT_SCRIPT = ''
 globalThis.WDIO_FAKER_SCRIPT = ''
 globalThis.WDIO_A11Y_SCRIPT = ''
 
@@ -301,7 +301,7 @@ const requestMock: any = vi.fn().mockImplementation(async (uri, params) => {
         const script = Function(body.script)
         const args = transformPropertyWithMockFunction(body.args.map((arg: any) => (arg && arg[ELEMENT_KEY]) || arg))
         let result: any = null
-        if (body.script.includes('resq') || body.script.includes('waitToLoadReact')) {
+        if (body.script.includes('__wdioReact')) {
             if (body.script.includes('react$$')) {
                 result = [
                     { [ELEMENT_KEY]: genericElementId },

@@ -1,9 +1,9 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
-import { resqScript } from '../constant.js'
+import { reactScript } from '../constant.js'
 import { getElement } from '../../utils/getElementObject.js'
-import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq.js'
+import { waitToLoadReact, react$ as react$Script } from '../../scripts/react.js'
 import type { ReactSelectorOptions } from '../../types.js'
 
 /**
@@ -56,7 +56,7 @@ export async function react$(
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
     const browser = await getBrowserObject(this)
-    await this.executeScript(resqScript.toString(), [])
+    await this.executeScript(reactScript, [])
     await browser.execute(waitToLoadReact)
     const res = await browser.execute(
         react$Script, selector, props, state, this as unknown as HTMLElement

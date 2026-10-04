@@ -72,6 +72,13 @@
     "@types/lodash.clonedeep": "^4.5.9",
     "dom-accessibility-api": "^0.7.1",
     "puppeteer-core": "^25.11.0",
+    "react": "^18.3.1",
+    "react-16": "npm:react@16.14.0",
+    "react-17": "npm:react@17.0.2",
+    "react-dom": "^18.3.1",
+    "react-dom-16": "npm:react-dom@16.14.0",
+    "react-dom-17": "npm:react-dom@17.0.2",
+    "resq": "^1.11.0",
     "safe-stable-stringify": "^2.4.3"
   },
   "dependencies": {
@@ -94,7 +101,6 @@
     "jszip": "^3.10.1",
     "lodash.clonedeep": "^4.5.0",
     "query-selector-shadow-dom": "^1.0.1",
-    "resq": "^1.11.0",
     "rgb2hex": "0.2.5",
     "serialize-error": "^12.0.0",
     "urlpattern-polyfill": "^10.0.0",

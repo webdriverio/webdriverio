@@ -1,10 +1,10 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
-import { resqScript } from '../constant.js'
+import { reactScript } from '../constant.js'
 import { getElements } from '../../utils/getElementObject.js'
 import { ElementArray } from '../../element/array.js'
-import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq.js'
+import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/react.js'
 import type { ReactSelectorOptions } from '../../types.js'
 
 /**
@@ -49,7 +49,7 @@ export function react$$(
 ): WebdriverIO.ElementArray {
     return ElementArray.fromAsyncCallback(async () => {
         const browser = await getBrowserObject(this)
-        await this.executeScript(resqScript.toString(), [])
+        await this.executeScript(reactScript, [])
         await browser.execute(waitToLoadReact)
         const res = await browser.execute(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

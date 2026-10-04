@@ -1,8 +1,8 @@
 import type { ElementReference } from '@wdio/protocols'
 
-import { resqScript } from '../constant.js'
+import { reactScript } from '../constant.js'
 import { getElement } from '../../utils/getElementObject.js'
-import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq.js'
+import { waitToLoadReact, react$ as react$Script } from '../../scripts/react.js'
 import type { ReactSelectorOptions } from '../../types.js'
 
 /**
@@ -54,7 +54,7 @@ export async function react$ (
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ): Promise<WebdriverIO.Element> {
-    await this.executeScript(resqScript.toString(), [])
+    await this.executeScript(reactScript, [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(
         react$Script, selector, props, state

@@ -1,9 +1,9 @@
 import type { ElementReference } from '@wdio/protocols'
 
-import { resqScript } from '../constant.js'
+import { reactScript } from '../constant.js'
 import { getElements } from '../../utils/getElementObject.js'
 import { ElementArray } from '../../element/array.js'
-import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq.js'
+import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/react.js'
 import type { ReactSelectorOptions } from '../../types.js'
 
 /**
@@ -47,7 +47,7 @@ export function react$$ (
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ): WebdriverIO.ElementArray {
     return ElementArray.fromAsyncCallback(async () => {
-        await this.executeScript(resqScript, [])
+        await this.executeScript(reactScript, [])
         await this.execute(waitToLoadReact)
         const res = await this.execute(
             react$$Script, selector, props, state

@@ -3,7 +3,7 @@ import { ELEMENT_KEY } from 'webdriver'
 import { expect, describe, it, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
-import { react$$ as react$$Script } from '../../../src/scripts/resq.js'
+import { react$$ as react$$Script } from '../../../src/scripts/react.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
