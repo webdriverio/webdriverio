@@ -91,6 +91,28 @@ describe('findFiber', () => {
         expect(api().findContainer()).toBeUndefined()
         expect(api().findFiber()).toBeUndefined()
     })
+
+    it('should tell a committed root from a root that has not committed', () => {
+        const root = (fields: Record<string, unknown>, pendingLanes?: number) => (
+            { tag: HOST_ROOT, child: null, alternate: null, stateNode: { pendingLanes }, ...fields } as unknown as Fiber
+        )
+        const other = { tag: HOST_ROOT } as Fiber
+        expect(api().isRendered(undefined)).toBe(false)
+        /**
+         * `createRoot` before `render`
+         */
+        expect(api().isRendered(root({}, 0))).toBe(false)
+        expect(api().isRendered(root({ child: { tag: 0 } }, 0))).toBe(true)
+        /**
+         * `render(null)` has committed, and a first render that suspended has not
+         */
+        expect(api().isRendered(root({ alternate: other }, 0))).toBe(true)
+        expect(api().isRendered(root({ alternate: other }, 16))).toBe(false)
+        /**
+         * React 16 has no lanes
+         */
+        expect(api().isRendered(root({ alternate: other }))).toBe(true)
+    })
 })
 
 /**
@@ -544,8 +566,9 @@ for (const build of BUILDS) {
 }
 
 /**
- * `waitToLoadReact` ends when the root has a child or its other copy: `createRoot`
- * marks the container before the app calls `render`, and an app can render nothing
+ * `waitToLoadReact` ends when React has committed the root (`isRendered`):
+ * `createRoot` marks the container before the app calls `render`, and an app can
+ * render nothing
  */
 for (const build of BUILDS) {
     for (const mode of MODES) {
@@ -554,10 +577,7 @@ for (const build of BUILDS) {
             document.body.innerHTML = '<div id="late"></div>'
             const { React, ReactDOM } = loadReact(build, mode)
             const update = (change: () => void) => (ReactDOM.flushSync ? ReactDOM.flushSync(change) : change())
-            const rendered = () => {
-                const root = api().findFiber()
-                return Boolean(root && (root.child || root.alternate))
-            }
+            const rendered = () => api().isRendered(api().findFiber())
             const waitEnds = () => Promise.race([
                 waitToLoadReact().then(() => 'rendered'),
                 new Promise((resolve) => setTimeout(() => resolve('still waiting'), 1000))
@@ -697,6 +717,65 @@ for (const build of BUILDS) {
                 renderFirst(h(Item, { id: 'one' }))
                 expect(api().findContainer()).toBe(byId('first'))
                 expect(ids(react$$('Item', {}, {}))).toEqual(['one'])
+            })
+
+            /**
+             * A first render that suspends without a `Suspense` boundary does not
+             * commit, but the root fiber already has its other copy (`alternate`).
+             */
+            it.skipIf(!build.mounts.includes('createRoot'))('skips a root whose first render has suspended', async () => {
+                document.body.innerHTML = '<div id="first"></div><div id="second"></div>'
+                function Item (props: { id: string }) {
+                    return h('li', { id: props.id })
+                }
+                let load = () => {}
+                const Late = React.lazy(() => new Promise((resolve) => {
+                    load = () => resolve({ default: () => h(Item, { id: 'one' }) })
+                }))
+                const root = ReactDOM.createRoot(byId('first'))
+                unmounts.push(() => root.unmount())
+                root.render(h(Late))
+                await new Promise((resolve) => setTimeout(resolve, 50))
+                expect(api().findFiber()?.alternate).toBeTruthy()
+                expect(api().findFiber()?.child).toBeNull()
+
+                const waitEnds = () => Promise.race([
+                    waitToLoadReact().then(() => 'rendered'),
+                    new Promise((resolve) => setTimeout(() => resolve('still waiting'), 500))
+                ])
+                await expect(waitEnds()).resolves.toBe('still waiting')
+
+                mount(h(Item, { id: 'two' }), byId('second'))
+                expect(api().findContainer()).toBe(byId('second'))
+                expect(ids(react$$('Item', {}, {}))).toEqual(['two'])
+
+                load()
+                await new Promise((resolve) => setTimeout(resolve, 50))
+                expect(api().findContainer()).toBe(byId('first'))
+                expect(ids(react$$('Item', {}, {}))).toEqual(['one'])
+            })
+
+            it.skipIf(!build.mounts.includes('createRoot'))('waits until a suspended first render commits', async () => {
+                document.body.innerHTML = '<div id="app"></div>'
+                let load = () => {}
+                const Late = React.lazy(() => new Promise((resolve) => {
+                    load = () => resolve({ default: () => h('li', { id: 'late' }) })
+                }))
+                const root = ReactDOM.createRoot(byId('app'))
+                unmounts.push(() => root.unmount())
+                root.render(h(Late))
+                await new Promise((resolve) => setTimeout(resolve, 50))
+
+                let rendered = false
+                const loading = waitToLoadReact().then(() => {
+                    rendered = true
+                })
+                await new Promise((resolve) => setTimeout(resolve, 500))
+                expect(rendered).toBe(false)
+
+                load()
+                await loading
+                expect(byId('late')).toBeTruthy()
             })
 
             it.skipIf(!build.mounts.includes('createRoot'))('skips a root that has not rendered yet', () => {

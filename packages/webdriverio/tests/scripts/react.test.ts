@@ -11,6 +11,7 @@ beforeEach(() => {
     (global.window as any).__wdioReact = {
         findContainer: vi.fn(),
         findFiber: vi.fn().mockReturnValue(fiber),
+        isRendered: vi.fn().mockReturnValue(false),
         query: vi.fn().mockReturnValue([])
     }
 })
@@ -133,37 +134,18 @@ describe('waitToLoadReact', () => {
         /**
          * `createRoot` marks the container before the app calls `render`
          */
-        api().findFiber.mockReturnValue({ tag: 3, child: null })
+        const root = { tag: 3, child: null }
+        api().findFiber.mockReturnValue(root)
         await vi.advanceTimersByTimeAsync(400)
         expect(loaded).toBe(false)
+        expect(api().isRendered).toBeCalledWith(root)
 
-        api().findFiber.mockReturnValue({ tag: 3, child: { tag: 0 } })
+        api().isRendered.mockReturnValue(true)
         await vi.advanceTimersByTimeAsync(200)
         await loading
 
         expect(loaded).toBe(true)
         expect(api().findFiber).toBeCalledWith()
-    })
-
-    it('should stop to wait when React has rendered nothing', async () => {
-        vi.useFakeTimers()
-        api().findFiber.mockReturnValue({ tag: 3, child: null, alternate: null })
-        let loaded = false
-        const loading = waitToLoadReact().then(() => {
-            loaded = true
-        })
-
-        await vi.advanceTimersByTimeAsync(400)
-        expect(loaded).toBe(false)
-
-        /**
-         * `root.render(null)`: no child, but the root fiber has its other copy
-         */
-        api().findFiber.mockReturnValue({ tag: 3, child: null, alternate: { tag: 3 } })
-        await vi.advanceTimersByTimeAsync(200)
-        await loading
-
-        expect(loaded).toBe(true)
     })
 
     it('should stop to wait after 5 seconds when the page has no React root', async () => {

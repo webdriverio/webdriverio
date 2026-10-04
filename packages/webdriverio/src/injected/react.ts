@@ -52,6 +52,7 @@ export interface ReactNode {
 
 export interface ReactQueryApi {
     findContainer: () => HTMLElement | undefined
+    isRendered: (root?: Fiber) => boolean
     findFiber: (scope?: HTMLElement) => Fiber | undefined
     query: (selector: string, props: unknown, state: unknown, fiber: Fiber) => ReactNode[]
 }
@@ -250,10 +251,16 @@ function* elementsOf (root: Document | ShadowRoot): Generator<Element> {
 }
 
 /**
- * The root fiber gets its other copy (`alternate`) at the first render, also when
- * the app renders nothing. `waitToLoadReact` uses the same rule.
+ * A root that React has committed at least once, also when the app renders nothing.
+ * The root fiber gets its other copy (`alternate`) when the first render starts, so
+ * a first render that suspends without a `Suspense` boundary also has one: it has
+ * not committed while the root has pending lanes (React 17 and later; a root of
+ * React 16 commits its render at once). `waitToLoadReact` uses this rule too.
  */
-const isRendered = (root?: Fiber) => Boolean(root && (root.child || root.alternate))
+const isRendered = (root?: Fiber) => Boolean(root && (
+    root.child ||
+    (root.alternate && !root.stateNode.pendingLanes)
+))
 
 /**
  * The container of the first root that React has rendered, also when it renders
@@ -329,4 +336,4 @@ const findFiber = (scope?: HTMLElement): Fiber | undefined => {
     }
 }
 
-;(window as unknown as { __wdioReact?: ReactQueryApi }).__wdioReact = { findContainer, findFiber, query }
+;(window as unknown as { __wdioReact?: ReactQueryApi }).__wdioReact = { findContainer, findFiber, isRendered, query }

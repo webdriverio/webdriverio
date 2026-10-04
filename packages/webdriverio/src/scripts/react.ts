@@ -12,16 +12,16 @@ declare let window: CustomWindow
 /**
  * Wait until React has rendered the first root of the page, for at most 5 seconds
  * as resq did. `createRoot` marks the container before the app calls `render`, so
- * the container is not enough. The root fiber gets its other copy (`alternate`) at
- * the first render, also when the app renders nothing, so the wait ends then. An
- * async function, so that `execute` waits for it on WebDriver Classic sessions too.
+ * the container is not enough: the wait ends when React has committed the root,
+ * also when the app renders nothing (`isRendered`). An async function, so that
+ * `execute` waits for it on WebDriver Classic sessions too.
  */
 export const waitToLoadReact = async function waitToLoadReact () {
     return new Promise<void>((resolve) => {
         const start = Date.now()
         const check = () => {
-            const root = window.__wdioReact && window.__wdioReact.findFiber()
-            if ((root && (root.child || root.alternate)) || Date.now() - start >= 5000) {
+            const api = window.__wdioReact
+            if ((api && api.isRendered(api.findFiber())) || Date.now() - start >= 5000) {
                 return resolve()
             }
             setTimeout(check, 200)
