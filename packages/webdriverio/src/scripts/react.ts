@@ -49,7 +49,13 @@ export const react$ = function react$ (
         )
     }
 
-    const [element] = fibers.flatMap((fiber) => api.query(selector, props || {}, state || {}, fiber)) as (ReactNode | undefined)[]
+    /**
+     * the first match of the first root that has one: the later roots are not searched
+     */
+    let element: ReactNode | undefined
+    for (let i = 0; !element && i < fibers.length; i++) {
+        [element] = api.query(selector, props || {}, state || {}, fibers[i])
+    }
     if (!element) {
         return { message: `React element with selector "${selector}" wasn't found` }
     }

@@ -71,6 +71,17 @@ describe('react$', () => {
         expect(api().query.mock.calls.map((call: unknown[]) => call[3])).toEqual(roots)
         expect(api().findFiber).not.toBeCalled()
     })
+
+    it('should stop at the first root that has a match', () => {
+        const roots = [{ tag: 3 }, { tag: 3 }]
+        const found = div()
+        api().findRoots.mockReturnValue(roots)
+        api().query.mockReturnValue([{ node: found }])
+
+        expect(react$('Test', {}, {})).toBe(found)
+        expect(api().query).toHaveBeenCalledTimes(1)
+        expect(api().query).toBeCalledWith('Test', {}, {}, roots[0])
+    })
 })
 
 describe('react$$', () => {
