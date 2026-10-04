@@ -11,9 +11,17 @@ import { isSuccessfulResponse } from '../utils.js'
 import { DEFAULTS } from '../constants.js'
 import pkg from '../../package.json' with { type: 'json' }
 
+/**
+ * Errors that repeating the same request can't fix. The interaction errors
+ * are handled by the element commands themselves (wait until clickable,
+ * scroll, refetch), so a retry here only delays that by seconds.
+ */
 const ERRORS_TO_EXCLUDE_FROM_RETRY = [
     'detached shadow root',
-    'move target out of bounds'
+    'move target out of bounds',
+    'element click intercepted',
+    'element not interactable',
+    'invalid element state'
 ]
 
 const DEFAULT_HEADERS = {
