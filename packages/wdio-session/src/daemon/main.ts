@@ -81,7 +81,7 @@ async function main () {
         server = new SessionServer({
             socketPath,
             token,
-            handler: (req) => session!.dispatch(req),
+            handler: (req, opts) => session!.dispatch(req, opts),
             idleTimeout: plan.idleTimeout,
             onIdle: () => shutdown('idle'),
             onAbandon: () => session?.abandon(),

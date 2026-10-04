@@ -211,7 +211,7 @@ export const ACTIONS: ActionSpec[] = [
         desc: 'Accessibility snapshot with refs',
         details: [
             'Prints the accessibility tree, one node per line, e.g. `button "Add to cart" [ref=e3]`. Pass a ref to click, fill, get and the other actions. Refs stay valid while the element exists; an action on a removed element fails with REF_STALE.',
-            'Every snapshot is written to the artifacts dir. Output longer than --max-chars is not printed; you get the file path and a hint to narrow it with --interactive, --depth, --scope or `find`.',
+            'Every snapshot is written to the artifacts dir. Output longer than --max-chars is printed in parts: the first part, then `--offset <line>` for the next one. `find` searches all of it.',
             'The text layout and the --json shape are experimental and may change in a minor release. The ref syntax and the actions that take a ref stay stable.'
         ].join('\n'),
         options: {
@@ -223,7 +223,8 @@ export const ACTIONS: ActionSpec[] = [
             compact: { type: 'boolean', desc: 'Drop unnamed nodes that have no content' },
             urls: { type: 'boolean', alias: 'u', desc: 'Include link hrefs' },
             'file-only': { type: 'boolean', desc: 'Only write the file' },
-            'max-chars': { type: 'number', desc: 'Print inline up to this many characters (default 8000)' }
+            'max-chars': { type: 'number', desc: 'Print up to this many characters at a time (default 8000)' },
+            offset: { type: 'number', desc: 'Print from this line on, for the next part of a long snapshot' }
         },
         examples: [
             ['wdio session snapshot -i', 'Interactive elements only, the usual first look'],
@@ -250,10 +251,11 @@ export const ACTIONS: ActionSpec[] = [
     {
         name: 'find', group: 'Observation', applies: ['W', 'M', 'D'],
         desc: 'Search a fresh snapshot for text',
-        details: 'Takes a new snapshot and prints each match with the node around it (e.g. the whole list item, so a value next to the match is included), with line numbers and refs. Matching ignores case. Cheaper than reading a whole snapshot of a large page. -A/-B/-C print plain line context instead, like grep.',
+        details: 'Takes a new snapshot and prints each match with the node around it (e.g. the whole list item, so a value next to the match is included), with line numbers and refs, and scrolls the first match into view. Matching ignores case, then spaces ("SO2" finds "SO 2"), then looks for all of the words and for words like them. Text that is only in hidden parts of the page (closed menus, tabs, "Show more") is listed as such. Cheaper than reading a whole snapshot of a large page. -A/-B/-C print plain line context instead, like grep.',
         positionals: [{ name: 'text', desc: 'Text to search for', required: true }],
         options: {
             regex: { type: 'boolean', desc: 'Treat text as a regular expression' },
+            scope: { type: 'string', desc: 'Only search below this ref or selector' },
             context: { type: 'number', alias: 'C', desc: 'Lines of context before and after instead of the surrounding node' },
             'after-context': { type: 'number', alias: 'A', desc: 'Lines of context after each match' },
             'before-context': { type: 'number', alias: 'B', desc: 'Lines of context before each match' }

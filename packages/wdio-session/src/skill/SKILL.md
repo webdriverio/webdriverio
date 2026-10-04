@@ -19,20 +19,23 @@ npx wdio session get text e9
 - **Open once.** Browsers run headless. `open` prints the page's interactive elements, so you can act right away. It also takes `firefox`, `edge`, `safari`, `android`, `ios`, `electron <app>` and more.
 - **Act on refs.** Elements show up as `button "Add to cart" [ref=e3]`. Refs stay valid while the element exists.
 - **Every action reports what changed:** new or changed lines with their refs (`+ status "Saved"`), or the new page's elements after a navigation. You rarely need a separate `snapshot`.
-- **Chain steps with `&&`.** One shell call for several steps is faster, and a failing step stops the chain.
-- **Big page?** `find <text>` prints only the matching part of the page, with refs. `snapshot` without `-i` also shows text.
+- **Chain steps with `&&`.** One shell call for several steps is faster, and a failing step stops the chain. Keep the steps that show the result (the filter that got applied, the item you picked) in calls of their own.
+- **Big page?** `find <text>` prints only the matching part of the page, with refs, and scrolls it into view. A long `snapshot` prints in parts: `--offset <line>` gives the next one. `read` gives an article's text.
+- **Output is ready to read.** No need for `head`, `grep`, `sed`, redirects or `sleep`: use `find`, `snapshot --offset` and `wait 2000`.
+- **Show your answer.** Before you answer, leave the page on what proves it (`find`/`scroll` to it): what's on screen is the evidence.
 - **No need to close.** The session shuts itself down when idle. Run `close` only to start over.
 
 ## Actions
 
 | Action | Example |
 | --- | --- |
-| Look | `snapshot -i` (interactive only) · `snapshot` (with text) · `find "Add to cart"` · `screenshot` |
-| Click | `click e3` · `click e3 --double` · `hover e3` |
-| Text | `fill e2 Ada Lovelace` (replaces) · `type e2 more` (appends) · `press Enter` |
+| Look | `snapshot -i` (interactive only) · `snapshot` (with text) · `find "Add to cart"` · `read` (page text) · `screenshot` |
+| Click | `click e3` · `click e3 --double` · `hover e3` · `scroll down` · `scroll e3` |
+| Text | `fill e2 Ada Lovelace` (replaces) · `type e2 more` (appends) · `press Enter` · `press ArrowRight --times 5` |
+| Values | `fill e4 65` sets sliders, dates and colors too |
 | Forms | `select e4 Pro` · `check e5` · `uncheck e5` · `upload e6 ./file.pdf` |
 | Read | `get text e9` · `get value e2` · `get url` · `get title` · `is visible e3` |
-| Wait | `wait e3` · `wait --text "Saved"` · `wait --url /done` · `wait --load networkidle` |
+| Wait | `wait e3` · `wait --text "Saved"` · `wait --url /done` · `wait 2000` |
 | Navigate | `navigate https://…` · `back` · `reload` · `tabs` · `tabs switch 1` |
 | Frames | refs inside iframes work as they are · `frame e1` scopes snapshots to the iframe e1 · `frame top` |
 | Code | `exec -e 'console.log(await $("h1").getText())'` |

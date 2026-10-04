@@ -15,7 +15,9 @@ import type { Session } from '../session.js'
  */
 export const OBSERVED_ACTIONS = new Set([
     'click', 'tap', 'fill', 'type', 'press', 'select', 'check', 'uncheck', 'hover',
-    'navigate', 'back', 'forward', 'reload', 'frame', 'dialog', 'upload'
+    'navigate', 'back', 'forward', 'reload', 'frame', 'dialog', 'upload',
+    // code that clicked or typed: what it did shows like it does for a click
+    'exec'
 ])
 
 /** changed lines printed after an action on the same page */

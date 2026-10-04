@@ -108,7 +108,7 @@ describe('wdio session on live-web pages', () => {
             const res = await other.run(['open', 'chrome', `${server.url}/long.html`])
             expect(res.code, res.stderr).toBe(0)
             expect(res.stdout).toMatch(/link "Item 1" \[ref=e\d+\]/)
-            expect(res.stdout).toMatch(/… \d+ more lines in .+\.yml\. Use `wdio session find <text>` or `snapshot -i` for the rest\./)
+            expect(res.stdout).toMatch(/… lines 1–\d+ of \d+\. `wdio session snapshot -i --offset \d+` shows the next part, `find <text>` searches all of it\./)
         } finally {
             await other.cleanup()
         }

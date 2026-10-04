@@ -3,8 +3,9 @@
     - textbox "Email" [ref=e41] [required]
     - textbox "Password" [ref=e42] value="••••"
     - checkbox "Remember me" [ref=e43] [checked]
-    - radio "Free" [ref=e44] [checked]
-    - radio "Pro" [ref=e45]
+    - group "Plan"
+      - radio "Free" [ref=e44] [checked]
+      - radio "Pro" [ref=e45]
     - combobox "Country" [ref=e46] value="Germany"
     - spinbutton "Quantity" [ref=e47] value="1" [min=1] [max=9]
     - textbox "Your message" [ref=e48]

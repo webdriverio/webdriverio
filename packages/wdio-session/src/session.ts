@@ -238,7 +238,7 @@ export class Session {
         this.#restoreHeldFrame = undefined
     }
 
-    async dispatch (req: Pick<Request, 'action' | 'args' | 'cwd'>): Promise<ActionResult> {
+    async dispatch (req: Pick<Request, 'action' | 'args' | 'cwd'>, opts: { timeout?: number } = {}): Promise<ActionResult> {
         const epoch = this.#epoch
         const abandoned = () => new SessionError('TIMEOUT', `"${req.action}" finished after it was given up; its result is dropped.`)
         await this.limitPageLoad()
@@ -257,7 +257,7 @@ export class Session {
         if (dialog && !DIALOG_SAFE_ACTIONS.has(req.action)) {
             throw dialogOpenError(dialog)
         }
-        const args: ActionArgs = { ...req.args, $cwd: req.cwd || this.cwd }
+        const args: ActionArgs = { ...req.args, $cwd: req.cwd || this.cwd, ...(opts.timeout ? { $timeout: opts.timeout } : {}) }
         const trace = this.get<{ before: (a: string, args: ActionArgs) => Promise<void>, after: (a: string, args: ActionArgs, r?: ActionOutcome, e?: SessionError) => Promise<void> }>('trace')
         const pagePath = spec.mutation || req.action === 'exec' ? await this.currentPath() : undefined
         await trace?.before(req.action, args)

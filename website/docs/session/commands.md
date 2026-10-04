@@ -302,7 +302,7 @@ Accessibility snapshot with refs. Applies to web, native mobile, native desktop.
 
 Prints the accessibility tree, one node per line, e.g. `button "Add to cart" [ref=e3]`. Pass a ref to click, fill, get and the other actions. Refs stay valid while the element exists; an action on a removed element fails with REF_STALE.
 
-Every snapshot is written to the artifacts dir. Output longer than --max-chars is not printed; you get the file path and a hint to narrow it with --interactive, --depth, --scope or `find`.
+Every snapshot is written to the artifacts dir. Output longer than --max-chars is printed in parts: the first part, then `--offset <line>` for the next one. `find` searches all of it.
 
 The text layout and the --json shape are experimental and may change in a minor release. The ref syntax and the actions that take a ref stay stable.
 
@@ -322,7 +322,8 @@ npx wdio session snapshot
 | `--compact` | Drop unnamed nodes that have no content |
 | `-u, --urls` | Include link hrefs |
 | `--file-only` | Only write the file |
-| `--max-chars <n>` | Print inline up to this many characters (default 8000) |
+| `--max-chars <n>` | Print up to this many characters at a time (default 8000) |
+| `--offset <n>` | Print from this line on, for the next part of a long snapshot |
 
 **Examples**
 
@@ -375,7 +376,7 @@ See also: [`find`](#find), [`snapshot`](#snapshot), [`get`](#get).
 
 Search a fresh snapshot for text. Applies to web, native mobile, native desktop.
 
-Takes a new snapshot and prints each match with the node around it (e.g. the whole list item, so a value next to the match is included), with line numbers and refs. Matching ignores case. Cheaper than reading a whole snapshot of a large page. -A/-B/-C print plain line context instead, like grep.
+Takes a new snapshot and prints each match with the node around it (e.g. the whole list item, so a value next to the match is included), with line numbers and refs, and scrolls the first match into view. Matching ignores case, then spaces ("SO2" finds "SO 2"), then looks for all of the words and for words like them. Text that is only in hidden parts of the page (closed menus, tabs, "Show more") is listed as such. Cheaper than reading a whole snapshot of a large page. -A/-B/-C print plain line context instead, like grep.
 
 ```sh
 npx wdio session find <text>
@@ -392,6 +393,7 @@ npx wdio session find <text>
 | Flag | Description |
 | --- | --- |
 | `--regex` | Treat text as a regular expression |
+| `--scope <value>` | Only search below this ref or selector |
 | `-C, --context <n>` | Lines of context before and after instead of the surrounding node |
 | `-A, --after-context <n>` | Lines of context after each match |
 | `-B, --before-context <n>` | Lines of context before each match |

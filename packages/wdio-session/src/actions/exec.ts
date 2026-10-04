@@ -61,6 +61,34 @@ export async function rewriteRefs (session: Session, code: string, used: Map<str
     return out
 }
 
+/** time left for the reply when the code runs out of time */
+const TIMEOUT_MARGIN_MS = 1000
+
+/**
+ * The code's result, or a timeout error a little before the server's that
+ * includes what the code printed so far: a loop that set five sliders and
+ * ran out of time on the sixth still says what it did.
+ */
+async function withinTimeout<T> (running: Promise<T>, timeout: number | undefined, lines: string[]): Promise<T> {
+    if (!timeout || timeout <= TIMEOUT_MARGIN_MS * 2) {
+        return running
+    }
+    let timer: NodeJS.Timeout | undefined
+    try {
+        return await Promise.race([
+            running,
+            new Promise<never>((_, reject) => {
+                timer = setTimeout(() => reject(new SessionError('TIMEOUT', `"exec" did not finish within ${timeout}ms; the code may still be running.`, {
+                    hint: 'Split the work into smaller steps, or pass --timeout.',
+                    details: lines.length ? ['Output so far:', ...lines].join('\n') : undefined
+                })), timeout - TIMEOUT_MARGIN_MS)
+            })
+        ])
+    } finally {
+        clearTimeout(timer)
+    }
+}
+
 export const exec: ActionFn = async (session, args) => {
     const source = String(args.code ?? '')
     const filename = typeof args.filename === 'string' ? args.filename : undefined
@@ -79,7 +107,7 @@ export const exec: ActionFn = async (session, args) => {
             () => undefined,
             (err) => log.debug(`exec failed: ${err?.message}`)
         ))
-        value = await running
+        value = await withinTimeout(running, typeof args.$timeout === 'number' ? args.$timeout : undefined, lines)
         if (isError(value)) {
             throw value
         }

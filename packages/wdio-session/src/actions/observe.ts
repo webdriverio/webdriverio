@@ -242,29 +242,32 @@ export const snapshot: ActionFn = async (session, args) => {
     const maxChars = typeof args.maxChars === 'number' ? args.maxChars : DEFAULT_MAX_CHARS
     const lines = text.split('\n').length
     const refs = countRefs(text)
-    const summary = `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars → ${file}`
-    const inline = !args.fileOnly && text.length <= maxChars
+    const offset = typeof args.offset === 'number' && args.offset > 1 ? Math.floor(args.offset) : 1
+    const data = { file, lines, refs, chars: text.length, ...(args.$internal ? { snapshot: text } : {}) }
+    if (args.fileOnly) {
+        return { text: `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars → ${file}`, data, files: [file] }
+    }
+    if (text.length <= maxChars && offset === 1) {
+        return { text, data, files: [file] }
+    }
+    const page = pageOf(text.split('\n'), offset, maxChars)
     return {
-        text: inline
-            ? text
-            : args.head
-                ? pageHead(text, maxChars, file)
-                : `${summary}\nUse \`wdio session find <text>\`, --interactive, --depth or --scope to narrow it down.`,
-        data: { file, lines, refs, chars: text.length, ...(args.$internal ? { snapshot: text } : {}) },
+        text: [page.text, pageFooter(page, lines, file, repeatFlags(args))].join('\n'),
+        data: { ...data, from: page.from, to: page.to },
         files: [file]
     }
 }
 
 /**
- * The start of a snapshot, cut at a line, for `open`. Only a file path for a
- * large page leaves an agent with nothing to act on, so it often gives up on
- * the page.
+ * Lines `from` (1-based) onwards that fit in `maxChars`, cut at a line. Only
+ * a file path for a large page leaves an agent with nothing to act on, and
+ * it can't always read the file: the page itself comes first.
  */
-function pageHead (snapshot: string, maxChars: number, file: string) {
-    const lines = snapshot.split('\n')
+function pageOf (lines: string[], from: number, maxChars: number) {
+    const start = Math.min(Math.max(from, 1), lines.length) - 1
     const shown: string[] = []
     let size = 0
-    for (const line of lines) {
+    for (const line of lines.slice(start)) {
         if (size + line.length + 1 > maxChars) {
             break
         }
@@ -273,9 +276,29 @@ function pageHead (snapshot: string, maxChars: number, file: string) {
     }
     if (!shown.length) {
         // one line longer than the whole budget, e.g. a document with a long url
-        shown.push(`${lines[0].slice(0, maxChars - 1)}…`)
+        shown.push(`${lines[start].slice(0, maxChars - 1)}…`)
     }
-    return `${shown.join('\n')}\n… ${lines.length - shown.length} more lines in ${file}. Use \`wdio session find <text>\` or \`snapshot -i\` for the rest.`
+    return { text: shown.join('\n'), from: start + 1, to: start + shown.length }
+}
+
+function pageFooter (page: { from: number, to: number }, total: number, file: string, flags: string) {
+    const range = `lines ${page.from}–${page.to} of ${total}`
+    return page.to < total
+        ? `… ${range}. \`wdio session snapshot${flags} --offset ${page.to + 1}\` shows the next part, \`find <text>\` searches all of it. Full snapshot: ${file}`
+        : `… ${range}. Full snapshot: ${file}`
+}
+
+/** the flags that took this snapshot, to take the next part the same way */
+function repeatFlags (args: Record<string, unknown>) {
+    return [
+        args.interactive ? ' -i' : '',
+        args.all ? ' --all' : '',
+        args.compact ? ' --compact' : '',
+        args.urls ? ' --urls' : '',
+        args.boxes ? ' --boxes' : '',
+        typeof args.depth === 'number' ? ` --depth ${args.depth}` : '',
+        typeof args.scope === 'string' ? ` --scope ${JSON.stringify(args.scope)}` : ''
+    ].join('')
 }
 
 /** lines a `find` block may have before it is cut to a window around the match */
@@ -364,6 +387,7 @@ const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&
 
 export const find: ActionFn = async (session, args) => {
     const query = String(args.text ?? '')
+    const scope = typeof args.scope === 'string' ? args.scope : undefined
     // grep habits: -A/-B/-C switch to plain line context
     const lineMode = [args.context, args.afterContext, args.beforeContext].some((n) => typeof n === 'number')
     const before = typeof args.beforeContext === 'number' ? args.beforeContext : typeof args.context === 'number' ? args.context : 0
@@ -381,11 +405,18 @@ export const find: ActionFn = async (session, args) => {
         const needle = query.toLowerCase()
         test = (line) => line.toLowerCase().includes(needle)
     }
-    const { text: linked } = await takeSnapshot(session, { urls: true })
+    const { text: linked } = await takeSnapshot(session, { urls: true, scope })
     let { lines, shown, matches } = matchLines(linked.split('\n'), test)
-    // "give gift donate": agents search with keywords, not with a line of the page
     const words = query.toLowerCase().split(/\s+/).filter(Boolean)
+    // "SO2" when the page says "SO 2" (a subscript), "1 Y" for "1Y"
+    const squeezed = query.toLowerCase().replace(/\s+/g, '')
+    const withoutSpaces = (line: string) => line.toLowerCase().replace(/\s+/g, '').includes(squeezed)
     let note = ''
+    if (!matches.length && !args.regex && squeezed.length > 1) {
+        ({ lines, shown, matches } = matchLines(linked.split('\n'), withoutSpaces))
+        note = matches.length ? `No line contains ${JSON.stringify(query)}; lines that do without the spaces:\n` : ''
+    }
+    // "give gift donate": agents search with keywords, not with a line of the page
     if (!matches.length && !args.regex && words.length > 1) {
         ({ lines, shown, matches } = matchLines(linked.split('\n'), (line) => words.every((w) => line.toLowerCase().includes(w))))
         note = matches.length ? `No line contains ${JSON.stringify(query)}; lines with all of its words:\n` : ''
@@ -397,9 +428,20 @@ export const find: ActionFn = async (session, args) => {
         note = matches.length ? `No line contains ${JSON.stringify(query)}; lines with words like it:\n` : ''
     }
     session.lastSnapshot = lines.join('\n')
+    let hidden = false
+    if (!matches.length) {
+        // in a closed menu, tab, accordion or behind "Show more": say so instead of "no match"
+        const { text: all } = await takeSnapshot(session, { urls: true, scope, all: true })
+        const found = matchLines(all.split('\n'), args.regex ? test : (line) => test(line) || (squeezed.length > 1 && withoutSpaces(line)))
+        if (found.matches.length) {
+            ({ lines, shown, matches } = found)
+            hidden = true
+            note = `No visible line contains ${JSON.stringify(query)}. It is on the page but hidden ([hidden]): open the menu, tab or section it is in (e.g. a "Show more" button) first.\n`
+        }
+    }
     if (!matches.length) {
         throw new SessionError('NO_MATCH', `No match for ${JSON.stringify(query)}.`, {
-            hint: 'Try a shorter text, --regex, or `wdio session snapshot --all` for hidden elements.'
+            hint: 'Try a shorter text or --regex; elements that only appear after a click (menus, popovers) are not on the page yet.'
         })
     }
     const out: string[] = []
@@ -431,9 +473,33 @@ export const find: ActionFn = async (session, args) => {
     if (rest) {
         out.push(`… ${rest} more matching line${rest === 1 ? '' : 's'} not shown. Search for a longer text, or narrow it with --scope.`)
     }
+    if (!hidden) {
+        await scrollToFirst(session, matches.map((i) => lines[i]))
+    }
     // the data is capped like the text: `--json` output must not explode either
     const listed = matches.filter((i) => i <= last)
-    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: lines[i] })), total: matches.length } }
+    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: lines[i] })), total: matches.length, hidden } }
+}
+
+/**
+ * Bring the first match that has a ref into view, so the page, and a
+ * screenshot of it, shows what was found. Best effort: a match that can't
+ * be scrolled to still counts.
+ */
+async function scrollToFirst (session: Session, matched: string[]) {
+    if (!session.isWeb) {
+        return
+    }
+    const id = matched.map((line) => /\[ref=(e\d+)\]/.exec(line)?.[1]).find(Boolean)
+    if (!id) {
+        return
+    }
+    try {
+        const el = await session.refs.resolve(scopeOf(session), id)
+        await scopeOf(session).execute((node: HTMLElement) => node.scrollIntoView({ block: 'center', inline: 'nearest' }), el as unknown as HTMLElement)
+    } catch {
+        // a ref of an inline frame or a removed element
+    }
 }
 
 export const diff: ActionFn = async (session, args) => {
