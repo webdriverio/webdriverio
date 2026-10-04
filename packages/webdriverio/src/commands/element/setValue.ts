@@ -1,5 +1,6 @@
 import { getBrowserObject } from '@wdio/utils'
 
+import { Key } from '../../constants.js'
 import type { InputOptions } from '../../types.js'
 
 /**
@@ -73,7 +74,28 @@ export async function setValue (
         }
     }
     await this.clearValue()
+    await clearStubbornValue(this)
     return this.addValue(value, options)
+}
+
+/**
+ * A field whose framework keeps the value in its own state (React, Vue) can
+ * put it back right after `clearValue`, and the new value would be typed
+ * after it ("Phoenix, AZ90210"). Clearing the way a user does, select all
+ * and delete, goes through the framework's own handlers.
+ */
+async function clearStubbornValue (elem: WebdriverIO.Element) {
+    const browser = getBrowserObject(elem)
+    if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
+        return
+    }
+    const remaining = await elem.getElementProperty(elem.elementId, 'value').catch(() => undefined)
+    if (typeof remaining !== 'string' || remaining === '') {
+        return
+    }
+    await browser.execute((el: HTMLElement) => el.focus(), elem as unknown as HTMLElement)
+    await browser.keys([Key.Ctrl, 'a'])
+    await browser.keys(Key.Backspace)
 }
 
 /**

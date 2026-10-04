@@ -356,6 +356,20 @@ async function slideTo (session: Session, target: ResolvedTarget, want: number):
     return { reached: current, pressed }
 }
 
+/** focus a range input and step it away and back, toward the side it can move to */
+async function nudge (session: Session, target: ResolvedTarget) {
+    const atMax = await scopeOf(session).execute((el: HTMLInputElement) => {
+        el.focus()
+        // a range input without a max goes up to 100
+        return Number(el.value) >= (el.max === '' ? 100 : Number(el.max))
+    }, target.element as unknown as HTMLInputElement).catch(() => false)
+    const keys = atMax ? ['ArrowLeft', 'ArrowRight'] : ['ArrowRight', 'ArrowLeft']
+    for (const key of keys) {
+        await session.browser.keys(key)
+    }
+    return keys
+}
+
 /** replayable code for the keys `slideTo` pressed: one loop per run of the same key */
 function pressCode (keys: string[]) {
     const runs: [string, number][] = []
@@ -384,6 +398,27 @@ export const fill: ActionFn = async (session, args) => {
             throw usage(`${target.label} did not take ${JSON.stringify(value)}; it has ${JSON.stringify(took)}.`, `A ${kind.type} input takes values like ${FORMATS[kind.type!] ?? 'its own format'}.`)
         }
         const note = took !== value ? ` (it took ${took}: the nearest allowed value)` : ''
+        if (kind.type === 'range') {
+            /**
+             * A slider widget can keep its own state and miss a value set
+             * from code. One step away and back with the keyboard ends on the
+             * same value, with the key and input events a user's drag makes.
+             */
+            const keys = await nudge(session, target)
+            // a step the slider couldn't take back (a min or max it didn't report) leaves it elsewhere
+            const now = await target.element.getValue()
+            const repaired = now !== took
+            if (repaired) {
+                await target.element.setValue(took)
+            }
+            return done(`Set ${target.label} to ${took}${note}`, [
+                `await ${target.code}.setValue(${quote(value)})`,
+                `await browser.execute((el) => el.focus(), await ${target.code})`,
+                ...keys.map((key) => `await browser.keys(${quote(key)})`),
+                // the replay ends on the value this run reported, as the run did
+                ...(repaired ? [`await ${target.code}.setValue(${quote(took)})`] : [])
+            ].join('\n'))
+        }
         return done(`Set ${target.label} to ${took}${note}`, `await ${target.code}.setValue(${quote(value)})`)
     }
     if (kind.kind === 'slider') {
@@ -658,10 +693,51 @@ export const select: ActionFn = async (session, args) => {
         await target.element.selectByAttribute('value', value)
         call = `selectByAttribute('value', ${quote(value)})`
     } else {
-        await target.element.selectByVisibleText(value)
-        call = `selectByVisibleText(${quote(value)})`
+        const text = await optionText(session, target, value)
+        await target.element.selectByVisibleText(text)
+        call = `selectByVisibleText(${quote(text)})`
+        return done(`Selected ${JSON.stringify(text)} in ${target.label}`, `await ${target.code}.${call}`)
     }
     return done(`Selected ${JSON.stringify(value)} in ${target.label}`, `await ${target.code}.${call}`)
+}
+
+/**
+ * The text of the option `wanted` means in a native select: as given, or
+ * apart from case and spacing ("used" for "Used"). Without a match the
+ * options are listed at once, instead of waiting for one that never comes.
+ */
+/** how long `select` waits for options a page adds after the select (hydration) */
+const OPTION_WAIT_MS = 5000
+
+async function optionText (session: Session, target: ResolvedTarget, wanted: string) {
+    const deadline = Date.now() + OPTION_WAIT_MS
+    let found = await lookUpOption(session, target, wanted)
+    while (found && found.match === undefined && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 250))
+        found = await lookUpOption(session, target, wanted)
+    }
+    if (!found) {
+        return wanted
+    }
+    if (found.match === undefined) {
+        const list = found.options.slice(0, 30).map((o) => JSON.stringify(o)).join(', ')
+        throw usage(`${target.label} has no option ${JSON.stringify(wanted)}.`, `Its options: ${list}${found.options.length > 30 ? ', …' : ''}.`)
+    }
+    return found.match
+}
+
+async function lookUpOption (session: Session, target: ResolvedTarget, wanted: string) {
+    return await scopeOf(session).execute((el: HTMLSelectElement, value: string) => {
+        if (el.tagName !== 'SELECT') {
+            return undefined
+        }
+        const normalize = (text: string) => text.replace(/\s+/g, ' ').trim()
+        const options = Array.from(el.options).map((o) => normalize(o.text))
+        const exact = options.find((o) => o === normalize(value))
+        const loose = options.find((o) => o.toLowerCase() === normalize(value).toLowerCase()) ??
+            Array.from(el.options).find((o) => o.value.toLowerCase() === value.trim().toLowerCase())?.text
+        return { match: exact ?? (loose === undefined ? undefined : normalize(loose)), options }
+    }, target.element as unknown as HTMLSelectElement, wanted).catch(() => undefined) as { match?: string, options: string[] } | undefined
 }
 
 export const upload: ActionFn = async (session, args) => {
@@ -692,8 +768,38 @@ export const setChecked: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)
     const want = args.uncheck !== true
     const selected = await target.element.isSelected()
+    let viaLabel = false
     if (selected !== want) {
-        await clickChecked(session, target)
+        try {
+            await clickChecked(session, target)
+        } catch (err) {
+            /**
+             * Styled checkboxes and swatches hide the input behind (or inside)
+             * their label: the input reports covered or not interactable,
+             * while a click on the label is what toggles it for a user.
+             */
+            viaLabel = await scopeOf(session).execute((el: HTMLInputElement) => {
+                const label = el.labels?.[0] || el.closest('label')
+                if (!label || !['checkbox', 'radio'].includes(el.type)) {
+                    return false
+                }
+                // only a label a user can click: not one a popup lies over
+                label.scrollIntoView({ block: 'center', inline: 'nearest' })
+                const rect = label.getBoundingClientRect()
+                if (!rect.width || !rect.height) {
+                    return false
+                }
+                const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)
+                if (!hit || !(hit === label || label.contains(hit) || hit === el)) {
+                    return false
+                }
+                label.click()
+                return true
+            }, target.element as unknown as HTMLInputElement).catch(() => false) as boolean
+            if (!viaLabel) {
+                throw err
+            }
+        }
     }
     const after = await target.element.isSelected()
     if (after !== want) {
@@ -703,8 +809,11 @@ export const setChecked: ActionFn = async (session, args) => {
         )
     }
     const verb = want ? 'Checked' : 'Unchecked'
-    const guard = `if ((await ${target.code}.isSelected()) !== ${want}) {\n    await ${target.code}.click()\n}`
-    return done(`${verb} ${target.label}`, guard)
+    const toggle = viaLabel
+        ? `await browser.execute((el) => (el.labels[0] || el.closest('label')).click(), await ${target.code})`
+        : `await ${target.code}.click()`
+    const guard = `if ((await ${target.code}.isSelected()) !== ${want}) {\n    ${toggle}\n}`
+    return done(`${verb} ${target.label}${viaLabel ? ' (with its label: the box itself is covered)' : ''}`, guard)
 }
 
 export const check: ActionFn = async (session, args) => setChecked(session, { ...args, uncheck: false })

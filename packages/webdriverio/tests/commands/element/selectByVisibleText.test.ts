@@ -42,7 +42,7 @@ describe('selectByVisibleText test', () => {
             `${optionSelection}|${optgroupSelection}`
         )
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[5][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls.at(-1)![0]!.pathname)
             .toBe('/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -62,7 +62,7 @@ describe('selectByVisibleText test', () => {
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).value)
             .toBe(`${optionSelection}|${optgroupSelection}`)
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[5][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls.at(-1)![0]!.pathname)
             .toBe('/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -82,7 +82,7 @@ describe('selectByVisibleText test', () => {
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).value)
             .toBe(`${optionSelection}|${optgroupSelection}`)
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[5][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls.at(-1)![0]!.pathname)
             .toBe('/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -102,7 +102,7 @@ describe('selectByVisibleText test', () => {
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).value)
             .toBe(`${optionSelection}|${optgroupSelection}`)
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[5][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls.at(-1)![0]!.pathname)
             .toBe('/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -122,7 +122,7 @@ describe('selectByVisibleText test', () => {
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).value)
             .toBe(`${optionSelection}|${optgroupSelection}`)
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[5][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls.at(-1)![0]!.pathname)
             .toBe('/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -142,7 +142,7 @@ describe('selectByVisibleText test', () => {
         expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]!.body as any).value)
             .toBe(`${optionSelection}|${optgroupSelection}`)
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[5][0]!.pathname)
+        expect(vi.mocked(fetch).mock.calls.at(-1)![0]!.pathname)
             .toBe('/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -152,8 +152,10 @@ describe('selectByVisibleText test', () => {
     it('should throw if option is not found', async () => {
         const mockElem = {
             $: vi.fn().mockReturnValue(Promise.resolve({
+                isExisting: vi.fn().mockResolvedValue(false),
                 waitForExist: vi.fn().mockReturnValue(Promise.reject(new Error('Option with text "non-existing-option" not found.')))
             })),
+            execute: vi.fn().mockResolvedValue(null),
             elementClick: vi.fn().mockReturnValue(Promise.resolve()),
             options: {},
             selector: 'foobar2',
@@ -167,5 +169,42 @@ describe('selectByVisibleText test', () => {
         // @ts-expect-error
         const err = await mockElem.selectByVisibleText('non-existing-option').catch((err: any) => err)
         expect(err.toString()).toBe('Error: Option with text "non-existing-option" not found.')
+    })
+
+    it('finds the option through the select when its XPath finds nothing, e.g. in a shadow root', async () => {
+        const waitForExist = vi.fn()
+        const mockElem = {
+            $: vi.fn().mockResolvedValue({ isExisting: vi.fn().mockResolvedValue(false), waitForExist }),
+            execute: vi.fn().mockResolvedValue({ elementId: 'shadow-option-1' }),
+            elementClick: vi.fn().mockResolvedValue(undefined),
+            options: {},
+            selector: 'foobar2',
+            elementId: 'some-elem-123'
+        }
+        // @ts-ignore mock feature
+        mockElem.selectByVisibleText = elem.selectByVisibleText.bind(mockElem)
+
+        // @ts-expect-error
+        await mockElem.selectByVisibleText(' Used ')
+        expect(mockElem.execute).toHaveBeenCalledWith(expect.any(Function), mockElem, 'Used')
+        expect(mockElem.elementClick).toHaveBeenCalledWith('shadow-option-1')
+        expect(waitForExist).not.toHaveBeenCalled()
+    })
+
+    it('takes the option as a raw WebDriver element reference too', async () => {
+        const mockElem = {
+            $: vi.fn().mockResolvedValue({ isExisting: vi.fn().mockResolvedValue(false), waitForExist: vi.fn() }),
+            execute: vi.fn().mockResolvedValue({ [ELEMENT_KEY]: 'shadow-option-2' }),
+            elementClick: vi.fn().mockResolvedValue(undefined),
+            options: {},
+            selector: 'foobar2',
+            elementId: 'some-elem-123'
+        }
+        // @ts-ignore mock feature
+        mockElem.selectByVisibleText = elem.selectByVisibleText.bind(mockElem)
+
+        // @ts-expect-error
+        await mockElem.selectByVisibleText('Used')
+        expect(mockElem.elementClick).toHaveBeenCalledWith('shadow-option-2')
     })
 })

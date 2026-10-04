@@ -3,6 +3,7 @@ import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 import { remote } from '../../../src/index.js'
 import { setValue } from '../../../src/commands/element/setValue.js'
+import { Key } from '../../../src/constants.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -33,8 +34,22 @@ describe('setValue', () => {
         const calls = paths()
         const clear = calls.indexOf('/session/foobar-123/element/some-elem-123/clear')
         expect(clear).toBeGreaterThan(-1)
-        expect(calls[clear + 1]).toBe('/session/foobar-123/element/some-elem-123/value')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[clear + 1][1]!.body as any).text).toEqual('foobar')
+        const typed = calls.indexOf('/session/foobar-123/element/some-elem-123/value', clear)
+        expect(typed).toBeGreaterThan(clear)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[typed][1]!.body as any).text).toEqual('foobar')
+    })
+
+    it('should select and delete a value the page put back after clearing', async () => {
+        const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'getElementProperty').mockImplementation(async (_id: string, name: string) => name === 'type' ? 'text' : 'Phoenix, AZ')
+        const execute = vi.spyOn(browser, 'execute').mockResolvedValue(undefined as never)
+        const keys = vi.spyOn(browser, 'keys').mockResolvedValue(undefined as never)
+
+        await elem.setValue('90210')
+        expect(execute).toHaveBeenCalledWith(expect.any(Function), elem)
+        expect(keys).toHaveBeenNthCalledWith(1, [Key.Ctrl, 'a'])
+        expect(keys).toHaveBeenNthCalledWith(2, Key.Backspace)
+        expect(JSON.parse(vi.mocked(fetch).mock.calls.at(-1)![1]!.body as any).text).toEqual('90210')
     })
 
     it.each(['range', 'date', 'datetime-local', 'month', 'week', 'time', 'color'])('should set the value of a %s input directly', async (type) => {
@@ -69,7 +84,7 @@ describe('setValue', () => {
 
     it('should type into a text input', async () => {
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'getElementProperty').mockResolvedValue('text')
+        vi.spyOn(elem, 'getElementProperty').mockImplementation(async (_id: string, name: string) => name === 'type' ? 'text' : '')
         const execute = vi.spyOn(browser, 'execute')
 
         await elem.setValue('foobar')

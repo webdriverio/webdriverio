@@ -1,3 +1,5 @@
+import { getBrowserObject } from '@wdio/utils'
+
 import { getElementFromResponse } from '../../utils/index.js'
 
 /**
@@ -65,6 +67,24 @@ export async function selectByVisibleText (
      * care about the first hit, so opt out of strict selector semantics here
      */
     const optionElement = await this.$(selections.join('|'), { strict: false })
+    if (!await optionElement.isExisting()) {
+        /**
+         * An XPath from an element inside a shadow root finds nothing, so a
+         * select in a web component looks empty to it. The select's own
+         * `options` list has them.
+         */
+        const option = await getBrowserObject(this).execute(function (select: HTMLSelectElement, wanted: string) {
+            const normalize = (value: string) => value.replace(/\s+/g, ' ').trim()
+            return Array.from(select.options || []).find((o) => normalize(o.text) === wanted || normalize(o.label) === wanted) || null
+        }, this as unknown as HTMLSelectElement, normalized) as unknown
+        // an element object, or a raw WebDriver element reference, depending on the protocol
+        const optionId = option && typeof option === 'object'
+            ? (option as { elementId?: string }).elementId ?? getElementFromResponse(option as Parameters<typeof getElementFromResponse>[0])
+            : undefined
+        if (optionId) {
+            return this.elementClick(optionId)
+        }
+    }
     await optionElement.waitForExist({
         timeoutMsg: `Option with text "${text}" not found.`
     })
