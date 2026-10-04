@@ -259,7 +259,8 @@ export const snapshot: ActionFn = async (session, args) => {
     const { text } = await takeSnapshot(session, snapshotOptions(args))
     const file = session.artifact('snapshots', `${session.timestamp()}.yml`)
     fs.writeFileSync(file, text + '\n')
-    const maxChars = typeof args.maxChars === 'number' ? args.maxChars : DEFAULT_MAX_CHARS
+    // a whole number of characters, so the hints below repeat it as given
+    const maxChars = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : DEFAULT_MAX_CHARS
     const lines = text.split('\n').length
     const refs = countRefs(text)
     const offset = typeof args.offset === 'number' && args.offset > 1 ? Math.floor(args.offset) : 1
@@ -324,7 +325,7 @@ function repeatFlags (args: Record<string, unknown>) {
         args.boxes ? ' --boxes' : '',
         typeof args.depth === 'number' ? ` --depth ${args.depth}` : '',
         // the short preview `open` prints is no size to read the rest in
-        typeof args.maxChars === 'number' && !args.$preview ? ` --max-chars ${args.maxChars}` : '',
+        typeof args.maxChars === 'number' && args.maxChars >= 1 && !args.$preview ? ` --max-chars ${Math.floor(args.maxChars)}` : '',
         typeof args.scope === 'string' ? ` --scope ${shellQuote(args.scope)}` : ''
     ].join('')
 }
