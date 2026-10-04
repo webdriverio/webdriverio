@@ -7,29 +7,17 @@ on:
 
 jobs:
   launch_check:
-    name: E2E Launch Test (${{ matrix.os }}, ${{ matrix.browser }})
+    name: E2E Launch Test (${{ matrix.os }}, all browsers)
     permissions:
       contents: read
-    timeout-minutes: 20
+    # DEBUG: more time than the 20 minutes of v10, to see where each browser ends
+    timeout-minutes: 45
     strategy:
       fail-fast: false
-      # One browser per job. A hosted runner cannot run every browser of
-      # `wdio.local.conf.ts` at the same time within the timeout, macOS least
-      # of all. Keep this list in sync with the capabilities in that file.
+      # DEBUG: every browser of `wdio.local.conf.ts` at the same time on one
+      # runner, as before #15901
       matrix:
-        include:
-          - { os: ubuntu-latest, browser: chrome }
-          - { os: ubuntu-latest, browser: firefox }
-          - { os: ubuntu-latest, browser: edge }
-          - { os: ubuntu-latest, browser: chromium }
-          - { os: windows-latest, browser: chrome }
-          - { os: windows-latest, browser: firefox }
-          - { os: windows-latest, browser: edge }
-          - { os: macos-15, browser: chrome }
-          - { os: macos-15, browser: firefox }
-          - { os: macos-15, browser: edge }
-          - { os: macos-15, browser: chromium }
-          - { os: macos-15, browser: safari }
+        os: ['ubuntu-latest', 'windows-latest', 'macos-15']
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout Code
@@ -45,24 +33,22 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
-      # Once per OS: the browser selection does not depend on the browser.
-      - name: Browser Selection Tests
-        if: matrix.browser == 'chrome'
-        run: pnpm vitest --config ./e2e/vitest.config.ts --run e2e/wdio/
+      - name: Runner Resources
+        run: |
+          node -e "const os = require('os'); console.log('cpus:', os.cpus().length, 'memory (GB):', (os.totalmem() / 2 ** 30).toFixed(1))"
         shell: bash
 
+      # DEBUG: no WDIO_E2E_BROWSERS, so every browser runs. The load log shows
+      # if the runner is busy when a test hangs.
       - name: E2E Launch Tests
-        run: pnpm run test:e2e:webdriver
+        run: |
+          (while true; do echo "$(date -u +%H:%M:%S) $(uptime)"; sleep 15; done) > e2e/wdio/runner-load.log 2>&1 &
+          pnpm run test:e2e:webdriver
         shell: bash
-        env:
-          WDIO_E2E_BROWSERS: ${{ matrix.browser }}
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: failure()
+        # DEBUG: also when the job is cancelled at its timeout
+        if: always()
         with:
-          name: e2e-launch-tests-logs-${{ matrix.os }}-${{ matrix.browser }}
+          name: e2e-launch-tests-logs-${{ matrix.os }}
           path: e2e/wdio/*.log
-
-      - name: Check Git Context
-        if: matrix.os != 'windows-latest'
-        uses: ./.github/workflows/actions/check-git-context

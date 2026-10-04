@@ -182,11 +182,13 @@ export const config: WebdriverIO.Config = {
     /**
      * test configurations
      */
-    logLevel: 'info',
+    // DEBUG: every BiDi and WebDriver message, to find the command that does not return
+    logLevel: 'trace',
     framework: 'mocha',
     outputDir: __dirname,
     reporters: ['spec'],
-    specFileRetries: 3,
+    // DEBUG: no retry. A retry keeps the worker id and writes to the same log file.
+    specFileRetries: 0,
 
     mochaOpts: {
         ui: 'bdd',
