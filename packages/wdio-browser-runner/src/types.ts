@@ -2,10 +2,12 @@ import type { ConfigEnv, InlineConfig } from 'vite'
 import type { Workers } from '@wdio/types'
 import type { MochaOpts } from '@wdio/mocha-framework'
 import type { IstanbulPluginOptions } from 'vite-plugin-istanbul'
+import type { remote } from 'webdriver'
 
 declare global {
     interface Window {
         __wdioEnv__: Environment
+        __wdioNetworkIntercepts__?: Map<string | symbol, remote.NetworkUrlPattern[] | undefined>
         wdioDebugContinue: (value: unknown) => void
     }
 }
