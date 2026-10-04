@@ -23,7 +23,8 @@ type Node = { context: string, url: string, children?: Node[] }
  * A page whose `frame(element)` lookup is blocked (site isolation), so the
  * action falls back to the frame's URL; `frames` is the context tree below it.
  */
-function blockedPage (frames: Node[]) {
+function blockedPage (frames: Node[], { loadAfter = 0 } = {}) {
+    let calls = 0
     const store = new Map<string, unknown>()
     const page = {
         contextId: 'tab-1',
@@ -46,7 +47,11 @@ function blockedPage (frames: Node[]) {
         browser: {
             getWindowHandle: async () => 'tab-1',
             browsingContexts: async () => [page],
-            browsingContextGetTree: async () => ({ contexts: [{ context: 'tab-1', url: 'https://a.test/', children: frames }] })
+            options: { waitforTimeout: 2000 },
+            // the frame's context reports its URL only after `loadAfter` lookups
+            browsingContextGetTree: async () => ({
+                contexts: [{ context: 'tab-1', url: 'https://a.test/', children: calls++ < loadAfter ? frames.map((f) => ({ ...f, url: 'about:blank' })) : frames }]
+            })
         }
     } as unknown as Session
     return { session, page }
@@ -59,6 +64,20 @@ describe('frame (BiDi) when the browser blocks looking into a cross-site frame',
         const result = await frame(session, { target: 'e5', $cwd: '/' })
         expect(result.text).toBe('Switched to frame e5')
         expect(page.frame).toHaveBeenCalledTimes(2)
+    })
+
+    it('waits for a frame that is still loading', async () => {
+        src = 'https://widget.test/calc.html'
+        const { session, page } = blockedPage([{ context: 'f1', url: 'https://widget.test/calc.html' }], { loadAfter: 2 })
+        const result = await frame(session, { target: 'e5', $cwd: '/' })
+        expect(result.text).toBe('Switched to frame e5')
+        expect(page.frame).toHaveBeenCalledTimes(2)
+    })
+
+    it('gives up when the frame never loads the URL', async () => {
+        src = 'https://widget.test/calc.html'
+        const { session } = blockedPage([{ context: 'f1', url: 'https://widget.test/calc.html' }], { loadAfter: 1000 })
+        await expect(frame(session, { target: 'e5', $cwd: '/' })).rejects.toThrow('no frame on the page has loaded https://widget.test/calc.html.')
     })
 
     it('refuses when another frame differs only by its fragment', async () => {

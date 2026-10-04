@@ -402,15 +402,28 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
          * would pick as well can't be mistaken for this one.
          */
         const withoutHash = (url: string) => url.split('#')[0]
-        const { contexts } = await session.browser.browsingContextGetTree({ root: owner.contextId })
-        const descendants = (nodes: { url: string, children?: unknown[] | null }[]): { url: string }[] =>
-            nodes.flatMap((node) => [node, ...descendants((node.children ?? []) as { url: string, children?: unknown[] | null }[])])
-        const sameUrl = descendants(contexts.flatMap((context) => (context.children ?? []) as { url: string, children?: unknown[] | null }[]))
-            .filter(({ url }) => withoutHash(url) === withoutHash(src)).length
+        type TreeNode = { url: string, children?: unknown[] | null }
+        const descendants = (nodes: TreeNode[]): TreeNode[] => nodes.flatMap((node) => [node, ...descendants((node.children ?? []) as TreeNode[])])
+        const countSameUrl = async () => {
+            const { contexts } = await session.browser.browsingContextGetTree({ root: owner.contextId })
+            return descendants(contexts.flatMap((context) => (context.children ?? []) as TreeNode[]))
+                .filter(({ url }) => withoutHash(url) === withoutHash(src)).length
+        }
+        // a frame that is still loading has its element before its context has the URL
+        const limit = Date.now() + ((session.browser.options as { waitforTimeout?: number } | undefined)?.waitforTimeout ?? 5000)
+        let sameUrl = await countSameUrl()
+        while (sameUrl === 0 && Date.now() < limit) {
+            await new Promise((resolve) => setTimeout(resolve, 250))
+            sameUrl = await countSameUrl()
+        }
         if (sameUrl !== 1) {
             throw usage(
-                `${resolved.label} can't be entered: the browser blocks looking into it, and ${sameUrl} frames on the page load ${withoutHash(src)}.`,
-                'Run `wdio session exec` with `browser.switchFrame(...)` on a selector that matches only this frame.'
+                sameUrl
+                    ? `${resolved.label} can't be entered: the browser blocks looking into it, and ${sameUrl} frames on the page load ${withoutHash(src)}.`
+                    : `${resolved.label} can't be entered: the browser blocks looking into it, and no frame on the page has loaded ${withoutHash(src)}.`,
+                sameUrl
+                    ? 'Run `wdio session exec` with `browser.switchFrame(...)` on a selector that matches only this frame.'
+                    : 'Wait for the frame to load (`wdio session wait`), then try again.'
             )
         }
         return owner.frame(({ url }) => withoutHash(url) === withoutHash(src))
