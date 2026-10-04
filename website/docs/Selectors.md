@@ -526,12 +526,14 @@ These commands allow you to select components off the [React VirtualDOM](https:/
 
 **Note**: The commands `react$` and `react$$` are similar in functionality, except that `react$$` will return *all* matching instances as an array of WebdriverIO elements, and `react$` will return the first found instance.
 
+The commands work with React 16 to 19, for an app that starts with `createRoot` or with `ReactDOM.render`. They read the components of the current render, so they also find components that a state change added. If React has not rendered a root of the page yet, they wait up to 5 seconds for it.
+
 #### Basic example
 
 ```jsx
 // index.jsx
 import React from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 
 function MyComponent() {
     return (
@@ -545,7 +547,7 @@ function App() {
     return (<MyComponent />)
 }
 
-ReactDOM.render(<App />, document.querySelector('#root'))
+createRoot(document.querySelector('#root')).render(<App />)
 ```
 
 In the above code there is a simple `MyComponent` instance inside the application, which React is rendering inside a HTML element with `id="root"`.
@@ -560,7 +562,7 @@ Now that you have the WebdriverIO element stored in `myCmp` variable, you can ex
 
 #### Filtering components
 
-The library that WebdriverIO uses internally allows to filter your selection by props and/or state of the component. To do so, you need to pass a second argument for props and/or a third argument for state to the browser command.
+You can filter your selection by the props and/or the state of the component. To do so, pass `props` and/or `state` in the second argument of the command.
 
 ```jsx
 // index.jsx
@@ -602,6 +604,23 @@ const myCmp = await browser.react$('MyComponent', {
     state: { myState: 'some value' }
 })
 ```
+
+A filter matches when each of its keys that the component also has matches. A key that the component does not have is ignored. A nested object matches the same way, and an array matches when it has one value in common with the array of the component. `null`, `false` and `0` match the same value. For a function component with hooks, the state is the state of the first hook (`useState` or `useReducer`): if the first hook is another hook, for example `useRef`, the state filter does not match. With both `props` and `state`, a component must match both.
+
+#### Selector rules
+
+- `*` matches one or more characters: `browser.react$$('My*')` finds `MyComponent` and `MyOtherComponent`.
+- Names separated by spaces find a component inside another one: `browser.react$$('List Item')` finds each `Item` inside a `List`.
+- The name of a component is its `displayName`, or else the name of its function or class. A component of `React.memo` has the name of its function (the development build of React 17 also gives it the `displayName` of the memo object). A component of `React.forwardRef` has no name, unless it has a `displayName`.
+- For a higher-order component with a name like `withRouter(MyComponent)`, the name inside the parentheses is used: `MyComponent`.
+- Without an element scope, the commands search all React roots of the page, in the order of the document, also roots inside other roots and roots in open shadow roots. `react$` gives the first match. To search one root only, call the command on its container or on an element of that root: `$('#other-root').react$$('MyComponent')`.
+- The results come root after root. In a root, they come in the order of the component tree, level by level, not in the order of the document. `react$$` gives each DOM node once.
+- For an app in a frame, call the command on the browsing context of the frame, or on an element of the frame: `(await page.frame({ selector: 'iframe' })).react$$('MyComponent')`.
+
+Known limits:
+
+- A component that renders only text gives a text node. With WebDriver Classic, a text node cannot be sent back, and the command fails with `javascript error: circular reference`.
+- While React hydrates a `Suspense` boundary of a server-rendered page, the components inside it do not exist yet. Wait until the page has finished to hydrate.
 
 #### Dealing with `React.Fragment`
 

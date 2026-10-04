@@ -92,6 +92,11 @@
     "lit": "^3.1.1",
     "preact": "^10.19.3",
     "react": "^18.2.0",
+    "react-17": "npm:react@17.0.2",
+    "react-19": "npm:react@19.3.0",
+    "react-dom": "^18.2.0",
+    "react-dom-17": "npm:react-dom@17.0.2",
+    "react-dom-19": "npm:react-dom@19.3.0",
     "svelte": "^5.57.0",
     "vue": "^3.4.37"
   }

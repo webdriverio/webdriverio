@@ -680,6 +680,24 @@ With WebDriver BiDi, a script that returns a `NodeList` (for example from `query
   )
 ```
 
+## React selectors
+
+`react$` and `react$$` now work with React 16 to 19, for an app that starts with `createRoot` or with `ReactDOM.render`. Before, `browser.react$` and `browser.react$$` failed with React 18 and later (`Could not find the root element of your application`), and in every version a result could come from the render before the last update, so a component that a state change added was not found.
+
+On a page where React has not rendered a root yet, the commands now wait up to 5 seconds for it before they fail. Before, they failed at once, so an app that started late was not found.
+
+The commands no longer use the [resq](https://github.com/baruchvlz/resq) library, and WebdriverIO no longer installs it. The selector rules do not change (see [React Selectors](/docs/selectors#react-selectors)), with these exceptions:
+
+- `react$` with both `props` and `state` finds a component that matches both. Before, it ignored `props` when `state` was also given.
+- `react$$` gives each DOM node once. Before, a higher-order component and its child gave the same element twice in some browsers.
+- A fragment that contains a fragment gives one flat list of nodes. Before, `react$` could return a list.
+- A filter with a `null` value works. Before, it failed with `Cannot convert undefined or null to object`.
+- Without an element scope, the commands search all React roots of the page, in the order of the document, also roots inside other roots and roots in open shadow roots. `react$` gives the first match. Before, they searched only the first root, also one that React had not rendered yet or had unmounted, and did not search shadow roots. On a page with more than one root, `react$$` can now give more elements: to search one root only, call the command on its container, for example `$('#root').react$$('MyComponent')`.
+- On the container of a root inside another root, the commands search the inner root. Before, they searched the outer root.
+- On the browsing context of a frame, and on an element of a frame, the commands work. Before, the context command failed with `this.executeScript is not a function`, and the element command failed with `Could not find instance of React in given element`.
+
+The internal script `webdriverio/scripts/resq` is removed.
+
 ## Component testing
 
 `@wdio/browser-runner` re-exports `fn`, `spyOn` and the mock types from `@vitest/spy` 5 (previously 3). A mock that your code calls with `new` needs a `function` or `class` implementation. An arrow function throws `is not a constructor`, and `mockReturnValue` throws when the mock is called with `new`.

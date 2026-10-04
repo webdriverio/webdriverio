@@ -1,9 +1,9 @@
 import type { ElementReference } from '@wdio/protocols'
 
-import { resqScript } from '../constant.js'
+import { reactScript } from '../constant.js'
 import { getElements } from '../../utils/getElementObject.js'
 import { ElementArray } from '../../element/array.js'
-import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq.js'
+import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/react.js'
 import type { ReactSelectorOptions } from '../../types.js'
 
 /**
@@ -14,8 +14,9 @@ import type { ReactSelectorOptions } from '../../types.js'
  *
  * :::info
  *
- * The command only works with applications using React v16.x. Read more about React
- * selectors in the [Selectors](/docs/selectors#react-selectors) guide.
+ * The command works with applications using React v16 to v19, with `createRoot` or
+ * `ReactDOM.render`. Read more about React selectors in the
+ * [Selectors](/docs/selectors#react-selectors) guide.
  *
  * :::
  *
@@ -46,7 +47,11 @@ export function react$$ (
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ): WebdriverIO.ElementArray {
     return ElementArray.fromAsyncCallback(async () => {
-        await this.executeScript(resqScript, [])
+        /**
+         * `execute` runs in the context of this command, also a frame of a browsing
+         * context. The protocol command `executeScript` does not follow a frame.
+         */
+        await this.execute(reactScript)
         await this.execute(waitToLoadReact)
         const res = await this.execute(
             react$$Script, selector, props, state

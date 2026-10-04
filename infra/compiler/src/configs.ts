@@ -72,7 +72,6 @@ export async function createBuildConfigs (values: CompilerArgs): Promise<BuildOp
         values.project.includes(packageDir)
     ))
 
-    const WDIO_RESQ_SCRIPT = JSON.stringify(await fs.readFile(path.resolve(rootDir, 'packages', 'webdriverio', 'node_modules', 'resq', 'dist', 'index.js'), 'utf-8'))
     const WDIO_FAKER_SCRIPT = JSON.stringify(await fs.readFile(path.resolve(rootDir, 'packages', 'webdriverio', 'third_party', 'fake-timers.js'), 'utf-8'))
     /**
      * role and accessible name computation for the `role/` selector fallback,
@@ -89,6 +88,20 @@ export async function createBuildConfigs (values: CompilerArgs): Promise<BuildOp
         write: false
     })
     const WDIO_A11Y_SCRIPT = JSON.stringify(accessibility.outputFiles[0].text)
+    /**
+     * React component queries for `react$` and `react$$`, as one script the page can run
+     */
+    const react = await build({
+        entryPoints: [path.resolve(rootDir, 'packages', 'webdriverio', 'src', 'injected', 'react.ts')],
+        absWorkingDir: path.resolve(rootDir, 'packages', 'webdriverio'),
+        bundle: true,
+        format: 'iife',
+        platform: 'browser',
+        target: [...BROWSER_BUILD_TARGET],
+        minify: true,
+        write: false
+    })
+    const WDIO_REACT_SCRIPT = JSON.stringify(react.outputFiles[0].text)
 
     return packages.map(([packageDir, pkg]) => {
         const packageBuilds: BuildOptions[] = []
@@ -121,7 +134,7 @@ export async function createBuildConfigs (values: CompilerArgs): Promise<BuildOp
                 bundle: true,
                 absWorkingDir,
                 define: {
-                    WDIO_RESQ_SCRIPT,
+                    WDIO_REACT_SCRIPT,
                     WDIO_FAKER_SCRIPT,
                     WDIO_A11Y_SCRIPT
                 }

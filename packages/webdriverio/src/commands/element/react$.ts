@@ -1,9 +1,9 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 
-import { resqScript } from '../constant.js'
+import { reactScript } from '../constant.js'
 import { getElement } from '../../utils/getElementObject.js'
-import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq.js'
+import { waitToLoadReact, react$ as react$Script } from '../../scripts/react.js'
 import type { ReactSelectorOptions } from '../../types.js'
 
 /**
@@ -13,8 +13,9 @@ import type { ReactSelectorOptions } from '../../types.js'
  *
  * :::info
  *
- * The command only works with applications using React v16.x. Read more about React
- * selectors in the [Selectors](/docs/selectors#react-selectors) guide.
+ * The command works with applications using React v16 to v19, with `createRoot` or
+ * `ReactDOM.render`. Read more about React selectors in the
+ * [Selectors](/docs/selectors#react-selectors) guide.
  *
  * :::
  *
@@ -55,8 +56,12 @@ export async function react$(
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
     const browser = await getBrowserObject(this)
-    await this.executeScript(resqScript.toString(), [])
-    await browser.execute(waitToLoadReact)
+    /**
+     * `execute` of the element runs in the context of the element, also in a frame.
+     * It gives the element as first argument, which these two scripts do not use.
+     */
+    await this.execute(reactScript)
+    await this.execute(waitToLoadReact)
     const res = await browser.execute(
         react$Script, selector, props, state, this as unknown as HTMLElement
     ) as unknown as ElementReference

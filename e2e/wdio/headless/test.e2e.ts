@@ -4,6 +4,7 @@ import url from 'node:url'
 import path from 'node:path'
 import { createServer } from 'node:http'
 import { once } from 'node:events'
+import { createRequire } from 'node:module'
 import type { AddressInfo } from 'node:net'
 import { browser, $, $$, expect } from '@wdio/globals'
 
@@ -15,6 +16,57 @@ import logger from '@wdio/logger'
 import { some } from 'expect-webdriverio/api'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+const require = createRequire(import.meta.url)
+
+/**
+ * a React app with 3 `Item` components and a button that adds one, mounted with `mount`
+ * and the React build of `/{build}/`
+ */
+const reactApp = (build: string, mount: string) => `<title>React</title><div id="root"></div>
+<script src="/${build}/react.js"></script><script src="/${build}/react-dom.js"></script>
+<script>
+const h = React.createElement
+function Item (props) { return h('li', null, props.color) }
+function App () {
+    const [colors, setColors] = React.useState(['red', 'blue', 'red'])
+    return h('div', null,
+        h('ul', null, colors.map((color, index) => h(Item, { key: index, color }))),
+        h('button', { id: 'add', onClick: () => setColors(colors.concat('green')) }, 'add'))
+}
+${mount}
+</script>`
+
+/**
+ * React 19 has no UMD build. Its CommonJS files run in the page with a small module
+ * loader, which sets the `React` and `ReactDOM` globals as the UMD builds do.
+ */
+const react19Script = async () => {
+    const reactDir = path.dirname(require.resolve('react-19/package.json'))
+    const reactDomDir = path.dirname(require.resolve('react-dom-19/package.json'))
+    const schedulerDir = path.dirname(createRequire(path.join(reactDomDir, 'package.json')).resolve('scheduler/package.json'))
+    const modules: Record<string, string> = {
+        react: path.join(reactDir, 'cjs', 'react.production.js'),
+        'react-dom': path.join(reactDomDir, 'cjs', 'react-dom.production.js'),
+        'react-dom/client': path.join(reactDomDir, 'cjs', 'react-dom-client.production.js'),
+        scheduler: path.join(schedulerDir, 'cjs', 'scheduler.production.js')
+    }
+    const sources = await Promise.all(Object.entries(modules).map(async ([name, file]) => (
+        `${JSON.stringify(name)}: function (module, exports, require) {\n${await fs.readFile(file, 'utf8')}\n}`
+    )))
+    return `(() => {
+const sources = {${sources.join(',\n')}}
+const cache = {}
+const load = (name) => {
+    if (!cache[name]) {
+        cache[name] = { exports: {} }
+        sources[name](cache[name], cache[name].exports, load)
+    }
+    return cache[name].exports
+}
+window.React = load('react')
+window.ReactDOM = Object.assign({}, load('react-dom'), load('react-dom/client'))
+})()`
+}
 
 describe('main suite 1', () => {
     const navigationPages: Record<string, string> = {
@@ -22,7 +74,22 @@ describe('main suite 1', () => {
         '/window-b': '<title>Window Beta</title><p id="beta">Beta</p>',
         '/frames': '<title>Frame Demo</title><iframe src="/frame-a"></iframe>',
         '/frame-a': '<title>IFrame A</title><iframe src="/frame-a2"></iframe>',
-        '/frame-a2': '<title>IFrame A2</title><h1>Nested frame</h1>'
+        '/frame-a2': '<title>IFrame A2</title><h1>Nested frame</h1>',
+        '/react17-render': reactApp('react17', "ReactDOM.render(h(App), document.getElementById('root'))"),
+        '/react18-render': reactApp('react18', "ReactDOM.render(h(App), document.getElementById('root'))"),
+        '/react18-create-root': reactApp('react18', "ReactDOM.createRoot(document.getElementById('root')).render(h(App))"),
+        '/react19-create-root': reactApp('react19', "ReactDOM.createRoot(document.getElementById('root')).render(h(App))"),
+        '/react-frame': '<title>React frame</title><iframe id="react-frame" src="/react18-create-root"></iframe>'
+    }
+    /**
+     * the React builds of the `e2e` package, so the React pages need no network. They cover
+     * the 3 root structures: `_reactRootContainer._internalRoot` (React 16 and 17
+     * `render`), `_reactRootContainer` (React 18 `render`) and `__reactContainer$`
+     * (`createRoot` in React 18 and 19). React 19 comes from `react19Script`.
+     */
+    const reactBuilds: Record<string, Record<string, string>> = {
+        react17: { react: 'react-17', 'react-dom': 'react-dom-17' },
+        react18: { react: 'react', 'react-dom': 'react-dom' }
     }
     /**
      * `/basic_auth` accepts only `admin:admin`. It sends no `WWW-Authenticate` header, so a
@@ -31,6 +98,23 @@ describe('main suite 1', () => {
     const BASIC_AUTH = `Basic ${Buffer.from('admin:admin').toString('base64')}`
     const basicAuthHeaders: (string | undefined)[] = []
     const navigationServer = createServer((request, response) => {
+        const [, build, reactScript] = (request.url || '').match(/^\/(react\d+)\/(react|react-dom)\.js$/) || []
+        if (build === 'react19') {
+            response.setHeader('Content-Type', 'text/javascript; charset=utf-8')
+            /**
+             * the loader already sets `ReactDOM`
+             */
+            return reactScript === 'react' ? react19Script().then((source) => response.end(source)) : response.end('')
+        }
+        const reactPackage = build && reactBuilds[build]?.[reactScript]
+        if (reactPackage) {
+            response.setHeader('Content-Type', 'text/javascript; charset=utf-8')
+            /**
+             * the `exports` of the React packages do not include the UMD files
+             */
+            const umd = path.join(path.dirname(require.resolve(`${reactPackage}/package.json`)), 'umd', `${reactScript}.production.min.js`)
+            return fs.readFile(umd, 'utf8').then((source) => response.end(source))
+        }
         response.setHeader('Content-Type', 'text/html; charset=utf-8')
         if (request.url === '/basic_auth') {
             basicAuthHeaders.push(request.headers.authorization)
@@ -618,6 +702,47 @@ describe('main suite 1', () => {
             await browser.url('https://guinea-pig.webdriver.io/pointer.html')
             expect((await browser.execute(getDateString)).toLocaleString('en-GB', { timeZone: 'UTC' }))
                 .not.toBe(mockedDateString)
+        })
+    })
+
+    describe('react$ and react$$', () => {
+        for (const [page, mount] of [
+            ['react17-render', 'React 17 ReactDOM.render'],
+            ['react18-render', 'React 18 ReactDOM.render'],
+            ['react18-create-root', 'React 18 createRoot'],
+            ['react19-create-root', 'React 19 createRoot']
+        ]) {
+            it(`finds the components of the current render with ${mount}`, async () => {
+                await browser.url(`${navigationOrigin}/${page}`)
+                await expect(browser.react$$('Item')).toBeElementsArrayOfSize(3)
+                await expect(browser.react$('Item', { props: { color: 'blue' } })).toHaveText('blue')
+                await expect($('ul').react$$('Item')).toBeElementsArrayOfSize(3)
+
+                /**
+                 * React uses the other copy of each fiber after an update: no retry here,
+                 * so a result of the previous render fails
+                 */
+                await $('#add').click()
+                await expect($$('li')).toBeElementsArrayOfSize(4)
+                expect((await browser.react$$('Item')).length).toBe(4)
+                expect((await $('ul').react$$('Item')).length).toBe(4)
+                expect(await browser.react$('Item', { props: { color: 'green' } }).getText()).toBe('green')
+            })
+        }
+
+        /**
+         * the commands inject their script and wait in the context of the frame
+         */
+        it('finds the components in a frame', async function () {
+            if (!browser.isBidi) {
+                return this.skip()
+            }
+            const page = await browser.url(`${navigationOrigin}/react-frame`)
+            const frame = await page.frame({ selector: '#react-frame' })
+            await expect(frame.react$$('Item')).toBeElementsArrayOfSize(3)
+            await expect(frame.$('ul').react$$('Item')).toBeElementsArrayOfSize(3)
+            expect(await frame.react$('Item', { props: { color: 'blue' } }).getText()).toBe('blue')
+            expect(await frame.$('ul').react$('Item', { props: { color: 'red' } }).getText()).toBe('red')
         })
     })
 
