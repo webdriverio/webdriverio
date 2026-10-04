@@ -26,9 +26,15 @@ export function detectBotCheck (snapshot: string): string | undefined {
     return CHECKS.find(({ markers }) => markers.some((re) => re.test(snapshot)))?.vendor
 }
 
-export function botCheckNote (vendor: string, { headless, target, url }: { headless: boolean, target: string, url?: string }) {
+export function botCheckNote (vendor: string, { headless, target, url, userAgent }: { headless: boolean, target: string, url?: string, userAgent?: string }) {
     const page = `This page is a ${vendor} bot check, not the site.`
+    const reopen = (flags: string) => `\`wdio session open ${target}${url ? ` ${url}` : ''} ${flags} --replace\``
+    if (headless && userAgent?.includes('HeadlessChrome/')) {
+        // the session couldn't send a headed user agent (e.g. `--no-bidi`), and many sites refuse the headless one
+        const headed = userAgent.replace('HeadlessChrome/', 'Chrome/')
+        return `${page} This browser sends "HeadlessChrome" in its user agent, which many sites refuse. Reopen it with the user agent of a visible window: ${reopen(`--arg="--user-agent=${headed}"`)}, or open a visible window: ${reopen('--headed')}.`
+    }
     return headless
-        ? `${page} Waiting, reloading or clicking it rarely gets a headless browser through. A visible window often does: \`wdio session open ${target}${url ? ` ${url}` : ''} --headed --replace\`.`
+        ? `${page} Waiting, reloading or clicking it rarely gets a headless browser through. A visible window often does: ${reopen('--headed')}.`
         : `${page} The site doesn't let this browser in; retrying rarely helps. Say so in your answer rather than trying to get past it.`
 }

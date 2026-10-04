@@ -373,7 +373,11 @@ export class Session {
             return undefined
         }
         this.set('botCheckUrl', url)
-        return botCheckNote(vendor, { headless: this.plan.headless !== false, target: String(this.plan.target ?? 'chrome'), url })
+        const headless = this.plan.headless !== false
+        const userAgent = headless
+            ? await Promise.resolve(this.browser.execute(() => navigator.userAgent)).catch(() => undefined)
+            : undefined
+        return botCheckNote(vendor, { headless, target: String(this.plan.target ?? 'chrome'), url, userAgent: typeof userAgent === 'string' ? userAgent : undefined })
     }
 
     /**

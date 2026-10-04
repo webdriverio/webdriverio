@@ -28,6 +28,14 @@ describe('botCheckNote', () => {
         expect(note).toContain('`wdio session open chrome https://umich.edu/ --headed --replace`')
     })
 
+    it('suggests the user agent of a visible window when the session still sends the headless one', () => {
+        const userAgent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36'
+        const note = botCheckNote('Akamai', { headless: true, target: 'chrome', url: 'https://www.zara.com/us/', userAgent })
+        expect(note).toContain('"HeadlessChrome"')
+        expect(note).toContain('`wdio session open chrome https://www.zara.com/us/ --arg="--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36" --replace`')
+        expect(note).toContain('--headed --replace')
+    })
+
     it('says to report it when the window is already visible', () => {
         const note = botCheckNote('Akamai', { headless: false, target: 'chrome' })
         expect(note).not.toContain('--headed')
