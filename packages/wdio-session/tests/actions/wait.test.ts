@@ -82,7 +82,7 @@ describe('wait', () => {
                 expect(await cond()).toBe(true)
             }
         }
-        const session = { browser } as unknown as Session
+        const session = { browser, currentUrl: () => browser.getUrl() } as unknown as Session
         expect((await wait(session, { text: 'Welcome', $cwd: '/' })).text).toBe('Text appeared: Welcome')
         expect((await wait(session, { url: '**/dashboard', $cwd: '/' })).text).toBe('URL matches **/dashboard')
     })

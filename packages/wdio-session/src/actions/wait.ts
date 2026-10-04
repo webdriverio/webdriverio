@@ -167,7 +167,7 @@ export const wait: ActionFn = async (session, args) => {
     if (args.url !== undefined) {
         const pattern = String(args.url)
         await session.browser.waitUntil(
-            async () => matchUrl(pattern, await session.browser.getUrl()),
+            async () => matchUrl(pattern, await session.currentUrl({ throwOnError: true }) ?? ''),
             options(`URL did not match ${pattern}`)
         )
         const check = pattern.includes('*')

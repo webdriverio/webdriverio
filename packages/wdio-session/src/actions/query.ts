@@ -21,7 +21,7 @@ export const get: ActionFn = async (session, args) => {
         return read(title, 'await browser.getTitle()', { title })
     }
     if (sub === 'url') {
-        const url = await session.browser.getUrl()
+        const url = await session.currentUrl({ throwOnError: true }) ?? ''
         return read(url, 'await browser.getUrl()', { url })
     }
     if (sub === 'count') {

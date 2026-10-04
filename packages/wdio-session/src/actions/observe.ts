@@ -11,7 +11,7 @@ import { countRefs, formatSnapshot, type SnapshotNode } from '../snapshot/format
 import { unifiedDiff } from '../snapshot/diff.js'
 import { takeNativeSnapshot } from '../snapshot/native.js'
 import { resolveElement, resolveTarget, scopeOf } from '../snapshot/target.js'
-import { currentPage, frameContext } from './contexts.js'
+import { currentPage, frameBySrc, frameContext } from './contexts.js'
 import type { ActionFn, Session } from '../session.js'
 
 const DEFAULT_MAX_CHARS = 8000
@@ -57,11 +57,13 @@ const MAX_INLINE_FRAMES = 5
 const MAX_FRAME_NODES = 300
 const FRAME_TIMEOUT_MS = 2000
 
-function withTimeout<T> (promise: Promise<T>, ms: number): Promise<T | undefined> {
+const TIMED_OUT = Symbol('timed out')
+
+function withTimeout<T> (promise: Promise<T>, ms: number): Promise<T | undefined | typeof TIMED_OUT> {
     let timer: NodeJS.Timeout | undefined
     return Promise.race([
         promise.catch(() => undefined),
-        new Promise<undefined>((resolve) => { timer = setTimeout(() => resolve(undefined), ms) })
+        new Promise<typeof TIMED_OUT>((resolve) => { timer = setTimeout(() => resolve(TIMED_OUT), ms) })
     ]).finally(() => clearTimeout(timer))
 }
 
@@ -113,12 +115,19 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
         return []
     }
     const refs: { id: string, role: string, name?: string, candidates: string[], frame: string }[] = []
+    // a frame lookup went unanswered: only frames found without asking the page are inlined
+    let busy = false
     for (const node of frames.slice(0, MAX_INLINE_FRAMES)) {
         const frameRef = node.ref!
         let collecting = false
+        // a lookup given up on must not start collecting later, alongside the next frame
+        let givenUp = false
         const result = await withTimeout((async () => {
             const element = await session.refs.resolve(session.browser, frameRef)
-            const child = await frameContext(session, owner, element, frameRef)
+            const child = await frameBySrc(session, owner, element) ?? (busy ? undefined : await frameContext(session, owner, element, frameRef))
+            if (!child || givenUp) {
+                return undefined
+            }
             collecting = true
             const collected = await child.execute(collectInPage, { ...opts, counter: session.refs.counter, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true })
                 .finally(() => (collecting = false)) as ReturnType<typeof collectInPage>
@@ -136,9 +145,20 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
                 : undefined
             return { collected, origin }
         })(), FRAME_TIMEOUT_MS)
+        /**
+         * A frame still collecting may hand out ids a later frame would: stop.
+         * A lookup that doesn't answer means a busy page (ads loading), and
+         * asking it about the next frames would leave more calls pending in
+         * the driver, holding later commands: those are only inlined when
+         * the context tree names them.
+         */
         if (collecting) {
-            // the frame may still hand out ids a later frame would hand out too
             break
+        }
+        if (result === TIMED_OUT) {
+            givenUp = true
+            busy = true
+            continue
         }
         if (!result?.collected?.tree) {
             continue

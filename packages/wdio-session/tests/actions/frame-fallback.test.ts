@@ -32,7 +32,8 @@ function blockedPage (frames: Node[], { loadAfter = 0 } = {}) {
         url: 'https://a.test/',
         getUrl: async () => 'https://a.test/',
         frame: vi.fn(async (query: unknown) => {
-            if (typeof query !== 'function') {
+            // an element is blocked; the fallback asks by context id
+            if (!(query && typeof query === 'object' && 'id' in query)) {
                 const err = new Error('SecurityError: Blocked a frame with origin "https://a.test" from accessing a cross-origin frame.')
                 throw err
             }
@@ -64,6 +65,8 @@ describe('frame (BiDi) when the browser blocks looking into a cross-site frame',
         const result = await frame(session, { target: 'e5', $cwd: '/' })
         expect(result.text).toBe('Switched to frame e5')
         expect(page.frame).toHaveBeenCalledTimes(2)
+        // not a predicate: it would run in the browser, without the variables it closes over
+        expect(page.frame).toHaveBeenLastCalledWith({ id: 'f1' })
     })
 
     it('waits for a frame that is still loading', async () => {

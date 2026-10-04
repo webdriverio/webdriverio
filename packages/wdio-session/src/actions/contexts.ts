@@ -394,6 +394,44 @@ function adopt (session: Session, contextId: string) {
 /**
  * The browsing context of an iframe element that belongs to `owner`.
  */
+type TreeNode = { context: string, url: string, children?: unknown[] | null }
+
+const withoutHash = (url: string) => url.split('#')[0]
+
+/** frames at any depth under `owner` (shadow roots and nested frames included) that show `src` */
+async function framesShowing (session: Session, owner: WebdriverIO.BrowsingContext, src: string) {
+    const descendants = (nodes: TreeNode[]): TreeNode[] => nodes.flatMap((node) => [node, ...descendants((node.children ?? []) as TreeNode[])])
+    const { contexts } = await session.browser.browsingContextGetTree({ root: owner.contextId })
+    return descendants(contexts.flatMap((context) => (context.children ?? []) as TreeNode[]))
+        .filter(({ url }) => withoutHash(url) === withoutHash(src))
+}
+
+/**
+ * The frame of an iframe element, found by its URL in the browsing context
+ * tree when that URL names exactly one frame. Asking the parent page for
+ * `iframe.contentWindow` can go unanswered while an ad frame navigates, and
+ * chromedriver then holds classic commands of the whole page.
+ */
+export async function frameBySrc (session: Session, owner: WebdriverIO.BrowsingContext, element: WebdriverIO.Element) {
+    const found = await owner.execute((el: HTMLIFrameElement) => ({
+        src: el.src,
+        // iframes of this document that load the same URL; a frame can't be told from them by it
+        same: Array.from(el.ownerDocument.querySelectorAll('iframe, frame')).filter((other) => (other as HTMLIFrameElement).src === el.src).length
+    }), element as unknown as HTMLIFrameElement).catch(() => undefined) as { src?: string, same?: number } | undefined
+    if (!found || typeof found.src !== 'string' || !/^https?:/.test(found.src) || found.same !== 1) {
+        return undefined
+    }
+    /**
+     * Only a child frame of this document that shows exactly that URL. A
+     * frame that redirected away from its src isn't found, rather than
+     * mistaken for another frame that happens to show the URL.
+     */
+    const { contexts } = await session.browser.browsingContextGetTree({ root: owner.contextId, maxDepth: 1 }).catch(() => ({ contexts: [] }))
+    const children = contexts.flatMap((context) => (context.children ?? []) as TreeNode[])
+    const matches = children.filter(({ url }) => withoutHash(url) === withoutHash(found.src!))
+    return matches.length === 1 ? owner.frame({ id: matches[0].context }) : undefined
+}
+
 export async function frameContext (session: Session, owner: WebdriverIO.BrowsingContext, element: WebdriverIO.Element, label: string): Promise<WebdriverIO.BrowsingContext> {
     return owner.frame(element).catch(async (err: Error) => {
         /**
@@ -409,37 +447,28 @@ export async function frameContext (session: Session, owner: WebdriverIO.Browsin
             throw err
         }
         /**
-         * Only when the URL names this frame alone. Counted the way `frame()`
-         * matches below (any depth under this context, shadow roots and
-         * nested frames included, fragments ignored), so another frame it
-         * would pick as well can't be mistaken for this one.
+         * Only when the URL names this frame alone, so another frame that
+         * loads the same URL can't be mistaken for this one.
          */
-        const withoutHash = (url: string) => url.split('#')[0]
-        type TreeNode = { url: string, children?: unknown[] | null }
-        const descendants = (nodes: TreeNode[]): TreeNode[] => nodes.flatMap((node) => [node, ...descendants((node.children ?? []) as TreeNode[])])
-        const countSameUrl = async () => {
-            const { contexts } = await session.browser.browsingContextGetTree({ root: owner.contextId })
-            return descendants(contexts.flatMap((context) => (context.children ?? []) as TreeNode[]))
-                .filter(({ url }) => withoutHash(url) === withoutHash(src)).length
-        }
         // a frame that is still loading has its element before its context has the URL
         const limit = Date.now() + ((session.browser.options as { waitforTimeout?: number } | undefined)?.waitforTimeout ?? 5000)
-        let sameUrl = await countSameUrl()
-        while (sameUrl === 0 && Date.now() < limit) {
+        let matches = await framesShowing(session, owner, src)
+        while (matches.length === 0 && Date.now() < limit) {
             await new Promise((resolve) => setTimeout(resolve, 250))
-            sameUrl = await countSameUrl()
+            matches = await framesShowing(session, owner, src)
         }
-        if (sameUrl !== 1) {
+        if (matches.length !== 1) {
             throw usage(
-                sameUrl
-                    ? `${label} can't be entered: the browser blocks looking into it, and ${sameUrl} frames on the page load ${withoutHash(src)}.`
+                matches.length
+                    ? `${label} can't be entered: the browser blocks looking into it, and ${matches.length} frames on the page load ${withoutHash(src)}.`
                     : `${label} can't be entered: the browser blocks looking into it, and no frame on the page has loaded ${withoutHash(src)}.`,
-                sameUrl
+                matches.length
                     ? 'Run `wdio session exec` with `browser.switchFrame(...)` on a selector that matches only this frame.'
                     : 'Wait for the frame to load (`wdio session wait`), then try again.'
             )
         }
-        return owner.frame(({ url }) => withoutHash(url) === withoutHash(src))
+        // by id: a predicate would run in the browser, where the variables here don't exist
+        return owner.frame({ id: matches[0].context })
     })
 }
 

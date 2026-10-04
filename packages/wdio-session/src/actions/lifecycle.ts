@@ -21,7 +21,7 @@ export const info: ActionFn = async (s) => {
     if (dialog) {
         data.dialog = `${dialog.type} ${JSON.stringify(dialog.message)}`
     } else if (s.isWeb && !s.applies.includes('M')) {
-        data.url = await s.browser.getUrl().catch(() => undefined)
+        data.url = await s.currentUrl()
         data.title = await s.browser.getTitle().catch(() => undefined)
         data.windowSize = await s.browser.getWindowSize().catch(() => undefined)
         data.frame = s.get<string>('frame') || 'top'

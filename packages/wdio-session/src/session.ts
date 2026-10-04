@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
+import { getContextManager } from 'webdriverio'
 
 import { ACTION_MAP } from './actions/specs.js'
 import { PAGE_LOAD_TIMEOUT_MS } from './actions/interact.js'
@@ -173,13 +174,34 @@ export class Session {
         }
     }
 
-    async currentUrl () {
+    /**
+     * The URL of the current tab. In a BiDi session it comes from the
+     * browsing context tree: chromedriver holds a classic `getUrl` while any
+     * frame of the page navigates, which on pages full of ads is most of
+     * the time, for up to the page load timeout.
+     */
+    async currentUrl ({ throwOnError = false } = {}) {
         if (!this.isWeb) {
             return undefined
         }
+        if (this.isBidi) {
+            try {
+                const context = await getContextManager(this.browser).getCurrentContext()
+                const { contexts } = await this.browser.browsingContextGetTree({ root: context, maxDepth: 0 })
+                if (contexts[0]?.url) {
+                    return contexts[0].url
+                }
+            } catch {
+                // fall back to the classic command
+            }
+        }
         try {
             return await this.browser.getUrl()
-        } catch {
+        } catch (err) {
+            // `get url` and `wait --url` report the driver's error, not a missing URL
+            if (throwOnError) {
+                throw err
+            }
             return undefined
         }
     }
@@ -199,7 +221,7 @@ export class Session {
             return undefined
         }
         try {
-            return new URL(await this.browser.getUrl()).pathname
+            return new URL(await this.currentUrl() ?? '').pathname
         } catch {
             return undefined
         }
