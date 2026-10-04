@@ -180,7 +180,7 @@ export class Session {
      * frame of the page navigates, which on pages full of ads is most of
      * the time, for up to the page load timeout.
      */
-    async currentUrl () {
+    async currentUrl ({ throwOnError = false } = {}) {
         if (!this.isWeb) {
             return undefined
         }
@@ -197,7 +197,11 @@ export class Session {
         }
         try {
             return await this.browser.getUrl()
-        } catch {
+        } catch (err) {
+            // `get url` and `wait --url` report the driver's error, not a missing URL
+            if (throwOnError) {
+                throw err
+            }
             return undefined
         }
     }

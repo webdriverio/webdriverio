@@ -115,12 +115,17 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
         return []
     }
     const refs: { id: string, role: string, name?: string, candidates: string[], frame: string }[] = []
+    // a frame lookup went unanswered: only frames found without asking the page are inlined
+    let busy = false
     for (const node of frames.slice(0, MAX_INLINE_FRAMES)) {
         const frameRef = node.ref!
         let collecting = false
         const result = await withTimeout((async () => {
             const element = await session.refs.resolve(session.browser, frameRef)
-            const child = await frameBySrc(session, owner, element) ?? await frameContext(session, owner, element, frameRef)
+            const child = await frameBySrc(session, owner, element) ?? (busy ? undefined : await frameContext(session, owner, element, frameRef))
+            if (!child) {
+                return undefined
+            }
             collecting = true
             const collected = await child.execute(collectInPage, { ...opts, counter: session.refs.counter, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true })
                 .finally(() => (collecting = false)) as ReturnType<typeof collectInPage>
@@ -139,13 +144,18 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
             return { collected, origin }
         })(), FRAME_TIMEOUT_MS)
         /**
-         * A frame that doesn't answer: the page is busy (ads loading) and the
-         * call may stay pending in the driver, holding later commands. The
-         * other frames are left as they are rather than waited for too, and
-         * one still collecting may hand out ids a later frame would.
+         * A frame still collecting may hand out ids a later frame would: stop.
+         * A lookup that doesn't answer means a busy page (ads loading), and
+         * asking it about the next frames would leave more calls pending in
+         * the driver, holding later commands: those are only inlined when
+         * the context tree names them.
          */
-        if (result === TIMED_OUT || collecting) {
+        if (collecting) {
             break
+        }
+        if (result === TIMED_OUT) {
+            busy = true
+            continue
         }
         if (!result?.collected?.tree) {
             continue
