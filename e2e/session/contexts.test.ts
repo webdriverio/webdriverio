@@ -107,6 +107,48 @@ describe('wdio session contexts and dialogs', () => {
         expect(after.split('\n').slice(after.split('\n').findIndex((l) => l.includes('Cross origin frame'))).join('\n'), `replaying ${code}`).toContain('button "Frame clicked"')
     })
 
+    it('keeps the frame the user entered when acting on a ref of another frame', async () => {
+        await run('navigate', `${server.url}/frames.html?cross=${server.url.replace('localhost', '127.0.0.1')}`)
+        const top = (await run('snapshot', '-i')).stdout
+        const same = top.match(/iframe "Same origin frame" \[ref=(e\d+)\]/)![1]
+        const lines = top.split('\n')
+        const button = lines.slice(lines.findIndex((l) => l.includes('Cross origin frame'))).find((l) => l.includes('Frame button'))!.match(/\[ref=(e\d+)\]/)![1]
+        await run('frame', same)
+        await run('click', button)
+        expect((await run('info', '--json')).json.result.data.frame).toContain(same)
+        // the button that changed is in the cross-origin frame, not in the one the session holds
+        const held = (await run('snapshot')).stdout
+        expect(held.split('\n')[0]).toBe(`- document "Child frame" url=${server.url}/frame-child.html`)
+        expect(held).toContain('button "Frame button"')
+        await run('frame', 'top')
+        const after = (await run('snapshot', '-i')).stdout
+        expect(after.split('\n').slice(after.split('\n').findIndex((l) => l.includes('Cross origin frame'))).join('\n')).toContain('button "Frame clicked"')
+    })
+
+    it('reads a ref of an inlined frame with --scope', async () => {
+        await run('navigate', `${server.url}/frames.html?cross=${server.url.replace('localhost', '127.0.0.1')}`)
+        const top = (await run('snapshot', '-i')).stdout
+        const lines = top.split('\n')
+        const button = lines.slice(lines.findIndex((l) => l.includes('Cross origin frame'))).find((l) => l.includes('Frame button'))!.match(/\[ref=(e\d+)\]/)![1]
+        expect((await run('snapshot', '--scope', button)).stdout).toContain('button "Frame button"')
+        expect((await run('info', '--json')).json.result.data.frame).toBe('top')
+    })
+
+    it('enters an iframe nested in an inlined frame by its ref', async () => {
+        await run('navigate', `${server.url}/nested-frames.html`)
+        const top = (await run('snapshot')).stdout
+        const inner = top.match(/iframe "Inner frame" \[ref=(e\d+)\]/)![1]
+        const entered = await run('frame', inner)
+        expect(entered.stdout).toContain(`Switched to frame ${inner}`)
+        expect(entered.stdout).toContain('button "Frame button"')
+        expect(entered.stdout).toMatch(/const (frame\d*) = await page\.frame\(page\.\$\('aria\/Outer frame'\)\)\nconst frame\d* = await \1\.frame\(\1\.\$\('aria\/Inner frame'\)\)/)
+        expect((await run('snapshot')).stdout.split('\n')[0]).toBe(`- document "Child frame" url=${server.url}/frame-child.html`)
+        expect((await run('info', '--json')).json.result.data.frame).toContain(inner)
+        await run('frame', 'parent')
+        expect((await run('snapshot')).stdout.split('\n')[0]).toBe(`- document "Outer frame" url=${server.url}/nested-outer.html`)
+        await run('frame', 'top')
+    })
+
     it('navigating from inside a frame navigates the tab', async () => {
         await run('navigate', `${server.url}/frames.html`)
         const ref = (await run('snapshot')).stdout.match(/iframe "Same origin frame" \[ref=(e\d+)\]/)![1]

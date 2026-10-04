@@ -115,10 +115,18 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
     const refs: { id: string, role: string, name?: string, candidates: string[], frame: string }[] = []
     for (const node of frames.slice(0, MAX_INLINE_FRAMES)) {
         const frameRef = node.ref!
+        let collecting = false
         const result = await withTimeout((async () => {
             const element = await session.refs.resolve(session.browser, frameRef)
             const child = await frameContext(session, owner, element, frameRef)
-            const collected = await child.execute(collectInPage, { ...opts, counter: session.refs.counter, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true }) as ReturnType<typeof collectInPage>
+            collecting = true
+            const collected = await child.execute(collectInPage, { ...opts, counter: session.refs.counter, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true })
+                .finally(() => (collecting = false)) as ReturnType<typeof collectInPage>
+            /**
+             * The frame's page keeps the ids it handed out, also when the
+             * frame is dropped below, so later frames count on from here.
+             */
+            session.refs.counter = collected?.counter ?? 0
             // boxes in the frame are relative to its viewport, the snapshot's to the page's
             const origin = opts.boxes
                 ? await session.browser.execute((el: HTMLElement) => {
@@ -128,6 +136,10 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
                 : undefined
             return { collected, origin }
         })(), FRAME_TIMEOUT_MS)
+        if (collecting) {
+            // the frame may still hand out ids a later frame would hand out too
+            break
+        }
         if (!result?.collected?.tree) {
             continue
         }
@@ -141,7 +153,6 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
             }
             collected.tree.children?.forEach(shift)
         }
-        session.refs.counter = collected.counter
         const { nodes, cut } = prune(collected.tree.children ?? [], MAX_FRAME_NODES)
         node.children = nodes
         node.note = cut ? 'cut' : undefined

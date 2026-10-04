@@ -447,9 +447,15 @@ export async function frameContext (session: Session, owner: WebdriverIO.Browsin
  * Hold the frame of an iframe ref for one action. The action's code then
  * queries `frame`, declared by the returned lines in a block of its own, so
  * the code replays alone and doesn't clash with names declared before.
- * `release` goes back to the top document.
+ * `release` goes back to the frame the user entered, or the top document.
  */
 export async function holdFrame (session: Session, frameRef: string) {
+    // the frame the user entered, if any, is where `release` goes back to
+    const entered = {
+        context: session.get<WebdriverIO.BrowsingContext>('activeContext'),
+        stack: session.get<string[]>('frameStack'),
+        frame: session.get<string>('frame')
+    }
     await backToTop(session)
     const resolved = await resolveTarget(session, frameRef)
     const owner = await currentPage(session)
@@ -473,6 +479,11 @@ export async function holdFrame (session: Session, frameRef: string) {
                 delete vars.names[child.contextId]
             }
             await backToTop(session)
+            if (entered.context) {
+                session.set('activeContext', entered.context)
+                session.set('frameStack', entered.stack)
+                session.set('frame', entered.frame)
+            }
         }
     }
 }
@@ -522,8 +533,10 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
      * selector is queried on the owner, not on the top-level page.
      */
     const ownerVar = await declareHeld(session, owner)
+    // in a held frame the selector code already queries through its variable
+    const query = ownerVar.name && resolved.code.startsWith(`${ownerVar.name}.`) ? resolved.code : `${ownerVar.name}.${resolved.code}`
     const childVar = ownerVar.name
-        ? await declareContext(session, 'frame', child.contextId, () => `await ${ownerVar.name}.frame(${ownerVar.name}.${resolved.code})`)
+        ? await declareContext(session, 'frame', child.contextId, () => `await ${ownerVar.name}.frame(${query})`)
         : { code: '' }
     session.set('activeContext', child)
     const stack = [...(session.get<string[]>('frameStack') || []), resolved.label]

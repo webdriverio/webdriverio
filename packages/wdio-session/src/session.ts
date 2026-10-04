@@ -10,7 +10,7 @@ import { SessionError, usage } from './errors.js'
 import { History } from './history.js'
 import { RingBuffer, type LogEntry, type NetworkEntry } from './daemon/events.js'
 import { RefRegistry, refId } from './snapshot/refs.js'
-import { backToTop, describeNewTabs, dialogOpenError, holdFrame, openDialog } from './actions/contexts.js'
+import { backToTop, describeNewTabs, dialogOpenError, frame as enterFrame, holdFrame, openDialog } from './actions/contexts.js'
 import { OBSERVED_ACTIONS, describeChanges, pageState, type PageState } from './actions/changes.js'
 import { botCheckNote, detectBotCheck } from './actions/botcheck.js'
 import type { ActionResult, Applies, OpenPlan, PlatformKind, Request } from './types.js'
@@ -114,6 +114,8 @@ export class Session {
     disposers: (() => unknown)[] = []
     #pending = new Set<string>()
     #pageLoadLimited = false
+    // the frame an action entered for one of its refs went away while it ran
+    #heldFrameGone = false
 
     constructor (init: SessionInit) {
         this.name = init.name
@@ -295,7 +297,8 @@ export class Session {
             }
             let error = SessionError.from(err, req.action === 'exec' ? 'EXEC_ERROR' : 'INTERNAL')
             if (!(err instanceof SessionError) && CONTEXT_GONE.test(error.message)) {
-                const inFrame = Boolean(this.get('activeContext'))
+                // a frame entered for a ref is left again before this runs
+                const inFrame = this.#heldFrameGone || Boolean(this.get('activeContext'))
                 await backToTop(this).catch(() => {})
                 this.lastPage = undefined
                 error = new SessionError('CONTEXT_GONE', inFrame
@@ -327,12 +330,19 @@ export class Session {
      * replays on its own.
      */
     async #inFrameOf (action: string, args: ActionArgs, run: () => Promise<ActionOutcome>): Promise<ActionOutcome> {
-        if (action === 'frame' || !this.isBidi) {
+        this.#heldFrameGone = false
+        if (!this.isBidi) {
             return run()
         }
-        const frames = new Set([args.target, args.from, args.to]
-            .map((value) => typeof value === 'string' ? refId(value) : undefined)
-            .map((id) => id ? this.refs.get(id)?.frame : undefined)
+        const frameOf = (value: unknown) => {
+            const id = typeof value === 'string' ? refId(value) : undefined
+            return id ? this.refs.get(id)?.frame : undefined
+        }
+        if (action === 'frame') {
+            return this.#enterNestedFrame(frameOf(args.target), run)
+        }
+        const frames = new Set([args.target, args.from, args.to, args.scope]
+            .map(frameOf)
             .filter((frame): frame is string => Boolean(frame)))
         if (!frames.size) {
             return run()
@@ -349,6 +359,9 @@ export class Session {
         let outcome: ActionOutcome
         try {
             outcome = await run()
+        } catch (err) {
+            this.#heldFrameGone = !(err instanceof SessionError) && CONTEXT_GONE.test((err as Error)?.message ?? '')
+            throw err
         } finally {
             await held.release().catch(() => {})
         }
@@ -356,6 +369,27 @@ export class Session {
             ? ['{', ...[...held.lines, ...code.split('\n')].map((line) => `    ${line}`), '}'].join('\n')
             : code
         return { ...outcome, history: wrap(outcome.history), code: wrap(outcome.code) }
+    }
+
+    /**
+     * `frame <ref>` for an iframe inside a frame the snapshot showed inline:
+     * that element is in the outer frame's document, so enter that frame first.
+     */
+    async #enterNestedFrame (outer: string | undefined, run: () => Promise<ActionOutcome>): Promise<ActionOutcome> {
+        const stack = this.get<string[]>('frameStack') || []
+        if (!outer || (stack.length === 1 && (stack[0] === outer || stack[0].startsWith(`${outer} `)))) {
+            return run()
+        }
+        await backToTop(this)
+        const entered = await enterFrame(this, { target: outer, $cwd: this.cwd })
+        try {
+            const outcome = await run()
+            const join = (a?: string, b?: string) => [a, b].filter(Boolean).join('\n') || undefined
+            return { ...outcome, code: join(entered.code, outcome.code), history: join(entered.history, outcome.history) }
+        } catch (err) {
+            await backToTop(this).catch(() => {})
+            throw err
+        }
     }
 
     /**
