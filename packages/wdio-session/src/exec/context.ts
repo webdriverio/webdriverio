@@ -31,6 +31,14 @@ export interface ExecContext {
 
 const CONTEXT_KEY = 'exec:context'
 
+/** the ref a selector names, if it is one: `e12`, `[ref=e12]`, `[ref="e12"]` */
+export function refSelector (selector: unknown): string | undefined {
+    if (typeof selector !== 'string') {
+        return undefined
+    }
+    return /^\s*(?:\[ref=["']?(e\d+)["']?\]|(e\d+))\s*$/.exec(selector)?.slice(1).find(Boolean)
+}
+
 /**
  * `ref('e3')` returns a thenable that also forwards element commands, so
  * both `await ref('e3')` and `await ref('e3').click()` work.
@@ -113,12 +121,52 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
         usedRefs.set(String(id), el)
         return el
     })())
+    /**
+     * `$$('e12')`: a list of the one element, used like other `$$` results:
+     * awaited, indexed (`$$('e12')[0].click()`) or with array methods.
+     */
+    const chainableList = (id: string) => {
+        const list = ref(id).then((el) => [el])
+        return new Proxy(list, {
+            get (target, prop) {
+                if (prop === 'then' || prop === 'catch' || prop === 'finally') {
+                    return (target[prop] as (...a: unknown[]) => unknown).bind(target)
+                }
+                if (prop === '0') {
+                    return ref(id)
+                }
+                if (prop === 'length') {
+                    return target.then((els) => els.length)
+                }
+                // `for await (const el of $$('e12'))`, as with other `$$` results
+                if (prop === Symbol.asyncIterator) {
+                    return async function * () {
+                        yield * await target
+                    }
+                }
+                return (...a: unknown[]) => target.then((els) => {
+                    const fn = (els as unknown as Record<string | symbol, unknown>)[prop]
+                    if (typeof fn !== 'function') {
+                        throw new TypeError(`$$(...).${String(prop)} is not a function`)
+                    }
+                    return (fn as (...b: unknown[]) => unknown).apply(els, a)
+                })
+            }
+        })
+    }
 
     const globals: Record<string, unknown> = {
         browser: session.browser,
         driver: session.browser,
-        $: (...args: Parameters<WebdriverIO.Browser['$']>) => session.browser.$(...args),
-        $$: (...args: Parameters<WebdriverIO.Browser['$$']>) => session.browser.$$(...args),
+        // a ref from the snapshot works as a selector too: `$('e12')`, `$('[ref=e12]')`
+        $: (...args: Parameters<WebdriverIO.Browser['$']>) => {
+            const id = refSelector(args[0])
+            return id ? ref(id) : session.browser.$(...args)
+        },
+        $$: (...args: Parameters<WebdriverIO.Browser['$$']>) => {
+            const id = refSelector(args[0])
+            return id ? chainableList(id) : session.browser.$$(...args)
+        },
         expect,
         ref,
         session: {

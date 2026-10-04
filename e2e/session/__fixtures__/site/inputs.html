@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Inputs Fixture</title>
+    <style>
+        .slider { display: inline-block; width: 200px; height: 8px; background: #ccc; }
+        .hidden-box { position: absolute; opacity: 0; width: 1px; height: 1px; }
+        #banner { position: fixed; left: 0; right: 0; bottom: 0; height: 80px; background: #222; color: #fff; }
+        #under { position: fixed; bottom: 20px; left: 20px; }
+        .spacer { height: 1600px; }
+    </style>
+</head>
+<body>
+    <nav><a href="#">Skip me in read</a></nav>
+    <main>
+        <h1>Inputs</h1>
+        <p>Inputs a person picks a value for instead of typing it.</p>
+        <label>Volume <input id="volume" type="range" min="0" max="100" step="5" value="50"></label>
+        <label>Start date <input id="start" type="date"></label>
+        <label>Billing month <input id="billing" type="month"></label>
+        <label>Meeting time <input id="meeting" type="time"></label>
+        <label>Age <span id="age" class="slider" role="slider" tabindex="0" aria-label="Age" aria-valuemin="18" aria-valuemax="85" aria-valuenow="25"></span></label>
+        <p id="age-value">25</p>
+        <label><input id="terms" class="hidden-box" type="checkbox"> I accept the terms</label>
+        <canvas id="pad" width="200" height="100" style="border: 1px solid #000"></canvas>
+        <p id="pad-hit">none</p>
+        <ul><li>First point</li><li>Second point</li></ul>
+        <table><tr><th>Plan</th><th>Price</th></tr><tr><td>Basic</td><td>$5</td></tr></table>
+        <p>Read <a href="/form.html">the form page</a> for more.</p>
+        <div class="spacer"></div>
+        <h2 id="far">Far down</h2>
+        <p>Only visible after scrolling.</p>
+    </main>
+    <button id="under">Under the banner</button>
+    <div id="banner">Cookie banner</div>
+    <script>
+        const age = document.getElementById('age')
+        age.addEventListener('keydown', (e) => {
+            const now = Number(age.getAttribute('aria-valuenow'))
+            const next = e.key === 'ArrowRight' ? Math.min(85, now + 1) : e.key === 'ArrowLeft' ? Math.max(18, now - 1) : now
+            age.setAttribute('aria-valuenow', String(next))
+            document.getElementById('age-value').textContent = String(next)
+        })
+        const pad = document.getElementById('pad')
+        pad.addEventListener('click', (e) => {
+            const r = pad.getBoundingClientRect()
+            document.getElementById('pad-hit').textContent = `${Math.round(e.clientX - r.left)},${Math.round(e.clientY - r.top)}`
+        })
+        window.changes = []
+        for (const input of document.querySelectorAll('input')) {
+            input.addEventListener('change', () => window.changes.push(input.id))
+        }
+    </script>
+</body>
+</html>

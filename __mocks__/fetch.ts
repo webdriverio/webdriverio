@@ -471,6 +471,19 @@ const requestMock: any = vi.fn().mockImplementation(async (uri, params) => {
     }
 
     /**
+     * Simulate a click that something else on the page would receive
+     */
+    if (uri.pathname === `/session/${sessionId}/element/intercepted-elem/click`) {
+        ++requestMock.retryCnt
+        return Response.json({
+            value: {
+                error: 'element click intercepted',
+                message: 'element click intercepted: Other element would receive the click: <div class="banner">'
+            }
+        }, { status: 400 })
+    }
+
+    /**
      * Simulate a stale element
      */
     if (uri.pathname === `/session/${sessionId}/element/${genericSubSubElementId}/click`) {

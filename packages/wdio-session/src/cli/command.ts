@@ -206,8 +206,16 @@ export async function runSessionCli (rawArgs: string[], io: CliIO = {}): Promise
         rawArgs
     }
 
+    const actionArgs = pickArgs(spec, argv)
+    // `wait --text X --timeout 20000` reads naturally, but --timeout is the
+    // request's limit and the wait's own is --limit: take it for both
+    if (spec.name === 'wait' && ctx.timeout !== undefined && actionArgs.limit === undefined) {
+        actionArgs.limit = ctx.timeout
+        ctx.timeout += 5_000
+    }
+
     try {
-        const result = await runAction(spec, pickArgs(spec, argv), ctx)
+        const result = await runAction(spec, actionArgs, ctx)
         printResult(result, output)
         return typeof (result.data as { exitCode?: number })?.exitCode === 'number' ? (result.data as { exitCode: number }).exitCode : 0
     } catch (err) {

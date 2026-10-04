@@ -382,7 +382,52 @@ async function frameBidi (session: Session, target: string): Promise<ActionOutco
     if (!owner) {
         throw usage('No browsing context to enter a frame from.')
     }
-    const child = await owner.frame(resolved.element)
+    const child = await owner.frame(resolved.element).catch(async (err: Error) => {
+        /**
+         * The frame's context is found by evaluating `iframe.contentWindow` in
+         * the parent page, which throws for some cross-site frames (site
+         * isolation). The frame's own URL identifies it just as well.
+         */
+        if (!/SecurityError|cross-origin frame/i.test(`${err.name} ${err.message}`)) {
+            throw err
+        }
+        const src = await resolved.element.getProperty('src').catch(() => '') as string
+        if (!src) {
+            throw err
+        }
+        /**
+         * Only when the URL names this frame alone. Counted the way `frame()`
+         * matches below (any depth under this context, shadow roots and
+         * nested frames included, fragments ignored), so another frame it
+         * would pick as well can't be mistaken for this one.
+         */
+        const withoutHash = (url: string) => url.split('#')[0]
+        type TreeNode = { url: string, children?: unknown[] | null }
+        const descendants = (nodes: TreeNode[]): TreeNode[] => nodes.flatMap((node) => [node, ...descendants((node.children ?? []) as TreeNode[])])
+        const countSameUrl = async () => {
+            const { contexts } = await session.browser.browsingContextGetTree({ root: owner.contextId })
+            return descendants(contexts.flatMap((context) => (context.children ?? []) as TreeNode[]))
+                .filter(({ url }) => withoutHash(url) === withoutHash(src)).length
+        }
+        // a frame that is still loading has its element before its context has the URL
+        const limit = Date.now() + ((session.browser.options as { waitforTimeout?: number } | undefined)?.waitforTimeout ?? 5000)
+        let sameUrl = await countSameUrl()
+        while (sameUrl === 0 && Date.now() < limit) {
+            await new Promise((resolve) => setTimeout(resolve, 250))
+            sameUrl = await countSameUrl()
+        }
+        if (sameUrl !== 1) {
+            throw usage(
+                sameUrl
+                    ? `${resolved.label} can't be entered: the browser blocks looking into it, and ${sameUrl} frames on the page load ${withoutHash(src)}.`
+                    : `${resolved.label} can't be entered: the browser blocks looking into it, and no frame on the page has loaded ${withoutHash(src)}.`,
+                sameUrl
+                    ? 'Run `wdio session exec` with `browser.switchFrame(...)` on a selector that matches only this frame.'
+                    : 'Wait for the frame to load (`wdio session wait`), then try again.'
+            )
+        }
+        return owner.frame(({ url }) => withoutHash(url) === withoutHash(src))
+    })
     /**
      * The frame element belongs to the owner's document, so the recorded
      * selector is queried on the owner, not on the top-level page.

@@ -190,6 +190,9 @@ export function matchLines (withUrls: string[], test: (line: string) => boolean)
     return { lines, shown, matches }
 }
 
+/** printed `find` output stops after about this many characters */
+const MAX_FIND_CHARS = 6000
+
 export const find: ActionFn = async (session, args) => {
     const query = String(args.text ?? '')
     // grep habits: -A/-B/-C switch to plain line context
@@ -210,7 +213,14 @@ export const find: ActionFn = async (session, args) => {
         test = (line) => line.toLowerCase().includes(needle)
     }
     const { text: linked } = await takeSnapshot(session, { urls: true })
-    const { lines, shown, matches } = matchLines(linked.split('\n'), test)
+    let { lines, shown, matches } = matchLines(linked.split('\n'), test)
+    // "give gift donate": agents search with keywords, not with a line of the page
+    const words = query.toLowerCase().split(/\s+/).filter(Boolean)
+    let note = ''
+    if (!matches.length && !args.regex && words.length > 1) {
+        ({ lines, shown, matches } = matchLines(linked.split('\n'), (line) => words.every((w) => line.toLowerCase().includes(w))))
+        note = matches.length ? `No line contains ${JSON.stringify(query)}; lines with all of its words:\n` : ''
+    }
     session.lastSnapshot = lines.join('\n')
     if (!matches.length) {
         throw new SessionError('NO_MATCH', `No match for ${JSON.stringify(query)}.`, {
@@ -219,9 +229,14 @@ export const find: ActionFn = async (session, args) => {
     }
     const out: string[] = []
     let last = -1
+    let size = 0
     for (const idx of matches) {
         if (idx <= last) {
             continue
+        }
+        // a common word on a big page can match hundreds of lines
+        if (size > MAX_FIND_CHARS) {
+            break
         }
         const [blockStart, blockEnd] = lineMode
             ? [Math.max(0, idx - before), Math.min(lines.length - 1, idx + after)]
@@ -231,11 +246,19 @@ export const find: ActionFn = async (session, args) => {
             out.push('--')
         }
         for (let i = start; i <= blockEnd; i++) {
-            out.push(`${i + 1}${matches.includes(i) ? ':' : '-'}${shown[i]}`)
+            const line = `${i + 1}${matches.includes(i) ? ':' : '-'}${shown[i]}`
+            out.push(line)
+            size += line.length + 1
         }
         last = blockEnd
     }
-    return { text: out.join('\n'), data: { matches: matches.map((i) => ({ line: i + 1, text: lines[i] })) } }
+    const rest = matches.filter((i) => i > last).length
+    if (rest) {
+        out.push(`… ${rest} more matching line${rest === 1 ? '' : 's'} not shown. Search for a longer text, or narrow it with --scope.`)
+    }
+    // the data is capped like the text: `--json` output must not explode either
+    const listed = matches.filter((i) => i <= last)
+    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: lines[i] })), total: matches.length } }
 }
 
 export const diff: ActionFn = async (session, args) => {
@@ -359,4 +382,168 @@ export const source: ActionFn = async (session, args) => {
     const bytes = Buffer.byteLength(content)
     const size = bytes > 1024 ? `${(bytes / 1024).toFixed(1)} kB` : `${bytes} B`
     return { text: `Saved ${web ? 'HTML' : 'XML'} source (${size}) → ${file}`, data: { file, bytes }, files: [file] }
+}
+
+/** `scroll` prints what is in view up to about this many characters */
+const MAX_IN_VIEW_CHARS = 3000
+
+/**
+ * The part of a snapshot tree that is in the viewport: elements whose box
+ * overlaps it, with their text. Text has no box of its own and goes with
+ * its element.
+ */
+export function inViewport (node: SnapshotNode, width: number, height: number): SnapshotNode | undefined {
+    const visible = (box?: number[]) => !box || (box[1] < height && box[1] + box[3] > 0 && box[0] < width && box[0] + box[2] > 0)
+    // text directly in a container taller than the viewport could be anywhere in it
+    const placesText = (box?: number[]) => Boolean(box) && box![3] <= height
+    const keep = (current: SnapshotNode, root: boolean, parentPlacesText: boolean): SnapshotNode | undefined => {
+        if (current.role === 'text') {
+            return parentPlacesText ? current : undefined
+        }
+        if (!root && !visible(current.box)) {
+            return undefined
+        }
+        const children = (current.children ?? [])
+            .map((child) => keep(child, false, placesText(current.box)))
+            .filter((child): child is SnapshotNode => Boolean(child))
+        return { ...current, children }
+    }
+    return keep(node, true, false)
+}
+
+/**
+ * What a person sees now: the interactive elements and text in the viewport,
+ * with refs, so an agent doesn't need a screenshot after scrolling.
+ */
+export async function describeViewport (session: Session): Promise<string> {
+    const [width, height] = await scopeOf(session).execute(() => [window.innerWidth, window.innerHeight]) as [number, number]
+    // a report, not a snapshot the user took: `diff` keeps comparing against theirs
+    const baseline = session.lastSnapshot
+    const { tree } = await takeSnapshot(session, { boxes: true })
+    session.lastSnapshot = baseline
+    const view = inViewport(tree, width, height)
+    if (!view) {
+        return ''
+    }
+    const lines = formatSnapshot(view, { compact: true }).split('\n')
+    const out: string[] = []
+    let size = 0
+    for (const line of lines) {
+        if (size + line.length > MAX_IN_VIEW_CHARS) {
+            out.push(`… ${lines.length - out.length} more lines in view; \`wdio session find <text>\` or \`snapshot -i\` for the rest.`)
+            break
+        }
+        out.push(line)
+        size += line.length + 1
+    }
+    return out.join('\n')
+}
+
+/** `read` prints the page text up to this many characters by default */
+const DEFAULT_READ_CHARS = 6000
+
+/**
+ * The readable content of the page, as Markdown: headings, paragraphs, list
+ * items, table rows and links with their URL, from the main content when the
+ * page marks it. For "what does the page say" questions it is far smaller
+ * than a snapshot and easier to read than `get text`. The text is the page's
+ * own words: data, nothing to act on.
+ */
+export const read: ActionFn = async (session, args) => {
+    const maxChars = typeof args.maxChars === 'number' && args.maxChars > 0 ? args.maxChars : DEFAULT_READ_CHARS
+    const scope = typeof args.scope === 'string' ? (await resolveTarget(session, args.scope)).element : undefined
+    const text = await scopeOf(session).execute(function (root: Element | undefined, limit: number) {
+        const start = root || document.querySelector('main, [role="main"], article') || document.body
+        const SKIP = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'SVG', 'CANVAS', 'IFRAME', 'NAV', 'FOOTER', 'ASIDE'])
+        const BLOCK = new Set(['P', 'DIV', 'SECTION', 'ARTICLE', 'MAIN', 'HEADER', 'FORM', 'FIELDSET', 'BLOCKQUOTE', 'PRE', 'FIGURE', 'FIGCAPTION', 'DL', 'DT', 'DD', 'ADDRESS'])
+        const out: string[] = []
+        let size = 0
+        let line = ''
+        const flush = (prefix = '') => {
+            const text = line.replace(/\s+/g, ' ').trim()
+            if (text && size < limit) {
+                // one long paragraph is cut too, not only the lines after it
+                const room = Math.max(0, limit - size - prefix.length)
+                const kept = text.length > room ? `${text.slice(0, room)}…` : text
+                out.push(prefix + kept)
+                size += prefix.length + kept.length + 1
+            }
+            line = ''
+        }
+        const hidden = (el: Element) => {
+            const style = getComputedStyle(el)
+            return style.display === 'none' || style.visibility === 'hidden' || el.getAttribute('aria-hidden') === 'true'
+        }
+        const walk = (node: Node) => {
+            if (size >= limit) {
+                return
+            }
+            if (node.nodeType === Node.TEXT_NODE) {
+                line += node.textContent
+                return
+            }
+            if (node.nodeType !== Node.ELEMENT_NODE) {
+                return
+            }
+            const el = node as HTMLElement
+            // the start element is read even when the page marks it as navigation
+            if ((el !== start && SKIP.has(el.tagName)) || hidden(el)) {
+                return
+            }
+            const heading = /^H([1-6])$/.exec(el.tagName)
+            if (heading) {
+                flush()
+                line = el.innerText
+                flush('#'.repeat(Number(heading[1])) + ' ')
+                return
+            }
+            if (el.tagName === 'LI') {
+                flush()
+                for (const child of Array.from(el.childNodes)) {
+                    walk(child)
+                }
+                flush('- ')
+                return
+            }
+            if (el.tagName === 'TR') {
+                flush()
+                line = Array.from(el.children).map((cell) => (cell as HTMLElement).innerText.replace(/\s+/g, ' ').trim()).join(' | ') + ' |'
+                flush('| ')
+                return
+            }
+            if (el.tagName === 'A' && (el as HTMLAnchorElement).href && !(el as HTMLAnchorElement).href.startsWith('javascript:')) {
+                const label = el.innerText.replace(/\s+/g, ' ').trim()
+                if (label) {
+                    line += ` [${label}](${(el as HTMLAnchorElement).href}) `
+                }
+                return
+            }
+            if (el.tagName === 'BR') {
+                flush()
+                return
+            }
+            if (el.tagName === 'IMG' && (el as HTMLImageElement).alt) {
+                line += ` [image: ${(el as HTMLImageElement).alt}] `
+                return
+            }
+            const block = BLOCK.has(el.tagName) || el.tagName === 'TABLE' || el.tagName === 'UL' || el.tagName === 'OL'
+            if (block) {
+                flush()
+            }
+            for (const child of Array.from(el.shadowRoot ? el.shadowRoot.childNodes : el.childNodes)) {
+                walk(child)
+            }
+            if (block) {
+                flush()
+            }
+        }
+        walk(start)
+        flush()
+        return { text: out.join('\n'), truncated: size >= limit, from: start === document.body ? 'body' : start.tagName.toLowerCase() }
+    }, scope, maxChars) as { text: string, truncated: boolean, from: string }
+    if (!text.text) {
+        return { text: 'The page has no readable text here. `wdio session snapshot` shows its elements.', data: { chars: 0 } }
+    }
+    const tail = text.truncated ? `\n… cut at ${maxChars} characters; --max-chars or --scope reads more or a part.` : ''
+    return { text: text.text + tail, data: { chars: text.text.length, truncated: text.truncated, from: text.from } }
 }

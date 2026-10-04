@@ -349,6 +349,18 @@ describe('webdriver request', () => {
             expect(vi.mocked(warn).mock.calls).toEqual([['Request encountered a stale element - terminating request']])
         })
 
+        it('should not retry errors a retry cannot fix', async () => {
+            const onRetry = vi.fn()
+            const req = new WebFetchRequest('POST', 'session/:sessionId/element/:elementId/click', {}, undefined, false, { onRetry })
+            const url = new URL('/session/foobar-123/element/intercepted-elem/click', baseUrl)
+            const calls = () => vi.mocked(globalThis.fetch).mock.calls.filter(([uri]) => String(uri).includes('intercepted-elem')).length
+            const before = calls()
+            const error = await req['_request'](url, { body: JSON.stringify({}) }, undefined, 3).catch((err: Error) => err)
+            expect(error.name).toBe('element click intercepted')
+            expect(onRetry).not.toHaveBeenCalled()
+            expect(calls() - before).toBe(1)
+        })
+
         it('should not fail code due to an empty server response', async () => {
             const onResponse = vi.fn()
             const onPerformance = vi.fn()

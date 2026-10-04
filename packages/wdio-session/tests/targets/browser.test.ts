@@ -11,6 +11,7 @@ describe('browser targets', () => {
         expect(plan.capabilities).toEqual({
             browserName: 'chrome',
             webSocketUrl: true,
+            pageLoadStrategy: 'eager',
             'goog:chromeOptions': { args: ['--headless=new', '--disable-gpu', '--window-size=1280,720'] }
         })
         expect(plan).toMatchObject({ headless: true, display: false, detach: false, viewport: { width: 1280, height: 720 } })
@@ -21,6 +22,7 @@ describe('browser targets', () => {
         expect(plan.capabilities).toEqual({
             browserName: 'MicrosoftEdge',
             webSocketUrl: true,
+            pageLoadStrategy: 'eager',
             browserVersion: '130',
             'ms:edgeOptions': {
                 args: ['--headless=new', '--disable-gpu', '--window-size=800,600', '--user-data-dir=/repo/p', '--lang=de'],
@@ -31,7 +33,7 @@ describe('browser targets', () => {
 
     it('builds Firefox capabilities', () => {
         const plan = browserPlan('firefox', { target: 'firefox', headed: true }, { cwd: '/repo', platform: 'linux', env: { DISPLAY: ':0' } })
-        expect(plan.capabilities).toEqual({ browserName: 'firefox', webSocketUrl: true, 'moz:firefoxOptions': { args: ['--width=1280', '--height=720'] } })
+        expect(plan.capabilities).toEqual({ browserName: 'firefox', webSocketUrl: true, pageLoadStrategy: 'eager', 'moz:firefoxOptions': { args: ['--width=1280', '--height=720'] } })
         expect(plan.display).toBe(false)
     })
 
