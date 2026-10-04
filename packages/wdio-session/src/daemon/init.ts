@@ -8,6 +8,7 @@ import type { Session } from '../session.js'
 import { startEventCapture } from './capture.js'
 import { installPageRecorder } from '../snapshot/recorder.js'
 import { untilLoaded, waitForLoad } from '../actions/interact.js'
+import { matchHeadedUserAgent } from './userAgent.js'
 
 const log = logger('@wdio/session:init')
 
@@ -37,6 +38,7 @@ export async function initSession (session: Session) {
     await installPageRecorder(session).catch((err) => log.warn(`Page recorder unavailable: ${(err as Error).message}`))
     await trackDialogs(session).catch((err) => log.warn(`Dialog tracking unavailable: ${err.message}`))
     await loadHelpers(session, { watch: true }).catch((err) => log.warn(`Helpers failed to load: ${err.message}`))
+    await matchHeadedUserAgent(session).catch((err) => log.warn(`Could not set the user agent: ${(err as Error).message}`))
 
     if (plan.keepHistory) {
         session.history.append({ kind: 'marker', code: '// restart' })
