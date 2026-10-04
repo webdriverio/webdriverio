@@ -3,6 +3,8 @@ import { expect, browser, $ } from '@wdio/globals'
 import type { RespondWithOptions } from 'webdriverio'
 import { html, render } from 'lit'
 
+import { getStack } from './__fixtures__/stack.js'
+
 const CORS_PARAMS: RespondWithOptions = {
     headers: { 'Access-Control-Allow-Origin': '*' }
 }
@@ -25,6 +27,20 @@ describe('WebdriverIO mock command', () => {
             } finally {
                 await apiMock.restore()
             }
+        }
+    })
+
+    /**
+     * source-map-support maps a stack with a synchronous request to the Vite
+     * server. A mock that intercepts every request pauses that request, and
+     * the page, blocked in it, cannot release it.
+     */
+    it('formats a stack while a mock intercepts every request', async () => {
+        const apiMock = await browser.mock('*/api/*')
+        try {
+            expect(getStack()).toContain('stack.ts')
+        } finally {
+            await apiMock.restore()
         }
     })
 
