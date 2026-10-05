@@ -34,7 +34,7 @@
 
 ## Backport Request
 
-[//]: # (The current `main` branch is the development branch for WebdriverIO v10. If your change should be released to the current major version of WebdriverIO `v9`, please raise another PR with the same changes against the `v9` branch.)
+[//]: # (The current `main` branch is the development branch for WebdriverIO v10. If your change should be released to the previous maintained major version of WebdriverIO `v9`, please raise another PR with the same changes against the `v9` branch.)
 
 - [ ] This change is solely for `v10` and doesn't need to be back-ported
 - [ ] Back-ported PR at `#XXXXX`
