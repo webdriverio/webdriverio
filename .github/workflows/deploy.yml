@@ -6,7 +6,7 @@
 # limits. `website/vercel.json` therefore has no install step and a build
 # command that only asserts `website/build` exists.
 #
-# - workflow_dispatch: production deploy of the selected branch (all locales)
+# - workflow_dispatch: production deploy of the selected branch (all configured locales)
 # - pull_request:      preview deploy (English only) with a sticky PR comment.
 #                      The deployment is aliased to <PR>.preview.webdriver.io.
 #                      Skipped for forks and Dependabot, which don't get
@@ -80,6 +80,9 @@ jobs:
       - name: 📖 Generate Docs
         run: pnpm run docs:setup && pnpm run docs:generate
         env:
+          # Translations are disabled in website/docusaurus.config.ts until
+          # webdriverio/i18n is updated; skip the download.
+          DOCS_ENGLISH_ONLY: '1'
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🏗️ Build Site (all locales)

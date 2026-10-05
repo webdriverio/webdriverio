@@ -32,6 +32,11 @@
             "permanent": true
         },
         {
+            "source": "/:locale(ar|de|es|fr|hi|it|ko|pl|pt|ru|sv|ta|uk|vi|zh)/:path*",
+            "destination": "/:path*",
+            "permanent": false
+        },
+        {
             "source": "/:section(docs|community)/:path((?!.*\\.md$).+)",
             "has": [{ "type": "header", "key": "accept", "value": ".*text/markdown.*" }],
             "destination": "/:section/:path.md",
