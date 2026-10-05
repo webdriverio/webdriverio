@@ -4,6 +4,8 @@ authors: bromann
 date: 2026-10-05T06:00:00-07:00
 ---
 
+import BenchmarkLeaderboard from '@site/src/components/BenchmarkLeaderboard'
+
 **WebdriverIO v10 is out today, and it is built for agent verification loops.** Your coding agent can open your app in a real browser, on an Android or iOS device, or as a desktop app, check that the feature it just wrote actually works, and leave behind a regular test that keeps proving it on every change.
 
 The highlights:
@@ -88,18 +90,11 @@ Other people kept adding to it. [Ned Thompson](https://github.com/nthompson-bitw
 
 We wanted numbers rather than adjectives, so we built an open benchmark: [benchmark.webdriver.io](https://benchmark.webdriver.io). It runs a 50-task sample of [Online-Mind2Web](https://github.com/OSU-NLP-Group/Online-Mind2Web), real tasks on live websites such as finding the winner and race time of the last Formula 1 race of 2023 on ESPN, or comparing the first two American Express cards that charge no foreign transaction fees. Every setup gets the same agent harness, the same prompt and the same model, runs from the same machine, and is judged the same way, by [WebJudge](https://github.com/OSU-NLP-Group/Online-Mind2Web) with a model from another family. Each tool runs with its own defaults and its own agent skill or instructions.
 
-Tasks passed out of 50, with the median cost of a task on Claude:
+Here is the latest run, live from the benchmark. Switch between the models to see how each tool does with them:
 
-| Setup | Claude Sonnet 5 | DeepSeek V4.1 Flash | Cost per task (Claude) |
-|---|--:|--:|--:|
-| **`wdio session`** | **31** | **32** | $0.16 |
-| **`@wdio/mcp`** | 28 | 28 | **$0.11** |
-| [Stagehand](https://github.com/browserbase/stagehand) | 31 | 28 | $0.22 |
-| [Playwright CLI](https://github.com/microsoft/playwright-cli) | 26 | 27 | $0.32 |
-| [agent-browser](https://github.com/vercel-labs/agent-browser) | 26 | 20 | $0.39 |
-| [Playwright MCP](https://github.com/microsoft/playwright-mcp) | 21 | 30 | $0.14 |
+<BenchmarkLeaderboard />
 
-`wdio session` is at the top with both model families, and `@wdio/mcp` does nearly as well at the lowest cost. One run of 50 tasks is still a small sample: a score moves by about ±13 points between runs, so the leading setups are close to each other. The benchmark, the prompts, the checks and every result are [open source](https://github.com/webdriverio/benchmark), and we will keep running it as v10 evolves. If you build one of these tools and think we set it up wrong, please open an issue.
+At the time of writing, `wdio session` is at the top with both model families, and `@wdio/mcp` does nearly as well at the lowest cost. One run of 50 tasks is still a small sample: a score moves by about ±13 points between runs, so the leading setups are close to each other. The benchmark, the prompts, the checks and every result are [open source](https://github.com/webdriverio/benchmark), and we will keep running it as v10 evolves. If you build one of these tools and think we set it up wrong, please open an issue.
 
 The benchmark has already made v10 better. Reviewing every task `wdio session` failed turned up gaps in how it showed long pages, frames and custom widgets to the agent. Fixing those took it from 22 to 31 passed tasks with Claude.
 
