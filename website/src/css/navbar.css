@@ -7,6 +7,14 @@
     box-shadow: none;
 }
 
+/*
+ * `backdrop-filter` makes the navbar the containing block for its fixed
+ * children, which clamps the open mobile sidebar to the navbar's height.
+ */
+.navbar.navbar-sidebar--show {
+    backdrop-filter: none;
+}
+
 .navbar .navbar__items > .navbar__brand {
     height: 32px;
     margin: 0 1.25rem 0 0.5rem;
