@@ -13,7 +13,7 @@ export default {
     '/appium/sessions': {
         GET: {
             command: 'getAppiumSessions',
-            description: 'Retrieve information about all active Appium sessions. Requires Appium 2.19 or later. ***Using this command requires enabling Appium\'s [`session_discovery`](https://appium.io/docs/en/latest/reference/cli/insecure-features/) insecure server feature.***',
+            description: 'Retrieve information about all active Appium sessions. ***Using this command requires enabling Appium\'s [`session_discovery`](https://appium.io/docs/en/latest/reference/cli/insecure-features/) insecure server feature.***',
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumsessions',
             parameters: [],
             returns: {
@@ -781,7 +781,7 @@ export default {
         POST: {
             command: 'executeDriverScript',
             description:
-                'Execute a script in a child process. This approach helps minimize potential latency associated with each command. ***Using this command in Appium 2 or later requires installing the [`execute-driver`](https://github.com/appium/appium/tree/master/packages/execute-driver-plugin) plugin.***',
+                'Execute a script in a child process. This approach helps minimize potential latency associated with each command. ***Using this command requires installing the [`execute-driver`](https://github.com/appium/appium/tree/master/packages/execute-driver-plugin) plugin.***',
             ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#executedriverscript',
             parameters: [
                 {
@@ -876,7 +876,7 @@ export default {
         POST: {
             command: 'compareImages',
             description:
-                'Compare two images using the specified mode of comparison. ***Using this command in Appium 2 or later requires installing the [`images`](https://github.com/appium/appium/tree/master/packages/images-plugin) plugin.***',
+                'Compare two images using the specified mode of comparison. ***Using this command requires installing the [`images`](https://github.com/appium/appium/tree/master/packages/images-plugin) plugin.***',
             ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#compareimages',
             parameters: [
                 {
