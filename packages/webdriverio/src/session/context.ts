@@ -314,7 +314,8 @@ export class ContextManager extends SessionManager {
     }
 
     #onCommandResultMobile(event: { command: string, result: unknown }) {
-        if (['getAppiumContext', 'getCurrentAppiumContext'].includes(event.command)) {
+        if (['getAppiumContext', 'getCurrentAppiumContext'].includes(event.command) &&
+            (event.result as { value: string }).value !== undefined) {
             this.setCurrentContext((event.result as { value: string }).value)
         }
         if (
