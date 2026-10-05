@@ -39,7 +39,7 @@ const log = logger('webdriver')
  *   - Exact or partial matches for `title` or `url` (supports both strings and regular expressions).
  *   - Android-specific checks to ensure webviews are attached and visible.
  * - **Fine-Grained Control**: Custom retry intervals and timeouts (Android-only) allow you to handle delays in webview initialization.
- * - **Default Appium Method Access**: If needed, you can use the default Appium `switchContext` command via `driver.setAppiumContext()` or `driver.switchAppiumContext()`.
+ * - **Default Appium Method Access**: If needed, you can use the default Appium `switchContext` commands via `driver.setAppiumContext()` (since Appium 3.7) or `driver.switchAppiumContext()`.
  *
  * :::info Notes and Limitations
  *
