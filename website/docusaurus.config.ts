@@ -65,11 +65,11 @@ const config: Config = {
     },
     themeConfig: {
         /**
-         * Share card for every page (source: static/img/social-card.svg).
+         * Share card for every page (source: scripts/social-card.html).
          * The size tags below describe this image; drop them if a page sets
          * its own `image` in front matter.
          */
-        image: 'img/social-card.png',
+        image: 'img/social-card.jpg',
         metadata: [
             { name: 'twitter:card', content: 'summary_large_image' },
             { name: 'twitter:site', content: `@${projectName}` },
