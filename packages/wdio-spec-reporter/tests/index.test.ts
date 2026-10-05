@@ -331,6 +331,31 @@ describe('SpecReporter', () => {
                 }
                 printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
+
+                printReporter.write.mockClear()
+
+                printReporter.runnerStat.instanceOptions[fakeSessionId] = {
+                    hostname: 'ondemand.asia-south-2.saucelabs.com',
+                    user: 'foobar',
+                    key: '123'
+                }
+                printReporter.printReport(getRunnerConfig({}))
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+
+                printReporter.write.mockClear()
+
+                /**
+                 * the data center is also derived from `region` alone, without
+                 * the region appearing in the hostname
+                 */
+                printReporter.runnerStat.instanceOptions[fakeSessionId] = {
+                    hostname: 'ondemand.saucelabs.com',
+                    region: 'asia-south-2',
+                    user: 'foobar',
+                    key: '123'
+                }
+                printReporter.printReport(getRunnerConfig({}))
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
         })
 
