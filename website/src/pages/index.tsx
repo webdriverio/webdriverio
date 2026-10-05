@@ -56,7 +56,7 @@ function Feature ({ title, children, to }: { title: string, children: React.Reac
 
 export default function Home () {
     return (
-        <Layout title={`WebdriverIO · ${tagline}`} description={tagline}>
+        <Layout title={tagline} description={tagline}>
             <main className={styles.home}>
                 <header className={clsx(styles.frame, styles.hero)}>
                     <div className={styles.heroText}>
