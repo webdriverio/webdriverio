@@ -84,6 +84,25 @@ If your agent prefers tools over the shell, [`@wdio/mcp`](/docs/mcp) gives it th
 
 Other people kept adding to it. [Ned Thompson](https://github.com/nthompson-bitwarden) added Electron support and session-scoped API mocking. [Arundoss](https://github.com/Arundoss-digitalai) added Digital.ai Testing as a cloud provider, and [Jochen](https://github.com/jochen-testingbot) added TestingBot. [ned](https://github.com/nathom791) added browser extension install and uninstall. [Aaron Zhou](https://github.com/Clarkkkk) added external WebDriver providers, and [faiz](https://github.com/fbmcipher) made it possible to attach to an existing session. [Ben Atkinson](https://github.com/apuck) added iframe switching, [Netzulo](https://github.com/netzulo) added capability passthrough, and [Vansh Sukhija](https://github.com/VanshSukhija) fixed Sauce Labs options.
 
+### How well agents do with it
+
+We wanted numbers rather than adjectives, so we built an open benchmark: [benchmark.webdriver.io](https://benchmark.webdriver.io). It runs a 50-task sample of [Online-Mind2Web](https://github.com/OSU-NLP-Group/Online-Mind2Web), real tasks on live websites such as finding the winner and race time of the last Formula 1 race of 2023 on ESPN, or comparing the first two American Express cards that charge no foreign transaction fees. Every setup gets the same agent harness, the same prompt and the same model, runs from the same machine, and is judged the same way, by [WebJudge](https://github.com/OSU-NLP-Group/Online-Mind2Web) with a model from another family. Each tool runs with its own defaults and its own agent skill or instructions.
+
+Tasks passed out of 50, with the median cost of a task on Claude:
+
+| Setup | Claude Sonnet 5 | DeepSeek V4.1 Flash | Cost per task (Claude) |
+|---|--:|--:|--:|
+| **`wdio session`** | **31** | **32** | $0.16 |
+| **`@wdio/mcp`** | 28 | 28 | **$0.11** |
+| [Stagehand](https://github.com/browserbase/stagehand) | 31 | 28 | $0.22 |
+| [Playwright CLI](https://github.com/microsoft/playwright-cli) | 26 | 27 | $0.32 |
+| [agent-browser](https://github.com/vercel-labs/agent-browser) | 26 | 20 | $0.39 |
+| [Playwright MCP](https://github.com/microsoft/playwright-mcp) | 21 | 30 | $0.14 |
+
+`wdio session` is at the top with both model families, and `@wdio/mcp` does nearly as well at the lowest cost. One run of 50 tasks is still a small sample: a score moves by about ±13 points between runs, so the leading setups are close to each other. The benchmark, the prompts, the checks and every result are [open source](https://github.com/webdriverio/benchmark), and we will keep running it as v10 evolves. If you build one of these tools and think we set it up wrong, please open an issue.
+
+The benchmark has already made v10 better. Reviewing every task `wdio session` failed turned up gaps in how it showed long pages, frames and custom widgets to the agent. Fixing those took it from 22 to 31 passed tasks with Claude.
+
 ### `browser.act()`: steps written as intent, replayed as code
 
 Models are good at finding their way through a UI. They are not cheap, fast or deterministic, and a test suite has to be all three. v10 introduces [`@wdio/ai-service`](/docs/ai-steps), which uses a model where it helps and keeps it out of the run everywhere else:
