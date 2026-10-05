@@ -64,8 +64,20 @@ const config: Config = {
         locales: ['en'],
     },
     themeConfig: {
-        image: 'img/logo-webdriver-io.png',
-        metadata: [{ name: 'twitter:card', content: 'summary' }],
+        /**
+         * Share card for every page (source: static/img/social-card.svg).
+         * The size tags below describe this image; drop them if a page sets
+         * its own `image` in front matter.
+         */
+        image: 'img/social-card.png',
+        metadata: [
+            { name: 'twitter:card', content: 'summary_large_image' },
+            { name: 'twitter:site', content: `@${projectName}` },
+            { property: 'og:image:width', content: '1200' },
+            { property: 'og:image:height', content: '630' },
+            { property: 'og:image:alt', content: 'WebdriverIO: one framework to test every platform your users are on' },
+            { name: 'twitter:image:alt', content: 'WebdriverIO: one framework to test every platform your users are on' },
+        ],
         colorMode: {
             defaultMode: 'dark',
             disableSwitch: false,
@@ -255,6 +267,7 @@ const config: Config = {
                     ]
                 },
                 blog: {
+                    blogDescription: 'Release notes, guides and project news from the WebdriverIO team',
                     showLastUpdateTime: true,
                     showReadingTime: true,
                     postsPerPage: 3,

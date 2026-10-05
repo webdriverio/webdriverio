@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+    <!--
+        Social share card (og:image / twitter:image). Source for social-card.png:
+        rsvg-convert -w 1200 -h 630 social-card.svg -o social-card.png
+    -->
+    <defs>
+        <radialGradient id="glow" cx="1000" cy="640" r="620" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#EA5906" stop-opacity="0.38"/>
+            <stop offset="0.55" stop-color="#EA5906" stop-opacity="0.08"/>
+            <stop offset="1" stop-color="#EA5906" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+    <rect width="1200" height="630" fill="#0B0B0D"/>
+    <rect width="1200" height="630" fill="url(#glow)"/>
+
+    <g transform="translate(80 72) scale(1.25)">
+        <rect width="64" height="64" rx="5" fill="#EA5906"/>
+        <path fill="#FFFFFF" d="M8,16 L8,48 L6,48 L6,16 L8,16 Z M43,16 C51.836556,16 59,23.163444 59,32 C59,40.836556 51.836556,48 43,48 C34.163444,48 27,40.836556 27,32 C27,23.163444 34.163444,16 43,16 Z M27,16 L14.106,47.9992078 L11.999,47.9992078 L24.894,16 L27,16 Z M43,18 C35.2680135,18 29,24.2680135 29,32 C29,39.7319865 35.2680135,46 43,46 C50.7319865,46 57,39.7319865 57,32 C57,24.2680135 50.7319865,18 43,18 Z"/>
+    </g>
+    <text x="194" y="129" fill="#EDEDEF" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="44" font-weight="600" letter-spacing="-0.5">WebdriverIO</text>
+
+    <text fill="#EDEDEF" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="70" font-weight="700" letter-spacing="-2">
+        <tspan x="80" y="292">One framework to test every</tspan>
+        <tspan x="80" y="374">platform your users are on</tspan>
+    </text>
+
+    <g font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="26" fill="#A1A1AA">
+        <rect x="80" y="466" width="146" height="52" rx="26" fill="none" stroke="#34343C" stroke-width="2"/>
+        <text x="153" y="501" text-anchor="middle">Browsers</text>
+        <rect x="242" y="466" width="132" height="52" rx="26" fill="none" stroke="#34343C" stroke-width="2"/>
+        <text x="308" y="501" text-anchor="middle">Mobile</text>
+        <rect x="390" y="466" width="140" height="52" rx="26" fill="none" stroke="#34343C" stroke-width="2"/>
+        <text x="460" y="501" text-anchor="middle">Desktop</text>
+        <rect x="546" y="466" width="152" height="52" rx="26" fill="none" stroke="#34343C" stroke-width="2"/>
+        <text x="622" y="501" text-anchor="middle">VS Code</text>
+    </g>
+
+    <text x="1120" y="129" text-anchor="end" fill="#FF8A3D" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="600">webdriver.io</text>
+</svg>
