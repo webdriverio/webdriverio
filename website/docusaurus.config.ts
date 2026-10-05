@@ -75,8 +75,8 @@ const config: Config = {
             { name: 'twitter:site', content: `@${projectName}` },
             { property: 'og:image:width', content: '1200' },
             { property: 'og:image:height', content: '630' },
-            { property: 'og:image:alt', content: 'WebdriverIO logo and robot: open source test automation for web, mobile and desktop apps' },
-            { name: 'twitter:image:alt', content: 'WebdriverIO logo and robot: open source test automation for web, mobile and desktop apps' },
+            { property: 'og:image:alt', content: 'The WebdriverIO robot above the WebdriverIO logo: test automation for web, mobile and desktop' },
+            { name: 'twitter:image:alt', content: 'The WebdriverIO robot above the WebdriverIO logo: test automation for web, mobile and desktop' },
         ],
         colorMode: {
             defaultMode: 'dark',

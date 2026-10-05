@@ -14,25 +14,40 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:1200px;height:630px;overflow:hidden;background:#0b0b0d}
 .card{position:relative;width:1200px;height:630px;overflow:hidden;font-family:Inter,sans-serif;color:#fff;
-  background:
-    radial-gradient(620px 520px at 88% 62%, rgba(234,89,6,.42), rgba(234,89,6,.12) 50%, transparent 75%),
-    radial-gradient(700px 400px at 0% 0%, rgba(255,120,30,.16), transparent 70%),
-    #0b0b0d}
-.robot{position:absolute;right:-30px;top:40px;height:760px;opacity:.28;
-  -webkit-mask-image:linear-gradient(100deg, transparent 0%, #000 38%, #000 100%)}
-.grain{position:absolute;inset:0;opacity:.3;mix-blend-mode:soft-light}
-.content{position:absolute;left:88px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;gap:40px}
+  background:radial-gradient(520px 420px at 50% 40%, rgba(234,89,6,.22), transparent 70%), #0b0b0d}
+.grain{position:absolute;inset:0;opacity:.25;mix-blend-mode:soft-light}
+.content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.robot{height:250px;margin-bottom:34px}
 .mark{display:flex;align-items:center;gap:14px}
-.word{font-size:108px;font-weight:200;letter-spacing:.07em;line-height:1;color:#f4f4f5}
-.logo{width:80px;height:80px}
-.tag{max-width:640px;font-size:36px;font-weight:400;line-height:1.3;letter-spacing:-.01em;color:rgba(255,255,255,.82)}
+.word{font-size:92px;font-weight:200;letter-spacing:.07em;line-height:1;color:#f4f4f5}
+.logo{width:68px;height:68px}
+/* letter-spacing is set by the script below so the tagline matches the wordmark width */
+.tag{margin-top:26px;font-size:17px;font-weight:300;white-space:nowrap;color:#a1a1aa}
 </style></head><body><div class="card">
-<img class="robot" src="../static/img/materials/robot.svg" alt="">
 <svg class="grain" width="1200" height="630"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
 <div class="content">
+  <img class="robot" src="../static/img/materials/robot.svg" alt="">
   <div class="mark">
     <div class="word">WEBDRIVER</div>
     <img class="logo" src="../static/img/logo-webdriver-io.svg" alt="">
   </div>
-  <div class="tag">Open source test automation for web, mobile and desktop apps</div>
-</div></div></body></html>
+  <div class="tag">TEST AUTOMATION FOR WEB, MOBILE &amp; DESKTOP</div>
+</div></div>
+<script>
+document.fonts.ready.then(() => {
+    const mark = document.querySelector('.mark')
+    const tag = document.querySelector('.tag')
+    // CSS adds letter-spacing after the last character too; cancel it with a negative margin
+    const chars = tag.textContent.length
+    let spacing = 0
+    for (let i = 0; i < 20; i++) {
+        tag.style.letterSpacing = `${spacing}px`
+        tag.style.marginRight = `${-spacing}px`
+        const diff = mark.getBoundingClientRect().width - (tag.getBoundingClientRect().width - spacing)
+        if (Math.abs(diff) < 0.5) break
+        spacing += diff / (chars - 1)
+    }
+    document.title = `mark=${mark.getBoundingClientRect().width.toFixed(1)} tag=${(tag.getBoundingClientRect().width - spacing).toFixed(1)} spacing=${spacing.toFixed(2)}`
+})
+</script>
+</body></html>
