@@ -308,17 +308,17 @@ export class ContextManager extends SessionManager {
         /**
          * Keep track of the context to which we switch
          */
-        if (this.#browser.isMobile && event.command === 'switchAppiumContext') {
+        if (this.#browser.isMobile && ['switchAppiumContext', 'setAppiumContext'].includes(event.command)) {
             this.#mobileContext = (event.body as { name: string }).name
         }
     }
 
     #onCommandResultMobile(event: { command: string, result: unknown }) {
-        if (event.command === 'getAppiumContext') {
+        if (['getAppiumContext', 'getCurrentAppiumContext'].includes(event.command)) {
             this.setCurrentContext((event.result as { value: string }).value)
         }
         if (
-            event.command === 'switchAppiumContext' &&
+            ['switchAppiumContext', 'setAppiumContext'].includes(event.command) &&
             (event.result as { value: string | null }).value === null &&
             this.#mobileContext
         ) {
