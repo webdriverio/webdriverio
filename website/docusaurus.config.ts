@@ -54,26 +54,14 @@ const config: Config = {
     },
     i18n: {
         defaultLocale: 'en',
-        locales: [
-            'en',
-            'ar',
-            'de',
-            'es',
-            // 'fa', => 3 backticks are added on line 5 which breaks the markdown parser
-            'fr',
-            'hi',
-            'it',
-            // 'ja', => links will break, they are also translated
-            'ko',
-            'pl',
-            'pt',
-            'ru',
-            'sv',
-            'ta',
-            'uk',
-            'vi',
-            'zh',
-        ],
+        /**
+         * Translations are disabled until webdriverio/i18n is updated for v10.
+         * To re-enable, restore the locales below and the `localeDropdown`
+         * navbar item, then drop the locale redirect in `website/vercel.json`:
+         * ar, de, es, fr, hi, it, ko, pl, pt, ru, sv, ta, uk, vi, zh
+         * ('fa' and 'ja' were already off: broken markdown / translated links)
+         */
+        locales: ['en'],
     },
     themeConfig: {
         image: 'img/logo-webdriver-io.png',
@@ -135,16 +123,6 @@ const config: Config = {
                     label: v.label,
                     href: v.path,
                 }))
-            }, {
-                type: 'localeDropdown',
-                position: 'right',
-                dropdownItemsAfter: [{
-                    type: 'html',
-                    value: '<hr style="margin: 0.3rem 0;">',
-                }, {
-                    href: 'https://github.com/webdriverio/i18n#supported-languages',
-                    label: 'Add your language',
-                }]
             }, {
                 href: discordUrl,
                 position: 'right',
