@@ -94,7 +94,7 @@ Here is the latest run, live from the benchmark. Switch between the models to se
 
 <BenchmarkLeaderboard />
 
-At the time of writing, `wdio session` is at the top with both model families, and `@wdio/mcp` does nearly as well at the lowest cost. One run of 50 tasks is still a small sample: a score moves by about ±13 points between runs, so the leading setups are close to each other. The benchmark, the prompts, the checks and every result are [open source](https://github.com/webdriverio/benchmark), and we will keep running it as v10 evolves. If you build one of these tools and think we set it up wrong, please open an issue.
+At the time of writing, `wdio session` is among the leading setups with both models, and `@wdio/mcp` is close behind at the lowest cost. Treat these as early numbers. One run of 50 tasks is a small sample: a score moves by about ±13 points between runs, so the leading setups are effectively tied. We are running more benchmarks right now, with repeated runs and more models, and the leaderboard above updates as the results come in. The benchmark, the prompts, the checks and every result are [open source](https://github.com/webdriverio/benchmark). If you build one of these tools and think we set it up wrong, please open an issue.
 
 The benchmark has already made v10 better. Reviewing every task `wdio session` failed turned up gaps in how it showed long pages, frames and custom widgets to the agent. Fixing those took it from 22 to 31 passed tasks with Claude.
 
