@@ -36,8 +36,8 @@ const log = logger('webdriver')
  * :::info Notes and Limitations
  *
  * - If `returnDetailedContext` is not enabled, the method behaves like the default Appium `getContext` method.
- * - If you want to use the "default" Appium `context` method, you can use the `driver.getAppiumContext()` method, see
- * also the [Appium Contexts](/docs/api/appium#getappiumcontext) command.
+ * - If you want to use the "default" Appium `context` method, you can use the `driver.getCurrentAppiumContext()` or `driver.getAppiumContext()` methods, see
+ * also the [Appium Contexts](/docs/api/appium#getcurrentappiumcontext) command.
  * - **Android:** Android-specific options (`androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout`) have no effect on iOS.
  * - Logs warnings if multiple or no detailed contexts are found:
  *   - `We found more than 1 detailed context for the current context '{context}'. We will return the first context.`
