@@ -7,17 +7,24 @@ on:
 
 jobs:
   launch_check:
-    name: E2E Launch Test (${{ matrix.os }}, all browsers)
+    name: E2E Launch Test (${{ matrix.os }}, ${{ matrix.max_instances || 'all' }} at a time)
     permissions:
       contents: read
     # DEBUG: more time than the 20 minutes of v10, to see where each browser ends
     timeout-minutes: 45
     strategy:
       fail-fast: false
-      # DEBUG: every browser of `wdio.local.conf.ts` at the same time on one
-      # runner, as before #15901
+      # DEBUG: every browser of `wdio.local.conf.ts` on one runner, as before
+      # #15901. With all 5 at once, the macOS load average went to 187 on
+      # 3 CPUs and tests timed out. The macOS rows find how many browsers can
+      # run at the same time.
       matrix:
-        os: ['ubuntu-latest', 'windows-latest', 'macos-15']
+        include:
+          - { os: ubuntu-latest, max_instances: '' }
+          - { os: windows-latest, max_instances: '' }
+          - { os: macos-15, max_instances: '2' }
+          - { os: macos-15, max_instances: '3' }
+          - { os: macos-15, max_instances: '4' }
     runs-on: ${{ matrix.os }}
     steps:
       - name: ⬇️ Checkout Code
@@ -45,10 +52,12 @@ jobs:
           (while true; do echo "$(date -u +%H:%M:%S) $(uptime)"; sleep 15; done) > e2e/wdio/runner-load.log 2>&1 &
           pnpm run test:e2e:webdriver
         shell: bash
+        env:
+          WDIO_E2E_MAX_INSTANCES: ${{ matrix.max_instances }}
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         # DEBUG: also when the job is cancelled at its timeout
         if: always()
         with:
-          name: e2e-launch-tests-logs-${{ matrix.os }}
+          name: e2e-launch-tests-logs-${{ matrix.os }}-${{ matrix.max_instances || 'all' }}
           path: e2e/wdio/*.log

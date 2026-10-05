@@ -24,6 +24,12 @@ const requestedBrowsers = process.env.WDIO_E2E_BROWSERS
     .map((name) => name.trim().toLowerCase())
     .filter(Boolean)
 
+/**
+ * DEBUG: limit how many browsers run at the same time with
+ * `WDIO_E2E_MAX_INSTANCES`. Without it, every browser starts at once.
+ */
+const maxInstances = Number(process.env.WDIO_E2E_MAX_INSTANCES) || undefined
+
 function isEdgeInstalled () {
     if (isApple) {
         return fs.existsSync('/Applications/Microsoft Edge.app')
@@ -105,6 +111,7 @@ function chromiumExtensionArgs (browser: string) {
  * up the necessary browser runner without needing a service anymore.
  */
 export const config: WebdriverIO.Config = {
+    ...(maxInstances ? { maxInstances } : {}),
 
     /**
      * specify test files
