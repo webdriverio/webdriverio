@@ -88,15 +88,15 @@ Other people kept adding to it. [Ned Thompson](https://github.com/nthompson-bitw
 
 ### How well agents do with it
 
-We wanted numbers rather than adjectives, so we built an open benchmark: [benchmark.webdriver.io](https://benchmark.webdriver.io). It runs a 50-task sample of [Online-Mind2Web](https://github.com/OSU-NLP-Group/Online-Mind2Web), real tasks on live websites such as finding the winner and race time of the last Formula 1 race of 2023 on ESPN, or comparing the first two American Express cards that charge no foreign transaction fees. Every setup gets the same agent harness, the same prompt and the same model, runs from the same machine, and is judged the same way, by [WebJudge](https://github.com/OSU-NLP-Group/Online-Mind2Web) with a model from another family. Each tool runs with its own defaults and its own agent skill or instructions.
+We wanted numbers rather than adjectives, so we built an open benchmark: [benchmark.webdriver.io](https://benchmark.webdriver.io). It runs a 100-task sample of [Online-Mind2Web](https://github.com/OSU-NLP-Group/Online-Mind2Web), real tasks on live websites such as finding the winner and race time of the last Formula 1 race of 2023 on ESPN, or comparing the first two American Express cards that charge no foreign transaction fees. Every setup gets the same agent harness, the same prompt and the same model, runs from the same machine, and is judged the same way, by [WebJudge](https://github.com/OSU-NLP-Group/Online-Mind2Web) with a model from another family. Each tool runs with its own defaults and its own agent skill or instructions.
 
 Here is the latest run, live from the benchmark. Switch between the models to see how each tool does with them:
 
 <BenchmarkLeaderboard />
 
-At the time of writing, `wdio session` is among the leading setups with both models, and `@wdio/mcp` is close behind at the lowest cost. Treat these as early numbers. One run of 50 tasks is a small sample: a score moves by about ±13 points between runs, so the leading setups are effectively tied. We are running more benchmarks right now, with repeated runs and more models, and the leaderboard above updates as the results come in. The benchmark, the prompts, the checks and every result are [open source](https://github.com/webdriverio/benchmark). If you build one of these tools and think we set it up wrong, please open an issue.
+At the time of writing, `wdio session` is among the leading setups with both models, and `@wdio/mcp` is close behind at the lowest cost. Treat these as early numbers. Even 100 tasks with one run each is a small sample: the 95% confidence interval of a score is still about ±10 points, so the leading setups are effectively tied. We are running more benchmarks right now, with repeated runs and more models, and the leaderboard above updates as the results come in. The benchmark, the prompts, the checks and every result are [open source](https://github.com/webdriverio/benchmark). If you build one of these tools and think we set it up wrong, please open an issue.
 
-The benchmark has already made v10 better. Reviewing every task `wdio session` failed turned up gaps in how it showed long pages, frames and custom widgets to the agent. Fixing those took it from 22 to 31 passed tasks with Claude.
+The benchmark has already made v10 better. Reviewing every task `wdio session` failed turned up gaps in how it showed long pages, frames and custom widgets to the agent. Fixing those took it from 22 to 31 of the first 50 tasks with Claude.
 
 ### `browser.act()`: steps written as intent, replayed as code
 
