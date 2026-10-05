@@ -45,7 +45,7 @@
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "devtools-protocol": "^0.0.1710668",
-    "lighthouse": "13.4.1",
+    "lighthouse": "13.5.0",
     "puppeteer-core": "^25.11.0",
     "webdriverio": "workspace:*"
   },
