@@ -35,3 +35,24 @@ test('oneFailurePerSpec stops the spec after a failed sync expect', async () => 
     expect(await adapter.run()).toBe(1)
     expect((globalThis as { __wdioStopOnFailure?: string[] }).__wdioStopOnFailure).toEqual(['before', 'next'])
 })
+
+test('expect.extend() in the before hook adds the matcher to Jasmine', async () => {
+    vi.mocked(executeHooksWithArgs).mockResolvedValue([])
+    const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }
+    const adapter = new JasmineAdapter(
+        '0-0',
+        { beforeHook: [], afterHook: [] } as any,
+        [path.join(__dirname, '__fixtures__', 'customMatcher.js')],
+        { browserName: 'chrome' } as any,
+        reporter as any
+    )
+
+    await adapter.init()
+    await adapter.setupExpect({} as any, {} as any, vi.fn(() => ({})) as any)
+    ;(globalThis as any).expect.extend({
+        toBeFoo (actual: unknown) {
+            return { pass: actual === 'foo', message: () => `expected ${actual} to be "foo"` }
+        }
+    })
+    expect(await adapter.run()).toBe(0)
+})

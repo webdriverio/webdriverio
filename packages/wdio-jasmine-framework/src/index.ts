@@ -407,7 +407,19 @@ class JasmineAdapter {
          */
         const matchers = this.#setupMatchers(wdioMatchers, getConfig)
         jasmineEnv.beforeAll(() => jasmineEnv.addAsyncMatchers(matchers))
-        const expect = createHybridExpect(jasmineEnv, new Set(Object.keys(wdioMatchers))) as ReturnType<typeof createHybridExpect> & Record<string, unknown>
+        const wdioMatcherNames = new Set(Object.keys(wdioMatchers))
+        const expect = createHybridExpect(jasmineEnv, wdioMatcherNames) as ReturnType<typeof createHybridExpect> & Record<string, unknown>
+
+        /**
+         * `expect.extend()` in a spec file or the `before` hook, as on the Custom Matchers page.
+         * The `beforeAll` above reads `matchers` when it runs, before any spec file's own
+         * `beforeAll`, so matchers added before the run are available everywhere. They are
+         * routed like the WDIO matchers.
+         */
+        expect.extend = (customMatchers: typeof wdioMatchersImport) => {
+            Object.assign(matchers, this.#setupMatchers(customMatchers, getConfig))
+            Object.keys(customMatchers).forEach((name) => wdioMatcherNames.add(name))
+        }
 
         /**
          * make Jasmine and WebdriverIOs expect global more compatible by attaching
