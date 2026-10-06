@@ -26,6 +26,10 @@ export class ContextManager extends SessionManager {
     #isNativeContext: boolean
     #getContextSupport = true
     #currentWindowHandle?: string
+    /**
+     * Context updates triggered by 'switchToParentFrame' that might still be in progress
+     */
+    #pendingContextUpdate: Promise<void> = Promise.resolve()
     #onCommandResultBidiAndClassicListener: (event: { command: string, result: unknown, body: unknown }) => void
     #onCommandListener: (event: { command: string, body: unknown }) => void
     #onCommandResultMobileListener: (event: { command: string, result: unknown }) => void
@@ -258,33 +262,19 @@ export class ContextManager extends SessionManager {
          * update frame context if user switches using 'switchToParentFrame'
          */
         if (event.command === 'switchToParentFrame') {
-            if (!this.#currentContext) {
-                return
-            }
+            /**
+             * The 'command' event is emitted without awaiting its listeners, so the command
+             * may resolve before the parent frame is determined. Chain the updates so that
+             * consecutive calls step up one frame at a time, and so that `getCurrentContext()`
+             * can wait for them to complete before any subsequent command uses the context.
+             */
+            this.#pendingContextUpdate = this.#pendingContextUpdate
+                .then(() => this.#switchToParentContext())
+                .catch((err: Error) => {
+                    log.warn(`Failed to determine the parent frame after switchToParentFrame: ${err.message}`)
+                })
 
-            return this.#browser.browsingContextGetTree({}).then(({ contexts }) => {
-                const parentContext = this.findParentContext(this.#currentContext!, contexts)
-                if (!parentContext) {
-                    /**
-                     * Nothing in the tree has this context as a child, which means one of
-                     * two very different things. If the context is still in the tree it is
-                     * simply a top-level one and there is nowhere to step up to, so this
-                     * stays a no-op. If it is gone from the tree the page destroyed it,
-                     * and keeping it cached would send every following BiDi command to a
-                     * frame that does not exist with no way for a user to clear it, so
-                     * drop it and let the next command resolve the context again.
-                     */
-                    const stillInTree = this.findContext(this.#currentContext!, contexts, 'byContextId')
-                    if (stillInTree) {
-                        return
-                    }
-
-                    this.#currentContext = undefined
-                    this.#currentWindowHandle = undefined
-                    return
-                }
-                this.setCurrentContext(parentContext.context)
-            })
+            return this.#pendingContextUpdate
         }
 
         /**
@@ -311,6 +301,35 @@ export class ContextManager extends SessionManager {
         if (this.#browser.isMobile && event.command === 'switchAppiumContext') {
             this.#mobileContext = (event.body as { name: string }).name
         }
+    }
+
+    async #switchToParentContext() {
+        if (!this.#currentContext) {
+            return
+        }
+
+        const { contexts } = await this.#browser.browsingContextGetTree({})
+        const parentContext = this.findParentContext(this.#currentContext, contexts)
+        if (!parentContext) {
+            /**
+             * Nothing in the tree has this context as a child, which means one of
+             * two very different things. If the context is still in the tree it is
+             * simply a top-level one and there is nowhere to step up to, so this
+             * stays a no-op. If it is gone from the tree the page destroyed it,
+             * and keeping it cached would send every following BiDi command to a
+             * frame that does not exist with no way for a user to clear it, so
+             * drop it and let the next command resolve the context again.
+             */
+            const stillInTree = this.findContext(this.#currentContext, contexts, 'byContextId')
+            if (stillInTree) {
+                return
+            }
+
+            this.#currentContext = undefined
+            this.#currentWindowHandle = undefined
+            return
+        }
+        this.setCurrentContext(parentContext.context)
     }
 
     #onCommandResultMobile(event: { command: string, result: unknown }) {
@@ -383,6 +402,12 @@ export class ContextManager extends SessionManager {
     }
 
     async getCurrentContext () {
+        /**
+         * wait for any context update triggered by 'switchToParentFrame' to complete,
+         * so that commands issued straight after it run in the parent frame
+         */
+        await this.#pendingContextUpdate
+
         if (!this.#currentContext) {
             return this.initialize()
         }

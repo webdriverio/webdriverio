@@ -422,4 +422,78 @@ describe('ContextManager', () => {
 
         expect(await manager.getCurrentContext()).toBe('context-1')
     })
+
+    describe('when switchToParentFrame updates the context asynchronously', () => {
+        const nestedFrames = {
+            contexts: [{
+                context: 'context-1', parent: null,
+                children: [{
+                    context: 'frame-1', parent: 'context-1',
+                    children: [{
+                        context: 'frame-2', parent: 'frame-1', children: [],
+                        url: '', clientWindow: 'window-1', originalOpener: null, userContext: 'default'
+                    }],
+                    url: '', clientWindow: 'window-1', originalOpener: null, userContext: 'default'
+                }],
+                url: '', clientWindow: 'window-1', originalOpener: null, userContext: 'default'
+            }]
+        }
+
+        function managerInFrame (currentContext: string) {
+            const wid = process.env.WDIO_UNIT_TESTS
+            delete process.env.WDIO_UNIT_TESTS
+            const stub = createBrowserStub({ isBidi: true } as any)
+            const manager = getContextManager(stub.browser)
+            process.env.WDIO_UNIT_TESTS = wid
+            manager.setCurrentContext(currentContext)
+
+            /**
+             * the base SessionManager registers a 'command' listener of its own first,
+             * so the ContextManager's is the last one
+             */
+            const commandHandlers = stub.getListeners().command!
+            const switchToParentFrame = () => {
+                // the 'command' event is emitted without awaiting its listeners
+                commandHandlers[commandHandlers.length - 1]({ command: 'switchToParentFrame', body: {} })
+            }
+
+            return { manager, switchToParentFrame, browsingContextGetTree: (stub.browser as any).browsingContextGetTree }
+        }
+
+        it('waits for the parent frame to be determined before returning the current context', async () => {
+            const { manager, switchToParentFrame, browsingContextGetTree } = managerInFrame('frame-2')
+
+            let resolveTree!: (tree: typeof nestedFrames) => void
+            browsingContextGetTree.mockReturnValue(new Promise(resolve => {
+                resolveTree = resolve
+            }))
+
+            switchToParentFrame()
+
+            const currentContext = manager.getCurrentContext()
+            resolveTree(nestedFrames)
+
+            expect(await currentContext).toBe('frame-1')
+        })
+
+        it('applies consecutive switches to the parent frame in order', async () => {
+            const { manager, switchToParentFrame, browsingContextGetTree } = managerInFrame('frame-2')
+            browsingContextGetTree.mockResolvedValue(nestedFrames)
+
+            switchToParentFrame()
+            switchToParentFrame()
+
+            expect(await manager.getCurrentContext()).toBe('context-1')
+        })
+
+        it('keeps the current context if the context tree cannot be retrieved', async () => {
+            const { manager, switchToParentFrame, browsingContextGetTree } = managerInFrame('frame-2')
+            browsingContextGetTree.mockRejectedValueOnce(new Error('browsing context tree unavailable'))
+
+            switchToParentFrame()
+
+            expect(await manager.getCurrentContext()).toBe('frame-2')
+            expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('browsing context tree unavailable'))
+        })
+    })
 })
