@@ -29,9 +29,9 @@ export async function renderSnapshot (session: Session, tree: SnapshotNode, refs
         attachSelectors(tree, refs)
     }
     if (native || !opts.viewport) {
-        session.lastSnapshot = formatSnapshot(tree, { interactive: opts.interactive })
+        session.lastSnapshot = formatSnapshot(tree, { frameHint: session.frameHint, interactive: opts.interactive })
     }
     const view = native && opts.viewport ? inViewport(tree, ...await viewportSize(session)) ?? tree : tree
-    const format = { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes, compact: opts.compact, selectors: opts.selectors }
+    const format = { frameHint: session.frameHint, depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes, compact: opts.compact, selectors: opts.selectors }
     return formatSnapshot(view, format)
 }

@@ -92,9 +92,105 @@ describe('@wdio/session/agent', () => {
         expect(scoped.text).not.toContain('Remove Red Hoodie')
     })
 
+    it('reports a navigation as a structured page change', async () => {
+        const { text } = await agent.snapshot({ interactive: true })
+        const ref = text.match(/link "Home" \[ref=(e\d+)\]/)?.[1]
+        expect(ref).toBeDefined()
+        try {
+            const result = await agent.run('click', { target: ref })
+            expect(result.changes).toMatchObject({ kind: 'page', frame: false })
+            expect(result.changes?.kind === 'page' && result.changes.url).toContain('/index.html')
+            expect(result.page?.url).toContain('/index.html')
+            expect(result.page?.title).toBe('Session Fixture')
+            expect(result.text).toContain('Page: ')
+        } finally {
+            await browser.url(`${server.url}/cart.html`)
+        }
+    })
+
+    it('does not return a snapshot above maxChars', async () => {
+        const snapshot = await agent.snapshot({ interactive: true, maxChars: 50 })
+        expect(snapshot.tooBig).toBe(true)
+        expect(snapshot.text).toMatch(/^Snapshot: \d+ lines, \d+ refs, \d+ chars: too big to return \(max 50\)\./)
+        expect(snapshot.refs).toBeGreaterThan(0)
+        expect(snapshot.tree.role).toBe('document')
+        expect(snapshot.page?.title).toBe('Shop · Cart')
+    })
+
+    it('names the commands of the caller in a stale ref error after a navigation', async () => {
+        const named = await createAgentSession(browser, { hint: (command) => command === 'snapshot' ? 'custom_snapshot' : undefined })
+        try {
+            const { text } = await named.snapshot({ interactive: true })
+            const ref = text.match(/link "Home" \[ref=(e\d+)\]/)?.[1]
+            expect(ref).toBeDefined()
+            await browser.url(`${server.url}/index.html`)
+            await expect(named.run('click', { target: ref })).rejects.toMatchObject({ hint: expect.stringContaining('`custom_snapshot`') })
+        } finally {
+            await named.dispose()
+            await browser.url(`${server.url}/cart.html`)
+        }
+    })
+
+    it('notes a request that failed during a click', async () => {
+        await browser.url(`${server.url}/forbidden.html`)
+        try {
+            const { text } = await agent.snapshot({ interactive: true })
+            const ref = text.match(/button "Search" \[ref=(e\d+)\]/)?.[1]
+            expect(ref).toBeDefined()
+            const result = await agent.run('click', { target: ref })
+            expect(result.notes).toEqual([`Requests failed: 403 POST localhost:${server.port}/api/forbidden`])
+            expect(result.text).toContain('Requests failed: 403 POST')
+        } finally {
+            await browser.url(`${server.url}/cart.html`)
+        }
+    })
+
     it('keeps the history in memory and leaves the browser session open on dispose', async () => {
         expect(fs.existsSync(path.join(agent.session.artifactsDir, 'history.json'))).toBe(false)
         await agent.dispose()
         expect(await browser.getTitle()).toBe('Shop · Cart')
+    })
+
+    it('clicks a link that sits under a fixed header', async () => {
+        const sticky = await createAgentSession(browser)
+        try {
+            await browser.url(`${server.url}/sticky.html`)
+            const { text } = await sticky.snapshot({ interactive: true })
+            const ref = text.match(/link "Return home" \[ref=(e\d+)\]/)?.[1]
+            expect(ref).toBeDefined()
+            await browser.execute(() => window.scrollTo(0, window.scrollY + document.getElementById('home')!.getBoundingClientRect().top - 10))
+            const result = await sticky.run('click', { target: ref })
+            expect(result.text).toContain('Clicked')
+        } finally {
+            await sticky.dispose()
+            await browser.url(`${server.url}/cart.html`)
+        }
+    })
+
+    it('clicks a link whose top half is under a fixed header on a page that cannot scroll', async () => {
+        const sticky = await createAgentSession(browser)
+        try {
+            await browser.url(`${server.url}/sticky-short.html`)
+            const { text } = await sticky.snapshot({ interactive: true })
+            const ref = text.match(/link "Return home" \[ref=(e\d+)\]/)?.[1]
+            expect(ref).toBeDefined()
+            await sticky.run('click', { target: ref })
+            expect(await browser.getTitle()).toBe('Clicked home')
+        } finally {
+            await sticky.dispose()
+            await browser.url(`${server.url}/cart.html`)
+        }
+    })
+
+    it('waits for a client-rendered page before the first snapshot', async () => {
+        const spa = await createAgentSession(browser)
+        try {
+            await browser.url(`${server.url}/spa.html`)
+            const { text } = await spa.snapshot({ interactive: true })
+            expect(text).toMatch(/button "Book now" \[ref=e\d+\]/)
+        } finally {
+            await spa.dispose()
+            await browser.url(`${server.url}/cart.html`)
+        }
     })
 })

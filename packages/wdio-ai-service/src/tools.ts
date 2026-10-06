@@ -220,7 +220,7 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                 if (step) {
                     await context.effects?.start()
                 }
-                const result = await agent.run(spec.name, substitute(args, values))
+                const result = await agent.runAction(spec.name, substitute(args, values))
                 const settled = step && context.effects ? redact(await context.effects.settle(), values) : undefined
                 /**
                  * A step still running at the timeout keeps the parts that

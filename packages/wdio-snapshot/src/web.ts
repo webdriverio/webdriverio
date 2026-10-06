@@ -61,6 +61,8 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     /** longest text that names a clickable element without a role; longer text is a card, not a label */
     const MAX_TEXT_NAME = 80
     const VALUE_ROLES = new Set(['textbox', 'searchbox', 'combobox', 'spinbutton', 'slider'])
+    const FORM_CONTROLS = new Set(['INPUT', 'TEXTAREA', 'SELECT'])
+    const EDITABLE = 'input:not([type=hidden]),textarea,[contenteditable]:not([contenteditable=false]),[role=textbox],[role=searchbox]'
     const PRUNE = new Set(['generic', 'presentation', 'none'])
     const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'HEAD', 'META', 'LINK', 'TITLE', 'SVG'])
     const NAMED_REF_ROLES = new Set(['img', 'dialog', 'alertdialog', 'region', 'form', 'list', 'table', 'grid', 'tabpanel', 'menu', 'tree'])
@@ -784,7 +786,11 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
                 return [block]
             }
         }
-        const role = roleOf(el)
+        let role = roleOf(el)
+        // ARIA 1.1 combobox: the role sits on a wrapper, the editable control inside gets the ref instead
+        if (VALUE_ROLES.has(role) && !FORM_CONTROLS.has(el.tagName) && el.querySelector(EDITABLE)) {
+            role = 'generic'
+        }
         const interactive = isInteractive(el, role)
         // a clickable element without a role ("1Y" in a chart's list) is named by its text, like a button
         const namedByText = interactive && !INTERACTIVE.has(role) && !NAME_FROM_CONTENT.has(role)

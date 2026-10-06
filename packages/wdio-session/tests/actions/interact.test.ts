@@ -5,6 +5,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 import { click, fill, navigate, normalizeUrl, parseKeys, press, type, upload } from '../../src/actions/interact.js'
 import { quote } from '../../src/quote.js'
+import { cliCmd } from '../../src/hints.js'
 import type { Session } from '../../src/session.js'
 
 describe('parseKeys', () => {
@@ -33,6 +34,7 @@ describe('parseKeys', () => {
 
 function uploadSession (element: Record<string, unknown>, plan: Record<string, unknown> = {}, isBidi = true) {
     return {
+        cmd: cliCmd,
         cwd: '/tmp',
         isBidi,
         plan,
@@ -138,6 +140,7 @@ describe('normalizeUrl', () => {
 /** a session with one ref, e2, that resolves to `element` */
 function refSession (element: Record<string, unknown>, browser: Record<string, unknown> = {}) {
     return {
+        cmd: cliCmd,
         browser,
         refs: {
             resolve: async () => element,
@@ -217,6 +220,70 @@ describe('fill', () => {
     })
 })
 
+describe('fill on an element that is not editable', () => {
+    /** the page-side answer for a wrapper: `editable: false` plus what was found in or around it */
+    const wrapper = (found: Record<string, unknown>) => ({ kind: 'text', editable: false, ...found })
+    const invalidState = () => {
+        const err = new Error('invalid element state: Element must be user-editable in order to clear it.')
+        err.name = 'invalid element state'
+        return err
+    }
+
+    it('fills the single editable field inside and says so', async () => {
+        const filled: string[] = []
+        const inner = { setValue: async (v: string) => { filled.push(v) } }
+        const outer = {
+            setValue: async () => { throw invalidState() },
+            execute: async () => wrapper({ count: 1, via: 'inside', selector: 'input', desc: 'search input' }),
+            $: (selector: string) => ({ getElement: async () => (filled.push(`$ ${selector}`), inner) })
+        }
+        const result = await fill(refSession(outer), { target: 'e2', text: 'shoes', $cwd: '/' })
+        expect(filled).toEqual(['$ input', 'shoes'])
+        expect(result.text).toBe('Filled the search input inside e2 (textbox "Name")')
+        expect(result.code).toBe('await $(\'role/textbox[name="Name"]\').$(\'input\').setValue(\'shoes\')')
+        expect(result.history).toBe(result.code)
+    })
+
+    it('throws NOT_EDITABLE with a hint when the element holds several fields', async () => {
+        const outer = { setValue: async () => { throw invalidState() }, execute: async () => wrapper({ count: 2 }) }
+        const err = await fill(refSession(outer), { target: 'e2', text: 'x', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'NOT_EDITABLE' })
+        expect(err.message).toContain('e2 (textbox "Name")')
+        expect(err.message).toContain('2 editable fields')
+        expect(err.hint).toContain('wdio session snapshot --scope e2')
+    })
+
+    it('throws NOT_EDITABLE when there is no field at all', async () => {
+        const outer = { setValue: async () => { throw invalidState() }, execute: async () => wrapper({ count: 0 }) }
+        const err = await fill(refSession(outer), { target: 'e2', text: 'x', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'NOT_EDITABLE' })
+        expect(err.message).toContain('no editable field')
+        expect(err.hint).toContain('wdio session snapshot --scope e2')
+    })
+
+    it('maps a driver "invalid element state" to NOT_EDITABLE and keeps it as the cause', async () => {
+        const original = invalidState()
+        const outer = { setValue: async () => { throw original }, execute: async () => ({ kind: 'text', editable: true }) }
+        const err = await fill(refSession(outer), { target: 'e2', text: 'x', $cwd: '/' }).catch((e) => e)
+        expect(err).toMatchObject({ name: 'SessionError', code: 'NOT_EDITABLE' })
+        expect(err.cause).toBe(original)
+        expect(err.hint).toContain('wdio session snapshot --scope e2')
+    })
+
+    it('leaves an editable input as it was', async () => {
+        const filled: string[] = []
+        const outer = {
+            setValue: async (v: string) => { filled.push(v) },
+            execute: async () => ({ kind: 'text', editable: true }),
+            $: () => { throw new Error('must not look inside an editable input') }
+        }
+        const result = await fill(refSession(outer), { target: 'e2', text: 'Ada', $cwd: '/' })
+        expect(filled).toEqual(['Ada'])
+        expect(result.text).toBe('Filled e2 (textbox "Name")')
+        expect(result.code).toBe('await $(\'role/textbox[name="Name"]\').setValue(\'Ada\')')
+    })
+})
+
 /** a session whose page is at `urls[0]` before and `urls[1]` after the action */
 function clickSession (element: Record<string, unknown>, browser: Record<string, unknown> = {}, urls = ['https://a.test/', 'https://a.test/']) {
     let calls = 0
@@ -250,6 +317,76 @@ describe('click', () => {
         }
         await expect(click(clickSession(element), { target: 'e2', $cwd: '/' }))
             .rejects.toThrow('e2 (textbox "Name") is covered by dialog "Cookie settings".')
+    })
+
+    describe('covered by a sticky header', () => {
+        const pointerFor = (actions: string[]) => {
+            const pointer = {
+                move: (opts: { x: number, y: number }) => (actions.push(`move ${opts.x},${opts.y}`), pointer),
+                down: () => pointer,
+                up: () => pointer,
+                perform: async () => actions.push('perform')
+            }
+            return pointer
+        }
+
+        it('scrolls to the middle once and clicks where the element is free', async () => {
+            const actions: string[] = []
+            const instant: unknown[] = []
+            const element = {
+                execute: async (_fn: unknown, arg?: unknown) => {
+                    instant.push(arg)
+                    return arg
+                        ? { state: 'ok', x: 30, y: 300 }
+                        : { state: 'covered', x: 30, y: 10, cover: 'nav "Shady Meadows"', sticky: true }
+                },
+                click: async () => { throw new Error('should click with the pointer') }
+            }
+            await click(clickSession(element, { action: () => pointerFor(actions) }), { target: 'e2', $cwd: '/' })
+            expect(instant).toEqual([false, true])
+            expect(actions).toEqual(['move 30,300', 'perform'])
+        })
+
+        it('clicks the free lower half of an element that is partly under the header', async () => {
+            const actions: string[] = []
+            const element = {
+                execute: async () => ({ state: 'ok', x: 30, y: 90, offCenter: true }),
+                click: async () => { throw new Error('should click with the pointer') }
+            }
+            await click(clickSession(element, { action: () => pointerFor(actions) }), { target: 'e2', $cwd: '/' })
+            expect(actions).toEqual(['move 30,90', 'perform'])
+        })
+
+        it('keeps the error when no point of the element is free', async () => {
+            const element = {
+                execute: async () => ({ state: 'covered', x: 30, y: 40, cover: 'nav "Shady Meadows"', sticky: true }),
+                click: async () => { throw new Error('should not click') }
+            }
+            await expect(click(clickSession(element, { action: () => { throw new Error('should not use the pointer') } }), { target: 'e2', $cwd: '/' }))
+                .rejects.toThrow('e2 (textbox "Name") is covered by nav "Shady Meadows".')
+        })
+
+        it('keeps the error for a dialog', async () => {
+            let checks = 0
+            const element = {
+                execute: async () => (checks++, { state: 'covered', x: 5, y: 5, cover: 'dialog "Cookie settings"', sticky: false }),
+                click: async () => { throw new Error('should not click') }
+            }
+            await expect(click(clickSession(element), { target: 'e2', $cwd: '/' }))
+                .rejects.toThrow('e2 (textbox "Name") is covered by dialog "Cookie settings".')
+            expect(checks).toBe(1)
+        })
+
+        it('keeps the error when it is still covered after the scroll', async () => {
+            let checks = 0
+            const element = {
+                execute: async () => (checks++, { state: 'covered', x: 5, y: 5, cover: 'nav "Shady Meadows"', sticky: true }),
+                click: async () => { throw new Error('should not click') }
+            }
+            await expect(click(clickSession(element, { action: () => { throw new Error('should not use the pointer') } }), { target: 'e2', $cwd: '/' }))
+                .rejects.toThrow('e2 (textbox "Name") is covered by nav "Shady Meadows".')
+            expect(checks).toBe(2)
+        })
     })
 
     it('clicks the label of a hidden radio button or checkbox', async () => {

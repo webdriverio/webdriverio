@@ -1,25 +1,32 @@
-import type { Options } from 'yargs'
-
 import { DEFAULT_ACTION_TIMEOUT, DEFAULT_EXEC_TIMEOUT } from '../constants.js'
 import type { Applies } from '../types.js'
 
-export interface PositionalSpec {
-    name: string
+export interface OptionSpec {
+    type: 'boolean' | 'number' | 'string'
     desc: string
-    required?: boolean
-    variadic?: boolean
-    choices?: string[]
+    alias?: string
+    default?: unknown
+    choices?: readonly string[]
+    array?: boolean
+}
+
+export interface PositionalSpec {
+    readonly name: string
+    readonly desc: string
+    readonly required?: boolean
+    readonly variadic?: boolean
+    readonly choices?: readonly string[]
 }
 
 export interface ActionSpec {
     name: string
     desc: string
-    positionals?: PositionalSpec[]
-    options?: Record<string, Options>
+    positionals?: readonly PositionalSpec[]
+    options?: Readonly<Record<string, OptionSpec>>
     /**
      * platforms the action applies to, `undefined` means all
      */
-    applies?: Applies[]
+    applies?: readonly Applies[]
     timeout?: number
     /**
      * runs in the CLI process without contacting a daemon
@@ -39,8 +46,8 @@ export interface ActionSpec {
      * `[command, description]` pairs. Commands are full shell lines that
      * start with `wdio session` and may chain actions with `&&`.
      */
-    examples: [string, string][]
-    seeAlso?: string[]
+    examples: readonly (readonly [string, string])[]
+    seeAlso?: readonly string[]
 }
 
 /**
@@ -54,9 +61,9 @@ export function actionIsMutation (spec: ActionSpec, argv: Record<string, unknown
     return Boolean(spec.mutation)
 }
 
-const target = (desc = 'Ref (e12) or WebdriverIO selector'): PositionalSpec => ({ name: 'target', desc, required: true })
+const target = (desc = 'Ref (e12) or WebdriverIO selector') => ({ name: 'target', desc, required: true } as const)
 
-export const OPEN_OPTIONS: Record<string, Options> = {
+export const OPEN_OPTIONS = {
     replace: { type: 'boolean', desc: 'Close a running session with the same name first' },
     'launch-timeout': { type: 'number', desc: 'Milliseconds to wait for the session to become ready' },
     'idle-timeout': { type: 'string', desc: 'Shut down after this long without requests (e.g. 30m, 0 disables)' },
@@ -100,9 +107,9 @@ export const OPEN_OPTIONS: Record<string, Options> = {
     project: { type: 'string', desc: 'Cloud: project label' },
     build: { type: 'string', desc: 'Cloud: build label' },
     name: { type: 'string', desc: 'Cloud: session name label' }
-}
+} as const satisfies Record<string, OptionSpec>
 
-export const ACTIONS: ActionSpec[] = [
+export const ACTIONS = [
     /**
      * lifecycle
      */
@@ -883,9 +890,9 @@ export const ACTIONS: ActionSpec[] = [
             ['wdio session skill --install .', 'Add it to this project']
         ]
     }
-]
+] as const satisfies readonly ActionSpec[]
 
-export const ACTION_MAP = new Map(ACTIONS.map((a) => [a.name, a]))
+export const ACTION_MAP: Map<string, ActionSpec> = new Map(ACTIONS.map((a) => [a.name, a]))
 
 export function actionTimeout (name: string) {
     return ACTION_MAP.get(name)?.timeout ?? DEFAULT_ACTION_TIMEOUT

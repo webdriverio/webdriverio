@@ -15,6 +15,7 @@ describe('snapshot --urls', () => {
         const session = {
             isWeb: true,
             applies: ['W'],
+            currentUrl: async () => 'https://example.com/',
             refs: new RefRegistry(),
             timestamp: () => 't',
             artifact: (...segments: string[]) => {

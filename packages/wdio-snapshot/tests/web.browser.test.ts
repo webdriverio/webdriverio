@@ -107,3 +107,29 @@ describe('as a page script', () => {
         expect(w.__wdioSession).toBeUndefined()
     })
 })
+
+describe('combobox', () => {
+    const ALGOLIA = `<div class="aa-Autocomplete" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-labelledby="autocomplete-0-label">
+        <form class="aa-Form" role="search"><div><label id="autocomplete-0-label" for="autocomplete-0-input"><button type="submit" title="Submit"><svg width="10" height="10"></svg></button></label></div>
+        <div><input class="aa-Input" id="autocomplete-0-input" type="search" aria-autocomplete="list" aria-labelledby="autocomplete-0-label"></div></form></div>`
+    const flat = (n: SnapshotNode): SnapshotNode[] => [n, ...(n.children ?? []).flatMap(flat)]
+
+    it('exposes the input inside an ARIA 1.1 combobox wrapper as a searchbox with a ref, and keeps the button ref', () => {
+        const result = collect(ALGOLIA)
+        const all = flat(result.tree)
+        const input = all.find((n) => n.role === 'searchbox')
+        expect(input?.ref).toBeTruthy()
+        expect(all.find((n) => n.role === 'button')?.ref).toBeTruthy()
+        expect(all.some((n) => n.role === 'combobox')).toBe(false)
+    })
+
+    it('leaves an ARIA 1.2 input[role=combobox] as the combobox node', () => {
+        const all = flat(collect('<input role="combobox" aria-label="City" value="Rome">').tree)
+        expect(all.find((n) => n.role === 'combobox')).toMatchObject({ name: 'City', value: 'Rome', ref: expect.any(String) })
+    })
+
+    it('leaves a plain select as a combobox node', () => {
+        const all = flat(collect('<select aria-label="Pick"><option>A</option><option>B</option></select>').tree)
+        expect(all.find((n) => n.role === 'combobox')).toMatchObject({ name: 'Pick', ref: expect.any(String) })
+    })
+})

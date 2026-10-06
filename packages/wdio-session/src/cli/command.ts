@@ -73,7 +73,7 @@ export function buildParser (onAction: (spec: ActionSpec, argv: Record<string, u
         .help(false)
         .demandCommand(1, 'Specify an action, e.g. `wdio session open chrome`.')
 
-    for (const spec of ACTIONS) {
+    for (const spec of ACTIONS as readonly ActionSpec[]) {
         parser = parser.command(
             commandString(spec),
             spec.desc,

@@ -155,7 +155,7 @@ function sentence (text: string) {
 
 function groups () {
     const map = new Map<string, ActionSpec[]>()
-    for (const spec of ACTIONS) {
+    for (const spec of ACTIONS as readonly ActionSpec[]) {
         map.set(spec.group, [...(map.get(spec.group) || []), spec])
     }
     return map
@@ -275,7 +275,7 @@ export function renderCommandsMarkdown () {
         '',
         `Exit codes: ${EXIT_CODES.map(([code, desc]) => `${code} ${desc.charAt(0).toLowerCase()}${desc.slice(1)}`).join(', ')}.`
     ]
-    for (const spec of ACTIONS) {
+    for (const spec of ACTIONS as readonly ActionSpec[]) {
         const applies = platforms(spec)
         out.push('', `## \`${spec.name}\``, '', `${mdx(sentence(spec.desc))}${applies ? ` Applies to ${applies}.` : ''}`)
         if (spec.details) {

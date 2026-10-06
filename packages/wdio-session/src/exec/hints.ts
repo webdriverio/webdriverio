@@ -1,6 +1,8 @@
+import { cliCmd, type Cmd } from '../hints.js'
+
 interface Hint {
     test: (err: { name?: string, message: string }) => boolean
-    hint: string | ((err: { name?: string, message: string }) => string)
+    hint: string | ((err: { name?: string, message: string }, cmd: Cmd) => string)
 }
 
 const V4_COMMANDS = /browser\.(element|elements|click|setValue|getText|waitForVisible|waitForExist|isVisible|moveToObject)\b(?: is not a function|\(\.\.\.\) is not a function)/
@@ -32,11 +34,11 @@ const HINTS: Hint[] = [
     },
     {
         test: (e) => e.name === 'StrictSelectorError' || /strict mode violation/.test(e.message),
-        hint: '`$` must match exactly one element in v10. Use `$$(selector)[0]`, a ref, or a narrower selector. Run `wdio session find "<text>"` to locate it.'
+        hint: (_e, cmd) => `\`$\` must match exactly one element in v10. Use \`$$(selector)[0]\`, a ref, or a narrower selector. Run \`${cmd('find', { text: '<text>' }, 'wdio session find "<text>"')}\` to locate it.`
     },
     {
         test: (e) => /still not existing after|element \(".*"\) still not/.test(e.message),
-        hint: 'Take a new `wdio session snapshot`; the page may have changed.'
+        hint: (_e, cmd) => `Take a new \`${cmd('snapshot', undefined, 'wdio session snapshot')}\`; the page may have changed.`
     },
     {
         // page code run in Node
@@ -45,17 +47,17 @@ const HINTS: Hint[] = [
     },
     {
         test: (e) => /^ref is not defined|REF_STALE|no longer exists on the page/.test(e.message),
-        hint: 'Run `wdio session snapshot` to get fresh refs.'
+        hint: (_e, cmd) => `Run \`${cmd('snapshot', undefined, 'wdio session snapshot')}\` to get fresh refs.`
     }
 ]
 
 /**
  * At most one hint for an error thrown by `exec` code (RFC §7.5).
  */
-export function hintFor (err: { name?: string, message: string }): string | undefined {
+export function hintFor (err: { name?: string, message: string }, cmd: Cmd = cliCmd): string | undefined {
     for (const { test, hint } of HINTS) {
         if (test(err)) {
-            return typeof hint === 'function' ? hint(err) : hint
+            return typeof hint === 'function' ? hint(err, cmd) : hint
         }
     }
     return undefined
