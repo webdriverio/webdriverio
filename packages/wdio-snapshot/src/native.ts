@@ -1,5 +1,5 @@
-import type { SnapshotNode, SnapshotRef } from './format.js'
-import { nativeCandidates, type SelectorNode } from './selectors.js'
+import type { SnapshotCandidate, SnapshotNode, SnapshotRef } from './format.js'
+import { nativeCandidates, xpathLiteral, type SelectorNode } from './selectors.js'
 import type { XmlNode } from './xml.js'
 import { parseXml } from './xml.js'
 import { SnapshotError } from './errors.js'
@@ -127,51 +127,73 @@ function states (attrs: Record<string, string>) {
     return out
 }
 
+const ANDROID_ROLES: Record<string, string> = {
+    Button: 'button',
+    ImageButton: 'button',
+    ToggleButton: 'button',
+    FloatingActionButton: 'button',
+    MaterialButton: 'button',
+    EditText: 'textbox',
+    AutoCompleteTextView: 'textbox',
+    MultiAutoCompleteTextView: 'textbox',
+    SearchView: 'searchbox',
+    ImageView: 'img',
+    QuickContactBadge: 'img',
+    CheckBox: 'checkbox',
+    RadioButton: 'radio',
+    Switch: 'switch',
+    Spinner: 'combobox',
+    SeekBar: 'slider',
+    RatingBar: 'slider',
+    ProgressBar: 'progressbar',
+    TextView: 'text',
+    CheckedTextView: 'text',
+    RecyclerView: 'list',
+    ListView: 'list',
+    GridView: 'list',
+    WebView: 'webview',
+    ScrollView: 'scrollview'
+}
+
+const IOS_ROLES: Record<string, string> = {
+    Button: 'button',
+    Link: 'link',
+    TextField: 'textbox',
+    SecureTextField: 'textbox',
+    TextView: 'textbox',
+    SearchField: 'searchbox',
+    Image: 'img',
+    Icon: 'img',
+    Switch: 'switch',
+    Slider: 'slider',
+    Stepper: 'slider',
+    CheckBox: 'checkbox',
+    RadioButton: 'radio',
+    Picker: 'combobox',
+    PickerWheel: 'combobox',
+    DatePicker: 'combobox',
+    SegmentedControl: 'combobox',
+    StaticText: 'text',
+    Cell: 'listitem',
+    Table: 'list',
+    CollectionView: 'list',
+    NavigationBar: 'navigation',
+    Alert: 'alertdialog',
+    ScrollView: 'scrollview',
+    Application: 'application',
+    Window: 'window'
+}
+
 function androidRole (tag: string, attrs: Record<string, string>) {
-    const name = localName(tag)
-    const roles: Record<string, string> = {
-        Button: 'button',
-        ImageButton: 'button',
-        EditText: 'textbox',
-        CheckBox: 'checkbox',
-        Switch: 'switch',
-        RadioButton: 'radio',
-        TextView: 'text',
-        ImageView: 'img',
-        RecyclerView: 'list',
-        ListView: 'list',
-        ScrollView: 'scrollview'
+    const role = ANDROID_ROLES[localName(tag)]
+    if (role) {
+        return role
     }
-    if (roles[name]) {
-        return roles[name]
-    }
-    if (truthy(attrs.clickable)) {
-        return 'button'
-    }
-    return 'group'
+    return truthy(attrs.clickable) ? 'button' : 'group'
 }
 
 function iosRole (tag: string) {
-    const name = localName(tag).replace(/^XCUIElementType/, '')
-    const roles: Record<string, string> = {
-        Button: 'button',
-        TextField: 'textbox',
-        SecureTextField: 'textbox',
-        TextView: 'textbox',
-        Switch: 'switch',
-        StaticText: 'text',
-        Image: 'img',
-        Cell: 'listitem',
-        Table: 'list',
-        CollectionView: 'list',
-        NavigationBar: 'navigation',
-        Alert: 'alertdialog',
-        Link: 'link',
-        ScrollView: 'scrollview',
-        Application: 'application',
-        Window: 'window'
-    }
-    return roles[name] || 'group'
+    return IOS_ROLES[localName(tag).replace(/^XCUIElementType/, '')] || 'group'
 }
 
 function windowsRole (attrs: Record<string, string>, tag: string) {
@@ -238,7 +260,8 @@ export interface Located {
     node: SnapshotNode
     candidates: string[]
     /**
-     * the bare tag, used for a ref when none of its candidates is unique
+     * selector for the n-th element sharing the node's best attribute, in
+     * document order, used for a ref when none of its candidates is unique
      */
     fallback: string
 }
@@ -249,10 +272,69 @@ interface Built {
     located: Located[]
 }
 
-function build (xml: XmlNode, platform: NativePlatform, opts: { all?: boolean }, allocate: (candidates: string[]) => string): Built | undefined {
-    const structural = new Set(['hierarchy', 'AppiumAUT', '#root'])
-    if (structural.has(xml.name) || structural.has(localName(xml.name))) {
-        const children = xml.children.map((child) => build(child, platform, opts, allocate)).filter((child): child is Built => Boolean(child))
+const STRUCTURAL = new Set(['hierarchy', 'AppiumAUT', '#root'])
+
+function isStructural (xml: XmlNode) {
+    return STRUCTURAL.has(xml.name) || STRUCTURAL.has(localName(xml.name))
+}
+
+/** attributes an indexed xpath filters on, best first */
+const POSITIONAL_ATTRS: Record<'ios' | 'mac' | 'windows', string[]> = {
+    ios: ['name', 'label', 'value'],
+    mac: ['title', 'label', 'identifier'],
+    windows: ['Name', 'AutomationId']
+}
+
+/**
+ * What a node is indexed among: `key` is the selector every sibling in the
+ * set shares, `at(n)` points at the n-th (1-based) in document order.
+ * Android prefers UiAutomator, whose `.instance(n)` is 0-based; the rest use
+ * an xpath group, `(xpath)[n]`, which is 1-based.
+ */
+function positionalOf (platform: NativePlatform, tag: string, attrs: Record<string, string>) {
+    if (platform === 'android') {
+        const [method, value] = attrs['content-desc']
+            ? ['description', attrs['content-desc']]
+            : attrs['resource-id']
+                ? ['resourceId', attrs['resource-id']]
+                : ['text', attrs.text]
+        if (value) {
+            const key = `android=new UiSelector().${method}(${JSON.stringify(value)})`
+            return { key, at: (n: number) => `${key}.instance(${n - 1})` }
+        }
+    }
+    const attr = platform === 'android' ? undefined : POSITIONAL_ATTRS[platform].find((name) => attrs[name])
+    const key = `//${tag}${attr ? `[@${attr}=${xpathLiteral(attrs[attr])}]` : ''}`
+    return { key, at: (n: number) => `(${key})[${n}]` }
+}
+
+function indexedSelectors (root: XmlNode, platform: NativePlatform) {
+    const seen = new Map<string, number>()
+    const out = new Map<XmlNode, string>()
+    const visit = (xml: XmlNode) => {
+        if (!isStructural(xml)) {
+            const { key, at } = positionalOf(platform, selectorInfo(platform, xml.name, xml.attrs, '').tag, xml.attrs)
+            const n = (seen.get(key) || 0) + 1
+            seen.set(key, n)
+            out.set(xml, at(n))
+        }
+        xml.children.forEach(visit)
+    }
+    visit(root)
+    return out
+}
+
+interface BuildContext {
+    platform: NativePlatform
+    all?: boolean
+    allocate: () => string
+    indexed: Map<XmlNode, string>
+}
+
+function build (xml: XmlNode, ctx: BuildContext): Built | undefined {
+    const { platform } = ctx
+    if (isStructural(xml)) {
+        const children = xml.children.map((child) => build(child, ctx)).filter((child): child is Built => Boolean(child))
         return {
             node: { role: 'document', children: children.map((child) => child.node) },
             refs: children.flatMap((child) => child.refs),
@@ -261,12 +343,12 @@ function build (xml: XmlNode, platform: NativePlatform, opts: { all?: boolean },
     }
     const box = boundsOf(xml.attrs)
     const skip = hidden(xml.attrs, box)
-    if (skip && !opts.all) {
+    if (skip && !ctx.all) {
         return undefined
     }
     const role = roleOf(platform, xml.name, xml.attrs)
     const name = nameOf(platform, xml.name, xml.attrs)
-    const children = xml.children.map((child) => build(child, platform, opts, allocate)).filter((child): child is Built => Boolean(child))
+    const children = xml.children.map((child) => build(child, ctx)).filter((child): child is Built => Boolean(child))
     const node: SnapshotNode = {
         role,
         ...(name ? { name } : {}),
@@ -277,14 +359,14 @@ function build (xml: XmlNode, platform: NativePlatform, opts: { all?: boolean },
     }
     const refs = children.flatMap((child) => child.refs)
     const located = children.flatMap((child) => child.located)
-    const candidates = nativeCandidates(selectorInfo(platform, xml.name, xml.attrs, name))
+    const tagged = nativeCandidates(selectorInfo(platform, xml.name, xml.attrs, name))
     if (wantsRef(platform, xml.name, xml.attrs, role, name)) {
-        const id = allocate(candidates)
+        const id = ctx.allocate()
         node.ref = id
         node.interactive = true
-        refs.push({ id, role, name: name || undefined, candidates })
+        refs.push({ id, role, name: name || undefined, candidates: tagged })
     }
-    located.push({ node, candidates, fallback: `//${selectorInfo(platform, xml.name, xml.attrs, name).tag}` })
+    located.push({ node, candidates: tagged.map((candidate) => candidate.selector), fallback: ctx.indexed.get(xml)! })
     return { node, refs, located }
 }
 
@@ -297,7 +379,8 @@ export interface ParsedNative {
 
 export function parseNativeSource (xml: string, platform: NativePlatform, opts: { all?: boolean, counter?: number } = {}): ParsedNative {
     let counter = opts.counter || 0
-    const built = build(parseXml(xml), platform, opts, () => `e${++counter}`)
+    const root = parseXml(xml)
+    const built = build(root, { platform, all: opts.all, allocate: () => `e${++counter}`, indexed: indexedSelectors(root, platform) })
     const tree = built?.node || { role: 'document' }
     const located = built?.located || []
     const counts = new Map<string, number>()
@@ -308,8 +391,9 @@ export function parseNativeSource (xml: string, platform: NativePlatform, opts: 
     }
     const fallbacks = new Map(located.flatMap(({ node, fallback }) => node.ref ? [[node.ref, fallback] as const] : []))
     const refs = (built?.refs || []).map((ref) => {
-        const unique = ref.candidates.filter((candidate) => counts.get(candidate) === 1)
-        return { ...ref, candidates: unique.length ? unique : [fallbacks.get(ref.id) || ref.candidates[0]] }
+        const unique = ref.candidates.filter((candidate) => counts.get(candidate.selector) === 1)
+        const indexed: SnapshotCandidate = { kind: 'indexed', selector: fallbacks.get(ref.id)! }
+        return { ...ref, candidates: unique.length ? unique : [indexed] }
     })
     return { tree, refs, located, counter }
 }

@@ -12,7 +12,10 @@ const tree = (): SnapshotNode => ({
         { role: 'button', name: 'Off', ref: 'e2', interactive: true, box: [0, 900, 50, 20] }
     ]
 })
-const refs = [{ id: 'e1', candidates: ['~On'] }, { id: 'e2', candidates: ['~Off'] }]
+const refs = [
+    { id: 'e1', candidates: [{ kind: 'accessibility-id' as const, selector: '~On' }] },
+    { id: 'e2', candidates: [{ kind: 'accessibility-id' as const, selector: '~Off' }] }
+]
 const fake = () => ({ lastSnapshot: undefined as string | undefined, browser: { getWindowSize: async () => ({ width: 400, height: 800 }) } }) as unknown as Session & { lastSnapshot?: string }
 
 describe('renderSnapshot', () => {

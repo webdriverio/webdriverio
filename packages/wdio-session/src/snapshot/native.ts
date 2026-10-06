@@ -13,8 +13,9 @@ export async function takeNativeSnapshot (session: Session, opts: SnapshotOption
     const platform = nativePlatform(session.browser.capabilities as Record<string, unknown>, session.plan.target)
     const parsed = parseNativeSource(xml, platform, { all: opts.all, counter: session.refs.counter })
     const remap = new Map<string, string>()
+    const entries = parsed.refs.map((ref) => ({ ...ref, candidates: ref.candidates.map((candidate) => candidate.selector) }))
     const identity = (candidates: string[]) => candidates.join('\n')
-    for (const ref of parsed.refs) {
+    for (const ref of entries) {
         const key = identity(ref.candidates)
         const previous = session.refs.all().find((entry) => entry.kind === 'native' && identity(entry.candidates) === key)
         if (previous && previous.id !== ref.id) {
@@ -29,12 +30,13 @@ export async function takeNativeSnapshot (session: Session, opts: SnapshotOption
     }
     apply(parsed.tree)
     const refs = parsed.refs.map((ref) => ({ ...ref, id: remap.get(ref.id) || ref.id }))
+    const entryRefs = entries.map((ref) => ({ ...ref, id: remap.get(ref.id) || ref.id }))
     if (opts.scope) {
         parsed.tree = asUsage(() => scopeNativeTree(parsed.tree, parsed.located, String(opts.scope)))
     }
     session.refs.counter = parsed.counter
     session.refs.generation++
-    for (const ref of refs) {
+    for (const ref of entryRefs) {
         session.refs.set({ ...ref, kind: 'native', generation: session.refs.generation })
     }
     const text = await renderSnapshot(session, parsed.tree, refs, opts, true)
