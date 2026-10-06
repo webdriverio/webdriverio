@@ -12,4 +12,10 @@ describe('expect.extend()', () => {
         await expect('foo').toBeFoo()
         await expect('bar').not.toBeFoo()
     })
+
+    it('runs a custom matcher with a Jasmine matcher name for WebdriverIO values only', async () => {
+        await expect(Promise.resolve('big')).toHaveSize()
+        await expect(Promise.resolve('small')).not.toHaveSize()
+        await expect([1, 2]).toHaveSize(2)
+    })
 })

@@ -52,6 +52,10 @@ test('expect.extend() in the before hook adds the matcher to Jasmine', async () 
     ;(globalThis as any).expect.extend({
         toBeFoo (actual: unknown) {
             return { pass: actual === 'foo', message: () => `expected ${actual} to be "foo"` }
+        },
+        async toHaveSize (actual: unknown) {
+            const value = await actual
+            return { pass: value === 'big', message: () => `expected ${value} to be "big"` }
         }
     })
     expect(await adapter.run()).toBe(0)
