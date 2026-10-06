@@ -190,7 +190,7 @@ describe('getContexts test', () => {
         const [[sessionCallUrl], [callUrl]] = calls as any
 
         expect(sessionCallUrl.pathname).toEqual('/session')
-        expect(callUrl.pathname).toEqual('/session/foobar-123/contexts')
+        expect(callUrl.pathname).toEqual('/session/foobar-123/appium/contexts')
         expect(logSpy).toHaveBeenCalledWith('The standard Appium `contexts` method is used. If you want to get more detailed data, you can set `returnDetailedContexts` to `true`.')
         logSpy.mockRestore()
     })
@@ -212,7 +212,7 @@ describe('getContexts test', () => {
         const [[sessionCallUrl], [callUrl]] = calls as any
 
         expect(sessionCallUrl.pathname).toEqual('/session')
-        expect(callUrl.pathname).toEqual('/session/foobar-123/contexts')
+        expect(callUrl.pathname).toEqual('/session/foobar-123/appium/contexts')
         expect(logSpy).toHaveBeenCalledWith('The standard Appium `contexts` method is used. If you want to get more detailed data, you can set `returnDetailedContexts` to `true`.')
         logSpy.mockRestore()
     })
@@ -233,7 +233,7 @@ describe('getContexts test', () => {
         const [[sessionCallUrl], [callUrl]] = calls as any
 
         expect(sessionCallUrl.pathname).toEqual('/session')
-        expect(callUrl.pathname).toEqual('/session/foobar-123/contexts')
+        expect(callUrl.pathname).toEqual('/session/foobar-123/appium/contexts')
     })
 
     it('should return the detailed contexts for iOS if returnDetailedContexts is set to true', async () => {

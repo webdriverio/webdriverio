@@ -121,7 +121,7 @@ describe('switchContext test', () => {
         const [[sessionCallUrl], [callUrl]] = calls as any
 
         expect(sessionCallUrl.pathname).toEqual('/session')
-        expect(callUrl.pathname).toEqual('/session/foobar-123/context')
+        expect(callUrl.pathname).toEqual('/session/foobar-123/appium/context')
         expect(logSpy).toHaveBeenCalledWith('The standard Appium `context`-method is used. If you want to switch to a webview with a specific title or url, please provide an object with the `title` or `url` property. See https://webdriver.io/docs/api/mobile/switchContext for more information.')
         logSpy.mockRestore()
     })
