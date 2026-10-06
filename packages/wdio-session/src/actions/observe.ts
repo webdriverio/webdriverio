@@ -336,14 +336,31 @@ const MAX_FIND_LINE_CHARS = 300
 /** a match this far into a line is shown with this many characters before it */
 const FIND_LINE_LEAD_CHARS = 40
 
+const FIND_LINE_HEAD_CHARS = 120
+
 /** a line over the limit is cut to a window that holds its match (index 0: the start) */
 function capLine (line: string, index = 0) {
     if (line.length <= MAX_FIND_LINE_CHARS) {
         return line
     }
-    const start = index < MAX_FIND_LINE_CHARS / 2
+    let start = index < MAX_FIND_LINE_CHARS / 2
         ? 0
         : Math.max(0, Math.min(index - FIND_LINE_LEAD_CHARS, line.length - (MAX_FIND_LINE_CHARS - 1)))
+    const ref = start ? /\[ref=e\d+\]/.exec(line) : null
+    if (ref) {
+        const refEnd = ref.index + ref[0].length
+        const whole = refEnd <= FIND_LINE_HEAD_CHARS
+        const head = whole ? line.slice(0, refEnd) : `${/^(\s*- \S+)/.exec(line)?.[1] ?? ''} ${ref[0]}`
+        const budget = MAX_FIND_LINE_CHARS - head.length - 2
+        const from = Math.min(index - FIND_LINE_LEAD_CHARS, line.length - budget)
+        if (from > refEnd) {
+            const end = from + budget >= line.length ? line.length : from + budget - 1
+            return `${head} …${line.slice(from, end)}${end < line.length ? '…' : ''}`
+        }
+        if (whole) {
+            start = 0
+        }
+    }
     const room = MAX_FIND_LINE_CHARS - (start ? 1 : 0)
     const end = start + room >= line.length ? line.length : start + room - 1
     return `${start ? '…' : ''}${line.slice(start, end)}${end < line.length ? '…' : ''}`

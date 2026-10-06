@@ -106,4 +106,30 @@ describe('find on a long line', () => {
         expect(printedOf(result)).toMatch(/^2:…x+ needle"$/)
         expect(matchesOf(result)[0].text).toHaveLength(300)
     })
+
+    const link = (name: string) => ({ role: 'link', name, ref: 'e7', url: `${'x'.repeat(900)}needle${'y'.repeat(50)}` })
+
+    it('keeps the ref of a line whose match is late in it', async () => {
+        const session = pageSession({ tree: doc([link('Docs')]) })
+        const result = await find(session, { text: 'needle' })
+        const printed = printedOf(result)
+        expect(printed).toMatch(/^2: {2}- link "Docs" \[ref=e7\] …x+needley{50}$/)
+        expect(printed.length).toBeLessThanOrEqual('2:'.length + 300)
+        expect(matchesOf(result)[0].text).toBe('  - link "Docs" [ref=e7]')
+    })
+
+    it('keeps only the role and ref of a line whose name is long', async () => {
+        const session = pageSession({ tree: doc([link('n'.repeat(200))]) })
+        const result = await find(session, { text: 'needle' })
+        const printed = printedOf(result)
+        expect(printed).toMatch(/^2: {2}- link \[ref=e7\] …x+needley{50}$/)
+        expect(printed.length).toBeLessThanOrEqual('2:'.length + 300)
+    })
+
+    it('windows a line without a ref around its match as before', async () => {
+        const session = pageSession({ tree: doc([{ role: 'link', name: 'Docs', url: `${'x'.repeat(900)}needle${'y'.repeat(50)}` }]) })
+        const result = await find(session, { text: 'needle' })
+        expect(printedOf(result)).toMatch(/^2:…x+needley{50}$/)
+        expect(printedOf(result).length).toBe('2:'.length + 300)
+    })
 })
