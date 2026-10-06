@@ -614,6 +614,20 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         if (hidden && !opts.all) {
             return []
         }
+        if (el.tagName === 'PRE' && !shadowRootOf(el) && ![...el.querySelectorAll('*')].some((c) => !isDecoy(c) && isInteractive(c, roleOf(c)))) {
+            // a highlighted block is one token per span: one leaf keeps it readable and searchable
+            const code = collapse(el.textContent)
+            if (code && (opts.all || !isZeroSize(el))) {
+                const block: Node = { role: 'code', name: code }
+                if (hidden) {
+                    block.hidden = true
+                }
+                if (opts.boxes) {
+                    block.box = box(el)
+                }
+                return [block]
+            }
+        }
         const role = roleOf(el)
         const interactive = isInteractive(el, role)
         // a clickable element without a role ("1Y" in a chart's list) is named by its text, like a button

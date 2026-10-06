@@ -3,10 +3,10 @@ import { beforeAll, describe, expect, it } from 'vitest'
 /**
  * from the source: the `@wdio/utils` entry point needs Node.js
  */
-import { knownRoles, roleTable } from '../../../wdio-utils/src/roles.js'
-import { collectInPage, type CollectOptions } from '../../src/snapshot/web.js'
-import { formatSnapshot } from '../../src/snapshot/format.js'
-import { pageRecorder } from '../../src/snapshot/recorder.js'
+import { knownRoles, roleTable } from '../../wdio-utils/src/roles.js'
+import { collectInPage, type CollectOptions } from '../src/web.js'
+import { formatSnapshot } from '../src/format.js'
+import { pageRecorder } from '../src/recorder.js'
 
 /**
  * The recorder runs before the page's own scripts in a session (an init

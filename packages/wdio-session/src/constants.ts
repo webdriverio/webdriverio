@@ -3,7 +3,7 @@ export const STATE_VERSION = 1
 
 export const DEFAULT_SESSION = 'default'
 export const SESSION_NAME_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
-export const REF_PATTERN = /^e\d+$/
+export { REF_PATTERN } from '@wdio/snapshot'
 
 export const DEFAULT_ACTION_TIMEOUT = 30_000
 export const DEFAULT_EXEC_TIMEOUT = 60_000

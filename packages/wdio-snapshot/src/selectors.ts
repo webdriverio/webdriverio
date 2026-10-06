@@ -1,3 +1,5 @@
+import type { SnapshotNode, SnapshotRef } from './format.js'
+
 export interface SelectorNode {
     platform: 'android' | 'ios' | 'mac' | 'windows'
     tag: string
@@ -49,4 +51,24 @@ export function nativeCandidates (node: SelectorNode): string[] {
         out.push(`//${node.tag}`)
     }
     return out
+}
+
+/**
+ * Set `selector` on the nodes that have a ref, to the ref's best candidate.
+ * A web element whose only candidate is the positional `cssPath` and a native
+ * element that only got `//<tag>` are marked unverified.
+ */
+export function attachSelectors (tree: SnapshotNode, refs: Pick<SnapshotRef, 'id' | 'candidates'>[], kind: 'web' | 'native') {
+    const candidates = new Map(refs.map((ref) => [ref.id, ref.candidates]))
+    const visit = (node: SnapshotNode) => {
+        const [first, ...rest] = (node.ref && candidates.get(node.ref)) || []
+        if (first) {
+            node.selector = first
+            if (!rest.length && (kind === 'web' || /^\/\/[\w.$-]+$/.test(first))) {
+                node.selectorUnverified = true
+            }
+        }
+        node.children?.forEach(visit)
+    }
+    visit(tree)
 }

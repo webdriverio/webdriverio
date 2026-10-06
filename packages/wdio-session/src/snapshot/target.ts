@@ -1,6 +1,7 @@
+import { refId } from '@wdio/snapshot'
+
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
-import { refId } from './refs.js'
 import type { Session } from '../session.js'
 
 export interface ResolvedTarget {

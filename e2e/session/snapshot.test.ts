@@ -57,6 +57,11 @@ describe('wdio session snapshot', () => {
         await expect(await snapshot('-i', '--boxes')).toMatchFileSnapshot(golden('frames-boxes'))
     })
 
+    it('ends each ref line with its selector for -i --selectors', async () => {
+        await goto('/cart.html')
+        await expect(await snapshot('-i', '--selectors')).toMatchFileSnapshot(golden('cart-selectors'))
+    })
+
     it('keeps the interactive snapshot of the cart page small', async () => {
         await goto('/cart.html')
         expect((await snapshot('-i')).length).toBeLessThanOrEqual(1500)

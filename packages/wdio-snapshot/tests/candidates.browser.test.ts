@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 /**
  * from the source: the `@wdio/utils` entry point needs Node.js
  */
-import { knownRoles, roleTable } from '../../../wdio-utils/src/roles.js'
-import { collectInPage, type CollectOptions } from '../../src/snapshot/web.js'
+import { knownRoles, roleTable } from '../../wdio-utils/src/roles.js'
+import { collectInPage, type CollectOptions } from '../src/web.js'
 
 /**
  * Runs the collector in a real browser the way a session does: from its

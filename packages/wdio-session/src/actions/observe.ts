@@ -2,53 +2,29 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { imageSize } from 'image-size'
-import { knownRoles, roleTable } from '@wdio/utils'
+import {
+    blockAround, collectWeb, countRefs, formatSnapshot, headingAbove, inViewport, lineTest, searchLines, unifiedDiff,
+    type CollectOptions, type SnapshotNode, type SnapshotRef
+} from '@wdio/snapshot'
 
-import { SessionError, notSupported } from '../errors.js'
+import { SessionError, asUsage, notSupported } from '../errors.js'
 import { quote } from '../quote.js'
-import { collectInPage, type CollectOptions } from '../snapshot/web.js'
-import { countRefs, formatSnapshot, type SnapshotNode } from '../snapshot/format.js'
-import { unifiedDiff } from '../snapshot/diff.js'
 import { takeNativeSnapshot } from '../snapshot/native.js'
+import { renderSnapshot, viewportSize } from '../snapshot/render.js'
 import { resolveElement, resolveTarget, scopeOf } from '../snapshot/target.js'
 import { currentPage, frameBySrc, frameContext } from './contexts.js'
 import type { ActionFn, Session } from '../session.js'
 
 const DEFAULT_MAX_CHARS = 8000
 
-/**
- * The collector as a classic WebDriver script. Built once: it is sent with
- * every snapshot.
- */
-const COLLECT_SCRIPT = `return (${collectInPage.toString()})(arguments[0])`
-
-/**
- * run the snapshot collector in the page. `web.ts` only holds code that
- * runs in the browser, the role table comes from here.
- *
- * In a BiDi session `execute` goes through the driver's BiDi layer, which
- * is slow for large messages: a snapshot (a 6 KB role table in, up to
- * ~100 KB of tree out) took 300-800 ms in Chrome while the collector itself
- * ran in 1-40 ms. The classic `executeScript` endpoint carries the same
- * plain JSON in a few milliseconds, so the top-level document uses it.
- * Frames and other tabs the session holds as BiDi browsing contexts keep
- * using `execute`, which targets them.
- */
-async function collectWeb (session: Session, opts: Omit<CollectOptions, 'roles' | 'assignRefs'>, scope?: WebdriverIO.Element) {
+async function collectTop (session: Session, opts: Omit<CollectOptions, 'roles' | 'assignRefs'>, scope?: WebdriverIO.Element) {
     const browser = scopeOf(session)
-    const args: CollectOptions = { ...opts, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true }
-    if (scope) {
-        return browser.execute(collectInPage, args, scope as unknown as Element)
+    const classic = session.isBidi && browser === session.browser && session.get('classicScripts') !== false
+    const result = await collectWeb(browser, opts, { scope, transport: classic ? 'classic-first' : 'bidi' })
+    if (result.classicUnavailable) {
+        session.set('classicScripts', false)
     }
-    if (session.isBidi && browser === session.browser && session.get('classicScripts') !== false) {
-        try {
-            return await session.browser.executeScript(COLLECT_SCRIPT, [args]) as ReturnType<typeof collectInPage>
-        } catch {
-            // a driver without the classic endpoint in BiDi sessions: stay on BiDi
-            session.set('classicScripts', false)
-        }
-    }
-    return browser.execute(collectInPage, args)
+    return result
 }
 
 /** iframes of the page whose content a snapshot shows inline, with refs */
@@ -129,8 +105,8 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
                 return undefined
             }
             collecting = true
-            const collected = await child.execute(collectInPage, { ...opts, counter: session.refs.counter, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true })
-                .finally(() => (collecting = false)) as ReturnType<typeof collectInPage>
+            const collected = await collectWeb(child as unknown as WebdriverIO.Browser, { ...opts, counter: session.refs.counter }, { transport: 'bidi' })
+                .finally(() => (collecting = false))
             /**
              * The frame's page keeps the ids it handed out, also when the
              * frame is dropped below, so later frames count on from here.
@@ -191,6 +167,14 @@ export interface SnapshotOptions {
     boxes?: boolean
     compact?: boolean
     urls?: boolean
+    /**
+     * only what overlaps the viewport
+     */
+    viewport?: boolean
+    /**
+     * end each ref line with its best selector
+     */
+    selectors?: boolean
 }
 
 export interface TakenSnapshot {
@@ -210,14 +194,15 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
         if (!isCurrent()) {
             throw new SessionError('INTERNAL', 'Snapshot was abandoned.')
         }
-        session.lastSnapshot = native.text
         return native
     }
     const scope = opts.scope ? await resolveElement(session, opts.scope) : undefined
-    const result = await collectWeb(session, {
+    // the viewport filter works on boxes; they are printed only when asked for
+    const boxes = Boolean(opts.boxes || opts.viewport)
+    const result = await collectTop(session, {
         counter: session.refs.counter,
         all: Boolean(opts.all),
-        boxes: Boolean(opts.boxes),
+        boxes,
         urls: Boolean(opts.urls)
     }, scope)
     if (!isCurrent()) {
@@ -229,17 +214,18 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
         session.refs.set({ ...ref, kind: 'web', generation: session.refs.generation })
     }
     // in a frame the session holds already, the snapshot is that frame's
+    const refs: Pick<SnapshotRef, 'id' | 'candidates'>[] = [...result.refs]
     if (session.isBidi && !scope && !session.get('activeContext')) {
-        const frameRefs = await inlineFrames(session, result.tree, { all: Boolean(opts.all), boxes: Boolean(opts.boxes), urls: Boolean(opts.urls) })
+        const frameRefs = await inlineFrames(session, result.tree, { all: Boolean(opts.all), boxes, urls: Boolean(opts.urls) })
         if (!isCurrent()) {
             throw new SessionError('INTERNAL', 'Snapshot was abandoned.')
         }
         for (const ref of frameRefs) {
             session.refs.set({ ...ref, kind: 'web', generation: session.refs.generation })
         }
+        refs.push(...frameRefs)
     }
-    const text = formatSnapshot(result.tree, { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes, compact: opts.compact })
-    session.lastSnapshot = text
+    const text = await renderSnapshot(session, result.tree, refs, opts, false)
     return { text, tree: result.tree }
 }
 
@@ -251,7 +237,9 @@ function snapshotOptions (args: Record<string, unknown>): SnapshotOptions {
         all: Boolean(args.all),
         boxes: Boolean(args.boxes),
         compact: Boolean(args.compact),
-        urls: Boolean(args.urls)
+        urls: Boolean(args.urls),
+        viewport: Boolean(args.viewport),
+        selectors: Boolean(args.selectors)
     }
 }
 
@@ -323,6 +311,8 @@ function repeatFlags (args: Record<string, unknown>) {
         args.compact ? ' --compact' : '',
         args.urls ? ' --urls' : '',
         args.boxes ? ' --boxes' : '',
+        args.viewport ? ' --viewport' : '',
+        args.selectors ? ' --selectors' : '',
         typeof args.depth === 'number' ? ` --depth ${args.depth}` : '',
         // the short preview `open` prints is no size to read the rest in
         typeof args.maxChars === 'number' && args.maxChars >= 1 && !args.$preview ? ` --max-chars ${Math.floor(args.maxChars)}` : '',
@@ -335,89 +325,8 @@ function shellQuote (text: string) {
     return `'${text.replace(/'/g, '\'\\\'\'')}'`
 }
 
-/** lines a `find` block may have before it is cut to a window around the match */
-const MAX_BLOCK_LINES = 12
-
-const indentOf = (line: string) => line.length - line.trimStart().length
-
-/**
- * Lines to print for a match: its parent node with everything under it, so
- * the answer next to the match (a default value, a price, a status) comes
- * along. A big parent is cut to a window around the match.
- */
-function blockAround (lines: string[], idx: number): [number, number] {
-    const indent = indentOf(lines[idx])
-    let start = idx
-    while (start > 0 && indentOf(lines[start]) >= indent) {
-        start--
-    }
-    const parentIndent = indentOf(lines[start])
-    let end = idx
-    while (end + 1 < lines.length && indentOf(lines[end + 1]) > parentIndent) {
-        end++
-    }
-    if (end - start + 1 > MAX_BLOCK_LINES) {
-        return [Math.max(start, idx - 2), Math.min(end, idx + MAX_BLOCK_LINES - 3)]
-    }
-    return [start, end]
-}
-
-const LINK_URL = / url=(\S+)$/
-
-/** `https://en.wikipedia.org/wiki/World_Wide_Web` → `… World Wide Web` */
-export function readableUrl (url: string) {
-    let decoded = url
-    try {
-        decoded = decodeURIComponent(url)
-    } catch {
-        // keep it as is
-    }
-    return decoded.replace(/[_+]/g, ' ')
-}
-
-/**
- * Snapshot lines that match, from a snapshot taken with link URLs. A link's
- * target counts as well as its text: "World Wide Web" finds a link reading
- * "web technologies" to /wiki/World_Wide_Web. URLs are printed only on the
- * lines they made match.
- */
-export function matchLines (withUrls: string[], test: (line: string) => boolean) {
-    const lines = withUrls.map((line) => line.replace(LINK_URL, ''))
-    const shown = [...lines]
-    const matches: number[] = []
-    lines.forEach((line, i) => {
-        const url = withUrls[i].match(LINK_URL)?.[1]
-        if (test(line)) {
-            matches.push(i)
-        } else if (url && test(readableUrl(url))) {
-            matches.push(i)
-            shown[i] = withUrls[i]
-        }
-    })
-    return { lines, shown, matches }
-}
-
 /** printed `find` output stops after about this many characters */
 const MAX_FIND_CHARS = 6000
-
-const SUFFIXES = ['ations', 'ation', 'ions', 'ion', 'ing', 'ers', 'er', 'ed', 'es', 'e', 's']
-
-/**
- * The stem of a search word, so that "give" finds "Giving" and "donate"
- * finds "Donation": the word without a common English ending, at least
- * three letters long.
- */
-export function stem (word: string) {
-    const lower = word.toLowerCase()
-    for (const suffix of SUFFIXES) {
-        if (lower.endsWith(suffix) && lower.length - suffix.length >= 3) {
-            return lower.slice(0, -suffix.length)
-        }
-    }
-    return lower
-}
-
-const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 export const find: ActionFn = async (session, args) => {
     const query = String(args.text ?? '')
@@ -426,45 +335,9 @@ export const find: ActionFn = async (session, args) => {
     const lineMode = [args.context, args.afterContext, args.beforeContext].some((n) => typeof n === 'number')
     const before = typeof args.beforeContext === 'number' ? args.beforeContext : typeof args.context === 'number' ? args.context : 0
     const after = typeof args.afterContext === 'number' ? args.afterContext : typeof args.context === 'number' ? args.context : 0
-    let test: (line: string) => boolean
-    if (args.regex) {
-        let re: RegExp
-        try {
-            re = new RegExp(query, 'i')
-        } catch (err) {
-            throw new SessionError('USAGE', `Invalid regular expression: ${(err as Error).message}`)
-        }
-        test = (line) => re.test(line)
-    } else {
-        const needle = query.toLowerCase()
-        test = (line) => line.toLowerCase().includes(needle)
-    }
-    const words = query.toLowerCase().split(/\s+/).filter(Boolean)
-    // "SO2" when the page says "SO 2" (a subscript), "1 Y" for "1Y"
-    const squeezed = query.toLowerCase().replace(/\s+/g, '')
-    /**
-     * The query as given, then without spaces, then all of its words, then
-     * words like them ("give" finds "Giving"): agents search with keywords,
-     * not with a line of the page.
-     */
-    const search = (snapshotText: string) => {
-        const all = snapshotText.split('\n')
-        let found = matchLines(all, test)
-        if (found.matches.length || args.regex) {
-            return { ...found, note: '' }
-        }
-        const tries: [boolean, (line: string) => boolean, string][] = [
-            [squeezed.length > 1, (line) => line.toLowerCase().replace(/\s+/g, '').includes(squeezed), 'lines that do without the spaces'],
-            [words.length > 1, (line) => words.every((w) => line.toLowerCase().includes(w)), 'lines with all of its words'],
-            [words.length > 0, (line) => words.every((w) => new RegExp(`(^|[^\\p{L}\\p{N}])${escapeRegExp(stem(w))}`, 'iu').test(line)), 'lines with words like it']
-        ]
-        for (const [applies, fallback, what] of tries) {
-            if (applies && (found = matchLines(all, fallback)).matches.length) {
-                return { ...found, note: `No line contains ${JSON.stringify(query)}; ${what}:\n` }
-            }
-        }
-        return { ...found, note: '' }
-    }
+    const regex = Boolean(args.regex)
+    const test = asUsage(() => lineTest(query, regex))
+    const search = (snapshotText: string) => searchLines(snapshotText, query, test, regex)
     const { text: linked } = await takeSnapshot(session, { urls: true, scope })
     let { lines, shown, matches, note } = search(linked)
     session.lastSnapshot = lines.join('\n')
@@ -501,6 +374,17 @@ export const find: ActionFn = async (session, args) => {
         const [blockStart, blockEnd] = lineMode
             ? [Math.max(0, idx - before), Math.min(lines.length - 1, idx + after)]
             : blockAround(lines, idx)
+        // block mode only: line mode prints the lines asked for and nothing else
+        const heading = lineMode ? undefined : headingAbove(lines, blockStart, blockEnd)
+        if (heading !== undefined && heading > last) {
+            if (last >= 0 && heading > last + 1) {
+                out.push('--')
+            }
+            const line = `${heading + 1}-${shown[heading]}`
+            out.push(line)
+            size += line.length + 1
+            last = heading
+        }
         const start = Math.max(blockStart, last + 1)
         if (last >= 0 && start > last + 1) {
             out.push('--')
@@ -675,35 +559,11 @@ export const source: ActionFn = async (session, args) => {
 const MAX_IN_VIEW_CHARS = 3000
 
 /**
- * The part of a snapshot tree that is in the viewport: elements whose box
- * overlaps it, with their text. Text has no box of its own and goes with
- * its element.
- */
-export function inViewport (node: SnapshotNode, width: number, height: number): SnapshotNode | undefined {
-    const visible = (box?: number[]) => !box || (box[1] < height && box[1] + box[3] > 0 && box[0] < width && box[0] + box[2] > 0)
-    // text directly in a container taller than the viewport could be anywhere in it
-    const placesText = (box?: number[]) => Boolean(box) && box![3] <= height
-    const keep = (current: SnapshotNode, root: boolean, parentPlacesText: boolean): SnapshotNode | undefined => {
-        if (current.role === 'text') {
-            return parentPlacesText ? current : undefined
-        }
-        if (!root && !visible(current.box)) {
-            return undefined
-        }
-        const children = (current.children ?? [])
-            .map((child) => keep(child, false, placesText(current.box)))
-            .filter((child): child is SnapshotNode => Boolean(child))
-        return { ...current, children }
-    }
-    return keep(node, true, false)
-}
-
-/**
  * What a person sees now: the interactive elements and text in the viewport,
  * with refs, so an agent doesn't need a screenshot after scrolling.
  */
 export async function describeViewport (session: Session): Promise<string> {
-    const [width, height] = await scopeOf(session).execute(() => [window.innerWidth, window.innerHeight]) as [number, number]
+    const [width, height] = await viewportSize(session, false)
     // a report, not a snapshot the user took: `diff` keeps comparing against theirs
     const baseline = session.lastSnapshot
     const { tree } = await takeSnapshot(session, { boxes: true })

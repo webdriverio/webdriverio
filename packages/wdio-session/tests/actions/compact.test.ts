@@ -5,8 +5,8 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import { snapshot } from '../../src/actions/observe.js'
-import { RefRegistry } from '../../src/snapshot/refs.js'
-import type { SnapshotNode } from '../../src/snapshot/format.js'
+import { RefRegistry } from '@wdio/snapshot'
+import type { SnapshotNode } from '@wdio/snapshot'
 import type { Session } from '../../src/session.js'
 
 const tree: SnapshotNode = {
