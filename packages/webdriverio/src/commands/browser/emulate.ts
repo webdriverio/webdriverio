@@ -6,7 +6,7 @@ import { deviceDescriptorsSource, type DeviceName } from '../../deviceDescriptor
 import { restoreFunctions } from '../../constants.js'
 import { getContextManager } from '../../session/context.js'
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { claimRestore, rememberOverride, rememberedOverride, type RememberedViewport } from '../../session/emulationState.js'
+import { claimRestore, rememberOverride, rememberedOverride, type RememberedOverrides, type RememberedViewport } from '../../session/emulationState.js'
 import type { SupportedScopes } from '../../types.js'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,6 +102,11 @@ async function install (
     }
     storeRestoreFunction(browser, scope, restore)
     return restore
+}
+
+function isUnsupportedCommand (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    return message.includes('unknown command') || message.includes('unsupported operation')
 }
 
 function setCapturedViewport (
@@ -233,14 +238,37 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
     const deviceTouch = device.hasTouch ? 1 : null
     const deviceTextLayout = device.isMobile ? 'mobile' as const : null
     const deviceViewportMeta = device.isMobile ? true as const : null
-    const steps: Array<{ apply: () => Promise<unknown>, undo: () => Promise<unknown>, clear: () => Promise<unknown> }> = [
+    type Step = {
+        apply: () => Promise<unknown>
+        undo: () => Promise<unknown>
+        clear: () => Promise<unknown>
+        /**
+         * What this step sets in the remembered state when it is applied, and
+         * when it is cleared. Steps that did not run leave that state alone.
+         */
+        remember: RememberedOverrides
+        forget: RememberedOverrides
+        /**
+         * `null` clears the override. Skip the call when there is nothing to
+         * clear, so a desktop device does not need every command.
+         */
+        skip?: boolean
+        /**
+         * Newer BiDi commands that not every browser implements. If the
+         * browser rejects one as unknown, the rest of the device still applies.
+         */
+        optional?: boolean
+    }
+    const steps: Step[] = [
         {
             apply: () => browser.emulationSetUserAgentOverride({ userAgent: device.userAgent, contexts }),
             undo: () => browser.emulationSetUserAgentOverride({
                 userAgent: previous.userAgent === undefined ? null : previous.userAgent,
                 contexts
             }),
-            clear: () => browser.emulationSetUserAgentOverride({ userAgent: null, contexts })
+            clear: () => browser.emulationSetUserAgentOverride({ userAgent: null, contexts }),
+            remember: { userAgent: device.userAgent },
+            forget: { userAgent: null }
         },
         {
             apply: () => setCapturedViewport(browser, context, {
@@ -256,7 +284,15 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
             clear: () => setCapturedViewport(browser, context, {
                 width: desktop.viewport.width,
                 height: desktop.viewport.height
-            }, desktop.deviceScaleFactor)
+            }, desktop.deviceScaleFactor),
+            remember: { viewport: deviceViewport },
+            forget: {
+                viewport: {
+                    width: desktop.viewport.width,
+                    height: desktop.viewport.height,
+                    devicePixelRatio: desktop.deviceScaleFactor
+                }
+            }
         },
         {
             apply: () => browser.emulationSetTouchOverride({ maxTouchPoints: deviceTouch, contexts }),
@@ -264,7 +300,10 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
                 maxTouchPoints: previous.touch === undefined ? null : previous.touch,
                 contexts
             }),
-            clear: () => browser.emulationSetTouchOverride({ maxTouchPoints: null, contexts })
+            clear: () => browser.emulationSetTouchOverride({ maxTouchPoints: null, contexts }),
+            remember: { touch: deviceTouch },
+            forget: { touch: null },
+            skip: deviceTouch === null && (previous.touch ?? null) === null
         },
         {
             apply: () => browser.emulationSetTextLayoutModeOverride({ textLayoutMode: deviceTextLayout, contexts }),
@@ -272,7 +311,11 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
                 textLayoutMode: previous.textLayout === undefined ? null : previous.textLayout,
                 contexts
             }),
-            clear: () => browser.emulationSetTextLayoutModeOverride({ textLayoutMode: null, contexts })
+            clear: () => browser.emulationSetTextLayoutModeOverride({ textLayoutMode: null, contexts }),
+            remember: { textLayout: deviceTextLayout },
+            forget: { textLayout: null },
+            skip: deviceTextLayout === null && (previous.textLayout ?? null) === null,
+            optional: true
         },
         {
             apply: () => browser.emulationSetViewportMetaOverride({ viewportMeta: deviceViewportMeta, contexts }),
@@ -280,55 +323,53 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
                 viewportMeta: previous.viewportMeta === undefined ? null : previous.viewportMeta,
                 contexts
             }),
-            clear: () => browser.emulationSetViewportMetaOverride({ viewportMeta: null, contexts })
+            clear: () => browser.emulationSetViewportMetaOverride({ viewportMeta: null, contexts }),
+            remember: { viewportMeta: deviceViewportMeta },
+            forget: { viewportMeta: null },
+            skip: deviceViewportMeta === null && (previous.viewportMeta ?? null) === null,
+            optional: true
         }
     ]
 
     /**
-     * A browser can reject a later piece (`unknown command` or
+     * A browser can reject a required piece (`unknown command` or
      * `unsupported operation`). Put back the previous override for each piece
      * that already landed, on the context captured above, so a custom user
      * agent or viewport is not discarded and another window is not resized.
      */
-    const applied: typeof steps = []
+    const applied: Step[] = []
     try {
         for (const step of steps) {
-            await step.apply()
+            if (step.skip) {
+                continue
+            }
+            try {
+                await step.apply()
+            } catch (err) {
+                if (step.optional && isUnsupportedCommand(err)) {
+                    continue
+                }
+                throw err
+            }
             applied.push(step)
         }
     } catch (err) {
-        for (const step of applied.reverse()) {
+        for (const step of [...applied].reverse()) {
             await Promise.resolve(step.undo()).catch(() => {})
         }
         throw err
     }
 
     const current = claimRestore(browser, 'device', contexts)
-    rememberOverride(browser, context, {
-        userAgent: device.userAgent,
-        touch: deviceTouch,
-        textLayout: deviceTextLayout,
-        viewportMeta: deviceViewportMeta,
-        viewport: deviceViewport
-    })
+    rememberOverride(browser, context, Object.assign({}, ...applied.map((step) => step.remember)))
     const restore = async () => {
         if (!current()) {
             return
         }
-        for (const step of [...steps].reverse()) {
+        for (const step of [...applied].reverse()) {
             await step.clear()
         }
-        rememberOverride(browser, context, {
-            userAgent: null,
-            touch: null,
-            textLayout: null,
-            viewportMeta: null,
-            viewport: {
-                width: desktop.viewport.width,
-                height: desktop.viewport.height,
-                devicePixelRatio: desktop.deviceScaleFactor
-            }
-        })
+        rememberOverride(browser, context, Object.assign({}, ...applied.map((step) => step.forget)))
     }
     storeRestoreFunction(browser, 'device', restore)
     return restore
@@ -389,15 +430,19 @@ export async function emulate(scope: 'forcedColors', theme: ColorScheme): Promis
  * on the top-level context captured when the call starts. Touch is
  * `maxTouchPoints: 1` when the descriptor has touch, otherwise cleared. Mobile
  * text layout and the viewport meta tag are set when the descriptor is mobile,
- * otherwise cleared. Screen size and orientation are not inferred from the
- * device name. Restoring the device targets that same context.
+ * otherwise cleared. An override is only cleared when one is active, so a
+ * desktop device does not send commands it does not need. Screen size and
+ * orientation are not inferred from the device name. Restoring the device
+ * targets that same context.
  *
  * A browser that does not implement a command rejects the call with its own
  * error (`unknown command` or `unsupported operation`). WebdriverIO does not
- * fall back to a preload script or to CDP. If `device` is rejected part way
- * through, the previous user agent, viewport, touch, text layout and viewport
- * meta are put back. Calling an older `restore()` does not clear an override
- * that a newer call of the same scope has replaced.
+ * fall back to a preload script or to CDP. For `device`, text layout and
+ * viewport meta are best effort: a browser that does not implement those
+ * commands still gets the user agent, viewport and touch. If `device` is
+ * rejected part way through, the previous user agent, viewport, touch, text
+ * layout and viewport meta are put back. Calling an older `restore()` does not
+ * clear an override that a newer call of the same scope has replaced.
  *
  * :::info
  *
