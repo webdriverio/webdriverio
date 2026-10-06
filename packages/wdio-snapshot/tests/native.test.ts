@@ -57,15 +57,99 @@ describe('native snapshots', () => {
         expect(text('windows.xml', 'windows', { boxes: true })).toContain('[box=10,10,80,30]')
     })
 
-    it('keeps only the candidates that one element has, and the bare tag when none is left', () => {
+    it('keeps only the candidates that one element has, and an indexed selector when none is left', () => {
         const xml = `<hierarchy>
   <android.widget.Button text="One" content-desc="go" clickable="true" displayed="true" bounds="[0,0][10,10]" resource-id="com.example:id/one" />
   <android.widget.Button text="Two" content-desc="go" clickable="true" displayed="true" bounds="[0,20][10,30]" />
   <android.widget.Button content-desc="go" clickable="true" displayed="true" bounds="[0,40][10,50]" />
 </hierarchy>`
         const { refs } = parseNativeSource(xml, 'android')
-        expect(refs.map((ref) => ref.candidates[0])).toEqual(['id=com.example:id/one', 'android=new UiSelector().text("Two")', '//android.widget.Button'])
-        expect(refs.every((ref) => !ref.candidates.includes('~go'))).toBe(true)
+        expect(refs.map((ref) => ref.candidates[0].selector)).toEqual([
+            'id=com.example:id/one',
+            'android=new UiSelector().text("Two")',
+            'android=new UiSelector().description("go").instance(2)'
+        ])
+        expect(refs.every((ref) => !ref.candidates.some((candidate) => candidate.selector === '~go'))).toBe(true)
+    })
+
+    it('gives two controls that share an accessibility id distinct indexed selectors', () => {
+        const android = parseNativeSource(`<hierarchy>
+  <android.widget.Button content-desc="go" clickable="true" displayed="true" bounds="[0,0][10,10]" />
+  <android.widget.Button content-desc="go" clickable="true" displayed="true" bounds="[0,20][10,30]" />
+</hierarchy>`, 'android')
+        const ios = parseNativeSource(`<AppiumAUT>
+  <XCUIElementTypeButton type="XCUIElementTypeButton" name="go" visible="true" x="0" y="0" width="10" height="10" />
+  <XCUIElementTypeButton type="XCUIElementTypeButton" name="go" visible="true" x="0" y="20" width="10" height="10" />
+</AppiumAUT>`, 'ios')
+        const selectors = (refs: { candidates: { selector: string }[] }[]) => refs.map((ref) => ref.candidates.map((candidate) => candidate.selector))
+        expect(selectors(android.refs)).toEqual([
+            ['android=new UiSelector().description("go").instance(0)'],
+            ['android=new UiSelector().description("go").instance(1)']
+        ])
+        expect(selectors(ios.refs)).toEqual([
+            ['(//XCUIElementTypeButton[@name="go"])[1]'],
+            ['(//XCUIElementTypeButton[@name="go"])[2]']
+        ])
+    })
+
+    it('numbers indexed selectors in document order across hidden nodes', () => {
+        const android = parseNativeSource(`<hierarchy>
+  <android.widget.TextView text="x" displayed="false" bounds="[0,0][0,0]" />
+  <android.widget.Button text="x" clickable="true" displayed="true" bounds="[0,0][10,10]" />
+  <android.widget.Button text="x" clickable="true" displayed="true" bounds="[0,20][10,30]" />
+</hierarchy>`, 'android')
+        expect(android.refs.map((ref) => ref.candidates[0].selector)).toEqual([
+            'android=new UiSelector().text("x").instance(1)',
+            'android=new UiSelector().text("x").instance(2)'
+        ])
+        const ios = parseNativeSource(`<AppiumAUT>
+  <XCUIElementTypeButton type="XCUIElementTypeButton" visible="true" x="0" y="0" width="10" height="10" />
+  <XCUIElementTypeButton type="XCUIElementTypeButton" visible="false" x="0" y="0" width="0" height="0" />
+  <XCUIElementTypeButton type="XCUIElementTypeButton" visible="true" x="0" y="20" width="10" height="10" />
+</AppiumAUT>`, 'ios')
+        expect(ios.refs.map((ref) => ref.candidates[0].selector)).toEqual(['(//XCUIElementTypeButton)[1]', '(//XCUIElementTypeButton)[3]'])
+    })
+
+    it('tags every candidate with its kind', () => {
+        const android = parseNativeSource(fixture('android.xml'), 'android').refs[0]
+        expect(android.candidates.map((candidate) => candidate.kind)).toEqual(['accessibility-id', 'resource-id', 'uiautomator', 'xpath', 'xpath'])
+        const ios = parseNativeSource(fixture('ios.xml'), 'ios').refs[0]
+        expect(ios.candidates.map((candidate) => candidate.kind)).toEqual(['accessibility-id', 'predicate', 'class-chain'])
+        const refs = [android, ios, ...parseNativeSource(fixture('windows.xml'), 'windows').refs, ...parseNativeSource(fixture('mac2.xml'), 'mac').refs]
+        const kinds = new Set(['accessibility-id', 'resource-id', 'predicate', 'class-chain', 'uiautomator', 'xpath', 'tag', 'indexed'])
+        expect(refs.flatMap((ref) => ref.candidates).every((candidate) => kinds.has(candidate.kind))).toBe(true)
+    })
+
+    it('maps Android classes to roles', () => {
+        expect(text('android-roles.xml', 'android')).toBe([
+            '- document',
+            '  - group',
+            '    - button "Back" [ref=e1]',
+            '    - textbox "City" [ref=e2]',
+            '    - combobox "Country" [ref=e3]',
+            '    - switch "Wifi" [ref=e4]',
+            '    - slider "Volume" [ref=e5]',
+            '    - progressbar',
+            '    - img "Logo"',
+            '    - text "Remember"',
+            '    - list',
+            '    - webview',
+            '    - button "Tap" [ref=e6]'
+        ].join('\n'))
+    })
+
+    it('maps iOS types to roles', () => {
+        expect(text('ios-roles.xml', 'ios')).toBe([
+            '- document',
+            '  - application "Roles"',
+            '    - link "Docs" [ref=e1]',
+            '    - searchbox "Search" [ref=e2]',
+            '    - slider "Volume" [ref=e3]',
+            '    - combobox "Mode" [ref=e4]',
+            '    - img "Star" [ref=e5]',
+            '    - switch "Wifi" [ref=e6] [checked]',
+            '    - listitem "Row" [ref=e7]',
+            '    - combobox "When" [ref=e8]'
+        ].join('\n'))
     })
 })
-

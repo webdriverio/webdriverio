@@ -4,7 +4,7 @@ import path from 'node:path'
 import { imageSize } from 'image-size'
 import {
     blockAround, collectWeb, countRefs, formatSnapshot, headingAbove, lineTest, searchLines, unifiedDiff,
-    type CollectOptions, type SnapshotCandidate, type SnapshotNode, type SnapshotRef
+    type CollectOptions, type SnapshotNode, type SnapshotRef
 } from '@wdio/snapshot'
 
 import { SessionError, asUsage, notSupported } from '../errors.js'
@@ -90,7 +90,7 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
     if (!owner) {
         return []
     }
-    const refs: (SnapshotRef<SnapshotCandidate> & { frame: string })[] = []
+    const refs: (SnapshotRef & { frame: string })[] = []
     // a frame lookup went unanswered: only frames found without asking the page are inlined
     let busy = false
     for (const node of frames.slice(0, MAX_INLINE_FRAMES)) {
@@ -211,12 +211,12 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
     }
     session.refs.counter = result.counter
     session.refs.generation++
-    const entryOf = (ref: SnapshotRef<SnapshotCandidate>) => ({ ...ref, candidates: ref.candidates.map((c) => c.selector) })
+    const entryOf = (ref: SnapshotRef) => ({ ...ref, candidates: ref.candidates.map((c) => c.selector) })
     for (const ref of result.refs) {
         session.refs.set({ ...entryOf(ref), kind: 'web', generation: session.refs.generation })
     }
     // in a frame the session holds already, the snapshot is that frame's
-    const refs: SnapshotRef[] = result.refs.map(entryOf)
+    const refs: SnapshotRef[] = [...result.refs]
     if (session.isBidi && !scope && !session.get('activeContext')) {
         const frameRefs = await inlineFrames(session, result.tree, { all: Boolean(opts.all), boxes, urls: Boolean(opts.urls), viewport })
         if (!isCurrent()) {
@@ -225,7 +225,7 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
         for (const ref of frameRefs) {
             session.refs.set({ ...entryOf(ref), kind: 'web', generation: session.refs.generation })
         }
-        refs.push(...frameRefs.map(entryOf))
+        refs.push(...frameRefs)
     }
     const text = await renderSnapshot(session, result.tree, refs, opts, false)
     return { text, tree: result.tree }

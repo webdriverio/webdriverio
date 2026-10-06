@@ -95,7 +95,7 @@ describe('snapshot selector candidates', () => {
             expect(ref.candidates).toEqual([{ kind: 'css-path', selector: `main > button:nth-of-type(${i + 1})` }])
         }
         const tree = { role: 'document', children: buttons.map((ref) => ({ role: 'button', name: ref.name, ref: ref.id })) }
-        attachSelectors(tree, buttons, 'web')
+        attachSelectors(tree, buttons)
         expect(tree.children.map((child) => (child as { selectorPositional?: boolean }).selectorPositional)).toEqual([true, true, true])
     })
 

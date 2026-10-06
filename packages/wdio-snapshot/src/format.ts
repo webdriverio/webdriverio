@@ -31,7 +31,7 @@ export interface SnapshotNode {
 
 export type CandidateKind =
     | 'testid' | 'role' | 'aria' | 'id' | 'text' | 'name' | 'aria-label' | 'type' | 'class' | 'xpath-text' | 'css-path'
-    | 'accessibility-id' | 'resource-id' | 'predicate' | 'class-chain' | 'uiautomator' | 'xpath' | 'tag'
+    | 'accessibility-id' | 'resource-id' | 'predicate' | 'class-chain' | 'uiautomator' | 'xpath' | 'tag' | 'indexed'
 
 export interface SnapshotCandidate {
     kind: CandidateKind
@@ -39,10 +39,9 @@ export interface SnapshotCandidate {
 }
 
 /**
- * Web refs carry kind-tagged candidates. Native refs still carry plain
- * selector strings, the default.
+ * Web and native refs carry kind-tagged candidates, best first.
  */
-export interface SnapshotRef<C extends SnapshotCandidate | string = string> {
+export interface SnapshotRef<C extends SnapshotCandidate = SnapshotCandidate> {
     id: string
     role: string
     name?: string

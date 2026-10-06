@@ -13,7 +13,7 @@ describe('native selectors', () => {
             resourceId: 'com.example:id/save',
             accessibilityId: 'save'
         })
-        expect(candidates.slice(0, 3)).toEqual([
+        expect(candidates.slice(0, 3).map((c) => c.selector)).toEqual([
             '~save',
             'id=com.example:id/save',
             'android=new UiSelector().text("Save")'
@@ -27,9 +27,9 @@ describe('native selectors', () => {
             name: 'Save',
             accessibilityId: 'Save'
         })).toEqual([
-            '~Save',
-            '-ios predicate string:name == "Save"',
-            '-ios class chain:**/XCUIElementTypeButton[`name == "Save"`]'
+            { kind: 'accessibility-id', selector: '~Save' },
+            { kind: 'predicate', selector: '-ios predicate string:name == "Save"' },
+            { kind: 'class-chain', selector: '-ios class chain:**/XCUIElementTypeButton[`name == "Save"`]' }
         ])
     })
 })
@@ -43,20 +43,27 @@ describe('attachSelectors', () => {
             { role: 'text', name: 'Plain' }
         ]
     })
+    const marks = (root: ReturnType<typeof tree>) => root.children.map((c) => [(c as { selector?: string }).selector, (c as { selectorPositional?: boolean }).selectorPositional])
 
-    it('picks the first candidate and marks a web element that fell back to cssPath as positional', () => {
+    it('picks the first candidate and marks an element that fell back to cssPath as positional', () => {
         const root = tree()
-        attachSelectors(root, [{ id: 'e1', candidates: ['role/button[name="Add"]', 'main > button'] }, { id: 'e2', candidates: ['main > button:nth-of-type(2)'] }], 'web')
-        expect(root.children.map((c) => [(c as { selector?: string }).selector, (c as { selectorPositional?: boolean }).selectorPositional])).toEqual([
+        attachSelectors(root, [
+            { id: 'e1', candidates: [{ kind: 'role', selector: 'role/button[name="Add"]' }, { kind: 'css-path', selector: 'main > button' }] },
+            { id: 'e2', candidates: [{ kind: 'css-path', selector: 'main > button:nth-of-type(2)' }] }
+        ])
+        expect(marks(root)).toEqual([
             ['role/button[name="Add"]', undefined],
             ['main > button:nth-of-type(2)', true],
             [undefined, undefined]
         ])
     })
 
-    it('marks a native element only when it got the bare tag fallback', () => {
+    it('marks a native element that got the bare tag or an indexed selector as positional', () => {
         const root = tree()
-        attachSelectors(root, [{ id: 'e1', candidates: ['~Add'] }, { id: 'e2', candidates: ['//android.widget.Button'] }], 'native')
-        expect(root.children.map((c) => (c as { selectorPositional?: boolean }).selectorPositional)).toEqual([undefined, true, undefined])
+        attachSelectors(root, [
+            { id: 'e1', candidates: [{ kind: 'accessibility-id', selector: '~Add' }] },
+            { id: 'e2', candidates: [{ kind: 'indexed', selector: '(//android.widget.Button)[2]' }] }
+        ])
+        expect(marks(root)).toEqual([['~Add', undefined], ['(//android.widget.Button)[2]', true], [undefined, undefined]])
     })
 })

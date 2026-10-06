@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hierarchy>
+  <android.widget.FrameLayout displayed="true" bounds="[0,0][1080,1920]">
+    <android.widget.ImageButton content-desc="Back" clickable="true" displayed="true" bounds="[0,0][50,50]" />
+    <android.widget.AutoCompleteTextView hint="City" focusable="true" displayed="true" bounds="[0,50][200,90]" />
+    <android.widget.Spinner content-desc="Country" clickable="true" displayed="true" bounds="[0,90][200,130]" />
+    <android.widget.Switch text="Wifi" checkable="true" displayed="true" bounds="[0,130][200,170]" />
+    <android.widget.SeekBar content-desc="Volume" clickable="true" displayed="true" bounds="[0,170][200,210]" />
+    <android.widget.ProgressBar displayed="true" bounds="[0,210][200,250]" />
+    <android.widget.ImageView content-desc="Logo" displayed="true" bounds="[0,250][200,290]" />
+    <android.widget.CheckedTextView text="Remember" displayed="true" bounds="[0,290][200,330]" />
+    <android.widget.GridView displayed="true" bounds="[0,330][200,370]" />
+    <android.webkit.WebView displayed="true" bounds="[0,370][200,410]" />
+    <android.view.ViewGroup clickable="true" text="Tap" displayed="true" bounds="[0,410][200,450]" />
+  </android.widget.FrameLayout>
+</hierarchy>

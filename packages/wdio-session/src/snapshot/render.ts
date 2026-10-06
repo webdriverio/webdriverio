@@ -20,7 +20,7 @@ async function viewportSize (session: Session): Promise<[number, number]> {
  */
 export async function renderSnapshot (session: Session, tree: SnapshotNode, refs: Pick<SnapshotRef, 'id' | 'candidates'>[], opts: SnapshotOptions, native: boolean) {
     if (opts.selectors) {
-        attachSelectors(tree, refs, native ? 'native' : 'web')
+        attachSelectors(tree, refs)
     }
     if (native || !opts.viewport) {
         session.lastSnapshot = formatSnapshot(tree, { interactive: opts.interactive })
