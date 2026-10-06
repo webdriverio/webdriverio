@@ -56,6 +56,7 @@
     "@wdio/config": "workspace:*",
     "@wdio/display-server": "workspace:*",
     "@wdio/logger": "workspace:*",
+    "@wdio/snapshot": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "acorn": "^8.15.0",

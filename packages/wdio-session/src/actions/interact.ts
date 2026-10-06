@@ -3,11 +3,11 @@ import path from 'node:path'
 
 import { UNICODE_CHARACTERS, getWdioKind } from '@wdio/utils'
 import { getContextManager } from 'webdriverio'
+import { refId } from '@wdio/snapshot'
 
 import { SessionError, usage } from '../errors.js'
 import { quote } from '../quote.js'
 import { resolveTarget, scopeOf, type ResolvedTarget } from '../snapshot/target.js'
-import { refId } from '../snapshot/refs.js'
 import { describeViewport } from './observe.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 import type { ActionArgs } from './index.js'

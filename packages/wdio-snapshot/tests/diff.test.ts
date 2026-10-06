@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { diffLines, unifiedDiff } from '../../src/snapshot/diff.js'
+import { diffLines, unifiedDiff } from '../src/diff.js'
 
 describe('diffLines', () => {
     it('keeps common lines and marks removals before additions', () => {

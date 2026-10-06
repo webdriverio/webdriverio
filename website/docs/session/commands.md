@@ -319,6 +319,8 @@ npx wdio session snapshot
 | `-i, --interactive` | Only interactive elements |
 | `--all` | Include hidden elements |
 | `--boxes` | Append bounding boxes |
+| `--viewport` | Only what is in the viewport |
+| `--selectors` | End each ref line with its best selector |
 | `--compact` | Drop unnamed nodes that have no content |
 | `-u, --urls` | Include link hrefs |
 | `--file-only` | Only write the file |
@@ -336,6 +338,12 @@ npx wdio session snapshot --compact --urls
 
 # Only part of the page
 npx wdio session snapshot --scope "#checkout" --depth 4
+
+# What is on screen now
+npx wdio session snapshot --viewport -i
+
+# Each ref with a selector to put in a test
+npx wdio session snapshot --selectors -i
 
 # Act, then look again
 npx wdio session click e3 && npx wdio session snapshot -i

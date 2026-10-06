@@ -1,0 +1,11 @@
+- document "Shop · Cart" url=http://localhost:PORT/cart.html
+  - banner
+    - navigation "Main"
+      - link "Home" [ref=e60]  → role/link[name="Home"]
+      - link "Cart (0)" [ref=e61] [current=page]  → role/link[name="Cart (0)"]
+  - main
+    - heading "Products" [level=1]
+    - button "Add to cart" [ref=e62]  → [data-testid="add-blue"]
+    - button "Add to cart" [ref=e63]  → [data-testid="add-red"]
+    - heading "Your cart" [level=2]
+    - button "Checkout" [ref=e64] [disabled]  → role/button[name="Checkout"]

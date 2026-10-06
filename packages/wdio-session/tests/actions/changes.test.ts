@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { describeChanges } from '../../src/actions/changes.js'
-import { RefRegistry } from '../../src/snapshot/refs.js'
-import type { SnapshotNode } from '../../src/snapshot/format.js'
+import { RefRegistry } from '@wdio/snapshot'
+import type { SnapshotNode } from '@wdio/snapshot'
 import type { Session } from '../../src/session.js'
 
 /** a session whose page is whatever `page.tree` and `page.url` are right now */

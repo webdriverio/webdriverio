@@ -18,6 +18,14 @@ export interface SnapshotNode {
     hint?: string
     hidden?: boolean
     interactive?: boolean
+    /**
+     * best selector candidate of the element, set by `attachSelectors`
+     */
+    selector?: string
+    /**
+     * `selector` is only a positional guess that may not replay
+     */
+    selectorUnverified?: boolean
     children?: SnapshotNode[]
 }
 
@@ -36,6 +44,10 @@ export interface FormatOptions {
      * Drop unnamed structural nodes that have nothing left under them.
      */
     compact?: boolean
+    /**
+     * end each ref line with `→ <selector>`, for nodes `attachSelectors` marked
+     */
+    selectors?: boolean
 }
 
 const LANDMARKS = new Set(['banner', 'navigation', 'main', 'contentinfo', 'complementary', 'region', 'form', 'search', 'dialog', 'alertdialog', 'iframe'])
@@ -50,15 +62,57 @@ function count (node: SnapshotNode): number {
  */
 const NAMED_GROUPS = new Set(['group', 'radiogroup', 'tablist', 'toolbar', 'menu', 'menubar', 'listbox', 'tree'])
 
+const NO_LEVEL = 6
+
+const levelOf = (heading: SnapshotNode) => Number(heading.states?.find((state) => state.startsWith('level='))?.slice('level='.length)) || NO_LEVEL
+
+const isHeading = (node: SnapshotNode) => node.role === 'heading' && !node.interactive && !node.ref
+
 /**
- * Keep interactive nodes and the landmarks and named groups around them.
+ * Keep a heading only if something interactive follows it before the next
+ * heading of the same or a higher rank.
  */
-export function onlyInteractive (node: SnapshotNode): SnapshotNode[] {
-    const children = (node.children || []).flatMap(onlyInteractive)
+function keepHeadings (nodes: SnapshotNode[]): SnapshotNode[] {
+    return nodes.filter((node, i) => {
+        if (!isHeading(node)) {
+            return true
+        }
+        const level = levelOf(node)
+        for (const next of nodes.slice(i + 1)) {
+            if (!isHeading(next)) {
+                return true
+            }
+            if (levelOf(next) <= level) {
+                return false
+            }
+        }
+        return false
+    })
+}
+
+/**
+ * Like `onlyInteractive`, but headings are still candidates: whether one stays
+ * depends on its siblings in the container that is kept around it.
+ */
+function walkInteractive (node: SnapshotNode): SnapshotNode[] {
+    const pending = (node.children || []).flatMap(walkInteractive)
+    if (isHeading(node)) {
+        const { children: _children, ...leaf } = node
+        return [leaf, ...pending]
+    }
+    const children = keepHeadings(pending)
     if (node.interactive || node.role === 'document' || (LANDMARKS.has(node.role) && (children.length || node.ref)) || (NAMED_GROUPS.has(node.role) && node.name && children.length)) {
         return [{ ...node, children }]
     }
-    return children
+    return pending
+}
+
+/**
+ * Keep interactive nodes, the landmarks and named groups around them, and the
+ * headings that introduce them.
+ */
+export function onlyInteractive (node: SnapshotNode): SnapshotNode[] {
+    return keepHeadings(walkInteractive(node))
 }
 
 /**
@@ -91,6 +145,13 @@ export function compactTree (node: SnapshotNode): SnapshotNode | undefined {
         delete next.children
     }
     return next
+}
+
+export function selectorSuffix (node: SnapshotNode, opts: FormatOptions) {
+    if (!opts.selectors || !node.ref || !node.selector) {
+        return ''
+    }
+    return `  → ${node.selector}${node.selectorUnverified ? ' (unverified)' : ''}`
 }
 
 export function formatLine (node: SnapshotNode, opts: FormatOptions = {}, truncated = 0) {
@@ -128,7 +189,7 @@ export function formatLine (node: SnapshotNode, opts: FormatOptions = {}, trunca
     if (node.note === 'cross-origin') {
         parts.push(node.ref ? `(cross-origin: run \`wdio session frame ${node.ref}\`)` : '(cross-origin)')
     }
-    return parts.join(' ')
+    return parts.join(' ') + selectorSuffix(node, opts)
 }
 
 /**
