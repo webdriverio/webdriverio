@@ -72,10 +72,10 @@ describe('healing without the model', () => {
         action: 'click',
         args: { target: '[data-testid="add"]' },
         code: 'await $(\'[data-testid="add"]\').click()',
-        target: { selector: '[data-testid="add"]', role: 'button', name: 'Add to cart', candidates: ['[data-testid="add"]', 'aria/Add to cart', '#add'] }
+        target: { selector: '[data-testid="add"]', role: 'button', name: 'Add to cart', candidates: ['[data-testid="add"]', 'aria/Add to cart', 'button', '#add'] }
     }
 
-    it('lists the other candidates and then role and name', () => {
+    it('lists the other candidates without bare tag selectors and then role and name', () => {
         expect(alternativeSelectors(recorded)).toEqual(['aria/Add to cart', '#add', 'role/button[name="Add to cart"]'])
         expect(alternativeSelectors({ ...recorded, target: undefined })).toEqual([])
         expect(roleSelector('button', 'Say "hi" \\ bye')).toBe('role/button[name="Say \\"hi\\" \\\\ bye"]')
@@ -159,7 +159,7 @@ describe('effect checks during replay', () => {
     }
     const recorder = (...effects: StepEffect[]): EffectCheck => ({
         mode: 'strict',
-        recorder: { bidi: true, start: vi.fn(), settle: vi.fn(async () => effects.shift() ?? {}), unsettled: [] as string[] } as unknown as EffectCheck['recorder']
+        recorder: { bidi: true, start: vi.fn(async () => Symbol('step')), settle: vi.fn(async () => effects.shift() ?? {}), unsettled: [] as string[] } as unknown as EffectCheck['recorder']
     })
 
     it('reports a step still running at the timeout as such, not as a behavior change, and waits at least the wait timeout', async () => {
@@ -167,7 +167,7 @@ describe('effect checks during replay', () => {
         const check = recorder({})
         Object.assign(check.recorder, { unsettled: ['POST /api/cart'] })
         const result = await replaySteps(agent, [step], {}, 8000, check)
-        expect(check.recorder.settle).toHaveBeenCalledWith({ timeout: 8000 })
+        expect(check.recorder.settle).toHaveBeenCalledWith({ timeout: 8000 }, expect.anything())
         expect(result.failed).toEqual({
             step,
             index: 0,
@@ -231,4 +231,3 @@ describe('effect checks during replay', () => {
         expect((await replaySteps(agent, [missingRegion], {}, 100, classic)).failed?.kind).toBe('effect')
     })
 })
-

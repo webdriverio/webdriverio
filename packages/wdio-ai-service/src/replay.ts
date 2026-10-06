@@ -81,9 +81,9 @@ async function runChecked (agent: AgentSession, step: ActStep, args: Record<stri
     if (!effects || effects.mode === 'off') {
         return agent.run(step.action, args)
     }
-    await effects.recorder.start()
+    const token = await effects.recorder.start()
     const result = await agent.run(step.action, args)
-    const actual = redact(await effects.recorder.settle({ timeout }), values)
+    const actual = redact(await effects.recorder.settle({ timeout }, token), values)
     const expected = effects.recorder.bidi ? step.effect : observableWithoutBidi(step.effect)
     const missing = missingEffects(expected, actual, effects.mode)
     if (missing.length) {
@@ -107,6 +107,8 @@ export function roleSelector (role: string, name: string) {
     return `role/${role}[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`
 }
 
+const BARE_TAG_SELECTOR = /^[a-z][a-z\d-]*$/i
+
 /**
  * Other ways to find the target of a step, without the model: the other
  * recorded selector candidates, then role and accessible name through the
@@ -118,7 +120,7 @@ export function alternativeSelectors (step: ActStep): string[] {
     if (!target) {
         return []
     }
-    const alternatives = target.candidates.filter((candidate) => candidate !== target.selector)
+    const alternatives = target.candidates.filter((candidate) => candidate !== target.selector && !BARE_TAG_SELECTOR.test(candidate.trim()))
     if (target.role && target.name) {
         const byRole = roleSelector(target.role, target.name)
         if (!alternatives.includes(byRole) && byRole !== target.selector) {

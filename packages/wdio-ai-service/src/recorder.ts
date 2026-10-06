@@ -30,6 +30,44 @@ const EVENTS = [
  */
 const OPTIONAL_EVENTS = ['browsingContext.navigationAborted', 'browsingContext.historyUpdated']
 
+export type EffectStepToken = symbol
+
+interface StepState {
+    token: EffectStepToken
+    page?: string
+    contexts: Set<string>
+    pageUrl?: string
+    inflight: Map<string, { method: string, url: string }>
+    requests: Set<string>
+    pendingNavigations: Set<string>
+    navigation?: string
+    openedContexts: Set<string>
+    opened?: string
+    changed: Set<string>
+    prompt?: string
+    lastActivity: number
+    unsettled: string[]
+    classicUrl?: string
+    epoch: number
+    superseded: boolean
+}
+
+function createStepState (token: EffectStepToken): StepState {
+    return {
+        token,
+        contexts: new Set<string>(),
+        inflight: new Map<string, { method: string, url: string }>(),
+        requests: new Set<string>(),
+        pendingNavigations: new Set<string>(),
+        openedContexts: new Set<string>(),
+        changed: new Set<string>(),
+        lastActivity: Date.now(),
+        unsettled: [],
+        epoch: 0,
+        superseded: false
+    }
+}
+
 /**
  * Watch the DOM and report the named regions that change. Runs in the page:
  * it must not reference anything outside its body. `report` is a BiDi
@@ -149,24 +187,9 @@ export class EffectRecorder {
     readonly browser: WebdriverIO.Browser
     readonly config: EffectsConfig
     readonly bidi: boolean
-    #active = false
-    #page?: string
-    /**
-     * the page of the step and its frames, events of other tabs do not count
-     */
-    #contexts = new Set<string>()
-    #pageUrl?: string
-    #inflight = new Map<string, { method: string, url: string }>()
-    #requests = new Set<string>()
-    #pendingNavigations = new Set<string>()
-    #navigation?: string
-    #openedContexts = new Set<string>()
-    #opened?: string
-    #changed = new Set<string>()
-    #prompt?: string
-    #lastActivity = 0
+    #current?: StepState
+    #steps = new Map<EffectStepToken, StepState>()
     #unsettled: string[] = []
-    #classicUrl?: string
     #epoch = 0
 
     constructor (browser: WebdriverIO.Browser, config: EffectsConfig) {
@@ -198,62 +221,62 @@ export class EffectRecorder {
         on('network.fetchError', (params: RequestParams) => this.#requestFinished(params, true))
         on('browsingContext.navigationStarted', (params: { context: string, navigation: string | null, url: string }) => this.#navigationStarted(params))
         for (const event of ['browsingContext.load', 'browsingContext.domContentLoaded', 'browsingContext.navigationFailed', 'browsingContext.navigationAborted']) {
-            on(event, (params: { navigation: string | null }) => {
-                if (params.navigation) {
-                    this.#pendingNavigations.delete(params.navigation)
-                }
-            })
+            on(event, (params: { navigation: string | null }) => this.#navigationFinished(params.navigation))
         }
         for (const event of ['browsingContext.historyUpdated', 'browsingContext.fragmentNavigated']) {
             on(event, (params: { context: string, url: string }) => {
-                if (this.#active && params.context === this.#page) {
-                    this.#navigation = urlTemplate(params.url, this.#pageUrl)
-                    this.#touch()
+                const step = this.#current
+                if (step && params.context === step.page) {
+                    step.navigation = urlTemplate(params.url, step.pageUrl)
+                    this.#touch(step)
                 }
             })
         }
         on('browsingContext.contextCreated', (params: { context: string, parent?: string | null, originalOpener?: string | null, url: string }) => {
-            if (!this.#active) {
+            const step = this.#current
+            if (!step) {
                 return
             }
             /**
              * a frame the step added to the page
              */
             if (params.parent) {
-                if (this.#contexts.has(params.parent)) {
-                    this.#contexts.add(params.context)
+                if (step.contexts.has(params.parent)) {
+                    step.contexts.add(params.context)
                 }
                 return
             }
             /**
              * a window the page opened, not one another tab opened
              */
-            if (params.context !== this.#page && (!params.originalOpener || this.#inPage(params.originalOpener))) {
-                this.#openedContexts.add(params.context)
-                this.#opened ??= urlTemplate(params.url, this.#pageUrl)
-                this.#touch()
+            if (params.context !== step.page && (!params.originalOpener || this.#inPage(step, params.originalOpener))) {
+                step.openedContexts.add(params.context)
+                step.opened ??= urlTemplate(params.url, step.pageUrl)
+                this.#touch(step)
             }
         })
         on('browsingContext.userPromptOpened', (params: { context: string, type: string }) => {
-            if (this.#active && this.#inPage(params.context)) {
-                this.#prompt = params.type
-                this.#touch()
+            const step = this.#current
+            if (step && this.#inPage(step, params.context)) {
+                step.prompt = params.type
+                this.#touch(step)
             }
         })
         on('script.message', (params: { channel: string, source?: { context?: string }, data: { type?: string, value?: { type?: string, value?: string }[] } }) => {
-            if (!this.#active || params.channel !== EFFECTS_CHANNEL || params.data?.type !== 'array' || !this.#inPage(params.source?.context)) {
+            const step = this.#current
+            if (!step || params.channel !== EFFECTS_CHANNEL || params.data?.type !== 'array' || !this.#inPage(step, params.source?.context)) {
                 return
             }
             const [epoch, ...regions] = (params.data.value || []).map((item) => item.value)
-            if (Number(epoch) !== this.#epoch) {
+            if (Number(epoch) !== step.epoch) {
                 return
             }
             for (const region of regions) {
                 if (typeof region === 'string') {
-                    this.#changed.add(region)
+                    step.changed.add(region)
                 }
             }
-            this.#touch()
+            this.#touch(step)
         })
 
         const functionDeclaration = observeRegions.toString()
@@ -270,91 +293,120 @@ export class EffectRecorder {
         }
     }
 
-    #touch () {
-        this.#lastActivity = Date.now()
+    #touch (step: StepState) {
+        step.lastActivity = Date.now()
     }
 
     /**
      * whether an event belongs to the page of the step or one of its frames
      */
-    #inPage (context?: string | null) {
-        return !context || !this.#contexts.size || this.#contexts.has(context)
+    #inPage (step: StepState, context?: string | null) {
+        return !context || !step.contexts.size || step.contexts.has(context)
     }
 
     #requestStarted (params: RequestParams) {
-        if (!this.#active) {
+        const step = this.#current
+        if (!step) {
             return
         }
-        if (!this.#inPage(params.context)) {
+        if (!this.#inPage(step, params.context)) {
             return
         }
         const { request, url, method, destination, initiatorType } = params.request
         if (!isEffectRequest({ url, destination, initiatorType, navigation: params.navigation }) || isIgnored(url, this.config.ignore)) {
             return
         }
-        this.#inflight.set(request, { method, url })
-        this.#touch()
+        step.inflight.set(request, { method, url })
+        this.#touch(step)
     }
 
     #requestFinished (params: RequestParams, failed: boolean) {
-        const started = this.#inflight.get(params.request.request)
-        if (!started) {
+        const step = this.#stepWithRequest(params.request.request)
+        const started = step?.inflight.get(params.request.request)
+        if (!step || !started) {
             return
         }
-        this.#inflight.delete(params.request.request)
-        this.#requests.add(`${started.method} ${urlTemplate(started.url, this.#pageUrl)} → ${statusClass(params.response?.status, failed)}`)
-        this.#touch()
+        step.inflight.delete(params.request.request)
+        step.requests.add(`${started.method} ${urlTemplate(started.url, step.pageUrl)} → ${statusClass(params.response?.status, failed)}`)
+        this.#touch(step)
     }
 
     #navigationStarted (params: { context: string, navigation: string | null, url: string }) {
-        if (!this.#active) {
+        const step = this.#current
+        if (step && params.context === step.page) {
+            step.navigation = urlTemplate(params.url, step.pageUrl)
+            if (params.navigation) {
+                step.pendingNavigations.add(params.navigation)
+            }
+            this.#touch(step)
             return
         }
-        if (params.context === this.#page) {
-            this.#navigation = urlTemplate(params.url, this.#pageUrl)
-            if (params.navigation) {
-                this.#pendingNavigations.add(params.navigation)
-            }
-            this.#touch()
-        } else if (this.#openedContexts.has(params.context) && params.url !== 'about:blank') {
-            this.#opened = urlTemplate(params.url, this.#pageUrl)
-            this.#touch()
+        const openedStep = this.#stepWithOpenedContext(params.context)
+        if (openedStep && params.url !== 'about:blank') {
+            openedStep.opened = urlTemplate(params.url, openedStep.pageUrl)
+            this.#touch(openedStep)
+        }
+    }
+
+    #stepWithRequest (request: string): StepState | undefined {
+        return [...this.#steps.values()].find((step) => step.inflight.has(request))
+    }
+
+    #stepWithOpenedContext (context: string): StepState | undefined {
+        return [...this.#steps.values()].find((step) => step.openedContexts.has(context))
+    }
+
+    #navigationFinished (navigation: string | null) {
+        if (!navigation) {
+            return
+        }
+        for (const step of this.#steps.values()) {
+            step.pendingNavigations.delete(navigation)
         }
     }
 
     /**
-     * start a step: forget the previous effect
+     * start a step: collect its effect separately from any stale older step
      */
-    async start () {
-        this.#inflight.clear()
-        this.#requests.clear()
-        this.#pendingNavigations.clear()
-        this.#openedContexts.clear()
-        this.#changed.clear()
-        this.#navigation = undefined
-        this.#opened = undefined
-        this.#prompt = undefined
-        this.#pageUrl = await this.browser.getUrl().catch(() => undefined)
+    async start (): Promise<EffectStepToken> {
+        if (this.#current) {
+            this.#current.superseded = true
+        }
+        const token = Symbol('wdio-ai-effect-step')
+        const step = createStepState(token)
+        this.#current = step
+        this.#steps.set(token, step)
+        step.pageUrl = await this.browser.getUrl().catch(() => undefined)
+        if (this.#current !== step) {
+            return token
+        }
         if (this.bidi) {
-            this.#page = await getContextManager(this.browser).getCurrentContext().catch(() => undefined)
-            this.#contexts = await contextTree(this.browser, this.#page)
-            await this.#nextEpoch()
+            step.page = await getContextManager(this.browser).getCurrentContext().catch(() => undefined)
+            if (this.#current !== step) {
+                return token
+            }
+            step.contexts = await contextTree(this.browser, step.page)
+            if (this.#current !== step) {
+                return token
+            }
+            await this.#nextEpoch(step)
         } else {
-            this.#classicUrl = this.#pageUrl
+            step.classicUrl = step.pageUrl
             await this.browser.execute(observeRegionsClassic, observeRegions.toString()).catch(() => {})
         }
-        this.#lastActivity = Date.now()
-        this.#active = true
+        this.#touch(step)
+        step.superseded = false
+        return token
     }
 
     /**
      * start a new epoch in the page and its frames
      */
-    async #nextEpoch () {
-        const epoch = ++this.#epoch
-        await Promise.all([...this.#contexts].map((context) => this.browser.scriptCallFunction({
+    async #nextEpoch (step: StepState) {
+        step.epoch = ++this.#epoch
+        await Promise.all([...step.contexts].map((context) => this.browser.scriptCallFunction({
             functionDeclaration: '(epoch) => { window.__wdioAiEpoch && window.__wdioAiEpoch(epoch) }',
-            arguments: [{ type: 'number', value: epoch }],
+            arguments: [{ type: 'number', value: step.epoch }],
             target: { context },
             awaitPromise: false
         } as never).catch(() => {})))
@@ -364,22 +416,33 @@ export class EffectRecorder {
      * Wait until the step settled: its requests finished, no navigation is
      * pending and the page had no changes for `quiet` ms. Returns the effect.
      */
-    async settle ({ timeout = DEFAULT_SETTLE_TIMEOUT, quiet = DEFAULT_QUIET }: { timeout?: number, quiet?: number } = {}): Promise<StepEffect> {
+    async settle ({ timeout = DEFAULT_SETTLE_TIMEOUT, quiet = DEFAULT_QUIET }: { timeout?: number, quiet?: number } = {}, token?: EffectStepToken): Promise<StepEffect> {
+        const step = token ? this.#steps.get(token) : this.#current
+        if (!step) {
+            this.#unsettled = []
+            return {}
+        }
         const deadline = Date.now() + timeout
         try {
-            if (!this.bidi) {
-                return await this.#settleClassic(deadline, quiet)
+            step.unsettled = []
+            if (step.superseded && this.#current !== step) {
+                step.unsettled = ['another step started before this one settled']
+                return this.#effect(step)
             }
-            this.#unsettled = []
-            await this.#flush()
+            if (!this.bidi) {
+                return await this.#settleClassic(step, deadline, quiet)
+            }
+            if (this.#current === step) {
+                await this.#flush(step)
+            }
             /**
              * the quiet time counts from when the action returned: a slow
              * click must not use it up before the page reported its changes
              */
-            this.#touch()
+            this.#touch(step)
             while (Date.now() < deadline) {
-                const idle = this.#inflight.size === 0 && this.#pendingNavigations.size === 0
-                if (idle && Date.now() - this.#lastActivity >= quiet) {
+                const idle = step.inflight.size === 0 && step.pendingNavigations.size === 0
+                if ((step.superseded && this.#current !== step) || (idle && Date.now() - step.lastActivity >= quiet)) {
                     break
                 }
                 await new Promise((resolve) => setTimeout(resolve, POLL))
@@ -389,13 +452,18 @@ export class EffectRecorder {
              * navigations are. A request still in flight means the effect
              * is incomplete, not that the step had no such effect.
              */
-            this.#unsettled = [
-                ...[...this.#inflight.values()].map(({ method, url }) => `${method} ${urlTemplate(url, this.#pageUrl)}`),
-                ...(this.#pendingNavigations.size ? ['a navigation'] : [])
+            step.unsettled = [
+                ...[...step.inflight.values()].map(({ method, url }) => `${method} ${urlTemplate(url, step.pageUrl)}`),
+                ...(step.pendingNavigations.size ? ['a navigation'] : []),
+                ...(step.superseded && this.#current !== step ? ['another step started before this one settled'] : [])
             ]
-            return this.#effect()
+            return this.#effect(step)
         } finally {
-            this.#active = false
+            this.#unsettled = [...step.unsettled]
+            this.#steps.delete(step.token)
+            if (this.#current === step) {
+                this.#current = undefined
+            }
         }
     }
 
@@ -405,18 +473,18 @@ export class EffectRecorder {
      * made are reported before the quiet time starts. On a slow machine their
      * events otherwise arrived after a short quiet time had already passed.
      */
-    async #flush () {
+    async #flush (step: StepState) {
         /**
          * a dialog the step opened blocks scripts in the page until it is
          * handled, the step settles without the round trip
          */
-        if (!this.#page || this.#prompt) {
+        if (!step.page || step.prompt) {
             return
         }
         const roundTrip = this.browser.scriptEvaluate({
             expression: 'new Promise((resolve) => { requestAnimationFrame(() => setTimeout(resolve, 0)); setTimeout(resolve, 100) })',
             awaitPromise: true,
-            target: { context: this.#page }
+            target: { context: step.page }
         }).catch(() => {
             // the page navigated away or is gone, its events are already in
         })
@@ -437,8 +505,8 @@ export class EffectRecorder {
         return [...this.#unsettled]
     }
 
-    async #settleClassic (deadline: number, quiet: number): Promise<StepEffect> {
-        this.#unsettled = []
+    async #settleClassic (step: StepState, deadline: number, quiet: number): Promise<StepEffect> {
+        step.unsettled = []
         let last = Date.now()
         let seen = 0
         while (Date.now() < deadline) {
@@ -448,7 +516,7 @@ export class EffectRecorder {
             }).catch(() => [] as string[])
             if (regions.length > seen) {
                 seen = regions.length
-                regions.forEach((region) => this.#changed.add(region))
+                regions.forEach((region) => step.changed.add(region))
                 last = Date.now()
             }
             if (Date.now() - last >= quiet) {
@@ -457,19 +525,19 @@ export class EffectRecorder {
             await new Promise((resolve) => setTimeout(resolve, POLL))
         }
         const url = await this.browser.getUrl().catch(() => undefined)
-        if (url && this.#classicUrl && url !== this.#classicUrl) {
-            this.#navigation = urlTemplate(url, this.#classicUrl)
+        if (url && step.classicUrl && url !== step.classicUrl) {
+            step.navigation = urlTemplate(url, step.classicUrl)
         }
-        return this.#effect()
+        return this.#effect(step)
     }
 
-    #effect (): StepEffect {
+    #effect (step: StepState): StepEffect {
         return {
-            ...(this.#requests.size ? { requests: [...this.#requests].sort() } : {}),
-            ...(this.#navigation ? { navigation: this.#navigation } : {}),
-            ...(this.#opened ? { opened: this.#opened } : {}),
-            ...(this.#changed.size ? { changed: [...this.#changed].sort() } : {}),
-            ...(this.#prompt ? { prompt: this.#prompt } : {})
+            ...(step.requests.size ? { requests: [...step.requests].sort() } : {}),
+            ...(step.navigation ? { navigation: step.navigation } : {}),
+            ...(step.opened ? { opened: step.opened } : {}),
+            ...(step.changed.size ? { changed: [...step.changed].sort() } : {}),
+            ...(step.prompt ? { prompt: step.prompt } : {})
         }
     }
 }

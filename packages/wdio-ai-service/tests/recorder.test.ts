@@ -197,6 +197,20 @@ describe('EffectRecorder on a BiDi session', () => {
         expect(await recorder.settle({ quiet: 10 })).toEqual({ opened: 'auth.example/oauth/authorize', prompt: 'confirm' })
     })
 
+    it('keeps the current step active when an older step settles late', async () => {
+        const { browser, emit } = bidiBrowser()
+        const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())
+        const stale = await recorder.start()
+        const current = await recorder.start()
+
+        expect(await recorder.settle({ quiet: 1 }, stale)).toEqual({})
+        expect(recorder.unsettled).toEqual(['another step started before this one settled'])
+
+        emit('browsingContext.contextCreated', { context: 'popup', parent: null, url: 'about:blank' })
+        emit('browsingContext.navigationStarted', { context: 'popup', navigation: 'nav-2', url: 'https://shop.example/help' })
+        expect(await recorder.settle({ quiet: 1 }, current)).toEqual({ opened: '/help' })
+    })
+
     it('ignores events while no step runs', async () => {
         const { browser, emit, request } = bidiBrowser()
         const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig())
