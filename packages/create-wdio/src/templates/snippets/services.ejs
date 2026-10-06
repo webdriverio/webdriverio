@@ -5,15 +5,16 @@ services: [<%- answers.services.map((service) => {
         return /*js*/`[
         'devtools',
         {
-            // Every option below is commented out and shows its default, so
-            // this block behaves exactly like plain 'devtools' until you
-            // change one. See https://webdriver.io/docs/devtools/wdio
+            // Every option below is commented out, and uncommenting one as
+            // written keeps the default behaviour, so this block acts exactly
+            // like plain 'devtools' until you change a value.
+            // See https://webdriver.io/docs/devtools/wdio
             // mode: 'live',                 // 'live' opens the dashboard; 'trace' writes a trace.zip instead
-            // port: 0,                      // dashboard port (default: a free one is chosen)
+            // port: 3000,                   // dashboard port; a free one is used if 3000 is taken
             // hostname: 'localhost',
             // captureAssertions: true,      // assertions become action rows
             // screencast: { enabled: false }, // live-mode session video
-            // devtoolsCapabilities: {},     // merged over the dashboard window's own caps (chrome, 1600x1200)
+            // devtoolsCapabilities: {},     // overrides for the dashboard window (default: Chrome at 1600x1200)
 
             // Trace mode only, i.e. mode: 'trace'
             // traceFormat: 'zip',           // 'zip', or 'ndjson-directory' to skip the unzip step

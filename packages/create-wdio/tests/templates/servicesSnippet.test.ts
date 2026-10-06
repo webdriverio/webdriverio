@@ -1,12 +1,16 @@
 import path from 'node:path'
 import url from 'node:url'
+import vm from 'node:vm'
 import { describe, it, expect } from 'vitest'
 
 import { renderFile } from '../../src/utils.js'
 import { SUPPORTED_PACKAGES, QUESTIONNAIRE } from '../../src/constants.js'
+import { EjsHelpers } from '../../src/templates/EjsHelpers.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const SNIPPET = path.resolve(__dirname, '..', '..', 'src', 'templates', 'snippets', 'services.ejs')
+const TEMPLATES = path.resolve(__dirname, '..', '..', 'src', 'templates')
+const SNIPPET = path.resolve(TEMPLATES, 'snippets', 'services.ejs')
+const CONFIG = path.resolve(TEMPLATES, 'wdio.conf.tpl.ejs')
 
 const render = (services: string[]) =>
     renderFile(SNIPPET, { answers: { services, rawAnswers: {} } })
@@ -104,5 +108,46 @@ describe('services snippet', () => {
             expect(rendered).toContain("'appium'")
             expect(rendered).toContain("'devtools'")
         })
+    })
+})
+
+describe('generated config', () => {
+    const POINTER = 'Install @wdio/devtools-service, then add'
+
+    // CommonJS, so `vm.Script` can parse the whole file without running it: a
+    // broken comment or entry anywhere fails here, not only where we look.
+    const renderConfig = (services: string[]) =>
+        renderFile(CONFIG, {
+            answers: {
+                services,
+                framework: 'mocha',
+                runner: 'local',
+                reporters: ['spec'],
+                specs: './test/specs/**/*.js',
+                esmSupport: false,
+                isUsingTypeScript: false,
+                purpose: 'e2e',
+                rawAnswers: {}
+            },
+            _: new EjsHelpers({ useEsm: false, useTypeScript: false })
+        })
+
+    it('configures the service and drops the pointer when DevTools is selected', async () => {
+        const config = await renderConfig(['devtools'])
+
+        expect(config).toContain("services: [[\n        'devtools',")
+        expect(config).not.toContain(POINTER)
+        expect(() => new vm.Script(config)).not.toThrow()
+    })
+
+    it.each([
+        ['another service', ['visual']],
+        ['no service', []]
+    ])('points to DevTools from a config with %s', async (_label, services) => {
+        const config = await renderConfig(services)
+
+        expect(config).toContain(POINTER)
+        expect(config).not.toContain("'devtools',\n        {")
+        expect(() => new vm.Script(config)).not.toThrow()
     })
 })
