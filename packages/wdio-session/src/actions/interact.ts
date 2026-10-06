@@ -234,7 +234,7 @@ async function clickAt (session: Session, x: number, y: number, args: ActionArgs
     if (!what) {
         throw usage(`Nothing is at ${x},${y}.`, 'Coordinates are viewport pixels from the top left, as in a screenshot; take one to check.')
     }
-    const text = await withNavigation(session, `Clicked ${what} at ${x},${y}`, () => pointerClick(session, { state: 'ok', x, y }))
+    const text = await withNavigation(session, `Clicked ${what} at ${x},${y}`, () => session.browser.action('pointer').move({ x, y, origin: 'viewport' }).down().up().perform())
     return done(text, `await browser.action('pointer').move({ x: ${x}, y: ${y}, origin: 'viewport' }).down().up().perform()`)
 }
 
@@ -623,6 +623,11 @@ interface ClickPoint {
     offCenter?: boolean
     /** where a hidden link goes */
     href?: string
+    /** center of the part of the element (or label) in view, in the frame's viewport: the pointer origin the offset of x and y is taken from */
+    originX: number
+    originY: number
+    /** the label to click, when the element itself is hidden */
+    label?: Record<string, string>
 }
 
 /**
@@ -650,7 +655,12 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             // smooth scrolling would leave the rect read below mid-scroll
             node.scrollIntoView(instantScroll ? { block: 'center', inline: 'center', behavior: 'instant' } : { block: 'center', inline: 'center' })
             const rect = node.getBoundingClientRect()
-            return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) }
+            return {
+                x: Math.round(rect.x + rect.width / 2),
+                y: Math.round(rect.y + rect.height / 2),
+                originX: (Math.max(rect.left, 0) + Math.min(rect.right, innerWidth)) / 2,
+                originY: (Math.max(rect.top, 0) + Math.min(rect.bottom, innerHeight)) / 2
+            }
         }
         const isSticky = (node: Element) => {
             let fixed = false
@@ -704,11 +714,11 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
                 const cover = coverAt(label, point.x, point.y)
                 return cover
                     ? { state: 'covered' as const, ...point, cover: describe(cover), sticky: isSticky(cover) }
-                    : { state: 'label' as const, ...point }
+                    : { state: 'label' as const, ...point, label }
             }
-            return { state: 'hidden' as const, x: 0, y: 0, href }
+            return { state: 'hidden' as const, x: 0, y: 0, originX: 0, originY: 0, href }
         }
-        const { x, y } = center(el)
+        const { x, y, originX, originY } = center(el)
         const cover = coverAt(el, x, y)
         if (cover && isSticky(cover)) {
             const rect = el.getBoundingClientRect()
@@ -724,13 +734,13 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             for (const [sx, sy] of samples) {
                 const free = Math.round(sx) >= left && Math.round(sx) <= right && Math.round(sy) >= top && Math.round(sy) <= bottom && w > 0 && h > 0
                 if (free && !coverAt(el, Math.round(sx), Math.round(sy))) {
-                    return { state: 'ok' as const, x: Math.round(sx), y: Math.round(sy), offCenter: true }
+                    return { state: 'ok' as const, x: Math.round(sx), y: Math.round(sy), originX: cx, originY: cy, offCenter: true }
                 }
             }
         }
         return cover
-            ? { state: 'covered' as const, x, y, cover: describe(cover), sticky: isSticky(cover), href }
-            : { state: 'ok' as const, x, y }
+            ? { state: 'covered' as const, x, y, originX, originY, cover: describe(cover), sticky: isSticky(cover), href }
+            : { state: 'ok' as const, x, y, originX, originY }
     }, instant) as Promise<ClickPoint>
 }
 
@@ -767,7 +777,7 @@ async function clickChecked (session: Session, target: ResolvedTarget) {
         )
     }
     if (point?.state === 'label' || (point?.state === 'ok' && (point !== first || point.offCenter))) {
-        await pointerClick(session, point)
+        await pointerClick(session, target, point)
         return
     }
     try {
@@ -783,7 +793,7 @@ async function clickChecked (session: Session, target: ResolvedTarget) {
         }
         const again = await recheckAboveSticky(target, await clickPoint(target).catch(() => undefined))
         if (again?.state === 'ok' || again?.state === 'label') {
-            await pointerClick(session, again)
+            await pointerClick(session, target, again)
             return
         }
         if (again?.state === 'covered') {
@@ -796,8 +806,15 @@ async function clickChecked (session: Session, target: ResolvedTarget) {
     }
 }
 
-function pointerClick (session: Session, point: ClickPoint) {
-    return session.browser.action('pointer').move({ x: point.x, y: point.y, origin: 'viewport' }).down().up().perform()
+/**
+ * The point is in the viewport of the element's frame. A viewport origin is
+ * the top-level page's, so the move is relative to an element instead, which
+ * carries its frame into the action.
+ */
+async function pointerClick (session: Session, target: ResolvedTarget, point: ClickPoint) {
+    const origin = point.label ? await target.element.$(point.label as never) : target.element
+    const [x, y] = [Math.round(point.x - point.originX), Math.round(point.y - point.originY)]
+    return session.browser.action('pointer').move({ x, y, origin }).down().up().perform()
 }
 
 /**
@@ -821,15 +838,17 @@ async function withPointerFallback (session: Session, target: ResolvedTarget, ru
             const rect = el.getBoundingClientRect()
             const x = Math.round(rect.x + rect.width / 2)
             const y = Math.round(rect.y + rect.height / 2)
+            const originX = (Math.max(rect.left, 0) + Math.min(rect.right, innerWidth)) / 2
+            const originY = (Math.max(rect.top, 0) + Math.min(rect.bottom, innerHeight)) / 2
             // asked of the element's own (possibly closed) root, the hit is not retargeted to a host
             const root = el.getRootNode() as Document | ShadowRoot
             const hit = root.elementFromPoint(x, y)
-            return { x, y, hit: Boolean(hit && (hit === el || el.contains(hit))) }
+            return { x, y, originX, originY, hit: Boolean(hit && (hit === el || el.contains(hit))) }
         })
         if (!center.hit) {
             throw err
         }
-        await session.browser.action('pointer').move({ x: center.x, y: center.y, origin: 'viewport' }).down().up().perform()
+        await session.browser.action('pointer').move({ x: Math.round(center.x - center.originX), y: Math.round(center.y - center.originY), origin: target.element }).down().up().perform()
         await after?.()
     }
 }

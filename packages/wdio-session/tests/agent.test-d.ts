@@ -1,6 +1,9 @@
 import { describe, expectTypeOf, it } from 'vitest'
 
 import type { ActionArgsOf, AgentActionName } from '../src/actions/args.js'
+import type { AgentSession } from '../src/agent.js'
+
+declare const agent: AgentSession
 
 describe('action args types', () => {
     it('click requires target', () => {
@@ -32,5 +35,13 @@ describe('action args types', () => {
         expectTypeOf<'clickk'>().toMatchTypeOf<AgentActionName>()
         // @ts-expect-error `open` is local
         expectTypeOf<'open'>().toMatchTypeOf<AgentActionName>()
+    })
+
+    it('run requires args only when the action has required keys', () => {
+        // @ts-expect-error click requires target
+        void agent.run('click')
+        void agent.run('click', { target: 'e3' })
+        void agent.run('snapshot')
+        void agent.run('snapshot', { interactive: true })
     })
 })

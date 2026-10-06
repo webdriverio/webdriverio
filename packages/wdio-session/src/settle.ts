@@ -1,3 +1,5 @@
+import { getContextManager } from 'webdriverio'
+
 import { scopeOf } from './snapshot/target.js'
 import type { Session } from './session.js'
 
@@ -60,17 +62,37 @@ export async function waitQuiet (scope: WebdriverIO.Browser, { quietMs, maxMs, r
 }
 
 /**
- * Wait for a page that may be fresh to settle, once per page: the next
- * snapshot of the same URL skips it (`Session.settledUrl`).
+ * `<context>|<url>` of the document a snapshot reads: a held frame is its own
+ * document, so the top-level URL says nothing about it.
+ */
+async function settleKey (session: Session) {
+    const held = session.get?.<WebdriverIO.BrowsingContext>('activeContext')
+    if (held) {
+        const href = await Promise.resolve(held.execute(() => location.href)).catch(() => undefined)
+        return typeof href === 'string' ? `${held.contextId}|${href}` : undefined
+    }
+    const url = await session.currentUrl()
+    if (url === undefined) {
+        return undefined
+    }
+    const context = session.isBidi
+        ? await getContextManager(session.browser).getCurrentContext().catch(() => undefined)
+        : undefined
+    return `${context ?? ''}|${url}`
+}
+
+/**
+ * Wait for a page that may be fresh to settle, once per document: the next
+ * snapshot of the same one skips it (`Session.settledKey`).
  */
 export async function settleFreshPage (session: Session) {
-    const url = await session.currentUrl()
-    if (url !== undefined && url === session.settledUrl) {
+    const key = await settleKey(session)
+    if (key !== undefined && key === session.settledKey) {
         return
     }
     try {
         await waitQuiet(scopeOf(session), { quietMs: QUIET_MS, maxMs: SETTLE_MAX_MS, requireComplete: true, attributes: [] })
-        session.settledUrl = url
+        session.settledKey = key
     } catch {
         // a navigation replaced the document; the snapshot goes on with the new one
     }

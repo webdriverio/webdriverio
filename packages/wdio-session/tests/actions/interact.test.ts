@@ -183,12 +183,12 @@ describe('fill', () => {
             execute: async (fn: (el: unknown) => unknown) => fn.toString().includes('aria-valuenow')
                 ? { kind: 'text' }
                 : fn.toString().includes('getBoundingClientRect')
-                    ? { x: 10, y: 20, hit: true }
+                    ? { x: 10, y: 20, originX: 8, originY: 25, hit: true }
                     : actions.push('select')
         }
         const pointer = {
-            move: (opts: { x: number, y: number }) => {
-                actions.push(`move ${opts.x},${opts.y}`)
+            move: (opts: { x: number, y: number, origin: unknown }) => {
+                actions.push(`move ${opts.x},${opts.y} ${opts.origin === element ? 'element' : 'other'}`)
                 return pointer
             },
             down: () => (actions.push('down'), pointer),
@@ -197,7 +197,7 @@ describe('fill', () => {
         }
         const session = refSession(element, { action: () => pointer, keys: async (v: string) => keys.push(v) })
         await fill(session, { target: 'e2', text: 'SAVE20', $cwd: '/' })
-        expect(actions).toEqual(['move 10,20', 'down', 'up', 'perform', 'select'])
+        expect(actions).toEqual(['move 2,-5 element', 'down', 'up', 'perform', 'select'])
         expect(keys).toEqual(['SAVE20'])
     })
 
@@ -320,9 +320,9 @@ describe('click', () => {
     })
 
     describe('covered by a sticky header', () => {
-        const pointerFor = (actions: string[]) => {
+        const pointerFor = (actions: string[], element: unknown) => {
             const pointer = {
-                move: (opts: { x: number, y: number }) => (actions.push(`move ${opts.x},${opts.y}`), pointer),
+                move: (opts: { x: number, y: number, origin: unknown }) => (actions.push(`move ${opts.x},${opts.y} ${opts.origin === element ? 'element' : 'other'}`), pointer),
                 down: () => pointer,
                 up: () => pointer,
                 perform: async () => actions.push('perform')
@@ -337,24 +337,24 @@ describe('click', () => {
                 execute: async (_fn: unknown, arg?: unknown) => {
                     instant.push(arg)
                     return arg
-                        ? { state: 'ok', x: 30, y: 300 }
-                        : { state: 'covered', x: 30, y: 10, cover: 'nav "Shady Meadows"', sticky: true }
+                        ? { state: 'ok', x: 30, y: 300, originX: 30, originY: 300 }
+                        : { state: 'covered', x: 30, y: 10, originX: 30, originY: 10, cover: 'nav "Shady Meadows"', sticky: true }
                 },
                 click: async () => { throw new Error('should click with the pointer') }
             }
-            await click(clickSession(element, { action: () => pointerFor(actions) }), { target: 'e2', $cwd: '/' })
+            await click(clickSession(element, { action: () => pointerFor(actions, element) }), { target: 'e2', $cwd: '/' })
             expect(instant).toEqual([false, true])
-            expect(actions).toEqual(['move 30,300', 'perform'])
+            expect(actions).toEqual(['move 0,0 element', 'perform'])
         })
 
         it('clicks the free lower half of an element that is partly under the header', async () => {
             const actions: string[] = []
             const element = {
-                execute: async () => ({ state: 'ok', x: 30, y: 90, offCenter: true }),
+                execute: async () => ({ state: 'ok', x: 30, y: 90, originX: 30, originY: 70.5, offCenter: true }),
                 click: async () => { throw new Error('should click with the pointer') }
             }
-            await click(clickSession(element, { action: () => pointerFor(actions) }), { target: 'e2', $cwd: '/' })
-            expect(actions).toEqual(['move 30,90', 'perform'])
+            await click(clickSession(element, { action: () => pointerFor(actions, element) }), { target: 'e2', $cwd: '/' })
+            expect(actions).toEqual(['move 0,20 element', 'perform'])
         })
 
         it('keeps the error when no point of the element is free', async () => {
@@ -391,18 +391,21 @@ describe('click', () => {
 
     it('clicks the label of a hidden radio button or checkbox', async () => {
         const actions: string[] = []
+        const labelElement = {}
         const pointer = {
-            move: (opts: { x: number, y: number }) => (actions.push(`move ${opts.x},${opts.y}`), pointer),
+            move: (opts: { x: number, y: number, origin: unknown }) => (actions.push(`move ${opts.x},${opts.y} ${opts.origin === labelElement ? 'label' : 'other'}`), pointer),
             down: () => (actions.push('down'), pointer),
             up: () => (actions.push('up'), pointer),
             perform: async () => actions.push('perform')
         }
+        const labelRef = { 'element-6066-11e4-a52e-4f735466cecf': 'label-id' }
         const element = {
-            execute: async () => ({ state: 'label', x: 40, y: 60 }),
+            execute: async () => ({ state: 'label', x: 40, y: 60, originX: 38, originY: 60, label: labelRef }),
+            $: async (ref: unknown) => ref === labelRef ? labelElement : undefined,
             click: async () => { throw new Error('should not click the hidden input') }
         }
         await click(clickSession(element, { action: () => pointer }), { target: 'e2', $cwd: '/' })
-        expect(actions).toEqual(['move 40,60', 'down', 'up', 'perform'])
+        expect(actions).toEqual(['move 2,0 label', 'down', 'up', 'perform'])
     })
 
     it('reports a page that is still loading instead of failing', async () => {

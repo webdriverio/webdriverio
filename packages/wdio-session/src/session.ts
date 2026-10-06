@@ -119,8 +119,8 @@ export class Session {
     lastSnapshot?: string
     /** page as of the last observed action, the baseline for the next one's changes */
     lastPage?: PageState
-    /** URL a snapshot already waited for; unset by a navigation, so the next snapshot waits again */
-    settledUrl?: string
+    /** document (context and URL) a snapshot already waited for; unset by a navigation, so the next snapshot waits again */
+    settledKey?: string
     /**
      * arbitrary per-feature state (mocks, emulation, trace, visual, …)
      */
@@ -332,15 +332,16 @@ export class Session {
         let changes: PageChange | undefined
         let noVisibleChange: boolean | undefined
         const notes: string[] = []
-        // a snapshot also reports what failed since the last action finished
-        const networkFrom = req.action === 'snapshot' ? this.#networkReported : networkMark(this.network)
+        const networkFrom = this.#networkReported
+        // exec is observed for its page changes but returns a value, often JSON that a note would break
+        const textNotes = req.action === 'snapshot' || (OBSERVED_ACTIONS.has(req.action) && req.action !== 'exec')
         try {
             const outcome = await this.#inFrameOf(req.action, args, () => impl(this, args))
             if (epoch !== this.#epoch) {
                 throw abandoned()
             }
             if (NAVIGATIONS.has(req.action)) {
-                this.settledUrl = undefined
+                this.settledKey = undefined
             }
             const newTabs = tabsBefore && await describeNewTabs(this, tabsBefore)
             if (newTabs) {
@@ -378,14 +379,18 @@ export class Session {
                 }
                 outcome.text = [outcome.text, note].filter(Boolean).join('\n')
             }
-            if (!NETWORK_READERS.has(req.action)) {
+            if (NETWORK_READERS.has(req.action)) {
+                this.#networkReported = networkMark(this.network)
+            } else if (opts.detail || textNotes) {
                 const failed = failedRequestNote(this.network.all().filter((entry) => entry.seq > networkFrom))
                 if (failed) {
                     notes.push(failed)
-                    outcome.text = [outcome.text, failed].filter(Boolean).join('\n')
+                    if (textNotes) {
+                        outcome.text = [outcome.text, failed].filter(Boolean).join('\n')
+                    }
+                    this.#networkReported = networkMark(this.network)
                 }
             }
-            this.#networkReported = networkMark(this.network)
             let page: PageInfo | undefined
             if (opts.detail) {
                 if (req.action === 'snapshot' && this.isWeb && snapshotData?.tree) {

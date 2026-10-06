@@ -161,8 +161,8 @@ async function compare (session: Session, before: PageState, label: string, isCu
 
 const LANDMARK_ROLES = new Set(['dialog', 'alertdialog', 'region', 'banner', 'complementary'])
 const OPEN_STATES = ['open', 'expanded']
-/** the "Slide 2 of 5" naming that carousels give their slides */
-const SLIDE_NAME = /\b\d+\s*(?:of|\/)\s*\d+\b/i
+/** a name that is only a position ("2 of 5", "Slide 2 / 5"), as carousels name slides; "Step 2 of 4" is a wizard's */
+const SLIDE_NAME = /^"(?:(?:slide|item)\s+)?\d+\s*(?:of|\/)\s*\d+"$/i
 const LINE = /^(\s*)- (\S+)(?: ("(?:[^"\\]|\\.)*"))?(.*)$/
 const STATE_TOKEN = / \[(?!ref=|box=|\+\d)([^\]]+)\]/g
 /** at most this many interactive children are listed under an opened dialog */
@@ -209,9 +209,11 @@ const landmarkKey = (line: Line) => `${line.role} ${line.name ?? line.ref}`
 const label = (line: Line) => `${line.role}${line.name ? ` ${line.name}` : ''}`
 const isOpen = (line: Line) => line.states.some((state) => OPEN_STATES.includes(state))
 
-function inSlide (lines: Line[], line: Line) {
+const isSlide = (line: Line) => line.role === 'group' && Boolean(line.name && SLIDE_NAME.test(line.name))
+
+function within (lines: Line[], line: Line, match: (ancestor: Line) => boolean) {
     for (let cur: Line | undefined = line; cur; cur = lines[cur.parent]) {
-        if (cur.role === 'group' && cur.name && SLIDE_NAME.test(cur.name)) {
+        if (match(cur)) {
             return true
         }
     }
@@ -224,7 +226,7 @@ const isTab = (lines: Line[], line: Line) => line.role === 'tab' && lines[line.p
 /**
  * What the lines that differ mean, most important first: dialogs and
  * landmarks that opened or closed, then new lines, then lines that only
- * changed state. A carousel rotating on its own is churn: it is one summary
+ * changed state. A carousel rotating on its own (slides appearing and going away) is churn: it is one summary
  * line when nothing else changed, and dropped when anything did.
  */
 function summarize (before: Line[], after: Line[], ops: ReturnType<typeof diffLines>, unfocused: Set<string>): Summary {
@@ -237,7 +239,19 @@ function summarize (before: Line[], after: Line[], ops: ReturnType<typeof diffLi
     // a tab pair that differs only in which one is selected: a carousel's dots, or a tablist
     const addedTabs = new Set(addedLines.filter((line) => isTab(after, line)).map(withoutSelection))
     const removedTabs = new Set(removedLines.filter((line) => isTab(before, line)).map(withoutSelection))
-    const noisy = (lines: Line[], line: Line, other: Set<string>) => inSlide(lines, line) || (isTab(lines, line) && other.has(withoutSelection(line)))
+    // only movement is carousel noise: a slide group that appeared or went away, and what came with it
+    const addedSlides = new Set(addedLines.filter(isSlide))
+    const removedSlides = new Set(removedLines.filter(isSlide))
+    const isPanel = (line: Line) => line.role === 'tabpanel'
+    const panelChanged = addedLines.some((line) => within(after, line, isPanel)) || removedLines.some((line) => within(before, line, isPanel))
+    // dots next to or inside a moved slide group are a carousel's; tabs that switch a panel are real
+    const nearSlide = (lines: Line[], tab: Line, slides: Set<Line>) => {
+        const tablist = lines[tab.parent]
+        return [...slides].some((slide) => slide.parent === tablist.parent || within(lines, tablist, (ancestor) => ancestor === slide))
+    }
+    const noisy = (lines: Line[], line: Line, other: Set<string>, slides: Set<Line>) =>
+        within(lines, line, (ancestor) => slides.has(ancestor)) ||
+        (isTab(lines, line) && other.has(withoutSelection(line)) && (!panelChanged || nearSlide(lines, line, slides)))
 
     const entries: Entry[] = []
     const claimed = new Set<Line>()
@@ -274,17 +288,17 @@ function summarize (before: Line[], after: Line[], ops: ReturnType<typeof diffLi
     events.sort((a, b) => a.at - b.at)
     entries.push(...events.flatMap((event) => event.entries))
 
-    const rest = addedLines.filter((line) => !claimed.has(line) && !noisy(after, line, removedTabs))
+    const rest = addedLines.filter((line) => !claimed.has(line) && !noisy(after, line, removedTabs, addedSlides))
     entries.push(...rest.filter((line) => !removedPlain.has(line.stripped)).map((line) => ({ text: line.text.trim() })))
     entries.push(...rest.filter((line) => removedPlain.has(line.stripped)).map((line) => ({ text: line.text.trim() })))
     if (entries.length) {
         return { kind: 'entries', entries }
     }
     // only focus moved, or something disappeared
-    const removed = removedLines.filter((line) => !line.text.endsWith(' [focused]') && !noisy(before, line, addedTabs))
+    const removed = removedLines.filter((line) => !line.text.endsWith(' [focused]') && !noisy(before, line, addedTabs, removedSlides))
     if (removed.length) {
         return { kind: 'removed', removed: removed.length }
     }
-    const churn = [...addedLines.filter((line) => noisy(after, line, removedTabs)), ...removedLines.filter((line) => noisy(before, line, addedTabs))]
+    const churn = [...addedLines.filter((line) => noisy(after, line, removedTabs, addedSlides)), ...removedLines.filter((line) => noisy(before, line, addedTabs, removedSlides))]
     return churn.length ? { kind: 'entries', entries: [{ text: CAROUSEL_MOVED, plain: true }] } : { kind: 'none' }
 }

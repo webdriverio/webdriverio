@@ -193,4 +193,24 @@ describe('@wdio/session/agent', () => {
             await browser.url(`${server.url}/cart.html`)
         }
     })
+
+    it('clicks a button under a fixed header inside a held frame', async () => {
+        const framed = await createAgentSession(browser)
+        let leave: (() => Promise<void>) | undefined
+        try {
+            await browser.url(`${server.url}/sticky-frame-host.html`)
+            const [page] = await browser.browsingContexts()
+            const frame = await page.frame(page.$('#inner'))
+            leave = await framed.enter(frame)
+            const { text } = await framed.snapshot({ interactive: true })
+            const ref = text.match(/button "Frame action" \[ref=(e\d+)\]/)?.[1]
+            expect(ref).toBeDefined()
+            await framed.run('click', { target: ref })
+            expect(await frame.$('button').getText()).toBe('Frame clicked')
+        } finally {
+            await leave?.()
+            await framed.dispose()
+            await browser.url(`${server.url}/cart.html`)
+        }
+    })
 })

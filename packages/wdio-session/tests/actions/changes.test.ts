@@ -185,6 +185,52 @@ describe('describeChanges', () => {
             expect(result.change).toEqual({ kind: 'changed', added: ['Closed region "Cookie banner"'], omitted: 0 })
         })
 
+        describe('a slide-like name or a tablist is not always a carousel', () => {
+            const step = (children: SnapshotNode[]) => ({ role: 'group', name: 'Step 2 of 4', children })
+            const next = { role: 'button', name: 'Next', ref: 'e1', interactive: true }
+            const tabs = (selected: number) => ({
+                role: 'tablist',
+                children: [1, 2].map((n) => ({ role: 'tab', name: `Tab ${n}`, ref: `e${n + 20}`, interactive: true, ...(n === selected ? { states: ['selected'] } : {}) }))
+            })
+            const panel = (text: string) => ({ role: 'tabpanel', name: 'Content', children: [{ role: 'paragraph', name: text }] })
+
+            it('reports a button that became disabled inside a wizard step that stays', async () => {
+                const result = await report(doc([step([next])]), doc([step([{ ...next, states: ['disabled'] }])]))
+                expect(result.text).toBe('Changes:\n+ - button "Next" [ref=e1] [disabled]')
+            })
+
+            it('reports a field that appeared inside a wizard step that stays', async () => {
+                const field = { role: 'textbox', name: 'Email', ref: 'e2', interactive: true }
+                const result = await report(doc([step([next])]), doc([step([next, field])]))
+                expect(result.text).toBe('Changes:\n+ - textbox "Email" [ref=e2]')
+            })
+
+            it('reports the new fields when a wizard advances a step, not "Carousel moved"', async () => {
+                const group = (n: number, children: SnapshotNode[]) => ({ role: 'group', name: `Step ${n} of 4`, children })
+                const field = (name: string, ref: string) => ({ role: 'textbox', name, ref, interactive: true })
+                const result = await report(doc([group(1, [field('Name', 'e2')])]), doc([group(2, [field('Email', 'e3')])]))
+                expect(result.text).toContain('textbox "Email" [ref=e3]')
+                expect(result.text).not.toContain('Carousel moved')
+            })
+
+            it('still collapses bare "2 / 5" and "2 of 5" slide names', async () => {
+                const slide = (name: string, text: string) => ({ role: 'group', name, children: [{ role: 'heading', name: text }] })
+                expect((await report(doc([slide('1 of 5', 'A')]), doc([slide('2 of 5', 'B')]))).text).toBe('Changes:\nCarousel moved')
+                expect((await report(doc([slide('1 / 5', 'A')]), doc([slide('2 / 5', 'B')]))).text).toBe('Changes:\nCarousel moved')
+            })
+
+            it('reports a tab switch together with the panel it changed', async () => {
+                const result = await report(doc([tabs(1), panel('One')]), doc([tabs(2), panel('Two')]))
+                expect(result.text).toContain('tab "Tab 2" [ref=e22] [selected]')
+                expect(result.text).toContain('paragraph "Two"')
+            })
+
+            it('still sums up dots that follow a rotating slide when no panel changed', async () => {
+                const result = await report(doc([carousel(1)]), doc([carousel(2)]))
+                expect(result.text).toBe('Changes:\nCarousel moved')
+            })
+        })
+
         it('reports a panel that opens through its expanded state', async () => {
             const result = await report(doc([{ role: 'complementary', name: 'Help', ref: 'e7', states: ['collapsed'] }]), doc([{ role: 'complementary', name: 'Help', ref: 'e7', states: ['expanded'] }]))
             expect(result.text).toBe('Changes:\nOpened complementary "Help" [ref=e7]')

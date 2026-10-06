@@ -121,8 +121,8 @@ export class AgentSession {
     /**
      * run a `wdio session` action, e.g. `run('click', { target: 'e3' })`
      */
-    run<A extends AgentActionName> (action: A, args: ActionArgsOf<A> = {} as ActionArgsOf<A>): Promise<AgentActionResult<A>> {
-        return this.runAction(action, args) as Promise<AgentActionResult<A>>
+    run<A extends AgentActionName> (action: A, ...[args]: {} extends ActionArgsOf<A> ? [args?: ActionArgsOf<A>] : [args: ActionArgsOf<A>]): Promise<AgentActionResult<A>> {
+        return this.runAction(action, args ?? {}) as Promise<AgentActionResult<A>>
     }
 
     /**
