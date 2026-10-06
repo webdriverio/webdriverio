@@ -220,7 +220,7 @@ export const ACTIONS: ActionSpec[] = [
             interactive: { type: 'boolean', alias: 'i', desc: 'Only interactive elements' },
             all: { type: 'boolean', desc: 'Include hidden elements' },
             boxes: { type: 'boolean', desc: 'Append bounding boxes' },
-            viewport: { type: 'boolean', desc: 'Only what is in the viewport' },
+            viewport: { type: 'boolean', desc: 'Only what is in the viewport (web: does not update the diff baseline)' },
             selectors: { type: 'boolean', desc: 'End each ref line with its best selector' },
             compact: { type: 'boolean', desc: 'Drop unnamed nodes that have no content' },
             urls: { type: 'boolean', alias: 'u', desc: 'Include link hrefs' },
@@ -273,7 +273,7 @@ export const ACTIONS: ActionSpec[] = [
     {
         name: 'diff', group: 'Observation', applies: ['W', 'M', 'D'],
         desc: 'Diff a fresh snapshot against the previous one',
-        details: 'Prints a unified diff of what changed since the last snapshot, or "No changes". The first call stores a baseline. Use it after an action to see what the action did without reading the whole page again.',
+        details: 'Prints a unified diff of what changed since the last snapshot, or "No changes". The first call stores a baseline. Use it after an action to see what the action did without reading the whole page again. On the web the baseline is the last snapshot taken without `--viewport`.',
         options: {
             baseline: { type: 'string', desc: 'Snapshot file to compare with' },
             scope: { type: 'string', desc: 'Only snapshot within this ref or selector, like `snapshot --scope`' },

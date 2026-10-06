@@ -3,14 +3,14 @@ import path from 'node:path'
 
 import { imageSize } from 'image-size'
 import {
-    blockAround, collectWeb, countRefs, formatSnapshot, headingAbove, inViewport, lineTest, searchLines, unifiedDiff,
-    type CollectOptions, type SnapshotNode, type SnapshotRef
+    blockAround, collectWeb, countRefs, formatSnapshot, headingAbove, lineTest, searchLines, unifiedDiff,
+    type CollectOptions, type SnapshotCandidate, type SnapshotNode, type SnapshotRef
 } from '@wdio/snapshot'
 
 import { SessionError, asUsage, notSupported } from '../errors.js'
 import { quote } from '../quote.js'
 import { takeNativeSnapshot } from '../snapshot/native.js'
-import { renderSnapshot, viewportSize } from '../snapshot/render.js'
+import { renderSnapshot } from '../snapshot/render.js'
 import { resolveElement, resolveTarget, scopeOf } from '../snapshot/target.js'
 import { currentPage, frameBySrc, frameContext } from './contexts.js'
 import type { ActionFn, Session } from '../session.js'
@@ -90,7 +90,7 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
     if (!owner) {
         return []
     }
-    const refs: { id: string, role: string, name?: string, candidates: string[], frame: string }[] = []
+    const refs: (SnapshotRef<SnapshotCandidate> & { frame: string })[] = []
     // a frame lookup went unanswered: only frames found without asking the page are inlined
     let busy = false
     for (const node of frames.slice(0, MAX_INLINE_FRAMES)) {
@@ -197,33 +197,35 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
         return native
     }
     const scope = opts.scope ? await resolveElement(session, opts.scope) : undefined
-    // the viewport filter works on boxes; they are printed only when asked for
-    const boxes = Boolean(opts.boxes || opts.viewport)
+    const boxes = Boolean(opts.boxes)
+    const viewport = Boolean(opts.viewport)
     const result = await collectTop(session, {
         counter: session.refs.counter,
         all: Boolean(opts.all),
         boxes,
-        urls: Boolean(opts.urls)
+        urls: Boolean(opts.urls),
+        viewport
     }, scope)
     if (!isCurrent()) {
         throw new SessionError('INTERNAL', 'Snapshot was abandoned.')
     }
     session.refs.counter = result.counter
     session.refs.generation++
+    const entryOf = (ref: SnapshotRef<SnapshotCandidate>) => ({ ...ref, candidates: ref.candidates.map((c) => c.selector) })
     for (const ref of result.refs) {
-        session.refs.set({ ...ref, kind: 'web', generation: session.refs.generation })
+        session.refs.set({ ...entryOf(ref), kind: 'web', generation: session.refs.generation })
     }
     // in a frame the session holds already, the snapshot is that frame's
-    const refs: Pick<SnapshotRef, 'id' | 'candidates'>[] = [...result.refs]
+    const refs: SnapshotRef[] = result.refs.map(entryOf)
     if (session.isBidi && !scope && !session.get('activeContext')) {
-        const frameRefs = await inlineFrames(session, result.tree, { all: Boolean(opts.all), boxes, urls: Boolean(opts.urls) })
+        const frameRefs = await inlineFrames(session, result.tree, { all: Boolean(opts.all), boxes, urls: Boolean(opts.urls), viewport })
         if (!isCurrent()) {
             throw new SessionError('INTERNAL', 'Snapshot was abandoned.')
         }
         for (const ref of frameRefs) {
-            session.refs.set({ ...ref, kind: 'web', generation: session.refs.generation })
+            session.refs.set({ ...entryOf(ref), kind: 'web', generation: session.refs.generation })
         }
-        refs.push(...frameRefs)
+        refs.push(...frameRefs.map(entryOf))
     }
     const text = await renderSnapshot(session, result.tree, refs, opts, false)
     return { text, tree: result.tree }
@@ -327,6 +329,10 @@ function shellQuote (text: string) {
 
 /** printed `find` output stops after about this many characters */
 const MAX_FIND_CHARS = 6000
+/** a printed `find` line is cut to this many characters (a code block is one line); matching sees all of it */
+const MAX_FIND_LINE_CHARS = 300
+
+const capLine = (line: string) => line.length > MAX_FIND_LINE_CHARS ? `${line.slice(0, MAX_FIND_LINE_CHARS - 1)}…` : line
 
 export const find: ActionFn = async (session, args) => {
     const query = String(args.text ?? '')
@@ -340,11 +346,14 @@ export const find: ActionFn = async (session, args) => {
     const search = (snapshotText: string) => searchLines(snapshotText, query, test, regex)
     const { text: linked } = await takeSnapshot(session, { urls: true, scope })
     let { lines, shown, matches, note } = search(linked)
-    session.lastSnapshot = lines.join('\n')
+    const baseline = lines.join('\n')
+    session.lastSnapshot = baseline
     let hidden = false
     if (!matches.length) {
         // in a closed menu, tab, accordion or behind "Show more": say so instead of "no match"
         const { text: all } = await takeSnapshot(session, { urls: true, scope, all: true })
+        // the hidden-inclusive page is not what `diff` compares against
+        session.lastSnapshot = baseline
         const found = search(all)
         if (found.matches.length) {
             ({ lines, shown, matches } = found)
@@ -380,7 +389,7 @@ export const find: ActionFn = async (session, args) => {
             if (last >= 0 && heading > last + 1) {
                 out.push('--')
             }
-            const line = `${heading + 1}-${shown[heading]}`
+            const line = `${heading + 1}-${capLine(shown[heading])}`
             out.push(line)
             size += line.length + 1
             last = heading
@@ -390,7 +399,7 @@ export const find: ActionFn = async (session, args) => {
             out.push('--')
         }
         for (let i = start; i <= blockEnd; i++) {
-            const line = `${i + 1}${matches.includes(i) ? ':' : '-'}${shown[i]}`
+            const line = `${i + 1}${matches.includes(i) ? ':' : '-'}${capLine(shown[i])}`
             out.push(line)
             size += line.length + 1
         }
@@ -405,7 +414,7 @@ export const find: ActionFn = async (session, args) => {
     }
     // the data is capped like the text: `--json` output must not explode either
     const listed = matches.filter((i) => i <= last)
-    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: lines[i] })), total: matches.length, hidden } }
+    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: capLine(lines[i]) })), total: matches.length, hidden } }
 }
 
 /**
@@ -563,16 +572,11 @@ const MAX_IN_VIEW_CHARS = 3000
  * with refs, so an agent doesn't need a screenshot after scrolling.
  */
 export async function describeViewport (session: Session): Promise<string> {
-    const [width, height] = await viewportSize(session, false)
     // a report, not a snapshot the user took: `diff` keeps comparing against theirs
     const baseline = session.lastSnapshot
-    const { tree } = await takeSnapshot(session, { boxes: true })
+    const { tree } = await takeSnapshot(session, { viewport: true })
     session.lastSnapshot = baseline
-    const view = inViewport(tree, width, height)
-    if (!view) {
-        return ''
-    }
-    const lines = formatSnapshot(view, { compact: true }).split('\n')
+    const lines = formatSnapshot(tree, { compact: true }).split('\n')
     const out: string[] = []
     let size = 0
     for (const line of lines) {

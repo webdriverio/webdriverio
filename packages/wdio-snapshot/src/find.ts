@@ -31,17 +31,22 @@ const HEADING_LINE = /^\s*- heading\b/
 
 /**
  * The nearest heading line above a block that holds no heading itself, so a
- * match says which section it is in. Undefined when the block has one or
- * there is none.
+ * match says which section it is in: a heading of the block's own level or
+ * of a container around it, never one inside another container. Undefined
+ * when the block has one or there is none.
  */
 export function headingAbove (lines: string[], start: number, end: number): number | undefined {
     if (lines.slice(start, end + 1).some((line) => HEADING_LINE.test(line))) {
         return undefined
     }
+    // crossing out to a shallower line leaves the section the block is in: a heading deeper than that belongs to another one
+    let limit = indentOf(lines[start])
     for (let i = start - 1; i >= 0; i--) {
-        if (HEADING_LINE.test(lines[i])) {
+        const indent = indentOf(lines[i])
+        if (HEADING_LINE.test(lines[i]) && indent <= limit) {
             return i
         }
+        limit = Math.min(limit, indent)
     }
     return undefined
 }

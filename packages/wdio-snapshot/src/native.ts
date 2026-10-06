@@ -237,6 +237,10 @@ function selectorInfo (platform: NativePlatform, tag: string, attrs: Record<stri
 export interface Located {
     node: SnapshotNode
     candidates: string[]
+    /**
+     * the bare tag, used for a ref when none of its candidates is unique
+     */
+    fallback: string
 }
 
 interface Built {
@@ -280,7 +284,7 @@ function build (xml: XmlNode, platform: NativePlatform, opts: { all?: boolean },
         node.interactive = true
         refs.push({ id, role, name: name || undefined, candidates })
     }
-    located.push({ node, candidates })
+    located.push({ node, candidates, fallback: `//${selectorInfo(platform, xml.name, xml.attrs, name).tag}` })
     return { node, refs, located }
 }
 
@@ -295,7 +299,19 @@ export function parseNativeSource (xml: string, platform: NativePlatform, opts: 
     let counter = opts.counter || 0
     const built = build(parseXml(xml), platform, opts, () => `e${++counter}`)
     const tree = built?.node || { role: 'document' }
-    return { tree, refs: built?.refs || [], located: built?.located || [], counter }
+    const located = built?.located || []
+    const counts = new Map<string, number>()
+    for (const { candidates } of located) {
+        for (const candidate of new Set(candidates)) {
+            counts.set(candidate, (counts.get(candidate) || 0) + 1)
+        }
+    }
+    const fallbacks = new Map(located.flatMap(({ node, fallback }) => node.ref ? [[node.ref, fallback] as const] : []))
+    const refs = (built?.refs || []).map((ref) => {
+        const unique = ref.candidates.filter((candidate) => counts.get(candidate) === 1)
+        return { ...ref, candidates: unique.length ? unique : [fallbacks.get(ref.id) || ref.candidates[0]] }
+    })
+    return { tree, refs, located, counter }
 }
 
 function resourceIdOf (selector: string) {

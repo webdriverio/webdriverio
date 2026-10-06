@@ -52,6 +52,30 @@ describe('headingAbove', () => {
         expect(headingAbove(lines, 1, 2)).toBeUndefined()
         expect(headingAbove(lines, 0, 0)).toBeUndefined()
     })
+
+    it('never cites a heading from another top-level landmark', () => {
+        const page = [
+            '- document',
+            '  - banner',
+            '    - heading "Site" [level=2]',
+            '    - link "Home" [ref=e1]',
+            '  - main',
+            '    - list',
+            '      - button "Buy" [ref=e2]'
+        ]
+        expect(headingAbove(page, 5, 6)).toBeUndefined()
+    })
+
+    it('cites a heading that sits beside the container of the block', () => {
+        const page = [
+            '- document',
+            '  - main',
+            '    - heading "Pricing" [level=2]',
+            '    - list',
+            '      - button "Buy" [ref=e2]'
+        ]
+        expect(headingAbove(page, 3, 4)).toBe(2)
+    })
 })
 
 describe('stem', () => {

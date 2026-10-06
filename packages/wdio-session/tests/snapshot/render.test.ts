@@ -16,11 +16,11 @@ const refs = [{ id: 'e1', candidates: ['~On'] }, { id: 'e2', candidates: ['~Off'
 const fake = () => ({ lastSnapshot: undefined as string | undefined, browser: { getWindowSize: async () => ({ width: 400, height: 800 }) } }) as unknown as Session & { lastSnapshot?: string }
 
 describe('renderSnapshot', () => {
-    it('remembers what it printed as lastSnapshot', async () => {
+    it('remembers the canonical text of the whole tree as lastSnapshot, whatever was printed', async () => {
         const session = fake()
-        const text = await renderSnapshot(session, tree(), refs, { selectors: true }, true)
-        expect(text).toContain('- button "On" [ref=e1]  → ~On')
-        expect(session.lastSnapshot).toBe(text)
+        const text = await renderSnapshot(session, tree(), refs, { selectors: true, viewport: true, depth: 1, boxes: true }, true)
+        expect(text).toContain('- button "On" [ref=e1] [box=0,40,50,20]  → ~On')
+        expect(session.lastSnapshot).toBe('- document\n  - heading "Top"\n  - button "On" [ref=e1]\n  - button "Off" [ref=e2]')
     })
 
     it('drops what is outside the viewport and prints boxes only when asked', async () => {

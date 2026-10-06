@@ -146,8 +146,8 @@ describe('selectors', () => {
     })
 
     it('marks a selector that is only a guess, after url', () => {
-        expect(formatLine({ role: 'link', ref: 'e1', url: 'http://x', selector: 'nav > a', selectorUnverified: true }, { selectors: true }))
-            .toBe('- link [ref=e1] url=http://x  → nav > a (unverified)')
+        expect(formatLine({ role: 'link', ref: 'e1', url: 'http://x', selector: 'nav > a', selectorPositional: true }, { selectors: true }))
+            .toBe('- link [ref=e1] url=http://x  → nav > a (positional)')
     })
 
     it('leaves nodes without a ref alone', () => {
@@ -202,4 +202,26 @@ describe('onlyInteractive headings', () => {
             '    - link "Read the guide" [ref=e2]'
         ])
     })
+
+    it('ranks a heading without a level as 2, like ARIA', () => {
+        const unleveled: SnapshotNode = { role: 'heading', name: 'Plain' }
+        expect(render(heading('Section', 3), unleveled, link('Read', 'e1'))).not.toContain('Section')
+        expect(render(heading('Section', 1), unleveled, link('Read', 'e1'))).toContain('heading "Section"')
+    })
+
+    it('does not repeat a heading whose only interactive content is its own link', () => {
+        const titled: SnapshotNode = { role: 'heading', name: 'Title', states: ['level=2'], children: [link('Title', 'e1')] }
+        expect(render(titled, link('More', 'e2'))).toBe([
+            '- document',
+            '  - main',
+            '    - link "Title" [ref=e1]',
+            '    - link "More" [ref=e2]'
+        ].join('\n'))
+    })
+
+    it('keeps a heading whose link names something else', () => {
+        const titled: SnapshotNode = { role: 'heading', name: 'Title and more', states: ['level=2'], children: [link('Title', 'e1')] }
+        expect(render(titled)).toContain('heading "Title and more"')
+    })
 })
+
