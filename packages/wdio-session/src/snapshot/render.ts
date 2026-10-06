@@ -1,7 +1,13 @@
-import { attachSelectors, formatSnapshot, inViewport, type SnapshotNode, type SnapshotRef } from '@wdio/snapshot'
+import { attachSelectors, formatSnapshot as formatTree, inViewport, type FormatOptions, type SnapshotNode, type SnapshotRef } from '@wdio/snapshot'
 
 import type { SnapshotOptions } from '../actions/observe.js'
 import type { Session } from '../session.js'
+
+/**
+ * `@wdio/snapshot`'s formatter with the session's own `frame` command in the
+ * notes of cut and cross-origin iframes.
+ */
+export const formatSnapshot = (tree: SnapshotNode, opts: FormatOptions = {}) => formatTree(tree, { frameHint: (ref) => `wdio session frame ${ref}`, ...opts })
 
 async function viewportSize (session: Session): Promise<[number, number]> {
     const { width, height } = await session.browser.getWindowSize()

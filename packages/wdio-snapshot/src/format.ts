@@ -41,11 +41,11 @@ export interface SnapshotCandidate {
 /**
  * Web and native refs carry kind-tagged candidates, best first.
  */
-export interface SnapshotRef<C extends SnapshotCandidate = SnapshotCandidate> {
+export interface SnapshotRef {
     id: string
     role: string
     name?: string
-    candidates: C[]
+    candidates: SnapshotCandidate[]
 }
 
 export interface FormatOptions {
@@ -60,6 +60,11 @@ export interface FormatOptions {
      * end each ref line with `→ <selector>`, for nodes `attachSelectors` marked
      */
     selectors?: boolean
+    /**
+     * the command that opens a frame by ref, for the notes of cut and
+     * cross-origin iframes; without it they carry no instruction
+     */
+    frameHint?: (ref: string) => string
 }
 
 const LANDMARKS = new Set(['banner', 'navigation', 'main', 'contentinfo', 'complementary', 'region', 'form', 'search', 'dialog', 'alertdialog', 'iframe'])
@@ -201,10 +206,10 @@ export function formatLine (node: SnapshotNode, opts: FormatOptions = {}, trunca
         parts.push(`url=${node.url}`)
     }
     if (node.note === 'cut') {
-        parts.push(node.ref ? `(frame cut short: \`wdio session frame ${node.ref}\` and \`snapshot\` show all of it)` : '(frame cut short)')
+        parts.push(node.ref && opts.frameHint ? `(frame cut short: \`${opts.frameHint(node.ref)}\` and \`snapshot\` show all of it)` : '(frame cut short)')
     }
     if (node.note === 'cross-origin') {
-        parts.push(node.ref ? `(cross-origin: run \`wdio session frame ${node.ref}\`)` : '(cross-origin)')
+        parts.push(node.ref && opts.frameHint ? `(cross-origin: run \`${opts.frameHint(node.ref)}\`)` : '(cross-origin)')
     }
     return parts.join(' ') + selectorSuffix(node, opts)
 }

@@ -1,7 +1,7 @@
-import { SnapshotError } from './errors.js'
+import { usage } from '../errors.js'
 
 /** lines a `find` block may have before it is cut to a window around the match */
-export const MAX_BLOCK_LINES = 12
+const MAX_BLOCK_LINES = 12
 
 const indentOf = (line: string) => line.length - line.trimStart().length
 
@@ -107,7 +107,7 @@ const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&
 
 /**
  * The line test for a query: a case-insensitive regular expression or
- * substring. Throws `INVALID_REGEX` for a pattern that does not compile.
+ * substring. Throws a usage error for a pattern that does not compile.
  */
 export function lineTest (query: string, regex: boolean): (line: string) => boolean {
     if (regex) {
@@ -115,7 +115,7 @@ export function lineTest (query: string, regex: boolean): (line: string) => bool
         try {
             re = new RegExp(query, 'i')
         } catch (err) {
-            throw new SnapshotError('INVALID_REGEX', `Invalid regular expression: ${(err as Error).message}`)
+            throw usage(`Invalid regular expression: ${(err as Error).message}`)
         }
         return (line) => re.test(line)
     }

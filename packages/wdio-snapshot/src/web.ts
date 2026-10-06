@@ -37,7 +37,7 @@ export interface CollectOptions {
 export interface CollectResult {
     tree: SnapshotNode
     counter: number
-    refs: SnapshotRef<SnapshotCandidate>[]
+    refs: SnapshotRef[]
 }
 
 /**
@@ -52,7 +52,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         ? undefined
         : w.__wdioSession || (w.__wdioSession = { refs: new Map(), ids: new WeakMap() })
     let counter = opts.counter
-    const refs: SnapshotRef<SnapshotCandidate>[] = []
+    const refs: SnapshotRef[] = []
 
     const INTERACTIVE = new Set(['button', 'link', 'textbox', 'searchbox', 'checkbox', 'radio', 'switch', 'combobox', 'listbox', 'option',
         'menuitem', 'menuitemcheckbox', 'menuitemradio', 'tab', 'slider', 'spinbutton', 'treeitem'])

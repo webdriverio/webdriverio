@@ -4,6 +4,7 @@
  * not part of CI.
  *
  *   pnpm exec tsx e2e/session/bench-snapshot.ts [--n 15] [--url https://webdriver.io] [--pages index,long,frames,shadow]
+ *     [--out results.json] [--devtools ../devtools/packages/elements/dist/index.js]
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -11,15 +12,12 @@ import { performance } from 'node:perf_hooks'
 import { pathToFileURL } from 'node:url'
 
 import { remote } from 'webdriverio'
-import { knownRoles, roleTable } from '../../packages/wdio-utils/build/index.js'
-import { collectInPage, collectWeb } from '../../packages/wdio-snapshot/build/index.js'
+import { collectScript, collectWeb } from '../../packages/wdio-snapshot/build/index.js'
 import { createAgentSession } from '@wdio/session/agent'
 
 import { SITE, startServer } from './helpers.js'
 
 const WARMUP = 3
-const OUT_FILE = '/tmp/claude-1000/-home-winify-webdriverio-webdriverio/f91b11a7-5332-4396-bd7e-a00a00bc1de9/scratchpad/bench-baseline.json'
-const DEVTOOLS_ELEMENTS = '/home/winify/webdriverio/devtools/packages/elements/dist/index.js'
 const COUNTED = ['execute', 'executeScript', 'browsingContextGetTree', 'getWindowHandle', '$', '$$', 'findElement', 'findElements'] as const
 
 function arg (name: string, fallback?: string) {
@@ -29,6 +27,8 @@ function arg (name: string, fallback?: string) {
 
 const N = Number(arg('n', '15'))
 const extraUrl = arg('url')
+const OUT_FILE = arg('out')
+const DEVTOOLS_ELEMENTS = arg('devtools')
 const pageNames = arg('pages', 'index,long,frames,shadow')!.split(',').filter((p) => fs.existsSync(path.join(SITE, `${p}.html`)))
 
 function pct (values: number[], p: number) {
@@ -97,14 +97,14 @@ const browser = await remote({
 const agent = await createAgentSession(browser)
 
 const opts = { counter: 0, all: false, boxes: false, urls: false }
-const inPageArgs = { ...opts, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true }
-const inPageScript = `const t=performance.now(); (${collectInPage.toString()})(arguments[0]); return performance.now()-t`
+const inPageArgs = { ...opts, assignRefs: true as const }
+const inPageScript = (extendedCandidates?: boolean) => `const t=performance.now(); ${collectScript({ ...inPageArgs, extendedCandidates })}; return performance.now()-t`
 
 let devtools: { getSnapshot: (b: WebdriverIO.Browser, o: Record<string, unknown>) => Promise<unknown> } | undefined
-if (fs.existsSync(DEVTOOLS_ELEMENTS)) {
+if (DEVTOOLS_ELEMENTS && fs.existsSync(DEVTOOLS_ELEMENTS)) {
     devtools = await import(pathToFileURL(DEVTOOLS_ELEMENTS).href)
 } else {
-    console.log(`note: ${DEVTOOLS_ELEMENTS} not found, skipping devtools info rows`)
+    console.log('note: pass --devtools <path to @wdio/elements dist/index.js> for the devtools info rows')
 }
 
 const targets = [
@@ -124,12 +124,12 @@ try {
             const collect = await time(() => collectWeb(browser, opts, { transport: 'classic-first' }))
             const collectExtended = await time(() => collectWeb(browser, { ...opts, extendedCandidates: true }, { transport: 'classic-first' }))
             const inPage = await time(async () => {
-                const ms = await browser.executeScript(inPageScript, [inPageArgs]) as number
+                const ms = await browser.executeScript(inPageScript(), []) as number
                 inPageSamples.push(ms)
             })
             const inPageExtendedSamples: number[] = []
             await time(async () => {
-                inPageExtendedSamples.push(await browser.executeScript(inPageScript, [{ ...inPageArgs, extendedCandidates: true }]) as number)
+                inPageExtendedSamples.push(await browser.executeScript(inPageScript(true), []) as number)
             })
             const roundTrips = await countRoundTrips(browser, () => agent.snapshot())
             const row: Record<string, any> = {
@@ -172,6 +172,8 @@ for (const [name, r] of Object.entries(results)) {
     console.log(`${name}: ${r.error ? r.error : Object.entries(r.roundTrips as Counts).filter(([, c]) => c.calls).map(([k, c]) => `${k}=${c.calls}/${c.ms.toFixed(0)}ms`).join('  ') || 'none'}`)
 }
 
-fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true })
-fs.writeFileSync(OUT_FILE, JSON.stringify({ n: N, warmup: WARMUP, results }, null, 2))
-console.log(`\nwrote ${OUT_FILE}`)
+if (OUT_FILE) {
+    fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true })
+    fs.writeFileSync(OUT_FILE, JSON.stringify({ n: N, warmup: WARMUP, results }, null, 2))
+    console.log(`\nwrote ${OUT_FILE}`)
+}
