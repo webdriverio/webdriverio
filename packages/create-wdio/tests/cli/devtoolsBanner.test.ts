@@ -16,10 +16,10 @@ vi.mock('../../src/utils.js', async () => {
 })
 
 /** The success message the wizard prints for the given services. */
-async function successMessage(services: string[]) {
+async function successMessage(services: string[], npmInstall = true) {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {})
     try {
-        await runConfigCommand({ projectRootDir: '/project', services, rawAnswers: {} } as any, 'latest')
+        await runConfigCommand({ projectRootDir: '/project', services, npmInstall, rawAnswers: {} } as any, 'latest')
         return log.mock.calls.map(([line]) => String(line)).join('\n')
     } finally {
         log.mockRestore()
@@ -36,7 +36,18 @@ describe('DevTools banner', () => {
         expect(message.indexOf('DevTools is set up')).toBeLessThan(message.indexOf('To run your tests'))
     })
 
+    it('asks for the install first when the wizard skipped it', async () => {
+        // Only the install command was printed, so the service cannot start yet.
+        const message = await successMessage(['devtools'], false)
+
+        expect(message).not.toContain('DevTools is set up')
+        expect(message).toContain('once you install the dependencies listed above')
+    })
+
     it('stays out of the message when DevTools was not selected', async () => {
-        expect(await successMessage(['visual'])).not.toContain('DevTools is set up')
+        const message = await successMessage(['visual'])
+
+        expect(message).not.toContain('DevTools is set up')
+        expect(message).not.toContain('DevTools is configured')
     })
 })
