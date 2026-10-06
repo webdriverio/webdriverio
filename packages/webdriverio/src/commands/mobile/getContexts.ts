@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 
 import type { AndroidDetailedContext, AppiumDetailedCrossPlatformContexts, GetContextsOptions, IosDetailedContext } from '../../types.js'
+import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
 import type { Context } from '@wdio/protocols'
 
 const log = logger('webdriver')
@@ -45,7 +46,8 @@ const log = logger('webdriver')
  *
  * - The enhanced `getContexts` method works on both Android and iOS platforms. However, the returned data may vary depending on the platform and app under test.
  * - If you do not specify the `returnDetailedContexts` option, the method behaves like the default Appium `contexts` method, returning a simple context array.
- * - To use the "default" Appium `contexts` method, use `driver.getAppiumProtocolContexts()` (since Appium 3.7) or `driver.getAppiumContexts()`. For more information, see the [Appium Contexts documentation](/docs/api/appium#getappiumprotocolcontexts).
+ * - Uses the `/appium/contexts` endpoint by default, falling back to `/contexts` for Appium < 3.7.
+ * - To use the "default" Appium `contexts` method, use `driver.getAppiumProtocolContexts()` (Appium 3.7+) or `driver.getAppiumContexts()`. For more information, see the [Appium Contexts documentation](/docs/api/appium#getappiumprotocolcontexts).
  *
  * #### Android Webviews:
  * - Metadata such as `androidWebviewData` is available only when `returnAndroidDescriptionData` is `true`.
@@ -187,7 +189,16 @@ export async function getContexts(
     if (!options || !options.returnDetailedContexts) {
         log.info('The standard Appium `contexts` method is used. If you want to get more detailed data, you can set `returnDetailedContexts` to `true`.')
 
-        return browser.getAppiumContexts()
+        try {
+            return await browser.getAppiumProtocolContexts()
+        } catch (err: unknown) {
+            if (!isUnknownMethodError(err)) {
+                throw err
+            }
+
+            logAppiumDeprecationWarning('/appium/contexts', '/contexts')
+            return browser.getAppiumContexts()
+        }
     }
 
     const defaultOptions = {

@@ -444,3 +444,45 @@ describe('ContextManager', () => {
         expect(await manager.getCurrentTopLevelContext()).toBe('top')
     })
 })
+
+describe('mobile', () => {
+    let manager: ReturnType<typeof getContextManager>
+    let commandHandler: (arg: any) => any
+    let resultHandler: (arg: any) => any
+
+    beforeEach(() => {
+        const stub = createBrowserStub({ isMobile: true } as any)
+        manager = getContextManager(stub.browser)
+        const commandHandlers = stub.getListeners().command
+        const resultHandlers = stub.getListeners().result
+        commandHandler = commandHandlers![commandHandlers!.length - 1]
+        resultHandler = resultHandlers![resultHandlers!.length - 1]
+    })
+
+    for (const setContextCommand of ['setAppiumContext', 'switchAppiumContext']) {
+        it(`tracks ${setContextCommand} commands`, () => {
+            commandHandler({ command: setContextCommand, body: { name: 'WEBVIEW_1' } })
+            expect(manager.mobileContext).toBe('WEBVIEW_1')
+        })
+
+        it(`updates the current context from a successful ${setContextCommand} result`, async () => {
+            commandHandler({ command: setContextCommand, body: { name: 'WEBVIEW_1' } })
+            resultHandler({ command: setContextCommand, result: { value: null } })
+            expect(await manager.getCurrentContext()).toBe('WEBVIEW_1')
+        })
+    }
+
+    for (const getContextCommand of ['getCurrentAppiumContext', 'getAppiumContext']) {
+        it(`updates the current context from ${getContextCommand} results`, async () => {
+            resultHandler({ command: getContextCommand, result: { value: 'WEBVIEW_1' } })
+            expect(await manager.getCurrentContext()).toBe('WEBVIEW_1')
+        })
+
+        it(`does not update the current context when a ${getContextCommand} result is undefined`, () => {
+            const setCurrentContext = vi.spyOn(manager, 'setCurrentContext')
+            resultHandler({ command: getContextCommand, result: { value: undefined } })
+            expect(setCurrentContext).not.toHaveBeenCalled()
+            setCurrentContext.mockRestore()
+        })
+    }
+})

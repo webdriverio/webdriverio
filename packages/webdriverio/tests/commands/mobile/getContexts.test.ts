@@ -387,6 +387,27 @@ describe('getContexts test', () => {
         await expect(browser.getContexts()).rejects.toThrow('The `getContexts` command is only available for mobile platforms.')
     })
 
+    it('should fallback to getAppiumContexts if getAppiumProtocolContexts is not supported', async () => {
+        logSpy = vi.spyOn(log, 'warn')
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+            } as any,
+        })
+        vi.spyOn(browser, 'getAppiumProtocolContexts').mockRejectedValue(new Error('unknown command: getAppiumProtocolContexts'))
+        const getAppiumContextsSpy = vi.spyOn(browser, 'getAppiumContexts').mockResolvedValue([])
+
+        await browser.getContexts()
+
+        expect(getAppiumContextsSpy).toHaveBeenCalledTimes(1)
+        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('/appium/contexts'))
+
+        logSpy.mockRestore()
+        getAppiumContextsSpy.mockRestore()
+    })
+
     it('should throw an error when the current app does not match', async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',

@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 import type { Context, DetailedContext } from '@wdio/protocols'
 import type { AppiumDetailedCrossPlatformContexts, GetContextsOptions } from '../../types.js'
+import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
 
 const log = logger('webdriver')
 
@@ -36,7 +37,8 @@ const log = logger('webdriver')
  * :::info Notes and Limitations
  *
  * - If `returnDetailedContext` is not enabled, the method behaves like the default Appium `getContext` method.
- * - If you want to use the "default" Appium `context` method, you can use the `driver.getCurrentAppiumContext()` (since Appium 3.7) or `driver.getAppiumContext()` methods, see
+ * - Uses the `/appium/context` endpoint by default, falling back to `/context` for Appium < 3.7.
+ * - If you want to use the "default" Appium `context` method, you can use the `driver.getCurrentAppiumContext()` (Appium 3.7+) or `driver.getAppiumContext()` methods, see
  * also the [Appium Contexts](/docs/api/appium#getcurrentappiumcontext) command.
  * - **Android:** Android-specific options (`androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout`) have no effect on iOS.
  * - Logs warnings if multiple or no detailed contexts are found:
@@ -134,7 +136,18 @@ export async function getContext(
         throw new Error('The `getContext` command is only available for mobile platforms.')
     }
 
-    const currentAppiumContext: Context = await browser.getAppiumContext()
+    let currentAppiumContext: Context
+
+    try {
+        currentAppiumContext = await browser.getCurrentAppiumContext()
+    } catch (err: unknown) {
+        if (!isUnknownMethodError(err)) {
+            throw err
+        }
+
+        logAppiumDeprecationWarning('/appium/context', '/context')
+        currentAppiumContext = await browser.getAppiumContext()
+    }
 
     if ((!options || !options?.returnDetailedContext) || currentAppiumContext === 'NATIVE_APP') {
         return currentAppiumContext
