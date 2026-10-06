@@ -325,9 +325,9 @@ __Note:__ This only has an effect if you provide `user` and `key` options that a
 
 Type: `String`<br />
 Default: `us`<br />
-Options: `us` | `eu` | `us-west-1` | `eu-central-1` | `us-east-4` | `staging`
+Options: `us` | `eu` | `us-west-1` | `eu-central-1` | `us-east-4` | `asia-south-2` | `staging`
 
-*(only for vm and or em/simulators)*
+*(only for vm and or em/simulators, except `us-east-4` and `asia-south-2` which host real devices only)*
 
 ---
 

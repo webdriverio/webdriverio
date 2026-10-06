@@ -335,6 +335,16 @@ describe('SpecReporter', () => {
                 }
                 printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
+
+                printReporter.write.mockClear()
+
+                printReporter.runnerStat.instanceOptions[fakeSessionId] = {
+                    hostname: 'ondemand.asia-south-2.saucelabs.com',
+                    user: 'foobar',
+                    key: '123'
+                }
+                printReporter.printReport(getRunnerConfig({}))
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
         })
 
