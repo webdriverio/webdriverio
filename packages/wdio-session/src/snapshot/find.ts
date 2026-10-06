@@ -149,3 +149,28 @@ export function searchLines (snapshotText: string, query: string, test: (line: s
     }
     return { ...found, note: '' }
 }
+
+/**
+ * Where the query matched in a line: the query itself, else the spaces-free
+ * form, else the first of its words (or their stems). 0 when nothing shows.
+ */
+export function matchIndex (line: string, query: string, regex: boolean) {
+    if (regex) {
+        return new RegExp(query, 'i').exec(line)?.index ?? 0
+    }
+    const lower = line.toLowerCase()
+    const needle = query.toLowerCase()
+    const direct = lower.indexOf(needle)
+    if (direct >= 0) {
+        return direct
+    }
+    const squeezed = [...needle.replace(/\s+/g, '')].map(escapeRegExp).join('\\s*')
+    const spaced = squeezed ? new RegExp(squeezed, 'i').exec(line)?.index : undefined
+    if (spaced !== undefined) {
+        return spaced
+    }
+    const found = needle.split(/\s+/).filter(Boolean)
+        .flatMap((w) => [lower.indexOf(w), lower.indexOf(stem(w))])
+        .filter((i) => i >= 0)
+    return found.length ? Math.min(...found) : 0
+}
