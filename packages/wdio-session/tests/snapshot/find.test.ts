@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { headingAbove, matchLines, readableUrl, stem } from '../src/find.js'
+import { headingAbove, matchLines, readableUrl, stem } from '../../src/snapshot/find.js'
 
 describe('readableUrl', () => {
     it('reads underscores, plus signs and escapes as text', () => {

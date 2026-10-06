@@ -62,8 +62,6 @@ export class SessionError extends Error {
 export const usage = (message: string, hint?: string) => new SessionError('USAGE', message, { hint })
 export const notSupported = (message: string, hint?: string) => new SessionError('NOT_SUPPORTED', message, { hint })
 
-const USAGE_SNAPSHOT_CODES = new Set(['USAGE', 'INVALID_REGEX'])
-
 /**
  * Run snapshot code, turning its usage errors into the session's `USAGE`.
  */
@@ -71,7 +69,7 @@ export function asUsage<T> (fn: () => T): T {
     try {
         return fn()
     } catch (err) {
-        if (err instanceof SnapshotError && USAGE_SNAPSHOT_CODES.has(err.code)) {
+        if (err instanceof SnapshotError && err.code === 'USAGE') {
             throw usage(err.message, err.hint)
         }
         throw err

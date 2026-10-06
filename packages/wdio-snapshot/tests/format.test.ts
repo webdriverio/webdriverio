@@ -41,9 +41,15 @@ describe('formatLine', () => {
     })
 
     it('points to the frame command for cross-origin iframes', () => {
-        expect(formatLine({ role: 'iframe', name: 'Ads', ref: 'e9', note: 'cross-origin' }))
+        const frameHint = (ref: string) => `wdio session frame ${ref}`
+        expect(formatLine({ role: 'iframe', name: 'Ads', ref: 'e9', note: 'cross-origin' }, { frameHint }))
             .toBe('- iframe "Ads" [ref=e9] (cross-origin: run `wdio session frame e9`)')
-        expect(formatLine({ role: 'iframe', note: 'cross-origin' })).toBe('- iframe (cross-origin)')
+        expect(formatLine({ role: 'iframe', note: 'cross-origin' }, { frameHint })).toBe('- iframe (cross-origin)')
+    })
+
+    it('prints neutral frame notes without a frame hint', () => {
+        expect(formatLine({ role: 'iframe', name: 'Ads', ref: 'e9', note: 'cross-origin' })).toBe('- iframe "Ads" [ref=e9] (cross-origin)')
+        expect(formatLine({ role: 'iframe', ref: 'e9', note: 'cut' })).toBe('- iframe [ref=e9] (frame cut short)')
     })
 
     it('marks truncated subtrees', () => {

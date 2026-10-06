@@ -3,14 +3,15 @@ import path from 'node:path'
 
 import { imageSize } from 'image-size'
 import {
-    blockAround, collectWeb, countRefs, formatSnapshot, headingAbove, lineTest, searchLines, unifiedDiff,
+    collectWeb, countRefs, unifiedDiff,
     type CollectOptions, type SnapshotNode, type SnapshotRef
 } from '@wdio/snapshot'
 
-import { SessionError, asUsage, notSupported } from '../errors.js'
+import { SessionError, notSupported } from '../errors.js'
 import { quote } from '../quote.js'
+import { blockAround, headingAbove, lineTest, searchLines } from '../snapshot/find.js'
 import { takeNativeSnapshot } from '../snapshot/native.js'
-import { renderSnapshot } from '../snapshot/render.js'
+import { formatSnapshot, renderSnapshot } from '../snapshot/render.js'
 import { resolveElement, resolveTarget, scopeOf } from '../snapshot/target.js'
 import { currentPage, frameBySrc, frameContext } from './contexts.js'
 import type { ActionFn, Session } from '../session.js'
@@ -342,7 +343,7 @@ export const find: ActionFn = async (session, args) => {
     const before = typeof args.beforeContext === 'number' ? args.beforeContext : typeof args.context === 'number' ? args.context : 0
     const after = typeof args.afterContext === 'number' ? args.afterContext : typeof args.context === 'number' ? args.context : 0
     const regex = Boolean(args.regex)
-    const test = asUsage(() => lineTest(query, regex))
+    const test = lineTest(query, regex)
     const search = (snapshotText: string) => searchLines(snapshotText, query, test, regex)
     const { text: linked } = await takeSnapshot(session, { urls: true, scope })
     let { lines, shown, matches, note } = search(linked)
