@@ -411,6 +411,17 @@ describe('emulate', () => {
         expect(fakeScope.emulationSetViewportMetaOverride).not.toBeCalled()
     })
 
+    it('should keep a touch override set after a desktop device when that device is restored', async () => {
+        const fakeScope = bidiBrowser()
+        const restore = await fakeScope.emulate('device', 'Desktop Chrome')
+        await fakeScope.emulate('touch', 4)
+        await restore()
+        expect(fakeScope.emulationSetTouchOverride).toHaveBeenLastCalledWith({ maxTouchPoints: 4, contexts: CONTEXTS })
+
+        await fakeScope.emulate('device', 'Desktop Chrome')
+        expect(fakeScope.emulationSetTouchOverride).toHaveBeenLastCalledWith({ maxTouchPoints: null, contexts: CONTEXTS })
+    })
+
     it('should clear touch and mobile layout when switching from a mobile to a desktop device', async () => {
         const fakeScope = bidiBrowser()
         await fakeScope.emulate('device', 'iPhone 8')

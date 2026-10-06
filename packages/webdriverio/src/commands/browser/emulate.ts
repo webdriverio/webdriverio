@@ -6,7 +6,7 @@ import { deviceDescriptorsSource, type DeviceName } from '../../deviceDescriptor
 import { restoreFunctions } from '../../constants.js'
 import { getContextManager } from '../../session/context.js'
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { claimRestore, rememberOverride, rememberedOverride, type RememberedViewport } from '../../session/emulationState.js'
+import { claimRestore, rememberOverride, rememberedOverride, type RememberedOverrides, type RememberedViewport } from '../../session/emulationState.js'
 import type { SupportedScopes } from '../../types.js'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -243,6 +243,12 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
         undo: () => Promise<unknown>
         clear: () => Promise<unknown>
         /**
+         * What this step sets in the remembered state when it is applied, and
+         * when it is cleared. Steps that did not run leave that state alone.
+         */
+        remember: RememberedOverrides
+        forget: RememberedOverrides
+        /**
          * `null` clears the override. Skip the call when there is nothing to
          * clear, so a desktop device does not need every command.
          */
@@ -260,7 +266,9 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
                 userAgent: previous.userAgent === undefined ? null : previous.userAgent,
                 contexts
             }),
-            clear: () => browser.emulationSetUserAgentOverride({ userAgent: null, contexts })
+            clear: () => browser.emulationSetUserAgentOverride({ userAgent: null, contexts }),
+            remember: { userAgent: device.userAgent },
+            forget: { userAgent: null }
         },
         {
             apply: () => setCapturedViewport(browser, context, {
@@ -276,7 +284,15 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
             clear: () => setCapturedViewport(browser, context, {
                 width: desktop.viewport.width,
                 height: desktop.viewport.height
-            }, desktop.deviceScaleFactor)
+            }, desktop.deviceScaleFactor),
+            remember: { viewport: deviceViewport },
+            forget: {
+                viewport: {
+                    width: desktop.viewport.width,
+                    height: desktop.viewport.height,
+                    devicePixelRatio: desktop.deviceScaleFactor
+                }
+            }
         },
         {
             apply: () => browser.emulationSetTouchOverride({ maxTouchPoints: deviceTouch, contexts }),
@@ -285,6 +301,8 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
                 contexts
             }),
             clear: () => browser.emulationSetTouchOverride({ maxTouchPoints: null, contexts }),
+            remember: { touch: deviceTouch },
+            forget: { touch: null },
             skip: deviceTouch === null && (previous.touch ?? null) === null
         },
         {
@@ -294,6 +312,8 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
                 contexts
             }),
             clear: () => browser.emulationSetTextLayoutModeOverride({ textLayoutMode: null, contexts }),
+            remember: { textLayout: deviceTextLayout },
+            forget: { textLayout: null },
             skip: deviceTextLayout === null && (previous.textLayout ?? null) === null,
             optional: true
         },
@@ -304,6 +324,8 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
                 contexts
             }),
             clear: () => browser.emulationSetViewportMetaOverride({ viewportMeta: null, contexts }),
+            remember: { viewportMeta: deviceViewportMeta },
+            forget: { viewportMeta: null },
             skip: deviceViewportMeta === null && (previous.viewportMeta ?? null) === null,
             optional: true
         }
@@ -339,14 +361,7 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
     }
 
     const current = claimRestore(browser, 'device', contexts)
-    const [, , , textLayoutStep, viewportMetaStep] = steps
-    rememberOverride(browser, context, {
-        userAgent: device.userAgent,
-        touch: deviceTouch,
-        textLayout: applied.includes(textLayoutStep) ? deviceTextLayout : previous.textLayout,
-        viewportMeta: applied.includes(viewportMetaStep) ? deviceViewportMeta : previous.viewportMeta,
-        viewport: deviceViewport
-    })
+    rememberOverride(browser, context, Object.assign({}, ...applied.map((step) => step.remember)))
     const restore = async () => {
         if (!current()) {
             return
@@ -354,17 +369,7 @@ async function emulateDevice (target: EmulationTarget, name: unknown) {
         for (const step of [...applied].reverse()) {
             await step.clear()
         }
-        rememberOverride(browser, context, {
-            userAgent: null,
-            touch: null,
-            textLayout: null,
-            viewportMeta: null,
-            viewport: {
-                width: desktop.viewport.width,
-                height: desktop.viewport.height,
-                devicePixelRatio: desktop.deviceScaleFactor
-            }
-        })
+        rememberOverride(browser, context, Object.assign({}, ...applied.map((step) => step.forget)))
     }
     storeRestoreFunction(browser, 'device', restore)
     return restore
