@@ -197,7 +197,7 @@ export async function getContexts(
             }
 
             logAppiumDeprecationWarning('/appium/contexts', '/contexts')
-            return browser.getAppiumContexts()
+            return await browser.getAppiumContexts()
         }
     }
 

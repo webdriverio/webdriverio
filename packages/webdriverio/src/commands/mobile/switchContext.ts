@@ -281,6 +281,6 @@ async function switchContextWithFallback(browser: WebdriverIO.Browser, context: 
         }
 
         logAppiumDeprecationWarning('/appium/context', '/context')
-        browser.switchAppiumContext(context)
+        await browser.switchAppiumContext(context)
     }
 }

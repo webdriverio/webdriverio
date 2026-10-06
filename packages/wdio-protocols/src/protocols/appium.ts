@@ -45,7 +45,7 @@ export default {
             deprecated: 'This command is deprecated, use `getCurrentAppiumContext` (Appium 3.7+) instead',
             parameters: [],
             returns: {
-                type: 'Context',
+                type: 'string',
                 name: 'context',
                 description: 'a string representing the current context',
             },
@@ -57,8 +57,8 @@ export default {
             deprecated: 'This command is deprecated, use `setAppiumContext` (Appium 3.7+) instead',
             parameters: [
                 {
+                    type: 'string',
                     name: 'name',
-                    type: 'Context',
                     description: 'a string representing an available context',
                     required: true,
                 },
@@ -73,7 +73,7 @@ export default {
             deprecated: 'This command is deprecated, use `getAppiumProtocolContexts` (Appium 3.7+) instead',
             parameters: [],
             returns: {
-                type: 'Context[]',
+                type: 'string[]',
                 name: 'contexts',
                 description:
                     "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'",
@@ -87,7 +87,7 @@ export default {
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getcurrentappiumcontext',
             parameters: [],
             returns: {
-                type: 'Context',
+                type: 'string',
                 name: 'context',
                 description: 'a string representing the current context',
             },
@@ -98,8 +98,8 @@ export default {
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#setappiumcontext',
             parameters: [
                 {
+                    type: 'string',
                     name: 'name',
-                    type: 'Context',
                     description: 'a string representing an available context',
                     required: true,
                 },
@@ -113,7 +113,7 @@ export default {
             ref: 'https://appium.io/docs/en/latest/reference/api/appium/#getappiumcontexts',
             parameters: [],
             returns: {
-                type: 'Context[]',
+                type: 'string[]',
                 name: 'contexts',
                 description:
                     "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'",

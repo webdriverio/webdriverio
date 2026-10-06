@@ -18,7 +18,7 @@ export function isUnknownMethodError(err: unknown): boolean {
     if (!(err instanceof Error)) {
         return false
     }
-    const msg = err.message.toLowerCase()
+    const msg = err.name.toLowerCase()
     return msg.includes('unknown method') || msg.includes('unknown command')
 }
 
