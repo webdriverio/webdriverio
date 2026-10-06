@@ -35,6 +35,16 @@ export interface CollectWebResult extends CollectResult {
  */
 const COLLECT_BIDI_SCRIPT = `return (${collectInPage.toString()})(JSON.parse(arguments[0]), arguments[1])`
 
+/**
+ * The collector as one self-contained expression for any page-eval API
+ * (`page.evaluate`, `Runtime.evaluate`): it evaluates to a `CollectResult`.
+ * The role table travels inside the script, as one JSON literal parsed in the page.
+ */
+export function collectScript (opts: Omit<CollectOptions, 'roles' | 'knownRoles'>): string {
+    const json = JSON.stringify({ ...opts, roles: roleTable(), knownRoles: knownRoles() })
+    return `(${collectInPage.toString()})(JSON.parse(${JSON.stringify(json)}))`
+}
+
 let rolesFragment: string | undefined
 /** `"roles":…,"knownRoles":…`, stringified once per process */
 const rolesAsJson = () => rolesFragment ??= `"roles":${JSON.stringify(roleTable())},"knownRoles":${JSON.stringify(knownRoles())}`
@@ -49,9 +59,10 @@ const rolesAsJson = () => rolesFragment ??= `"roles":${JSON.stringify(roleTable(
  * document uses it. Frames and other tabs the session holds as BiDi browsing
  * contexts keep using `execute`, which targets them.
  */
-export async function collectWeb (context: WebdriverIO.Browser, opts: Omit<CollectOptions, 'roles' | 'assignRefs'>, how: CollectHow): Promise<CollectWebResult> {
+export async function collectWeb (context: WebdriverIO.Browser, opts: Omit<CollectOptions, 'roles' | 'assignRefs'> & { assignRefs?: CollectOptions['assignRefs'] }, how: CollectHow): Promise<CollectWebResult> {
+    const assignRefs = opts.assignRefs ?? true
     const bidi = () => {
-        const json = `${JSON.stringify({ ...opts, assignRefs: true }).slice(0, -1)},${rolesAsJson()}}`
+        const json = `${JSON.stringify({ ...opts, assignRefs }).slice(0, -1)},${rolesAsJson()}}`
         return context.execute(COLLECT_BIDI_SCRIPT, json, ...(how.scope ? [how.scope as unknown as Element] : [])) as Promise<CollectResult>
     }
     if (how.scope) {
@@ -59,7 +70,7 @@ export async function collectWeb (context: WebdriverIO.Browser, opts: Omit<Colle
     }
     if (how.transport === 'classic-first') {
         try {
-            const args: CollectOptions = { ...opts, roles: roleTable(), knownRoles: knownRoles(), assignRefs: true }
+            const args: CollectOptions = { ...opts, roles: roleTable(), knownRoles: knownRoles(), assignRefs }
             return await context.executeScript(COLLECT_SCRIPT, [args]) as ReturnType<typeof collectInPage>
         } catch {
             // a driver without the classic endpoint in BiDi sessions: stay on BiDi

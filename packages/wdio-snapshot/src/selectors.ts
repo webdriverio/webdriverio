@@ -1,4 +1,4 @@
-import type { SnapshotNode, SnapshotRef } from './format.js'
+import type { SnapshotCandidate, SnapshotNode, SnapshotRef } from './format.js'
 
 export interface SelectorNode {
     platform: 'android' | 'ios' | 'mac' | 'windows'
@@ -53,19 +53,23 @@ export function nativeCandidates (node: SelectorNode): string[] {
     return out
 }
 
+const BARE_TAG_PATH = /^\/\/[\w.$-]+$/
+
 /**
  * Set `selector` on the nodes that have a ref, to the ref's best candidate.
- * A web element whose only candidate is the positional `cssPath` and a native
- * element that only got `//<tag>` are marked unverified.
+ * Every candidate but the last-resort positional one (the web `cssPath`, the
+ * native `//<tag>`) was verified unique when the snapshot was taken; a node
+ * that fell back to the positional one is marked `selectorPositional`.
  */
-export function attachSelectors (tree: SnapshotNode, refs: Pick<SnapshotRef, 'id' | 'candidates'>[], kind: 'web' | 'native') {
-    const candidates = new Map(refs.map((ref) => [ref.id, ref.candidates]))
+export function attachSelectors (tree: SnapshotNode, refs: Pick<SnapshotRef<SnapshotCandidate | string>, 'id' | 'candidates'>[], kind: 'web' | 'native') {
+    const candidates = new Map(refs.map((ref) => [ref.id, ref.candidates.map((c) => typeof c === 'string' ? c : c.selector)]))
     const visit = (node: SnapshotNode) => {
-        const [first, ...rest] = (node.ref && candidates.get(node.ref)) || []
+        const list = (node.ref && candidates.get(node.ref)) || []
+        const [first] = list
         if (first) {
             node.selector = first
-            if (!rest.length && (kind === 'web' || /^\/\/[\w.$-]+$/.test(first))) {
-                node.selectorUnverified = true
+            if (kind === 'web' ? list.length === 1 : BARE_TAG_PATH.test(first)) {
+                node.selectorPositional = true
             }
         }
         node.children?.forEach(visit)

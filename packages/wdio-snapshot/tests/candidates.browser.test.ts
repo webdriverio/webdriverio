@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
  * from the source: the `@wdio/utils` entry point needs Node.js
  */
 import { knownRoles, roleTable } from '../../wdio-utils/src/roles.js'
+import { attachSelectors } from '../src/selectors.js'
 import { collectInPage, type CollectOptions } from '../src/web.js'
 
 /**
@@ -15,7 +16,14 @@ function candidatesOf (html: string) {
     const collect = new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
     const opts: CollectOptions = { roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true }
     const { refs } = collect(opts)
-    return (role: string, name: string) => refs.find((ref) => ref.role === role && ref.name === name)?.candidates
+    return (role: string, name: string) => refs.find((ref) => ref.role === role && ref.name === name)?.candidates.map((c) => c.selector)
+}
+
+function taggedCandidatesOf (html: string, role: string, name: string, extendedCandidates = false) {
+    document.body.innerHTML = html
+    const collect = new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
+    const { refs } = collect({ roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true, extendedCandidates })
+    return refs.find((ref) => ref.role === role && (ref.name ?? '') === name)?.candidates
 }
 
 describe('snapshot selector candidates', () => {
@@ -68,11 +76,93 @@ describe('snapshot selector candidates', () => {
         const { refs } = collect({ roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true })
         const payNow = refs.filter((ref) => ref.role === 'button' && ref.name === 'Pay now')
         expect(payNow).toHaveLength(1)
-        expect(payNow[0].candidates).toContain('role/button[name="Pay now"]')
+        expect(payNow[0].candidates).toContainEqual({ kind: 'role', selector: 'role/button[name="Pay now"]' })
     })
 
     it('escapes quotes and backslashes in the name', () => {
         const candidates = candidatesOf('<button>Say "hi" \\ bye</button>')
         expect(candidates('button', 'Say "hi" \\ bye')).toContain('role/button[name="Say \\"hi\\" \\\\ bye"]')
+    })
+
+    it('has no tag=text candidate for identical buttons and falls back to the positional path', () => {
+        document.body.innerHTML = '<main><button>Add to cart</button><button>Add to cart</button><button>Add to cart</button></main>'
+        const collect = new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
+        const { refs } = collect({ roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true })
+        const buttons = refs.filter((ref) => ref.role === 'button')
+        expect(buttons).toHaveLength(3)
+        for (const [i, ref] of buttons.entries()) {
+            expect(ref.candidates.some((candidate) => candidate.selector.startsWith('button='))).toBe(false)
+            expect(ref.candidates).toEqual([{ kind: 'css-path', selector: `main > button:nth-of-type(${i + 1})` }])
+        }
+        const tree = { role: 'document', children: buttons.map((ref) => ({ role: 'button', name: ref.name, ref: ref.id })) }
+        attachSelectors(tree, buttons, 'web')
+        expect(tree.children.map((child) => (child as { selectorPositional?: boolean }).selectorPositional)).toEqual([true, true, true])
+    })
+
+    it('keeps the tag=text candidate for a unique label that no better selector names', () => {
+        const candidates = candidatesOf('<a href="/x">Docs</a>')
+        expect(candidates('link', 'Docs')).toContain('a=Docs')
+    })
+
+    it('has no aria/ candidate for a name another element of any role shares', () => {
+        const candidates = candidatesOf('<button>Search</button><div aria-label="Search">x</div>')
+        expect(candidates('button', 'Search')).not.toContain('aria/Search')
+    })
+
+    it('keeps every base kind but adds no extended kind once MAX_CANDIDATES unique ones exist', () => {
+        const html = '<main><button id="add" name="go" type="submit" aria-label="Go" class="btn primary">Add</button></main>'
+        const expected = ['role', 'aria', 'id', 'name', 'css-path']
+        expect(taggedCandidatesOf(html, 'button', 'Go')?.map((c) => c.kind)).toEqual(expected)
+        expect(taggedCandidatesOf(html, 'button', 'Go', true)?.map((c) => c.kind)).toEqual(expected)
+    })
+
+    it('tags test ids and text', () => {
+        expect(taggedCandidatesOf('<button data-testid="add">Add</button>', 'button', 'Add')?.[0]).toEqual({ kind: 'testid', selector: '[data-testid="add"]' })
+        expect(taggedCandidatesOf('<a href="/x">Docs</a>', 'link', 'Docs')?.map((c) => c.kind)).toContain('text')
+    })
+
+    const NAMED_DIV = '<div tabindex="0" aria-label="Go" class="btn primary">Docs</div>'
+
+    it('adds no aria-label, type, class or xpath-text candidate unless extendedCandidates is on', () => {
+        const kinds = (html: string, role: string, name: string, extended: boolean) => taggedCandidatesOf(html, role, name, extended)?.map((c) => c.kind)
+        const extendedKinds = ['aria-label', 'type', 'class', 'xpath-text']
+        for (const [html, role, name] of [[NAMED_DIV, 'generic', 'Go'], ['<input type="email" class="f">', 'textbox', ''], [`${NAMED_DIV}<span aria-label="Go">x</span>`, 'generic', 'Go']]) {
+            expect(kinds(html, role, name, false)?.some((kind) => extendedKinds.includes(kind as string))).toBe(false)
+            expect(kinds(html, role, name, true)?.some((kind) => extendedKinds.includes(kind as string))).toBe(true)
+        }
+    })
+
+    it('tags aria-label, type and class with extendedCandidates', () => {
+        expect(taggedCandidatesOf(NAMED_DIV, 'generic', 'Go', true)).toEqual([
+            { kind: 'aria', selector: 'aria/Go' },
+            { kind: 'aria-label', selector: '[aria-label="Go"]' },
+            { kind: 'class', selector: 'div.btn' },
+            { kind: 'css-path', selector: 'div' }
+        ])
+        expect(taggedCandidatesOf('<input type="email" class="f">', 'textbox', '', true)).toEqual([
+            { kind: 'type', selector: 'input[type="email"]' },
+            { kind: 'class', selector: 'input.f' },
+            { kind: 'css-path', selector: 'input' }
+        ])
+    })
+
+    it('adds xpath-text only when no other unique candidate was found', () => {
+        const twinned = '<div tabindex="0" aria-label="Go">Docs</div><span aria-label="Go">x</span>'
+        expect(taggedCandidatesOf(twinned, 'generic', 'Go', true)?.map((c) => c.kind)).toEqual(['xpath-text', 'css-path'])
+        expect(taggedCandidatesOf(NAMED_DIV, 'generic', 'Go', true)?.some((c) => c.kind === 'xpath-text')).toBe(false)
+    })
+
+    it('skips generated-looking classes and non-unique types and classes', () => {
+        const generated = taggedCandidatesOf('<button class="css-1a2b3c4d">Solo</button>', 'button', 'Solo', true)
+        expect(generated?.some((c) => c.kind === 'class')).toBe(false)
+        const twins = taggedCandidatesOf('<input type="text" class="f" aria-label="One"><input type="text" class="f" aria-label="Two">', 'textbox', 'One', true)
+        expect(twins?.some((c) => c.kind === 'type' || c.kind === 'class')).toBe(false)
+    })
+
+    it('quotes xpath text with either quote kind, and skips text with both', () => {
+        const twinned = (text: string) => `<div tabindex="0" aria-label="Go">${text}</div><span aria-label="Go">x</span>`
+        expect(taggedCandidatesOf(twinned('Don\'t'), 'generic', 'Go', true)).toContainEqual({ kind: 'xpath-text', selector: '//div[contains(., "Don\'t")]' })
+        expect(taggedCandidatesOf(twinned('Say "hi"'), 'generic', 'Go', true)).toContainEqual({ kind: 'xpath-text', selector: '//div[contains(., \'Say "hi"\')]' })
+        expect(taggedCandidatesOf(twinned('It\'s "x"'), 'generic', 'Go', true)?.some((c) => c.kind === 'xpath-text')).toBe(false)
     })
 })

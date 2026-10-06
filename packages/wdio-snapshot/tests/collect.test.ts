@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { roleTable } from '@wdio/utils'
-import { collectWeb } from '../src/collect.js'
+import { collectScript, collectWeb } from '../src/collect.js'
 
 const RESULT = { tree: { role: 'document', children: [] }, counter: 3 }
+const OPTS = { counter: 0, all: false, boxes: false } satisfies Parameters<typeof collectWeb>[1]
 
 function context () {
     return {
@@ -15,7 +16,7 @@ function context () {
 describe('collectWeb', () => {
     it('sends the options as one JSON string over BiDi', async () => {
         const browser = context()
-        const result = await collectWeb(browser, { counter: 7 }, { transport: 'bidi' })
+        const result = await collectWeb(browser, { ...OPTS, counter: 7 }, { transport: 'bidi' })
         expect(result).toBe(RESULT)
         const [script, ...args] = browser.execute.mock.calls[0]
         expect(typeof script).toBe('string')
@@ -33,7 +34,7 @@ describe('collectWeb', () => {
     it('passes the scope as a real element next to the JSON string', async () => {
         const browser = context()
         const scope = { elementId: 'x' } as unknown as WebdriverIO.Element
-        await collectWeb(browser, {}, { transport: 'classic-first', scope })
+        await collectWeb(browser, OPTS, { transport: 'classic-first', scope })
         const [, json, element] = browser.execute.mock.calls[0]
         expect(typeof json).toBe('string')
         expect(JSON.parse(json).assignRefs).toBe(true)
@@ -43,7 +44,7 @@ describe('collectWeb', () => {
 
     it('uses the classic endpoint first', async () => {
         const browser = context()
-        await collectWeb(browser, {}, { transport: 'classic-first' })
+        await collectWeb(browser, OPTS, { transport: 'classic-first' })
         expect(browser.executeScript).toHaveBeenCalledTimes(1)
         expect(browser.execute).not.toHaveBeenCalled()
     })
@@ -51,8 +52,27 @@ describe('collectWeb', () => {
     it('falls back to a JSON string over BiDi when the classic endpoint fails', async () => {
         const browser = context()
         browser.executeScript.mockRejectedValue(new Error('unsupported'))
-        const result = await collectWeb(browser, {}, { transport: 'classic-first' })
+        const result = await collectWeb(browser, OPTS, { transport: 'classic-first' })
         expect(result.classicUnavailable).toBe(true)
         expect(typeof browser.execute.mock.calls[0][1]).toBe('string')
+    })
+})
+
+describe('collectScript', () => {
+    it('is one expression that compiles and carries the role table as a JSON literal', () => {
+        const script = collectScript({ counter: 2, all: false, boxes: false, assignRefs: 'ephemeral' })
+        expect(() => new Function(`return ${script}`)).not.toThrow()
+        expect(script).toMatch(/^\(function collectInPage/)
+        expect(script).toContain('JSON.parse("')
+        expect(script).not.toMatch(/__name|__spread|__async|__objRest/)
+    })
+
+    it('parses the same options and role table in the page', () => {
+        const script = collectScript({ counter: 2, all: true, boxes: false, assignRefs: 'ephemeral', viewport: true })
+        const literal = /JSON\.parse\((".*")\)\)$/.exec(script)![1]
+        const parsed = JSON.parse(JSON.parse(literal))
+        expect(parsed).toMatchObject({ counter: 2, all: true, assignRefs: 'ephemeral', viewport: true })
+        expect(parsed.roles).toEqual(JSON.parse(JSON.stringify(roleTable())))
+        expect(Array.isArray(parsed.knownRoles)).toBe(true)
     })
 })

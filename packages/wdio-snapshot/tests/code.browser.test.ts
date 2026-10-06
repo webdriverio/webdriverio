@@ -43,4 +43,10 @@ describe('snapshot code blocks', () => {
         expect(code.name).toBe(words.join(' '))
         expect(code.name!.length).toBeGreaterThan(80)
     })
+
+    it('reads the visible text of a pre, so a line break without a newline character separates words', () => {
+        const { tree } = collectHtml('<pre>first<br>second<span style="display:none">hidden</span></pre>')
+        const [code] = flatten(tree).filter((n) => n.role === 'code')
+        expect(code.name).toBe('first second')
+    })
 })

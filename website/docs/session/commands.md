@@ -319,7 +319,7 @@ npx wdio session snapshot
 | `-i, --interactive` | Only interactive elements |
 | `--all` | Include hidden elements |
 | `--boxes` | Append bounding boxes |
-| `--viewport` | Only what is in the viewport |
+| `--viewport` | Only what is in the viewport (web: does not update the diff baseline) |
 | `--selectors` | End each ref line with its best selector |
 | `--compact` | Drop unnamed nodes that have no content |
 | `-u, --urls` | Include link hrefs |
@@ -422,7 +422,7 @@ See also: [`snapshot`](#snapshot), [`wait`](#wait).
 
 Diff a fresh snapshot against the previous one. Applies to web, native mobile, native desktop.
 
-Prints a unified diff of what changed since the last snapshot, or "No changes". The first call stores a baseline. Use it after an action to see what the action did without reading the whole page again.
+Prints a unified diff of what changed since the last snapshot, or "No changes". The first call stores a baseline. Use it after an action to see what the action did without reading the whole page again. On the web the baseline is the last snapshot taken without `--viewport`.
 
 ```sh
 npx wdio session diff

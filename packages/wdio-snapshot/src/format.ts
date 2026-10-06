@@ -23,17 +23,30 @@ export interface SnapshotNode {
      */
     selector?: string
     /**
-     * `selector` is only a positional guess that may not replay
+     * `selector` is the positional last resort: no stable candidate was unique
      */
-    selectorUnverified?: boolean
+    selectorPositional?: boolean
     children?: SnapshotNode[]
 }
 
-export interface SnapshotRef {
+export type CandidateKind =
+    | 'testid' | 'role' | 'aria' | 'id' | 'text' | 'name' | 'aria-label' | 'type' | 'class' | 'xpath-text' | 'css-path'
+    | 'accessibility-id' | 'resource-id' | 'predicate' | 'class-chain' | 'uiautomator' | 'xpath' | 'tag'
+
+export interface SnapshotCandidate {
+    kind: CandidateKind
+    selector: string
+}
+
+/**
+ * Web refs carry kind-tagged candidates. Native refs still carry plain
+ * selector strings, the default.
+ */
+export interface SnapshotRef<C extends SnapshotCandidate | string = string> {
     id: string
     role: string
     name?: string
-    candidates: string[]
+    candidates: C[]
 }
 
 export interface FormatOptions {
@@ -62,9 +75,10 @@ function count (node: SnapshotNode): number {
  */
 const NAMED_GROUPS = new Set(['group', 'radiogroup', 'tablist', 'toolbar', 'menu', 'menubar', 'listbox', 'tree'])
 
-const NO_LEVEL = 6
+/** the level ARIA gives a `heading` role that states none */
+const DEFAULT_HEADING_LEVEL = 2
 
-const levelOf = (heading: SnapshotNode) => Number(heading.states?.find((state) => state.startsWith('level='))?.slice('level='.length)) || NO_LEVEL
+const levelOf = (heading: SnapshotNode) => Number(heading.states?.find((state) => state.startsWith('level='))?.slice('level='.length)) || DEFAULT_HEADING_LEVEL
 
 const isHeading = (node: SnapshotNode) => node.role === 'heading' && !node.interactive && !node.ref
 
@@ -97,6 +111,10 @@ function keepHeadings (nodes: SnapshotNode[]): SnapshotNode[] {
 function walkInteractive (node: SnapshotNode): SnapshotNode[] {
     const pending = (node.children || []).flatMap(walkInteractive)
     if (isHeading(node)) {
+        // `<h2><a>Title</a></h2>`: the link already carries the heading's text
+        if (pending[0]?.interactive && pending[0].name === node.name) {
+            return pending
+        }
         const { children: _children, ...leaf } = node
         return [leaf, ...pending]
     }
@@ -151,7 +169,7 @@ export function selectorSuffix (node: SnapshotNode, opts: FormatOptions) {
     if (!opts.selectors || !node.ref || !node.selector) {
         return ''
     }
-    return `  → ${node.selector}${node.selectorUnverified ? ' (unverified)' : ''}`
+    return `  → ${node.selector}${node.selectorPositional ? ' (positional)' : ''}`
 }
 
 export function formatLine (node: SnapshotNode, opts: FormatOptions = {}, truncated = 0) {

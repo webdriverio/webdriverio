@@ -120,14 +120,20 @@ try {
             await browser.url(target.url)
             await browser.pause(300)
             const total = await time(() => agent.snapshot())
+            const totalViewport = await time(() => agent.snapshot({ viewport: true }))
             const collect = await time(() => collectWeb(browser, opts, { transport: 'classic-first' }))
+            const collectExtended = await time(() => collectWeb(browser, { ...opts, extendedCandidates: true }, { transport: 'classic-first' }))
             const inPage = await time(async () => {
                 const ms = await browser.executeScript(inPageScript, [inPageArgs]) as number
                 inPageSamples.push(ms)
             })
+            const inPageExtendedSamples: number[] = []
+            await time(async () => {
+                inPageExtendedSamples.push(await browser.executeScript(inPageScript, [{ ...inPageArgs, extendedCandidates: true }]) as number)
+            })
             const roundTrips = await countRoundTrips(browser, () => agent.snapshot())
             const row: Record<string, any> = {
-                total, collect, inPage: stat(inPageSamples.splice(0).slice(-N)),
+                total, totalViewport, collect, collectExtended, inPage: stat(inPageSamples.splice(0).slice(-N)), inPageExtended: stat(inPageExtendedSamples.slice(-N)),
                 frames: { median: total.median - collect.median, p90: total.p90 - collect.p90 },
                 roundTrips
             }
@@ -149,17 +155,17 @@ try {
 
 const f = (v?: { median: number, p90: number }) => v ? `${v.median.toFixed(1)}/${v.p90.toFixed(1)}` : '-'
 const metrics: [string, string][] = [
-    ['total', 'a) session snapshot'], ['collect', 'b) collect round-trip'], ['inPage', 'c) in-page collector'],
+    ['total', 'a) session snapshot'], ['totalViewport', 'a2) session snapshot --viewport'], ['collect', 'b) collect round-trip'], ['collectExtended', 'b2) collect extended candidates'], ['inPage', 'c) in-page collector'], ['inPageExtended', 'c2) in-page, extended candidates'],
     ['frames', 'd) frames (a-b)'], ['devtoolsAll', 'info: devtools all'], ['devtoolsViewport', 'info: devtools viewport']
 ]
 console.log(`\nn=${N}, warmup=${WARMUP}, cells are median/p90 ms`)
-const colW = Math.max(24, ...Object.keys(results).map((k) => k.length + 2))
-console.log(['metric'.padEnd(26), ...Object.keys(results).map((k) => k.padEnd(colW))].join(''))
+const colW = Math.max(32, ...Object.keys(results).map((k) => k.length + 2))
+console.log(['metric'.padEnd(34), ...Object.keys(results).map((k) => k.padEnd(colW))].join(''))
 for (const [key, label] of metrics) {
     if (key.startsWith('devtools') && !devtools) {
         continue
     }
-    console.log([label.padEnd(26), ...Object.values(results).map((r) => (r.error ? 'error' : f(r[key])).padEnd(colW))].join(''))
+    console.log([label.padEnd(34), ...Object.values(results).map((r) => (r.error ? 'error' : f(r[key])).padEnd(colW))].join(''))
 }
 console.log('\nround trips during one session snapshot (calls / cumulative ms; nested calls overlap)')
 for (const [name, r] of Object.entries(results)) {

@@ -44,10 +44,10 @@ describe('attachSelectors', () => {
         ]
     })
 
-    it('picks the first candidate and marks a web element left with cssPath only', () => {
+    it('picks the first candidate and marks a web element that fell back to cssPath as positional', () => {
         const root = tree()
         attachSelectors(root, [{ id: 'e1', candidates: ['role/button[name="Add"]', 'main > button'] }, { id: 'e2', candidates: ['main > button:nth-of-type(2)'] }], 'web')
-        expect(root.children.map((c) => [(c as { selector?: string }).selector, (c as { selectorUnverified?: boolean }).selectorUnverified])).toEqual([
+        expect(root.children.map((c) => [(c as { selector?: string }).selector, (c as { selectorPositional?: boolean }).selectorPositional])).toEqual([
             ['role/button[name="Add"]', undefined],
             ['main > button:nth-of-type(2)', true],
             [undefined, undefined]
@@ -57,6 +57,6 @@ describe('attachSelectors', () => {
     it('marks a native element only when it got the bare tag fallback', () => {
         const root = tree()
         attachSelectors(root, [{ id: 'e1', candidates: ['~Add'] }, { id: 'e2', candidates: ['//android.widget.Button'] }], 'native')
-        expect(root.children.map((c) => (c as { selectorUnverified?: boolean }).selectorUnverified)).toEqual([undefined, true, undefined])
+        expect(root.children.map((c) => (c as { selectorPositional?: boolean }).selectorPositional)).toEqual([undefined, true, undefined])
     })
 })

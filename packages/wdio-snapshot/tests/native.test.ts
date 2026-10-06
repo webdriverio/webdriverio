@@ -56,4 +56,16 @@ describe('native snapshots', () => {
         ].join('\n'))
         expect(text('windows.xml', 'windows', { boxes: true })).toContain('[box=10,10,80,30]')
     })
+
+    it('keeps only the candidates that one element has, and the bare tag when none is left', () => {
+        const xml = `<hierarchy>
+  <android.widget.Button text="One" content-desc="go" clickable="true" displayed="true" bounds="[0,0][10,10]" resource-id="com.example:id/one" />
+  <android.widget.Button text="Two" content-desc="go" clickable="true" displayed="true" bounds="[0,20][10,30]" />
+  <android.widget.Button content-desc="go" clickable="true" displayed="true" bounds="[0,40][10,50]" />
+</hierarchy>`
+        const { refs } = parseNativeSource(xml, 'android')
+        expect(refs.map((ref) => ref.candidates[0])).toEqual(['id=com.example:id/one', 'android=new UiSelector().text("Two")', '//android.widget.Button'])
+        expect(refs.every((ref) => !ref.candidates.includes('~go'))).toBe(true)
+    })
 })
+

@@ -2,27 +2,30 @@ import { attachSelectors, formatSnapshot, inViewport, type SnapshotNode, type Sn
 
 import type { SnapshotOptions } from '../actions/observe.js'
 import type { Session } from '../session.js'
-import { scopeOf } from './target.js'
 
-export async function viewportSize (session: Session, native: boolean): Promise<[number, number]> {
-    if (native) {
-        const { width, height } = await session.browser.getWindowSize()
-        return [width, height]
-    }
-    return await scopeOf(session).execute(() => [window.innerWidth, window.innerHeight]) as [number, number]
+async function viewportSize (session: Session): Promise<[number, number]> {
+    const { width, height } = await session.browser.getWindowSize()
+    return [width, height]
 }
 
 /**
- * The snapshot text for the options asked, remembered as `lastSnapshot`, which
- * `diff` compares against.
+ * The snapshot text for the options asked. `lastSnapshot`, which `diff`
+ * compares against, is the canonical text of the whole tree (`--interactive`
+ * applies, as in `diff`): selectors, viewport, boxes, depth and compact change
+ * what is printed, not what the page is.
+ *
+ * A web `--viewport` tree is cut in the page, so it is not the whole tree and
+ * leaves `lastSnapshot` as it was. A second, unfiltered collect would cost
+ * what the in-page filter saves. Native is cut here and still has the whole tree.
  */
 export async function renderSnapshot (session: Session, tree: SnapshotNode, refs: Pick<SnapshotRef, 'id' | 'candidates'>[], opts: SnapshotOptions, native: boolean) {
     if (opts.selectors) {
         attachSelectors(tree, refs, native ? 'native' : 'web')
     }
-    const view = opts.viewport ? inViewport(tree, ...await viewportSize(session, native)) ?? tree : tree
+    if (native || !opts.viewport) {
+        session.lastSnapshot = formatSnapshot(tree, { interactive: opts.interactive })
+    }
+    const view = native && opts.viewport ? inViewport(tree, ...await viewportSize(session)) ?? tree : tree
     const format = { depth: opts.depth, interactive: opts.interactive, boxes: opts.boxes, compact: opts.compact, selectors: opts.selectors }
-    const text = formatSnapshot(view, format)
-    session.lastSnapshot = text
-    return text
+    return formatSnapshot(view, format)
 }
