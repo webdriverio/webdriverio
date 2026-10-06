@@ -23,6 +23,19 @@ describe('inViewport', () => {
         expect(inViewport(tree, 1280, 800)!.children!.map((c) => c.role)).toEqual(['button'])
     })
 
+    it('judges text with its own box by that box', () => {
+        const tree = {
+            role: 'document',
+            children: [
+                { role: 'group', box: [0, 700, 400, 50], children: [{ role: 'text', name: 'Off', box: [0, 2000, 100, 20] }, { role: 'text', name: 'On', box: [0, 710, 100, 20] }] },
+                { role: 'group', children: [{ role: 'text', name: 'NoParentBox', box: [0, 10, 100, 20] }] },
+                { role: 'group', box: [0, -2000, 400, 4000], children: [{ role: 'text', name: 'TallParent', box: [0, 10, 100, 20] }] }
+            ]
+        }
+        const names = inViewport(tree, 1280, 800)!.children!.map((group) => group.children!.map((child) => child.name))
+        expect(names).toEqual([['On'], ['NoParentBox'], ['TallParent']])
+    })
+
     it('keeps a partly visible element and the ancestors of what it keeps, drops what is off screen', () => {
         const tree = {
             role: 'document',

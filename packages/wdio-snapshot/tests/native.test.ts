@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it, expect } from 'vitest'
 
-import { parseNativeSource } from '../src/native.js'
+import { parseNativeSource, scopeNativeTree } from '../src/native.js'
 import { formatSnapshot } from '../src/format.js'
 
 const fixture = (name: string) => fs.readFileSync(path.join(__dirname, '__fixtures__', 'pagesource', name), 'utf-8')
@@ -108,6 +108,39 @@ describe('native snapshots', () => {
   <XCUIElementTypeButton type="XCUIElementTypeButton" visible="true" x="0" y="20" width="10" height="10" />
 </AppiumAUT>`, 'ios')
         expect(ios.refs.map((ref) => ref.candidates[0].selector)).toEqual(['(//XCUIElementTypeButton)[1]', '(//XCUIElementTypeButton)[3]'])
+    })
+
+    it('counts an indexed selector across every node it matches, whatever those nodes prefer', () => {
+        const android = parseNativeSource(`<hierarchy>
+  <android.widget.Button text="x" content-desc="a" clickable="true" displayed="true" bounds="[0,0][10,10]" />
+  <android.widget.Button text="x" clickable="true" displayed="true" bounds="[0,20][10,30]" />
+  <android.widget.Button text="x" clickable="true" displayed="true" bounds="[0,40][10,50]" />
+</hierarchy>`, 'android')
+        expect(android.refs.map((ref) => ref.candidates[0].selector)).toEqual([
+            '~a',
+            'android=new UiSelector().text("x").instance(1)',
+            'android=new UiSelector().text("x").instance(2)'
+        ])
+        const ios = parseNativeSource(`<AppiumAUT>
+  <XCUIElementTypeButton type="XCUIElementTypeButton" name="a" label="x" visible="true" x="0" y="0" width="10" height="10" />
+  <XCUIElementTypeButton type="XCUIElementTypeButton" label="x" visible="true" x="0" y="20" width="10" height="10" />
+  <XCUIElementTypeButton type="XCUIElementTypeButton" label="x" visible="true" x="0" y="40" width="10" height="10" />
+</AppiumAUT>`, 'ios')
+        expect(ios.refs.map((ref) => ref.candidates.at(-1)!.selector)).toEqual([
+            '~a',
+            '(//XCUIElementTypeButton[@label="x"])[2]',
+            '(//XCUIElementTypeButton[@label="x"])[3]'
+        ])
+    })
+
+    it('scopes to the indexed selector printed for a ref', () => {
+        const { tree, located, refs } = parseNativeSource(`<hierarchy>
+  <android.widget.Button content-desc="go" clickable="true" displayed="true" bounds="[0,0][10,10]" />
+  <android.widget.Button content-desc="go" clickable="true" displayed="true" bounds="[0,20][10,30]" />
+</hierarchy>`, 'android')
+        const selector = refs[1].candidates[0].selector
+        expect(selector).toBe('android=new UiSelector().description("go").instance(1)')
+        expect(scopeNativeTree(tree, located, selector).children).toEqual([located[1].node])
     })
 
     it('tags every candidate with its kind', () => {

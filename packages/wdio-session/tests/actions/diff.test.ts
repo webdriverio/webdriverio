@@ -70,14 +70,40 @@ describe('diff baseline', () => {
 })
 
 describe('find on a long line', () => {
-    it('matches the whole text but prints and lists a capped line', async () => {
+    const matchesOf = (result: { data?: unknown }) => (result.data as { matches: { text: string }[] }).matches
+    const printedOf = (result: { text: string }) => result.text.split('\n').find((line) => line.startsWith('2:'))!
+    const long = (needle: string) => `${'x'.repeat(500)} ${needle} ${'y'.repeat(500)}`
+
+    it.each([
+        ['a plain query', { text: 'NEEDLE' }, long('needle')],
+        ['a regex', { text: 'need[l]e\\b', regex: true }, long('needle')],
+        ['all words of the query', { text: 'needle haystack' }, long('haystack and a needle')],
+        ['the query without spaces', { text: 'SO2' }, long('SO 2')]
+    ])('keeps the match of %s in the printed line and the data', async (_label, args, name) => {
+        const session = pageSession({ tree: doc([{ role: 'code', name }]) })
+        const result = await find(session, args)
+        const word = /need|SO ?2/i
+        const printed = printedOf(result)
+        expect(printed).toMatch(word)
+        expect(printed.startsWith('2:…')).toBe(true)
+        expect(printed.endsWith('…')).toBe(true)
+        expect(printed.length).toBeLessThanOrEqual('2:'.length + 300)
+        const [match] = matchesOf(result)
+        expect(match.text).toMatch(word)
+        expect(match.text.length).toBeLessThanOrEqual(300)
+    })
+
+    it('keeps the start of a line whose match is near it', async () => {
+        const session = pageSession({ tree: doc([{ role: 'code', name: `needle ${'x'.repeat(500)}` }]) })
+        const result = await find(session, { text: 'needle' })
+        expect(printedOf(result)).toMatch(/^2: {2}- code "needle x+…$/)
+        expect(matchesOf(result)[0].text).toHaveLength(300)
+    })
+
+    it('shows the end of a line whose match is at it, without a trailing ellipsis', async () => {
         const session = pageSession({ tree: doc([{ role: 'code', name: `${'x'.repeat(500)} needle` }]) })
         const result = await find(session, { text: 'needle' })
-        const printed = result.text.split('\n').find((line) => line.includes('code'))!
-        expect(printed.endsWith('…')).toBe(true)
-        expect(printed).not.toContain('needle')
-        expect(printed.length).toBeLessThanOrEqual('2:'.length + 300)
-        const [match] = (result.data as { matches: { text: string }[] }).matches
-        expect(match.text).toHaveLength(300)
+        expect(printedOf(result)).toMatch(/^2:…x+ needle"$/)
+        expect(matchesOf(result)[0].text).toHaveLength(300)
     })
 })

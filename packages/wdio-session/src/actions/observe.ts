@@ -9,7 +9,7 @@ import {
 
 import { SessionError, notSupported } from '../errors.js'
 import { quote } from '../quote.js'
-import { blockAround, headingAbove, lineTest, searchLines } from '../snapshot/find.js'
+import { blockAround, headingAbove, lineTest, matchIndex, searchLines } from '../snapshot/find.js'
 import { takeNativeSnapshot } from '../snapshot/native.js'
 import { formatSnapshot, renderSnapshot } from '../snapshot/render.js'
 import { resolveElement, resolveTarget, scopeOf } from '../snapshot/target.js'
@@ -333,7 +333,21 @@ const MAX_FIND_CHARS = 6000
 /** a printed `find` line is cut to this many characters (a code block is one line); matching sees all of it */
 const MAX_FIND_LINE_CHARS = 300
 
-const capLine = (line: string) => line.length > MAX_FIND_LINE_CHARS ? `${line.slice(0, MAX_FIND_LINE_CHARS - 1)}…` : line
+/** a match this far into a line is shown with this many characters before it */
+const FIND_LINE_LEAD_CHARS = 40
+
+/** a line over the limit is cut to a window that holds its match (index 0: the start) */
+function capLine (line: string, index = 0) {
+    if (line.length <= MAX_FIND_LINE_CHARS) {
+        return line
+    }
+    const start = index < MAX_FIND_LINE_CHARS / 2
+        ? 0
+        : Math.max(0, Math.min(index - FIND_LINE_LEAD_CHARS, line.length - (MAX_FIND_LINE_CHARS - 1)))
+    const room = MAX_FIND_LINE_CHARS - (start ? 1 : 0)
+    const end = start + room >= line.length ? line.length : start + room - 1
+    return `${start ? '…' : ''}${line.slice(start, end)}${end < line.length ? '…' : ''}`
+}
 
 export const find: ActionFn = async (session, args) => {
     const query = String(args.text ?? '')
@@ -400,7 +414,7 @@ export const find: ActionFn = async (session, args) => {
             out.push('--')
         }
         for (let i = start; i <= blockEnd; i++) {
-            const line = `${i + 1}${matches.includes(i) ? ':' : '-'}${capLine(shown[i])}`
+            const line = `${i + 1}${matches.includes(i) ? ':' : '-'}${capLine(shown[i], matches.includes(i) ? matchIndex(shown[i], query, regex) : 0)}`
             out.push(line)
             size += line.length + 1
         }
@@ -415,7 +429,7 @@ export const find: ActionFn = async (session, args) => {
     }
     // the data is capped like the text: `--json` output must not explode either
     const listed = matches.filter((i) => i <= last)
-    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: capLine(lines[i]) })), total: matches.length, hidden } }
+    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: capLine(lines[i], matchIndex(lines[i], query, regex)) })), total: matches.length, hidden } }
 }
 
 /**

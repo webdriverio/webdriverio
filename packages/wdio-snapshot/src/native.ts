@@ -286,26 +286,31 @@ const POSITIONAL_ATTRS: Record<'ios' | 'mac' | 'windows', string[]> = {
 }
 
 /**
- * What a node is indexed among: `key` is the selector every sibling in the
- * set shares, `at(n)` points at the n-th (1-based) in document order.
- * Android prefers UiAutomator, whose `.instance(n)` is 0-based; the rest use
- * an xpath group, `(xpath)[n]`, which is 1-based.
+ * How a node is indexed: `own` is the selector it emits, `at(n)` points at the
+ * n-th (1-based) element that selector matches in document order, and `all`
+ * lists every selector key the node itself matches, so counts include nodes
+ * that prefer another attribute. Android prefers UiAutomator, whose
+ * `.instance(n)` is 0-based; the rest use an xpath group, `(xpath)[n]`.
  */
 function positionalOf (platform: NativePlatform, tag: string, attrs: Record<string, string>) {
+    const bare = `//${tag}`
     if (platform === 'android') {
-        const [method, value] = attrs['content-desc']
-            ? ['description', attrs['content-desc']]
-            : attrs['resource-id']
-                ? ['resourceId', attrs['resource-id']]
-                : ['text', attrs.text]
-        if (value) {
-            const key = `android=new UiSelector().${method}(${JSON.stringify(value)})`
-            return { key, at: (n: number) => `${key}.instance(${n - 1})` }
+        const keyOf = (method: string, value: string) => `android=new UiSelector().${method}(${JSON.stringify(value)})`
+        const matches = ([['description', attrs['content-desc']], ['resourceId', attrs['resource-id']], ['text', attrs.text]] as const)
+            .filter(([, value]) => value)
+            .map(([method, value]) => keyOf(method, value))
+        const own = matches[0]
+        const all = [bare, ...matches]
+        if (own) {
+            return { own, all, at: (n: number) => `${own}.instance(${n - 1})` }
         }
+        return { own: bare, all, at: (n: number) => `(${bare})[${n}]` }
     }
-    const attr = platform === 'android' ? undefined : POSITIONAL_ATTRS[platform].find((name) => attrs[name])
-    const key = `//${tag}${attr ? `[@${attr}=${xpathLiteral(attrs[attr])}]` : ''}`
-    return { key, at: (n: number) => `(${key})[${n}]` }
+    const names = POSITIONAL_ATTRS[platform]
+    const keyOf = (attr: string) => `${bare}[@${attr}=${xpathLiteral(attrs[attr])}]`
+    const present = names.filter((name) => attrs[name])
+    const own = present.length ? keyOf(present[0]) : bare
+    return { own, all: [bare, ...present.map(keyOf)], at: (n: number) => `(${own})[${n}]` }
 }
 
 function indexedSelectors (root: XmlNode, platform: NativePlatform) {
@@ -313,10 +318,11 @@ function indexedSelectors (root: XmlNode, platform: NativePlatform) {
     const out = new Map<XmlNode, string>()
     const visit = (xml: XmlNode) => {
         if (!isStructural(xml)) {
-            const { key, at } = positionalOf(platform, selectorInfo(platform, xml.name, xml.attrs, '').tag, xml.attrs)
-            const n = (seen.get(key) || 0) + 1
-            seen.set(key, n)
-            out.set(xml, at(n))
+            const { own, all, at } = positionalOf(platform, selectorInfo(platform, xml.name, xml.attrs, '').tag, xml.attrs)
+            out.set(xml, at((seen.get(own) || 0) + 1))
+            for (const key of new Set(all)) {
+                seen.set(key, (seen.get(key) || 0) + 1)
+            }
         }
         xml.children.forEach(visit)
     }
@@ -418,7 +424,7 @@ function sameResource (left: string, right: string) {
 }
 
 function matchingLocated (located: Located[], scope: string) {
-    const exact = located.filter((entry) => entry.candidates.includes(scope))
+    const exact = located.filter((entry) => entry.candidates.includes(scope) || entry.fallback === scope)
     if (exact.length) {
         return exact
     }
