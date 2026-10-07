@@ -1399,12 +1399,29 @@ export async function hasElementId(element: WebdriverIO.Element) {
      */
     if (!element.elementId) {
         const parent = element.parent as WebdriverIO.Element | WebdriverIO.Browser
-        const command = element.isReactElement
-            ? parent.react$.bind(parent)
-            : element.isShadowElement
-                ? parent.shadow$.bind(parent)
-                : parent.$.bind(parent)
-        element.elementId = (await command(element.selector as string).getElement()).elementId
+        if (element.index !== undefined) {
+            const elements = element.isReactElement
+                ? await parent.react$$(element.selector as string)
+                : element.isShadowElement
+                    ? await (parent as WebdriverIO.Element).shadow$$(element.selector as string)
+                    : await parent.$$(element.selector as string)
+            const targetElement = elements[element.index]
+            if (targetElement) {
+                element.elementId = (await targetElement.getElement()).elementId
+            }
+        } else {
+            const targetElement = element.isReactElement
+                ? await parent.react$(element.selector as string).getElement()
+                : element.isShadowElement
+                    ? await (parent as WebdriverIO.Element).shadow$(element.selector as string).getElement()
+                    : await parent.$(element.selector, { strict: element.strict }).getElement()
+            element.elementId = targetElement.elementId
+        }
+
+        if (element.elementId) {
+            element[ELEMENT_KEY] = element.elementId
+            delete element.error
+        }
     }
 
     /*
