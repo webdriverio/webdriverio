@@ -79,7 +79,8 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
         type: 'string'
     },
     /**
-     * Timeout for any WebDriver request to a driver or grid
+     * Timeout for any WebDriver request to a driver or grid, and the longest time
+     * to wait for the browser to accept the WebDriver BiDi connection
      */
     connectionRetryTimeout: {
         type: 'number',
