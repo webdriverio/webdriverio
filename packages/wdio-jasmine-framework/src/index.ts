@@ -752,6 +752,12 @@ declare global {
     }
     namespace jasmine {
         /**
+         * The adapter registers the WebdriverIO matchers with `addAsyncMatchers`,
+         * so `expectAsync` has them too. `T` and `U` keep the names of
+         * `@types/jasmine`, so that the interfaces merge.
+         */
+        interface AsyncMatchers<T, U> extends WdioAsyncMatchers<T> {}
+        /**
          * Jasmine sync matchers stay sync and return `void`. WebdriverIO matchers
          * and Jasmine async matchers go to `expectAsync` and return a Promise.
          */
@@ -763,13 +769,15 @@ declare global {
             toHaveSize(...args: MatcherArgs<WdioAsyncMatchers<T>['toHaveSize']>): Promise<void>
         }
     }
-    namespace ExpectWebdriverIO {
+    namespace WebdriverIO {
         /**
          * `@wdio/globals/types` and `@types/jasmine` both declare the global `expect`,
          * and TypeScript uses the one it reads first. These signatures make both
          * resolve to Jasmine's matchers, which is what the runtime `expect` gives.
+         * They do not change the `expect` export of expect-webdriverio, which is
+         * the Jest-based `expect` at runtime.
          */
-        interface Expect {
+        interface GlobalExpect {
             <T extends jasmine.Func>(spy: T | jasmine.Spy<T>): jasmine.FunctionMatchers<T>
             (actual: string): jasmine.Matchers<string>
             <T>(actual: ArrayLike<T>): jasmine.ArrayLikeMatchers<T>
