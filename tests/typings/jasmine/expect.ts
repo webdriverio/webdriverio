@@ -67,3 +67,16 @@ expect([1, 2]).toHaveSize({ width: 1 })
 expect(1).toBeResolved()
 // @ts-expect-error Jest matcher that Jasmine does not have
 expect(1).toStrictEqual(1)
+
+/**
+ * `expectAsync` has the WebdriverIO matchers
+ */
+assertType<Equals<ReturnType<typeof expectAsyncMatchers>, PromiseLike<void>[]>>(true)
+function expectAsyncMatchers () {
+    return [
+        expectAsync(browser).toHaveTitle('foo'),
+        expectAsync($('foo')).toHaveText('bar'),
+        expectAsync($('foo')).not.toBeDisplayed(),
+        expectAsync(Promise.resolve(1)).toBeResolvedTo(1)
+    ]
+}

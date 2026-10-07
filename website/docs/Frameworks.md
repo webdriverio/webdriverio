@@ -340,7 +340,7 @@ With Jasmine, the global `expect` combines Jasmine's matchers and the [Webdriver
 - Jasmine's matchers (`toBe`, `toEqual`, `toHaveBeenCalled`, …) and the matchers that you add with `jasmine.addMatchers` are synchronous. They return `undefined`, so you do not need `await`.
 - WebdriverIO matchers, Jasmine's async matchers (`toBeResolved`, `toBeRejectedWith`, …) and the matchers that you add with `jasmine.addAsyncMatchers` return a promise. Always `await` them.
 
-Use `expect()` for both kinds: it sends each matcher to Jasmine's `expect` or `expectAsync` for you. `await expectAsync($('#logo')).toBeDisplayed()` also works. For TypeScript, `expectAsync()` with WebdriverIO matchers needs `expect-webdriverio/jasmine` in `types`.
+Use `expect()` for both kinds: it sends each matcher to Jasmine's `expect` or `expectAsync` for you. `await expectAsync($('#logo')).toBeDisplayed()` also works. For TypeScript, `@wdio/jasmine-framework` in `types` also gives `expectAsync()` the WebdriverIO matchers.
 
 ```js
 it('checks the page', async () => {
