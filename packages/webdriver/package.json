@@ -1,6 +1,6 @@
 {
   "name": "webdriver",
-  "version": "10.0.0",
+  "version": "10.0.1",
   "description": "A Node.js bindings implementation for the W3C WebDriver and WebDriver Bidi protocols",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",

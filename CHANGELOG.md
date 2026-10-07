@@ -23,6 +23,44 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v10.0.1 (2026-10-07)
+
+#### :rocket: New Feature
+* `create-wdio`
+  * [#15934](https://github.com/webdriverio/webdriverio/pull/15934) feat(create-wdio): offer the devtools service in the wizard ([@vishnuv688](https://github.com/vishnuv688))
+* `wdio-sauce-service`, `wdio-spec-reporter`, `wdio-types`, `webdriverio`
+  * [#15929](https://github.com/webdriverio/webdriverio/pull/15929) feat: support the Sauce Labs asia-south-2 data center ([@bahrimootaz](https://github.com/bahrimootaz))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#15940](https://github.com/webdriverio/webdriverio/pull/15940) Fix/emulate device unsupported bidi 15938 ([@mccmrunal](https://github.com/mccmrunal))
+* Other
+  * [#15923](https://github.com/webdriverio/webdriverio/pull/15923) fix(website): fix and align the mobile navbar menu ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#15926](https://github.com/webdriverio/webdriverio/pull/15926) docs(blog): benchmark results in the v10 release post ([@christian-bromann](https://github.com/christian-bromann))
+* [#15925](https://github.com/webdriverio/webdriverio/pull/15925) feat(website): add large social share card ([@christian-bromann](https://github.com/christian-bromann))
+* [#15924](https://github.com/webdriverio/webdriverio/pull/15924) docs(website): update testrunner page to the v10 CLI ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-browser-runner`, `wdio-lighthouse-service`
+  * [#15933](https://github.com/webdriverio/webdriverio/pull/15933) chore(deps): bump the minor-deps-updates-main group across 1 directory with 22 updates ([@dependabot[bot]](https://github.com/apps/dependabot))
+* `wdio-cucumber-framework`, `wdio-lighthouse-service`
+  * [#15919](https://github.com/webdriverio/webdriverio/pull/15919) chore(deps): bump the patch-deps-updates-main group across 1 directory with 20 updates ([@dependabot[bot]](https://github.com/apps/dependabot))
+* Other
+  * [#15931](https://github.com/webdriverio/webdriverio/pull/15931) fix: template for v10 ([@dprevost-LMI](https://github.com/dprevost-LMI))
+  * [#15917](https://github.com/webdriverio/webdriverio/pull/15917) chore(deps): bump fedora from 43 to 44 in /e2e/wdio/display-server/docker in the docker-major-updates group ([@dependabot[bot]](https://github.com/apps/dependabot))
+  * [#15918](https://github.com/webdriverio/webdriverio/pull/15918) chore(deps): bump alpine from 3.22 to 3.24 in /e2e/wdio/display-server/docker in the docker-minor-updates group ([@dependabot[bot]](https://github.com/apps/dependabot))
+  * [#15922](https://github.com/webdriverio/webdriverio/pull/15922) chore(website): temporarily disable translated locales ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+- [@bahrimootaz](https://github.com/bahrimootaz)
+
+
 ## v10.0.0 (2026-10-05)
 
 #### :eyeglasses: Spec Compliancy
