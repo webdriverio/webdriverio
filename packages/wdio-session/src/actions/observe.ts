@@ -382,6 +382,17 @@ function capLine (line: string, index = 0) {
     return `${start ? '…' : ''}${line.slice(start, end)}${end < line.length ? '…' : ''}`
 }
 
+/** the find flags a hint repeats to show the next matches the same way */
+function repeatFindFlags (args: Record<string, unknown>) {
+    return [
+        args.regex ? ' --regex' : '',
+        typeof args.scope === 'string' ? ` --scope ${shellQuote(args.scope)}` : '',
+        typeof args.context === 'number' ? ` -C ${args.context}` : '',
+        typeof args.afterContext === 'number' ? ` -A ${args.afterContext}` : '',
+        typeof args.beforeContext === 'number' ? ` -B ${args.beforeContext}` : ''
+    ].join('')
+}
+
 export const find: ActionFn = async (session, args) => {
     const query = String(args.text ?? '')
     const scope = typeof args.scope === 'string' ? args.scope : undefined
@@ -417,6 +428,12 @@ export const find: ActionFn = async (session, args) => {
             hint: 'Try a shorter text or --regex; elements that only appear after a click (menus, popovers) are not on the page yet.'
         })
     }
+    const total = matches.length
+    const skip = typeof args.offset === 'number' && args.offset > 0 ? Math.floor(args.offset) : 0
+    if (skip >= total) {
+        throw new SessionError('NO_MATCH', `--offset ${skip} is past the last of ${total} match${total === 1 ? '' : 'es'} for ${JSON.stringify(query)}.`)
+    }
+    matches = matches.slice(skip)
     const out: string[] = []
     let last = -1
     let size = 0
@@ -454,15 +471,16 @@ export const find: ActionFn = async (session, args) => {
         last = blockEnd
     }
     const rest = matches.filter((i) => i > last).length
+    // the data is capped like the text: `--json` output must not explode either
+    const listed = matches.filter((i) => i <= last)
     if (rest) {
-        out.push(`… ${rest} more matching line${rest === 1 ? '' : 's'} not shown. Search for a longer text, or narrow it with --scope.`)
+        const next = skip + listed.length
+        out.push(`… ${rest} more matching line${rest === 1 ? '' : 's'} not shown. \`${session.cmd('find', { ...hintArgs(args), offset: next }, `wdio session find ${shellQuote(query)}${repeatFindFlags(args)} --offset ${next}`)}\` shows the next ones, or search for a longer text, or narrow it with --scope.`)
     }
     if (!hidden) {
         await scrollToFirst(session, lines, matches[0])
     }
-    // the data is capped like the text: `--json` output must not explode either
-    const listed = matches.filter((i) => i <= last)
-    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: capLine(lines[i], matchIndex(lines[i], query, regex)) })), total: matches.length, hidden } }
+    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: capLine(lines[i], matchIndex(lines[i], query, regex)) })), total, hidden } }
 }
 
 /**
@@ -482,11 +500,14 @@ async function scrollToFirst (session: Session, lines: string[], first: number) 
         return
     }
     try {
-        const el = await session.refs.resolve(scopeOf(session), id)
-        await scopeOf(session).execute((node: HTMLElement) => node.scrollIntoView({ block: 'center', inline: 'nearest' }), el as unknown as HTMLElement)
+        await scrollIntoCenter(session, await session.refs.resolve(scopeOf(session), id))
     } catch {
         // a ref of an inline frame or a removed element
     }
+}
+
+async function scrollIntoCenter (session: Session, el: unknown) {
+    await scopeOf(session).execute((node: HTMLElement) => node.scrollIntoView({ block: 'center', inline: 'nearest' }), el as HTMLElement)
 }
 
 export const diff: ActionFn = async (session, args) => {
@@ -650,7 +671,12 @@ const DEFAULT_READ_CHARS = 6000
  */
 export const read: ActionFn = async (session, args) => {
     const maxChars = typeof args.maxChars === 'number' && args.maxChars > 0 ? args.maxChars : DEFAULT_READ_CHARS
+    const offset = typeof args.offset === 'number' && args.offset > 0 ? Math.floor(args.offset) : 0
     const scope = typeof args.scope === 'string' ? (await resolveTarget(session, args.scope)).element : undefined
+    if (scope && session.isWeb && await scope.isDisplayed().catch(() => false)) {
+        // a screenshot of the page shows what was read
+        await scrollIntoCenter(session, scope).catch(() => {})
+    }
     const text = await scopeOf(session).execute(function (root: Element | undefined, limit: number) {
         const start = root || document.querySelector('main, [role="main"], article') || document.body
         const SKIP = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'SVG', 'CANVAS', 'IFRAME', 'NAV', 'FOOTER', 'ASIDE'])
@@ -658,12 +684,14 @@ export const read: ActionFn = async (session, args) => {
         const out: string[] = []
         let size = 0
         let line = ''
+        let cut = false
         const flush = (prefix = '') => {
             const text = line.replace(/\s+/g, ' ').trim()
             if (text && size < limit) {
                 // one long paragraph is cut too, not only the lines after it
                 const room = Math.max(0, limit - size - prefix.length)
-                const kept = text.length > room ? `${text.slice(0, room)}…` : text
+                cut = text.length > room
+                const kept = cut ? `${text.slice(0, room)}…` : text
                 out.push(prefix + kept)
                 size += prefix.length + kept.length + 1
             }
@@ -738,11 +766,17 @@ export const read: ActionFn = async (session, args) => {
         }
         walk(start)
         flush()
-        return { text: out.join('\n'), truncated: size >= limit, from: start === document.body ? 'body' : start.tagName.toLowerCase() }
-    }, scope, maxChars) as { text: string, truncated: boolean, from: string }
+        return { text: out.join('\n'), truncated: size >= limit, cut, from: start === document.body ? 'body' : start.tagName.toLowerCase() }
+    }, scope, offset + maxChars) as { text: string, truncated: boolean, cut: boolean, from: string }
+    if (offset >= text.text.length && offset > 0 && !text.truncated) {
+        return { text: `--offset ${offset} is past the end of the text (${text.text.length} characters).`, data: { chars: 0 } }
+    }
     if (!text.text) {
         return { text: `The page has no readable text here. \`${session.cmd('snapshot', undefined, 'wdio session snapshot')}\` shows its elements.`, data: { chars: 0 } }
     }
-    const tail = text.truncated ? `\n… cut at ${maxChars} characters; --max-chars or --scope reads more or a part.` : ''
-    return { text: text.text + tail, data: { chars: text.text.length, truncated: text.truncated, from: text.from } }
+    const shown = text.text.slice(offset)
+    // the cut paragraph's "…" is not page text: the next part starts before it
+    const next = offset + shown.length - (text.cut ? 1 : 0)
+    const tail = text.truncated ? `\n… ${offset ? `characters ${offset}–${next}` : `cut at ${maxChars} characters`}; \`${session.cmd('read', { ...hintArgs(args), offset: next }, `wdio session read${typeof args.scope === 'string' ? ` --scope ${shellQuote(args.scope)}` : ''}${typeof args.maxChars === 'number' ? ` --max-chars ${maxChars}` : ''} --offset ${next}`)}\` reads the next part, --scope reads a section.` : ''
+    return { text: shown + tail, data: { chars: shown.length, truncated: text.truncated, from: text.from } }
 }

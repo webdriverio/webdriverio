@@ -621,8 +621,8 @@ interface ClickPoint {
     sticky?: boolean
     /** the center is under a fixed or sticky element, this point of the element is free */
     offCenter?: boolean
-    /** where a hidden link goes */
-    href?: string
+    /** a control inside the dialog or banner that covers the element, which closes it: `button "Accept all"` */
+    dismiss?: string
     /** center of the part of the element (or label) in view, in the frame's viewport: the pointer origin the offset of x and y is taken from */
     originX: number
     originY: number
@@ -706,17 +706,42 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
                 target = root.host
             }
         }
-        const href = (el as HTMLAnchorElement).href || undefined
+        const dismissIn = (cover: Element): string | undefined => {
+            const container = Element.prototype.closest.call(cover, 'dialog, [role="dialog"], [role="alertdialog"], [aria-modal="true"], [id*="cookie" i], [class*="cookie" i], [id*="consent" i], [class*="consent" i], [id*="gdpr" i], [class*="gdpr" i]') as Element | null
+            if (!container) {
+                return undefined
+            }
+            const preferred = /close|dismiss|reject|decline|×|✕|✖/i
+            const accepting = /accept|agree|got it|no thanks|continue|\bok\b/i
+            let fallback: string | undefined
+            for (const control of Element.prototype.querySelectorAll.call(container, 'button, a[href], [role="button"], input[type="button"], input[type="submit"]') as NodeListOf<Element>) {
+                if (!visible(control)) {
+                    continue
+                }
+                const text = (Element.prototype.getAttribute.call(control, 'aria-label') || Element.prototype.getAttribute.call(control, 'value') || Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'innerText')?.get?.call(control) as string | undefined || '').trim().replace(/\s+/g, ' ').slice(0, 60)
+                if (!text) {
+                    continue
+                }
+                const role = Element.prototype.getAttribute.call(control, 'role') || (control.localName === 'a' ? 'link' : 'button')
+                if (preferred.test(text)) {
+                    return `${role} "${text}"`
+                }
+                if (!fallback && accepting.test(text)) {
+                    fallback = `${role} "${text}"`
+                }
+            }
+            return fallback
+        }
         if (!visible(el)) {
             const label = (el as HTMLInputElement).labels?.[0]
             if (label && visible(label)) {
                 const point = center(label)
                 const cover = coverAt(label, point.x, point.y)
                 return cover
-                    ? { state: 'covered' as const, ...point, cover: describe(cover), sticky: isSticky(cover) }
+                    ? { state: 'covered' as const, ...point, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover) }
                     : { state: 'label' as const, ...point, label }
             }
-            return { state: 'hidden' as const, x: 0, y: 0, originX: 0, originY: 0, href }
+            return { state: 'hidden' as const, x: 0, y: 0, originX: 0, originY: 0 }
         }
         const { x, y, originX, originY } = center(el)
         const cover = coverAt(el, x, y)
@@ -739,9 +764,15 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             }
         }
         return cover
-            ? { state: 'covered' as const, x, y, originX, originY, cover: describe(cover), sticky: isSticky(cover), href }
+            ? { state: 'covered' as const, x, y, originX, originY, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover) }
             : { state: 'ok' as const, x, y, originX, originY }
     }, instant) as Promise<ClickPoint>
+}
+
+function coveredHint (point: ClickPoint) {
+    return point.dismiss
+        ? `Close it first: ${point.dismiss}.`
+        : 'Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.'
 }
 
 /**
@@ -764,16 +795,14 @@ async function clickChecked (session: Session, target: ResolvedTarget) {
     const point = await recheckAboveSticky(target, first)
     if (point?.state === 'hidden') {
         throw usage(
-            `${target.label} is not visible on the page${point.href ? `; it links to ${point.href}` : ''}.`,
-            point.href
-                ? 'It may be inside a closed menu, tab or dialog: open that first, or navigate to the link.'
-                : 'It may be inside a closed menu, tab or dialog: open that first.'
+            `${target.label} is not visible on the page.`,
+            'It may be inside a closed menu, tab or dialog: open the menu or section that contains it, scroll to it, or take a new snapshot.'
         )
     }
     if (point?.state === 'covered') {
         throw usage(
             `${target.label} is covered by ${point.cover}.`,
-            'Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.'
+            coveredHint(point)
         )
     }
     if (point?.state === 'label' || (point?.state === 'ok' && (point !== first || point.offCenter))) {
@@ -799,7 +828,7 @@ async function clickChecked (session: Session, target: ResolvedTarget) {
         if (again?.state === 'covered') {
             throw usage(
                 `${target.label} is covered by ${again.cover}.`,
-                'Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.'
+                coveredHint(again)
             )
         }
         throw err

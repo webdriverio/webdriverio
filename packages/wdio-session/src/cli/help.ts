@@ -6,7 +6,7 @@ import type { Applies } from '../types.js'
 export const GLOBAL_OPTIONS: Record<string, Options> = {
     session: { alias: 's', type: 'string', desc: 'Session name (env WDIO_SESSION, default "default")', global: true },
     json: { type: 'boolean', desc: 'Print one JSON object (env WDIO_SESSION_JSON=1)', global: true },
-    timeout: { type: 'number', desc: 'Request timeout in ms', global: true },
+    timeout: { type: 'number', desc: 'Request timeout in ms (capped at 60000 except for wait)', global: true },
     quiet: { alias: 'q', type: 'boolean', desc: 'Print nothing on success except requested data', global: true },
     color: { type: 'boolean', desc: 'Use --no-color to disable colors', global: true }
 }
