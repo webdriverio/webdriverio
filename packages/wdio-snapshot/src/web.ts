@@ -1001,8 +1001,10 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return [out]
     }
 
-    const LANDMARK_TAGS = new Set(['HEADER', 'FOOTER', 'NAV', 'ASIDE', 'MAIN'])
-    const LANDMARK_ROLES = new Set(['banner', 'contentinfo', 'navigation', 'complementary', 'main'])
+    const LANDMARK_TAGS = new Set(['HEADER', 'FOOTER', 'NAV', 'ASIDE', 'MAIN', 'DIALOG'])
+    const LANDMARK_ROLES = new Set(['banner', 'contentinfo', 'navigation', 'complementary', 'main', 'dialog', 'alertdialog'])
+
+    const isLandmark = (el: Element) => LANDMARK_TAGS.has(el.tagName) || LANDMARK_ROLES.has(roleOf(el))
 
     /**
      * Controls that share role and name ("Choose This Flight" x 5) get the
@@ -1035,12 +1037,12 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             }
             for (const { el, node } of members) {
                 let item: Element | undefined
-                for (let up: Element | null = el; up; up = parentOf(up)) {
-                    if (counts.get(up) === 1) {
-                        item = up
-                    }
+                let inLandmark = false
+                for (let up: Element | null = el; up && counts.get(up) === 1; up = parentOf(up)) {
+                    item = up
+                    inLandmark ||= isLandmark(up)
                 }
-                if (!item || LANDMARK_TAGS.has(item.tagName) || LANDMARK_ROLES.has(roleOf(item))) {
+                if (!item || inLandmark) {
                     continue
                 }
                 const text = textAround(item, el, INTENT_LENGTH)

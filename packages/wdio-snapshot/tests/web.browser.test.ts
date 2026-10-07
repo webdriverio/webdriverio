@@ -165,6 +165,32 @@ describe('intent of repeated controls', () => {
         expect(byRole(result, 'link').map((l) => l.intent)).toEqual([undefined, undefined])
     })
 
+    it('skips controls repeated across two open dialogs', () => {
+        const result = collect(
+            '<div role="dialog"><button>Next Month</button><button>Choose Monday, 28 September 2026</button></div>' +
+            '<dialog open><button>Next Month</button><button>Choose Monday, 28 September 2026</button></dialog>'
+        )
+        const buttons = byRole(result, 'button')
+        expect(buttons).toHaveLength(4)
+        expect(buttons.map((b) => b.intent)).toEqual([undefined, undefined, undefined, undefined])
+    })
+
+    it('skips controls repeated across open dialogs nested in field wrappers', () => {
+        const dialog = '<div role="dialog"><button>Previous Month</button><button>Choose Monday, 28 September 2026</button></div>'
+        const result = collect(
+            `<div class="field"><label for="in">Check In</label><input id="in" style="width:100px;height:20px">${dialog}</div>` +
+            `<div class="field"><label for="out">Check Out</label><input id="out" style="width:100px;height:20px">${dialog}</div>`
+        )
+        const buttons = byRole(result, 'button')
+        expect(buttons).toHaveLength(4)
+        expect(buttons.map((b) => b.intent)).toEqual([undefined, undefined, undefined, undefined])
+    })
+
+    it('keeps row context for controls repeated inside one dialog', () => {
+        const result = collect('<div role="dialog"><div>First room <button>Book</button></div><div>Second room <button>Book</button></div></div>')
+        expect(byRole(result, 'button').map((b) => b.intent)).toEqual(['First room', 'Second room'])
+    })
+
     it('leaves a unique button alone', () => {
         const result = collect('<div>Row text <button>Choose</button></div><div>Other <button>Pick</button></div>')
         expect(byRole(result, 'button').map((b) => b.intent)).toEqual([undefined, undefined])
