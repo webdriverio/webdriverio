@@ -915,7 +915,7 @@ export default {
     '/appium/storage/add': {
         POST: {
             command: 'addAppiumStorageItem',
-            description: 'Add a new file to the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later. Only available if the default Appium base path has not been changed.***',
+            description: 'Add a new file to the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later. For plugin versions before 3.0, this command only works if the default Appium base path has not been changed.***',
             ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#addstorageitem',
             parameters: [
                 {
@@ -942,7 +942,7 @@ export default {
     '/appium/storage/delete': {
         POST: {
             command: 'deleteAppiumStorageItem',
-            description: 'Delete a file from the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later. Only available if the default Appium base path has not been changed.***',
+            description: 'Delete a file from the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later. For plugin versions before 3.0, this command only works if the default Appium base path has not been changed.***',
             ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#deletestorageitem',
             parameters: [
                 {
@@ -962,7 +962,7 @@ export default {
     '/appium/storage/list': {
         GET: {
             command: 'listAppiumStorageItems',
-            description: 'List all files in the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later. Only available if the default Appium base path has not been changed.***',
+            description: 'List all files in the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later. For plugin versions before 3.0, this command only works if the default Appium base path has not been changed.***',
             ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#liststorageitems',
             parameters: [],
             returns: {
@@ -975,7 +975,7 @@ export default {
     '/appium/storage/reset': {
         POST: {
             command: 'resetAppiumStorage',
-            description: 'Reset the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later. Only available if the default Appium base path has not been changed.***',
+            description: 'Reset the Appium storage. ***Using this command requires installing the [`storage`](https://github.com/appium/appium/tree/master/packages/storage-plugin) plugin version 2.0 or later. For plugin versions before 3.0, this command only works if the default Appium base path has not been changed.***',
             ref: 'https://appium.io/docs/en/latest/reference/api/plugins/#resetstorage',
             parameters: [],
         },
