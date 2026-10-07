@@ -16,6 +16,11 @@ export interface SnapshotNode {
      * `icon 3 of 3 in "Invoice #1002"`; printed, never used in selectors
      */
     hint?: string
+    /**
+     * the text of the repeated item (table row, card) a control with a
+     * name shared by other controls belongs to; printed as `∈ "<intent>"`
+     */
+    intent?: string
     hidden?: boolean
     interactive?: boolean
     /**
@@ -186,6 +191,9 @@ export function formatLine (node: SnapshotNode, opts: FormatOptions = {}, trunca
     }
     if (node.hint) {
         parts.push(`(${node.hint})`)
+    }
+    if (node.intent) {
+        parts.push(`∈ ${JSON.stringify(node.intent)}`)
     }
     if (node.value !== undefined) {
         parts.push(`value=${JSON.stringify(node.value)}`)

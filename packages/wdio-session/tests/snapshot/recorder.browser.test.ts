@@ -42,8 +42,8 @@ describe('page recorder', () => {
                 icon.addEventListener('click', () => {})
             }
         })
-        expect(text).toMatch(/generic \[ref=e\d+\] \(icon 1 of 2 in "Invoice #1✎🗑"\)/)
-        expect(text).toMatch(/generic \[ref=e\d+\] \(icon 2 of 2 in "Invoice #1✎🗑"\)/)
+        expect(text).toMatch(/generic \[ref=e\d+\] \(icon 1 of 2 in "Invoice #1🗑"\)/)
+        expect(text).toMatch(/generic \[ref=e\d+\] \(icon 2 of 2 in "Invoice #1✎"\)/)
     })
 
     it('does not mark an element that delegates clicks for its children', () => {

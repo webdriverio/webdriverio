@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Flights Fixture</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header><a href="/index.html">Sign in</a></header>
+  <main>
+    <h1>Flights from Boston to London:</h1>
+    <h2>Purchase</h2>
+    <form id="purchase" onsubmit="event.preventDefault()">
+      <div class="form-inline">
+        <label for="inputName">Name</label>
+        <input id="inputName" name="inputName">
+      </div>
+      <div class="form-inline">
+        <label for="address">Address</label>
+        <input id="address" name="address">
+      </div>
+      <div class="form-inline">
+        <span>Card Type</span>
+        <select name="cardType">
+          <option>Visa</option>
+          <option>American Express</option>
+          <option>Diner's Club</option>
+        </select>
+      </div>
+      <label for="remember" style="cursor: pointer">Remember me</label>
+      <input id="remember" type="checkbox" style="opacity: 0; position: absolute; width: 20px; height: 20px">
+      <button type="submit">Purchase Flight</button>
+    </form>
+    <table>
+      <thead><tr><th>Choose</th><th>Flight #</th><th>Airline</th><th>Departs</th><th>Arrives</th><th>Price</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </main>
+  <footer><a href="/index.html">Sign in</a></footer>
+  <script>
+    const airlines = ['Aer Lingus', 'Virgin America', 'United', 'Lufthansa', 'Delta']
+    document.getElementById('rows').innerHTML = Array.from({ length: 200 }, (_, i) => `
+      <tr>
+        <td><button type="button">Choose This Flight</button></td>
+        <td>${1000 + i}</td>
+        <td>${airlines[i % airlines.length]}</td>
+        <td>${1 + (i % 12)}:${String((i * 7) % 60).padStart(2, '0')} AM</td>
+        <td>${1 + ((i + 5) % 12)}:${String((i * 11) % 60).padStart(2, '0')} PM</td>
+        <td>$${(200 + i * 3.17).toFixed(2)}</td>
+      </tr>`).join('')
+  </script>
+</body>
+</html>
