@@ -5,6 +5,12 @@ import _mitt from 'mitt'
 import { resolveCustomCommandOptions } from './customCommands.js'
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
 
+/**
+ * commands added with `addCommand(name, fn, { attachToElement: true })`, so
+ * elements keep them even if a browser command has the same name, e.g. `scroll`
+ */
+export const CUSTOM_ELEMENT_COMMANDS = new WeakSet<Function>()
+
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser() { },
     element: /* istanbul ignore next */ function Element() { }
@@ -358,6 +364,7 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                 }
 
                 this.__propertiesObject__[name] = { value: customCommand }
+                CUSTOM_ELEMENT_COMMANDS.add(customCommand)
             } else if (
                 /**
                  * A client of a list that adds a command with the name of a command of the list

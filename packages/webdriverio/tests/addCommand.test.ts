@@ -120,6 +120,24 @@ describe('addCommand', () => {
             expect(typeof elem.myTest).toBe('undefined')
         })
 
+        test('should add an element command that has the name of a browser command', async () => {
+            const browser = await remote(remoteConfig)
+            const browserScroll = browser.scroll
+            browser.addCommand('scroll', function (this: WebdriverIO.Element) {
+                return `scrolled ${this.selector}`
+            }, { attachToElement: true })
+
+            const elem = await browser.$('#foo')
+            // @ts-expect-error custom element command
+            expect(await elem.scroll()).toBe('scrolled #foo')
+            // @ts-expect-error custom element command
+            expect(await browser.$('#foo').scroll()).toBe('scrolled #foo')
+            const [firstElem] = await browser.$$('#foo')
+            // @ts-expect-error custom element command
+            expect(await firstElem.scroll()).toBe('scrolled #foo')
+            expect(browser.scroll).toBe(browserScroll)
+        })
+
         test('should still work on browser calls after fetching an element', async () => {
             const browser = await remote(remoteConfig)
             await browser.$('#foo')
