@@ -176,6 +176,15 @@ const jasmineTestrunner = async () => {
 }
 
 /**
+ * Jasmine: a matcher added with `expect.extend()` in the `before` hook
+ */
+const jasmineCustomMatcher = async () => {
+    await launch('jasmineCustomMatcher', path.resolve(__dirname, 'helpers', 'jasmine-custom-matcher.conf.js'), {
+        specs: [path.resolve(__dirname, 'jasmine', 'custom-matcher.js')]
+    })
+}
+
+/**
  * Jasmine reporter
  */
 const jasmineReporter = async () => {
@@ -1271,6 +1280,7 @@ const jasmineAfterHookArgsValidation = async () => {
         mochaSpecFiltering,
         jasmineSpecFiltering,
         jasmineReporter,
+        jasmineCustomMatcher,
         jasmineTimeout,
         jasmineAfterAll,
         jasmineFailSpecWithNoExpectations,

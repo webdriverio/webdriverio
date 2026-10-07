@@ -360,7 +360,7 @@ import { some } from 'expect-webdriverio/api'
 await expect(some($$('li'))).toHaveAttribute('data-state', 'on')
 ```
 
-The Jest parts of `expect` are not available with Jasmine: Jest-only matchers such as `toStrictEqual` or `toHaveLength`, `expect.soft()` and `expect.extend()`. To add a custom matcher, use `jasmine.addMatchers` for a sync matcher or `jasmine.addAsyncMatchers` for an async matcher.
+The Jest parts of `expect` are not available with Jasmine: Jest-only matchers such as `toStrictEqual` or `toHaveLength`, and `expect.soft()`. To add a custom matcher, use `expect.extend()` in a spec file or the `before` hook (see [Custom Matchers](/docs/custommatchers)), or `jasmine.addMatchers` for a sync matcher and `jasmine.addAsyncMatchers` for an async matcher.
 
 For TypeScript, add `jasmine` to `types`, see [TypeScript Setup](/docs/typescript).
 
