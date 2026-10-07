@@ -96,10 +96,15 @@ describe('DialogManager', () => {
     it.each([
         { browserName: 'chrome', unhandledPromptBehavior: 'ignore' },
         { alwaysMatch: { browserName: 'chrome', unhandledPromptBehavior: 'ignore' }, firstMatch: [{}] },
-        { alwaysMatch: { browserName: 'chrome' }, firstMatch: [{ unhandledPromptBehavior: 'ignore' }] }
+        { alwaysMatch: { browserName: 'chrome' }, firstMatch: [{ unhandledPromptBehavior: 'ignore' }] },
+        {
+            alwaysMatch: { browserName: 'chrome' },
+            firstMatch: [{ platformName: 'mac' }, { platformName: 'linux', unhandledPromptBehavior: 'ignore' }]
+        }
     ])('should not dismiss dialogs if the user sets unhandledPromptBehavior (%j)', async (requestedCapabilities) => {
         browser.on.mockClear()
         browser.requestedCapabilities = requestedCapabilities
+        browser.capabilities = { browserName: 'chrome', platformName: 'linux', unhandledPromptBehavior: 'ignore' }
         const manager = new DialogManager(browser)
         const userPromptHandler = browser.on.mock.calls
             .find((call: unknown[]) => call[0] === 'browsingContext.userPromptOpened')?.[1]
@@ -108,6 +113,22 @@ describe('DialogManager', () => {
 
         expect(browser.browsingContextHandleUserPrompt).not.toHaveBeenCalled()
         expect(manager.promptMessage('some-context')).toBe('my alert')
+    })
+
+    it('should dismiss dialogs when the driver picked a firstMatch entry without unhandledPromptBehavior', async () => {
+        browser.on.mockClear()
+        browser.requestedCapabilities = {
+            alwaysMatch: { browserName: 'chrome' },
+            firstMatch: [{ platformName: 'linux' }, { platformName: 'windows', unhandledPromptBehavior: 'ignore' }]
+        }
+        browser.capabilities = { browserName: 'chrome', platformName: 'linux', unhandledPromptBehavior: 'ignore' }
+        new DialogManager(browser)
+        const userPromptHandler = browser.on.mock.calls
+            .find((call: unknown[]) => call[0] === 'browsingContext.userPromptOpened')?.[1]
+
+        await userPromptHandler({ context: 'some-context', message: 'my alert', type: 'alert' })
+
+        expect(browser.browsingContextHandleUserPrompt).toHaveBeenCalledWith({ accept: false, context: 'some-context' })
     })
 
     it('should drop the stored message when the browser closes the prompt', async () => {

@@ -10,6 +10,32 @@ export function getDialogManager(browser: WebdriverIO.Browser) {
  * It allows to do deep element lookups and pierce into shadow DOMs across
  * all components of a page.
  */
+/**
+ * Whether the session runs with a user-set `unhandledPromptBehavior`. It is
+ * user-set when it is in `alwaysMatch` (or a flat capability map), or in the
+ * `firstMatch` entry the driver picked. The picked entry is the one whose
+ * plain values, the behavior included, all match the returned capabilities.
+ * The other entries get WebdriverIO's default `ignore`.
+ */
+function hasUserPromptBehavior (
+    requested: WebdriverIO.Browser['requestedCapabilities'],
+    matched?: WebdriverIO.Capabilities
+): boolean {
+    const isSet = (caps?: WebdriverIO.Capabilities) => typeof caps?.unhandledPromptBehavior !== 'undefined'
+    if (!requested || !('alwaysMatch' in requested)) {
+        return isSet(requested as WebdriverIO.Capabilities | undefined)
+    }
+    if (isSet(requested.alwaysMatch)) {
+        return true
+    }
+    const returned = (matched || {}) as Record<string, unknown>
+    const isPicked = (entry: WebdriverIO.Capabilities) => Object.entries(entry).every(
+        ([key, value]) => typeof value === 'object' ||
+            String(value).toLowerCase() === String(returned[key]).toLowerCase()
+    )
+    return (requested.firstMatch || []).some((entry: WebdriverIO.Capabilities) => isSet(entry) && isPicked(entry))
+}
+
 export class DialogManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
@@ -29,12 +55,7 @@ export class DialogManager extends SessionManager {
         super(browser, DialogManager.name)
         this.#browser = browser
 
-        const requested = browser.requestedCapabilities
-        const requestedCaps = requested && 'alwaysMatch' in requested
-            ? [requested.alwaysMatch, ...(requested.firstMatch || [])]
-            : [requested]
-        this.#hasUserPromptBehavior = requestedCaps.some(
-            (caps) => typeof caps?.unhandledPromptBehavior !== 'undefined')
+        this.#hasUserPromptBehavior = hasUserPromptBehavior(browser.requestedCapabilities, browser.capabilities)
 
         /**
          * don't run setup when Bidi is not supported or running unit tests
