@@ -14,7 +14,7 @@ on:
           - major
           - premajor
       distTag:
-        description: 'NPM tag (e.g. use "next --canary" to release a test version, add "--force-publish" to release all packages)'
+        description: 'NPM tag (add "--force-publish" to release all packages). For test versions, use the "Dev Release" workflow'
         required: true
         default: 'latest'
 
