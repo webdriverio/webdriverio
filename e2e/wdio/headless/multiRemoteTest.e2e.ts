@@ -17,17 +17,17 @@ describe('multi remote test', () => {
         it('should open chat application', async () => {
             browserA = await multiRemoteBrowser.getInstance('browserA')
             browserB = await multiRemoteBrowser.getInstance('browserB')
-            await multiRemoteBrowser.url('https://socketio-chat-h9jt.herokuapp.com/')
+            await multiRemoteBrowser.url('https://guinea-pig.webdriver.io/chat.html')
         })
 
-        it.skip('should login the browser A', async () => {
+        it('should login the browser A', async () => {
             const nameInput = await browserA.$('.usernameInput')
             await nameInput.addValue('Browser A')
             await browserA.keys(Key.Enter)
             await expect(browserA.$('.inputMessage')).toHaveAttribute('placeHolder', 'Type here...')
         })
 
-        it.skip('should login the browser B', async () => {
+        it('should login the browser B', async () => {
             const nameInput = await browserB.$('.usernameInput')
             await nameInput.addValue('Browser B')
             await browserB.keys(Key.Enter)
