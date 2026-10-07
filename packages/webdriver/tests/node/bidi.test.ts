@@ -251,9 +251,43 @@ describe('Bidi Node.js implementation', () => {
         vi.runAllTimersAsync()
         expect(await wsPromise).toBeUndefined()
         expect(log.error).toHaveBeenCalledWith(
-            'Could not connect to Bidi protocol of any candidate url in time: ' +
+            'Could not connect to Bidi protocol of any candidate url within 10000ms: ' +
             '"ws://foo/bar", "ws://127.0.0.1/bar", "ws://[::1]/bar"'
         )
+    })
+
+    it('createBidiConnection waits for a slow browser until the connect timeout ends', async () => {
+        vi.useFakeTimers()
+        proxyUrlValueFn.mockReturnValue(undefined)
+        noProxyValueFn.mockReturnValue(undefined)
+
+        /**
+         * a browser that is busy at startup can open the socket after more than 10 s
+         */
+        const wsPromise = createBidiConnection('ws://127.0.0.1/bar', undefined, 30000)
+        await vi.advanceTimersByTimeAsync(12500)
+        instances[0].once.mock.calls[0][1]() // success callback
+
+        const ws = await wsPromise as any
+        expect(ws.wsUrl).toBe('ws://127.0.0.1/bar')
+        expect(log.error).not.toHaveBeenCalled()
+        vi.useRealTimers()
+    })
+
+    it('createBidiConnection times out after the connect timeout', async () => {
+        vi.useFakeTimers()
+        proxyUrlValueFn.mockReturnValue(undefined)
+        noProxyValueFn.mockReturnValue(undefined)
+
+        const wsPromise = createBidiConnection('ws://127.0.0.1/bar', undefined, 30000)
+        await vi.advanceTimersByTimeAsync(29999)
+        expect(log.error).not.toHaveBeenCalled()
+        await vi.advanceTimersByTimeAsync(1)
+        expect(await wsPromise).toBeUndefined()
+        expect(log.error).toHaveBeenCalledWith(
+            'Could not connect to Bidi protocol of any candidate url within 30000ms: "ws://127.0.0.1/bar"'
+        )
+        vi.useRealTimers()
     })
 
     it('should not fail if WebSocket url is invalid', async () => {
