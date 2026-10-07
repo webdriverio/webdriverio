@@ -23,14 +23,18 @@ export class DialogManager extends SessionManager {
     #prompts = new Map<string, string>()
 
     #handleUserPromptListener = this.#handleUserPrompt.bind(this)
+    #handleUserPromptClosedListener = this.#handleUserPromptClosed.bind(this)
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, DialogManager.name)
         this.#browser = browser
 
         const requested = browser.requestedCapabilities
-        const requestedCaps = requested && 'alwaysMatch' in requested ? requested.alwaysMatch : requested
-        this.#hasUserPromptBehavior = typeof requestedCaps?.unhandledPromptBehavior !== 'undefined'
+        const requestedCaps = requested && 'alwaysMatch' in requested
+            ? [requested.alwaysMatch, ...(requested.firstMatch || [])]
+            : [requested]
+        this.#hasUserPromptBehavior = requestedCaps.some(
+            (caps) => typeof caps?.unhandledPromptBehavior !== 'undefined')
 
         /**
          * don't run setup when Bidi is not supported or running unit tests
@@ -44,18 +48,20 @@ export class DialogManager extends SessionManager {
          * listen on required bidi events
          */
         this.#initialize = this.#browser.sessionSubscribe({
-            events: ['browsingContext.userPromptOpened']
+            events: ['browsingContext.userPromptOpened', 'browsingContext.userPromptClosed']
         }).then(() => true, () => false)
         // @ts-ignore this is a private event
         this.#browser.on('_dialogListenerRegistered', () => this.#switchListenerFlag(false))
         // @ts-ignore this is a private event
         this.#browser.on('_dialogListenerRemoved', () => this.#switchListenerFlag(true))
         this.#browser.on('browsingContext.userPromptOpened', this.#handleUserPromptListener)
+        this.#browser.on('browsingContext.userPromptClosed', this.#handleUserPromptClosedListener)
     }
 
     removeListeners(): void {
         super.removeListeners()
         this.#browser.off('browsingContext.userPromptOpened', this.#handleUserPromptListener)
+        this.#browser.off('browsingContext.userPromptClosed', this.#handleUserPromptClosedListener)
         this.#browser.removeAllListeners('_dialogListenerRegistered')
         this.#browser.removeAllListeners('_dialogListenerRemoved')
     }
@@ -98,6 +104,14 @@ export class DialogManager extends SessionManager {
 
         const dialog = new Dialog(log, this.#browser)
         this.#browser.emit('dialog', dialog)
+    }
+
+    /**
+     * a prompt can close without WebdriverIO, e.g. through an `accept` or
+     * `dismiss` unhandledPromptBehavior, so drop its stored message
+     */
+    #handleUserPromptClosed(log: local.BrowsingContextUserPromptClosedParameters) {
+        this.#prompts.delete(log.context)
     }
 
     /**

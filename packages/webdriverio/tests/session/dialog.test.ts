@@ -95,7 +95,8 @@ describe('DialogManager', () => {
 
     it.each([
         { browserName: 'chrome', unhandledPromptBehavior: 'ignore' },
-        { alwaysMatch: { browserName: 'chrome', unhandledPromptBehavior: 'ignore' }, firstMatch: [{}] }
+        { alwaysMatch: { browserName: 'chrome', unhandledPromptBehavior: 'ignore' }, firstMatch: [{}] },
+        { alwaysMatch: { browserName: 'chrome' }, firstMatch: [{ unhandledPromptBehavior: 'ignore' }] }
     ])('should not dismiss dialogs if the user sets unhandledPromptBehavior (%j)', async (requestedCapabilities) => {
         browser.on.mockClear()
         browser.requestedCapabilities = requestedCapabilities
@@ -107,6 +108,26 @@ describe('DialogManager', () => {
 
         expect(browser.browsingContextHandleUserPrompt).not.toHaveBeenCalled()
         expect(manager.promptMessage('some-context')).toBe('my alert')
+    })
+
+    it('should drop the stored message when the browser closes the prompt', async () => {
+        browser.on.mockClear()
+        browser.requestedCapabilities = { browserName: 'chrome', unhandledPromptBehavior: 'accept' }
+        const manager = new DialogManager(browser)
+        const handler = (event: string) => browser.on.mock.calls
+            .find((call: unknown[]) => call[0] === event)?.[1]
+
+        expect(browser.sessionSubscribe).toHaveBeenCalledWith({
+            events: ['browsingContext.userPromptOpened', 'browsingContext.userPromptClosed']
+        })
+        await handler('browsingContext.userPromptOpened')({ context: 'some-context', message: 'my alert', type: 'alert' })
+        expect(manager.promptMessage('some-context')).toBe('my alert')
+
+        handler('browsingContext.userPromptClosed')({ context: 'some-context', accepted: true, type: 'alert' })
+        expect(manager.promptMessage('some-context')).toBeUndefined()
+
+        manager.removeListeners()
+        expect(browser.off).toHaveBeenCalledWith('browsingContext.userPromptClosed', expect.any(Function))
     })
 })
 
