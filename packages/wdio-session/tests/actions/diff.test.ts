@@ -127,6 +127,15 @@ describe('find on a long line', () => {
         expect(printed.length).toBeLessThanOrEqual('2:'.length + 300)
     })
 
+    it('keeps the ref of a long label whose match is at its start', async () => {
+        const session = pageSession({ tree: doc([{ role: 'button', name: `needle ${'x'.repeat(400)}`, ref: 'e9' }]) })
+        const result = await find(session, { text: 'needle' })
+        const printed = printedOf(result)
+        expect(printed).toMatch(/^2: {2}- button "needle x+….* \[ref=e9\]$/)
+        expect(printed.length).toBeLessThanOrEqual('2:'.length + 300)
+        expect(matchesOf(result)[0].text).toMatch(/\[ref=e9\]$/)
+    })
+
     it('windows a line without a ref around its match as before', async () => {
         const session = pageSession({ tree: doc([{ role: 'link', name: 'Docs', url: `${'x'.repeat(900)}needle${'y'.repeat(50)}` }]) })
         const result = await find(session, { text: 'needle' })

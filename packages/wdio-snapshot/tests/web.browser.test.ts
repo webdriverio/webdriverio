@@ -91,6 +91,12 @@ describe('viewport', () => {
         expect(escaped).not.toContain('off-screen-one')
     })
 
+    it('drops the text of a parent taller than the viewport that sits outside it', () => {
+        const result = collect(`<div>Top text<div style="height:${FAR}"></div>Bottom text</div>`, { viewport: true })
+        expect(names(result.tree)).toContain('Top text')
+        expect(names(result.tree)).not.toContain('Bottom text')
+    })
+
     it('without the option keeps everything', () => {
         const result = collect(`<button style="position:absolute;top:${FAR}">Far away</button>`)
         expect(names(result.tree)).toContain('Far away')
@@ -175,6 +181,40 @@ describe('labels', () => {
     it('keeps the ref of a label whose control is hidden', () => {
         const result = collect('<label for="c" style="cursor:pointer">Remember me</label><input id="c" type="checkbox" style="opacity:0;position:absolute;width:20px;height:20px">')
         expect(result.refs.some((r) => r.name === 'Remember me' && r.role === 'generic')).toBe(true)
+    })
+})
+
+describe('off-screen custom checkbox', () => {
+    it('keeps the ref of a label whose sized control is parked off-screen', () => {
+        const result = collect('<label for="c" style="cursor:pointer">Remember me</label><input id="c" type="checkbox" style="position:absolute;left:-10000px;width:20px;height:20px">')
+        expect(result.refs.some((r) => r.name === 'Remember me' && r.role === 'generic')).toBe(true)
+    })
+})
+
+describe('code blocks', () => {
+    it.each([
+        ['role', '<pre role="button">npm install</pre>'],
+        ['tabindex', '<pre tabindex="0">npm install</pre>']
+    ])('keeps the ref of an interactive pre (%s)', (_, html) => {
+        const result = collect(html)
+        expect(result.refs).toHaveLength(1)
+        expect(result.refs[0].id).toBe(nodes(result.tree).find((n) => n.ref)?.ref)
+    })
+
+    it('still collapses a plain pre to a code leaf', () => {
+        expect(byRole(collect('<pre><span>npm</span> <span>install</span></pre>'), 'code').map((n) => n.name)).toEqual(['npm install'])
+    })
+})
+
+describe('context text collisions', () => {
+    it('hint keeps text that shares a substring with the typed value', () => {
+        const result = collect('<div>Invoice #123 <input value="123"></div>')
+        expect(byRole(result, 'textbox')[0].hint).toBe('input in "Invoice #123"')
+    })
+
+    it('intent keeps text that contains the control name', () => {
+        const result = collect('<div>Gold plan <button>Go</button></div><div>Gold plan B <button>Go</button></div>')
+        expect(byRole(result, 'button').map((b) => b.intent)).toEqual(['Gold plan', 'Gold plan B'])
     })
 })
 

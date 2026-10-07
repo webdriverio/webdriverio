@@ -133,6 +133,39 @@ describe('native snapshots', () => {
         ])
     })
 
+    it('does not treat a bare tag selector as unique when a named sibling of the same tag also matches it', () => {
+        const android = parseNativeSource(`<hierarchy>
+  <android.widget.Button clickable="true" displayed="true" bounds="[0,0][10,10]" />
+  <android.widget.Button text="Save" clickable="true" displayed="true" bounds="[0,20][10,30]" />
+</hierarchy>`, 'android')
+        expect(android.refs.map((ref) => ref.candidates.map((candidate) => candidate.selector))).toEqual([
+            ['(//android.widget.Button)[1]'],
+            ['android=new UiSelector().text("Save")', '//android.widget.Button[@text="Save"]']
+        ])
+        const ios = parseNativeSource(`<AppiumAUT>
+  <XCUIElementTypeButton type="XCUIElementTypeButton" visible="true" x="0" y="0" width="10" height="10" />
+  <XCUIElementTypeButton type="XCUIElementTypeButton" name="Save" visible="true" x="0" y="20" width="10" height="10" />
+</AppiumAUT>`, 'ios')
+        expect(ios.refs[0].candidates.map((candidate) => candidate.selector)).toEqual(['(//XCUIElementTypeButton)[1]'])
+    })
+
+    it('reads the resource id from a UiSelector in either quote style without backtracking', () => {
+        const located = (selector: string) => [{
+            node: { role: 'button', ref: 'e1' },
+            candidates: [selector],
+            matches: [],
+            fallback: ''
+        }]
+        const tree = { role: 'document' }
+        const scope = (candidate: string, scoped: string) => scopeNativeTree(tree, located(candidate), scoped).children?.length
+        expect(scope('android=new UiSelector().resourceId("com.example:id/save")', 'id=save')).toBe(1)
+        expect(scope('android=new UiSelector().resourceId(\'com.example:id/save\')', 'id=save')).toBe(1)
+        const adversarial = 'resourceId("' + 'a'.repeat(50000)
+        const start = performance.now()
+        expect(() => scope(adversarial, 'id=save')).toThrow()
+        expect(performance.now() - start).toBeLessThan(50)
+    })
+
     it('scopes to the indexed selector printed for a ref', () => {
         const { tree, located, refs } = parseNativeSource(`<hierarchy>
   <android.widget.Button content-desc="go" clickable="true" displayed="true" bounds="[0,0][10,10]" />

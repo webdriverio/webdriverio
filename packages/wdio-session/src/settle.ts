@@ -62,23 +62,30 @@ export async function waitQuiet (scope: WebdriverIO.Browser, { quietMs, maxMs, r
 }
 
 /**
- * `<context>|<url>` of the document a snapshot reads: a held frame is its own
- * document, so the top-level URL says nothing about it.
+ * `<context>|<url>|<timeOrigin>` of the document a snapshot reads: a held
+ * frame is its own document, so the top-level URL says nothing about it, and
+ * the time origin tells a reload of the same URL from the document already
+ * settled.
  */
 async function settleKey (session: Session) {
     const held = session.get?.<WebdriverIO.BrowsingContext>('activeContext')
+    const identify = () => [location.href, performance.timeOrigin]
     if (held) {
-        const href = await Promise.resolve(held.execute(() => location.href)).catch(() => undefined)
-        return typeof href === 'string' ? `${held.contextId}|${href}` : undefined
+        const id = await Promise.resolve(held.execute(identify)).catch(() => undefined)
+        return Array.isArray(id) ? `${held.contextId}|${id[0]}|${id[1]}` : undefined
     }
-    const url = await session.currentUrl()
-    if (url === undefined) {
+    if (!session.isWeb) {
         return undefined
     }
     const context = session.isBidi
         ? await getContextManager(session.browser).getCurrentContext().catch(() => undefined)
         : undefined
-    return `${context ?? ''}|${url}`
+    const id = await session.browser.execute(identify).catch(() => undefined)
+    if (Array.isArray(id)) {
+        return `${context ?? ''}|${id[0]}|${id[1]}`
+    }
+    const url = await session.currentUrl()
+    return url === undefined ? undefined : `${context ?? ''}|${url}|`
 }
 
 /**

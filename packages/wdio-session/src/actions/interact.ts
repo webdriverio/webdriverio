@@ -715,7 +715,7 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             const accepting = /accept|agree|got it|no thanks|continue|\bok\b/i
             let fallback: string | undefined
             for (const control of Element.prototype.querySelectorAll.call(container, 'button, a[href], [role="button"], input[type="button"], input[type="submit"]') as NodeListOf<Element>) {
-                if (!visible(control)) {
+                if (!visible(control) || Element.prototype.matches.call(control, '[disabled], [aria-disabled="true"]') || Element.prototype.closest.call(control, 'fieldset[disabled]')) {
                     continue
                 }
                 const text = (Element.prototype.getAttribute.call(control, 'aria-label') || Element.prototype.getAttribute.call(control, 'value') || Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'innerText')?.get?.call(control) as string | undefined || '').trim().replace(/\s+/g, ' ').slice(0, 60)

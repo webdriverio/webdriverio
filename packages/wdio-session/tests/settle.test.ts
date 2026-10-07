@@ -11,11 +11,15 @@ function fakeSession (opts: { isWeb?: boolean, applies?: string[] } = {}) {
     const settleCalls: unknown[][] = []
     const url = { current: 'https://shop.test/' }
     const held = { current: undefined as unknown }
+    const origin = { current: 1000 }
     const execute = vi.fn(async (_fn: unknown, ...args: unknown[]) => {
         // the collector's second argument is its JSON options, the settle script's is a number
         if (typeof args[0] === 'number') {
             settleCalls.push(args)
             return undefined
+        }
+        if (!args.length) {
+            return [url.current, origin.current]
         }
         return { tree, refs: [], counter: 1 }
     })
@@ -25,10 +29,9 @@ function fakeSession (opts: { isWeb?: boolean, applies?: string[] } = {}) {
         refs: new RefRegistry(),
         settledKey: undefined as string | undefined,
         get: (key: string) => held.current && key === 'activeContext' ? held.current : undefined,
-        currentUrl: async () => url.current,
         browser: { execute }
     } as unknown as Session
-    return { session, settleCalls, url, held }
+    return { session, settleCalls, url, held, origin }
 }
 
 describe('settling a fresh page before a snapshot', () => {
@@ -51,6 +54,18 @@ describe('settling a fresh page before a snapshot', () => {
         expect(settleCalls).toHaveLength(3)
     })
 
+    it('waits again for a reload of the same URL in the same context, not for the same document', async () => {
+        const { session, settleCalls, origin } = fakeSession()
+        await takeSnapshot(session)
+        await takeSnapshot(session)
+        expect(settleCalls).toHaveLength(1)
+        origin.current = 2000
+        await takeSnapshot(session)
+        expect(settleCalls).toHaveLength(2)
+        await takeSnapshot(session)
+        expect(settleCalls).toHaveLength(2)
+    })
+
     it('keys the wait on the held frame and its own URL, not the top-level page', async () => {
         const { session, settleCalls, held } = fakeSession()
         await takeSnapshot(session)
@@ -62,7 +77,7 @@ describe('settling a fresh page before a snapshot', () => {
                     settleCalls.push(args)
                     return undefined
                 }
-                return args.length ? { tree, refs: [], counter: 1 } : frameHref.current
+                return args.length ? { tree, refs: [], counter: 1 } : [frameHref.current, 5]
             })
         }
         await takeSnapshot(session)
