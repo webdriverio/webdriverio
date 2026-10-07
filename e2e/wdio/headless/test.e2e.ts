@@ -316,25 +316,18 @@ describe('main suite 1', () => {
             await browser.$('#parent').waitForExist()
         })
 
-        it('moveTo without iframe', async function () {
-            // Unstable on Windows: expected "center", received "center\nout"
-            this.retries(3)
+        it('moveTo without iframe', async () => {
             await browser.$('#parent').moveTo()
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo without iframe with 0 offsets', async function () {
-            // Unstable on Windows: expected "center", received "center\nout"
-            this.retries(3)
+        it('moveTo without iframe with 0 offsets', async () => {
             await browser.$('#parent').moveTo({ xOffset: 0, yOffset: 0 })
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async function() {
-                // Unstable test, retry up to 3 times `Expected: 90 Received: 504` with when input = `{"xOffset":10}`
-                this.retries(3)
-
+            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await setupMouseTracking()
                 await browser.$('#parent').moveTo()
                 const rectBefore = await waitForMousePosition(0)
@@ -356,29 +349,19 @@ describe('main suite 1', () => {
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo in iframe with 0 offsets', async function () {
-            /**
-             * too unstable on Windows: expected "center", received "center\nout"
-             */
-            if (os.platform() === 'win32') {
-                this.skip()
-            }
+        it('moveTo in iframe with 0 offsets', async () => {
             await browser.$('#parent').moveTo({ xOffset: 0, yOffset: 0 })
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo to parent frame with auto scrolling', async function () {
-            // Unstable on Windows: expected "center", received "center\nout"
-            this.retries(3)
+        it('moveTo to parent frame with auto scrolling', async () => {
             await browser.setWindowSize(500, 500)
             const page = (await browser.browsingContexts())[0]
             await page.$('#parent').moveTo()
             await expect(page.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo to nested iframe with auto scrolling', async function () {
-            // Unstable on Windows: expected "center", received "center\nout"
-            this.retries(3)
+        it('moveTo to nested iframe with auto scrolling', async () => {
             const page = (await browser.browsingContexts())[0]
             const frame = await page.frame('iframe.code-tabs__result')
             await frame.$('#parent').moveTo()
