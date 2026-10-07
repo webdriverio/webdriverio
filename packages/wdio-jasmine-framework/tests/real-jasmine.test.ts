@@ -60,3 +60,21 @@ test('expect.extend() in the before hook adds the matcher to Jasmine', async () 
     })
     expect(await adapter.run()).toBe(0)
 })
+
+test('the global expect has the asymmetric matchers of expect-webdriverio, expect.multiRemote() included', async () => {
+    const reporter = { emit: vi.fn(), on: vi.fn(), write: vi.fn() }
+    const adapter = new JasmineAdapter(
+        '0-0',
+        { beforeHook: [], afterHook: [] } as any,
+        [],
+        { browserName: 'chrome' } as any,
+        reporter as any
+    )
+    const wdioExpect = { oneOf: vi.fn(), multiRemote: vi.fn(), not: {} }
+
+    await adapter.init()
+    await adapter.setupExpect(wdioExpect as any, {} as any, vi.fn(() => ({})) as any)
+
+    expect((globalThis as any).expect.oneOf).toBe(wdioExpect.oneOf)
+    expect((globalThis as any).expect.multiRemote).toBe(wdioExpect.multiRemote)
+})

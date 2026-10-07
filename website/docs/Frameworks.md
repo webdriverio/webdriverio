@@ -352,7 +352,7 @@ it('checks the page', async () => {
 
 `toHaveSize` exists in both libraries. The WebdriverIO matcher runs on WebdriverIO values: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multi-remote element, a browser, a browsing context, a mock, the `some()` wrapper, or a promise such as a chainable `$()`. Jasmine's matcher runs on every other value.
 
-The asymmetric matchers of both libraries work, in Jasmine and in WebdriverIO matchers: `jasmine.any()`, `jasmine.objectContaining()`, `jasmine.stringMatching()`, … and `expect.any()`, `expect.stringContaining()`, `expect.oneOf()`, `expect.not.stringContaining()`, …. To use `some()`, import it:
+The asymmetric matchers of both libraries work, in Jasmine and in WebdriverIO matchers: `jasmine.any()`, `jasmine.objectContaining()`, `jasmine.stringMatching()`, … and `expect.any()`, `expect.stringContaining()`, `expect.oneOf()`, `expect.multiRemote()`, `expect.not.stringContaining()`, …. To use `some()`, import it:
 
 ```js
 import { some } from 'expect-webdriverio/api'

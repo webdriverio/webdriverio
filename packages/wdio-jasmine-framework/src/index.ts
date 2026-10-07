@@ -27,6 +27,7 @@ const EXPECT_ASYMMETRIC_MATCHERS = [
     'stringContaining',
     'stringMatching',
     'oneOf',
+    'multiRemote',
     'not',
 ] as const
 const TEST_INTERFACES = ['it', 'fit', 'xit']
@@ -760,6 +761,7 @@ declare global {
         const stringContaining: ExpectWebdriverIO.Expect['stringContaining']
         const stringMatching: ExpectWebdriverIO.Expect['stringMatching']
         const oneOf: ExpectWebdriverIO.Expect['oneOf']
+        const multiRemote: ExpectWebdriverIO.Expect['multiRemote']
         const not: ExpectWebdriverIO.Expect['not']
     }
     namespace jasmine {
