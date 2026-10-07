@@ -1,5 +1,5 @@
 /**
- * Computes the version for a dev release (see `.github/workflows/dev-release.yml`).
+ * Computes the version for a dev release (the "dev" option of `.github/workflows/publish.yml`).
  *
  * Lerna's `--canary` mode builds versions as `<next>-<preid>.<commits since tag>+<sha>`.
  * npm drops the `+<sha>` build metadata, so two branches with the same number of
@@ -10,7 +10,7 @@
 import path from 'node:path'
 import { getRootDir, toFileUrl } from '@wdio/repo-utils'
 
-export const RELEASE_TYPES = ['patch', 'minor', 'major'] as const
+export const RELEASE_TYPES = ['patch', 'minor', 'major', 'premajor'] as const
 export type DevReleaseType = typeof RELEASE_TYPES[number]
 
 const VERSION_REGEXP = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/
@@ -42,7 +42,7 @@ export function getNextVersion (version: string, releaseType: DevReleaseType) {
     const [major, minor, patch] = match.slice(1, 4).map(Number)
     const isPrerelease = Boolean(match[4])
 
-    if (releaseType === 'major') {
+    if (releaseType === 'major' || releaseType === 'premajor') {
         return isPrerelease && minor === 0 && patch === 0
             ? `${major}.0.0`
             : `${major + 1}.0.0`

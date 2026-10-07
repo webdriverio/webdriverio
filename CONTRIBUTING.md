@@ -438,7 +438,7 @@ If you are unsure about which release type to pick, reach out in the `webdriveri
 
 ### Dev Releases
 
-To test changes before we roll them out to all users, run the [`Dev Release`](https://github.com/webdriverio/webdriverio/actions/workflows/dev-release.yml) workflow and pick your branch in "Use workflow from". It publishes all packages as `<next version>-dev.<run number>`, e.g. `10.0.2-dev.42`, with the `next` dist-tag by default. The run number is unique across branches, so dev releases from different branches never get the same version. Dev releases don't create a git tag, a changelog entry or a GitHub release. The job summary shows the published version.
+To test changes before we roll them out to all users, run the [`Manual NPM Publish`](https://github.com/webdriverio/webdriverio/actions/workflows/publish.yml) workflow with "Dev release" checked and pick your branch in "Use workflow from". The release type picks the version the dev release leads up to. It publishes all packages as `<next version>-dev.<run number>`, e.g. `10.0.2-dev.42`, with the `next` dist-tag unless you set a tag other than `latest`. The run number is unique across branches, so dev releases from different branches never get the same version. Dev releases don't create a git tag, a changelog entry or a GitHub release. The job summary shows the published version.
 
 ## Workshop
 

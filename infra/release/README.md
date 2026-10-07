@@ -24,7 +24,7 @@ pnpm run pushReleaseTag
 # equivalent:
 pnpm -r --filter=@wdio/release run push-tags
 
-# in .github/workflows/dev-release.yml (reads RELEASE_TYPE, DIST_TAG,
+# in .github/workflows/publish.yml for dev releases (reads RELEASE_TYPE, DIST_TAG,
 # GITHUB_RUN_NUMBER and GITHUB_RUN_ATTEMPT, writes to GITHUB_OUTPUT)
 pnpm -r --filter=@wdio/release run dev-version
 

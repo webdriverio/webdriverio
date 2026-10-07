@@ -10,6 +10,7 @@ describe('getNextVersion', () => {
         expect(getNextVersion('10.0.1', 'patch')).toBe('10.0.2')
         expect(getNextVersion('10.0.1', 'minor')).toBe('10.1.0')
         expect(getNextVersion('10.0.1', 'major')).toBe('11.0.0')
+        expect(getNextVersion('10.0.1', 'premajor')).toBe('11.0.0')
     })
 
     it('finishes a prerelease of the same release line like semver.inc', () => {
@@ -43,7 +44,7 @@ describe('getDevVersion', () => {
     })
 
     it('rejects unknown release types and missing run numbers', () => {
-        expect(() => getDevVersion({ version: '10.0.1', releaseType: 'premajor', runNumber: 1 })).toThrow(/release type/)
+        expect(() => getDevVersion({ version: '10.0.1', releaseType: 'prerelease', runNumber: 1 })).toThrow(/release type/)
         expect(() => getDevVersion({ version: '10.0.1', runNumber: '' })).toThrow(/run number/)
         expect(() => getDevVersion({ version: '10.0.1', runNumber: '01' })).toThrow(/run number/)
     })

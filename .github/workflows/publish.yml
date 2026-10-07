@@ -14,9 +14,14 @@ on:
           - major
           - premajor
       distTag:
-        description: 'NPM tag (add "--force-publish" to release all packages). For test versions, use the "Dev Release" workflow'
+        description: 'NPM tag (add "--force-publish" to release all packages). Dev releases use "next" when this is "latest"'
         required: true
         default: 'latest'
+      dev:
+        description: "Dev release: publish all packages from the selected branch as <next version>-dev.<run number>, without git tag or changelog"
+        required: false
+        type: boolean
+        default: false
 
 env:
   NPM_CONFIG_PROVENANCE: true
@@ -49,11 +54,20 @@ jobs:
           git config --global user.name "WebdriverIO Release Bot"
       - name: Install Dependencies
         run: pnpm install
+      - name: Compute Dev Version
+        if: ${{ inputs.dev }}
+        id: devVersion
+        run: pnpm -r --filter=@wdio/release run dev-version
+        env:
+          RELEASE_TYPE: ${{ inputs.releaseType }}
+          # dev releases never move `latest`, so the default falls back to `next`
+          DIST_TAG: ${{ inputs.distTag == 'latest' && 'next' || inputs.distTag }}
       - name: Build
         run: pnpm run setup
         env:
           NODE_ENV: production
       - name: Release
+        if: ${{ !inputs.dev }}
         run: |
           pnpm -r --filter=@wdio/lerna-patch run patch
           pnpm lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
@@ -61,3 +75,24 @@ jobs:
         env:
           NODE_ENV: production
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
+      - name: Dev Release
+        if: ${{ inputs.dev }}
+        # `--ignore-scripts` skips the root `version` script, which would otherwise
+        # write CHANGELOG.md and create a GitHub release for the dev version.
+        # `--no-git-tag-version` keeps dev versions out of git: no commit, no tag, no push.
+        run: |
+          pnpm -r --filter=@wdio/lerna-patch run patch
+          pnpm lerna publish "$VERSION" --exact --yes --force-publish --no-git-tag-version --no-push --ignore-scripts --dist-tag "$DIST_TAG"
+          {
+            echo "### Published \`$VERSION\` from \`$GITHUB_REF_NAME\`"
+            echo
+            echo '```sh'
+            echo "npm install webdriverio@$VERSION @wdio/cli@$VERSION"
+            echo '```'
+            echo
+            echo "The \`$DIST_TAG\` dist-tag now points to this version."
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          NODE_ENV: production
+          VERSION: ${{ steps.devVersion.outputs.version }}
+          DIST_TAG: ${{ steps.devVersion.outputs.distTag }}
