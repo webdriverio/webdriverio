@@ -1405,9 +1405,11 @@ export async function hasElementId(element: WebdriverIO.Element) {
                 : element.isShadowElement
                     ? await (parent as WebdriverIO.Element).shadow$$(element.selector as string)
                     : await parent.$$(element.selector as string)
-            const targetElement = elements[element.index]
-            if (targetElement) {
-                element.elementId = (await targetElement.getElement()).elementId
+            if (element.index < elements.length) {
+                const targetElement = elements[element.index]
+                if (targetElement) {
+                    element.elementId = (await targetElement.getElement()).elementId
+                }
             }
         } else {
             const targetElement = element.isReactElement

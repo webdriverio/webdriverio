@@ -272,4 +272,20 @@ describe('isDisplayed test', () => {
         expect(await secondElem.isDisplayed()).toBe(true)
         expect(secondElem.elementId).toBe('some-elem-456')
     })
+
+    it('should return false if refetched indexed element is out of bounds', async () => {
+        const elems = await browser.$$('#foo')
+        const secondElem = elems[1]
+        // @ts-ignore test scenario
+        delete secondElem.elementId
+
+        vi.mocked(fetch).customResponseFor(/\/elements$/, {
+            value: [
+                { 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' }
+            ]
+        })
+
+        expect(await secondElem.isDisplayed()).toBe(false)
+        expect(secondElem.elementId).toBeUndefined()
+    })
 })
