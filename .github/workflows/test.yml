@@ -14,6 +14,8 @@ on:
     branches:
       - main
       - v10
+      # TEMPORARY: run the Windows testrunner e2e on a push of this branch
+      - test/e2e-windows-real-cursor
       - '!l10n_main'
     paths-ignore:
       - '**/*.md'
@@ -112,30 +114,31 @@ jobs:
 
   static_code_analysis:
     name: Static Code Analysis
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-static.yml
 
   docs_build:
     name: Docs Build
     needs: [changes, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.docs == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-docs.yml
 
   typing_tests:
     name: Typing Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-typings.yml
 
   interop_tests:
     name: Interop Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-interop.yml
 
   unit_tests:
     name: Unit Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true' || needs.changes.outputs.component == 'true' || needs.changes.outputs.session == 'true' || needs.changes.outputs.display_server == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-unit.yml
     with:
       full_matrix: ${{ needs.changes.outputs.run-all == 'true' }}
@@ -143,7 +146,7 @@ jobs:
   smoke_tests:
     name: Smoke Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-smoke.yml
     with:
       full_matrix: ${{ needs.changes.outputs.run-all == 'true' }}
@@ -151,7 +154,7 @@ jobs:
   component_tests:
     name: Component Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.component == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-component.yml
     with:
       full_matrix: ${{ needs.changes.outputs.run-all == 'true' }}
@@ -162,44 +165,45 @@ jobs:
   session_tests:
     name: Session E2E Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.session == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-session.yml
 
   launch_tests:
     name: E2E Tests
     needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-launch.yml
 
   cloud_tests:
     name: Cloud E2E Tests
     needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
-    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v10') && (needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true')
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-cloud.yml
     secrets: inherit
 
   testrunner_tests:
     name: Testrunner E2E Tests
-    needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
+    # TEMPORARY: only wait for the build
+    needs: [changes, build_core]
     if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test-testrunner.yml
 
   multi_remote_tests:
     name: Multi-remote E2E Tests
     needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-multiremote.yml
 
   standalone_tests:
     name: Standalone E2E Tests
     needs: [changes, smoke_tests, unit_tests, interop_tests, typing_tests]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.code == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-standalone.yml
 
   display_server_tests:
     name: Display Server E2E Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.display_server == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-display-server.yml
     with:
       full_matrix: ${{ needs.changes.outputs.run-all == 'true' || needs.changes.outputs.display_server_images == 'true' }}
@@ -207,7 +211,7 @@ jobs:
   chromedriver_tests:
     name: Chromedriver E2E Tests
     needs: [changes, build_core, static_code_analysis]
-    if: needs.changes.outputs.run-all == 'true' || needs.changes.outputs.chromedriver == 'true'
+    if: false # TEMPORARY: only the Windows testrunner e2e
     uses: ./.github/workflows/test-chromedriver.yml
 
   # Stable required check. Individual matrix cells are skipped on most PRs;
