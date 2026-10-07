@@ -6,16 +6,17 @@ export function getDialogManager(browser: WebdriverIO.Browser) {
 }
 
 /**
- * This class is responsible for managing shadow roots and their elements.
- * It allows to do deep element lookups and pierce into shadow DOMs across
- * all components of a page.
+ * The W3C capabilities that a driver matches by plain equality. Others, like
+ * `browserVersion` or vendor options, use driver-specific rules.
  */
+const EQUALITY_MATCHED_CAPABILITIES = ['browserName', 'platformName', 'unhandledPromptBehavior'] as const
+
 /**
  * Whether the session runs with a user-set `unhandledPromptBehavior`. It is
  * user-set when it is in `alwaysMatch` (or a flat capability map), or in the
- * `firstMatch` entry the driver picked. The picked entry is the one whose
- * plain values, the behavior included, all match the returned capabilities.
- * The other entries get WebdriverIO's default `ignore`.
+ * `firstMatch` entry the driver picked. An entry counts as picked when its
+ * equality-matched capabilities, the behavior included, match the returned
+ * capabilities. The other entries get WebdriverIO's default `ignore`.
  */
 function hasUserPromptBehavior (
     requested: WebdriverIO.Browser['requestedCapabilities'],
@@ -29,13 +30,19 @@ function hasUserPromptBehavior (
         return true
     }
     const returned = (matched || {}) as Record<string, unknown>
-    const isPicked = (entry: WebdriverIO.Capabilities) => Object.entries(entry).every(
-        ([key, value]) => typeof value === 'object' ||
+    const isPicked = (entry: WebdriverIO.Capabilities) => EQUALITY_MATCHED_CAPABILITIES.every((key) => {
+        const value = (entry as Record<string, unknown>)[key]
+        return typeof value === 'undefined' || typeof value === 'object' ||
             String(value).toLowerCase() === String(returned[key]).toLowerCase()
-    )
+    })
     return (requested.firstMatch || []).some((entry: WebdriverIO.Capabilities) => isSet(entry) && isPicked(entry))
 }
 
+/**
+ * This class is responsible for managing shadow roots and their elements.
+ * It allows to do deep element lookups and pierce into shadow DOMs across
+ * all components of a page.
+ */
 export class DialogManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>

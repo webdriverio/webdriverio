@@ -100,11 +100,18 @@ describe('DialogManager', () => {
         {
             alwaysMatch: { browserName: 'chrome' },
             firstMatch: [{ platformName: 'mac' }, { platformName: 'linux', unhandledPromptBehavior: 'ignore' }]
-        }
+        },
+        { alwaysMatch: { browserName: 'chrome' }, firstMatch: [{ browserVersion: '', unhandledPromptBehavior: 'ignore' }] },
+        { alwaysMatch: { browserName: 'chrome' }, firstMatch: [{ browserVersion: '120', unhandledPromptBehavior: 'ignore' }] }
     ])('should not dismiss dialogs if the user sets unhandledPromptBehavior (%j)', async (requestedCapabilities) => {
         browser.on.mockClear()
         browser.requestedCapabilities = requestedCapabilities
-        browser.capabilities = { browserName: 'chrome', platformName: 'linux', unhandledPromptBehavior: 'ignore' }
+        browser.capabilities = {
+            browserName: 'chrome',
+            browserVersion: '120.0.6099.109',
+            platformName: 'linux',
+            unhandledPromptBehavior: 'ignore'
+        }
         const manager = new DialogManager(browser)
         const userPromptHandler = browser.on.mock.calls
             .find((call: unknown[]) => call[0] === 'browsingContext.userPromptOpened')?.[1]
