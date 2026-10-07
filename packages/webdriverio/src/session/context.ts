@@ -1,4 +1,4 @@
-import type { local } from 'webdriver'
+import type { BidiHandler, local } from 'webdriver'
 import logger from '@wdio/logger'
 
 import { SessionManager } from './session.js'
@@ -308,7 +308,7 @@ export class ContextManager extends SessionManager {
             return
         }
 
-        const { contexts } = await this.#browser.browsingContextGetTree({})
+        const { contexts } = await this.#getContextTreeWithoutCommandHooks()
         const parentContext = this.findParentContext(this.#currentContext, contexts)
         if (!parentContext) {
             /**
@@ -330,6 +330,20 @@ export class ContextManager extends SessionManager {
             return
         }
         this.setCurrentContext(parentContext.context)
+    }
+
+    /**
+     * Retrieves the browsing context tree via the BiDi handler, rather than the `browsingContextGetTree` command.
+     *
+     * Commands run the `beforeCommand` and `afterCommand` hooks. If a hook ran a command that reads the current
+     * context, e.g. `browser.execute()`, that command would wait for this lookup to complete, while the lookup
+     * would wait for the hook to complete, so neither would ever finish.
+     */
+    #getContextTreeWithoutCommandHooks(): Promise<local.BrowsingContextGetTreeResult> {
+        const bidiHandler = (this.#browser as { _bidiHandler?: Pick<BidiHandler, 'browsingContextGetTree'> })._bidiHandler
+        return bidiHandler
+            ? bidiHandler.browsingContextGetTree({})
+            : this.#browser.browsingContextGetTree({})
     }
 
     #onCommandResultMobile(event: { command: string, result: unknown }) {

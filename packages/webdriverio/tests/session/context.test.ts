@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import { getContextManager } from '../../src/session/context.js'
 import { logMock } from '@wdio/logger'
+import { wrapCommand } from '@wdio/utils'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -23,6 +24,7 @@ function createBrowserStub(overrides: Partial<WebdriverIO.Browser> = {}) {
         switchToWindow: vi.fn(),
         sessionSubscribe: vi.fn(),
         browsingContextGetTree: vi.fn(),
+        _bidiHandler: { browsingContextGetTree: vi.fn() },
         getWindowHandles: vi.fn(),
         getWindowHandle: vi.fn(),
         ...overrides
@@ -344,7 +346,7 @@ describe('ContextManager', () => {
          * the cached frame was destroyed by the page, so it is not in the tree
          * any more and has no parent to step up to
          */
-        ;(browser as any).browsingContextGetTree.mockResolvedValue({
+        ;(browser as any)._bidiHandler.browsingContextGetTree.mockResolvedValue({
             contexts: [{
                 context: 'context-1', parent: null, children: [],
                 url: '', clientWindow: 'window-1', originalOpener: null, userContext: 'default'
@@ -378,7 +380,7 @@ describe('ContextManager', () => {
          * the cached context is top-level: it has no parent, but it is very much
          * still in the tree, so stepping up is a no-op rather than a recovery
          */
-        ;(browser as any).browsingContextGetTree.mockResolvedValue({
+        ;(browser as any)._bidiHandler.browsingContextGetTree.mockResolvedValue({
             contexts: [{
                 context: 'context-1', parent: null, children: [],
                 url: '', clientWindow: 'window-1', originalOpener: null, userContext: 'default'
@@ -399,7 +401,7 @@ describe('ContextManager', () => {
         delete process.env.WDIO_UNIT_TESTS
         const stub = createBrowserStub({ isBidi: true } as any)
         const browser = stub.browser
-        ;(browser as any).browsingContextGetTree.mockResolvedValue({
+        ;(browser as any)._bidiHandler.browsingContextGetTree.mockResolvedValue({
             contexts: [{
                 context: 'context-1', parent: null,
                 children: [{
@@ -457,7 +459,7 @@ describe('ContextManager', () => {
                 commandHandlers[commandHandlers.length - 1]({ command: 'switchToParentFrame', body: {} })
             }
 
-            return { manager, switchToParentFrame, browsingContextGetTree: (stub.browser as any).browsingContextGetTree }
+            return { manager, switchToParentFrame, browsingContextGetTree: (stub.browser as any)._bidiHandler.browsingContextGetTree }
         }
 
         it('waits for the parent frame to be determined before returning the current context', async () => {
@@ -494,6 +496,34 @@ describe('ContextManager', () => {
 
             expect(await manager.getCurrentContext()).toBe('frame-2')
             expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('browsing context tree unavailable'))
+        })
+
+        it('does not deadlock when a command hook of the context tree lookup reads the current context', async () => {
+            const wid = process.env.WDIO_UNIT_TESTS
+            delete process.env.WDIO_UNIT_TESTS
+            const stub = createBrowserStub({ isBidi: true } as any)
+            const browser = stub.browser as any
+            const manager = getContextManager(browser)
+            process.env.WDIO_UNIT_TESTS = wid
+            manager.setCurrentContext('frame-2')
+
+            /**
+             * a beforeCommand hook that runs a command reading the current context,
+             * like browser.execute() or taking a screenshot would
+             */
+            browser.options = {
+                beforeCommand: [async () => {
+                    await manager.getCurrentContext()
+                }],
+            }
+            browser.browsingContextGetTree = wrapCommand('browsingContextGetTree', async () => nestedFrames)
+            browser._bidiHandler.browsingContextGetTree.mockResolvedValue(nestedFrames)
+
+            const commandHandlers = stub.getListeners().command!
+            commandHandlers[commandHandlers.length - 1]({ command: 'switchToParentFrame', body: {} })
+
+            const timeout = new Promise(resolve => setTimeout(() => resolve('deadlock'), 1_000))
+            expect(await Promise.race([manager.getCurrentContext(), timeout])).toBe('frame-1')
         })
     })
 })
