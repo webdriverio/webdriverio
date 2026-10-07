@@ -92,6 +92,22 @@ describe('DialogManager', () => {
             context: 'some-context'
         })
     })
+
+    it.each([
+        { browserName: 'chrome', unhandledPromptBehavior: 'ignore' },
+        { alwaysMatch: { browserName: 'chrome', unhandledPromptBehavior: 'ignore' }, firstMatch: [{}] }
+    ])('should not dismiss dialogs if the user sets unhandledPromptBehavior (%j)', async (requestedCapabilities) => {
+        browser.on.mockClear()
+        browser.requestedCapabilities = requestedCapabilities
+        const manager = new DialogManager(browser)
+        const userPromptHandler = browser.on.mock.calls
+            .find((call: unknown[]) => call[0] === 'browsingContext.userPromptOpened')?.[1]
+
+        await userPromptHandler({ context: 'some-context', message: 'my alert', type: 'alert' })
+
+        expect(browser.browsingContextHandleUserPrompt).not.toHaveBeenCalled()
+        expect(manager.promptMessage('some-context')).toBe('my alert')
+    })
 })
 
 describe('Dialog - Browser', () => {

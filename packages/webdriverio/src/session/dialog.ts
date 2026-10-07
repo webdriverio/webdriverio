@@ -14,6 +14,11 @@ export class DialogManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #autoHandleDialog = true
+    /**
+     * a user-set `unhandledPromptBehavior` capability decides what happens to
+     * a dialog, e.g. `ignore` keeps it open for `browser.getAlertText()`
+     */
+    #hasUserPromptBehavior: boolean
 
     #prompts = new Map<string, string>()
 
@@ -22,6 +27,10 @@ export class DialogManager extends SessionManager {
     constructor(browser: WebdriverIO.Browser) {
         super(browser, DialogManager.name)
         this.#browser = browser
+
+        const requested = browser.requestedCapabilities
+        const requestedCaps = requested && 'alwaysMatch' in requested ? requested.alwaysMatch : requested
+        this.#hasUserPromptBehavior = typeof requestedCaps?.unhandledPromptBehavior !== 'undefined'
 
         /**
          * don't run setup when Bidi is not supported or running unit tests
@@ -68,7 +77,7 @@ export class DialogManager extends SessionManager {
      */
     async #handleUserPrompt(log: local.BrowsingContextUserPromptOpenedParameters) {
         this.#prompts.set(log.context, log.message)
-        if (this.#autoHandleDialog) {
+        if (this.#autoHandleDialog && !this.#hasUserPromptBehavior) {
             this.#prompts.delete(log.context)
             try {
                 return await this.#browser.browsingContextHandleUserPrompt({
