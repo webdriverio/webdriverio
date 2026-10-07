@@ -151,7 +151,7 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
  }
 ```
 
-`expect.oneOf()` now also works in Jasmine specs. Before, it had a type but was not on the Jasmine `expect` at runtime.
+`expect.oneOf()` and `expect.multiRemote()` now also work in Jasmine specs. Before, they were not on the Jasmine `expect` at runtime.
 
 ## expect-webdriverio 8
 

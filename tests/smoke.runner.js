@@ -185,6 +185,20 @@ const jasmineCustomMatcher = async () => {
 }
 
 /**
+ * Jasmine: `expect.multiRemote()` on the global `expect` and on the one of `@wdio/globals`
+ */
+const jasmineMultiRemote = async () => {
+    await launch('jasmineMultiRemote', baseConfig, {
+        specs: [path.resolve(__dirname, 'jasmine', 'multi-remote.js')],
+        framework: 'jasmine',
+        capabilities: {
+            browserA: { capabilities: { browserName: 'chrome' } },
+            browserB: { capabilities: { browserName: 'chrome' } }
+        }
+    })
+}
+
+/**
  * Jasmine reporter
  */
 const jasmineReporter = async () => {
@@ -1281,6 +1295,7 @@ const jasmineAfterHookArgsValidation = async () => {
         jasmineSpecFiltering,
         jasmineReporter,
         jasmineCustomMatcher,
+        jasmineMultiRemote,
         jasmineTimeout,
         jasmineAfterAll,
         jasmineFailSpecWithNoExpectations,

@@ -35,6 +35,7 @@ function wdioMatchers () {
     return [
         expect($('foo')).toHaveText('bar'),
         expect($('foo')).not.toBeDisplayed(),
+        expect(multiRemoteBrowser).toHaveTitle(expect.multiRemote({ chrome: 'foo', firefox: 'bar' })),
         expect($('foo')).toHaveSize({ width: 1, height: 1 }),
         expect(elements).toHaveSize({ width: 1, height: 1 }),
         expect(elements).toHaveText('bar'),
