@@ -75,10 +75,10 @@ On Android, iOS, macOS and Windows the snapshot comes from the Appium page sourc
 
 ## Repeated controls
 
-When several controls share a role and a name, such as the "Choose This Flight" button of every row in a table, the ref line ends with `∈ "<text>"`, the text of the row, card or list item that holds that control and no other of the same name:
+When several controls share a role and a name, such as the "Add to cart" button of every row in a product table, the ref line ends with `∈ "<text>"`, the text of the row, card or list item that holds that control and no other of the same name:
 
 ```text
-- button "Choose This Flight" [ref=e9] ∈ "9696 Aer Lingus 5:27 AM 8:22 PM $200.98"
+- button "Add to cart" [ref=e9] ∈ "Desk lamp · Brass · In stock · $49.00"
 ```
 
 The text is cut at 80 characters. A control whose item is a page landmark (a "Sign in" link in both the header and the footer) gets none. The label of a visible form control is not listed: the control carries the name.

@@ -8,9 +8,9 @@ import { cliCmd } from '../../src/hints.js'
 import type { Session } from '../../src/session.js'
 
 /** the in-page callback of `click`, run on a jsdom page whose layout is faked */
-async function hintFor (banner: string) {
-    document.body.innerHTML = `<button id="target">Pay</button><div id="cookie-banner">${banner}</div>`
-    const cover = document.getElementById('cookie-banner')!
+async function hintFor (banner: string, attrs = 'id="cookie-banner" role="dialog"') {
+    document.body.innerHTML = `<button id="target">Pay</button><div ${attrs}>${banner}</div>`
+    const cover = document.body.lastElementChild!
     const target = document.getElementById('target')!
     document.elementFromPoint = () => cover
     HTMLElement.prototype.scrollIntoView = () => {}
@@ -45,11 +45,27 @@ describe('the control a covered click names', () => {
             '<fieldset disabled><button>Reject all</button></fieldset><button>Accept all</button>'
         ]
         for (const banner of banners) {
-            expect(await hintFor(banner)).toBe('Close it first: button "Accept all".')
+            expect(await hintFor(banner)).toBe('Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.')
         }
     })
 
     it('still prefers an enabled rejecting control', async () => {
         expect(await hintFor('<button>Accept all</button><button>Reject all</button>')).toBe('Close it first: button "Reject all".')
+    })
+
+    it('finds a banner by its cookie id when it has no dialog role', async () => {
+        expect(await hintFor('<button>Reject all</button><button>Accept all</button>', 'id="cookie-banner"')).toBe('Close it first: button "Reject all".')
+    })
+
+    it('finds a banner by its cookie class', async () => {
+        expect(await hintFor('<button>Accept all</button><button>Reject all</button>', 'id="x1" class="cookie-banner"')).toBe('Close it first: button "Reject all".')
+    })
+
+    it('gives the generic hint for an unmarked wrapper', async () => {
+        expect(await hintFor('<button>Close</button>', 'id="promo"')).toBe('Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.')
+    })
+
+    it('never names an accepting control', async () => {
+        expect(await hintFor('<button>Accept all</button><button>Got it</button>')).toBe('Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.')
     })
 })

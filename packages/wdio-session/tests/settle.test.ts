@@ -43,6 +43,15 @@ describe('settling a fresh page before a snapshot', () => {
         expect(settleCalls).toHaveLength(1)
     })
 
+    it('records the key of the document read even when it skips the wait', async () => {
+        const { session } = fakeSession()
+        await takeSnapshot(session)
+        session.pageKey = undefined
+        await takeSnapshot(session)
+        expect(session.pageKey).toBe(session.settledKey)
+        expect(session.pageKey).toBe('|https://shop.test/|1000')
+    })
+
     it('waits again once a navigation unset the settled page, or the URL differs', async () => {
         const { session, settleCalls, url } = fakeSession()
         await takeSnapshot(session)

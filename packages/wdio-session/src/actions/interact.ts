@@ -554,6 +554,7 @@ async function editableBehind (session: Session, target: ResolvedTarget, given: 
 async function fillTarget (session: Session, args: ActionArgs, target: ResolvedTarget): Promise<ActionOutcome> {
     const value = String(args.text ?? '')
     const kind = await fillKind(target)
+    await assertNotBlocked(session, target)
     if (kind.kind === 'text' && kind.editable === false) {
         const { inner, text } = await editableBehind(session, target, args.target, kind)
         await withPointerFallback(session, inner, () => inner.element.setValue(value), async () => {
@@ -623,6 +624,8 @@ interface ClickPoint {
     offCenter?: boolean
     /** a control inside the dialog or banner that covers the element, which closes it: `button "Accept all"` */
     dismiss?: string
+    /** the cover sits in a fixed-position layer or an aria-modal dialog: it keeps input from the element, not only the pointer */
+    blocking?: boolean
     /** center of the part of the element (or label) in view, in the frame's viewport: the pointer origin the offset of x and y is taken from */
     originX: number
     originY: number
@@ -675,6 +678,14 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             }
             return fixed
         }
+        const isOverlay = (node: Element) => {
+            for (let up: Element | null = node; up; up = up.parentElement) {
+                if (getComputedStyle(up).position === 'fixed' || Element.prototype.getAttribute.call(up, 'aria-modal') === 'true') {
+                    return true
+                }
+            }
+            return false
+        }
         // native accessors: bot checks plant elements that shadow them (see `isDecoy` in web.ts)
         const describe = (node: Element) => {
             const tag = Object.getOwnPropertyDescriptor(Element.prototype, 'tagName')!.get!.call(node) as string
@@ -712,8 +723,6 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
                 return undefined
             }
             const preferred = /close|dismiss|reject|decline|×|✕|✖/i
-            const accepting = /accept|agree|got it|no thanks|continue|\bok\b/i
-            let fallback: string | undefined
             for (const control of Element.prototype.querySelectorAll.call(container, 'button, a[href], [role="button"], input[type="button"], input[type="submit"]') as NodeListOf<Element>) {
                 if (!visible(control) || Element.prototype.matches.call(control, '[disabled], [aria-disabled="true"]') || Element.prototype.closest.call(control, 'fieldset[disabled]')) {
                     continue
@@ -726,11 +735,8 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
                 if (preferred.test(text)) {
                     return `${role} "${text}"`
                 }
-                if (!fallback && accepting.test(text)) {
-                    fallback = `${role} "${text}"`
-                }
             }
-            return fallback
+            return undefined
         }
         if (!visible(el)) {
             const label = (el as HTMLInputElement).labels?.[0]
@@ -738,7 +744,7 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
                 const point = center(label)
                 const cover = coverAt(label, point.x, point.y)
                 return cover
-                    ? { state: 'covered' as const, ...point, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover) }
+                    ? { state: 'covered' as const, ...point, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover), blocking: isOverlay(cover) }
                     : { state: 'label' as const, ...point, label }
             }
             return { state: 'hidden' as const, x: 0, y: 0, originX: 0, originY: 0 }
@@ -764,7 +770,7 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             }
         }
         return cover
-            ? { state: 'covered' as const, x, y, originX, originY, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover) }
+            ? { state: 'covered' as const, x, y, originX, originY, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover), blocking: isOverlay(cover) }
             : { state: 'ok' as const, x, y, originX, originY }
     }, instant) as Promise<ClickPoint>
 }
@@ -773,6 +779,24 @@ function coveredHint (point: ClickPoint) {
     return point.dismiss
         ? `Close it first: ${point.dismiss}.`
         : 'Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.'
+}
+
+function coveredError (target: ResolvedTarget, point: ClickPoint) {
+    return usage(
+        `${target.label} is covered by ${point.cover}.`,
+        coveredHint(point)
+    )
+}
+
+/** fill and select reach past a cover that keeps the pointer off, so only an overlay (dialog, fixed layer) is an error */
+async function assertNotBlocked (session: Session, target: ResolvedTarget) {
+    if (!session.isWeb) {
+        return
+    }
+    const point = await recheckAboveSticky(target, await clickPoint(target, true).catch(() => undefined))
+    if (point?.state === 'covered' && point.blocking) {
+        throw coveredError(target, point)
+    }
 }
 
 /**
@@ -800,10 +824,7 @@ async function clickChecked (session: Session, target: ResolvedTarget) {
         )
     }
     if (point?.state === 'covered') {
-        throw usage(
-            `${target.label} is covered by ${point.cover}.`,
-            coveredHint(point)
-        )
+        throw coveredError(target, point)
     }
     if (point?.state === 'label' || (point?.state === 'ok' && (point !== first || point.offCenter))) {
         await pointerClick(session, target, point)
@@ -826,10 +847,7 @@ async function clickChecked (session: Session, target: ResolvedTarget) {
             return
         }
         if (again?.state === 'covered') {
-            throw usage(
-                `${target.label} is covered by ${again.cover}.`,
-                coveredHint(again)
-            )
+            throw coveredError(target, again)
         }
         throw err
     }
@@ -948,6 +966,7 @@ export const press: ActionFn = async (session, args) => {
 
 export const select: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)
+    await assertNotBlocked(session, target)
     const value = String(args.value ?? '')
     const by = (args.by as string | undefined) || 'text'
     let call: string

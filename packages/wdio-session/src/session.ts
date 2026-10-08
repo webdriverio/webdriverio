@@ -121,6 +121,8 @@ export class Session {
     lastPage?: PageState
     /** document (context and URL) a snapshot already waited for; unset by a navigation, so the next snapshot waits again */
     settledKey?: string
+    /** settle key of the document the latest web snapshot read */
+    pageKey?: string
     /**
      * arbitrary per-feature state (mocks, emulation, trace, visual, …)
      */

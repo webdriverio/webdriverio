@@ -37,6 +37,7 @@ export interface PageState {
     url?: string
     title?: string
     text?: string
+    doc?: string
 }
 
 export interface PageReport {
@@ -58,10 +59,23 @@ async function reportSnapshot (session: Session, isCurrent?: () => boolean) {
     return taken
 }
 
+/** the `<context>|<timeOrigin>` of a settle key (`<context>|<url>|<timeOrigin>`), unknown without an origin */
+/** a key read before a navigation landed names the old document: only trust it at the URL the snapshot saw */
+function documentOf (key: string | undefined, url: string | undefined) {
+    if (key === undefined) {
+        return undefined
+    }
+    const first = key.indexOf('|')
+    const last = key.lastIndexOf('|')
+    const origin = key.slice(last + 1)
+    return origin && key.slice(first + 1, last) === url ? `${key.slice(0, first)}|${origin}` : undefined
+}
+
 export async function pageState (session: Session): Promise<PageState> {
     try {
         const taken = await reportSnapshot(session)
-        return { url: await session.currentUrl(), title: documentTitle(taken.tree), text: taken.text }
+        const url = await session.currentUrl()
+        return { url, title: documentTitle(taken.tree), text: taken.text, doc: documentOf(session.pageKey, url) }
     } catch {
         return {}
     }
@@ -69,8 +83,8 @@ export async function pageState (session: Session): Promise<PageState> {
 
 /**
  * Summarise the page after an action, compared to `before`:
- * - another URL: the interactive snapshot of the new page,
- * - same URL: the lines that are new or changed, with their refs,
+ * - another URL in another document: the interactive snapshot of the new page,
+ * - same URL or same document: the lines that are new or changed, with their refs,
  * - nothing changed: nothing.
  */
 /**
@@ -120,14 +134,16 @@ async function compare (session: Session, before: PageState, label: string, isCu
     try {
         const taken = await reportSnapshot(session, isCurrent)
         tree = taken.tree
-        after = { url: await session.currentUrl(), title: documentTitle(tree), text: taken.text }
+        const url = await session.currentUrl()
+        after = { url, title: documentTitle(tree), text: taken.text, doc: documentOf(session.pageKey, url) }
     } catch {
         return { after: {} }
     }
     if (!after.text) {
         return { after }
     }
-    if (before.url !== after.url || before.text === undefined) {
+    const sameDocument = before.doc !== undefined && before.doc === after.doc
+    if (before.text === undefined || (before.url !== after.url && !sameDocument)) {
         const page = formatSnapshot(tree, { frameHint: session.frameHint, interactive: true })
         if (page.length <= MAX_PAGE_CHARS) {
             // a frame's own URL is on the document line; the session URL is the top page's

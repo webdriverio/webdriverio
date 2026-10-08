@@ -94,6 +94,7 @@ async function settleKey (session: Session) {
  */
 export async function settleFreshPage (session: Session) {
     const key = await settleKey(session)
+    session.pageKey = key
     if (key !== undefined && key === session.settledKey) {
         return
     }
