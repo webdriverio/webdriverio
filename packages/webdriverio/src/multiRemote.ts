@@ -1,5 +1,5 @@
 import clone from 'lodash.clonedeep'
-import { isLoadedElement, setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { WDIO_KIND, isLoadedElement, setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
@@ -60,9 +60,11 @@ function toInstanceArgument (
 
         const prototype = Object.getPrototypeOf(value)
         if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) {
-            // Arrays and plain objects can have a throwing `then` getter.
-            // Never call isLoadedElement() on those argument containers.
-            if (!isLoadedElement(value)) {
+            // Only branded WebdriverIO elements need the loaded-element check.
+            // A non-element class instance may also have a throwing `then`
+            // accessor, so never probe unbranded objects as thenables.
+            if (Object.getOwnPropertyDescriptor(value, WDIO_KIND)?.value !== 'element' ||
+                !isLoadedElement(value)) {
                 return value
             }
             const element = value as unknown as WebdriverIO.MultiRemoteElement
