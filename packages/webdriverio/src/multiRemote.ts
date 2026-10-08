@@ -1,5 +1,5 @@
 import clone from 'lodash.clonedeep'
-import { setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { isLoadedElement, setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
@@ -32,6 +32,57 @@ type EventEmitter = (args: unknown) => void
 function zipElements (lists: WebdriverIO.Element[][]) {
     const length = Math.max(0, ...lists.map((list) => list.length))
     return Array.from({ length }, (_, index) => lists.map((list) => index < list.length ? list[index] : undefined))
+}
+
+/**
+ * A multi-remote element has no element id of its own, so a command argument
+ * holding one gets the element of the instance the command runs on (#15844).
+ * Only data properties are read, so a getter of an unrelated object never runs.
+ * `converted` maps every array or object seen to its result, so an object
+ * reached twice is converted once and a cycle ends.
+ */
+function toInstanceArg (arg: unknown, instanceName: string, converted = new Map<object, unknown>()): unknown {
+    if (!arg || typeof arg !== 'object') {
+        return arg
+    }
+    if (converted.has(arg)) {
+        return converted.get(arg)
+    }
+
+    const element = arg as WebdriverIO.MultiRemoteElement
+    if (isLoadedElement(arg) && element.isMultiRemote) {
+        if (!element.instances.includes(instanceName)) {
+            throw new Error(`Element "${String(element.selector)}" is not available on instance "${instanceName}"`)
+        }
+        return element.getInstance(instanceName)
+    }
+
+    if (Array.isArray(arg)) {
+        converted.set(arg, arg)
+        const items = Array.from(arg, (item) => toInstanceArg(item, instanceName, converted))
+        const result = items.some((item, index) => item !== arg[index]) ? items : arg
+        converted.set(arg, result)
+        return result
+    }
+
+    const prototype = Object.getPrototypeOf(arg)
+    if (prototype !== Object.prototype && prototype !== null) {
+        return arg
+    }
+
+    converted.set(arg, arg)
+    const descriptors = Object.getOwnPropertyDescriptors(arg)
+    let changed = false
+    for (const descriptor of Object.values(descriptors)) {
+        if ('value' in descriptor) {
+            const value = toInstanceArg(descriptor.value, instanceName, converted)
+            changed ||= value !== descriptor.value
+            descriptor.value = value
+        }
+    }
+    const result = changed ? Object.create(prototype, descriptors) : arg
+    converted.set(arg, result)
+    return result
 }
 type WrappedClient = {
     options: Options.WebdriverIO,
@@ -261,10 +312,17 @@ export default class MultiRemote {
                     ? thisElement.instances.map((instanceName) => [instanceName, thisElement.getInstance(instanceName)])
                     : [...instances.entries()]
 
+                /**
+                 * convert the arguments of every instance first, so an element missing
+                 * on one instance throws before the command starts on any other
+                 */
+                const instanceArgs = scopeEntries.map(
+                    ([instanceName]) => args.map((arg) => toInstanceArg(arg, instanceName))
+                )
                 const result = await Promise.all(
-                    scopeEntries.map(([, instance]) => {
+                    scopeEntries.map(([, instance], index) => {
                         const command = (instance as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>)[commandName as string]
-                        return command.call(instance, ...args)
+                        return command.call(instance, ...instanceArgs[index])
                     })
                 )
 
