@@ -95,8 +95,8 @@
     "recast": "^0.24.0",
     "safe-stringify": "^1.1.0",
     "source-map-support": "^0.5.21",
-    "vite": "^7.3.6",
-    "vite-plugin-istanbul": "^7.2.1",
+    "vite": "^8.3.3",
+    "vite-plugin-istanbul": "^9.0.1",
     "vite-plugin-top-level-await": "^1.4.1",
     "webdriver": "workspace:*"
   },
@@ -117,7 +117,7 @@
     }
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-lib-source-maps": "^4.0.4",
@@ -128,9 +128,9 @@
     "webdriverio": "workspace:*"
   },
   "optionalDependencies": {
-    "@nuxt/kit": "^3.12.4",
+    "@nuxt/kit": "^4.6.0",
     "@stencil/core": "^4.20.0",
-    "unimport": "^3.10.0"
+    "unimport": "^7.0.2"
   },
   "publishConfig": {
     "access": "public"

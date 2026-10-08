@@ -44,7 +44,7 @@
   },
   "typeScriptVersion": "6.0.3",
   "dependencies": {
-    "@babel/parser": "^7.29.9",
+    "@babel/parser": "^8.0.6",
     "@langchain/core": "^1.2.5",
     "@langchain/langgraph": "^1.4.8",
     "@standard-schema/spec": "^1.0.0",

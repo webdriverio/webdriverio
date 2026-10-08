@@ -42,11 +42,11 @@
     "@cucumber/cucumber": "^13.2.1",
     "@cucumber/gherkin": "42.0.1",
     "@cucumber/messages": "34.2.1",
-    "@types/node": "^22.20.4",
+    "@types/node": "^26.6.4",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "glob": "^10.2.2",
+    "glob": "^13.0.6",
     "import-meta-resolve": "^4.1.0",
     "is-glob": "^4.0.0"
   },

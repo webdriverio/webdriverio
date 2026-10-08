@@ -34,13 +34,13 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/jasmine": "^6.0.0",
-    "@types/node": "^22.20.4",
+    "@types/jasmine": "^7.0.0",
+    "@types/node": "^26.6.4",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
-    "jasmine": "^6.3.0"
+    "jasmine": "^7.0.0"
   },
   "devDependencies": {
     "@wdio/runner": "workspace:*",
