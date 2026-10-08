@@ -491,6 +491,28 @@ describe('addCommand', () => {
             // @ts-expect-error undefined custom command
             expect(typeof elem.getInstance('browserB').myCustomOtherOtherCommand).toBe('undefined')
         })
+
+        test('should add an element command that has the name of a browser command', async () => {
+            mockImplicitWait.mockImplementation((element) => Promise.resolve(element))
+            const browser = await multiRemote(multiRemoteConfig)
+            const browserAScroll = browser.getInstance('browserA').scroll
+            const browserBScroll = browser.getInstance('browserB').scroll
+            browser.addCommand('scroll', function (this: WebdriverIO.Element) {
+                return `scrolled ${this.selector}`
+            }, { attachToElement: true })
+
+            const elem = await browser.$('#foo')
+            // @ts-expect-error custom element command
+            expect(await elem.scroll()).toEqual(['scrolled #foo', 'scrolled #foo'])
+            // @ts-expect-error custom element command
+            expect(await elem.getInstance('browserA').scroll()).toBe('scrolled #foo')
+            // @ts-expect-error custom element command
+            expect(await elem.getInstance('browserB').scroll()).toBe('scrolled #foo')
+            // @ts-expect-error custom element command
+            expect(await browser.getInstance('browserA').$('#foo').scroll()).toBe('scrolled #foo')
+            expect(browser.getInstance('browserA').scroll).toBe(browserAScroll)
+            expect(browser.getInstance('browserB').scroll).toBe(browserBScroll)
+        })
         test('should allow disabling the implicitWait for element scope', async () => {
             mockImplicitWait.mockClear()
             mockImplicitWait.mockImplementation((element) => Promise.resolve(element))
