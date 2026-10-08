@@ -1,5 +1,5 @@
 import clone from 'lodash.clonedeep'
-import { setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { isLoadedElement, setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
@@ -33,6 +33,104 @@ function zipElements (lists: WebdriverIO.Element[][]) {
     const length = Math.max(0, ...lists.map((list) => list.length))
     return Array.from({ length }, (_, index) => lists.map((list) => index < list.length ? list[index] : undefined))
 }
+
+/**
+ * A multi-remote element holds one element per instance and has no element id
+ * of its own, so an instance cannot use it as a command argument. This gives
+ * `arg` with every multi-remote element swapped for the element of
+ * `instanceName` (#15844).
+ *
+ * Elements in arrays and plain objects are swapped too, as the BiDi
+ * serialization reads them there. Only data properties are read, so a getter
+ * of an argument is never called. A value without a multi-remote element is
+ * given back as it is, so the instances get the same object as before.
+ */
+function toInstanceArgument (
+    arg: unknown,
+    instanceName: string,
+    commandName: string,
+    seen = new WeakMap<object, unknown>()
+): unknown {
+    if (!arg || typeof arg !== 'object') {
+        return arg
+    }
+
+    if (isLoadedElement(arg)) {
+        const element = arg as unknown as WebdriverIO.MultiRemoteElement
+        if (!element.isMultiRemote) {
+            return arg
+        }
+
+        /**
+         * `select()` can leave an instance out, and an entry of a list has no
+         * element for an instance that found fewer elements (#15845)
+         */
+        let instanceElement: WebdriverIO.Element | undefined
+        try {
+            instanceElement = element.instances.includes(instanceName)
+                ? element.getInstance(instanceName)
+                : undefined
+        } catch {
+            instanceElement = undefined
+        }
+        if (!instanceElement) {
+            throw new Error(
+                `The multi-remote element with selector "${String(element.selector)}" passed to "${commandName}" ` +
+                `has no element for instance "${instanceName}"`
+            )
+        }
+        return instanceElement
+    }
+
+    /**
+     * an argument can hold the same object twice, or itself
+     */
+    if (seen.has(arg)) {
+        return seen.get(arg)
+    }
+
+    if (Array.isArray(arg)) {
+        seen.set(arg, arg)
+        /**
+         * read the items by index: an element list has async `map()` and
+         * `every()`, see `ElementArray`
+         */
+        const items = Array.from({ length: arg.length }, (_, index) => (
+            toInstanceArgument(arg[index], instanceName, commandName, seen)
+        ))
+        const result = items.some((item, index) => item !== arg[index]) ? items : arg
+        seen.set(arg, result)
+        return result
+    }
+
+    /**
+     * class instances (a Date, a Map, a pending element, ...) stay as they are
+     */
+    const prototype = Object.getPrototypeOf(arg)
+    if (prototype !== Object.prototype && prototype !== null) {
+        return arg
+    }
+
+    seen.set(arg, arg)
+    const descriptors: Record<PropertyKey, PropertyDescriptor> = Object.getOwnPropertyDescriptors(arg)
+    let changed = false
+    for (const key of Reflect.ownKeys(descriptors)) {
+        const descriptor = descriptors[key]
+        if (!('value' in descriptor)) {
+            continue
+        }
+        const value = toInstanceArgument(descriptor.value, instanceName, commandName, seen)
+        if (value !== descriptor.value) {
+            descriptors[key] = { ...descriptor, value }
+            changed = true
+        }
+    }
+
+    const result = changed ? Object.create(prototype, descriptors) : arg
+    seen.set(arg, result)
+    return result
+}
+
 type WrappedClient = {
     options: Options.WebdriverIO,
     commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'select')[],
@@ -261,10 +359,21 @@ export default class MultiRemote {
                     ? thisElement.instances.map((instanceName) => [instanceName, thisElement.getInstance(instanceName)])
                     : [...instances.entries()]
 
+                /**
+                 * Give each instance its own element for a multi-remote element in
+                 * the arguments (#15844). This runs for all instances before any
+                 * command starts, so an argument that has no element for one
+                 * instance fails the call without running it on the others.
+                 */
+                const instanceArgs = scopeEntries.map(([instanceName]) => {
+                    const seen = new WeakMap<object, unknown>()
+                    return args.map((arg) => toInstanceArgument(arg, instanceName, commandName, seen))
+                })
+
                 const result = await Promise.all(
-                    scopeEntries.map(([, instance]) => {
+                    scopeEntries.map(([, instance], index) => {
                         const command = (instance as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>)[commandName as string]
-                        return command.call(instance, ...args)
+                        return command.call(instance, ...instanceArgs[index])
                     })
                 )
 
