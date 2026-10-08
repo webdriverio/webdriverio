@@ -989,8 +989,9 @@ describe('Multi-Remote tests', () => {
                 }
             }
             const nested = new NonElement()
+            Object.defineProperty(options, 'nested', { value: nested, enumerable: true })
 
-            await browser.execute(script, { nested, target: elem, get lazy () { return getter() }, get then () { return thenGetter() } })
+            await browser.execute(script, options)
 
             /**
              * compare with `===`: a failed `toBe` reads the properties for its message
@@ -1000,6 +1001,7 @@ describe('Multi-Remote tests', () => {
                 expect(instanceOptions === options).toBe(false)
                 expect(instanceOptions.target === elem.getInstance(instanceName)).toBe(true)
                 expect(typeof Object.getOwnPropertyDescriptor(instanceOptions, 'lazy')?.get).toBe('function')
+                expect(Object.getOwnPropertyDescriptor(instanceOptions, 'nested')?.value).toBe(nested)
             }
             expect(getter).not.toHaveBeenCalled()
             expect(thenGetter).not.toHaveBeenCalled()
