@@ -980,8 +980,17 @@ describe('Multi-Remote tests', () => {
                 throw new Error('then getter called')
             })
             Object.defineProperty(options, 'then', { get: thenGetter, enumerable: false })
+            const classThenGetter = vi.fn(() => {
+                throw new Error('class then getter called')
+            })
+            class NonElement {
+                get then () {
+                    return classThenGetter()
+                }
+            }
+            const nested = new NonElement()
 
-            await browser.execute(script, options)
+            await browser.execute(script, { nested, target: elem, get lazy () { return getter() }, get then () { return thenGetter() } })
 
             /**
              * compare with `===`: a failed `toBe` reads the properties for its message
@@ -994,6 +1003,7 @@ describe('Multi-Remote tests', () => {
             }
             expect(getter).not.toHaveBeenCalled()
             expect(thenGetter).not.toHaveBeenCalled()
+            expect(classThenGetter).not.toHaveBeenCalled()
         })
 
         test('keeps indexed accessors without calling them when a list holds an element', async () => {
