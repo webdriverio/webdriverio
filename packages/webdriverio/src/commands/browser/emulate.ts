@@ -1,7 +1,6 @@
-import type { FakeTimerInstallOpts } from '@sinonjs/fake-timers'
 import type { remote } from 'webdriver'
 
-import { ClockManager } from '../../clock.js'
+import { ClockManager, type FakeTimerInstallOpts } from '../../clock.js'
 import { deviceDescriptorsSource, type DeviceName } from '../../deviceDescriptorsSource.js'
 import { restoreFunctions } from '../../constants.js'
 import { getContextManager } from '../../session/context.js'
