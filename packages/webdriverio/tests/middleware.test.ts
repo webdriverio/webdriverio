@@ -4,6 +4,7 @@ import logger from '@wdio/logger'
 
 import { waitForExist } from '../src/commands/element/waitForExist.js'
 import refetchElement from '../src/utils/refetchElement.js'
+import { StrictSelectorError } from '../src/utils/strictSelectorError.js'
 import { remote } from '../src/index.js'
 
 vi.mock('fetch')
@@ -144,6 +145,22 @@ describe('middleware', () => {
         expect(error).toBeInstanceOf(Error)
         expect(error?.message).toContain('stale-element-123')
         expect(error?.message).not.toContain('Index out of bounds')
+    })
+
+    it('throws a strict-mode violation from the refetch instead of the stale error', async () => {
+        const staleError = new Error('stale element reference')
+        staleError.name = 'stale element reference'
+        const staleCheck = vi.fn().mockRejectedValueOnce(staleError)
+        browser.addCommand('strictRefetchCheck', staleCheck, { attachToElement: true })
+        const elem = await browser.$('#foo')
+
+        const strictError = new StrictSelectorError('#foo', 2)
+        vi.mocked(refetchElement).mockRejectedValueOnce(strictError)
+
+        // @ts-expect-error undefined custom command
+        const error = await elem.strictRefetchCheck().then(() => null, (e: Error) => e)
+        expect(vi.mocked(refetchElement)).toHaveBeenCalled()
+        expect(error).toBe(strictError)
     })
 
     it('should assign elementId and w3c identifier to element scope after re-found', async () => {

@@ -1,5 +1,5 @@
 import implicitWait from './implicitWait.js'
-import type { Selector } from '../types.js'
+import { findElementAgain } from './findElementAgain.js'
 
 /**
  * helper utility to refetch an element and all its parent elements when running
@@ -9,43 +9,31 @@ export default async function refetchElement (
     currentElement: WebdriverIO.Element,
     commandName: string
 ): Promise<WebdriverIO.Element> {
-    const selectors: {
-        selector: Selector
-        index?: number
-        strict?: boolean
-    }[] = []
+    const chain: WebdriverIO.Element[] = []
 
     /**
-     * Crawl back to the browser object, and cache all selectors
+     * Crawl back to the browser object, and cache all elements of the chain
      */
     while (currentElement.elementId && currentElement.parent) {
-        selectors.push({
-            selector: currentElement.selector,
-            index: currentElement.index,
-            strict: currentElement.strict
-        })
+        chain.push(currentElement)
         currentElement = currentElement.parent as WebdriverIO.Element
     }
-    selectors.reverse()
+    chain.reverse()
 
-    const length = selectors.length
+    const length = chain.length
 
     /**
-     * Beginning with the browser object, re-chain
+     * Beginning with the browser object, re-chain. Each element is found again
+     * with the command, index and strictness it was found with, in the parent
+     * that was just found again. Falling back from a missing index to the first
+     * `$` match would silently re-chain onto a different element.
      */
-    return selectors.reduce(async (elementPromise, { selector, index, strict }, currentIndex) => {
-        const resolvedElement = await elementPromise
-        /**
-         * an element that came from `$$` is re-fetched at its own index, everything
-         * else through `$`. Falling back from a missing index to the first `$` match
-         * would silently re-chain onto a different element.
-         */
-        const nextElement = index !== undefined
-            ? await resolvedElement.$$(selector as string)[index]?.getElement()
-            : await resolvedElement.$(selector, { strict }).getElement()
+    return chain.reduce(async (elementPromise, element, currentIndex) => {
+        const parent = await elementPromise
+        const nextElement = await findElementAgain(element, { parent, wait: true })
 
         if (!nextElement) {
-            throw new Error(`element with selector "${selector}" has no match at index ${index}`)
+            throw new Error(`element with selector "${element.selector}" has no match at index ${element.index}`)
         }
         /**
          *  For error purposes, changing command name to '$' if we aren't

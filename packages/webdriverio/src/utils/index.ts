@@ -24,6 +24,7 @@ import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
 import { ElementArray } from '../element/array.js'
+import { findElementAgain } from './findElementAgain.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -1398,27 +1399,7 @@ export async function hasElementId(element: WebdriverIO.Element) {
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
     if (!element.elementId) {
-        const parent = element.parent as WebdriverIO.Element | WebdriverIO.Browser
-        if (element.index !== undefined) {
-            const elements = element.isReactElement
-                ? await parent.react$$(element.selector as string)
-                : element.isShadowElement
-                    ? await (parent as WebdriverIO.Element).shadow$$(element.selector as string)
-                    : await parent.$$(element.selector as string)
-            if (element.index < elements.length) {
-                const targetElement = elements[element.index]
-                if (targetElement) {
-                    element.elementId = (await targetElement.getElement()).elementId
-                }
-            }
-        } else {
-            const targetElement = element.isReactElement
-                ? await parent.react$(element.selector as string).getElement()
-                : element.isShadowElement
-                    ? await (parent as WebdriverIO.Element).shadow$(element.selector as string).getElement()
-                    : await parent.$(element.selector, { strict: element.strict }).getElement()
-            element.elementId = targetElement.elementId
-        }
+        element.elementId = (await findElementAgain(element))?.elementId as string
 
         if (element.elementId) {
             element[ELEMENT_KEY] = element.elementId
