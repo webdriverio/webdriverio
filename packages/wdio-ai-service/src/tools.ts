@@ -217,11 +217,9 @@ export async function pageTools (context: ToolContext): Promise<StructuredToolIn
                     }
                 }
                 const step = isStep(spec, input)
-                if (step) {
-                    await context.effects?.start()
-                }
+                const token = step ? await context.effects?.start() : undefined
                 const result = await agent.run(spec.name, substitute(args, values))
-                const settled = step && context.effects ? redact(await context.effects.settle(), values) : undefined
+                const settled = step && context.effects ? redact(await context.effects.settle(undefined, token), values) : undefined
                 /**
                  * A step still running at the timeout keeps the parts that
                  * finished: a request that completed did happen, and a replay
