@@ -15,12 +15,26 @@ function resolveSpecGlobFromCWD (file: string): string {
         return resolved
     }
 
+    // On Windows, C:specs\\*.js is relative to the C: drive's current
+    // directory, not a folder literally named C:specs. Preserve this native
+    // path.resolve behavior and quote inherited CWD segments only when the
+    // drive matches. A different drive uses its own per-drive working dir.
+    let relativeFile = file
+    if (path.sep === '\\\\' && /^[A-Za-z]:[^\\\\/]/.test(file)) {
+        const requestedDrive = file.slice(0, 2).toLowerCase()
+        const cwdDrive = path.parse(cwd).root.slice(0, 2).toLowerCase()
+        if (requestedDrive !== cwdDrive) {
+            return resolved
+        }
+        relativeFile = file.slice(2)
+    }
+
     // Keep provenance through normalization: a user-authored ../[app] is
     // a glob class, even if it happens to match an inherited CWD folder.
     const root = path.parse(cwd).root
     const parts = cwd.slice(root.length).split(path.sep)
         .filter(Boolean).map(value => ({ value, inherited: true }))
-    for (const value of file.split(path.sep)) {
+    for (const value of relativeFile.split(path.sep)) {
         if (!value || value === '.') {
             continue
         }
