@@ -1,6 +1,14 @@
 import logger from '@wdio/logger'
-import type { FakeTimerInstallOpts, InstalledClock, install } from '@sinonjs/fake-timers'
+import type { install } from '@sinonjs/fake-timers'
 import { isBrowsingContext } from './session/browsingContext.js'
+
+/**
+ * Derived from `install` because `@sinonjs/fake-timers` v15 ships its own
+ * types (`Config`, `Clock`) while `@types/sinonjs__fake-timers`, which users
+ * get, still names them `FakeTimerInstallOpts` and `InstalledClock`.
+ */
+export type FakeTimerInstallOpts = NonNullable<Parameters<typeof install>[0]>
+type InstalledClock = ReturnType<typeof install>
 
 const log = logger('webdriverio:ClockManager')
 

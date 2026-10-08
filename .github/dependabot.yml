@@ -10,6 +10,13 @@ updates:
   # pnpm rejects versions younger than its 1 day minimumReleaseAge
   cooldown:
     default-days: 2
+  ignore:
+    # @wdio/jasmine-framework patches private Jasmine internals (Spec, Suite)
+    # that Jasmine 7 removed. Remove once the adapter supports Jasmine 7.
+    - dependency-name: "jasmine"
+      update-types: ["version-update:semver-major"]
+    - dependency-name: "@types/jasmine"
+      update-types: ["version-update:semver-major"]
   groups:
     patch-deps-updates-main:
       update-types:
