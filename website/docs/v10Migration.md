@@ -195,6 +195,18 @@ The top-level config keys stay `specs` and `exclude`. A leftover bare list on a 
 
 The `tunnelIdentifier` and `parentTunnel` aliases were removed from the Sauce Labs options types. Use `tunnelName` and `tunnelOwner`.
 
+## `--spec` glob patterns
+
+A `--spec` value with a directory is resolved from the current working directory, also when it is a glob pattern. In v9 a glob pattern was resolved from the directory of the config file, a file path from the current working directory. This only matters when you run `wdio` from another directory than the one of the config file.
+
+```diff
+  # run from the project root, with the config in ./config/wdio.conf.js
+- npx wdio ./config/wdio.conf.js --spec "../test/specs/*.js"
++ npx wdio ./config/wdio.conf.js --spec "./test/specs/*.js"
+```
+
+A value without a directory, like `--spec login` or `--spec "*.e2e.js"`, still matches the spec files by name.
+
 ## TypeScript
 
 The `Element`, `MultiRemoteBrowser` and `MultiRemoteElement` types exported by `webdriverio` were removed. Use the global `WebdriverIO` namespace.

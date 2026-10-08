@@ -411,10 +411,14 @@ export default class ConfigParser {
                 this._pathService
             )
             if (this._pathService.isFile(filteredFile)) {
+                /**
+                 * `isFile` found a relative path from the current working directory,
+                 * so it has to become absolute from there, not from the config file (#14447)
+                 */
                 filesToFilter.add(
                     this._pathService.ensureAbsolutePath(
                         filteredFile,
-                        path.dirname(this.#configFilePath)
+                        process.cwd()
                     )
                 )
             } else if (globMatchedFiles.length) {
