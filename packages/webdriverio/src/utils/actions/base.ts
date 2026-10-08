@@ -4,6 +4,7 @@ import type { ElementReference } from '@wdio/protocols'
 import { getBrowserObject } from '@wdio/utils'
 
 import { foreignContextId, isBrowsingContext } from '../../session/browsingContext.js'
+import { getParallelContextStore } from '../../session/context.js'
 
 export type ActionType = 'key' | 'pointer' | 'wheel'
 export type KeyActionType = 'mouse' | 'pen' | 'touch'
@@ -86,7 +87,9 @@ export default class BaseAction {
      * @param duration idle time of tick
      */
     pause(duration: number) {
-        this.sequence.push({ type: 'pause', duration })
+        if (duration > 0) {
+            this.sequence.push({ type: 'pause', duration })
+        }
         return this
     }
 
@@ -132,7 +135,9 @@ export default class BaseAction {
 
         const browser = getBrowserObject(this.#instance)
         const sequence = [this.toJSON()]
-        const contextId = isBrowsingContext(this.#instance) ? this.#instance.contextId : originContext
+        const contextId = isBrowsingContext(this.#instance)
+            ? this.#instance.contextId
+            : originContext ?? getParallelContextStore().getStore()
         if (contextId) {
             const actions = sequence.map((source) => ({
                 ...source,

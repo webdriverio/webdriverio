@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
 import type { local } from 'webdriver'
 import logger from '@wdio/logger'
 
@@ -7,6 +8,65 @@ import { environment } from '../environment.js'
 
 const log = logger('webdriverio:context')
 const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
+
+function parallelModeError(command: string) {
+    return `${command} is not supported in parallel mode (parallelMode: 'contexts') — ` +
+        'window/frame management mutates session-global state shared by concurrent tests'
+}
+
+/**
+ * Per-test context override for parallel it() execution.
+ *
+ * When tests run in parallel (each in its own browsing context), the
+ * framework sets a context ID here via `AsyncLocalStorage.run()`.
+ * `getCurrentContext()` checks this first, so every command
+ * (url, $, click, setValue, getText, etc.) automatically targets
+ * the correct browsing context.
+ *
+ * Outside parallel execution (sequential mode), the store is empty
+ * and behavior falls back to the session-global `#currentContext`.
+ */
+/** Key used to expose the parallel context store on the browser instance. */
+export const PARALLEL_CONTEXT_STORE_KEY = '__parallelContextStore'
+
+/** Key used to expose the set of framework-managed parallel contexts. */
+export const PARALLEL_CONTEXTS_KEY = '__parallelContexts'
+
+const parallelContextStore = new AsyncLocalStorage<string>()
+
+/**
+ * Contexts created by the parallel framework adapters (one tab per test).
+ * The session-global ContextManager must not re-anchor on navigations that
+ * happen inside these: each test owns its context via the ALS store, and
+ * re-anchoring (browsingContextGetTree + switchToWindow) would add a round
+ * trip per test navigation and mutate shared session-global state across
+ * concurrent tests.
+ */
+const parallelContexts = new Set<string>()
+
+export function registerParallelContext(contextId: string) {
+    parallelContexts.add(contextId)
+}
+
+export function unregisterParallelContext(contextId: string) {
+    parallelContexts.delete(contextId)
+}
+
+export function isParallelContext(contextId: string): boolean {
+    return parallelContexts.has(contextId)
+}
+
+/**
+ * Returns the parallel context store. The framework uses this to
+ * create per-test scopes:
+ *
+ *   parallelContextStore.run(contextId, async () => {
+ *       await test.fn()  // all commands target contextId
+ *   })
+ */
+export function getParallelContextStore() {
+    return parallelContextStore
+}
 
 export function getContextManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, ContextManager)
@@ -36,6 +96,22 @@ export class ContextManager extends SessionManager {
         super(browser, ContextManager.name)
         this.#browser = browser
         const capabilities = this.#browser.capabilities
+        /**
+         * Expose the parallel context store and experimental Bidi flag
+         * on the browser instance so the Mocha framework adapter can
+         * access them without importing from 'webdriverio'.
+         */
+        ;(browser as unknown as Record<string, unknown>)[PARALLEL_CONTEXT_STORE_KEY] = parallelContextStore
+        // Expose the parallel-context registry so the framework adapters can
+        // register/unregister the tabs they create per test.
+        ;(browser as unknown as Record<string, unknown>)[PARALLEL_CONTEXTS_KEY] = parallelContexts
+        // Cache the capability flag so per-command checks are O(1)
+        const reqCaps = browser.requestedCapabilities as unknown as Record<string, unknown> | undefined
+        const sessCaps = browser.capabilities as unknown as Record<string, unknown> | undefined
+        ;(browser as unknown as Record<string, unknown>).__bidiCommandsEnabled = !!(
+            reqCaps?.['wdio:experimentalBiDiCommands'] || sessCaps?.['wdio:experimentalBiDiCommands']
+        )
+
         this.#isNativeContext = getNativeContext({ capabilities, isMobile: this.#browser.isMobile })
         this.#mobileContext = getMobileContext({
             capabilities,
@@ -103,6 +179,16 @@ export class ContextManager extends SessionManager {
          * no need to do anything as we navigate within the same context
          */
         if (!this.#currentContext || nav.context === this.#currentContext) {
+            return
+        }
+
+        /**
+         * Parallel test tabs are owned by their ALS-scoped test. Do not
+         * re-anchor the session-global context on their navigations — that
+         * would trigger a browsingContextGetTree + switchToWindow per test
+         * navigation and mutate shared state across concurrent tests.
+         */
+        if (isParallelContext(nav.context)) {
             return
         }
 
@@ -254,6 +340,13 @@ export class ContextManager extends SessionManager {
     }
 
     #onCommand(event: { command: string, body: unknown }) {
+        if (
+            parallelContextStore.getStore() &&
+            ['switchToWindow', 'switchToParentFrame', 'refresh', 'closeWindow'].includes(event.command)
+        ) {
+            throw new Error(parallelModeError(event.command))
+        }
+
         /**
          * update frame context if user switches using 'switchToParentFrame'
          */
@@ -412,6 +505,21 @@ export class ContextManager extends SessionManager {
     }
 
     async getCurrentContext () {
+        /**
+         * If a parallel test scope is active, return that test's
+         * assigned context instead of the session-global one.
+         * Commands that resolve their target through the
+         * ContextManager (url, $, click, setValue, getText, etc.)
+         * pick up the correct context this way. Commands without
+         * a context parameter — the classic element endpoints in
+         * the element command files, url.ts and actions/base.ts —
+         * need explicit Bidi branches instead. No Proxy is used.
+         */
+        const parallelCtx = parallelContextStore.getStore()
+        if (parallelCtx) {
+            return parallelCtx
+        }
+
         if (!this.#currentContext) {
             return this.initialize()
         }

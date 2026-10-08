@@ -1,6 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { getElementFromResponse } from '../../utils/index.js'
+import { bidiSelectByVisibleText, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 
 /**
  *
@@ -45,6 +46,11 @@ export async function selectByVisibleText (
     const normalized = text
         .trim() // strip leading and trailing white-space characters
         .replace(/\s+/, ' ') // replace sequences of whitespace characters by a single space
+
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        return bidiSelectByVisibleText(this, normalized)
+    }
 
     /**
     * find option element using xpath
