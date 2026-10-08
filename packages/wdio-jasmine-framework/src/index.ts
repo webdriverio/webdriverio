@@ -749,9 +749,9 @@ declare global {
         interface JasmineOpts extends JasmineOptions {}
     }
     /**
-     * The asymmetric matchers that the adapter copies from expect-webdriverio.
-     * They type `expect.stringContaining()` and the others when TypeScript uses
-     * the `expect` function of `@types/jasmine`.
+     * The asymmetric matchers that the adapter copies from expect-webdriverio,
+     * and `expect.extend()` for custom matchers. They type `expect.stringContaining()`
+     * and the others when TypeScript uses the `expect` function of `@types/jasmine`.
      */
     namespace expect {
         const any: ExpectWebdriverIO.Expect['any']
@@ -763,6 +763,7 @@ declare global {
         const oneOf: ExpectWebdriverIO.Expect['oneOf']
         const multiRemote: ExpectWebdriverIO.Expect['multiRemote']
         const not: ExpectWebdriverIO.Expect['not']
+        const extend: ExpectWebdriverIO.Expect['extend']
     }
     namespace jasmine {
         /**
