@@ -1,7 +1,14 @@
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { getContextManager } from '../../src/session/context.js'
+import {
+    getContextManager,
+    getParallelContextStore,
+    registerParallelContext,
+    unregisterParallelContext,
+    isParallelContext,
+    PARALLEL_CONTEXTS_KEY,
+} from '../../src/session/context.js'
 import { logMock } from '@wdio/logger'
 import { SESSION_ENDED_ERROR } from 'webdriver'
 
@@ -669,5 +676,170 @@ describe('ContextManager on mobile Android Chrome', () => {
         await switchAppiumContext('NATIVE_APP')
         expect(await manager.getCurrentContext()).toBe('NATIVE_APP')
         expect(manager.isNativeContext).toBe(true)
+    })
+})
+
+describe('ContextManager — parallel mode guards', () => {
+    let browser!: WebdriverIO.Browser & { on: any, off: any, switchToWindow: any }
+    let getListeners!: () => ListenerMap
+
+    beforeEach(() => {
+        const stub = createBrowserStub()
+        browser = stub.browser
+        getListeners = stub.getListeners
+        getContextManager(browser)
+    })
+
+    const parallelModeError = (command: string) =>
+        `${command} is not supported in parallel mode (parallelMode: 'contexts') — ` +
+        'window/frame management mutates session-global state shared by concurrent tests'
+
+    function createBidiBrowser() {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub()
+        const bidiBrowser = {
+            ...stub.browser,
+            isBidi: true,
+        } as unknown as WebdriverIO.Browser & { on: any, off: any, switchToWindow: any }
+        return { wid, stub, bidiBrowser }
+    }
+
+    it('throws when switchToWindow is issued inside a parallel test scope', () => {
+        const { wid, stub, bidiBrowser } = createBidiBrowser()
+        try {
+            getContextManager(bidiBrowser)
+            const commandHandlers = stub.getListeners().command
+            const cmHandler = commandHandlers![commandHandlers!.length - 1]
+            getParallelContextStore().run('ctx-parallel-a', () => {
+                expect(() => cmHandler({ command: 'switchToWindow', body: { handle: 'handle-A' } }))
+                    .toThrow(parallelModeError('switchToWindow'))
+            })
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
+    })
+
+    it('throws when switchToParentFrame or refresh is issued inside a parallel test scope', () => {
+        const { wid, stub, bidiBrowser } = createBidiBrowser()
+        try {
+            getContextManager(bidiBrowser)
+            const commandHandlers = stub.getListeners().command
+            const cmHandler = commandHandlers![commandHandlers!.length - 1]
+            getParallelContextStore().run('ctx-parallel-a', () => {
+                expect(() => cmHandler({ command: 'switchToParentFrame' }))
+                    .toThrow(parallelModeError('switchToParentFrame'))
+                expect(() => cmHandler({ command: 'refresh' }))
+                    .toThrow(parallelModeError('refresh'))
+            })
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
+    })
+
+    it('throws when closeWindow is issued inside a parallel test scope', () => {
+        const { wid, stub, bidiBrowser } = createBidiBrowser()
+        try {
+            getContextManager(bidiBrowser)
+            const commandHandlers = stub.getListeners().command
+            const cmHandler = commandHandlers![commandHandlers!.length - 1]
+            getParallelContextStore().run('ctx-parallel-a', () => {
+                expect(() => cmHandler({ command: 'closeWindow', body: {} }))
+                    .toThrow(parallelModeError('closeWindow'))
+                expect(bidiBrowser.switchToWindow).not.toHaveBeenCalled()
+            })
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
+    })
+
+    it('works outside a parallel test scope', async () => {
+        const { wid, stub, bidiBrowser } = createBidiBrowser()
+        try {
+            const manager = getContextManager(bidiBrowser)
+            const commandHandlers = stub.getListeners().command
+            const cmHandler = commandHandlers![commandHandlers!.length - 1]
+            cmHandler({ command: 'switchToWindow', body: { handle: 'handle-A' } })
+            expect(await manager.getCurrentContext()).toBe('handle-A')
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
+    })
+})
+
+describe('ContextManager — parallel context registry', () => {
+    afterEach(() => {
+        unregisterParallelContext('ctx-parallel-a')
+        unregisterParallelContext('ctx-other')
+    })
+
+    it('registers, reports and unregisters parallel contexts', () => {
+        expect(isParallelContext('ctx-parallel-a')).toBe(false)
+        registerParallelContext('ctx-parallel-a')
+        expect(isParallelContext('ctx-parallel-a')).toBe(true)
+        unregisterParallelContext('ctx-parallel-a')
+        expect(isParallelContext('ctx-parallel-a')).toBe(false)
+    })
+
+    it('exposes the registry on the browser instance for the framework adapters', () => {
+        const stub = createBrowserStub()
+        getContextManager(stub.browser)
+        const registry = (stub.browser as unknown as Record<string, unknown>)[PARALLEL_CONTEXTS_KEY]
+        expect(registry).toBeInstanceOf(Set)
+        // The browser-exposed set IS the registry the manager consults — a
+        // broken exposure (different Set) would silently disable the
+        // re-anchor protection, so assert the wiring end-to-end.
+        ;(registry as Set<string>).add('ctx-via-browser-prop')
+        expect(isParallelContext('ctx-via-browser-prop')).toBe(true)
+        unregisterParallelContext('ctx-via-browser-prop')
+    })
+
+    it('does not re-anchor the session context on navigations inside a parallel tab', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub()
+        const bidiBrowser = {
+            ...stub.browser,
+            isBidi: true,
+            browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [] }),
+        } as unknown as WebdriverIO.Browser & { on: any, off: any, switchToWindow: any }
+        try {
+            const manager = getContextManager(bidiBrowser)
+            manager.setCurrentContext('handle-A')
+            registerParallelContext('ctx-parallel-a')
+
+            const navHandlers = stub.getListeners()['browsingContext.navigationStarted']
+            expect(navHandlers?.length).toBeGreaterThan(0)
+            await navHandlers![0]({ context: 'ctx-parallel-a' })
+
+            // parallel tab navigation: no tree fetch, no switchToWindow churn
+            expect(bidiBrowser.browsingContextGetTree).not.toHaveBeenCalled()
+            expect(bidiBrowser.switchToWindow).not.toHaveBeenCalled()
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
+    })
+
+    it('still re-anchors on navigations in non-parallel contexts (control)', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub()
+        const bidiBrowser = {
+            ...stub.browser,
+            isBidi: true,
+            browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [] }),
+        } as unknown as WebdriverIO.Browser & { on: any, off: any, switchToWindow: any }
+        try {
+            const manager = getContextManager(bidiBrowser)
+            manager.setCurrentContext('handle-A')
+
+            const navHandlers = stub.getListeners()['browsingContext.navigationStarted']
+            await navHandlers![0]({ context: 'ctx-other' })
+
+            // unregistered context: existing re-anchor behavior preserved
+            expect(bidiBrowser.browsingContextGetTree).toHaveBeenCalled()
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
     })
 })

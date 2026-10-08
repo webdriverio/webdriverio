@@ -2,7 +2,7 @@ import { setWdioKind } from '@wdio/utils'
 
 import { validateUrl } from '../../utils/index.js'
 import { getNetworkManager } from '../../session/networkManager.js'
-import { getContextManager } from '../../session/context.js'
+import { getContextManager, getParallelContextStore } from '../../session/context.js'
 import { contextIdValue } from '../../session/browsingContext.js'
 import { addInitScript, type InitScript } from './addInitScript.js'
 
@@ -130,14 +130,21 @@ export async function navigateInContext (
              * safe when this navigation is already that window.
              * @see https://github.com/w3c/webdriver-bidi/issues/878
              */
+            const isNavigationRace = err.message.includes('navigation canceled by concurrent navigation') ||
+                err.message.includes('failed with error: unknown error') ||
+                err.message.includes('no such frame')
+            if (!isNavigationRace) {
+                throw err
+            }
+            /**
+             * Parallel tests share one session, so the focused window is not
+             * this test's context. Retry over BiDi instead of `navigateTo`.
+             */
+            if (getParallelContextStore().getStore()) {
+                return browser.browsingContextNavigate({ context, url: path, wait: 'none' })
+            }
             const current = contextIdValue(await getContextManager(browser).getCurrentContext())
-            if (
-                contextIdValue(context) === current && (
-                    err.message.includes('navigation canceled by concurrent navigation') ||
-                    err.message.includes('failed with error: unknown error') ||
-                    err.message.includes('no such frame')
-                )
-            ) {
+            if (contextIdValue(context) === current) {
                 return browser.navigateTo(validateUrl(path))
             }
 
