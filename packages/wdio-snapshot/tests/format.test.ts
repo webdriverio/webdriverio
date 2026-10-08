@@ -231,3 +231,21 @@ describe('onlyInteractive headings', () => {
     })
 })
 
+describe('formatLine intent', () => {
+    it('prints ∈ "<intent>" after the ref', () => {
+        expect(formatLine({ role: 'button', name: 'Choose', ref: 'e9', intent: '9696 Aer Lingus $200.98' })).toBe('- button "Choose" [ref=e9] ∈ "9696 Aer Lingus $200.98"')
+    })
+
+    it('comes after the hint and before value, states and the selector suffix', () => {
+        const node: SnapshotNode = { role: 'combobox', ref: 'e2', hint: 'cardType in "Card"', intent: 'Row', value: 'Visa', states: ['required'], selector: '#c' }
+        expect(formatLine(node, { selectors: true })).toBe('- combobox [ref=e2] (cardType in "Card") ∈ "Row" value="Visa" [required]  → #c')
+    })
+
+    it('escapes quotes in the intent like in names', () => {
+        expect(formatLine({ role: 'button', name: 'Go', ref: 'e1', intent: 'say "hi"' })).toBe('- button "Go" [ref=e1] ∈ "say \\"hi\\""')
+    })
+
+    it('prints nothing without an intent', () => {
+        expect(formatLine({ role: 'button', name: 'Go', ref: 'e1' })).not.toContain('∈')
+    })
+})

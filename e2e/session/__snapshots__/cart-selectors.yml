@@ -5,7 +5,7 @@
       - link "Cart (0)" [ref=e61] [current=page]  → role/link[name="Cart (0)"]
   - main
     - heading "Products" [level=1]
-    - button "Add to cart" [ref=e62]  → [data-testid="add-blue"]
-    - button "Add to cart" [ref=e63]  → [data-testid="add-red"]
+    - button "Add to cart" [ref=e62] ∈ "Blue T-Shirt"  → [data-testid="add-blue"]
+    - button "Add to cart" [ref=e63] ∈ "Red Hoodie"  → [data-testid="add-red"]
     - heading "Your cart" [level=2]
     - button "Checkout" [ref=e64] [disabled]  → role/button[name="Checkout"]

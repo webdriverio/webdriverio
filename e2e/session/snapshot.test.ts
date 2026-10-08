@@ -191,4 +191,27 @@ describe('wdio session snapshot', () => {
         expect(res.code, res.stderr).toBe(0)
         expect(fs.readFileSync(res.json.result.data.file, 'utf-8')).toContain('<title>Session Fixture</title>')
     })
+
+    it('says which row a repeated control is in and drops the labels of visible inputs', async () => {
+        await goto('/table.html')
+        const first = (await snapshot('-i')).replace(/Full snapshot: .*/, 'Full snapshot: PATH')
+        await expect(first).toMatchFileSnapshot(golden('table-interactive'))
+        // the snapshot is paged: read on until the last line
+        let text = first
+        for (let page = first; /… lines \d+–(\d+) of (\d+)\./.test(page);) {
+            const [, end, total] = /… lines \d+–(\d+) of (\d+)\./.exec(page)!
+            if (end === total) {
+                break
+            }
+            page = await snapshot('-i', '--offset', String(Number(end) + 1))
+            text += '\n' + page
+        }
+        const repeated = text.split('\n').filter((l) => l.includes('"Choose This Flight"'))
+        expect(repeated).toHaveLength(200)
+        for (const line of repeated) {
+            const intent = JSON.parse(/∈ ("(?:[^"\\]|\\.)*")/.exec(line)![1])
+            expect(intent.length, line).toBeLessThanOrEqual(80)
+        }
+        expect(text).not.toMatch(/generic "(Name|Address)"/)
+    })
 })

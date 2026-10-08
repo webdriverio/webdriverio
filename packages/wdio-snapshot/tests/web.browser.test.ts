@@ -133,3 +133,54 @@ describe('combobox', () => {
         expect(all.find((n) => n.role === 'combobox')).toMatchObject({ name: 'Pick', ref: expect.any(String) })
     })
 })
+
+const nodes = (node: SnapshotNode): SnapshotNode[] => [node, ...(node.children ?? []).flatMap(nodes)]
+const byRole = (result: CollectResult, role: string) => nodes(result.tree).filter((n) => n.role === role)
+
+describe('intent of repeated controls', () => {
+    it('gives each of identical row buttons the text of its row without its own name', () => {
+        const result = collect(`<table>
+            <tr><td>9696</td><td>Aer Lingus</td><td>$200.98</td><td><button>Choose</button></td></tr>
+            <tr><td>43</td><td>Virgin</td><td>$472.56</td><td><button>Choose</button></td></tr>
+            <tr><td>12</td><td>United</td><td>$432.98</td><td><button>Choose</button></td></tr></table>`)
+        expect(byRole(result, 'button').map((b) => b.intent)).toEqual(['9696 Aer Lingus $200.98', '43 Virgin $472.56', '12 United $432.98'])
+    })
+
+    it('caps the intent at 80 characters', () => {
+        const long = 'word '.repeat(40)
+        const result = collect(`<div>${long}<button>Go</button></div><div>${long}<button>Go</button></div>`)
+        const intent = byRole(result, 'button')[0].intent!
+        expect(intent).toHaveLength(80)
+        expect(intent.endsWith('…')).toBe(true)
+    })
+
+    it('skips links whose item is a landmark', () => {
+        const result = collect('<header><a href="/in">Sign in</a></header><main><p>Body</p></main><footer><a href="/in">Sign in</a></footer>')
+        expect(byRole(result, 'link').map((l) => l.intent)).toEqual([undefined, undefined])
+    })
+
+    it('leaves a unique button alone', () => {
+        const result = collect('<div>Row text <button>Choose</button></div><div>Other <button>Pick</button></div>')
+        expect(byRole(result, 'button').map((b) => b.intent)).toEqual([undefined, undefined])
+    })
+})
+
+describe('labels', () => {
+    it('does not make a label of a visible input interactive', () => {
+        const result = collect('<label for="n">Name</label><input id="n" style="width:100px;height:20px">')
+        expect(nodes(result.tree).filter((n) => n.role === 'generic')).toEqual([])
+        expect(result.refs.map((r) => r.role)).toEqual(['textbox'])
+    })
+
+    it('keeps the ref of a label whose control is hidden', () => {
+        const result = collect('<label for="c" style="cursor:pointer">Remember me</label><input id="c" type="checkbox" style="opacity:0;position:absolute;width:20px;height:20px">')
+        expect(result.refs.some((r) => r.name === 'Remember me' && r.role === 'generic')).toBe(true)
+    })
+})
+
+describe('hint of an unnamed select', () => {
+    it('uses the name attribute and leaves the option texts out of the context', () => {
+        const result = collect('<div class="form-inline">Card Type <select name="cardType"><option>Visa</option><option>American Express</option></select></div>')
+        expect(byRole(result, 'combobox')[0].hint).toBe('cardType in "Card Type"')
+    })
+})

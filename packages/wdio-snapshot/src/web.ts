@@ -375,7 +375,25 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return input.type === 'password' ? '••••' : truncate(value.replace(/\n/g, ' '))
     }
 
+    /**
+     * The control of a label that is on screen is what gets the ref; the
+     * label only names it. A hidden control (custom checkbox) leaves the label
+     * as the thing to click.
+     */
+    function isPlainLabel (el: Element) {
+        const control = el.tagName === 'LABEL' ? (el as HTMLLabelElement).control : null
+        if (!control) {
+            return false
+        }
+        const rect = control.getBoundingClientRect()
+        const style = getComputedStyle(control)
+        return rect.width >= 4 && rect.height >= 4 && style.opacity !== '0' && style.visibility !== 'hidden'
+    }
+
     function isInteractive (el: Element, role: string) {
+        if (isPlainLabel(el)) {
+            return false
+        }
         if (INTERACTIVE.has(role)) {
             return true
         }
@@ -399,7 +417,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
      * Its descendants inherit the cursor; only where it starts counts.
      */
     function pointerTarget (el: Element) {
-        if (el === document.body || el === document.documentElement || getComputedStyle(el).cursor !== 'pointer') {
+        if (el === document.body || el === document.documentElement || getComputedStyle(el).cursor !== 'pointer' || isPlainLabel(el)) {
             return false
         }
         const parent = el.parentElement
@@ -413,19 +431,26 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
      */
     function hintOf (el: Element) {
         const label = el.getAttribute('title') || el.getAttribute('data-testid') || el.getAttribute('alt') ||
-            el.querySelector('svg title')?.textContent || el.classList[0] || el.tagName.toLowerCase()
+            el.querySelector('svg title')?.textContent || (FORM_CONTROLS.has(el.tagName) ? el.getAttribute('name') : null) || el.classList[0] || el.tagName.toLowerCase()
         let hint = collapse(label)
         const siblings = el.parentElement ? [...el.parentElement.children].filter((c) => c.tagName === el.tagName && c.className === el.className) : []
         if (siblings.length > 1) {
             hint += ` ${siblings.indexOf(el) + 1} of ${siblings.length}`
         }
+        // the control's own text (the options of a select, a typed value) is not what surrounds it
+        const own = (el.tagName === 'SELECT' ? [...(el as HTMLSelectElement).options].map((o) => o.text) : [(el as HTMLElement).innerText || (el as HTMLInputElement).value || ''])
+            .map(collapse).filter(Boolean)
         let ancestor = el.parentElement
         for (let depth = 0; ancestor && depth < 4; depth++, ancestor = ancestor.parentElement) {
             // a group of icons only describes itself; the row around it says what they act on
             if ([...ancestor.children].every((c) => c.tagName === el.tagName && c.className === el.className)) {
                 continue
             }
-            const text = collapse((ancestor as HTMLElement).innerText || ancestor.textContent)
+            let text = collapse((ancestor as HTMLElement).innerText || ancestor.textContent)
+            for (const part of own) {
+                text = text.replace(part, '')
+            }
+            text = collapse(text)
             if (text) {
                 return `${hint} in ${JSON.stringify(text.length > 48 ? `${text.slice(0, 47)}…` : text)}`
             }
@@ -919,16 +944,69 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return [out]
     }
 
+    const LANDMARK_TAGS = new Set(['HEADER', 'FOOTER', 'NAV', 'ASIDE', 'MAIN'])
+    const LANDMARK_ROLES = new Set(['banner', 'contentinfo', 'navigation', 'complementary', 'main'])
+
+    /**
+     * Controls that share role and name ("Choose This Flight" x 5) get the
+     * text of the item each sits in: the highest ancestor that holds none of
+     * the others. Ancestors are counted in one pass per group.
+     */
+    function addIntents (assigned: { el: Element, node: Node }[]) {
+        const groups = new Map<string, { el: Element, node: Node }[]>()
+        for (const member of assigned) {
+            if (member.node.interactive && member.node.name) {
+                const key = `${member.node.role}\0${member.node.name}`
+                const group = groups.get(key)
+                if (group) {
+                    group.push(member)
+                } else {
+                    groups.set(key, [member])
+                }
+            }
+        }
+        const parentOf = (el: Element) => el.parentElement || (el.getRootNode() as ShadowRoot).host || null
+        for (const members of groups.values()) {
+            if (members.length < 2) {
+                continue
+            }
+            const counts = new Map<Element, number>()
+            for (const { el } of members) {
+                for (let up: Element | null = el; up; up = parentOf(up)) {
+                    counts.set(up, (counts.get(up) || 0) + 1)
+                }
+            }
+            for (const { el, node } of members) {
+                let item: Element | undefined
+                for (let up: Element | null = el; up; up = parentOf(up)) {
+                    if (counts.get(up) === 1) {
+                        item = up
+                    }
+                }
+                if (!item || LANDMARK_TAGS.has(item.tagName) || LANDMARK_ROLES.has(roleOf(item))) {
+                    continue
+                }
+                const text = collapse(collapse((item as HTMLElement).innerText ?? item.textContent).replace(node.name!, ''))
+                if (text) {
+                    node.intent = truncate(text)
+                }
+            }
+        }
+    }
+
     const rootEl = scope || document.body
     const children = scope ? walk(scope) : childNodesOf(rootEl).flatMap((c) => walk(c))
+    const refsAssigned: { el: Element, node: Node }[] = []
     for (const { el, node } of pendingRefs.sort((a, b) => a.order - b.order)) {
         const id = el.ownerDocument === document ? assignRef(el) : undefined
         if (!id) {
             continue
         }
         node.ref = id
+        refsAssigned.push({ el, node })
         refs.push({ id, role: node.role, name: node.name, candidates: candidates(el, node.role, node.name || '') })
     }
+    addIntents(refsAssigned)
     const tree: Node = { role: 'document', name: document.title, url: location.href, children }
     return { tree, counter, refs }
 }
