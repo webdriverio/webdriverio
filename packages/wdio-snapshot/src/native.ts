@@ -259,6 +259,8 @@ function selectorInfo (platform: NativePlatform, tag: string, attrs: Record<stri
 export interface Located {
     node: SnapshotNode
     candidates: string[]
+    /** every selector key the node matches, whether or not it emits it */
+    matches: string[]
     /**
      * selector for the n-th element sharing the node's best attribute, in
      * document order, used for a ref when none of its candidates is unique
@@ -315,11 +317,11 @@ function positionalOf (platform: NativePlatform, tag: string, attrs: Record<stri
 
 function indexedSelectors (root: XmlNode, platform: NativePlatform) {
     const seen = new Map<string, number>()
-    const out = new Map<XmlNode, string>()
+    const out = new Map<XmlNode, { selector: string, matches: string[] }>()
     const visit = (xml: XmlNode) => {
         if (!isStructural(xml)) {
             const { own, all, at } = positionalOf(platform, selectorInfo(platform, xml.name, xml.attrs, '').tag, xml.attrs)
-            out.set(xml, at((seen.get(own) || 0) + 1))
+            out.set(xml, { selector: at((seen.get(own) || 0) + 1), matches: all })
             for (const key of new Set(all)) {
                 seen.set(key, (seen.get(key) || 0) + 1)
             }
@@ -334,7 +336,7 @@ interface BuildContext {
     platform: NativePlatform
     all?: boolean
     allocate: () => string
-    indexed: Map<XmlNode, string>
+    indexed: Map<XmlNode, { selector: string, matches: string[] }>
 }
 
 function build (xml: XmlNode, ctx: BuildContext): Built | undefined {
@@ -372,7 +374,8 @@ function build (xml: XmlNode, ctx: BuildContext): Built | undefined {
         node.interactive = true
         refs.push({ id, role, name: name || undefined, candidates: tagged })
     }
-    located.push({ node, candidates: tagged.map((candidate) => candidate.selector), fallback: ctx.indexed.get(xml)! })
+    const position = ctx.indexed.get(xml)!
+    located.push({ node, candidates: tagged.map((candidate) => candidate.selector), matches: position.matches, fallback: position.selector })
     return { node, refs, located }
 }
 
@@ -390,8 +393,8 @@ export function parseNativeSource (xml: string, platform: NativePlatform, opts: 
     const tree = built?.node || { role: 'document' }
     const located = built?.located || []
     const counts = new Map<string, number>()
-    for (const { candidates } of located) {
-        for (const candidate of new Set(candidates)) {
+    for (const { candidates, matches } of located) {
+        for (const candidate of new Set([...candidates, ...matches])) {
             counts.set(candidate, (counts.get(candidate) || 0) + 1)
         }
     }
@@ -409,8 +412,8 @@ function resourceIdOf (selector: string) {
     if (plain) {
         return plain[1]
     }
-    const ui = /resourceId\((['"])(.*?)\1\)/.exec(selector)
-    return ui?.[2]
+    const ui = /resourceId\("([^"]*)"\)|resourceId\('([^']*)'\)/.exec(selector)
+    return ui?.[1] ?? ui?.[2]
 }
 
 /** `id=save` and `id=com.example:id/save` name the same Android resource. */

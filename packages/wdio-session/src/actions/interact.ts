@@ -554,6 +554,7 @@ async function editableBehind (session: Session, target: ResolvedTarget, given: 
 async function fillTarget (session: Session, args: ActionArgs, target: ResolvedTarget): Promise<ActionOutcome> {
     const value = String(args.text ?? '')
     const kind = await fillKind(target)
+    await assertNotBlocked(session, target)
     if (kind.kind === 'text' && kind.editable === false) {
         const { inner, text } = await editableBehind(session, target, args.target, kind)
         await withPointerFallback(session, inner, () => inner.element.setValue(value), async () => {
@@ -621,8 +622,10 @@ interface ClickPoint {
     sticky?: boolean
     /** the center is under a fixed or sticky element, this point of the element is free */
     offCenter?: boolean
-    /** where a hidden link goes */
-    href?: string
+    /** a control inside the dialog or banner that covers the element, which closes it: `button "Reject all"` */
+    dismiss?: string
+    /** the cover is a modal layer (aria-modal, a modal dialog or a full-screen fixed backdrop): it keeps input from the element, not only the pointer */
+    blocking?: boolean
     /** center of the part of the element (or label) in view, in the frame's viewport: the pointer origin the offset of x and y is taken from */
     originX: number
     originY: number
@@ -675,6 +678,39 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             }
             return fixed
         }
+        const FULL_SCREEN = 0.9
+        const isModal = (node: Element) => {
+            try {
+                return Element.prototype.matches.call(node, ':modal')
+            } catch {
+                return false
+            }
+        }
+        const isFullScreenFixed = (node: Element) => {
+            if (getComputedStyle(node).position !== 'fixed') {
+                return false
+            }
+            const rect = node.getBoundingClientRect()
+            return rect.width >= innerWidth * FULL_SCREEN && rect.height >= innerHeight * FULL_SCREEN
+        }
+        // contains() stops at a shadow root: climb through the host
+        const holds = (up: Element, target: Element) => {
+            const parentOf = Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode')!.get!
+            for (let node: Node | null = target; node; node = parentOf.call(node) || (node instanceof ShadowRoot ? node.host : null)) {
+                if (node === up) {
+                    return true
+                }
+            }
+            return false
+        }
+        const isOverlay = (cover: Element, target: Element) => {
+            for (let up: Element | null = cover; up && !holds(up, target); up = up.parentElement) {
+                if (Element.prototype.getAttribute.call(up, 'aria-modal') === 'true' || isModal(up) || isFullScreenFixed(up)) {
+                    return true
+                }
+            }
+            return false
+        }
         // native accessors: bot checks plant elements that shadow them (see `isDecoy` in web.ts)
         const describe = (node: Element) => {
             const tag = Object.getOwnPropertyDescriptor(Element.prototype, 'tagName')!.get!.call(node) as string
@@ -706,17 +742,37 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
                 target = root.host
             }
         }
-        const href = (el as HTMLAnchorElement).href || undefined
+        const dismissIn = (cover: Element): string | undefined => {
+            const container = Element.prototype.closest.call(cover, 'dialog, [role="dialog"], [role="alertdialog"], [aria-modal="true"], [id*="cookie" i], [class*="cookie" i], [id*="consent" i], [class*="consent" i], [id*="gdpr" i], [class*="gdpr" i]') as Element | null
+            if (!container) {
+                return undefined
+            }
+            const preferred = /close|dismiss|reject|decline|×|✕|✖/i
+            for (const control of Element.prototype.querySelectorAll.call(container, 'button, a[href], [role="button"], input[type="button"], input[type="submit"]') as NodeListOf<Element>) {
+                if (!visible(control) || Element.prototype.matches.call(control, '[disabled], [aria-disabled="true"]') || Element.prototype.closest.call(control, 'fieldset[disabled]')) {
+                    continue
+                }
+                const text = (Element.prototype.getAttribute.call(control, 'aria-label') || Element.prototype.getAttribute.call(control, 'value') || Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'innerText')?.get?.call(control) as string | undefined || '').trim().replace(/\s+/g, ' ').slice(0, 60)
+                if (!text) {
+                    continue
+                }
+                const role = Element.prototype.getAttribute.call(control, 'role') || (control.localName === 'a' ? 'link' : 'button')
+                if (preferred.test(text)) {
+                    return `${role} "${text}"`
+                }
+            }
+            return undefined
+        }
         if (!visible(el)) {
             const label = (el as HTMLInputElement).labels?.[0]
             if (label && visible(label)) {
                 const point = center(label)
                 const cover = coverAt(label, point.x, point.y)
                 return cover
-                    ? { state: 'covered' as const, ...point, cover: describe(cover), sticky: isSticky(cover) }
+                    ? { state: 'covered' as const, ...point, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover), blocking: isOverlay(cover, label) }
                     : { state: 'label' as const, ...point, label }
             }
-            return { state: 'hidden' as const, x: 0, y: 0, originX: 0, originY: 0, href }
+            return { state: 'hidden' as const, x: 0, y: 0, originX: 0, originY: 0 }
         }
         const { x, y, originX, originY } = center(el)
         const cover = coverAt(el, x, y)
@@ -739,9 +795,33 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             }
         }
         return cover
-            ? { state: 'covered' as const, x, y, originX, originY, cover: describe(cover), sticky: isSticky(cover), href }
+            ? { state: 'covered' as const, x, y, originX, originY, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover), blocking: isOverlay(cover, el) }
             : { state: 'ok' as const, x, y, originX, originY }
     }, instant) as Promise<ClickPoint>
+}
+
+function coveredHint (point: ClickPoint) {
+    return point.dismiss
+        ? `Close it first: ${point.dismiss}.`
+        : 'Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.'
+}
+
+function coveredError (target: ResolvedTarget, point: ClickPoint) {
+    return usage(
+        `${target.label} is covered by ${point.cover}.`,
+        coveredHint(point)
+    )
+}
+
+/** fill and select reach past a cover that keeps the pointer off, so only an overlay (dialog, modal layer) is an error */
+async function assertNotBlocked (session: Session, target: ResolvedTarget) {
+    if (!session.isWeb) {
+        return
+    }
+    const point = await recheckAboveSticky(target, await clickPoint(target, true).catch(() => undefined))
+    if (point?.state === 'covered' && point.blocking) {
+        throw coveredError(target, point)
+    }
 }
 
 /**
@@ -764,17 +844,12 @@ async function clickChecked (session: Session, target: ResolvedTarget) {
     const point = await recheckAboveSticky(target, first)
     if (point?.state === 'hidden') {
         throw usage(
-            `${target.label} is not visible on the page${point.href ? `; it links to ${point.href}` : ''}.`,
-            point.href
-                ? 'It may be inside a closed menu, tab or dialog: open that first, or navigate to the link.'
-                : 'It may be inside a closed menu, tab or dialog: open that first.'
+            `${target.label} is not visible on the page.`,
+            'It may be inside a closed menu, tab or dialog: open the menu or section that contains it, scroll to it, or take a new snapshot.'
         )
     }
     if (point?.state === 'covered') {
-        throw usage(
-            `${target.label} is covered by ${point.cover}.`,
-            'Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.'
-        )
+        throw coveredError(target, point)
     }
     if (point?.state === 'label' || (point?.state === 'ok' && (point !== first || point.offCenter))) {
         await pointerClick(session, target, point)
@@ -797,10 +872,7 @@ async function clickChecked (session: Session, target: ResolvedTarget) {
             return
         }
         if (again?.state === 'covered') {
-            throw usage(
-                `${target.label} is covered by ${again.cover}.`,
-                'Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.'
-            )
+            throw coveredError(target, again)
         }
         throw err
     }
@@ -919,6 +991,7 @@ export const press: ActionFn = async (session, args) => {
 
 export const select: ActionFn = async (session, args) => {
     const target = await resolveTarget(session, args.target)
+    await assertNotBlocked(session, target)
     const value = String(args.value ?? '')
     const by = (args.by as string | undefined) || 'text'
     let call: string

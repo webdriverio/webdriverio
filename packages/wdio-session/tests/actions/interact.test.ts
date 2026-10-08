@@ -301,13 +301,25 @@ describe('click', () => {
         expect(result.text).toBe('Clicked e2 (textbox "Name")')
     })
 
-    it('fails at once for a hidden element, naming where a link goes', async () => {
+    it('fails at once for a hidden element, without leaking where a link goes', async () => {
         const element = {
             execute: async () => ({ state: 'hidden', x: 0, y: 0, href: 'https://a.test/nutrition' }),
             click: async () => { throw new Error('should not click') }
         }
-        await expect(click(clickSession(element), { target: 'e2', $cwd: '/' }))
-            .rejects.toThrow('e2 (textbox "Name") is not visible on the page; it links to https://a.test/nutrition.')
+        const err = await click(clickSession(element), { target: 'e2', $cwd: '/' }).catch((e) => e)
+        expect(err.message).toBe('e2 (textbox "Name") is not visible on the page.')
+        expect(JSON.stringify([err.message, err.hint])).not.toContain('https://a.test/nutrition')
+        expect(err.hint).toContain('take a new snapshot')
+        expect(err.hint).not.toContain('navigate')
+    })
+
+    it('names the control that dismisses the dialog covering an element', async () => {
+        const element = {
+            execute: async () => ({ state: 'covered', x: 5, y: 5, cover: 'dialog "Cookie settings"', dismiss: 'button "Accept all"' }),
+            click: async () => { throw new Error('should not click') }
+        }
+        const err = await click(clickSession(element), { target: 'e2', $cwd: '/' }).catch((e) => e)
+        expect(err.hint).toBe('Close it first: button "Accept all".')
     })
 
     it('fails at once for a covered element, naming what covers it', async () => {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { describeChanges } from '../../src/actions/changes.js'
 import { cliCmd } from '../../src/hints.js'
@@ -6,15 +6,22 @@ import { RefRegistry } from '@wdio/snapshot'
 import type { SnapshotNode } from '@wdio/snapshot'
 import type { Session } from '../../src/session.js'
 
-/** a session whose page is whatever `page.tree` and `page.url` are right now */
-function pageSession (page: { url: string, tree: SnapshotNode }) {
+/** a session whose page is whatever `page.tree`, `page.url` and `page.origin` (the document's time origin) are right now */
+function pageSession (page: { url: string, tree: SnapshotNode, origin?: number, keyUrl?: string }) {
     return {
         cmd: cliCmd,
         frameHint: (ref: string) => `wdio session frame ${ref}`,
         isWeb: true,
         applies: ['W'],
         refs: new RefRegistry(),
-        browser: { execute: async () => ({ tree: page.tree, refs: [], counter: 0 }) },
+        browser: {
+            execute: async (_fn: unknown, ...args: unknown[]) => {
+                if (!args.length) {
+                    return page.origin === undefined ? undefined : [page.keyUrl ?? page.url, page.origin]
+                }
+                return typeof args[0] === 'number' ? undefined : { tree: page.tree, refs: [], counter: 0 }
+            }
+        },
         currentUrl: async () => page.url
     } as unknown as Session
 }
@@ -23,6 +30,42 @@ const doc = (children: SnapshotNode[], name = 'Shop'): SnapshotNode => ({ role: 
 const button = { role: 'button', name: 'Pay', ref: 'e1', interactive: true }
 
 describe('describeChanges', () => {
+    const navigate = async (origins: [number | undefined, number | undefined], url: string) => {
+        const page = { url: 'http://x/', tree: doc([button]), origin: origins[0] }
+        const session = pageSession(page)
+        const before = (await describeChanges(session, {})).after
+        page.origin = origins[1]
+        page.url = url
+        page.tree = doc([button, { role: 'status', name: 'Saved' }])
+        return (await describeChanges(session, before)).change
+    }
+
+    it('diffs a URL change within the same document, e.g. pushState', async () => {
+        expect(await navigate([1, 1], 'http://x/#saved')).toEqual({ kind: 'changed', added: ['- status "Saved"'], omitted: 0 })
+    })
+
+    it('reports a new page when the URL and the document changed', async () => {
+        expect((await navigate([1, 2], 'http://x/done'))?.kind).toBe('page')
+    })
+
+    it('falls back to the URL when the document is unknown', async () => {
+        expect((await navigate([undefined, undefined], 'http://x/done'))?.kind).toBe('page')
+    })
+
+    it('reports a new page when the document key was read before the navigation landed', async () => {
+        const page: { url: string, tree: SnapshotNode, origin?: number, keyUrl?: string } = { url: 'http://x/', tree: doc([button]), origin: 1 }
+        const session = pageSession(page)
+        const before = (await describeChanges(session, {})).after
+        page.keyUrl = 'http://x/'
+        page.url = 'http://x/done'
+        page.tree = doc([button, { role: 'status', name: 'Saved' }])
+        expect((await describeChanges(session, before)).change?.kind).toBe('page')
+    })
+
+    it('diffs a new document at the same URL', async () => {
+        expect(await navigate([1, 2], 'http://x/')).toEqual({ kind: 'changed', added: ['- status "Saved"'], omitted: 0 })
+    })
+
     it('prints new lines on the same page, e.g. a status that appeared', async () => {
         const page = { url: 'http://x/', tree: doc([button]) }
         const session = pageSession(page)

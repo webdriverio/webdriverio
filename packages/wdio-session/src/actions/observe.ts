@@ -66,6 +66,27 @@ function prune (nodes: SnapshotNode[], max: number): { nodes: SnapshotNode[], cu
 }
 
 /**
+ * The nodes of an inlined frame that overlap the top-level viewport, as the
+ * collector judges a page: an element outside it stays only as the wrapper of
+ * one inside, and text goes with the element that holds it.
+ */
+function clipToViewport (nodes: SnapshotNode[], width: number, height: number, parentVisible = true): SnapshotNode[] {
+    const overlaps = (box?: number[]) => !box || (box[0] < width && box[0] + box[2] > 0 && box[1] < height && box[1] + box[3] > 0)
+    return nodes.flatMap((node) => {
+        if (node.role === 'text' && !node.box) {
+            return parentVisible ? [node] : []
+        }
+        // a display:contents wrapper has no box of its own and shows what its parent shows; a childless zero box is a real element
+        const visible = node.box && !node.box[2] && !node.box[3] && node.children?.length ? parentVisible : overlaps(node.box)
+        const children = node.children && clipToViewport(node.children, width, height, visible)
+        if (!visible && !children?.length) {
+            return []
+        }
+        return [children ? { ...node, children } : node]
+    })
+}
+
+/**
  * The content of the page's iframes, collected in each frame's own browsing
  * context, so elements in a cross-origin frame (a payment form, a bot check's
  * checkbox) get refs like the rest of the page. Without it, every action in a
@@ -93,6 +114,8 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
     if (!owner) {
         return []
     }
+    // clipping to the viewport needs the boxes, also when the snapshot doesn't print them
+    const boxed = Boolean(opts.boxes || opts.viewport)
     const refs: (SnapshotRef & { frame: string })[] = []
     // a frame lookup went unanswered: only frames found without asking the page are inlined
     let busy = false
@@ -108,7 +131,7 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
                 return undefined
             }
             collecting = true
-            const collected = await collectWeb(child as unknown as WebdriverIO.Browser, { ...opts, counter: session.refs.counter }, { transport: 'bidi' })
+            const collected = await collectWeb(child as unknown as WebdriverIO.Browser, { ...opts, boxes: boxed, counter: session.refs.counter }, { transport: 'bidi' })
                 .finally(() => (collecting = false))
             /**
              * The frame's page keeps the ids it handed out, also when the
@@ -116,10 +139,10 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
              */
             session.refs.counter = collected?.counter ?? 0
             // boxes in the frame are relative to its viewport, the snapshot's to the page's
-            const origin = opts.boxes
+            const origin = boxed
                 ? await session.browser.execute((el: HTMLElement) => {
                     const rect = el.getBoundingClientRect()
-                    return [rect.x + el.clientLeft, rect.y + el.clientTop]
+                    return [rect.x + el.clientLeft, rect.y + el.clientTop, innerWidth, innerHeight]
                 }, element as unknown as HTMLElement)
                 : undefined
             return { collected, origin }
@@ -143,6 +166,7 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
             continue
         }
         const { collected, origin } = result
+        let children = collected.tree.children ?? []
         if (origin) {
             const shift = (n: SnapshotNode) => {
                 if (n.box) {
@@ -150,9 +174,12 @@ async function inlineFrames (session: Session, tree: SnapshotNode, opts: Omit<Co
                 }
                 n.children?.forEach(shift)
             }
-            collected.tree.children?.forEach(shift)
+            children.forEach(shift)
+            if (opts.viewport) {
+                children = clipToViewport(children, origin[2], origin[3])
+            }
         }
-        const { nodes, cut } = prune(collected.tree.children ?? [], MAX_FRAME_NODES)
+        const { nodes, cut } = prune(children, MAX_FRAME_NODES)
         node.children = nodes
         node.note = cut ? 'cut' : undefined
         for (const ref of collected.refs) {
@@ -362,7 +389,7 @@ function capLine (line: string, index = 0) {
     let start = index < MAX_FIND_LINE_CHARS / 2
         ? 0
         : Math.max(0, Math.min(index - FIND_LINE_LEAD_CHARS, line.length - (MAX_FIND_LINE_CHARS - 1)))
-    const ref = start ? /\[ref=e\d+\]/.exec(line) : null
+    const ref = /\[ref=e\d+\]/.exec(line)
     if (ref) {
         const refEnd = ref.index + ref[0].length
         const whole = refEnd <= FIND_LINE_HEAD_CHARS
@@ -377,9 +404,25 @@ function capLine (line: string, index = 0) {
             start = 0
         }
     }
-    const room = MAX_FIND_LINE_CHARS - (start ? 1 : 0)
-    const end = start + room >= line.length ? line.length : start + room - 1
-    return `${start ? '…' : ''}${line.slice(start, end)}${end < line.length ? '…' : ''}`
+    const lead = start ? 1 : 0
+    let end = start + MAX_FIND_LINE_CHARS - lead >= line.length ? line.length : start + MAX_FIND_LINE_CHARS - lead - 1
+    // a ref after the window is what an action needs: it outranks the text it replaces
+    const tail = ref && ref.index >= end ? ` ${ref[0]}` : ''
+    if (tail) {
+        end = start + MAX_FIND_LINE_CHARS - lead - tail.length - 1
+    }
+    return `${start ? '…' : ''}${line.slice(start, end)}${end < line.length ? '…' : ''}${tail}`
+}
+
+/** the find flags a hint repeats to show the next matches the same way */
+function repeatFindFlags (args: Record<string, unknown>) {
+    return [
+        args.regex ? ' --regex' : '',
+        typeof args.scope === 'string' ? ` --scope ${shellQuote(args.scope)}` : '',
+        typeof args.context === 'number' ? ` -C ${args.context}` : '',
+        typeof args.afterContext === 'number' ? ` -A ${args.afterContext}` : '',
+        typeof args.beforeContext === 'number' ? ` -B ${args.beforeContext}` : ''
+    ].join('')
 }
 
 export const find: ActionFn = async (session, args) => {
@@ -417,6 +460,12 @@ export const find: ActionFn = async (session, args) => {
             hint: 'Try a shorter text or --regex; elements that only appear after a click (menus, popovers) are not on the page yet.'
         })
     }
+    const total = matches.length
+    const skip = typeof args.offset === 'number' && args.offset > 0 ? Math.floor(args.offset) : 0
+    if (skip >= total) {
+        throw new SessionError('NO_MATCH', `--offset ${skip} is past the last of ${total} match${total === 1 ? '' : 'es'} for ${JSON.stringify(query)}.`)
+    }
+    matches = matches.slice(skip)
     const out: string[] = []
     let last = -1
     let size = 0
@@ -454,15 +503,16 @@ export const find: ActionFn = async (session, args) => {
         last = blockEnd
     }
     const rest = matches.filter((i) => i > last).length
+    // the data is capped like the text: `--json` output must not explode either
+    const listed = matches.filter((i) => i <= last)
     if (rest) {
-        out.push(`… ${rest} more matching line${rest === 1 ? '' : 's'} not shown. Search for a longer text, or narrow it with --scope.`)
+        const next = skip + listed.length
+        out.push(`… ${rest} more matching line${rest === 1 ? '' : 's'} not shown. \`${session.cmd('find', { ...hintArgs(args), offset: next }, `wdio session find ${shellQuote(query)}${repeatFindFlags(args)} --offset ${next}`)}\` shows the next ones, or search for a longer text, or narrow it with --scope.`)
     }
     if (!hidden) {
         await scrollToFirst(session, lines, matches[0])
     }
-    // the data is capped like the text: `--json` output must not explode either
-    const listed = matches.filter((i) => i <= last)
-    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: capLine(lines[i], matchIndex(lines[i], query, regex)) })), total: matches.length, hidden } }
+    return { text: note + out.join('\n'), data: { matches: listed.map((i) => ({ line: i + 1, text: capLine(lines[i], matchIndex(lines[i], query, regex)) })), total, hidden } }
 }
 
 /**
@@ -482,11 +532,14 @@ async function scrollToFirst (session: Session, lines: string[], first: number) 
         return
     }
     try {
-        const el = await session.refs.resolve(scopeOf(session), id)
-        await scopeOf(session).execute((node: HTMLElement) => node.scrollIntoView({ block: 'center', inline: 'nearest' }), el as unknown as HTMLElement)
+        await scrollIntoCenter(session, await session.refs.resolve(scopeOf(session), id))
     } catch {
         // a ref of an inline frame or a removed element
     }
+}
+
+async function scrollIntoCenter (session: Session, el: unknown) {
+    await scopeOf(session).execute((node: HTMLElement) => node.scrollIntoView({ block: 'center', inline: 'nearest' }), el as HTMLElement)
 }
 
 export const diff: ActionFn = async (session, args) => {
@@ -650,31 +703,46 @@ const DEFAULT_READ_CHARS = 6000
  */
 export const read: ActionFn = async (session, args) => {
     const maxChars = typeof args.maxChars === 'number' && args.maxChars > 0 ? args.maxChars : DEFAULT_READ_CHARS
+    const offset = typeof args.offset === 'number' && args.offset > 0 ? Math.floor(args.offset) : 0
     const scope = typeof args.scope === 'string' ? (await resolveTarget(session, args.scope)).element : undefined
+    if (scope && session.isWeb && await scope.isDisplayed().catch(() => false)) {
+        // a screenshot of the page shows what was read
+        await scrollIntoCenter(session, scope).catch(() => {})
+    }
     const text = await scopeOf(session).execute(function (root: Element | undefined, limit: number) {
         const start = root || document.querySelector('main, [role="main"], article') || document.body
         const SKIP = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'SVG', 'CANVAS', 'IFRAME', 'NAV', 'FOOTER', 'ASIDE'])
         const BLOCK = new Set(['P', 'DIV', 'SECTION', 'ARTICLE', 'MAIN', 'HEADER', 'FORM', 'FIELDSET', 'BLOCKQUOTE', 'PRE', 'FIGURE', 'FIGCAPTION', 'DL', 'DT', 'DD', 'ADDRESS'])
         const out: string[] = []
+        // length of `out` joined with newlines, the offsets `read --offset` counts in
         let size = 0
         let line = ''
+        let cut = false
+        let more = false
         const flush = (prefix = '') => {
             const text = line.replace(/\s+/g, ' ').trim()
-            if (text && size < limit) {
-                // one long paragraph is cut too, not only the lines after it
-                const room = Math.max(0, limit - size - prefix.length)
-                const kept = text.length > room ? `${text.slice(0, room)}…` : text
-                out.push(prefix + kept)
-                size += prefix.length + kept.length + 1
-            }
             line = ''
+            if (!text || more) {
+                return
+            }
+            const room = limit - size - (out.length ? 1 : 0)
+            if (room < 0) {
+                more = true
+                return
+            }
+            // one long paragraph is cut too, not only the lines after it
+            cut = prefix.length + text.length > room
+            more = cut
+            const kept = cut ? `${prefix}${text.slice(0, Math.max(0, room - prefix.length))}…` : prefix + text
+            out.push(kept)
+            size += (out.length > 1 ? 1 : 0) + kept.length
         }
         const hidden = (el: Element) => {
             const style = getComputedStyle(el)
             return style.display === 'none' || style.visibility === 'hidden' || el.getAttribute('aria-hidden') === 'true'
         }
         const walk = (node: Node) => {
-            if (size >= limit) {
+            if (more) {
                 return
             }
             if (node.nodeType === Node.TEXT_NODE) {
@@ -738,11 +806,17 @@ export const read: ActionFn = async (session, args) => {
         }
         walk(start)
         flush()
-        return { text: out.join('\n'), truncated: size >= limit, from: start === document.body ? 'body' : start.tagName.toLowerCase() }
-    }, scope, maxChars) as { text: string, truncated: boolean, from: string }
+        return { text: out.join('\n'), truncated: more, cut, from: start === document.body ? 'body' : start.tagName.toLowerCase() }
+    }, scope, offset + maxChars) as { text: string, truncated: boolean, cut: boolean, from: string }
+    if (offset >= text.text.length && offset > 0 && !text.truncated) {
+        return { text: `--offset ${offset} is past the end of the text (${text.text.length} characters).`, data: { chars: 0 } }
+    }
     if (!text.text) {
         return { text: `The page has no readable text here. \`${session.cmd('snapshot', undefined, 'wdio session snapshot')}\` shows its elements.`, data: { chars: 0 } }
     }
-    const tail = text.truncated ? `\n… cut at ${maxChars} characters; --max-chars or --scope reads more or a part.` : ''
-    return { text: text.text + tail, data: { chars: text.text.length, truncated: text.truncated, from: text.from } }
+    const shown = text.text.slice(offset)
+    // the cut paragraph's "…" is not page text: the next part starts before it
+    const next = offset + shown.length - (text.cut ? 1 : 0)
+    const tail = text.truncated ? `\n… ${offset ? `characters ${offset}–${next}` : `cut at ${maxChars} characters`}; \`${session.cmd('read', { ...hintArgs(args), offset: next }, `wdio session read${typeof args.scope === 'string' ? ` --scope ${shellQuote(args.scope)}` : ''}${typeof args.maxChars === 'number' ? ` --max-chars ${maxChars}` : ''} --offset ${next}`)}\` reads the next part, --scope reads a section.` : ''
+    return { text: shown + tail, data: { chars: shown.length, truncated: text.truncated, from: text.from } }
 }

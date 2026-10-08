@@ -248,10 +248,11 @@ export const ACTIONS = [
     {
         name: 'read', group: 'Observation', applies: ['W'],
         desc: 'Read the page text as Markdown',
-        details: 'Headings, paragraphs, list items, table rows and links with their URL, from the main content when the page marks it (main, article), else the whole page; navigation, footers and hidden text are left out. Cut at --max-chars (default 6000). Use it to answer "what does the page say"; use snapshot or find for refs to act on.',
+        details: 'Headings, paragraphs, list items, table rows and links with their URL, from the main content when the page marks it (main, article), else the whole page; navigation, footers and hidden text are left out. Cut at --max-chars (default 6000); the cut says which --offset reads the next part. With --scope, the section is scrolled into view. Use it to answer "what does the page say"; use snapshot or find for refs to act on.',
         options: {
             scope: { type: 'string', desc: 'Only read below this ref or selector' },
-            'max-chars': { type: 'number', desc: 'Print up to this many characters (default 6000)' }
+            'max-chars': { type: 'number', desc: 'Print up to this many characters (default 6000)' },
+            offset: { type: 'number', desc: 'Start at this character of the text, for the next part of a long page' }
         },
         examples: [
             ['wdio session read', 'Read the main content'],
@@ -269,7 +270,8 @@ export const ACTIONS = [
             scope: { type: 'string', desc: 'Only search below this ref or selector' },
             context: { type: 'number', alias: 'C', desc: 'Lines of context before and after instead of the surrounding node' },
             'after-context': { type: 'number', alias: 'A', desc: 'Lines of context after each match' },
-            'before-context': { type: 'number', alias: 'B', desc: 'Lines of context before each match' }
+            'before-context': { type: 'number', alias: 'B', desc: 'Lines of context before each match' },
+            offset: { type: 'number', desc: 'Skip this many matches, for the next ones when the output is cut' }
         },
         examples: [
             ['wdio session find "Add to cart"', 'Find the ref of a button'],

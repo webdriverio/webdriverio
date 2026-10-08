@@ -65,12 +65,17 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     const EDITABLE = 'input:not([type=hidden]),textarea,[contenteditable]:not([contenteditable=false]),[role=textbox],[role=searchbox]'
     const PRUNE = new Set(['generic', 'presentation', 'none'])
     const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'HEAD', 'META', 'LINK', 'TITLE', 'SVG'])
+    const BLOCK_TAGS = new Set(['TD', 'TH', 'TR', 'LI', 'DT', 'DD', 'P', 'DIV', 'SECTION', 'ARTICLE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LABEL', 'BUTTON', 'OPTION', 'FIGCAPTION', 'BLOCKQUOTE', 'PRE'])
     const NAMED_REF_ROLES = new Set(['img', 'dialog', 'alertdialog', 'region', 'form', 'list', 'table', 'grid', 'tabpanel', 'menu', 'tree'])
     const SECTIONING = 'article,aside,main,nav,section'
     /** unique candidates a ref gets besides the positional last resort */
     const MAX_CANDIDATES = 3
     /** longest text of a `tag=text` candidate */
     const MAX_CANDIDATE_TEXT = 40
+    /** longest context text after the hint of an unnamed control */
+    const HINT_CONTEXT_LENGTH = 48
+    /** longest intent text of a repeated control */
+    const INTENT_LENGTH = 80
     const TEST_ATTRS = ['data-testid', 'data-test', 'data-qa']
 
     const collapse = (s: string | null | undefined) => (s || '').replace(/\s+/g, ' ').trim()
@@ -143,13 +148,21 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return explicit || implicitRole(el)
     }
 
-    function isHidden (el: Element) {
+    function isUnrendered (el: Element, style?: CSSStyleDeclaration) {
         if ((el as HTMLElement).hidden || el.getAttribute('aria-hidden') === 'true' || el.hasAttribute('inert')) {
             return true
         }
-        const style = getComputedStyle(el)
-        return style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse' ||
-            (style as unknown as { contentVisibility?: string }).contentVisibility === 'hidden'
+        const computed = style || getComputedStyle(el)
+        return computed.display === 'none' || (computed as unknown as { contentVisibility?: string }).contentVisibility === 'hidden'
+    }
+
+    function isInvisible (el: Element, style?: CSSStyleDeclaration) {
+        const visibility = (style || getComputedStyle(el)).visibility
+        return visibility === 'hidden' || visibility === 'collapse'
+    }
+
+    function isHidden (el: Element) {
+        return isUnrendered(el) || isInvisible(el)
     }
 
     function isZeroSize (el: Element) {
@@ -387,7 +400,14 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         }
         const rect = control.getBoundingClientRect()
         const style = getComputedStyle(control)
-        return rect.width >= 4 && rect.height >= 4 && style.opacity !== '0' && style.visibility !== 'hidden'
+        if (rect.width < 4 || rect.height < 4 || style.opacity === '0' || style.visibility === 'hidden') {
+            return false
+        }
+        // a custom checkbox parked at `left: -10000px` is sized but nobody can reach it; document coordinates, so a scrolled page does not count
+        const view = control.ownerDocument.defaultView || window
+        const root = control.ownerDocument.documentElement
+        return rect.right + view.scrollX > 0 && rect.bottom + view.scrollY > 0 &&
+            rect.left + view.scrollX < root.scrollWidth && rect.top + view.scrollY < root.scrollHeight
     }
 
     function isInteractive (el: Element, role: string) {
@@ -425,6 +445,66 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     }
 
     /**
+     * The text around a control: the text nodes of `root` outside the control
+     * itself, collapsed, read only until it is longer than `limit`. Inline
+     * neighbours stay glued as `innerText` keeps them ("#1🗑"); a new block
+     * (cell, item, paragraph) starts with a space so cells don't run together.
+     */
+    function textAround (root: Element, control: Element, limit: number) {
+        if (isDecoy(root)) {
+            return ''
+        }
+        const invisible = new Map<Element, boolean>()
+        const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+            // decoys first: their element API is shadowed. A visibility:hidden wrapper is walked through, its visible descendants count
+            acceptNode: (n) => {
+                if (isDecoy(n)) {
+                    return NodeFilter.FILTER_REJECT
+                }
+                if (n.nodeType === 3) {
+                    const parent = n.parentElement
+                    if (!parent) {
+                        return NodeFilter.FILTER_ACCEPT
+                    }
+                    let hidden = invisible.get(parent)
+                    if (hidden === undefined) {
+                        hidden = isInvisible(parent)
+                        invisible.set(parent, hidden)
+                    }
+                    return hidden ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_ACCEPT
+                }
+                const el = n as Element
+                const style = getComputedStyle(el)
+                if (isUnrendered(el, style)) {
+                    return NodeFilter.FILTER_REJECT
+                }
+                invisible.set(el, isInvisible(el, style))
+                return NodeFilter.FILTER_SKIP
+            }
+        })
+        const blockOf = (node: globalThis.Node) => {
+            let el = node.parentElement
+            while (el && el !== root && !BLOCK_TAGS.has(el.tagName.toUpperCase())) {
+                el = el.parentElement
+            }
+            return el
+        }
+        let out = ''
+        let lastBlock: Element | null | undefined
+        for (let text = walker.nextNode(); text && out.length <= limit; text = walker.nextNode()) {
+            if (control.contains(text) || SKIP_TAGS.has((text.parentElement?.tagName || '').toUpperCase()) || !text.nodeValue) {
+                continue
+            }
+            // collapsed per node so markup indentation does not eat into `limit`
+            const value = text.nodeValue.replace(/\s+/g, ' ')
+            const block = blockOf(text)
+            out += lastBlock !== undefined && block !== lastBlock ? ` ${value}` : value
+            lastBlock = block
+        }
+        return collapse(out)
+    }
+
+    /**
      * An unnamed clickable element (an icon wired up in JS) has nothing an
      * agent can tell apart. Describe what it is, its place among identical
      * siblings and the nearest text around it.
@@ -437,22 +517,15 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         if (siblings.length > 1) {
             hint += ` ${siblings.indexOf(el) + 1} of ${siblings.length}`
         }
-        // the control's own text (the options of a select, a typed value) is not what surrounds it
-        const own = (el.tagName === 'SELECT' ? [...(el as HTMLSelectElement).options].map((o) => o.text) : [(el as HTMLElement).innerText || (el as HTMLInputElement).value || ''])
-            .map(collapse).filter(Boolean)
         let ancestor = el.parentElement
         for (let depth = 0; ancestor && depth < 4; depth++, ancestor = ancestor.parentElement) {
             // a group of icons only describes itself; the row around it says what they act on
             if ([...ancestor.children].every((c) => c.tagName === el.tagName && c.className === el.className)) {
                 continue
             }
-            let text = collapse((ancestor as HTMLElement).innerText || ancestor.textContent)
-            for (const part of own) {
-                text = text.replace(part, '')
-            }
-            text = collapse(text)
+            const text = textAround(ancestor, el, HINT_CONTEXT_LENGTH)
             if (text) {
-                return `${hint} in ${JSON.stringify(text.length > 48 ? `${text.slice(0, 47)}…` : text)}`
+                return `${hint} in ${JSON.stringify(text.length > HINT_CONTEXT_LENGTH ? `${text.slice(0, HINT_CONTEXT_LENGTH - 1)}…` : text)}`
             }
         }
         return hint
@@ -697,11 +770,13 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
                 out.push({ kind: 'class', selector: `${tag}.${CSS.escape(className)}` })
             }
             // a document-wide evaluate per ref: only when nothing better was found
-            const literal = !out.length && text ? xpathLiteral(text) : undefined
+            // document.evaluate does not see into shadow roots: a match there is another element
+            const literal = !out.length && text && el.getRootNode() === document ? xpathLiteral(text) : undefined
             if (literal) {
                 const xpath = `//${tag}[contains(., ${literal})]`
                 try {
-                    if (document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotLength === 1) {
+                    const found = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+                    if (found.snapshotLength === 1 && found.snapshotItem(0) === el) {
                         out.push({ kind: 'xpath-text', selector: xpath })
                     }
                 } catch {
@@ -767,6 +842,26 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return x < window.innerWidth && x + r.width > 0 && y < window.innerHeight && y + r.height > 0
     }
 
+    /**
+     * A text node of a parent that spans more than the viewport (a long page
+     * body) may sit outside it: measured with a Range, only then.
+     */
+    function textInView (node: globalThis.Node) {
+        const parent = node.parentElement
+        if (!opts.viewport || !parent || parent.getBoundingClientRect().height <= window.innerHeight) {
+            return true
+        }
+        const range = node.ownerDocument!.createRange()
+        range.selectNodeContents(node)
+        const r = range.getBoundingClientRect()
+        if (r.width === 0 && r.height === 0) {
+            return true
+        }
+        const x = r.x + offset[0]
+        const y = r.y + offset[1]
+        return x < window.innerWidth && x + r.width > 0 && y < window.innerHeight && y + r.height > 0
+    }
+
     function walk (node: globalThis.Node): Node[] {
         // also a scope the caller picked
         if (isDecoy(node)) {
@@ -774,7 +869,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         }
         if (node.nodeType === 3) {
             const text = collapse(node.textContent)
-            return text && parentInView ? [{ role: 'text', name: truncate(text) }] : []
+            return text && parentInView && textInView(node) ? [{ role: 'text', name: truncate(text) }] : []
         }
         if (node.nodeType !== 1) {
             return []
@@ -794,7 +889,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             return []
         }
         const visible = inView(el)
-        if (el.tagName === 'PRE' && !shadowRootOf(el) && ![...el.querySelectorAll('*')].some((c) => !isDecoy(c) && isInteractive(c, roleOf(c)))) {
+        if (el.tagName === 'PRE' && !shadowRootOf(el) && !isInteractive(el, roleOf(el)) && ![...el.querySelectorAll('*')].some((c) => !isDecoy(c) && isInteractive(c, roleOf(c)))) {
             // a highlighted block is one token per span: one leaf keeps it readable and searchable
             const code = collapse((el as HTMLElement).innerText ?? el.textContent)
             if (code && (opts.all || !isZeroSize(el))) {
@@ -944,8 +1039,12 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return [out]
     }
 
+    const DIALOG_ROLES = new Set(['dialog', 'alertdialog'])
     const LANDMARK_TAGS = new Set(['HEADER', 'FOOTER', 'NAV', 'ASIDE', 'MAIN'])
     const LANDMARK_ROLES = new Set(['banner', 'contentinfo', 'navigation', 'complementary', 'main'])
+
+    const isDialog = (el: Element) => el.tagName === 'DIALOG' || DIALOG_ROLES.has(roleOf(el))
+    const isLandmark = (el: Element) => isDialog(el) || LANDMARK_TAGS.has(el.tagName) || LANDMARK_ROLES.has(roleOf(el))
 
     /**
      * Controls that share role and name ("Choose This Flight" x 5) get the
@@ -978,15 +1077,16 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             }
             for (const { el, node } of members) {
                 let item: Element | undefined
-                for (let up: Element | null = el; up; up = parentOf(up)) {
-                    if (counts.get(up) === 1) {
-                        item = up
-                    }
+                let inDialog = false
+                // only a dialog blocks the climb: a card's own <header> is part of its row
+                for (let up: Element | null = el; up && counts.get(up) === 1; up = parentOf(up)) {
+                    item = up
+                    inDialog ||= isDialog(up)
                 }
-                if (!item || LANDMARK_TAGS.has(item.tagName) || LANDMARK_ROLES.has(roleOf(item))) {
+                if (!item || inDialog || isLandmark(item)) {
                     continue
                 }
-                const text = collapse(collapse((item as HTMLElement).innerText ?? item.textContent).replace(node.name!, ''))
+                const text = textAround(item, el, INTENT_LENGTH)
                 if (text) {
                     node.intent = truncate(text)
                 }

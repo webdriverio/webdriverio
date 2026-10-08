@@ -91,6 +91,12 @@ describe('viewport', () => {
         expect(escaped).not.toContain('off-screen-one')
     })
 
+    it('drops the text of a parent taller than the viewport that sits outside it', () => {
+        const result = collect(`<div>Top text<div style="height:${FAR}"></div>Bottom text</div>`, { viewport: true })
+        expect(names(result.tree)).toContain('Top text')
+        expect(names(result.tree)).not.toContain('Bottom text')
+    })
+
     it('without the option keeps everything', () => {
         const result = collect(`<button style="position:absolute;top:${FAR}">Far away</button>`)
         expect(names(result.tree)).toContain('Far away')
@@ -159,6 +165,69 @@ describe('intent of repeated controls', () => {
         expect(byRole(result, 'link').map((l) => l.intent)).toEqual([undefined, undefined])
     })
 
+    it('skips controls repeated across two open dialogs', () => {
+        const result = collect(
+            '<div role="dialog"><button>Next Month</button><button>Choose Monday, 28 September 2026</button></div>' +
+            '<dialog open><button>Next Month</button><button>Choose Monday, 28 September 2026</button></dialog>'
+        )
+        const buttons = byRole(result, 'button')
+        expect(buttons).toHaveLength(4)
+        expect(buttons.map((b) => b.intent)).toEqual([undefined, undefined, undefined, undefined])
+    })
+
+    it('skips controls repeated across open dialogs nested in field wrappers', () => {
+        const dialog = '<div role="dialog"><button>Previous Month</button><button>Choose Monday, 28 September 2026</button></div>'
+        const result = collect(
+            `<div class="field"><label for="in">Check In</label><input id="in" style="width:100px;height:20px">${dialog}</div>` +
+            `<div class="field"><label for="out">Check Out</label><input id="out" style="width:100px;height:20px">${dialog}</div>`
+        )
+        const buttons = byRole(result, 'button')
+        expect(buttons).toHaveLength(4)
+        expect(buttons.map((b) => b.intent)).toEqual([undefined, undefined, undefined, undefined])
+    })
+
+    it('keeps row context for controls repeated inside one dialog', () => {
+        const result = collect('<div role="dialog"><div>First room <button>Book</button></div><div>Second room <button>Book</button></div></div>')
+        expect(byRole(result, 'button').map((b) => b.intent)).toEqual(['First room', 'Second room'])
+    })
+
+    it('keeps row context when a card has its own header', () => {
+        const result = collect(
+            '<article><header>Product A <button>Go</button></header></article>' +
+            '<article><header>Product B <button>Go</button></header></article>'
+        )
+        expect(byRole(result, 'button').map((b) => b.intent)).toEqual(['Product A', 'Product B'])
+    })
+
+    it('does not count hidden text toward the intent length', () => {
+        const hidden = `<span style="display:none">${'mobile-only label '.repeat(6)}</span>`
+        const result = collect(
+            `<table><tr><td>${hidden}Alice</td><td><button>Edit</button></td></tr>` +
+            `<tr><td>${hidden}Bob</td><td><button>Edit</button></td></tr></table>`
+        )
+        const intents = byRole(result, 'button').map((b) => b.intent)
+        expect(intents[0]).toContain('Alice')
+        expect(intents[1]).toContain('Bob')
+    })
+
+    it('keeps visible text inside a visibility:hidden wrapper', () => {
+        const row = (name: string) => `<tr><td><div style="visibility:hidden"><span style="visibility:visible">${name}</span></div></td><td><button>Edit</button></td></tr>`
+        const result = collect(`<table>${row('Alice')}${row('Bob')}</table>`)
+        const intents = byRole(result, 'button').map((b) => b.intent)
+        expect(intents[0]).toContain('Alice')
+        expect(intents[1]).toContain('Bob')
+    })
+
+    it('survives a decoy next to repeated buttons', () => {
+        document.body.innerHTML = '<div>A <button>Edit</button><i id="decoy"></i></div><div>B <button>Edit</button></div>'
+        const decoy = document.getElementById('decoy')!
+        Object.defineProperty(decoy, 'tagName', { value: undefined })
+        Object.defineProperty(decoy, 'getAttribute', { value: undefined })
+        const run = new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
+        const result = run({ roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true })
+        expect(byRole(result, 'button').map((b) => b.intent)).toEqual(['A', 'B'])
+    })
+
     it('leaves a unique button alone', () => {
         const result = collect('<div>Row text <button>Choose</button></div><div>Other <button>Pick</button></div>')
         expect(byRole(result, 'button').map((b) => b.intent)).toEqual([undefined, undefined])
@@ -175,6 +244,40 @@ describe('labels', () => {
     it('keeps the ref of a label whose control is hidden', () => {
         const result = collect('<label for="c" style="cursor:pointer">Remember me</label><input id="c" type="checkbox" style="opacity:0;position:absolute;width:20px;height:20px">')
         expect(result.refs.some((r) => r.name === 'Remember me' && r.role === 'generic')).toBe(true)
+    })
+})
+
+describe('off-screen custom checkbox', () => {
+    it('keeps the ref of a label whose sized control is parked off-screen', () => {
+        const result = collect('<label for="c" style="cursor:pointer">Remember me</label><input id="c" type="checkbox" style="position:absolute;left:-10000px;width:20px;height:20px">')
+        expect(result.refs.some((r) => r.name === 'Remember me' && r.role === 'generic')).toBe(true)
+    })
+})
+
+describe('code blocks', () => {
+    it.each([
+        ['role', '<pre role="button">npm install</pre>'],
+        ['tabindex', '<pre tabindex="0">npm install</pre>']
+    ])('keeps the ref of an interactive pre (%s)', (_, html) => {
+        const result = collect(html)
+        expect(result.refs).toHaveLength(1)
+        expect(result.refs[0].id).toBe(nodes(result.tree).find((n) => n.ref)?.ref)
+    })
+
+    it('still collapses a plain pre to a code leaf', () => {
+        expect(byRole(collect('<pre><span>npm</span> <span>install</span></pre>'), 'code').map((n) => n.name)).toEqual(['npm install'])
+    })
+})
+
+describe('context text collisions', () => {
+    it('hint keeps text that shares a substring with the typed value', () => {
+        const result = collect('<div>Invoice #123 <input value="123"></div>')
+        expect(byRole(result, 'textbox')[0].hint).toBe('input in "Invoice #123"')
+    })
+
+    it('intent keeps text that contains the control name', () => {
+        const result = collect('<div>Gold plan <button>Go</button></div><div>Gold plan B <button>Go</button></div>')
+        expect(byRole(result, 'button').map((b) => b.intent)).toEqual(['Gold plan', 'Gold plan B'])
     })
 })
 

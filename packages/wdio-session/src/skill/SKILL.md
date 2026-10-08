@@ -45,7 +45,7 @@ Run `npx wdio session <action> --help` only when an action fails or you need a f
 
 ## Code
 
-Use `exec` for loops, conditions and assertions. Pipe longer code on stdin:
+Use `exec` for loops, conditions and assertions. It runs in Node with `browser` and `$` in scope; page code goes in `await browser.execute(() => …)`. Pipe longer code on stdin:
 
 ```sh
 npx wdio session exec -e 'await expect($("h1")).toHaveText("Cart")'

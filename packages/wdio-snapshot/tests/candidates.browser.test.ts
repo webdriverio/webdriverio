@@ -152,6 +152,17 @@ describe('snapshot selector candidates', () => {
         expect(taggedCandidatesOf(NAMED_DIV, 'generic', 'Go', true)?.some((c) => c.kind === 'xpath-text')).toBe(false)
     })
 
+    it('offers no xpath-text for an element in a shadow root, which another element of the document matches', () => {
+        document.body.innerHTML = '<div>Docs</div>'
+        const host = document.createElement('section')
+        document.body.appendChild(host)
+        host.attachShadow({ mode: 'open' }).innerHTML = '<div tabindex="0">Docs</div>'
+        const collect = new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
+        const { refs } = collect({ roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true, extendedCandidates: true })
+        expect(refs).toHaveLength(1)
+        expect(refs[0].candidates.map((c) => c.kind)).not.toContain('xpath-text')
+    })
+
     it('skips generated-looking classes and non-unique types and classes', () => {
         const generated = taggedCandidatesOf('<button class="css-1a2b3c4d">Solo</button>', 'button', 'Solo', true)
         expect(generated?.some((c) => c.kind === 'class')).toBe(false)

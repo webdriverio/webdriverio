@@ -214,4 +214,19 @@ describe('wdio session snapshot', () => {
         }
         expect(text).not.toMatch(/generic "(Name|Address)"/)
     })
+
+    it('does not tag controls repeated across open dialogs but tags rows outside them', async () => {
+        await goto('/dialogs-open.html')
+        const lines = (await snapshot('-i')).split('\n')
+        const dialogControls = lines.filter((l) => /Next Month|Previous Month|Choose (Monday|Tuesday|Wednesday)/.test(l))
+        expect(dialogControls.length).toBeGreaterThan(0)
+        for (const line of dialogControls) {
+            expect(line).not.toContain(' ∈ ')
+        }
+        const book = lines.filter((l) => l.includes('"Book now"'))
+        expect(book).toHaveLength(2)
+        for (const line of book) {
+            expect(line).toContain(' ∈ ')
+        }
+    })
 })

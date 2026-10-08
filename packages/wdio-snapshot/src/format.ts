@@ -101,7 +101,8 @@ function keepHeadings (nodes: SnapshotNode[]): SnapshotNode[] {
             return true
         }
         const level = levelOf(node)
-        for (const next of nodes.slice(i + 1)) {
+        for (let j = i + 1; j < nodes.length; j++) {
+            const next = nodes[j]
             if (!isHeading(next)) {
                 return true
             }

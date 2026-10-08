@@ -29,6 +29,10 @@ const HINTS: Hint[] = [
         hint: 'Removed in v10: use `browser.execute` with an async function.'
     },
     {
+        test: (e) => /Passing a boolean to `getHTML` was removed/.test(e.message),
+        hint: 'Removed in v10: pass an options object, `getHTML({ includeSelectorTag, prettify })`, e.g. `getHTML({ includeSelectorTag: false })` for the inner HTML.'
+    },
+    {
         test: (e) => /touchAction is not a function/.test(e.message),
         hint: 'Removed in v10: use `browser.action(\'pointer\')` or mobile commands like `tap`/`swipe`.'
     },

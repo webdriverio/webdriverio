@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 import { compactTree, countRefs, formatLine, formatSnapshot, onlyInteractive, type SnapshotNode } from '../src/format.js'
 
@@ -223,6 +223,18 @@ describe('onlyInteractive headings', () => {
             '    - link "Title" [ref=e1]',
             '    - link "More" [ref=e2]'
         ].join('\n'))
+    })
+
+    it('scans the siblings after a heading by index without copying the list', () => {
+        const children = [heading('Docs', 2), { role: 'text', name: 'prose' } as SnapshotNode, link('Read', 'e1')]
+        const slice = vi.spyOn(Array.prototype, 'slice')
+        try {
+            render(...children)
+            const copied = slice.mock.contexts.some((list) => Array.isArray(list) && list.some((n) => (n as SnapshotNode | undefined)?.role === 'heading'))
+            expect(copied).toBe(false)
+        } finally {
+            slice.mockRestore()
+        }
     })
 
     it('keeps a heading whose link names something else', () => {
