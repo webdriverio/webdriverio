@@ -976,6 +976,10 @@ describe('Multi-Remote tests', () => {
                     return getter()
                 }
             }
+            const thenGetter = vi.fn(() => {
+                throw new Error('then getter called')
+            })
+            Object.defineProperty(options, 'then', { get: thenGetter, enumerable: false })
 
             await browser.execute(script, options)
 
@@ -987,6 +991,27 @@ describe('Multi-Remote tests', () => {
                 expect(instanceOptions === options).toBe(false)
                 expect(instanceOptions.target === elem.getInstance(instanceName)).toBe(true)
                 expect(typeof Object.getOwnPropertyDescriptor(instanceOptions, 'lazy')?.get).toBe('function')
+            }
+            expect(getter).not.toHaveBeenCalled()
+            expect(thenGetter).not.toHaveBeenCalled()
+        })
+
+        test('keeps indexed accessors without calling them when a list holds an element', async () => {
+            const browser = await multiRemote(caps())
+            const elem = await browser.$('#foo')
+            const executes = spyOnInstanceExecute(browser)
+            const getter = vi.fn(() => {
+                throw new Error('array index getter called')
+            })
+            const list: unknown[] = [elem]
+            Object.defineProperty(list, '1', { get: getter, enumerable: true, configurable: true })
+
+            await browser.execute(script, list)
+
+            for (const instanceName of ['browserA', 'browserB'] as const) {
+                const [, converted] = executes[instanceName].mock.calls[0] as unknown as [unknown, unknown[]]
+                expect(converted[0]).toBe(elem.getInstance(instanceName))
+                expect(Object.getOwnPropertyDescriptor(converted, '1')?.get).toBe(getter)
             }
             expect(getter).not.toHaveBeenCalled()
         })
@@ -1002,6 +1027,16 @@ describe('Multi-Remote tests', () => {
 
             const [, instanceOptions] = executes.browserA.mock.calls[0] as unknown as [unknown, Record<string, unknown>]
             expect(instanceOptions.target).toBe(elem.getInstance('browserA'))
+            expect(instanceOptions).not.toBe(options)
+            expect(instanceOptions.self).toBe(instanceOptions)
+            expect((instanceOptions.self as Record<string, unknown>).target).toBe(elem.getInstance('browserA'))
+
+            const list: unknown[] = [elem]
+            list.push(list)
+            await browser.execute(script, list)
+            const [, instanceList] = executes.browserB.mock.calls[1] as unknown as [unknown, unknown[]]
+            expect(instanceList[0]).toBe(elem.getInstance('browserB'))
+            expect(instanceList[1]).toBe(instanceList)
         })
 
         test('runs the command on no instance if an element has no element for one of them', async () => {
