@@ -383,6 +383,10 @@ interface MultiRemoteMockBase {
      * Throws `Multi-remote object has no instance named "<name>"` when `name` is not one of `instances`.
      */
     getInstance(name: string): WebdriverIO.Mock
+    /**
+     * Return all instance mocks in `instances` order.
+     */
+    getAllInstances(): WebdriverIO.Mock[]
     abort(...args: Parameters<WebdriverIO.Mock['abort']>): this
     abortOnce(...args: Parameters<WebdriverIO.Mock['abortOnce']>): this
     clear(...args: Parameters<WebdriverIO.Mock['clear']>): this
@@ -625,6 +629,10 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
      * get a specific instance to run commands on it
      */
     getInstance: (browserName: string) => WebdriverIO.Browser
+    /**
+     * All browser sessions, in capability or selected-instance order.
+     */
+    getAllInstances: () => WebdriverIO.Browser[]
 
     /**
      * select one or multiple browsers always wrapped into a multi-remote to run commands on them.
@@ -651,6 +659,10 @@ interface MultiRemoteElementBase {
      * get a specific instance to run commands on it
      */
     getInstance: (browserName: string) => WebdriverIO.Element
+    /**
+     * All elements in this multi-remote element's instance order.
+     */
+    getAllInstances: () => WebdriverIO.Element[]
     /**
      * select one or multiple browsers always wrapped into a multi-remote to run commands on them.
      * Even if only one instance is selected, it will still return a multi-remote element.

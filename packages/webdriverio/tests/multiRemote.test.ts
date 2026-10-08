@@ -375,6 +375,32 @@ describe('Multi-Remote tests', () => {
         expect(selected.strategies.get('selectHeader')).toBe(strategy)
     })
 
+    test('getAllInstances returns browser sessions in capability and select order (#15908)', async () => {
+        const browser = await multiRemote(caps())
+        const chrome = browser.getInstance('browserA')
+        const firefox = browser.getInstance('browserB')
+
+        expect(browser.getAllInstances()).toEqual([chrome, firefox])
+        const reversed = browser.select('browserB', 'browserA')
+        expect(reversed.instances).toEqual(['browserB', 'browserA'])
+        expect(reversed.getAllInstances()).toEqual([firefox, chrome])
+        expect(reversed.select('browserA').getAllInstances()).toEqual([chrome])
+        expect(browser.getAllInstances()).toEqual([chrome, firefox])
+    })
+
+    test('getAllInstances returns the element instances, respecting select order (#15908)', async () => {
+        const browser = await multiRemote(caps())
+        const element = await browser.$('#foo')
+        const chrome = element.getInstance('browserA')
+        const firefox = element.getInstance('browserB')
+
+        expect(element.getAllInstances()).toEqual([chrome, firefox])
+        const reversed = element.select('browserB', 'browserA')
+        expect(reversed.instances).toEqual(['browserB', 'browserA'])
+        expect(reversed.getAllInstances()).toEqual([firefox, chrome])
+        expect(reversed.select('browserA').getAllInstances()).toEqual([chrome])
+    })
+
     test('keeps instances in capability order and off the client', async () => {
         const browser = await multiRemote(caps())
 

@@ -81,6 +81,12 @@ export default class MultiRemote {
             }
         }
 
+        // Retrieve every session without relying on the v9 dynamic name properties.
+        // Map iteration preserves capability order, including select() order.
+        propertiesObject.getAllInstances = {
+            value: () => [...this.instances.values()]
+        }
+
         propertiesObject.select = {
             value: function select(this: WebdriverIO.MultiRemoteBrowser & WrappedClient, ...instanceNames: string[]) {
                 const newMultiRemote = new MultiRemote()
@@ -212,6 +218,14 @@ export default class MultiRemote {
                     }
                     return found
                 }
+            })
+
+            Object.defineProperty(client, 'getAllInstances', {
+                configurable: true,
+                writable: true,
+                value: (): WebdriverIO.Element[] => client.instances.map(
+                    (name: string) => client.getInstance(name)
+                )
             })
 
             client.select = function select(...instanceNames: string[]) {
