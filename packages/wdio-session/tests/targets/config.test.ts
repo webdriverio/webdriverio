@@ -1,7 +1,14 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { describe, it, expect, afterEach } from 'vitest'
+import type * as UtilsNode from '@wdio/utils/node'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+
+const resolveOptionalDependency = vi.hoisted(() => vi.fn())
+vi.mock('@wdio/utils/node', async (importActual) => ({
+    ...await importActual<typeof UtilsNode>(),
+    resolveOptionalDependency
+}))
 
 import { buildPlan } from '../../src/targets/index.js'
 
@@ -25,6 +32,7 @@ const ctx = (cwd: string) => ({
 })
 
 afterEach(() => {
+    resolveOptionalDependency.mockReset()
     for (const dir of dirs.splice(0)) {
         fs.rmSync(dir, { recursive: true, force: true })
     }
@@ -36,6 +44,26 @@ const chrome = `{
 }`
 
 describe('config targets', () => {
+    it('loads a TypeScript config without tsx through Node type stripping', async () => {
+        resolveOptionalDependency.mockResolvedValue(null)
+        const dir = writeConfig('wdio.conf.ts', `
+            const caps: Record<string, unknown>[] = [${chrome}]
+            export const config = { capabilities: caps }
+        `)
+        const plan = await buildPlan({ target: './wdio.conf.ts', url: '0' }, ctx(dir))
+        expect(plan.label).toBe('chrome')
+        expect(resolveOptionalDependency).toHaveBeenCalledWith('tsx', expect.anything())
+    })
+
+    it('reports MISSING_DEPENDENCY when tsx is missing and the TypeScript config cannot load', async () => {
+        resolveOptionalDependency.mockResolvedValue(null)
+        const dir = writeConfig('wdio.conf.ts', 'throw new Error("cannot load")')
+        await expect(buildPlan({ target: './wdio.conf.ts', url: '0' }, ctx(dir))).rejects.toMatchObject({
+            code: 'MISSING_DEPENDENCY',
+            package: 'tsx'
+        })
+    })
+
     it('loads a TypeScript config capability, baseUrl and ignores other services', async () => {
         const dir = writeConfig('wdio.conf.ts', `
             export const config = {

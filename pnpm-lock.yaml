@@ -1472,9 +1472,6 @@ importers:
       appium:
         specifier: ^3.0.0
         version: 3.8.0(debug@4.4.3(supports-color@11.0.0))(supports-color@11.0.0)
-      expect-webdriverio:
-        specifier: ^8.0.0-alpha.3
-        version: 8.0.0-alpha.3(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio)
       get-port:
         specifier: ^7.1.0
         version: 7.2.0
@@ -1487,9 +1484,6 @@ importers:
       semver:
         specifier: ^7.7.4
         version: 7.8.5
-      tsx:
-        specifier: ^4.23.15
-        version: 4.23.15
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -1506,6 +1500,12 @@ importers:
       '@types/yargs':
         specifier: ^17.0.33
         version: 17.0.35
+      expect-webdriverio:
+        specifier: ^8.0.0-alpha.3
+        version: 8.0.0-alpha.3(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio)
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
 
   packages/wdio-shared-store-service:
     dependencies:

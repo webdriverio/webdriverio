@@ -90,6 +90,7 @@ npx wdio session tap e3
 | `REF_STALE` | The element from the last snapshot is gone. Run `snapshot` and use a new ref. |
 | `REF_NOT_FOUND` | That id was never in this session. The ref in your command does not match the latest snapshot. |
 | `NO_MATCH` | `find` did not see that text. Snapshot and read the names that are actually there. |
+| `NOT_EDITABLE` | The `fill` target is not an editable field and has no single editable field inside it (or behind `aria-controls`/`aria-owns`/label). Run `snapshot --scope <target>` and fill the field ref. |
 
 ## Next steps
 

@@ -247,6 +247,8 @@ npx wdio session open chrome https://webdriver.io --provider browserstack
 npx wdio session open ./wdio.conf.ts 0
 ```
 
+A TypeScript config loads with `tsx` when your project has it. `tsx` is optional: without it the config loads through Node type stripping or jiti, and a config that fails to load reports `MISSING_DEPENDENCY` with an install line.
+
 `--hostname`, `--port`, `--path` and `--protocol` point the session at a WebDriver endpoint that is already running. Closing the session does not stop that endpoint.
 
 ## Troubleshooting

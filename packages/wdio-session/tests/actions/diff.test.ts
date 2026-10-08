@@ -12,6 +12,7 @@ function pageSession (page: { tree: SnapshotNode }) {
     return {
         isWeb: true,
         applies: ['W'],
+        currentUrl: async () => 'https://shop.test/',
         refs: new RefRegistry(),
         get: () => undefined,
         browser: {

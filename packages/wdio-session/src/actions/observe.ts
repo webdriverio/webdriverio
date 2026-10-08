@@ -8,12 +8,14 @@ import {
 } from '@wdio/snapshot'
 
 import { SessionError, notSupported } from '../errors.js'
+import { settleFreshPage } from '../settle.js'
 import { quote } from '../quote.js'
 import { blockAround, headingAbove, lineTest, matchIndex, searchLines } from '../snapshot/find.js'
 import { takeNativeSnapshot } from '../snapshot/native.js'
 import { formatSnapshot, renderSnapshot } from '../snapshot/render.js'
 import { resolveElement, resolveTarget, scopeOf } from '../snapshot/target.js'
 import { currentPage, frameBySrc, frameContext } from './contexts.js'
+import type { Cmd } from '../hints.js'
 import type { ActionFn, Session } from '../session.js'
 
 const DEFAULT_MAX_CHARS = 8000
@@ -197,6 +199,7 @@ export async function takeSnapshot (session: Session, opts: SnapshotOptions = {}
         }
         return native
     }
+    await settleFreshPage(session)
     const scope = opts.scope ? await resolveElement(session, opts.scope) : undefined
     const boxes = Boolean(opts.boxes)
     const viewport = Boolean(opts.viewport)
@@ -247,7 +250,15 @@ function snapshotOptions (args: Record<string, unknown>): SnapshotOptions {
 }
 
 export const snapshot: ActionFn = async (session, args) => {
-    const { text } = await takeSnapshot(session, snapshotOptions(args))
+    const { text, tree } = await takeSnapshot(session, snapshotOptions(args))
+    if (args.$agent) {
+        const agentMax = typeof args.maxChars === 'number' && args.maxChars >= 1 ? Math.floor(args.maxChars) : undefined
+        const lines = text.split('\n').length
+        const refs = countRefs(text)
+        const tooBig = agentMax !== undefined && text.length > agentMax
+        const summary = `Snapshot: ${lines} lines, ${refs} refs, ${text.length} chars: too big to return (max ${agentMax}). Use \`${session.cmd('find', { text: '<text>' }, 'wdio session find <text>')}\` or \`scope\`.`
+        return { text: tooBig ? summary : text, data: { lines, refs, chars: text.length, tree, snapshot: text, tooBig } }
+    }
     const file = session.artifact('snapshots', `${session.timestamp()}.yml`)
     fs.writeFileSync(file, text + '\n')
     // a whole number of characters, so the hints below repeat it as given
@@ -264,7 +275,7 @@ export const snapshot: ActionFn = async (session, args) => {
     }
     const page = pageOf(text.split('\n'), offset, maxChars)
     return {
-        text: [page.text, pageFooter(page, lines, file, repeatFlags(args))].join('\n'),
+        text: [page.text, pageFooter(session.cmd, page, lines, file, repeatFlags(args), hintArgs(args))].join('\n'),
         data: { ...data, from: page.from, to: page.to },
         files: [file]
     }
@@ -295,13 +306,18 @@ function pageOf (lines: string[], from: number, maxChars: number) {
     return { text: shown.join('\n'), from: start + 1, to: start + shown.length, cut }
 }
 
-function pageFooter (page: { from: number, to: number, cut?: { line: number, length: number } }, total: number, file: string, flags: string) {
+/** the snapshot arguments a hint repeats, for a formatter to name */
+function hintArgs (args: Record<string, unknown>) {
+    return Object.fromEntries(Object.entries(args).filter(([key]) => !key.startsWith('$')))
+}
+
+function pageFooter (cmd: Cmd, page: { from: number, to: number, cut?: { line: number, length: number } }, total: number, file: string, flags: string, args: Record<string, unknown>) {
     const range = `lines ${page.from}–${page.to} of ${total}`
     const whole = page.cut
-        ? ` Line ${page.cut.line} is cut; \`wdio session snapshot${flags.replace(/ --max-chars \d+/, '')} --max-chars ${page.cut.length + 1} --offset ${page.cut.line}\` shows all of it.`
+        ? ` Line ${page.cut.line} is cut; \`${cmd('snapshot', { ...args, maxChars: page.cut.length + 1, offset: page.cut.line }, `wdio session snapshot${flags.replace(/ --max-chars \d+/, '')} --max-chars ${page.cut.length + 1} --offset ${page.cut.line}`)}\` shows all of it.`
         : ''
     const main = (page.to < total
-        ? `… ${range}. \`wdio session snapshot${flags} --offset ${page.to + 1}\` shows the next part, \`find <text>\` searches all of it. Full snapshot: ${file}`
+        ? `… ${range}. \`${cmd('snapshot', { ...args, offset: page.to + 1 }, `wdio session snapshot${flags} --offset ${page.to + 1}`)}\` shows the next part, \`${cmd('find', { text: '<text>' }, 'find <text>')}\` searches all of it. Full snapshot: ${file}`
         : `… ${range}. Full snapshot: ${file}`)
     return whole ? `${main}\n${whole.trim()}` : main
 }
@@ -393,7 +409,7 @@ export const find: ActionFn = async (session, args) => {
             note = hidden
                 ? `No visible line contains ${JSON.stringify(query)}. It is on the page but hidden ([hidden]): open the menu, tab or section it is in (e.g. a "Show more" button) first.\n`
                 // e.g. the options of a closed select: there, but not in a snapshot without --all
-                : `No line of the page contains ${JSON.stringify(query)}; lines of \`snapshot --all\` that do:\n`
+                : `No line of the page contains ${JSON.stringify(query)}; lines of \`${session.cmd('snapshot', { all: true }, 'snapshot --all')}\` that do:\n`
         }
     }
     if (!matches.length) {
@@ -608,12 +624,12 @@ export async function describeViewport (session: Session): Promise<string> {
     const baseline = session.lastSnapshot
     const { tree } = await takeSnapshot(session, { viewport: true })
     session.lastSnapshot = baseline
-    const lines = formatSnapshot(tree, { compact: true }).split('\n')
+    const lines = formatSnapshot(tree, { frameHint: session.frameHint, compact: true }).split('\n')
     const out: string[] = []
     let size = 0
     for (const line of lines) {
         if (size + line.length > MAX_IN_VIEW_CHARS) {
-            out.push(`… ${lines.length - out.length} more lines in view; \`wdio session find <text>\` or \`snapshot -i\` for the rest.`)
+            out.push(`… ${lines.length - out.length} more lines in view; \`${session.cmd('find', { text: '<text>' }, 'wdio session find <text>')}\` or \`${session.cmd('snapshot', { interactive: true }, 'snapshot -i')}\` for the rest.`)
             break
         }
         out.push(line)
@@ -725,7 +741,7 @@ export const read: ActionFn = async (session, args) => {
         return { text: out.join('\n'), truncated: size >= limit, from: start === document.body ? 'body' : start.tagName.toLowerCase() }
     }, scope, maxChars) as { text: string, truncated: boolean, from: string }
     if (!text.text) {
-        return { text: 'The page has no readable text here. `wdio session snapshot` shows its elements.', data: { chars: 0 } }
+        return { text: `The page has no readable text here. \`${session.cmd('snapshot', undefined, 'wdio session snapshot')}\` shows its elements.`, data: { chars: 0 } }
     }
     const tail = text.truncated ? `\n… cut at ${maxChars} characters; --max-chars or --scope reads more or a part.` : ''
     return { text: text.text + tail, data: { chars: text.text.length, truncated: text.truncated, from: text.from } }

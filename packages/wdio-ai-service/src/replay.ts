@@ -79,10 +79,10 @@ export async function runStep (agent: AgentSession, step: ActStep, values: Recor
  */
 async function runChecked (agent: AgentSession, step: ActStep, args: Record<string, unknown>, values: Record<string, string>, effects?: EffectCheck, timeout = DEFAULT_SETTLE_TIMEOUT) {
     if (!effects || effects.mode === 'off') {
-        return agent.run(step.action, args)
+        return agent.runAction(step.action, args)
     }
     await effects.recorder.start()
-    const result = await agent.run(step.action, args)
+    const result = await agent.runAction(step.action, args)
     const actual = redact(await effects.recorder.settle({ timeout }), values)
     const expected = effects.recorder.bidi ? step.effect : observableWithoutBidi(step.effect)
     const missing = missingEffects(expected, actual, effects.mode)

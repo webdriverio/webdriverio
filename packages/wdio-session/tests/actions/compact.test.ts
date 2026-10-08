@@ -25,6 +25,7 @@ function session () {
         dir,
         isWeb: true,
         applies: ['W'],
+        currentUrl: async () => 'https://shop.test/',
         refs: new RefRegistry(),
         timestamp: () => 't',
         artifact: (...segments: string[]) => {

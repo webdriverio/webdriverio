@@ -19,6 +19,8 @@ export interface NetworkEntry {
     size?: number
     failed: boolean
     errorText?: string
+    /** BiDi `initiatorType`, else `destination`: what asked for the request */
+    resource?: string
 }
 
 export class RingBuffer<T extends { seq: number }> {

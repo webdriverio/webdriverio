@@ -152,7 +152,7 @@ export const mock: ActionFn = async (session, args) => {
     session.requireBidi('Mocking')
     const pattern = String(args.pattern ?? '')
     if (!pattern) {
-        throw usage('Pass a URL pattern.', 'Example: wdio session mock "**/api/user" --body \'{"name":"Mocked"}\'')
+        throw usage('Pass a URL pattern.', `Example: ${session.cmd('mock', { pattern: '**/api/user', body: '{"name":"Mocked"}' }, 'wdio session mock "**/api/user" --body \'{"name":"Mocked"}\'')}`)
     }
     if (args.abort && (args.body !== undefined || args.status !== undefined)) {
         throw usage('Use either --abort or a response (--body, --status).')
@@ -220,7 +220,7 @@ export const unmock: ActionFn = async (session, args) => {
     const stored = map.get(target) || [...map.values()].find((item) => item.pattern === target)
     if (!stored) {
         throw new SessionError('NO_MATCH', `No mock ${JSON.stringify(target)}.`, {
-            hint: 'Run `wdio session requests` and `wdio session mock` to see the active mocks, or pass --all.'
+            hint: `Run \`${session.cmd('requests', undefined, 'wdio session requests')}\` and \`${session.cmd('mock', undefined, 'wdio session mock')}\` to see the active mocks, or pass --all.`
         })
     }
     await stored.mock.restore()

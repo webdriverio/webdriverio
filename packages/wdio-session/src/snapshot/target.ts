@@ -79,14 +79,15 @@ export async function resolveTarget (session: Session, target: unknown): Promise
     } catch (err) {
         if ((err as Error).name === 'StrictSelectorError') {
             throw new SessionError('ELEMENT_NOT_FOUND', (err as Error).message.split('\n')[0], {
-                hint: 'Use a ref from `wdio session snapshot` or a narrower selector.'
+                hint: `Use a ref from \`${session.cmd('snapshot', undefined, 'wdio session snapshot')}\` or a narrower selector.`
             })
         }
         throw err
     }
     if (!element.elementId) {
+        const findText = target.replace(/^aria\//, '')
         throw new SessionError('ELEMENT_NOT_FOUND', `No element matches ${JSON.stringify(target)}.`, {
-            hint: `Run \`wdio session find ${JSON.stringify(target.replace(/^aria\//, ''))}\` or take a new snapshot.`
+            hint: `Run \`${session.cmd('find', { text: findText }, `wdio session find ${JSON.stringify(findText)}`)}\` or take a new snapshot.`
         })
     }
     return { element, selector: target, code: inScope(session, `$(${quote(target)})`), label: JSON.stringify(target) }

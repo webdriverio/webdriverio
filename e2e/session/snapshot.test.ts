@@ -62,6 +62,15 @@ describe('wdio session snapshot', () => {
         await expect(await snapshot('-i', '--selectors')).toMatchFileSnapshot(golden('cart-selectors'))
     })
 
+    it('gives the input inside an ARIA 1.1 combobox wrapper its own ref that fill accepts', async () => {
+        await goto('/combobox.html')
+        const text = await snapshot('-i')
+        await expect(text).toMatchFileSnapshot(golden('combobox-interactive'))
+        const filled = await run('fill', refOf(text, 'searchbox'), 'dune')
+        expect(filled.code, filled.stderr).toBe(0)
+        expect((await run('get', 'value', '#autocomplete-0-input')).stdout.split('\n')[0]).toBe('dune')
+    })
+
     it('keeps the interactive snapshot of the cart page small', async () => {
         await goto('/cart.html')
         expect((await snapshot('-i')).length).toBeLessThanOrEqual(1500)
