@@ -1,12 +1,6 @@
 import type { Session } from '../session.js'
 
 /**
- * Key of the page-side record. A symbol from the global registry, so it
- * can't collide with page code and the snapshot script can read it.
- */
-export const RECORDER_KEY = 'wdio.page'
-
-/**
  * Runs in the page before any of its scripts (an init script) and records
  * what the DOM alone can't tell the snapshot:
  *
@@ -16,7 +10,8 @@ export const RECORDER_KEY = 'wdio.page'
  *   icon wired up with `addEventListener('click', …)` counts as clickable
  *   even without a role, an `onclick` attribute or a name.
  *
- * Self-contained: it is serialized into the page.
+ * Self-contained: it is serialized into the page. The record sits under
+ * `Symbol.for('wdio.page')`, which `@wdio/snapshot` reads.
  */
 export function pageRecorder () {
     const key = Symbol.for('wdio.page')

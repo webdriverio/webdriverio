@@ -4,8 +4,8 @@ import { beforeAll, describe, expect, it } from 'vitest'
  * from the source: the `@wdio/utils` entry point needs Node.js
  */
 import { knownRoles, roleTable } from '../../../wdio-utils/src/roles.js'
-import { collectInPage, type CollectOptions } from '../../src/snapshot/web.js'
-import { formatSnapshot } from '../../src/snapshot/format.js'
+import { collectInPage, type CollectOptions } from '../../../wdio-snapshot/src/web.js'
+import { formatSnapshot } from '../../../wdio-snapshot/src/format.js'
 import { pageRecorder } from '../../src/snapshot/recorder.js'
 
 /**

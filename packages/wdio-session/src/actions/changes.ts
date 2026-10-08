@@ -1,7 +1,8 @@
-import { diffLines } from '../snapshot/diff.js'
-import { formatSnapshot } from '../snapshot/format.js'
+import { diffLines } from '@wdio/snapshot'
+
 import { takeSnapshot } from './observe.js'
 import { openDialog } from './contexts.js'
+import { formatSnapshot } from '../snapshot/render.js'
 import { scopeOf } from '../snapshot/target.js'
 import type { Session } from '../session.js'
 

@@ -3,6 +3,7 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { getContextManager } from 'webdriverio'
+import { RefRegistry, refId, type RefErrorCode } from '@wdio/snapshot'
 
 import { ACTION_MAP } from './actions/specs.js'
 import { PAGE_LOAD_TIMEOUT_MS } from './actions/interact.js'
@@ -10,13 +11,17 @@ import { IMPLEMENTATIONS, type ActionArgs } from './actions/index.js'
 import { SessionError, usage } from './errors.js'
 import { History } from './history.js'
 import { RingBuffer, type LogEntry, type NetworkEntry } from './daemon/events.js'
-import { RefRegistry, refId } from './snapshot/refs.js'
 import { backToTop, describeNewTabs, dialogOpenError, frame as enterFrame, holdFrame, openDialog } from './actions/contexts.js'
 import { OBSERVED_ACTIONS, describeChanges, pageState, type PageState } from './actions/changes.js'
 import { botCheckNote, detectBotCheck, detectLoadError } from './actions/botcheck.js'
 import type { ActionResult, Applies, OpenPlan, PlatformKind, Request } from './types.js'
 
 const log = logger('@wdio/session')
+
+const REF_HINTS: Record<RefErrorCode, string> = {
+    REF_NOT_FOUND: 'Run `wdio session snapshot` to get refs.',
+    REF_STALE: 'Run `wdio session snapshot` to get fresh refs.'
+}
 
 const DEAD_SESSION_PATTERNS = [
     /invalid session id/i,
@@ -102,7 +107,9 @@ export class Session {
     readonly plan: OpenPlan
     browser: WebdriverIO.Browser
     history: History
-    refs = new RefRegistry()
+    refs = new RefRegistry({
+        createError: (code, message, { resnapshot }) => new SessionError(code, message, { hint: resnapshot ? REF_HINTS[code] : undefined })
+    })
     logs = new RingBuffer<LogEntry>()
     network = new RingBuffer<NetworkEntry>()
     lastSnapshot?: string
