@@ -354,10 +354,9 @@ export default class MultiRemote {
                  * command starts, so an argument that has no element for one
                  * instance fails the call without running it on the others.
                  */
-                const instanceArgs = scopeEntries.map(([instanceName]) => {
-                    const seen = new WeakMap<object, unknown>()
-                    return args.map((arg) => toInstanceArgument(arg, instanceName, commandName, seen))
-                })
+                const instanceArgs = scopeEntries.map(([instanceName]) =>
+                    args.map((arg) => toInstanceArgument(arg, instanceName, commandName))
+                )
 
                 const result = await Promise.all(
                     scopeEntries.map(([, instance], index) => {
