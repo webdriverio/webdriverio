@@ -1,6 +1,6 @@
 {
   "name": "wdio",
-  "version": "10.0.1",
+  "version": "10.0.2",
   "description": "WebdriverIO command line. npx wdio runs @wdio/cli without a local install.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio",
