@@ -48,87 +48,69 @@ function zipElements (lists: WebdriverIO.Element[][]) {
 function toInstanceArgument (
     arg: unknown,
     instanceName: string,
-    commandName: string,
-    seen = new WeakMap<object, unknown>()
+    commandName: string
 ): unknown {
-    if (!arg || typeof arg !== 'object') {
-        return arg
-    }
+    const seen = new WeakMap<object, unknown>()
+    let replacedElement = false
 
-    if (isLoadedElement(arg)) {
-        const element = arg as unknown as WebdriverIO.MultiRemoteElement
-        if (!element.isMultiRemote) {
-            return arg
+    const visit = (value: unknown): unknown => {
+        if (!value || typeof value !== 'object') {
+            return value
         }
 
-        /**
-         * `select()` can leave an instance out, and an entry of a list has no
-         * element for an instance that found fewer elements (#15845)
-         */
-        let instanceElement: WebdriverIO.Element | undefined
-        try {
-            instanceElement = element.instances.includes(instanceName)
-                ? element.getInstance(instanceName)
-                : undefined
-        } catch {
-            instanceElement = undefined
+        const prototype = Object.getPrototypeOf(value)
+        if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) {
+            // Arrays and plain objects can have a throwing `then` getter.
+            // Never call isLoadedElement() on those argument containers.
+            if (!isLoadedElement(value)) {
+                return value
+            }
+            const element = value as unknown as WebdriverIO.MultiRemoteElement
+            if (!element.isMultiRemote) {
+                return value
+            }
+
+            let instanceElement: WebdriverIO.Element | undefined
+            try {
+                instanceElement = element.instances.includes(instanceName)
+                    ? element.getInstance(instanceName)
+                    : undefined
+            } catch {
+                instanceElement = undefined
+            }
+            if (!instanceElement) {
+                throw new Error(
+                    `The multi-remote element with selector "${String(element.selector)}" passed to "${commandName}" ` +
+                    `has no element for instance "${instanceName}"`
+                )
+            }
+            replacedElement = true
+            return instanceElement
         }
-        if (!instanceElement) {
-            throw new Error(
-                `The multi-remote element with selector "${String(element.selector)}" passed to "${commandName}" ` +
-                `has no element for instance "${instanceName}"`
-            )
+
+        // Allocate the destination before visiting children. All cycle/back
+        // references then point to the same converted graph, not the source.
+        if (seen.has(value)) {
+            return seen.get(value)
         }
-        return instanceElement
-    }
-
-    /**
-     * an argument can hold the same object twice, or itself
-     */
-    if (seen.has(arg)) {
-        return seen.get(arg)
-    }
-
-    if (Array.isArray(arg)) {
-        seen.set(arg, arg)
-        /**
-         * read the items by index: an element list has async `map()` and
-         * `every()`, see `ElementArray`
-         */
-        const items = Array.from({ length: arg.length }, (_, index) => (
-            toInstanceArgument(arg[index], instanceName, commandName, seen)
-        ))
-        const result = items.some((item, index) => item !== arg[index]) ? items : arg
-        seen.set(arg, result)
-        return result
-    }
-
-    /**
-     * class instances (a Date, a Map, a pending element, ...) stay as they are
-     */
-    const prototype = Object.getPrototypeOf(arg)
-    if (prototype !== Object.prototype && prototype !== null) {
-        return arg
-    }
-
-    seen.set(arg, arg)
-    const descriptors: Record<PropertyKey, PropertyDescriptor> = Object.getOwnPropertyDescriptors(arg)
-    let changed = false
-    for (const key of Reflect.ownKeys(descriptors)) {
-        const descriptor = descriptors[key]
-        if (!('value' in descriptor)) {
-            continue
+        const copy: object = Array.isArray(value) ? [] : Object.create(prototype)
+        seen.set(value, copy)
+        const descriptors: Record<PropertyKey, PropertyDescriptor> = Object.getOwnPropertyDescriptors(value)
+        for (const key of Reflect.ownKeys(descriptors)) {
+            const descriptor = descriptors[key]
+            // Descriptor reads avoid invoking getters, including array indices
+            // and non-enumerable `then` on an argument container.
+            Object.defineProperty(copy, key, 'value' in descriptor
+                ? { ...descriptor, value: visit(descriptor.value) }
+                : descriptor)
         }
-        const value = toInstanceArgument(descriptor.value, instanceName, commandName, seen)
-        if (value !== descriptor.value) {
-            descriptors[key] = { ...descriptor, value }
-            changed = true
-        }
+        return copy
     }
 
-    const result = changed ? Object.create(prototype, descriptors) : arg
-    seen.set(arg, result)
-    return result
+    const converted = visit(arg)
+    // Preserve existing reference identity when the graph contains no
+    // multi-remote element: the conversion is an internal copy-on-change.
+    return replacedElement ? converted : arg
 }
 
 type WrappedClient = {
