@@ -59,8 +59,10 @@ async function reportSnapshot (session: Session, isCurrent?: () => boolean) {
     return taken
 }
 
-/** the `<context>|<timeOrigin>` of a settle key (`<context>|<url>|<timeOrigin>`), unknown without an origin */
-/** a key read before a navigation landed names the old document: only trust it at the URL the snapshot saw */
+/**
+ * The `<context>|<timeOrigin>` of a settle key (`<context>|<url>|<timeOrigin>`), unknown without an origin.
+ * A key read before a navigation landed names the old document, so it only counts at the URL the snapshot saw.
+ */
 function documentOf (key: string | undefined, url: string | undefined) {
     if (key === undefined) {
         return undefined

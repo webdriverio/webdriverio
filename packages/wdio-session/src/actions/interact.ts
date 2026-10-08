@@ -622,7 +622,7 @@ interface ClickPoint {
     sticky?: boolean
     /** the center is under a fixed or sticky element, this point of the element is free */
     offCenter?: boolean
-    /** a control inside the dialog or banner that covers the element, which closes it: `button "Accept all"` */
+    /** a control inside the dialog or banner that covers the element, which closes it: `button "Reject all"` */
     dismiss?: string
     /** the cover is a modal layer (aria-modal, a modal dialog or a full-screen fixed backdrop): it keeps input from the element, not only the pointer */
     blocking?: boolean
@@ -693,8 +693,8 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             const rect = node.getBoundingClientRect()
             return rect.width >= innerWidth * FULL_SCREEN && rect.height >= innerHeight * FULL_SCREEN
         }
-        const isOverlay = (node: Element) => {
-            for (let up: Element | null = node; up; up = up.parentElement) {
+        const isOverlay = (cover: Element, target: Element) => {
+            for (let up: Element | null = cover; up && !Node.prototype.contains.call(up, target); up = up.parentElement) {
                 if (Element.prototype.getAttribute.call(up, 'aria-modal') === 'true' || isModal(up) || isFullScreenFixed(up)) {
                     return true
                 }
@@ -759,7 +759,7 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
                 const point = center(label)
                 const cover = coverAt(label, point.x, point.y)
                 return cover
-                    ? { state: 'covered' as const, ...point, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover), blocking: isOverlay(cover) }
+                    ? { state: 'covered' as const, ...point, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover), blocking: isOverlay(cover, label) }
                     : { state: 'label' as const, ...point, label }
             }
             return { state: 'hidden' as const, x: 0, y: 0, originX: 0, originY: 0 }
@@ -785,7 +785,7 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             }
         }
         return cover
-            ? { state: 'covered' as const, x, y, originX, originY, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover), blocking: isOverlay(cover) }
+            ? { state: 'covered' as const, x, y, originX, originY, cover: describe(cover), sticky: isSticky(cover), dismiss: dismissIn(cover), blocking: isOverlay(cover, el) }
             : { state: 'ok' as const, x, y, originX, originY }
     }, instant) as Promise<ClickPoint>
 }

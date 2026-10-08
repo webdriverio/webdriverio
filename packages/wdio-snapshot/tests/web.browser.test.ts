@@ -191,6 +191,25 @@ describe('intent of repeated controls', () => {
         expect(byRole(result, 'button').map((b) => b.intent)).toEqual(['First room', 'Second room'])
     })
 
+    it('keeps row context when a card has its own header', () => {
+        const result = collect(
+            '<article><header>Product A <button>Go</button></header></article>' +
+            '<article><header>Product B <button>Go</button></header></article>'
+        )
+        expect(byRole(result, 'button').map((b) => b.intent)).toEqual(['Product A', 'Product B'])
+    })
+
+    it('does not count hidden text toward the intent length', () => {
+        const hidden = `<span style="display:none">${'mobile-only label '.repeat(6)}</span>`
+        const result = collect(
+            `<table><tr><td>${hidden}Alice</td><td><button>Edit</button></td></tr>` +
+            `<tr><td>${hidden}Bob</td><td><button>Edit</button></td></tr></table>`
+        )
+        const intents = byRole(result, 'button').map((b) => b.intent)
+        expect(intents[0]).toContain('Alice')
+        expect(intents[1]).toContain('Bob')
+    })
+
     it('leaves a unique button alone', () => {
         const result = collect('<div>Row text <button>Choose</button></div><div>Other <button>Pick</button></div>')
         expect(byRole(result, 'button').map((b) => b.intent)).toEqual([undefined, undefined])

@@ -76,7 +76,8 @@ function clipToViewport (nodes: SnapshotNode[], width: number, height: number, p
         if (node.role === 'text' && !node.box) {
             return parentVisible ? [node] : []
         }
-        const visible = overlaps(node.box)
+        // a display:contents wrapper has no box of its own and shows what its parent shows
+        const visible = node.box && !node.box[2] && !node.box[3] ? parentVisible : overlaps(node.box)
         const children = node.children && clipToViewport(node.children, width, height, visible)
         if (!visible && !children?.length) {
             return []

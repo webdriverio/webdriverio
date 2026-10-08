@@ -74,6 +74,26 @@ describe('fill and select under a cover', () => {
         expect(element.setValue).toHaveBeenCalledWith('Ada')
     })
 
+    it('fill goes on under a decoration inside the same modal dialog', async () => {
+        const { element, session } = setup('', '<div role="dialog" aria-modal="true"><input id="target"><span id="cover" style="position: absolute">*</span></div>')
+        await fill(session, { target: 'e2', text: 'Ada', $cwd: '/' })
+        expect(element.setValue).toHaveBeenCalledWith('Ada')
+    })
+
+    it('fill goes on under a cover inside the same full-screen fixed shell', async () => {
+        const { element, session } = setup('', '<div id="shell" style="position: fixed"><input id="target"><span id="cover">hi</span></div>')
+        document.getElementById('shell')!.getBoundingClientRect = () => ({ x: 0, y: 0, left: 0, top: 0, right: innerWidth, bottom: innerHeight, width: innerWidth, height: innerHeight }) as DOMRect
+        await fill(session, { target: 'e2', text: 'Ada', $cwd: '/' })
+        expect(element.setValue).toHaveBeenCalledWith('Ada')
+    })
+
+    it('fill stops under a modal dialog outside the input tree', async () => {
+        const { element, session } = setup('<div role="dialog" aria-modal="true"><span id="cover">Sign in</span></div>', '<div><input id="target"></div>')
+        const err = await fill(session, { target: 'e2', text: 'Ada', $cwd: '/' }).catch((e) => e)
+        expect(err.message).toContain('is covered by')
+        expect(element.setValue).not.toHaveBeenCalled()
+    })
+
     it('fill goes on when the cover is the input label', async () => {
         const { element, session } = setup('<label id="cover" for="target">Name</label>')
         await fill(session, { target: 'e2', text: 'Ada', $cwd: '/' })

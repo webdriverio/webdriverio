@@ -443,7 +443,9 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
      * (cell, item, paragraph) starts with a space so cells don't run together.
      */
     function textAround (root: Element, control: Element, limit: number) {
-        const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+        const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+            acceptNode: (n) => n.nodeType === 3 ? NodeFilter.FILTER_ACCEPT : isHidden(n as Element) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_SKIP
+        })
         const blockOf = (node: globalThis.Node) => {
             let el = node.parentElement
             while (el && el !== root && !BLOCK_TAGS.has(el.tagName.toUpperCase())) {
@@ -1001,10 +1003,12 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return [out]
     }
 
-    const LANDMARK_TAGS = new Set(['HEADER', 'FOOTER', 'NAV', 'ASIDE', 'MAIN', 'DIALOG'])
-    const LANDMARK_ROLES = new Set(['banner', 'contentinfo', 'navigation', 'complementary', 'main', 'dialog', 'alertdialog'])
+    const DIALOG_ROLES = new Set(['dialog', 'alertdialog'])
+    const LANDMARK_TAGS = new Set(['HEADER', 'FOOTER', 'NAV', 'ASIDE', 'MAIN'])
+    const LANDMARK_ROLES = new Set(['banner', 'contentinfo', 'navigation', 'complementary', 'main'])
 
-    const isLandmark = (el: Element) => LANDMARK_TAGS.has(el.tagName) || LANDMARK_ROLES.has(roleOf(el))
+    const isDialog = (el: Element) => el.tagName === 'DIALOG' || DIALOG_ROLES.has(roleOf(el))
+    const isLandmark = (el: Element) => isDialog(el) || LANDMARK_TAGS.has(el.tagName) || LANDMARK_ROLES.has(roleOf(el))
 
     /**
      * Controls that share role and name ("Choose This Flight" x 5) get the
@@ -1037,12 +1041,13 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             }
             for (const { el, node } of members) {
                 let item: Element | undefined
-                let inLandmark = false
+                let inDialog = false
+                // only a dialog blocks the climb: a card's own <header> is part of its row
                 for (let up: Element | null = el; up && counts.get(up) === 1; up = parentOf(up)) {
                     item = up
-                    inLandmark ||= isLandmark(up)
+                    inDialog ||= isDialog(up)
                 }
-                if (!item || inLandmark) {
+                if (!item || inDialog || isLandmark(item)) {
                     continue
                 }
                 const text = textAround(item, el, INTENT_LENGTH)
