@@ -941,6 +941,7 @@ describe('Multi-Remote tests', () => {
                 expect(options.target).toBe(instanceElement)
                 expect(options.nested.list[0]).toBe(instanceElement)
                 expect(elementList).toHaveLength(elems.length)
+                expect(Object.getOwnPropertyDescriptor(elementList, Symbol.for('wdio.kind'))).toBeUndefined()
                 elementList.forEach((item, index) => {
                     expect(item).toBe(elems[index].getInstance(instanceName))
                 })
