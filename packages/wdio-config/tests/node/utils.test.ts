@@ -58,6 +58,30 @@ describe('makeRelativeToCWD', () => {
         ])
     })
 
+    it('resolves same-drive Windows drive-relative spec globs without duplicating the drive', () => {
+        if (path.sep !== '\\') {
+            return // Windows-native path parsing only
+        }
+        const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-[drive]-'))
+        const specsDir = path.join(workspace, 'specs')
+        const spec = path.join(specsDir, 'login.spec.js')
+        try {
+            fs.mkdirSync(specsDir)
+            fs.writeFileSync(spec, '')
+            vi.spyOn(process, 'cwd').mockReturnValue(workspace)
+
+            // C:specs\*.spec.js resolves relative to CWD on drive C, not a
+            // directory named "C:specs". Literal [drive] in CWD stays escaped.
+            const drive = path.parse(workspace).root.slice(0, 2)
+            const [pattern] = makeRelativeToCWD([drive + 'specs\\*.spec.js']) as string[]
+            expect(pattern).not.toContain(drive + 'specs')
+            const matches = new FileSystemPathService().glob(pattern.replace(/\\/g, '/'), workspace)
+            expect(matches.map(filename => path.resolve(filename))).toContain(spec)
+        } finally {
+            fs.rmSync(workspace, { recursive: true, force: true })
+        }
+    })
+
     it('preserves user-authored bracket glob classes after traversing out of CWD', () => {
         const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-user-glob-'))
         const bracketCwd = path.join(workspace, '[app]')
