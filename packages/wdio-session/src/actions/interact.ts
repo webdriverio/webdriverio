@@ -624,7 +624,7 @@ interface ClickPoint {
     offCenter?: boolean
     /** a control inside the dialog or banner that covers the element, which closes it: `button "Accept all"` */
     dismiss?: string
-    /** the cover sits in a fixed-position layer or an aria-modal dialog: it keeps input from the element, not only the pointer */
+    /** the cover is a modal layer (aria-modal, a modal dialog or a full-screen fixed backdrop): it keeps input from the element, not only the pointer */
     blocking?: boolean
     /** center of the part of the element (or label) in view, in the frame's viewport: the pointer origin the offset of x and y is taken from */
     originX: number
@@ -678,9 +678,24 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             }
             return fixed
         }
+        const FULL_SCREEN = 0.9
+        const isModal = (node: Element) => {
+            try {
+                return Element.prototype.matches.call(node, ':modal')
+            } catch {
+                return false
+            }
+        }
+        const isFullScreenFixed = (node: Element) => {
+            if (getComputedStyle(node).position !== 'fixed') {
+                return false
+            }
+            const rect = node.getBoundingClientRect()
+            return rect.width >= innerWidth * FULL_SCREEN && rect.height >= innerHeight * FULL_SCREEN
+        }
         const isOverlay = (node: Element) => {
             for (let up: Element | null = node; up; up = up.parentElement) {
-                if (getComputedStyle(up).position === 'fixed' || Element.prototype.getAttribute.call(up, 'aria-modal') === 'true') {
+                if (Element.prototype.getAttribute.call(up, 'aria-modal') === 'true' || isModal(up) || isFullScreenFixed(up)) {
                     return true
                 }
             }
@@ -788,7 +803,7 @@ function coveredError (target: ResolvedTarget, point: ClickPoint) {
     )
 }
 
-/** fill and select reach past a cover that keeps the pointer off, so only an overlay (dialog, fixed layer) is an error */
+/** fill and select reach past a cover that keeps the pointer off, so only an overlay (dialog, modal layer) is an error */
 async function assertNotBlocked (session: Session, target: ResolvedTarget) {
     if (!session.isWeb) {
         return

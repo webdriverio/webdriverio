@@ -35,6 +35,10 @@ function setup (cover: string, field = '<input id="target">') {
     return { element, session }
 }
 
+function sizeCover (width: number, height: number) {
+    document.getElementById('cover')!.getBoundingClientRect = () => ({ x: 0, y: 0, left: 0, top: 0, right: width, bottom: height, width, height }) as DOMRect
+}
+
 describe('fill and select under a cover', () => {
     beforeEach(() => {
         Object.defineProperty(HTMLElement.prototype, 'innerText', { configurable: true, get () { return this.textContent } })
@@ -48,12 +52,20 @@ describe('fill and select under a cover', () => {
         expect(element.setValue).not.toHaveBeenCalled()
     })
 
-    it('fill stops under a fixed layer without a role', async () => {
+    it('fill stops under a full-screen fixed layer without a role', async () => {
         const { element, session } = setup('<div id="cover" style="position: fixed">Sale</div>')
+        sizeCover(innerWidth, innerHeight)
         const err = await fill(session, { target: 'e2', text: 'Ada', $cwd: '/' }).catch((e) => e)
         expect(err.message).toContain('is covered by')
         expect(err.hint).toBe('Close or dismiss what is on top first (a cookie banner, dialog or popup), or scroll so the element is free.')
         expect(element.setValue).not.toHaveBeenCalled()
+    })
+
+    it('fill goes on under a fixed bar that is not full-screen', async () => {
+        const { element, session } = setup('<div id="cover" style="position: fixed">We use cookies</div>')
+        sizeCover(innerWidth, 60)
+        await fill(session, { target: 'e2', text: 'Ada', $cwd: '/' })
+        expect(element.setValue).toHaveBeenCalledWith('Ada')
     })
 
     it('fill goes on under a cover that is not an overlay', async () => {
@@ -77,6 +89,13 @@ describe('fill and select under a cover', () => {
 
     it('select goes on under a cover that is not an overlay', async () => {
         const { element, session } = setup('<span id="cover">hi</span>', '<select id="target"><option>Red</option></select>')
+        await select(session, { target: 'e2', value: '0', by: 'index', $cwd: '/' })
+        expect(element.selectByIndex).toHaveBeenCalledWith(0)
+    })
+
+    it('select goes on under a fixed bar that is not full-screen', async () => {
+        const { element, session } = setup('<div id="cover" style="position: fixed">We use cookies</div>', '<select id="target"><option>Red</option></select>')
+        sizeCover(innerWidth, 60)
         await select(session, { target: 'e2', value: '0', by: 'index', $cwd: '/' })
         expect(element.selectByIndex).toHaveBeenCalledWith(0)
     })
