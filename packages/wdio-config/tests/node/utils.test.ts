@@ -58,6 +58,29 @@ describe('makeRelativeToCWD', () => {
         ])
     })
 
+    it('preserves user-authored bracket glob classes after traversing out of CWD', () => {
+        const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-user-glob-'))
+        const bracketCwd = path.join(workspace, '[app]')
+        try {
+            for (const dir of ['[app]', 'a', 'p']) {
+                fs.mkdirSync(path.join(workspace, dir))
+            }
+            for (const dir of ['a', 'p']) {
+                fs.writeFileSync(path.join(workspace, dir, 'target.spec.js'), '')
+            }
+            vi.spyOn(process, 'cwd').mockReturnValue(bracketCwd)
+            const [pattern] = makeRelativeToCWD(['../[app]/*.spec.js']) as string[]
+            // Brackets supplied by the user still act as a glob class.
+            expect(pattern).toBe(path.join(workspace, '[app]', '*.spec.js'))
+            const files = new FileSystemPathService().glob(pattern.replace(/\\/g, '/'), bracketCwd)
+            expect(files.map(file => path.resolve(file)).sort()).toEqual(
+                ['a', 'p'].map(dir => path.join(workspace, dir, 'target.spec.js')).sort()
+            )
+        } finally {
+            fs.rmSync(workspace, { recursive: true, force: true })
+        }
+    })
+
     it('keeps a value without a directory, as it matches spec files by name', () => {
         vi.spyOn(process, 'cwd').mockReturnValue(cwd)
         expect(makeRelativeToCWD(['login', 'login.spec.js', '*.spec.js'])).toEqual(['login', 'login.spec.js', '*.spec.js'])
