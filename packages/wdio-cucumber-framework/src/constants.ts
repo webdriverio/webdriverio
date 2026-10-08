@@ -1,3 +1,5 @@
+import os from 'node:os'
+
 import type { CucumberOptions } from './types.js'
 
 export const DEFAULT_TIMEOUT = 60000
@@ -27,7 +29,9 @@ export const DEFAULT_OPTS: CucumberOptions = {
     ignoreUndefinedDefinitions: false,
     failAmbiguousDefinitions: false,
     profiles: [],
-    file: undefined
+    file: undefined,
+    parallelMode: undefined,
+    maxParallelContexts: os.cpus().length
 }
 
 export const CUCUMBER_HOOK_DEFINITION_TYPES = [

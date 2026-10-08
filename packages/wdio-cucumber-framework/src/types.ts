@@ -1,7 +1,28 @@
+import type { AsyncLocalStorage } from 'node:async_hooks'
+
 import type { ITestCaseHookParameter, World } from '@cucumber/cucumber'
 import type { Pickle, PickleStep, TestStep, Feature } from '@cucumber/messages'
 
 import type { Frameworks } from '@wdio/types'
+
+/**
+ * Bidi-aware browser subset. These members are added at runtime by the
+ * webdriverio package and are NOT declared on the minimal Browser stub
+ * in @wdio/types. The cucumber-framework adapter does not import from
+ * webdriverio (to avoid a circular dependency), so we declare the shape
+ * we need here.
+ */
+export interface ParallelBrowser extends WebdriverIO.Browser {
+    isBidi: boolean
+    __parallelContextStore?: AsyncLocalStorage<string>
+    __bidiCommandsEnabled?: boolean
+    /** Set of framework-managed parallel contexts (see session/context.ts). */
+    __parallelContexts?: Set<string>
+    requestedCapabilities: Record<string, unknown>
+    capabilities: Record<string, unknown>
+    browsingContextCreate(params: { type: string }): Promise<{ context: string }>
+    browsingContextClose(params: { context: string }): Promise<void>
+}
 
 export interface CucumberOptions {
     /**
@@ -143,6 +164,40 @@ export interface CucumberOptions {
      * @default undefined
      */
     file?: string | false | undefined;
+    /**
+     * Enable parallel scenario execution within a spec file. When set to
+     * `'contexts'`, each scenario runs simultaneously in its own
+     * browsing context (tab). Requires a WebDriver Bidi session AND the
+     * `wdio:experimentalBiDiCommands: true` capability — if either is
+     * missing, parallel mode falls back to sequential execution with a
+     * warning.
+     *
+     * That capability is not parallel-specific: when set, the webdriverio
+     * package swaps element-command implementations for ALL BiDi tests.
+     * Notable behavioral differences: `addValue`/`clearValue` dispatch
+     * untrusted synthetic DOM events (no trusted key events), `getText`
+     * uses `innerText`, `getAttribute` normalizes property/attribute
+     * resolution, and `click` is driven via the Actions API.
+     *
+     * Constraints in parallel mode:
+     * - No window management: `switchToWindow`, `switchToParentFrame`,
+     *   `refresh` and `closeWindow` throw inside a parallel scenario.
+     * - Cookies and storage are shared across all browsing contexts.
+     * - `beforeFeature`/`afterFeature` (BeforeAll/AfterAll) run once per
+     *   test run, not per feature.
+     * - Do not fire-and-forget timers that outlive the test: the context
+     *   is closed as soon as the scenario finishes.
+     *
+     * @default undefined (sequential execution)
+     */
+    parallelMode?: 'contexts'
+    /**
+     * Maximum number of browsing contexts (tabs) to use in parallel.
+     * Scenarios are processed in batches of this size. Higher values
+     * increase parallelism but also resource usage.
+     * @default os.cpus().length
+     */
+    maxParallelContexts?: number
 }
 
 export interface HookParams {
@@ -247,4 +302,5 @@ export interface Payload {
     parent?: unknown
     title?: string
     fullTitle?: string
+    passed?: boolean
 }

@@ -2,6 +2,28 @@ export { default } from 'mocha'
 
 export interface MochaOpts {
     /**
+     * Enable parallel test execution within a spec file. When set to
+     * `'contexts'`, each `it()` block runs simultaneously in its own
+     * browsing context (tab). Requires a WebDriver Bidi session.
+     *
+     * If the browser session does not support Bidi (e.g. classic
+     * WebDriver is enforced via `'wdio:enforceWebDriverClassic': true`),
+     * parallel mode is silently disabled with a warning and tests
+     * execute sequentially.
+     *
+     * @default undefined (sequential execution)
+     */
+    parallelMode?: 'contexts'
+
+    /**
+     * Maximum number of browsing contexts (tabs) to use in parallel.
+     * Tests are processed in batches of this size. Higher values
+     * increase parallelism but also resource usage.
+     * @default os.cpus().length
+     */
+    maxParallelContexts?: number
+
+    /**
      * The `require` option is useful when you want to add or extend some
      * basic functionality (WebdriverIO framework option).
      */

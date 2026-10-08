@@ -1,5 +1,7 @@
 import type { ElementReference } from '@wdio/protocols'
 import { getElementFromResponse } from '../../utils/index.js'
+import { getBrowserObject } from '@wdio/utils'
+import { bidiSelectByIndex, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 
 /**
  *
@@ -39,6 +41,11 @@ export async function selectByIndex (
      */
     if (index < 0) {
         throw new Error('Index needs to be 0 or any other positive number')
+    }
+
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        return bidiSelectByIndex(this, index)
     }
 
     const fetchOptionElements = async () => {
