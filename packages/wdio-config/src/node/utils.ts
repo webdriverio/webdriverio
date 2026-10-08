@@ -20,7 +20,7 @@ function resolveSpecGlobFromCWD (file: string): string {
     // path.resolve behavior and quote inherited CWD segments only when the
     // drive matches. A different drive uses its own per-drive working dir.
     let relativeFile = file
-    if (path.sep === '\\\\' && /^[A-Za-z]:[^\\\\/]/.test(file)) {
+    if (path.sep === '\\' && /^[A-Za-z]:[^\\/]/.test(file)) {
         const requestedDrive = file.slice(0, 2).toLowerCase()
         const cwdDrive = path.parse(cwd).root.slice(0, 2).toLowerCase()
         if (requestedDrive !== cwdDrive) {
