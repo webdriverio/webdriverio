@@ -86,7 +86,9 @@ function fakeDriver (fallback: Fallback) {
                     .filter((component) => component.name === name &&
                         Object.entries(props).every(([key, value]) => component.props?.[key] === value))
                     .map(({ id }) => id)
+                const reactScope = (body.args[3] as Record<string, string> | undefined)?.[ELEMENT_KEY]
                 finds.push(`react ${name}`)
+                findsIn.push(`react ${name} in ${reactScope ?? 'document'}`)
                 if (script.includes('function react$$')) {
                     return reply(refs(ids))
                 }
@@ -385,6 +387,84 @@ describe('finding an element again', () => {
             render(['elem-b', 'elem-c', 'elem-d'])
             expect(await run(elem)).toBe(result('elem-c'))
             expect(elem.elementId).toBe(setsElementId ? 'elem-c' : undefined)
+        })
+    })
+
+    /**
+     * every kind with an element as parent, where the page also replaced the
+     * parent: the parent is found again first, through the middleware of the
+     * command that runs on it
+     */
+    describe.each([{
+        kind: '$(parent).$(selector)',
+        parent: '#form',
+        find: (browser: WebdriverIO.Browser) => browser.$('#form').$('.item').getElement(),
+        render: (ids: string[]) => driver.light.set('.item', ids)
+    }, {
+        kind: '$(parent).$$(selector)[1]',
+        parent: '#form',
+        list: true,
+        find: async (browser: WebdriverIO.Browser) => (await browser.$('#form').$$('.item'))[1],
+        render: (ids: string[]) => driver.light.set('.item', ids)
+    }, {
+        kind: 'shadow$',
+        parent: '#host',
+        find: (browser: WebdriverIO.Browser) => browser.$('#host').shadow$('.item').getElement(),
+        render: (ids: string[]) => driver.shadow.set('.item', ids)
+    }, {
+        kind: 'shadow$$[1]',
+        parent: '#host',
+        list: true,
+        find: async (browser: WebdriverIO.Browser) => (await browser.$('#host').shadow$$('.item'))[1],
+        render: (ids: string[]) => driver.shadow.set('.item', ids)
+    }, {
+        kind: 'element.react$',
+        parent: '#app',
+        find: (browser: WebdriverIO.Browser) => browser.$('#app').react$('Item').getElement(),
+        render: (ids: string[]) => driver.react.splice(0, Infinity, ...components(ids))
+    }, {
+        kind: 'element.custom$',
+        parent: '#form',
+        find: (browser: WebdriverIO.Browser) => browser.$('#form').custom$('customItem').getElement(),
+        render: (ids: string[]) => driver.scripts.set('customItem', ids)
+    }, {
+        kind: 'element.custom$$[1]',
+        parent: '#form',
+        list: true,
+        find: async (browser: WebdriverIO.Browser) => (await browser.$('#form').custom$$('customList'))[1],
+        render: (ids: string[]) => driver.scripts.set('customList', ids)
+    }])('$kind in a parent the page replaced', ({ parent, list, find, render }) => {
+        const replaceParent = () => {
+            driver.stale.add('parent-a')
+            driver.light.set(parent, ['parent-b'])
+        }
+
+        if (!list) {
+            it.each(PATHS)('$path finds it once it is on the page', async ({ run, result, setsElementId }) => {
+                driver.light.set(parent, ['parent-a'])
+                const elem = await find(await session())
+                expect(elem.elementId).toBeUndefined()
+
+                replaceParent()
+                render(['elem-b'])
+                expect(await run(elem)).toBe(result('elem-b'))
+                expect(elem.elementId).toBe(setsElementId ? 'elem-b' : undefined)
+                expect(driver.findsIn.at(-1)).toContain('parent-b')
+            })
+        }
+
+        it.each(STALE_PATHS)('$path finds it again after the page replaced it', async ({ run, result, setsElementId }) => {
+            driver.light.set(parent, ['parent-a'])
+            render(list ? ['elem-x', 'elem-a'] : ['elem-a'])
+            const elem = await find(await session())
+            expect(elem.elementId).toBe('elem-a')
+
+            driver.stale.add('elem-a')
+            replaceParent()
+            render(list ? ['elem-y', 'elem-b'] : ['elem-b'])
+            expect(await run(elem)).toBe(result('elem-b'))
+            expect(elem.elementId).toBe(setsElementId ? 'elem-b' : 'elem-a')
+            expect(driver.findsIn.at(-1)).toContain('parent-b')
         })
     })
 
