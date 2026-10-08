@@ -1,5 +1,5 @@
 import clone from 'lodash.clonedeep'
-import { WDIO_KIND, isLoadedElement, setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { WDIO_CHAINABLE, WDIO_KIND, isLoadedElement, setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
@@ -99,6 +99,11 @@ function toInstanceArgument (
         seen.set(value, copy)
         const descriptors: Record<PropertyKey, PropertyDescriptor> = Object.getOwnPropertyDescriptors(value)
         for (const key of Reflect.ownKeys(descriptors)) {
+            // A copied ElementArray is a plain Array, not a WDIO loaded list.
+            // Do not carry the source list's non-enumerable WDIO brands over.
+            if (Array.isArray(value) && (key === WDIO_KIND || key === WDIO_CHAINABLE)) {
+                continue
+            }
             const descriptor = descriptors[key]
             // Descriptor reads avoid invoking getters, including array indices
             // and non-enumerable `then` on an argument container.
