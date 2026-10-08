@@ -3,6 +3,7 @@ import type { Mock } from 'vitest'
 import { expect, describe, it, vi, beforeAll, beforeEach, afterEach } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { StrictSelectorError } from '../../../src/utils/strictSelectorError.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -503,6 +504,18 @@ describe('scrollIntoView test', () => {
                 expect(swipeSpy).toBeCalledTimes(5)
                 expect(err.message).toMatchSnapshot()
             }
+        })
+
+        it('throws a strict-mode violation at once instead of scrolling', async () => {
+            const strictError = new StrictSelectorError('~Continue', 2)
+            const isDisplayedSpy = vi.spyOn(elem, 'isDisplayed').mockRejectedValue(strictError)
+            const swipeSpy = vi.spyOn(browser, 'swipe').mockResolvedValue(undefined)
+
+            await expect(elem.scrollIntoView()).rejects.toBe(strictError)
+            expect(isDisplayedSpy).toBeCalledTimes(1)
+            expect(swipeSpy).not.toBeCalled()
+            swipeSpy.mockRestore()
+            isDisplayedSpy.mockRestore()
         })
     })
 })

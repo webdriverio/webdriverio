@@ -8,7 +8,10 @@ interface Fixture {
     renderLate (count: number): void
     renderItems (texts: string[]): void
     renderShadow (className: string, texts: string[]): void
+    renderForm (text: string): void
 }
+
+const FIXTURE = url.pathToFileURL(path.resolve(__dirname, '__fixtures__', 'findElementAgain.html')).href
 
 const renderLate = (count: number) => browser.execute(
     (count) => (window as unknown as Fixture).renderLate(count), count)
@@ -16,6 +19,8 @@ const renderItems = (texts: string[]) => browser.execute(
     (texts) => (window as unknown as Fixture).renderItems(texts), texts)
 const renderShadow = (className: string, texts: string[]) => browser.execute(
     (className, texts) => (window as unknown as Fixture).renderShadow(className, texts), className, texts)
+const renderForm = (text: string) => browser.execute(
+    (text) => (window as unknown as Fixture).renderForm(text), text)
 const errorOf = (promise: Promise<unknown>) => promise.then(() => undefined, (e: Error) => e)
 
 /**
@@ -27,11 +32,16 @@ const errorOf = (promise: Promise<unknown>) => promise.then(() => undefined, (e:
 describe('finding an element again', () => {
     before(async () => {
         await browser.addLocatorStrategy('lateParagraph', () => document.querySelector('.late') as HTMLElement)
+        /**
+         * `element.custom$` gives its element as the last argument
+         */
+        await browser.addLocatorStrategy('inForm', (...args: unknown[]) => (
+            (args[args.length - 1] as HTMLElement).querySelector('.in-form') as HTMLElement
+        ))
     })
 
     beforeEach(async () => {
-        const resource = path.resolve(__dirname, '__fixtures__', 'findElementAgain.html')
-        await browser.url(url.pathToFileURL(resource).href)
+        await browser.url(FIXTURE)
     })
 
     describe('with strict selectors', () => {
@@ -131,6 +141,14 @@ describe('finding an element again', () => {
             await expect(elem.getText()).resolves.toBe('late 1')
         })
 
+        it('a stale element.custom$ element is found again in its parent that was replaced', async () => {
+            const elem = await $('#form').custom$('inForm')
+            await expect(elem.getText()).resolves.toBe('first')
+
+            await renderForm('replaced')
+            await expect(elem.getText()).resolves.toBe('replaced')
+        })
+
         it('waitForExist gives a $(function) element its element id', async () => {
             const elem = await $(() => document.querySelector('.late') as HTMLElement)
             expect(elem.elementId).toBeUndefined()
@@ -140,5 +158,37 @@ describe('finding an element again', () => {
             expect(elem.elementId).toBeDefined()
             await expect(elem.getText()).resolves.toBe('late 1')
         })
+    })
+
+    describe('as an argument of another command', () => {
+        it('an action waits for an origin element that appears later', async () => {
+            const origin = await $('.late')
+            expect(origin.elementId).toBeUndefined()
+
+            await renderLate(1)
+            await browser.action('pointer').move({ origin }).down().up().perform()
+            expect(origin.elementId).toBeDefined()
+        })
+
+        it('dragAndDrop waits for a target element that appears later', async () => {
+            const target = await $('.late')
+            expect(target.elementId).toBeUndefined()
+
+            await renderLate(1)
+            await $('.item').dragAndDrop(target)
+            expect(target.elementId).toBeDefined()
+        })
+    })
+
+    it('a stale element of a held browsing context is found again in that context', async function () {
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+        const page = await browser.url(FIXTURE)
+        const elem = await page.$('.item')
+        await expect(elem.getText()).resolves.toBe('first')
+
+        await renderItems(['replaced'])
+        await expect(elem.getText()).resolves.toBe('replaced')
     })
 })

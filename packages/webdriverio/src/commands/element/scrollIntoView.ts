@@ -3,6 +3,7 @@ import logger from '@wdio/logger'
 import { getBrowserObject } from '@wdio/utils'
 import type { ChainablePromiseElement, CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from '../../types.js'
 import { MobileScrollDirection } from '../../types.js'
+import { StrictSelectorError } from '../../utils/strictSelectorError.js'
 
 const log = logger('webdriverio')
 
@@ -374,7 +375,14 @@ async function mobileScrollUntilVisible({
     while (!isVisible && scrolls < maxScrolls) {
         try {
             isVisible = await element.isDisplayed()
-        } catch {
+        } catch (err) {
+            /**
+             * a strict-mode violation is a real error the user needs to see,
+             * scrolling further doesn't change it
+             */
+            if (err instanceof StrictSelectorError) {
+                throw err
+            }
             isVisible = false
         }
 

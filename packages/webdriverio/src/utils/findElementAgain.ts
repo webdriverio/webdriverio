@@ -1,9 +1,13 @@
 /**
- * Only type imports: this module is imported by `implicitWait.ts` and
- * `refetchElement.ts`, which must not import the `utils/index.ts` barrel
- * (see `implicitWait.ts`).
+ * Only type imports from this package: this module is imported by
+ * `implicitWait.ts` and `refetchElement.ts`, which must not import the
+ * `utils/index.ts` barrel (see `implicitWait.ts`).
  */
-import type { CustomStrategyReference, ReactSelectorOptions } from '../types.js'
+import isPlainObject from 'is-plain-obj'
+import { ELEMENT_KEY } from 'webdriver'
+import { getWdioKind } from '@wdio/utils'
+import type { ElementReference } from '@wdio/protocols'
+import type { CustomStrategyReference, ReactSelectorOptions, Selector } from '../types.js'
 
 /**
  * The React selector options of an element found with `react$` or `react$$`,
@@ -17,14 +21,27 @@ type ReactElement = WebdriverIO.Element & { [REACT_OPTIONS]?: ReactSelectorOptio
 
 /**
  * An element can be found again if it has a selector to run again: a string,
- * a function or a custom strategy. An element reference or an `HTMLElement`
- * can't be.
+ * a function, a custom strategy or a mobile matcher object. An element
+ * reference or an `HTMLElement` can't be.
  */
 export function canFindAgain (element: WebdriverIO.Element) {
     const { selector } = element
     return typeof selector === 'string' ||
         typeof selector === 'function' ||
-        typeof (selector as CustomStrategyReference | undefined)?.strategy === 'function'
+        (isPlainObject(selector) && typeof (selector as ElementReference)[ELEMENT_KEY] !== 'string')
+}
+
+/**
+ * `element.custom$` and `element.custom$$` give their element to the strategy
+ * as its last argument. Give the parent the element is found in now instead:
+ * the parent of the first query can be stale.
+ */
+function selectorIn (element: WebdriverIO.Element, parent: Scope): Selector {
+    const selector = element.selector as CustomStrategyReference
+    if (!isPlainObject(selector) || typeof selector.strategy !== 'function' || getWdioKind(element.parent) !== 'element') {
+        return element.selector
+    }
+    return { ...selector, strategyArguments: [...selector.strategyArguments.slice(0, -1), parent] }
 }
 
 /**
@@ -38,7 +55,7 @@ export function findAllAgain (element: WebdriverIO.Element, parent = element.par
     if (element.isShadowElement) {
         return (parent as WebdriverIO.Element).shadow$$(element.selector as string)
     }
-    return parent.$$(element.selector as string)
+    return parent.$$(selectorIn(element, parent) as string)
 }
 
 /**
@@ -73,5 +90,5 @@ export async function findElementAgain (
     if (element.isShadowElement) {
         return (parent as WebdriverIO.Element).shadow$(element.selector as string).getElement()
     }
-    return parent.$(element.selector, { strict: element.strict }).getElement()
+    return parent.$(selectorIn(element, parent), { strict: element.strict }).getElement()
 }

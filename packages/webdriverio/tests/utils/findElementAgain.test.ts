@@ -21,10 +21,13 @@ interface ReactComponent { id: string, name: string, props?: Record<string, unkn
  * - `shadow`: CSS selector -> ids of its matches in a shadow root
  * - `react`: the React components on the page
  * - `scripts`: name of a function selector or custom strategy -> ids it returns
+ *   (a script that gets a stale element fails, as in a driver)
  * - `stale`: ids of the elements the page has replaced
  *
- * `finds` records each find request. Every other request goes to the shared
- * fetch mock.
+ * `finds` records each find request, `findsIn` the same with the element or
+ * shadow root it searched in, or the elements a script got. A find in a stale element, or in the shadow root
+ * of a stale element, fails as in a driver. Every other request goes to the
+ * shared fetch mock.
  */
 function fakeDriver (fallback: Fallback) {
     const light = new Map<string, string[]>()
@@ -33,6 +36,7 @@ function fakeDriver (fallback: Fallback) {
     const scripts = new Map<string, string[]>()
     const stale = new Set<string>()
     const finds: string[] = []
+    const findsIn: string[] = []
 
     const reply = (value: unknown, status = 200) => Response.json({ value }, { status })
     const refs = (ids: string[]) => ids.map((id) => ({ [ELEMENT_KEY]: id }))
@@ -45,11 +49,15 @@ function fakeDriver (fallback: Fallback) {
         const { pathname } = typeof uri === 'string' ? new URL(uri) : uri
         const body = params?.body ? JSON.parse(String(params.body)) : undefined
 
-        const find = pathname.match(/\/(shadow\/[^/]+\/)?(element|elements)$/)
+        const find = pathname.match(/\/(?:element\/([^/]+)\/|shadow\/root-([^/]+)\/)?(element|elements)$/)
         if (find && params?.method === 'POST') {
-            const [, inShadowRoot, command] = find
-            const ids = (inShadowRoot ? shadow : light).get(body.value) ?? []
+            const [, scope, shadowHost, command] = find
+            if (stale.has(scope) || stale.has(shadowHost)) {
+                return staleError()
+            }
+            const ids = (shadowHost ? shadow : light).get(body.value) ?? []
             finds.push(`${command} ${body.value}`)
+            findsIn.push(`${command} ${body.value} in ${shadowHost ? `shadow root of ${shadowHost}` : scope ?? 'document'}`)
             if (command === 'elements') {
                 return reply(refs(ids))
             }
@@ -64,6 +72,13 @@ function fakeDriver (fallback: Fallback) {
         }
 
         if (/\/execute\/(sync|async)$/.test(pathname)) {
+            /**
+             * as a driver, fail for a script that gets a stale element
+             */
+            const args: unknown[] = body.args ?? []
+            if (args.some((arg) => stale.has((arg as Record<string, string> | null)?.[ELEMENT_KEY]))) {
+                return staleError()
+            }
             const script: string = body.script
             if (script.includes('function react$')) {
                 const [name, props = {}] = body.args
@@ -82,7 +97,11 @@ function fakeDriver (fallback: Fallback) {
             }
             for (const [name, ids] of scripts) {
                 if (script.includes(name)) {
+                    const elementArgs = args
+                        .map((arg) => (arg as Record<string, string> | null)?.[ELEMENT_KEY])
+                        .filter(Boolean)
                     finds.push(`script ${name}`)
+                    findsIn.push(`script ${name} with ${elementArgs.join(', ') || 'no element'}`)
                     return reply(refs(ids))
                 }
             }
@@ -100,7 +119,7 @@ function fakeDriver (fallback: Fallback) {
         return fallback(uri, params)
     }
 
-    return { light, shadow, react, scripts, stale, finds, handler }
+    return { light, shadow, react, scripts, stale, finds, findsIn, handler }
 }
 
 let driver: ReturnType<typeof fakeDriver>
@@ -144,6 +163,11 @@ const settle = (promise: Promise<unknown>) => promise.then(
     (error: Error) => ({ value: undefined, error })
 )
 
+/**
+ * an Android data matcher, sent as the JSON of the object
+ */
+const MATCHER = { name: 'hasEntry', args: ['title', 'Item'] }
+
 function scriptItem () { return document.querySelector('.item') as HTMLElement }
 function scriptList () { return Array.from(document.querySelectorAll('.item')) as HTMLElement[] }
 
@@ -151,6 +175,10 @@ const components = (ids: string[], props?: Record<string, unknown>) => ids.map((
 
 interface Kind {
     kind: string
+    /**
+     * whether the query throws for several matches, a list query never does
+     */
+    strict?: boolean
     /**
      * queries the element, the page decides if it is found
      */
@@ -166,15 +194,29 @@ interface Kind {
  */
 const SINGLE_KINDS: Kind[] = [{
     kind: '$(selector)',
+    strict: true,
     find: (browser) => browser.$('.item').getElement(),
     render: (ids) => driver.light.set('.item', ids)
 }, {
     kind: '$(function)',
+    strict: true,
     find: (browser) => browser.$(scriptItem).getElement(),
     render: (ids) => driver.scripts.set('scriptItem', ids)
 }, {
-    kind: 'custom$',
+    kind: '$(matcher object)',
+    strict: true,
+    find: (browser) => browser.$(MATCHER as unknown as string).getElement(),
+    render: (ids) => driver.light.set(JSON.stringify(MATCHER), ids)
+}, {
+    kind: 'browser.custom$',
     find: (browser) => browser.custom$('customItem').getElement(),
+    render: (ids) => driver.scripts.set('customItem', ids)
+}, {
+    kind: 'element.custom$',
+    find: (browser) => {
+        driver.light.set('#form', ['form'])
+        return browser.$('#form').custom$('customItem').getElement()
+    },
     render: (ids) => driver.scripts.set('customItem', ids)
 }, {
     kind: 'shadow$',
@@ -216,8 +258,19 @@ const LIST_KINDS: Kind[] = [{
     find: async (browser) => (await browser.$$(scriptList))[1],
     render: (ids) => driver.scripts.set('scriptList', ids)
 }, {
-    kind: 'custom$$',
+    kind: '$$(matcher object)',
+    find: async (browser) => (await browser.$$(MATCHER as unknown as string))[1],
+    render: (ids) => driver.light.set(JSON.stringify(MATCHER), ids)
+}, {
+    kind: 'browser.custom$$',
     find: async (browser) => (await browser.custom$$('customList'))[1],
+    render: (ids) => driver.scripts.set('customList', ids)
+}, {
+    kind: 'element.custom$$',
+    find: async (browser) => {
+        driver.light.set('#form', ['form'])
+        return (await browser.$('#form').custom$$('customList'))[1]
+    },
     render: (ids) => driver.scripts.set('customList', ids)
 }, {
     kind: 'shadow$$',
@@ -258,8 +311,18 @@ const PATHS = [{
     setsElementId: false
 }]
 
+/**
+ * the same paths on an element the page replaced: the element has a stale
+ * element id. `isExisting` only counts the matches, so it keeps the id.
+ */
+const STALE_PATHS = PATHS.map((path) => path.path.startsWith('getText')
+    ? { ...path, path: 'getText (refetchElement)' }
+    : path.path.startsWith('isDisplayed')
+        ? { ...path, path: 'isDisplayed (refetchElement)' }
+        : path)
+
 describe('finding an element again', () => {
-    describe.each(SINGLE_KINDS)('$kind', ({ find, render }) => {
+    describe.each(SINGLE_KINDS)('$kind', ({ find, render, strict }) => {
         it.each(PATHS)('$path finds it once it is on the page', async ({ run, result, setsElementId }) => {
             const elem = await find(await session())
             expect(elem.elementId).toBeUndefined()
@@ -269,28 +332,44 @@ describe('finding an element again', () => {
             expect(elem.elementId).toBe(setsElementId ? 'elem-b' : undefined)
         })
 
-        it('getText (refetchElement) finds it again after the page replaced it', async () => {
+        it(strict ? 'throws a StrictSelectorError when it appears more than once' : 'takes the first match when it appears more than once', async () => {
+            const elem = await find(await session())
+            render(['elem-b', 'elem-c'])
+
+            const { value, error } = await settle(elem.getText())
+            if (strict) {
+                expect(error).toBeInstanceOf(StrictSelectorError)
+                return
+            }
+            expect(value).toBe('text of elem-b')
+        })
+
+        it.each(STALE_PATHS)('$path finds it again after the page replaced it', async ({ run, result, setsElementId }) => {
             render(['elem-a'])
             const elem = await find(await session())
             expect(elem.elementId).toBe('elem-a')
 
             driver.stale.add('elem-a')
             render(['elem-b'])
-            expect(await elem.getText()).toBe('text of elem-b')
-            expect(elem.elementId).toBe('elem-b')
+            expect(await run(elem)).toBe(result('elem-b'))
+            const elementId = setsElementId ? 'elem-b' : 'elem-a'
+            expect(elem.elementId).toBe(elementId)
+            expect(elem[ELEMENT_KEY]).toBe(elementId)
         })
     })
 
     describe.each(LIST_KINDS)('$kind', ({ find, render }) => {
-        it('getText (refetchElement) finds it again at the same index after the page replaced it', async () => {
+        it.each(STALE_PATHS)('$path finds it again at the same index after the page replaced it', async ({ run, result, setsElementId }) => {
             render(['elem-x', 'elem-a'])
             const elem = await find(await session())
             expect(elem.elementId).toBe('elem-a')
 
             driver.stale.add('elem-a')
             render(['elem-b', 'elem-c', 'elem-d'])
-            expect(await elem.getText()).toBe('text of elem-c')
-            expect(elem.elementId).toBe('elem-c')
+            expect(await run(elem)).toBe(result('elem-c'))
+            const elementId = setsElementId ? 'elem-c' : 'elem-a'
+            expect(elem.elementId).toBe(elementId)
+            expect(elem[ELEMENT_KEY]).toBe(elementId)
         })
 
         /**
@@ -343,6 +422,14 @@ describe('finding an element again', () => {
             expect(error?.message).toContain('wasn\'t found')
         })
 
+        it('waitForExist with reverse is true once the list is shorter than its index', async () => {
+            driver.light.set('.item', ['elem-x', 'elem-a'])
+            const elem = (await (await session()).$$('.item'))[1]
+            driver.light.set('.item', ['elem-b'])
+
+            expect(await elem.waitForExist({ reverse: true })).toBe(true)
+        })
+
         it('getText on a stale element throws the stale element error', async () => {
             driver.light.set('.item', ['elem-x', 'elem-a'])
             const elem = (await (await session()).$$('.item'))[1]
@@ -366,6 +453,56 @@ describe('finding an element again', () => {
             driver.shadow.set('.item', ['elem-b'])
             expect(await elem.getText()).toBe('text of elem-b')
             expect(elem.elementId).toBe('elem-b')
+            expect(driver.findsIn.at(-1)).toBe('element .item in shadow root of host-b')
+        })
+
+        it('runs the custom strategy of an element.custom$ element in the parent that was found again', async () => {
+            driver.light.set('#form', ['form-a'])
+            driver.scripts.set('customItem', ['elem-a'])
+            const elem = await (await session()).$('#form').custom$('customItem').getElement()
+
+            driver.stale.add('form-a')
+            driver.stale.add('elem-a')
+            driver.light.set('#form', ['form-b'])
+            driver.scripts.set('customItem', ['elem-b'])
+            expect(await elem.getText()).toBe('text of elem-b')
+
+            /**
+             * and once more, now that the element has the new parent
+             */
+            driver.stale.add('form-b')
+            driver.stale.add('elem-b')
+            driver.light.set('#form', ['form-c'])
+            driver.scripts.set('customItem', ['elem-c'])
+            expect(await elem.getText()).toBe('text of elem-c')
+            expect(driver.findsIn.at(-1)).toBe('script customItem with form-c')
+        })
+
+        it('keeps an element the user gave to a browser.custom$ strategy', async () => {
+            const browser = await session()
+            driver.light.set('#root', ['root'])
+            const root = await browser.$('#root').getElement()
+            driver.scripts.set('customItem', ['elem-a'])
+            const elem = await browser.custom$('customItem', root).getElement()
+
+            driver.stale.add('elem-a')
+            driver.scripts.set('customItem', ['elem-b'])
+            expect(await elem.getText()).toBe('text of elem-b')
+            expect(driver.findsIn.at(-1)).toBe('script customItem with root')
+        })
+
+        it('finds an element in an element of a list again', async () => {
+            driver.light.set('li', ['li-x', 'li-a'])
+            driver.light.set('span', ['elem-a'])
+            const item = (await (await session()).$$('li'))[1]
+            const elem = await item.$('span').getElement()
+
+            driver.stale.add('li-a')
+            driver.stale.add('elem-a')
+            driver.light.set('li', ['li-y', 'li-b'])
+            driver.light.set('span', ['elem-b'])
+            expect(await elem.getText()).toBe('text of elem-b')
+            expect(driver.findsIn.at(-1)).toBe('elements span in li-b')
         })
 
         it('keeps the strictness of each element of the chain', async () => {
@@ -377,12 +514,22 @@ describe('finding an element again', () => {
             driver.light.set('form', ['form-b', 'form-c'])
             driver.light.set('button', ['elem-b'])
             expect(await elem.getText()).toBe('text of elem-b')
+            expect(driver.findsIn.at(-1)).toBe('elements button in form-b')
 
             driver.stale.add('elem-b')
             driver.light.set('button', ['elem-c', 'elem-d'])
             const { error } = await settle(elem.getText())
             expect(error).toBeInstanceOf(StrictSelectorError)
         })
+    })
+
+    it('throws the stale element error for an element of $$(element references), which has no selector to run again', async () => {
+        const elem = (await (await session()).$$([{ [ELEMENT_KEY]: 'elem-x' }, { [ELEMENT_KEY]: 'elem-a' }] as never))[1]
+        expect(elem.elementId).toBe('elem-a')
+        driver.stale.add('elem-a')
+
+        const { error } = await settle(elem.getText())
+        expect(error?.name).toBe('stale element reference')
     })
 
     it('throws the stale element error for an element reference, which has no selector to run again', async () => {

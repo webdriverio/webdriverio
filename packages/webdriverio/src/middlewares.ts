@@ -63,6 +63,10 @@ async function invokeElementCommand (
             try {
                 const refetched = await refetchElement(element, commandName)
                 element.elementId = refetched.elementId
+                /**
+                 * also the w3c identifier, which e.g. an action origin reads
+                 */
+                element[ELEMENT_KEY] = refetched.elementId
                 element.parent = refetched.parent
                 return await execute()
             } catch (refetchErr) {

@@ -176,6 +176,23 @@ describe('middleware', () => {
         expect(elementThis['element-6066-11e4-a52e-4f735466cecf']).toEqual('some-elem-123')
     })
 
+    it('should assign elementId and w3c identifier to element scope after a stale element was found again', async () => {
+        const staleError = new Error('stale element reference')
+        staleError.name = 'stale element reference'
+        const staleCheck = vi.fn().mockRejectedValueOnce(staleError).mockResolvedValueOnce('done')
+        browser.addCommand('staleOnceCheck', staleCheck, { attachToElement: true })
+        const elem = await browser.$('#foo')
+
+        const refetched = await browser.$('#foo')
+        refetched.elementId = 'some-new-elem-456'
+        vi.mocked(refetchElement).mockResolvedValueOnce(refetched)
+
+        // @ts-expect-error undefined custom command
+        expect(await elem.staleOnceCheck()).toBe('done')
+        expect(elem.elementId).toBe('some-new-elem-456')
+        expect(elem['element-6066-11e4-a52e-4f735466cecf']).toBe('some-new-elem-456')
+    })
+
     describe('should NOT wait on element if', () => {
         // wdio default waitForExist command
         it('elem EXISTS and command = waitForExist', async () => {
