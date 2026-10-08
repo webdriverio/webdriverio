@@ -80,6 +80,21 @@ describe('fill and select under a cover', () => {
         expect(element.setValue).toHaveBeenCalledWith('Ada')
     })
 
+    it('fill goes on under a decoration inside the same modal dialog across a shadow root', async () => {
+        const { element, session } = setup('', '<div role="dialog" aria-modal="true" id="dlg"></div>')
+        const shadow = document.getElementById('dlg')!.attachShadow({ mode: 'open' })
+        shadow.innerHTML = '<input id="target">'
+        const target = shadow.getElementById('target')!
+        const cover = document.createElement('span')
+        cover.id = 'cover'
+        document.getElementById('dlg')!.append(cover)
+        document.elementFromPoint = () => cover
+        ;(shadow as unknown as { elementFromPoint: unknown }).elementFromPoint = () => cover
+        element.execute = async (fn: (...args: unknown[]) => unknown, ...args: unknown[]) => fn(target, ...args)
+        await fill(session, { target: 'e2', text: 'Ada', $cwd: '/' })
+        expect(element.setValue).toHaveBeenCalledWith('Ada')
+    })
+
     it('fill goes on under a cover inside the same full-screen fixed shell', async () => {
         const { element, session } = setup('', '<div id="shell" style="position: fixed"><input id="target"><span id="cover">hi</span></div>')
         document.getElementById('shell')!.getBoundingClientRect = () => ({ x: 0, y: 0, left: 0, top: 0, right: innerWidth, bottom: innerHeight, width: innerWidth, height: innerHeight }) as DOMRect

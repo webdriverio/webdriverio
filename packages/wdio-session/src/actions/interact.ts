@@ -693,8 +693,18 @@ async function clickPoint (target: ResolvedTarget, instant = false): Promise<Cli
             const rect = node.getBoundingClientRect()
             return rect.width >= innerWidth * FULL_SCREEN && rect.height >= innerHeight * FULL_SCREEN
         }
+        // contains() stops at a shadow root: climb through the host
+        const holds = (up: Element, target: Element) => {
+            const parentOf = Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode')!.get!
+            for (let node: Node | null = target; node; node = parentOf.call(node) || (node instanceof ShadowRoot ? node.host : null)) {
+                if (node === up) {
+                    return true
+                }
+            }
+            return false
+        }
         const isOverlay = (cover: Element, target: Element) => {
-            for (let up: Element | null = cover; up && !Node.prototype.contains.call(up, target); up = up.parentElement) {
+            for (let up: Element | null = cover; up && !holds(up, target); up = up.parentElement) {
                 if (Element.prototype.getAttribute.call(up, 'aria-modal') === 'true' || isModal(up) || isFullScreenFixed(up)) {
                     return true
                 }

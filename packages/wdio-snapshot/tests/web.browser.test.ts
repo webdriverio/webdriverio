@@ -210,6 +210,24 @@ describe('intent of repeated controls', () => {
         expect(intents[1]).toContain('Bob')
     })
 
+    it('keeps visible text inside a visibility:hidden wrapper', () => {
+        const row = (name: string) => `<tr><td><div style="visibility:hidden"><span style="visibility:visible">${name}</span></div></td><td><button>Edit</button></td></tr>`
+        const result = collect(`<table>${row('Alice')}${row('Bob')}</table>`)
+        const intents = byRole(result, 'button').map((b) => b.intent)
+        expect(intents[0]).toContain('Alice')
+        expect(intents[1]).toContain('Bob')
+    })
+
+    it('survives a decoy next to repeated buttons', () => {
+        document.body.innerHTML = '<div>A <button>Edit</button><i id="decoy"></i></div><div>B <button>Edit</button></div>'
+        const decoy = document.getElementById('decoy')!
+        Object.defineProperty(decoy, 'tagName', { value: undefined })
+        Object.defineProperty(decoy, 'getAttribute', { value: undefined })
+        const run = new Function(`return (${collectInPage.toString()})`)() as typeof collectInPage
+        const result = run({ roles: roleTable(), knownRoles: knownRoles(), counter: 0, all: false, boxes: false, assignRefs: true })
+        expect(byRole(result, 'button').map((b) => b.intent)).toEqual(['A', 'B'])
+    })
+
     it('leaves a unique button alone', () => {
         const result = collect('<div>Row text <button>Choose</button></div><div>Other <button>Pick</button></div>')
         expect(byRole(result, 'button').map((b) => b.intent)).toEqual([undefined, undefined])

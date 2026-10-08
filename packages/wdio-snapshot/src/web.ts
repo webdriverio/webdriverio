@@ -148,13 +148,21 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return explicit || implicitRole(el)
     }
 
-    function isHidden (el: Element) {
+    function isUnrendered (el: Element, style?: CSSStyleDeclaration) {
         if ((el as HTMLElement).hidden || el.getAttribute('aria-hidden') === 'true' || el.hasAttribute('inert')) {
             return true
         }
-        const style = getComputedStyle(el)
-        return style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse' ||
-            (style as unknown as { contentVisibility?: string }).contentVisibility === 'hidden'
+        const computed = style || getComputedStyle(el)
+        return computed.display === 'none' || (computed as unknown as { contentVisibility?: string }).contentVisibility === 'hidden'
+    }
+
+    function isInvisible (el: Element, style?: CSSStyleDeclaration) {
+        const visibility = (style || getComputedStyle(el)).visibility
+        return visibility === 'hidden' || visibility === 'collapse'
+    }
+
+    function isHidden (el: Element) {
+        return isUnrendered(el) || isInvisible(el)
     }
 
     function isZeroSize (el: Element) {
@@ -443,8 +451,36 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
      * (cell, item, paragraph) starts with a space so cells don't run together.
      */
     function textAround (root: Element, control: Element, limit: number) {
+        if (isDecoy(root)) {
+            return ''
+        }
+        const invisible = new Map<Element, boolean>()
         const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
-            acceptNode: (n) => n.nodeType === 3 ? NodeFilter.FILTER_ACCEPT : isHidden(n as Element) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_SKIP
+            // decoys first: their element API is shadowed. A visibility:hidden wrapper is walked through, its visible descendants count
+            acceptNode: (n) => {
+                if (isDecoy(n)) {
+                    return NodeFilter.FILTER_REJECT
+                }
+                if (n.nodeType === 3) {
+                    const parent = n.parentElement
+                    if (!parent) {
+                        return NodeFilter.FILTER_ACCEPT
+                    }
+                    let hidden = invisible.get(parent)
+                    if (hidden === undefined) {
+                        hidden = isInvisible(parent)
+                        invisible.set(parent, hidden)
+                    }
+                    return hidden ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_ACCEPT
+                }
+                const el = n as Element
+                const style = getComputedStyle(el)
+                if (isUnrendered(el, style)) {
+                    return NodeFilter.FILTER_REJECT
+                }
+                invisible.set(el, isInvisible(el, style))
+                return NodeFilter.FILTER_SKIP
+            }
         })
         const blockOf = (node: globalThis.Node) => {
             let el = node.parentElement

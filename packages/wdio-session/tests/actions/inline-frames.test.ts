@@ -41,6 +41,7 @@ const frameTree = {
                 { role: 'button', name: 'Inside wrapper', ref: 'e7', interactive: true, box: [10, -100, 50, 20] }
             ]
         },
+        { role: 'button', name: 'Zero off-screen', ref: 'e8', interactive: true, box: [10, 150, 0, 0] },
         { role: 'group', name: 'Gone', box: [0, 400, 100, 100], children: [{ role: 'text', name: 'Gone text' }] }
     ]
 }
@@ -88,6 +89,7 @@ describe('inlined frames in a viewport snapshot', () => {
         expect(text).toContain('Wrapped visible text')
         expect(text).not.toContain('Below')
         expect(text).not.toContain('Hidden inside')
+        expect(text).not.toContain('Zero off-screen')
         expect(text).not.toContain('Gone')
         expect(text).not.toContain('[box=')
     })
