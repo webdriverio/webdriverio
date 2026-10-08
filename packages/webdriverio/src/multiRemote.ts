@@ -120,6 +120,37 @@ function toInstanceArgument (
     return replacedElement ? converted : arg
 }
 
+/**
+ * Check once per argument whether conversion is needed before allocating a
+ * separate graph for each browser. Ordinary data arguments keep their identity
+ * without creating copies that would only be discarded.
+ */
+function mayNeedInstanceArgument (value: unknown, seen = new WeakSet<object>()): boolean {
+    if (!value || typeof value !== 'object' || seen.has(value)) {
+        return false
+    }
+    seen.add(value)
+
+    const prototype = Object.getPrototypeOf(value)
+    if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) {
+        // Be conservative for branded elements. Leave loaded-state and
+        // instance checks to conversion, without probing metadata twice.
+        return Object.getOwnPropertyDescriptor(value, WDIO_KIND)?.value === 'element'
+    }
+
+    for (const key of Reflect.ownKeys(value)) {
+        if (Array.isArray(value) && (key === WDIO_KIND || key === WDIO_CHAINABLE)) {
+            continue
+        }
+        const descriptor = Object.getOwnPropertyDescriptor(value, key)
+        // Do not evaluate getters while looking for nested elements.
+        if (descriptor && 'value' in descriptor && mayNeedInstanceArgument(descriptor.value, seen)) {
+            return true
+        }
+    }
+    return false
+}
+
 type WrappedClient = {
     options: Options.WebdriverIO,
     commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'select')[],
@@ -354,8 +385,11 @@ export default class MultiRemote {
                  * command starts, so an argument that has no element for one
                  * instance fails the call without running it on the others.
                  */
+                const needsConversion = args.map((arg) => mayNeedInstanceArgument(arg))
                 const instanceArgs = scopeEntries.map(([instanceName]) =>
-                    args.map((arg) => toInstanceArgument(arg, instanceName, commandName))
+                    args.map((arg, index) => needsConversion[index]
+                        ? toInstanceArgument(arg, instanceName, commandName)
+                        : arg)
                 )
 
                 const result = await Promise.all(
