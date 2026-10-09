@@ -117,7 +117,7 @@ importers:
         version: 1.87.0
       puppeteer-core:
         specifier: ^25.11.0
-        version: 25.12.0(yauzl@3.4.0)
+        version: 25.12.0(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0)
       recast:
         specifier: ^0.24.0
         version: 0.24.0
@@ -319,7 +319,7 @@ importers:
         version: 12.0.3
       puppeteer-core:
         specifier: ^25.11.0
-        version: 25.12.0(yauzl@3.4.0)
+        version: 25.12.0(proxy-agent@8.0.2(supports-color@8.1.1))(yauzl@3.4.0)
       string-width:
         specifier: ^7.1.0
         version: 7.2.0
@@ -1258,10 +1258,10 @@ importers:
         version: 0.0.1710668
       lighthouse:
         specifier: 13.5.0
-        version: 13.5.0(@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1))(supports-color@11.0.0)(yauzl@3.4.0)
+        version: 13.5.0(@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1))(proxy-agent@8.0.2(supports-color@11.0.0))(supports-color@11.0.0)(yauzl@3.4.0)
       puppeteer-core:
         specifier: ^25.11.0
-        version: 25.12.0(yauzl@3.4.0)
+        version: 25.12.0(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0)
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
@@ -1462,7 +1462,7 @@ importers:
         version: link:../wdio-display-server
       '@wdio/electron-service':
         specifier: '*'
-        version: 10.3.0(electron@44.4.5(supports-color@11.0.0))(expect-webdriverio@8.0.0-alpha.3(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(supports-color@11.0.0)(tsx@4.23.15)(webdriverio@packages+webdriverio)(yauzl@3.4.0)
+        version: 10.3.0(electron@44.4.5(supports-color@11.0.0))(expect-webdriverio@8.0.0-alpha.3(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(proxy-agent@8.0.2(supports-color@11.0.0))(supports-color@11.0.0)(tsx@4.23.15)(webdriverio@packages+webdriverio)(yauzl@3.4.0)
       '@wdio/logger':
         specifier: workspace:*
         version: link:../wdio-logger
@@ -1659,7 +1659,7 @@ importers:
     dependencies:
       '@puppeteer/browsers':
         specifier: ^3.2.1
-        version: 3.2.3(yauzl@3.4.0)
+        version: 3.2.3(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0)
       '@types/split2':
         specifier: ^4.2.3
         version: 4.2.3
@@ -1699,6 +1699,9 @@ importers:
       mitt:
         specifier: ^3.0.1
         version: 3.0.1
+      proxy-agent:
+        specifier: ^8.0.2
+        version: 8.0.2(supports-color@11.0.0)
       safaridriver:
         specifier: ^3.0.0
         version: 3.0.0
@@ -1708,6 +1711,9 @@ importers:
       wait-port:
         specifier: ^1.1.0
         version: 1.1.0(supports-color@11.0.0)
+      yauzl:
+        specifier: ^3.4.0
+        version: 3.4.0
     devDependencies:
       '@types/aria-query':
         specifier: ^5.0.4
@@ -1857,7 +1863,7 @@ importers:
         version: 0.7.1
       puppeteer-core:
         specifier: ^25.11.0
-        version: 25.12.0(yauzl@3.4.0)
+        version: 25.12.0(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -7458,6 +7464,10 @@ packages:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
 
+  ast-types@0.13.4:
+    resolution: {integrity: sha512-x1FCFnFifvYDDzTaLII71vG5uvDwgtmDTEVWAxrgeiR8VjMONcCXJx7E+USjDtHlwFmt9MysbqgF9b9Vjr6w+w==}
+    engines: {node: '>=4'}
+
   ast-types@0.16.1:
     resolution: {integrity: sha512-6t10qk83GOG8p0vKmaCr8eiilZwO171AvbROMtvvNiwrTly62t+7XkA8RdIIVbpMhCASAsxgAzdRSwh6nw/5Dg==}
     engines: {node: '>=4'}
@@ -7611,6 +7621,10 @@ packages:
   basic-auth@2.0.1:
     resolution: {integrity: sha512-NF+epuEdnUYVlGuhaxbbq+dvJttwLnGY+YixlXlME5KpQ5W3CnXA5cVTneY3SPbPDRkcjMbifrwmFYcClgOZeg==}
     engines: {node: '>= 0.8'}
+
+  basic-ftp@5.3.1:
+    resolution: {integrity: sha512-bopVNp6ugyA150DDuZfPFdt1KZ5a94ZDiwX4hMgZDzF+GttD80lEy8kj98kbyhLXnPvhtIo93mdnLIjpCAeeOw==}
+    engines: {node: '>=10.0.0'}
 
   batch@0.6.1:
     resolution: {integrity: sha512-x+VAiMRL6UPkx+kudNvxTl6hB2XNNCG2r+7wixVfIYwu/2HKRXimwQyaumLjMveWvT2Hkd/cAJw+QBMfJ/EKVw==}
@@ -8600,6 +8614,10 @@ packages:
   dagre-d3-es@7.0.14:
     resolution: {integrity: sha512-P4rFMVq9ESWqmOgK+dlXvOtLwYg0i7u0HBGJER0LZDJT2VHIPAMZ/riPxqJceWMStH5+E61QxFra9kIS3AqdMg==}
 
+  data-uri-to-buffer@8.0.0:
+    resolution: {integrity: sha512-6UHfyCux51b8PTGDgveqtz1tvphBku5DrMKKJbFAZAJOI2zsjDpDoYE1+QGj7FOMS4BdTFNJsJiR3zEB0xH0yQ==}
+    engines: {node: '>= 20'}
+
   data-urls@8.0.0:
     resolution: {integrity: sha512-JQUCCK+/CAGbGGx618PlFZMXH81Jtj7t73CHv9dd/zVWvxgGT2zLFRjnKb+Ng46GIwcy+f7f88qd4duqllK+WQ==}
     engines: {node: ^22.14.0 || >=24.0.0}
@@ -8763,6 +8781,12 @@ packages:
 
   defu@6.1.7:
     resolution: {integrity: sha512-7z22QmUWiQ/2d0KkdYmANbRUVABpZ9SNYyH5vx6PZ+nE5bcC0l7uFvEfHlyld/HcGBFTL536ClDt3DEcSlEJAQ==}
+
+  degenerator@7.0.1:
+    resolution: {integrity: sha512-ABErK0IefDSyHjlPH7WUEenIAX2rPPnrDcDM+TS3z3+zu9TfyKKi07BQM+8rmxpdE2y1v5fjjdoAS/x4D2U60w==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      quickjs-wasi: ^2.2.0
 
   delaunator@5.1.0:
     resolution: {integrity: sha512-AGrQ4QSgssa1NGmWmLPqN5NY2KajF5MqxetNEO+o0n3ZwZZeTmt7bBnvzHWrmkZFxGgr4HdyFgelzgi06otLuQ==}
@@ -9299,6 +9323,11 @@ packages:
   escape-string-regexp@5.0.0:
     resolution: {integrity: sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==}
     engines: {node: '>=12'}
+
+  escodegen@2.1.0:
+    resolution: {integrity: sha512-2NlIDTwUWJN0mRPQOdtQBzbUHvdGY2P1VXSyU83Q3xKxM7WHX2Ql8dKq782Q9TgQUNOLEzEYu9bzLNj1q88I5w==}
+    engines: {node: '>=6.0'}
+    hasBin: true
 
   eslint-formatter-pretty@4.1.0:
     resolution: {integrity: sha512-IsUTtGxF1hrH6lMWiSl1WbGaiP01eT6kzywdY1U+zLc0MP+nwEnUiS9UI8IaOTUhTeQJLlCEWIbXINBH4YJbBQ==}
@@ -9858,6 +9887,10 @@ packages:
     resolution: {integrity: sha512-kVCxPF3vQM/N0B1PmoqVUqgHP+EeVjmZSQn+1oCRPxd2P21P2F19lIgbR3HBosbB1PUhOAoctJnfEn2GbN2eZA==}
     engines: {node: '>=18'}
 
+  get-uri@8.0.1:
+    resolution: {integrity: sha512-/5N/P4Lrh0p/mDwlDRi7Y1+P2o/OyzZI3l6Iz1Ov6XXwwm1y3RlZLuo3gVgML99djrEDtV980bBxSuOeHLk8ww==}
+    engines: {node: '>= 20'}
+
   giget@3.3.1:
     resolution: {integrity: sha512-r+mvuDjrjMpsdw46Kmeydb8bdHm7wOKw8wNBtTndkjbPjgAp5oUJUxRE76wZFknxIPokfWvep2qSXK37aXE6zg==}
     hasBin: true
@@ -10223,6 +10256,10 @@ packages:
   http-proxy-agent@7.0.2:
     resolution: {integrity: sha512-T1gkAiYYDWYx3V5Bmyu7HcfcvL7mUrTWiM6yOfa3PIphViJ/gFPbvidQ+veqSOHci/PxBcDabeUNCzpOODJZig==}
     engines: {node: '>= 14'}
+
+  http-proxy-agent@9.1.0:
+    resolution: {integrity: sha512-2NxoveTT58mjYT4n3RPTEfCZGLMbidoO8XEieXfpSYxu+PQJ1qpx4ypwH6N+uF9twBPIvRRgvkvW5HUTYWENig==}
+    engines: {node: '>= 20'}
 
   http-proxy-middleware@2.0.9:
     resolution: {integrity: sha512-c1IyJYLYppU574+YI7R4QyX2ystMtVXZwIdzazUIPIJsHuWNd+mho2j+bKoHftndicGj9yh+xjd+l0yj7VeT1Q==}
@@ -11105,8 +11142,8 @@ packages:
     resolution: {integrity: sha512-b94GiNHQNy6JNTrt5w6zNyffMrNkXZb3KTkCZJb2V1xaEGCk093vkZ2jk3tpaeP33/OiXC+WvK9AxUebnf5nbw==}
     engines: {node: '>= 0.6.3'}
 
-  legacy-javascript@0.0.2:
-    resolution: {integrity: sha512-6cMw8OPPX9VOgnWwL6Y7vbNCpd45/RmGMrcSJGaOF4FZfTdEbtlSDUs2ZvHleTUsqSDuKthzHvD6C//jW8ETBA==}
+  legacy-javascript@0.0.3:
+    resolution: {integrity: sha512-1r6MT4dVaJyXt4G07Cm2cQ0AUaLJdefiEp4SmIAylA++gnEQ82YvmzE58RkM5EP0fk5hROLCslUPGnwIYdZQVA==}
 
   lerna-changelog@2.2.0:
     resolution: {integrity: sha512-yjYNAHrbnw8xYFKmYWJEP52Tk4xSdlNmzpYr26+3glbSGDmpe8UMo8f9DlEntjGufL+opup421oVTXcLshwAaQ==}
@@ -11364,6 +11401,10 @@ packages:
   lru-cache@6.0.0:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
+
+  lru-cache@7.18.3:
+    resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
+    engines: {node: '>=12'}
 
   luxon@3.7.2:
     resolution: {integrity: sha512-vtEhXh/gNjI9Yg1u4jX/0YVPMvxzHuGgCm6tC5kZyb08yjGWGnqAjGJvcXbqQR2P3MyMEFnRbpcdFS6PBcLqew==}
@@ -11942,6 +11983,10 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
+  netmask@2.1.1:
+    resolution: {integrity: sha512-eonl3sLUha+S1GzTPxychyhnUzKyeQkZ7jLjKrBagJgPla13F+uQ71HgpFefyHgqrjEbCPkDArxYsjY8/+gLKA==}
+    engines: {node: '>= 0.4.0'}
+
   no-case@3.0.4:
     resolution: {integrity: sha512-fgAN3jGAh+RoxUGZHTSOLJIqUc2wmoBwGR4tbpNAKmmovFoWq0OdRkb0VkldReO2a2iBT/OEulG9XSUc10r3zg==}
 
@@ -12314,6 +12359,16 @@ packages:
   p-try@2.2.0:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}
     engines: {node: '>=6'}
+
+  pac-proxy-agent@9.1.0:
+    resolution: {integrity: sha512-1aU+1mpj3DrQPfo3gh+3Gap3G5x+axnMx1P/y0ZF2ch7kb2meyOCAH8K2k9d27ROsTE7TnAerzxqF9aon2jqnA==}
+    engines: {node: '>= 20'}
+
+  pac-resolver@9.0.1:
+    resolution: {integrity: sha512-lJbS008tmkj08VhoM8Hzuv/VE5tK9MS0OIQ/7+s0lIF+BYhiQWFYzkSpML7lXs9iBu2jfmzBTLzhe9n6BX+dYw==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      quickjs-wasi: ^2.2.0
 
   package-json-from-dist@1.0.1:
     resolution: {integrity: sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw==}
@@ -13161,6 +13216,10 @@ packages:
       kerberos:
         optional: true
 
+  proxy-agent@8.0.2:
+    resolution: {integrity: sha512-idLLRewuemWd7GH/BDJzGiB0dWGfT2SQs3jy6NtZtGWU9uPTTSdeC1/cdbqLwgzhfv027daGFuXX426e2Eg20A==}
+    engines: {node: '>= 20'}
+
   proxy-from-env@2.1.0:
     resolution: {integrity: sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==}
     engines: {node: '>=10'}
@@ -13219,6 +13278,9 @@ packages:
   quick-lru@5.1.1:
     resolution: {integrity: sha512-WuyALRjWPDGtt/wzJiadO5AXY+8hZ80hVpe6MyivgraREW751X3SbhRvG3eLKOYN+8VEvqLcf3wdnt44Z4S4SA==}
     engines: {node: '>=10'}
+
+  quickjs-wasi@2.2.0:
+    resolution: {integrity: sha512-zQxXmQMrEoD3S+jQdYsloq4qAuaxKFHZj6hHqOYGwB2iQZH+q9e/lf5zQPXCKOk0WJuAjzRFbO4KwHIp2D05Iw==}
 
   randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
@@ -13943,6 +14005,10 @@ packages:
 
   sockjs@0.3.24:
     resolution: {integrity: sha512-GJgLTZ7vYb/JtPSSZ10hsOYIvEYsjbNU+zPdIHcUaWVNUEPivzxku31865sSSud0Da0W4lEeOPlmw93zLQchuQ==}
+
+  socks-proxy-agent@10.1.0:
+    resolution: {integrity: sha512-WlMj/67cEJ6MDI1OcsnjuYKDNDoyPCCYZ249kuuXPiMDw9F8PXkVaQ7YWu3siTydfQ/4BEZcvGzu+aYvz7dDCQ==}
+    engines: {node: '>= 20'}
 
   socks-proxy-agent@6.2.1:
     resolution: {integrity: sha512-a6KW9G+6B3nWZ1yB8G7pJwL3ggLy1uTzKAgCb7ttblwqdz9fMGJUuTy3uFzEP48FAs9FLILlmzDlE2JJhVQaXQ==}
@@ -19609,7 +19675,7 @@ snapshots:
 
   '@paulirish/trace_engine@0.0.65':
     dependencies:
-      legacy-javascript: 0.0.2
+      legacy-javascript: 0.0.3
       third-party-web: 0.30.0
 
   '@peculiar/asn1-cms@2.6.0':
@@ -19766,18 +19832,28 @@ snapshots:
     dependencies:
       spacetrim: 0.11.59
 
-  '@puppeteer/browsers@3.2.2(yauzl@3.4.0)':
+  '@puppeteer/browsers@3.2.2(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0)':
     dependencies:
       modern-tar: 0.8.5
       yargs: 18.2.0
     optionalDependencies:
+      proxy-agent: 8.0.2(supports-color@11.0.0)
       yauzl: 3.4.0
 
-  '@puppeteer/browsers@3.2.3(yauzl@3.4.0)':
+  '@puppeteer/browsers@3.2.3(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0)':
     dependencies:
       modern-tar: 0.8.5
       yargs: 18.2.0
     optionalDependencies:
+      proxy-agent: 8.0.2(supports-color@11.0.0)
+      yauzl: 3.4.0
+
+  '@puppeteer/browsers@3.2.3(proxy-agent@8.0.2(supports-color@8.1.1))(yauzl@3.4.0)':
+    dependencies:
+      modern-tar: 0.8.5
+      yargs: 18.2.0
+    optionalDependencies:
+      proxy-agent: 8.0.2(supports-color@8.1.1)
       yauzl: 3.4.0
 
   '@rolldown/pluginutils@1.0.0-rc.3': {}
@@ -21436,7 +21512,7 @@ snapshots:
       js-beautify: 1.15.4
       vue-component-type-helpers: 2.2.10
 
-  '@wdio/electron-service@10.3.0(electron@44.4.5(supports-color@11.0.0))(expect-webdriverio@8.0.0-alpha.3(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(supports-color@11.0.0)(tsx@4.23.15)(webdriverio@packages+webdriverio)(yauzl@3.4.0)':
+  '@wdio/electron-service@10.3.0(electron@44.4.5(supports-color@11.0.0))(expect-webdriverio@8.0.0-alpha.3(@wdio/types@packages+wdio-types)(webdriverio@packages+webdriverio))(proxy-agent@8.0.2(supports-color@11.0.0))(supports-color@11.0.0)(tsx@4.23.15)(webdriverio@packages+webdriverio)(yauzl@3.4.0)':
     dependencies:
       '@babel/parser': 8.0.6
       '@electron/fuses': 2.1.3
@@ -21454,7 +21530,7 @@ snapshots:
       fast-copy: 4.1.1
       find-versions: 6.0.0
       get-port: 7.2.0
-      puppeteer-core: 25.11.0(yauzl@3.4.0)
+      puppeteer-core: 25.11.0(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0)
       recast: 0.24.0
       webdriverio: link:packages/webdriverio
       yaml: 2.9.1
@@ -21910,6 +21986,10 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
+  ast-types@0.13.4:
+    dependencies:
+      tslib: 2.8.1
+
   ast-types@0.16.1:
     dependencies:
       tslib: 2.8.1
@@ -22056,6 +22136,8 @@ snapshots:
   basic-auth@2.0.1:
     dependencies:
       safe-buffer: 5.1.2
+
+  basic-ftp@5.3.1: {}
 
   batch@0.6.1: {}
 
@@ -23213,6 +23295,8 @@ snapshots:
       d3: 7.9.0
       lodash-es: 4.18.1
 
+  data-uri-to-buffer@8.0.0: {}
+
   data-urls@8.0.0(@noble/hashes@1.8.0):
     dependencies:
       whatwg-mimetype: 5.0.0
@@ -23380,6 +23464,13 @@ snapshots:
 
   defu@6.1.7:
     optional: true
+
+  degenerator@7.0.1(quickjs-wasi@2.2.0):
+    dependencies:
+      ast-types: 0.13.4
+      escodegen: 2.1.0
+      esprima: 4.0.1
+      quickjs-wasi: 2.2.0
 
   delaunator@5.1.0:
     dependencies:
@@ -23931,6 +24022,14 @@ snapshots:
   escape-string-regexp@4.0.0: {}
 
   escape-string-regexp@5.0.0: {}
+
+  escodegen@2.1.0:
+    dependencies:
+      esprima: 4.0.1
+      estraverse: 5.3.0
+      esutils: 2.0.3
+    optionalDependencies:
+      source-map: 0.6.1
 
   eslint-formatter-pretty@4.1.0:
     dependencies:
@@ -24610,6 +24709,23 @@ snapshots:
       '@sec-ant/readable-stream': 0.4.1
       is-stream: 4.0.1
 
+  get-uri@8.0.1(supports-color@11.0.0):
+    dependencies:
+      basic-ftp: 5.3.1
+      data-uri-to-buffer: 8.0.0
+      debug: 4.4.3(supports-color@11.0.0)
+    transitivePeerDependencies:
+      - supports-color
+
+  get-uri@8.0.1(supports-color@8.1.1):
+    dependencies:
+      basic-ftp: 5.3.1
+      data-uri-to-buffer: 8.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - supports-color
+    optional: true
+
   giget@3.3.1:
     optional: true
 
@@ -25175,6 +25291,25 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  http-proxy-agent@9.1.0(supports-color@11.0.0):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@11.0.0)
+      proxy-agent-negotiate: 1.1.0
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+
+  http-proxy-agent@9.1.0(supports-color@8.1.1):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      proxy-agent-negotiate: 1.1.0
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+    optional: true
+
   http-proxy-middleware@2.0.9(@types/express@4.17.25)(debug@4.4.3(supports-color@11.0.0)):
     dependencies:
       '@types/http-proxy': 1.17.16
@@ -25224,6 +25359,16 @@ snapshots:
     transitivePeerDependencies:
       - kerberos
       - supports-color
+
+  https-proxy-agent@9.1.0(supports-color@8.1.1):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      proxy-agent-negotiate: 1.1.0
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+    optional: true
 
   human-signals@2.1.0: {}
 
@@ -26000,7 +26145,7 @@ snapshots:
     dependencies:
       readable-stream: 2.3.8
 
-  legacy-javascript@0.0.2: {}
+  legacy-javascript@0.0.3: {}
 
   lerna-changelog@2.2.0(bluebird@3.7.2)(supports-color@11.0.0):
     dependencies:
@@ -26115,7 +26260,7 @@ snapshots:
 
   lighthouse-stack-packs@1.12.3: {}
 
-  lighthouse@13.5.0(@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1))(supports-color@11.0.0)(yauzl@3.4.0):
+  lighthouse@13.5.0(@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1))(proxy-agent@8.0.2(supports-color@11.0.0))(supports-color@11.0.0)(yauzl@3.4.0):
     dependencies:
       '@paulirish/trace_engine': 0.0.65
       '@sentry/node': 10.75.0(@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1))(supports-color@11.0.0)
@@ -26136,7 +26281,7 @@ snapshots:
       lodash-es: 4.18.1
       lookup-closest-locale: 6.2.0
       open: 8.4.2
-      puppeteer-core: 25.12.0(yauzl@3.4.0)
+      puppeteer-core: 25.12.0(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0)
       robots-parser: 3.0.1
       speedline-core: 1.4.3
       third-party-web: 0.30.0
@@ -26340,6 +26485,8 @@ snapshots:
   lru-cache@6.0.0:
     dependencies:
       yallist: 4.0.0
+
+  lru-cache@7.18.3: {}
 
   luxon@3.7.2: {}
 
@@ -27284,6 +27431,8 @@ snapshots:
 
   neo-async@2.6.2: {}
 
+  netmask@2.1.1: {}
+
   no-case@3.0.4:
     dependencies:
       lower-case: 2.0.2
@@ -27785,6 +27934,41 @@ snapshots:
   p-timeout@7.0.2: {}
 
   p-try@2.2.0: {}
+
+  pac-proxy-agent@9.1.0(supports-color@11.0.0):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@11.0.0)
+      get-uri: 8.0.1(supports-color@11.0.0)
+      http-proxy-agent: 9.1.0(supports-color@11.0.0)
+      https-proxy-agent: 9.1.0(supports-color@11.0.0)
+      pac-resolver: 9.0.1(quickjs-wasi@2.2.0)
+      quickjs-wasi: 2.2.0
+      socks-proxy-agent: 10.1.0(supports-color@11.0.0)
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+
+  pac-proxy-agent@9.1.0(supports-color@8.1.1):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      get-uri: 8.0.1(supports-color@8.1.1)
+      http-proxy-agent: 9.1.0(supports-color@8.1.1)
+      https-proxy-agent: 9.1.0(supports-color@8.1.1)
+      pac-resolver: 9.0.1(quickjs-wasi@2.2.0)
+      quickjs-wasi: 2.2.0
+      socks-proxy-agent: 10.1.0(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+    optional: true
+
+  pac-resolver@9.0.1(quickjs-wasi@2.2.0):
+    dependencies:
+      degenerator: 7.0.1(quickjs-wasi@2.2.0)
+      netmask: 2.1.1
+      quickjs-wasi: 2.2.0
 
   package-json-from-dist@1.0.1: {}
 
@@ -28688,6 +28872,35 @@ snapshots:
 
   proxy-agent-negotiate@1.1.0: {}
 
+  proxy-agent@8.0.2(supports-color@11.0.0):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@11.0.0)
+      http-proxy-agent: 9.1.0(supports-color@11.0.0)
+      https-proxy-agent: 9.1.0(supports-color@11.0.0)
+      lru-cache: 7.18.3
+      pac-proxy-agent: 9.1.0(supports-color@11.0.0)
+      proxy-from-env: 2.1.0
+      socks-proxy-agent: 10.1.0(supports-color@11.0.0)
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+
+  proxy-agent@8.0.2(supports-color@8.1.1):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      http-proxy-agent: 9.1.0(supports-color@8.1.1)
+      https-proxy-agent: 9.1.0(supports-color@8.1.1)
+      lru-cache: 7.18.3
+      pac-proxy-agent: 9.1.0(supports-color@8.1.1)
+      proxy-from-env: 2.1.0
+      socks-proxy-agent: 10.1.0(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+    optional: true
+
   proxy-from-env@2.1.0: {}
 
   pump@3.0.4:
@@ -28701,9 +28914,9 @@ snapshots:
     dependencies:
       escape-goat: 4.0.0
 
-  puppeteer-core@25.11.0(yauzl@3.4.0):
+  puppeteer-core@25.11.0(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0):
     dependencies:
-      '@puppeteer/browsers': 3.2.2(yauzl@3.4.0)
+      '@puppeteer/browsers': 3.2.2(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0)
       chromium-bidi: 17.0.2(devtools-protocol@0.0.1680125)
       devtools-protocol: 0.0.1680125
       typed-query-selector: 2.12.2
@@ -28715,9 +28928,23 @@ snapshots:
       - utf-8-validate
       - yauzl
 
-  puppeteer-core@25.12.0(yauzl@3.4.0):
+  puppeteer-core@25.12.0(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0):
     dependencies:
-      '@puppeteer/browsers': 3.2.3(yauzl@3.4.0)
+      '@puppeteer/browsers': 3.2.3(proxy-agent@8.0.2(supports-color@11.0.0))(yauzl@3.4.0)
+      chromium-bidi: 17.0.2(devtools-protocol@0.0.1687809)
+      devtools-protocol: 0.0.1687809
+      typed-query-selector: 2.12.2
+      webdriver-bidi-protocol: 0.4.3
+      ws: 8.22.0
+    transitivePeerDependencies:
+      - bufferutil
+      - proxy-agent
+      - utf-8-validate
+      - yauzl
+
+  puppeteer-core@25.12.0(proxy-agent@8.0.2(supports-color@8.1.1))(yauzl@3.4.0):
+    dependencies:
+      '@puppeteer/browsers': 3.2.3(proxy-agent@8.0.2(supports-color@8.1.1))(yauzl@3.4.0)
       chromium-bidi: 17.0.2(devtools-protocol@0.0.1687809)
       devtools-protocol: 0.0.1687809
       typed-query-selector: 2.12.2
@@ -28758,6 +28985,8 @@ snapshots:
   quick-lru@4.0.1: {}
 
   quick-lru@5.1.1: {}
+
+  quickjs-wasi@2.2.0: {}
 
   randombytes@2.1.0:
     dependencies:
@@ -29725,6 +29954,23 @@ snapshots:
       faye-websocket: 0.11.4
       uuid: 8.3.2
       websocket-driver: 0.7.5
+
+  socks-proxy-agent@10.1.0(supports-color@11.0.0):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@11.0.0)
+      socks: 2.8.7
+    transitivePeerDependencies:
+      - supports-color
+
+  socks-proxy-agent@10.1.0(supports-color@8.1.1):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      socks: 2.8.7
+    transitivePeerDependencies:
+      - supports-color
+    optional: true
 
   socks-proxy-agent@6.2.1(supports-color@11.0.0):
     dependencies:
