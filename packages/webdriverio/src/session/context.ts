@@ -12,6 +12,20 @@ export function getContextManager(browser: WebdriverIO.Browser) {
     return SessionManager.getSessionManager(browser, ContextManager)
 }
 
+/**
+ * The browsers that are an instance of a multi-remote browser. The browser object
+ * is the key, not its context manager, so the mark stays after `reloadSession()`.
+ */
+const multiRemoteInstances = new WeakSet<WebdriverIO.Browser>()
+
+/**
+ * Marks `browser` as an instance of a multi-remote browser, see `MultiRemote.addInstance`.
+ * @param browser the browser of one multi-remote instance
+ */
+export function registerMultiRemoteInstance(browser: WebdriverIO.Browser) {
+    multiRemoteInstances.add(browser)
+}
+
 export type FlatContextTree = Omit<local.BrowsingContextInfo, 'children'> & { children: string[] }
 
 /**
@@ -222,8 +236,27 @@ export class ContextManager extends SessionManager {
             // Clear cached window handle
             this.#currentWindowHandle = undefined
 
-            const windowHandles = (event.result as { value?: string[] }).value || []
+            const { value, error } = event.result as { value?: string[], error?: unknown }
+            const windowHandles = value || []
             if (windowHandles.length === 0) {
+                this.#currentContext = undefined
+
+                /**
+                 * Closing the last window ends the session of this browser. An instance
+                 * of a multi-remote browser is one session of several, so the test goes
+                 * on with the other instances (#15043). An error of the command itself
+                 * reaches the caller as it is.
+                 */
+                if (multiRemoteInstances.has(this.#browser)) {
+                    if (!error) {
+                        log.warn(
+                            `All windows of the multi-remote instance with session "${this.#browser.sessionId}" ` +
+                            'were closed, so its session ended. The other instances keep running.'
+                        )
+                    }
+                    return
+                }
+
                 throw new Error('All window handles were removed, causing WebdriverIO to close the session.')
             }
             this.#currentContext = windowHandles[0]

@@ -890,6 +890,27 @@ describe('Multi-Remote tests', () => {
         })
     })
 
+    describe('closeWindow (#15043)', () => {
+        const fetchMock = () => fetch as unknown as {
+            customResponseFor: (pattern: RegExp, response: unknown) => void
+            resetCustomResponses: () => void
+        }
+
+        afterEach(() => {
+            fetchMock().resetCustomResponses()
+        })
+
+        test('closing the last window of one instance does not end the test for the others', async () => {
+            const browser = await multiRemote(caps())
+            fetchMock().customResponseFor(/\/window$/, { value: [] })
+
+            await expect(browser.getInstance('browserA').closeWindow()).resolves.toEqual([])
+
+            fetchMock().resetCustomResponses()
+            expect(await browser.getInstance('browserB').getTitle()).toContain('WebdriverIO')
+        })
+    })
+
     describe('select', () => {
         test('should preserve filtered instances when chaining $ on a selected element', async () => {
             const browser = await multiRemote(caps())

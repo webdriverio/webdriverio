@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import { getContextManager } from '../../src/session/context.js'
+import { getContextManager, registerMultiRemoteInstance } from '../../src/session/context.js'
 import { logMock } from '@wdio/logger'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -79,6 +79,78 @@ describe('ContextManager', () => {
             'All window handles were removed, causing WebdriverIO to close the session.'
         )
         expect(browser.switchToWindow).not.toHaveBeenCalled()
+    })
+
+    describe('closeWindow on an instance of a multi-remote browser (#15043)', () => {
+        it('does not throw when the last window of the instance was closed', () => {
+            registerMultiRemoteInstance(browser)
+            const handler = getListeners().result![0]
+
+            expect(() => handler({ command: 'closeWindow', result: { value: [] } })).not.toThrow()
+            expect(browser.switchToWindow).not.toHaveBeenCalled()
+            expect(logMock.warn).toHaveBeenCalledWith(
+                `All windows of the multi-remote instance with session "${browser.sessionId}" ` +
+                'were closed, so its session ended. The other instances keep running.'
+            )
+        })
+
+        it('clears the current context and window handle', async () => {
+            registerMultiRemoteInstance(browser)
+            const manager = getContextManager(browser)
+            const handler = getListeners().result![0]
+            manager.setCurrentContext('handle-A')
+            handler({ command: 'getWindowHandle', result: { value: 'handle-A' } })
+
+            handler({ command: 'closeWindow', result: { value: [] } })
+
+            expect(manager.getCurrentWindowHandle()).toBeUndefined()
+            /**
+             * no context is cached anymore, so it is fetched again (an empty string in unit tests)
+             */
+            expect(await manager.getCurrentContext()).toBe('')
+        })
+
+        it('leaves the error of a failed closeWindow to the command', () => {
+            registerMultiRemoteInstance(browser)
+            const handler = getListeners().result![0]
+
+            expect(() => handler({ command: 'closeWindow', result: { error: new Error('no such window') } })).not.toThrow()
+            expect(logMock.warn).not.toHaveBeenCalled()
+        })
+
+        it('still switches to the first remaining window', () => {
+            registerMultiRemoteInstance(browser)
+            const handler = getListeners().result![0]
+
+            handler({ command: 'closeWindow', result: { value: ['handle-A', 'handle-B'] } })
+
+            expect(browser.switchToWindow).toHaveBeenCalledWith('handle-A')
+        })
+
+        it('keeps the instance marked after its session was reloaded', () => {
+            registerMultiRemoteInstance(browser)
+            for (const handler of getListeners().command ?? []) {
+                handler({ command: 'deleteSession' })
+            }
+            const handlerCount = getListeners().result!.length
+
+            getContextManager(browser)
+            const handler = getListeners().result![handlerCount]
+
+            expect(handler).toBeDefined()
+            expect(() => handler({ command: 'closeWindow', result: { value: [] } })).not.toThrow()
+        })
+
+        it('still throws for a browser that is not part of a multi-remote browser', () => {
+            const stub = createBrowserStub()
+            registerMultiRemoteInstance(browser)
+            getContextManager(stub.browser)
+            const handler = stub.getListeners().result![0]
+
+            expect(() => handler({ command: 'closeWindow', result: { value: [] } })).toThrow(
+                'All window handles were removed, causing WebdriverIO to close the session.'
+            )
+        })
     })
 
     it('should cache the current window handle on getWindowHandle command', () => {
