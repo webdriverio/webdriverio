@@ -146,7 +146,7 @@ Query parameters that are propagated to the driver server.
 
 <Option type="Number" default="120000">
 
-Timeout for any WebDriver request to a driver or grid.
+Timeout for any WebDriver request to a driver or grid. It is also the longest time that WebdriverIO waits for the browser to accept the WebDriver BiDi connection.
 
 </Option>
 

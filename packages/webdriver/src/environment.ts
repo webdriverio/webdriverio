@@ -21,7 +21,7 @@ export interface EnvironmentVariables {
 export interface EnvironmentDependencies {
     Request: typeof FetchRequest,
     Socket: typeof BrowserSocket,
-    createBidiConnection: (wsUrl?: string, options?: WebSocket.ClientOptions) => Promise<WebSocket | undefined>,
+    createBidiConnection: (wsUrl?: string, options?: WebSocket.ClientOptions, timeout?: number) => Promise<WebSocket | undefined>,
     killDriverProcess: (capabilities: WebdriverIO.Capabilities, shutdownDriver: boolean) => void,
     variables: EnvironmentVariables
 }

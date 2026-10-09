@@ -202,7 +202,8 @@ describe('WebDriver', () => {
                 webSocketUrl,
                 strictSSL,
                 headers,
-                DEFAULTS.bidiResponseTimeout.default
+                DEFAULTS.bidiResponseTimeout.default,
+                DEFAULTS.connectionRetryTimeout.default
             )
         })
 
@@ -226,7 +227,33 @@ describe('WebDriver', () => {
                 webSocketUrl,
                 undefined,
                 undefined,
-                300000
+                300000,
+                DEFAULTS.connectionRetryTimeout.default
+            )
+        })
+
+        it('should pass a custom "connectionRetryTimeout" to "initiateBidi" as the connect timeout', async () => {
+            const webSocketUrl = 'ws://foo/bar'
+
+            vi.spyOn(utils, 'initiateBidi')
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+                value: {
+                    sessionId: 'bidi-session',
+                    capabilities: { webSocketUrl }
+                }
+            }))
+            await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' },
+                connectionRetryTimeout: 30000
+            })
+
+            expect(utils.initiateBidi).toHaveBeenCalledWith(
+                webSocketUrl,
+                undefined,
+                undefined,
+                DEFAULTS.bidiResponseTimeout.default,
+                30000
             )
         })
     })

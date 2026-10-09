@@ -85,7 +85,8 @@ export interface WebDriver extends Connection {
      */
     logLevels?: Record<string, WebDriverLogTypes>
     /**
-     * Timeout for any WebDriver request to a driver or grid.
+     * Timeout for any WebDriver request to a driver or grid. It is also the longest
+     * time that WebdriverIO waits for the browser to accept the WebDriver BiDi connection.
      *
      * @default 120000
      */
