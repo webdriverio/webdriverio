@@ -27,13 +27,14 @@ Stop when one of these is true. Do not pick a workaround on your own.
 1. Use Node.js 22.19.0 or later. Cucumber 13 does not run on Node.js 20, 23, or 25. A project created with `npm create wdio@latest` gets `compilerOptions.target` and `compilerOptions.lib` of `es2024`. Leave an existing `tsconfig.json` unchanged. Type-checking the generated file needs TypeScript 5.7 or newer.
 2. Install WebdriverIO 10 for `webdriverio`, `webdriver`, and every `@wdio/*` package in the same change. Leave no v9 package behind.
 3. If `package.json` lists `expect-webdriverio`, update it to 8. Apply its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8).
-4. With Appium, install `appium@^3` and run `appium driver update installed`.
-5. With `puppeteer-core`, use `>=24 <26`.
-6. With `eslint-plugin-wdio`, use `eslint@^10`. With TypeScript, install `typescript-eslint` 8.56.0 or later, not only `@typescript-eslint/eslint-plugin`, and scope the config with `files: ['**/*.{ts,mts,cts,tsx}']`. Widen it to JavaScript only when `tsconfig.json` has `allowJs` and includes those files.
-7. With TypeScript 6, replace `"moduleResolution": "node"` and remove `"baseUrl"` as the guide shows. If `tsconfig.json` has no `types` list, add one with the type packages the tests use: TypeScript 6 no longer loads `@types/*` by default.
-8. Apply the replacements below, then run the [codemod](#codemod) for the legacy command signatures.
-9. Run the suite. Strict `$` and bare capability `specs` / `exclude` only show up at runtime.
-10. Search the patterns again. A leftover `jasmineNodeOpts` or `tagExpression` throws.
+4. If `package.json` lists `geckodriver`, `edgedriver` or `safaridriver`, update them to 8, 8 and 3. Check their [upgrade notes](https://github.com/webdriverio/driver#upgrading-to-geckodriver-8-edgedriver-8-and-safaridriver-3). The driver downloads now use `HTTPS_PROXY` and `HTTP_PROXY`: if the project sets a proxy but reaches the driver CDN directly, add that host to `NO_PROXY`.
+5. With Appium, install `appium@^3` and run `appium driver update installed`.
+6. With `puppeteer-core`, use `>=24 <26`.
+7. With `eslint-plugin-wdio`, use `eslint@^10`. With TypeScript, install `typescript-eslint` 8.56.0 or later, not only `@typescript-eslint/eslint-plugin`, and scope the config with `files: ['**/*.{ts,mts,cts,tsx}']`. Widen it to JavaScript only when `tsconfig.json` has `allowJs` and includes those files.
+8. With TypeScript 6, replace `"moduleResolution": "node"` and remove `"baseUrl"` as the guide shows. If `tsconfig.json` has no `types` list, add one with the type packages the tests use: TypeScript 6 no longer loads `@types/*` by default.
+9. Apply the replacements below, then run the [codemod](#codemod) for the legacy command signatures.
+10. Run the suite. Strict `$` and bare capability `specs` / `exclude` only show up at runtime.
+11. Search the patterns again. A leftover `jasmineNodeOpts` or `tagExpression` throws.
 
 Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior.
 
@@ -85,6 +86,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `expect-webdriverio/types` | `expect-webdriverio/expect-global` |
 | `wdioMatchers.entries()` in a custom framework | `Object.entries(wdioMatchers)`. The `Map` overload of `setupExpect` is gone. |
 | `JSONWPCommandError` | `SessionRequestError` |
+| `GECKODRIVER_FILEPATH` | `GECKODRIVER_PATH`. `geckodriver` 8 ignores the old variable. |
 | `isW3C` | delete it. Every session is W3C. Passing it to `attach` is ignored. |
 
 Search for `multiremote` and `Multiremote` case-sensitively. Leave the `id: multiremote` permalink, `/docs/multiremote` links, file names, and the Allure historyId key `'multiremote'`.
@@ -142,6 +144,8 @@ Use `--parser=tsx` for TypeScript files.
 ## Verify
 
 Run the project's typecheck and one real `wdio` run of the specs you changed. A unit test of the app under test is not that proof.
+
+If `outputDir` is set and `wdio.log` starts with NUL bytes or misses its first lines, a second copy of `@wdio/logger` emptied it. Run `npm ls @wdio/logger`: every copy must be 10. Update the package that brings version 9.
 
 After the run, these strings mean a leftover, not a product bug:
 
