@@ -62,6 +62,26 @@ describe('launcher', () => {
         expect(launcher['_args']).toEqual({})
     })
 
+    it.each([
+        [{ browserA: { capabilities: { browserName: 'chrome' } }, browserB: { capabilities: { browserName: 'chrome' } } }, true, false],
+        [[{ browserA: { capabilities: { browserName: 'chrome' } }, browserB: { capabilities: { browserName: 'chrome' } } }], true, true],
+        [[{ browserName: 'chrome' }], false, false],
+        [[{ browserName: 'chrome' }, { browserName: 'firefox' }], false, false],
+        [[{ alwaysMatch: { browserName: 'chrome' }, firstMatch: [{}] }], false, false],
+        [{}, true, false],
+        [[], false, false],
+        [[{}], false, false]
+    ])('should detect the browser mode during initialization for %j', async (capabilities, isMultiRemote, isParallelMultiRemote) => {
+        vi.mocked(launcher.configParser.initialize).mockImplementationOnce(async () => {
+            vi.mocked(launcher.configParser.getCapabilities).mockReturnValue(capabilities as any)
+        })
+
+        await launcher.initialize()
+
+        expect(launcher.isMultiRemote).toBe(isMultiRemote)
+        expect(launcher.isParallelMultiRemote).toBe(isParallelMultiRemote)
+    })
+
     it('should calculate total worker count after onPrepare added specs', async () => {
         const localLauncher = new Launcher('./') as any
         const onPrepare = vi.fn((config: any) => {
@@ -894,7 +914,7 @@ describe('launcher', () => {
             expect(launcher.runner!.shutdown).toBeCalled()
             expect(enableFileLogging).toHaveBeenCalledWith('tempDir')
 
-            expect(launcher.configParser.getCapabilities).toBeCalledTimes(3)
+            expect(launcher.configParser.getCapabilities).toBeCalledTimes(4)
             expect(launcher.configParser.getConfig).toBeCalledTimes(2)
             expect(launcher.runner!.initialize).toBeCalledTimes(1)
             // @ts-ignore
@@ -903,6 +923,22 @@ describe('launcher', () => {
             // @ts-ignore
             expect(config.onPrepare![0]).toBeCalledTimes(1)
             expect(launcher.interface!.finalise).toBeCalledTimes(1)
+        })
+
+        it.each([
+            [[{ browserName: 'chrome' }], { browserA: { capabilities: { browserName: 'chrome' } } }, true, false],
+            [{ browserA: { capabilities: { browserName: 'chrome' } } }, [{ browserName: 'chrome' }], false, false],
+            [[{ browserName: 'chrome' }], [{ browserA: { capabilities: { browserName: 'chrome' } } }], true, true]
+        ])('should use updated capabilities after initialization for %j -> %j', async (initial, updated, isMultiRemote, isParallelMultiRemote) => {
+            vi.mocked(launcher.configParser.getCapabilities).mockReturnValue(initial as any)
+            launcher.configParser.getSpecs = vi.fn().mockReturnValue(['./example.test.js'])
+            await launcher.initialize()
+
+            vi.mocked(launcher.configParser.getCapabilities).mockReturnValue(updated as any)
+            await launcher.run()
+
+            expect(launcher.isMultiRemote).toBe(isMultiRemote)
+            expect(launcher.isParallelMultiRemote).toBe(isParallelMultiRemote)
         })
 
         it('should not shutdown runner if was called before', async () => {
