@@ -51,6 +51,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `multiremote(` | `multiRemote(` |
 | `MultiremoteConfig` | `MultiRemoteConfig` |
 | capability `specs` / `exclude` | `wdio:specs` / `wdio:exclude`. Top-level config keys stay `specs` and `exclude`. A bare capability list is ignored. |
+| `--spec "../dir/*.js"` written relative to the config file | `--spec "./dir/*.js"` relative to the current working directory. A `--spec` glob with a directory now resolves like a file path. |
 | Sauce `tunnelIdentifier` / `parentTunnel` | `tunnelName` / `tunnelOwner` |
 | `import type { Element }` from `webdriverio` | `WebdriverIO.Element` (also `MultiRemoteBrowser`, `MultiRemoteElement`) |
 | `onAfterCommand` argument `name` | `command` |

@@ -1,9 +1,12 @@
 import url from 'node:url'
 import path from 'node:path'
+import fs from 'node:fs'
+import os from 'node:os'
 
 import { vi, describe, it, expect, } from 'vitest'
 
 import ConfigParser from '../../src/node/ConfigParser.js'
+import FileSystemPathService from '../../src/node/FileSystemPathService.js'
 import type { MockFileContent } from '../lib/MockFileContentBuilder.js'
 import MockFileContentBuilder from '../lib/MockFileContentBuilder.js'
 import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from '../lib/MockPathService.js'
@@ -610,6 +613,76 @@ describe('ConfigParser', () => {
             })
             const { capabilities } = configParser.getConfig()
             expect(capabilities).toHaveLength(1)
+        })
+    })
+
+    describe('--spec from a working directory that is not the config directory (#14447)', () => {
+        /**
+         * run from `tests/`, the parent of the config directory `tests/__fixtures__`
+         */
+        const cwd = path.resolve(FIXTURES_PATH, '..')
+        const fileUrl = (...segments: string[]) => url.pathToFileURL(path.resolve(...segments)).href
+        const prefixSpecs = [
+            fileUrl(FIXTURES_PATH, 'prefix-test-01.ts'),
+            fileUrl(FIXTURES_PATH, 'prefix-test-02.ts')
+        ]
+
+        /**
+         * `fs` reads a relative path from the real working directory, which a
+         * worker thread cannot change, so read it from the mocked one
+         */
+        class CwdPathService extends FileSystemPathService {
+            isFile (filepath: string) {
+                return super.isFile(path.resolve(process.cwd(), filepath))
+            }
+        }
+
+        async function getSpecsFor (spec: string[]) {
+            vi.spyOn(process, 'cwd').mockReturnValue(cwd)
+            try {
+                const args = { spec }
+                const configParser = new ConfigParser(FIXTURES_CONF, args, new CwdPathService())
+                await configParser.initialize(args)
+                return configParser.getSpecs()
+            } finally {
+                vi.mocked(process.cwd).mockRestore()
+            }
+        }
+
+        it('resolves a glob pattern with a directory from the working directory', async () => {
+            expect(await getSpecsFor(['./__fixtures__/prefix-test-0*.ts'])).toEqual(prefixSpecs)
+        })
+
+        it('resolves a file with a directory from the working directory', async () => {
+            expect(await getSpecsFor(['./__fixtures__/prefix-test-01.ts'])).toEqual([prefixSpecs[0]])
+        })
+
+        it('resolves a file without a directory from the working directory', async () => {
+            expect(await getSpecsFor(['utils.test.ts'])).toEqual([fileUrl(cwd, 'utils.test.ts')])
+        })
+
+        it('still matches a glob pattern without a directory by file name', async () => {
+            expect(await getSpecsFor(['prefix-test-0*.ts'])).toEqual(prefixSpecs)
+        })
+
+        it('does not resolve a glob pattern from the config directory', async () => {
+            await expect(getSpecsFor(['./prefix-test-0*.ts'])).rejects.toThrow('not found')
+        })
+
+        it('keeps literal CWD brackets in Cucumber feature line selectors', async () => {
+            const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'wdio-cucumber-[app]-'))
+            const feature = path.join(workspace, 'login.feature')
+            fs.writeFileSync(feature, 'Feature: login\n')
+            vi.spyOn(process, 'cwd').mockReturnValue(workspace)
+            try {
+                const args = { spec: ['./login.feature:12'] }
+                const parser = new ConfigParser(FIXTURES_CONF, args)
+                await parser.initialize({ specs: [url.pathToFileURL(feature).href] })
+                expect(parser.getConfig().cucumberFeaturesWithLineNumbers).toEqual([feature + ':12'])
+            } finally {
+                vi.mocked(process.cwd).mockRestore()
+                fs.rmSync(workspace, { recursive: true, force: true })
+            }
         })
     })
 
