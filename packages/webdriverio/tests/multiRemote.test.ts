@@ -939,7 +939,7 @@ describe('Multi-Remote tests', () => {
             expect(executeA).not.toHaveBeenCalled()
         })
 
-        test('converts an object reached twice once and ends at a cycle', async () => {
+        test('converts an object reached twice once and keeps cycles on the copy', async () => {
             const browser = await multiRemote(caps())
             const elem = await browser.$('#foo')
             const execute = vi.spyOn(browser.getInstance('browserA'), 'execute').mockResolvedValue('a')
@@ -947,12 +947,22 @@ describe('Multi-Remote tests', () => {
             const shared = { elem }
             const cyclic: Record<string, unknown> = { first: shared, second: shared }
             cyclic.self = cyclic
+            const list: unknown[] = [elem]
+            list.push(list)
+            const withoutElement: Record<string, unknown> = { name: 'foo' }
+            withoutElement.self = withoutElement
 
-            await browser.execute((...args: unknown[]) => args, cyclic)
+            await browser.execute((...args: unknown[]) => args, cyclic, list, shared, withoutElement)
 
-            const sent = (execute.mock.calls[0] as unknown[])[1] as { first: { elem: unknown }, second: unknown }
+            type Sent = { first: { elem: unknown }, second: unknown, self: unknown }
+            const [, sent, sentList, sentShared, sentWithoutElement] = execute.mock.calls[0] as [unknown, Sent, unknown[], unknown, unknown]
             expect(sent.first.elem).toBe(elem.getInstance('browserA'))
             expect(sent.second).toBe(sent.first)
+            expect(sent.self).toBe(sent)
+            expect(sentShared).toBe(sent.first)
+            expect(sentList[0]).toBe(elem.getInstance('browserA'))
+            expect(sentList[1]).toBe(sentList)
+            expect(sentWithoutElement).toBe(withoutElement)
         })
 
         test('never calls a getter of an argument', async () => {
