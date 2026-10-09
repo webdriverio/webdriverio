@@ -325,8 +325,11 @@ async function isInstalledDespiteArchiveCleanup (args: InstallOptions, err: unkn
     try {
         const cache = new Cache(args.cacheDir)
         const browserRoot = path.resolve(cache.browserRoot(args.browser))
+        /**
+         * up to the last quote of the line: Node.js does not escape quotes in the path
+         */
         const locked = (providerLines.length > 0 ? providerLines : [message]).map((line) => (
-            /\b(?:EBUSY|EPERM)\b[^\n]*\bunlink '([^']+)'/.exec(line)?.[1]
+            /\b(?:EBUSY|EPERM)\b[^\n]*\bunlink '([^\n]+)'/.exec(line)?.[1]
         ))
         const onlyArchiveCleanup = locked.every((file) => (
             file !== undefined &&
