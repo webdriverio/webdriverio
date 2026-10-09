@@ -407,5 +407,9 @@ export async function enableFileLogging (outputDir?: string): Promise<void> {
     }
 
     await fs.mkdir(path.join(outputDir), { recursive: true })
-    process.env.WDIO_LOG_PATH = path.join(outputDir, 'wdio.log')
+    /**
+     * keep a path that is already set: @wdio/local-runner gives each worker its own
+     * log file, and the worker calls this again with the same `outputDir`
+     */
+    process.env.WDIO_LOG_PATH ??= path.join(outputDir, 'wdio.log')
 }

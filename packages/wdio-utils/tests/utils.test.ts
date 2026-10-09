@@ -336,6 +336,19 @@ describe('enableFileLogging', () => {
         expect(fs.mkdir).toHaveBeenCalledWith(path.join(outputDir), { recursive: true })
         expect(process.env.WDIO_LOG_PATH).toBe(expectedLogPath)
     })
+
+    /**
+     * @wdio/local-runner gives each worker its own log file. The worker runs
+     * enableFileLogging() again; replacing the path made a logger that opens its file
+     * later (e.g. a second copy of @wdio/logger) open and empty the launcher's wdio.log.
+     */
+    it('keeps a WDIO_LOG_PATH that is already set', async () => {
+        process.env.WDIO_LOG_PATH = path.join('/path/to/log/directory', 'spec-0-0.log')
+
+        await enableFileLogging('/path/to/log/directory')
+
+        expect(process.env.WDIO_LOG_PATH).toBe(path.join('/path/to/log/directory', 'spec-0-0.log'))
+    })
 })
 
 describe('isAppiumCapability', () => {
