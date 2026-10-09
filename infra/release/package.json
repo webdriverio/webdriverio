@@ -6,6 +6,7 @@
   "scripts": {
     "changelog": "tsx ./src/changelog.cli.ts",
     "push-tags": "tsx ./src/pushTags.cli.ts",
+    "dev-version": "tsx ./src/devVersion.cli.ts",
     "backport": "tsx ./src/backport.cli.ts"
   },
   "dependencies": {
