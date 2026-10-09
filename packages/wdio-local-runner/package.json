@@ -36,14 +36,14 @@
   },
   "typeScriptVersion": "6.0.3",
   "dependencies": {
-    "@types/node": "^22.20.4",
+    "@types/node": "^26.6.4",
     "@types/split2": "^4.2.3",
     "@wdio/display-server": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/repl": "workspace:*",
     "@wdio/runner": "workspace:*",
     "@wdio/types": "workspace:*",
-    "exit-hook": "^4.0.0",
+    "exit-hook": "^5.1.0",
     "expect-webdriverio": "^8.0.0-alpha.3",
     "split2": "^4.1.0",
     "stream-buffers": "^3.0.2"

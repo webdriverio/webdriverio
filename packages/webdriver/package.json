@@ -36,7 +36,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/node": "^22.20.4",
+    "@types/node": "^26.6.4",
     "@types/ws": "^8.5.3",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
@@ -44,7 +44,7 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^8.0.0",
-    "https-proxy-agent": "^7.0.6",
+    "https-proxy-agent": "^9.1.0",
     "undici": "^8.11.2",
     "ws": "^8.21.0"
   }

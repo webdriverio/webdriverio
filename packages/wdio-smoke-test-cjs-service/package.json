@@ -25,6 +25,6 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "6.0.3",
   "dependencies": {
-    "@types/node": "^22.20.4"
+    "@types/node": "^26.6.4"
   }
 }
