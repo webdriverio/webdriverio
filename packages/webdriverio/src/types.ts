@@ -238,6 +238,12 @@ export interface ChainablePromiseArray extends AsyncIterators<WebdriverIO.Elemen
     getElements(): Promise<WebdriverIO.ElementArray>
 
     /**
+     * Re-execute the original element query and all derived filter/slice steps.
+     * Callback filters run again; avoid side effects in those callbacks.
+     */
+    refetch(): Promise<WebdriverIO.ElementArray>
+
+    /**
      * Returns an async iterator of key/value pairs for every index in the array.
      */
     entries(): AsyncIterableIterator<[number, WebdriverIO.Element]>
@@ -313,6 +319,10 @@ interface ElementArrayExport extends Omit<Array<WebdriverIO.Element>, keyof Asyn
      */
     getElements(): Promise<WebdriverIO.ElementArray>
     /**
+     * Re-execute the original query and preserve any derived filter/slice steps.
+     */
+    refetch(): Promise<WebdriverIO.ElementArray>
+    /**
      * Async iterator so `for await (const el of $$('...'))` yields each element
      * whether or not the list has been awaited yet.
      */
@@ -354,6 +364,10 @@ interface MultiRemoteElementArrayExport extends Omit<Array<WebdriverIO.MultiRemo
      * get the `WebdriverIO.MultiRemoteElement[]` list
      */
     getElements(): Promise<WebdriverIO.MultiRemoteElementArray>
+    /**
+     * Re-execute the multi-remote query and derived filter/slice steps.
+     */
+    refetch(): Promise<WebdriverIO.MultiRemoteElementArray>
     /**
      * Async iterator over the multi-remote elements in this list.
      */

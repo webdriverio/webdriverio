@@ -39,8 +39,14 @@ import type { Selector } from '../../types.js'
  * missing single element does. That wait still happens after the list has resolved
  * (`const items = await $$('li'); await items[items.length]`). A [`slice`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice)
  * or a `filter` does not: `$$('li').slice(0, 2)[3]` stays outside that window, and an index past a
- * filtered list does not resolve to an element the filter excluded. `.at()` uses the same index
- * conversion as a plain array, so `.at(1.5)` is element 1 and `.at(NaN)` is element 0.
+ * filtered list does not resolve to an element the filter excluded. The same applies to
+ * `$([existingElement])`: an explicit list never queries other matching elements to fill
+ * an out-of-range index. `.at()` uses the same index conversion as a plain array.
+ *
+ * To run a live query again, call `await elements.refetch()`. Filter and slice operations
+ * are replayed in order rather than silently replaced with the original selector's full
+ * result. Filter callbacks run again on every refetch, so keep them side-effect-free.
+ * A list explicitly constructed from existing elements keeps that chosen membership.
  *
  * Using the wdio testrunner this command is a global variable, see [Globals](https://webdriver.io/docs/api/globals)
  * for more information. Using WebdriverIO within a [standalone](https://webdriver.io/docs/setuptypes#standalone-mode)
@@ -103,11 +109,14 @@ export function $$ (
         foundWith: string
         parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement | WebdriverIO.BrowsingContext
         props: unknown[]
+        refetch: boolean
     } = {
         selector: selector as Selector,
-        foundWith: '$$',
+        foundWith: '$',
         parent: this,
-        props: []
+        props: [],
+        // $([existing elements]) is an explicit list, not a live selector.
+        refetch: !Array.isArray(selector)
     }
 
     return ElementArray.fromAsyncCallback(async () => {

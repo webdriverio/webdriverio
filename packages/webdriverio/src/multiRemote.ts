@@ -309,6 +309,7 @@ export default class MultiRemote {
                      * `parent[foundWith](selector, ...props)` runs the same query again
                      */
                     props,
+                    refetch: !Array.isArray(selector),
                     isMultiRemote: true,
                     wrapMultiRemote
                 })
