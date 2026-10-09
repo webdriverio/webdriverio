@@ -30,6 +30,11 @@ interface ElementArrayMetadata {
      */
     refetch?: boolean
     /**
+     * Reconstructs this list from its original query and any derived operations.
+     * Unlike the index-refetch flag, this keeps filters and slices intact.
+     */
+    rerun?: () => Promise<ElementList>
+    /**
      * Builds one multi-remote element from one element per instance, in the
      * instance order of `parent`. Set by a multi-remote `$$`.
      */
@@ -109,11 +114,33 @@ function cloneMetadata (metadata: ElementArrayMetadata): ElementArrayMetadata {
  * not become the fourth match, and a filtered list must not return an element
  * the filter excluded.
  */
-function derivedMetadata (metadata: ElementArrayMetadata): ElementArrayMetadata {
+function derivedMetadata (metadata: ElementArrayMetadata, rerun: () => Promise<ElementList>): ElementArrayMetadata {
     return {
         ...cloneMetadata(metadata),
-        refetch: false
+        refetch: false,
+        rerun
     }
+}
+
+/**
+ * Rebuild a list from its actual provenance. Metadata alone is insufficient for
+ * derived lists: rerunning a filter's original selector would discard the filter.
+ */
+async function refetchItems (array: ElementList): Promise<ElementList> {
+    const { rerun, parent, foundWith, selector, props } = stateOf(array).metadata
+    if (rerun) {
+        return rerun()
+    }
+    if (!parent) {
+        return [...await load(array)]
+    }
+
+    const query = (parent as unknown as Record<string, (...args: unknown[]) => Promise<WebdriverIO.ElementArray>>)[foundWith]
+    if (typeof query !== 'function') {
+        return [...await load(array)]
+    }
+    const fresh = await query.call(parent, selector, ...props)
+    return [...fresh] as ElementList
 }
 
 function fill (array: ElementList, items: ElementList) {
@@ -232,6 +259,9 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
 }
 
 const methods: Record<string, Function> = {
+    async refetch (this: ElementList) {
+        return fromResolved(await refetchItems(this), cloneMetadata(stateOf(this).metadata))
+    },
     async map (this: ElementList, callback: (value: WebdriverIO.Element, index: number, array: WebdriverIO.Element[]) => unknown, thisArg?: unknown) {
         const items = await load(this)
         return asyncIterators.map(listForIteration(items), callback as Function, thisArg)
@@ -244,13 +274,17 @@ const methods: Record<string, Function> = {
         const state = stateOf(this)
         const items = await load(this)
         const matched = await asyncIterators.filter(listForIteration(items), callback as Function, thisArg) as WebdriverIO.Element[]
-        return fromResolved(matched, derivedMetadata(state.metadata))
+        return fromResolved(matched, derivedMetadata(state.metadata, async () =>
+            asyncIterators.filter(await refetchItems(this), callback as Function, thisArg) as Promise<ElementList>
+        ))
     },
     async filterSeries (this: ElementList, callback: (value: WebdriverIO.Element, index: number, array: WebdriverIO.Element[]) => unknown, thisArg?: unknown) {
         const state = stateOf(this)
         const items = await load(this)
         const matched = await asyncIterators.filterSeries(listForIteration(items), callback as Function, thisArg) as WebdriverIO.Element[]
-        return fromResolved(matched, derivedMetadata(state.metadata))
+        return fromResolved(matched, derivedMetadata(state.metadata, async () =>
+            asyncIterators.filterSeries(await refetchItems(this), callback as Function, thisArg) as Promise<ElementList>
+        ))
     },
     async forEach (this: ElementList, callback: (value: WebdriverIO.Element, index: number, array: WebdriverIO.Element[]) => unknown, thisArg?: unknown) {
         const items = await load(this)
@@ -309,13 +343,14 @@ const methods: Record<string, Function> = {
     },
     slice (this: ElementList, start?: number, end?: number) {
         const state = stateOf(this)
+        const metadata = derivedMetadata(state.metadata, async () => (await refetchItems(this)).slice(start, end))
         if (state.resolved) {
-            return fromResolved(Array.prototype.slice.call(this, start, end) as ElementList, derivedMetadata(state.metadata))
+            return fromResolved(Array.prototype.slice.call(this, start, end) as ElementList, metadata)
         }
         return fromAsyncCallback(async () => {
             const items = await load(this)
             return items.slice(start, end)
-        }, derivedMetadata(state.metadata))
+        }, metadata)
     },
     at (this: ElementList, index: number) {
         return readIndex(this, index)
@@ -471,6 +506,12 @@ function create (elements: ElementList | undefined, loader: (() => Promise<Eleme
         wrappers: []
     }
     states.set(array, state)
+    // An explicit $([elements]) list has no originating selector query.
+    // A refetch of that list must retain its membership, not rerun the common
+    // selector that normalizeSelector exposes for compatibility.
+    if (prepared.refetch === false && !prepared.rerun) {
+        prepared.rerun = async () => [...await load(array)]
+    }
     Object.defineProperty(array, ELEMENT_ARRAY_WRAP, {
         configurable: false,
         enumerable: false,
@@ -501,6 +542,7 @@ function create (elements: ElementList | undefined, loader: (() => Promise<Eleme
  * resolve the list themselves. Index access before the list has resolved
  * returns a chainable element. After it has resolved, an index past the end of
  * an original query still waits and refetches. A slice or a filter does not.
+ * Calling refetch() re-runs the original query and its derived filter/slice steps.
  * `.at()` truncates its index the same way `Array.prototype.at` does.
  */
 export const ElementArray = {
