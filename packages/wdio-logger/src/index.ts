@@ -73,6 +73,27 @@ let maskingPatternsConfig: Record<string, RegExp[] | undefined> = {}
 const logCache = new Set()
 let logFile: fs.WriteStream | null
 
+/**
+ * A process can load more than one copy of this package, e.g. the copy that the
+ * `geckodriver` and `edgedriver` packages bring. Each copy has its own `logFile`.
+ * Opening `WDIO_LOG_PATH` again empties the file, and the first stream keeps writing
+ * at its old offset (NUL bytes). So every copy reuses the stream that is open for the
+ * same path, through a key on `globalThis` that all versions use.
+ */
+const SHARED_LOG_FILE = Symbol.for('@wdio/logger:logFile')
+interface SharedLogFile { path: string, stream: fs.WriteStream }
+const sharedLogFiles = globalThis as unknown as Record<symbol, SharedLogFile | undefined>
+
+function openLogFile (filePath: string) {
+    const shared = sharedLogFiles[SHARED_LOG_FILE]
+    if (shared && shared.path === filePath && shared.stream.writable) {
+        return shared.stream
+    }
+    const stream = fs.createWriteStream(filePath)
+    sharedLogFiles[SHARED_LOG_FILE] = { path: filePath, stream }
+    return stream
+}
+
 const originalFactory = log.methodFactory
 const wdioLoggerMethodFactory = (wdioLogger: LoggerInterface) => function (this: log.Logger, methodName: log.LogLevelNames, logLevel: log.LogLevelNumbers, loggerName: string) {
     const rawMethod = originalFactory(methodName, logLevel, loggerName)
@@ -81,7 +102,7 @@ const wdioLoggerMethodFactory = (wdioLogger: LoggerInterface) => function (this:
          * create logFile lazily
          */
         if (!logFile && process.env.WDIO_LOG_PATH) {
-            logFile = fs.createWriteStream(process.env.WDIO_LOG_PATH)
+            logFile = openLogFile(process.env.WDIO_LOG_PATH)
         }
 
         /**
@@ -198,6 +219,9 @@ getLogger.setLevel = (name: string, level: log.LogLevelDesc) => loggers[name].se
 getLogger.clearLogger = () => {
     if (logFile) {
         logFile.end()
+        if (sharedLogFiles[SHARED_LOG_FILE]?.stream === logFile) {
+            delete sharedLogFiles[SHARED_LOG_FILE]
+        }
     }
     logFile = null
 }
