@@ -115,7 +115,7 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
     },
     /**
      * Timeout for the browser to accept the WebDriver Bidi connection. After it the
-     * session continues with WebDriver Classic.
+     * session continues with WebDriver Classic. Node.js only.
      */
     bidiConnectTimeout: {
         type: 'number',

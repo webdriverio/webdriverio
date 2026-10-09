@@ -105,6 +105,8 @@ export interface WebDriver extends Connection {
     /**
      * Timeout (in ms) for the browser to accept the WebDriver Bidi connection. After it,
      * the session continues with WebDriver Classic, where Bidi-only commands fail.
+     * Node.js only: in a browser (for example the browser runner) the connection waits
+     * until it opens or fails.
      *
      * @default 10000
      */
