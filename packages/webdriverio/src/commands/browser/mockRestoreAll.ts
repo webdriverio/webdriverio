@@ -1,12 +1,13 @@
 import logger from '@wdio/logger'
 
 import { SESSION_MOCKS } from './mock.js'
+import { contextIdOf } from '../../session/browsingContext.js'
 
 const log = logger('webdriverio:mockRestoreAll')
 
 /**
- * Restores all mock information and behavior stored in all registered
- * mocks of the session.
+ * Restores all registered mocks for the calling browser or browsing context.
+ * Other multiremote sessions and held tabs are not affected.
  *
  * <example>
     :mockRestoreAll.js
@@ -28,11 +29,12 @@ const log = logger('webdriverio:mockRestoreAll')
  *
  * @alias browser.mockRestoreAll
  */
-export async function mockRestoreAll (): Promise<void> {
-    for (const [handle, mocks] of Object.entries(SESSION_MOCKS)) {
-        log.trace(`Clearing mocks for ${handle}`)
-        for (const mock of mocks) {
-            await mock.restore()
-        }
+export async function mockRestoreAll (this: WebdriverIO.Browser | WebdriverIO.BrowsingContext): Promise<void> {
+    const handle = await contextIdOf(this)
+    log.trace(`Restoring mocks for ${handle}`)
+
+    // Restoring a mock removes it from SESSION_MOCKS: iterate a stable snapshot.
+    for (const mock of Array.from(SESSION_MOCKS[handle] ?? [])) {
+        await mock.restore()
     }
 }

@@ -1838,6 +1838,47 @@ describe('WebDriverInterception', () => {
             resolveProvideResponse!()
             delete SESSION_MOCKS['handle-1']
         })
+
+        it('coalesces concurrent removeIntercept calls and later repeated restores', async () => {
+            let resolveRemove!: () => void
+            const pendingRemove = new Promise<void>((resolve) => {
+                resolveRemove = resolve
+            })
+            const browser = getResponseCollectionBrowserMock({}, {
+                getWindowHandle: vi.fn().mockResolvedValue('handle-1'),
+                networkRemoveIntercept: vi.fn().mockReturnValue(pendingRemove)
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            SESSION_MOCKS['handle-1'] = new Set([mock])
+
+            const first = mock.restore()
+            const second = mock.restore()
+            await new Promise((resolve) => setTimeout(resolve, 0))
+            expect(browser.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+
+            resolveRemove()
+            await Promise.all([first, second])
+            await mock.restore()
+            expect(browser.networkRemoveIntercept).toHaveBeenCalledTimes(1)
+            delete SESSION_MOCKS['handle-1']
+        })
+
+        it('permits retry if the provider rejects the initial teardown', async () => {
+            const remove = vi.fn()
+                .mockRejectedValueOnce(new Error('transient network error'))
+                .mockResolvedValue(undefined)
+            const browser = getResponseCollectionBrowserMock({}, {
+                getWindowHandle: vi.fn().mockResolvedValue('handle-1'),
+                networkRemoveIntercept: remove
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            SESSION_MOCKS['handle-1'] = new Set([mock])
+
+            await expect(mock.restore()).rejects.toThrow('transient network error')
+            await mock.restore()
+            expect(remove).toHaveBeenCalledTimes(2)
+            delete SESSION_MOCKS['handle-1']
+        })
     })
 
     describe('url pattern matching', () => {

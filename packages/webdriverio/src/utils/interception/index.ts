@@ -181,6 +181,7 @@ export default class WebDriverInterception {
 
     #eventHandler: Map<string, Function[]> = new Map()
     #restored = false
+    #restorePromise?: Promise<this>
     #requestOverwrites: Overwrite[] = []
     #respondOverwrites: Overwrite[] = []
     #calls: Response[] = []
@@ -984,7 +985,29 @@ export default class WebDriverInterception {
      * removes any mocked return values or implementations.
      * Restored mock does not emit events and could not mock responses
      */
-    async restore() {
+    async restore(): Promise<this> {
+        if (this.#restored) {
+            return this
+        }
+
+        // Multiremote sessions can invoke restore concurrently. Share the same
+        // in-flight teardown so network.removeIntercept is sent exactly once.
+        if (this.#restorePromise) {
+            return this.#restorePromise
+        }
+
+        const pending = this.#restoreOnce()
+        this.#restorePromise = pending
+        try {
+            return await pending
+        } finally {
+            // A failed provider call can be retried; completed restores are
+            // handled by the #restored guard on the next call.
+            this.#restorePromise = undefined
+        }
+    }
+
+    async #restoreOnce(): Promise<this> {
         /**
          * Snapshot before reset()/clear() — those clear `#blockedRequests`, and we
          * still need to continue any in-flight blocked requests after cleanup.

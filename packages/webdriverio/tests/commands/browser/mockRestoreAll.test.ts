@@ -1,33 +1,42 @@
 import path from 'node:path'
-import { expect, describe, it, vi } from 'vitest'
-import { remote } from '../../../src/index.js'
-// @ts-expect-error mock feature
-import { getMockCalls } from '../../../src/commands/browser/mock.js'
+import { expect, describe, it, vi, beforeEach } from 'vitest'
+import { mockRestoreAll } from '../../../src/commands/browser/mockRestoreAll.js'
+import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
 
-vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('../../../src/commands/browser/mock', () => {
-    let clearedMocks = 0
-    const bumpCall = () => ++clearedMocks
-    const SESSION_MOCKS: Record<string, any> = {}
-    SESSION_MOCKS.foobar = new Set()
-    SESSION_MOCKS.foobar.add({ restore: vi.fn(bumpCall) })
-    SESSION_MOCKS.foobar.add({ restore: vi.fn(bumpCall) })
-    SESSION_MOCKS.barfoo = new Set()
-    SESSION_MOCKS.barfoo.add({ restore: vi.fn(bumpCall) })
-    return { SESSION_MOCKS, getMockCalls: () => clearedMocks, default: vi.fn() }
-})
+vi.mock('../../../src/session/browsingContext.js', () => ({
+    contextIdOf: vi.fn(async (scope: { context: string }) => scope.context)
+}))
+vi.mock('../../../src/commands/browser/mock.js', () => ({
+    SESSION_MOCKS: {},
+    default: vi.fn()
+}))
 
-describe('mockClearAll', () => {
-    it('should clear all mocks', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'devtools'
-            }
-        })
-        expect(getMockCalls()).toBe(0)
-        await browser.mockRestoreAll()
-        expect(getMockCalls()).toBe(3)
+describe('mockRestoreAll', () => {
+    beforeEach(() => {
+        for (const key of Object.keys(SESSION_MOCKS)) {
+            delete SESSION_MOCKS[key]
+        }
+    })
+
+    it('restores only the calling session and preserves other multiremote mocks', async () => {
+        const restoreA = vi.fn().mockResolvedValue(undefined)
+        const restoreB = vi.fn().mockResolvedValue(undefined)
+        const restoreOther = vi.fn().mockResolvedValue(undefined)
+        SESSION_MOCKS.sessionA = new Set([{ restore: restoreA }, { restore: restoreB }] as any)
+        SESSION_MOCKS.sessionB = new Set([{ restore: restoreOther }] as any)
+
+        await mockRestoreAll.call({ context: 'sessionA' } as unknown as WebdriverIO.Browser)
+
+        expect(restoreA).toHaveBeenCalledTimes(1)
+        expect(restoreB).toHaveBeenCalledTimes(1)
+        expect(restoreOther).not.toHaveBeenCalled()
+    })
+
+    it('does not touch other sessions when its context has no mocks', async () => {
+        const restoreOther = vi.fn()
+        SESSION_MOCKS.sessionB = new Set([{ restore: restoreOther }] as any)
+        await mockRestoreAll.call({ context: 'sessionA' } as unknown as WebdriverIO.Browser)
+        expect(restoreOther).not.toHaveBeenCalled()
     })
 })
