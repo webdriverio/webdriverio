@@ -153,7 +153,6 @@ export const SUPPORTED_PACKAGES = {
     ],
     service: [
         // internal or community driver services
-        { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'visual', value: '@wdio/visual-service$--$visual' },
         { name: 'ai', value: '@wdio/ai-service$--$ai' },
         { name: 'vite', value: 'wdio-vite-service$--$vite' },
@@ -240,21 +239,6 @@ Learn more about Serenity/JS:
   🔗 https://serenity-js.org/handbook/test-runners/webdriverio/
   🔗 https://serenity-js.org/handbook/reporting/html-reporter/
 `
-
-/**
- * With the install skipped the wizard has only printed the install command,
- * so the service cannot start until the user runs it.
- */
-export function buildDevtoolsBanner (installed: boolean) {
-    const status = installed
-        ? 'DevTools is set up: running your tests opens a live dashboard of the run.'
-        : 'DevTools is configured: once you install the dependencies listed above,\nrunning your tests opens a live dashboard of the run.'
-    return `
-${status}
-Set \`mode: 'trace'\` in its options to record a replayable trace instead.
-  🔗 https://webdriver.io/docs/devtools/wdio
-`
-}
 
 export function usesSerenity (answers: Questionnair) {
     return answers.framework.includes('serenity-js')

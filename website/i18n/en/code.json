@@ -48,7 +48,7 @@
     "message": "If you use WebdriverIO within your organization, please consider supporting the project by {becomeASponsor}. It will help us to keep the project running and evolving."
   },
   "homepage.tagline": {
-    "message": "Open source test automation for web, mobile and desktop apps"
+    "message": "Next-gen browser and mobile automation test framework for Node.js"
   },
   "homepage.getStarted": {
     "message": "Get Started"
@@ -140,7 +140,7 @@
     "message": "since December 2019"
   },
   "versions.description": {
-    "message": "All hosted versions of the WebdriverIO documentation"
+    "message": "Docusaurus 2 Versions page listing all documented site versions"
   },
   "WebdriverIO documentation versions": {
     "message": "WebdriverIO documentation versions"

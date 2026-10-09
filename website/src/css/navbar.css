@@ -7,14 +7,6 @@
     box-shadow: none;
 }
 
-/*
- * `backdrop-filter` makes the navbar the containing block for its fixed
- * children, which clamps the open mobile sidebar to the navbar's height.
- */
-.navbar.navbar-sidebar--show {
-    backdrop-filter: none;
-}
-
 .navbar .navbar__items > .navbar__brand {
     height: 32px;
     margin: 0 1.25rem 0 0.5rem;
@@ -169,71 +161,4 @@ body .react-toggle-thumb {
     content: '♥';
     margin-right: 0.4rem;
     color: #db61a2;
-}
-
-/*
- * Mobile navbar sidebar: one row height and left edge for text links and
- * icon links, aligned with the logo. The icon links get a visible label,
- * and the desktop size/offset tweaks above are reset.
- */
-.navbar-sidebar .menu {
-    padding-left: 0.25rem !important;
-    padding-right: 0.25rem !important;
-}
-
-.navbar-sidebar .menu__link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    min-height: 44px;
-    padding: 0 0.75rem;
-    color: var(--wdio-text);
-    font-size: 1rem;
-    font-weight: 500;
-}
-
-.navbar-sidebar .menu__list .menu__list {
-    padding-left: 0.75rem;
-}
-
-.navbar-sidebar .menu__list .menu__list .menu__link {
-    min-height: 40px;
-    color: var(--wdio-text-muted);
-    font-size: 0.9375rem;
-    font-weight: 450;
-}
-
-/* main panel only: separate the version dropdown and community links */
-.navbar-sidebar__item > .menu__list:not(.theme-doc-sidebar-menu) > .menu__list-item:has(> .menu__list-item-collapsible > .menu__link--sublist) {
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--wdio-border);
-}
-
-.navbar-sidebar .header-github-link:before,
-.navbar-sidebar .header-discord-link:before {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-    transform: none;
-}
-
-.navbar-sidebar .header-github-link:hover,
-.navbar-sidebar .header-discord-link:hover {
-    opacity: 1;
-}
-
-.navbar-sidebar .header-discord-link:after {
-    content: 'Discord';
-}
-
-.navbar-sidebar .header-github-link:after {
-    content: 'GitHub';
-}
-
-.navbar-sidebar .navbar-sponsor-button:before {
-    content: '♥';
-    width: 20px;
-    color: #db61a2;
-    text-align: center;
 }

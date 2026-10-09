@@ -1,4 +1,4 @@
-FROM alpine:3.24
+FROM alpine:3.22
 
 ENV CI=true
 # Alpine ships chromium and a matching musl-built chromedriver. Point the

@@ -54,30 +54,30 @@ const config: Config = {
     },
     i18n: {
         defaultLocale: 'en',
-        /**
-         * Translations are disabled until webdriverio/i18n is updated for v10.
-         * To re-enable, restore the locales below and the `localeDropdown`
-         * navbar item, then drop the locale redirect in `website/vercel.json`:
-         * ar, de, es, fr, hi, it, ko, pl, pt, ru, sv, ta, uk, vi, zh
-         * ('fa' and 'ja' were already off: broken markdown / translated links)
-         */
-        locales: ['en'],
+        locales: [
+            'en',
+            'ar',
+            'de',
+            'es',
+            // 'fa', => 3 backticks are added on line 5 which breaks the markdown parser
+            'fr',
+            'hi',
+            'it',
+            // 'ja', => links will break, they are also translated
+            'ko',
+            'pl',
+            'pt',
+            'ru',
+            'sv',
+            'ta',
+            'uk',
+            'vi',
+            'zh',
+        ],
     },
     themeConfig: {
-        /**
-         * Share card for every page (source: scripts/social-card.html).
-         * The size tags below describe this image; drop them if a page sets
-         * its own `image` in front matter.
-         */
-        image: 'img/social-card.jpg',
-        metadata: [
-            { name: 'twitter:card', content: 'summary_large_image' },
-            { name: 'twitter:site', content: `@${projectName}` },
-            { property: 'og:image:width', content: '1200' },
-            { property: 'og:image:height', content: '630' },
-            { property: 'og:image:alt', content: 'The WebdriverIO robot above the WebdriverIO logo: test automation for web, mobile and desktop' },
-            { name: 'twitter:image:alt', content: 'The WebdriverIO robot above the WebdriverIO logo: test automation for web, mobile and desktop' },
-        ],
+        image: 'img/logo-webdriver-io.png',
+        metadata: [{ name: 'twitter:card', content: 'summary' }],
         colorMode: {
             defaultMode: 'dark',
             disableSwitch: false,
@@ -135,6 +135,16 @@ const config: Config = {
                     label: v.label,
                     href: v.path,
                 }))
+            }, {
+                type: 'localeDropdown',
+                position: 'right',
+                dropdownItemsAfter: [{
+                    type: 'html',
+                    value: '<hr style="margin: 0.3rem 0;">',
+                }, {
+                    href: 'https://github.com/webdriverio/i18n#supported-languages',
+                    label: 'Add your language',
+                }]
             }, {
                 href: discordUrl,
                 position: 'right',
@@ -267,7 +277,6 @@ const config: Config = {
                     ]
                 },
                 blog: {
-                    blogDescription: 'Release notes, guides and project news from the WebdriverIO team',
                     showLastUpdateTime: true,
                     showReadingTime: true,
                     postsPerPage: 3,

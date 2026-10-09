@@ -14,7 +14,7 @@ While there is currently no difference in how matchers are defined that are spec
 
 :::info Jasmine
 
-With the Jasmine framework, call `expect.extend` in a spec file or the `before` hook, before the tests run. The matchers become Jasmine async matchers, so `await` them. A matcher with the name of a Jasmine sync matcher runs for WebdriverIO values only, like the WebdriverIO matchers. Custom asymmetric matchers (`expect.myMatcher()`) are not available. You can also use `jasmine.addMatchers` for a sync matcher or `jasmine.addAsyncMatchers` for an async matcher, see the [Jasmine custom matchers tutorial](https://jasmine.github.io/tutorials/custom_matchers).
+With the Jasmine framework, `expect.extend` is not available. Use `jasmine.addMatchers` for a sync matcher or `jasmine.addAsyncMatchers` for an async matcher, see the [Jasmine custom matchers tutorial](https://jasmine.github.io/tutorials/custom_matchers). Matchers from `jasmine.addAsyncMatchers` return a promise, so `await` them.
 
 :::
 

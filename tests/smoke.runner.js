@@ -176,29 +176,6 @@ const jasmineTestrunner = async () => {
 }
 
 /**
- * Jasmine: a matcher added with `expect.extend()` in the `before` hook
- */
-const jasmineCustomMatcher = async () => {
-    await launch('jasmineCustomMatcher', path.resolve(__dirname, 'helpers', 'jasmine-custom-matcher.conf.js'), {
-        specs: [path.resolve(__dirname, 'jasmine', 'custom-matcher.js')]
-    })
-}
-
-/**
- * Jasmine: `expect.multiRemote()` on the global `expect` and on the one of `@wdio/globals`
- */
-const jasmineMultiRemote = async () => {
-    await launch('jasmineMultiRemote', baseConfig, {
-        specs: [path.resolve(__dirname, 'jasmine', 'multi-remote.js')],
-        framework: 'jasmine',
-        capabilities: {
-            browserA: { capabilities: { browserName: 'chrome' } },
-            browserB: { capabilities: { browserName: 'chrome' } }
-        }
-    })
-}
-
-/**
  * Jasmine reporter
  */
 const jasmineReporter = async () => {
@@ -1294,8 +1271,6 @@ const jasmineAfterHookArgsValidation = async () => {
         mochaSpecFiltering,
         jasmineSpecFiltering,
         jasmineReporter,
-        jasmineCustomMatcher,
-        jasmineMultiRemote,
         jasmineTimeout,
         jasmineAfterAll,
         jasmineFailSpecWithNoExpectations,

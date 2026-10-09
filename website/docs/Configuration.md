@@ -348,7 +348,7 @@ Maximum size of the response body (in bytes) that can be returned when using the
 
 ### region
 
-<Option type="String" default="us" values="us | eu | us-west-1 | eu-central-1 | us-east-4 | asia-south-2 | staging">
+<Option type="String" default="us" values="us | eu | us-west-1 | eu-central-1 | us-east-4 | staging">
 
 If running on Sauce Labs, you can choose to run tests between different data centers.
 Use short region handles `us` (default, maps to `us-west-1`) or `eu` (maps to `eu-central-1`), or the full region names directly.
@@ -356,7 +356,7 @@ Use short region handles `us` (default, maps to `us-west-1`) or `eu` (maps to `e
 __Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
 
 </Option>
-*(only for vm and or em/simulators, except `us-east-4` and `asia-south-2` which host real devices only)*
+*(only for vm and or em/simulators)*
 
 ## Testrunner Options
 

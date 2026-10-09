@@ -1,38 +1,6 @@
 services: [<%- answers.services.map((service) => {
     if (service === 'electron') {
         return /*js*/`'electron'`
-    } else if (service === 'devtools') {
-        return /*js*/`[
-        'devtools',
-        {
-            // Every option below is commented out, and uncommenting one as
-            // written keeps the default behaviour, so this block acts exactly
-            // like plain 'devtools' until you change a value.
-            // See https://webdriver.io/docs/devtools/wdio
-            // mode: 'live',                 // 'live' opens the dashboard; 'trace' writes a trace.zip instead
-            // port: 3000,                   // dashboard port; a free one is used if 3000 is taken
-            // hostname: 'localhost',
-            // captureAssertions: true,      // assertions become action rows
-            // screencast: { enabled: false }, // live-mode session video
-            // devtoolsCapabilities: {},     // overrides for the dashboard window (default: Chrome at 1600x1200)
-
-            // Trace mode only, i.e. mode: 'trace'
-            // traceFormat: 'zip',           // 'zip', or 'ndjson-directory' to skip the unzip step
-            // traceGranularity: 'session',  // 'session' | 'spec' | 'test'
-            // tracePolicy: 'on',            // 'on' | 'retain-on-failure' | 'retain-on-first-failure' | ...
-            // filmstrip: true,              // dense screencast recorded into the trace
-
-            // Per-test artifacts, attached inline to Allure by
-            // @wdio/allure-reporter. Both need traceGranularity: 'test';
-            // at a coarser granularity neither artifact is produced.
-            // screenshot: 'off',            // 'on' | 'only-on-failure'
-            // video: 'off',                 // a retention policy, as tracePolicy above
-
-            // Index of every artifact produced, for any reporter or CI job to
-            // read. Auto-enabled when @wdio/allure-reporter is in the config.
-            // emitArtifactsManifest: false
-        }
-    ]`
     } else if (service === 'tauri') {
         const providerMap = {
             'Official tauri-driver (cross-platform, Cargo-installed)': 'official',

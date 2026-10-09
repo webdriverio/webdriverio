@@ -1,7 +1,7 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import inquirer from 'inquirer'
-import { buildTauriBanner, buildDioxusBanner, buildDevtoolsBanner, configHelperSuccessMessage, CONFIG_HELPER_SERENITY_BANNER, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_INTRO, getResolvedPurpose, isNuxtProject, SUPPORTED_PACKAGES } from '../constants.js'
+import { buildTauriBanner, buildDioxusBanner, configHelperSuccessMessage, CONFIG_HELPER_SERENITY_BANNER, SUPPORTED_CONFIG_FILE_EXTENSION, CONFIG_HELPER_INTRO, getResolvedPurpose, isNuxtProject, SUPPORTED_PACKAGES } from '../constants.js'
 import type { ParsedAnswers, Questionnair } from '../types.js'
 import { createPackageJSON, setupTypeScript, npmInstall, createWDIOConfig, createWDIOScript, runAppiumInstaller, convertPackageHashToObject, getAnswers, getPathForFileGeneration, getProjectProps, getProjectRoot, getSerenityPackages } from '../utils.js'
 import { writeAgentSupport } from './agent.js'
@@ -21,9 +21,6 @@ export async function runConfigCommand(parsedAnswers: ParsedAnswers, npmTag: str
     const extraInfoParts: string[] = []
     if (parsedAnswers.serenityAdapter) {
         extraInfoParts.push(CONFIG_HELPER_SERENITY_BANNER)
-    }
-    if (parsedAnswers.services?.includes('devtools')) {
-        extraInfoParts.push(buildDevtoolsBanner(Boolean(parsedAnswers.npmInstall)))
     }
     if (parsedAnswers.purpose === 'tauri') {
         extraInfoParts.push(buildTauriBanner(

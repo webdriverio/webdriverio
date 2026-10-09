@@ -30,19 +30,6 @@ jobs:
           path: .
           filename: webdriverio-build.zip
 
-      # A headed browser on the Windows desktop gets real mouse events from the
-      # OS cursor. Move the cursor to the taskbar, away from the browser windows.
-      - name: 🖱️ Move Mouse Cursor Away
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Add-Type -AssemblyName System.Windows.Forms
-          $screen = [System.Windows.Forms.Screen]::PrimaryScreen
-          Write-Host "Screen: $($screen.Bounds), working area: $($screen.WorkingArea)"
-          Write-Host "Cursor before: $([System.Windows.Forms.Cursor]::Position)"
-          [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($screen.Bounds.Left, ($screen.Bounds.Bottom - 1))
-          Write-Host "Cursor after: $([System.Windows.Forms.Cursor]::Position)"
-
       - name: Testrunner Tests
         run: |
           pnpm run test:e2e:testrunner

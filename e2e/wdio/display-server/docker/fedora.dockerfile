@@ -1,4 +1,4 @@
-FROM fedora:44
+FROM fedora:43
 
 ENV CI=true
 

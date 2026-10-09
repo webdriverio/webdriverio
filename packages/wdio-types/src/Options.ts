@@ -155,7 +155,7 @@ export interface WebDriver extends Connection {
     maskingPatterns?: string
 }
 
-export type SauceRegions = 'us' | 'eu' | 'us-west-1' | 'us-east-4' | 'eu-central-1' | 'asia-south-2' | 'staging'
+export type SauceRegions = 'us' | 'eu' | 'us-west-1' | 'us-east-4' | 'eu-central-1' | 'staging'
 
 export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'beforeCommand' | 'afterCommand'> {
     /**

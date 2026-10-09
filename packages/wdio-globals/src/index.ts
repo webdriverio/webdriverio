@@ -11,10 +11,6 @@ declare global {
         interface Browser {}
         interface Element {}
         interface MultiRemoteBrowser {}
-        /**
-         * The type of the global `expect`. A framework adapter can add call signatures to it.
-         */
-        interface GlobalExpect extends ExpectWebdriverIO.Expect {}
     }
 }
 
@@ -79,12 +75,12 @@ export const $$: WebdriverIO.Browser['$$'] = (...args: any) => {
     }
     return globals.get('$$')(...args)
 }
-export const expect: WebdriverIO.GlobalExpect = ((...args: any) => {
+export const expect: ExpectWebdriverIO.Expect = ((...args: any) => {
     if (!globals.has('expect')) {
         throw new Error(GLOBALS_ERROR_MESSAGE)
     }
     return globals.get('expect')(...args)
-}) as WebdriverIO.GlobalExpect
+}) as ExpectWebdriverIO.Expect
 
 const ASYNC_MATCHERS = [
     'any',

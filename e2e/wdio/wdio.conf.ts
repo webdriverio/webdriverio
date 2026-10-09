@@ -28,15 +28,8 @@ export const config: WebdriverIO.Config = {
         browserVersion: 'stable',
         'goog:chromeOptions': {
             args: [
-                'disable-infobars',
-                /**
-                 * A headed Chrome gets real `mousemove` events from the OS
-                 * cursor, for example on the Windows runner when the Chrome
-                 * window of another worker opens or closes under it. These
-                 * events move the pointer away from where `moveTo()` put it.
-                 */
-                'headless',
-                'disable-gpu'
+                'disable-infobars'
+                // 'headless', 'disable-gpu'
             ]
         }
     }],

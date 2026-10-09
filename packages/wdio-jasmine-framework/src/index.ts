@@ -27,7 +27,6 @@ const EXPECT_ASYMMETRIC_MATCHERS = [
     'stringContaining',
     'stringMatching',
     'oneOf',
-    'multiRemote',
     'not',
 ] as const
 const TEST_INTERFACES = ['it', 'fit', 'xit']
@@ -408,19 +407,7 @@ class JasmineAdapter {
          */
         const matchers = this.#setupMatchers(wdioMatchers, getConfig)
         jasmineEnv.beforeAll(() => jasmineEnv.addAsyncMatchers(matchers))
-        const wdioMatcherNames = new Set(Object.keys(wdioMatchers))
-        const expect = createHybridExpect(jasmineEnv, wdioMatcherNames) as ReturnType<typeof createHybridExpect> & Record<string, unknown>
-
-        /**
-         * `expect.extend()` in a spec file or the `before` hook, as on the Custom Matchers page.
-         * The `beforeAll` above reads `matchers` when it runs, before any spec file's own
-         * `beforeAll`, so matchers added before the run are available everywhere. They are
-         * routed like the WDIO matchers.
-         */
-        expect.extend = (customMatchers: typeof wdioMatchersImport) => {
-            Object.assign(matchers, this.#setupMatchers(customMatchers, getConfig))
-            Object.keys(customMatchers).forEach((name) => wdioMatcherNames.add(name))
-        }
+        const expect = createHybridExpect(jasmineEnv, new Set(Object.keys(wdioMatchers))) as ReturnType<typeof createHybridExpect> & Record<string, unknown>
 
         /**
          * make Jasmine and WebdriverIOs expect global more compatible by attaching
@@ -761,16 +748,9 @@ declare global {
         const stringContaining: ExpectWebdriverIO.Expect['stringContaining']
         const stringMatching: ExpectWebdriverIO.Expect['stringMatching']
         const oneOf: ExpectWebdriverIO.Expect['oneOf']
-        const multiRemote: ExpectWebdriverIO.Expect['multiRemote']
         const not: ExpectWebdriverIO.Expect['not']
     }
     namespace jasmine {
-        /**
-         * The adapter registers the WebdriverIO matchers with `addAsyncMatchers`,
-         * so `expectAsync` has them too. `T` and `U` keep the names of
-         * `@types/jasmine`, so that the interfaces merge.
-         */
-        interface AsyncMatchers<T, U> extends WdioAsyncMatchers<T> {}
         /**
          * Jasmine sync matchers stay sync and return `void`. WebdriverIO matchers
          * and Jasmine async matchers go to `expectAsync` and return a Promise.
@@ -783,15 +763,13 @@ declare global {
             toHaveSize(...args: MatcherArgs<WdioAsyncMatchers<T>['toHaveSize']>): Promise<void>
         }
     }
-    namespace WebdriverIO {
+    namespace ExpectWebdriverIO {
         /**
          * `@wdio/globals/types` and `@types/jasmine` both declare the global `expect`,
          * and TypeScript uses the one it reads first. These signatures make both
          * resolve to Jasmine's matchers, which is what the runtime `expect` gives.
-         * They do not change the `expect` export of expect-webdriverio, which is
-         * the Jest-based `expect` at runtime.
          */
-        interface GlobalExpect {
+        interface Expect {
             <T extends jasmine.Func>(spy: T | jasmine.Spy<T>): jasmine.FunctionMatchers<T>
             (actual: string): jasmine.Matchers<string>
             <T>(actual: ArrayLike<T>): jasmine.ArrayLikeMatchers<T>

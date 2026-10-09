@@ -4,12 +4,10 @@
 # dispatched — so a broken Docusaurus config, plugin or MDX page could only be
 # discovered at deploy time.
 #
-# Translations are disabled in website/docusaurus.config.ts until
-# webdriverio/i18n is updated, so only `en` is generated and built. Once they
-# are back, build a non-English locale here again (e.g. `--locale en --locale ar`
-# in a single invocation): translated pages lag behind the English source, and
-# an `en`-only build cannot catch one referencing an MDX component that no
-# longer exists.
+# This deliberately builds a non-English locale as well as `en`. Translated pages are
+# downloaded from the `webdriverio/i18n` repo at generate time and lag behind the
+# English source, so an `en`-only build cannot catch a translation referencing an MDX
+# component that no longer exists.
 name: Docs Build
 
 on:
@@ -40,12 +38,16 @@ jobs:
       - name: 📖 Generate Docs
         run: pnpm run docs:setup && pnpm run docs:generate
         env:
-          # Translations are disabled; skip the webdriverio/i18n download.
-          DOCS_ENGLISH_ONLY: '1'
+          # required by infra/docs/src/downloadDocsTranslations.ts to fetch
+          # translations from the public webdriverio/i18n repo; the default read-only
+          # token is sufficient, including for pull requests from forks
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🏗️ Build Site (en)
-        run: pnpm run build:en
+      # Both locales must be passed to a single invocation: Docusaurus disables baseUrl
+      # localization when exactly one --locale is given, so two separate builds would
+      # each emit at the site root and the second would overwrite the first.
+      - name: 🏗️ Build Site (en + ar)
+        run: pnpm exec docusaurus build --locale en --locale ar && node scripts/llms.mjs
         working-directory: ./website
 
       - name: ✅ Verify Machine-Readable Output

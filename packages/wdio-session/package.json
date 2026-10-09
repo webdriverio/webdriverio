@@ -1,6 +1,6 @@
 {
   "name": "@wdio/session",
-  "version": "10.0.1",
+  "version": "9.32.0",
   "description": "Drive browsers, mobile apps and desktop apps with WebdriverIO from the shell",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-session",

@@ -338,7 +338,7 @@ describe('emulate', () => {
         await setViewport.call(fakeScope, { width: 1000, height: 800, devicePixelRatio: 1.5 })
         await fakeScope.emulate('userAgent', 'Previous-UA')
         await fakeScope.emulate('touch', 4)
-        fakeScope.emulationSetTouchOverride = vi.fn().mockRejectedValue(new Error('unknown command'))
+        fakeScope.emulationSetViewportMetaOverride = vi.fn().mockRejectedValue(new Error('unknown command'))
 
         await expect(fakeScope.emulate('device', 'iPhone 8')).rejects.toThrow(/unknown command/)
         expect(fakeScope.emulationSetUserAgentOverride).toHaveBeenLastCalledWith({
@@ -350,38 +350,9 @@ describe('emulate', () => {
             viewport: { width: 1000, height: 800 },
             devicePixelRatio: 1.5
         })
-        expect(fakeScope.emulationSetTouchOverride).toHaveBeenCalledTimes(1)
-        expect(fakeScope.emulationSetTextLayoutModeOverride).not.toBeCalled()
-        expect(fakeScope.emulationSetViewportMetaOverride).not.toBeCalled()
-    })
-
-    it('should still emulate a mobile device when text layout and viewport meta are not implemented', async () => {
-        const fakeScope = bidiBrowser()
-        fakeScope.emulationSetTextLayoutModeOverride = vi.fn().mockRejectedValue(new Error(
-            'WebDriver Bidi command "emulation.setTextLayoutModeOverride" failed with error: unknown command'
-        ))
-        fakeScope.emulationSetViewportMetaOverride = vi.fn().mockRejectedValue(new Error('unsupported operation'))
-
-        const restore = await fakeScope.emulate('device', 'iPhone X')
-        expect(fakeScope.emulationSetUserAgentOverride).toBeCalledWith({
-            userAgent: expect.stringContaining('iPhone'),
-            contexts: CONTEXTS
-        })
-        expect(fakeScope.emulationSetTouchOverride).toBeCalledWith({ maxTouchPoints: 1, contexts: CONTEXTS })
-
-        await restore()
-        expect(fakeScope.emulationSetUserAgentOverride).toHaveBeenLastCalledWith({ userAgent: null, contexts: CONTEXTS })
-        expect(fakeScope.emulationSetTouchOverride).toHaveBeenLastCalledWith({ maxTouchPoints: null, contexts: CONTEXTS })
-        expect(fakeScope.emulationSetTextLayoutModeOverride).toHaveBeenCalledTimes(1)
+        expect(fakeScope.emulationSetTouchOverride).toHaveBeenLastCalledWith({ maxTouchPoints: 4, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetTextLayoutModeOverride).toHaveBeenLastCalledWith({ textLayoutMode: null, contexts: CONTEXTS })
         expect(fakeScope.emulationSetViewportMetaOverride).toHaveBeenCalledTimes(1)
-    })
-
-    it('should not swallow other errors from text layout', async () => {
-        const fakeScope = bidiBrowser()
-        fakeScope.emulationSetTextLayoutModeOverride = vi.fn().mockRejectedValue(new Error('invalid argument'))
-
-        await expect(fakeScope.emulate('device', 'iPhone 8')).rejects.toThrow(/invalid argument/)
-        expect(fakeScope.emulationSetUserAgentOverride).toHaveBeenLastCalledWith({ userAgent: null, contexts: CONTEXTS })
     })
 
     it('should keep a newer override when an older restore runs', async () => {
@@ -396,39 +367,12 @@ describe('emulate', () => {
         expect(fakeScope.emulationSetUserAgentOverride).toHaveBeenCalledWith({ userAgent: null, contexts: CONTEXTS })
     })
 
-    it('should not send touch or mobile layout for a desktop device when none is active', async () => {
+    it('should clear touch and mobile layout for a desktop device', async () => {
         const fakeScope = bidiBrowser()
-        const restore = await fakeScope.emulate('device', 'Desktop Chrome')
-        expect(fakeScope.emulationSetUserAgentOverride).toBeCalledTimes(1)
-        expect(fakeScope.browsingContextSetViewport).toBeCalledTimes(1)
-        expect(fakeScope.emulationSetTouchOverride).not.toBeCalled()
-        expect(fakeScope.emulationSetTextLayoutModeOverride).not.toBeCalled()
-        expect(fakeScope.emulationSetViewportMetaOverride).not.toBeCalled()
-
-        await restore()
-        expect(fakeScope.emulationSetTouchOverride).not.toBeCalled()
-        expect(fakeScope.emulationSetTextLayoutModeOverride).not.toBeCalled()
-        expect(fakeScope.emulationSetViewportMetaOverride).not.toBeCalled()
-    })
-
-    it('should keep a touch override set after a desktop device when that device is restored', async () => {
-        const fakeScope = bidiBrowser()
-        const restore = await fakeScope.emulate('device', 'Desktop Chrome')
-        await fakeScope.emulate('touch', 4)
-        await restore()
-        expect(fakeScope.emulationSetTouchOverride).toHaveBeenLastCalledWith({ maxTouchPoints: 4, contexts: CONTEXTS })
-
         await fakeScope.emulate('device', 'Desktop Chrome')
-        expect(fakeScope.emulationSetTouchOverride).toHaveBeenLastCalledWith({ maxTouchPoints: null, contexts: CONTEXTS })
-    })
-
-    it('should clear touch and mobile layout when switching from a mobile to a desktop device', async () => {
-        const fakeScope = bidiBrowser()
-        await fakeScope.emulate('device', 'iPhone 8')
-        await fakeScope.emulate('device', 'Desktop Chrome')
-        expect(fakeScope.emulationSetTouchOverride).toHaveBeenLastCalledWith({ maxTouchPoints: null, contexts: CONTEXTS })
-        expect(fakeScope.emulationSetTextLayoutModeOverride).toHaveBeenLastCalledWith({ textLayoutMode: null, contexts: CONTEXTS })
-        expect(fakeScope.emulationSetViewportMetaOverride).toHaveBeenLastCalledWith({ viewportMeta: null, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetTouchOverride).toBeCalledWith({ maxTouchPoints: null, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetTextLayoutModeOverride).toBeCalledWith({ textLayoutMode: null, contexts: CONTEXTS })
+        expect(fakeScope.emulationSetViewportMetaOverride).toBeCalledWith({ viewportMeta: null, contexts: CONTEXTS })
     })
 
     it('should reject an unknown scope', async () => {
