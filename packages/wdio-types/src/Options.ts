@@ -103,6 +103,13 @@ export interface WebDriver extends Connection {
      */
     bidiResponseTimeout?: number
     /**
+     * Timeout (in ms) for the browser to accept the WebDriver Bidi connection. After it,
+     * the session continues with WebDriver Classic, where Bidi-only commands fail.
+     *
+     * @default 10000
+     */
+    bidiConnectTimeout?: number
+    /**
      * Specify custom headers to pass into every request.
      */
     headers?: {
