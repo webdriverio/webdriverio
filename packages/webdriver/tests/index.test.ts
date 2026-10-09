@@ -192,7 +192,8 @@ describe('WebDriver', () => {
                 webSocketUrl,
                 strictSSL,
                 headers,
-                DEFAULTS.bidiResponseTimeout.default
+                DEFAULTS.bidiResponseTimeout.default,
+                DEFAULTS.bidiConnectTimeout.default
             )
         })
 
@@ -211,7 +212,33 @@ describe('WebDriver', () => {
                 webSocketUrl,
                 undefined,
                 undefined,
-                300000
+                300000,
+                DEFAULTS.bidiConnectTimeout.default
+            )
+        })
+
+        it('should pass a custom "bidiConnectTimeout" to "initiateBidi"', async () => {
+            const webSocketUrl = 'ws://foo/bar'
+
+            vi.spyOn(utils, 'initiateBidi')
+            vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+                value: {
+                    sessionId: 'bidi-session',
+                    capabilities: { webSocketUrl }
+                }
+            }))
+            await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' },
+                bidiConnectTimeout: 30000
+            })
+
+            expect(utils.initiateBidi).toHaveBeenCalledWith(
+                webSocketUrl,
+                undefined,
+                undefined,
+                DEFAULTS.bidiResponseTimeout.default,
+                30000
             )
         })
     })
@@ -323,6 +350,13 @@ describe('WebDriver', () => {
             expect(client.isMobile).toBe(true)
             expect(client.appiumIsLocked).toBeTruthy()
             expect(client.appiumShake).toBeTruthy()
+        })
+
+        it('should pass "bidiConnectTimeout" to "initiateBidi"', () => {
+            vi.spyOn(utils, 'initiateBidi')
+            const capabilities = { browserName: 'firefox', webSocketUrl: 'ws://foo/bar' } as WebdriverIO.Capabilities
+            WebDriver.attachToSession({ sessionId: '123', capabilities, bidiConnectTimeout: 30000 })
+            expect(utils.initiateBidi).toHaveBeenLastCalledWith('ws://foo/bar', undefined, undefined, undefined, 30000)
         })
 
         it('should fail attaching to session if sessionId is not given', () => {

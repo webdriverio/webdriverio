@@ -58,7 +58,8 @@ export default class WebDriver {
                 capabilities.webSocketUrl as unknown as string,
                 options.strictSSL,
                 options.headers,
-                params.bidiResponseTimeout
+                params.bidiResponseTimeout,
+                params.bidiConnectTimeout
             ))
         }
 
@@ -141,7 +142,8 @@ export default class WebDriver {
                 webSocketUrl as string,
                 options.strictSSL,
                 options.headers,
-                options.bidiResponseTimeout
+                options.bidiResponseTimeout,
+                options.bidiConnectTimeout
             ))
         }
 
