@@ -97,6 +97,23 @@ export interface WebDriver extends Connection {
      */
     connectionRetryCount?: number
     /**
+     * Timeout (in milliseconds) for creating or reloading a WebDriver session.
+     * Unlike connectionRetryTimeout, this only applies to POST /session. Use it
+     * when a remote grid may take minutes to allocate a slot while ordinary
+     * commands should time out quickly.
+     *
+     * @default connectionRetryTimeout (120000 if unspecified)
+     */
+    sessionConnectionRetryTimeout?: number
+    /**
+     * Number of retries for creating or reloading a WebDriver session.
+     * Retries are still subject to the existing retryable-error rules. Set to
+     * zero to avoid repeating session creation on transient failures.
+     *
+     * @default connectionRetryCount (3 if unspecified)
+     */
+    sessionConnectionRetryCount?: number
+    /**
      * Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser.
      *
      * @default 180000
