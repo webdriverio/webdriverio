@@ -181,7 +181,7 @@ export default class MultiRemote {
         const results = Array.isArray(result) ? result as WebdriverIO.Element[] : []
 
         const element = webdriverMonad({}, (client: WebdriverIO.MultiRemoteElement) => {
-            const byName = new Map<string, WebdriverIO.Element>()
+            const byName = new Map<string, WebdriverIO.Element | undefined>()
             let index = 0
             for (const identifier of instances.keys()) {
                 byName.set(identifier, results[index])
@@ -223,8 +223,8 @@ export default class MultiRemote {
             Object.defineProperty(client, 'getAllInstances', {
                 configurable: true,
                 writable: true,
-                value: (): WebdriverIO.Element[] => client.instances.map(
-                    (name: string) => client.getInstance(name)
+                value: (): WebdriverIO.Element[] => [...byName.values()].filter(
+                    (element): element is WebdriverIO.Element => Boolean(element)
                 )
             })
 
@@ -429,3 +429,4 @@ export class MultiRemoteDriver {
  * `Object.entries`, which skips the `browser` brand of the wrapped driver.
  */
 setWdioKind(MultiRemoteDriver.prototype, 'browser')
+

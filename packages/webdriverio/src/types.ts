@@ -660,7 +660,8 @@ interface MultiRemoteElementBase {
      */
     getInstance: (browserName: string) => WebdriverIO.Element
     /**
-     * All elements in this multi-remote element's instance order.
+     * Available elements in this multi-remote element's instance order.
+     * Instances with no matching entry in an uneven element list are omitted.
      */
     getAllInstances: () => WebdriverIO.Element[]
     /**
@@ -1203,3 +1204,4 @@ declare global {
         }
     }
 }
+

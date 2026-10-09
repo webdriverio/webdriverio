@@ -43,10 +43,15 @@ async function bar() {
         }
     })
 
+    expectType<WebdriverIO.Browser[]>(mr.getAllInstances())
+    expectType<WebdriverIO.Browser[]>(mr.select('myBrowserInstance').getAllInstances())
+
     const rect = await mr.getWindowRect()
     expectType<number>(rect[0].x)
 
     const mElem = await mr.$('foobar')
+    expectType<WebdriverIO.Element[]>(mElem.getAllInstances())
+    expectType<WebdriverIO.Element[]>(mElem.select('myBrowserInstance').getAllInstances())
     const location = await mElem.getLocation('x')
     expectType<number[]>(location)
 
@@ -109,6 +114,8 @@ async function bar() {
     expectType<true>(mrMock.isMultiRemote)
     expectType<string[]>(mrMock.instances)
     expectType<WebdriverIO.Mock>(mrMock.getInstance('myBrowserInstance'))
+    expectType<WebdriverIO.Mock[]>(mrMock.getAllInstances())
+    expectType<WebdriverIO.Mock[]>((await mr.select('myBrowserInstance').mock('**/image.jpg')).getAllInstances())
     expectType<number>(mrMock.getInstance('myBrowserInstance').calls.length)
     expectType<WebdriverIO.MultiRemoteMock>(mrMock.respond({ ok: true }))
     expectType<WebdriverIO.MultiRemoteMock>(await mrMock.restore())
@@ -808,3 +815,4 @@ allure.addFeature('')
 allure.addDescription('with wrong param:', 123)
 
 export default {}
+
