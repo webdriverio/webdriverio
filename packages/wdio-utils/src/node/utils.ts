@@ -218,6 +218,10 @@ function describeRejection (err: unknown) {
 const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
     warnIfDownloadProxyIgnored()
     await install(args).catch(async (err) => {
+        if (await isInstalledDespiteArchiveCleanup(args, err)) {
+            return
+        }
+
         /**
          * a rejection is not guaranteed to be an Error, so never assume a writable
          * `message` and never let `new Error()` stringify an object into `[object Object]`
@@ -299,6 +303,52 @@ function installBuild (
         prepare?.(cacheDir)
         return _install({ ...args, cacheDir })
     })
+}
+
+/**
+ * `@puppeteer/browsers` deletes the downloaded archive (`<browserRoot>/<buildId>-<file>`)
+ * in a `finally` block, also when the browser is installed. On Windows that fails with
+ * EBUSY or EPERM while another process has the archive open, e.g. a parallel worker that
+ * installs the same build into the same cache. The browser is then complete and only
+ * the cleanup failed, so use it: a retry would fail on the same cleanup.
+ *
+ * Every provider in the error must have failed on that cleanup, and the executable must
+ * exist. `install()` lists the providers as `  - <provider>: <message>` lines.
+ */
+async function isInstalledDespiteArchiveCleanup (args: InstallOptions, err: unknown) {
+    const message = describeRejection(err)
+    const providerLines = message.split('\n').filter((line) => /^\s+- /.test(line))
+    const platform = args.platform ?? detectBrowserPlatform()
+    if (!platform) {
+        return false
+    }
+    try {
+        const cache = new Cache(args.cacheDir)
+        const browserRoot = path.resolve(cache.browserRoot(args.browser))
+        const locked = (providerLines.length > 0 ? providerLines : [message]).map((line) => (
+            /\b(?:EBUSY|EPERM)\b[^\n]*\bunlink '([^']+)'/.exec(line)?.[1]
+        ))
+        const onlyArchiveCleanup = locked.every((file) => (
+            file !== undefined &&
+            path.dirname(path.resolve(file)) === browserRoot &&
+            path.basename(file).startsWith(`${args.buildId}-`)
+        ))
+        if (!onlyArchiveCleanup) {
+            return false
+        }
+        const executablePath = cache.computeExecutablePath({ browser: args.browser, platform, buildId: args.buildId })
+        if (!await fsp.access(executablePath).then(() => true, () => false)) {
+            return false
+        }
+        log.warn(
+            `Installed ${args.browser} v${args.buildId}, but couldn't remove its download ${locked[0]} ` +
+            `(${message.includes('EBUSY') ? 'EBUSY' : 'EPERM'}), probably because another process installs the same ` +
+            `build into ${args.cacheDir}. Using the installed browser.`
+        )
+        return true
+    } catch {
+        return false
+    }
 }
 
 function locateChromeSafely () {
