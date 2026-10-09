@@ -46,11 +46,11 @@ class Launcher {
 
     public configParser: ConfigParser
     /**
-     * @deprecated use `isMultiRemote`, the name of WebdriverIO v10
+     * @deprecated removed in v10, use `isMultiRemote`
      */
     public isMultiremote = false
     /**
-     * @deprecated use `isParallelMultiRemote`, the name of WebdriverIO v10
+     * @deprecated removed in v10, use `isParallelMultiRemote`
      */
     public isParallelMultiremote = false
     public runner?: Services.RunnerInstance

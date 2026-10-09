@@ -143,8 +143,8 @@ describe('Multi-Remote tests', () => {
     })
 
     /**
-     * `isMultiRemote` is the name of WebdriverIO v10, added next to the deprecated
-     * `isMultiremote` so that suites can move before they upgrade
+     * `isMultiremote` is removed in v10: `isMultiRemote` is added next to it so
+     * that suites can move before they upgrade
      */
     test('should expose isMultiRemote with the value of isMultiremote', async () => {
         process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY = 'true'

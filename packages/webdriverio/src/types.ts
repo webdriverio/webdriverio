@@ -406,7 +406,7 @@ interface InstanceBase extends EventEmitter, SessionFlags {
 export interface BrowserBase extends InstanceBase, CustomInstanceCommands<WebdriverIO.Browser> {
     /**
      * flag to indicate multiremote browser session
-     * @deprecated use `isMultiRemote`, the name of WebdriverIO v10
+     * @deprecated removed in v10, use `isMultiRemote`
      */
     isMultiremote: false
     /**
@@ -498,7 +498,7 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
     instances: string[]
     /**
      * flag to indicate multiremote browser session
-     * @deprecated use `isMultiRemote`, the name of WebdriverIO v10
+     * @deprecated removed in v10, use `isMultiRemote`
      */
     isMultiremote: true
     /**
@@ -529,7 +529,7 @@ interface MultiRemoteElementBase {
     overwriteCommand: Function
     /**
      * flag to indicate multiremote browser session
-     * @deprecated use `isMultiRemote`, the name of WebdriverIO v10
+     * @deprecated removed in v10, use `isMultiRemote`
      */
     isMultiremote: true
     /**

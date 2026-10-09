@@ -15,7 +15,7 @@ export default class RunnerStats extends RunnableStats {
     specs: string[]
     sessionId: string
     /**
-     * @deprecated use `isMultiRemote`, the name of WebdriverIO v10
+     * @deprecated removed in v10, use `isMultiRemote`
      */
     isMultiremote: boolean
     isMultiRemote: boolean
