@@ -81,6 +81,12 @@ export default class MultiRemote {
             }
         }
 
+        // Retrieve every session without relying on the v9 dynamic name properties.
+        // Map iteration preserves capability order, including select() order.
+        propertiesObject.getAllInstances = {
+            value: () => [...this.instances.values()]
+        }
+
         propertiesObject.select = {
             value: function select(this: WebdriverIO.MultiRemoteBrowser & WrappedClient, ...instanceNames: string[]) {
                 const newMultiRemote = new MultiRemote()
@@ -175,7 +181,7 @@ export default class MultiRemote {
         const results = Array.isArray(result) ? result as WebdriverIO.Element[] : []
 
         const element = webdriverMonad({}, (client: WebdriverIO.MultiRemoteElement) => {
-            const byName = new Map<string, WebdriverIO.Element>()
+            const byName = new Map<string, WebdriverIO.Element | undefined>()
             let index = 0
             for (const identifier of instances.keys()) {
                 byName.set(identifier, results[index])
@@ -212,6 +218,14 @@ export default class MultiRemote {
                     }
                     return found
                 }
+            })
+
+            Object.defineProperty(client, 'getAllInstances', {
+                configurable: true,
+                writable: true,
+                value: (): WebdriverIO.Element[] => [...byName.values()].filter(
+                    (element): element is WebdriverIO.Element => Boolean(element)
+                )
             })
 
             client.select = function select(...instanceNames: string[]) {
@@ -415,3 +429,4 @@ export class MultiRemoteDriver {
  * `Object.entries`, which skips the `browser` brand of the wrapped driver.
  */
 setWdioKind(MultiRemoteDriver.prototype, 'browser')
+

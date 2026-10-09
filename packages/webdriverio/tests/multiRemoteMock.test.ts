@@ -54,6 +54,14 @@ describe('MultiRemoteMock', () => {
         )
     })
 
+    it('getAllInstances preserves the original and selected mock order (#15908)', () => {
+        const { chrome, firefox, multi } = create()
+        expect(multi.getAllInstances()).toEqual([chrome, firefox])
+        const reversed = new MultiRemoteMock(['firefox', 'chrome'], [firefox, chrome])
+        expect(reversed.getAllInstances()).toEqual([firefox, chrome])
+        expect(multi.getAllInstances()).toEqual([chrome, firefox])
+    })
+
     it('rejects a result list that does not match the instances', () => {
         expect(() => new MultiRemoteMock(['chrome'], [])).toThrow(
             'Cannot build a multi-remote mock: instance names (1) and mocks (0) differ'

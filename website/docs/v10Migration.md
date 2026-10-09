@@ -573,6 +573,22 @@ A multi-remote browser no longer stores each session as its own property. The sa
 + await (await browser.$('button')).getInstance('myChromeBrowser').click()
 ```
 
+To work with every session, `getAllInstances()` returns an array of sessions in
+`instances` order. This works on multi-remote browsers, elements and network mocks.
+The order also follows `select()`, so a reordered or selected group produces
+only those instances in the requested order:
+
+```ts
+const sessions = browser.select('myFirefoxBrowser', 'myChromeBrowser').getAllInstances()
+for (const session of sessions) {
+    await session.getUrl()
+}
+const elements = (await browser.$('button')).getAllInstances()
+const mocks = (await browser.mock('*/api')).getAllInstances()
+```
+
+Use `instances` together with `getInstance(name)` when you need session names.
+
 A TypeScript augmentation that adds `myChromeBrowser: WebdriverIO.Browser` to `WebdriverIO.MultiRemoteBrowser` no longer matches a runtime property. Delete that augmentation and call `getInstance`.
 
 With the testrunner and `injectGlobals` left on, the instance name is still a global (`myChromeBrowser.url(...)`). That global is the single session. It is not `browser.myChromeBrowser`.

@@ -375,6 +375,55 @@ describe('Multi-Remote tests', () => {
         expect(selected.strategies.get('selectHeader')).toBe(strategy)
     })
 
+    test('getAllInstances returns browser sessions in capability and select order (#15908)', async () => {
+        const browser = await multiRemote(caps())
+        const chrome = browser.getInstance('browserA')
+        const firefox = browser.getInstance('browserB')
+
+        expect(browser.getAllInstances()).toEqual([chrome, firefox])
+        const reversed = browser.select('browserB', 'browserA')
+        expect(reversed.instances).toEqual(['browserB', 'browserA'])
+        expect(reversed.getAllInstances()).toEqual([firefox, chrome])
+        expect(reversed.select('browserA').getAllInstances()).toEqual([chrome])
+        expect(browser.getAllInstances()).toEqual([chrome, firefox])
+    })
+
+    test('getAllInstances returns the element instances, respecting select order (#15908)', async () => {
+        const browser = await multiRemote(caps())
+        const element = await browser.$('#foo')
+        const chrome = element.getInstance('browserA')
+        const firefox = element.getInstance('browserB')
+
+        expect(element.getAllInstances()).toEqual([chrome, firefox])
+        const reversed = element.select('browserB', 'browserA')
+        expect(reversed.instances).toEqual(['browserB', 'browserA'])
+        expect(reversed.getAllInstances()).toEqual([firefox, chrome])
+        expect(reversed.select('browserA').getAllInstances()).toEqual([chrome])
+    })
+
+    test.each(['browserA', 'browserB'])('getAllInstances omits absent elements when %s finds fewer matches (#15908)', async (shorterName) => {
+        const browser = await multiRemote(caps())
+        const longerName = shorterName === 'browserA' ? 'browserB' : 'browserA'
+        vi.spyOn(browser.getInstance(shorterName), 'findElements')
+            .mockResolvedValue([{ 'element-6066-11e4-a52e-4f735466cecf': 'only-match' }])
+
+        const elements = await browser.select('browserB', 'browserA').$$('#foo')
+
+        expect(elements).toHaveLength(3)
+        expect(elements[0].getAllInstances()).toEqual([
+            elements[0].getInstance('browserB'),
+            elements[0].getInstance('browserA')
+        ])
+        for (const element of [elements[1], elements[2]]) {
+            const available = element.getInstance(longerName)
+            expect(element.getAllInstances()).toEqual([available])
+            expect(element.select(longerName).getAllInstances()).toEqual([available])
+            expect(() => element.getInstance(shorterName)).toThrow(
+                `Multi-remote object has no instance named "${shorterName}"`
+            )
+        }
+    })
+
     test('keeps instances in capability order and off the client', async () => {
         const browser = await multiRemote(caps())
 
@@ -1016,3 +1065,4 @@ afterEach(() => {
     restoreFetch = undefined
     vi.mocked(fetch).mockClear()
 })
+
