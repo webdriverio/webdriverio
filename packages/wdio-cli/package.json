@@ -56,7 +56,7 @@
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
-    "read-pkg-up": "^10.0.0",
+    "read-package-up": "^12.0.0",
     "tsx": "^4.7.2",
     "webdriverio": "workspace:*",
     "yargs": "^18.2.0"
