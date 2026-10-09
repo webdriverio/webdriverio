@@ -13,7 +13,7 @@
     "vue": "^3.4.15"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.2.0",
+    "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/vue": "^8.0.1",
     "@types/mocha": "^10.0.10",
     "@vitejs/plugin-vue": "^6.0.9",
@@ -22,6 +22,6 @@
     "mocha": "^12.0.2",
     "typescript": "^6.0.3",
     "vite": "^7.3.6",
-    "vue-tsc": "^2.0.17"
+    "vue-tsc": "^3.3.12"
   }
 }
