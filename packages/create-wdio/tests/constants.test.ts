@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { convertPackageHashToObject } from '../src/utils.js'
-import { buildTauriBanner, buildDioxusBanner, getResolvedPurpose, SUPPORTED_PACKAGES, DesktopFrameworkChoice, TauriDriverProviderChoice, DioxusDriverProviderChoice } from '../src/constants.js'
+import { buildTauriBanner, buildDioxusBanner, getResolvedPurpose, QUESTIONNAIRE, SUPPORTED_PACKAGES, DesktopFrameworkChoice, TauriDriverProviderChoice, DioxusDriverProviderChoice } from '../src/constants.js'
 
 const supportedInstallations = [
     ...SUPPORTED_PACKAGES.runner.map(({ value }) => convertPackageHashToObject(value)),
@@ -11,7 +11,18 @@ const supportedInstallations = [
     ...SUPPORTED_PACKAGES.framework.map(({ value }) => convertPackageHashToObject(value))
 ]
 
+/**
+ * The prompt types that inquirer 13 and later register. Inquirer 13 removed `list`, the
+ * alias of `select`, and inquirer 14 throws for a type that is not registered.
+ */
+const INQUIRER_PROMPT_TYPES = ['checkbox', 'confirm', 'editor', 'expand', 'input', 'number', 'password', 'rawlist', 'search', 'select']
+
 describe('constants', () => {
+    it('uses only prompt types that inquirer 13 and later register', () => {
+        const types = new Set(QUESTIONNAIRE.map((question) => question.type))
+        expect([...types].filter((type) => !INQUIRER_PROMPT_TYPES.includes(type))).toEqual([])
+    })
+
     describe('plugin list', () => {
         it('should provide all a short name', () => {
             const pluginsWithoutShorts = supportedInstallations.filter((plugin) => !plugin.short)
