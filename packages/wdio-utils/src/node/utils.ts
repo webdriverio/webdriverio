@@ -205,7 +205,19 @@ function describeRejection (err: unknown) {
  * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
  */
 const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
-    await install(args).catch(async (err) => {
+    await install(args).then(async (installed) => {
+        /**
+         * Some unzip runtimes fulfill the install promise even if extraction
+         * omitted the executable (e.g. Node 26 on Linux, issue #15608).
+         * Treat that as an install failure so the existing cache cleanup and
+         * one controlled retry run. Puppeteer supplies this path for actual
+         * installs; legacy mocks that only signal success with {} keep working.
+         */
+        if (typeof installed?.executablePath === 'string' &&
+            !await fsp.access(installed.executablePath).then(() => true, () => false)) {
+            throw new Error(`Extraction completed but the ${args.browser} executable is missing at ${installed.executablePath}`)
+        }
+    }).catch(async (err) => {
         /**
          * a rejection is not guaranteed to be an Error, so never assume a writable
          * `message` and never let `new Error()` stringify an object into `[object Object]`
