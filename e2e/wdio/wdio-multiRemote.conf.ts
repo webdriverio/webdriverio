@@ -11,6 +11,11 @@ const isLinux = os.platform() === 'linux'
 
 export const config: WebdriverIO.MultiRemoteConfig = {
     ...baseConfig,
+    /**
+     * several Firefox sessions start at once on a Windows CI runner: a busy Firefox
+     * can accept the BiDi connection more than 10 s after the session starts
+     */
+    bidiConnectTimeout: 30000,
 
     specs: [
         path.resolve(__dirname, 'headless', 'multiRemoteTest.e2e.ts'),
