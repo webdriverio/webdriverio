@@ -166,6 +166,9 @@ importers:
       react-17:
         specifier: npm:react@17.0.2
         version: react@17.0.2
+      react-18:
+        specifier: npm:react@18.3.1
+        version: react@18.3.1
       react-19:
         specifier: npm:react@19.3.0
         version: react@19.3.0
@@ -175,6 +178,9 @@ importers:
       react-dom-17:
         specifier: npm:react-dom@17.0.2
         version: react-dom@17.0.2(react@19.3.0)
+      react-dom-18:
+        specifier: npm:react-dom@18.3.1
+        version: react-dom@18.3.1(react@19.3.0)
       react-dom-19:
         specifier: npm:react-dom@19.3.0
         version: react-dom@19.3.0(react@19.3.0)
@@ -29584,6 +29590,12 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
       react: 18.3.1
+      scheduler: 0.23.2
+
+  react-dom@18.3.1(react@19.3.0):
+    dependencies:
+      loose-envify: 1.4.0
+      react: 19.3.0
       scheduler: 0.23.2
 
   react-dom@19.3.0(react@18.3.1):
