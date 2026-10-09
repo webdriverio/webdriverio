@@ -25,7 +25,7 @@ import { runProgram, getPackageVersion,
 } from '../src/utils.js'
 import { parseAnswers } from '../src/cli/utils.js'
 import path from 'node:path'
-import { readPackageUp } from 'read-pkg-up'
+import { readPackageUp } from 'read-package-up'
 import type { Questionnair } from '../src/types.js'
 import inquirer from 'inquirer'
 import { installPackages } from '../src/install.js'
@@ -52,7 +52,7 @@ vi.mock('child_process', () => {
     return m
 })
 vi.mock('inquirer')
-vi.mock('read-pkg-up')
+vi.mock('read-package-up')
 vi.mock('ejs')
 vi.mock('execa', () => ({
     execa: vi.fn(()=>({ stdout:'', stderr:'', exitCode:0 })),

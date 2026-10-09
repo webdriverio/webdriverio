@@ -60,7 +60,7 @@
     "import-meta-resolve": "^4.1.0",
     "inquirer": "^12.7.0",
     "normalize-package-data": "^7.0.0",
-    "read-pkg-up": "^10.1.0",
+    "read-package-up": "^12.0.0",
     "semver": "^7.6.3",
     "type-fest": "^4.41.0",
     "yargs": "^18.2.0"
