@@ -168,6 +168,18 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
 
 On a multi-remote browser, one assertion checks every instance, and `expect.multiRemote()` gives one expected value per instance. See [Multiremote assertions](/docs/multiremote#assertions).
 
+## Driver packages
+
+WebdriverIO v10 starts Firefox, Edge and Safari with `geckodriver` 8, `edgedriver` 8 and `safaridriver` 3. In v9, it used `geckodriver` and `edgedriver` 6 or 7, and `safaridriver` 1 or 2. WebdriverIO installs them, so you do not list them yourself. If your `package.json` lists one of them, update it in the same change as the `@wdio/*` packages.
+
+The drivers take `@wdio/logger` as a peer dependency, so they log through the logger of your WebdriverIO install. In v9, `geckodriver` and `edgedriver` brought their own copy of `@wdio/logger`, and that second copy emptied the log file in `outputDir`. Run `npm ls @wdio/logger`: every copy should be version 10. A plugin or service that still depends on version 9 has the same effect.
+
+The [driver upgrade notes](https://github.com/webdriverio/driver#upgrading-to-geckodriver-8-edgedriver-8-and-safaridriver-3) list every change. These changes can affect a WebdriverIO project:
+
+- The driver downloads use `HTTPS_PROXY` and `HTTP_PROXY`. In v9, the `geckodriver` and `edgedriver` downloads ignored them. If a proxy is set in your environment but the driver CDN must be reached directly, add its host to `NO_PROXY`.
+- `geckodriver` no longer reads `GECKODRIVER_FILEPATH`. Use `GECKODRIVER_PATH`.
+- `wdio:edgedriverOptions` and `wdio:safaridriverOptions` accept `spawnOpts`, as `wdio:chromedriverOptions` does.
+
 ## Multi-remote Global
 
 The lowercase `multiremotebrowser` global was removed, from `@wdio/globals` and from the globals of `eslint-plugin-wdio` too. Use `multiRemoteBrowser`.

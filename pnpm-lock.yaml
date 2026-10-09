@@ -946,8 +946,8 @@ importers:
         specifier: ^0.28.1
         version: 0.28.2
       geckodriver:
-        specifier: ^7.0.0
-        version: 7.0.0(supports-color@11.0.0)
+        specifier: ^8.0.0
+        version: 8.0.0(@wdio/logger@packages+wdio-logger)
       mocha:
         specifier: ^12.0.2
         version: 12.0.3
@@ -1679,14 +1679,14 @@ importers:
         specifier: ^8.0.0
         version: 8.0.2
       edgedriver:
-        specifier: ^7.0.0
-        version: 7.0.0(supports-color@11.0.0)
+        specifier: ^8.0.0
+        version: 8.0.0(@wdio/logger@packages+wdio-logger)
       electron-to-chromium:
         specifier: ^1.5.439
         version: 1.5.448
       geckodriver:
-        specifier: ^7.0.0
-        version: 7.0.0(supports-color@11.0.0)
+        specifier: ^8.0.0
+        version: 8.0.0(@wdio/logger@packages+wdio-logger)
       get-port:
         specifier: ^7.0.0
         version: 7.2.0
@@ -1700,8 +1700,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       safaridriver:
-        specifier: ^2.0.0
-        version: 2.0.0
+        specifier: ^3.0.0
+        version: 3.0.0
       split2:
         specifier: ^4.2.0
         version: 4.2.0
@@ -6813,9 +6813,6 @@ packages:
   '@types/unzipper@0.10.11':
     resolution: {integrity: sha512-D25im2zjyMCcgL9ag6N46+wbtJBnXIr7SI4zHf9eJD2Dw2tEB5e+p5MYkrxKIVRscs5QV0EhtU9rgXSPx90oJg==}
 
-  '@types/which@2.0.2':
-    resolution: {integrity: sha512-113D3mDkZDjo+EeUEHCFy0qniNc1ZpecGiAU7WSo7YDoSzolZIQKpYFHrPpjkB2nuyahcKfrmLXeQlh7gqJYdw==}
-
   '@types/ws@8.18.2':
     resolution: {integrity: sha512-67MQl+fpWKVTT1NYdnmo3U4sc/xPo/zQBncVnI74qmQa0z/b+1g6iYqNmGCPbxO+zz2aklb08a0oHfegiVd0/w==}
 
@@ -7202,8 +7199,8 @@ packages:
   '@yarnpkg/lockfile@1.1.0':
     resolution: {integrity: sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==}
 
-  '@zip.js/zip.js@2.8.11':
-    resolution: {integrity: sha512-0fztsk/0ryJ+2PPr9EyXS5/Co7OK8q3zY/xOoozEWaUsL5x+C0cyZ4YyMuUffOO2Dx/rAdq4JMPqW0VUtm+vzA==}
+  '@zip.js/zip.js@2.23.0':
+    resolution: {integrity: sha512-K5obAqfrO7zhycnCupM9aaoZ9kx0SA0kv7+Z2oOUsdpWquv4s/Z4zyD7AdTqxrK3pgPM+ozaUi8kdRQbCWaIrQ==}
     engines: {bun: '>=0.7.0', deno: '>=1.0.0', node: '>=18.0.0'}
 
   '@zkochan/js-yaml@0.0.7':
@@ -9009,14 +9006,12 @@ packages:
   easy-table@1.2.0:
     resolution: {integrity: sha512-OFzVOv03YpvtcWGe5AayU5G2hgybsg3iqA6drU8UaoZyB9jLGMTrz9+asnLp/E+6qPh88yEI1gvyZFZ41dmgww==}
 
-  edge-paths@3.0.5:
-    resolution: {integrity: sha512-sB7vSrDnFa4ezWQk9nZ/n0FdpdUuC6R1EOrlU3DL+bovcNFK28rqu2emmAUjujYEJTWIgQGqgVVWUZXMnc8iWg==}
-    engines: {node: '>=14.0.0'}
-
-  edgedriver@7.0.0:
-    resolution: {integrity: sha512-4sJLhorcBSfzaqMN41q2VI9KVW9Qcpo7CHbUcBUDWeQ7uHiWnRWayV1KZOQr9jllSBOHD2aXzhUWrC2yCt+PRA==}
-    engines: {node: '>=20.0.0'}
+  edgedriver@8.0.0:
+    resolution: {integrity: sha512-h4twAKTFILvpjrxfeN1gslvnggztA6Cgb4iHQdLzEq3TivaHHlf6qEETpCgU7+iw9JIWjcveeckrDlbcY28a/A==}
+    engines: {node: '>=22.19.0'}
     hasBin: true
+    peerDependencies:
+      '@wdio/logger': ^9.29.1 || ^10.0.0
 
   editorconfig@1.0.4:
     resolution: {integrity: sha512-L9Qe08KWTlqYMVvMcTIvMAdl1cDUubzRNYL+WfA4bLDMHe4nemKkpmYzkznE1FwLKu0EEmy6obgQKzMJrg4x9Q==}
@@ -9854,10 +9849,12 @@ packages:
     resolution: {integrity: sha512-HmKyTFGomdAchz4umx8MwBnrnfFmdpwiTyGA4ZOF7rya2Lmgbc9qate4yweInL+0gUBVImhaz12SBGpW3SY4Yg==}
     engines: {node: '>=22.12.0'}
 
-  geckodriver@7.0.0:
-    resolution: {integrity: sha512-RypjU7cNcyjWK3ruEriCkWMRa9nroCT3y2qwkPynGzKTK1wG0UCWubb4AfVDTXzG9BhzRTwg29DoeK7PCRnK1w==}
-    engines: {node: '>=20.0.0'}
+  geckodriver@8.0.0:
+    resolution: {integrity: sha512-2jGCA6deI5MAjODxmHljPqvaUccGbeeqMUHXlW4k3FNDp4YDpxSI+P5QG+w5KIsnCeuGEfTTNi2euKqHI1eD6Q==}
+    engines: {node: '>=22.19.0'}
     hasBin: true
+    peerDependencies:
+      '@wdio/logger': ^9.18.0 || ^10.0.0
 
   gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
@@ -13834,9 +13831,9 @@ packages:
   rxjs@7.8.2:
     resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
 
-  safaridriver@2.0.0:
-    resolution: {integrity: sha512-LL7Ufa9p1cltLmw0WGIbM6FFXibWMoM9NjJuS5QFiAAtEnEwkwMxaXy1BRKCBZKSZ+brs9eYd3LHHiJfIgjmZg==}
-    engines: {node: '>=18.0.0'}
+  safaridriver@3.0.0:
+    resolution: {integrity: sha512-NJSsR0tgn5j4fhg7vj4kD5mQ+t2ZRH3GX1jdUYraEjej9j8ZtBXEe4WZh2/89i7S9+GO3cZKWhUisWb7gyjRwA==}
+    engines: {node: '>=22.19.0'}
 
   safe-buffer@5.1.2:
     resolution: {integrity: sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==}
@@ -21397,8 +21394,6 @@ snapshots:
     dependencies:
       '@types/node': 22.20.4
 
-  '@types/which@2.0.2': {}
-
   '@types/ws@8.18.2':
     dependencies:
       '@types/node': 22.20.4
@@ -21977,7 +21972,7 @@ snapshots:
 
   '@yarnpkg/lockfile@1.1.0': {}
 
-  '@zip.js/zip.js@2.8.11': {}
+  '@zip.js/zip.js@2.23.0': {}
 
   '@zkochan/js-yaml@0.0.7':
     dependencies:
@@ -24016,22 +24011,12 @@ snapshots:
     optionalDependencies:
       wcwidth: 1.0.1
 
-  edge-paths@3.0.5:
+  edgedriver@8.0.0(@wdio/logger@packages+wdio-logger):
     dependencies:
-      '@types/which': 2.0.2
-      which: 2.0.2
-
-  edgedriver@7.0.0(supports-color@11.0.0):
-    dependencies:
-      '@wdio/logger': 9.29.1
-      '@zip.js/zip.js': 2.8.11
+      '@wdio/logger': link:packages/wdio-logger
+      '@zip.js/zip.js': 2.23.0
       decamelize: 6.0.1
-      edge-paths: 3.0.5
-      http-proxy-agent: 7.0.2(supports-color@11.0.0)
-      https-proxy-agent: 7.0.6(supports-color@11.0.0)
-      which: 6.0.1
-    transitivePeerDependencies:
-      - supports-color
+      undici: 8.11.2
 
   editorconfig@1.0.4:
     dependencies:
@@ -25014,16 +24999,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  geckodriver@7.0.0(supports-color@11.0.0):
+  geckodriver@8.0.0(@wdio/logger@packages+wdio-logger):
     dependencies:
-      '@wdio/logger': 9.29.1
-      '@zip.js/zip.js': 2.8.11
+      '@wdio/logger': link:packages/wdio-logger
+      '@zip.js/zip.js': 2.23.0
       decamelize: 6.0.1
-      http-proxy-agent: 7.0.2(supports-color@11.0.0)
-      https-proxy-agent: 7.0.6(supports-color@11.0.0)
       modern-tar: 0.8.5
-    transitivePeerDependencies:
-      - supports-color
+      undici: 8.11.2
 
   gensync@1.0.0-beta.2: {}
 
@@ -25667,13 +25649,6 @@ snapshots:
       '@tootallnate/once': 1.1.2
       agent-base: 6.0.2(supports-color@7.2.0)
       debug: 4.4.3(supports-color@7.2.0)
-    transitivePeerDependencies:
-      - supports-color
-
-  http-proxy-agent@7.0.2(supports-color@11.0.0):
-    dependencies:
-      agent-base: 7.1.4
-      debug: 4.4.3(supports-color@11.0.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -30087,7 +30062,7 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  safaridriver@2.0.0: {}
+  safaridriver@3.0.0: {}
 
   safe-buffer@5.1.2: {}
 
