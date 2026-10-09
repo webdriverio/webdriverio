@@ -162,6 +162,14 @@ function integerIndex (index: number) {
 }
 
 /**
+ * `Array.prototype.at` for an integer index, without it: the browser bundle runs in
+ * Chrome 90 and Safari 14.1, and `at` is ES2022 (Chrome 92, Safari 15.4)
+ */
+function itemAt<T> (items: ArrayLike<T>, index: number): T | undefined {
+    return items[index < 0 ? items.length + index : index]
+}
+
+/**
  * An in-range index of a resolved list is that element. An index past the end
  * of an original query still waits and refetches, which is what `$$('li')[5]`
  * does before the list resolves. A slice, a filter, and a negative index do not refetch.
@@ -174,7 +182,7 @@ function readIndex (array: ElementList, index: number) {
         return chainElementPromise(elementAt(array, normalized), multiRemote)
     }
     if (normalized < 0 || !Number.isFinite(normalized) || state.metadata.refetch === false) {
-        return Array.prototype.at.call(array, normalized)
+        return itemAt(array, normalized)
     }
     if (normalized < array.length) {
         return array[normalized]
@@ -185,7 +193,7 @@ function readIndex (array: ElementList, index: number) {
 async function elementAt (array: ElementList, index: number): Promise<WebdriverIO.Element | WebdriverIO.MultiRemoteElement | undefined> {
     const items = await load(array)
     if (index < 0) {
-        return items.at(index)
+        return itemAt(items, index)
     }
     if (index < items.length) {
         return items[index]
