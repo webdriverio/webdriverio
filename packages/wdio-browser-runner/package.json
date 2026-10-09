@@ -96,7 +96,7 @@
     "safe-stringify": "^1.1.0",
     "source-map-support": "^0.5.21",
     "vite": "^7.3.6",
-    "vite-plugin-istanbul": "^7.2.1",
+    "vite-plugin-istanbul": "^9.0.1",
     "vite-plugin-top-level-await": "^1.4.1",
     "webdriver": "workspace:*"
   },
