@@ -93,6 +93,32 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
         default: 3
     },
     /**
+     * Optional override for the timeout on session creation/reload only.
+     * When absent, the session request uses connectionRetryTimeout.
+     */
+    sessionConnectionRetryTimeout: {
+        type: 'number',
+        validate: (timeout: number): boolean => {
+            if (!Number.isFinite(timeout) || timeout <= 0) {
+                throw new TypeError('The option "sessionConnectionRetryTimeout" must be a positive finite number')
+            }
+            return true
+        }
+    },
+    /**
+     * Optional retry-count override for session creation/reload only.
+     * When absent, the session request uses connectionRetryCount.
+     */
+    sessionConnectionRetryCount: {
+        type: 'number',
+        validate: (count: number): boolean => {
+            if (!Number.isSafeInteger(count) || count < 0) {
+                throw new TypeError('The option "sessionConnectionRetryCount" must be a non-negative integer')
+            }
+            return true
+        }
+    },
+    /**
      * Timeout for a WebDriver Bidi command to receive a response from the browser
      */
     bidiResponseTimeout: {

@@ -147,9 +147,21 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
         { capabilities }
     )
 
+    /**
+     * Session creation (including reloadSession) may wait for a grid slot much
+     * longer than regular element commands. Only this POST /session receives
+     * the opt-in overrides; params remains unchanged for subsequent commands.
+     * Nullish coalescing is intentional: zero retries is a valid opt-out.
+     */
+    const sessionRequestOptions = {
+        ...params,
+        connectionRetryTimeout: params.sessionConnectionRetryTimeout ?? params.connectionRetryTimeout,
+        connectionRetryCount: params.sessionConnectionRetryCount ?? params.connectionRetryCount
+    }
+
     let response: SessionInitializationResponse
     try {
-        response = await sessionRequest.makeRequest(params) as SessionInitializationResponse
+        response = await sessionRequest.makeRequest(sessionRequestOptions) as SessionInitializationResponse
     } catch (err) {
         log.error(err)
         const message = getSessionError(err as Error, params)
