@@ -386,6 +386,76 @@ async function findRoleElementsByScript(
 }
 
 /**
+ * WebDriver's "find from element" XPath endpoint cannot evaluate against a
+ * ShadowRoot (#document-fragment). Browser-side XPath accepts an Element
+ * context, however, so evaluate relative selectors once per shadow-root child.
+ * Include the child itself: XPath ".//button" would otherwise skip a directly
+ * shadow-rooted <button>. Keep lookups within the current element scope.
+ */
+async function findRelativeXPathInShadowRoots(
+    ctx: WebdriverIO.Browser | WebdriverIO.Element,
+    browser: WebdriverIO.Browser,
+    xpath: string
+): Promise<ElementReference[]> {
+    if (!xpath.startsWith('.//')) {
+        return []
+    }
+    const scope = getScopedElementId(ctx) ? ctx as WebdriverIO.Element : null
+    try {
+        const nodes = await browser.execute((expression: string, element: Element | null): Element[] => {
+            // Text selectors produce a union of relative paths. Refuse
+            // absolute selectors; they have different document-root semantics.
+            const branches = expression.split(/\s+\|\s+/)
+            if (!branches.every((branch) => branch.startsWith('.//'))) {
+                return []
+            }
+            const relative = branches.map((branch) =>
+                'descendant-or-self::' + branch.slice(3)).join(' | ')
+            const found: Element[] = []
+            const seen = new Set<Element>()
+
+            const visit = (parent: Document | Element | ShadowRoot) => {
+                const hosts: Element[] = parent instanceof Element
+                    ? [parent, ...Array.from(parent.querySelectorAll('*'))]
+                    : Array.from(parent.querySelectorAll('*'))
+                for (const host of hosts) {
+                    const shadow = host.shadowRoot
+                    if (!shadow) {
+                        continue
+                    }
+                    for (const child of Array.from(shadow.children)) {
+                        try {
+                            const snapshot = document.evaluate(
+                                relative, child, null,
+                                XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null
+                            )
+                            for (let i = 0; i < snapshot.snapshotLength; i++) {
+                                const node = snapshot.snapshotItem(i)
+                                if (node instanceof Element && !seen.has(node)) {
+                                    seen.add(node)
+                                    found.push(node)
+                                }
+                            }
+                        } catch {
+                            // Unsupported XPath on this root must not abort others.
+                        }
+                    }
+                    visit(shadow)
+                }
+            }
+            visit(element ?? document)
+            return found
+        }, xpath, scope)
+        return Array.isArray(nodes)
+            ? nodes.filter((node) => getElementFromResponse(node))
+            : []
+    } catch {
+        // A stale scope or driver without script support retains classic behavior.
+        return []
+    }
+}
+
+/**
  * Classic XPath cannot cross shadow boundaries. After searching the
  * document or host, also query each known shadow root so legacy-only
  * `aria/` matches (e.g. aria-describedby, title, generic text) stay
@@ -415,7 +485,19 @@ async function findElementViaClassic(
         return lightDom
     }
 
+    const relativeXPath = classic.using === 'xpath' && classic.value.startsWith('.//')
+    if (relativeXPath && shadowRoots.length) {
+        const [found] = await findRelativeXPathInShadowRoots(ctx, browser, classic.value)
+        if (found) {
+            return found
+        }
+    }
+
     for (const rootId of shadowRoots.filter((id) => id !== elementId)) {
+        if (relativeXPath) {
+            // The XPath root is a DocumentFragment, invalid for WebDriver Classic.
+            continue
+        }
         try {
             const result = await browser.findElementFromElement(rootId, classic.using, classic.value) as ElementReference
             if (getElementFromResponse(result)) {
@@ -455,7 +537,15 @@ async function findElementsViaClassic(
         lightDomError = err
     }
 
+    const relativeXPath = classic.using === 'xpath' && classic.value.startsWith('.//')
+    if (relativeXPath && shadowRoots.length) {
+        collected.push(...await findRelativeXPathInShadowRoots(ctx, browser, classic.value))
+    }
+
     for (const rootId of shadowRoots.filter((id) => id !== elementId)) {
+        if (relativeXPath) {
+            continue
+        }
         try {
             const result = await browser.findElementsFromElement(rootId, classic.using, classic.value)
             if (Array.isArray(result)) {
@@ -748,7 +838,7 @@ export async function findDeepElement(
      * we need to fall back to the regular WebDriver Classic command as BiDi
      * does not support relative xpath selectors with a start node
      */
-    if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+    if (using === 'xpath' && typeof selector === 'string' && (selector.startsWith('./') || selector.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
         return this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
@@ -947,7 +1037,7 @@ export async function findDeepElements(
      * we need to fall back to the regular WebDriver Classic command as BiDi
      * does not support relative xpath selectors with a start node
      */
-    if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+    if (using === 'xpath' && typeof selector === 'string' && (selector.startsWith('./') || selector.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
         return this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
