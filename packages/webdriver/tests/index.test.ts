@@ -26,7 +26,6 @@ vi.mock('fetch')
 vi.mock('../src/bidi/core.js', () => {
     let initCount = 0
     return {
-        DEFAULT_RESPONSE_TIMEOUT: 1000 * 180,
         BidiCore: class BidiHandlerMock {
             connect = vi.fn().mockResolvedValue({})
             reconnect = vi.fn().mockResolvedValue({})

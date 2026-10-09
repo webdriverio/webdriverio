@@ -9,12 +9,12 @@ import type { CommandResponse, ErrorResponse } from './localTypes.js'
 
 import type { Client } from '../types.js'
 import { isBase64Safe } from './utils.js'
+import { DEFAULT_RESPONSE_TIMEOUT } from '../constants.js'
 
 const SCRIPT_PREFIX = '/* __wdio script__ */'
 const SCRIPT_SUFFIX = '/* __wdio script end__ */'
 
 const log = logger('webdriver')
-export const DEFAULT_RESPONSE_TIMEOUT = 1000 * 180
 
 export class BidiCore {
     #id = 0
