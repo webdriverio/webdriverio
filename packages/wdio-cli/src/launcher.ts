@@ -45,7 +45,13 @@ class Launcher {
     #isInitialized: boolean = false
 
     public configParser: ConfigParser
+    /**
+     * @deprecated use `isMultiRemote`, the name of WebdriverIO v10
+     */
     public isMultiremote = false
+    /**
+     * @deprecated use `isParallelMultiRemote`, the name of WebdriverIO v10
+     */
     public isParallelMultiremote = false
     public runner?: Services.RunnerInstance
     public interface?: CLInterface
@@ -67,6 +73,14 @@ class Launcher {
         private _isWatchMode = false
     ) {
         this.configParser = new ConfigParser(this._configFilePath, this._args)
+    }
+
+    public get isMultiRemote () {
+        return this.isMultiremote
+    }
+
+    public get isParallelMultiRemote () {
+        return this.isParallelMultiremote
     }
 
     /**

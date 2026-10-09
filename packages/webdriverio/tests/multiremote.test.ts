@@ -142,6 +142,28 @@ describe('Multi-Remote tests', () => {
         expect(size).toEqual([{ width: 50, height: 30 }, { width: 50, height: 30 }])
     })
 
+    /**
+     * `isMultiRemote` is the name of WebdriverIO v10, added next to the deprecated
+     * `isMultiremote` so that suites can move before they upgrade
+     */
+    test('should expose isMultiRemote with the value of isMultiremote', async () => {
+        process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY = 'true'
+        try {
+            const browser = await multiremote(caps())
+            const elem = await browser.$('#foo')
+            const elems = await browser.$$('#foo')
+
+            expect(browser.isMultiRemote).toBe(true)
+            expect(browser.isMultiRemote).toBe(browser.isMultiremote)
+            expect(elem.isMultiRemote).toBe(true)
+            expect(elem.isMultiRemote).toBe(elem.isMultiremote)
+            expect((elems as unknown as { isMultiRemote: boolean }).isMultiRemote).toBe(true)
+            expect(browser.getInstance('browserA').isMultiRemote).toBe(browser.getInstance('browserA').isMultiremote)
+        } finally {
+            delete process.env.WDIO_ENABLE_MULTI_REMOTE_ELEMENT_ARRAY
+        }
+    })
+
     test('should be able to add a command to and element in multiremote', async () => {
         const browser = await multiremote(caps())
 
