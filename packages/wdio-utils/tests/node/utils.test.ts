@@ -79,6 +79,13 @@ vi.mock('edgedriver', () => ({
     download: vi.fn().mockResolvedValue({ executablePath: '/path/to/edgedriver' })
 }))
 
+/**
+ * the lock has its own tests (`installLock.test.ts`) on real files
+ */
+vi.mock('../../src/node/installLock.js', () => ({
+    withInstallLock: vi.fn((_lockPath: string, _isInstalled: () => Promise<boolean>, install: () => Promise<void>) => install())
+}))
+
 vi.mock('../../src/node/electronChromedriverProvider.js', () => ({
     ElectronChromedriverProvider: vi.fn(function () {
         return { getExecutablePath: () => 'chromedriver' }
@@ -705,6 +712,40 @@ describe('driver utils', () => {
             vi.mocked(locateChrome).mockRejectedValueOnce(new Error('not found'))
             await expect(setupPuppeteerBrowser('/foo/bar', { browserName: 'chrome' }))
                 .rejects.toThrow(/Couldn't find a matching chrome browser/)
+        })
+
+        it('installs the browser under a lock in its cache folder', async () => {
+            const { withInstallLock } = await import('../../src/node/installLock.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('linux' as any)
+            vi.mocked(withInstallLock).mockClear()
+
+            await setupPuppeteerBrowser('/lock/cache', { browserName: 'chrome', browserVersion: '1.2.3' })
+
+            expect(withInstallLock).toHaveBeenCalledWith(
+                path.join('/lock/cache', 'chrome', '116.0.5845.110.lock'),
+                expect.any(Function),
+                expect.any(Function)
+            )
+        })
+
+        /**
+         * two capabilities of the same browser build in one worker, e.g. a multi-remote session
+         */
+        it('shares one browser install between concurrent setups in a process', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as any)
+            vi.mocked(install).mockClear().mockImplementation(
+                () => new Promise((resolve) => setTimeout(() => resolve({} as never), 10))
+            )
+            try {
+                await Promise.all([
+                    setupPuppeteerBrowser('/share/cache', { browserName: 'chrome', browserVersion: '1.2.3' }),
+                    setupPuppeteerBrowser('/share/cache', { browserName: 'chrome', browserVersion: '1.2.3' })
+                ])
+                expect(install).toHaveBeenCalledTimes(1)
+            } finally {
+                vi.mocked(install).mockReset().mockResolvedValue({} as never)
+                vi.mocked(detectBrowserPlatform).mockReset()
+            }
         })
 
         it('should install chrome browser with specific version provided', async () => {

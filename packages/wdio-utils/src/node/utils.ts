@@ -17,6 +17,7 @@ import type { Options } from '@wdio/types'
 
 import { ElectronChromedriverProvider, getElectronVersionForChromium } from './electronChromedriverProvider.js'
 import { warnIfDownloadProxyIgnored } from './downloadProxy.js'
+import { withInstallLock } from './installLock.js'
 
 const log = logger('webdriver')
 
@@ -390,8 +391,24 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     }
 
     log.info(`Setting up ${browserName} v${buildId}`)
-    await _install(installOptions)
     const executablePath = computeExecutablePath(installOptions)
+    /**
+     * Two capabilities in one process, or two workers, can set up the same build at the
+     * same time. Share the install in the process, and lock it across processes: two
+     * downloads into one cache race on the archive and the browser folder, and on
+     * Windows a process fails to remove an archive that the other still has open.
+     */
+    await shareDriverSetup(
+        `browser:${driverCacheKey(cacheDir)}:${platform}:${browserName}:${buildId}`,
+        () => withInstallLock(
+            /**
+             * in the browser folder of the cache (`Cache#browserRoot()` of `@puppeteer/browsers`)
+             */
+            path.join(cacheDir, browserName, `${buildId}.lock`),
+            () => fsp.access(executablePath).then(() => true, () => false),
+            () => _install(installOptions)
+        )
+    )
 
     /**
      * for Chromium browser `resolveBuildId` returns with a useless build id
