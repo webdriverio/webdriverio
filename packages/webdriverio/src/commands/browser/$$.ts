@@ -103,11 +103,14 @@ export function $$ (
         foundWith: string
         parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement | WebdriverIO.BrowsingContext
         props: unknown[]
+        refetch: boolean
     } = {
         selector: selector as Selector,
-        foundWith: '$$',
+        foundWith: '$',
         parent: this,
-        props: []
+        props: [],
+        // $([existing elements]) is an explicit list, not a live selector.
+        refetch: !Array.isArray(selector)
     }
 
     return ElementArray.fromAsyncCallback(async () => {
