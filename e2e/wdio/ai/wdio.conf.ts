@@ -27,7 +27,12 @@ export const config: WebdriverIO.Config = {
         'moz:firefoxOptions': { args: ['-headless'] }
     }],
     services: [['ai', { model: actModel, cache: 'off', cacheDir, workspace: { dir: path.join(cacheDir, 'workspaces') }, effects: { ignore: ['/telemetry'] } }]],
-    logLevel: 'warn',
+    /**
+     * the logs are uploaded when CI fails: the command times and what the effect
+     * recorder counted are what explains a flaky step
+     */
+    logLevel: 'info',
+    logLevels: { '@wdio/ai-service': 'debug' },
     framework: 'mocha',
     reporters: ['spec'],
     outputDir: __dirname,

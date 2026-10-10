@@ -1,9 +1,12 @@
+import path from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
+import { logMock } from '@wdio/logger'
 
 import { resolveEffectsConfig } from '../src/effects.js'
 import { EffectRecorder, EFFECTS_CHANNEL } from '../src/recorder.js'
 
 vi.mock('webdriverio', () => ({ getContextManager: () => ({ getCurrentContext: vi.fn().mockResolvedValue('page') }) }))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 function bidiBrowser () {
     const handlers = new Map<string, ((params: unknown) => void)[]>()
@@ -78,6 +81,37 @@ describe('EffectRecorder on a BiDi session', () => {
             navigation: '/cart',
             changed: ['status "Cart"']
         })
+    })
+
+    /**
+     * the e2e suite logs these at debug level, so a step that misses a request on CI
+     * shows whether the event came outside the step or was left out, and why
+     */
+    it('logs every request it counts or leaves out, with the reason', async () => {
+        const { browser, emit, request } = bidiBrowser()
+        const recorder = await EffectRecorder.attach(browser, resolveEffectsConfig({ ignore: ['/telemetry'] }))
+        vi.mocked(logMock.debug).mockClear()
+
+        emit('network.beforeRequestSent', request('early', 'https://shop.example/api/early'))
+        await recorder.start()
+        emit('network.beforeRequestSent', { ...request('tab', 'https://shop.example/api/poll'), context: 'other-tab' })
+        emit('network.beforeRequestSent', request('nav', 'https://shop.example/next', { initiatorType: null, destination: 'document' }))
+        emit('network.beforeRequestSent', request('t', 'https://shop.example/telemetry'))
+        emit('network.beforeRequestSent', request('r1', 'https://shop.example/api/cart'))
+        emit('network.responseCompleted', { ...request('r1', 'https://shop.example/api/cart'), response: { status: 201 } })
+        await recorder.settle({ quiet: 10 })
+
+        const messages = vi.mocked(logMock.debug).mock.calls.map(([message]) => String(message))
+        expect(messages).toEqual(expect.arrayContaining([
+            'effects: not counting POST https://shop.example/api/early: no step is recorded',
+            'effects: not counting POST https://shop.example/api/poll: its context other-tab is not the page page',
+            'effects: not counting POST https://shop.example/next: not an effect request (navigation null, initiator null, destination document)',
+            'effects: not counting POST https://shop.example/telemetry: ignored by the effects config',
+            'effects: request started POST https://shop.example/api/cart (r1)',
+            'effects: request finished POST https://shop.example/api/cart (r1): 201'
+        ]))
+        expect(messages.some((message) => message.startsWith('effects: step started on page at https://shop.example/products'))).toBe(true)
+        expect(messages.some((message) => message.startsWith('effects: step settled after') && message.includes('POST /api/cart → 2xx'))).toBe(true)
     })
 
     it('leaves out what other tabs do during the step, and counts frames the step added', async () => {

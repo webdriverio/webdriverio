@@ -56,7 +56,9 @@ jobs:
         if: failure()
         with:
           name: e2e-testrunner-tests-logs-${{ matrix.os }}
-          path: e2e/wdio/*.log
+          path: |
+            e2e/wdio/*.log
+            e2e/wdio/ai/*.log
 
       - name: Check Git Context
         if: matrix.os != 'windows-latest'

@@ -1,3 +1,4 @@
+import logger from '@wdio/logger'
 import { getContextManager } from 'webdriverio'
 
 import { contextTree } from './contexts.js'
@@ -10,6 +11,8 @@ import {
 export { DEFAULT_SETTLE_TIMEOUT }
 
 export const EFFECTS_CHANNEL = 'wdio-ai-effects'
+
+const log = logger('@wdio/ai-service')
 
 export const DEFAULT_QUIET = 100
 /**
@@ -282,16 +285,19 @@ export class EffectRecorder {
     }
 
     #requestStarted (params: RequestParams) {
-        if (!this.#active) {
-            return
-        }
-        if (!this.#inPage(params.context)) {
-            return
-        }
         const { request, url, method, destination, initiatorType } = params.request
-        if (!isEffectRequest({ url, destination, initiatorType, navigation: params.navigation }) || isIgnored(url, this.config.ignore)) {
+        const skipped = !this.#active
+            ? 'no step is recorded'
+            : !this.#inPage(params.context)
+                ? `its context ${params.context} is not the page ${this.#page}`
+                : !isEffectRequest({ url, destination, initiatorType, navigation: params.navigation })
+                    ? `not an effect request (navigation ${params.navigation}, initiator ${initiatorType}, destination ${destination})`
+                    : isIgnored(url, this.config.ignore) ? 'ignored by the effects config' : undefined
+        if (skipped) {
+            log.debug(`effects: not counting ${method} ${url}: ${skipped}`)
             return
         }
+        log.debug(`effects: request started ${method} ${url} (${request})`)
         this.#inflight.set(request, { method, url })
         this.#touch()
     }
@@ -302,6 +308,7 @@ export class EffectRecorder {
             return
         }
         this.#inflight.delete(params.request.request)
+        log.debug(`effects: request finished ${started.method} ${started.url} (${params.request.request}): ${failed ? 'failed' : params.response?.status}`)
         this.#requests.add(`${started.method} ${urlTemplate(started.url, this.#pageUrl)} → ${statusClass(params.response?.status, failed)}`)
         this.#touch()
     }
@@ -345,6 +352,7 @@ export class EffectRecorder {
         }
         this.#lastActivity = Date.now()
         this.#active = true
+        log.debug(`effects: step started on ${this.#page ?? 'a Classic session'} at ${this.#pageUrl}, contexts ${[...this.#contexts].join(', ')}`)
     }
 
     /**
@@ -393,7 +401,9 @@ export class EffectRecorder {
                 ...[...this.#inflight.values()].map(({ method, url }) => `${method} ${urlTemplate(url, this.#pageUrl)}`),
                 ...(this.#pendingNavigations.size ? ['a navigation'] : [])
             ]
-            return this.#effect()
+            const effect = this.#effect()
+            log.debug(`effects: step settled after ${timeout - (deadline - Date.now())} ms: ${JSON.stringify(effect)}${this.#unsettled.length ? `, still running: ${this.#unsettled.join(', ')}` : ''}`)
+            return effect
         } finally {
             this.#active = false
         }
