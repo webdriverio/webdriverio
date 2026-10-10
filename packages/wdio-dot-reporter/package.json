@@ -32,7 +32,7 @@
   "dependencies": {
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
-    "chalk": "^5.0.1"
+    "chalk": "^6.0.1"
   },
   "publishConfig": {
     "access": "public"
