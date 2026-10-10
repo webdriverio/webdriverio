@@ -213,11 +213,23 @@ function describeRejection (err: unknown) {
  * @see {@link https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-logger/README.md#custom-log-levels} for more information.
  *
  * @param {InstallOptions & { unpack?: true | undefined }} args - An object containing installation options and an optional `unpack` flag.
+ * @param {object} options
+ * @param {boolean} options.retry - this is the retry: a failure is final
+ * @param {boolean} options.fresh - the cache is private to this install (see `installBuild()`): the retry
+ *                                  starts from an empty build folder, also when the executable is there,
+ *                                  so that a partly unpacked build is never used
  * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
  */
-const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
+const _install = async (
+    args: InstallOptions & { unpack?: true | undefined },
+    { retry = false, fresh = false }: { retry?: boolean, fresh?: boolean } = {}
+): Promise<void> => {
     warnIfDownloadProxyIgnored()
     await install(args).catch(async (err) => {
+        if (await isInstalledDespiteArchiveCleanup(args, err)) {
+            return
+        }
+
         /**
          * a rejection is not guaranteed to be an Error, so never assume a writable
          * `message` and never let `new Error()` stringify an object into `[object Object]`
@@ -240,9 +252,11 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
          * with "exists but executable is missing" (see issue #15608).
          * Remove the whole build folder: the executable can sit in a sub-folder of
          * it (`core/firefox.exe` on Windows), and the check is on the build folder.
-         * Keep the folder when the executable is there: the install can fail after
-         * the browser was extracted, e.g. when Windows still locks the Firefox
-         * installer that it tries to delete, and the retry then uses that browser.
+         * In the cache itself, keep the folder when the executable is there: it is a
+         * published build. In a private cache, remove it too: the unpack can have
+         * failed after the executable was written. (A failure of the archive cleanup
+         * only, e.g. a Firefox installer that Windows still locks, does not retry:
+         * see `isInstalledDespiteArchiveCleanup()`.)
          */
         try {
             const platform = args.platform ?? detectBrowserPlatform()
@@ -250,10 +264,13 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
                 const cache = new Cache(args.cacheDir)
                 const executablePath = cache.computeExecutablePath({ browser: args.browser, platform, buildId: args.buildId })
                 const buildDir = cache.installationDir(args.browser, platform, args.buildId)
-                if (await fsp.access(executablePath).then(() => true, () => false)) {
+                const hasExecutable = await fsp.access(executablePath).then(() => true, () => false)
+                if (hasExecutable && !fresh) {
                     log.info(`Keeping ${args.browser} v${args.buildId} at ${buildDir}: the executable is there`)
                 } else if (await fsp.access(buildDir).then(() => true, () => false)) {
-                    log.warn(`Removing ${buildDir} before the retry: the executable ${executablePath} is missing`)
+                    log.warn(hasExecutable
+                        ? `Removing ${buildDir} before the retry: the failed install can have left it partly unpacked`
+                        : `Removing ${buildDir} before the retry: the executable ${executablePath} is missing`)
                     await fsp.rm(buildDir, { recursive: true, force: true }).catch((err) => {
                         log.warn(`Couldn't remove ${buildDir}, the retry can fail: ${describeRejection(err)}`)
                     })
@@ -268,7 +285,7 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
              * if the partial directory issue resolves itself.
              */
         }
-        return _install(args, true)
+        return _install(args, { retry: true, fresh })
     })
     log.progress('')
 }
@@ -297,8 +314,63 @@ function installBuild (
         markerPath: path.join(args.cacheDir, args.browser, `${platform}_${args.buildId.replaceAll('-', '_')}.installing`)
     }, (cacheDir) => {
         prepare?.(cacheDir)
-        return _install({ ...args, cacheDir })
+        return _install({ ...args, cacheDir }, { fresh: true })
     })
+}
+
+/**
+ * `@puppeteer/browsers` deletes the downloaded archive (`<browserRoot>/<buildId>-<file>`)
+ * in a `finally` block, also when the browser is installed. On Windows that fails with
+ * EBUSY or EPERM while another program has the archive open: a virus scan of the new
+ * file, or the Firefox installer that the install just ran. (Since the install runs in a
+ * private cache, see `installBuild()`, no other worker can have it open.) The browser
+ * is then complete and only the cleanup failed, so use it: a retry would fail on the
+ * same cleanup.
+ *
+ * Every provider in the error must have failed on that cleanup, and the executable must
+ * exist. `install()` lists the providers as `  - <provider>: <message>` lines.
+ *
+ * Known limit: the error of the cleanup in `finally` replaces an error of the unpack, so
+ * when both failed at the same time the build can be partial. Not checked; look here if
+ * a broken browser is reported after this warning.
+ */
+async function isInstalledDespiteArchiveCleanup (args: InstallOptions, err: unknown) {
+    const message = describeRejection(err)
+    const providerLines = message.split('\n').filter((line) => /^\s+- /.test(line))
+    const platform = args.platform ?? detectBrowserPlatform()
+    if (!platform) {
+        return false
+    }
+    try {
+        const cache = new Cache(args.cacheDir)
+        const browserRoot = path.resolve(cache.browserRoot(args.browser))
+        /**
+         * up to the last quote of the line: Node.js does not escape quotes in the path
+         */
+        const locked = (providerLines.length > 0 ? providerLines : [message]).map((line) => (
+            /\b(?:EBUSY|EPERM)\b[^\n]*\bunlink '([^\n]+)'/.exec(line)?.[1]
+        ))
+        const onlyArchiveCleanup = locked.every((file) => (
+            file !== undefined &&
+            path.dirname(path.resolve(file)) === browserRoot &&
+            path.basename(file).startsWith(`${args.buildId}-`)
+        ))
+        if (!onlyArchiveCleanup) {
+            return false
+        }
+        const executablePath = cache.computeExecutablePath({ browser: args.browser, platform, buildId: args.buildId })
+        if (!await fsp.access(executablePath).then(() => true, () => false)) {
+            return false
+        }
+        log.warn(
+            `Installed ${args.browser} v${args.buildId}, but couldn't remove its download ${locked[0]} ` +
+            `(${message.includes('EBUSY') ? 'EBUSY' : 'EPERM'}): another program still has it open, e.g. a virus scan ` +
+            'or the Firefox installer. Using the installed browser.'
+        )
+        return true
+    } catch {
+        return false
+    }
 }
 
 function locateChromeSafely () {
