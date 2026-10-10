@@ -116,7 +116,7 @@ export const config = {
 ### Add Request Headers With A Local Proxy
 
 A local proxy can add a header, such as `Authorization`, to every request the browser sends.
-For HTTP Basic authentication of a single page you don't need one: pass the credentials to [`browser.url`](/docs/api/browser/url) with the `auth` option.
+For HTTP Basic authentication of a single page you don't need one when your session uses WebDriver Bidi: pass the credentials to [`browser.url`](/docs/api/browser/url) with the `auth` option.
 
 ```js
 await browser.url('https://the-internet.herokuapp.com/basic_auth', {
@@ -133,11 +133,14 @@ import net from 'node:net'
 
 const AUTHORIZATION = 'Basic ' + Buffer.from('user:secret').toString('base64')
 
+// IPv6 addresses come in square brackets, which the socket APIs don't accept
+const stripBrackets = (hostname) => hostname.replace(/^\[|\]$/g, '')
+
 const proxy = http.createServer((clientRequest, clientResponse) => {
     const target = new URL(clientRequest.url)
     const upstreamRequest = http.request(
         {
-            host: target.hostname,
+            host: stripBrackets(target.hostname),
             port: target.port || 80,
             path: target.pathname + target.search,
             method: clientRequest.method,
@@ -148,18 +151,23 @@ const proxy = http.createServer((clientRequest, clientResponse) => {
             upstreamResponse.pipe(clientResponse)
         }
     )
+    // without error handlers, a single failed connection would stop the proxy
+    upstreamRequest.on('error', () => clientResponse.destroy())
+    clientResponse.on('error', () => upstreamRequest.destroy())
     clientRequest.pipe(upstreamRequest)
 })
 
 // HTTPS requests arrive as CONNECT requests and are tunneled without changes
 proxy.on('connect', (request, clientSocket, head) => {
-    const [host, port] = request.url.split(':')
-    const upstreamSocket = net.connect(Number(port), host, () => {
+    const { hostname, port } = new URL(`http://${request.url}`)
+    const upstreamSocket = net.connect(Number(port) || 443, stripBrackets(hostname), () => {
         clientSocket.write('HTTP/1.1 200 Connection Established\r\n\r\n')
         upstreamSocket.write(head)
         upstreamSocket.pipe(clientSocket)
         clientSocket.pipe(upstreamSocket)
     })
+    upstreamSocket.on('error', () => clientSocket.destroy())
+    clientSocket.on('error', () => upstreamSocket.destroy())
 })
 
 proxy.listen(8080)
