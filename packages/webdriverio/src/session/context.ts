@@ -315,14 +315,33 @@ export class ContextManager extends SessionManager {
 
     #onCommandResultMobile(event: { command: string, result: unknown }) {
         if (event.command === 'getAppiumContext') {
-            this.setCurrentContext((event.result as { value: string }).value)
+            this.#setAppiumContext((event.result as { value: string }).value)
         }
         if (
             event.command === 'switchAppiumContext' &&
             (event.result as { value: string | null }).value === null &&
             this.#mobileContext
         ) {
-            this.setCurrentContext(this.#mobileContext)
+            this.#setAppiumContext(this.#mobileContext, true)
+        }
+    }
+
+    /**
+     * Track the Appium context name (`NATIVE_APP`, `CHROMIUM`, `WEBVIEW_<pkg>`).
+     * In a BiDi session that name is not a browsing context id, so it does not
+     * become the current context: when the Appium context changes, the current
+     * context is reset and `getCurrentContext()` resolves the window handle again.
+     */
+    #setAppiumContext (name: string, switched = false) {
+        if (!this.#browser.isBidi) {
+            return this.setCurrentContext(name)
+        }
+
+        const changed = switched || name !== this.#mobileContext
+        this.#isNativeContext = name ? name === 'NATIVE_APP' : this.#isNativeContext
+        this.#mobileContext = name || undefined
+        if (changed) {
+            this.#currentContext = undefined
         }
     }
 
@@ -369,14 +388,24 @@ export class ContextManager extends SessionManager {
                     : undefined
         }
 
-        const windowHandle = this.#mobileContext || await this.#browser.getWindowHandle()
+        /**
+         * in a BiDi session a web context is addressed by its window handle, the
+         * Appium context name (e.g. `CHROMIUM`) is not a browsing context id
+         */
+        const useWindowHandle = this.#browser.isBidi && !this.#isNativeContext
+        const windowHandle = (!useWindowHandle && this.#mobileContext) || await this.#browser.getWindowHandle()
         this.setCurrentContext(windowHandle)
         return windowHandle
     }
 
+    /**
+     * Set the context that BiDi commands target. In a BiDi session this is a
+     * browsing context id (window handle), never an Appium context name, so it
+     * does not change the tracked Appium context.
+     */
     setCurrentContext (context: string) {
         this.#currentContext = context
-        if (this.#browser.isMobile) {
+        if (this.#browser.isMobile && !this.#browser.isBidi) {
             this.#isNativeContext = context ? context === 'NATIVE_APP' : this.#isNativeContext
             this.#mobileContext = context || undefined
         }
