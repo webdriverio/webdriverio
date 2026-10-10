@@ -160,7 +160,11 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
 `expect-webdriverio` 8 has its own breaking changes. Its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8) lists each change and its replacement. These changes are the most likely to affect a test suite:
 
 - `toHaveText` on `$$()` compares the elements index by index. An expected array in another order than the page fails. Use the page order, `expect.oneOf()` or `expect.arrayContaining()`.
-- An array of expected values on a single element fails `toHaveText`, `toHaveHTML`, `toHaveComputedLabel` and `toHaveComputedRole`. Use `expect.oneOf()`.
+- An array of expected values on a single element fails `toHaveText`, `toHaveHTML`, `toHaveComputedLabel`, `toHaveComputedRole` and `toHaveElementClass`. Use `expect.oneOf()`. For `toHaveElementClass`, an array meant "has any of these classes": use `expect.oneOf()`, or one assertion for each class when the element must have all of them.
+- A list matcher (`expect.arrayContaining()`, `expect.arrayOf()`) on a single element, or with `some()`, throws an error. On `$$()`, it compares the values of all the elements at once.
+- A missing attribute or property never matches, also not a matcher that accepts no value, such as `expect.not.stringContaining()`.
+- `URL`, `Set`, `Map` and binary values are compared by their content. An assertion that passed by mistake can now fail.
+- The helper types are not global anymore. A file that uses `Test`, `TestResult`, `Scenario` or `WdioCustomMatchers` without an import fails with `Cannot find name`: use `Frameworks.Test`, `Frameworks.TestResult` and `Frameworks.Scenario` from `@wdio/types`, and `ExpectWebdriverIO.Matchers`.
 - `setFeatureFlags()` and the `featureFlags` option were removed.
 - These deprecated APIs were removed: `setOptions` (use `setDefaultOptions`), `getConfig` (use `getDefaultOptions`), `matchers` (use `wdioCustomMatchers`), `toHaveAttr` (use `toHaveAttribute`), `toHaveClass` (use `toHaveElementClass`), `toBeRequestedWithResponse()` (use `toBeRequestedWith({ response })`), and `expect-webdriverio/types` (use `expect-webdriverio/expect-global`).
 - The `beforeAssertion` and `afterAssertion` hooks get the name of the alias that the test called, for `toBeExisting`, `toBePresent`, `toHaveLink`, `toHaveValue` and `toBeRequested`. In v9, they got the name of the matcher behind the alias, for example `toExist` for `toBeExisting`.
