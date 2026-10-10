@@ -1,5 +1,5 @@
 import clone from 'lodash.clonedeep'
-import { setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { isLoadedElement, setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
@@ -32,6 +32,106 @@ type EventEmitter = (args: unknown) => void
 function zipElements (lists: WebdriverIO.Element[][]) {
     const length = Math.max(0, ...lists.map((list) => list.length))
     return Array.from({ length }, (_, index) => lists.map((list) => index < list.length ? list[index] : undefined))
+}
+
+function isContainer (value: unknown): value is object {
+    if (!value || typeof value !== 'object') {
+        return false
+    }
+    const prototype = Object.getPrototypeOf(value)
+    return Array.isArray(value) || prototype === Object.prototype || prototype === null
+}
+
+function isMultiRemoteElement (value: unknown): value is WebdriverIO.MultiRemoteElement {
+    return !isContainer(value) && isLoadedElement(value) &&
+        Boolean((value as unknown as WebdriverIO.MultiRemoteElement).isMultiRemote)
+}
+
+/**
+ * Only data properties are read, so a getter of an argument never runs.
+ */
+function containerValues (container: object): unknown[] {
+    if (Array.isArray(container)) {
+        return Array.from(container)
+    }
+    return Object.values(Object.getOwnPropertyDescriptors(container))
+        .flatMap((descriptor) => 'value' in descriptor ? [descriptor.value] : [])
+}
+
+/**
+ * The arrays and plain objects among `args` from which a multi-remote element
+ * can be reached. Only these are copied, so other arguments keep their identity.
+ */
+function findElementHolders (args: unknown[]): Set<unknown> {
+    const values = new Map<object, unknown[]>()
+    const pending = [...args]
+    while (pending.length) {
+        const value = pending.pop()
+        if (isContainer(value) && !values.has(value)) {
+            const items = containerValues(value)
+            values.set(value, items)
+            for (const item of items) {
+                pending.push(item)
+            }
+        }
+    }
+
+    const holders = new Set<unknown>()
+    let grown = true
+    while (grown) {
+        grown = false
+        for (const [container, items] of values) {
+            if (!holders.has(container) && items.some((item) => holders.has(item) || isMultiRemoteElement(item))) {
+                holders.add(container)
+                grown = true
+            }
+        }
+    }
+    return holders
+}
+
+/**
+ * A multi-remote element has no element id of its own, so a command argument
+ * holding one gets the element of the instance the command runs on (#15844).
+ * Every copy is registered before its contents are converted, so an object
+ * reached twice, or through a cycle, resolves to the same copy.
+ */
+function toInstanceArgs (args: unknown[], instanceName: string, holders: Set<unknown>): unknown[] {
+    const copies = new Map<object, unknown>()
+    const convert = (value: unknown): unknown => {
+        if (isMultiRemoteElement(value)) {
+            if (!value.instances.includes(instanceName)) {
+                throw new Error(`Element "${String(value.selector)}" is not available on instance "${instanceName}"`)
+            }
+            return value.getInstance(instanceName)
+        }
+        if (!holders.has(value)) {
+            return value
+        }
+
+        const container = value as object
+        if (copies.has(container)) {
+            return copies.get(container)
+        }
+        if (Array.isArray(container)) {
+            const copy: unknown[] = []
+            copies.set(container, copy)
+            for (const item of Array.from(container)) {
+                copy.push(convert(item))
+            }
+            return copy
+        }
+        const copy = Object.create(Object.getPrototypeOf(container))
+        copies.set(container, copy)
+        const descriptors = Object.getOwnPropertyDescriptors(container)
+        for (const descriptor of Object.values(descriptors)) {
+            if ('value' in descriptor) {
+                descriptor.value = convert(descriptor.value)
+            }
+        }
+        return Object.defineProperties(copy, descriptors)
+    }
+    return args.map(convert)
 }
 type WrappedClient = {
     options: Options.WebdriverIO,
@@ -261,10 +361,18 @@ export default class MultiRemote {
                     ? thisElement.instances.map((instanceName) => [instanceName, thisElement.getInstance(instanceName)])
                     : [...instances.entries()]
 
+                /**
+                 * convert the arguments of every instance first, so an element missing
+                 * on one instance throws before the command starts on any other
+                 */
+                const holders = findElementHolders(args)
+                const instanceArgs = scopeEntries.map(
+                    ([instanceName]) => toInstanceArgs(args, instanceName, holders)
+                )
                 const result = await Promise.all(
-                    scopeEntries.map(([, instance]) => {
+                    scopeEntries.map(([, instance], index) => {
                         const command = (instance as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>)[commandName as string]
-                        return command.call(instance, ...args)
+                        return command.call(instance, ...instanceArgs[index])
                     })
                 )
 

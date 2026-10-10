@@ -890,6 +890,100 @@ describe('Multi-Remote tests', () => {
         })
     })
 
+    describe('element arguments (#15844)', () => {
+        const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
+        const executeArgs = () => vi.mocked(fetch).mock.calls
+            .filter(([url]) => (url as URL).pathname.endsWith('/execute/sync'))
+            .map(([, request]) => JSON.parse((request as { body: string }).body).args)
+
+        test('sends the element of each instance, also inside arrays and objects', async () => {
+            const browser = await multiRemote(caps())
+            const elem = await browser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            await browser.execute((...args: unknown[]) => args, elem, [elem], { elem })
+
+            const reference = expect.objectContaining({ [ELEMENT_KEY]: 'some-elem-123' })
+            expect(executeArgs()).toEqual([
+                [{ [ELEMENT_KEY]: 'some-elem-123' }, [reference], { elem: reference }],
+                [{ [ELEMENT_KEY]: 'some-elem-123' }, [reference], { elem: reference }]
+            ])
+        })
+
+        test('gives each instance its own element', async () => {
+            const browser = await multiRemote(caps())
+            const elem = await browser.$('#foo')
+            const executes = ['browserA', 'browserB'].map(
+                (name) => vi.spyOn(browser.getInstance(name), 'execute').mockResolvedValue(name)
+            )
+
+            await browser.execute((...args: unknown[]) => args, elem, [elem], { elem }, 'foo')
+
+            for (const [index, name] of ['browserA', 'browserB'].entries()) {
+                const own = elem.getInstance(name)
+                const [, first, list, object, text] = executes[index].mock.calls[0] as unknown[]
+                expect(first).toBe(own)
+                expect((list as unknown[])[0]).toBe(own)
+                expect((object as { elem: unknown }).elem).toBe(own)
+                expect(text).toBe('foo')
+            }
+        })
+
+        test('runs no command when an element is missing on one instance', async () => {
+            const browser = await multiRemote(caps())
+            const elem = await browser.$('#foo')
+            const executeA = vi.spyOn(browser.getInstance('browserA'), 'execute')
+
+            await expect(browser.execute((el: unknown) => el, elem.select('browserA')))
+                .rejects.toThrow('Element "#foo" is not available on instance "browserB"')
+            expect(executeA).not.toHaveBeenCalled()
+        })
+
+        test('converts an object reached twice once and keeps cycles on the copy', async () => {
+            const browser = await multiRemote(caps())
+            const elem = await browser.$('#foo')
+            const execute = vi.spyOn(browser.getInstance('browserA'), 'execute').mockResolvedValue('a')
+            vi.spyOn(browser.getInstance('browserB'), 'execute').mockResolvedValue('b')
+            const shared = { elem }
+            const cyclic: Record<string, unknown> = { first: shared, second: shared }
+            cyclic.self = cyclic
+            const list: unknown[] = [elem]
+            list.push(list)
+            const withoutElement: Record<string, unknown> = { name: 'foo' }
+            withoutElement.self = withoutElement
+
+            await browser.execute((...args: unknown[]) => args, cyclic, list, shared, withoutElement)
+
+            type Sent = { first: { elem: unknown }, second: unknown, self: unknown }
+            const [, sent, sentList, sentShared, sentWithoutElement] = execute.mock.calls[0] as [unknown, Sent, unknown[], unknown, unknown]
+            expect(sent.first.elem).toBe(elem.getInstance('browserA'))
+            expect(sent.second).toBe(sent.first)
+            expect(sent.self).toBe(sent)
+            expect(sentShared).toBe(sent.first)
+            expect(sentList[0]).toBe(elem.getInstance('browserA'))
+            expect(sentList[1]).toBe(sentList)
+            expect(sentWithoutElement).toBe(withoutElement)
+        })
+
+        test('never calls a getter of an argument', async () => {
+            const browser = await multiRemote(caps())
+            const elem = await browser.$('#foo')
+            const execute = vi.spyOn(browser.getInstance('browserA'), 'execute').mockResolvedValue('a')
+            vi.spyOn(browser.getInstance('browserB'), 'execute').mockResolvedValue('b')
+            const getter = vi.fn(() => 'value')
+            const plain = Object.defineProperty({}, 'lazy', { get: getter, enumerable: true })
+            const withElement = Object.defineProperty({ elem }, 'lazy', { get: getter, enumerable: true })
+
+            await browser.execute((...args: unknown[]) => args, plain, withElement)
+
+            const [, sentPlain, sentWithElement] = execute.mock.calls[0] as unknown[]
+            expect(getter).not.toHaveBeenCalled()
+            expect(sentPlain).toBe(plain)
+            expect((sentWithElement as { elem: unknown }).elem).toBe(elem.getInstance('browserA'))
+            expect(Object.getOwnPropertyDescriptor(sentWithElement, 'lazy')?.get).toBe(getter)
+        })
+    })
+
     describe('select', () => {
         test('should preserve filtered instances when chaining $ on a selected element', async () => {
             const browser = await multiRemote(caps())
