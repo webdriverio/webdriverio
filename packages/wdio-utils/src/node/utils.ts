@@ -308,7 +308,7 @@ function installOnce (args: InstallOptions & { unpack?: true }, platform: Browse
              * the process stopped during the install: its build folder can have the
              * executable but not the rest of the browser
              */
-            onStaleLock: () => fsp.rm(new Cache(args.cacheDir).installationDir(args.browser, platform, args.buildId), { recursive: true, force: true })
+            onStaleLock: () => fsp.rm(new Cache(args.cacheDir).installationDir(args.browser, platform, args.buildId), { recursive: true, force: true, maxRetries: 3 })
         }
     )
 }

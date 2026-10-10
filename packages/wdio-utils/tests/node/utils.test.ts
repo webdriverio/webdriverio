@@ -791,7 +791,7 @@ describe('driver utils', () => {
             const fsp = (await import('node:fs/promises')).default
             vi.mocked(fsp.rm).mockClear()
             await vi.mocked(withInstallLock).mock.calls[0][3]!.onStaleLock!()
-            expect(fsp.rm).toHaveBeenCalledWith('/foo/bar', { recursive: true, force: true })
+            expect(fsp.rm).toHaveBeenCalledWith('/foo/bar', { recursive: true, force: true, maxRetries: 3 })
         })
 
         /**

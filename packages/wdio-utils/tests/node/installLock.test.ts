@@ -172,13 +172,47 @@ describe('withInstallLock', () => {
         expect(await exists(lockPath)).toBe(false)
     })
 
-    it('removes a lock that its holder has not refreshed for staleAfter', async () => {
-        await writeLock(otherHolder(), 120_000)
-        const install = vi.fn()
+    it('removes a lock that its holder does not refresh for staleAfter', async () => {
+        await writeLock(otherHolder())
+        const onStaleLock = vi.fn(async () => {})
+        let lockedDuringInstall = false
+        const startedAt = Date.now()
 
-        await withInstallLock(lockPath, isInstalled, install, fast)
+        await withInstallLock(lockPath, isInstalled, async () => {
+            lockedDuringInstall = await exists(lockPath)
+        }, { ...fast, staleAfter: 100, onStaleLock })
 
-        expect(install).toHaveBeenCalledTimes(1)
+        expect(Date.now() - startedAt).toBeGreaterThanOrEqual(100)
+        expect(onStaleLock).toHaveBeenCalledTimes(1)
+        expect(lockedDuringInstall).toBe(true)
+    })
+
+    /**
+     * the clock of the holder's machine can differ, so only the time that this process
+     * watches the lock counts, not its file time
+     */
+    it('does not take a live lock with an old file time for stale', async () => {
+        await writeLock(JSON.stringify({ pid: 2 ** 22 + 7, hostname: 'other-machine', token: 'remote' }), 120_000)
+        const onStaleLock = vi.fn(async () => {})
+        setTimeout(() => fs.rm(lockPath), 80)
+
+        await withInstallLock(lockPath, isInstalled, vi.fn(), { ...fast, staleAfter: 1000, onStaleLock })
+
+        expect(onStaleLock).not.toHaveBeenCalled()
+    })
+
+    /**
+     * two containers with the same host name (e.g. `--network host`) and the same pid,
+     * but their own pid namespaces
+     */
+    it('does not take the lock of another container with the same host name and pid for stale', async () => {
+        await writeLock(JSON.stringify({ pid: process.pid, hostname: os.hostname(), pidns: 'pid:[1]', token: 'other-container' }))
+        const onStaleLock = vi.fn(async () => {})
+        setTimeout(() => fs.rm(lockPath), 80)
+
+        await withInstallLock(lockPath, isInstalled, vi.fn(), { ...fast, onStaleLock })
+
+        expect(onStaleLock).not.toHaveBeenCalled()
     })
 
     /**
@@ -311,6 +345,64 @@ describe('withInstallLock', () => {
         }
 
         expect(lockedDuringInstall).toBe(false)
+    })
+
+    it('takes the lock after short Windows errors instead of installing without it', async () => {
+        const open = fs.open
+        const busy = () => Promise.reject(Object.assign(new Error('EPERM: operation not permitted'), { code: 'EPERM' }))
+        const spy = vi.spyOn(fs, 'open').mockImplementationOnce(busy).mockImplementationOnce(busy)
+            .mockImplementation((...args: Parameters<typeof fs.open>) => open(...args))
+        let lockedDuringInstall = false
+
+        try {
+            await withInstallLock(lockPath, isInstalled, async () => {
+                lockedDuringInstall = await exists(lockPath)
+            }, fast)
+        } finally {
+            spy.mockRestore()
+        }
+
+        expect(lockedDuringInstall).toBe(true)
+    })
+
+    it('removes its lock when Windows holds it for a moment', async () => {
+        const rm = fs.rm
+        const spy = vi.spyOn(fs, 'rm').mockImplementationOnce(
+            () => Promise.reject(Object.assign(new Error('EBUSY: resource busy or locked'), { code: 'EBUSY' }))
+        ).mockImplementation((...args: Parameters<typeof fs.rm>) => rm(...args))
+
+        try {
+            await withInstallLock(lockPath, isInstalled, async () => {}, fast)
+        } finally {
+            spy.mockRestore()
+        }
+
+        expect(await exists(lockPath)).toBe(false)
+    })
+
+    /**
+     * the holder keeps running (and using the browser): the others must not take its
+     * lock for the one of an install that did not finish and remove the browser
+     */
+    it('marks its lock as installed when it cannot remove it', async () => {
+        const rm = fs.rm
+        const spy = vi.spyOn(fs, 'rm').mockImplementation((file, ...args) => file === lockPath
+            ? Promise.reject(Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' }))
+            : rm(file, ...args))
+        try {
+            await withInstallLock(lockPath, isInstalled, download(), fast)
+        } finally {
+            spy.mockRestore()
+        }
+        const onStaleLock = vi.fn(async () => {})
+        const startedAt = Date.now()
+
+        await withInstallLock(lockPath, isInstalled, download(), { ...fast, onStaleLock })
+
+        expect(onStaleLock).not.toHaveBeenCalled()
+        expect(downloads).toBe(1)
+        expect(Date.now() - startedAt).toBeLessThan(1000)
+        expect(await exists(lockPath)).toBe(false)
     })
 
     it('does not remove a lock that another process took over', async () => {

@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
@@ -13,8 +14,8 @@ export interface InstallLockOptions {
      */
     pollInterval?: number
     /**
-     * a lock that its holder has not refreshed for this long belongs to an install
-     * that did not finish
+     * a lock that does not change while a process waits for it this long (counted in
+     * polls) belongs to an install that did not finish: its holder refreshes it
      */
     staleAfter?: number
     /**
@@ -35,8 +36,18 @@ export interface InstallLockOptions {
 interface LockContent {
     pid?: number
     hostname?: string
+    /**
+     * the pid namespace on Linux: containers can have the same host name and pids
+     */
+    pidns?: string
     token?: string
+    /**
+     * the install finished, but the holder could not remove its lock
+     */
+    installed?: boolean
 }
+
+type Lock = NonNullable<Awaited<ReturnType<typeof readLock>>>
 
 const DEFAULT_OPTIONS: Required<InstallLockOptions> = {
     pollInterval: 250,
@@ -47,12 +58,31 @@ const DEFAULT_OPTIONS: Required<InstallLockOptions> = {
 }
 
 /**
- * tokens of the locks that this process holds
+ * errors that can pass on Windows, e.g. while another process removes or scans the file
+ */
+const TRANSIENT_ERRORS = ['EPERM', 'EBUSY']
+const MAX_TRANSIENT_ERRORS = 10
+
+/**
+ * tokens of the locks that this process holds or waits for
  */
 const heldTokens = new Set<string>()
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const exists = (file: string) => fsp.access(file).then(() => true, () => false)
+const isTransient = (err: unknown) => TRANSIENT_ERRORS.includes((err as NodeJS.ErrnoException).code ?? '')
+
+let pidNamespace: string | undefined | null = null
+function getPidNamespace () {
+    if (pidNamespace === null) {
+        try {
+            pidNamespace = fs.readlinkSync('/proc/self/ns/pid')
+        } catch {
+            pidNamespace = undefined
+        }
+    }
+    return pidNamespace
+}
 
 function isRunning (pid: number) {
     try {
@@ -75,19 +105,49 @@ async function readLock (lockPath: string) {
 }
 
 /**
- * A lock is stale when its holder has not refreshed it for `staleAfter`. A lock of this
- * machine is stale at once when its process no longer runs, or when it has the pid of
- * this process but not one of its tokens (a crashed run in a container with the same
- * pid). A lock that is not written yet counts by its file time.
+ * Tells whether a lock is stale. A lock of a process of this machine (same host name
+ * and pid namespace) is stale at once when that process no longer runs, or when it has
+ * the pid of this process but not one of its tokens (a crashed run in a container with
+ * the same pid). Otherwise a lock is stale when it does not change during the polls of
+ * `staleAfter`. That reads no clock: the clocks of other machines can differ, and a
+ * computer that sleeps and wakes up counts as one poll, so the holder can refresh first.
  */
-function isStale (lock: NonNullable<Awaited<ReturnType<typeof readLock>>>, staleAfter: number) {
-    const { pid, hostname, token } = lock.content ?? {}
-    if (typeof pid === 'number' && hostname === os.hostname()) {
-        if (pid === process.pid ? !(token && heldTokens.has(token)) : !isRunning(pid)) {
-            return true
+function staleCheck (staleAfter: number, pollInterval: number) {
+    let seen: { key: string, polls: number } | undefined
+    return (lock: Lock) => {
+        const { pid, hostname, pidns, token } = lock.content ?? {}
+        if (typeof pid === 'number' && hostname === os.hostname() && pidns === getPidNamespace()) {
+            if (pid === process.pid ? !(token && heldTokens.has(token)) : !isRunning(pid)) {
+                return true
+            }
+        }
+        const key = `${token}:${lock.mtimeMs}`
+        if (seen?.key !== key) {
+            seen = { key, polls: 0 }
+            return false
+        }
+        return ++seen.polls * pollInterval >= staleAfter
+    }
+}
+
+/**
+ * remove a file, also when Windows holds it for a moment
+ */
+async function removeFile (file: string) {
+    for (let attempt = 1; ; attempt++) {
+        try {
+            return await fsp.rm(file, { force: true })
+        } catch (err) {
+            if (attempt >= 5 || !isTransient(err)) {
+                throw err
+            }
+            await sleep(100 * attempt)
         }
     }
-    return Date.now() - lock.mtimeMs > staleAfter
+}
+
+function lockContent (token: string, installed?: true): LockContent {
+    return { pid: process.pid, hostname: os.hostname(), pidns: getPidNamespace(), token, installed }
 }
 
 async function tryLock (lockPath: string, token: string) {
@@ -101,7 +161,7 @@ async function tryLock (lockPath: string, token: string) {
         throw err
     }
     try {
-        await handle.writeFile(JSON.stringify({ pid: process.pid, hostname: os.hostname(), token } satisfies LockContent))
+        await handle.writeFile(JSON.stringify(lockContent(token)))
     } catch (err) {
         /**
          * the file is ours: an empty lock would make the other processes wait for nothing
@@ -118,31 +178,38 @@ async function tryLock (lockPath: string, token: string) {
  * Remove the lock only if it is still the one that was read: another process may
  * have removed it and taken a new one in the meantime.
  */
-async function removeLockOf (lockPath: string, token: string | undefined) {
+async function removeLockOf (lockPath: string, lock: Lock) {
     const current = await readLock(lockPath)
-    if (current && current.content?.token === token) {
-        await fsp.rm(lockPath, { force: true })
+    if (current && current.content?.token === lock.content?.token && current.mtimeMs === lock.mtimeMs) {
+        await removeFile(lockPath)
     }
 }
 
 /**
  * Remove a stale lock. Two processes that find the same stale lock must not both
  * remove "it": the second would remove the lock that the first has just taken. So
- * one process at a time removes, under `<lock>.reap`, and checks the lock again first.
+ * one process at a time removes, under `<lock>.reap`, and only the lock that it saw.
  * Resolves `true` when this process removed it.
  */
-async function removeStaleLock (lockPath: string, stale: LockContent | undefined, token: string, { staleAfter, onStaleLock }: Required<InstallLockOptions>) {
+async function removeStaleLock (
+    lockPath: string,
+    stale: Lock,
+    token: string,
+    isReapStale: (lock: Lock) => boolean,
+    onStaleLock: () => Promise<unknown>
+) {
     const reapPath = `${lockPath}.reap`
-    if (!await tryLock(reapPath, token)) {
+    if (!await tryLock(reapPath, token).catch((err) => isTransient(err) ? false : Promise.reject(err))) {
         const reap = await readLock(reapPath)
-        if (reap && Date.now() - reap.mtimeMs > staleAfter) {
-            await removeLockOf(reapPath, reap.content?.token)
+        if (reap && isReapStale(reap)) {
+            await removeLockOf(reapPath, reap)
         }
         return false
     }
+    const reap = await readLock(reapPath)
     try {
         const current = await readLock(lockPath)
-        if (!current || current.content?.token !== stale?.token || !isStale(current, staleAfter)) {
+        if (!current || current.content?.token !== stale.content?.token || current.mtimeMs !== stale.mtimeMs) {
             return false
         }
         log.warn(`Removing stale install lock ${lockPath} and what its install left`)
@@ -151,28 +218,49 @@ async function removeStaleLock (lockPath: string, stale: LockContent | undefined
          * `onStaleLock` can take long enough for `.reap` to go stale and for another
          * process to remove the lock and take a new one
          */
-        await removeLockOf(lockPath, stale?.token)
+        await removeLockOf(lockPath, current)
         return true
     } finally {
-        await removeLockOf(reapPath, token)
+        if (reap) {
+            await removeLockOf(reapPath, reap)
+        }
     }
 }
 
 /**
- * Wait for the lock and take it. Resolves `false` after `maxWait`.
+ * Wait for the lock and take it. Resolves `false` when the process should install
+ * without it: after `maxWait`, or when the lock says that the install finished.
  */
-async function acquire (lockPath: string, token: string, options: Required<InstallLockOptions>) {
-    const { pollInterval, staleAfter, maxWait } = options
+async function acquire (lockPath: string, token: string, { pollInterval, staleAfter, maxWait, onStaleLock }: Required<InstallLockOptions>) {
     await fsp.mkdir(path.dirname(lockPath), { recursive: true })
+    const isStale = staleCheck(staleAfter, pollInterval)
+    const isReapStale = staleCheck(staleAfter, pollInterval)
     const waitStartedAt = Date.now()
     let loggedWait = false
-    while (!await tryLock(lockPath, token)) {
+    let transientErrors = 0
+    while (true) {
+        const locked = await tryLock(lockPath, token).catch((err) => {
+            if (isTransient(err) && ++transientErrors < MAX_TRANSIENT_ERRORS) {
+                return false
+            }
+            throw err
+        })
+        if (locked) {
+            return true
+        }
         const lock = await readLock(lockPath)
+        if (lock?.content?.installed) {
+            /**
+             * nothing to wait for: `install` finds the build without the lock
+             */
+            await removeLockOf(lockPath, lock).catch(() => {})
+            return false
+        }
         /**
          * try again at once only after removing the lock: while another process
          * removes it, wait like for a holder
          */
-        if (lock && isStale(lock, staleAfter) && await removeStaleLock(lockPath, lock.content, token, options)) {
+        if (lock && isStale(lock) && await removeStaleLock(lockPath, lock, token, isReapStale, onStaleLock)) {
             continue
         }
         if (Date.now() - waitStartedAt > maxWait) {
@@ -185,7 +273,28 @@ async function acquire (lockPath: string, token: string, options: Required<Insta
         }
         await sleep(pollInterval)
     }
-    return true
+}
+
+/**
+ * Remove our lock. If that fails, mark it as installed, so that the other processes
+ * do not take it for the lock of an install that did not finish and remove the build.
+ */
+async function release (lockPath: string, token: string, installed: boolean) {
+    const lock = await readLock(lockPath)
+    if (!lock || lock.content?.token !== token) {
+        return
+    }
+    try {
+        /**
+         * by token only: a refresh that was still running can have changed the file time
+         */
+        await removeFile(lockPath)
+    } catch (err) {
+        log.warn(`Couldn't remove the install lock ${lockPath}: ${(err as Error).message}`)
+        if (installed) {
+            await fsp.writeFile(lockPath, JSON.stringify(lockContent(token, true))).catch(() => {})
+        }
+    }
 }
 
 /**
@@ -233,11 +342,17 @@ export async function withInstallLock<T> (
         fsp.utimes(lockPath, now, now).catch(() => {})
     }, lockOptions.refreshInterval)
     refresh.unref()
+    let installed = false
     try {
-        return await install()
+        const result = await install()
+        installed = true
+        return result
     } finally {
         clearInterval(refresh)
+        /**
+         * remove the lock before the token: until then, the lock is ours
+         */
+        await release(lockPath, token, installed).catch(() => {})
         heldTokens.delete(token)
-        await removeLockOf(lockPath, token).catch(() => {})
     }
 }
