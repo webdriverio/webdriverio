@@ -16,8 +16,18 @@ import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
 import { ElectronChromedriverProvider, getElectronVersionForChromium } from './electronChromedriverProvider.js'
+import { warnIfDownloadProxyIgnored } from './downloadProxy.js'
 
 const log = logger('webdriver')
+
+/**
+ * `@puppeteer/browsers` extracts zip files with the system `unzip` command (`tar.exe` or
+ * PowerShell on Windows). WebdriverIO does not install its JavaScript fallback.
+ */
+const MISSING_ZIP_TOOL = 'no zip archiver is available'
+const UNZIP_HINT = 'WebdriverIO extracts browsers and Chromedriver with the system `unzip` command ' +
+    '(`tar.exe` or PowerShell on Windows). Install it, e.g. `apt-get install -y unzip` or `apk add unzip`. ' +
+    'See https://webdriver.io/docs/docker#images-where-webdriverio-downloads-the-browser'
 const EXCLUDED_PARAMS = ['version', 'help']
 export const DEFAULT_EDGEDRIVER_CDN_URL = 'https://msedgedriver.microsoft.com'
 const LEGACY_EDGEDRIVER_CDN_URL = 'https://msedgedriver.azureedge.net'
@@ -205,12 +215,19 @@ function describeRejection (err: unknown) {
  * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
  */
 const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
+    warnIfDownloadProxyIgnored()
     await install(args).catch(async (err) => {
         /**
          * a rejection is not guaranteed to be an Error, so never assume a writable
          * `message` and never let `new Error()` stringify an object into `[object Object]`
          */
         const details = redactCredentials(`Failed downloading ${args.browser} v${args.buildId} using ${JSON.stringify(args)}: ${describeRejection(err)}`)
+        /**
+         * a missing zip tool fails the retry the same way
+         */
+        if (details.includes(MISSING_ZIP_TOOL)) {
+            throw new Error(`${details}\n${UNZIP_HINT}`)
+        }
         if (retry) {
             throw new Error(details)
         }
@@ -354,6 +371,10 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     const tag = browserName === Browser.CHROME
         ? caps.browserVersion || ChromeReleaseChannel.STABLE
         : caps.browserVersion || 'latest'
+    /**
+     * the version lookup is the first request that can ignore a configured proxy
+     */
+    warnIfDownloadProxyIgnored()
     const buildId = await resolveBuildId(browserName, platform, tag)
     const installOptions: InstallOptions & { unpack?: true } = {
         unpack: true,
@@ -473,6 +494,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
      * `'stable'` and an explicit version that all point at the same build - land on the
      * same key. Resolving reads no state and writes nothing, so doing it twice is free.
      */
+    warnIfDownloadProxyIgnored()
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
     if (platform === BrowserPlatform.LINUX_ARM && getVersionComparator(Browser.CHROMEDRIVER)(buildId, CFT_LINUX_ARM64_FLOOR) < 0) {
         const matchingElectronVersion = getElectronVersionForChromium(buildId)

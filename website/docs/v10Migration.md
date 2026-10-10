@@ -180,6 +180,12 @@ The [driver upgrade notes](https://github.com/webdriverio/driver#upgrading-to-ge
 - `geckodriver` no longer reads `GECKODRIVER_FILEPATH`. Use `GECKODRIVER_PATH`.
 - `wdio:edgedriverOptions` and `wdio:safaridriverOptions` accept `spawnOpts`, as `wdio:chromedriverOptions` does.
 
+## Browser downloads
+
+In v9, WebdriverIO extracted the Chrome, Chromium and Chromedriver zip files itself. In v10 it uses the system `unzip` command on Linux and macOS (`tar.exe` or PowerShell on Windows). Slim Docker images, such as `node:24-slim`, do not have it: install it, see [Docker](/docs/docker#images-where-webdriverio-downloads-the-browser).
+
+In v9, the Chrome, Chromium, Firefox and Chromedriver downloads used `HTTPS_PROXY` and `HTTP_PROXY`. In v10 they use them only when `proxy-agent` is installed in your project, or when Node.js runs with `NODE_USE_ENV_PROXY=1` (Node.js 22.21.0 / 24.5.0 or later). WebdriverIO logs a warning when a proxy variable is set but the download would ignore it. See [Proxy For Browser And Driver Downloads](/docs/proxy#proxy-for-browser-and-driver-downloads).
+
 ## Multi-remote Global
 
 The lowercase `multiremotebrowser` global was removed, from `@wdio/globals` and from the globals of `eslint-plugin-wdio` too. Use `multiRemoteBrowser`.

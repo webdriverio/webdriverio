@@ -14,6 +14,7 @@ import {
     canAccess, getCacheDir, setupChromedriver, setupGeckodriver, setupEdgedriver
 } from '../../src/node/utils.js'
 import { getElectronVersionForChromium } from '../../src/node/electronChromedriverProvider.js'
+import { warnIfDownloadProxyIgnored } from '../../src/node/downloadProxy.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -85,6 +86,10 @@ vi.mock('../../src/node/electronChromedriverProvider.js', () => ({
     getElectronVersionForChromium: vi.fn()
 }))
 
+vi.mock('../../src/node/downloadProxy.js', () => ({
+    warnIfDownloadProxyIgnored: vi.fn()
+}))
+
 vi.mock('@puppeteer/browsers', async () => ({
     Cache: vi.fn(function () {
         return { installationDir: () => '/foo/bar', writeExecutablePath: vi.fn() }
@@ -101,6 +106,66 @@ vi.mock('@puppeteer/browsers', async () => ({
 }))
 
 describe('setupChromedriver', () => {
+    /**
+     * `@puppeteer/browsers` can ignore a configured proxy, see `downloadProxy.ts`
+     */
+    it('checks the download proxy before it installs', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+
+        try {
+            await setupChromedriver('/proxy/cache', '116.0.5845.110')
+
+            expect(warnIfDownloadProxyIgnored).toHaveBeenCalled()
+            expect(vi.mocked(warnIfDownloadProxyIgnored).mock.invocationCallOrder[0])
+                .toBeLessThan(vi.mocked(install).mock.invocationCallOrder[0])
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+        }
+    })
+
+    /**
+     * without a zip tool the retry fails the same way, so tell how to fix it at once
+     */
+    it('fails with a hint and no retry when the system has no zip tool', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear().mockRejectedValueOnce(new Error(
+            'All providers failed for chromedriver 116.0.5845.110:\n  - DefaultProvider: Extraction failed: no zip archiver is available. ' +
+            'Install `unzip` (or `tar.exe`/Powershell on Windows), or add the optional `yauzl` dependency.'
+        ))
+
+        try {
+            const error = await setupChromedriver('/zip/cache', '116.0.5845.110').catch((err) => err)
+
+            expect(error.message).toContain('no zip archiver is available')
+            expect(error.message).toContain('WebdriverIO extracts browsers and Chromedriver with the system `unzip` command')
+            expect(error.message).toContain('apt-get install -y unzip')
+            expect(install).toHaveBeenCalledTimes(1)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+        }
+    })
+
+    /**
+     * behind a proxy-only network the version lookup is the first request that fails,
+     * so the warning must come before it
+     */
+    it('checks the download proxy before it looks up the Chromedriver version', async () => {
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+        vi.mocked(resolveBuildId).mockClear().mockRejectedValueOnce(new Error('getaddrinfo ENOTFOUND googlechromelabs.github.io'))
+
+        await expect(setupChromedriver('/proxy/lookup', 'stable')).rejects.toThrow('ENOTFOUND')
+
+        expect(vi.mocked(warnIfDownloadProxyIgnored).mock.invocationCallOrder[0])
+            .toBeLessThan(vi.mocked(resolveBuildId).mock.invocationCallOrder[0])
+    })
+
     /**
      * `chrome` and `chromium` are both in the Chrome browser family, so a config with
      * both asks for Chromedriver twice at the same time. The two installs used to race
@@ -558,6 +623,28 @@ describe('driver utils', () => {
                 browserVersion: '116.0.5845.110',
                 executablePath: '/path/to/chrome'
             })
+        })
+
+        it('checks the download proxy before it looks up the browser version', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('linux' as any)
+            vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+            vi.mocked(resolveBuildId).mockRejectedValueOnce(new Error('getaddrinfo ENOTFOUND googlechromelabs.github.io'))
+
+            await expect(setupPuppeteerBrowser('/foo/bar', { browserName: 'chrome', browserVersion: 'stable' }))
+                .rejects.toThrow('ENOTFOUND')
+
+            expect(vi.mocked(warnIfDownloadProxyIgnored).mock.invocationCallOrder[0])
+                .toBeLessThan(vi.mocked(resolveBuildId).mock.invocationCallOrder[0])
+        })
+
+        it('does not check the download proxy when it uses an installed browser', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('mac' as any)
+            vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+
+            await setupPuppeteerBrowser('/foo/bar', {})
+
+            expect(warnIfDownloadProxyIgnored).not.toHaveBeenCalled()
+            expect(resolveBuildId).not.toHaveBeenCalled()
         })
 
         it('should do nothing if browser binary is defined within caps', async () => {
