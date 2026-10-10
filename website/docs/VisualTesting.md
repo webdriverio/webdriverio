@@ -43,7 +43,15 @@ Please use the property `isHybridApp:true` in your service settings when you wan
 
 `@wdio/visual-service` **v11** supports only **WebdriverIO v10** (and Node.js 22.19 or later). With WebdriverIO v9, stay on `@wdio/visual-service@10`.
 
-v11 compares colors with pixelmatch 8 (OKLab color space, HyAB distance) instead of YIQ. The threshold scale and the `ignore*` presets did not change, but **mismatch percentages can differ a little** from v10 for the same images. Your test code does not need to change. If a check depends on an exact mismatch percentage or a tight tolerance, check it again after the upgrade. See the [v11 migration guide](https://github.com/webdriverio/visual-testing/blob/main/docs/v11-migration.md) for all changes.
+v11 compares colors with pixelmatch 8 (OKLab color space, HyAB distance) instead of YIQ. The threshold scale and the `ignore*` presets did not change, but **mismatch percentages can differ a little** from v10 for the same images. Your test code does not need to change. If a check depends on an exact mismatch percentage or a tight tolerance, check it again after the upgrade.
+
+Some fixes in v11 can also change a baseline once:
+
+-   **iOS element screenshots of large elements:** for an element that is not fully inside the viewport, the image had the size of the whole element, but the part outside the viewport was black ([appium/appium#22939](https://github.com/appium/appium/issues/22939)). The image now has only the visible part of the element, as on Android.
+-   **Element screenshots with `biDiOrigin: 'viewport'`:** in a WebDriver BiDi session, the screenshot now cuts the element itself, also when the page is scrolled.
+-   **Scroll back:** element checks (with `autoElementScroll`) and full page checks now scroll the page back to where it was. A viewport check that runs right after them can give another image.
+
+See the [v11 migration guide](https://github.com/webdriverio/visual-testing/blob/main/docs/v11-migration.md) for all changes.
 
 :::
 

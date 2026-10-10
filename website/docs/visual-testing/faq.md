@@ -48,7 +48,7 @@ If you still need to resolve the issues with Version 4, please check:
 
 ### I upgraded to v11, why did a mismatch percentage change?
 
-In v11 the comparison engine is pixelmatch 8, which measures color differences in the OKLab color space with the HyAB distance instead of YIQ. The threshold scale (`0` to `1`) and the `ignore*` presets did not change, but the number of different pixels can change a little for the same images (about −3 % to +3 % on real screenshots). If a check depends on an exact mismatch percentage or a tight tolerance, check it again, and update the baseline with `--update-visual-baseline` only when the new result is correct. See the [v11 migration guide](https://github.com/webdriverio/visual-testing/blob/main/docs/v11-migration.md).
+In v11 the comparison engine is pixelmatch 8, which measures color differences in the OKLab color space with the HyAB distance instead of YIQ. The threshold scale (`0` to `1`) and the `ignore*` presets did not change, but the number of different pixels can change a little for the same images (about −3 % to +3 % on real screenshots). If a check depends on an exact mismatch percentage or a tight tolerance, check it again, and update the baseline with `--update-visual-baseline` only when the new result is correct. Some fixes can also change a baseline once, for example iOS element screenshots of elements larger than the viewport, which no longer have a black area. See the [v11 migration guide](https://github.com/webdriverio/visual-testing/blob/main/docs/v11-migration.md).
 
 ### I upgraded to v10, why are my visual tests failing?
 
