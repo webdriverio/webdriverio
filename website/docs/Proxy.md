@@ -113,4 +113,89 @@ export const config = {
 }
 ```
 
+### Add Request Headers With A Local Proxy
+
+A local proxy can add a header, such as `Authorization`, to every request the browser sends.
+For HTTP Basic authentication of a single page you don't need one when your session uses WebDriver Bidi: pass the credentials to [`browser.url`](/docs/api/browser/url) with the `auth` option.
+
+```js
+await browser.url('https://the-internet.herokuapp.com/basic_auth', {
+    auth: { user: 'admin', pass: 'admin' }
+})
+```
+
+Use a local proxy when the header has to be on every request, or when you can't change the test code.
+The following Node.js script starts a proxy on port `8080` that adds a Basic `Authorization` header to plain HTTP requests and forwards them:
+
+```js title="header-proxy.mjs"
+import http from 'node:http'
+import net from 'node:net'
+
+const AUTHORIZATION = 'Basic ' + Buffer.from('user:secret').toString('base64')
+
+// IPv6 addresses come in square brackets, which the socket APIs don't accept
+const stripBrackets = (hostname) => hostname.replace(/^\[|\]$/g, '')
+
+const proxy = http.createServer((clientRequest, clientResponse) => {
+    const target = new URL(clientRequest.url)
+    const upstreamRequest = http.request(
+        {
+            host: stripBrackets(target.hostname),
+            port: target.port || 80,
+            path: target.pathname + target.search,
+            method: clientRequest.method,
+            headers: { ...clientRequest.headers, authorization: AUTHORIZATION }
+        },
+        (upstreamResponse) => {
+            clientResponse.writeHead(upstreamResponse.statusCode, upstreamResponse.headers)
+            upstreamResponse.pipe(clientResponse)
+        }
+    )
+    // without error handlers, a single failed connection would stop the proxy
+    upstreamRequest.on('error', () => clientResponse.destroy())
+    clientResponse.on('error', () => upstreamRequest.destroy())
+    clientRequest.pipe(upstreamRequest)
+})
+
+// HTTPS requests arrive as CONNECT requests and are tunneled without changes
+proxy.on('connect', (request, clientSocket, head) => {
+    const { hostname, port } = new URL(`http://${request.url}`)
+    const upstreamSocket = net.connect(Number(port) || 443, stripBrackets(hostname), () => {
+        clientSocket.write('HTTP/1.1 200 Connection Established\r\n\r\n')
+        upstreamSocket.write(head)
+        upstreamSocket.pipe(clientSocket)
+        clientSocket.pipe(upstreamSocket)
+    })
+    upstreamSocket.on('error', () => clientSocket.destroy())
+    clientSocket.on('error', () => upstreamSocket.destroy())
+})
+
+proxy.listen(8080)
+```
+
+Start it with `node header-proxy.mjs` and point the browser at it through the `proxy` capability:
+
+```js title="wdio.conf.js"
+export const config = {
+    // ...
+    capabilities: [{
+        browserName: 'chrome',
+        proxy: {
+            proxyType: 'manual',
+            httpProxy: 'localhost:8080'
+        }
+    }],
+    // ...
+}
+```
+
+:::info
+
+A proxy can only change a request it can read.
+The browser encrypts HTTPS traffic end to end, so the script above can't add headers to it.
+To change HTTPS requests you need a man-in-the-middle proxy, such as [mitmproxy](https://mitmproxy.org/), together with its certificate authority installed in the browser.
+Start the proxy before your tests, for example in the [`onPrepare`](/docs/configuration#onprepare) hook, so it also runs in CI.
+
+:::
+
 For more information, see the [WebDriver specification](https://w3c.github.io/webdriver/#proxy).
