@@ -136,6 +136,8 @@ Maximum count of request retries to the Selenium server.
 
 Timeout (in ms) for a WebDriver Bidi command to receive a response from the browser. Increase this if you run commands, e.g. [`execute`](/docs/api/browser/execute), that legitimately take longer than the default to resolve, otherwise WebdriverIO gives up waiting before the browser is done.
 
+`execute` also stops at the `script` timeout of the session (30 seconds by default, see [`setTimeout`](/docs/api/browser/setTimeout)). For a `script` timeout longer than `bidiResponseTimeout`, increase both.
+
 </Option>
 
 ### bidiConnectTimeout

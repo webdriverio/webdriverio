@@ -89,3 +89,28 @@ describe('execute BiDi blob results', () => {
         expect(await stringResult.text()).toBe('from-string')
     })
 })
+
+describe('execute BiDi script timeout', () => {
+    it('fails with a script timeout error when the script runs longer than the script timeout', async () => {
+        vi.useFakeTimers()
+        try {
+            const browser = {
+                isBidi: true,
+                isMultiRemote: false,
+                sessionId: 'session-1',
+                capabilities: { timeouts: { script: 2_000 } },
+                scriptCallFunction: vi.fn(() => new Promise(() => {}))
+            }
+            const result = execute.call(
+                browser as unknown as WebdriverIO.Browser,
+                () => new Promise((resolve) => setTimeout(resolve, 5_000))
+            )
+            const assertion = expect(result).rejects.toMatchObject({ name: 'script timeout' })
+            await vi.advanceTimersByTimeAsync(2_000)
+            await assertion
+            expect(browser.scriptCallFunction).toHaveBeenCalledTimes(1)
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+})

@@ -5,6 +5,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
+import { withScriptTimeout } from '../../utils/scriptTimeout.js'
 import { contextIdOf, heldBrowsingContext, assertFrameAttached } from '../../session/browsingContext.js'
 import { polyfillFn } from '../../scripts/polyfill.js'
 import type { TransformElement, TransformReturn } from '../../types.js'
@@ -89,7 +90,7 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
                 context
             }
         }
-        const result = await browser.scriptCallFunction(params)
+        const result = await withScriptTimeout(browser, browser.scriptCallFunction(params))
         return parseScriptResult(params, result)
     }
 

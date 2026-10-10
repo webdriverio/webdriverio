@@ -536,7 +536,7 @@ On a classic local session, `element.setValue('/local/path')` still types a path
 
 ## `executeAsync`
 
-`browser.executeAsync` and `element.executeAsync` are removed. Pass an `async` function to [`execute`](/docs/api/browser/execute). The function's return value, including a returned promise, is the command result. The `script` timeout still applies.
+`browser.executeAsync` and `element.executeAsync` are removed. Pass an `async` function to [`execute`](/docs/api/browser/execute). The function's return value, including a returned promise, is the command result. The `script` timeout still applies, also in a WebDriver BiDi session: a script that runs longer fails with a `script timeout` error. For a `script` timeout longer than [`bidiResponseTimeout`](/docs/configuration#bidiresponsetimeout) (180 seconds by default), increase both.
 
 ```ts
 const result = await browser.execute(async (a, b) => {
