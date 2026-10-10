@@ -24,12 +24,11 @@ allowBuilds:
   geckodriver: false
   nx: false
 
-# expect-webdriverio v8 alpha was published inside pnpm's minimumReleaseAge
-# window; allow it until the stable release lands.
+# first-party releases for v10 published inside pnpm's minimumReleaseAge window:
+# expect-webdriverio 8.0.0 (2026-10-10) and the driver majors (2026-10-09). The
+# entries can go once they are older than minimumReleaseAge.
 minimumReleaseAgeExclude:
-  - expect-webdriverio@8.0.0-alpha.3
-  # first-party driver majors for v10 (2026-10-09); the entries can go once
-  # they are older than minimumReleaseAge
+  - expect-webdriverio@8.0.0
   - edgedriver@8.0.0
   - geckodriver@8.0.0
   - safaridriver@3.0.0

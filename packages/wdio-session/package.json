@@ -71,7 +71,7 @@
     "@types/picomatch": "^4.0.2",
     "@types/semver": "^7.5.8",
     "@types/yargs": "^17.0.33",
-    "expect-webdriverio": "^8.0.0-alpha.3",
+    "expect-webdriverio": "^8.0.0",
     "tsx": "^4.23.15"
   },
   "peerDependencies": {

@@ -83,6 +83,9 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `toBeRequestedWithResponse(response)` | `toBeRequestedWith({ response })` |
 | `setFeatureFlags(` or a `featureFlags` option of `expect-webdriverio` | delete it. `toHaveText` on `$$()` always compares index by index: keep an expected array in page order, or use `expect.oneOf()` or `expect.arrayContaining()`. |
 | `toHaveText([...])`, `toHaveHTML([...])`, `toHaveComputedLabel([...])` or `toHaveComputedRole([...])` on a single element | `expect.oneOf(...)` |
+| `toHaveElementClass([...])` on a single element | `expect.oneOf(...)` for "has any of these classes"; one `toHaveElementClass` for each class for "has all of them" |
+| `expect.arrayContaining(...)` or `expect.arrayOf(...)` on a single element, or with `some()` | use `$$()` without `some()`: the list matcher compares the values of all the elements |
+| global `Test`, `TestResult`, `Scenario`, `WdioCustomMatchers` types (no import) | `Frameworks.Test`, `Frameworks.TestResult`, `Frameworks.Scenario` from `@wdio/types`; `ExpectWebdriverIO.Matchers` |
 | `expect-webdriverio/types` | `expect-webdriverio/expect-global` |
 | `wdioMatchers.entries()` in a custom framework | `Object.entries(wdioMatchers)`. The `Map` overload of `setupExpect` is gone. |
 | `JSONWPCommandError` | `SessionRequestError` |
