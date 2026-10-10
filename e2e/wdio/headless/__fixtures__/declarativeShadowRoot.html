@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Declarative Shadow Root</title>
+    <script>
+        // defined before the parser reaches it: its connectedCallback runs before
+        // the parser attaches the declarative shadow root in some browsers
+        customElements.define('early-defined', class extends HTMLElement {})
+    </script>
+</head>
+<body>
+    <!-- the page of https://github.com/webdriverio/webdriverio/issues/14512 -->
+    <div id="wrapper">
+        <template shadowrootmode="open">
+            <h2 id="headlineInShadow">Headline in Shadow Root</h2>
+        </template>
+    </div>
+
+    <div id="outer">
+        <template shadowrootmode="open">
+            <section id="middle">
+                <template shadowrootmode="open">
+                    <span id="nested">nested declarative shadow root</span>
+                </template>
+            </section>
+        </template>
+    </div>
+
+    <early-defined id="custom">
+        <template shadowrootmode="open">
+            <span id="in-custom-element">custom element</span>
+        </template>
+    </early-defined>
+
+    <div id="closed">
+        <template shadowrootmode="closed">
+            <span id="in-closed">closed declarative shadow root</span>
+        </template>
+    </div>
+
+    <div id="dynamic"></div>
+    <span id="light">light DOM</span>
+</body>
+</html>
