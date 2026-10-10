@@ -91,20 +91,27 @@ function isStale (lock: NonNullable<Awaited<ReturnType<typeof readLock>>>, stale
 }
 
 async function tryLock (lockPath: string, token: string) {
+    let handle: fsp.FileHandle
     try {
-        const handle = await fsp.open(lockPath, 'wx')
-        try {
-            await handle.writeFile(JSON.stringify({ pid: process.pid, hostname: os.hostname(), token } satisfies LockContent))
-        } finally {
-            await handle.close()
-        }
-        return true
+        handle = await fsp.open(lockPath, 'wx')
     } catch (err) {
         if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
             return false
         }
         throw err
     }
+    try {
+        await handle.writeFile(JSON.stringify({ pid: process.pid, hostname: os.hostname(), token } satisfies LockContent))
+    } catch (err) {
+        /**
+         * the file is ours: an empty lock would make the other processes wait for nothing
+         */
+        await handle.close().catch(() => {})
+        await fsp.rm(lockPath, { force: true })
+        throw err
+    }
+    await handle.close()
+    return true
 }
 
 /**
@@ -122,6 +129,7 @@ async function removeLockOf (lockPath: string, token: string | undefined) {
  * Remove a stale lock. Two processes that find the same stale lock must not both
  * remove "it": the second would remove the lock that the first has just taken. So
  * one process at a time removes, under `<lock>.reap`, and checks the lock again first.
+ * Resolves `true` when this process removed it.
  */
 async function removeStaleLock (lockPath: string, stale: LockContent | undefined, token: string, { staleAfter, onStaleLock }: Required<InstallLockOptions>) {
     const reapPath = `${lockPath}.reap`
@@ -130,17 +138,23 @@ async function removeStaleLock (lockPath: string, stale: LockContent | undefined
         if (reap && Date.now() - reap.mtimeMs > staleAfter) {
             await removeLockOf(reapPath, reap.content?.token)
         }
-        return
+        return false
     }
     try {
         const current = await readLock(lockPath)
-        if (current && current.content?.token === stale?.token && isStale(current, staleAfter)) {
-            log.warn(`Removing stale install lock ${lockPath} and what its install left`)
-            await onStaleLock().catch((err) => log.warn(`Couldn't remove what the install of ${lockPath} left: ${(err as Error).message}`))
-            await fsp.rm(lockPath, { force: true })
+        if (!current || current.content?.token !== stale?.token || !isStale(current, staleAfter)) {
+            return false
         }
+        log.warn(`Removing stale install lock ${lockPath} and what its install left`)
+        await onStaleLock().catch((err) => log.warn(`Couldn't remove what the install of ${lockPath} left: ${(err as Error).message}`))
+        /**
+         * `onStaleLock` can take long enough for `.reap` to go stale and for another
+         * process to remove the lock and take a new one
+         */
+        await removeLockOf(lockPath, stale?.token)
+        return true
     } finally {
-        await fsp.rm(reapPath, { force: true })
+        await removeLockOf(reapPath, token)
     }
 }
 
@@ -154,8 +168,11 @@ async function acquire (lockPath: string, token: string, options: Required<Insta
     let loggedWait = false
     while (!await tryLock(lockPath, token)) {
         const lock = await readLock(lockPath)
-        if (lock && isStale(lock, staleAfter)) {
-            await removeStaleLock(lockPath, lock.content, token, options)
+        /**
+         * try again at once only after removing the lock: while another process
+         * removes it, wait like for a holder
+         */
+        if (lock && isStale(lock, staleAfter) && await removeStaleLock(lockPath, lock.content, token, options)) {
             continue
         }
         if (Date.now() - waitStartedAt > maxWait) {

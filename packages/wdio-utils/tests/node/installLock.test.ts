@@ -274,6 +274,45 @@ describe('withInstallLock', () => {
         }, fast)
     })
 
+    it('waits with its poll interval and maxWait while another process removes a stale lock', { timeout: 3000 }, async () => {
+        await writeLock(JSON.stringify({ pid: 2 ** 22 + 7, hostname: os.hostname(), token: 'dead' }))
+        await fs.writeFile(`${lockPath}.reap`, otherHolder())
+        const readFile = vi.spyOn(fs, 'readFile')
+        const install = vi.fn()
+
+        try {
+            await withInstallLock(lockPath, isInstalled, install, { ...fast, pollInterval: 20, maxWait: 200 })
+
+            expect(install).toHaveBeenCalledTimes(1)
+            expect(readFile.mock.calls.length).toBeLessThan(60)
+        } finally {
+            readFile.mockRestore()
+        }
+    })
+
+    /**
+     * e.g. a full disk: an empty lock would make the other processes wait for nothing
+     */
+    it('removes its lock when it cannot write it', async () => {
+        const open = fs.open
+        const spy = vi.spyOn(fs, 'open').mockImplementation(async (...args: Parameters<typeof fs.open>) => {
+            const handle = await open(...args)
+            handle.writeFile = () => Promise.reject(Object.assign(new Error('ENOSPC: no space left on device'), { code: 'ENOSPC' }))
+            return handle
+        })
+        let lockedDuringInstall = true
+
+        try {
+            await withInstallLock(lockPath, isInstalled, async () => {
+                lockedDuringInstall = await exists(lockPath)
+            }, fast)
+        } finally {
+            spy.mockRestore()
+        }
+
+        expect(lockedDuringInstall).toBe(false)
+    })
+
     it('does not remove a lock that another process took over', async () => {
         await withInstallLock(lockPath, isInstalled, async () => {
             await fs.writeFile(lockPath, otherHolder())
