@@ -1,5 +1,5 @@
 import clone from 'lodash.clonedeep'
-import { setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { WDIO_CHAINABLE, WDIO_KIND, isLoadedElement, setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
@@ -33,6 +33,124 @@ function zipElements (lists: WebdriverIO.Element[][]) {
     const length = Math.max(0, ...lists.map((list) => list.length))
     return Array.from({ length }, (_, index) => lists.map((list) => index < list.length ? list[index] : undefined))
 }
+
+/**
+ * A multi-remote element holds one element per instance and has no element id
+ * of its own, so an instance cannot use it as a command argument. This gives
+ * `arg` with every multi-remote element swapped for the element of
+ * `instanceName` (#15844).
+ *
+ * Elements in arrays and plain objects are swapped too, as the BiDi
+ * serialization reads them there. Only data properties are read, so a getter
+ * of an argument is never called. A value without a multi-remote element is
+ * given back as it is, so the instances get the same object as before.
+ */
+function toInstanceArgument (
+    arg: unknown,
+    instanceName: string,
+    commandName: string
+): unknown {
+    const seen = new WeakMap<object, unknown>()
+    let replacedElement = false
+
+    const visit = (value: unknown): unknown => {
+        if (!value || typeof value !== 'object') {
+            return value
+        }
+
+        const prototype = Object.getPrototypeOf(value)
+        if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) {
+            // Only branded WebdriverIO elements need the loaded-element check.
+            // A non-element class instance may also have a throwing `then`
+            // accessor, so never probe unbranded objects as thenables.
+            if (Object.getOwnPropertyDescriptor(value, WDIO_KIND)?.value !== 'element' ||
+                !isLoadedElement(value)) {
+                return value
+            }
+            const element = value as unknown as WebdriverIO.MultiRemoteElement
+            if (!element.isMultiRemote) {
+                return value
+            }
+
+            let instanceElement: WebdriverIO.Element | undefined
+            try {
+                instanceElement = element.instances.includes(instanceName)
+                    ? element.getInstance(instanceName)
+                    : undefined
+            } catch {
+                instanceElement = undefined
+            }
+            if (!instanceElement) {
+                throw new Error(
+                    `The multi-remote element with selector "${String(element.selector)}" passed to "${commandName}" ` +
+                    `has no element for instance "${instanceName}"`
+                )
+            }
+            replacedElement = true
+            return instanceElement
+        }
+
+        // Allocate the destination before visiting children. All cycle/back
+        // references then point to the same converted graph, not the source.
+        if (seen.has(value)) {
+            return seen.get(value)
+        }
+        const copy: object = Array.isArray(value) ? [] : Object.create(prototype)
+        seen.set(value, copy)
+        const descriptors: Record<PropertyKey, PropertyDescriptor> = Object.getOwnPropertyDescriptors(value)
+        for (const key of Reflect.ownKeys(descriptors)) {
+            // A copied ElementArray is a plain Array, not a WDIO loaded list.
+            // Do not carry the source list's non-enumerable WDIO brands over.
+            if (Array.isArray(value) && (key === WDIO_KIND || key === WDIO_CHAINABLE)) {
+                continue
+            }
+            const descriptor = descriptors[key]
+            // Descriptor reads avoid invoking getters, including array indices
+            // and non-enumerable `then` on an argument container.
+            Object.defineProperty(copy, key, 'value' in descriptor
+                ? { ...descriptor, value: visit(descriptor.value) }
+                : descriptor)
+        }
+        return copy
+    }
+
+    const converted = visit(arg)
+    // Preserve existing reference identity when the graph contains no
+    // multi-remote element: the conversion is an internal copy-on-change.
+    return replacedElement ? converted : arg
+}
+
+/**
+ * Check once per argument whether conversion is needed before allocating a
+ * separate graph for each browser. Ordinary data arguments keep their identity
+ * without creating copies that would only be discarded.
+ */
+function mayNeedInstanceArgument (value: unknown, seen = new WeakSet<object>()): boolean {
+    if (!value || typeof value !== 'object' || seen.has(value)) {
+        return false
+    }
+    seen.add(value)
+
+    const prototype = Object.getPrototypeOf(value)
+    if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) {
+        // Be conservative for branded elements. Leave loaded-state and
+        // instance checks to conversion, without probing metadata twice.
+        return Object.getOwnPropertyDescriptor(value, WDIO_KIND)?.value === 'element'
+    }
+
+    for (const key of Reflect.ownKeys(value)) {
+        if (Array.isArray(value) && (key === WDIO_KIND || key === WDIO_CHAINABLE)) {
+            continue
+        }
+        const descriptor = Object.getOwnPropertyDescriptor(value, key)
+        // Do not evaluate getters while looking for nested elements.
+        if (descriptor && 'value' in descriptor && mayNeedInstanceArgument(descriptor.value, seen)) {
+            return true
+        }
+    }
+    return false
+}
+
 type WrappedClient = {
     options: Options.WebdriverIO,
     commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance' & 'select')[],
@@ -261,10 +379,23 @@ export default class MultiRemote {
                     ? thisElement.instances.map((instanceName) => [instanceName, thisElement.getInstance(instanceName)])
                     : [...instances.entries()]
 
+                /**
+                 * Give each instance its own element for a multi-remote element in
+                 * the arguments (#15844). This runs for all instances before any
+                 * command starts, so an argument that has no element for one
+                 * instance fails the call without running it on the others.
+                 */
+                const needsConversion = args.map((arg) => mayNeedInstanceArgument(arg))
+                const instanceArgs = scopeEntries.map(([instanceName]) =>
+                    args.map((arg, index) => needsConversion[index]
+                        ? toInstanceArgument(arg, instanceName, commandName)
+                        : arg)
+                )
+
                 const result = await Promise.all(
-                    scopeEntries.map(([, instance]) => {
+                    scopeEntries.map(([, instance], index) => {
                         const command = (instance as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>)[commandName as string]
-                        return command.call(instance, ...args)
+                        return command.call(instance, ...instanceArgs[index])
                     })
                 )
 
