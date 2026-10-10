@@ -419,6 +419,12 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     log.info(`Setting up ${browserName} v${buildId}`)
     const executablePath = computeExecutablePath(installOptions)
     await installBuild(installOptions, platform, executablePath)
+    if (!await fsp.access(executablePath).then(() => true, () => false)) {
+        /**
+         * removed meanwhile: `install()` below would download it into the cache in place
+         */
+        await installBuild(installOptions, platform, executablePath)
+    }
     /**
      * `@puppeteer/browsers` finds the build and finishes it in the cache (e.g. it runs
      * Chrome's `setup.exe` on Windows for the browser folder), as for a cached build

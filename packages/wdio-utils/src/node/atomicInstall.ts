@@ -56,7 +56,16 @@ interface Marker {
     pid?: number
     hostname?: string
     pidns?: string
+    /**
+     * the process instance: a container that runs again can have the same pid
+     */
+    instance?: string
     token?: string
+    /**
+     * the build is installed in the cache directly (not atomically): its executable can
+     * be there before the rest of the build
+     */
+    inPlace?: boolean
 }
 
 const DEFAULT_OPTIONS: Required<AtomicInstallOptions> = {
@@ -64,13 +73,15 @@ const DEFAULT_OPTIONS: Required<AtomicInstallOptions> = {
     staleAfter: 30 * 1000,
     refreshInterval: 5 * 1000,
     maxWait: 20 * 60 * 1000,
-    publishTimeout: 30 * 1000
+    publishTimeout: 60 * 1000
 }
 
 /**
- * the folder of the private installs in the cache; each has an `OWNER_FILE`
+ * the folder of the private installs, next to the build folders (the same file system,
+ * also when the browser folder is a link); without a `-`, so that `@puppeteer/browsers`
+ * does not list it as a `<platform>-<buildId>` install. Each private folder has an `OWNER_FILE`.
  */
-export const TEMP_FOLDER = '.wdio-install'
+export const TEMP_FOLDER = '.wdio_install'
 const OWNER_FILE = 'owner.json'
 /**
  * a private folder whose owner cannot be checked (another machine) is removed after this
@@ -83,14 +94,23 @@ const TEMP_MAX_AGE = 7 * 24 * 60 * 60 * 1000
 const TEMP_STOPPED_AGE = 10 * 60 * 1000
 
 /**
- * errors that can pass on Windows, e.g. while a virus scan holds a new file
+ * errors that can pass on Windows, e.g. while a virus scan holds a new file; `EACCES`
+ * only for a rename: when a file is created, it means a read-only cache
  */
-const TRANSIENT_ERRORS = ['EPERM', 'EACCES', 'EBUSY']
+const TRANSIENT_ERRORS = ['EPERM', 'EBUSY']
+const TRANSIENT_RENAME_ERRORS = [...TRANSIENT_ERRORS, 'EACCES']
 const MAX_TRANSIENT_ERRORS = 10
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const exists = (file: string) => fsp.access(file).then(() => true, () => false)
 const errorCode = (err: unknown) => (err as NodeJS.ErrnoException).code ?? ''
+
+/**
+ * one per process, also when two copies of this package are loaded
+ */
+const INSTANCE_KEY = Symbol.for('wdio.atomicInstall.instance')
+const globalWithInstance = globalThis as typeof globalThis & { [INSTANCE_KEY]?: string }
+const INSTANCE = globalWithInstance[INSTANCE_KEY] ??= crypto.randomUUID()
 
 let pidNamespace: string | undefined | null = null
 function getPidNamespace () {
@@ -128,17 +148,20 @@ async function readMarker (markerPath: string) {
  * the pid, host name and pid namespace of this process, for a marker or a private folder
  */
 function owner () {
-    return { pid: process.pid, hostname: os.hostname(), pidns: getPidNamespace() }
+    return { pid: process.pid, hostname: os.hostname(), pidns: getPidNamespace(), instance: INSTANCE }
 }
 
 /**
- * Tells whether a process of this machine (same host name and pid namespace: containers
- * can share both) that is not this one no longer runs.
+ * Tells whether the process of a marker or a private folder ran on this machine (same
+ * host name and pid namespace: containers can share both) and no longer runs: its pid
+ * does not run, or it is the pid of this process but of an earlier run (a container
+ * that runs again).
  */
-function hasStoppedHere ({ pid, hostname, pidns }: Marker) {
-    return typeof pid === 'number' && pid !== process.pid &&
-        hostname === os.hostname() && pidns === getPidNamespace() &&
-        !isRunning(pid)
+function hasStoppedHere ({ pid, hostname, pidns, instance }: Marker) {
+    if (typeof pid !== 'number' || hostname !== os.hostname() || pidns !== getPidNamespace()) {
+        return false
+    }
+    return pid === process.pid ? instance !== INSTANCE : !isRunning(pid)
 }
 
 /**
@@ -171,28 +194,22 @@ function stopCheck (staleAfter: number, pollInterval: number) {
  */
 async function claim (markerPath: string, refreshInterval: number) {
     const token = crypto.randomUUID()
-    let handle: fsp.FileHandle
-    try {
-        handle = await fsp.open(markerPath, 'wx')
-    } catch (err) {
-        if (errorCode(err) === 'EEXIST') {
-            return undefined
-        }
-        throw err
+    if (!await createExclusive(markerPath, { ...owner(), token })) {
+        return undefined
     }
-    try {
-        await handle.writeFile(JSON.stringify({ ...owner(), token } satisfies Marker))
-    } catch (err) {
-        /**
-         * the file is ours: an empty marker would make the others wait for nothing
-         */
-        await handle.close().catch(() => {})
-        await fsp.rm(markerPath, { force: true })
-        throw err
-    }
-    await handle.close()
     const stopRefresh = keepFresh(markerPath, refreshInterval)
     return {
+        /**
+         * replace the marker with one rename, so that the others never read it half written
+         */
+        markInPlace: async () => {
+            const next = `${markerPath}.${token}`
+            await fsp.writeFile(next, JSON.stringify({ ...owner(), token, inPlace: true } satisfies Marker))
+            await fsp.rename(next, markerPath).catch(async (err) => {
+                await fsp.rm(next, { force: true })
+                throw err
+            })
+        },
         release: async () => {
             stopRefresh()
             await removeOwnMarker(markerPath, token).catch((err) => {
@@ -200,6 +217,33 @@ async function claim (markerPath: string, refreshInterval: number) {
             })
         }
     }
+}
+
+/**
+ * Create a marker or a lock, or resolve `false` when it exists.
+ */
+async function createExclusive (file: string, content: Marker) {
+    let handle: fsp.FileHandle
+    try {
+        handle = await fsp.open(file, 'wx')
+    } catch (err) {
+        if (errorCode(err) === 'EEXIST') {
+            return false
+        }
+        throw err
+    }
+    try {
+        await handle.writeFile(JSON.stringify(content))
+    } catch (err) {
+        /**
+         * the file is ours: an empty one would make the others wait for nothing
+         */
+        await handle.close().catch(() => {})
+        await fsp.rm(file, { force: true })
+        throw err
+    }
+    await handle.close()
+    return true
 }
 
 /**
@@ -251,10 +295,10 @@ async function claimOrWait (target: AtomicInstallTarget, options: Required<Atomi
         if (claimed) {
             return claimed
         }
-        if (await exists(executablePath)) {
+        const marker = await readMarker(markerPath)
+        if (await exists(executablePath) && !marker?.content?.inPlace) {
             return undefined
         }
-        const marker = await readMarker(markerPath)
         if (!marker) {
             continue
         }
@@ -304,21 +348,54 @@ async function removeStoppedTempFolders (tempRoot: string) {
 }
 
 /**
- * Move away the build folder `to` that has no executable. Another process can move it
- * away and publish its build between our check and our move: then the moved folder is
- * not the one that we checked, and it goes back at once.
+ * Take the lock to replace an unfinished build folder: one process at a time checks and
+ * moves it. Resolves `undefined` while another process has it. A stale lock only makes
+ * the others wait: after `publishTimeout` they install in the cache directly.
+ */
+async function lockReplace (lockPath: string) {
+    const token = crypto.randomUUID()
+    /**
+     * any error: not now (the publish retries until `publishTimeout`)
+     */
+    const created = await createExclusive(lockPath, { ...owner(), token }).catch(() => undefined)
+    if (created === false) {
+        const lock = await readMarker(lockPath)
+        if (lock?.content && hasStoppedHere(lock.content)) {
+            await fsp.rm(lockPath, { force: true })
+        }
+    }
+    if (!created) {
+        return undefined
+    }
+    return { unlock: () => removeOwnMarker(lockPath, token).catch(() => {}) }
+}
+
+/**
+ * Move away the build folder `to` that has no executable, under the replace lock: while
+ * we hold it, nobody else can move the folder away, so nobody can publish a build there
+ * between our check and our move. If the moved folder is still not the one that we
+ * checked (e.g. an older version that does not take the lock), it goes back at once.
  */
 async function moveAwayUnfinished (target: AtomicInstallTarget, to: string, unfinished: fs.BigIntStats, trash: string) {
-    if (await exists(target.executablePath)) {
+    const lock = await lockReplace(`${target.markerPath}.replacing`)
+    if (!lock) {
         return
     }
-    log.warn(`Replacing ${to}: the executable ${target.executablePath} is missing`)
-    if (!await fsp.rename(to, trash).then(() => true, () => false)) {
-        return
-    }
-    const moved = await fsp.stat(trash, { bigint: true }).catch(() => undefined)
-    if (moved && (moved.ino !== unfinished.ino || moved.dev !== unfinished.dev)) {
-        await fsp.rename(trash, to).catch(() => {})
+    try {
+        const current = await fsp.stat(to, { bigint: true }).catch(() => undefined)
+        if (!current || current.ino !== unfinished.ino || current.dev !== unfinished.dev || await exists(target.executablePath)) {
+            return
+        }
+        log.warn(`Replacing ${to}: the executable ${target.executablePath} is missing`)
+        if (!await fsp.rename(to, trash).then(() => true, () => false)) {
+            return
+        }
+        const moved = await fsp.stat(trash, { bigint: true }).catch(() => undefined)
+        if (moved && (moved.ino !== unfinished.ino || moved.dev !== unfinished.dev)) {
+            await fsp.rename(trash, to).catch(() => {})
+        }
+    } finally {
+        await lock.unlock()
     }
 }
 
@@ -342,7 +419,7 @@ async function publish (target: AtomicInstallTarget, tempDir: string, publishTim
                 return
             }
             if (Date.now() - startedAt > publishTimeout) {
-                throw err
+                throw Object.assign(err as Error, { publishTimedOut: true })
             }
             const unfinished = await fsp.stat(to, { bigint: true }).catch(() => undefined)
             if (unfinished) {
@@ -351,7 +428,7 @@ async function publish (target: AtomicInstallTarget, tempDir: string, publishTim
                  * finish (e.g. of an older version that unpacked into the cache): move it away
                  */
                 await moveAwayUnfinished(target, to, unfinished, path.join(tempDir, `unfinished-${attempt}`))
-            } else if (!TRANSIENT_ERRORS.includes(errorCode(err))) {
+            } else if (!TRANSIENT_RENAME_ERRORS.includes(errorCode(err))) {
                 throw err
             }
             await sleep(Math.min(100 * attempt, 1000))
@@ -387,7 +464,7 @@ export async function installAtomically (
         if (await exists(target.executablePath)) {
             return
         }
-        const tempRoot = path.join(target.cacheDir, TEMP_FOLDER)
+        const tempRoot = path.join(path.dirname(target.buildDir(target.cacheDir)), TEMP_FOLDER)
         await removeStoppedTempFolders(tempRoot)
         await fsp.mkdir(tempRoot, { recursive: true })
         const tempDir = await fsp.mkdtemp(path.join(tempRoot, 'i'))
@@ -395,7 +472,18 @@ export async function installAtomically (
         try {
             await fsp.writeFile(path.join(tempDir, OWNER_FILE), JSON.stringify(owner()))
             await install(tempDir)
-            await publish(target, tempDir, installOptions.publishTimeout)
+            await publish(target, tempDir, installOptions.publishTimeout).catch(async (err) => {
+                if (!(err as { publishTimedOut?: boolean }).publishTimedOut) {
+                    throw err
+                }
+                /**
+                 * Windows still holds the folder (e.g. a long virus scan): install in the
+                 * cache as before, rather than fail the setup
+                 */
+                log.warn(`Couldn't move the build into ${target.cacheDir} (${(err as Error).message}), installing it there directly`)
+                await claimed?.markInPlace().catch(() => {})
+                await install(target.cacheDir)
+            })
         } finally {
             stopRefresh()
             await fsp.rm(tempDir, { recursive: true, force: true, maxRetries: 3 }).catch((err) => {

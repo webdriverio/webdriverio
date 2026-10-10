@@ -773,6 +773,29 @@ describe('driver utils', () => {
             expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ cacheDir: '/atomic/cache' }))
         })
 
+        /**
+         * `install()` on the cache would download a missing build in place
+         */
+        it('installs the build atomically again when it is gone before @puppeteer/browsers finishes it', async () => {
+            const fsp = (await import('node:fs/promises')).default
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('linux' as any)
+            vi.mocked(installAtomically).mockClear()
+            vi.mocked(fsp.access).mockImplementation(async (file) => {
+                if (file === '/foo/bar/executable' && vi.mocked(installAtomically).mock.calls.length < 2) {
+                    throw new Error('ENOENT')
+                }
+            })
+
+            try {
+                await setupPuppeteerBrowser('/atomic/cache', { browserName: 'chrome', browserVersion: '1.2.3' })
+            } finally {
+                vi.mocked(fsp.access).mockReset().mockResolvedValue(undefined as never)
+            }
+
+            expect(installAtomically).toHaveBeenCalledTimes(2)
+        })
+
         it('should install chrome browser with specific version provided', async () => {
             vi.mocked(detectBrowserPlatform).mockReturnValueOnce('windows' as any)
             await expect(setupPuppeteerBrowser('/foo/bar', { browserVersion: '1.2.3' })).resolves.toEqual({

@@ -84,11 +84,47 @@ describe('installAtomically', () => {
         }, fast)
 
         expect(installDir).not.toBe(cacheDir)
-        expect(path.dirname(installDir)).toBe(path.join(cacheDir, TEMP_FOLDER))
+        expect(path.dirname(installDir)).toBe(path.join(cacheDir, 'chromium', TEMP_FOLDER))
         expect(inCacheDuringInstall).toBe(false)
         expect(await fs.readdir(buildDir(cacheDir))).toEqual(['chrome', 'resources.pak'])
-        expect(await fs.readdir(path.join(cacheDir, TEMP_FOLDER))).toEqual([])
+        expect(await fs.readdir(path.join(cacheDir, 'chromium', TEMP_FOLDER))).toEqual([])
         expect(await exists(target.markerPath)).toBe(false)
+    })
+
+    /**
+     * the same file system as the build folder, also when the browser folder links to another disk
+     */
+    it('installs next to the build folder, also through a linked browser folder', async () => {
+        const elsewhere = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-atomic-elsewhere-'))
+        await fs.symlink(elsewhere, path.join(cacheDir, 'chromium'))
+        let installDir = ''
+
+        try {
+            await installAtomically(target, async (dir) => {
+                installDir = dir
+                await download()(dir)
+            }, fast)
+
+            expect(path.dirname(installDir)).toBe(path.join(cacheDir, 'chromium', TEMP_FOLDER))
+            expect(await fs.readdir(path.join(elsewhere, 'linux-1715417'))).toEqual(['chrome', 'resources.pak'])
+        } finally {
+            await fs.rm(elsewhere, { recursive: true, force: true })
+        }
+    })
+
+    /**
+     * `npx @puppeteer/browsers list` and `clear` read the browser folder
+     */
+    it('is not listed as an install by @puppeteer/browsers while it runs', async () => {
+        const { Cache } = await import('@puppeteer/browsers')
+        let listed: string[] = []
+        await installAtomically(target, async (dir) => {
+            await download()(dir)
+            listed = new Cache(cacheDir).getInstalledBrowsers().map((browser) => browser.path)
+        }, fast)
+
+        expect(listed).toEqual([])
+        expect(new Cache(cacheDir).getInstalledBrowsers().map((browser) => browser.buildId)).toEqual(['1715417'])
     })
 
     it('does nothing when the build is in the cache', async () => {
@@ -98,7 +134,7 @@ describe('installAtomically', () => {
         await installAtomically(target, install, fast)
 
         expect(install).not.toHaveBeenCalled()
-        expect(await exists(path.join(cacheDir, TEMP_FOLDER))).toBe(false)
+        expect(await exists(path.join(cacheDir, 'chromium', TEMP_FOLDER))).toBe(false)
     })
 
     /**
@@ -149,7 +185,7 @@ describe('installAtomically', () => {
         expect(downloads).toBe(2)
         expect(maxRunning).toBe(2)
         expect(await fs.readdir(buildDir(cacheDir))).toEqual(['chrome', 'resources.pak'])
-        expect(await fs.readdir(path.join(cacheDir, TEMP_FOLDER))).toEqual([])
+        expect(await fs.readdir(path.join(cacheDir, 'chromium', TEMP_FOLDER))).toEqual([])
     })
 
     it('replaces a build folder without the executable', async () => {
@@ -181,7 +217,7 @@ describe('installAtomically', () => {
             throw new Error('download failed')
         }, fast)).rejects.toThrow('download failed')
 
-        expect(await fs.readdir(path.join(cacheDir, TEMP_FOLDER))).toEqual([])
+        expect(await fs.readdir(path.join(cacheDir, 'chromium', TEMP_FOLDER))).toEqual([])
         expect(await exists(target.markerPath)).toBe(false)
         expect(await exists(buildDir(cacheDir))).toBe(false)
     })
@@ -195,6 +231,19 @@ describe('installAtomically', () => {
         expect(Date.now() - startedAt).toBeLessThan(1000)
         expect(downloads).toBe(1)
         expect(await exists(target.markerPath)).toBe(false)
+    })
+
+    /**
+     * a container that runs again can have the same pid (and pid namespace number)
+     */
+    it('does not wait for the marker of an earlier run with the pid of this process', async () => {
+        await writeMarker(localMarker({ pid: process.pid, instance: 'earlier-run', token: 'old' }))
+        const startedAt = Date.now()
+
+        await installAtomically(target, download(), fast)
+
+        expect(Date.now() - startedAt).toBeLessThan(1000)
+        expect(downloads).toBe(1)
     })
 
     it('stops waiting for a marker that does not change for staleAfter', async () => {
@@ -259,6 +308,24 @@ describe('installAtomically', () => {
         expect(await exists(target.executablePath)).toBe(true)
     })
 
+    /**
+     * a read-only cache without the build fails as before, and at once
+     */
+    it.skipIf(process.platform === 'win32')('fails at once in a read-only cache', async () => {
+        await fs.mkdir(path.join(cacheDir, 'chromium'))
+        await fs.chmod(path.join(cacheDir, 'chromium'), 0o555)
+        const startedAt = Date.now()
+
+        try {
+            await expect(installAtomically(target, download(), fast)).rejects.toThrow('EACCES')
+        } finally {
+            await fs.chmod(path.join(cacheDir, 'chromium'), 0o755)
+        }
+
+        expect(Date.now() - startedAt).toBeLessThan(100)
+        expect(downloads).toBe(0)
+    })
+
     it('stops waiting after maxWait', async () => {
         await writeMarker(localMarker({ pid: process.ppid, token: 'live' }))
         const refresh = setInterval(() => {
@@ -293,20 +360,70 @@ describe('installAtomically', () => {
         expect(await exists(target.executablePath)).toBe(true)
     })
 
-    it('fails when Windows holds the folder longer than publishTimeout', async () => {
+    /**
+     * never worse than before: install in the cache, as without this module
+     */
+    it('installs in the cache directly when Windows holds the folder longer than publishTimeout', async () => {
         const spy = vi.spyOn(fs, 'rename').mockRejectedValue(Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' }))
+        const install = download()
 
         try {
-            await expect(installAtomically(target, download(), { ...fast, publishTimeout: 200 })).rejects.toThrow('EPERM')
+            await installAtomically(target, install, { ...fast, publishTimeout: 200 })
         } finally {
             spy.mockRestore()
         }
 
-        expect(await exists(buildDir(cacheDir))).toBe(false)
-        expect(await fs.readdir(path.join(cacheDir, TEMP_FOLDER))).toEqual([])
+        expect(install).toHaveBeenLastCalledWith(cacheDir)
+        expect(await fs.readdir(buildDir(cacheDir))).toEqual(['chrome', 'resources.pak'])
+        expect(await fs.readdir(path.join(cacheDir, 'chromium', TEMP_FOLDER))).toEqual([])
     })
 
-    it('fails after publishTimeout when it cannot move away a build folder without the executable', async () => {
+    /**
+     * in the cache directly, the executable is there before the rest of the build
+     */
+    it('lets the others wait until its install in the cache is complete', async () => {
+        const rename = fs.rename
+        const spy = vi.spyOn(fs, 'rename').mockImplementation((from, to) => to === buildDir(cacheDir)
+            ? Promise.reject(Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' }))
+            : rename(from, to))
+        let completeWhenOtherReturned: boolean | undefined
+
+        try {
+            await Promise.all([
+                installAtomically(target, download(300), { ...fast, publishTimeout: 100 }),
+                sleep(30).then(() => installAtomically(target, download(), fast)).then(async () => {
+                    completeWhenOtherReturned = await exists(path.join(buildDir(cacheDir), 'resources.pak'))
+                })
+            ])
+        } finally {
+            spy.mockRestore()
+        }
+
+        expect(completeWhenOtherReturned).toBe(true)
+        expect(downloads).toBe(2)
+        expect(await exists(target.markerPath)).toBe(false)
+    })
+
+    it('fails when the build cannot be moved and the install in the cache fails too', async () => {
+        const spy = vi.spyOn(fs, 'rename').mockRejectedValue(Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' }))
+        const install = vi.fn(async (dir: string) => {
+            if (dir === cacheDir) {
+                throw new Error('download failed')
+            }
+            await download()(dir)
+        })
+
+        try {
+            await expect(installAtomically(target, install, { ...fast, publishTimeout: 200 })).rejects.toThrow('download failed')
+        } finally {
+            spy.mockRestore()
+        }
+
+        expect(await fs.readdir(path.join(cacheDir, 'chromium', TEMP_FOLDER))).toEqual([])
+        expect(await exists(target.markerPath)).toBe(false)
+    })
+
+    it('installs in the cache directly when it cannot move away a build folder without the executable', async () => {
         await fs.mkdir(buildDir(cacheDir), { recursive: true })
         await fs.writeFile(path.join(buildDir(cacheDir), 'leftover'), '')
         const rename = fs.rename
@@ -314,13 +431,16 @@ describe('installAtomically', () => {
             ? Promise.reject(Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' }))
             : rename(from, ...args))
 
+        const install = download()
+
         try {
-            await expect(installAtomically(target, download(), { ...fast, publishTimeout: 300 })).rejects.toThrow()
+            await installAtomically(target, install, { ...fast, publishTimeout: 300 })
         } finally {
             spy.mockRestore()
         }
 
-        expect(await fs.readdir(buildDir(cacheDir))).toEqual(['leftover'])
+        expect(install).toHaveBeenLastCalledWith(cacheDir)
+        expect(await exists(target.executablePath)).toBe(true)
     })
 
     /**
@@ -365,6 +485,7 @@ describe('installAtomically', () => {
         const day = 24 * 60 * 60 * 1000
         const folders = {
             iDead: { owner: localMarker({ pid: 2 ** 22 + 7 }), age: 11 * 60 * 1000 },
+            iEarlierRun: { owner: localMarker({ pid: process.pid, instance: 'earlier-run' }), age: 11 * 60 * 1000 },
             /**
              * two machines can have the same host name: a live one refreshes its folder
              */
@@ -375,7 +496,7 @@ describe('installAtomically', () => {
             iNoOwnerYet: { owner: undefined, age: 0 }
         }
         for (const [name, { owner, age }] of Object.entries(folders)) {
-            const folder = path.join(cacheDir, TEMP_FOLDER, name)
+            const folder = path.join(cacheDir, 'chromium', TEMP_FOLDER, name)
             await fs.mkdir(folder, { recursive: true })
             if (owner) {
                 await fs.writeFile(path.join(folder, 'owner.json'), owner)
@@ -386,13 +507,61 @@ describe('installAtomically', () => {
 
         await installAtomically(target, download(), fast)
 
-        expect((await fs.readdir(path.join(cacheDir, TEMP_FOLDER))).sort()).toEqual(['iDeadButRefreshed', 'iNoOwnerYet', 'iOtherMachine', 'iPausedForDays'])
+        expect((await fs.readdir(path.join(cacheDir, 'chromium', TEMP_FOLDER))).sort()).toEqual(['iDeadButRefreshed', 'iNoOwnerYet', 'iOtherMachine', 'iPausedForDays'])
     })
 
     /**
      * two processes replace the same folder without the executable: the other one moves
      * it away and publishes its build between this process's check and its move
      */
+    /**
+     * one process at a time checks and moves away a build folder without the executable
+     */
+    it('does not move away an unfinished build folder while another process replaces it', async () => {
+        await fs.mkdir(buildDir(cacheDir), { recursive: true })
+        await fs.writeFile(path.join(buildDir(cacheDir), 'leftover'), '')
+        await writeMarker(localMarker({ pid: process.ppid, token: 'other' }))
+        await fs.writeFile(`${target.markerPath}.replacing`, localMarker({ pid: process.ppid, token: 'other' }))
+        const refresh = setInterval(() => {
+            const now = new Date()
+            fs.utimes(target.markerPath, now, now).catch(() => {})
+        }, 20)
+        /**
+         * the other process: replaces the unfinished folder with its build
+         */
+        const otherDone = sleep(200).then(async () => {
+            const other = path.join(cacheDir, 'other')
+            await download()(other)
+            await fs.writeFile(path.join(buildDir(other), 'published-by-other'), '')
+            await fs.rename(buildDir(cacheDir), path.join(cacheDir, 'other-unfinished'))
+            await fs.rename(buildDir(other), buildDir(cacheDir))
+            await fs.rm(`${target.markerPath}.replacing`)
+            clearInterval(refresh)
+            await fs.rm(target.markerPath)
+        })
+
+        /**
+         * staleAfter 0: this process does not wait for the marker and reaches the replace step
+         */
+        await installAtomically(target, download(), { ...fast, staleAfter: 0, publishTimeout: 2000 })
+        await otherDone
+
+        expect((await fs.readdir(buildDir(cacheDir))).sort()).toEqual(['chrome', 'published-by-other', 'resources.pak'])
+    })
+
+    it('removes the replace lock of a process that stopped', async () => {
+        await fs.mkdir(buildDir(cacheDir), { recursive: true })
+        await fs.writeFile(path.join(buildDir(cacheDir), 'leftover'), '')
+        await fs.writeFile(`${target.markerPath}.replacing`, localMarker({ pid: 2 ** 22 + 7, token: 'dead' }))
+        const install = download()
+
+        await installAtomically(target, install, { ...fast, publishTimeout: 2000 })
+
+        expect(install).toHaveBeenCalledTimes(1)
+        expect(await fs.readdir(buildDir(cacheDir))).toEqual(['chrome', 'resources.pak'])
+        expect(await exists(`${target.markerPath}.replacing`)).toBe(false)
+    })
+
     it('does not move away a build that another process published meanwhile', async () => {
         await fs.mkdir(buildDir(cacheDir), { recursive: true })
         await fs.writeFile(path.join(buildDir(cacheDir), 'leftover'), '')
