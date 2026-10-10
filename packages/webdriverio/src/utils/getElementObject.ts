@@ -1,4 +1,4 @@
-import { webdriverMonad, wrapCommand } from '@wdio/utils'
+import { webdriverMonad, wrapCommand, CUSTOM_ELEMENT_COMMANDS } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
@@ -66,7 +66,7 @@ export function getElement(
          * filter out browser commands from object
          */
         ...(Object.entries(clone(browser.__propertiesObject__)).reduce((commands, [name, descriptor]) => {
-            if (!browserCommandKeys.includes(name)) {
+            if (!browserCommandKeys.includes(name) || CUSTOM_ELEMENT_COMMANDS.has(descriptor.value)) {
                 commands[name] = descriptor
             }
             return commands
@@ -152,7 +152,7 @@ export const getElements = function getElements(
          * filter out browser commands from object
          */
         ...(Object.entries(clone(browser.__propertiesObject__)).reduce((commands, [name, descriptor]) => {
-            if (!browserCommandKeys.includes(name)) {
+            if (!browserCommandKeys.includes(name) || CUSTOM_ELEMENT_COMMANDS.has(descriptor.value)) {
                 commands[name] = descriptor
             }
             return commands
