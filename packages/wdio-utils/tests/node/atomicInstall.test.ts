@@ -360,87 +360,78 @@ describe('installAtomically', () => {
         expect(await exists(target.executablePath)).toBe(true)
     })
 
-    /**
-     * never worse than before: install in the cache, as without this module
-     */
-    it('installs in the cache directly when Windows holds the folder longer than publishTimeout', async () => {
-        const spy = vi.spyOn(fs, 'rename').mockRejectedValue(Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' }))
-        const install = download()
-
-        try {
-            await installAtomically(target, install, { ...fast, publishTimeout: 200 })
-        } finally {
-            spy.mockRestore()
-        }
-
-        expect(install).toHaveBeenLastCalledWith(cacheDir)
-        expect(await fs.readdir(buildDir(cacheDir))).toEqual(['chrome', 'resources.pak'])
-        expect(await fs.readdir(path.join(cacheDir, 'chromium', TEMP_FOLDER))).toEqual([])
-    })
-
-    /**
-     * in the cache directly, the executable is there before the rest of the build
-     */
-    it('lets the others wait until its install in the cache is complete', async () => {
+    const blockPublish = () => {
         const rename = fs.rename
-        const spy = vi.spyOn(fs, 'rename').mockImplementation((from, to) => to === buildDir(cacheDir)
+        return vi.spyOn(fs, 'rename').mockImplementation((from, to) => to === buildDir(cacheDir)
             ? Promise.reject(Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' }))
             : rename(from, to))
-        let completeWhenOtherReturned: boolean | undefined
+    }
+
+    /**
+     * never in the cache in place: other setups would accept a half installed build
+     */
+    it('uses its private build when Windows holds it for longer than publishTimeout', async () => {
+        const spy = blockPublish()
+        let executable: string
 
         try {
-            await Promise.all([
-                installAtomically(target, download(300), { ...fast, publishTimeout: 100 }),
-                sleep(30).then(() => installAtomically(target, download(), fast)).then(async () => {
-                    completeWhenOtherReturned = await exists(path.join(buildDir(cacheDir), 'resources.pak'))
-                })
-            ])
+            executable = await installAtomically(target, download(), { ...fast, publishTimeout: 200 })
         } finally {
             spy.mockRestore()
         }
 
-        expect(completeWhenOtherReturned).toBe(true)
+        expect(path.dirname(path.dirname(path.relative(path.join(cacheDir, 'chromium', TEMP_FOLDER), executable)))).toMatch(/^i[^/\\]+[/\\]chromium$/)
+        expect(await fs.readdir(path.dirname(executable))).toEqual(['chrome', 'resources.pak'])
+        expect(await exists(buildDir(cacheDir))).toBe(false)
+        expect(downloads).toBe(1)
+        expect(await exists(target.markerPath)).toBe(false)
+    })
+
+    it('resolves the executable in the cache', async () => {
+        await expect(installAtomically(target, download(), fast)).resolves.toBe(target.executablePath)
+        await expect(installAtomically(target, download(), fast)).resolves.toBe(target.executablePath)
+    })
+
+    /**
+     * its owner runs, and it is refreshed until the process ends
+     */
+    it('keeps its private build while this process runs, and a later setup publishes', async () => {
+        const spy = blockPublish()
+        let executable: string
+        try {
+            executable = await installAtomically(target, download(), { ...fast, publishTimeout: 200 })
+        } finally {
+            spy.mockRestore()
+        }
+        const privateFolder = path.join(cacheDir, 'chromium', TEMP_FOLDER, path.relative(path.join(cacheDir, 'chromium', TEMP_FOLDER), executable).split(path.sep)[0])
+        const hourAgo = new Date(Date.now() - 60 * 60 * 1000)
+        await fs.utimes(privateFolder, hourAgo, hourAgo)
+
+        await expect(installAtomically(target, download(), fast)).resolves.toBe(target.executablePath)
+
+        expect(await exists(executable)).toBe(true)
+        expect(await fs.readdir(buildDir(cacheDir))).toEqual(['chrome', 'resources.pak'])
         expect(downloads).toBe(2)
-        expect(await exists(target.markerPath)).toBe(false)
     })
 
-    it('fails when the build cannot be moved and the install in the cache fails too', async () => {
-        const spy = vi.spyOn(fs, 'rename').mockRejectedValue(Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' }))
-        const install = vi.fn(async (dir: string) => {
-            if (dir === cacheDir) {
-                throw new Error('download failed')
-            }
-            await download()(dir)
-        })
-
-        try {
-            await expect(installAtomically(target, install, { ...fast, publishTimeout: 200 })).rejects.toThrow('download failed')
-        } finally {
-            spy.mockRestore()
-        }
-
-        expect(await fs.readdir(path.join(cacheDir, 'chromium', TEMP_FOLDER))).toEqual([])
-        expect(await exists(target.markerPath)).toBe(false)
-    })
-
-    it('installs in the cache directly when it cannot move away a build folder without the executable', async () => {
+    it('uses its private build when it cannot move away a build folder without the executable', async () => {
         await fs.mkdir(buildDir(cacheDir), { recursive: true })
         await fs.writeFile(path.join(buildDir(cacheDir), 'leftover'), '')
         const rename = fs.rename
         const spy = vi.spyOn(fs, 'rename').mockImplementation((from, ...args) => from === buildDir(cacheDir)
             ? Promise.reject(Object.assign(new Error('EPERM: operation not permitted, rename'), { code: 'EPERM' }))
             : rename(from, ...args))
-
-        const install = download()
+        let executable: string
 
         try {
-            await installAtomically(target, install, { ...fast, publishTimeout: 300 })
+            executable = await installAtomically(target, download(), { ...fast, publishTimeout: 300 })
         } finally {
             spy.mockRestore()
         }
 
-        expect(install).toHaveBeenLastCalledWith(cacheDir)
-        expect(await exists(target.executablePath)).toBe(true)
+        expect(executable).not.toBe(target.executablePath)
+        expect(await exists(executable)).toBe(true)
+        expect(await fs.readdir(buildDir(cacheDir))).toEqual(['leftover'])
     })
 
     /**

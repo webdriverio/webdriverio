@@ -83,7 +83,10 @@ vi.mock('edgedriver', () => ({
  * the atomic install has its own tests (`atomicInstall.test.ts`) on real files
  */
 vi.mock('../../src/node/atomicInstall.js', () => ({
-    installAtomically: vi.fn((target: { cacheDir: string }, install: (cacheDir: string) => Promise<void>) => install(target.cacheDir))
+    installAtomically: vi.fn(async (target: { cacheDir: string, executablePath: string }, install: (cacheDir: string) => Promise<void>) => {
+        await install(target.cacheDir)
+        return target.executablePath
+    })
 }))
 
 vi.mock('../../src/node/electronChromedriverProvider.js', () => ({
@@ -794,6 +797,28 @@ describe('driver utils', () => {
             }
 
             expect(installAtomically).toHaveBeenCalledTimes(2)
+        })
+
+        /**
+         * the build could not be moved into the cache: this process uses its private build
+         */
+        it('uses the executable that the atomic install resolves', async () => {
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as any)
+            vi.mocked(installAtomically).mockClear().mockResolvedValueOnce('/atomic/cache/chrome/.wdio_install/i1/chrome/linux-116/chrome')
+            vi.mocked(install).mockClear()
+
+            const result = await setupPuppeteerBrowser('/atomic/cache', { browserName: 'chrome', browserVersion: '1.2.3' })
+
+            expect(result.executablePath).toBe('/atomic/cache/chrome/.wdio_install/i1/chrome/linux-116/chrome')
+            expect(install).not.toHaveBeenCalled()
+
+            vi.mocked(installAtomically).mockResolvedValueOnce('/atomic/cache/chromedriver/.wdio_install/i2/chromedriver')
+            const fsp = (await import('node:fs/promises')).default
+            vi.mocked(fsp.access).mockRejectedValueOnce(new Error('ENOENT'))
+            await expect(setupChromedriver('/atomic/cache', '116.0.5845.110'))
+                .resolves.toEqual({ executablePath: '/atomic/cache/chromedriver/.wdio_install/i2/chromedriver' })
+            vi.mocked(detectBrowserPlatform).mockReset()
         })
 
         it('should install chrome browser with specific version provided', async () => {

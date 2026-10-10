@@ -61,11 +61,6 @@ interface Marker {
      */
     instance?: string
     token?: string
-    /**
-     * the build is installed in the cache directly (not atomically): its executable can
-     * be there before the rest of the build
-     */
-    inPlace?: boolean
 }
 
 const DEFAULT_OPTIONS: Required<AtomicInstallOptions> = {
@@ -199,17 +194,6 @@ async function claim (markerPath: string, refreshInterval: number) {
     }
     const stopRefresh = keepFresh(markerPath, refreshInterval)
     return {
-        /**
-         * replace the marker with one rename, so that the others never read it half written
-         */
-        markInPlace: async () => {
-            const next = `${markerPath}.${token}`
-            await fsp.writeFile(next, JSON.stringify({ ...owner(), token, inPlace: true } satisfies Marker))
-            await fsp.rename(next, markerPath).catch(async (err) => {
-                await fsp.rm(next, { force: true })
-                throw err
-            })
-        },
         release: async () => {
             stopRefresh()
             await removeOwnMarker(markerPath, token).catch((err) => {
@@ -295,10 +279,10 @@ async function claimOrWait (target: AtomicInstallTarget, options: Required<Atomi
         if (claimed) {
             return claimed
         }
-        const marker = await readMarker(markerPath)
-        if (await exists(executablePath) && !marker?.content?.inPlace) {
+        if (await exists(executablePath)) {
             return undefined
         }
+        const marker = await readMarker(markerPath)
         if (!marker) {
             continue
         }
@@ -439,21 +423,26 @@ async function publish (target: AtomicInstallTarget, tempDir: string, publishTim
 /**
  * Install a build so that the cache never has it half installed, and so that processes
  * that set it up at the same time (e.g. two workers, which resolve `latest` or `stable`
- * again and can get a newer build than the launcher) download it once.
+ * again and can get a newer build than the launcher) download it once. Resolves the
+ * executable to use.
  *
  * `install(cacheDir)` installs the build into a private folder of the cache. Its build
  * folder is then moved into the cache with one rename: the first process wins, the
  * others use its build. A build folder in the cache is therefore complete, whatever
  * stops a process during the install. A marker makes the other processes wait while one
  * downloads; it only saves bandwidth: when it is wrong, two processes download.
+ *
+ * If the build cannot be moved into the cache (e.g. Windows holds it for longer than
+ * `publishTimeout`), this process uses it from its private folder, which it keeps until
+ * it ends; a later setup moves its own install into the cache.
  */
 export async function installAtomically (
     target: AtomicInstallTarget,
     install: (cacheDir: string) => Promise<void>,
     options: AtomicInstallOptions = {}
-) {
+): Promise<string> {
     if (await exists(target.executablePath)) {
-        return
+        return target.executablePath
     }
     const installOptions = { ...DEFAULT_OPTIONS, ...options }
     const claimed = await claimOrWait(target, installOptions).catch((err) => {
@@ -462,33 +451,41 @@ export async function installAtomically (
     })
     try {
         if (await exists(target.executablePath)) {
-            return
+            return target.executablePath
         }
         const tempRoot = path.join(path.dirname(target.buildDir(target.cacheDir)), TEMP_FOLDER)
         await removeStoppedTempFolders(tempRoot)
         await fsp.mkdir(tempRoot, { recursive: true })
         const tempDir = await fsp.mkdtemp(path.join(tempRoot, 'i'))
         const stopRefresh = keepFresh(tempDir, installOptions.refreshInterval)
+        let keep = false
         try {
             await fsp.writeFile(path.join(tempDir, OWNER_FILE), JSON.stringify(owner()))
             await install(tempDir)
-            await publish(target, tempDir, installOptions.publishTimeout).catch(async (err) => {
+            const published = await publish(target, tempDir, installOptions.publishTimeout).then(() => true, (err) => {
                 if (!(err as { publishTimedOut?: boolean }).publishTimedOut) {
                     throw err
                 }
-                /**
-                 * Windows still holds the folder (e.g. a long virus scan): install in the
-                 * cache as before, rather than fail the setup
-                 */
-                log.warn(`Couldn't move the build into ${target.cacheDir} (${(err as Error).message}), installing it there directly`)
-                await claimed?.markInPlace().catch(() => {})
-                await install(target.cacheDir)
+                return false
             })
+            if (published) {
+                return target.executablePath
+            }
+            /**
+             * never in the cache in place: other setups would accept a half installed
+             * build. Its refresh and owner file keep the folder until this process ends.
+             */
+            keep = true
+            const privateExecutable = path.join(tempDir, path.relative(target.cacheDir, target.executablePath))
+            log.warn(`Couldn't move the build into ${target.cacheDir} in ${installOptions.publishTimeout}ms, using it from ${privateExecutable} in this process`)
+            return privateExecutable
         } finally {
-            stopRefresh()
-            await fsp.rm(tempDir, { recursive: true, force: true, maxRetries: 3 }).catch((err) => {
-                log.warn(`Couldn't remove ${tempDir}: ${(err as Error).message}`)
-            })
+            if (!keep) {
+                stopRefresh()
+                await fsp.rm(tempDir, { recursive: true, force: true, maxRetries: 3 }).catch((err) => {
+                    log.warn(`Couldn't remove ${tempDir}: ${(err as Error).message}`)
+                })
+            }
         }
     } finally {
         await claimed?.release()

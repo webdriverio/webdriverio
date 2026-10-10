@@ -276,7 +276,9 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
 /**
  * Install a build into the cache atomically (see `installAtomically()`): a half
  * installed build is never in the cache, and processes that set it up at the same time
- * download it once. `prepare(cacheDir)` runs before the install in that cache.
+ * download it once. `prepare(cacheDir)` runs before the install in that cache. Resolves
+ * the executable to use: in the cache, or in a private folder when the build cannot be
+ * moved into the cache.
  */
 function installBuild (
     args: InstallOptions & { unpack?: true },
@@ -417,19 +419,22 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     }
 
     log.info(`Setting up ${browserName} v${buildId}`)
-    const executablePath = computeExecutablePath(installOptions)
-    await installBuild(installOptions, platform, executablePath)
-    if (!await fsp.access(executablePath).then(() => true, () => false)) {
+    const cachedExecutablePath = computeExecutablePath(installOptions)
+    let executablePath = await installBuild(installOptions, platform, cachedExecutablePath)
+    if (executablePath === cachedExecutablePath && !await fsp.access(executablePath).then(() => true, () => false)) {
         /**
          * removed meanwhile: `install()` below would download it into the cache in place
          */
-        await installBuild(installOptions, platform, executablePath)
+        executablePath = await installBuild(installOptions, platform, cachedExecutablePath)
     }
-    /**
-     * `@puppeteer/browsers` finds the build and finishes it in the cache (e.g. it runs
-     * Chrome's `setup.exe` on Windows for the browser folder), as for a cached build
-     */
-    await _install(installOptions)
+    if (executablePath === cachedExecutablePath) {
+        /**
+         * `@puppeteer/browsers` finds the build and finishes it in the cache (e.g. it runs
+         * Chrome's `setup.exe` on Windows for the browser folder), as for a cached build;
+         * a build in a private folder was finished there
+         */
+        await _install(installOptions)
+    }
 
     /**
      * for Chromium browser `resolveBuildId` returns with a useless build id
@@ -566,11 +571,11 @@ function installElectronChromedriver (cacheDir: string, platform: BrowserPlatfor
         const cache = new Cache(cacheDir)
         const provider = new ElectronChromedriverProvider()
         const relativeExecutablePath = provider.getExecutablePath()
-        const executablePath = path.join(cache.installationDir(Browser.CHROMEDRIVER, platform, electronVersion), relativeExecutablePath)
+        let executablePath = path.join(cache.installationDir(Browser.CHROMEDRIVER, platform, electronVersion), relativeExecutablePath)
         if (!await fsp.access(executablePath).then(() => true, () => false)) {
             // write the executable path to the cache to avoid `install()` throwing for prerelease versions on LINUX_ARM
             cache.writeExecutablePath(Browser.CHROMEDRIVER, platform, electronVersion, relativeExecutablePath)
-            await installBuild({
+            executablePath = await installBuild({
                 cacheDir,
                 buildId: electronVersion,
                 platform,
@@ -608,7 +613,7 @@ async function installChromedriver (cacheDir: string, platform: BrowserPlatform,
         }
         let knownBuild = buildId
         if (await canDownload(chromedriverInstallOpts)) {
-            await installBuild(chromedriverInstallOpts, platform, executablePath)
+            executablePath = await installBuild(chromedriverInstallOpts, platform, executablePath)
             log.info(`Download of Chromedriver v${buildId} was successful`)
         } else {
             /**
@@ -640,18 +645,15 @@ async function installChromedriver (cacheDir: string, platform: BrowserPlatform,
                 )
             }
             if (knownBuild) {
-                await installBuild({ ...chromedriverInstallOpts, buildId: knownBuild }, platform, executablePath)
+                /**
+                 * `knownBuild` is `buildId` here: a different one returned above
+                 */
+                executablePath = await installBuild({ ...chromedriverInstallOpts, buildId: knownBuild }, platform, executablePath)
                 log.info(`Download of Chromedriver v${knownBuild} was successful`)
             } else {
                 throw new Error(`Couldn't download any known good version from Chromedriver major v${fallbackVersion}, requested full version - v${version}`)
             }
         }
-        executablePath = computeExecutablePath({
-            browser: Browser.CHROMEDRIVER,
-            buildId: knownBuild,
-            platform,
-            cacheDir
-        })
     } else {
         log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
     }

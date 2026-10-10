@@ -88,7 +88,10 @@ vi.mock('@puppeteer/browsers', () => ({
  * the atomic install has its own tests (`atomicInstall.test.ts`) on real files
  */
 vi.mock('../../src/node/atomicInstall.js', () => ({
-    installAtomically: vi.fn((target: { cacheDir: string }, install: (cacheDir: string) => Promise<void>) => install(target.cacheDir))
+    installAtomically: vi.fn(async (target: { cacheDir: string, executablePath: string }, install: (cacheDir: string) => Promise<void>) => {
+        await install(target.cacheDir)
+        return target.executablePath
+    })
 }))
 
 vi.mock('../../src/node/utils.js', async (actualMod) => ({
