@@ -24,6 +24,7 @@ exports[`npmInstall 1`] = `
   [
     "/foo/bar",
     [
+      "@wdio/cli@next",
       "foo$--$bar",
       "bar$--$foo",
       "@testing-library/vue",

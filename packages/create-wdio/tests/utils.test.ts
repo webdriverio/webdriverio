@@ -614,6 +614,21 @@ test('npmInstall', async () => {
     expect(vi.mocked(installPackages).mock.calls).toMatchSnapshot()
 })
 
+test('npmInstall installs @wdio/cli, which the generated wdio script runs', async () => {
+    vi.mocked(installPackages).mockClear()
+    const parsedAnswers = {
+        rawAnswers: { services: [] },
+        packagesToInstall: ['@wdio/local-runner', '@wdio/mocha-framework'],
+        npmInstall: true
+    } as any
+    await npmInstall(parsedAnswers, 'latest')
+    expect(vi.mocked(installPackages).mock.calls[0][1]).toEqual([
+        '@wdio/cli@latest',
+        '@wdio/local-runner@latest',
+        '@wdio/mocha-framework@latest'
+    ])
+})
+
 test('not npmInstall', async () => {
     const parsedAnswers = {
         rawAnswers: {

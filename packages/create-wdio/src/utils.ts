@@ -502,6 +502,14 @@ export async function npmInstall(parsedAnswers: ParsedAnswers, npmTag: string) {
     const presetPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.preset || '')
 
     /**
+     * the generated `wdio` script runs the `wdio` binary of `@wdio/cli`, so
+     * the project needs it even if the wizard ran from a global or npx install
+     */
+    if (!parsedAnswers.packagesToInstall.includes('@wdio/cli')) {
+        parsedAnswers.packagesToInstall.unshift('@wdio/cli')
+    }
+
+    /**
      * install Testing Library dependency if desired
      */
     if (parsedAnswers.installTestingLibrary && TESTING_LIBRARY_PACKAGES[presetPackage.short]) {
