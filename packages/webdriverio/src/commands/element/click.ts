@@ -196,6 +196,19 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
             .up({ button })
             .perform(skipRelease)
     }
+    /**
+     * WebDriver actions don't scroll: the pointer goes to the in-view center point of the
+     * element, which only takes the window into account. ChromeDriver scrolls anyway,
+     * geckodriver follows the spec, so the click of an element that is inside the window
+     * but hidden by a scrollable ancestor landed on that ancestor, without an error.
+     * Bring the element into view first, as the Element Click command does.
+     */
+    const isNativeApp = browser.isMobile && (await browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)
+    if (!isNativeApp) {
+        await element.scrollIntoView({ block: 'nearest', inline: 'nearest' }).catch((err: Error) => {
+            log.debug(`Could not scroll the element into view before the click: ${err.message}`)
+        })
+    }
     try {
         return await clickNested()
     } catch {

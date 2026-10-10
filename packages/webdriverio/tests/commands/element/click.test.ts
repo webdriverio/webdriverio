@@ -2,6 +2,7 @@ import path from 'node:path'
 import { expect, describe, it, afterEach, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { click } from '../../../src/commands/element/click.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -15,6 +16,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
 
         await elem.click()
         // @ts-expect-error mock implementation
@@ -30,6 +32,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
 
         await elem.click({ button: 'left' })
         // @ts-expect-error mock implementation
@@ -53,6 +56,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
         await elem.click({ button: 'right' })
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[2][0].pathname)
@@ -79,6 +83,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
         await elem.click({ button: 'middle' })
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[2][0].pathname)
@@ -103,6 +108,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
         await elem.click({ y: 15 })
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[3][0].pathname)
@@ -118,6 +124,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
         await elem.click({ button: 2, x: 20, y: 15 })
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[3][0].pathname)
@@ -145,6 +152,7 @@ describe('click test', () => {
             } as any
         })
         const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
         await elem.click({ duration: 1000 })
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[2][0].pathname)
@@ -163,6 +171,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
 
         // @ts-expect-error invalid param
         await expect(elem.click([])).rejects.toThrow('Options must be an object')
@@ -176,6 +185,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
 
         // @ts-expect-error invalid param
         await expect(elem.click({ x: 'not-supported' })).rejects.toThrow('Coordinates must be integers')
@@ -189,6 +199,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
 
         // @ts-expect-error invalid param
         await expect(elem.click({ button: 'not-supported' })).rejects.toThrow('Button type not supported.')
@@ -202,6 +213,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
         await elem.click({ button: 'right' })
 
         expect(vi.mocked(fetch).mock.calls.length)
@@ -219,5 +231,65 @@ describe('click test', () => {
 
     afterEach(() => {
         vi.mocked(fetch).mockClear()
+    })
+
+    it('should scroll the element into view before the pointer action', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$('#foo')
+        const scrollIntoView = vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.mocked(fetch).mockClear()
+
+        await elem.click({ button: 'left' })
+        expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' })
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0].pathname).toBe('/session/foobar-123/actions')
+        expect(scrollIntoView.mock.invocationCallOrder[0])
+            .toBeLessThan(vi.mocked(fetch).mock.invocationCallOrder[0])
+    })
+
+    it('should still click when the element could not be scrolled into view', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'scrollIntoView').mockRejectedValue(new Error('stale element'))
+        vi.mocked(fetch).mockClear()
+
+        await elem.click({ button: 'left' })
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[0][0].pathname).toBe('/session/foobar-123/actions')
+    })
+
+    it.each([
+        ['a native mobile context', { isNativeContext: true }],
+        ['a Windows app', { isNativeContext: false, isWindowsApp: true }],
+        ['a Mac app', { isNativeContext: false, isMacApp: true }]
+    ])('should not scroll in %s', async (_, context) => {
+        const action = {
+            move: vi.fn().mockReturnThis(),
+            down: vi.fn().mockReturnThis(),
+            pause: vi.fn().mockReturnThis(),
+            up: vi.fn().mockReturnThis(),
+            perform: vi.fn()
+        }
+        const scope = {
+            elementId: 'native-elem',
+            isMobile: true,
+            ...context,
+            scrollIntoView: vi.fn(),
+            action: vi.fn(() => action)
+        }
+
+        await click.call(scope as never, { button: 'left' })
+        expect(scope.scrollIntoView).not.toHaveBeenCalled()
+        expect(action.perform).toHaveBeenCalled()
     })
 })
