@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 
-import { GENERATED_FILE_COMMENT } from './constants.js'
+import { GENERATED_FILE_COMMENT, RENAMED_TYPES } from './constants.js'
 import type { Assignment, Group } from 'cddl'
 
 export type CddlType = 'local' | 'remote'
@@ -22,4 +22,19 @@ export async function writeFile (filePath: string, content: string) {
 
 export function findGroupByName (ast: Assignment[], name: string): Group | undefined {
     return ast.find((a: Assignment): a is Group => a.Type === 'group' && a.Name === name)
+}
+
+const declares = (code: string, name: string) => new RegExp(`^export (type|interface) ${name}\\b`, 'm').test(code)
+
+/**
+ * add a deprecated alias for each renamed type that the spec no longer defines
+ */
+export function addRenamedTypeAliases (code: string) {
+    const aliases = Object.entries(RENAMED_TYPES)
+        .filter(([oldName, newName]) => declares(code, newName) && !declares(code, oldName))
+        .map(([oldName, newName]) => (
+            `/**\n * @deprecated renamed to \`${newName}\` in the WebDriver BiDi spec\n */\n` +
+            `export type ${oldName} = ${newName}\n`
+        ))
+    return aliases.length ? `${code.trimEnd()}\n\n${aliases.join('\n')}` : code
 }
