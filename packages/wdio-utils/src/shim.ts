@@ -629,6 +629,17 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
 }
 
 /**
+ * the parts of a Mocha runnable (test or hook) that `executeAsync` uses
+ */
+interface FrameworkRunnable {
+    _timeout?: number
+    title?: string
+    fullTitle?: () => string
+    resetTimeout?: () => void
+    _timeoutError?: (ms: number) => Error
+}
+
+/**
  * execute test or hook asynchronously
  *
  * @param  {Function} fn         spec or hook method
@@ -648,6 +659,11 @@ export async function executeAsync(
 
     let done = false
     let timer: ReturnType<typeof setTimeout> | undefined
+    /**
+     * Mocha fails a test that ran longer than its timeout even when it passes at
+     * last, so a retry after a Mocha timeout can't pass
+     */
+    let mochaTimedOut = false
 
     try {
         /**
@@ -656,12 +672,16 @@ export async function executeAsync(
          * window of time for an operation to complete before triggering a timeout. This approach ensures that test results are handled
          * properly without affecting the overall test execution timing.
          */
-        // @ts-expect-error - _runnable is set by Mocha/Jasmine at runtime
-        const runnable = this?._runnable
-        const runnableTimeout = runnable?._timeout
-        // @ts-expect-error - jasmine is set by Jasmine at runtime
-        const frameworkTimeout = runnableTimeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
-        const _timeout = (frameworkTimeout ?? timeout) - TIME_BUFFER
+        const runnable = (this as { _runnable?: FrameworkRunnable } | undefined)?._runnable
+        /**
+         * The current framework timeout. A Mocha test or hook can change it with
+         * `this.timeout()` while it runs, and `0` turns it off.
+         */
+        const frameworkTimeout = (): number => (
+            // @ts-expect-error - jasmine is set by Jasmine at runtime
+            runnable?._timeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
+        )
+        const start = Date.now()
         // Capture the identity before execution, as the framework may advance to another runnable on timeout.
         const fullTitle = typeof runnable?.fullTitle === 'function' ? runnable.fullTitle() : undefined
         const testTitle = fullTitle || runnable?.title || fn.name || 'unknown test or hook'
@@ -673,13 +693,35 @@ export async function executeAsync(
         const result = await Promise.race([
             fn.apply(this, args),
             new Promise<void>((resolve, reject) => {
-                timer = setTimeout(() => {
+                const check = () => {
                     if (done) {
-                        resolve()
-                    } else {
-                        reject(new Error(`Timeout after ${_timeout}ms in ${JSON.stringify(testTitle)} (WDIO attempt ${attempt}/${totalAttempts})`))
+                        return resolve()
                     }
-                }, _timeout)
+                    const current = frameworkTimeout()
+                    /**
+                     * the timeout is off: wait for the function only
+                     */
+                    if (!(current > 0)) {
+                        return
+                    }
+                    const remaining = current - TIME_BUFFER - (Date.now() - start)
+                    if (remaining > 0) {
+                        timer = setTimeout(check, remaining)
+                        return
+                    }
+                    /**
+                     * Mocha would fail the runnable TIME_BUFFER ms later and not wait for it, so
+                     * the after hooks (e.g. `afterTest`) would overlap the next test. Restart its
+                     * timer so it waits for them, and fail with Mocha's own timeout error so the
+                     * report stays the same.
+                     */
+                    runnable?.resetTimeout?.()
+                    mochaTimedOut = typeof runnable?._timeoutError === 'function'
+                    reject(typeof runnable?._timeoutError === 'function'
+                        ? runnable._timeoutError(current)
+                        : new Error(`Timeout after ${current - TIME_BUFFER}ms in ${JSON.stringify(testTitle)} (WDIO attempt ${attempt}/${totalAttempts})`))
+                }
+                check()
             })
         ])
         done = true
@@ -700,7 +742,7 @@ export async function executeAsync(
         if (timer) {
             clearTimeout(timer)
         }
-        if (retries.limit > retries.attempts) {
+        if (retries.limit > retries.attempts && !mochaTimedOut) {
             retries.attempts++
             return await executeAsync.call(this, fn, retries, args, timeout)
         }
