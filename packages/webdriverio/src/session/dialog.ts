@@ -6,6 +6,39 @@ export function getDialogManager(browser: WebdriverIO.Browser) {
 }
 
 /**
+ * The W3C capabilities that a driver matches by plain equality. Others, like
+ * `browserVersion` or vendor options, use driver-specific rules.
+ */
+const EQUALITY_MATCHED_CAPABILITIES = ['browserName', 'platformName', 'unhandledPromptBehavior'] as const
+
+/**
+ * Whether the session runs with a user-set `unhandledPromptBehavior`. It is
+ * user-set when it is in `alwaysMatch` (or a flat capability map), or in the
+ * `firstMatch` entry the driver picked. An entry counts as picked when its
+ * equality-matched capabilities, the behavior included, match the returned
+ * capabilities. The other entries get WebdriverIO's default `ignore`.
+ */
+function hasUserPromptBehavior (
+    requested: WebdriverIO.Browser['requestedCapabilities'],
+    matched?: WebdriverIO.Capabilities
+): boolean {
+    const isSet = (caps?: WebdriverIO.Capabilities) => typeof caps?.unhandledPromptBehavior !== 'undefined'
+    if (!requested || !('alwaysMatch' in requested)) {
+        return isSet(requested as WebdriverIO.Capabilities | undefined)
+    }
+    if (isSet(requested.alwaysMatch)) {
+        return true
+    }
+    const returned = (matched || {}) as Record<string, unknown>
+    const isPicked = (entry: WebdriverIO.Capabilities) => EQUALITY_MATCHED_CAPABILITIES.every((key) => {
+        const value = (entry as Record<string, unknown>)[key]
+        return typeof value === 'undefined' || typeof value === 'object' ||
+            String(value).toLowerCase() === String(returned[key]).toLowerCase()
+    })
+    return (requested.firstMatch || []).some((entry: WebdriverIO.Capabilities) => isSet(entry) && isPicked(entry))
+}
+
+/**
  * This class is responsible for managing shadow roots and their elements.
  * It allows to do deep element lookups and pierce into shadow DOMs across
  * all components of a page.
@@ -14,14 +47,22 @@ export class DialogManager extends SessionManager {
     #browser: WebdriverIO.Browser
     #initialize: Promise<boolean>
     #autoHandleDialog = true
+    /**
+     * a user-set `unhandledPromptBehavior` capability decides what happens to
+     * a dialog, e.g. `ignore` keeps it open for `browser.getAlertText()`
+     */
+    #hasUserPromptBehavior: boolean
 
     #prompts = new Map<string, string>()
 
     #handleUserPromptListener = this.#handleUserPrompt.bind(this)
+    #handleUserPromptClosedListener = this.#handleUserPromptClosed.bind(this)
 
     constructor(browser: WebdriverIO.Browser) {
         super(browser, DialogManager.name)
         this.#browser = browser
+
+        this.#hasUserPromptBehavior = hasUserPromptBehavior(browser.requestedCapabilities, browser.capabilities)
 
         /**
          * don't run setup when Bidi is not supported or running unit tests
@@ -35,18 +76,20 @@ export class DialogManager extends SessionManager {
          * listen on required bidi events
          */
         this.#initialize = this.#browser.sessionSubscribe({
-            events: ['browsingContext.userPromptOpened']
+            events: ['browsingContext.userPromptOpened', 'browsingContext.userPromptClosed']
         }).then(() => true, () => false)
         // @ts-ignore this is a private event
         this.#browser.on('_dialogListenerRegistered', () => this.#switchListenerFlag(false))
         // @ts-ignore this is a private event
         this.#browser.on('_dialogListenerRemoved', () => this.#switchListenerFlag(true))
         this.#browser.on('browsingContext.userPromptOpened', this.#handleUserPromptListener)
+        this.#browser.on('browsingContext.userPromptClosed', this.#handleUserPromptClosedListener)
     }
 
     removeListeners(): void {
         super.removeListeners()
         this.#browser.off('browsingContext.userPromptOpened', this.#handleUserPromptListener)
+        this.#browser.off('browsingContext.userPromptClosed', this.#handleUserPromptClosedListener)
         this.#browser.removeAllListeners('_dialogListenerRegistered')
         this.#browser.removeAllListeners('_dialogListenerRemoved')
     }
@@ -68,7 +111,7 @@ export class DialogManager extends SessionManager {
      */
     async #handleUserPrompt(log: local.BrowsingContextUserPromptOpenedParameters) {
         this.#prompts.set(log.context, log.message)
-        if (this.#autoHandleDialog) {
+        if (this.#autoHandleDialog && !this.#hasUserPromptBehavior) {
             this.#prompts.delete(log.context)
             try {
                 return await this.#browser.browsingContextHandleUserPrompt({
@@ -89,6 +132,14 @@ export class DialogManager extends SessionManager {
 
         const dialog = new Dialog(log, this.#browser)
         this.#browser.emit('dialog', dialog)
+    }
+
+    /**
+     * a prompt can close without WebdriverIO, e.g. through an `accept` or
+     * `dismiss` unhandledPromptBehavior, so drop its stored message
+     */
+    #handleUserPromptClosed(log: local.BrowsingContextUserPromptClosedParameters) {
+        this.#prompts.delete(log.context)
     }
 
     /**

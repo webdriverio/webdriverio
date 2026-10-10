@@ -60,11 +60,16 @@ interface SessionInitializationResponse {
 export async function startWebDriverSession (params: RemoteConfig): Promise<{ sessionId: string, capabilities: WebdriverIO.Capabilities }> {
     /**
      * Accept a W3C capabilities object (`alwaysMatch` / `firstMatch`) or a
-     * flat capability map, which is wrapped into `alwaysMatch`.
+     * flat capability map, which is wrapped into `alwaysMatch`. Copy it so
+     * the caller's object (kept as `requestedCapabilities`) is not modified.
      */
     const capabilities = params.capabilities && 'alwaysMatch' in params.capabilities
-        ? params.capabilities
-        : { alwaysMatch: params.capabilities, firstMatch: [{}] }
+        ? {
+            ...params.capabilities,
+            alwaysMatch: { ...params.capabilities.alwaysMatch },
+            firstMatch: params.capabilities.firstMatch?.map((match) => ({ ...match }))
+        }
+        : { alwaysMatch: { ...params.capabilities }, firstMatch: [{}] }
 
     /**
      * automatically opt-into WebDriver Bidi (@ref https://w3c.github.io/webdriver-bidi/)
@@ -85,9 +90,9 @@ export async function startWebDriverSession (params: RemoteConfig): Promise<{ se
          */
         capabilities.alwaysMatch.webSocketUrl = true
         /**
-         * allow WebdriverIO to handle alerts
+         * allow WebdriverIO to handle alerts, unless the user set a behavior
          */
-        capabilities.alwaysMatch.unhandledPromptBehavior = 'ignore'
+        capabilities.alwaysMatch.unhandledPromptBehavior ??= 'ignore'
     }
 
     validateCapabilities(capabilities.alwaysMatch)
