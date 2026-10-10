@@ -388,7 +388,7 @@ describe('setupChromedriver', () => {
             await setupChromedriver('/lock/cache', '116.0.5845.110')
 
             expect(withInstallLock).toHaveBeenCalledWith(
-                path.join('/lock/cache', 'chromedriver', '116.0.5845.110.lock'),
+                path.join('/lock/cache', 'chromedriver', 'linux_116.0.5845.110.lock'),
                 expect.any(Function),
                 expect.any(Function),
                 { onStaleLock: expect.any(Function) }
@@ -427,7 +427,7 @@ describe('setupChromedriver', () => {
             await setupChromedriver('/lock/cache', undefined, '34.0.0-beta.1')
 
             expect(withInstallLock).toHaveBeenCalledWith(
-                path.join('/lock/cache', 'chromedriver', '34.0.0_beta.1.lock'),
+                path.join('/lock/cache', 'chromedriver', 'linux_34.0.0_beta.1.lock'),
                 expect.any(Function),
                 expect.any(Function),
                 { onStaleLock: expect.any(Function) }
@@ -779,7 +779,7 @@ describe('driver utils', () => {
             await setupPuppeteerBrowser('/lock/cache', { browserName: 'chrome', browserVersion: '1.2.3' })
 
             expect(withInstallLock).toHaveBeenCalledWith(
-                path.join('/lock/cache', 'chrome', '116.0.5845.110.lock'),
+                path.join('/lock/cache', 'chrome', 'linux_116.0.5845.110.lock'),
                 expect.any(Function),
                 expect.any(Function),
                 { onStaleLock: expect.any(Function) }

@@ -1,6 +1,7 @@
 import os from 'node:os'
 import path from 'node:path'
 import fs from 'node:fs/promises'
+import { readlinkSync } from 'node:fs'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import { withInstallLock } from '../../src/node/installLock.js'
@@ -12,9 +13,25 @@ const exists = (file: string) => fs.access(file).then(() => true, () => false)
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 /**
+ * the pid namespace of this process on Linux, as the lock writes it
+ */
+const pidns = (() => {
+    try {
+        return readlinkSync('/proc/self/ns/pid')
+    } catch {
+        return undefined
+    }
+})()
+
+/**
+ * the lock of a process of this machine
+ */
+const localLock = (content: object) => JSON.stringify({ hostname: os.hostname(), pidns, ...content })
+
+/**
  * a live process of this machine that is not this one
  */
-const otherHolder = () => JSON.stringify({ pid: process.ppid, hostname: os.hostname(), token: 'other' })
+const otherHolder = () => localLock({ pid: process.ppid, token: 'other' })
 
 describe('withInstallLock', () => {
     let dir: string
@@ -148,7 +165,7 @@ describe('withInstallLock', () => {
     })
 
     it('removes the lock of a process of this machine that no longer runs', async () => {
-        await writeLock(JSON.stringify({ pid: 2 ** 22 + 7, hostname: os.hostname(), token: 'dead' }))
+        await writeLock(localLock({ pid: 2 ** 22 + 7, token: 'dead' }))
         const install = vi.fn()
 
         await withInstallLock(lockPath, isInstalled, install, fast)
@@ -161,7 +178,7 @@ describe('withInstallLock', () => {
      * a container that crashed during the install and runs again has the same pid
      */
     it('removes a lock with the pid of this process that this process does not hold', async () => {
-        await writeLock(JSON.stringify({ pid: process.pid, hostname: os.hostname(), token: 'earlier-run' }))
+        await writeLock(localLock({ pid: process.pid, token: 'earlier-run' }))
         let lockedDuringInstall = false
 
         await withInstallLock(lockPath, isInstalled, async () => {
@@ -249,7 +266,7 @@ describe('withInstallLock', () => {
     })
 
     it('lets one caller at a time remove a stale lock', async () => {
-        await writeLock(JSON.stringify({ pid: 2 ** 22 + 7, hostname: os.hostname(), token: 'dead' }))
+        await writeLock(localLock({ pid: 2 ** 22 + 7, token: 'dead' }))
         const install = download()
 
         await Promise.all([1, 2, 3, 4, 5, 6].map(() => withInstallLock(lockPath, isInstalled, install, { ...fast, pollInterval: 1 })))
@@ -266,7 +283,7 @@ describe('withInstallLock', () => {
      */
     it('lets onStaleLock remove what the unfinished install left, once', async () => {
         installed = true
-        await writeLock(JSON.stringify({ pid: 2 ** 22 + 7, hostname: os.hostname(), token: 'dead' }))
+        await writeLock(localLock({ pid: 2 ** 22 + 7, token: 'dead' }))
         const onStaleLock = vi.fn(async () => {
             installed = false
         })
@@ -279,7 +296,7 @@ describe('withInstallLock', () => {
     })
 
     it('removes a stale lock when onStaleLock fails', async () => {
-        await writeLock(JSON.stringify({ pid: 2 ** 22 + 7, hostname: os.hostname(), token: 'dead' }))
+        await writeLock(localLock({ pid: 2 ** 22 + 7, token: 'dead' }))
         let lockedDuringInstall = false
 
         await withInstallLock(lockPath, isInstalled, async () => {
@@ -294,7 +311,7 @@ describe('withInstallLock', () => {
      * stale lock" now would remove that new lock
      */
     it('does not remove a stale lock while another process removes it', async () => {
-        await writeLock(JSON.stringify({ pid: 2 ** 22 + 7, hostname: os.hostname(), token: 'dead' }))
+        await writeLock(localLock({ pid: 2 ** 22 + 7, token: 'dead' }))
         await fs.writeFile(`${lockPath}.reap`, otherHolder())
         let removedByOther = false
         setTimeout(async () => {
@@ -309,7 +326,7 @@ describe('withInstallLock', () => {
     })
 
     it('waits with its poll interval and maxWait while another process removes a stale lock', { timeout: 3000 }, async () => {
-        await writeLock(JSON.stringify({ pid: 2 ** 22 + 7, hostname: os.hostname(), token: 'dead' }))
+        await writeLock(localLock({ pid: 2 ** 22 + 7, token: 'dead' }))
         await fs.writeFile(`${lockPath}.reap`, otherHolder())
         const readFile = vi.spyOn(fs, 'readFile')
         const install = vi.fn()
@@ -403,6 +420,59 @@ describe('withInstallLock', () => {
         expect(downloads).toBe(1)
         expect(Date.now() - startedAt).toBeLessThan(1000)
         expect(await exists(lockPath)).toBe(false)
+    })
+
+    /**
+     * removing a build folder can take longer than staleAfter: the others must not
+     * take `.reap` for stale and start a second cleanup or an install meanwhile
+     */
+    it('keeps its .reap fresh while it removes what a stale lock left', async () => {
+        await writeLock(localLock({ pid: 2 ** 22 + 7, token: 'dead' }))
+        const mtimes = new Set<number>()
+        const onStaleLock = vi.fn(async () => {
+            for (let i = 0; i < 10; i++) {
+                await sleep(20)
+                mtimes.add((await fs.stat(`${lockPath}.reap`)).mtimeMs)
+            }
+        })
+
+        await withInstallLock(lockPath, isInstalled, vi.fn(), { ...fast, refreshInterval: 20, onStaleLock })
+
+        expect(onStaleLock).toHaveBeenCalledTimes(1)
+        expect(mtimes.size).toBeGreaterThan(2)
+        expect(await exists(`${lockPath}.reap`)).toBe(false)
+    })
+
+    /**
+     * two cache paths of one folder (a symlink) are two setups in one process
+     */
+    it('keeps its token until its lock is removed', async () => {
+        const link = `${dir}-link`
+        await fs.mkdir(path.dirname(lockPath), { recursive: true })
+        await fs.symlink(dir, link)
+        const linkedLockPath = path.join(link, 'chromium', '1715417.lock')
+        const rm = fs.rm
+        const spy = vi.spyOn(fs, 'rm').mockImplementation(async (file, ...args) => {
+            if (file === lockPath) {
+                // a slow file system: the second setup reads the lock meanwhile
+                await sleep(100)
+            }
+            return rm(file, ...args)
+        })
+        const onStaleLock = vi.fn(async () => {})
+
+        try {
+            await Promise.all([
+                withInstallLock(lockPath, isInstalled, download(), { ...fast, onStaleLock }),
+                sleep(20).then(() => withInstallLock(linkedLockPath, isInstalled, download(), { ...fast, onStaleLock }))
+            ])
+        } finally {
+            spy.mockRestore()
+            await fs.rm(link)
+        }
+
+        expect(onStaleLock).not.toHaveBeenCalled()
+        expect(downloads).toBe(1)
     })
 
     it('does not remove a lock that another process took over', async () => {

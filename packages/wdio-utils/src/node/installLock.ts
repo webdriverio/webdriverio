@@ -186,6 +186,29 @@ async function removeLockOf (lockPath: string, lock: Lock) {
 }
 
 /**
+ * Remove a lock that this process holds, by its token only: a refresh that was still
+ * running can have changed its file time.
+ */
+async function removeOwnLock (lockPath: string, token: string) {
+    const lock = await readLock(lockPath)
+    if (lock?.content?.token === token) {
+        await removeFile(lockPath)
+    }
+}
+
+/**
+ * Refresh the file time of a lock, so that the other processes see that its holder runs.
+ */
+function keepFresh (lockPath: string, refreshInterval: number) {
+    const refresh = setInterval(() => {
+        const now = new Date()
+        fsp.utimes(lockPath, now, now).catch(() => {})
+    }, refreshInterval)
+    refresh.unref()
+    return () => clearInterval(refresh)
+}
+
+/**
  * Remove a stale lock. Two processes that find the same stale lock must not both
  * remove "it": the second would remove the lock that the first has just taken. So
  * one process at a time removes, under `<lock>.reap`, and only the lock that it saw.
@@ -196,7 +219,7 @@ async function removeStaleLock (
     stale: Lock,
     token: string,
     isReapStale: (lock: Lock) => boolean,
-    onStaleLock: () => Promise<unknown>
+    { onStaleLock, refreshInterval }: Required<InstallLockOptions>
 ) {
     const reapPath = `${lockPath}.reap`
     if (!await tryLock(reapPath, token).catch((err) => isTransient(err) ? false : Promise.reject(err))) {
@@ -206,7 +229,10 @@ async function removeStaleLock (
         }
         return false
     }
-    const reap = await readLock(reapPath)
+    /**
+     * removing a build folder can take longer than `staleAfter`
+     */
+    const stopRefresh = keepFresh(reapPath, refreshInterval)
     try {
         const current = await readLock(lockPath)
         if (!current || current.content?.token !== stale.content?.token || current.mtimeMs !== stale.mtimeMs) {
@@ -221,9 +247,8 @@ async function removeStaleLock (
         await removeLockOf(lockPath, current)
         return true
     } finally {
-        if (reap) {
-            await removeLockOf(reapPath, reap)
-        }
+        stopRefresh()
+        await removeOwnLock(reapPath, token)
     }
 }
 
@@ -231,7 +256,8 @@ async function removeStaleLock (
  * Wait for the lock and take it. Resolves `false` when the process should install
  * without it: after `maxWait`, or when the lock says that the install finished.
  */
-async function acquire (lockPath: string, token: string, { pollInterval, staleAfter, maxWait, onStaleLock }: Required<InstallLockOptions>) {
+async function acquire (lockPath: string, token: string, options: Required<InstallLockOptions>) {
+    const { pollInterval, staleAfter, maxWait } = options
     await fsp.mkdir(path.dirname(lockPath), { recursive: true })
     const isStale = staleCheck(staleAfter, pollInterval)
     const isReapStale = staleCheck(staleAfter, pollInterval)
@@ -260,7 +286,7 @@ async function acquire (lockPath: string, token: string, { pollInterval, staleAf
          * try again at once only after removing the lock: while another process
          * removes it, wait like for a holder
          */
-        if (lock && isStale(lock) && await removeStaleLock(lockPath, lock, token, isReapStale, onStaleLock)) {
+        if (lock && isStale(lock) && await removeStaleLock(lockPath, lock, token, isReapStale, options)) {
             continue
         }
         if (Date.now() - waitStartedAt > maxWait) {
@@ -280,15 +306,8 @@ async function acquire (lockPath: string, token: string, { pollInterval, staleAf
  * do not take it for the lock of an install that did not finish and remove the build.
  */
 async function release (lockPath: string, token: string, installed: boolean) {
-    const lock = await readLock(lockPath)
-    if (!lock || lock.content?.token !== token) {
-        return
-    }
     try {
-        /**
-         * by token only: a refresh that was still running can have changed the file time
-         */
-        await removeFile(lockPath)
+        await removeOwnLock(lockPath, token)
     } catch (err) {
         log.warn(`Couldn't remove the install lock ${lockPath}: ${(err as Error).message}`)
         if (installed) {
@@ -337,18 +356,14 @@ export async function withInstallLock<T> (
         return install()
     }
 
-    const refresh = setInterval(() => {
-        const now = new Date()
-        fsp.utimes(lockPath, now, now).catch(() => {})
-    }, lockOptions.refreshInterval)
-    refresh.unref()
+    const stopRefresh = keepFresh(lockPath, lockOptions.refreshInterval)
     let installed = false
     try {
         const result = await install()
         installed = true
         return result
     } finally {
-        clearInterval(refresh)
+        stopRefresh()
         /**
          * remove the lock before the token: until then, the lock is ours
          */
