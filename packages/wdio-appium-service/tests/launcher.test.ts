@@ -917,6 +917,10 @@ describe('Appium launcher', () => {
             vi.mocked(execFileSync).mockReturnValue('3.0.0\n')
         })
 
+        afterEach(() => {
+            vi.unstubAllEnvs()
+        })
+
         test('accepts a local Appium 3 package', async () => {
             await expect(AppiumLauncher.ensureAppiumVersion()).resolves.toBeUndefined()
         })
@@ -933,6 +937,15 @@ describe('Appium launcher', () => {
             vi.mocked(execFileSync).mockReturnValue('3.0.2\n')
             await expect(AppiumLauncher.ensureAppiumVersion('appium')).resolves.toBeUndefined()
             expect(execFileSync).toHaveBeenCalledWith('appium', ['--version'], expect.any(Object))
+        })
+
+        test('does not pass the tsx loader from NODE_OPTIONS to the version check', async () => {
+            vi.mocked(os.platform).mockReturnValue('Darwin')
+            vi.stubEnv('NODE_OPTIONS', '--import file:///path/to/tsx/dist/loader.mjs')
+            await expect(AppiumLauncher.ensureAppiumVersion('appium')).resolves.toBeUndefined()
+            expect(execFileSync).toHaveBeenCalledWith('appium', ['--version'], expect.objectContaining({
+                env: expect.objectContaining({ NODE_OPTIONS: '' })
+            }))
         })
 
         test('rejects an explicit command reporting Appium 2', async () => {
