@@ -17,6 +17,7 @@ import type { Options } from '@wdio/types'
 
 import { ElectronChromedriverProvider, getElectronVersionForChromium } from './electronChromedriverProvider.js'
 import { warnIfDownloadProxyIgnored } from './downloadProxy.js'
+import { installAtomically } from './atomicInstall.js'
 
 const log = logger('webdriver')
 
@@ -272,6 +273,34 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
     log.progress('')
 }
 
+/**
+ * Install a build into the cache atomically (see `installAtomically()`): a half
+ * installed build is never in the cache, and processes that set it up at the same time
+ * download it once. `prepare(cacheDir)` runs before the install in that cache. Resolves
+ * the executable to use: in the cache, or in a private folder when the build cannot be
+ * moved into the cache.
+ */
+function installBuild (
+    args: InstallOptions & { unpack?: true },
+    platform: BrowserPlatform,
+    executablePath: string,
+    prepare?: (cacheDir: string) => void
+) {
+    return installAtomically({
+        cacheDir: args.cacheDir,
+        buildDir: (cacheDir) => new Cache(cacheDir).installationDir(args.browser, platform, args.buildId),
+        executablePath,
+        /**
+         * in the browser folder of the cache (`Cache#browserRoot()` of `@puppeteer/browsers`),
+         * without a `-`, so that the cache does not list it as a `<platform>-<buildId>` install
+         */
+        markerPath: path.join(args.cacheDir, args.browser, `${platform}_${args.buildId.replaceAll('-', '_')}.installing`)
+    }, (cacheDir) => {
+        prepare?.(cacheDir)
+        return _install({ ...args, cacheDir })
+    })
+}
+
 function locateChromeSafely () {
     return locateChrome().catch(() => undefined)
 }
@@ -390,8 +419,22 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     }
 
     log.info(`Setting up ${browserName} v${buildId}`)
-    await _install(installOptions)
-    const executablePath = computeExecutablePath(installOptions)
+    const cachedExecutablePath = computeExecutablePath(installOptions)
+    let executablePath = await installBuild(installOptions, platform, cachedExecutablePath)
+    if (executablePath === cachedExecutablePath && !await fsp.access(executablePath).then(() => true, () => false)) {
+        /**
+         * removed meanwhile: `install()` below would download it into the cache in place
+         */
+        executablePath = await installBuild(installOptions, platform, cachedExecutablePath)
+    }
+    if (executablePath === cachedExecutablePath) {
+        /**
+         * `@puppeteer/browsers` finds the build and finishes it in the cache (e.g. it runs
+         * Chrome's `setup.exe` on Windows for the browser folder), as for a cached build;
+         * a build in a private folder was finished there
+         */
+        await _install(installOptions)
+    }
 
     /**
      * for Chromium browser `resolveBuildId` returns with a useless build id
@@ -528,11 +571,11 @@ function installElectronChromedriver (cacheDir: string, platform: BrowserPlatfor
         const cache = new Cache(cacheDir)
         const provider = new ElectronChromedriverProvider()
         const relativeExecutablePath = provider.getExecutablePath()
-        const executablePath = path.join(cache.installationDir(Browser.CHROMEDRIVER, platform, electronVersion), relativeExecutablePath)
+        let executablePath = path.join(cache.installationDir(Browser.CHROMEDRIVER, platform, electronVersion), relativeExecutablePath)
         if (!await fsp.access(executablePath).then(() => true, () => false)) {
             // write the executable path to the cache to avoid `install()` throwing for prerelease versions on LINUX_ARM
             cache.writeExecutablePath(Browser.CHROMEDRIVER, platform, electronVersion, relativeExecutablePath)
-            await _install({
+            executablePath = await installBuild({
                 cacheDir,
                 buildId: electronVersion,
                 platform,
@@ -540,6 +583,8 @@ function installElectronChromedriver (cacheDir: string, platform: BrowserPlatfor
                 unpack: true,
                 providers: [provider],
                 downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
+            }, platform, executablePath, (installCacheDir) => {
+                new Cache(installCacheDir).writeExecutablePath(Browser.CHROMEDRIVER, platform, electronVersion, relativeExecutablePath)
             })
         }
         log.info(`Using Chromedriver from Electron v${electronVersion} at ${executablePath}`)
@@ -568,7 +613,7 @@ async function installChromedriver (cacheDir: string, platform: BrowserPlatform,
         }
         let knownBuild = buildId
         if (await canDownload(chromedriverInstallOpts)) {
-            await _install({ ...chromedriverInstallOpts, buildId })
+            executablePath = await installBuild(chromedriverInstallOpts, platform, executablePath)
             log.info(`Download of Chromedriver v${buildId} was successful`)
         } else {
             /**
@@ -600,18 +645,15 @@ async function installChromedriver (cacheDir: string, platform: BrowserPlatform,
                 )
             }
             if (knownBuild) {
-                await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
+                /**
+                 * `knownBuild` is `buildId` here: a different one returned above
+                 */
+                executablePath = await installBuild({ ...chromedriverInstallOpts, buildId: knownBuild }, platform, executablePath)
                 log.info(`Download of Chromedriver v${knownBuild} was successful`)
             } else {
                 throw new Error(`Couldn't download any known good version from Chromedriver major v${fallbackVersion}, requested full version - v${version}`)
             }
         }
-        executablePath = computeExecutablePath({
-            browser: Browser.CHROMEDRIVER,
-            buildId: knownBuild,
-            platform,
-            cacheDir
-        })
     } else {
         log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
     }

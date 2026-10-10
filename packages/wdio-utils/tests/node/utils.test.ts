@@ -79,6 +79,16 @@ vi.mock('edgedriver', () => ({
     download: vi.fn().mockResolvedValue({ executablePath: '/path/to/edgedriver' })
 }))
 
+/**
+ * the atomic install has its own tests (`atomicInstall.test.ts`) on real files
+ */
+vi.mock('../../src/node/atomicInstall.js', () => ({
+    installAtomically: vi.fn(async (target: { cacheDir: string, executablePath: string }, install: (cacheDir: string) => Promise<void>) => {
+        await install(target.cacheDir)
+        return target.executablePath
+    })
+}))
+
 vi.mock('../../src/node/electronChromedriverProvider.js', () => ({
     ElectronChromedriverProvider: vi.fn(function () {
         return { getExecutablePath: () => 'chromedriver' }
@@ -95,7 +105,7 @@ vi.mock('@puppeteer/browsers', async () => ({
         return { installationDir: () => '/foo/bar', writeExecutablePath: vi.fn() }
     }),
     getVersionComparator: (await vi.importActual('@puppeteer/browsers')).getVersionComparator,
-    Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium', CHROMEDRIVER: 'chrome' },
+    Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium', CHROMEDRIVER: 'chromedriver' },
     ChromeReleaseChannel: { STABLE: 'stable' },
     BrowserPlatform: { LINUX: 'linux', LINUX_ARM: 'linux_arm', MAC: 'mac', MAC_ARM: 'mac_arm', WIN32: 'win32', WIN64: 'win64' },
     detectBrowserPlatform: vi.fn(),
@@ -307,7 +317,7 @@ describe('setupChromedriver', () => {
         try {
             await setupChromedriver('/some/cache', 'stable')
 
-            expect(resolveBuildId).toHaveBeenCalledWith('chrome', 'linux', '116')
+            expect(resolveBuildId).toHaveBeenCalledWith('chromedriver', 'linux', '116')
             expect(install).toHaveBeenCalledWith(expect.objectContaining({ buildId: '116.0.5845.96' }))
         } finally {
             vi.mocked(resolveBuildId).mockReset()
@@ -368,6 +378,46 @@ describe('setupChromedriver', () => {
             const fsp = (await import('node:fs/promises')).default
             vi.mocked(fsp.access).mockResolvedValue(undefined as never)
             vi.mocked(resolveBuildId).mockReturnValue('116.0.5845.110' as never)
+        })
+
+        /**
+         * two workers can resolve a newer build than the launcher and set it up together
+         */
+        it('installs Chromedriver atomically, into a private cache', async () => {
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            vi.mocked(installAtomically).mockClear()
+
+            await setupChromedriver('/atomic/cache', '116.0.5845.110')
+
+            expect(installAtomically).toHaveBeenCalledWith({
+                cacheDir: '/atomic/cache',
+                buildDir: expect.any(Function),
+                executablePath: '/foo/bar/executable',
+                markerPath: path.join('/atomic/cache', 'chromedriver', 'linux_116.0.5845.110.installing')
+            }, expect.any(Function))
+            vi.mocked(install).mockClear()
+            await vi.mocked(installAtomically).mock.calls[0][1]('/atomic/cache/.wdio-install/i1')
+            expect(install).toHaveBeenCalledWith(expect.objectContaining({ cacheDir: '/atomic/cache/.wdio-install/i1', buildId: '116.0.5845.110' }))
+        })
+
+        /**
+         * `install()` reads the executable path of a custom provider from the cache that it installs into
+         */
+        it('writes the executable path of an Electron Chromedriver into the private cache', async () => {
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            vi.mocked(installAtomically).mockClear()
+
+            await setupChromedriver('/atomic/cache', undefined, '34.0.0-beta.1')
+
+            expect(vi.mocked(installAtomically).mock.calls[0][0].markerPath)
+                .toBe(path.join('/atomic/cache', 'chromedriver', 'linux_34.0.0_beta.1.installing'))
+            vi.mocked(Cache).mockClear()
+            await vi.mocked(installAtomically).mock.calls[0][1]('/atomic/cache/.wdio-install/i2')
+            const privateCache = vi.mocked(Cache).mock.results[vi.mocked(Cache).mock.calls.findIndex(([dir]) => dir === '/atomic/cache/.wdio-install/i2')]
+            expect(privateCache.value.writeExecutablePath).toHaveBeenCalledWith('chromedriver', 'linux', '34.0.0-beta.1', 'chromedriver')
+            expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ cacheDir: '/atomic/cache/.wdio-install/i2', buildId: '34.0.0-beta.1' }))
         })
 
         it('installs the Chromedriver of the Electron release set by wdio:electronVersion', async () => {
@@ -705,6 +755,70 @@ describe('driver utils', () => {
             vi.mocked(locateChrome).mockRejectedValueOnce(new Error('not found'))
             await expect(setupPuppeteerBrowser('/foo/bar', { browserName: 'chrome' }))
                 .rejects.toThrow(/Couldn't find a matching chrome browser/)
+        })
+
+        it('installs the browser atomically, then lets @puppeteer/browsers finish it in the cache', async () => {
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('linux' as any)
+            vi.mocked(installAtomically).mockClear()
+            vi.mocked(install).mockClear()
+
+            await setupPuppeteerBrowser('/atomic/cache', { browserName: 'chrome', browserVersion: '1.2.3' })
+
+            expect(installAtomically).toHaveBeenCalledWith({
+                cacheDir: '/atomic/cache',
+                buildDir: expect.any(Function),
+                executablePath: '/foo/bar/executable',
+                markerPath: path.join('/atomic/cache', 'chrome', 'linux_116.0.5845.110.installing')
+            }, expect.any(Function))
+            expect(vi.mocked(installAtomically).mock.calls[0][0].buildDir('/atomic/cache/.wdio-install/i3')).toBe('/foo/bar')
+            expect(Cache).toHaveBeenCalledWith('/atomic/cache/.wdio-install/i3')
+            expect(install).toHaveBeenLastCalledWith(expect.objectContaining({ cacheDir: '/atomic/cache' }))
+        })
+
+        /**
+         * `install()` on the cache would download a missing build in place
+         */
+        it('installs the build atomically again when it is gone before @puppeteer/browsers finishes it', async () => {
+            const fsp = (await import('node:fs/promises')).default
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('linux' as any)
+            vi.mocked(installAtomically).mockClear()
+            vi.mocked(fsp.access).mockImplementation(async (file) => {
+                if (file === '/foo/bar/executable' && vi.mocked(installAtomically).mock.calls.length < 2) {
+                    throw new Error('ENOENT')
+                }
+            })
+
+            try {
+                await setupPuppeteerBrowser('/atomic/cache', { browserName: 'chrome', browserVersion: '1.2.3' })
+            } finally {
+                vi.mocked(fsp.access).mockReset().mockResolvedValue(undefined as never)
+            }
+
+            expect(installAtomically).toHaveBeenCalledTimes(2)
+        })
+
+        /**
+         * the build could not be moved into the cache: this process uses its private build
+         */
+        it('uses the executable that the atomic install resolves', async () => {
+            const { installAtomically } = await import('../../src/node/atomicInstall.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as any)
+            vi.mocked(installAtomically).mockClear().mockResolvedValueOnce('/atomic/cache/chrome/.wdio_install/i1/chrome/linux-116/chrome')
+            vi.mocked(install).mockClear()
+
+            const result = await setupPuppeteerBrowser('/atomic/cache', { browserName: 'chrome', browserVersion: '1.2.3' })
+
+            expect(result.executablePath).toBe('/atomic/cache/chrome/.wdio_install/i1/chrome/linux-116/chrome')
+            expect(install).not.toHaveBeenCalled()
+
+            vi.mocked(installAtomically).mockResolvedValueOnce('/atomic/cache/chromedriver/.wdio_install/i2/chromedriver')
+            const fsp = (await import('node:fs/promises')).default
+            vi.mocked(fsp.access).mockRejectedValueOnce(new Error('ENOENT'))
+            await expect(setupChromedriver('/atomic/cache', '116.0.5845.110'))
+                .resolves.toEqual({ executablePath: '/atomic/cache/chromedriver/.wdio_install/i2/chromedriver' })
+            vi.mocked(detectBrowserPlatform).mockReset()
         })
 
         it('should install chrome browser with specific version provided', async () => {
