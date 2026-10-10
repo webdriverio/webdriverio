@@ -445,6 +445,48 @@ describe('ContextManager', () => {
     })
 })
 
+describe('ContextManager on mobile', () => {
+    let manager: ReturnType<typeof getContextManager>
+    let commandHandler: (arg: any) => any
+    let resultHandler: (arg: any) => any
+
+    beforeEach(() => {
+        const stub = createBrowserStub({ isMobile: true } as any)
+        manager = getContextManager(stub.browser)
+        const commandHandlers = stub.getListeners().command
+        const resultHandlers = stub.getListeners().result
+        commandHandler = commandHandlers![commandHandlers!.length - 1]
+        resultHandler = resultHandlers![resultHandlers!.length - 1]
+    })
+
+    for (const setContextCommand of ['setAppiumContext', 'switchAppiumContext']) {
+        it(`tracks ${setContextCommand} commands`, () => {
+            commandHandler({ command: setContextCommand, body: { name: 'WEBVIEW_1' } })
+            expect(manager.mobileContext).toBe('WEBVIEW_1')
+        })
+
+        it(`updates the current context from a successful ${setContextCommand} result`, async () => {
+            commandHandler({ command: setContextCommand, body: { name: 'WEBVIEW_1' } })
+            resultHandler({ command: setContextCommand, result: { value: null } })
+            expect(await manager.getCurrentContext()).toBe('WEBVIEW_1')
+        })
+    }
+
+    for (const getContextCommand of ['getCurrentAppiumContext', 'getAppiumContext']) {
+        it(`updates the current context from ${getContextCommand} results`, async () => {
+            resultHandler({ command: getContextCommand, result: { value: 'WEBVIEW_1' } })
+            expect(await manager.getCurrentContext()).toBe('WEBVIEW_1')
+        })
+
+        it(`does not update the current context when a ${getContextCommand} result is undefined`, () => {
+            const setCurrentContext = vi.spyOn(manager, 'setCurrentContext')
+            resultHandler({ command: getContextCommand, result: { value: undefined } })
+            expect(setCurrentContext).not.toHaveBeenCalled()
+            setCurrentContext.mockRestore()
+        })
+    }
+})
+
 /**
  * Android Chrome through Appium: the Appium context name (`CHROMIUM`) is not a
  * BiDi browsing context id. In a BiDi session the current context must be the
@@ -477,11 +519,11 @@ describe('ContextManager on mobile Android Chrome', () => {
                 await handler(payload)
             }
         }
-        const switchAppiumContext = async (name: string) => {
-            await emit('command', { command: 'switchAppiumContext', body: { name } })
-            await emit('result', { command: 'switchAppiumContext', result: { value: null } })
+        const setAppiumContext = async (name: string) => {
+            await emit('command', { command: 'setAppiumContext', body: { name } })
+            await emit('result', { command: 'setAppiumContext', result: { value: null } })
         }
-        return { ...stub, manager: getContextManager(stub.browser), emit, switchAppiumContext }
+        return { ...stub, manager: getContextManager(stub.browser), emit, setAppiumContext }
     }
 
     it('uses the window handle as the current context in a BiDi session', async () => {
@@ -494,14 +536,14 @@ describe('ContextManager on mobile Android Chrome', () => {
     })
 
     it('resolves the window handle again after switching to NATIVE_APP and back in a BiDi session', async () => {
-        const { manager, switchAppiumContext } = createAndroidChrome(true)
+        const { manager, setAppiumContext } = createAndroidChrome(true)
         expect(await manager.getCurrentContext()).toBe('WINDOW-1')
 
-        await switchAppiumContext('NATIVE_APP')
+        await setAppiumContext('NATIVE_APP')
         expect(manager.mobileContext).toBe('NATIVE_APP')
         expect(manager.isNativeContext).toBe(true)
 
-        await switchAppiumContext('CHROMIUM')
+        await setAppiumContext('CHROMIUM')
         expect(manager.mobileContext).toBe('CHROMIUM')
         expect(manager.isNativeContext).toBe(false)
         expect(await manager.getCurrentContext()).toBe('WINDOW-2')
@@ -528,12 +570,12 @@ describe('ContextManager on mobile Android Chrome', () => {
     })
 
     it('keeps using the Appium context name in a Classic session', async () => {
-        const { browser, manager, switchAppiumContext } = createAndroidChrome(false)
+        const { browser, manager, setAppiumContext } = createAndroidChrome(false)
 
         expect(await manager.getCurrentContext()).toBe('CHROMIUM')
         expect(browser.getWindowHandle).not.toHaveBeenCalled()
 
-        await switchAppiumContext('NATIVE_APP')
+        await setAppiumContext('NATIVE_APP')
         expect(await manager.getCurrentContext()).toBe('NATIVE_APP')
         expect(manager.isNativeContext).toBe(true)
     })

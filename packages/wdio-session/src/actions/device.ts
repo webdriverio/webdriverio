@@ -60,8 +60,13 @@ export const deeplink: ActionFn = async (session, args) => {
 
 export const rotate: ActionFn = async (session, args) => {
     const orientation = String(args.orientation || '').toUpperCase()
-    await session.browser.setOrientation(orientation as 'PORTRAIT')
-    return done(`Rotated to ${orientation.toLowerCase()}`, `await browser.setOrientation(${quote(orientation)})`)
+    try {
+        await session.browser.setAppiumOrientation(orientation as 'PORTRAIT')
+        return done(`Rotated to ${orientation.toLowerCase()}`, `await browser.setAppiumOrientation(${quote(orientation)})`)
+    } catch {
+        await session.browser.setOrientation(orientation as 'PORTRAIT')
+        return done(`Rotated to ${orientation.toLowerCase()}`, `await browser.setOrientation(${quote(orientation)})`)
+    }
 }
 
 export const keyboard: ActionFn = async (session) => {
