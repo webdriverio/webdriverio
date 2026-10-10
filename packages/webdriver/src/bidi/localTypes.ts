@@ -1046,3 +1046,13 @@ export interface WebExtensionInstallResult {
 }
 
 export type WebExtensionUninstallResult = EmptyResult
+
+/**
+ * @deprecated renamed to `ScriptEvaluationResultSuccess` in the WebDriver BiDi spec
+ */
+export type ScriptEvaluateResultSuccess = ScriptEvaluationResultSuccess
+
+/**
+ * @deprecated renamed to `ScriptEvaluationResultException` in the WebDriver BiDi spec
+ */
+export type ScriptEvaluateResultException = ScriptEvaluationResultException

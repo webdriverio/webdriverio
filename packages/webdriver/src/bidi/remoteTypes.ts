@@ -1575,3 +1575,18 @@ export interface WebExtensionUninstall {
 export interface WebExtensionUninstallParameters {
     extension: WebExtensionExtension;
 }
+
+/**
+ * @deprecated renamed to `ScriptEvaluationResult` in the WebDriver BiDi spec
+ */
+export type ScriptEvaluateResult = ScriptEvaluationResult
+
+/**
+ * @deprecated renamed to `ScriptEvaluationResultSuccess` in the WebDriver BiDi spec
+ */
+export type ScriptEvaluateResultSuccess = ScriptEvaluationResultSuccess
+
+/**
+ * @deprecated renamed to `ScriptEvaluationResultException` in the WebDriver BiDi spec
+ */
+export type ScriptEvaluateResultException = ScriptEvaluationResultException
