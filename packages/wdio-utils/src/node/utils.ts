@@ -356,6 +356,10 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     const tag = browserName === Browser.CHROME
         ? caps.browserVersion || ChromeReleaseChannel.STABLE
         : caps.browserVersion || 'latest'
+    /**
+     * the version lookup is the first request that can ignore a configured proxy
+     */
+    warnIfDownloadProxyIgnored()
     const buildId = await resolveBuildId(browserName, platform, tag)
     const installOptions: InstallOptions & { unpack?: true } = {
         unpack: true,
@@ -475,6 +479,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
      * `'stable'` and an explicit version that all point at the same build - land on the
      * same key. Resolving reads no state and writes nothing, so doing it twice is free.
      */
+    warnIfDownloadProxyIgnored()
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
     if (platform === BrowserPlatform.LINUX_ARM && getVersionComparator(Browser.CHROMEDRIVER)(buildId, CFT_LINUX_ARM64_FLOOR) < 0) {
         const matchingElectronVersion = getElectronVersionForChromium(buildId)

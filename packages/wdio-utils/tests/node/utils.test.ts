@@ -128,6 +128,21 @@ describe('setupChromedriver', () => {
     })
 
     /**
+     * behind a proxy-only network the version lookup is the first request that fails,
+     * so the warning must come before it
+     */
+    it('checks the download proxy before it looks up the Chromedriver version', async () => {
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+        vi.mocked(resolveBuildId).mockClear().mockRejectedValueOnce(new Error('getaddrinfo ENOTFOUND googlechromelabs.github.io'))
+
+        await expect(setupChromedriver('/proxy/lookup', 'stable')).rejects.toThrow('ENOTFOUND')
+
+        expect(vi.mocked(warnIfDownloadProxyIgnored).mock.invocationCallOrder[0])
+            .toBeLessThan(vi.mocked(resolveBuildId).mock.invocationCallOrder[0])
+    })
+
+    /**
      * `chrome` and `chromium` are both in the Chrome browser family, so a config with
      * both asks for Chromedriver twice at the same time. The two installs used to race
      * on one cache directory and the loser saw a folder that existed but had no
@@ -584,6 +599,28 @@ describe('driver utils', () => {
                 browserVersion: '116.0.5845.110',
                 executablePath: '/path/to/chrome'
             })
+        })
+
+        it('checks the download proxy before it looks up the browser version', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('linux' as any)
+            vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+            vi.mocked(resolveBuildId).mockRejectedValueOnce(new Error('getaddrinfo ENOTFOUND googlechromelabs.github.io'))
+
+            await expect(setupPuppeteerBrowser('/foo/bar', { browserName: 'chrome', browserVersion: 'stable' }))
+                .rejects.toThrow('ENOTFOUND')
+
+            expect(vi.mocked(warnIfDownloadProxyIgnored).mock.invocationCallOrder[0])
+                .toBeLessThan(vi.mocked(resolveBuildId).mock.invocationCallOrder[0])
+        })
+
+        it('does not check the download proxy when it uses an installed browser', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('mac' as any)
+            vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+
+            await setupPuppeteerBrowser('/foo/bar', {})
+
+            expect(warnIfDownloadProxyIgnored).not.toHaveBeenCalled()
+            expect(resolveBuildId).not.toHaveBeenCalled()
         })
 
         it('should do nothing if browser binary is defined within caps', async () => {
