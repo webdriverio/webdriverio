@@ -1,4 +1,5 @@
 import { describe, it, beforeEach, expect, vi, afterEach } from 'vitest'
+import os from 'node:os'
 import path from 'node:path'
 import WebDriver from 'webdriver'
 import logger from '@wdio/logger'
@@ -112,6 +113,21 @@ describe('WebdriverIO module interface', () => {
             expect(browser.sessionId).toBe('foobar-123')
             expect(logger.setLogLevelsConfig).toBeCalledWith(undefined, 'trace')
             expect(registerSessionManager).toBeCalledTimes(1)
+        })
+
+        /**
+         * a spec that calls `remote()` in a worker: its logs stay in the worker's log file
+         */
+        it('keeps a log file that is already set', async () => {
+            const outputDir = path.join(os.tmpdir(), 'wdio-remote-log-path')
+            process.env.WDIO_LOG_PATH = path.join(outputDir, 'spec-0-0.log')
+
+            try {
+                await remote({ outputDir, capabilities: { browserName: 'chrome' } })
+                expect(process.env.WDIO_LOG_PATH).toBe(path.join(outputDir, 'spec-0-0.log'))
+            } finally {
+                delete process.env.WDIO_LOG_PATH
+            }
         })
 
         it('allows to propagate a modifier', async () => {

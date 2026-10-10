@@ -67,7 +67,10 @@ export const remote = async function (
     const keysToKeep = Object.keys(environment.value.variables.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof Capabilities.WebdriverIOConfig)[]
     const config = validateConfig<Capabilities.WebdriverIOConfig>(WDIO_DEFAULTS, params, keysToKeep)
 
-    await enableFileLogging(config.outputDir)
+    /**
+     * in a worker, keep its log file
+     */
+    await enableFileLogging(config.outputDir, { keepLogPath: true })
     logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
     const modifier = (client: WebDriverTypes.Client, options: Capabilities.WebdriverIOConfig) => {
