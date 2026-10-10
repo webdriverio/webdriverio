@@ -18,6 +18,7 @@ import type { Options } from '@wdio/types'
 import { ElectronChromedriverProvider, getElectronVersionForChromium } from './electronChromedriverProvider.js'
 import { warnIfDownloadProxyIgnored } from './downloadProxy.js'
 import { installAtomically } from './atomicInstall.js'
+import { unfinishedFilesOfZip } from './zipCheck.js'
 
 const log = logger('webdriver')
 
@@ -361,14 +362,15 @@ async function isInstalledDespiteArchiveCleanup (args: InstallOptions, err: unkn
         /**
          * The error of the cleanup in `finally` replaces the error of the unpack: when
          * both failed (e.g. a virus scan locked the archive and some unpacked files), the
-         * build is partial. The archive is still there: check that all its files are.
+         * build is partial, maybe in the middle of a file. The archive is still there:
+         * check that each of its files is there with its full size.
          */
         const archive = locked[0]!
         if (archive.endsWith('.zip')) {
             const buildDir = cache.installationDir(args.browser, platform, args.buildId)
-            const missing = await missingFilesOfZip(archive, buildDir)
-            if (missing !== 0) {
-                log.warn(`Couldn't remove the download ${archive}, and ${missing === undefined ? 'couldn\'t list its files' : `${missing} of its files are missing in ${buildDir}`}: installing again`)
+            const unfinished = await unfinishedFilesOfZip(archive, buildDir)
+            if (unfinished !== 0) {
+                log.warn(`Couldn't remove the download ${archive}, and ${unfinished === undefined ? 'couldn\'t read it' : `${unfinished} of its files are missing or incomplete in ${buildDir}`}: installing again`)
                 return false
             }
         }
@@ -381,26 +383,6 @@ async function isInstalledDespiteArchiveCleanup (args: InstallOptions, err: unkn
     } catch {
         return false
     }
-}
-
-/**
- * How many files of a zip archive are not in `folder`, or `undefined` when the archive
- * cannot be listed. Lists with the tool that unpacks it: `tar.exe` on Windows, `unzip`
- * (or `tar`) elsewhere.
- */
-async function missingFilesOfZip (archive: string, folder: string) {
-    const list = (command: string, args: string[]) => new Promise<string | undefined>((resolve) => {
-        cp.execFile(command, [...args, archive], { maxBuffer: 64 * 1024 * 1024 }, (err, stdout) => resolve(err ? undefined : stdout))
-    })
-    const listing = process.platform === 'win32'
-        ? await list('tar', ['-tf'])
-        : await list('unzip', ['-Z1']) ?? await list('tar', ['-tf'])
-    if (!listing) {
-        return undefined
-    }
-    const files = listing.split(/\r?\n/).filter((entry) => entry && !entry.endsWith('/'))
-    const missing = await Promise.all(files.map((entry) => fsp.lstat(path.join(folder, entry)).then(() => false, () => true)))
-    return files.length ? missing.filter(Boolean).length : undefined
 }
 
 function locateChromeSafely () {

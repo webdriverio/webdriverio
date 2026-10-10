@@ -57,7 +57,6 @@ vi.mock('node:fs/promises', () => ({
         mkdir: vi.fn().mockResolvedValue({}),
         access: vi.fn().mockResolvedValue({}),
         rm: vi.fn().mockResolvedValue(undefined),
-        lstat: vi.fn().mockResolvedValue({}),
         readFile: vi.fn(async () => {
             const { readFileSync } = await vi.importActual<typeof fs>('node:fs')
             return readFileSync(path.resolve(__dirname, '__fixtures__', 'application.ini'))
@@ -68,10 +67,14 @@ vi.mock('node:fs/promises', () => ({
 vi.mock('node:child_process', () => ({
     default: {
         execSync: vi.fn(),
-        spawnSync: vi.fn(),
-        execFile: vi.fn()
+        spawnSync: vi.fn()
     }
 }))
+
+/**
+ * the check has its own tests (`zipCheck.test.ts`) on real files
+ */
+vi.mock('../../src/node/zipCheck.js', () => ({ unfinishedFilesOfZip: vi.fn() }))
 
 vi.mock('geckodriver', () => ({
     download: vi.fn().mockResolvedValue({ executablePath: '/path/to/geckodriver' })
@@ -1017,49 +1020,44 @@ describe('driver utils', () => {
              */
             describe('with a zip archive', () => {
                 const zip = path.join('/cache', 'firefox', 'stable_157.0-firefox.zip')
-                const listing = (stdout: string | Error) => vi.mocked(cp.execFile).mockImplementation(((_cmd: string, _args: string[], _opts: object, callback: (err: Error | null, stdout?: string) => void) => {
-                    callback(stdout instanceof Error ? stdout : null, stdout instanceof Error ? undefined : stdout)
-                }) as never)
+                const lockedZip = () => allProvidersFailed(`DefaultProvider: EBUSY: resource busy or locked, unlink '${zip}'`)
 
-                afterEach(() => {
-                    vi.mocked(cp.execFile).mockReset()
-                    vi.mocked(fsp.lstat).mockReset().mockResolvedValue({} as never)
+                afterEach(async () => {
+                    const { unfinishedFilesOfZip } = await import('../../src/node/zipCheck.js')
+                    vi.mocked(unfinishedFilesOfZip).mockReset()
                 })
 
-                it('uses the installed browser when all files of the archive are there', async () => {
-                    listing('firefox/\nfirefox/firefox\nfirefox/omni.ja\n')
-                    vi.mocked(install).mockClear().mockRejectedValueOnce(allProvidersFailed(`DefaultProvider: EBUSY: resource busy or locked, unlink '${zip}'`))
+                it('uses the installed browser when all files of the archive are there with their size', async () => {
+                    const { unfinishedFilesOfZip } = await import('../../src/node/zipCheck.js')
+                    vi.mocked(unfinishedFilesOfZip).mockResolvedValue(0)
+                    vi.mocked(install).mockClear().mockRejectedValueOnce(lockedZip())
 
                     await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
-                    expect(fsp.lstat).toHaveBeenCalledWith(path.join(installationDir, 'firefox/omni.ja'))
+                    expect(unfinishedFilesOfZip).toHaveBeenCalledWith(zip, installationDir)
                     expect(install).toHaveBeenCalledTimes(2)
                 })
 
-                it('installs again when a file of the archive is missing', async () => {
-                    listing('firefox/firefox\nfirefox/omni.ja\n')
-                    vi.mocked(fsp.lstat).mockImplementation(async (file) => {
-                        if (String(file).endsWith('omni.ja')) {
-                            throw new Error('ENOENT')
-                        }
-                        return {} as never
-                    })
-                    vi.mocked(install).mockClear().mockRejectedValueOnce(allProvidersFailed(`DefaultProvider: EBUSY: resource busy or locked, unlink '${zip}'`))
+                it('installs again when a file of the archive is missing or incomplete', async () => {
+                    const { unfinishedFilesOfZip } = await import('../../src/node/zipCheck.js')
+                    vi.mocked(unfinishedFilesOfZip).mockResolvedValue(1)
+                    vi.mocked(install).mockClear().mockRejectedValueOnce(lockedZip())
 
                     await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
-                    expect(logMock.warn).toHaveBeenCalledWith(`Couldn't remove the download ${zip}, and 1 of its files are missing in ${installationDir}: installing again`)
+                    expect(logMock.warn).toHaveBeenCalledWith(`Couldn't remove the download ${zip}, and 1 of its files are missing or incomplete in ${installationDir}: installing again`)
                     expect(fsp.rm).toHaveBeenCalledWith(installationDir, { recursive: true, force: true })
                     expect(install).toHaveBeenCalledTimes(3)
                 })
 
-                it('installs again when the archive cannot be listed', async () => {
-                    listing(new Error('unzip: not found'))
-                    vi.mocked(install).mockClear().mockRejectedValueOnce(allProvidersFailed(`DefaultProvider: EBUSY: resource busy or locked, unlink '${zip}'`))
+                it('installs again when the archive cannot be read', async () => {
+                    const { unfinishedFilesOfZip } = await import('../../src/node/zipCheck.js')
+                    vi.mocked(unfinishedFilesOfZip).mockResolvedValue(undefined)
+                    vi.mocked(install).mockClear().mockRejectedValueOnce(lockedZip())
 
                     await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
-                    expect(logMock.warn).toHaveBeenCalledWith(`Couldn't remove the download ${zip}, and couldn't list its files: installing again`)
+                    expect(logMock.warn).toHaveBeenCalledWith(`Couldn't remove the download ${zip}, and couldn't read it: installing again`)
                     expect(install).toHaveBeenCalledTimes(3)
                 })
             })
