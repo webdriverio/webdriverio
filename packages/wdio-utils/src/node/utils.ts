@@ -273,6 +273,46 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
     log.progress('')
 }
 
+/**
+ * The lock file of a build: in the browser folder of the cache (`Cache#browserRoot()` of
+ * `@puppeteer/browsers`), without a `-`, so that the cache does not list it as a
+ * `<platform>-<buildId>` install (Electron prereleases have one).
+ */
+function installLockPath (args: Pick<InstallOptions, 'cacheDir' | 'browser' | 'buildId'>) {
+    return path.join(args.cacheDir, args.browser, `${args.buildId.replaceAll('-', '_')}.lock`)
+}
+
+const fileExists = (file: string) => fsp.access(file).then(() => true, () => false)
+
+/**
+ * The executable can exist before the process that installs the build has finished
+ * unpacking it, so the build is installed only when nobody holds its lock. Check the
+ * executable first: the holder removes the lock after unpacking.
+ */
+async function isInstalled (args: Pick<InstallOptions, 'cacheDir' | 'browser' | 'buildId'>, executablePath: string) {
+    return await fileExists(executablePath) && !await fileExists(installLockPath(args))
+}
+
+/**
+ * Install under a lock file, so that two processes (e.g. two workers, which resolve
+ * `latest` or `stable` again and can get a newer build than the launcher) do not
+ * download and unpack the same build into one cache at the same time.
+ */
+function installOnce (args: InstallOptions & { unpack?: true }, platform: BrowserPlatform, executablePath: string) {
+    return withInstallLock(
+        installLockPath(args),
+        () => fileExists(executablePath),
+        () => _install(args),
+        {
+            /**
+             * the process stopped during the install: its build folder can have the
+             * executable but not the rest of the browser
+             */
+            onStaleLock: () => fsp.rm(new Cache(args.cacheDir).installationDir(args.browser, platform, args.buildId), { recursive: true, force: true })
+        }
+    )
+}
+
 function locateChromeSafely () {
     return locateChrome().catch(() => undefined)
 }
@@ -400,14 +440,7 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
      */
     await shareDriverSetup(
         `browser:${driverCacheKey(cacheDir)}:${platform}:${browserName}:${buildId}`,
-        () => withInstallLock(
-            /**
-             * in the browser folder of the cache (`Cache#browserRoot()` of `@puppeteer/browsers`)
-             */
-            path.join(cacheDir, browserName, `${buildId}.lock`),
-            () => fsp.access(executablePath).then(() => true, () => false),
-            () => _install(installOptions)
-        )
+        () => installOnce(installOptions, platform, executablePath)
     )
 
     /**
@@ -546,10 +579,10 @@ function installElectronChromedriver (cacheDir: string, platform: BrowserPlatfor
         const provider = new ElectronChromedriverProvider()
         const relativeExecutablePath = provider.getExecutablePath()
         const executablePath = path.join(cache.installationDir(Browser.CHROMEDRIVER, platform, electronVersion), relativeExecutablePath)
-        if (!await fsp.access(executablePath).then(() => true, () => false)) {
+        if (!await isInstalled({ cacheDir, browser: Browser.CHROMEDRIVER, buildId: electronVersion }, executablePath)) {
             // write the executable path to the cache to avoid `install()` throwing for prerelease versions on LINUX_ARM
             cache.writeExecutablePath(Browser.CHROMEDRIVER, platform, electronVersion, relativeExecutablePath)
-            await _install({
+            await installOnce({
                 cacheDir,
                 buildId: electronVersion,
                 platform,
@@ -557,7 +590,7 @@ function installElectronChromedriver (cacheDir: string, platform: BrowserPlatfor
                 unpack: true,
                 providers: [provider],
                 downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
-            })
+            }, platform, executablePath)
         }
         log.info(`Using Chromedriver from Electron v${electronVersion} at ${executablePath}`)
         return { executablePath }
@@ -571,7 +604,7 @@ async function installChromedriver (cacheDir: string, platform: BrowserPlatform,
         platform,
         cacheDir
     })
-    const hasChromedriverInstalled = await fsp.access(executablePath).then(() => true, () => false)
+    const hasChromedriverInstalled = await isInstalled({ cacheDir, browser: Browser.CHROMEDRIVER, buildId }, executablePath)
     if (!hasChromedriverInstalled) {
         log.info(`Downloading Chromedriver v${buildId}`)
         const chromedriverInstallOpts: InstallOptions & { unpack?: true } = {
@@ -585,7 +618,7 @@ async function installChromedriver (cacheDir: string, platform: BrowserPlatform,
         }
         let knownBuild = buildId
         if (await canDownload(chromedriverInstallOpts)) {
-            await _install({ ...chromedriverInstallOpts, buildId })
+            await installOnce(chromedriverInstallOpts, platform, executablePath)
             log.info(`Download of Chromedriver v${buildId} was successful`)
         } else {
             /**
@@ -617,7 +650,7 @@ async function installChromedriver (cacheDir: string, platform: BrowserPlatform,
                 )
             }
             if (knownBuild) {
-                await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
+                await installOnce({ ...chromedriverInstallOpts, buildId: knownBuild }, platform, executablePath)
                 log.info(`Download of Chromedriver v${knownBuild} was successful`)
             } else {
                 throw new Error(`Couldn't download any known good version from Chromedriver major v${fallbackVersion}, requested full version - v${version}`)

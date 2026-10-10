@@ -84,6 +84,13 @@ vi.mock('@puppeteer/browsers', () => ({
     install: vi.fn().mockResolvedValue({})
 }))
 
+/**
+ * the lock has its own tests (`installLock.test.ts`) on real files
+ */
+vi.mock('../../src/node/installLock.js', () => ({
+    withInstallLock: vi.fn((_lockPath: string, _isInstalled: () => Promise<boolean>, install: () => Promise<unknown>) => install())
+}))
+
 vi.mock('../../src/node/utils.js', async (actualMod) => ({
     ...(await actualMod() as any),
     setupPuppeteerBrowser: vi.fn().mockResolvedValue({

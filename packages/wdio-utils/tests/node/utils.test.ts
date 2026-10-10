@@ -102,7 +102,7 @@ vi.mock('@puppeteer/browsers', async () => ({
         return { installationDir: () => '/foo/bar', writeExecutablePath: vi.fn() }
     }),
     getVersionComparator: (await vi.importActual('@puppeteer/browsers')).getVersionComparator,
-    Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium', CHROMEDRIVER: 'chrome' },
+    Browser: { CHROME: 'chrome', FIREFOX: 'firefox', CHROMIUM: 'chromium', CHROMEDRIVER: 'chromedriver' },
     ChromeReleaseChannel: { STABLE: 'stable' },
     BrowserPlatform: { LINUX: 'linux', LINUX_ARM: 'linux_arm', MAC: 'mac', MAC_ARM: 'mac_arm', WIN32: 'win32', WIN64: 'win64' },
     detectBrowserPlatform: vi.fn(),
@@ -314,7 +314,7 @@ describe('setupChromedriver', () => {
         try {
             await setupChromedriver('/some/cache', 'stable')
 
-            expect(resolveBuildId).toHaveBeenCalledWith('chrome', 'linux', '116')
+            expect(resolveBuildId).toHaveBeenCalledWith('chromedriver', 'linux', '116')
             expect(install).toHaveBeenCalledWith(expect.objectContaining({ buildId: '116.0.5845.96' }))
         } finally {
             vi.mocked(resolveBuildId).mockReset()
@@ -375,6 +375,63 @@ describe('setupChromedriver', () => {
             const fsp = (await import('node:fs/promises')).default
             vi.mocked(fsp.access).mockResolvedValue(undefined as never)
             vi.mocked(resolveBuildId).mockReturnValue('116.0.5845.110' as never)
+        })
+
+        /**
+         * two workers can resolve a newer build than the launcher and set it up together
+         */
+        it('installs Chromedriver under a lock in its cache folder', async () => {
+            const { withInstallLock } = await import('../../src/node/installLock.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            vi.mocked(withInstallLock).mockClear()
+
+            await setupChromedriver('/lock/cache', '116.0.5845.110')
+
+            expect(withInstallLock).toHaveBeenCalledWith(
+                path.join('/lock/cache', 'chromedriver', '116.0.5845.110.lock'),
+                expect.any(Function),
+                expect.any(Function),
+                { onStaleLock: expect.any(Function) }
+            )
+            expect(install).toHaveBeenCalledTimes(1)
+        })
+
+        /**
+         * the executable can exist before the other process has finished unpacking it
+         */
+        it.each([
+            { lock: true, installs: 1 },
+            { lock: false, installs: 0 }
+        ])('waits for the lock of an installed Chromedriver: lock $lock', async ({ lock, installs }) => {
+            const fsp = (await import('node:fs/promises')).default
+            const { withInstallLock } = await import('../../src/node/installLock.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            vi.mocked(fsp.access).mockImplementation(async (file) => {
+                if (String(file).endsWith('.lock') && !lock) {
+                    throw new Error('ENOENT')
+                }
+            })
+            vi.mocked(withInstallLock).mockClear()
+
+            await setupChromedriver('/lock/cache', '116.0.5845.110')
+            await setupChromedriver('/lock/cache', undefined, '34.0.0')
+
+            expect(withInstallLock).toHaveBeenCalledTimes(installs * 2)
+        })
+
+        it('installs the Chromedriver of an Electron release under a lock', async () => {
+            const { withInstallLock } = await import('../../src/node/installLock.js')
+            vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+            vi.mocked(withInstallLock).mockClear()
+
+            await setupChromedriver('/lock/cache', undefined, '34.0.0-beta.1')
+
+            expect(withInstallLock).toHaveBeenCalledWith(
+                path.join('/lock/cache', 'chromedriver', '34.0.0_beta.1.lock'),
+                expect.any(Function),
+                expect.any(Function),
+                { onStaleLock: expect.any(Function) }
+            )
         })
 
         it('installs the Chromedriver of the Electron release set by wdio:electronVersion', async () => {
@@ -724,8 +781,17 @@ describe('driver utils', () => {
             expect(withInstallLock).toHaveBeenCalledWith(
                 path.join('/lock/cache', 'chrome', '116.0.5845.110.lock'),
                 expect.any(Function),
-                expect.any(Function)
+                expect.any(Function),
+                { onStaleLock: expect.any(Function) }
             )
+
+            /**
+             * a stale lock means that its install did not finish
+             */
+            const fsp = (await import('node:fs/promises')).default
+            vi.mocked(fsp.rm).mockClear()
+            await vi.mocked(withInstallLock).mock.calls[0][3]!.onStaleLock!()
+            expect(fsp.rm).toHaveBeenCalledWith('/foo/bar', { recursive: true, force: true })
         })
 
         /**
