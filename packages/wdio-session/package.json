@@ -78,7 +78,7 @@
     "@wdio/electron-service": "*",
     "@wdio/visual-service": "*",
     "appium": "^3.0.0",
-    "expect-webdriverio": "*",
+    "expect-webdriverio": "^8.0.0",
     "tsx": "*"
   },
   "peerDependenciesMeta": {
