@@ -1,6 +1,6 @@
 {
   "name": "@wdio/lighthouse-service",
-  "version": "10.0.0",
+  "version": "10.0.2",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-lighthouse-service",
@@ -44,8 +44,8 @@
     "@types/node": "^22.20.4",
     "@wdio/logger": "workspace:*",
     "@wdio/types": "workspace:*",
-    "devtools-protocol": "^0.0.1701330",
-    "lighthouse": "13.4.1",
+    "devtools-protocol": "^0.0.1710668",
+    "lighthouse": "13.5.0",
     "puppeteer-core": "^25.11.0",
     "webdriverio": "workspace:*"
   },

@@ -75,7 +75,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 }
 ```
 
-`jasmine` loads `@types/jasmine`, which gives `jasmine`, `spyOn` and `expectAsync`. With `@wdio/jasmine-framework`, the global `expect` returns `void` for Jasmine sync matchers and a `Promise` for WebdriverIO matchers and Jasmine async matchers.
+`jasmine` loads `@types/jasmine`, which gives `jasmine`, `spyOn` and `expectAsync`. With `@wdio/jasmine-framework`, the global `expect` returns `void` for Jasmine sync matchers and a `Promise` for WebdriverIO matchers and Jasmine async matchers. `expectAsync` also has the WebdriverIO matchers. The `expect` export of `expect-webdriverio` keeps its Jest matchers.
 
 </TabItem>
 <TabItem value="cucumber">

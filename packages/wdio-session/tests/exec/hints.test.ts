@@ -13,6 +13,7 @@ describe('exec hints', () => {
         ['browser.waitForExist is not a function', 'The v4 `browser.waitForExist(selector)` style was removed. Use `await $(selector).waitForExist()`.'],
         ['browser.executeAsync is not a function', 'Removed in v10: use `browser.execute` with an async function.'],
         ['browser.touchAction is not a function', 'Removed in v10: use `browser.action(\'pointer\')` or mobile commands like `tap`/`swipe`.'],
+        ['Passing a boolean to `getHTML` was removed in WebdriverIO v10. Use `element.getHTML({ includeSelectorTag: true })`.', 'Removed in v10: pass an options object, `getHTML({ includeSelectorTag, prettify })`, e.g. `getHTML({ includeSelectorTag: false })` for the inner HTML.'],
         ['element ("h2") still not existing after 3000ms', 'Take a new `wdio session snapshot`; the page may have changed.']
     ])('%s', (message, hint) => {
         expect(hintFor({ message })).toBe(hint)

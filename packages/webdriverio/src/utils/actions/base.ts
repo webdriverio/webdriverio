@@ -109,10 +109,12 @@ export default class BaseAction {
             }
 
             /**
-             * resolve promise element
+             * resolve promise element, and wait for a loaded element that wasn't
+             * on the page when it was looked up, as a command of the element does
              */
-            if (typeof seq.origin.then === 'function') {
-                await (seq.origin as WebdriverIO.Element).waitForExist()
+            const origin = seq.origin as WebdriverIO.Element
+            if (typeof seq.origin.then === 'function' || (typeof origin.waitForExist === 'function' && !origin.elementId)) {
+                await origin.waitForExist()
                 seq.origin = await seq.origin
             }
 

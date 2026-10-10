@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "10.0.0",
+  "version": "10.0.2",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
@@ -66,7 +66,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "6.0.3",
   "devDependencies": {
-    "@sinonjs/fake-timers": "^14.0.0",
+    "@sinonjs/fake-timers": "^15.4.0",
     "@types/archiver": "^8.0.0",
     "@types/aria-query": "^5.0.4",
     "@types/lodash.clonedeep": "^4.5.9",
@@ -84,7 +84,7 @@
   },
   "dependencies": {
     "@types/node": "^22.20.4",
-    "@types/sinonjs__fake-timers": "^8.1.5",
+    "@types/sinonjs__fake-timers": "^15.0.1",
     "@wdio/config": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/protocols": "workspace:*",
@@ -103,7 +103,7 @@
     "lodash.clonedeep": "^4.5.0",
     "query-selector-shadow-dom": "^1.0.1",
     "rgb2hex": "0.2.5",
-    "serialize-error": "^12.0.0",
+    "serialize-error": "^13.0.2",
     "urlpattern-polyfill": "^10.0.0",
     "webdriver": "workspace:*"
   },

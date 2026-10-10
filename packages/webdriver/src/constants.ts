@@ -1,7 +1,14 @@
 import type { Options } from '@wdio/types'
 
-import { DEFAULT_RESPONSE_TIMEOUT } from './bidi/core.js'
 import type { RemoteConfig } from './types.js'
+
+/**
+ * Defined here, not in `bidi/core.ts`: `bidi/core.ts` imports this file through
+ * `bidi/utils.ts`, so a value imported from there was still undefined when
+ * `DEFAULTS` was created.
+ */
+export const DEFAULT_RESPONSE_TIMEOUT = 1000 * 180
+export const DEFAULT_CONNECT_TIMEOUT = 1000 * 10
 
 export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
     /**
@@ -101,6 +108,21 @@ export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
         validate: (timeout: number): boolean => {
             if (!Number.isFinite(timeout) || timeout <= 0) {
                 throw new TypeError('The option "bidiResponseTimeout" needs to be a positive number')
+            }
+
+            return true
+        }
+    },
+    /**
+     * Timeout for the browser to accept the WebDriver Bidi connection. After it the
+     * session continues with WebDriver Classic. Node.js only.
+     */
+    bidiConnectTimeout: {
+        type: 'number',
+        default: DEFAULT_CONNECT_TIMEOUT,
+        validate: (timeout: number): boolean => {
+            if (!Number.isFinite(timeout) || timeout <= 0) {
+                throw new TypeError('The option "bidiConnectTimeout" needs to be a positive number')
             }
 
             return true

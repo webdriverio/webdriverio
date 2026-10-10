@@ -90,7 +90,7 @@ export function responseStats (timings: Timings | undefined, response: ResponseL
 }
 
 interface CapturedRequest {
-    request?: { request?: string, method?: string, url?: string, timings?: Timings }
+    request?: { request?: string, method?: string, url?: string, timings?: Timings, initiatorType?: string | null, destination?: string }
     timestamp?: number
     response?: ResponseLike & { status?: number }
     errorText?: string
@@ -132,7 +132,8 @@ export function networkEntry (params: CapturedRequest, failed: boolean): Omit<Ne
         durationMs: stats.durationMs,
         size: stats.size,
         failed,
-        errorText: params.errorText
+        errorText: params.errorText,
+        resource: request.initiatorType || request.destination || undefined
     }
 }
 
@@ -273,17 +274,19 @@ export async function pollLogs (session: Session, source?: string) {
     }
 }
 
+const NETWORK_EVENTS = ['network.beforeRequestSent', 'network.responseCompleted', 'network.fetchError'] as const
+
 /**
  * Subscribe to console, page errors and network events for the life of the
- * session (RFC §9.7).
+ * session (RFC §9.7). `logs: false` leaves console and page errors alone.
  */
-export async function startEventCapture (session: Session) {
+export async function startEventCapture (session: Session, { logs = true } = {}) {
     if (!session.isBidi || !session.isWeb || session.applies.includes('M')) {
         return
     }
     const { browser } = session
     await browser.sessionSubscribe({
-        events: ['log.entryAdded', 'network.beforeRequestSent', 'network.responseCompleted', 'network.fetchError']
+        events: logs ? ['log.entryAdded', ...NETWORK_EVENTS] : [...NETWORK_EVENTS]
     })
 
     const onLog = (entry: { type?: string, level?: LogEntry['level'], text?: string | null, timestamp?: number, method?: string, args?: unknown[] }) => {
@@ -310,12 +313,16 @@ export async function startEventCapture (session: Session) {
             session.network.push(entry)
         }
     }
-    browser.on('log.entryAdded', onLog)
+    if (logs) {
+        browser.on('log.entryAdded', onLog)
+    }
     browser.on('network.beforeRequestSent', onBefore)
     browser.on('network.responseCompleted', onResponse)
     browser.on('network.fetchError', onFetchError)
     session.disposers.push(() => {
-        browser.off('log.entryAdded', onLog)
+        if (logs) {
+            browser.off('log.entryAdded', onLog)
+        }
         browser.off('network.beforeRequestSent', onBefore)
         browser.off('network.responseCompleted', onResponse)
         browser.off('network.fetchError', onFetchError)

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Find Element Again</title>
+</head>
+<body>
+    <div id="late-area"></div>
+    <ul id="items"><li class="item">first</li></ul>
+    <div id="host"></div>
+    <div id="form-area"><form id="form"><p class="in-form">first</p></form></div>
+
+    <script>
+        const root = document.querySelector('#host').attachShadow({ mode: 'open' })
+        root.innerHTML = '<p class="in-shadow">first</p>'
+
+        const elements = (tagName, className, texts) => texts.map((text) => {
+            const el = document.createElement(tagName)
+            el.className = className
+            el.textContent = text
+            return el
+        })
+
+        /**
+         * add `.late` elements after the spec looked them up, so the element
+         * has no id and is found again
+         */
+        window.renderLate = (count) => {
+            const texts = Array.from({ length: count }, (_, i) => `late ${i + 1}`)
+            document.querySelector('#late-area').replaceChildren(...elements('p', 'late', texts))
+        }
+
+        /**
+         * replace every `.item` with new nodes, so an element found before
+         * is stale and is found again
+         */
+        window.renderItems = (texts) => {
+            document.querySelector('#items').replaceChildren(...elements('li', 'item', texts))
+        }
+
+        /**
+         * replace `#form` and its content with new nodes
+         */
+        window.renderForm = (text) => {
+            const form = document.createElement('form')
+            form.id = 'form'
+            form.append(...elements('p', 'in-form', [text]))
+            document.querySelector('#form-area').replaceChildren(form)
+        }
+
+        /**
+         * replace the content of the shadow root of `#host` with new nodes
+         */
+        window.renderShadow = (className, texts) => {
+            root.replaceChildren(...elements('p', className, texts))
+        }
+    </script>
+</body>
+</html>

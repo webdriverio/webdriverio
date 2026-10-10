@@ -1,5 +1,6 @@
 - document "Form Fixture" url=http://localhost:PORT/form.html
   - main
+    - heading "Sign up" [level=1]
     - textbox "Email" [ref=e41] [required]
     - textbox "Password" [ref=e42] value="••••"
     - checkbox "Remember me" [ref=e43] [checked]

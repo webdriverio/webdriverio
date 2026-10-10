@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { SessionError, usage } from '../errors.js'
+import { cliCmd, type Cmd } from '../hints.js'
 import { quote } from '../quote.js'
 import type { ActionFn, ActionOutcome, Session } from '../session.js'
 
@@ -20,11 +21,11 @@ interface SavedState {
 
 const done = (text: string, code?: string): ActionOutcome => ({ text, ...(code ? { code, history: code } : {}) })
 
-export function cookieOptions (args: Record<string, unknown>): SessionCookie {
+export function cookieOptions (args: Record<string, unknown>, cmd: Cmd = cliCmd): SessionCookie {
     const name = String(args.name ?? '')
     const value = args.value === undefined ? undefined : String(args.value)
     if (!name || value === undefined) {
-        throw usage('Pass a cookie name and value.', 'Example: wdio session cookies set session abc')
+        throw usage('Pass a cookie name and value.', `Example: ${cmd('cookies', { sub: 'set', name: 'session', value: 'abc' }, 'wdio session cookies set session abc')}`)
     }
     const cookie: SessionCookie = { name, value }
     if (typeof args.domain === 'string') {
@@ -85,7 +86,7 @@ export const cookies: ActionFn = async (session, args) => {
     const sub = args.sub as string | undefined
     const { browser } = session
     if (sub === 'set') {
-        const cookie = cookieOptions(args)
+        const cookie = cookieOptions(args, session.cmd)
         await browser.setCookies(cookie)
         return done(`Set cookie ${cookie.name}`, `await browser.setCookies(${cookieLiteral(cookie)})`)
     }
@@ -118,7 +119,7 @@ export const storage: ActionFn = async (session, args) => {
     if (sub === 'set') {
         const key = String(args.key ?? '')
         if (!key || args.value === undefined) {
-            throw usage('Pass a key and a value.', `Example: wdio session storage set token abc${useSession ? ' --session-storage' : ''}`)
+            throw usage('Pass a key and a value.', `Example: ${session.cmd('storage', { sub: 'set', key: 'token', value: 'abc', ...(useSession ? { sessionStorage: true } : {}) }, `wdio session storage set token abc${useSession ? ' --session-storage' : ''}`)}`)
         }
         const value = String(args.value)
         await browser.execute((sessionStorage, storageKey, storageValue) => {
@@ -154,7 +155,7 @@ export const storage: ActionFn = async (session, args) => {
 export const state: ActionFn = async (session, args) => {
     const file = path.resolve(String(args.$cwd || session.cwd), String(args.file ?? ''))
     if (!args.file) {
-        throw usage('Pass a file.', 'Example: wdio session state save state.json')
+        throw usage('Pass a file.', `Example: ${session.cmd('state', { sub: 'save', file: 'state.json' }, 'wdio session state save state.json')}`)
     }
     if (args.sub === 'save') {
         const url = await session.browser.getUrl()

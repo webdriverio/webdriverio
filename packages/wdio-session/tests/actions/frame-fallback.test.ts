@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { cliCmd } from '../../src/hints.js'
 import type { Session } from '../../src/session.js'
 
 vi.mock('webdriverio', () => ({
@@ -41,6 +42,7 @@ function blockedPage (frames: Node[], { loadAfter = 0 } = {}) {
         })
     }
     const session = {
+        cmd: cliCmd,
         isBidi: true,
         history: { entries: [], generation: 0 },
         get: (key: string) => store.get(key),

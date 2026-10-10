@@ -8,7 +8,8 @@ import { getPrototype as getWDIOPrototype, getElementFromResponse } from './inde
 import { elementErrorHandler } from '../middlewares.js'
 import { routeElementEndpoints } from './foreignContext.js'
 import * as browserCommands from '../commands/browser.js'
-import type { Selector, AddCommandFn, ExtendedElementReference } from '../types.js'
+import { REACT_OPTIONS } from './findElementAgain.js'
+import type { Selector, AddCommandFn, ExtendedElementReference, ReactSelectorOptions } from '../types.js'
 
 interface GetElementProps {
     isReactElement?: boolean
@@ -18,6 +19,11 @@ interface GetElementProps {
      * re-fetching the element keeps the same behavior
      */
     strict?: boolean
+    /**
+     * the props and state a `react$` / `react$$` element was queried with, so
+     * that finding the element again keeps them
+     */
+    reactOptions?: ReactSelectorOptions
 }
 
 interface WebDriverErrorResponse {
@@ -108,6 +114,9 @@ export function getElement(
         client.isShadowElement = props.isShadowElement
         if (typeof props.strict === 'boolean') {
             client.strict = props.strict
+        }
+        if (props.reactOptions) {
+            (client as WebdriverIO.Element & { [REACT_OPTIONS]?: ReactSelectorOptions })[REACT_OPTIONS] = props.reactOptions
         }
 
         return client
@@ -204,6 +213,9 @@ export const getElements = function getElements(
              * re-fetching one of these elements doesn't suddenly become strict
              */
             client.strict = false
+            if (props.reactOptions) {
+                (client as WebdriverIO.Element & { [REACT_OPTIONS]?: ReactSelectorOptions })[REACT_OPTIONS] = props.reactOptions
+            }
 
             return client
         }, propertiesObject)

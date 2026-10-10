@@ -31,7 +31,10 @@ vi.mock('../src/bidi/socket.js', () => {
 environment.value.createBidiConnection = vi.fn().mockImplementation(async (url: string) => ({
     wsUrl: url,
     on: vi.fn(),
-    send: vi.fn()
+    off: vi.fn(),
+    send: vi.fn(),
+    close: vi.fn(),
+    terminate: vi.fn()
 }))
 
 const namedFn = `function anonymous(
@@ -107,6 +110,14 @@ describe('BidiCore', () => {
             )
         })
 
+        it('rejects a non-positive connectTimeout', () => {
+            for (const timeout of [0, -1, NaN, Infinity]) {
+                expect(() => new BidiCore('ws://foo/bar', undefined, undefined, timeout)).toThrow(
+                    'The option "bidiConnectTimeout" needs to be a positive number'
+                )
+            }
+        })
+
         it('sends and waits for result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
@@ -129,7 +140,7 @@ describe('BidiCore', () => {
 
             const error = await promise.catch((err) => err)
             const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
-            expect(error.stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:123:/)
+            expect(error.stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:134:/)
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
         })
@@ -168,8 +179,17 @@ describe('BidiCore', () => {
             await handler.connect()
             expect(environment.value.createBidiConnection).toHaveBeenCalledWith(
                 'ws://foo/bar',
-                expect.objectContaining({ headers: { 'cf-access-token': 'MY_TOKEN', 'X-Custom': 'xyz' } })
+                expect.objectContaining({ headers: { 'cf-access-token': 'MY_TOKEN', 'X-Custom': 'xyz' } }),
+                undefined
             )
+        })
+
+        it('should pass the connect timeout to the connection, also on reconnect', async () => {
+            const handler = new BidiCore('ws://foo/bar', undefined, undefined, 30000)
+            await handler.connect()
+            expect(environment.value.createBidiConnection).toHaveBeenLastCalledWith('ws://foo/bar', undefined, 30000)
+            await handler.reconnect('ws://foo/baz')
+            expect(environment.value.createBidiConnection).toHaveBeenLastCalledWith('ws://foo/baz', undefined, 30000)
         })
 
         afterAll(() => {

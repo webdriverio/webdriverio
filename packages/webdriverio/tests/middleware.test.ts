@@ -4,6 +4,7 @@ import logger from '@wdio/logger'
 
 import { waitForExist } from '../src/commands/element/waitForExist.js'
 import refetchElement from '../src/utils/refetchElement.js'
+import { StrictSelectorError } from '../src/utils/strictSelectorError.js'
 import { remote } from '../src/index.js'
 
 vi.mock('fetch')
@@ -146,6 +147,22 @@ describe('middleware', () => {
         expect(error?.message).not.toContain('Index out of bounds')
     })
 
+    it('throws a strict-mode violation from the refetch instead of the stale error', async () => {
+        const staleError = new Error('stale element reference')
+        staleError.name = 'stale element reference'
+        const staleCheck = vi.fn().mockRejectedValueOnce(staleError)
+        browser.addCommand('strictRefetchCheck', staleCheck, { attachToElement: true })
+        const elem = await browser.$('#foo')
+
+        const strictError = new StrictSelectorError('#foo', 2)
+        vi.mocked(refetchElement).mockRejectedValueOnce(strictError)
+
+        // @ts-expect-error undefined custom command
+        const error = await elem.strictRefetchCheck().then(() => null, (e: Error) => e)
+        expect(vi.mocked(refetchElement)).toHaveBeenCalled()
+        expect(error).toBe(strictError)
+    })
+
     it('should assign elementId and w3c identifier to element scope after re-found', async () => {
         const elem = await browser.$('#nonexisting').getElement()
         expect(elem.elementId).toEqual(undefined)
@@ -157,6 +174,23 @@ describe('middleware', () => {
         const elementThis = await elem.getThis()
         expect(elementThis.elementId).toEqual('some-elem-123')
         expect(elementThis['element-6066-11e4-a52e-4f735466cecf']).toEqual('some-elem-123')
+    })
+
+    it('should assign elementId and w3c identifier to element scope after a stale element was found again', async () => {
+        const staleError = new Error('stale element reference')
+        staleError.name = 'stale element reference'
+        const staleCheck = vi.fn().mockRejectedValueOnce(staleError).mockResolvedValueOnce('done')
+        browser.addCommand('staleOnceCheck', staleCheck, { attachToElement: true })
+        const elem = await browser.$('#foo')
+
+        const refetched = await browser.$('#foo')
+        refetched.elementId = 'some-new-elem-456'
+        vi.mocked(refetchElement).mockResolvedValueOnce(refetched)
+
+        // @ts-expect-error undefined custom command
+        expect(await elem.staleOnceCheck()).toBe('done')
+        expect(elem.elementId).toBe('some-new-elem-456')
+        expect(elem['element-6066-11e4-a52e-4f735466cecf']).toBe('some-new-elem-456')
     })
 
     describe('should NOT wait on element if', () => {

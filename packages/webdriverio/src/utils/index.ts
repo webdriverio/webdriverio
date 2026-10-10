@@ -24,6 +24,7 @@ import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
 import { ElementArray } from '../element/array.js'
+import { findElementAgain } from './findElementAgain.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -1398,13 +1399,12 @@ export async function hasElementId(element: WebdriverIO.Element) {
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
     if (!element.elementId) {
-        const parent = element.parent as WebdriverIO.Element | WebdriverIO.Browser
-        const command = element.isReactElement
-            ? parent.react$.bind(parent)
-            : element.isShadowElement
-                ? parent.shadow$.bind(parent)
-                : parent.$.bind(parent)
-        element.elementId = (await command(element.selector as string).getElement()).elementId
+        element.elementId = (await findElementAgain(element))?.elementId as string
+
+        if (element.elementId) {
+            element[ELEMENT_KEY] = element.elementId
+            delete element.error
+        }
     }
 
     /*

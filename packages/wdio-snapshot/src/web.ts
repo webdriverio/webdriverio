@@ -1,5 +1,5 @@
 import type { RoleRule } from '@wdio/utils'
-import type { SnapshotNode, SnapshotRef } from './format.js'
+import type { SnapshotCandidate, SnapshotNode, SnapshotRef } from './format.js'
 
 export interface CollectOptions {
     roles: RoleRule[]
@@ -17,9 +17,21 @@ export interface CollectOptions {
     urls?: boolean
     /**
      * the page may assign refs (false in child frames, whose elements cannot
-     * be resolved from the top document)
+     * be resolved from the top document). `'ephemeral'` numbers the refs from
+     * `counter` and computes their candidates, but reads and writes nothing in
+     * `window.__wdioSession`, so the ids resolve to nothing later.
      */
-    assignRefs: boolean
+    assignRefs: boolean | 'ephemeral'
+    /**
+     * keep only what overlaps the viewport. Candidates are computed for refs
+     * in it only. Fixed and sticky descendants of an element out of it stay.
+     */
+    viewport?: boolean
+    /**
+     * also compute `aria-label`, `type`, `class` and `xpath-text` candidates.
+     * Costs extra page-side work per snapshot, so it is off by default.
+     */
+    extendedCandidates?: boolean
 }
 
 export interface CollectResult {
@@ -36,7 +48,9 @@ export interface CollectResult {
 export function collectInPage (opts: CollectOptions, scope?: Element | null): CollectResult {
     type Node = SnapshotNode
     const w = window as unknown as { __wdioSession?: { refs: Map<string, WeakRef<Element>>, ids: WeakMap<Element, string> } }
-    const store = w.__wdioSession || (w.__wdioSession = { refs: new Map(), ids: new WeakMap() })
+    const store = opts.assignRefs === 'ephemeral'
+        ? undefined
+        : w.__wdioSession || (w.__wdioSession = { refs: new Map(), ids: new WeakMap() })
     let counter = opts.counter
     const refs: SnapshotRef[] = []
 
@@ -47,10 +61,21 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
     /** longest text that names a clickable element without a role; longer text is a card, not a label */
     const MAX_TEXT_NAME = 80
     const VALUE_ROLES = new Set(['textbox', 'searchbox', 'combobox', 'spinbutton', 'slider'])
+    const FORM_CONTROLS = new Set(['INPUT', 'TEXTAREA', 'SELECT'])
+    const EDITABLE = 'input:not([type=hidden]),textarea,[contenteditable]:not([contenteditable=false]),[role=textbox],[role=searchbox]'
     const PRUNE = new Set(['generic', 'presentation', 'none'])
     const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'HEAD', 'META', 'LINK', 'TITLE', 'SVG'])
+    const BLOCK_TAGS = new Set(['TD', 'TH', 'TR', 'LI', 'DT', 'DD', 'P', 'DIV', 'SECTION', 'ARTICLE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LABEL', 'BUTTON', 'OPTION', 'FIGCAPTION', 'BLOCKQUOTE', 'PRE'])
     const NAMED_REF_ROLES = new Set(['img', 'dialog', 'alertdialog', 'region', 'form', 'list', 'table', 'grid', 'tabpanel', 'menu', 'tree'])
     const SECTIONING = 'article,aside,main,nav,section'
+    /** unique candidates a ref gets besides the positional last resort */
+    const MAX_CANDIDATES = 3
+    /** longest text of a `tag=text` candidate */
+    const MAX_CANDIDATE_TEXT = 40
+    /** longest context text after the hint of an unnamed control */
+    const HINT_CONTEXT_LENGTH = 48
+    /** longest intent text of a repeated control */
+    const INTENT_LENGTH = 80
     const TEST_ATTRS = ['data-testid', 'data-test', 'data-qa']
 
     const collapse = (s: string | null | undefined) => (s || '').replace(/\s+/g, ' ').trim()
@@ -123,13 +148,21 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return explicit || implicitRole(el)
     }
 
-    function isHidden (el: Element) {
+    function isUnrendered (el: Element, style?: CSSStyleDeclaration) {
         if ((el as HTMLElement).hidden || el.getAttribute('aria-hidden') === 'true' || el.hasAttribute('inert')) {
             return true
         }
-        const style = getComputedStyle(el)
-        return style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse' ||
-            (style as unknown as { contentVisibility?: string }).contentVisibility === 'hidden'
+        const computed = style || getComputedStyle(el)
+        return computed.display === 'none' || (computed as unknown as { contentVisibility?: string }).contentVisibility === 'hidden'
+    }
+
+    function isInvisible (el: Element, style?: CSSStyleDeclaration) {
+        const visibility = (style || getComputedStyle(el)).visibility
+        return visibility === 'hidden' || visibility === 'collapse'
+    }
+
+    function isHidden (el: Element) {
+        return isUnrendered(el) || isInvisible(el)
     }
 
     function isZeroSize (el: Element) {
@@ -355,7 +388,32 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return input.type === 'password' ? '••••' : truncate(value.replace(/\n/g, ' '))
     }
 
+    /**
+     * The control of a label that is on screen is what gets the ref; the
+     * label only names it. A hidden control (custom checkbox) leaves the label
+     * as the thing to click.
+     */
+    function isPlainLabel (el: Element) {
+        const control = el.tagName === 'LABEL' ? (el as HTMLLabelElement).control : null
+        if (!control) {
+            return false
+        }
+        const rect = control.getBoundingClientRect()
+        const style = getComputedStyle(control)
+        if (rect.width < 4 || rect.height < 4 || style.opacity === '0' || style.visibility === 'hidden') {
+            return false
+        }
+        // a custom checkbox parked at `left: -10000px` is sized but nobody can reach it; document coordinates, so a scrolled page does not count
+        const view = control.ownerDocument.defaultView || window
+        const root = control.ownerDocument.documentElement
+        return rect.right + view.scrollX > 0 && rect.bottom + view.scrollY > 0 &&
+            rect.left + view.scrollX < root.scrollWidth && rect.top + view.scrollY < root.scrollHeight
+    }
+
     function isInteractive (el: Element, role: string) {
+        if (isPlainLabel(el)) {
+            return false
+        }
         if (INTERACTIVE.has(role)) {
             return true
         }
@@ -379,11 +437,71 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
      * Its descendants inherit the cursor; only where it starts counts.
      */
     function pointerTarget (el: Element) {
-        if (el === document.body || el === document.documentElement || getComputedStyle(el).cursor !== 'pointer') {
+        if (el === document.body || el === document.documentElement || getComputedStyle(el).cursor !== 'pointer' || isPlainLabel(el)) {
             return false
         }
         const parent = el.parentElement
         return !parent || getComputedStyle(parent).cursor !== 'pointer'
+    }
+
+    /**
+     * The text around a control: the text nodes of `root` outside the control
+     * itself, collapsed, read only until it is longer than `limit`. Inline
+     * neighbours stay glued as `innerText` keeps them ("#1🗑"); a new block
+     * (cell, item, paragraph) starts with a space so cells don't run together.
+     */
+    function textAround (root: Element, control: Element, limit: number) {
+        if (isDecoy(root)) {
+            return ''
+        }
+        const invisible = new Map<Element, boolean>()
+        const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+            // decoys first: their element API is shadowed. A visibility:hidden wrapper is walked through, its visible descendants count
+            acceptNode: (n) => {
+                if (isDecoy(n)) {
+                    return NodeFilter.FILTER_REJECT
+                }
+                if (n.nodeType === 3) {
+                    const parent = n.parentElement
+                    if (!parent) {
+                        return NodeFilter.FILTER_ACCEPT
+                    }
+                    let hidden = invisible.get(parent)
+                    if (hidden === undefined) {
+                        hidden = isInvisible(parent)
+                        invisible.set(parent, hidden)
+                    }
+                    return hidden ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_ACCEPT
+                }
+                const el = n as Element
+                const style = getComputedStyle(el)
+                if (isUnrendered(el, style)) {
+                    return NodeFilter.FILTER_REJECT
+                }
+                invisible.set(el, isInvisible(el, style))
+                return NodeFilter.FILTER_SKIP
+            }
+        })
+        const blockOf = (node: globalThis.Node) => {
+            let el = node.parentElement
+            while (el && el !== root && !BLOCK_TAGS.has(el.tagName.toUpperCase())) {
+                el = el.parentElement
+            }
+            return el
+        }
+        let out = ''
+        let lastBlock: Element | null | undefined
+        for (let text = walker.nextNode(); text && out.length <= limit; text = walker.nextNode()) {
+            if (control.contains(text) || SKIP_TAGS.has((text.parentElement?.tagName || '').toUpperCase()) || !text.nodeValue) {
+                continue
+            }
+            // collapsed per node so markup indentation does not eat into `limit`
+            const value = text.nodeValue.replace(/\s+/g, ' ')
+            const block = blockOf(text)
+            out += lastBlock !== undefined && block !== lastBlock ? ` ${value}` : value
+            lastBlock = block
+        }
+        return collapse(out)
     }
 
     /**
@@ -393,7 +511,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
      */
     function hintOf (el: Element) {
         const label = el.getAttribute('title') || el.getAttribute('data-testid') || el.getAttribute('alt') ||
-            el.querySelector('svg title')?.textContent || el.classList[0] || el.tagName.toLowerCase()
+            el.querySelector('svg title')?.textContent || (FORM_CONTROLS.has(el.tagName) ? el.getAttribute('name') : null) || el.classList[0] || el.tagName.toLowerCase()
         let hint = collapse(label)
         const siblings = el.parentElement ? [...el.parentElement.children].filter((c) => c.tagName === el.tagName && c.className === el.className) : []
         if (siblings.length > 1) {
@@ -405,9 +523,9 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             if ([...ancestor.children].every((c) => c.tagName === el.tagName && c.className === el.className)) {
                 continue
             }
-            const text = collapse((ancestor as HTMLElement).innerText || ancestor.textContent)
+            const text = textAround(ancestor, el, HINT_CONTEXT_LENGTH)
             if (text) {
-                return `${hint} in ${JSON.stringify(text.length > 48 ? `${text.slice(0, 47)}…` : text)}`
+                return `${hint} in ${JSON.stringify(text.length > HINT_CONTEXT_LENGTH ? `${text.slice(0, HINT_CONTEXT_LENGTH - 1)}…` : text)}`
             }
         }
         return hint
@@ -442,7 +560,6 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return out
     }
 
-    const namesSeen = new Map<string, number>()
     const NO_ROLE_SELECTOR = new Set(['generic', 'text', 'none', 'presentation', 'paragraph'])
 
     function looksGenerated (id: string) {
@@ -520,44 +637,163 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return counts.get(name) || 0
     }
 
-    function candidates (el: Element, role: string, name: string): string[] {
+    let allElements: Element[] | undefined
+    /** the document and its open shadow roots do not change during a run: walked once */
+    const everyElement = () => allElements ??= deepQueryAll(document, '*')
+
+    /**
+     * How many elements of the document have this accessible name, whatever
+     * their role, as the `aria/` selector matches. Hidden ones count too: that
+     * only withholds a candidate, it never vouches for a wrong one.
+     */
+    let ariaNameCounts: Map<string, number> | undefined
+    function ariaNameCount (name: string) {
+        if (!ariaNameCounts) {
+            ariaNameCounts = new Map()
+            for (const candidate of everyElement()) {
+                const candidateName = collapse(accessibleName(candidate, roleOf(candidate)))
+                if (candidateName) {
+                    ariaNameCounts.set(candidateName, (ariaNameCounts.get(candidateName) || 0) + 1)
+                }
+            }
+        }
+        return ariaNameCounts.get(name) || 0
+    }
+
+    /** `raw` with whitespace collapsed, or undefined once that is longer than a `tag=text` candidate allows (stops reading there) */
+    function shortText (raw: string | null) {
+        let out = ''
+        for (const word of (raw || '').matchAll(/\S+/g)) {
+            out += out ? ` ${word[0]}` : word[0]
+            if (out.length > MAX_CANDIDATE_TEXT) {
+                return undefined
+            }
+        }
+        return out
+    }
+
+    /** per tag, one pass over its elements: collapsed text (up to the candidate limit) -> how many */
+    const textCounts = new Map<string, Map<string, number>>()
+    function textCount (tag: string, text: string) {
+        let counts = textCounts.get(tag)
+        if (!counts) {
+            counts = new Map()
+            for (const candidate of everyElement()) {
+                if (candidate.tagName.toLowerCase() === tag) {
+                    const candidateText = shortText(candidate.textContent)
+                    if (candidateText !== undefined) {
+                        counts.set(candidateText, (counts.get(candidateText) || 0) + 1)
+                    }
+                }
+            }
+            textCounts.set(tag, counts)
+        }
+        return counts.get(text) || 0
+    }
+
+    /** one pass for the attribute and class candidates of the extended kinds, built on first use */
+    let extendedCounts: { ariaLabel: Map<string, number>, type: Map<string, number>, tagClass: Map<string, number> } | undefined
+    function extendedIndex () {
+        if (!extendedCounts) {
+            const bump = (map: Map<string, number>, key: string) => map.set(key, (map.get(key) || 0) + 1)
+            extendedCounts = { ariaLabel: new Map(), type: new Map(), tagClass: new Map() }
+            for (const candidate of everyElement()) {
+                const tag = candidate.tagName.toLowerCase()
+                const label = candidate.getAttribute('aria-label')
+                if (label) {
+                    bump(extendedCounts.ariaLabel, label)
+                }
+                const type = candidate.getAttribute('type')
+                if (type && (tag === 'input' || tag === 'button')) {
+                    // the `type` attribute value matches case-insensitively in a CSS selector
+                    bump(extendedCounts.type, `${tag}\0${type.toLowerCase()}`)
+                }
+                for (const className of candidate.classList) {
+                    bump(extendedCounts.tagClass, `${tag}\0${className}`)
+                }
+            }
+        }
+        return extendedCounts
+    }
+
+    function xpathLiteral (value: string) {
+        if (!value.includes('"')) {
+            return `"${value}"`
+        }
+        return value.includes("'") ? undefined : `'${value}'`
+    }
+
+    function candidates (el: Element, role: string, name: string): SnapshotCandidate[] {
         const unique = (selector: string) => deepQueryAll(document, selector).length === 1
-        const out: string[] = []
+        const out: SnapshotCandidate[] = []
+        // extended kinds stop once a ref has enough; base kinds stay complete for stale-ref recovery
+        const room = () => out.length < MAX_CANDIDATES
         for (const attr of TEST_ATTRS) {
             const value = el.getAttribute(attr)
             if (value) {
                 const selector = `[${attr}="${CSS.escape(value)}"]`
                 if (unique(selector)) {
-                    out.push(selector)
+                    out.push({ kind: 'testid', selector })
                 }
             }
         }
         const selectable = !NO_ROLE_SELECTOR.has(role) && (!opts.knownRoles || opts.knownRoles.includes(role))
         if (name && selectable && !/[\n]/.test(name) && roleNameCount(role, name) === 1) {
-            out.push(`role/${role}[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`)
+            out.push({ kind: 'role', selector: `role/${role}[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]` })
         }
-        if (name && namesSeen.get(name) === 1 && !/[\n]/.test(name)) {
-            out.push(`aria/${name}`)
+        if (name && !/[\n]/.test(name) && ariaNameCount(name) === 1) {
+            out.push({ kind: 'aria', selector: `aria/${name}` })
         }
         if (el.id && !looksGenerated(el.id) && unique(`#${CSS.escape(el.id)}`)) {
-            out.push(`#${CSS.escape(el.id)}`)
+            out.push({ kind: 'id', selector: `#${CSS.escape(el.id)}` })
         }
         const tag = el.tagName.toLowerCase()
-        const text = collapse(el.textContent)
-        if ((role === 'button' || role === 'link') && text && text.length <= 40 && tag !== 'input' && text === name) {
-            out.push(`${tag}=${text}`)
+        const text = shortText(el.textContent)
+        if ((role === 'button' || role === 'link') && text && text === name && tag !== 'input' && textCount(tag, text) === 1) {
+            out.push({ kind: 'text', selector: `${tag}=${text}` })
         }
         const fieldName = el.getAttribute('name')
         if (fieldName && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(el.tagName) && unique(`${tag}[name="${CSS.escape(fieldName)}"]`)) {
-            out.push(`${tag}[name="${CSS.escape(fieldName)}"]`)
+            out.push({ kind: 'name', selector: `${tag}[name="${CSS.escape(fieldName)}"]` })
         }
-        out.push(cssPath(el))
-        return [...new Set(out)]
+        if (opts.extendedCandidates) {
+            const ariaLabel = el.getAttribute('aria-label')
+            if (room() && ariaLabel && extendedIndex().ariaLabel.get(ariaLabel) === 1) {
+                out.push({ kind: 'aria-label', selector: `[aria-label="${CSS.escape(ariaLabel)}"]` })
+            }
+            const type = el.getAttribute('type')
+            if (room() && type && (tag === 'input' || tag === 'button') && extendedIndex().type.get(`${tag}\0${type.toLowerCase()}`) === 1) {
+                out.push({ kind: 'type', selector: `${tag}[type="${CSS.escape(type)}"]` })
+            }
+            const className = room() ? [...el.classList].find((c) => !looksGenerated(c) && extendedIndex().tagClass.get(`${tag}\0${c}`) === 1) : undefined
+            if (className) {
+                out.push({ kind: 'class', selector: `${tag}.${CSS.escape(className)}` })
+            }
+            // a document-wide evaluate per ref: only when nothing better was found
+            // document.evaluate does not see into shadow roots: a match there is another element
+            const literal = !out.length && text && el.getRootNode() === document ? xpathLiteral(text) : undefined
+            if (literal) {
+                const xpath = `//${tag}[contains(., ${literal})]`
+                try {
+                    const found = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+                    if (found.snapshotLength === 1 && found.snapshotItem(0) === el) {
+                        out.push({ kind: 'xpath-text', selector: xpath })
+                    }
+                } catch {
+                    // not a valid expression for this text
+                }
+            }
+        }
+        out.push({ kind: 'css-path', selector: cssPath(el) })
+        return out.filter((c, i) => out.findIndex((o) => o.selector === c.selector) === i)
     }
 
     function assignRef (el: Element) {
         if (!opts.assignRefs) {
             return undefined
+        }
+        if (!store) {
+            return `e${++counter}`
         }
         let id = store.ids.get(el)
         if (!id || store.refs.get(id)?.deref() !== el) {
@@ -588,6 +824,44 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return [Math.round(r.x + offset[0]), Math.round(r.y + offset[1]), Math.round(r.width), Math.round(r.height)]
     }
 
+    /**
+     * Whether the element's box overlaps the viewport. A `display: contents`
+     * wrapper has no box: it goes where its parent goes.
+     */
+    let parentInView = true
+    function inView (el: Element) {
+        if (!opts.viewport || el === scope) {
+            return true
+        }
+        if (getComputedStyle(el).display === 'contents') {
+            return parentInView
+        }
+        const r = el.getBoundingClientRect()
+        const x = r.x + offset[0]
+        const y = r.y + offset[1]
+        return x < window.innerWidth && x + r.width > 0 && y < window.innerHeight && y + r.height > 0
+    }
+
+    /**
+     * A text node of a parent that spans more than the viewport (a long page
+     * body) may sit outside it: measured with a Range, only then.
+     */
+    function textInView (node: globalThis.Node) {
+        const parent = node.parentElement
+        if (!opts.viewport || !parent || parent.getBoundingClientRect().height <= window.innerHeight) {
+            return true
+        }
+        const range = node.ownerDocument!.createRange()
+        range.selectNodeContents(node)
+        const r = range.getBoundingClientRect()
+        if (r.width === 0 && r.height === 0) {
+            return true
+        }
+        const x = r.x + offset[0]
+        const y = r.y + offset[1]
+        return x < window.innerWidth && x + r.width > 0 && y < window.innerHeight && y + r.height > 0
+    }
+
     function walk (node: globalThis.Node): Node[] {
         // also a scope the caller picked
         if (isDecoy(node)) {
@@ -595,7 +869,7 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         }
         if (node.nodeType === 3) {
             const text = collapse(node.textContent)
-            return text ? [{ role: 'text', name: truncate(text) }] : []
+            return text && parentInView && textInView(node) ? [{ role: 'text', name: truncate(text) }] : []
         }
         if (node.nodeType !== 1) {
             return []
@@ -614,7 +888,29 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         if (hidden && !opts.all) {
             return []
         }
-        const role = roleOf(el)
+        const visible = inView(el)
+        if (el.tagName === 'PRE' && !shadowRootOf(el) && !isInteractive(el, roleOf(el)) && ![...el.querySelectorAll('*')].some((c) => !isDecoy(c) && isInteractive(c, roleOf(c)))) {
+            // a highlighted block is one token per span: one leaf keeps it readable and searchable
+            const code = collapse((el as HTMLElement).innerText ?? el.textContent)
+            if (code && (opts.all || !isZeroSize(el))) {
+                if (!visible) {
+                    return []
+                }
+                const block: Node = { role: 'code', name: code }
+                if (hidden) {
+                    block.hidden = true
+                }
+                if (opts.boxes) {
+                    block.box = box(el)
+                }
+                return [block]
+            }
+        }
+        let role = roleOf(el)
+        // ARIA 1.1 combobox: the role sits on a wrapper, the editable control inside gets the ref instead
+        if (VALUE_ROLES.has(role) && !FORM_CONTROLS.has(el.tagName) && el.querySelector(EDITABLE)) {
+            role = 'generic'
+        }
         const interactive = isInteractive(el, role)
         // a clickable element without a role ("1Y" in a chart's list) is named by its text, like a button
         const namedByText = interactive && !INTERACTIVE.has(role) && !NAME_FROM_CONTENT.has(role)
@@ -627,7 +923,6 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         const out: Node = { role }
         if (name) {
             out.name = truncate(name)
-            namesSeen.set(name, (namesSeen.get(name) || 0) + 1)
         }
         if (hidden) {
             out.hidden = true
@@ -671,7 +966,8 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
             if (!opts.all && area.width * area.height < 100) {
                 return []
             }
-            pendingRefs.push({ el, node: out, order })
+            const savedInView = parentInView
+            parentInView = visible
             try {
                 const doc = (el as HTMLIFrameElement).contentDocument
                 if (!doc || !doc.body) {
@@ -687,6 +983,14 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
                 }
             } catch {
                 out.note = 'cross-origin'
+            } finally {
+                parentInView = savedInView
+            }
+            if (!visible && !out.children?.length) {
+                return []
+            }
+            if (visible) {
+                pendingRefs.push({ el, node: out, order })
             }
             return [out]
         }
@@ -700,9 +1004,16 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
                 // the options of a popover ("24 hours 1 week 1 year") are each clickable, not one name
                 (!INTERACTIVE.has(role) && pointerTarget(c))
         })
-        const children = leaf || VALUE_ROLES.has(role) || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA'
-            ? []
-            : childNodesOf(el).flatMap((c) => isNamingText(el, c) ? [] : walk(c))
+        const savedInView = parentInView
+        parentInView = visible
+        let children: Node[]
+        try {
+            children = leaf || VALUE_ROLES.has(role) || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA'
+                ? []
+                : childNodesOf(el).flatMap((c) => isNamingText(el, c) ? [] : walk(c))
+        } finally {
+            parentInView = savedInView
+        }
         if (el.tagName === 'SELECT' && opts.all) {
             out.children = [...(el as HTMLSelectElement).options].map((o) => ({ role: 'option', name: collapse(o.textContent), ...(o.selected ? { states: ['selected'] } : {}) }))
         }
@@ -712,7 +1023,10 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         if (!opts.all && !interactive && isZeroSize(el) && !out.children?.length) {
             return []
         }
-        if (interactive || (name && NAMED_REF_ROLES.has(role))) {
+        if (!visible && !out.children?.length) {
+            return []
+        }
+        if (visible && (interactive || (name && NAMED_REF_ROLES.has(role)))) {
             pendingRefs.push({ el, node: out, order })
         }
         if (PRUNE.has(role) && !name && !interactive) {
@@ -725,16 +1039,74 @@ export function collectInPage (opts: CollectOptions, scope?: Element | null): Co
         return [out]
     }
 
+    const DIALOG_ROLES = new Set(['dialog', 'alertdialog'])
+    const LANDMARK_TAGS = new Set(['HEADER', 'FOOTER', 'NAV', 'ASIDE', 'MAIN'])
+    const LANDMARK_ROLES = new Set(['banner', 'contentinfo', 'navigation', 'complementary', 'main'])
+
+    const isDialog = (el: Element) => el.tagName === 'DIALOG' || DIALOG_ROLES.has(roleOf(el))
+    const isLandmark = (el: Element) => isDialog(el) || LANDMARK_TAGS.has(el.tagName) || LANDMARK_ROLES.has(roleOf(el))
+
+    /**
+     * Controls that share role and name ("Choose This Flight" x 5) get the
+     * text of the item each sits in: the highest ancestor that holds none of
+     * the others. Ancestors are counted in one pass per group.
+     */
+    function addIntents (assigned: { el: Element, node: Node }[]) {
+        const groups = new Map<string, { el: Element, node: Node }[]>()
+        for (const member of assigned) {
+            if (member.node.interactive && member.node.name) {
+                const key = `${member.node.role}\0${member.node.name}`
+                const group = groups.get(key)
+                if (group) {
+                    group.push(member)
+                } else {
+                    groups.set(key, [member])
+                }
+            }
+        }
+        const parentOf = (el: Element) => el.parentElement || (el.getRootNode() as ShadowRoot).host || null
+        for (const members of groups.values()) {
+            if (members.length < 2) {
+                continue
+            }
+            const counts = new Map<Element, number>()
+            for (const { el } of members) {
+                for (let up: Element | null = el; up; up = parentOf(up)) {
+                    counts.set(up, (counts.get(up) || 0) + 1)
+                }
+            }
+            for (const { el, node } of members) {
+                let item: Element | undefined
+                let inDialog = false
+                // only a dialog blocks the climb: a card's own <header> is part of its row
+                for (let up: Element | null = el; up && counts.get(up) === 1; up = parentOf(up)) {
+                    item = up
+                    inDialog ||= isDialog(up)
+                }
+                if (!item || inDialog || isLandmark(item)) {
+                    continue
+                }
+                const text = textAround(item, el, INTENT_LENGTH)
+                if (text) {
+                    node.intent = truncate(text)
+                }
+            }
+        }
+    }
+
     const rootEl = scope || document.body
     const children = scope ? walk(scope) : childNodesOf(rootEl).flatMap((c) => walk(c))
+    const refsAssigned: { el: Element, node: Node }[] = []
     for (const { el, node } of pendingRefs.sort((a, b) => a.order - b.order)) {
         const id = el.ownerDocument === document ? assignRef(el) : undefined
         if (!id) {
             continue
         }
         node.ref = id
+        refsAssigned.push({ el, node })
         refs.push({ id, role: node.role, name: node.name, candidates: candidates(el, node.role, node.name || '') })
     }
+    addIntents(refsAssigned)
     const tree: Node = { role: 'document', name: document.title, url: location.href, children }
     return { tree, counter, refs }
 }

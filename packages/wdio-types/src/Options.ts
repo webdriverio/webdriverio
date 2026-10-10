@@ -103,6 +103,15 @@ export interface WebDriver extends Connection {
      */
     bidiResponseTimeout?: number
     /**
+     * Timeout (in ms) for the browser to accept the WebDriver Bidi connection. After it,
+     * the session continues with WebDriver Classic, where Bidi-only commands fail.
+     * Node.js only: in a browser (for example the browser runner) the connection waits
+     * until it opens or fails.
+     *
+     * @default 10000
+     */
+    bidiConnectTimeout?: number
+    /**
      * Specify custom headers to pass into every request.
      */
     headers?: {
@@ -155,7 +164,7 @@ export interface WebDriver extends Connection {
     maskingPatterns?: string
 }
 
-export type SauceRegions = 'us' | 'eu' | 'us-west-1' | 'us-east-4' | 'eu-central-1' | 'staging'
+export type SauceRegions = 'us' | 'eu' | 'us-west-1' | 'us-east-4' | 'eu-central-1' | 'asia-south-2' | 'staging'
 
 export interface WebdriverIO extends WebDriver, Pick<Hooks, 'onReload' | 'beforeCommand' | 'afterCommand'> {
     /**

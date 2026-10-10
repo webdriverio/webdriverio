@@ -35,6 +35,11 @@ environment.value = {
     variables: {
         WDIO_LOG_LEVEL: process.env.WDIO_LOG_LEVEL as Options.WebDriverLogTypes | undefined,
         WDIO_UNIT_TESTS: process.env.WDIO_UNIT_TESTS,
+        /**
+         * set by @wdio/local-runner for each worker: `deleteSession` then keeps the
+         * worker's log file open instead of reopening `WDIO_LOG_PATH`
+         */
+        WDIO_WORKER_ID: process.env.WDIO_WORKER_ID,
         WEBDRIVER_CACHE_DIR: process.env.WEBDRIVER_CACHE_DIR || os.tmpdir(),
         PROXY_URL: process.env.HTTP_PROXY || process.env.HTTPS_PROXY,
         NO_PROXY: process.env.NO_PROXY && process.env.NO_PROXY.trim()

@@ -1,5 +1,16 @@
-import { SessionError } from '../errors.js'
-import { REF_PATTERN } from '../constants.js'
+import type {} from 'webdriverio'
+
+import { SnapshotError } from './errors.js'
+
+export const REF_PATTERN = /^e\d+$/
+
+export type RefErrorCode = 'REF_NOT_FOUND' | 'REF_STALE'
+
+/**
+ * `resnapshot` is true where taking a new snapshot would fix the error, so a
+ * consumer can attach its own recovery hint.
+ */
+export type RefErrorFactory = (code: RefErrorCode, message: string, opts: { resnapshot: boolean }) => Error
 
 export interface RefEntry {
     id: string
@@ -45,6 +56,11 @@ export class RefRegistry {
     #entries = new Map<string, RefEntry>()
     #counter = 0
     generation = 0
+    #createError: RefErrorFactory
+
+    constructor (opts: { createError?: RefErrorFactory } = {}) {
+        this.#createError = opts.createError ?? ((code, message) => new SnapshotError(code, message))
+    }
 
     get counter () {
         return this.#counter
@@ -82,13 +98,9 @@ export class RefRegistry {
     async resolve (browser: WebdriverIO.Browser, id: string): Promise<WebdriverIO.Element> {
         const entry = this.#entries.get(id)
         if (!entry) {
-            throw new SessionError('REF_NOT_FOUND', `${id} was never assigned in this session.`, {
-                hint: 'Run `wdio session snapshot` to get refs.'
-            })
+            throw this.#createError('REF_NOT_FOUND', `${id} was never assigned in this session.`, { resnapshot: true })
         }
-        const stale = () => new SessionError('REF_STALE', `${id} no longer exists on the page.`, {
-            hint: 'Run `wdio session snapshot` to get fresh refs.'
-        })
+        const stale = () => this.#createError('REF_STALE', `${id} no longer exists on the page.`, { resnapshot: true })
         if (entry.kind === 'web') {
             const el = await browser.$(refFunction(id)).getElement()
             if (!el.elementId) {
@@ -112,7 +124,7 @@ export class RefRegistry {
     async stableSelector (browser: WebdriverIO.Browser, id: string, element?: WebdriverIO.Element): Promise<string> {
         const entry = this.#entries.get(id)
         if (!entry) {
-            throw new SessionError('REF_NOT_FOUND', `${id} was never assigned in this session.`)
+            throw this.#createError('REF_NOT_FOUND', `${id} was never assigned in this session.`, { resnapshot: false })
         }
         if (entry.selector) {
             return entry.selector

@@ -50,3 +50,39 @@ console.log(code) // await $('role/button[name="Add to cart"]').click()
 await agent.dispose()
 await browser.deleteSession()
 ```
+
+`run(action, args)` type-checks the action name and its arguments against the
+action specs: positionals and options are camelCased (`--max-chars` becomes
+`maxChars`) and a variadic positional is one string. A typo is a compile error.
+Use `runAction(name, args)` when the name is only known at runtime, for example
+from a recorded step. It takes untyped arguments.
+
+`snapshot(opts)` returns an `AgentSnapshot`: `text`, the `tree`, and the
+`lines`, `refs` and `chars` counts, plus `page` and `notes` when there are any.
+`maxChars` caps the size. Above it `tooBig` is `true` and `text` is a summary.
+It writes no file and works for app (Appium) sessions too.
+
+Action results carry structured fields next to `text` and `code`:
+
+- `changes`: what the page shows after the action, a `PageChange` of kind
+  `page` (a navigation or new frame), `changed` (added elements) or `removed`.
+- `noVisibleChange`: `true` after a click or tap that changed nothing.
+- `page` and `notes`: the URL and title, and load-error or bot-check notes.
+- `data`: typed per action, for example `get` gives `{ text, value, ... }`.
+
+Hints in the output name `wdio session` commands. The `hint` option rewrites
+them for your own tools. Return `undefined` to keep the CLI text:
+
+```ts
+const tools: Record<string, string> = { snapshot: 'page_snapshot', click: 'page_click' }
+const agent = await createAgentSession(browser, {
+    hint: (command) => (tools[command] ? `${tools[command]}()` : undefined)
+})
+```
+
+Failures throw `SessionError`, with a `code` of type `ErrorCode`. Both are
+exported from `@wdio/session/agent`.
+
+`tsx` and `expect-webdriverio` are optional peer dependencies. `expect` inside
+`exec` needs `expect-webdriverio` installed in your project. TypeScript configs
+load without `tsx` through Node type stripping or jiti.

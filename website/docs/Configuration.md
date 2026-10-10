@@ -138,6 +138,16 @@ Timeout (in ms) for a WebDriver Bidi command to receive a response from the brow
 
 </Option>
 
+### bidiConnectTimeout
+
+<Option type="Number" default="10000">
+
+Timeout (in ms) for the browser to accept the WebDriver Bidi connection. After it, the session continues with WebDriver Classic, and Bidi-only commands such as [`mock`](/docs/api/browser/mock) fail. Increase it if a browser that is busy at startup, e.g. several browsers that start at the same time on a CI runner, accepts the connection late.
+
+This option applies to sessions in Node.js. In a browser, for example with the [browser runner](/docs/runner#browser-runner), the connection waits until it opens or fails.
+
+</Option>
+
 ### agent
 
 <Option type="Object" default={`{
@@ -348,7 +358,7 @@ Maximum size of the response body (in bytes) that can be returned when using the
 
 ### region
 
-<Option type="String" default="us" values="us | eu | us-west-1 | eu-central-1 | us-east-4 | staging">
+<Option type="String" default="us" values="us | eu | us-west-1 | eu-central-1 | us-east-4 | asia-south-2 | staging">
 
 If running on Sauce Labs, you can choose to run tests between different data centers.
 Use short region handles `us` (default, maps to `us-west-1`) or `eu` (maps to `eu-central-1`), or the full region names directly.
@@ -356,7 +366,7 @@ Use short region handles `us` (default, maps to `us-west-1`) or `eu` (maps to `e
 __Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
 
 </Option>
-*(only for vm and or em/simulators)*
+*(only for vm and or em/simulators, except `us-east-4` and `asia-south-2` which host real devices only)*
 
 ## Testrunner Options
 

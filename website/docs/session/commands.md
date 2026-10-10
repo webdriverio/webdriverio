@@ -19,7 +19,7 @@ npx wdio session <action> [arguments] [flags]
 | --- | --- |
 | `-s, --session` | Session name (env WDIO_SESSION, default "default") |
 | `--json` | Print one JSON object (env WDIO_SESSION_JSON=1) |
-| `--timeout` | Request timeout in ms |
+| `--timeout` | Request timeout in ms (capped at 60000 except for wait) |
 | `-q, --quiet` | Print nothing on success except requested data |
 | `--color` | Use --no-color to disable colors |
 
@@ -319,6 +319,8 @@ npx wdio session snapshot
 | `-i, --interactive` | Only interactive elements |
 | `--all` | Include hidden elements |
 | `--boxes` | Append bounding boxes |
+| `--viewport` | Only what is in the viewport (web: does not update the diff baseline) |
+| `--selectors` | End each ref line with its best selector |
 | `--compact` | Drop unnamed nodes that have no content |
 | `-u, --urls` | Include link hrefs |
 | `--file-only` | Only write the file |
@@ -337,6 +339,12 @@ npx wdio session snapshot --compact --urls
 # Only part of the page
 npx wdio session snapshot --scope "#checkout" --depth 4
 
+# What is on screen now
+npx wdio session snapshot --viewport -i
+
+# Each ref with a selector to put in a test
+npx wdio session snapshot --selectors -i
+
 # Act, then look again
 npx wdio session click e3 && npx wdio session snapshot -i
 ```
@@ -347,7 +355,7 @@ See also: [`find`](#find), [`diff`](#diff), [`screenshot`](#screenshot).
 
 Read the page text as Markdown. Applies to web.
 
-Headings, paragraphs, list items, table rows and links with their URL, from the main content when the page marks it (main, article), else the whole page; navigation, footers and hidden text are left out. Cut at --max-chars (default 6000). Use it to answer "what does the page say"; use snapshot or find for refs to act on.
+Headings, paragraphs, list items, table rows and links with their URL, from the main content when the page marks it (main, article), else the whole page; navigation, footers and hidden text are left out. Cut at --max-chars (default 6000); the cut says which --offset reads the next part. With --scope, the section is scrolled into view. Use it to answer "what does the page say"; use snapshot or find for refs to act on.
 
 ```sh
 npx wdio session read
@@ -359,6 +367,7 @@ npx wdio session read
 | --- | --- |
 | `--scope <value>` | Only read below this ref or selector |
 | `--max-chars <n>` | Print up to this many characters (default 6000) |
+| `--offset <n>` | Start at this character of the text, for the next part of a long page |
 
 **Examples**
 
@@ -397,6 +406,7 @@ npx wdio session find <text>
 | `-C, --context <n>` | Lines of context before and after instead of the surrounding node |
 | `-A, --after-context <n>` | Lines of context after each match |
 | `-B, --before-context <n>` | Lines of context before each match |
+| `--offset <n>` | Skip this many matches, for the next ones when the output is cut |
 
 **Examples**
 
@@ -414,7 +424,7 @@ See also: [`snapshot`](#snapshot), [`wait`](#wait).
 
 Diff a fresh snapshot against the previous one. Applies to web, native mobile, native desktop.
 
-Prints a unified diff of what changed since the last snapshot, or "No changes". The first call stores a baseline. Use it after an action to see what the action did without reading the whole page again.
+Prints a unified diff of what changed since the last snapshot, or "No changes". The first call stores a baseline. Use it after an action to see what the action did without reading the whole page again. On the web the baseline is the last snapshot taken without `--viewport`.
 
 ```sh
 npx wdio session diff

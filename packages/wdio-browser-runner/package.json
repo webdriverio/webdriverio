@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browser-runner",
-  "version": "10.0.0",
+  "version": "10.0.2",
   "description": "A WebdriverIO runner to run unit tests tests in the browser.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browser-runner",
@@ -92,11 +92,11 @@
     "istanbul-reports": "^3.1.7",
     "mlly": "^1.6.1",
     "modern-node-polyfills": "^1.0.0",
-    "recast": "^0.23.6",
+    "recast": "^0.24.0",
     "safe-stringify": "^1.1.0",
     "source-map-support": "^0.5.21",
     "vite": "^7.3.6",
-    "vite-plugin-istanbul": "^7.2.1",
+    "vite-plugin-istanbul": "^9.0.1",
     "vite-plugin-top-level-await": "^1.4.1",
     "webdriver": "workspace:*"
   },
@@ -123,7 +123,7 @@
     "@types/istanbul-lib-source-maps": "^4.0.4",
     "@types/istanbul-reports": "^3.0.4",
     "esbuild": "^0.28.1",
-    "geckodriver": "^7.0.0",
+    "geckodriver": "^8.0.0",
     "mocha": "^12.0.2",
     "webdriverio": "workspace:*"
   },

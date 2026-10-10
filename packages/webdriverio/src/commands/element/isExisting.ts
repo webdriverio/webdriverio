@@ -1,3 +1,5 @@
+import { findAllAgain } from '../../utils/findElementAgain.js'
+
 /**
  *
  * Returns true if element exists in the DOM.
@@ -61,11 +63,10 @@ export async function isExisting (this: WebdriverIO.Element) {
         )
     }
 
-    const command = this.isReactElement
-        ? this.parent.react$$.bind(this.parent)
-        : this.isShadowElement
-            ? this.shadow$$.bind(this.parent)
-            : this.parent.$$.bind(this.parent)
-    const elements = await command(this.selector as string)
-    return elements.length > 0
+    /**
+     * query all matches with the list form of the command that found the element,
+     * so an element of a list exists only if the list reaches its index
+     */
+    const elements = await findAllAgain(this)
+    return elements.length > (this.index ?? 0)
 }

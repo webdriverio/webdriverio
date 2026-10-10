@@ -35,6 +35,7 @@ export const LANE_FILTERS: LaneFilters = {
     ],
     session: [
         'packages/wdio-session/**',
+        'packages/wdio-snapshot/**',
         'e2e/session/**'
     ],
     display_server: [
@@ -55,6 +56,7 @@ export const LANE_FILTERS: LaneFilters = {
         '!packages/wdio-display-server/**',
         '!packages/wdio-browser-runner/**',
         '!packages/wdio-session/**',
+        '!packages/wdio-snapshot/**',
         'tests/**',
         'e2e/**',
         '!e2e/wdio/display-server/**',

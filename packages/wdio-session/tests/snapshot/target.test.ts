@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { RefRegistry, refId } from '../../src/snapshot/refs.js'
+import { RefRegistry, refId } from '@wdio/snapshot'
 import { resolveTarget } from '../../src/snapshot/target.js'
 import type { Session } from '../../src/session.js'
 

@@ -185,6 +185,11 @@ if (answers.isUsingTypeScript) {
     %><%- include('snippets/services', { answers }) %><%
     } else {
     %>// services: [],
+    //<% } %><% if (!answers.services.includes('devtools')) { %><%- answers.services.length ? '    //' : '' %>
+    // The DevTools service shows a live dashboard of your run and can record a
+    // replayable trace of every test. Install @wdio/devtools-service, then add
+    // 'devtools' to `services` above.
+    // https://webdriver.io/docs/devtools/wdio
     //<% } %>
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
