@@ -340,14 +340,34 @@ describe('enableFileLogging', () => {
     /**
      * @wdio/local-runner gives each worker its own log file. The worker runs
      * enableFileLogging() again; replacing the path made a logger that opens its file
-     * later (e.g. a second copy of @wdio/logger) open and empty the launcher's wdio.log.
+     * later (with a log level above info: at its first warning) open and empty the
+     * launcher's wdio.log.
      */
-    it('keeps a WDIO_LOG_PATH that is already set', async () => {
+    it('keeps a WDIO_LOG_PATH that is already set with keepLogPath', async () => {
         process.env.WDIO_LOG_PATH = path.join('/path/to/log/directory', 'spec-0-0.log')
+
+        await enableFileLogging('/path/to/log/directory', { keepLogPath: true })
+
+        expect(fs.mkdir).toHaveBeenCalledWith(path.join('/path/to/log/directory'), { recursive: true })
+        expect(process.env.WDIO_LOG_PATH).toBe(path.join('/path/to/log/directory', 'spec-0-0.log'))
+    })
+
+    it('sets WDIO_LOG_PATH with keepLogPath when none is set', async () => {
+        await enableFileLogging('/path/to/log/directory', { keepLogPath: true })
+
+        expect(process.env.WDIO_LOG_PATH).toBe(path.join('/path/to/log/directory', 'wdio.log'))
+    })
+
+    /**
+     * the launcher: a `wdio run` started from a worker (e.g. a test of a plugin)
+     * inherits the worker's log file, and must not write into it
+     */
+    it('replaces a WDIO_LOG_PATH that is already set without keepLogPath', async () => {
+        process.env.WDIO_LOG_PATH = path.join('/path/to/outer', 'spec-0-0.log')
 
         await enableFileLogging('/path/to/log/directory')
 
-        expect(process.env.WDIO_LOG_PATH).toBe(path.join('/path/to/log/directory', 'spec-0-0.log'))
+        expect(process.env.WDIO_LOG_PATH).toBe(path.join('/path/to/log/directory', 'wdio.log'))
     })
 })
 

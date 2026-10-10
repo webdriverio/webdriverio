@@ -26,6 +26,18 @@ describe('utils', () => {
     })
 
     describe('initializeInstance', () => {
+        /**
+         * @wdio/local-runner gives each worker its own log file
+         */
+        it('keeps the log file of the worker', async () => {
+            const { enableFileLogging } = await import('@wdio/utils')
+            vi.mocked(enableFileLogging).mockClear()
+
+            await initializeInstance({ outputDir: '/logs' } as WebdriverIO.Config, { browserName: 'chrome' })
+
+            expect(enableFileLogging).toHaveBeenCalledWith('/logs', { keepLogPath: true })
+        })
+
         it('should attach to an existing session if sessionId is within config', async () => {
             const config: ConfigWithSessionId = {
                 sessionId: '123',
