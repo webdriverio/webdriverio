@@ -357,17 +357,80 @@ describe('installAtomically', () => {
         expect(await exists(target.markerPath)).toBe(false)
     })
 
-    it('removes private folders of installs that stopped a day ago', async () => {
-        const old = path.join(cacheDir, TEMP_FOLDER, 'iOld')
-        const recent = path.join(cacheDir, TEMP_FOLDER, 'iRecent')
-        await fs.mkdir(old, { recursive: true })
-        await fs.mkdir(recent, { recursive: true })
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-        await fs.utimes(old, twoDaysAgo, twoDaysAgo)
+    /**
+     * a killed process or Ctrl+C leaves its private folder; a process that pauses (e.g. a
+     * computer that sleeps for days) continues its install later
+     */
+    it('removes the private folders of installs that stopped, not of paused ones', async () => {
+        const day = 24 * 60 * 60 * 1000
+        const folders = {
+            iDead: { owner: localMarker({ pid: 2 ** 22 + 7 }), age: 11 * 60 * 1000 },
+            /**
+             * two machines can have the same host name: a live one refreshes its folder
+             */
+            iDeadButRefreshed: { owner: localMarker({ pid: 2 ** 22 + 7 }), age: 0 },
+            iPausedForDays: { owner: localMarker({ pid: process.ppid }), age: 3 * day },
+            iOtherMachine: { owner: JSON.stringify({ pid: 2 ** 22 + 7, hostname: 'other-machine' }), age: 3 * day },
+            iOtherMachineWeekOld: { owner: JSON.stringify({ pid: 2 ** 22 + 7, hostname: 'other-machine' }), age: 8 * day },
+            iNoOwnerYet: { owner: undefined, age: 0 }
+        }
+        for (const [name, { owner, age }] of Object.entries(folders)) {
+            const folder = path.join(cacheDir, TEMP_FOLDER, name)
+            await fs.mkdir(folder, { recursive: true })
+            if (owner) {
+                await fs.writeFile(path.join(folder, 'owner.json'), owner)
+            }
+            const time = new Date(Date.now() - age)
+            await fs.utimes(folder, time, time)
+        }
 
         await installAtomically(target, download(), fast)
 
-        expect(await fs.readdir(path.join(cacheDir, TEMP_FOLDER))).toEqual(['iRecent'])
+        expect((await fs.readdir(path.join(cacheDir, TEMP_FOLDER))).sort()).toEqual(['iDeadButRefreshed', 'iNoOwnerYet', 'iOtherMachine', 'iPausedForDays'])
+    })
+
+    /**
+     * two processes replace the same folder without the executable: the other one moves
+     * it away and publishes its build between this process's check and its move
+     */
+    it('does not move away a build that another process published meanwhile', async () => {
+        await fs.mkdir(buildDir(cacheDir), { recursive: true })
+        await fs.writeFile(path.join(buildDir(cacheDir), 'leftover'), '')
+        const rename = fs.rename
+        let raced = false
+        const spy = vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
+            if (from === buildDir(cacheDir) && !raced) {
+                raced = true
+                // the other process: moves the unfinished folder away, publishes its build
+                const other = path.join(cacheDir, 'other')
+                await rename(buildDir(cacheDir), path.join(cacheDir, 'other-unfinished'))
+                await download()(other)
+                await fs.writeFile(path.join(buildDir(other), 'published-by-other'), '')
+                await rename(buildDir(other), buildDir(cacheDir))
+            }
+            return rename(from, to)
+        })
+
+        try {
+            await installAtomically(target, download(), fast)
+        } finally {
+            spy.mockRestore()
+        }
+
+        expect((await fs.readdir(buildDir(cacheDir))).sort()).toEqual(['chrome', 'published-by-other', 'resources.pak'])
+    })
+
+    it('refreshes its private folder while it installs', async () => {
+        const mtimes = new Set<number>()
+        await installAtomically(target, async (dir) => {
+            for (let i = 0; i < 10; i++) {
+                await sleep(20)
+                mtimes.add((await fs.stat(dir)).mtimeMs)
+            }
+            await download()(dir)
+        }, fast)
+
+        expect(mtimes.size).toBeGreaterThan(2)
     })
 
     it('does not remove a marker that another process wrote meanwhile', async () => {

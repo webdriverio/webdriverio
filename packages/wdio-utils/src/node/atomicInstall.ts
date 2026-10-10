@@ -68,11 +68,19 @@ const DEFAULT_OPTIONS: Required<AtomicInstallOptions> = {
 }
 
 /**
- * the folder of the private installs in the cache; temporary folders older than
- * `TEMP_MAX_AGE` belong to processes that stopped
+ * the folder of the private installs in the cache; each has an `OWNER_FILE`
  */
 export const TEMP_FOLDER = '.wdio-install'
-const TEMP_MAX_AGE = 24 * 60 * 60 * 1000
+const OWNER_FILE = 'owner.json'
+/**
+ * a private folder whose owner cannot be checked (another machine) is removed after this
+ */
+const TEMP_MAX_AGE = 7 * 24 * 60 * 60 * 1000
+/**
+ * a private folder of a stopped process of this machine is removed when it has not been
+ * refreshed for this long: two machines can have the same host name
+ */
+const TEMP_STOPPED_AGE = 10 * 60 * 1000
 
 /**
  * errors that can pass on Windows, e.g. while a virus scan holds a new file
@@ -117,6 +125,23 @@ async function readMarker (markerPath: string) {
 }
 
 /**
+ * the pid, host name and pid namespace of this process, for a marker or a private folder
+ */
+function owner () {
+    return { pid: process.pid, hostname: os.hostname(), pidns: getPidNamespace() }
+}
+
+/**
+ * Tells whether a process of this machine (same host name and pid namespace: containers
+ * can share both) that is not this one no longer runs.
+ */
+function hasStoppedHere ({ pid, hostname, pidns }: Marker) {
+    return typeof pid === 'number' && pid !== process.pid &&
+        hostname === os.hostname() && pidns === getPidNamespace() &&
+        !isRunning(pid)
+}
+
+/**
  * Tells whether the install of a marker has stopped. Only for waiting: a wrong answer
  * costs a second download, never a broken build. A marker of another process of this
  * machine (same host name and pid namespace: containers can share both) has stopped
@@ -127,12 +152,8 @@ async function readMarker (markerPath: string) {
 function stopCheck (staleAfter: number, pollInterval: number) {
     let seen: { key: string, polls: number } | undefined
     return (marker: NonNullable<Awaited<ReturnType<typeof readMarker>>>) => {
-        const { pid, hostname, pidns, token } = marker.content ?? {}
-        if (
-            typeof pid === 'number' && pid !== process.pid &&
-            hostname === os.hostname() && pidns === getPidNamespace() &&
-            !isRunning(pid)
-        ) {
+        const token = marker.content?.token
+        if (marker.content && hasStoppedHere(marker.content)) {
             return true
         }
         const key = `${token}:${marker.mtimeMs}`
@@ -160,9 +181,7 @@ async function claim (markerPath: string, refreshInterval: number) {
         throw err
     }
     try {
-        await handle.writeFile(JSON.stringify({
-            pid: process.pid, hostname: os.hostname(), pidns: getPidNamespace(), token
-        } satisfies Marker))
+        await handle.writeFile(JSON.stringify({ ...owner(), token } satisfies Marker))
     } catch (err) {
         /**
          * the file is ours: an empty marker would make the others wait for nothing
@@ -172,19 +191,27 @@ async function claim (markerPath: string, refreshInterval: number) {
         throw err
     }
     await handle.close()
-    const refresh = setInterval(() => {
-        const now = new Date()
-        fsp.utimes(markerPath, now, now).catch(() => {})
-    }, refreshInterval)
-    refresh.unref()
+    const stopRefresh = keepFresh(markerPath, refreshInterval)
     return {
         release: async () => {
-            clearInterval(refresh)
+            stopRefresh()
             await removeOwnMarker(markerPath, token).catch((err) => {
                 log.warn(`Couldn't remove the install marker ${markerPath}: ${(err as Error).message}`)
             })
         }
     }
+}
+
+/**
+ * Refresh the file time of a marker or a private folder while its process runs.
+ */
+function keepFresh (file: string, refreshInterval: number) {
+    const refresh = setInterval(() => {
+        const now = new Date()
+        fsp.utimes(file, now, now).catch(() => {})
+    }, refreshInterval)
+    refresh.unref()
+    return () => clearInterval(refresh)
 }
 
 async function removeOwnMarker (markerPath: string, token: string) {
@@ -256,17 +283,43 @@ async function claimOrWait (target: AtomicInstallTarget, options: Required<Atomi
 }
 
 /**
- * Remove the temporary folders of installs that stopped long ago.
+ * Remove the private folders of installs that stopped: when the owner is a process of
+ * this machine that no longer runs and the folder was not refreshed for
+ * `TEMP_STOPPED_AGE`, or after `TEMP_MAX_AGE`. Not by age alone: a process can pause for
+ * a long time (e.g. a computer that sleeps) and then continue its install.
  */
-async function removeOldTempFolders (tempRoot: string) {
+async function removeStoppedTempFolders (tempRoot: string) {
     const entries = await fsp.readdir(tempRoot).catch(() => [])
     await Promise.all(entries.map(async (entry) => {
         const folder = path.join(tempRoot, entry)
-        const stat = await fsp.stat(folder).catch(() => undefined)
-        if (stat && Date.now() - stat.mtimeMs > TEMP_MAX_AGE) {
+        const [stat, folderOwner] = await Promise.all([
+            fsp.stat(folder).catch(() => undefined),
+            fsp.readFile(path.join(folder, OWNER_FILE), 'utf8').then((text) => JSON.parse(text) as Marker).catch(() => undefined)
+        ])
+        const age = stat ? Date.now() - stat.mtimeMs : 0
+        if (stat && ((folderOwner && hasStoppedHere(folderOwner) && age > TEMP_STOPPED_AGE) || age > TEMP_MAX_AGE)) {
             await fsp.rm(folder, { recursive: true, force: true }).catch(() => {})
         }
     }))
+}
+
+/**
+ * Move away the build folder `to` that has no executable. Another process can move it
+ * away and publish its build between our check and our move: then the moved folder is
+ * not the one that we checked, and it goes back at once.
+ */
+async function moveAwayUnfinished (target: AtomicInstallTarget, to: string, unfinished: fs.BigIntStats, trash: string) {
+    if (await exists(target.executablePath)) {
+        return
+    }
+    log.warn(`Replacing ${to}: the executable ${target.executablePath} is missing`)
+    if (!await fsp.rename(to, trash).then(() => true, () => false)) {
+        return
+    }
+    const moved = await fsp.stat(trash, { bigint: true }).catch(() => undefined)
+    if (moved && (moved.ino !== unfinished.ino || moved.dev !== unfinished.dev)) {
+        await fsp.rename(trash, to).catch(() => {})
+    }
 }
 
 /**
@@ -291,13 +344,13 @@ async function publish (target: AtomicInstallTarget, tempDir: string, publishTim
             if (Date.now() - startedAt > publishTimeout) {
                 throw err
             }
-            if (await exists(to)) {
+            const unfinished = await fsp.stat(to, { bigint: true }).catch(() => undefined)
+            if (unfinished) {
                 /**
                  * a build folder without the executable, left by an install that did not
                  * finish (e.g. of an older version that unpacked into the cache): move it away
                  */
-                log.warn(`Replacing ${to}: the executable ${target.executablePath} is missing`)
-                await fsp.rename(to, path.join(tempDir, `unfinished-${attempt}`)).catch(() => {})
+                await moveAwayUnfinished(target, to, unfinished, path.join(tempDir, `unfinished-${attempt}`))
             } else if (!TRANSIENT_ERRORS.includes(errorCode(err))) {
                 throw err
             }
@@ -335,13 +388,16 @@ export async function installAtomically (
             return
         }
         const tempRoot = path.join(target.cacheDir, TEMP_FOLDER)
-        await removeOldTempFolders(tempRoot)
+        await removeStoppedTempFolders(tempRoot)
         await fsp.mkdir(tempRoot, { recursive: true })
         const tempDir = await fsp.mkdtemp(path.join(tempRoot, 'i'))
+        const stopRefresh = keepFresh(tempDir, installOptions.refreshInterval)
         try {
+            await fsp.writeFile(path.join(tempDir, OWNER_FILE), JSON.stringify(owner()))
             await install(tempDir)
             await publish(target, tempDir, installOptions.publishTimeout)
         } finally {
+            stopRefresh()
             await fsp.rm(tempDir, { recursive: true, force: true, maxRetries: 3 }).catch((err) => {
                 log.warn(`Couldn't remove ${tempDir}: ${(err as Error).message}`)
             })
