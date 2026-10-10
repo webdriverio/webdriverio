@@ -57,6 +57,7 @@ vi.mock('node:fs/promises', () => ({
         mkdir: vi.fn().mockResolvedValue({}),
         access: vi.fn().mockResolvedValue({}),
         rm: vi.fn().mockResolvedValue(undefined),
+        lstat: vi.fn().mockResolvedValue({}),
         readFile: vi.fn(async () => {
             const { readFileSync } = await vi.importActual<typeof fs>('node:fs')
             return readFileSync(path.resolve(__dirname, '__fixtures__', 'application.ini'))
@@ -67,7 +68,8 @@ vi.mock('node:fs/promises', () => ({
 vi.mock('node:child_process', () => ({
     default: {
         execSync: vi.fn(),
-        spawnSync: vi.fn()
+        spawnSync: vi.fn(),
+        execFile: vi.fn()
     }
 }))
 
@@ -949,7 +951,10 @@ describe('driver utils', () => {
                 await expect(setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' }))
                     .resolves.toEqual(expect.objectContaining({ executablePath }))
 
-                expect(install).toHaveBeenCalledTimes(1)
+                /**
+                 * no retry: the install in the private cache, then the one on the cache
+                 */
+                expect(install).toHaveBeenCalledTimes(2)
                 expect(fsp.rm).not.toHaveBeenCalled()
                 expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining(`Installed firefox vstable_157.0, but couldn't remove its download ${archive}`))
             })
@@ -961,16 +966,26 @@ describe('driver utils', () => {
 
                 await expect(setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' }))
                     .resolves.toEqual(expect.objectContaining({ executablePath }))
-                expect(install).toHaveBeenCalledTimes(2)
+                expect(install).toHaveBeenCalledTimes(3)
             })
 
             it('retries when the archive cleanup fails but the browser is missing', async () => {
-                executableIsMissing()
+                /**
+                 * the retry installs it
+                 */
+                vi.mocked(fsp.access).mockImplementation(async (file) => {
+                    if (file === executablePath && vi.mocked(install).mock.calls.length < 2) {
+                        throw new Error('ENOENT')
+                    }
+                })
                 vi.mocked(install).mockClear().mockRejectedValueOnce(allProvidersFailed(archiveLocked()))
 
                 await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
-                expect(install).toHaveBeenCalledTimes(2)
+                /**
+                 * the install, its retry, then the install on the cache
+                 */
+                expect(install).toHaveBeenCalledTimes(3)
             })
 
             it('retries when another provider failed for another reason', async () => {
@@ -978,7 +993,10 @@ describe('driver utils', () => {
 
                 await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
-                expect(install).toHaveBeenCalledTimes(2)
+                /**
+                 * the install, its retry, then the install on the cache
+                 */
+                expect(install).toHaveBeenCalledTimes(3)
             })
 
             it('retries when the locked file is not the archive of this build', async () => {
@@ -987,7 +1005,63 @@ describe('driver utils', () => {
 
                 await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
-                expect(install).toHaveBeenCalledTimes(2)
+                /**
+                 * the install, its retry, then the install on the cache
+                 */
+                expect(install).toHaveBeenCalledTimes(3)
+            })
+
+            /**
+             * The error of the cleanup replaces the error of the unpack: with a zip, check
+             * that all its files were unpacked before the installed browser is used.
+             */
+            describe('with a zip archive', () => {
+                const zip = path.join('/cache', 'firefox', 'stable_157.0-firefox.zip')
+                const listing = (stdout: string | Error) => vi.mocked(cp.execFile).mockImplementation(((_cmd: string, _args: string[], _opts: object, callback: (err: Error | null, stdout?: string) => void) => {
+                    callback(stdout instanceof Error ? stdout : null, stdout instanceof Error ? undefined : stdout)
+                }) as never)
+
+                afterEach(() => {
+                    vi.mocked(cp.execFile).mockReset()
+                    vi.mocked(fsp.lstat).mockReset().mockResolvedValue({} as never)
+                })
+
+                it('uses the installed browser when all files of the archive are there', async () => {
+                    listing('firefox/\nfirefox/firefox\nfirefox/omni.ja\n')
+                    vi.mocked(install).mockClear().mockRejectedValueOnce(allProvidersFailed(`DefaultProvider: EBUSY: resource busy or locked, unlink '${zip}'`))
+
+                    await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                    expect(fsp.lstat).toHaveBeenCalledWith(path.join(installationDir, 'firefox/omni.ja'))
+                    expect(install).toHaveBeenCalledTimes(2)
+                })
+
+                it('installs again when a file of the archive is missing', async () => {
+                    listing('firefox/firefox\nfirefox/omni.ja\n')
+                    vi.mocked(fsp.lstat).mockImplementation(async (file) => {
+                        if (String(file).endsWith('omni.ja')) {
+                            throw new Error('ENOENT')
+                        }
+                        return {} as never
+                    })
+                    vi.mocked(install).mockClear().mockRejectedValueOnce(allProvidersFailed(`DefaultProvider: EBUSY: resource busy or locked, unlink '${zip}'`))
+
+                    await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                    expect(logMock.warn).toHaveBeenCalledWith(`Couldn't remove the download ${zip}, and 1 of its files are missing in ${installationDir}: installing again`)
+                    expect(fsp.rm).toHaveBeenCalledWith(installationDir, { recursive: true, force: true })
+                    expect(install).toHaveBeenCalledTimes(3)
+                })
+
+                it('installs again when the archive cannot be listed', async () => {
+                    listing(new Error('unzip: not found'))
+                    vi.mocked(install).mockClear().mockRejectedValueOnce(allProvidersFailed(`DefaultProvider: EBUSY: resource busy or locked, unlink '${zip}'`))
+
+                    await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                    expect(logMock.warn).toHaveBeenCalledWith(`Couldn't remove the download ${zip}, and couldn't list its files: installing again`)
+                    expect(install).toHaveBeenCalledTimes(3)
+                })
             })
 
             /**
@@ -1009,17 +1083,32 @@ describe('driver utils', () => {
 
                 await expect(setupPuppeteerBrowser(path.dirname(browserRoot), { browserName: 'firefox', browserVersion: 'stable' }))
                     .resolves.toEqual(expect.objectContaining({ executablePath }))
-                expect(install).toHaveBeenCalledTimes(1)
+                expect(install).toHaveBeenCalledTimes(2)
             })
 
             /**
-             * On Windows the Firefox installer can stay locked after it extracted the
-             * browser, so the install fails when it deletes the installer. The browser
-             * is complete, so the retry uses it. Removing it makes the retry download
-             * and extract it again, and Windows can lock the installer again.
+             * in the private cache of the install (`installBuild()`): the unpack can fail
+             * after the executable was written, and the retry must not use that build
              */
-            it('keeps the build folder when the executable is there', async () => {
-                vi.mocked(install).mockRejectedValueOnce(new Error('EBUSY: resource busy or locked, unlink \'Firefox Setup 157.0.exe\''))
+            it('removes the build folder of a failed install in its private cache, also when the executable is there', async () => {
+                vi.mocked(install).mockClear().mockRejectedValueOnce(new Error('unzip: invalid compressed data'))
+
+                await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
+
+                expect(fsp.rm).toHaveBeenCalledWith(installationDir, { recursive: true, force: true })
+                expect(logMock.warn).toHaveBeenCalledWith(`Removing ${installationDir} before the retry: the failed install can have left it partly unpacked`)
+                expect(logMock.info).not.toHaveBeenCalledWith(expect.stringContaining('Keeping'))
+                expect(install).toHaveBeenCalledTimes(3)
+            })
+
+            /**
+             * on the cache itself (after the build was published), the build is complete
+             * and other processes can use it
+             */
+            it('keeps the build folder in the cache when the executable is there', async () => {
+                vi.mocked(install).mockClear()
+                    .mockResolvedValueOnce({} as never)
+                    .mockRejectedValueOnce(new Error('spawnSync setup.exe EBUSY'))
 
                 await setupPuppeteerBrowser('/cache', { browserName: 'firefox', browserVersion: 'stable' })
 
