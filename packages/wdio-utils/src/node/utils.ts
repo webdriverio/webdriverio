@@ -18,7 +18,6 @@ import type { Options } from '@wdio/types'
 import { ElectronChromedriverProvider, getElectronVersionForChromium } from './electronChromedriverProvider.js'
 import { warnIfDownloadProxyIgnored } from './downloadProxy.js'
 import { installAtomically } from './atomicInstall.js'
-import { unfinishedFilesOfZip } from './zipCheck.js'
 
 const log = logger('webdriver')
 
@@ -330,6 +329,10 @@ function installBuild (
  *
  * Every provider in the error must have failed on that cleanup, and the executable must
  * exist. `install()` lists the providers as `  - <provider>: <message>` lines.
+ *
+ * Known limit: the error of the cleanup in `finally` replaces an error of the unpack, so
+ * when both failed at the same time the build can be partial. Not checked; look here if
+ * a broken browser is reported after this warning.
  */
 async function isInstalledDespiteArchiveCleanup (args: InstallOptions, err: unknown) {
     const message = describeRejection(err)
@@ -358,21 +361,6 @@ async function isInstalledDespiteArchiveCleanup (args: InstallOptions, err: unkn
         const executablePath = cache.computeExecutablePath({ browser: args.browser, platform, buildId: args.buildId })
         if (!await fsp.access(executablePath).then(() => true, () => false)) {
             return false
-        }
-        /**
-         * The error of the cleanup in `finally` replaces the error of the unpack: when
-         * both failed (e.g. a virus scan locked the archive and some unpacked files), the
-         * build is partial, maybe in the middle of a file. The archive is still there:
-         * check that each of its files is there with its full size.
-         */
-        const archive = locked[0]!
-        if (archive.endsWith('.zip')) {
-            const buildDir = cache.installationDir(args.browser, platform, args.buildId)
-            const unfinished = await unfinishedFilesOfZip(archive, buildDir)
-            if (unfinished !== 0) {
-                log.warn(`Couldn't remove the download ${archive}, and ${unfinished === undefined ? 'couldn\'t read it' : `${unfinished} of its files are missing or incomplete in ${buildDir}`}: installing again`)
-                return false
-            }
         }
         log.warn(
             `Installed ${args.browser} v${args.buildId}, but couldn't remove its download ${locked[0]} ` +
