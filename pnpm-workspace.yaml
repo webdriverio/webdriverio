@@ -25,10 +25,13 @@ allowBuilds:
   nx: false
 
 # first-party releases for v10 published inside pnpm's minimumReleaseAge window:
-# expect-webdriverio 8.0.0 (2026-10-10) and the driver majors (2026-10-09). The
-# entries can go once they are older than minimumReleaseAge.
+# expect-webdriverio 8.0.0 and @wdio/visual-service 11.0.0 (with
+# @wdio/image-comparison-core 3.0.0) on 2026-10-10, and the driver majors
+# (2026-10-09). The entries can go once they are older than minimumReleaseAge.
 minimumReleaseAgeExclude:
   - expect-webdriverio@8.0.0
+  - '@wdio/visual-service@11.0.0'
+  - '@wdio/image-comparison-core@3.0.0'
   - edgedriver@8.0.0
   - geckodriver@8.0.0
   - safaridriver@3.0.0

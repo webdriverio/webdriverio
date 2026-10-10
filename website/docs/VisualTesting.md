@@ -31,12 +31,20 @@ This allows you to:
 -   verify how your website will **support tabbing with your keyboard)**, see also [Tabbing through a website](#tabbing-through-a-website)
 -   and much more, see the [service](./visual-testing/service-options) and [method](./visual-testing/method-options) options
 
-The service is a lightweight module to retrieve the needed data and screenshots for all browsers/devices. The comparison power comes from [Pixelmatch](https://github.com/mapbox/pixelmatch), a fast and accurate perceptual image comparison library using the YIQ color space. Images are processed with [fast-png](https://github.com/image-js/fast-png), a zero-native-dependency PNG codec.
+The service is a lightweight module to retrieve the needed data and screenshots for all browsers/devices. The comparison power comes from [Pixelmatch](https://github.com/mapbox/pixelmatch), a fast and accurate perceptual image comparison library. Since v11, it measures color differences in the OKLab color space with the HyAB distance (pixelmatch 8), which is closer to how people see colors. Images are processed with [fast-png](https://github.com/image-js/fast-png), a zero-native-dependency PNG codec.
 
 :::info NOTE For Native/Hybrid Apps
 The methods `saveScreen`, `saveElement`, `checkScreen`, `checkElement` and the matchers `toMatchScreenSnapshot` and `toMatchElementSnapshot` can be used for Native Apps/Context.
 
 Please use the property `isHybridApp:true` in your service settings when you want to use it for Hybrid Apps.
+:::
+
+:::caution Upgrading from v10?
+
+`@wdio/visual-service` **v11** supports only **WebdriverIO v10** (and Node.js 22.19 or later). With WebdriverIO v9, stay on `@wdio/visual-service@10`.
+
+v11 compares colors with pixelmatch 8 (OKLab color space, HyAB distance) instead of YIQ. The threshold scale and the `ignore*` presets did not change, but **mismatch percentages can differ a little** from v10 for the same images. Your test code does not need to change. If a check depends on an exact mismatch percentage or a tight tolerance, check it again after the upgrade. See the [v11 migration guide](https://github.com/webdriverio/visual-testing/blob/main/docs/v11-migration.md) for all changes.
+
 :::
 
 :::caution Upgrading from v9 (or lower)?
@@ -54,6 +62,12 @@ The easiest way is to keep `@wdio/visual-service` as a dev-dependency in your `p
 
 ```sh
 npm install --save-dev @wdio/visual-service
+```
+
+This installs v11, which needs WebdriverIO v10. For a WebdriverIO v9 project, install v10 of the service:
+
+```sh
+npm install --save-dev @wdio/visual-service@10
 ```
 
 ## Usage
@@ -340,6 +354,8 @@ export const config = {
 ### Version 10 and up (current)
 
 For version 10 and up, this module has no additional system dependencies beyond the general [project requirements](/docs/gettingstarted#system-requirements). It uses [Pixelmatch](https://github.com/mapbox/pixelmatch) for perceptual image comparison and [fast-png](https://github.com/image-js/fast-png) for image encoding/decoding. Both are pure JavaScript with zero native dependencies.
+
+Version 11 needs WebdriverIO v10 and Node.js 22.19 or later, the same as WebdriverIO v10. Version 10 works with WebdriverIO v9 (9.29.1 or later) and v10.
 
 ### Version 5 to 9 (legacy)
 
