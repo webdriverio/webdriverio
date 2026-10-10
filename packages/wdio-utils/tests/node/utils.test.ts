@@ -128,6 +128,30 @@ describe('setupChromedriver', () => {
     })
 
     /**
+     * without a zip tool the retry fails the same way, so tell how to fix it at once
+     */
+    it('fails with a hint and no retry when the system has no zip tool', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear().mockRejectedValueOnce(new Error(
+            'All providers failed for chromedriver 116.0.5845.110:\n  - DefaultProvider: Extraction failed: no zip archiver is available. ' +
+            'Install `unzip` (or `tar.exe`/Powershell on Windows), or add the optional `yauzl` dependency.'
+        ))
+
+        try {
+            const error = await setupChromedriver('/zip/cache', '116.0.5845.110').catch((err) => err)
+
+            expect(error.message).toContain('no zip archiver is available')
+            expect(error.message).toContain('WebdriverIO extracts browsers and Chromedriver with the system `unzip` command')
+            expect(error.message).toContain('apt-get install -y unzip')
+            expect(install).toHaveBeenCalledTimes(1)
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+        }
+    })
+
+    /**
      * behind a proxy-only network the version lookup is the first request that fails,
      * so the warning must come before it
      */

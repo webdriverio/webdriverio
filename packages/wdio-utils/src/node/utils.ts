@@ -19,6 +19,15 @@ import { ElectronChromedriverProvider, getElectronVersionForChromium } from './e
 import { warnIfDownloadProxyIgnored } from './downloadProxy.js'
 
 const log = logger('webdriver')
+
+/**
+ * `@puppeteer/browsers` extracts zip files with the system `unzip` command (`tar.exe` or
+ * PowerShell on Windows). WebdriverIO does not install its JavaScript fallback.
+ */
+const MISSING_ZIP_TOOL = 'no zip archiver is available'
+const UNZIP_HINT = 'WebdriverIO extracts browsers and Chromedriver with the system `unzip` command ' +
+    '(`tar.exe` or PowerShell on Windows). Install it, e.g. `apt-get install -y unzip` or `apk add unzip`. ' +
+    'See https://webdriver.io/docs/docker#images-where-webdriverio-downloads-the-browser'
 const EXCLUDED_PARAMS = ['version', 'help']
 export const DEFAULT_EDGEDRIVER_CDN_URL = 'https://msedgedriver.microsoft.com'
 const LEGACY_EDGEDRIVER_CDN_URL = 'https://msedgedriver.azureedge.net'
@@ -213,6 +222,12 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
          * `message` and never let `new Error()` stringify an object into `[object Object]`
          */
         const details = redactCredentials(`Failed downloading ${args.browser} v${args.buildId} using ${JSON.stringify(args)}: ${describeRejection(err)}`)
+        /**
+         * a missing zip tool fails the retry the same way
+         */
+        if (details.includes(MISSING_ZIP_TOOL)) {
+            throw new Error(`${details}\n${UNZIP_HINT}`)
+        }
         if (retry) {
             throw new Error(details)
         }
