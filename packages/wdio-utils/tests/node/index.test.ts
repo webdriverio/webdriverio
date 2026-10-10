@@ -84,6 +84,13 @@ vi.mock('@puppeteer/browsers', () => ({
     install: vi.fn().mockResolvedValue({})
 }))
 
+/**
+ * the atomic install has its own tests (`atomicInstall.test.ts`) on real files
+ */
+vi.mock('../../src/node/atomicInstall.js', () => ({
+    installAtomically: vi.fn((target: { cacheDir: string }, install: (cacheDir: string) => Promise<void>) => install(target.cacheDir))
+}))
+
 vi.mock('../../src/node/utils.js', async (actualMod) => ({
     ...(await actualMod() as any),
     setupPuppeteerBrowser: vi.fn().mockResolvedValue({
