@@ -14,6 +14,7 @@ import {
     canAccess, getCacheDir, setupChromedriver, setupGeckodriver, setupEdgedriver
 } from '../../src/node/utils.js'
 import { getElectronVersionForChromium } from '../../src/node/electronChromedriverProvider.js'
+import { warnIfDownloadProxyIgnored } from '../../src/node/downloadProxy.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -85,6 +86,10 @@ vi.mock('../../src/node/electronChromedriverProvider.js', () => ({
     getElectronVersionForChromium: vi.fn()
 }))
 
+vi.mock('../../src/node/downloadProxy.js', () => ({
+    warnIfDownloadProxyIgnored: vi.fn()
+}))
+
 vi.mock('@puppeteer/browsers', async () => ({
     Cache: vi.fn(function () {
         return { installationDir: () => '/foo/bar', writeExecutablePath: vi.fn() }
@@ -101,6 +106,27 @@ vi.mock('@puppeteer/browsers', async () => ({
 }))
 
 describe('setupChromedriver', () => {
+    /**
+     * `@puppeteer/browsers` can ignore a configured proxy, see `downloadProxy.ts`
+     */
+    it('checks the download proxy before it installs', async () => {
+        const fsp = (await import('node:fs/promises')).default
+        vi.mocked(detectBrowserPlatform).mockReturnValue('linux' as never)
+        vi.mocked(fsp.access).mockRejectedValue(new Error('not installed yet'))
+        vi.mocked(install).mockClear()
+        vi.mocked(warnIfDownloadProxyIgnored).mockClear()
+
+        try {
+            await setupChromedriver('/proxy/cache', '116.0.5845.110')
+
+            expect(warnIfDownloadProxyIgnored).toHaveBeenCalled()
+            expect(vi.mocked(warnIfDownloadProxyIgnored).mock.invocationCallOrder[0])
+                .toBeLessThan(vi.mocked(install).mock.invocationCallOrder[0])
+        } finally {
+            vi.mocked(fsp.access).mockResolvedValue(undefined as never)
+        }
+    })
+
     /**
      * `chrome` and `chromium` are both in the Chrome browser family, so a config with
      * both asks for Chromedriver twice at the same time. The two installs used to race

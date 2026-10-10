@@ -16,6 +16,7 @@ import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
 import { ElectronChromedriverProvider, getElectronVersionForChromium } from './electronChromedriverProvider.js'
+import { warnIfDownloadProxyIgnored } from './downloadProxy.js'
 
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
@@ -205,6 +206,7 @@ function describeRejection (err: unknown) {
  * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
  */
 const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
+    warnIfDownloadProxyIgnored()
     await install(args).catch(async (err) => {
         /**
          * a rejection is not guaranteed to be an Error, so never assume a writable
