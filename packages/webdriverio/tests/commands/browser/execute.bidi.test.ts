@@ -117,11 +117,18 @@ describe('execute BiDi script timeout', () => {
         expect(sentScriptTimeout(browser)).toBe(60_000)
     })
 
-    it('sets no script timeout for a null one or one that a timer cannot hold', async () => {
-        for (const script of [null, Number.MAX_SAFE_INTEGER]) {
-            const browser = scriptTimeoutBrowser({ timeouts: { script } })
-            await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
-            expect(sentScriptTimeout(browser)).toBeUndefined()
-        }
+    it('sets no script timeout for a null one', async () => {
+        const browser = scriptTimeoutBrowser({ timeouts: { script: null } })
+        await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
+        expect(sentScriptTimeout(browser)).toBeUndefined()
+    })
+
+    /**
+     * the transport starts no timer for a value that a timer cannot hold
+     */
+    it('passes a very long script timeout on as it is', async () => {
+        const browser = scriptTimeoutBrowser({ timeouts: { script: Number.MAX_SAFE_INTEGER } })
+        await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
+        expect(sentScriptTimeout(browser)).toBe(Number.MAX_SAFE_INTEGER)
     })
 })

@@ -9,10 +9,6 @@
  * the default `script` timeout of the WebDriver spec
  */
 const DEFAULT_SCRIPT_TIMEOUT = 30_000
-/**
- * `setTimeout` fires at once for a longer delay, so a longer timeout means no limit
- */
-const MAX_TIMER_DELAY = 2_147_483_647
 
 interface CommandResultEvent {
     command: string
@@ -94,13 +90,4 @@ export async function scriptTimeoutOf (browser: WebdriverIO.Browser): Promise<nu
     }
     scriptTimeouts.set(browser, { sessionId, script })
     return script
-}
-
-/**
- * The `script` timeout to give a BiDi command, or `undefined` for no limit
- * (`null`, or more than a timer can hold).
- */
-export async function bidiScriptTimeoutOf (browser: WebdriverIO.Browser): Promise<number | undefined> {
-    const timeout = await scriptTimeoutOf(browser)
-    return timeout === null || timeout > MAX_TIMER_DELAY ? undefined : timeout
 }

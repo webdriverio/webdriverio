@@ -5,7 +5,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
-import { bidiScriptTimeoutOf } from '../../utils/scriptTimeout.js'
+import { scriptTimeoutOf } from '../../utils/scriptTimeout.js'
 import { contextIdOf, heldBrowsingContext, assertFrameAttached } from '../../session/browsingContext.js'
 import { polyfillFn } from '../../scripts/polyfill.js'
 import type { TransformElement, TransformReturn } from '../../types.js'
@@ -90,8 +90,8 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
                 context
             }
         }
-        const scriptTimeout = await bidiScriptTimeoutOf(browser)
-        if (scriptTimeout !== undefined) {
+        const scriptTimeout = await scriptTimeoutOf(browser)
+        if (scriptTimeout !== null) {
             Object.assign(params, { [BIDI_SCRIPT_TIMEOUT]: scriptTimeout })
         }
         const result = await browser.scriptCallFunction(params)

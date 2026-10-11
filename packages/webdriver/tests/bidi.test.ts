@@ -210,6 +210,24 @@ describe('BidiCore', () => {
             vi.useRealTimers()
         })
 
+        it('starts no script timer for a timeout that a timer cannot hold', async () => {
+            vi.useFakeTimers()
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+
+            /**
+             * `setTimeout` fires at once for a delay above 2 ** 31 - 1 ms
+             */
+            for (const [id, scriptTimeout] of [[1, 2 ** 31], [2, Number.MAX_SAFE_INTEGER]] as const) {
+                const params = { functionDeclaration: '() => {}', [BIDI_SCRIPT_TIMEOUT]: scriptTimeout }
+                const promise = handler.send({ method: 'script.callFunction', params } as any)
+                await vi.advanceTimersByTimeAsync(60_000)
+                deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id, result: 'done' })))
+                await expect(promise).resolves.toEqual({ id, result: 'done' })
+            }
+            vi.useRealTimers()
+        })
+
         it('resolves a command that answers within its script timeout', async () => {
             vi.useFakeTimers()
             const handler = new BidiCore('ws://foo/bar')

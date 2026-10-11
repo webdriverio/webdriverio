@@ -34,9 +34,11 @@ export const BIDI_MASK = Symbol.for('wdio.bidi.mask')
 export const BIDI_SCRIPT_TIMEOUT = Symbol.for('wdio.bidi.scriptTimeout')
 
 /**
- * `setTimeout` fires at once for a longer delay
+ * The longest delay `setTimeout` accepts: Node.js and browsers keep it in a
+ * 32-bit signed integer. A longer delay fires after 1 ms (Node.js prints a
+ * `TimeoutOverflowWarning`), so a longer script timeout means no limit.
  */
-const MAX_TIMER_DELAY = 2_147_483_647
+const MAX_TIMER_DELAY = 2 ** 31 - 1
 
 /**
  * how many timed out commands `BidiCore` remembers to ignore their late result;
