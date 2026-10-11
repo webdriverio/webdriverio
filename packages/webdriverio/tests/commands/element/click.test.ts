@@ -16,7 +16,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.spyOn(browser, 'execute').mockResolvedValue('hit')
 
         await elem.click()
         // @ts-expect-error mock implementation
@@ -32,7 +32,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.spyOn(browser, 'execute').mockResolvedValue('hit')
 
         await elem.click({ button: 'left' })
         // @ts-expect-error mock implementation
@@ -56,7 +56,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.spyOn(browser, 'execute').mockResolvedValue('hit')
         await elem.click({ button: 'right' })
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[2][0].pathname)
@@ -83,7 +83,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.spyOn(browser, 'execute').mockResolvedValue('hit')
         await elem.click({ button: 'middle' })
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[2][0].pathname)
@@ -108,7 +108,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.spyOn(browser, 'execute').mockResolvedValue('hit')
         await elem.click({ y: 15 })
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[3][0].pathname)
@@ -124,7 +124,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.spyOn(browser, 'execute').mockResolvedValue('hit')
         await elem.click({ button: 2, x: 20, y: 15 })
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[3][0].pathname)
@@ -152,7 +152,7 @@ describe('click test', () => {
             } as any
         })
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.spyOn(browser, 'execute').mockResolvedValue('hit')
         await elem.click({ duration: 1000 })
         // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[2][0].pathname)
@@ -171,7 +171,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.spyOn(browser, 'execute').mockResolvedValue('hit')
 
         // @ts-expect-error invalid param
         await expect(elem.click([])).rejects.toThrow('Options must be an object')
@@ -185,7 +185,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.spyOn(browser, 'execute').mockResolvedValue('hit')
 
         // @ts-expect-error invalid param
         await expect(elem.click({ x: 'not-supported' })).rejects.toThrow('Coordinates must be integers')
@@ -199,7 +199,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.spyOn(browser, 'execute').mockResolvedValue('hit')
 
         // @ts-expect-error invalid param
         await expect(elem.click({ button: 'not-supported' })).rejects.toThrow('Button type not supported.')
@@ -213,7 +213,7 @@ describe('click test', () => {
             }
         })
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+        vi.spyOn(browser, 'execute').mockResolvedValue('hit')
         await elem.click({ button: 'right' })
 
         expect(vi.mocked(fetch).mock.calls.length)
@@ -233,63 +233,141 @@ describe('click test', () => {
         vi.mocked(fetch).mockClear()
     })
 
-    it('should scroll the element into view before the pointer action', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
-        const elem = await browser.$('#foo')
-        const scrollIntoView = vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
-        vi.mocked(fetch).mockClear()
+    describe('bring the element under the pointer before a click with options', () => {
+        const setup = async () => {
+            const browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'foobar'
+                }
+            })
+            const elem = await browser.$('#foo')
+            const scrollIntoView = vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
+            const execute = vi.spyOn(browser, 'execute')
+            vi.mocked(fetch).mockClear()
+            return { elem, scrollIntoView, execute }
+        }
+        const actionCalls = () => vi.mocked(fetch).mock.calls
+            .map((call, i) => ({ pathname: (call[0] as URL).pathname, method: call[1]?.method, order: vi.mocked(fetch).mock.invocationCallOrder[i] }))
+            .filter(({ pathname, method }) => pathname === '/session/foobar-123/actions' && method === 'POST')
 
-        await elem.click({ button: 'left' })
-        expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' })
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[0][0].pathname).toBe('/session/foobar-123/actions')
-        expect(scrollIntoView.mock.invocationCallOrder[0])
-            .toBeLessThan(vi.mocked(fetch).mock.invocationCallOrder[0])
+        it('should not scroll when the pointer already hits the element', async () => {
+            const { elem, scrollIntoView, execute } = await setup()
+            execute.mockResolvedValueOnce('hit')
+
+            await elem.click({ button: 'left' })
+            expect(execute).toHaveBeenCalledTimes(1)
+            expect(scrollIntoView).not.toHaveBeenCalled()
+            expect(actionCalls()).toHaveLength(1)
+        })
+
+        it('should scroll the element just into view when the pointer misses it', async () => {
+            const { elem, scrollIntoView, execute } = await setup()
+            execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('hit')
+
+            await elem.click({ button: 'left' })
+            expect(scrollIntoView).toHaveBeenCalledTimes(1)
+            expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' })
+            expect(execute).toHaveBeenCalledTimes(2)
+            expect(scrollIntoView.mock.invocationCallOrder[0]).toBeLessThan(actionCalls()[0].order)
+        })
+
+        it('should scroll the element to the center when it is still covered after the nearest scroll', async () => {
+            const { elem, scrollIntoView, execute } = await setup()
+            execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('missed')
+
+            await elem.click({ button: 'left' })
+            expect(scrollIntoView.mock.calls).toEqual([
+                [{ block: 'nearest', inline: 'nearest' }],
+                [{ block: 'center', inline: 'center' }]
+            ])
+            expect(scrollIntoView.mock.invocationCallOrder[1]).toBeLessThan(actionCalls()[0].order)
+            expect(actionCalls()).toHaveLength(1)
+        })
+
+        it('should not scroll an element without a box', async () => {
+            const { elem, scrollIntoView, execute } = await setup()
+            execute.mockResolvedValueOnce('no-box')
+
+            await elem.click({ button: 'left' })
+            expect(scrollIntoView).not.toHaveBeenCalled()
+            expect(actionCalls()).toHaveLength(1)
+        })
+
+        it('should still click when the element could not be checked or scrolled', async () => {
+            const { elem, scrollIntoView, execute } = await setup()
+            execute.mockRejectedValueOnce(new Error('stale element reference'))
+
+            await elem.click({ button: 'left' })
+            expect(scrollIntoView).not.toHaveBeenCalled()
+            expect(actionCalls()).toHaveLength(1)
+
+            execute.mockResolvedValueOnce('missed')
+            scrollIntoView.mockRejectedValueOnce(new Error('stale element reference'))
+            vi.mocked(fetch).mockClear()
+            await elem.click({ button: 'left' })
+            expect(actionCalls()).toHaveLength(1)
+        })
+
+        it('should not check or scroll for a click without options', async () => {
+            const { elem, scrollIntoView, execute } = await setup()
+
+            await elem.click()
+            expect(execute).not.toHaveBeenCalled()
+            expect(scrollIntoView).not.toHaveBeenCalled()
+        })
     })
 
-    it('should still click when the element could not be scrolled into view', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
-        const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'scrollIntoView').mockRejectedValue(new Error('stale element'))
-        vi.mocked(fetch).mockClear()
-
-        await elem.click({ button: 'left' })
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[0][0].pathname).toBe('/session/foobar-123/actions')
-    })
-
-    it.each([
-        ['a native mobile context', { isNativeContext: true }],
-        ['a Windows app', { isNativeContext: false, isWindowsApp: true }],
-        ['a Mac app', { isNativeContext: false, isMacApp: true }]
-    ])('should not scroll in %s', async (_, context) => {
+    const nativeScope = (context: Record<string, unknown>, perform = vi.fn()) => {
         const action = {
             move: vi.fn().mockReturnThis(),
             down: vi.fn().mockReturnThis(),
             pause: vi.fn().mockReturnThis(),
             up: vi.fn().mockReturnThis(),
-            perform: vi.fn()
+            perform
         }
-        const scope = {
+        return {
             elementId: 'native-elem',
             isMobile: true,
             ...context,
+            execute: vi.fn(),
             scrollIntoView: vi.fn(),
-            action: vi.fn(() => action)
+            action: vi.fn(() => action),
+            perform
         }
+    }
+
+    it.each([
+        ['a native mobile context', { isNativeContext: true }],
+        ['a Windows app', { isNativeContext: false, isWindowsApp: true }],
+        ['a Mac app', { isNativeContext: false, isMacApp: true }]
+    ])('should not check or scroll in %s', async (_, context) => {
+        const scope = nativeScope(context)
 
         await click.call(scope as never, { button: 'left' })
+        expect(scope.execute).not.toHaveBeenCalled()
         expect(scope.scrollIntoView).not.toHaveBeenCalled()
-        expect(action.perform).toHaveBeenCalled()
+        expect(scope.perform).toHaveBeenCalled()
+    })
+
+    it('should check and scroll in a mobile browser', async () => {
+        const scope = nativeScope({ isNativeContext: false })
+        scope.execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('hit')
+
+        await click.call(scope as never, { button: 'left' })
+        expect(scope.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' })
+        expect(scope.perform).toHaveBeenCalled()
+    })
+
+    it('should scroll to the center and click again when the pointer action fails', async () => {
+        const perform = vi.fn()
+            .mockRejectedValueOnce(new Error('move target out of bounds'))
+            .mockResolvedValueOnce(undefined)
+        const scope = nativeScope({ isMobile: false }, perform)
+        scope.execute.mockResolvedValueOnce('hit')
+
+        await click.call(scope as never, { button: 'left' })
+        expect(scope.scrollIntoView).toHaveBeenCalledWith({ block: 'center', inline: 'center' })
+        expect(perform).toHaveBeenCalledTimes(2)
     })
 })

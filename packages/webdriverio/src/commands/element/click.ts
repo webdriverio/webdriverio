@@ -14,6 +14,9 @@ const log = logger('webdriver')
  * selected element when no options are passed. When options object is passed it uses action class instead of webdriver click which
  * give added capabilities like passing button type, coordinates etc. By default, when using options a release action
  * command is send after performing the click action, pass `option.skipRelease=true` to skip this action.
+ * Before the actions, when the pointer would not hit the element at its center (it is outside the window, hidden by a
+ * scroll container or covered by a fixed header or footer), the element is scrolled into view, then to the center
+ * if it is still covered. An element that the pointer already hits is not scrolled.
  *
  * :::info
  *
@@ -130,6 +133,72 @@ async function workaround(element: WebdriverIO.Element) {
     await element.scrollIntoView({ block: 'center', inline: 'center' })
 }
 
+/**
+ * WebDriver actions don't scroll: the pointer goes to the in-view center point of the
+ * element, which only takes the window into account. ChromeDriver scrolls anyway,
+ * geckodriver follows the spec, so the click of an element that is inside the window
+ * but hidden by a scrollable ancestor landed on that ancestor, without an error.
+ * Bring the element under the pointer first, as the Element Click command does:
+ * - the pointer already hits the element: don't scroll, the page doesn't move
+ * - scroll it just into view ("nearest"), and check again
+ * - still missed, for example under a fixed header or footer: scroll it to the center
+ * An element without a box (`display: none`) is left to the driver, which throws.
+ */
+async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.Element) {
+    try {
+        let hit = await hitAtCenter(browser, element)
+        if (hit !== 'missed') {
+            return
+        }
+        await element.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+        hit = await hitAtCenter(browser, element)
+        if (hit !== 'missed') {
+            return
+        }
+        await workaround(element)
+    } catch (err) {
+        log.debug(`Could not scroll the element into view before the click: ${(err as Error).message}`)
+    }
+}
+
+/**
+ * Hit-tests the in-view center point of the element, computed as in the WebDriver
+ * spec (the first client rect, clipped by the viewport only). The pointer hits the
+ * element when the top element at that point is the element or one of its
+ * descendants, also inside shadow roots.
+ */
+function hitAtCenter(browser: WebdriverIO.Browser, element: WebdriverIO.Element): Promise<'hit' | 'missed' | 'no-box'> {
+    return browser.execute((elem: HTMLElement) => {
+        const rect = elem.getClientRects()[0]
+        if (!rect) {
+            return 'no-box' as const
+        }
+        const left = Math.max(0, Math.min(rect.x, rect.x + rect.width))
+        const right = Math.min(window.innerWidth, Math.max(rect.x, rect.x + rect.width))
+        const top = Math.max(0, Math.min(rect.y, rect.y + rect.height))
+        const bottom = Math.min(window.innerHeight, Math.max(rect.y, rect.y + rect.height))
+        const x = Math.floor((left + right) / 2)
+        const y = Math.floor((top + bottom) / 2)
+        if (x < 0 || x > window.innerWidth || y < 0 || y > window.innerHeight) {
+            return 'missed' as const
+        }
+        let hit = document.elementFromPoint(x, y)
+        while (hit?.shadowRoot) {
+            const inner = hit.shadowRoot.elementFromPoint(x, y)
+            if (!inner || inner === hit) {
+                break
+            }
+            hit = inner
+        }
+        for (let node: Node | null = hit; node; node = node.parentNode || (node as ShadowRoot).host || null) {
+            if (node === elem) {
+                return 'hit' as const
+            }
+        }
+        return 'missed' as const
+    }, element as unknown as HTMLElement)
+}
+
 async function elementClick(element: WebdriverIO.Element) {
     try {
         return await element.elementClick(element.elementId)
@@ -196,18 +265,9 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
             .up({ button })
             .perform(skipRelease)
     }
-    /**
-     * WebDriver actions don't scroll: the pointer goes to the in-view center point of the
-     * element, which only takes the window into account. ChromeDriver scrolls anyway,
-     * geckodriver follows the spec, so the click of an element that is inside the window
-     * but hidden by a scrollable ancestor landed on that ancestor, without an error.
-     * Bring the element into view first, as the Element Click command does.
-     */
     const isNativeApp = browser.isMobile && (await browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)
     if (!isNativeApp) {
-        await element.scrollIntoView({ block: 'nearest', inline: 'nearest' }).catch((err: Error) => {
-            log.debug(`Could not scroll the element into view before the click: ${err.message}`)
-        })
+        await bringIntoView(browser, element)
     }
     try {
         return await clickNested()
