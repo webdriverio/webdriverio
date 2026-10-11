@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
 
 import '../src/node.js'
-import { BIDI_MASK, BIDI_SCRIPT_TIMEOUT, BidiCore, maskBidiCommand, parseBidiCommand } from '../src/bidi/core.js'
+import { BIDI_MASK, BIDI_SCRIPT_TIMEOUT, BidiCore, MAX_EXPIRED_COMMANDS, maskBidiCommand, parseBidiCommand } from '../src/bidi/core.js'
 import { environment } from '../src/environment.js'
 import '../src/browser.js'
 
@@ -182,6 +182,31 @@ describe('BidiCore', () => {
              * the late result of the script is ignored
              */
             expect(() => deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'late' })))).not.toThrow()
+            vi.useRealTimers()
+        })
+
+        it('keeps at most MAX_EXPIRED_COMMANDS timed out commands to ignore', async () => {
+            vi.useFakeTimers()
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+
+            const count = MAX_EXPIRED_COMMANDS + 1
+            const results = Array.from({ length: count }, () => handler.send({
+                method: 'script.callFunction',
+                params: { functionDeclaration: '() => {}', [BIDI_SCRIPT_TIMEOUT]: 10 }
+            } as any).catch((err: Error) => err.name))
+            await vi.advanceTimersByTimeAsync(10)
+            expect(new Set(await Promise.all(results))).toEqual(new Set(['script timeout']))
+
+            const { logMock } = await import('@wdio/logger') as unknown as { logMock: { error: ReturnType<typeof vi.fn> } }
+            logMock.error.mockClear()
+            /**
+             * the newest expired command is still known, the oldest one was dropped
+             */
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: count, result: 'late' })))
+            expect(logMock.error).not.toHaveBeenCalled()
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'late' })))
+            expect(logMock.error).toHaveBeenCalledWith('Couldn\'t resolve command with id 1')
             vi.useRealTimers()
         })
 

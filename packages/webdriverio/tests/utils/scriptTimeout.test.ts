@@ -53,6 +53,19 @@ describe('scriptTimeoutOf', () => {
         expect(await scriptTimeoutOf(browser)).toBe(5_000)
     })
 
+    it('returns a script timeout that setTimeouts set while the session timeout was read', async () => {
+        let answer: (timeouts: unknown) => void = () => {}
+        const browser = fakeBrowser({}, 'session-1', () => new Promise((resolve) => (answer = resolve)))
+        trackScriptTimeout(browser)
+
+        const timeout = scriptTimeoutOf(browser)
+        browser.emit('result', setTimeoutsResult(2_000))
+        answer({ script: 30_000 })
+
+        expect(await timeout).toBe(2_000)
+        expect(await scriptTimeoutOf(browser)).toBe(2_000)
+    })
+
     it('uses the default of the WebDriver spec when the session timeout cannot be read', async () => {
         expect(await scriptTimeoutOf(fakeBrowser())).toBe(30_000)
         expect(await scriptTimeoutOf(fakeBrowser({}, 'session-1', async () => { throw new Error('unknown command') }))).toBe(30_000)

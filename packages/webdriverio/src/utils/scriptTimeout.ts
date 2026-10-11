@@ -86,11 +86,13 @@ export async function scriptTimeoutOf (browser: WebdriverIO.Browser): Promise<nu
         : undefined
     const script = fromSession === null || typeof fromSession === 'number' ? fromSession : DEFAULT_SCRIPT_TIMEOUT
     /**
-     * keep a value that `setTimeouts` stored while the request ran
+     * a successful `setTimeouts` while the request ran is newer than its answer
      */
-    if (!scriptTimeouts.has(browser) || scriptTimeouts.get(browser)!.sessionId !== sessionId) {
-        scriptTimeouts.set(browser, { sessionId, script })
+    const current = scriptTimeouts.get(browser)
+    if (current && current.sessionId === sessionId) {
+        return current.script
     }
+    scriptTimeouts.set(browser, { sessionId, script })
     return script
 }
 

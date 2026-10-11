@@ -452,6 +452,34 @@ describe('WebdriverIO module interface', () => {
             expect(vi.mocked(WebDriver.attachToSession).mock.calls[0][0]).toMatchSnapshot()
         })
 
+        /**
+         * the capabilities of `attach()` come from the user, e.g. the ones the
+         * session had when it was created
+         */
+        it('reads the script timeout of the attached session, not the one of its capabilities', async () => {
+            const { scriptTimeoutOf } = await import('../src/utils/scriptTimeout.js')
+            const getTimeouts = vi.fn(async () => ({ implicit: 0, pageLoad: 300_000, script: 2_000 }))
+            vi.mocked(WebDriver.attachToSession).mockReturnValueOnce({
+                sessionId: 'attached-1',
+                options: {},
+                addCommand: vi.fn(),
+                overwriteCommand: vi.fn(),
+                strategies: new Map(),
+                isWebDriver: true,
+                capabilities: { browserName: 'chrome', timeouts: { implicit: 0, pageLoad: 300_000, script: 30_000 } },
+                on: vi.fn(),
+                getTimeouts
+            } as any)
+
+            const driver = await attach({
+                sessionId: 'attached-1',
+                capabilities: { browserName: 'chrome', timeouts: { implicit: 0, pageLoad: 300_000, script: 30_000 } }
+            })
+
+            expect(await scriptTimeoutOf(driver)).toBe(2_000)
+            expect(getTimeouts).toHaveBeenCalledTimes(1)
+        })
+
         it('should apply attach parameters with priority to Driver.attachToSession', async () => {
 
             let capturedParams

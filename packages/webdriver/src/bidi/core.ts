@@ -38,6 +38,12 @@ export const BIDI_SCRIPT_TIMEOUT = Symbol.for('wdio.bidi.scriptTimeout')
  */
 const MAX_TIMER_DELAY = 2_147_483_647
 
+/**
+ * how many timed out commands `BidiCore` remembers to ignore their late result;
+ * a script that never settles never answers, so the oldest ids are dropped
+ */
+export const MAX_EXPIRED_COMMANDS = 1000
+
 export class BidiCore {
     #id = 0
     #ws: WebSocket | undefined
@@ -210,6 +216,9 @@ export class BidiCore {
                     error.name = 'script timeout'
                     reject(error)
                     this.#pendingCommands.delete(id)
+                    if (this.#expiredCommands.size >= MAX_EXPIRED_COMMANDS) {
+                        this.#expiredCommands.delete(this.#expiredCommands.values().next().value!)
+                    }
                     this.#expiredCommands.add(id)
                 }, scriptTimeout)
                 : undefined
