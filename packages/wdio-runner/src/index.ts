@@ -547,7 +547,7 @@ export default class Runner extends EventEmitter {
             })
         }
 
-        await this._browser?.deleteSession()
+        await this.#deleteSessions()
         process.send!(<SessionEndedMessage>{
             origin: 'worker',
             name: 'sessionEnded',
@@ -568,6 +568,36 @@ export default class Runner extends EventEmitter {
 
         const afterSessionArgs: AfterSessionArgs = [this._config!, capabilities, this._specs as string[]]
         await executeHooksWithArgs('afterSession', this._config!.afterSession!, afterSessionArgs)
+    }
+
+    /**
+     * Delete the session of every browser. A session can already be gone (a
+     * browser crash, a cloud timeout, a lost network): then `deleteSession`
+     * fails. Log it and go on, so the worker still sends `sessionEnded`, runs
+     * the `afterSession` hook and gives the reporters `runner:end`. Otherwise
+     * no report is written.
+     */
+    async #deleteSessions () {
+        const multiRemoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
+        const sessions = this._isMultiRemote
+            ? multiRemoteBrowser.instances.map((browserName: string) => ({
+                browserName,
+                browser: multiRemoteBrowser.getInstance(browserName) as WebdriverIO.Browser
+            }))
+            : [{ browserName: undefined, browser: this._browser as WebdriverIO.Browser }]
+
+        const results = await Promise.allSettled(sessions.map(({ browser }) => browser?.deleteSession()))
+        results.forEach((result, i) => {
+            if (result.status === 'fulfilled') {
+                return
+            }
+            const { browserName } = sessions[i]
+            const reason = result.reason instanceof Error ? result.reason.message : String(result.reason)
+            log.error(
+                `Failed to end the session${browserName ? ` of "${browserName}"` : ''}: ${reason}\n` +
+                'The browser may still be running (for example on a cloud service). Close it manually if needed.'
+            )
+        })
     }
 }
 

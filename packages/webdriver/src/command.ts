@@ -170,6 +170,39 @@ export default function (
         const options = isMasked ? { ...this.options,  headers: { ...this.options.headers, ...APPIUM_MASKING_HEADER } } : this.options
 
         /**
+         * After `deleteSession`, close the WebDriver Bidi socket, kill the driver
+         * process and clear the logger stream. This also runs when the command
+         * fails (the session may already be gone after a browser crash, a cloud
+         * timeout or a lost network), so the driver process does not keep running.
+         */
+        let sessionCleanedUp = false
+        const cleanUpSession = () => {
+            if (command !== 'deleteSession' || sessionCleanedUp) {
+                return
+            }
+            sessionCleanedUp = true
+
+            /**
+             * close WebDriver Bidi socket
+             */
+            const browser = this as { _bidiHandler?: BidiHandler }
+            browser._bidiHandler?.close()
+
+            /**
+             * kill driver process if there is one
+             */
+            const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
+            environment.value.killDriverProcess(this.capabilities, shutdownDriver)
+
+            /**
+             * clear logger stream if session has been terminated
+             */
+            if (!environment.value.variables.WDIO_WORKER_ID) {
+                logger.clearLogger()
+            }
+        }
+
+        /**
          * use then here so we can better unit test what happens before and after the request
          */
         return request.makeRequest(options, this.sessionId).then((result) => {
@@ -186,31 +219,12 @@ export default function (
             }
 
             this.emit('result', { command, method, endpoint, body: maskedBody, result })
-
-            if (command === 'deleteSession') {
-                /**
-                 * close WebDriver Bidi socket
-                 */
-                const browser = this as { _bidiHandler?: BidiHandler }
-                browser._bidiHandler?.close()
-
-                /**
-                 * kill driver process if there is one
-                 */
-                const shutdownDriver = (maskedBody.deleteSessionOpts as { shutdownDriver?: boolean })?.shutdownDriver !== false
-                environment.value.killDriverProcess(this.capabilities, shutdownDriver)
-
-                /**
-                 * clear logger stream if session has been terminated
-                 */
-                if (!environment.value.variables.WDIO_WORKER_ID) {
-                    logger.clearLogger()
-                }
-            }
+            cleanUpSession()
 
             return result.value as WebDriverResponse | BidiResponses
         }).catch((error) => {
             this.emit('result', { command, method, endpoint, body: maskedBody, result: { error } })
+            cleanUpSession()
             throw error
         }).finally(() => {
             cleanup()
