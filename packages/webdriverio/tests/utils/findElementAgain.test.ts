@@ -521,6 +521,53 @@ describe('finding an element again', () => {
         })
     })
 
+    /**
+     * `$$(selector)[index]` waits `waitforTimeout` (100 ms here) for the index. When the
+     * list never reaches it, the item is a "not found" element, like `$(selector)` (#12576)
+     */
+    describe('an index of $$() that the list never reaches', () => {
+        beforeEach(() => {
+            driver.light.set('.item', ['elem-a'])
+        })
+
+        it('gives a not found element after the wait, not an error', async () => {
+            const browser = await session()
+            const start = Date.now()
+            const elem = await browser.$$('.item')[3]
+            expect(Date.now() - start).toBeGreaterThanOrEqual(90)
+            expect(elem.elementId).toBeUndefined()
+            expect(elem.index).toBe(3)
+            expect((elem.error as Error).message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+        })
+
+        it('isDisplayed and isExisting are false', async () => {
+            const browser = await session()
+            expect(await browser.$$('.item')[3].isDisplayed()).toBe(false)
+            expect(await browser.$$('.item')[3].isExisting()).toBe(false)
+        })
+
+        it('waitForDisplayed with reverse is true', async () => {
+            const browser = await session()
+            expect(await browser.$$('.item')[3].waitForDisplayed({ reverse: true })).toBe(true)
+        })
+
+        it('a command throws "Index out of bounds" and does not wait a second time', async () => {
+            const browser = await session()
+            const start = Date.now()
+            const { error } = await settle(browser.$$('.item')[3].click())
+            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+            expect(Date.now() - start).toBeLessThan(190)
+        })
+
+        it('a command finds the index when the list has reached it since', async () => {
+            const browser = await session()
+            const elem = await browser.$$('.item')[3]
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+            await elem.click()
+            expect(elem.elementId).toBe('elem-d')
+        })
+    })
+
     describe('a chain of elements the page replaced', () => {
         it('finds each element of the chain again with its own command', async () => {
             driver.light.set('#host', ['host-a'])

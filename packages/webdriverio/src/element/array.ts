@@ -1,6 +1,17 @@
 import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject, registerElementArrayFactory, WDIO_KIND } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
-import type { Selector } from '../types.js'
+import type { ReactSelectorOptions, Selector } from '../types.js'
+/**
+ * imported from the leaf module directly, see `utils/implicitWait.ts`
+ */
+import { INDEX_NOT_FOUND } from '../utils/findElementAgain.js'
+
+/**
+ * The list queries whose index that is never reached gives a "not found" element,
+ * see `elementAt`. The items of `custom$$` carry a strategy reference and multi-remote
+ * lists wrap one element per instance, so they still throw.
+ */
+const NOT_FOUND_ITEM_QUERIES = ['$$', 'shadow$$', 'react$$']
 
 /**
  * A plain element or a multi-remote element. Both travel in the same list
@@ -233,10 +244,42 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
     }
 
     const browser = getBrowserObject(parent as WebdriverIO.Element)
-    return browser.waitUntil(() => findIn(parent), {
-        timeout: browser.options?.waitforTimeout,
-        timeoutMsg
-    })
+    const canBeNotFound = NOT_FOUND_ITEM_QUERIES.includes(foundWith) && selector !== undefined && !Array.isArray(selector)
+    try {
+        return await browser.waitUntil(() => findIn(parent), {
+            timeout: browser.options?.waitforTimeout,
+            timeoutMsg
+        })
+    } catch (err) {
+        if (!canBeNotFound || !(err instanceof Error) || err.message !== timeoutMsg) {
+            throw err
+        }
+
+        /**
+         * The index is still not there after the wait. Like `$('.missing')`, give a
+         * "not found" element instead of an error: check commands (`isDisplayed`,
+         * `isExisting`) give `false` and matchers can check that it is not there
+         * (#12576). A command that needs the element throws "Index out of bounds".
+         *
+         * imported here: `getElementObject` imports the utils barrel, which imports this file
+         */
+        const { getElement } = await import('../utils/getElementObject.js')
+        const notFound = getElement.call(parent as WebdriverIO.Element, selector as Selector, err, {
+            isShadowElement: foundWith === 'shadow$$',
+            isReactElement: foundWith === 'react$$',
+            ...(foundWith === 'react$$' && props[0] ? { reactOptions: props[0] as ReactSelectorOptions } : {}),
+            /**
+             * elements of a list are never strict, like the items of `getElements`
+             */
+            strict: false
+        })
+        notFound.index = index
+        /**
+         * the index was already waited for: the implicit wait of a command does not wait again
+         */
+        ;(notFound as WebdriverIO.Element & { [INDEX_NOT_FOUND]?: boolean })[INDEX_NOT_FOUND] = true
+        return notFound
+    }
 }
 
 const methods: Record<string, Function> = {

@@ -16,6 +16,13 @@ import type { CustomStrategyReference, ReactSelectorOptions, Selector } from '..
  */
 export const REACT_OPTIONS = Symbol('wdio:reactOptions')
 
+/**
+ * Set on the "not found" element that `$$(selector)[index]` gives when the list did
+ * not reach the index after `waitforTimeout`, so the implicit wait of a command does
+ * not wait a second time. A symbol, so it isn't part of the public element type.
+ */
+export const INDEX_NOT_FOUND = Symbol('wdio:indexNotFound')
+
 type Scope = WebdriverIO.Browser | WebdriverIO.Element
 type ReactElement = WebdriverIO.Element & { [REACT_OPTIONS]?: ReactSelectorOptions }
 

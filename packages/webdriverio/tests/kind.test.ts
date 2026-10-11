@@ -483,7 +483,10 @@ describe('WebdriverIO object brand matrix', () => {
             ['#14 resolved element .parentElement()', { from: (b) => b.$('#foo').$('#bar'), make: (el) => el.parentElement(), pending: 'element query', awaited: E }],
             ['#15 $$(s)[0]', { make: (b) => b.$$('#foo')[0], pending: 'list item', awaited: E }],
             ['#15 $$(s).at(0)', { make: (b) => b.$$('#foo').at(0), pending: 'list item', awaited: E }],
-            ['#16 $$(s)[99] out of bounds', { make: (b) => b.$$('#foo')[99], pending: 'list item', awaited: 'rejects' }],
+            /**
+             * an index that the list does not reach after the wait is a "not found" element, like `$(s)` (#12576)
+             */
+            ['#16 $$(s)[99] out of bounds', { make: (b) => b.$$('#foo')[99], pending: 'list item', awaited: E }],
             ['#17 $$(s)[0].$(s2)', { make: (b) => b.$$('#foo')[0].$('#bar'), pending: 'element query', awaited: E }],
             ['#17 $$(s)[0].$$(s2)', { make: (b) => b.$$('#foo')[0].$$('#bar'), pending: 'list query', awaited: A }],
             ['#18 $(s).$$(s2)[0]', { make: (b) => b.$('#foo').$$('#bar')[0], pending: 'list item', awaited: E }],
@@ -506,7 +509,7 @@ describe('WebdriverIO object brand matrix', () => {
             /**
              * an index past the end of a resolved query waits and refetches, a derived list does not
              */
-            ['#25 (await $$(s))[5] refetches', { from: (b) => b.$$('#foo'), make: (list) => list[5], pending: 'list item', awaited: 'rejects' }],
+            ['#25 (await $$(s))[5] refetches', { from: (b) => b.$$('#foo'), make: (list) => list[5], pending: 'list item', awaited: E }],
             ['#25 (await $$(s)).at(-1)', { from: (b) => b.$$('#foo'), make: (list) => list.at(-1), pending: E, awaited: E }],
             ['#25 (await $$(s).slice(0, 1))[5]', { from: (b) => b.$$('#foo').slice(0, 1), make: (list) => list[5], pending: NONE, awaited: NONE }],
             ['#26 [...await $$(s)]', { from: (b) => b.$$('#foo'), make: (list) => [...(list as unknown as unknown[])], pending: NONE, awaited: NONE }],

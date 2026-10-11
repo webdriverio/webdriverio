@@ -1,6 +1,16 @@
 import { expect, describe, it, vi } from 'vitest'
 
 import { ElementArray } from '../../src/element/array.js'
+import { INDEX_NOT_FOUND } from '../../src/utils/findElementAgain.js'
+
+/**
+ * the "not found" element of an index that the list never reaches (#12576)
+ */
+vi.mock('../../src/utils/getElementObject.js', () => ({
+    getElement: vi.fn(function (this: unknown, selector: unknown, error: unknown, props: unknown) {
+        return { notFound: true, parent: this, selector, error, props }
+    })
+}))
 
 const element = (id: string) => ({
     elementId: id,
@@ -266,7 +276,7 @@ describe('ElementArray', () => {
             return match
         })
 
-        it('rejects with the browser timeout and an out of bounds message', async () => {
+        it('waits with the browser timeout, then gives a not found element (#12576)', async () => {
             const browser = {
                 options: { waitforTimeout: 50 },
                 $$: vi.fn(async () => ElementArray.fromResolved([element('a')], { selector: '.item', foundWith: '$$', props: [] })),
@@ -279,11 +289,57 @@ describe('ElementArray', () => {
                 props: []
             })
 
-            await expect(elements[1].getText()).rejects.toThrow('Index out of bounds! $$(.item) returned only 1 elements.')
+            const item = await elements[1] as unknown as Record<string | symbol, unknown> & { error: Error }
             expect(browser.waitUntil).toHaveBeenCalledWith(expect.any(Function), {
                 timeout: 50,
                 timeoutMsg: 'Index out of bounds! $$(.item) returned only 1 elements.'
             })
+            expect(item).toMatchObject({
+                notFound: true,
+                parent: browser,
+                selector: '.item',
+                index: 1,
+                props: { isShadowElement: false, isReactElement: false, strict: false }
+            })
+            expect(item.error.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+            expect(item[INDEX_NOT_FOUND]).toBe(true)
+        })
+
+        it('gives a not found element with the query flags of react$$', async () => {
+            const reactOptions = { props: { a: 1 }, state: {} }
+            const browser = {
+                options: { waitforTimeout: 50 },
+                react$$: vi.fn(async () => ElementArray.fromResolved([element('a')], { selector: 'Comp', foundWith: 'react$$', props: [reactOptions] })),
+                waitUntil: waitOnce()
+            }
+            const elements = await ElementArray.fromAsyncCallback(async () => [element('a')], {
+                selector: 'Comp',
+                foundWith: 'react$$',
+                parent: browser as unknown as WebdriverIO.Browser,
+                props: [reactOptions]
+            })
+
+            const item = await elements[1] as unknown as { props: object }
+            expect(item.props).toEqual({ isShadowElement: false, isReactElement: true, reactOptions, strict: false })
+            expect(browser.react$$).toHaveBeenCalledWith('Comp', reactOptions)
+        })
+
+        it('throws an error of the query itself, not a not found element', async () => {
+            const browser = {
+                options: { waitforTimeout: 50 },
+                $$: vi.fn(async () => {
+                    throw new Error('invalid selector')
+                }),
+                waitUntil: waitOnce()
+            }
+            const elements = await ElementArray.fromAsyncCallback(async () => [element('a')], {
+                selector: '.item',
+                foundWith: '$$',
+                parent: browser as unknown as WebdriverIO.Browser,
+                props: []
+            })
+
+            await expect(elements[1]).rejects.toThrow('invalid selector')
         })
 
         it('waits with the browser and queries the parent element of the list', async () => {
