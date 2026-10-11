@@ -139,7 +139,9 @@ async function workaround(element: WebdriverIO.Element) {
  * geckodriver follows the spec, so the click of an element that is inside the window
  * but hidden by a scrollable ancestor landed on that ancestor, without an error.
  * Bring the element under the pointer first, as the Element Click command does:
- * - the pointer already hits the element: don't scroll, the page doesn't move
+ * - the pointer already hits the element: don't scroll, the page doesn't move. With an
+ *   offset, the window must not clip the element (the offset counts from the center of
+ *   the part in the window), and the pointer must hit the element at the click point
  * - scroll it just into view ("nearest"), and check again
  * - still missed, for example under a fixed header or footer: scroll it to the center
  * An element without a box (`display: none`) is left to the driver, which throws.
@@ -148,10 +150,10 @@ async function workaround(element: WebdriverIO.Element) {
  * `scrollIntoView` command: its wheel actions release the keys and buttons that the
  * test holds, so a Shift-click would become a plain click.
  */
-async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.Element) {
+async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.Element, offset: { x: number, y: number }) {
     try {
         for (const scroll of [null, { block: 'nearest', inline: 'nearest' }, { block: 'center', inline: 'center' }] as const) {
-            if (await hitAtCenter(browser, element, scroll) !== 'missed') {
+            if (await hitAtCenter(browser, element, scroll, offset) !== 'missed') {
                 return
             }
         }
@@ -163,16 +165,18 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
 /**
  * Scrolls the element with `scroll` (if given, without a smooth animation), then
  * hit-tests the in-view center point of the element, computed as in the WebDriver
- * spec (the first client rect, clipped by the viewport only). The pointer hits the
- * element when the top element at that point is the element or one of its
- * descendants, also inside shadow roots.
+ * spec (the first client rect, clipped by the viewport only), or the click point
+ * (center plus offset) when it is on the element. The pointer hits the element when
+ * the top element at that point is the element or one of its descendants, also
+ * inside shadow roots.
  */
 function hitAtCenter(
     browser: WebdriverIO.Browser,
     element: WebdriverIO.Element,
-    scroll: ScrollIntoViewOptions | null
+    scroll: ScrollIntoViewOptions | null,
+    offset: { x: number, y: number }
 ): Promise<'hit' | 'missed' | 'no-box'> {
-    return browser.execute((elem: HTMLElement, scroll: ScrollIntoViewOptions | null) => {
+    return browser.execute((elem: HTMLElement, scroll: ScrollIntoViewOptions | null, offset: { x: number, y: number }) => {
         if (scroll) {
             elem.scrollIntoView({ ...scroll, behavior: 'instant' })
         }
@@ -184,10 +188,19 @@ function hitAtCenter(
         const right = Math.min(window.innerWidth, Math.max(rect.x, rect.x + rect.width))
         const top = Math.max(0, Math.min(rect.y, rect.y + rect.height))
         const bottom = Math.min(window.innerHeight, Math.max(rect.y, rect.y + rect.height))
-        const x = Math.floor((left + right) / 2)
-        const y = Math.floor((top + bottom) / 2)
+        let x = Math.floor((left + right) / 2)
+        let y = Math.floor((top + bottom) / 2)
         if (x < 0 || x > window.innerWidth || y < 0 || y > window.innerHeight) {
             return 'missed' as const
+        }
+        if (offset.x || offset.y) {
+            if (x !== Math.floor(rect.x + rect.width / 2) || y !== Math.floor(rect.y + rect.height / 2)) {
+                return 'missed' as const
+            }
+            if (rect.left <= x + offset.x && x + offset.x <= rect.right && rect.top <= y + offset.y && y + offset.y <= rect.bottom) {
+                x += offset.x
+                y += offset.y
+            }
         }
         let hit = document.elementFromPoint(x, y)
         while (hit?.shadowRoot) {
@@ -203,7 +216,7 @@ function hitAtCenter(
             }
         }
         return 'missed' as const
-    }, element as unknown as HTMLElement, scroll)
+    }, element as unknown as HTMLElement, scroll, offset)
 }
 
 async function elementClick(element: WebdriverIO.Element) {
@@ -274,7 +287,7 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
     }
     const isNativeApp = browser.isMobile && (await browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)
     if (!isNativeApp) {
-        await bringIntoView(browser, element)
+        await bringIntoView(browser, element, { x, y })
     }
     try {
         return await clickNested()

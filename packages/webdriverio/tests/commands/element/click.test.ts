@@ -282,6 +282,19 @@ describe('click test', () => {
             expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
         })
 
+        it('should give the click offset to the hit-test', async () => {
+            const { elem, execute } = await setup()
+            execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('hit')
+
+            await elem.click({ x: 20, y: 15 })
+            expect(execute.mock.calls.map((call) => call[3])).toEqual([{ x: 20, y: 15 }, { x: 20, y: 15 }])
+
+            execute.mockClear()
+            execute.mockResolvedValueOnce('hit')
+            await elem.click({ button: 'left' })
+            expect(execute.mock.calls.map((call) => call[3])).toEqual([{ x: 0, y: 0 }])
+        })
+
         it('should not scroll an element without a box', async () => {
             const { elem, execute } = await setup()
             execute.mockResolvedValueOnce('no-box')

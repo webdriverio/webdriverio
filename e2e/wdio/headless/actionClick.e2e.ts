@@ -89,6 +89,12 @@ describe('click with options', () => {
         expect(right.clicks).toEqual([{ type: 'contextmenu', target: 'hclip', dx: 0, dy: 0, shiftKey: false }])
     })
 
+    it('keeps the offset from the center of an element that the window clips', async () => {
+        const top = await browser.execute(() => document.getElementById('partial')!.getBoundingClientRect().top + window.scrollY)
+        const { clicks } = await clickWithOptions($('#partial'), { y: 40 }, { scrollY: top + 40 })
+        expect(clicks.map(({ target, dy }) => ({ target, dy }))).toEqual([{ target: 'partial', dy: 40 }])
+    })
+
     it('keeps a key that the test holds (Shift-click)', async () => {
         await browser.action('key').down(Key.Shift).perform(true)
         try {
