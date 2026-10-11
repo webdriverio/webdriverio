@@ -107,7 +107,7 @@ If you are using Jasmine, the second parameter is reserved for timeout. To apply
 
 This retry mechanism only allows to retry single hooks or test blocks. If your test is accompanied with a hook to set up your application, this hook is not being run. [Mocha offers](https://mochajs.org/#retry-tests) native test retries that provide this behavior while Jasmine doesn't. You can access the number of executed retries in the `afterTest` hook.
 
-With Mocha, all attempts of a test or hook share its timeout: Mocha starts the timer once. This mechanism does not retry a test or hook that hits its timeout: Mocha fails a test that ran longer than its timeout, even when a later attempt passes. Use [Mocha's retries](https://mochajs.org/#retry-tests) (`this.retries()`) for tests that can time out.
+With Mocha, all attempts of a test or hook share its timeout: Mocha starts the timer once, and it fails the test when all attempts together take longer than the timeout. So this mechanism retries a test or hook that fails (for example a failed assertion or command), but not one that hits its timeout, because a later attempt could not finish in time. For tests that can time out, use [Mocha's retries](https://mochajs.org/#retry-tests) (`this.retries()`): Mocha runs each attempt again with a full timeout.
 
 ## Rerunning in Cucumber
 
