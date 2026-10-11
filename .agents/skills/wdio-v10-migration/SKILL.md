@@ -63,7 +63,6 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `browser.newWindow(url)`, then `browser.<command>` and `browser.closeWindow()` in a BiDi session | `const tab = await browser.newWindow(url)`, then `tab.<command>` and `tab.closeWindow()`. `newWindow` does not switch, so `browser.closeWindow()` closes the first tab. |
 | `if (value instanceof Promise) value = await value` | `value = await value`. A `$$()` that is not awaited is an array, not a `Promise`. |
 | `$$(...).length` without `await` | `await $$(...).length`. Before `await`, `length` is a promise: a comparison gives `false` and an index loop runs 0 times, with no error. |
-| `instanceof Promise`, `Array.isArray()` or `'elementId' in value` to detect a WebdriverIO object | `value?.[Symbol.for('wdio.kind')]` (`WDIO_KIND` from `webdriverio`). See the guide for the kinds. |
 | `startActivity('pkg', '.Activity')` | `startActivity({ appPackage, appActivity })`. Delete `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments`. |
 | `browser.throttle(` | `browser.throttleNetwork(` |
 | `browser.uploadFile(path)` then `setValue` | `element.setFiles(path)` or `element.setFiles([paths])`. Needs a BiDi session and a path the browser can read. Grid byte staging is gone. See below. |

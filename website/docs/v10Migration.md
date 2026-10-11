@@ -441,41 +441,6 @@ Code that awaits a value only when it is a `Promise`, or that reads `length` wit
 + if (await $$('button').length > 0) {
 ```
 
-To tell what a WebdriverIO object is, without `instanceof Promise` or `Array.isArray()`, read its brand. See [Identify WebdriverIO objects](#identify-webdriverio-objects).
-
-## Identify WebdriverIO objects
-
-Since v10, every WebdriverIO object has a brand: `value[WDIO_KIND]`. Use it in a plugin, a service or a helper that accepts several kinds of values, instead of `instanceof Promise`, `Array.isArray()` or a check such as `'elementId' in value`.
-
-```ts title="helpers.ts"
-import { WDIO_CHAINABLE, WDIO_KIND, type WdioKind } from 'webdriverio'
-
-export function describeValue (value: unknown): string {
-    const kind = (value as { [WDIO_KIND]?: WdioKind } | undefined)?.[WDIO_KIND]
-    if (!kind) {
-        return 'not a WebdriverIO object'
-    }
-    const pending = typeof (value as { then?: unknown }).then === 'function'
-    const chainable = (value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE] === true
-    return `${kind}${pending ? ' (not loaded yet)' : ''}${chainable ? ' (chainable)' : ''}`
-}
-```
-
-| Value | `WDIO_KIND` | `WDIO_CHAINABLE` |
-| --- | --- | --- |
-| `browser`, also a multi-remote browser | `'browser'` | |
-| `await $('h1')`, also an element that was not found | `'element'` | |
-| `$('h1')`, `$$('li')[0]`, `$('h1').parentElement()` before `await` | `'element'` | `true` |
-| `$$('li')` before and after `await` | `'element-array'` | |
-| `await browser.mock(...)`, also a multi-remote mock | `'mock'` | |
-| a tab, a window or a frame (`WebdriverIO.BrowsingContext`) | `'browsing-context'` | |
-| `[...list]`, `list.map(...)`, a promise of another command | none | none |
-
-- A value is loaded when it has no `then` function. A loaded object is never chainable. A pending `$$()` and its loaded result are the same object.
-- The kind does not tell if the object is multi-remote. Read `isMultiRemote` for that.
-- `WDIO_KIND` is `Symbol.for('wdio.kind')` and `WDIO_CHAINABLE` is `Symbol.for('wdio.chainable')`. A package can read `value?.[Symbol.for('wdio.kind')]` without an import of `webdriverio`, and the check works when a project has two copies of WebdriverIO.
-- The brands are not enumerable. They are not in logs, snapshots or JSON.
-
 ## Legacy command signatures
 
 v9 still accepted older positional forms and warned. v10 accepts only the options object.
