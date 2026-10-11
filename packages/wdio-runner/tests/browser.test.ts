@@ -1,3 +1,4 @@
+import url from 'node:url'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
@@ -234,7 +235,7 @@ describe('BrowserFramework browser errors', () => {
         process.send = vi.fn() as unknown as typeof process.send
 
         const on = vi.spyOn(process, 'on').mockImplementation(() => process)
-        framework = new BrowserFramework('0-0', { mochaOpts: { timeout: 60_000 } } as WebdriverIO.Config, ['file:///spec.test.js'], { emit: vi.fn() } as unknown as BaseReporter)
+        framework = new BrowserFramework('0-0', { mochaOpts: { timeout: 60_000 } } as WebdriverIO.Config, [url.pathToFileURL(path.resolve('spec.test.js')).href], { emit: vi.fn() } as unknown as BaseReporter)
         handler = on.mock.calls.find(([event]) => event === 'message')![1] as MessageHandler
         on.mockRestore()
     })
@@ -269,7 +270,7 @@ describe('BrowserFramework browser errors', () => {
     })
 
     it('ends the spec on browser log errors when the tests did not start', async () => {
-        browser.execute.mockResolvedValue({ errors: [], hasViteError: false })
+        browser.execute.mockResolvedValueOnce({ errors: [], hasViteError: false }).mockResolvedValue(undefined)
         browser.getLogs.mockResolvedValue([severeLog(1500)])
 
         const result = framework.run()
@@ -277,6 +278,22 @@ describe('BrowserFramework browser errors', () => {
 
         expect(await result).toBe(1)
         expect(sentErrors()).toHaveLength(1)
+    })
+
+    it('ignores test errors when Mocha starts between the state read and getLogs', async () => {
+        browser.execute
+            .mockResolvedValueOnce({ errors: [], hasViteError: false })
+            .mockResolvedValueOnce(1000)
+            .mockResolvedValue(undefined)
+        browser.getLogs.mockResolvedValueOnce([severeLog(1500)]).mockResolvedValue([])
+
+        const result = framework.run()
+        await vi.advanceTimersByTimeAsync(600)
+        expect(browser.execute).toHaveBeenCalledTimes(2)
+        await finishSpec(0)
+
+        expect(await result).toBe(0)
+        expect(sentErrors()).toEqual([])
     })
 
     it('still retries an outdated optimize dep after the tests started', async () => {

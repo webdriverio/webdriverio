@@ -512,7 +512,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             return
         }
 
-        const { testsStartedAt, ...executionState } = testError
+        const { testsStartedAt: startedAtBeforeLogs, ...executionState } = testError
         if ((executionState.errors && executionState.errors.length > 0) || executionState.hasViteError) {
             this.#resolveTestStatePromise?.({
                 events: [],
@@ -539,7 +539,13 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * (a caught failed request, a `console.error`, an invalid attribute): Mocha
          * reports the test result, so it must not end the spec. Only errors logged
          * before the tests started (setup) end it.
+         *
+         * Mocha can start between the execution state read above and `getLogs`,
+         * so without a start time, read it again after the logs.
          */
+        const testsStartedAt = typeof startedAtBeforeLogs !== 'number' && severeLogs.length
+            ? await browser.execute(() => window.__wdioTestsStartedAt__).catch(() => undefined)
+            : startedAtBeforeLogs
         const setupLogs = typeof testsStartedAt === 'number'
             ? severeLogs.filter((log) => log.timestamp < testsStartedAt)
             : severeLogs
