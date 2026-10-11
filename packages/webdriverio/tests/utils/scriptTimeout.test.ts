@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events'
 
 import { describe, expect, it, vi } from 'vitest'
 
-import { scriptTimeoutOf, trackScriptTimeout } from '../../src/utils/scriptTimeout.js'
+import { markAttachedSession, scriptTimeoutOf, trackScriptTimeout } from '../../src/utils/scriptTimeout.js'
 
 function fakeBrowser (capabilities: Record<string, unknown> = {}, sessionId = 'session-1', getTimeouts?: () => Promise<unknown>) {
     return Object.assign(new EventEmitter(), { sessionId, capabilities, ...(getTimeouts ? { getTimeouts } : {}) }) as unknown as WebdriverIO.Browser & EventEmitter
@@ -33,6 +33,24 @@ describe('scriptTimeoutOf', () => {
 
         const noLimit = fakeBrowser({}, 'session-1', async () => ({ script: null }))
         expect(await scriptTimeoutOf(noLimit)).toBe(null)
+    })
+
+    /**
+     * `attach()` gets its capabilities from the user, e.g. the ones of the session
+     * when it was created: the session can have another script timeout by now
+     */
+    it('reads the script timeout of an attached session, also when its capabilities have one', async () => {
+        const getTimeouts = vi.fn(async () => ({ script: 2_000 }))
+        const browser = fakeBrowser({ timeouts: { script: 30_000 } }, 'session-1', getTimeouts)
+        markAttachedSession(browser)
+
+        expect(await scriptTimeoutOf(browser)).toBe(2_000)
+        expect(await scriptTimeoutOf(browser)).toBe(2_000)
+        expect(getTimeouts).toHaveBeenCalledTimes(1)
+
+        trackScriptTimeout(browser)
+        browser.emit('result', setTimeoutsResult(5_000))
+        expect(await scriptTimeoutOf(browser)).toBe(5_000)
     })
 
     it('uses the default of the WebDriver spec when the session timeout cannot be read', async () => {

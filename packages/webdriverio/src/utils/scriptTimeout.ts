@@ -25,6 +25,18 @@ interface CommandResultEvent {
  */
 const scriptTimeouts = new WeakMap<WebdriverIO.Browser, { sessionId: string, script: number | null }>()
 const trackedBrowsers = new WeakSet<WebdriverIO.Browser>()
+/**
+ * sessions that `attach()` joined: their capabilities come from the user, not
+ * from the driver, so their `timeouts` may be out of date
+ */
+const attachedBrowsers = new WeakSet<WebdriverIO.Browser>()
+
+/**
+ * Read the `script` timeout from the session instead of its capabilities.
+ */
+export function markAttachedSession (browser: WebdriverIO.Browser) {
+    attachedBrowsers.add(browser)
+}
 
 /**
  * Follow the `script` timeout that `setTimeouts` sets for the session.
@@ -50,17 +62,20 @@ export function trackScriptTimeout (browser: WebdriverIO.Browser) {
 
 /**
  * The `script` timeout of the session in milliseconds, or `null` for no limit:
- * the last value set with `browser.setTimeout()`, else the one in the session
- * capabilities. Without one there (an attached session has the capabilities the
- * user passed), it reads the timeouts of the session once, else it uses the
- * default of the WebDriver spec.
+ * the last value set with `browser.setTimeout()`, else the one in the
+ * capabilities that the driver returned for a new session. For an attached
+ * session (its capabilities come from the user) or without a value there, it
+ * reads the timeouts of the session once, else it uses the default of the
+ * WebDriver spec.
  */
 export async function scriptTimeoutOf (browser: WebdriverIO.Browser): Promise<number | null> {
     const set = scriptTimeouts.get(browser)
     if (set && set.sessionId === browser.sessionId) {
         return set.script
     }
-    const fromCapabilities = (browser.capabilities as WebdriverIO.Capabilities | undefined)?.timeouts?.script
+    const fromCapabilities = attachedBrowsers.has(browser)
+        ? undefined
+        : (browser.capabilities as WebdriverIO.Capabilities | undefined)?.timeouts?.script
     if (fromCapabilities === null || typeof fromCapabilities === 'number') {
         return fromCapabilities
     }
