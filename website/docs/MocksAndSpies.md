@@ -35,9 +35,17 @@ import { URLPattern } from 'urlpattern-polyfill'
 const patternMock = await browser.mock(new URLPattern({ pathname: '/users/list' }))
 ```
 
+:::info
+
+A single `*` matches any characters, `/` included, so `**` is the same as `*`: WebdriverIO changes `**/api/**` to `*/api/*`.
+
+A second mock with the same URL pattern and the same filter options replaces the first one: WebdriverIO restores the first mock, so it no longer changes requests or records calls. To keep both mocks, give them different filter options. For example, `**/users` and `*/users` are the same mock, while `*/users` and `*/users` with `{ method: 'POST' }` are two mocks.
+
+:::
+
 :::warning
 
-Use a single `*` for URL wildcards; it also matches `/`. Consecutive wildcards before fixed text, such as `**/api/**` or `**/data.json`, can cause excessive regex backtracking on unrelated URLs and freeze a test. See [issue #13548](https://github.com/webdriverio/webdriverio/issues/13548). In component tests, also use a fixed protocol and hostname to keep runner traffic outside the intercept; see [component testing request mocks](/docs/component-testing/mocking#requests).
+In component tests, use a fixed protocol and hostname to keep runner traffic outside the intercept; see [component testing request mocks](/docs/component-testing/mocking#requests).
 
 :::
 
