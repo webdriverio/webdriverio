@@ -5,6 +5,7 @@ import { describe, it, afterEach, beforeEach, expect, vi } from 'vitest'
 
 import { remote } from '../../src/index.js'
 import { StrictSelectorError } from '../../src/utils/strictMode.js'
+import { itemPropsOf } from '../../src/utils/findElementAgain.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -791,5 +792,23 @@ describe('finding an element again in strict mode', () => {
         expect(await elem.isExisting()).toBe(true)
         expect(elem.elementId).toBeUndefined()
         await expect(elem.getText()).rejects.toThrow(StrictSelectorError)
+    })
+})
+
+describe('itemPropsOf', () => {
+    it('gives the flags of the items of a list command', () => {
+        expect(itemPropsOf('$$', [])).toEqual({ isShadowElement: false, isReactElement: false })
+        expect(itemPropsOf('shadow$$', [])).toEqual({ isShadowElement: true, isReactElement: false })
+    })
+
+    it('gives the React options of a react$$ list', () => {
+        const reactOptions = { props: { a: 1 }, state: {} }
+        expect(itemPropsOf('react$$', [reactOptions])).toEqual({ isShadowElement: false, isReactElement: true, reactOptions })
+        expect(itemPropsOf('react$$', [])).toEqual({ isShadowElement: false, isReactElement: true })
+    })
+
+    it('gives undefined for a list whose items cannot be found again', () => {
+        expect(itemPropsOf('custom$$', [])).toBeUndefined()
+        expect(itemPropsOf('constructor', [])).toBeUndefined()
     })
 })

@@ -7,8 +7,8 @@ import { INDEX_NOT_FOUND } from '../../src/utils/findElementAgain.js'
  * the "not found" element of an index that the list never reaches (#12576)
  */
 vi.mock('../../src/utils/getElementObject.js', () => ({
-    getElement: vi.fn(function (this: unknown, selector: unknown, error: unknown, props: unknown) {
-        return { notFound: true, parent: this, selector, error, props }
+    getElements: vi.fn(function (this: unknown, selector: unknown, responses: unknown[], props: unknown) {
+        return responses.map((error, index) => ({ notFound: true, parent: this, selector, error, props, index }))
     })
 }))
 
@@ -299,7 +299,7 @@ describe('ElementArray', () => {
                 parent: browser,
                 selector: '.item',
                 index: 1,
-                props: { isShadowElement: false, isReactElement: false, strict: false }
+                props: { isShadowElement: false, isReactElement: false }
             })
             expect(item.error.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
             expect(item[INDEX_NOT_FOUND]).toBe(true)
@@ -320,8 +320,26 @@ describe('ElementArray', () => {
             })
 
             const item = await elements[1] as unknown as { props: object }
-            expect(item.props).toEqual({ isShadowElement: false, isReactElement: true, reactOptions, strict: false })
+            expect(item.props).toEqual({ isShadowElement: false, isReactElement: true, reactOptions })
             expect(browser.react$$).toHaveBeenCalledWith('Comp', reactOptions)
+        })
+
+        it('gives a not found element with the query flags of shadow$$', async () => {
+            const host = {
+                options: { waitforTimeout: 50 },
+                shadow$$: vi.fn(async () => ElementArray.fromResolved([element('a')], { selector: '.item', foundWith: 'shadow$$', props: [] })),
+                waitUntil: waitOnce()
+            }
+            const elements = await ElementArray.fromAsyncCallback(async () => [element('a')], {
+                selector: '.item',
+                foundWith: 'shadow$$',
+                parent: host as unknown as WebdriverIO.Element,
+                props: []
+            })
+
+            const item = await elements[1] as unknown as { props: object, index: number }
+            expect(item.props).toEqual({ isShadowElement: true, isReactElement: false })
+            expect(item.index).toBe(1)
         })
 
         it('throws an error of the query itself, not a not found element', async () => {

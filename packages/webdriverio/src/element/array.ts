@@ -1,17 +1,10 @@
 import { asyncIterators, chainElementPromise, ELEMENT_ARRAY_WRAP, getBrowserObject, registerElementArrayFactory, WDIO_KIND } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
-import type { ReactSelectorOptions, Selector } from '../types.js'
+import type { Selector } from '../types.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
  */
-import { INDEX_NOT_FOUND } from '../utils/findElementAgain.js'
-
-/**
- * The list queries whose index that is never reached gives a "not found" element,
- * see `elementAt`. The items of `custom$$` carry a strategy reference and multi-remote
- * lists wrap one element per instance, so they still throw.
- */
-const NOT_FOUND_ITEM_QUERIES = ['$$', 'shadow$$', 'react$$']
+import { INDEX_NOT_FOUND, itemPropsOf } from '../utils/findElementAgain.js'
 
 /**
  * A plain element or a multi-remote element. Both travel in the same list
@@ -244,14 +237,19 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
     }
 
     const browser = getBrowserObject(parent as WebdriverIO.Element)
-    const canBeNotFound = NOT_FOUND_ITEM_QUERIES.includes(foundWith) && selector !== undefined && !Array.isArray(selector)
+    /**
+     * the props of the "not found" item, see below. `undefined` for a list whose index
+     * that is never reached still throws: a `custom$$` list (its items carry a strategy
+     * reference) and a list of elements or element references
+     */
+    const itemProps = selector !== undefined && !Array.isArray(selector) ? itemPropsOf(foundWith, props) : undefined
     try {
         return await browser.waitUntil(() => findIn(parent), {
             timeout: browser.options?.waitforTimeout,
             timeoutMsg
         })
     } catch (err) {
-        if (!canBeNotFound || !(err instanceof Error) || err.message !== timeoutMsg) {
+        if (!itemProps || !(err instanceof Error) || err.message !== timeoutMsg) {
             throw err
         }
 
@@ -261,18 +259,13 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
          * `isExisting`) give `false` and matchers can check that it is not there
          * (#12576). A command that needs the element throws "Index out of bounds".
          *
+         * It is built like every other item of a list (`getElements`), with the error as
+         * its response, then given its index.
+         *
          * imported here: `getElementObject` imports the utils barrel, which imports this file
          */
-        const { getElement } = await import('../utils/getElementObject.js')
-        const notFound = getElement.call(parent as WebdriverIO.Element, selector as Selector, err, {
-            isShadowElement: foundWith === 'shadow$$',
-            isReactElement: foundWith === 'react$$',
-            ...(foundWith === 'react$$' && props[0] ? { reactOptions: props[0] as ReactSelectorOptions } : {}),
-            /**
-             * elements of a list are never strict, like the items of `getElements`
-             */
-            strict: false
-        })
+        const { getElements } = await import('../utils/getElementObject.js')
+        const [notFound] = getElements.call(parent as WebdriverIO.Element, selector as Selector, [err], itemProps)
         notFound.index = index
         /**
          * the index was already waited for: the implicit wait of a command does not wait again
