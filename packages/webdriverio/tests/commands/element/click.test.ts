@@ -234,8 +234,6 @@ describe('click test', () => {
     })
 
     describe('bring the element under the pointer before a click with options', () => {
-        const NEAREST = { block: 'nearest', inline: 'nearest' }
-        const CENTER = { block: 'center', inline: 'center' }
         const setup = async () => {
             const browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -245,83 +243,44 @@ describe('click test', () => {
             })
             const elem = await browser.$('#foo')
             const scrollIntoView = vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
-            const execute = vi.spyOn(browser, 'execute')
+            const execute = vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
             vi.mocked(fetch).mockClear()
-            return { browser, elem, scrollIntoView, execute }
+            return { elem, scrollIntoView, execute }
         }
-        const scrollsOf = (execute: { mock: { calls: unknown[][] } }) => execute.mock.calls.map((call) => call[2])
         const actionCalls = () => vi.mocked(fetch).mock.calls
             .map((call, i) => ({ pathname: (call[0] as URL).pathname, method: call[1]?.method, order: vi.mocked(fetch).mock.invocationCallOrder[i] }))
             .filter(({ pathname }) => pathname === '/session/foobar-123/actions')
 
-        it('should not scroll when the pointer already hits the element', async () => {
-            const { elem, execute } = await setup()
-            execute.mockResolvedValueOnce('hit')
+        it('should check and scroll in one execute before the pointer action', async () => {
+            const { elem, scrollIntoView, execute } = await setup()
 
             await elem.click({ button: 'left' })
-            expect(scrollsOf(execute)).toEqual([null])
+            expect(execute).toHaveBeenCalledTimes(1)
+            expect(execute.mock.calls[0][2]).toEqual({ x: 0, y: 0 })
+            expect(execute.mock.invocationCallOrder[0]).toBeLessThan(actionCalls()[0].order)
+            expect(scrollIntoView).not.toHaveBeenCalled()
             expect(actionCalls().map(({ method }) => method)).toEqual(['POST', 'DELETE'])
         })
 
-        it('should scroll the element just into view when the pointer misses it', async () => {
+        it('should give the click offset to the check', async () => {
             const { elem, execute } = await setup()
-            execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('hit')
-
-            await elem.click({ button: 'left' })
-            expect(scrollsOf(execute)).toEqual([null, NEAREST])
-            expect(execute.mock.invocationCallOrder[1]).toBeLessThan(actionCalls()[0].order)
-        })
-
-        it('should scroll the element to the center when it is still covered after the nearest scroll', async () => {
-            const { elem, execute } = await setup()
-            execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('missed').mockResolvedValueOnce('missed')
-
-            await elem.click({ button: 'left' })
-            expect(scrollsOf(execute)).toEqual([null, NEAREST, CENTER])
-            expect(execute.mock.invocationCallOrder[2]).toBeLessThan(actionCalls()[0].order)
-            expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
-        })
-
-        it('should give the click offset to the hit-test', async () => {
-            const { elem, execute } = await setup()
-            execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('hit')
 
             await elem.click({ x: 20, y: 15 })
-            expect(execute.mock.calls.map((call) => call[3])).toEqual([{ x: 20, y: 15 }, { x: 20, y: 15 }])
-
-            execute.mockClear()
-            execute.mockResolvedValueOnce('hit')
-            await elem.click({ button: 'left' })
-            expect(execute.mock.calls.map((call) => call[3])).toEqual([{ x: 0, y: 0 }])
+            expect(execute.mock.calls[0][2]).toEqual({ x: 20, y: 15 })
         })
 
-        it('should not scroll an element without a box', async () => {
+        it('should keep held keys: no action before the click', async () => {
             const { elem, execute } = await setup()
-            execute.mockResolvedValueOnce('no-box')
-
-            await elem.click({ button: 'left' })
-            expect(scrollsOf(execute)).toEqual([null])
-            expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
-        })
-
-        it('should keep held keys: the scroll sends no action before the click', async () => {
-            const { elem, scrollIntoView, execute } = await setup()
-            execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('missed').mockResolvedValueOnce('hit')
 
             await elem.click({ button: 'left', skipRelease: true })
-            expect(scrollIntoView).not.toHaveBeenCalled()
+            expect(execute).toHaveBeenCalledTimes(1)
             expect(actionCalls().map(({ method }) => method)).toEqual(['POST'])
         })
 
-        it('should still click when the element could not be checked or scrolled', async () => {
+        it('should still click when the element could not be checked', async () => {
             const { elem, execute } = await setup()
             execute.mockRejectedValueOnce(new Error('stale element reference'))
 
-            await elem.click({ button: 'left' })
-            expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
-
-            execute.mockResolvedValueOnce('missed').mockRejectedValueOnce(new Error('stale element reference'))
-            vi.mocked(fetch).mockClear()
             await elem.click({ button: 'left' })
             expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
         })
@@ -332,6 +291,105 @@ describe('click test', () => {
             await elem.click()
             expect(execute).not.toHaveBeenCalled()
             expect(scrollIntoView).not.toHaveBeenCalled()
+        })
+
+        describe('the script in the page', () => {
+            type Rect = { x: number, y: number, width: number, height: number }
+            const NEAREST = { block: 'nearest', inline: 'nearest', behavior: 'instant' }
+            const CENTER = { block: 'center', inline: 'center', behavior: 'instant' }
+
+            /**
+             * runs the script that click gives to execute, on a fake page: the element
+             * has `rects[i]` after `i` scrolls, and `hitAt(x, y, scrolls)` is the top
+             * element at a point
+             */
+            const runInPage = async (options: {
+                rects: (Rect | undefined)[]
+                hitAt: (elem: object, x: number, y: number, scrolls: number) => unknown
+                offset?: { x: number, y: number }
+            }) => {
+                const { elem: element, execute } = await setup()
+                await element.click(options.offset ?? {})
+                const script = execute.mock.calls[0][0] as unknown as (elem: unknown, offset: { x: number, y: number }) => void
+
+                const scrolls: unknown[] = []
+                const elem = {
+                    scrollIntoView: (scroll: unknown) => scrolls.push(scroll),
+                    getClientRects: () => {
+                        const rect = options.rects[Math.min(scrolls.length, options.rects.length - 1)]
+                        return rect ? [{ ...rect, left: rect.x, top: rect.y, right: rect.x + rect.width, bottom: rect.y + rect.height }] : []
+                    }
+                }
+                const points: number[][] = []
+                const page = globalThis as unknown as { window?: unknown, document?: unknown }
+                const saved = { window: page.window, document: page.document }
+                page.window = { innerWidth: 1000, innerHeight: 800 }
+                page.document = { elementFromPoint: (x: number, y: number) => {
+                    points.push([x, y])
+                    return options.hitAt(elem, x, y, scrolls.length)
+                } }
+                try {
+                    script(elem, options.offset ?? { x: 0, y: 0 })
+                } finally {
+                    page.window = saved.window
+                    page.document = saved.document
+                }
+                return { scrolls, points }
+            }
+            const inView = { x: 100, y: 100, width: 100, height: 40 }
+            const other = { parentNode: null }
+
+            it('does not scroll when the element is hit', async () => {
+                const { scrolls, points } = await runInPage({ rects: [inView], hitAt: (elem) => elem })
+                expect(scrolls).toEqual([])
+                expect(points).toEqual([[150, 120]])
+            })
+
+            it('scrolls just into view, then to the center while the element is not hit', async () => {
+                const afterNearest = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 1 ? elem : other })
+                expect(afterNearest.scrolls).toEqual([NEAREST])
+
+                const afterCenter = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 2 ? elem : other })
+                expect(afterCenter.scrolls).toEqual([NEAREST, CENTER])
+
+                const never = await runInPage({ rects: [inView], hitAt: () => other })
+                expect(never.scrolls).toEqual([NEAREST, CENTER])
+            })
+
+            it('does not hit-test a point outside the window', async () => {
+                const below = { x: 100, y: 3000, width: 100, height: 40 }
+                const { scrolls, points } = await runInPage({ rects: [below, inView], hitAt: (elem) => elem })
+                expect(scrolls).toEqual([NEAREST])
+                expect(points).toEqual([[150, 120]])
+            })
+
+            it('does not scroll an element without a box', async () => {
+                const { scrolls, points } = await runInPage({ rects: [undefined], hitAt: (elem) => elem })
+                expect(scrolls).toEqual([])
+                expect(points).toEqual([])
+            })
+
+            it('hits the element through a descendant and through a shadow root', async () => {
+                const child = await runInPage({ rects: [inView], hitAt: (elem) => ({ parentNode: elem }) })
+                expect(child.scrolls).toEqual([])
+
+                const shadow = await runInPage({ rects: [inView], hitAt: (elem) => ({
+                    parentNode: null,
+                    shadowRoot: { elementFromPoint: () => ({ parentNode: { parentNode: null, host: elem } }) }
+                }) })
+                expect(shadow.scrolls).toEqual([])
+            })
+
+            it('with an offset, scrolls an element that the window clips and hit-tests the click point', async () => {
+                const clipped = { x: 100, y: -40, width: 100, height: 100 }
+                const whole = { x: 100, y: 100, width: 100, height: 100 }
+                const { scrolls, points } = await runInPage({ rects: [clipped, whole], hitAt: (elem) => elem, offset: { x: 0, y: 40 } })
+                expect(scrolls).toEqual([NEAREST])
+                expect(points).toEqual([[150, 190]])
+
+                const outside = await runInPage({ rects: [whole], hitAt: (elem) => elem, offset: { x: 0, y: 80 } })
+                expect(outside.points).toEqual([[150, 150]])
+            })
         })
     })
 
@@ -369,10 +427,9 @@ describe('click test', () => {
 
     it('should check and scroll in a mobile browser', async () => {
         const scope = nativeScope({ isNativeContext: false })
-        scope.execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('hit')
 
         await click.call(scope as never, { button: 'left' })
-        expect(scope.execute.mock.calls.map((call) => call[2])).toEqual([null, { block: 'nearest', inline: 'nearest' }])
+        expect(scope.execute).toHaveBeenCalledTimes(1)
         expect(scope.perform).toHaveBeenCalled()
     })
 
