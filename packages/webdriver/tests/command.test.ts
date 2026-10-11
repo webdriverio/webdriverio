@@ -565,3 +565,83 @@ describe('command wrapper result log', () => {
         expect(clearLoggerSpy).toHaveBeenCalledTimes(1)
     })
 })
+
+describe('deleteSession clean up', () => {
+    const deleteSessionEndpoint = {
+        command: 'deleteSession',
+        ref: 'https://w3c.github.io/webdriver/#dfn-delete-session',
+        parameters: [{ name: 'deleteSessionOpts', type: 'object', description: '', required: false }],
+        description: ''
+    }
+
+    function createScope () {
+        const client = new FakeClient() as unknown as BaseClient & { _bidiHandler: { close: () => void } }
+        client.capabilities = { 'wdio:driverPID': 1234 } as WebdriverIO.Capabilities
+        client._bidiHandler = { close: vi.fn() }
+        return client
+    }
+
+    async function runDeleteSession (client: BaseClient, ...args: unknown[]) {
+        vi.mocked(thenMock).mockClear()
+        vi.mocked(catchMock).mockClear()
+        const commandFn = commandWrapper('DELETE', '/session/:sessionId', deleteSessionEndpoint)
+        await commandFn.call(client, ...args)
+        return {
+            onResult: thenMock.mock.calls[0][0] as mockResponse,
+            onError: catchMock.mock.calls[0][0] as mockResponse
+        }
+    }
+
+    beforeEach(() => {
+        delete environment.value.variables.WDIO_WORKER_ID
+        logger.clearLogger = vi.fn()
+        environment.value.killDriverProcess = vi.fn()
+    })
+
+    it('kills the driver and closes the Bidi socket when the session is deleted', async () => {
+        const client = createScope()
+        const { onResult } = await runDeleteSession(client)
+        onResult({ value: null })
+        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true)
+        expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
+        expect(logger.clearLogger).toHaveBeenCalledTimes(1)
+    })
+
+    it('still kills the driver and closes the Bidi socket when deleteSession fails, then throws', async () => {
+        const client = createScope()
+        const { onError } = await runDeleteSession(client)
+        const error = new Error('invalid session id: A session is either terminated or not started')
+        expect(() => onError(error)).toThrow(error)
+        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, true)
+        expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
+        expect(logger.clearLogger).toHaveBeenCalledTimes(1)
+    })
+
+    it('keeps the driver running on a failed deleteSession with shutdownDriver: false', async () => {
+        const client = createScope()
+        const { onError } = await runDeleteSession(client, { shutdownDriver: false })
+        expect(() => onError(new Error('fetch failed'))).toThrow('fetch failed')
+        expect(environment.value.killDriverProcess).toHaveBeenCalledWith(client.capabilities, false)
+    })
+
+    it('cleans up only once when the result handler already did it', async () => {
+        const client = createScope()
+        const { onResult, onError } = await runDeleteSession(client)
+        onResult({ value: null })
+        expect(() => onError(new Error('later failure'))).toThrow('later failure')
+        expect(environment.value.killDriverProcess).toHaveBeenCalledTimes(1)
+        expect(client._bidiHandler.close).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not clean up when another command fails', async () => {
+        const client = createScope()
+        vi.mocked(thenMock).mockClear()
+        vi.mocked(catchMock).mockClear()
+        const commandFn = commandWrapper('GET', '/session/:sessionId/title', { command: 'getTitle', ref: '', parameters: [], description: '' })
+        await commandFn.call(client)
+        const onError = catchMock.mock.calls[0][0] as mockResponse
+        expect(() => onError(new Error('boom'))).toThrow('boom')
+        expect(environment.value.killDriverProcess).not.toHaveBeenCalled()
+        expect(client._bidiHandler.close).not.toHaveBeenCalled()
+    })
+})

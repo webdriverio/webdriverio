@@ -608,6 +608,25 @@ const customReporterObject = async () => {
 }
 
 /**
+ * The session is already gone when the run ends (#13114, #9436): `deleteSession`
+ * fails, but the worker still ends cleanly and the reporters get `runner:end`.
+ */
+const sessionGoneReport = async () => {
+    const outputDir = path.resolve(__dirname, 'helpers', 'session-gone')
+    await fs.rm(outputDir, { recursive: true, force: true })
+    const { passed, failed } = await launch('sessionGoneReport', baseConfig, {
+        specs: [path.resolve(__dirname, 'mocha', 'session_gone.js')],
+        reporters: [['smoke-test', { outputDir }]]
+    })
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(failed, 0)
+    await sleep(100)
+    const reporterLogs = (await fs.readFile(path.join(outputDir, 'wdio-0-0-smoke-test-reporter.log'))).toString()
+    await fs.rm(outputDir, { recursive: true, force: true })
+    assert.ok(reporterLogs.trim().endsWith('onRunnerEnd'), `expected the report to end with onRunnerEnd, got:\n${reporterLogs}`)
+}
+
+/**
  * wdio-reporter testrunner tests
  */
 const reporterTestrunner = async () => {
@@ -1303,6 +1322,7 @@ const jasmineAfterHookArgsValidation = async () => {
         retryPass,
         customReporterString,
         customReporterObject,
+        sessionGoneReport,
         reporterTestrunner,
         severeErrorTest,
         nonGlobalTestrunner,

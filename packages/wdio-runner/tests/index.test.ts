@@ -73,12 +73,14 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             runner['_isMultiRemote'] = true
             runner['_shutdown'] = vi.fn()
+            const instances: Record<string, { sessionId?: string, deleteSession: () => Promise<void> }> = {
+                foo: { sessionId: '123', deleteSession: vi.fn() },
+                bar: { sessionId: '456', deleteSession: vi.fn() }
+            }
             runner['_browser'] = {
                 deleteSession: vi.fn(),
                 instances: ['foo', 'bar'],
-                getInstance: vi.fn().mockReturnValue({
-                    sessionId: '123',
-                }),
+                getInstance: vi.fn((name: string) => instances[name]),
                 capabilities: {
                     foo: {
                         browserName: 'Chrome'
@@ -95,10 +97,60 @@ describe('wdio-runner', () => {
                 'afterSession',
                 [hook],
                 [{ logLevel: 'error', afterSession: [hook] }, { foo: undefined, bar: undefined }, undefined])
-            expect(runner['_browser']!.deleteSession).toBeCalledTimes(1)
+            expect(instances.foo.deleteSession).toBeCalledTimes(1)
+            expect(instances.bar.deleteSession).toBeCalledTimes(1)
+            expect(runner['_browser']!.deleteSession).not.toBeCalled()
             expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('foo').sessionId).toBe(true)
             expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('bar').sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
+        })
+
+        it('should still end the worker when the session is already gone', async () => {
+            const log = logger('wdio-runner')
+            vi.spyOn(log, 'error').mockImplementation(() => {})
+            const hook = vi.fn()
+            const runner = new WDIORunner()
+            runner['_cid'] = '0-0'
+            runner['_browser'] = {
+                deleteSession: vi.fn().mockRejectedValue(new Error('invalid session id: A session is either terminated or not started')),
+                sessionId: '123'
+            } as unknown as BrowserObject
+            runner['_config'] = { afterSession: [hook] } as any
+
+            await expect(runner.endSession()).resolves.toBeUndefined()
+
+            expect(log.error).toHaveBeenCalledWith(expect.stringContaining('Failed to end the session: invalid session id'))
+            expect(log.error).toHaveBeenCalledWith(expect.stringContaining('Close it manually if needed.'))
+            expect(process.send).toBeCalledWith({ origin: 'worker', name: 'sessionEnded', cid: '0-0' })
+            expect(runner['_browser']!.sessionId).toBeUndefined()
+            expect(executeHooksWithArgs).toBeCalledWith('afterSession', [hook], expect.any(Array))
+        })
+
+        it('should delete every multi-remote session when one of them is already gone', async () => {
+            const log = logger('wdio-runner')
+            vi.spyOn(log, 'error').mockImplementation(() => {})
+            const runner = new WDIORunner()
+            runner['_isMultiRemote'] = true
+            const instances: Record<string, { sessionId?: string, capabilities: object, deleteSession: () => Promise<void> }> = {
+                foo: { sessionId: '123', capabilities: {}, deleteSession: vi.fn().mockRejectedValue(new Error('fetch failed')) },
+                bar: { sessionId: '456', capabilities: {}, deleteSession: vi.fn().mockResolvedValue(undefined) }
+            }
+            runner['_browser'] = {
+                instances: ['foo', 'bar'],
+                getInstance: vi.fn((name: string) => instances[name]),
+                capabilities: {}
+            } as any
+            runner['_config'] = { afterSession: [] } as any
+
+            await expect(runner.endSession()).resolves.toBeUndefined()
+
+            expect(instances.foo.deleteSession).toBeCalledTimes(1)
+            expect(instances.bar.deleteSession).toBeCalledTimes(1)
+            expect(log.error).toHaveBeenCalledTimes(1)
+            expect(log.error).toHaveBeenCalledWith(expect.stringContaining('Failed to end the session of "foo": fetch failed'))
+            expect(instances.foo.sessionId).toBeUndefined()
+            expect(instances.bar.sessionId).toBeUndefined()
+            expect(executeHooksWithArgs).toBeCalledWith('afterSession', [], expect.any(Array))
         })
     })
 
@@ -161,6 +213,44 @@ describe('wdio-runner', () => {
 
             // session capabilities should be passed to reporter
             expect(runner['_reporter']?.caps).toEqual({ browserName: 'chrome' })
+        })
+
+        it('should shut down and report when the session is already gone at the end', async () => {
+            const log = logger('wdio-runner')
+            vi.spyOn(log, 'error').mockImplementation(() => {})
+            const runner = new WDIORunner()
+            const config: any = {
+                reporters: [],
+                before: [],
+                beforeSession: [],
+                framework: 'testWithFailures',
+                runner: 'local'
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_shutdown'] = vi.fn().mockResolvedValue(123)
+            const stubBrowser = {
+                sessionId: '123',
+                capabilities: { browserName: 'chrome' },
+                options: {},
+                deleteSession: vi.fn().mockRejectedValue(new Error('invalid session id'))
+            }
+            runner['_initSession'] = vi.fn().mockImplementation(async () => {
+                runner['_browser'] = stubBrowser as unknown as BrowserObject
+                return stubBrowser
+            })
+
+            await expect(runner.run({
+                args: { reporters: [] },
+                cid: '0-0',
+                retries: 0,
+                caps: { browserName: '123' },
+                specs: ['foobar'],
+                configFile: '/foo/bar'
+            })).resolves.toBe(123)
+
+            expect(stubBrowser.deleteSession).toBeCalledTimes(1)
+            expect(process.send).toBeCalledWith({ origin: 'worker', name: 'sessionEnded', cid: '0-0' })
+            expect(runner['_shutdown']).toBeCalledWith(123, 0)
         })
 
         it('should send the post-beforeSession retry budget with testFrameworkInit', async () => {

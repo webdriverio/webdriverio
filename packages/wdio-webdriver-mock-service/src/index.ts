@@ -70,6 +70,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._browser.addCommand('waitForExistScenario', this.waitForExistScenario.bind(this))
         this._browser.addCommand('executeMemLeakScenario', this.executeMemLeakScenario.bind(this))
         this._browser.addCommand('requestRetryScenario', this.requestRetryScenario.bind(this))
+        this._browser.addCommand('sessionGoneScenario', this.sessionGoneScenario.bind(this))
     }
 
     clickScenario() {
@@ -265,6 +266,25 @@ export default class WebdriverMockService implements Services.ServiceInstance {
 
         this._mock.command.navigateTo().times(3).reply(500, {})
         this._mock.command.navigateTo().reply(200, { value: null })
+    }
+
+    /**
+     * The session is already gone at the end of the run (for example after a
+     * browser crash or a cloud timeout): `DELETE /session/:sessionId` fails
+     * with "invalid session id". Registered before the default stubs, so it
+     * replaces their `deleteSession` reply.
+     */
+    sessionGoneScenario() {
+        WebDriverMock.reset()
+        this._mock = new WebDriverMock()
+        this._mock.command.deleteSession().times(Infinity).reply(404, {
+            value: {
+                error: 'invalid session id',
+                message: 'A session is either terminated or not started',
+                stacktrace: ''
+            }
+        })
+        this.init()
     }
 
     /**
