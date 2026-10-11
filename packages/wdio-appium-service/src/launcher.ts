@@ -391,7 +391,8 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             const args = useWindowsCmd ? ['/c', command, '--version'] : ['--version']
             return execFileSync(bin, args, {
                 encoding: 'utf8',
-                stdio: ['ignore', 'pipe', 'pipe']
+                stdio: ['ignore', 'pipe', 'pipe'],
+                env: { ...process.env, NODE_OPTIONS: '' }
             }).trim().split(/\r?\n/).find(Boolean) || ''
         } catch (err) {
             const errorMessage =
