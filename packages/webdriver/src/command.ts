@@ -241,7 +241,7 @@ function manageSessionAbortions (this: BaseClient): {
             abortListeners.clear()
             sessionAbortListeners.set(this.sessionId, null)
         }
-
+        this.off('result', abortOnSessionEnd)
     }
 
     let abortListenerForCurrentSession = sessionAbortListeners.get(this.sessionId)
@@ -267,7 +267,10 @@ function manageSessionAbortions (this: BaseClient): {
         isAborted: false,
         abortSignal: abort.signal,
         cleanup: () => {
-            this.off('result', abortOnSessionEnd)
+            /**
+             * only drop this command's controller, the session-wide listener
+             * has to stay registered until the session has been deleted
+             */
             abortListenerForCurrentSession?.delete(abort)
         }
     }
