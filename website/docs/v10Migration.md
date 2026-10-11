@@ -155,9 +155,9 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
 
 ## expect-webdriverio 8
 
-`@wdio/globals`, `@wdio/runner` and `@wdio/browser-runner` require `expect-webdriverio` 8 as a peer dependency. In v9, it was `expect-webdriverio` 7. If your `package.json` lists `expect-webdriverio`, update it to version 8 in the same change as the `@wdio/*` packages.
+`@wdio/globals`, `@wdio/runner` and `@wdio/browser-runner` require `expect-webdriverio` 8 as a peer dependency. In v9, it was `expect-webdriverio` 5 (up to WebdriverIO 9.29) or 6 (WebdriverIO 9.31). If your `package.json` lists `expect-webdriverio`, update it to version 8 in the same change as the `@wdio/*` packages.
 
-`expect-webdriverio` 8 has its own breaking changes. Its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8) lists each change and its replacement. These changes are the most likely to affect a test suite:
+`expect-webdriverio` 8 has its own breaking changes. Its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8) lists each change and its replacement. From `expect-webdriverio` 5, also read its [v5 to v6 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v5-to-v6). Version 7 has no migration guide. It adds multi-remote support, and `toMatchSnapshot()` and `toMatchInlineSnapshot()` on `$$()` now store the `outerHTML` of each element: update those snapshots. These changes are the most likely to affect a test suite:
 
 - `toHaveText` on `$$()` compares the elements index by index. An expected array in another order than the page fails. Use the page order, `expect.oneOf()` or `expect.arrayContaining()`.
 - An array of expected values on a single element fails `toHaveText`, `toHaveHTML`, `toHaveComputedLabel`, `toHaveComputedRole` and `toHaveElementClass`. Use `expect.oneOf()`. For `toHaveElementClass`, an array meant "has any of these classes": use `expect.oneOf()`, or one assertion for each class when the element must have all of them.
@@ -362,7 +362,7 @@ The rule applies to every step of a chain (`$('form').$('input')`) and to every 
 
 ### What did not change
 
-- `$$` still returns zero or many elements. Since v10 that list is an [`ElementArray`](/docs/api/browser/$$): a real array you can `await`, with `for await` and async `map` / `filter` available before it resolves. `await $$('button').length` is the count. `$$('button').length > 0` is not, because `length` is a promise until the list resolves. `for (const el of $$('button'))` throws until you have awaited the list; use `for await`, or `for...of` after `await`.
+- `$$` still returns zero or many elements. The value it returns before `await` changed: see [Element lists before `await`](#element-lists-before-await).
 - The dedicated helper commands `custom$`, `shadow$` and `react$` are not strict — they still return their first match, as do their `$$` counterparts.
 - A selector that matches nothing still returns a lazily-resolved element, so `waitForExist` and [auto-waiting](/docs/autowait) behave as before.
 - Passing an element reference, e.g. `$(await browser.getActiveElement())`, always refers to a single node and is never checked.
@@ -410,6 +410,71 @@ An element remembers how it was queried, so re-fetching it — after a stale ele
 Under the hood a strict `$` issues a `findElements` request instead of `findElement`, since counting the matches is the only way to enforce the rule. This is a single round trip either way, but it is visible to custom services and WebDriver mocks that key off the `findElement` command.
 
 :::
+
+## Element lists before `await`
+
+Since v10, `$$()` returns an [`ElementArray`](/docs/api/browser/$$): a real array that you can `await`. In v9, a `$$()` that you did not await was a promise.
+
+| `$$('li')` before `await` | v9 | v10 |
+| --- | --- | --- |
+| `instanceof Promise` | `true` | `false` |
+| `Array.isArray()` | `false` | `true` |
+| `then`, `catch`, `finally` | functions | functions, until the list is loaded |
+
+Until the list is loaded, `length` is a promise, and `[...list]`, `Array.from(list)` and `for...of` throw `Cannot synchronously iterate over an element list that has not resolved yet`.
+
+The same is true for `custom$$`, `shadow$$` and `react$$`, and for `$$()` on a multi-remote browser. A `$()` that you did not await is still a promise.
+
+`await` gives the same list, loaded and without `then`. Then `length` is a number, and `for...of`, `[...list]` and `Array.from()` work. Before `await`, you can use `for await`, an index (`$$('li')[0]`) and the async iteration methods (`map`, `filter`, `forEach`, ...).
+
+Code that awaits a value only when it is a `Promise`, or that reads `length` without `await`, does not throw. It reads a promise as the length, so a loop such as `for (let i = 0; i < list.length; i++)` runs 0 times. Always `await` the value. `await` on a value that is already loaded gives that value:
+
+```diff
+- if (value instanceof Promise) {
+-     value = await value
+- }
++ value = await value
+```
+
+```diff
+- if ($$('button').length > 0) {
++ if (await $$('button').length > 0) {
+```
+
+To tell what a WebdriverIO object is, without `instanceof Promise` or `Array.isArray()`, read its brand. See [Identify WebdriverIO objects](#identify-webdriverio-objects).
+
+## Identify WebdriverIO objects
+
+Since v10, every WebdriverIO object has a brand: `value[WDIO_KIND]`. Use it in a plugin, a service or a helper that accepts several kinds of values, instead of `instanceof Promise`, `Array.isArray()` or a check such as `'elementId' in value`.
+
+```ts title="helpers.ts"
+import { WDIO_CHAINABLE, WDIO_KIND, type WdioKind } from 'webdriverio'
+
+export function describeValue (value: unknown): string {
+    const kind = (value as { [WDIO_KIND]?: WdioKind } | undefined)?.[WDIO_KIND]
+    if (!kind) {
+        return 'not a WebdriverIO object'
+    }
+    const pending = typeof (value as { then?: unknown }).then === 'function'
+    const chainable = (value as { [WDIO_CHAINABLE]?: boolean })[WDIO_CHAINABLE] === true
+    return `${kind}${pending ? ' (not loaded yet)' : ''}${chainable ? ' (chainable)' : ''}`
+}
+```
+
+| Value | `WDIO_KIND` | `WDIO_CHAINABLE` |
+| --- | --- | --- |
+| `browser`, also a multi-remote browser | `'browser'` | |
+| `await $('h1')`, also an element that was not found | `'element'` | |
+| `$('h1')`, `$$('li')[0]`, `$('h1').parentElement()` before `await` | `'element'` | `true` |
+| `$$('li')` before and after `await` | `'element-array'` | |
+| `await browser.mock(...)`, also a multi-remote mock | `'mock'` | |
+| a tab, a window or a frame (`WebdriverIO.BrowsingContext`) | `'browsing-context'` | |
+| `[...list]`, `list.map(...)`, a promise of another command | none | none |
+
+- A value is loaded when it has no `then` function. A loaded object is never chainable. A pending `$$()` and its loaded result are the same object.
+- The kind does not tell if the object is multi-remote. Read `isMultiRemote` for that.
+- `WDIO_KIND` is `Symbol.for('wdio.kind')` and `WDIO_CHAINABLE` is `Symbol.for('wdio.chainable')`. A package can read `value?.[Symbol.for('wdio.kind')]` without an import of `webdriverio`, and the check works when a project has two copies of WebdriverIO.
+- The brands are not enumerable. They are not in logs, snapshots or JSON.
 
 ## Legacy command signatures
 
@@ -479,6 +544,19 @@ String and string-array filters are rejected. Pass a [cookie filter object](http
 ```
 
 Use `type: 'tab'` to open a tab.
+
+In a WebDriver BiDi session, `newWindow()` returns the new [browsing context](/docs/api/browsingContext) and does not switch to it. In v9 it switched. Thus `browser.closeWindow()` after `newWindow()` now closes the first tab, not the new one. Run the commands for the new tab on the context that `newWindow()` returns, and close it with `closeWindow()` on that context:
+
+```diff
+- await browser.newWindow('https://webdriver.io')
+- console.log(await browser.getTitle())
+- await browser.closeWindow()
++ const tab = await browser.newWindow('https://webdriver.io')
++ console.log(await tab.getTitle())
++ await tab.closeWindow()
+```
+
+The browser stays on the first tab, so you do not need `switchWindow()` after you close the new one. See [`switchToFrame`](#switchtoframe) for the browsing context model.
 
 ### `startActivity`
 
