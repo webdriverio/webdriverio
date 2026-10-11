@@ -237,19 +237,23 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
     }
 
     const browser = getBrowserObject(parent as WebdriverIO.Element)
-    /**
-     * the props of the "not found" item, see below. `undefined` for a list whose index
-     * that is never reached still throws: a `custom$$` list (its items carry a strategy
-     * reference) and a list of elements or element references
-     */
-    const itemProps = selector !== undefined && !Array.isArray(selector) ? itemPropsOf(foundWith, props) : undefined
     try {
         return await browser.waitUntil(() => findIn(parent), {
             timeout: browser.options?.waitforTimeout,
             timeoutMsg
         })
     } catch (err) {
-        if (!itemProps || !(err instanceof Error) || err.message !== timeoutMsg) {
+        if (!(err instanceof Error) || err.message !== timeoutMsg) {
+            throw err
+        }
+
+        /**
+         * the props of the "not found" item, see below. `undefined` for a list whose index
+         * that is never reached still throws: a `custom$$` list (its items carry a strategy
+         * reference) and a list of elements or element references
+         */
+        const itemProps = selector !== undefined && !Array.isArray(selector) ? itemPropsOf(foundWith, props) : undefined
+        if (!itemProps) {
             throw err
         }
 
