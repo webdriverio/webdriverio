@@ -12,12 +12,14 @@ export default defineConfig({
         browser: {
             enabled: true,
             headless: true,
-            provider: webdriverio(),
             /**
              * the provider switches frames with `switchFrame`, which WebDriver
-             * BiDi sessions no longer offer in v10
+             * BiDi sessions no longer offer in v10. A Classic session also keeps
+             * WebdriverIO's own preload scripts out of the page under test. The
+             * provider reads its capabilities from these options only.
              */
-            instances: [{ browser: 'chrome', capabilities: { 'wdio:enforceWebDriverClassic': true } }]
+            provider: webdriverio({ capabilities: { 'wdio:enforceWebDriverClassic': true } }),
+            instances: [{ browser: 'chrome' }]
         }
     }
 })

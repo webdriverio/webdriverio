@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import { getContextManager } from '../../src/session/context.js'
 import { logMock } from '@wdio/logger'
@@ -442,5 +442,99 @@ describe('ContextManager', () => {
 
         manager.setCurrentContext('top')
         expect(await manager.getCurrentTopLevelContext()).toBe('top')
+    })
+})
+
+/**
+ * Android Chrome through Appium: the Appium context name (`CHROMIUM`) is not a
+ * BiDi browsing context id. In a BiDi session the current context must be the
+ * window handle, or BiDi commands fail with "no such frame - Context CHROMIUM not found".
+ */
+describe('ContextManager on mobile Android Chrome', () => {
+    let wid: string | undefined
+
+    beforeEach(() => {
+        wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+    })
+
+    afterEach(() => {
+        process.env.WDIO_UNIT_TESTS = wid
+    })
+
+    function createAndroidChrome (isBidi: boolean) {
+        const stub = createBrowserStub({
+            isBidi,
+            isMobile: true,
+            isAndroid: true,
+            capabilities: { platformName: 'Android', browserName: 'chrome' },
+            getWindowHandle: vi.fn()
+                .mockResolvedValueOnce('WINDOW-1')
+                .mockResolvedValueOnce('WINDOW-2')
+        } as any)
+        const emit = async (event: string, payload: unknown) => {
+            for (const handler of stub.getListeners()[event] || []) {
+                await handler(payload)
+            }
+        }
+        const switchAppiumContext = async (name: string) => {
+            await emit('command', { command: 'switchAppiumContext', body: { name } })
+            await emit('result', { command: 'switchAppiumContext', result: { value: null } })
+        }
+        return { ...stub, manager: getContextManager(stub.browser), emit, switchAppiumContext }
+    }
+
+    it('uses the window handle as the current context in a BiDi session', async () => {
+        const { browser, manager } = createAndroidChrome(true)
+
+        expect(await manager.getCurrentContext()).toBe('WINDOW-1')
+        expect(manager.mobileContext).toBe('CHROMIUM')
+        expect(manager.isNativeContext).toBe(false)
+        expect(browser.getWindowHandle).toHaveBeenCalledTimes(1)
+    })
+
+    it('resolves the window handle again after switching to NATIVE_APP and back in a BiDi session', async () => {
+        const { manager, switchAppiumContext } = createAndroidChrome(true)
+        expect(await manager.getCurrentContext()).toBe('WINDOW-1')
+
+        await switchAppiumContext('NATIVE_APP')
+        expect(manager.mobileContext).toBe('NATIVE_APP')
+        expect(manager.isNativeContext).toBe(true)
+
+        await switchAppiumContext('CHROMIUM')
+        expect(manager.mobileContext).toBe('CHROMIUM')
+        expect(manager.isNativeContext).toBe(false)
+        expect(await manager.getCurrentContext()).toBe('WINDOW-2')
+    })
+
+    it('keeps the current context when getAppiumContext returns the same context in a BiDi session', async () => {
+        const { browser, manager, emit } = createAndroidChrome(true)
+        expect(await manager.getCurrentContext()).toBe('WINDOW-1')
+
+        await emit('result', { command: 'getAppiumContext', result: { value: 'CHROMIUM' } })
+
+        expect(await manager.getCurrentContext()).toBe('WINDOW-1')
+        expect(browser.getWindowHandle).toHaveBeenCalledTimes(1)
+    })
+
+    it('keeps the Appium context name when switchToWindow sets the current context in a BiDi session', async () => {
+        const { manager, emit } = createAndroidChrome(true)
+
+        await emit('command', { command: 'switchToWindow', body: { handle: 'WINDOW-9' } })
+
+        expect(await manager.getCurrentContext()).toBe('WINDOW-9')
+        expect(manager.mobileContext).toBe('CHROMIUM')
+        expect(manager.isNativeContext).toBe(false)
+    })
+
+    it('keeps using the Appium context name in a Classic session', async () => {
+        const { browser, manager, switchAppiumContext } = createAndroidChrome(false)
+
+        expect(await manager.getCurrentContext()).toBe('CHROMIUM')
+        expect(browser.getWindowHandle).not.toHaveBeenCalled()
+
+        await switchAppiumContext('NATIVE_APP')
+        expect(await manager.getCurrentContext()).toBe('NATIVE_APP')
+        expect(manager.isNativeContext).toBe(true)
     })
 })

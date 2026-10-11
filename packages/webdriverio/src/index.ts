@@ -14,6 +14,7 @@ import { getProtocolDriver } from './utils/driver.js'
 import { WDIO_DEFAULTS, Key as KeyConstant } from './constants.js'
 import { getPrototype, addLocatorStrategyHandler, isStub } from './utils/index.js'
 import { registerSessionManager } from './session/index.js'
+import { markAttachedSession } from './utils/scriptTimeout.js'
 import { enableBrowsingContextCommands } from './browsingContext.js'
 import { environment } from './environment.js'
 
@@ -67,7 +68,10 @@ export const remote = async function (
     const keysToKeep = Object.keys(environment.value.variables.WDIO_WORKER_ID ? params : DEFAULTS) as (keyof Capabilities.WebdriverIOConfig)[]
     const config = validateConfig<Capabilities.WebdriverIOConfig>(WDIO_DEFAULTS, params, keysToKeep)
 
-    await enableFileLogging(config.outputDir)
+    /**
+     * in a worker, keep its log file
+     */
+    await enableFileLogging(config.outputDir, { keepLogPath: true })
     logger.setLogLevelsConfig(config.logLevels, config.logLevel)
 
     const modifier = (client: WebDriverTypes.Client, options: Capabilities.WebdriverIOConfig) => {
@@ -135,6 +139,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     ) as WebdriverIO.Browser
     enableBrowsingContextCommands(driver)
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
+    markAttachedSession(driver)
 
     /**
      * Wait for the Bidi handler to be connected before registering the session manager

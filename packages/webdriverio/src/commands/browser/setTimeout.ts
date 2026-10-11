@@ -13,6 +13,12 @@ import type { Timeouts } from '@wdio/protocols'
  *
  * :::
  *
+ * WebDriver BiDi has no script timeout, so in a BiDi session WebdriverIO applies the
+ * `script` timeout to [`execute`](/docs/api/browser/execute) itself: a script that does not
+ * finish in time fails with a `script timeout` error, as with WebDriver Classic. Every BiDi
+ * command also stops after [`bidiResponseTimeout`](/docs/configuration#bidiresponsetimeout)
+ * (180 seconds by default), so a longer `script` timeout needs a longer `bidiResponseTimeout` too.
+ *
  * <example>
     :setTimeout.js
     it('should change timeout duration for session with long code duration', async () => {

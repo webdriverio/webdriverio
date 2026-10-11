@@ -451,13 +451,15 @@ export function getBidiRequestOptions (
  * @param strictSSL
  * @param userHeaders
  * @param responseTimeout timeout for a Bidi command to receive a response from the browser
+ * @param connectTimeout timeout for the browser to accept the Bidi connection
  * @returns prototype with interface for bidi primitives
  */
 export function initiateBidi (
     socketUrl: string,
     strictSSL: boolean = true,
     userHeaders?: Record<string, string>,
-    responseTimeout?: number
+    responseTimeout?: number,
+    connectTimeout?: number
 ): PropertyDescriptorMap {
     /**
      * don't connect and stale unit tests when the websocket url is set to a dummy value
@@ -478,7 +480,7 @@ export function initiateBidi (
 
     socketUrl = socketUrl.replace('localhost', '127.0.0.1')
     const bidiReqOpts = getBidiRequestOptions(strictSSL, userHeaders)
-    const handler = new BidiHandler(socketUrl, bidiReqOpts, responseTimeout)
+    const handler = new BidiHandler(socketUrl, bidiReqOpts, responseTimeout, connectTimeout)
     handler.connect().then((isConnected) => isConnected && log.info(`Connected to WebDriver Bidi interface at ${socketUrl}`))
 
     return {

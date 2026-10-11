@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { expect, describe, it, vi } from 'vitest'
-import type { remote } from 'webdriver'
+import { BIDI_SCRIPT_TIMEOUT, type remote } from 'webdriver'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../../src/session/context.js', () => ({
@@ -87,5 +87,48 @@ describe('execute BiDi blob results', () => {
             'return new Blob(["from-string"], { type: "text/plain" })'
         ) as Blob
         expect(await stringResult.text()).toBe('from-string')
+    })
+})
+
+describe('execute BiDi script timeout', () => {
+    const scriptTimeoutBrowser = (capabilities: Record<string, unknown>, getTimeouts?: () => Promise<unknown>) => ({
+        isBidi: true,
+        isMultiRemote: false,
+        sessionId: 'session-1',
+        capabilities,
+        ...(getTimeouts ? { getTimeouts } : {}),
+        scriptCallFunction: vi.fn(async () => ({ type: 'success', realm: 'realm-1', result: { type: 'undefined' } }))
+    })
+    const sentScriptTimeout = (browser: ReturnType<typeof scriptTimeoutBrowser>) =>
+        (browser.scriptCallFunction.mock.calls[0] as unknown as [Record<symbol, unknown>])[0][BIDI_SCRIPT_TIMEOUT]
+
+    /**
+     * the transport starts the time when it sends the command, so command hooks do not count
+     */
+    it('gives the BiDi command the script timeout of the session', async () => {
+        const browser = scriptTimeoutBrowser({ timeouts: { script: 2_000 } })
+        await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
+        expect(sentScriptTimeout(browser)).toBe(2_000)
+    })
+
+    it('uses the script timeout of an attached session', async () => {
+        const browser = scriptTimeoutBrowser({}, async () => ({ script: 60_000 }))
+        await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
+        expect(sentScriptTimeout(browser)).toBe(60_000)
+    })
+
+    it('sets no script timeout for a null one', async () => {
+        const browser = scriptTimeoutBrowser({ timeouts: { script: null } })
+        await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
+        expect(sentScriptTimeout(browser)).toBeUndefined()
+    })
+
+    /**
+     * the transport starts no timer for a value that a timer cannot hold
+     */
+    it('passes a very long script timeout on as it is', async () => {
+        const browser = scriptTimeoutBrowser({ timeouts: { script: Number.MAX_SAFE_INTEGER } })
+        await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
+        expect(sentScriptTimeout(browser)).toBe(Number.MAX_SAFE_INTEGER)
     })
 })

@@ -16,8 +16,19 @@ import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
 import { ElectronChromedriverProvider, getElectronVersionForChromium } from './electronChromedriverProvider.js'
+import { warnIfDownloadProxyIgnored } from './downloadProxy.js'
+import { installAtomically } from './atomicInstall.js'
 
 const log = logger('webdriver')
+
+/**
+ * `@puppeteer/browsers` extracts zip files with the system `unzip` command (`tar.exe` or
+ * PowerShell on Windows). WebdriverIO does not install its JavaScript fallback.
+ */
+const MISSING_ZIP_TOOL = 'no zip archiver is available'
+const UNZIP_HINT = 'WebdriverIO extracts browsers and Chromedriver with the system `unzip` command ' +
+    '(`tar.exe` or PowerShell on Windows). Install it, e.g. `apt-get install -y unzip` or `apk add unzip`. ' +
+    'See https://webdriver.io/docs/docker#images-where-webdriverio-downloads-the-browser'
 const EXCLUDED_PARAMS = ['version', 'help']
 export const DEFAULT_EDGEDRIVER_CDN_URL = 'https://msedgedriver.microsoft.com'
 const LEGACY_EDGEDRIVER_CDN_URL = 'https://msedgedriver.azureedge.net'
@@ -202,27 +213,44 @@ function describeRejection (err: unknown) {
  * @see {@link https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-logger/README.md#custom-log-levels} for more information.
  *
  * @param {InstallOptions & { unpack?: true | undefined }} args - An object containing installation options and an optional `unpack` flag.
+ * @param {object} options
+ * @param {boolean} options.retry - this is the retry: a failure is final
+ * @param {boolean} options.fresh - the cache is private to this install (see `installBuild()`): the retry
+ *                                  starts from an empty build folder, also when the executable is there,
+ *                                  so that a partly unpacked build is never used
  * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
  */
-const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
+const _install = async (
+    args: InstallOptions & { unpack?: true | undefined },
+    { retry = false, fresh = false }: { retry?: boolean, fresh?: boolean } = {}
+): Promise<void> => {
+    warnIfDownloadProxyIgnored()
     await install(args).then(async (installed) => {
         /**
-         * Some unzip runtimes fulfill the install promise even if extraction
-         * omitted the executable (e.g. Node 26 on Linux, issue #15608).
-         * Treat that as an install failure so the existing cache cleanup and
-         * one controlled retry run. Puppeteer supplies this path for actual
-         * installs; legacy mocks that only signal success with {} keep working.
+         * A fulfilled install must provide the executable before its build can be
+         * published. Route an incomplete extraction through the same cleanup and
+         * bounded retry as a rejected install, including in the private cache.
          */
         if (typeof installed?.executablePath === 'string' &&
             !await fsp.access(installed.executablePath).then(() => true, () => false)) {
             throw new Error(`Extraction completed but the ${args.browser} executable is missing at ${installed.executablePath}`)
         }
     }).catch(async (err) => {
+        if (await isInstalledDespiteArchiveCleanup(args, err)) {
+            return
+        }
+
         /**
          * a rejection is not guaranteed to be an Error, so never assume a writable
          * `message` and never let `new Error()` stringify an object into `[object Object]`
          */
         const details = redactCredentials(`Failed downloading ${args.browser} v${args.buildId} using ${JSON.stringify(args)}: ${describeRejection(err)}`)
+        /**
+         * a missing zip tool fails the retry the same way
+         */
+        if (details.includes(MISSING_ZIP_TOOL)) {
+            throw new Error(`${details}\n${UNZIP_HINT}`)
+        }
         if (retry) {
             throw new Error(details)
         }
@@ -234,9 +262,11 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
          * with "exists but executable is missing" (see issue #15608).
          * Remove the whole build folder: the executable can sit in a sub-folder of
          * it (`core/firefox.exe` on Windows), and the check is on the build folder.
-         * Keep the folder when the executable is there: the install can fail after
-         * the browser was extracted, e.g. when Windows still locks the Firefox
-         * installer that it tries to delete, and the retry then uses that browser.
+         * In the cache itself, keep the folder when the executable is there: it is a
+         * published build. In a private cache, remove it too: the unpack can have
+         * failed after the executable was written. (A failure of the archive cleanup
+         * only, e.g. a Firefox installer that Windows still locks, does not retry:
+         * see `isInstalledDespiteArchiveCleanup()`.)
          */
         try {
             const platform = args.platform ?? detectBrowserPlatform()
@@ -244,10 +274,13 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
                 const cache = new Cache(args.cacheDir)
                 const executablePath = cache.computeExecutablePath({ browser: args.browser, platform, buildId: args.buildId })
                 const buildDir = cache.installationDir(args.browser, platform, args.buildId)
-                if (await fsp.access(executablePath).then(() => true, () => false)) {
+                const hasExecutable = await fsp.access(executablePath).then(() => true, () => false)
+                if (hasExecutable && !fresh) {
                     log.info(`Keeping ${args.browser} v${args.buildId} at ${buildDir}: the executable is there`)
                 } else if (await fsp.access(buildDir).then(() => true, () => false)) {
-                    log.warn(`Removing ${buildDir} before the retry: the executable ${executablePath} is missing`)
+                    log.warn(hasExecutable
+                        ? `Removing ${buildDir} before the retry: the failed install can have left it partly unpacked`
+                        : `Removing ${buildDir} before the retry: the executable ${executablePath} is missing`)
                     await fsp.rm(buildDir, { recursive: true, force: true }).catch((err) => {
                         log.warn(`Couldn't remove ${buildDir}, the retry can fail: ${describeRejection(err)}`)
                     })
@@ -262,9 +295,92 @@ const _install = async (args: InstallOptions & { unpack?: true | undefined }, re
              * if the partial directory issue resolves itself.
              */
         }
-        return _install(args, true)
+        return _install(args, { retry: true, fresh })
     })
     log.progress('')
+}
+
+/**
+ * Install a build into the cache atomically (see `installAtomically()`): a half
+ * installed build is never in the cache, and processes that set it up at the same time
+ * download it once. `prepare(cacheDir)` runs before the install in that cache. Resolves
+ * the executable to use: in the cache, or in a private folder when the build cannot be
+ * moved into the cache.
+ */
+function installBuild (
+    args: InstallOptions & { unpack?: true },
+    platform: BrowserPlatform,
+    executablePath: string,
+    prepare?: (cacheDir: string) => void
+) {
+    return installAtomically({
+        cacheDir: args.cacheDir,
+        buildDir: (cacheDir) => new Cache(cacheDir).installationDir(args.browser, platform, args.buildId),
+        executablePath,
+        /**
+         * in the browser folder of the cache (`Cache#browserRoot()` of `@puppeteer/browsers`),
+         * without a `-`, so that the cache does not list it as a `<platform>-<buildId>` install
+         */
+        markerPath: path.join(args.cacheDir, args.browser, `${platform}_${args.buildId.replaceAll('-', '_')}.installing`)
+    }, (cacheDir) => {
+        prepare?.(cacheDir)
+        return _install({ ...args, cacheDir }, { fresh: true })
+    })
+}
+
+/**
+ * `@puppeteer/browsers` deletes the downloaded archive (`<browserRoot>/<buildId>-<file>`)
+ * in a `finally` block, also when the browser is installed. On Windows that fails with
+ * EBUSY or EPERM while another program has the archive open: a virus scan of the new
+ * file, or the Firefox installer that the install just ran. (Since the install runs in a
+ * private cache, see `installBuild()`, no other worker can have it open.) The browser
+ * is then complete and only the cleanup failed, so use it: a retry would fail on the
+ * same cleanup.
+ *
+ * Every provider in the error must have failed on that cleanup, and the executable must
+ * exist. `install()` lists the providers as `  - <provider>: <message>` lines.
+ *
+ * Known limit: the error of the cleanup in `finally` replaces an error of the unpack, so
+ * when both failed at the same time the build can be partial. Not checked; look here if
+ * a broken browser is reported after this warning.
+ */
+async function isInstalledDespiteArchiveCleanup (args: InstallOptions, err: unknown) {
+    const message = describeRejection(err)
+    const providerLines = message.split('\n').filter((line) => /^\s+- /.test(line))
+    const platform = args.platform ?? detectBrowserPlatform()
+    if (!platform) {
+        return false
+    }
+    try {
+        const cache = new Cache(args.cacheDir)
+        const browserRoot = path.resolve(cache.browserRoot(args.browser))
+        /**
+         * up to the last quote of the line: Node.js does not escape quotes in the path
+         */
+        const locked = (providerLines.length > 0 ? providerLines : [message]).map((line) => (
+            /\b(?:EBUSY|EPERM)\b[^\n]*\bunlink '([^\n]+)'/.exec(line)?.[1]
+        ))
+        const onlyArchiveCleanup = locked.every((file) => (
+            file !== undefined &&
+            path.dirname(path.resolve(file)) === browserRoot &&
+            path.basename(file).startsWith(`${args.buildId}-`)
+        ))
+        if (!onlyArchiveCleanup) {
+            return false
+        }
+        const executablePath = cache.computeExecutablePath({ browser: args.browser, platform, buildId: args.buildId })
+        if (!await fsp.access(executablePath).then(() => true, () => false)) {
+            return false
+        }
+        log.warn(
+            `Installed ${args.browser} v${args.buildId}, but couldn't remove its download ${locked[0]} ` +
+            `(${message.includes('EBUSY') ? 'EBUSY' : 'EPERM'}): another program still has it open, e.g. a virus scan ` +
+            'or the Firefox installer. Using the installed browser.'
+        )
+        return true
+    } catch {
+        return false
+    }
 }
 
 function locateChromeSafely () {
@@ -366,6 +482,10 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     const tag = browserName === Browser.CHROME
         ? caps.browserVersion || ChromeReleaseChannel.STABLE
         : caps.browserVersion || 'latest'
+    /**
+     * the version lookup is the first request that can ignore a configured proxy
+     */
+    warnIfDownloadProxyIgnored()
     const buildId = await resolveBuildId(browserName, platform, tag)
     const installOptions: InstallOptions & { unpack?: true } = {
         unpack: true,
@@ -381,8 +501,22 @@ export async function setupPuppeteerBrowser(cacheDir: string, caps: WebdriverIO.
     }
 
     log.info(`Setting up ${browserName} v${buildId}`)
-    await _install(installOptions)
-    const executablePath = computeExecutablePath(installOptions)
+    const cachedExecutablePath = computeExecutablePath(installOptions)
+    let executablePath = await installBuild(installOptions, platform, cachedExecutablePath)
+    if (executablePath === cachedExecutablePath && !await fsp.access(executablePath).then(() => true, () => false)) {
+        /**
+         * removed meanwhile: `install()` below would download it into the cache in place
+         */
+        executablePath = await installBuild(installOptions, platform, cachedExecutablePath)
+    }
+    if (executablePath === cachedExecutablePath) {
+        /**
+         * `@puppeteer/browsers` finds the build and finishes it in the cache (e.g. it runs
+         * Chrome's `setup.exe` on Windows for the browser folder), as for a cached build;
+         * a build in a private folder was finished there
+         */
+        await _install(installOptions)
+    }
 
     /**
      * for Chromium browser `resolveBuildId` returns with a useless build id
@@ -485,6 +619,7 @@ export async function setupChromedriver (cacheDir: string, driverVersion?: strin
      * `'stable'` and an explicit version that all point at the same build - land on the
      * same key. Resolving reads no state and writes nothing, so doing it twice is free.
      */
+    warnIfDownloadProxyIgnored()
     const buildId = await resolveBuildId(Browser.CHROMEDRIVER, platform, version)
     if (platform === BrowserPlatform.LINUX_ARM && getVersionComparator(Browser.CHROMEDRIVER)(buildId, CFT_LINUX_ARM64_FLOOR) < 0) {
         const matchingElectronVersion = getElectronVersionForChromium(buildId)
@@ -518,11 +653,11 @@ function installElectronChromedriver (cacheDir: string, platform: BrowserPlatfor
         const cache = new Cache(cacheDir)
         const provider = new ElectronChromedriverProvider()
         const relativeExecutablePath = provider.getExecutablePath()
-        const executablePath = path.join(cache.installationDir(Browser.CHROMEDRIVER, platform, electronVersion), relativeExecutablePath)
+        let executablePath = path.join(cache.installationDir(Browser.CHROMEDRIVER, platform, electronVersion), relativeExecutablePath)
         if (!await fsp.access(executablePath).then(() => true, () => false)) {
             // write the executable path to the cache to avoid `install()` throwing for prerelease versions on LINUX_ARM
             cache.writeExecutablePath(Browser.CHROMEDRIVER, platform, electronVersion, relativeExecutablePath)
-            await _install({
+            executablePath = await installBuild({
                 cacheDir,
                 buildId: electronVersion,
                 platform,
@@ -530,6 +665,8 @@ function installElectronChromedriver (cacheDir: string, platform: BrowserPlatfor
                 unpack: true,
                 providers: [provider],
                 downloadProgressCallback: (downloadedBytes, totalBytes) => downloadProgressCallback('Chromedriver', downloadedBytes, totalBytes)
+            }, platform, executablePath, (installCacheDir) => {
+                new Cache(installCacheDir).writeExecutablePath(Browser.CHROMEDRIVER, platform, electronVersion, relativeExecutablePath)
             })
         }
         log.info(`Using Chromedriver from Electron v${electronVersion} at ${executablePath}`)
@@ -558,7 +695,7 @@ async function installChromedriver (cacheDir: string, platform: BrowserPlatform,
         }
         let knownBuild = buildId
         if (await canDownload(chromedriverInstallOpts)) {
-            await _install({ ...chromedriverInstallOpts, buildId })
+            executablePath = await installBuild(chromedriverInstallOpts, platform, executablePath)
             log.info(`Download of Chromedriver v${buildId} was successful`)
         } else {
             /**
@@ -590,18 +727,15 @@ async function installChromedriver (cacheDir: string, platform: BrowserPlatform,
                 )
             }
             if (knownBuild) {
-                await _install({ ...chromedriverInstallOpts, buildId: knownBuild })
+                /**
+                 * `knownBuild` is `buildId` here: a different one returned above
+                 */
+                executablePath = await installBuild({ ...chromedriverInstallOpts, buildId: knownBuild }, platform, executablePath)
                 log.info(`Download of Chromedriver v${knownBuild} was successful`)
             } else {
                 throw new Error(`Couldn't download any known good version from Chromedriver major v${fallbackVersion}, requested full version - v${version}`)
             }
         }
-        executablePath = computeExecutablePath({
-            browser: Browser.CHROMEDRIVER,
-            buildId: knownBuild,
-            platform,
-            cacheDir
-        })
     } else {
         log.info(`Using Chromedriver v${buildId} from cache directory ${cacheDir}`)
     }

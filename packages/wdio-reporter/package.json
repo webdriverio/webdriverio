@@ -39,7 +39,7 @@
   "dependencies": {
     "@types/node": "^22.20.4",
     "@wdio/types": "workspace:*",
-    "diff": "^8.0.4",
+    "diff": "^9.0.0",
     "object-inspect": "^1.12.0"
   },
   "devDependencies": {

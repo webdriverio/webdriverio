@@ -9,12 +9,12 @@ import type { CommandResponse, ErrorResponse } from './localTypes.js'
 
 import type { Client } from '../types.js'
 import { isBase64Safe } from './utils.js'
+import { DEFAULT_RESPONSE_TIMEOUT } from '../constants.js'
 
 const SCRIPT_PREFIX = '/* __wdio script__ */'
 const SCRIPT_SUFFIX = '/* __wdio script end__ */'
 
 const log = logger('webdriver')
-export const DEFAULT_RESPONSE_TIMEOUT = 1000 * 180
 
 /**
  * Set this symbol on a command's `params` to keep its values out of logs and
@@ -22,6 +22,29 @@ export const DEFAULT_RESPONSE_TIMEOUT = 1000 * 180
  * `JSON.stringify` skips symbol keys, so the command is sent unchanged.
  */
 export const BIDI_MASK = Symbol.for('wdio.bidi.mask')
+
+/**
+ * Set this symbol on a command's `params` to a number of milliseconds: `send`
+ * rejects with a `script timeout` error when the browser does not answer within
+ * that time. WebDriver BiDi has no script timeout
+ * (https://github.com/w3c/webdriver-bidi/issues/199), so `execute` sets the
+ * session's `script` timeout here. The time starts when the command is sent,
+ * so command hooks do not count. Like `BIDI_MASK`, it is not sent.
+ */
+export const BIDI_SCRIPT_TIMEOUT = Symbol.for('wdio.bidi.scriptTimeout')
+
+/**
+ * The longest delay `setTimeout` accepts: Node.js and browsers keep it in a
+ * 32-bit signed integer. A longer delay fires after 1 ms (Node.js prints a
+ * `TimeoutOverflowWarning`), so a longer script timeout means no limit.
+ */
+const MAX_TIMER_DELAY = 2 ** 31 - 1
+
+/**
+ * how many timed out commands `BidiCore` remembers to ignore their late result;
+ * a script that never settles never answers, so the oldest ids are dropped
+ */
+export const MAX_EXPIRED_COMMANDS = 1000
 
 export class BidiCore {
     #id = 0
@@ -31,7 +54,12 @@ export class BidiCore {
     #webSocketUrl: string
     #clientOptions: ClientOptions | undefined
     #responseTimeout: number
+    #connectTimeout: number | undefined
     #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
+    /**
+     * commands that ran out of their script timeout: their late result is ignored
+     */
+    #expiredCommands = new Set<number>()
 
     client: Client | undefined
     /**
@@ -42,15 +70,20 @@ export class BidiCore {
     constructor (
         webSocketUrl: string,
         opts?: ClientOptions,
-        responseTimeout = DEFAULT_RESPONSE_TIMEOUT
+        responseTimeout = DEFAULT_RESPONSE_TIMEOUT,
+        connectTimeout?: number
     ) {
         if (!Number.isFinite(responseTimeout) || responseTimeout <= 0) {
             throw new TypeError('The option "bidiResponseTimeout" needs to be a positive number')
+        }
+        if (connectTimeout !== undefined && (!Number.isFinite(connectTimeout) || connectTimeout <= 0)) {
+            throw new TypeError('The option "bidiConnectTimeout" needs to be a positive number')
         }
 
         this.#webSocketUrl = webSocketUrl
         this.#clientOptions = opts
         this.#responseTimeout = responseTimeout
+        this.#connectTimeout = connectTimeout
         this.#resolveWaitForConnected = () => {}
         this.#waitForConnected = new Promise((resolve) => {
             this.#resolveWaitForConnected = resolve
@@ -72,7 +105,7 @@ export class BidiCore {
         /**
          * try to connect to different websocket urls depending on the protocol
          */
-        this.#ws = await environment.value.createBidiConnection(this.#webSocketUrl, this.#clientOptions)
+        this.#ws = await environment.value.createBidiConnection(this.#webSocketUrl, this.#clientOptions, this.#connectTimeout)
         this._isConnected = Boolean(this.#ws)
         this.#resolveWaitForConnected(this._isConnected)
 
@@ -90,6 +123,7 @@ export class BidiCore {
 
         log.info(`Close Bidi connection to ${this.#webSocketUrl}`)
         this._isConnected = false
+        this.#expiredCommands.clear()
         if (this.#ws) {
             this.#ws.off('message', this.#handleResponse.bind(this))
             this.#ws.close()
@@ -145,6 +179,10 @@ export class BidiCore {
             this.client?.emit('bidiResult', payload)
             const resolve = this.#pendingCommands.get(payload.id)
             if (!resolve) {
+                if (this.#expiredCommands.delete(payload.id)) {
+                    log.debug(`Ignore the result of command with id ${payload.id}, it ran out of its script timeout`)
+                    return
+                }
                 log.error(`Couldn't resolve command with id ${payload.id}`)
                 return
             }
@@ -160,16 +198,35 @@ export class BidiCore {
     public async send (params: Omit<CommandData, 'id'>): Promise<CommandResponse> {
         const id = this.sendAsync(params)
         const failError = new Error(`WebDriver Bidi command "${params.method}" failed`)
+        const scriptTimeout = (params.params as unknown as Record<symbol, unknown> | undefined)?.[BIDI_SCRIPT_TIMEOUT]
         const payload = await new Promise<CommandResponse | ErrorResponse>((resolve, reject) => {
             const t = setTimeout(() => {
+                clearTimeout(scriptTimer)
                 reject(new Error(
                     `Command ${params.method} with id ${id} timed out after ${this.#responseTimeout}ms! ` +
                     'Consider increasing the "bidiResponseTimeout" option.'
                 ))
                 this.#pendingCommands.delete(id)
             }, this.#responseTimeout)
+            const scriptTimer = typeof scriptTimeout === 'number' && scriptTimeout >= 0 && scriptTimeout <= MAX_TIMER_DELAY
+                ? setTimeout(() => {
+                    clearTimeout(t)
+                    const error = new Error(
+                        `script timeout: the script did not finish within ${scriptTimeout}ms. ` +
+                        'Set a longer "script" timeout with `browser.setTimeout({ script })` if it needs more time.'
+                    )
+                    error.name = 'script timeout'
+                    reject(error)
+                    this.#pendingCommands.delete(id)
+                    if (this.#expiredCommands.size >= MAX_EXPIRED_COMMANDS) {
+                        this.#expiredCommands.delete(this.#expiredCommands.values().next().value!)
+                    }
+                    this.#expiredCommands.add(id)
+                }, scriptTimeout)
+                : undefined
             this.#pendingCommands.set(id, (payload) => {
                 clearTimeout(t)
+                clearTimeout(scriptTimer)
                 resolve(payload)
             })
         })

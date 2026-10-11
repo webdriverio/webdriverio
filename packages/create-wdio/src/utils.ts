@@ -5,7 +5,7 @@ import fs from 'node:fs/promises'
 import { execSync } from 'node:child_process'
 
 import { $ } from 'execa'
-import { readPackageUp } from 'read-pkg-up'
+import { readPackageUp } from 'read-package-up'
 
 import { EjsHelpers } from './templates/EjsHelpers.js'
 

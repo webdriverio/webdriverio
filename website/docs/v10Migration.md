@@ -160,13 +160,35 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
 `expect-webdriverio` 8 has its own breaking changes. Its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8) lists each change and its replacement. These changes are the most likely to affect a test suite:
 
 - `toHaveText` on `$$()` compares the elements index by index. An expected array in another order than the page fails. Use the page order, `expect.oneOf()` or `expect.arrayContaining()`.
-- An array of expected values on a single element fails `toHaveText`, `toHaveHTML`, `toHaveComputedLabel` and `toHaveComputedRole`. Use `expect.oneOf()`.
+- An array of expected values on a single element fails `toHaveText`, `toHaveHTML`, `toHaveComputedLabel`, `toHaveComputedRole` and `toHaveElementClass`. Use `expect.oneOf()`. For `toHaveElementClass`, an array meant "has any of these classes": use `expect.oneOf()`, or one assertion for each class when the element must have all of them.
+- A list matcher (`expect.arrayContaining()`, `expect.arrayOf()`) on a single element, or with `some()`, throws an error. On `$$()`, it compares the values of all the elements at once.
+- A missing attribute or property never matches, also not a matcher that accepts no value, such as `expect.not.stringContaining()`.
+- `URL`, `Set`, `Map` and binary values are compared by their content. An assertion that passed by mistake can now fail.
+- The helper types are not global anymore. A file that uses `Test`, `TestResult`, `Scenario` or `WdioCustomMatchers` without an import fails with `Cannot find name`: use `Frameworks.Test`, `Frameworks.TestResult` and `Frameworks.Scenario` from `@wdio/types`, and `ExpectWebdriverIO.Matchers`.
 - `setFeatureFlags()` and the `featureFlags` option were removed.
 - These deprecated APIs were removed: `setOptions` (use `setDefaultOptions`), `getConfig` (use `getDefaultOptions`), `matchers` (use `wdioCustomMatchers`), `toHaveAttr` (use `toHaveAttribute`), `toHaveClass` (use `toHaveElementClass`), `toBeRequestedWithResponse()` (use `toBeRequestedWith({ response })`), and `expect-webdriverio/types` (use `expect-webdriverio/expect-global`).
 - The `beforeAssertion` and `afterAssertion` hooks get the name of the alias that the test called, for `toBeExisting`, `toBePresent`, `toHaveLink`, `toHaveValue` and `toBeRequested`. In v9, they got the name of the matcher behind the alias, for example `toExist` for `toBeExisting`.
 - On a multi-remote browser, give the result of `$$()` to `expect`. A plain array such as `[...elements]` or `Array.from(elements)` is not recognized as elements, and the assertion fails.
 
 On a multi-remote browser, one assertion checks every instance, and `expect.multiRemote()` gives one expected value per instance. See [Multiremote assertions](/docs/multiremote#assertions).
+
+## Driver packages
+
+WebdriverIO v10 starts Firefox, Edge and Safari with `geckodriver` 8, `edgedriver` 8 and `safaridriver` 3. In v9, it used `geckodriver` and `edgedriver` 6 or 7, and `safaridriver` 1 or 2. WebdriverIO installs them, so you do not list them yourself. If your `package.json` lists one of them, update it in the same change as the `@wdio/*` packages.
+
+`geckodriver` and `edgedriver` take `@wdio/logger` as a peer dependency, so they log through the logger of your WebdriverIO install. In v9, `geckodriver` and `edgedriver` brought their own copy of `@wdio/logger`, and that second copy emptied the log file in `outputDir`. Run `npm ls @wdio/logger`: every copy should be version 10. A plugin or service that still depends on version 9 has the same effect.
+
+The [driver upgrade notes](https://github.com/webdriverio/driver#upgrading-to-geckodriver-8-edgedriver-8-and-safaridriver-3) list every change. These changes can affect a WebdriverIO project:
+
+- The driver downloads use `HTTPS_PROXY` and `HTTP_PROXY`. In v9, the `geckodriver` and `edgedriver` downloads ignored them. If a proxy is set in your environment but the driver CDN must be reached directly, add its host to `NO_PROXY`.
+- `geckodriver` no longer reads `GECKODRIVER_FILEPATH`. Use `GECKODRIVER_PATH`.
+- `wdio:edgedriverOptions` and `wdio:safaridriverOptions` accept `spawnOpts`, as `wdio:chromedriverOptions` does.
+
+## Browser downloads
+
+In v9, WebdriverIO extracted the Chrome, Chromium and Chromedriver zip files itself. In v10 it uses the system `unzip` command on Linux and macOS (`tar.exe` or PowerShell on Windows). Slim Docker images, such as `node:24-slim`, do not have it: install it, see [Docker](/docs/docker#images-where-webdriverio-downloads-the-browser).
+
+In v9, the Chrome, Chromium, Firefox and Chromedriver downloads used `HTTPS_PROXY` and `HTTP_PROXY`. In v10 they use them only when `proxy-agent` is installed in your project, or when Node.js runs with `NODE_USE_ENV_PROXY=1` (Node.js 22.21.0 / 24.5.0 or later). WebdriverIO logs a warning when a proxy variable is set but the download would ignore it. See [Proxy For Browser And Driver Downloads](/docs/proxy#proxy-for-browser-and-driver-downloads).
 
 ## Multi-remote Global
 
@@ -514,7 +536,7 @@ On a classic local session, `element.setValue('/local/path')` still types a path
 
 ## `executeAsync`
 
-`browser.executeAsync` and `element.executeAsync` are removed. Pass an `async` function to [`execute`](/docs/api/browser/execute). The function's return value, including a returned promise, is the command result. The `script` timeout still applies.
+`browser.executeAsync` and `element.executeAsync` are removed. Pass an `async` function to [`execute`](/docs/api/browser/execute). The function's return value, including a returned promise, is the command result. The `script` timeout still applies, also in a WebDriver BiDi session: a script that runs longer fails with a `script timeout` error. For a `script` timeout longer than [`bidiResponseTimeout`](/docs/configuration#bidiresponsetimeout) (180 seconds by default), increase both.
 
 ```ts
 const result = await browser.execute(async (a, b) => {

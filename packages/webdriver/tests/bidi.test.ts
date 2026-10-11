@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
 
 import '../src/node.js'
-import { BIDI_MASK, BidiCore, maskBidiCommand, parseBidiCommand } from '../src/bidi/core.js'
+import { BIDI_MASK, BIDI_SCRIPT_TIMEOUT, BidiCore, MAX_EXPIRED_COMMANDS, maskBidiCommand, parseBidiCommand } from '../src/bidi/core.js'
 import { environment } from '../src/environment.js'
 import '../src/browser.js'
 
@@ -31,7 +31,10 @@ vi.mock('../src/bidi/socket.js', () => {
 environment.value.createBidiConnection = vi.fn().mockImplementation(async (url: string) => ({
     wsUrl: url,
     on: vi.fn(),
-    send: vi.fn()
+    off: vi.fn(),
+    send: vi.fn(),
+    close: vi.fn(),
+    terminate: vi.fn()
 }))
 
 const namedFn = `function anonymous(
@@ -107,6 +110,14 @@ describe('BidiCore', () => {
             )
         })
 
+        it('rejects a non-positive connectTimeout', () => {
+            for (const timeout of [0, -1, NaN, Infinity]) {
+                expect(() => new BidiCore('ws://foo/bar', undefined, undefined, timeout)).toThrow(
+                    'The option "bidiConnectTimeout" needs to be a positive number'
+                )
+            }
+        })
+
         it('sends and waits for result', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
@@ -129,7 +140,7 @@ describe('BidiCore', () => {
 
             const error = await promise.catch((err) => err)
             const errorMessage = 'WebDriver Bidi command "session.new" failed with error: foobar - I am an error!'
-            expect(error.stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:123:/)
+            expect(error.stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:134:/)
             expect(error.stack).toContain(errorMessage)
             expect(error.message).toBe(errorMessage)
         })
@@ -151,6 +162,86 @@ describe('BidiCore', () => {
             vi.useRealTimers()
         })
 
+        it('rejects a command with a script timeout when its params set one', async () => {
+            vi.useFakeTimers()
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+
+            const params = { functionDeclaration: '() => {}', [BIDI_SCRIPT_TIMEOUT]: 1000 }
+            const promise = handler.send({ method: 'script.callFunction', params } as any)
+            const error = promise.catch((err: Error) => err)
+            await vi.advanceTimersByTimeAsync(999)
+            await vi.advanceTimersByTimeAsync(1)
+            expect(await error).toMatchObject({
+                name: 'script timeout',
+                message: expect.stringContaining('did not finish within 1000ms')
+            })
+            expect(vi.mocked(handler.socket!.send).mock.calls[0][0]).not.toContain('1000')
+
+            /**
+             * the late result of the script is ignored
+             */
+            expect(() => deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'late' })))).not.toThrow()
+            vi.useRealTimers()
+        })
+
+        it('keeps at most MAX_EXPIRED_COMMANDS timed out commands to ignore', async () => {
+            vi.useFakeTimers()
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+
+            const count = MAX_EXPIRED_COMMANDS + 1
+            const results = Array.from({ length: count }, () => handler.send({
+                method: 'script.callFunction',
+                params: { functionDeclaration: '() => {}', [BIDI_SCRIPT_TIMEOUT]: 10 }
+            } as any).catch((err: Error) => err.name))
+            await vi.advanceTimersByTimeAsync(10)
+            expect(new Set(await Promise.all(results))).toEqual(new Set(['script timeout']))
+
+            const { logMock } = await import('@wdio/logger') as unknown as { logMock: { error: ReturnType<typeof vi.fn> } }
+            logMock.error.mockClear()
+            /**
+             * the newest expired command is still known, the oldest one was dropped
+             */
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: count, result: 'late' })))
+            expect(logMock.error).not.toHaveBeenCalled()
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'late' })))
+            expect(logMock.error).toHaveBeenCalledWith('Couldn\'t resolve command with id 1')
+            vi.useRealTimers()
+        })
+
+        it('starts no script timer for a timeout that a timer cannot hold', async () => {
+            vi.useFakeTimers()
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+
+            /**
+             * `setTimeout` fires at once for a delay above 2 ** 31 - 1 ms
+             */
+            for (const [id, scriptTimeout] of [[1, 2 ** 31], [2, Number.MAX_SAFE_INTEGER]] as const) {
+                const params = { functionDeclaration: '() => {}', [BIDI_SCRIPT_TIMEOUT]: scriptTimeout }
+                const promise = handler.send({ method: 'script.callFunction', params } as any)
+                await vi.advanceTimersByTimeAsync(60_000)
+                deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id, result: 'done' })))
+                await expect(promise).resolves.toEqual({ id, result: 'done' })
+            }
+            vi.useRealTimers()
+        })
+
+        it('resolves a command that answers within its script timeout', async () => {
+            vi.useFakeTimers()
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+
+            const params = { functionDeclaration: '() => {}', [BIDI_SCRIPT_TIMEOUT]: 1000 }
+            const promise = handler.send({ method: 'script.callFunction', params } as any)
+            await vi.advanceTimersByTimeAsync(999)
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
+            await expect(promise).resolves.toEqual({ id: 1, result: 'foobar' })
+            await vi.advanceTimersByTimeAsync(5000)
+            vi.useRealTimers()
+        })
+
         it('does not time out before the configured response timeout', async () => {
             vi.useFakeTimers()
             const handler = new BidiCore('ws://foo/bar', undefined, 100000)
@@ -168,8 +259,17 @@ describe('BidiCore', () => {
             await handler.connect()
             expect(environment.value.createBidiConnection).toHaveBeenCalledWith(
                 'ws://foo/bar',
-                expect.objectContaining({ headers: { 'cf-access-token': 'MY_TOKEN', 'X-Custom': 'xyz' } })
+                expect.objectContaining({ headers: { 'cf-access-token': 'MY_TOKEN', 'X-Custom': 'xyz' } }),
+                undefined
             )
+        })
+
+        it('should pass the connect timeout to the connection, also on reconnect', async () => {
+            const handler = new BidiCore('ws://foo/bar', undefined, undefined, 30000)
+            await handler.connect()
+            expect(environment.value.createBidiConnection).toHaveBeenLastCalledWith('ws://foo/bar', undefined, 30000)
+            await handler.reconnect('ws://foo/baz')
+            expect(environment.value.createBidiConnection).toHaveBeenLastCalledWith('ws://foo/baz', undefined, 30000)
         })
 
         afterAll(() => {

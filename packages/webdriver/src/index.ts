@@ -58,7 +58,8 @@ export default class WebDriver {
                 capabilities.webSocketUrl as unknown as string,
                 options.strictSSL,
                 options.headers,
-                params.bidiResponseTimeout
+                params.bidiResponseTimeout,
+                params.bidiConnectTimeout
             ))
         }
 
@@ -142,7 +143,8 @@ export default class WebDriver {
                 webSocketUrl as string,
                 options.strictSSL,
                 options.headers,
-                options.bidiResponseTimeout
+                options.bidiResponseTimeout,
+                options.bidiConnectTimeout
             ))
         }
 
@@ -242,6 +244,6 @@ export { runClassicProtocolCommand, type ClassicHistoryCommand } from './classic
 export * from './types.js'
 export * from './constants.js'
 export * from './bidi/handler.js'
-export { BIDI_MASK } from './bidi/core.js'
+export { BIDI_MASK, BIDI_SCRIPT_TIMEOUT } from './bidi/core.js'
 export * as local from './bidi/localTypes.js'
 export * as remote from './bidi/remoteTypes.js'

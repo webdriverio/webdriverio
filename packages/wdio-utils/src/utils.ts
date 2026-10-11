@@ -400,12 +400,19 @@ export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browse
 /**
  * Enables logging to a file in a specified directory.
  * @param  {string} outputDir  Directory containing the log file
+ * @param  {object} options
+ * @param  {boolean} options.keepLogPath  keep a log file that is already set: a
+ *                                        `@wdio/local-runner` worker has its own log
+ *                                        file, also when it calls `remote()`
  */
-export async function enableFileLogging (outputDir?: string): Promise<void> {
+export async function enableFileLogging (outputDir?: string, { keepLogPath = false }: { keepLogPath?: boolean } = {}): Promise<void> {
     if (!outputDir) {
         return
     }
 
     await fs.mkdir(path.join(outputDir), { recursive: true })
+    if (keepLogPath && process.env.WDIO_LOG_PATH) {
+        return
+    }
     process.env.WDIO_LOG_PATH = path.join(outputDir, 'wdio.log')
 }

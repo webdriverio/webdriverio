@@ -338,6 +338,8 @@ Starting with `v9` of WebdriverIO there is no need for this special selector as 
 
 :::
 
+On a WebDriver BiDi session, `$` and `$$` look into every open shadow root: roots created with `attachShadow()` and declarative shadow roots (`<template shadowrootmode="open">`) that the page or `setHTMLUnsafe()` adds to the document. They do not look into a closed declarative shadow root, or into a declarative shadow root that `setHTMLUnsafe()` creates in an element that is not in the document yet. For these, use [`shadow$`](https://webdriver.io/docs/api/element/shadow$) on the host element.
+
 Many frontend applications heavily rely on elements with [shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). It is technically impossible to query elements within the shadow DOM without workarounds. The [`shadow$`](https://webdriver.io/docs/api/element/shadow$) and [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) have been such workarounds that had their [limitations](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). With the deep selector you can now query all elements within any shadow DOM using the common query command.
 
 Given we have an application with the following structure:

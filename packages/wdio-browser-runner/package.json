@@ -96,12 +96,12 @@
     "safe-stringify": "^1.1.0",
     "source-map-support": "^0.5.21",
     "vite": "^7.3.6",
-    "vite-plugin-istanbul": "^7.2.1",
+    "vite-plugin-istanbul": "^9.0.1",
     "vite-plugin-top-level-await": "^1.4.1",
     "webdriver": "workspace:*"
   },
   "peerDependencies": {
-    "expect-webdriverio": "^8.0.0-0 || ^8.0.0-alpha.3",
+    "expect-webdriverio": "^8.0.0",
     "webdriver": "^10.0.0-0 || ^10.0.0",
     "webdriverio": "^10.0.0-0 || ^10.0.0"
   },
@@ -123,7 +123,7 @@
     "@types/istanbul-lib-source-maps": "^4.0.4",
     "@types/istanbul-reports": "^3.0.4",
     "esbuild": "^0.28.1",
-    "geckodriver": "^7.0.0",
+    "geckodriver": "^8.0.0",
     "mocha": "^12.0.2",
     "webdriverio": "workspace:*"
   },

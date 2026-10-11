@@ -357,6 +357,31 @@ describe('ElementArray', () => {
         expect(browser.$$).not.toHaveBeenCalled()
     })
 
+    /**
+     * the browser bundle supports Chrome 90 and Safari 14.1, which have no
+     * `Array.prototype.at` (ES2022)
+     */
+    it('reads at() in a browser without Array.prototype.at', async () => {
+        const parent = { options: { waitforTimeout: 50 }, $$: vi.fn(), waitUntil: vi.fn() }
+        const options = () => ({ selector: '.item', foundWith: '$$' as const, parent: parent as unknown as WebdriverIO.Browser, props: [] })
+        const resolved = ElementArray.fromResolved([element('a'), element('b'), element('c')], options())
+        const pending = ElementArray.fromAsyncCallback(async () => [element('a'), element('b'), element('c')], options())
+
+        const arrayAt = Object.getOwnPropertyDescriptor(Array.prototype, 'at')!
+        delete (Array.prototype as { at?: unknown }).at
+        try {
+            expect(resolved.at(-1.2).elementId).toBe('c')
+            expect(resolved.at(-4)).toBeUndefined()
+            expect(resolved.at(Number.NEGATIVE_INFINITY)).toBeUndefined()
+            expect(resolved.at(Number.POSITIVE_INFINITY)).toBeUndefined()
+            await expect(pending.at(-1).elementId).resolves.toBe('c')
+            // resolved now: at() returns the element itself
+            expect(pending.at(-3).elementId).toBe('a')
+        } finally {
+            Object.defineProperty(Array.prototype, 'at', arrayAt)
+        }
+    })
+
     it('gives a resolved list from plain elements the same metadata', () => {
         const elements = ElementArray.fromResolved([element('a')], {
             selector: '.ready',

@@ -33,7 +33,7 @@
   "dependencies": {
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
-    "chalk": "^5.1.2",
+    "chalk": "^6.0.1",
     "easy-table": "^1.2.0",
     "pretty-ms": "^9.0.0"
   },

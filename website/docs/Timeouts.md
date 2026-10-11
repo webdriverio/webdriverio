@@ -154,3 +154,11 @@ export const config = {
 
 </TabItem>
 </Tabs>
+
+### Mocha timeouts and the WebdriverIO hooks
+
+A Mocha test or hook can change its own timeout with `this.timeout(ms)`. Use a `function`, not an arrow function, to get `this`. WebdriverIO follows the change, also `this.timeout(0)`, which turns the timeout off.
+
+The timeout of a test includes the time of its `beforeTest` hook, as Mocha starts the timer before the hook. With the [retry option](./Retry.md#rerun-single-tests-in-jasmine-or-mocha) of WebdriverIO, all attempts of a test share one timeout.
+
+When a test or hook times out, WebdriverIO runs `afterTest` (or `afterHook`) before Mocha starts the next test, so that hook cannot run at the same time as the next test. Mocha waits for these hooks up to one more timeout of the test.

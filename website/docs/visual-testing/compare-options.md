@@ -21,6 +21,7 @@ The `ignore*` presets changed behavior once, as a breaking change, when the comp
 | --- | --- | --- |
 | v9 and below | ResembleJS | Original `ignore*` semantics (RGB/brightness-based, resemble's own preset ordering). |
 | v10 and above | Pixelmatch | `ignore*` presets map to pixelmatch threshold/AA settings. Current defaults and behavior are documented per option below; new features/fixes on top of this are called out with a "Since" note on the relevant option. |
+| v11 and above | Pixelmatch 8 | Colors are compared in the OKLab color space with the HyAB distance (before: YIQ). The threshold scale and the `ignore*` presets did not change, but mismatch percentages can differ a little from v10. |
 
 :::
 
