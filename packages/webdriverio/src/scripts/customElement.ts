@@ -16,7 +16,7 @@ export default function customElementWrapper () {
      */
     const reportedHosts = new WeakSet<Element>()
 
-    const reportShadowRoot = (host: Element, hasShadowRoot: boolean) => {
+    const sendShadowRoot = (host: Element, hasShadowRoot: boolean) => {
         let parentNode: ParentNode | null = host
         while (parentNode.parentNode) {
             parentNode = parentNode.parentNode
@@ -25,6 +25,28 @@ export default function customElementWrapper () {
             reportedHosts.add(host)
         }
         console.debug('[WDIO]', 'newShadowRoot', host, parentNode, parentNode === document, document.documentElement)
+    }
+
+    /**
+     * The Node.js side adds a host under the shadow root it is in and drops
+     * it when that root is unknown. Report the open hosts that contain `host`
+     * first, outermost first: a custom element can attach its shadow root in
+     * its constructor, inside a declarative shadow root that is only walked
+     * on `DOMContentLoaded`.
+     */
+    const reportShadowRoot = (host: Element, hasShadowRoot: boolean) => {
+        if (host.isConnected) {
+            const containingHosts: Element[] = []
+            for (let root = host.getRootNode(); root instanceof ShadowRoot; root = root.host.getRootNode()) {
+                containingHosts.unshift(root.host)
+            }
+            for (const containingHost of containingHosts) {
+                if (containingHost.shadowRoot && !reportedHosts.has(containingHost)) {
+                    sendShadowRoot(containingHost, true)
+                }
+            }
+        }
+        sendShadowRoot(host, hasShadowRoot)
     }
 
     /**

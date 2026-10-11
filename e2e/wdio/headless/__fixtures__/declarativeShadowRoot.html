@@ -7,9 +7,23 @@
         // defined before the parser reaches it: its connectedCallback runs before
         // the parser attaches the declarative shadow root in some browsers
         customElements.define('early-defined', class extends HTMLElement {})
+        // attaches its shadow root in its constructor, while the parser is
+        // still inside the declarative shadow root that contains it
+        customElements.define('constructor-root', class extends HTMLElement {
+            constructor () {
+                super()
+                this.attachShadow({ mode: 'open' }).innerHTML = '<i id="in-constructor-root">constructor shadow root</i>'
+            }
+        })
     </script>
 </head>
 <body>
+    <!-- tracked before the parser reaches the declarative hosts below -->
+    <div id="imperative"></div>
+    <script>
+        document.getElementById('imperative').attachShadow({ mode: 'open' }).innerHTML = '<i id="in-imperative">imperative shadow root</i>'
+    </script>
+
     <!-- the page of https://github.com/webdriverio/webdriverio/issues/14512 -->
     <div id="wrapper">
         <template shadowrootmode="open">
@@ -32,6 +46,12 @@
             <span id="in-custom-element">custom element</span>
         </template>
     </early-defined>
+
+    <div id="declarative-host">
+        <template shadowrootmode="open">
+            <constructor-root id="constructor-host"></constructor-root>
+        </template>
+    </div>
 
     <div id="closed">
         <template shadowrootmode="closed">

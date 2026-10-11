@@ -28,6 +28,12 @@ describe('declarative shadow roots', () => {
         await expect($('#in-custom-element')).toHaveText('custom element')
     })
 
+    it('finds an element in a custom element that attaches its shadow root inside a declarative one', async () => {
+        await expect($('#in-imperative')).toHaveText('imperative shadow root')
+        await expect($('#in-constructor-root')).toHaveText('constructor shadow root')
+        await expect($('#declarative-host').$('#in-constructor-root')).toHaveText('constructor shadow root')
+    })
+
     it('counts elements in the document and in every open shadow root', async () => {
         await expect($$('span')).toBeElementsArrayOfSize(3)
         await expect($('#light')).toHaveText('light DOM')

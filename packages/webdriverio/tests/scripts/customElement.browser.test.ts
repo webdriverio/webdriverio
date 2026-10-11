@@ -119,6 +119,47 @@ describe('customElement script', () => {
         expect(root).toBe(shadowRoot)
     })
 
+    it('does not expect setHTMLUnsafe to attach a shadow root to the target itself', () => {
+        customElementWrapper()
+        const host = document.body.appendChild(document.createElement('div'))
+        host.id = 'target'
+        ;(host as unknown as HTMLUnsafe).setHTMLUnsafe('<template shadowrootmode="open"><span>a</span></template>')
+
+        /**
+         * a declarative template at the top level stays a plain template
+         * (Chrome, Firefox and Safari), so the walk starts at the descendants
+         */
+        expect(host.shadowRoot).toBeNull()
+        expect(host.firstElementChild?.localName).toBe('template')
+        expect(reportedHosts()).toEqual([])
+    })
+
+    it('reports the declarative host before a custom element that attaches its shadow root inside it', () => {
+        Object.defineProperty(document, 'readyState', { value: 'loading', configurable: true })
+        customElementWrapper()
+        customElements.define('x-constructor-root', class extends HTMLElement {
+            constructor () {
+                super()
+                this.attachShadow({ mode: 'open' }).innerHTML = '<span>inner</span>'
+            }
+        })
+        parse(document.body, '<div id="declarative-host"><template shadowrootmode="open"><x-constructor-root id="inner"></x-constructor-root></template></div>')
+
+        /**
+         * the Node.js side adds a host under its parent's shadow root, so the
+         * parent has to be reported first
+         */
+        const outer = document.getElementById('declarative-host')!
+        expect(reportedHosts()[0]).toBe('declarative-host')
+        expect(reportedHosts()).toContain('inner')
+        const innerReport = debug.mock.calls.find(([, , host]) => (host as Element).id === 'inner')!
+        expect(innerReport[3]).toBe(outer.shadowRoot)
+
+        const reportsBeforeLoad = reportedHosts().length
+        document.dispatchEvent(new Event('DOMContentLoaded'))
+        expect(reportedHosts()).toHaveLength(reportsBeforeLoad)
+    })
+
     it('does not report shadow roots that setHTMLUnsafe adds to a detached node', () => {
         customElementWrapper()
         const detached = document.createElement('div')
