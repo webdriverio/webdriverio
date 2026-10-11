@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Click with options</title>
+<style>
+    body { margin: 0; font: 14px sans-serif; }
+    button { width: 100px; height: 30px; }
+    .box { margin: 10px; border: 1px solid #888; }
+    /* the bottom padding keeps an overlay scrollbar below the buttons */
+    .hscroll { width: 200px; overflow-x: auto; white-space: nowrap; padding-bottom: 20px; }
+    .hidden-overflow { width: 200px; overflow: hidden; white-space: nowrap; padding-bottom: 20px; }
+    .spacer { display: inline-block; width: 400px; height: 1px; }
+    .vscroll { height: 100px; width: 300px; overflow-y: auto; }
+    .vscroll .spacer { display: block; width: auto; height: 300px; }
+    #fixed-header { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #fcc; z-index: 10; display: none; }
+    #fixed-footer { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; background: #cfc; z-index: 10; display: none; }
+    #far { margin-top: 3000px; }
+    #end { height: 1500px; }
+</style>
+</head>
+<body>
+    <button id="visible">visible</button>
+
+    <!-- #14840: inside the window, but outside the visible part of its scroll container -->
+    <div class="box hscroll"><span class="spacer"></span><button id="hclip">hclip</button></div>
+    <div class="box vscroll"><div class="spacer"></div><button id="vclip">vclip</button></div>
+    <div class="box hidden-overflow"><span class="spacer"></span><button id="hidden-clip">hidden-clip</button></div>
+    <div class="box hscroll"><span class="spacer"></span><button id="with-child"><span id="child">child</span></button></div>
+    <div class="box" id="host"></div>
+
+    <button id="far">far</button>
+    <div id="end"></div>
+
+    <div id="fixed-header">header</div>
+    <div id="fixed-footer">footer</div>
+
+<script>
+    const shadow = document.getElementById('host').attachShadow({ mode: 'open' })
+    shadow.innerHTML = '<style>button { width: 100px; height: 30px }</style>' +
+        '<div class="scroll" style="width: 200px; overflow-x: auto; white-space: nowrap; padding-bottom: 20px">' +
+        '<span style="display: inline-block; width: 400px; height: 1px"></span><button id="shadow-clip">shadow-clip</button></div>'
+
+    window.clicks = []
+    const record = (event) => {
+        const target = event.composedPath()[0]
+        const rect = target.getBoundingClientRect()
+        window.clicks.push({
+            type: event.type,
+            target: target.id || target.nodeName,
+            dx: Math.round(event.clientX - (rect.left + rect.width / 2)),
+            dy: Math.round(event.clientY - (rect.top + rect.height / 2))
+        })
+    }
+    document.addEventListener('click', record, true)
+    document.addEventListener('contextmenu', (event) => {
+        record(event)
+        event.preventDefault()
+    }, true)
+
+    window.reset = (options) => {
+        window.clicks = []
+        document.getElementById('fixed-header').style.display = options.header ? 'block' : 'none'
+        document.getElementById('fixed-footer').style.display = options.footer ? 'block' : 'none'
+        for (const el of [...document.querySelectorAll('.box'), shadow.querySelector('.scroll')]) {
+            el.scrollLeft = 0
+            el.scrollTop = 0
+        }
+        window.scrollTo(0, options.scrollY || 0)
+    }
+</script>
+</body>
+</html>
