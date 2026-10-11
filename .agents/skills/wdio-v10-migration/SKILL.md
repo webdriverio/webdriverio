@@ -115,7 +115,7 @@ const result = await browser.execute(async (a, b) => {
 }, 1, 2)
 ```
 
-Drop the `done` callback. Return the value, or return a promise. The `script` timeout still applies.
+Drop the `done` callback. Return the value, or return a promise. The `script` timeout still applies, also in a WebDriver BiDi session (a `script timeout` error). A `script` timeout longer than `bidiResponseTimeout` (180 s by default) needs a longer `bidiResponseTimeout` too.
 
 ### `switchToFrame`
 
