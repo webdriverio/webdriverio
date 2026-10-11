@@ -1,11 +1,15 @@
+import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
+import { createServer, type Server } from 'node:http'
+import { once } from 'node:events'
+import type { AddressInfo } from 'node:net'
 import { browser, $, expect } from '@wdio/globals'
 import { Key } from 'webdriverio'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-const FIXTURE = url.pathToFileURL(path.resolve(__dirname, '__fixtures__', 'actionClick.html')).href
+const FIXTURE = fs.readFileSync(path.resolve(__dirname, '__fixtures__', 'actionClick.html'), 'utf8')
 
 interface Click {
     type: string
@@ -45,8 +49,25 @@ async function clickWithOptions (elem: ReturnType<typeof $>, options: Parameters
  * https://github.com/webdriverio/webdriverio/issues/14840
  */
 describe('click with options', () => {
+    let server: Server
+
+    /**
+     * served over HTTP: Safari doesn't open a `file://` page
+     */
     before(async () => {
-        await browser.url(FIXTURE)
+        server = createServer((_, response) => {
+            response.setHeader('Content-Type', 'text/html; charset=utf-8')
+            response.end(FIXTURE)
+        })
+        server.listen(0, '127.0.0.1')
+        await once(server, 'listening')
+        await browser.url(`http://127.0.0.1:${(server.address() as AddressInfo).port}/`)
+    })
+
+    after(async () => {
+        const closed = new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()))
+        server.closeAllConnections()
+        await closed
     })
 
     it('clicks an element that is already under the pointer without scrolling', async () => {
