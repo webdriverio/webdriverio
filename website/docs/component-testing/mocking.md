@@ -310,4 +310,4 @@ If you are looking for mocking browser requests, e.g. API calls, head over to th
 
 In component tests, use an absolute URL pattern with a fixed protocol and hostname for `browser.mock()`, such as `https://api.webdriver.io/api/*`. A host-less pattern such as `*/api/*` intercepts every request of the page, including the browser runner's own Vite and driver traffic.
 
-A single `*` also matches slashes, and `**` is the same as `*`. See [creating a mock](/docs/mocksandspies#creating-a-mock).
+A single `*` also matches slashes. In a string pattern, `**` is the same as `*`; in a `URLPattern` object, use a single `*`. See [creating a mock](/docs/mocksandspies#creating-a-mock).
