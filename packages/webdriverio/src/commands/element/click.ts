@@ -143,32 +143,39 @@ async function workaround(element: WebdriverIO.Element) {
  * - scroll it just into view ("nearest"), and check again
  * - still missed, for example under a fixed header or footer: scroll it to the center
  * An element without a box (`display: none`) is left to the driver, which throws.
+ *
+ * The page scrolls the element itself (`Element.scrollIntoView()`), not with the
+ * `scrollIntoView` command: its wheel actions release the keys and buttons that the
+ * test holds, so a Shift-click would become a plain click.
  */
 async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.Element) {
     try {
-        let hit = await hitAtCenter(browser, element)
-        if (hit !== 'missed') {
-            return
+        for (const scroll of [null, { block: 'nearest', inline: 'nearest' }, { block: 'center', inline: 'center' }] as const) {
+            if (await hitAtCenter(browser, element, scroll) !== 'missed') {
+                return
+            }
         }
-        await element.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-        hit = await hitAtCenter(browser, element)
-        if (hit !== 'missed') {
-            return
-        }
-        await workaround(element)
     } catch (err) {
         log.debug(`Could not scroll the element into view before the click: ${(err as Error).message}`)
     }
 }
 
 /**
- * Hit-tests the in-view center point of the element, computed as in the WebDriver
+ * Scrolls the element with `scroll` (if given, without a smooth animation), then
+ * hit-tests the in-view center point of the element, computed as in the WebDriver
  * spec (the first client rect, clipped by the viewport only). The pointer hits the
  * element when the top element at that point is the element or one of its
  * descendants, also inside shadow roots.
  */
-function hitAtCenter(browser: WebdriverIO.Browser, element: WebdriverIO.Element): Promise<'hit' | 'missed' | 'no-box'> {
-    return browser.execute((elem: HTMLElement) => {
+function hitAtCenter(
+    browser: WebdriverIO.Browser,
+    element: WebdriverIO.Element,
+    scroll: ScrollIntoViewOptions | null
+): Promise<'hit' | 'missed' | 'no-box'> {
+    return browser.execute((elem: HTMLElement, scroll: ScrollIntoViewOptions | null) => {
+        if (scroll) {
+            elem.scrollIntoView({ ...scroll, behavior: 'instant' })
+        }
         const rect = elem.getClientRects()[0]
         if (!rect) {
             return 'no-box' as const
@@ -196,7 +203,7 @@ function hitAtCenter(browser: WebdriverIO.Browser, element: WebdriverIO.Element)
             }
         }
         return 'missed' as const
-    }, element as unknown as HTMLElement)
+    }, element as unknown as HTMLElement, scroll)
 }
 
 async function elementClick(element: WebdriverIO.Element) {

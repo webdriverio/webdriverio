@@ -27,6 +27,7 @@
     <div class="box vscroll"><div class="spacer"></div><button id="vclip">vclip</button></div>
     <div class="box hidden-overflow"><span class="spacer"></span><button id="hidden-clip">hidden-clip</button></div>
     <div class="box hscroll"><span class="spacer"></span><button id="with-child"><span id="child">child</span></button></div>
+    <div class="box hscroll" style="scroll-behavior: smooth"><span class="spacer"></span><button id="smooth-clip">smooth-clip</button></div>
     <div class="box" id="host"></div>
 
     <button id="far">far</button>
@@ -49,7 +50,8 @@
             type: event.type,
             target: target.id || target.nodeName,
             dx: Math.round(event.clientX - (rect.left + rect.width / 2)),
-            dy: Math.round(event.clientY - (rect.top + rect.height / 2))
+            dy: Math.round(event.clientY - (rect.top + rect.height / 2)),
+            shiftKey: event.shiftKey
         })
     }
     document.addEventListener('click', record, true)

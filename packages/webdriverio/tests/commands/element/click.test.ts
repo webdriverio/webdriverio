@@ -234,6 +234,8 @@ describe('click test', () => {
     })
 
     describe('bring the element under the pointer before a click with options', () => {
+        const NEAREST = { block: 'nearest', inline: 'nearest' }
+        const CENTER = { block: 'center', inline: 'center' }
         const setup = async () => {
             const browser = await remote({
                 baseUrl: 'http://foobar.com',
@@ -245,68 +247,70 @@ describe('click test', () => {
             const scrollIntoView = vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
             const execute = vi.spyOn(browser, 'execute')
             vi.mocked(fetch).mockClear()
-            return { elem, scrollIntoView, execute }
+            return { browser, elem, scrollIntoView, execute }
         }
+        const scrollsOf = (execute: { mock: { calls: unknown[][] } }) => execute.mock.calls.map((call) => call[2])
         const actionCalls = () => vi.mocked(fetch).mock.calls
             .map((call, i) => ({ pathname: (call[0] as URL).pathname, method: call[1]?.method, order: vi.mocked(fetch).mock.invocationCallOrder[i] }))
-            .filter(({ pathname, method }) => pathname === '/session/foobar-123/actions' && method === 'POST')
+            .filter(({ pathname }) => pathname === '/session/foobar-123/actions')
 
         it('should not scroll when the pointer already hits the element', async () => {
-            const { elem, scrollIntoView, execute } = await setup()
+            const { elem, execute } = await setup()
             execute.mockResolvedValueOnce('hit')
 
             await elem.click({ button: 'left' })
-            expect(execute).toHaveBeenCalledTimes(1)
-            expect(scrollIntoView).not.toHaveBeenCalled()
-            expect(actionCalls()).toHaveLength(1)
+            expect(scrollsOf(execute)).toEqual([null])
+            expect(actionCalls().map(({ method }) => method)).toEqual(['POST', 'DELETE'])
         })
 
         it('should scroll the element just into view when the pointer misses it', async () => {
-            const { elem, scrollIntoView, execute } = await setup()
+            const { elem, execute } = await setup()
             execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('hit')
 
             await elem.click({ button: 'left' })
-            expect(scrollIntoView).toHaveBeenCalledTimes(1)
-            expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' })
-            expect(execute).toHaveBeenCalledTimes(2)
-            expect(scrollIntoView.mock.invocationCallOrder[0]).toBeLessThan(actionCalls()[0].order)
+            expect(scrollsOf(execute)).toEqual([null, NEAREST])
+            expect(execute.mock.invocationCallOrder[1]).toBeLessThan(actionCalls()[0].order)
         })
 
         it('should scroll the element to the center when it is still covered after the nearest scroll', async () => {
-            const { elem, scrollIntoView, execute } = await setup()
-            execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('missed')
+            const { elem, execute } = await setup()
+            execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('missed').mockResolvedValueOnce('missed')
 
             await elem.click({ button: 'left' })
-            expect(scrollIntoView.mock.calls).toEqual([
-                [{ block: 'nearest', inline: 'nearest' }],
-                [{ block: 'center', inline: 'center' }]
-            ])
-            expect(scrollIntoView.mock.invocationCallOrder[1]).toBeLessThan(actionCalls()[0].order)
-            expect(actionCalls()).toHaveLength(1)
+            expect(scrollsOf(execute)).toEqual([null, NEAREST, CENTER])
+            expect(execute.mock.invocationCallOrder[2]).toBeLessThan(actionCalls()[0].order)
+            expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
         })
 
         it('should not scroll an element without a box', async () => {
-            const { elem, scrollIntoView, execute } = await setup()
+            const { elem, execute } = await setup()
             execute.mockResolvedValueOnce('no-box')
 
             await elem.click({ button: 'left' })
+            expect(scrollsOf(execute)).toEqual([null])
+            expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
+        })
+
+        it('should keep held keys: the scroll sends no action before the click', async () => {
+            const { elem, scrollIntoView, execute } = await setup()
+            execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('missed').mockResolvedValueOnce('hit')
+
+            await elem.click({ button: 'left', skipRelease: true })
             expect(scrollIntoView).not.toHaveBeenCalled()
-            expect(actionCalls()).toHaveLength(1)
+            expect(actionCalls().map(({ method }) => method)).toEqual(['POST'])
         })
 
         it('should still click when the element could not be checked or scrolled', async () => {
-            const { elem, scrollIntoView, execute } = await setup()
+            const { elem, execute } = await setup()
             execute.mockRejectedValueOnce(new Error('stale element reference'))
 
             await elem.click({ button: 'left' })
-            expect(scrollIntoView).not.toHaveBeenCalled()
-            expect(actionCalls()).toHaveLength(1)
+            expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
 
-            execute.mockResolvedValueOnce('missed')
-            scrollIntoView.mockRejectedValueOnce(new Error('stale element reference'))
+            execute.mockResolvedValueOnce('missed').mockRejectedValueOnce(new Error('stale element reference'))
             vi.mocked(fetch).mockClear()
             await elem.click({ button: 'left' })
-            expect(actionCalls()).toHaveLength(1)
+            expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
         })
 
         it('should not check or scroll for a click without options', async () => {
@@ -355,7 +359,7 @@ describe('click test', () => {
         scope.execute.mockResolvedValueOnce('missed').mockResolvedValueOnce('hit')
 
         await click.call(scope as never, { button: 'left' })
-        expect(scope.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' })
+        expect(scope.execute.mock.calls.map((call) => call[2])).toEqual([null, { block: 'nearest', inline: 'nearest' }])
         expect(scope.perform).toHaveBeenCalled()
     })
 

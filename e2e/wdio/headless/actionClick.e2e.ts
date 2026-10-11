@@ -1,6 +1,7 @@
 import url from 'node:url'
 import path from 'node:path'
 import { browser, $, expect } from '@wdio/globals'
+import { Key } from 'webdriverio'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -11,6 +12,7 @@ interface Click {
     target: string
     dx: number
     dy: number
+    shiftKey: boolean
 }
 
 interface Setup {
@@ -49,21 +51,36 @@ describe('click with options', () => {
 
     it('clicks an element that is already under the pointer without scrolling', async () => {
         const { clicks, scrolledY } = await clickWithOptions($('#visible'), {})
-        expect(clicks).toEqual([{ type: 'click', target: 'visible', dx: 0, dy: 0 }])
+        expect(clicks).toEqual([{ type: 'click', target: 'visible', dx: 0, dy: 0, shiftKey: false }])
         expect(scrolledY).toBe(0)
     })
 
     it('clicks an element that a horizontal scroll container hides (#14840)', async () => {
         const { clicks } = await clickWithOptions($('#hclip'), {})
-        expect(clicks).toEqual([{ type: 'click', target: 'hclip', dx: 0, dy: 0 }])
+        expect(clicks).toEqual([{ type: 'click', target: 'hclip', dx: 0, dy: 0, shiftKey: false }])
     })
 
     it('keeps the offset and the button', async () => {
         const offset = await clickWithOptions($('#hclip'), { x: 30, y: 5 })
-        expect(offset.clicks).toEqual([{ type: 'click', target: 'hclip', dx: 30, dy: 5 }])
+        expect(offset.clicks).toEqual([{ type: 'click', target: 'hclip', dx: 30, dy: 5, shiftKey: false }])
 
         const right = await clickWithOptions($('#hclip'), { button: 'right' })
-        expect(right.clicks).toEqual([{ type: 'contextmenu', target: 'hclip', dx: 0, dy: 0 }])
+        expect(right.clicks).toEqual([{ type: 'contextmenu', target: 'hclip', dx: 0, dy: 0, shiftKey: false }])
+    })
+
+    it('keeps a key that the test holds (Shift-click)', async () => {
+        await browser.action('key').down(Key.Shift).perform(true)
+        try {
+            const { clicks } = await clickWithOptions($('#hclip'), { skipRelease: true })
+            expect(clicks.map(({ target, shiftKey }) => ({ target, shiftKey }))).toEqual([{ target: 'hclip', shiftKey: true }])
+        } finally {
+            await browser.releaseActions()
+        }
+    })
+
+    it('clicks a hidden element in a container with smooth scrolling', async () => {
+        const { clicks } = await clickWithOptions($('#smooth-clip'), {})
+        expect(clicks.map(({ target }) => target)).toEqual(['smooth-clip'])
     })
 
     it('clicks an element that a vertical scroll container hides', async () => {
