@@ -1,11 +1,11 @@
 import { getBrowserObject } from '@wdio/utils'
-import type { remote } from 'webdriver'
+import { BIDI_SCRIPT_TIMEOUT, type remote } from 'webdriver'
 
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
-import { withScriptTimeout } from '../../utils/scriptTimeout.js'
+import { bidiScriptTimeoutOf } from '../../utils/scriptTimeout.js'
 import { contextIdOf, heldBrowsingContext, assertFrameAttached } from '../../session/browsingContext.js'
 import { polyfillFn } from '../../scripts/polyfill.js'
 import type { TransformElement, TransformReturn } from '../../types.js'
@@ -90,7 +90,11 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
                 context
             }
         }
-        const result = await withScriptTimeout(browser, browser.scriptCallFunction(params))
+        const scriptTimeout = await bidiScriptTimeoutOf(browser)
+        if (scriptTimeout !== undefined) {
+            Object.assign(params, { [BIDI_SCRIPT_TIMEOUT]: scriptTimeout })
+        }
+        const result = await browser.scriptCallFunction(params)
         return parseScriptResult(params, result)
     }
 

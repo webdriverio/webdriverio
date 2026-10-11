@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { expect, describe, it, vi } from 'vitest'
-import type { remote } from 'webdriver'
+import { BIDI_SCRIPT_TIMEOUT, type remote } from 'webdriver'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../../src/session/context.js', () => ({
@@ -91,26 +91,37 @@ describe('execute BiDi blob results', () => {
 })
 
 describe('execute BiDi script timeout', () => {
-    it('fails with a script timeout error when the script runs longer than the script timeout', async () => {
-        vi.useFakeTimers()
-        try {
-            const browser = {
-                isBidi: true,
-                isMultiRemote: false,
-                sessionId: 'session-1',
-                capabilities: { timeouts: { script: 2_000 } },
-                scriptCallFunction: vi.fn(() => new Promise(() => {}))
-            }
-            const result = execute.call(
-                browser as unknown as WebdriverIO.Browser,
-                () => new Promise((resolve) => setTimeout(resolve, 5_000))
-            )
-            const assertion = expect(result).rejects.toMatchObject({ name: 'script timeout' })
-            await vi.advanceTimersByTimeAsync(2_000)
-            await assertion
-            expect(browser.scriptCallFunction).toHaveBeenCalledTimes(1)
-        } finally {
-            vi.useRealTimers()
+    const scriptTimeoutBrowser = (capabilities: Record<string, unknown>, getTimeouts?: () => Promise<unknown>) => ({
+        isBidi: true,
+        isMultiRemote: false,
+        sessionId: 'session-1',
+        capabilities,
+        ...(getTimeouts ? { getTimeouts } : {}),
+        scriptCallFunction: vi.fn(async () => ({ type: 'success', realm: 'realm-1', result: { type: 'undefined' } }))
+    })
+    const sentScriptTimeout = (browser: ReturnType<typeof scriptTimeoutBrowser>) =>
+        (browser.scriptCallFunction.mock.calls[0] as unknown as [Record<symbol, unknown>])[0][BIDI_SCRIPT_TIMEOUT]
+
+    /**
+     * the transport starts the time when it sends the command, so command hooks do not count
+     */
+    it('gives the BiDi command the script timeout of the session', async () => {
+        const browser = scriptTimeoutBrowser({ timeouts: { script: 2_000 } })
+        await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
+        expect(sentScriptTimeout(browser)).toBe(2_000)
+    })
+
+    it('uses the script timeout of an attached session', async () => {
+        const browser = scriptTimeoutBrowser({}, async () => ({ script: 60_000 }))
+        await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
+        expect(sentScriptTimeout(browser)).toBe(60_000)
+    })
+
+    it('sets no script timeout for a null one or one that a timer cannot hold', async () => {
+        for (const script of [null, Number.MAX_SAFE_INTEGER]) {
+            const browser = scriptTimeoutBrowser({ timeouts: { script } })
+            await execute.call(browser as unknown as WebdriverIO.Browser, () => 1)
+            expect(sentScriptTimeout(browser)).toBeUndefined()
         }
     })
 })

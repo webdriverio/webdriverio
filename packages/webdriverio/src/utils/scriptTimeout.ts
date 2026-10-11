@@ -1,7 +1,8 @@
 /**
  * WebDriver BiDi has no script timeout (https://github.com/w3c/webdriver-bidi/issues/199),
- * so `execute` applies the session's `script` timeout itself, as a WebDriver Classic
- * driver does for `executeScript`.
+ * so `execute` gives the session's `script` timeout to the BiDi command
+ * (`BIDI_SCRIPT_TIMEOUT` of the `webdriver` package), as a WebDriver Classic
+ * driver applies it to `executeScript`.
  */
 
 /**
@@ -50,49 +51,39 @@ export function trackScriptTimeout (browser: WebdriverIO.Browser) {
 /**
  * The `script` timeout of the session in milliseconds, or `null` for no limit:
  * the last value set with `browser.setTimeout()`, else the one in the session
- * capabilities, else the default of the WebDriver spec.
+ * capabilities. Without one there (an attached session has the capabilities the
+ * user passed), it reads the timeouts of the session once, else it uses the
+ * default of the WebDriver spec.
  */
-export function scriptTimeoutOf (browser: WebdriverIO.Browser): number | null {
+export async function scriptTimeoutOf (browser: WebdriverIO.Browser): Promise<number | null> {
     const set = scriptTimeouts.get(browser)
     if (set && set.sessionId === browser.sessionId) {
         return set.script
     }
     const fromCapabilities = (browser.capabilities as WebdriverIO.Capabilities | undefined)?.timeouts?.script
-    if (fromCapabilities === null) {
-        return null
+    if (fromCapabilities === null || typeof fromCapabilities === 'number') {
+        return fromCapabilities
     }
-    return typeof fromCapabilities === 'number' ? fromCapabilities : DEFAULT_SCRIPT_TIMEOUT
+
+    const sessionId = browser.sessionId
+    const fromSession = typeof browser.getTimeouts === 'function'
+        ? await browser.getTimeouts().then(({ script }) => script, () => undefined)
+        : undefined
+    const script = fromSession === null || typeof fromSession === 'number' ? fromSession : DEFAULT_SCRIPT_TIMEOUT
+    /**
+     * keep a value that `setTimeouts` stored while the request ran
+     */
+    if (!scriptTimeouts.has(browser) || scriptTimeouts.get(browser)!.sessionId !== sessionId) {
+        scriptTimeouts.set(browser, { sessionId, script })
+    }
+    return script
 }
 
 /**
- * Reject with a `script timeout` error when `call` does not settle within the
- * `script` timeout of the session. The script keeps running in the page, as with
- * WebDriver Classic, and its late result is ignored.
+ * The `script` timeout to give a BiDi command, or `undefined` for no limit
+ * (`null`, or more than a timer can hold).
  */
-export async function withScriptTimeout<T> (browser: WebdriverIO.Browser, call: Promise<T>): Promise<T> {
-    const timeout = scriptTimeoutOf(browser)
-    if (timeout === null || timeout > MAX_TIMER_DELAY) {
-        return call
-    }
-
-    /**
-     * a result or error that arrives after the timeout must not be an unhandled rejection
-     */
-    call.catch(() => {})
-    let timer: ReturnType<typeof setTimeout> | undefined
-    const expired = new Promise<never>((_, reject) => {
-        timer = setTimeout(() => {
-            const error = new Error(
-                `script timeout: the script did not finish within ${timeout}ms. ` +
-                'Set a longer "script" timeout with `browser.setTimeout({ script })` if it needs more time.'
-            )
-            error.name = 'script timeout'
-            reject(error)
-        }, timeout)
-    })
-    try {
-        return await Promise.race([call, expired])
-    } finally {
-        clearTimeout(timer)
-    }
+export async function bidiScriptTimeoutOf (browser: WebdriverIO.Browser): Promise<number | undefined> {
+    const timeout = await scriptTimeoutOf(browser)
+    return timeout === null || timeout > MAX_TIMER_DELAY ? undefined : timeout
 }
