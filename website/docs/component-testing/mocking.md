@@ -310,4 +310,4 @@ If you are looking for mocking browser requests, e.g. API calls, head over to th
 
 In component tests, use an absolute URL pattern with a fixed protocol and hostname for `browser.mock()`, such as `https://api.webdriver.io/api/*`. A host-less pattern such as `*/api/*` intercepts every request of the page, including the browser runner's own Vite and driver traffic.
 
-Use a single `*`, which also matches slashes. Consecutive wildcards before fixed text, such as `**/api/**` or `**/data.json`, can cause excessive regex backtracking on unrelated URLs and freeze a test. See [issue #13548](https://github.com/webdriverio/webdriverio/issues/13548), [issue #15739](https://github.com/webdriverio/webdriverio/issues/15739), and the [URL wildcard warning](/docs/mocksandspies#creating-a-mock).
+A single `*` also matches slashes. In a string pattern, `**` is the same as `*`; in a `URLPattern` object, use a single `*`. See [creating a mock](/docs/mocksandspies#creating-a-mock).

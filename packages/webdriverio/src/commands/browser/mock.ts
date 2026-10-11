@@ -41,6 +41,18 @@ export const SESSION_MOCKS: Record<string, Set<WebDriverInterception>> = {}
  *
  * :::info
  *
+ * A second `mock` with the same URL pattern and the same filter options replaces the
+ * first one: the first mock is restored, so it no longer changes requests or records
+ * calls. In a URL pattern, `*` already matches any characters, `/` included, and in a
+ * string pattern WebdriverIO changes `**` to `*`: `'**' + '/api'` and `'*' + '/api'`
+ * are the same pattern. To keep both mocks, give them different filter options.
+ * WebdriverIO does not change a `URLPattern` object: use a single `*` in it, as repeated
+ * wildcards before fixed text can make the match very slow and freeze a test.
+ *
+ * :::
+ *
+ * :::info
+ *
  * On a [multi-remote](https://webdriver.io/docs/multiremote) browser, `mock` returns a
  * [`MultiRemoteMock`](https://webdriver.io/docs/api/mock#multi-remote) instead of a single mock.
  * `instances` lists the browser names, `getInstance(name)` returns that browser's mock,
