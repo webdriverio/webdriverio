@@ -296,7 +296,12 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
-        this.#extendAllureReport()
+        /**
+         * with Cucumber step reporting, the scenario is the Allure test
+         */
+        if (this.#isCucumberStepReporter && suite.type === 'scenario') {
+            this.#extendAllureReport()
+        }
 
         if (!this.testName) {
             return
@@ -399,7 +404,12 @@ export default class VideoReporter extends WdioReporter {
         if (this.options.filenamePrefixSource === 'test' && (!this.isCucumberFramework || this.#isScenarioLevelReporter)) {
             this.testNameStructure.pop()
         }
-        this.#extendAllureReport()
+        /**
+         * once for each Allure test: with Cucumber step reporting, at the scenario end
+         */
+        if (!this.#isCucumberStepReporter) {
+            this.#extendAllureReport()
+        }
 
         if (test.state === 'failed' || (test.state === 'passed' && this.options.saveAllVideos)) {
             this.addFrame()
