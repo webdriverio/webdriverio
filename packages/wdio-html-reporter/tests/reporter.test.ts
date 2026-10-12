@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { TestStats } from '@wdio/reporter'
@@ -131,5 +132,40 @@ describe('HtmlReporter', () => {
         await reportAggregator.createReport()
 
         expect(fs.readFileSync(reportAggregator.reportFile, 'utf-8')).toContain('Empty Report')
+    })
+})
+
+describe('HtmlReporter with Cucumber', () => {
+    const cucumberOutputDir = path.join(outputRoot, 'cucumber') + path.sep
+    const runner = { cid: '0-0', config: { framework: 'cucumber' } } as never
+    const scenario = (state: 'passed' | 'failed') => ({
+        uid: 'scenario-1',
+        type: 'scenario',
+        tests: [{ state: 'passed' }, { state }],
+        hooks: []
+    }) as never
+
+    afterAll(() => {
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        fs.rmSync(outputRoot, { recursive: true, force: true })
+    })
+
+    it('counts a scenario that fails again on retry once', () => {
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: cucumberOutputDir } as never)
+        reporter.onRunnerStart(runner)
+        reporter.onTestFail({ uid: 'step', state: 'failed' } as never)
+        reporter.onSuiteEnd(scenario('failed'))
+        reporter.onSuiteRetry(scenario('failed'))
+        reporter.onSuiteEnd(scenario('failed'))
+        expect(reporter.metrics).toMatchObject({ passed: 0, failed: 1, skipped: 0 })
+    })
+
+    it('counts the steps as tests with scenarioLevelReporter', () => {
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: cucumberOutputDir } as never)
+        reporter.onRunnerStart({ cid: '0-0', config: { framework: 'cucumber', cucumberOpts: { scenarioLevelReporter: true } } } as never)
+        reporter.onTestPass({ uid: 'scenario-as-test', state: 'passed' } as never)
+        expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0 })
     })
 })
