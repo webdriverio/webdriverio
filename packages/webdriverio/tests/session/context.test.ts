@@ -335,6 +335,43 @@ describe('ContextManager', () => {
         process.env.WDIO_UNIT_TESTS = wid
     })
 
+    it('does not reject when the connection closes while a navigation event is handled', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true } as any)
+        const browser = stub.browser
+        /**
+         * the session ends while the tree is requested: the pending command is rejected
+         */
+        ;(browser as any).browsingContextGetTree.mockRejectedValue(new Error(
+            'WebDriver Bidi command "browsingContext.getTree" with id 13 got no result: the connection was closed'
+        ))
+        const manager = getContextManager(browser)
+        process.env.WDIO_UNIT_TESTS = wid
+        manager.setCurrentContext('context-1')
+
+        const navigationHandlers = stub.getListeners()['browsingContext.navigationStarted']
+        await expect(navigationHandlers![0]({ context: 'iframe-1', navigation: null, timestamp: 0, url: '' })).resolves.toBeUndefined()
+        expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('got no result: the connection was closed'))
+    })
+
+    it('does not reject when the connection closes while switchToParentFrame is handled', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true } as any)
+        const browser = stub.browser
+        ;(browser as any).browsingContextGetTree.mockRejectedValue(new Error(
+            'WebDriver Bidi command "browsingContext.getTree" with id 13 got no result: the connection was closed'
+        ))
+        const manager = getContextManager(browser)
+        process.env.WDIO_UNIT_TESTS = wid
+        manager.setCurrentContext('frame-1')
+
+        const commandHandlers = stub.getListeners().command
+        await expect(commandHandlers![commandHandlers!.length - 1]({ command: 'switchToParentFrame', body: {} })).resolves.toBeUndefined()
+        expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('got no result: the connection was closed'))
+    })
+
     it('drops a cached context that switchToParentFrame cannot find a parent for', async () => {
         const wid = process.env.WDIO_UNIT_TESTS
         delete process.env.WDIO_UNIT_TESTS
