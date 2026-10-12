@@ -63,6 +63,7 @@ export class CucumberAdapter {
     private _cucumberOpts: Required<CucumberOptions>
 
     private _hasTests = true
+    private _browser?: WebdriverIO.Browser
 
     private gherkinParser: InstanceType<typeof Gherkin.Parser>
 
@@ -273,6 +274,13 @@ export class CucumberAdapter {
     }
 
     /**
+     * Called by the runner once the session browser exists, before `run()`.
+     */
+    setBrowser(browser: WebdriverIO.Browser) {
+        this._browser = browser
+    }
+
+    /**
      * Run scenarios in parallel within separate BiDi browsing contexts.
      * Falls back to sequential mode if BiDi is not available.
      *
@@ -282,12 +290,12 @@ export class CucumberAdapter {
         supportCodeLibrary: Awaited<ReturnType<typeof supportCodeLibraryBuilder.finalize>>,
         mode: ParallelMode
     ): Promise<number> {
-        const browser = (globalThis as Record<string, unknown>).browser as ParallelBrowser
+        const browser = (this._browser ?? (globalThis as Record<string, unknown>).browser) as ParallelBrowser
 
         if (!browser) {
             throw new Error(
                 `Parallel mode (cucumberOpts.parallelMode: "${mode}") requires ` +
-                'a browser instance to be on globalThis.'
+                'a browser instance (set via setBrowser or on globalThis).'
             )
         }
 

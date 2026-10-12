@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 import type { Cookie } from '@wdio/protocols'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
+import { getCookiePartition } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -127,10 +128,7 @@ export async function setCookies(
                         value: cookie.value,
                     }
                 },
-                partition: {
-                    type: 'storageKey',
-                    sourceOrigin: url.origin
-                }
+                partition: getCookiePartition(url.origin)
             })
         )))
     } catch (err) {

@@ -1,7 +1,11 @@
 import path from 'node:path'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { expect, describe, beforeEach, beforeAll, afterEach, it, vi, type MockInstance } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { setParallelContextStore } from '../../../src/session/context.js'
+
+const parallelStore = new AsyncLocalStorage<string>()
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -101,6 +105,14 @@ describe('setCookies', () => {
 
         beforeEach(() => {
             storageSetCookie.mockClear()
+            setParallelContextStore(parallelStore)
+        })
+
+        it('should use the context partition inside a parallel scope', async () => {
+            await parallelStore.run('ctx-1', () => browser.setCookies(cookie1))
+            expect(storageSetCookie).toBeCalledWith(expect.objectContaining({
+                partition: { type: 'context', context: 'ctx-1' }
+            }))
         })
 
         it('should support passing an array', async () => {

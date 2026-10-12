@@ -111,6 +111,8 @@ interface CollectedTest {
     /** static skip (it.skip / it without fn) */
     pending?: boolean
     file: string | undefined
+    /** {@link CollectedSuite.depth} of the owning suite; {@link ROOT_SUITE} for root-level tests */
+    suiteIndex: SuiteIndex
 }
 
 interface CollectedSuite {
@@ -118,8 +120,17 @@ interface CollectedSuite {
     fullTitle: string
     file: string | undefined
     /** index into the suites array for reverse-order suite:end emission */
-    depth: number
+    depth: SuiteIndex
+    /** {@link depth} of the parent suite; undefined only for the root suite */
+    parentIndex?: SuiteIndex
 }
+
+const ROOT_SUITE = 'root'
+type SuiteIndex = number | typeof ROOT_SUITE
+
+const suiteUid = (cid: string, index: SuiteIndex) => `suite-${cid}-${index}`
+const parentUidField = (cid: string, index?: SuiteIndex) => index === undefined ? {} : { parentUid: suiteUid(cid, index) }
+const suiteParentUidField = (cid: string, suite: CollectedSuite) => ({ parentUid: suite.parentIndex === undefined ? null : suiteUid(cid, suite.parentIndex) })
 
 // ============================================================
 // Suite tree walker — collects everything in a single pass
@@ -128,6 +139,7 @@ interface CollectedSuite {
 interface SuiteCollection {
     tests: CollectedTest[]
     suites: CollectedSuite[]
+    root: CollectedSuite
 }
 
 /**
@@ -148,8 +160,11 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
         parentBeforeAll: Function[],
         parentAfterAll: Function[],
         depth: number,
-        ancestors: Suite[]
+        ancestors: Suite[],
+        parentIndex?: SuiteIndex
     ) => {
+        const suiteIndex: SuiteIndex = depth > 0 ? nextDepth++ : ROOT_SUITE
+
         const ownBeforeEach = (s as unknown as { _beforeEach?: Function[] })._beforeEach || []
         const ownAfterEach = (s as unknown as { _afterEach?: Function[] })._afterEach || []
         const ownBeforeAll = (s as unknown as { _beforeAll?: Function[] })._beforeAll || []
@@ -176,7 +191,8 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
                 _beforeAll: mergedBeforeAll,
                 _afterAll: mergedAfterAll,
                 pending: !!test.pending || !fn,
-                file: test.file || undefined
+                file: test.file || undefined,
+                suiteIndex
             }
             if (!match || match(collected)) {
                 tests.push(collected)
@@ -193,13 +209,14 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
                 title: s.title,
                 fullTitle: typeof s.fullTitle === 'function' ? s.fullTitle() : s.title,
                 file: (s as unknown as { file?: string }).file,
-                depth: nextDepth++
+                depth: suiteIndex,
+                parentIndex
             })
         }
 
         // Recurse into children
         for (const child of s.suites) {
-            walk(child, mergedBeforeEach, mergedAfterEach, mergedBeforeAll, mergedAfterAll, depth + 1, [...ancestors, s])
+            walk(child, mergedBeforeEach, mergedAfterEach, mergedBeforeAll, mergedAfterAll, depth + 1, [...ancestors, s], suiteIndex)
         }
     }
 
@@ -207,6 +224,7 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
 
     return {
         tests,
+        root: { title: suite.title, fullTitle: suite.title, file: undefined, depth: ROOT_SUITE },
         suites: [...suiteStubs.entries()]
             .filter(([s]) => matchedSuites.has(s))
             .map(([, stub]) => stub)
@@ -238,6 +256,7 @@ interface TestMessage {
     title: string
     fullTitle: string
     parent: string
+    parentUid?: string
     file: string
     contextId?: string
     duration?: number
@@ -252,6 +271,7 @@ function baseMessage(type: string, test: CollectedTest, cid: string, specs: stri
         fullTitle: test.fullTitle,
         parent: test.parentTitle,
         file: test.file || specs[0],
+        ...parentUidField(cid, test.suiteIndex),
         ...(contextId ? { contextId } : {})
     } satisfies TestMessage
 }
@@ -297,7 +317,8 @@ function hookBaseMessage(type: string, kind: HookKind, test: CollectedTest, cid:
         title: `${kind} hook for "${test.parentTitle}"`,
         fullTitle: `${test.parentTitle}.${kind} hook`,
         parent: test.parentTitle,
-        file: test.file || specs[0]
+        file: test.file || specs[0],
+        ...parentUidField(cid, test.suiteIndex)
     } satisfies TestMessage
 }
 
@@ -337,7 +358,8 @@ function emitSuiteStart(reporter: EventEmitter, suite: CollectedSuite, cid: stri
         title: suite.title,
         fullTitle: suite.fullTitle,
         parent: '',
-        file: suite.file || specs[0]
+        file: suite.file || specs[0],
+        ...suiteParentUidField(cid, suite)
     })
 }
 
@@ -350,7 +372,8 @@ function emitSuiteEnd(reporter: EventEmitter, suite: CollectedSuite, cid: string
         title: suite.title,
         fullTitle: suite.fullTitle,
         parent: '',
-        file: suite.file || specs[0]
+        file: suite.file || specs[0],
+        ...suiteParentUidField(cid, suite)
     })
 }
 
@@ -380,15 +403,18 @@ export function isSkipError(err?: unknown): boolean {
  * function arguments before the user fn runs (filterSpecArgs) — the same
  * limitation sequential mode has.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function callHook(hook: any, testTitle?: string, parentTitle?: string, timeoutMs?: number): Promise<unknown> {
-    const fn: Function = typeof hook.fn === 'function' ? hook.fn : hook
-    const ctx = {
+function createHookContext(testTitle?: string, parentTitle?: string) {
+    return {
         test: testTitle ? { title: testTitle, parent: { title: parentTitle || '' } } : undefined,
         skip: () => { throw new Error('sync skip; aborting execution') },
         timeout: () => { throw new Error('this.timeout() is not supported in parallel mode') },
         retries: () => { throw new Error('this.retries() is not supported in parallel mode') },
     }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function callHook(hook: any, ctx: object, timeoutMs?: number): Promise<unknown> {
+    const fn: Function = typeof hook.fn === 'function' ? hook.fn : hook
     const run = (): Promise<unknown> => {
         if (fn.length >= 1) {
             return Promise.resolve(fn.call(ctx, (err?: Error) => {
@@ -490,6 +516,8 @@ async function runOneTest(
         }
 
         let hookCnt = 0
+        // One context per test so `this.x` set in beforeEach is visible in the test and afterEach
+        const ctx = createHookContext(test.title, test.parentTitle)
         let caughtError: Error | undefined
         let started = false
         let fnDuration = 0
@@ -509,7 +537,7 @@ async function runOneTest(
                 emitHookStart(reporter, kind, test, cid, specs, hookUid)
                 const hookStart = Date.now()
                 try {
-                    await callHook(hook, test.title, test.parentTitle, timeoutMs)
+                    await callHook(hook, ctx, timeoutMs)
                     emitHookEnd(reporter, kind, test, cid, specs, hookUid, Date.now() - hookStart)
                 } catch (err) {
                     const hookError = err instanceof Error ? err : new Error(String(err))
@@ -535,7 +563,7 @@ async function runOneTest(
             if (!caughtError) {
                 const fnStart = Date.now()
                 try {
-                    await callHook(test.fn, test.title, test.parentTitle, timeoutMs)
+                    await callHook(test.fn, ctx, timeoutMs)
                     passed = true
                 } catch (err) {
                     caughtError = err instanceof Error ? err : new Error(String(err))
@@ -607,7 +635,7 @@ export async function runParallelTests(
 
     const grep = mochaOptions?.grep
     const invert = !!mochaOptions?.invert
-    const { tests, suites } = collectAll(
+    const { tests, suites, root } = collectAll(
         mochaSuite,
         grep ? (test: CollectedTest) => grep.test(test.fullTitle) !== invert : undefined
     )
@@ -622,8 +650,9 @@ export async function runParallelTests(
     }
 
     // --- Emit suite:start for nested describe blocks ---
-    for (const s of suites) {
-        emitSuiteStart(reporter, s, cid, specs, `suite-${cid}-${s.depth}`)
+    const emitted = [root, ...suites]
+    for (const s of emitted) {
+        emitSuiteStart(reporter, s, cid, specs, suiteUid(cid, s.depth))
     }
 
     const parallelStore = (browser as ParallelBrowser).__parallelContextStore as AsyncLocalStorage<string>
@@ -653,10 +682,17 @@ export async function runParallelTests(
         `Slots: ${slotCount}, max contexts: ${maxContexts}`
     )
 
-    // Each slot owns one live allocation plus at most one prefetched for its
-    // next test, so creating/closing windows stays off the gap between tests.
+    // Each slot owns one live allocation, at most one prefetched for its next
+    // test, and at most one closing, so creating/closing windows stays off the
+    // gap between tests without unbounded concurrent closes.
     const runSlot = async () => {
         let prefetched: Promise<ParallelContextAllocation> | undefined
+        let closing: Promise<void> | undefined
+        const scheduleClose = async (alloc: ParallelContextAllocation) => {
+            await closing?.catch(() => {})
+            closing = cleanupAllocation(bidi, alloc)
+            cleanups.push(closing)
+        }
         try {
             while (!allocationFailed) {
                 const index = cursor++
@@ -686,13 +722,13 @@ export async function runParallelTests(
                 } catch (reason) {
                     allResults[index] = { status: 'rejected', reason }
                 } finally {
-                    cleanups.push(cleanupAllocation(bidi, allocation))
+                    await scheduleClose(allocation)
                 }
             }
         } finally {
             if (prefetched) {
                 const unused = await prefetched.catch(() => undefined)
-                if (unused) { cleanups.push(cleanupAllocation(bidi, unused)) }
+                if (unused) { await scheduleClose(unused) }
             }
         }
     }
@@ -705,8 +741,6 @@ export async function runParallelTests(
             if (r.status === 'rejected') { log.warn(`[Parallel] cleanup failed: ${(r.reason as Error).message}`) }
         }
     }
-    if (allocationFailed) { throw allocationError }
-
     const totalDuration = Date.now() - runStart
     const passed = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'passed').length
     const pending = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'pending').length
@@ -715,9 +749,11 @@ export async function runParallelTests(
     const failed = tests.length - passed - pending + hookFailures
 
     // --- Emit suite:end for nested describe blocks (reverse order) ---
-    for (const s of [...suites].reverse()) {
-        emitSuiteEnd(reporter, s, cid, specs, `suite-${cid}-${s.depth}`)
+    for (const s of [...emitted].reverse()) {
+        emitSuiteEnd(reporter, s, cid, specs, suiteUid(cid, s.depth))
     }
+
+    if (allocationFailed) { throw allocationError }
 
     log.info(
         `[Parallel] ${tests.length} tests: ${passed} passed, ${failed} failed, ${pending} pending in ${totalDuration}ms`

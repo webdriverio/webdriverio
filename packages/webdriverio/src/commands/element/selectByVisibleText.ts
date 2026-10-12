@@ -49,7 +49,10 @@ export async function selectByVisibleText (
 
     const browser = getBrowserObject(this) as WebdriverIO.Browser
     if (isBidiCommandsEnabled(browser)) {
-        return bidiSelectByVisibleText(this, normalized)
+        await this.waitUntil(() => bidiSelectByVisibleText(this, normalized), {
+            timeoutMsg: `Option with text "${text}" not found.`
+        })
+        return
     }
 
     /**

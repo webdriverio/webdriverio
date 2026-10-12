@@ -9,7 +9,7 @@ import { bidiSelectByVisibleText, isBidiCommandsEnabled } from '../../../src/uti
 vi.mock('fetch')
 vi.mock('../../../src/utils/bidi/elementCommands.js', async (importOriginal) => {
     const actual = await importOriginal<Record<string, unknown>>()
-    return { ...actual, isBidiCommandsEnabled: vi.fn(() => false), bidiSelectByVisibleText: vi.fn() }
+    return { ...actual, isBidiCommandsEnabled: vi.fn(() => false), bidiSelectByVisibleText: vi.fn(async () => true) }
 })
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -21,6 +21,8 @@ describe('selectByVisibleText test', () => {
     beforeEach(async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
+            waitforTimeout: 100,
+            waitforInterval: 10,
             capabilities: {
                 browserName: 'foobar'
             }
@@ -73,6 +75,20 @@ describe('selectByVisibleText test', () => {
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
         })
+    })
+
+    it('waits for a late option on the BiDi path', async () => {
+        vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+        vi.mocked(bidiSelectByVisibleText).mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+        await elem.selectByVisibleText('late')
+        expect(bidiSelectByVisibleText).toHaveBeenCalledTimes(2)
+    })
+
+    it('throws the classic message on the BiDi path when the option is missing', async () => {
+        vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+        vi.mocked(bidiSelectByVisibleText).mockResolvedValue(false)
+        await expect(elem.selectByVisibleText('nope')).rejects.toThrow('Option with text "nope" not found.')
+        vi.mocked(bidiSelectByVisibleText).mockResolvedValue(true)
     })
 
     it('collapses every whitespace run on the BiDi path', async () => {

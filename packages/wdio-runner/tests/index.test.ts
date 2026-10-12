@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 'vitest'
-import { executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, initializePlugin } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
 import { attach, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
@@ -293,6 +293,28 @@ describe('wdio-runner', () => {
                 // sentinel, mirroring the `sessionStarted` accounting
                 specFileRetries: 6
             }))
+        })
+
+        it('should hand the browser to the framework before running it', async () => {
+            const calls: string[] = []
+            const stubBrowser = { capabilities: {}, options: {} }
+            const framework: any = {
+                init: () => framework,
+                hasTests: () => true,
+                setBrowser: vi.fn(() => calls.push('setBrowser')),
+                run: vi.fn(async () => { calls.push('run'); return 0 })
+            }
+            vi.mocked(initializePlugin).mockResolvedValueOnce({ default: framework } as any)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue({
+                framework: 'testNoFailures', reporters: [], beforeSession: [], runner: 'local'
+            } as any)
+            const runner = new WDIORunner()
+            runner['_shutdown'] = vi.fn()
+            runner['_initSession'] = vi.fn().mockReturnValue(stubBrowser)
+            await runner.run({ args: {}, caps: {}, configFile: '/bar/foo' } as any)
+
+            expect(framework.setBrowser).toBeCalledWith(stubBrowser)
+            expect(calls).toEqual(['setBrowser', 'run'])
         })
 
         it('should return failures count', async () => {

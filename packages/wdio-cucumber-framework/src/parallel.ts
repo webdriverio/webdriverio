@@ -6,7 +6,8 @@
  *   1. Parse Gherkin feature files to collect all pickles (scenarios)
  *   2. Run scenarios through a pool of `maxParallelContexts` slots; each
  *      slot prefetches its next browsing context (window) while a scenario runs
- *      and closes finished windows in the background
+ *      and closes finished windows in the background (a slot never has more
+ *      than one window close in flight; it awaits the previous close first)
  *   3. Await all pending window/user-context cleanups before returning
  *   4. Each scenario runs inside an AsyncLocalStorage scope. WebdriverIO's
  *      ContextManager.getCurrentContext() consults that store first, so
@@ -291,6 +292,7 @@ async function allocateContext(bidi: ParallelBrowser, mode: ParallelMode): Promi
 // ============================================================
 
 interface FeatureGroup {
+    uid: string
     uri: string
     gherkinDocument: messages.GherkinDocument
     pickles: messages.Pickle[]
@@ -299,14 +301,23 @@ interface FeatureGroup {
 function collectFeatureGroups(
     gherkinDocuments: (messages.GherkinDocument | messages.GherkinDocument[])[]
 ): FeatureGroup[] {
+    // getFeatureId is basename:line:column, so same-named files in different
+    // directories collide; reporters key suites by uid.
+    const seen = new Map<string, number>()
     return gherkinDocuments
         .flatMap((docOrDocs) => {
             const docs = [docOrDocs].flat(1) as messages.GherkinDocument[]
-            return docs.map((doc) => ({
-                uri: doc.uri || '',
-                gherkinDocument: doc,
-                pickles: Gherkin.compile(doc, doc.uri || '', uuidFn) as messages.Pickle[],
-            }))
+            return docs.map((doc) => {
+                const baseUid = getFeatureId(doc.uri as string, doc.feature as messages.Feature)
+                const count = seen.get(baseUid) ?? 0
+                seen.set(baseUid, count + 1)
+                return {
+                    uid: count === 0 ? baseUid : `${baseUid}#${count}`,
+                    uri: doc.uri || '',
+                    gherkinDocument: doc,
+                    pickles: Gherkin.compile(doc, doc.uri || '', uuidFn) as messages.Pickle[],
+                }
+            })
         })
         .filter((g) => g.pickles.length > 0)
 }
@@ -336,13 +347,14 @@ function emitSuiteEvent(
 ) {
     const doc = group.gherkinDocument
     const payload = {
-        uid: getFeatureId(doc.uri as string, doc.feature as messages.Feature),
+        uid: group.uid,
         title: getTitle(doc.feature as messages.Feature),
         type: 'feature' as const,
         file: doc.uri,
         tags: doc.feature?.tags,
         cid,
         specs,
+        parentUid: null,
     }
     reporter.emit(event, formatMessage({ payload }))
 }
@@ -355,12 +367,13 @@ function buildScenarioPayload(params: {
     feature: messages.Feature
     pickle: messages.Pickle
     scenarioUID: string
+    featureUID: string
 }) {
-    const { cid, specs, cucumberOpts, uri, feature, pickle, scenarioUID } = params
+    const { cid, specs, cucumberOpts, uri, feature, pickle, scenarioUID, featureUID } = params
     return {
         uid: scenarioUID,
         title: getTitle(pickle, cucumberOpts.tagsInTitle),
-        parent: getFeatureId(uri, feature),
+        parent: featureUID,
         type: 'scenario',
         description: getScenarioDescription(feature, pickle.astNodeIds[0]),
         file: uri,
@@ -396,16 +409,17 @@ function emitSkippedScenario(
         feature,
         pickle,
         scenarioUID: `scenario-${cid}-${scenarioIndex}`,
+        featureUID: group.uid,
     })
 
     if (cucumberOpts.scenarioLevelReporter !== false) {
-        const skipped = { ...payload, state: 'skip', duration: 0, passed: true }
-        reporter.emit('test:start', formatMessage({ payload }))
+        const skipped = { ...payload, parentUid: group.uid, state: 'skip', duration: 0, passed: true }
+        reporter.emit('test:start', formatMessage({ payload: { ...payload, parentUid: group.uid } }))
         reporter.emit('test:skip', formatMessage({ payload: skipped }))
         return
     }
 
-    reporter.emit('suite:start', formatMessage({ payload }))
+    reporter.emit('suite:start', formatMessage({ payload: { ...payload, parentUid: group.uid } }))
     pickle.steps = addKeywordToStep(pickle.steps as ReporterStep[], feature)
     for (const step of pickle.steps || []) {
         const stepPayload = buildStepPayload(uri, feature, pickle, step, {
@@ -414,9 +428,9 @@ function emitSkippedScenario(
             passed: true,
             duration: 0,
         })
-        reporter.emit('test:skip', formatMessage({ payload: stepPayload }))
+        reporter.emit('test:skip', formatMessage({ payload: { ...stepPayload, parentUid: payload.uid } }))
     }
-    const closed = { ...payload, duration: 0 }
+    const closed = { ...payload, parentUid: group.uid, duration: 0 }
     reporter.emit('suite:end', formatMessage({ payload: closed }))
 }
 
@@ -489,6 +503,7 @@ interface ScenarioTranslatorParams {
     cid: string
     specs: string[]
     gherkinDocument: messages.GherkinDocument
+    featureUID: string
     pickle: messages.Pickle
     testCase: messages.TestCase
     cucumberOpts: Required<CucumberOptions>
@@ -499,7 +514,7 @@ interface ScenarioTranslatorParams {
 function wireScenarioTranslator(params: ScenarioTranslatorParams) {
     const {
         broadcaster, reporter, eventEmitter, cid, specs,
-        gherkinDocument, pickle, testCase, cucumberOpts,
+        gherkinDocument, featureUID, pickle, testCase, cucumberOpts,
         scenarioIndex, contextId,
     } = params
 
@@ -525,6 +540,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
         feature,
         pickle,
         scenarioUID,
+        featureUID,
     }
 
     // Enrich pickle steps with keywords from the feature
@@ -562,7 +578,13 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
         const isRetry = typeof started.attempt === 'number' && started.attempt > 0
         reporter.emit(
             scenarioLevel ? 'test:start' : (isRetry ? 'suite:retry' : 'suite:start'),
-            formatMessage({ payload: { ...buildScenarioPayload(scenarioPayloadParams), contextId } })
+            formatMessage({
+                payload: {
+                    ...buildScenarioPayload(scenarioPayloadParams),
+                    contextId,
+                    parentUid: featureUID,
+                },
+            })
         )
         eventEmitter.emit('getHookParams', { uri, feature, scenario: pickle })
     }
@@ -582,7 +604,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
         // Per-step anchor so step/hook durations don't accumulate from scenario start
         stepStart = new Date()
 
-        const payload = { ...buildStepPayload(uri, feature, pickle, step as ReporterStep, { type }), contextId }
+        const payload = { ...buildStepPayload(uri, feature, pickle, step as ReporterStep, { type }), contextId, parentUid: scenarioUID }
         reporter.emit(`${type}:start`, formatMessage({ payload }))
     }
 
@@ -610,7 +632,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
                 error,
                 duration,
             })
-            reporter.emit('hook:end', formatMessage({ payload }))
+            reporter.emit('hook:end', formatMessage({ payload: { ...payload, parentUid: scenarioUID } }))
             return
         }
 
@@ -627,6 +649,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
                 passed,
             }),
             contextId,
+            parentUid: scenarioUID,
         }
         reporter.emit(`test:${state}`, formatMessage({ payload }))
     }
@@ -643,7 +666,7 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
         const duration = testStart ? Date.now() - testStart.getTime() : 0
 
         if (!scenarioLevel) {
-            const payload = { ...buildScenarioPayload(scenarioPayloadParams), duration }
+            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, duration }
             reporter.emit('suite:end', formatMessage({ payload }))
             return
         }
@@ -651,8 +674,9 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
         const finalResult = stepResults.find((r) => r.status !== 'PASSED') || stepResults[stepResults.length - 1]
         if (!finalResult) {
             // Empty scenario (no steps) — nothing failed
-            const payload = { ...buildScenarioPayload(scenarioPayloadParams), state: 'pass', duration, passed: true }
+            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state: 'pass', duration, passed: true }
             reporter.emit('test:pass', formatMessage({ payload }))
+            reporter.emit('test:end', formatMessage({ payload: { ...payload, contextId } }))
             return
         }
 
@@ -682,8 +706,9 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
         }
 
         const passed = ['pass', 'skip'].includes(state)
-        const payload = { ...buildScenarioPayload(scenarioPayloadParams), state, error, duration, passed }
+        const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state, error, duration, passed }
         reporter.emit(`test:${state}`, formatMessage({ payload }))
+        reporter.emit('test:end', formatMessage({ payload: { ...payload, contextId } }))
     }
 
     broadcaster.on('envelope', (envelope: messages.Envelope) => {
@@ -756,6 +781,7 @@ async function runScenario(
             cid,
             specs,
             gherkinDocument: group.gherkinDocument,
+            featureUID: group.uid,
             pickle,
             testCase,
             cucumberOpts,
@@ -915,19 +941,26 @@ export async function runParallelCucumber(params: {
 
     emitFeatureSuiteEvents(reporter, cid, specs, featureGroups, 'suite:start')
 
+    // Once BeforeAll ran, AfterAll and suite:end must run even if assembly or
+    // context allocation throws; the error is rethrown afterwards.
+    let runFailure: { error: unknown } | undefined
     // --- 5. Assemble test cases ---
     // Mirrors Cucumber's coordinator: a failed BeforeAll skips assembly and scenarios.
     const assembledTestCases: IAssembledTestCases = {}
     if (beforeAllOk) {
-        const assembled = await assembleTestCases(
-            testRunStartedId,
-            runBroadcaster,
-            uuidFn,
-            allPickles.map((pickle) => ({ gherkinDocument: pickleToGroup.get(pickle)!.gherkinDocument, pickle })),
-            supportCodeLibrary
-        )
-        for (const { pickle, testCase } of assembled) {
-            assembledTestCases[pickle.id] = testCase
+        try {
+            const assembled = await assembleTestCases(
+                testRunStartedId,
+                runBroadcaster,
+                uuidFn,
+                allPickles.map((pickle) => ({ gherkinDocument: pickleToGroup.get(pickle)!.gherkinDocument, pickle })),
+                supportCodeLibrary
+            )
+            for (const { pickle, testCase } of assembled) {
+                assembledTestCases[pickle.id] = testCase
+            }
+        } catch (error) {
+            runFailure = { error }
         }
     } else {
         log.error(`[Parallel] BeforeAll hook failed — skipping ${allPickles.length} scenario(s).`)
@@ -943,13 +976,20 @@ export async function runParallelCucumber(params: {
         reporter, eventEmitter, cid, specs, cucumberOpts, supportCodeLibrary,
         runtimeOptions, assembledTestCases, parallelStore, snippetBuilder,
     }
-    let cursor = beforeAllOk ? 0 : allPickles.length
+    let cursor = beforeAllOk && !runFailure ? 0 : allPickles.length
     let stopped = false
     let allocationFailed = false
     let allocationError: unknown
 
     const runSlot = async () => {
         let prefetched: Promise<ParallelContextAllocation> | undefined
+        let pendingClose: Promise<void> | undefined
+        // A close failure is reported through `cleanups`; here we only serialize.
+        const closeInBackground = async (allocation: ParallelContextAllocation) => {
+            await pendingClose?.catch(() => {})
+            pendingClose = cleanupAllocation(bidi, allocation)
+            cleanups.push(pendingClose)
+        }
         try {
             while (!stopped) {
                 const index = cursor++
@@ -978,7 +1018,7 @@ export async function runParallelCucumber(params: {
                 } catch (reason) {
                     result = { status: 'rejected', reason }
                 } finally {
-                    cleanups.push(cleanupAllocation(bidi, allocation))
+                    await closeInBackground(allocation)
                 }
                 allResults.push(result)
                 if (failFast && isFailedResult(result, cucumberOpts)) { stopped = true }
@@ -986,22 +1026,24 @@ export async function runParallelCucumber(params: {
         } finally {
             if (prefetched) {
                 const unused = await prefetched.catch(() => undefined)
-                if (unused) { cleanups.push(cleanupAllocation(bidi, unused)) }
+                if (unused) { await closeInBackground(unused) }
             }
         }
     }
 
     try {
         await Promise.all(Array.from({ length: slotCount }, runSlot))
+    } catch (error) {
+        runFailure ??= { error }
     } finally {
         const settled = await Promise.allSettled(cleanups)
         for (const r of settled) {
             if (r.status === 'rejected') { log.warn(`[Parallel] cleanup failed: ${(r.reason as Error).message}`) }
         }
     }
-    if (allocationFailed) { throw allocationError }
+    if (allocationFailed) { runFailure = { error: allocationError } }
 
-    if (failFast && stopped) {
+    if (!runFailure && failFast && stopped) {
         // Mirror Cucumber's failFast: remaining pickles report as skipped
         // (the runtime runs them with the runner's skip flag) instead of
         // vanishing — the summary math reconciles passed + failed + skipped.
@@ -1024,6 +1066,7 @@ export async function runParallelCucumber(params: {
     emitFeatureSuiteEvents(reporter, cid, specs, [...featureGroups].reverse(), 'suite:end')
 
     const afterAllOk = await runTestRunHooks(eventEmitter, () => executor.runAfterAllHooks(), featureGroups, 'an AfterAll')
+    if (runFailure) { throw runFailure.error }
 
     let passed = 0, failed = 0, skipped = allPickles.length - allResults.length
     for (const r of allResults) {

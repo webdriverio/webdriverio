@@ -15,6 +15,8 @@ export interface Hook {
     errors?: Error[]
     error?: Error
     currentTest?: string
+    /** `null` marks a top-level suite (child of the reporter root); `undefined` falls back to the open-suite stack */
+    parentUid?: string | null
 }
 
 export default class HookStats extends RunnableStats {

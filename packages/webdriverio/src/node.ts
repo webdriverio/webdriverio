@@ -1,4 +1,5 @@
 import os from 'node:os'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import fs from 'node:fs'
 import process from 'node:process'
 
@@ -12,6 +13,9 @@ import { saveElementScreenshot } from './node/saveElementScreenshot.js'
 export * from './index.js'
 
 import { environment, type EnvironmentVariables } from './environment.js'
+import { setParallelContextStore } from './session/context.js'
+
+setParallelContextStore(new AsyncLocalStorage<string>())
 
 environment.value = {
     osType: () => os.type(),

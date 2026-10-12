@@ -1,9 +1,11 @@
 import path from 'node:path'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import {
     getContextManager,
     getParallelContextStore,
+    setParallelContextStore,
     registerParallelContext,
     unregisterParallelContext,
     isParallelContext,
@@ -11,6 +13,8 @@ import {
 } from '../../src/session/context.js'
 import { logMock } from '@wdio/logger'
 import { SESSION_ENDED_ERROR } from 'webdriver'
+
+setParallelContextStore(new AsyncLocalStorage<string>())
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 

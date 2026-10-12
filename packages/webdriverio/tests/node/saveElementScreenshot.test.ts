@@ -20,7 +20,8 @@ vi.mock('../../src/session/context.js', () => ({
         setCurrentContext: vi.fn(),
         findParentContext: vi.fn().mockReturnValue(undefined),
         findContext: vi.fn()
-    }))
+    })),
+    setParallelContextStore: vi.fn()
 }))
 
 describe('saveElementScreenshot', () => {

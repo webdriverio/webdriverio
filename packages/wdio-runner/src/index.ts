@@ -250,6 +250,9 @@ export default class Runner extends EventEmitter {
          */
         let failures = 0
         try {
+            if (!this._isMultiRemote) {
+                this._framework.setBrowser?.(browser as WebdriverIO.Browser)
+            }
             failures = await this._framework.run()
         } catch (err: any) {
             log.error(err)

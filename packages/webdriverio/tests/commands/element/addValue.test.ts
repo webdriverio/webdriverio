@@ -1,10 +1,13 @@
 import path from 'node:path'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest'
 
 import { BIDI_MASK } from 'webdriver'
-import { getContextManager, getParallelContextStore } from '../../../src/session/context.js'
+import { getContextManager, getParallelContextStore, setParallelContextStore } from '../../../src/session/context.js'
 import { remote, Key } from '../../../src/index.js'
 import { bidiAddValue, isBidiCommandsEnabled } from '../../../src/utils/bidi/elementCommands.js'
+
+setParallelContextStore(new AsyncLocalStorage<string>())
 
 vi.mock('fetch')
 vi.mock('../../../src/utils/bidi/elementCommands.js', async (importOriginal) => {

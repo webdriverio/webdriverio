@@ -3,7 +3,7 @@ import { expect, describe, it, beforeAll, beforeEach, afterEach, vi, type MockIn
 
 import { remote } from '../../../src/index.js'
 import { getNetworkManager } from '../../../src/session/networkManager.js'
-import { getParallelContextStore } from '../../../src/session/context.js'
+import { getContextManager, getParallelContextStore } from '../../../src/session/context.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -261,6 +261,21 @@ describe('url', () => {
             expect(browsingContextNavigate).toHaveBeenNthCalledWith(2, expect.objectContaining({
                 url: 'http://google.com/',
                 wait: browsingContextNavigate.mock.calls[0][0].wait
+            }))
+            expect(navigateTo).not.toBeCalled()
+            navigateTo.mockRestore()
+        })
+
+        it('navigates the parallel test context over BiDi for a data: url', async () => {
+            browsingContextNavigate.mockImplementation((async () => ({ navigation: 'nav-1' })) as any)
+            vi.mocked(getContextManager).mockImplementationOnce(() => ({
+                getCurrentContext: vi.fn().mockResolvedValue('parallel-tab')
+            }) as any)
+            const navigateTo = vi.spyOn(browser, 'navigateTo')
+            await getParallelContextStore().run('parallel-tab', () => browser.url('data:text/html,<title>T</title>'))
+            expect(browsingContextNavigate).toBeCalledWith(expect.objectContaining({
+                context: 'parallel-tab',
+                url: 'data:text/html,<title>T</title>'
             }))
             expect(navigateTo).not.toBeCalled()
             navigateTo.mockRestore()

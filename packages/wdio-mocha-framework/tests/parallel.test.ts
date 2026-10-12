@@ -579,8 +579,25 @@ describe('runParallelTests — grep/invert filtering', () => {
         // mocha never emits suite events for suites with no matching tests
         const suiteStarts = emittedEvents.filter((e) => e.event === 'suite:start')
         const suiteEnds = emittedEvents.filter((e) => e.event === 'suite:end')
-        expect(suiteStarts.map((e) => e.payload.title)).toEqual(['suiteA'])
-        expect(suiteEnds.map((e) => e.payload.title)).toEqual(['suiteA'])
+        expect(suiteStarts.map((e) => e.payload.title)).toEqual(['root', 'suiteA'])
+        expect(suiteEnds.map((e) => e.payload.title)).toEqual(['suiteA', 'root'])
+    })
+
+    test('always emits the root suite and parents top-level describes to it', async () => {
+        const suiteA = mockSuite('suiteA', { tests: [mockTest('a1')] })
+        const suiteB = mockSuite('suiteB', { tests: [mockTest('b1')] })
+        const suite = mockSuite('', { suites: [suiteA, suiteB] })
+
+        const browser = mockBrowser({ contexts: ['ctx-a', 'ctx-b'] })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        const starts = emittedEvents.filter((e) => e.event === 'suite:start').map((e) => e.payload)
+        const rootUid = 'suite-0-0-root'
+        expect(starts[0]).toMatchObject({ uid: rootUid, parentUid: null })
+        expect(starts.slice(1).map((p) => [p.title, p.parentUid])).toEqual([
+            ['suiteA', rootUid],
+            ['suiteB', rootUid]
+        ])
     })
 })
 
@@ -994,5 +1011,93 @@ describe('runParallelTests — worker pool', () => {
         ).rejects.toThrow('prefetch failed')
         expect(browser.browsingContextClose).toHaveBeenCalledTimes(1)
         expect(browser.__parallelContexts.size).toBe(0)
+    })
+})
+
+describe('runParallelTests — shared context and suite ownership', () => {
+    test('shares one ctx across beforeEach, test and afterEach', async () => {
+        const seen: unknown[] = []
+        const suite = mockSuite('root', {
+            tests: [mockTest('t', function (this: any) { seen.push(this.x) })],
+            _beforeEach: [function (this: any) { this.x = 42 }],
+            _afterEach: [function (this: any) { seen.push(this.x) }]
+        })
+        await runParallelTests(suite, mockBrowser(), new EventEmitter(), '0-0', ['/spec.js'])
+        expect(seen).toEqual([42, 42])
+    })
+
+    test('sibling describes get distinct uids and tests carry their parentUid', async () => {
+        const suite = mockSuite('root', {
+            suites: [
+                mockSuite('A', { tests: [mockTest('a1')] }),
+                mockSuite('B', { tests: [mockTest('b1')], suites: [mockSuite('C', { tests: [mockTest('c1')] })] })
+            ]
+        })
+        const reporter = new EventEmitter()
+        const events: any[] = []
+        for (const e of ['suite:start', 'suite:end', 'test:start']) {
+            reporter.on(e, (p) => events.push({ e, ...p }))
+        }
+        await runParallelTests(suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        const starts = events.filter((x) => x.e === 'suite:start')
+        const uidOf = (title: string) => starts.find((s) => s.title === title).uid
+        expect(new Set(starts.map((s) => s.uid)).size).toBe(4)
+        expect(starts.find((s) => s.title === 'A').parentUid).toBe(uidOf('root'))
+        expect(starts.find((s) => s.title === 'C').parentUid).toBe(uidOf('B'))
+        const parentOf = (title: string) => events.find((x) => x.e === 'test:start' && x.title === title).parentUid
+        expect(parentOf('a1')).toBe(uidOf('A'))
+        expect(parentOf('b1')).toBe(uidOf('B'))
+        expect(parentOf('c1')).toBe(uidOf('C'))
+    })
+
+    test('root-level tests and hooks carry the root suite uid, not the last describe', async () => {
+        const suite = mockSuite('', {
+            tests: [mockTest('r1')],
+            _beforeEach: [() => {}],
+            suites: [mockSuite('A', { tests: [mockTest('a1')] })]
+        })
+        const reporter = new EventEmitter()
+        const events: any[] = []
+        for (const e of ['suite:start', 'suite:end', 'test:start', 'hook:start']) {
+            reporter.on(e, (p) => events.push({ e, ...p }))
+        }
+        await runParallelTests(suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+
+        const starts = events.filter((x) => x.e === 'suite:start')
+        expect(starts.map((s) => s.title)).toEqual(['', 'A'])
+        const rootUid = starts[0].uid
+        expect(rootUid).not.toBe(starts[1].uid)
+        const ofTitle = (e: string, title: string) => events.find((x) => x.e === e && x.title === title)
+        expect(ofTitle('test:start', 'r1').parentUid).toBe(rootUid)
+        expect(ofTitle('test:start', 'a1').parentUid).toBe(starts[1].uid)
+        expect(events.find((x) => x.e === 'hook:start' && x.parent === '').parentUid).toBe(rootUid)
+        expect(events.filter((x) => x.e === 'suite:end').map((s) => s.uid)).toEqual([starts[1].uid, rootUid])
+    })
+
+    test('keeps at most one pending close per slot', async () => {
+        const suite = mockSuite('root', { tests: [mockTest('1'), mockTest('2'), mockTest('3'), mockTest('4')] })
+        const browser = mockBrowser()
+        let pending = 0
+        let maxPending = 0
+        browser.browsingContextClose.mockImplementation(async () => {
+            maxPending = Math.max(maxPending, ++pending)
+            await new Promise((r) => setTimeout(r, 30))
+            pending--
+        })
+        await runParallelTests(suite, browser, new EventEmitter(), '0-0', ['/spec.js'], 1)
+        expect(browser.browsingContextClose).toBeCalledTimes(4)
+        expect(maxPending).toBe(1)
+    })
+
+    test('emits suite:end before surfacing an allocation failure', async () => {
+        const suite = mockSuite('root', { suites: [mockSuite('A', { tests: [mockTest('a1')] })] })
+        const browser = mockBrowser()
+        browser.browsingContextCreate.mockRejectedValue(new Error('no window'))
+        const reporter = new EventEmitter()
+        const ended = vi.fn()
+        reporter.on('suite:end', ended)
+        await expect(runParallelTests(suite, browser, reporter, '0-0', ['/spec.js'])).rejects.toThrow('no window')
+        expect(ended).toBeCalledTimes(2)
     })
 })

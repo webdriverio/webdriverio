@@ -54,7 +54,10 @@ export async function selectByAttribute (
 
     const browser = getBrowserObject(this) as WebdriverIO.Browser
     if (isBidiCommandsEnabled(browser)) {
-        return bidiSelectByAttribute(this, attribute, value)
+        await this.waitUntil(() => bidiSelectByAttribute(this, attribute, value as string), {
+            timeoutMsg: `Option with attribute "${attribute}=${value}" not found.`
+        })
+        return
     }
 
     /**

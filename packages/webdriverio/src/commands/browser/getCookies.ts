@@ -3,6 +3,7 @@ import type { Cookie } from '@wdio/protocols'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
+import { getCookiePartition } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -76,12 +77,7 @@ export async function getCookies(
     // In some cases, the forced origin in BiDi does not allow to find back the cookies, so by using null we can bypass the partition and filter by name only.
     const params: remote.StorageGetCookiesParameters = sourceOrigin === null
         ? {}
-        : {
-            partition: {
-                type: 'storageKey',
-                sourceOrigin: sourceOrigin || url.origin
-            }
-        }
+        : { partition: getCookiePartition(sourceOrigin || url.origin) }
 
     if (typeof filter !== 'undefined') {
         params.filter = filter

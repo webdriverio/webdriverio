@@ -234,6 +234,30 @@ describe('parallel mode config hooks', () => {
     })
 })
 
+describe('parallel mode setBrowser', () => {
+    test('uses the browser from setBrowser when globalThis.browser is unset', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+        const browser = { isBidi: true, __bidiCommandsEnabled: true } as any
+        adapter.setBrowser(browser)
+
+        expect(await adapter.run()).toBe(0)
+        expect(runParallelTests).toHaveBeenLastCalledWith(
+            expect.anything(), browser, expect.anything(), expect.anything(), expect.anything(),
+            undefined, expect.anything()
+        )
+    })
+
+    test('throws when neither setBrowser nor globalThis.browser provides one', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        await expect(adapter.run()).rejects.toThrow('Parallel mode requires a browser instance')
+    })
+})
+
 describe('parallel mode mocha options', () => {
     test('threads grep/invert/timeout into runParallelTests', async () => {
         // @ts-ignore params not needed for test scenario

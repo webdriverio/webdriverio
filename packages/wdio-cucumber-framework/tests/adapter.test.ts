@@ -224,6 +224,50 @@ describe('CucumberAdapter', () => {
         delete (globalThis as Record<string, unknown>).browser
     })
 
+    it('uses the browser from setBrowser without globalThis.browser', async () => {
+        vi.mocked(runParallelCucumber).mockResolvedValue(0)
+        delete (globalThis as Record<string, unknown>).browser
+        const browser = { isBidi: true, __bidiCommandsEnabled: true } as unknown as WebdriverIO.Browser
+
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { parallelMode: 'contexts' } },
+            [], {}, {}, {}, false, ['progress']
+        )
+        adapter.setBrowser(browser)
+
+        await adapter.run()
+        expect(runParallelCucumber).toHaveBeenCalledWith(expect.objectContaining({ browser }))
+    })
+
+    it('prefers the setBrowser browser over globalThis.browser', async () => {
+        vi.mocked(runParallelCucumber).mockResolvedValue(0)
+        ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true, from: 'global' }
+        const browser = { isBidi: true, __bidiCommandsEnabled: true, from: 'set' } as unknown as WebdriverIO.Browser
+
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { parallelMode: 'contexts' } },
+            [], {}, {}, {}, false, ['progress']
+        )
+        adapter.setBrowser(browser)
+
+        await adapter.run()
+        expect(runParallelCucumber).toHaveBeenCalledWith(expect.objectContaining({ browser }))
+        delete (globalThis as Record<string, unknown>).browser
+    })
+
+    it('throws when neither setBrowser nor globalThis.browser provides a browser', async () => {
+        delete (globalThis as Record<string, unknown>).browser
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { parallelMode: 'contexts' } },
+            [], {}, {}, {}, false, ['progress']
+        )
+
+        await expect(adapter.run()).rejects.toThrow('requires a browser instance')
+    })
+
     it('should not initiated with no tests', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, [], {}, {}, {}, false, ['progress'])
         expect(executeHooksWithArgs).toBeCalledTimes(0)

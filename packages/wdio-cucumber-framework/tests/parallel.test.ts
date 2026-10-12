@@ -461,6 +461,7 @@ describe('runParallelCucumber', () => {
         // 2 features = 2 suite:start
         const suiteStarts = reporterEvents.filter((e) => e.event === 'suite:start')
         expect(suiteStarts.length).toBe(2)
+        expect(suiteStarts.map((e) => e.payload.parentUid)).toEqual([null, null])
     })
 
     test('emits scenario-level reporter events when scenarioLevelReporter is enabled', async () => {
@@ -616,6 +617,12 @@ describe('runParallelCucumber', () => {
         expect(suiteStarts.length).toBe(2)
         expect(suiteEnds.length).toBe(2)
         expect(testEnds.length).toBe(0)
+
+        const featureUid = suiteStarts.find((e) => e.payload.type !== 'scenario')!.payload.uid
+        const scenarioStart = suiteStarts.find((e) => e.payload.type === 'scenario')!
+        const scenarioEnd = suiteEnds.find((e) => e.payload.type === 'scenario')!
+        expect(scenarioStart.payload.parentUid).toBe(featureUid)
+        expect(scenarioEnd.payload.parentUid).toBe(featureUid)
     })
 
     test('emits suite:retry for retried attempts in step-level mode', async () => {
@@ -1352,5 +1359,146 @@ describe('runParallelCucumber worker pool', () => {
         expect(error?.message).toBe('prefetch failed')
         expect(browser.browsingContextClose).toHaveBeenCalledTimes(1)
         expect(browser.__parallelContexts.size).toBe(0)
+    })
+})
+
+describe('runParallelCucumber reporter contract and teardown', () => {
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    let reporter: EventEmitter
+    let eventEmitter: EventEmitter
+    let events: Array<{ event: string; payload: Record<string, any> }>
+    const library = (afterTestRunHooks: Function[] = []) => mockSupportCodeLibrary({
+        afterTestRunHooks,
+        stepDefinitions: [makeStepDefinition('something', async function () {})],
+    })
+
+    function run(browser: ReturnType<typeof mockBrowser>, docs: messages.GherkinDocument[], cucumberOpts = defaultCucumberOpts(), supportCodeLibrary = library()) {
+        return runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: docs.map((d) => d.uri as string),
+            gherkinDocuments: docs,
+            supportCodeLibrary,
+            cucumberOpts,
+        })
+    }
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+        reporter = new EventEmitter()
+        eventEmitter = new EventEmitter()
+        events = []
+        const original = reporter.emit.bind(reporter)
+        reporter.emit = (event: string, payload: any) => {
+            events.push({ event, payload })
+            return original(event, payload)
+        }
+    })
+
+    test('runs AfterAll and closes feature suites when context allocation fails, then rethrows', async () => {
+        const browser = mockBrowser()
+        browser.browsingContextCreate.mockRejectedValue(new Error('no window'))
+        const afterAll = vi.fn()
+        const { error } = await run(browser, [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])], defaultCucumberOpts(), library([afterAll]))
+
+        expect(error?.message).toBe('no window')
+        expect(afterAll).toHaveBeenCalledTimes(1)
+        expect(events.filter((e) => e.event === 'suite:end')).toHaveLength(1)
+    })
+
+    test('runs AfterAll and closes feature suites when test case assembly throws, then rethrows', async () => {
+        const requireCjs = createRequire(import.meta.url)
+        const assembleModule = requireCjs('@cucumber/cucumber/lib/assemble/assemble_test_cases')
+        const spy = vi.spyOn(assembleModule, 'assembleTestCases').mockRejectedValue(new Error('assemble boom'))
+        vi.resetModules()
+        const { runParallelCucumber: fresh } = await import('../src/parallel.js')
+        const afterAll = vi.fn()
+        let error: Error | undefined
+        try {
+            await fresh({
+                browser: mockBrowser() as unknown as WebdriverIO.Browser,
+                reporter,
+                eventEmitter,
+                cid: '0-0',
+                specs: ['/test/foo.feature'],
+                gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])],
+                supportCodeLibrary: library([afterAll]),
+                cucumberOpts: defaultCucumberOpts(),
+            })
+        } catch (err) {
+            error = err as Error
+        }
+        spy.mockRestore()
+
+        expect(error?.message).toBe('assemble boom')
+        expect(afterAll).toHaveBeenCalledTimes(1)
+        expect(events.filter((e) => e.event === 'suite:end')).toHaveLength(1)
+    })
+
+    test('emits test:end with the contextId after each scenario-level result', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-a', 'ctx-b'] })
+        await run(browser, [makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2'])])
+
+        const ends = events.filter((e) => e.event === 'test:end')
+        expect(ends.map((e) => e.payload.contextId).sort()).toEqual(['ctx-a', 'ctx-b'])
+        for (const end of ends) {
+            const resultIdx = events.findIndex((e) => e.event === 'test:pass' && e.payload.uid === end.payload.uid)
+            expect(resultIdx).toBeGreaterThanOrEqual(0)
+            expect(events.indexOf(end)).toBe(resultIdx + 1)
+            expect(end.payload.passed).toBe(true)
+        }
+    })
+
+    test('scenario-level test payloads carry the parentUid of their own feature, even for same-named files', async () => {
+        const docs = [
+            makeFeatureDoc('/a/login.feature', 'Login A', ['a1']),
+            makeFeatureDoc('/b/login.feature', 'Login B', ['b1']),
+        ]
+        await run(mockBrowser(), docs)
+
+        const suites = events.filter((e) => e.event === 'suite:start').map((e) => e.payload)
+        expect(new Set(suites.map((s) => s.uid)).size).toBe(2)
+        const byTitle = (title: string) => events.find((e) => e.event === 'test:pass' && e.payload.title === title)!.payload
+        expect(byTitle('a1').parentUid).toBe(suites.find((s) => s.title === 'Login A')!.uid)
+        expect(byTitle('b1').parentUid).toBe(suites.find((s) => s.title === 'Login B')!.uid)
+        expect(byTitle('a1').parent).toBe(byTitle('a1').parentUid)
+    })
+
+    test('step-level test and hook payloads carry the parentUid of their scenario suite', async () => {
+        const docs = [
+            makeFeatureDoc('/a/one.feature', 'One', ['a1']),
+            makeFeatureDoc('/b/two.feature', 'Two', ['b1']),
+        ]
+        await run(mockBrowser(), docs, defaultCucumberOpts({ scenarioLevelReporter: false }))
+
+        const scenarioSuites = events.filter((e) => e.event === 'suite:start' && e.payload.type === 'scenario').map((e) => e.payload)
+        expect(scenarioSuites).toHaveLength(2)
+        expect(new Set(scenarioSuites.map((s) => s.uid)).size).toBe(2)
+        const steps = events.filter((e) => e.event === 'test:pass').map((e) => e.payload)
+        expect(steps).toHaveLength(2)
+        for (const step of steps) {
+            const owner = scenarioSuites.find((s) => s.uid === step.parentUid)
+            expect(owner).toBeDefined()
+            expect(owner!.title).toBe(step.scenarioName)
+        }
+        expect(events.filter((e) => e.event === 'test:end')).toHaveLength(0)
+    })
+
+    test('a slot never has more than one window close in flight', async () => {
+        const browser = mockBrowser()
+        let inFlight = 0
+        let maxInFlight = 0
+        browser.browsingContextClose.mockImplementation(async () => {
+            maxInFlight = Math.max(maxInFlight, ++inFlight)
+            await sleep(15)
+            inFlight--
+        })
+        const { result } = await run(browser, [makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2', 's3', 's4'])], defaultCucumberOpts({ maxParallelContexts: 1 }))
+
+        expect(result).toBe(0)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
+        expect(maxInFlight).toBe(1)
     })
 })

@@ -366,19 +366,20 @@ export function bidiGetCSSProperty(element: WebdriverIO.Element, cssProperty: st
  * are never visible, so clicking them via the Actions API would fail
  * with "element not interactable".
  */
-export function bidiSelectByVisibleText(element: WebdriverIO.Element, text: string): Promise<void> {
+export function bidiSelectByVisibleText(element: WebdriverIO.Element, text: string): Promise<boolean> {
     return exec(element, function (selectEl, targetText) {
+        const normalize = (value: string) => (value || '').replace(/\s+/g, ' ').trim()
         const options = selectEl.options
         for (let i = 0; i < options.length; i++) {
             const opt = options[i]
-            const displayText = (opt.textContent || '').trim().replace(/\s+/g, ' ')
-            if (displayText === targetText) {
+            if (normalize(opt.textContent) === targetText || normalize(opt.label) === targetText) {
                 opt.selected = true
                 selectEl.dispatchEvent(new Event('change', { bubbles: true }))
-                return
+                return true
             }
         }
-    }, text)
+        return false
+    }, text) as Promise<boolean>
 }
 
 /**
@@ -386,7 +387,7 @@ export function bidiSelectByVisibleText(element: WebdriverIO.Element, text: stri
  * attribute (getAttribute) and the DOM property — they can diverge
  * (e.g. option.value vs option.getAttribute('value')).
  */
-export function bidiSelectByAttribute(element: WebdriverIO.Element, attribute: string, value: string): Promise<void> {
+export function bidiSelectByAttribute(element: WebdriverIO.Element, attribute: string, value: string): Promise<boolean> {
     return exec(element, function (selectEl, attr, val) {
         const options = selectEl.options
         for (let i = 0; i < options.length; i++) {
@@ -394,23 +395,28 @@ export function bidiSelectByAttribute(element: WebdriverIO.Element, attribute: s
             if (opt.getAttribute(attr) === val || opt[attr] === val) {
                 opt.selected = true
                 selectEl.dispatchEvent(new Event('change', { bubbles: true }))
-                return
+                return true
             }
         }
-    }, attribute, value)
+        return false
+    }, attribute, value) as Promise<boolean>
 }
 
 /**
- * Select an <option> by index.
+ * Select an <option> by index. Resolves with whether it was selected and how
+ * many options the select holds.
  */
-export function bidiSelectByIndex(element: WebdriverIO.Element, index: number): Promise<void> {
+export function bidiSelectByIndex(element: WebdriverIO.Element, index: number): Promise<{ selected: boolean, count: number }> {
     return exec(element, function (selectEl, idx) {
+        const count = selectEl.options.length
         const option = selectEl.options[idx]
-        if (option) {
-            option.selected = true
-            selectEl.dispatchEvent(new Event('change', { bubbles: true }))
+        if (!option) {
+            return { selected: false, count }
         }
-    }, index)
+        option.selected = true
+        selectEl.dispatchEvent(new Event('change', { bubbles: true }))
+        return { selected: true, count }
+    }, index) as Promise<{ selected: boolean, count: number }>
 }
 
 export function bidiIsSelected(element: WebdriverIO.Element): Promise<boolean> {

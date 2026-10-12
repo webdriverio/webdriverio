@@ -45,7 +45,17 @@ export async function selectByIndex (
 
     const browser = getBrowserObject(this) as WebdriverIO.Browser
     if (isBidiCommandsEnabled(browser)) {
-        return bidiSelectByIndex(this, index)
+        let optionCount = 0
+        await this.waitUntil(async () => {
+            const result = await bidiSelectByIndex(this, index)
+            optionCount = result.count
+            return result.selected
+        }, {
+            timeoutMsg: () => optionCount === 0
+                ? 'Select element doesn\'t contain any option element'
+                : `Option with index "${index}" not found. Select element only contains ${optionCount} option elements`
+        })
+        return
     }
 
     const fetchOptionElements = async () => {

@@ -1,4 +1,3 @@
-import { AsyncLocalStorage } from 'node:async_hooks'
 import type { local } from 'webdriver'
 import logger from '@wdio/logger'
 
@@ -33,7 +32,25 @@ export const PARALLEL_CONTEXT_STORE_KEY = '__parallelContextStore'
 /** Key used to expose the set of framework-managed parallel contexts. */
 export const PARALLEL_CONTEXTS_KEY = '__parallelContexts'
 
-const parallelContextStore = new AsyncLocalStorage<string>()
+/**
+ * Minimal surface of `AsyncLocalStorage<string>`. The browser bundle must not
+ * import `node:async_hooks`, so the Node entry registers the real store.
+ */
+export interface ParallelContextStore {
+    getStore(): string | undefined
+    run<T>(contextId: string, fn: () => T): T
+}
+
+const noopParallelContextStore: ParallelContextStore = {
+    getStore: () => undefined,
+    run: (_contextId, fn) => fn()
+}
+
+let parallelContextStore: ParallelContextStore = noopParallelContextStore
+
+export function setParallelContextStore(store: ParallelContextStore) {
+    parallelContextStore = store
+}
 
 /**
  * Contexts created by the parallel framework adapters (one tab per test).

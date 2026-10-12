@@ -109,7 +109,7 @@ export default class WDIOReporter extends EventEmitter {
             }
 
             const suite = new SuiteStats(params)
-            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            const currentSuite = this.#owningSuite(params.parentUid)
             currentSuite.suites.push(suite)
             this.currentSuites.push(suite)
             this.suites[suite.uid] = suite
@@ -129,7 +129,7 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('hook:start', (hook: Hook) => {
             const hookStats = new HookStats(hook)
-            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            const currentSuite = this.#owningSuite(hook.parentUid)
             currentSuite.hooks.push(hookStats)
             currentSuite.hooksAndTests.push(hookStats)
             this.hooks[hook.uid!] = hookStats
@@ -147,7 +147,7 @@ export default class WDIOReporter extends EventEmitter {
             test.retries = getRetries(test.contextId)
             currentTest = new TestStats(test)
             trackContext(test, currentTest)
-            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            const currentSuite = this.#owningSuite(test.parentUid)
             currentSuite.tests.push(currentTest)
             currentSuite.hooksAndTests.push(currentTest)
             this.tests[test.uid] = currentTest
@@ -193,7 +193,7 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('test:pending', (test: Test) => {
             test.retries = getRetries(test.contextId)
-            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            const currentSuite = this.#owningSuite(test.parentUid)
             /**
              * a test that started and did not end, and now ends as pending or skipped
              * (for example a Cucumber step that returns 'pending', or Jasmine
@@ -257,7 +257,10 @@ export default class WDIOReporter extends EventEmitter {
         this.on('suite:end', (suite: Suite) => {
             const suiteStat = this.suites[suite.uid!]
             suiteStat.complete()
-            this.currentSuites.pop()
+            const index = this.currentSuites.lastIndexOf(suiteStat)
+            if (index !== -1) {
+                this.currentSuites.splice(index, 1)
+            }
             this.onSuiteEnd(suiteStat)
         })
 
@@ -305,6 +308,13 @@ export default class WDIOReporter extends EventEmitter {
             }
             target.output.push(Object.assign(payload, { type: 'result' }))
         })
+    }
+
+    #owningSuite(parentUid?: string | null) {
+        if (parentUid === null) {
+            return this.currentSuites[0]
+        }
+        return (parentUid && this.suites[parentUid]) || this.currentSuites[this.currentSuites.length - 1]
     }
 
     /**

@@ -38,6 +38,7 @@ class MochaAdapter {
 
     private _level = 0
     private _hasTests = true
+    private _browser?: WebdriverIO.Browser
     private _suiteIds: string[] = ['0']
     private _suiteCnt: Map<string, number> = new Map()
     private _hookCnt: Map<string, number> = new Map()
@@ -119,6 +120,10 @@ class MochaAdapter {
         }
     }
 
+    setBrowser (browser: WebdriverIO.Browser) {
+        this._browser = browser
+    }
+
     hasTests () {
         return this._hasTests
     }
@@ -135,7 +140,7 @@ class MochaAdapter {
     }
 
     private async _runParallelMode(mocha: Mocha, mode: ParallelMode) {
-        const browser = (globalThis as Record<string, unknown>).browser as WebdriverIO.Browser & { isBidi: boolean; __bidiCommandsEnabled?: boolean }
+        const browser = (this._browser ?? (globalThis as Record<string, unknown>).browser) as WebdriverIO.Browser & { isBidi: boolean; __bidiCommandsEnabled?: boolean }
         if (!browser) {
             throw new Error(
                 'Parallel mode requires a browser instance. ' +

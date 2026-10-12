@@ -179,13 +179,18 @@ export async function navigateInContext (
             })
         }
 
-        request = await browser.waitUntil(
-            () => network.getRequestResponseData(navigationId),
-            {
-                interval: 1,
-                timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
-            }
-        )
+        /**
+         * `about:`, `data:` and `file:` loads can emit no document request.
+         */
+        if (path.startsWith('http')) {
+            request = await browser.waitUntil(
+                () => network.getRequestResponseData(navigationId),
+                {
+                    interval: 1,
+                    timeoutMsg: `Navigation to '${path}' timed out as no request payload was received`
+                }
+            )
+        }
     } catch (err) {
         navigationError = err
     } finally {

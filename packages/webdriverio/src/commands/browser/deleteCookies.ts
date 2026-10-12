@@ -2,6 +2,7 @@ import logger from '@wdio/logger'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
+import { getCookiePartition } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -62,10 +63,7 @@ export async function deleteCookies(
         await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
         return
     }
-    const partition: remote.StoragePartitionDescriptor = {
-        type: 'storageKey',
-        sourceOrigin: url.origin
-    }
+    const partition = getCookiePartition(url.origin)
 
     try {
         const { cookies } = await this.storageGetCookies({ partition })
