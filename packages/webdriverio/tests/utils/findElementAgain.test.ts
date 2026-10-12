@@ -5,6 +5,7 @@ import { describe, it, afterEach, beforeEach, expect, vi } from 'vitest'
 
 import { remote } from '../../src/index.js'
 import { StrictSelectorError } from '../../src/utils/strictMode.js'
+import { itemPropsOf } from '../../src/utils/findElementAgain.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -521,6 +522,88 @@ describe('finding an element again', () => {
         })
     })
 
+    /**
+     * `$$(selector)[index]` waits `waitforTimeout` (100 ms here) for the index. When the
+     * list never reaches it, the item is a "not found" element, like `$(selector)` (#12576)
+     */
+    describe('an index of $$() that the list never reaches', () => {
+        beforeEach(() => {
+            driver.light.set('.item', ['elem-a'])
+        })
+
+        it('gives a not found element after the wait, not an error', async () => {
+            const browser = await session()
+            const start = Date.now()
+            const elem = await browser.$$('.item')[3]
+            expect(Date.now() - start).toBeGreaterThanOrEqual(90)
+            expect(elem.elementId).toBeUndefined()
+            expect(elem.index).toBe(3)
+            expect((elem.error as Error).message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+        })
+
+        it('isDisplayed and isExisting are false', async () => {
+            const browser = await session()
+            expect(await browser.$$('.item')[3].isDisplayed()).toBe(false)
+            expect(await browser.$$('.item')[3].isExisting()).toBe(false)
+        })
+
+        it('waitForDisplayed with reverse is true', async () => {
+            const browser = await session()
+            expect(await browser.$$('.item')[3].waitForDisplayed({ reverse: true })).toBe(true)
+        })
+
+        /**
+         * A lookup that waits (`waitForExist`, the implicit wait, the refetch of a stale item)
+         * rejects as before when the index is still missing; only `$$(selector)[index]`
+         * itself gives the not found element
+         */
+        it('waitForExist rejects when it saw the index but the lookup after it does not find it', async () => {
+            const browser = await session()
+            const elem = await browser.$$('.item')[3]
+            vi.spyOn(elem, 'isExisting').mockResolvedValueOnce(true)
+
+            const { error } = await settle(elem.waitForExist())
+            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+            expect(elem.elementId).toBeUndefined()
+            expect((elem.error as Error).message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+        })
+
+        it('the implicit wait of an item without element id gives the same error as before', async () => {
+            const browser = await session()
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+            const elem = await browser.$$('.item')[3]
+            driver.light.set('.item', ['elem-a'])
+            elem.elementId = undefined as unknown as string
+            vi.spyOn(elem, 'waitForExist').mockResolvedValueOnce(true)
+
+            const { error } = await settle(elem.getText())
+            expect(error?.message).toBe('Can\'t call getText on element with selector ".item" because element wasn\'t found')
+        })
+
+        it('a stale item of a list that is shorter now throws the stale element error', async () => {
+            const browser = await session()
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+            const elem = await browser.$$('.item')[3]
+            driver.stale.add('elem-d')
+            driver.light.set('.item', ['elem-a'])
+
+            const { error } = await settle(elem.getText())
+            expect(error?.name).toBe('stale element reference')
+        })
+
+        it('a command throws "Index out of bounds" without a second wait or another lookup', async () => {
+            const browser = await session()
+            const elem = await browser.$$('.item')[3]
+            const waitForExist = vi.spyOn(elem, 'waitForExist')
+            const finds = driver.findsIn.length
+
+            const { error } = await settle(elem.click())
+            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+            expect(waitForExist).not.toHaveBeenCalled()
+            expect(driver.findsIn.length).toBe(finds)
+        })
+    })
+
     describe('a chain of elements the page replaced', () => {
         it('finds each element of the chain again with its own command', async () => {
             driver.light.set('#host', ['host-a'])
@@ -744,5 +827,23 @@ describe('finding an element again in strict mode', () => {
         expect(await elem.isExisting()).toBe(true)
         expect(elem.elementId).toBeUndefined()
         await expect(elem.getText()).rejects.toThrow(StrictSelectorError)
+    })
+})
+
+describe('itemPropsOf', () => {
+    it('gives the flags of the items of a list command', () => {
+        expect(itemPropsOf('$$', [])).toEqual({ isShadowElement: false, isReactElement: false })
+        expect(itemPropsOf('shadow$$', [])).toEqual({ isShadowElement: true, isReactElement: false })
+    })
+
+    it('gives the React options of a react$$ list', () => {
+        const reactOptions = { props: { a: 1 }, state: {} }
+        expect(itemPropsOf('react$$', [reactOptions])).toEqual({ isShadowElement: false, isReactElement: true, reactOptions })
+        expect(itemPropsOf('react$$', [])).toEqual({ isShadowElement: false, isReactElement: true })
+    })
+
+    it('gives undefined for a list whose items cannot be found again', () => {
+        expect(itemPropsOf('custom$$', [])).toBeUndefined()
+        expect(itemPropsOf('constructor', [])).toBeUndefined()
     })
 })

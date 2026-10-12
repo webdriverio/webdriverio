@@ -16,6 +16,13 @@ import type { CustomStrategyReference, ReactSelectorOptions, Selector } from '..
  */
 export const REACT_OPTIONS = Symbol('wdio:reactOptions')
 
+/**
+ * Set on the "not found" element that `$$(selector)[index]` gives when the list did
+ * not reach the index after `waitforTimeout`, so the implicit wait of a command does
+ * not wait a second time. A symbol, so it isn't part of the public element type.
+ */
+export const INDEX_NOT_FOUND = Symbol('wdio:indexNotFound')
+
 type Scope = WebdriverIO.Browser | WebdriverIO.Element
 type ReactElement = WebdriverIO.Element & { [REACT_OPTIONS]?: ReactSelectorOptions }
 
@@ -42,6 +49,33 @@ function selectorIn (element: WebdriverIO.Element, parent: Scope): Selector {
         return element.selector
     }
     return { ...selector, strategyArguments: [...selector.strategyArguments.slice(0, -1), parent] }
+}
+
+/**
+ * The list commands whose items can be found again, with the flags that their
+ * items get. `findAllAgain` below goes the other way, from the flags to the
+ * command. A `custom$$` list and a multi-remote list are not in it.
+ */
+const LIST_QUERIES = new Map<string, { isShadowElement: boolean, isReactElement: boolean }>([
+    ['$$', { isShadowElement: false, isReactElement: false }],
+    ['shadow$$', { isShadowElement: true, isReactElement: false }],
+    ['react$$', { isShadowElement: false, isReactElement: true }]
+])
+
+/**
+ * The props of an item of a list that `foundWith` found, for `getElements`.
+ * `props` are the arguments of that command after the selector. `undefined` for
+ * a list command that is not in `LIST_QUERIES`.
+ */
+export function itemPropsOf (foundWith: string, props: unknown[]) {
+    const flags = LIST_QUERIES.get(foundWith)
+    if (!flags) {
+        return undefined
+    }
+    return {
+        ...flags,
+        ...(flags.isReactElement && props[0] ? { reactOptions: props[0] as ReactSelectorOptions } : {})
+    }
 }
 
 /**
@@ -73,7 +107,16 @@ export async function findElementAgain (
 ): Promise<WebdriverIO.Element | undefined> {
     if (element.index !== undefined) {
         if (wait) {
-            return findAllAgain(element, parent)[element.index]?.getElement()
+            const item = await findAllAgain(element, parent)[element.index]?.getElement()
+            /**
+             * the wait of an index gives a "not found" item when the list never reaches the
+             * index (#12576). A lookup that waits rejects then with its error, as before, so
+             * `waitForExist`, the implicit wait and the refetch of a stale item don't change
+             */
+            if (item && !item.elementId && item.error) {
+                throw item.error
+            }
+            return item
         }
 
         /**

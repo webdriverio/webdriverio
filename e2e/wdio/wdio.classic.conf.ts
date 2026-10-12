@@ -15,7 +15,8 @@ export const config: WebdriverIO.Config = {
          * `shadow$` element again must use `shadow$`
          */
         path.join(__dirname, 'headless', 'findElementAgain.e2e.ts'),
-        path.join(__dirname, 'headless', 'actionClick.e2e.ts')
+        path.join(__dirname, 'headless', 'actionClick.e2e.ts'),
+        path.join(__dirname, 'headless', 'missingListItem.e2e.ts')
     ],
 
     /**

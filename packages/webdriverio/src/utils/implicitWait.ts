@@ -7,7 +7,7 @@ import { getBrowserObject } from '@wdio/utils'
  * circular import back onto this file via `middlewares.js` -> `refetchElement.js`
  */
 import { StrictSelectorError } from './strictSelectorError.js'
-import { findElementAgain } from './findElementAgain.js'
+import { INDEX_NOT_FOUND, findElementAgain } from './findElementAgain.js'
 
 const log = logger('webdriverio')
 
@@ -21,6 +21,15 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
     const skipForMobileScroll = browser.isMobile && await browser.isNativeContext && (commandName === 'scrollIntoView' || commandName === 'tap')
 
     if (!currentElement.elementId && !/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/.test(commandName) && !skipForMobileScroll) {
+        /**
+         * `$$(selector)[index]` already waited `waitforTimeout` for the index, see
+         * `elementAt` in `element/array.ts`: throw its "Index out of bounds" error, without
+         * a second wait and without another lookup
+         */
+        if ((currentElement as WebdriverIO.Element & { [INDEX_NOT_FOUND]?: boolean })[INDEX_NOT_FOUND]) {
+            throw currentElement.error
+        }
+
         log.debug(
             `command ${commandName} was called on an element ("${currentElement.selector}") ` +
             'that wasn\'t found, waiting for it...'
