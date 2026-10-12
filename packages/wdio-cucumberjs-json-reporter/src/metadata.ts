@@ -13,16 +13,27 @@ export class Metadata {
     /**
      * Determine the metadata that needs to be added
      */
-    public determineMetadata(data: RunnerStatsExtended): MetadataObject {
+    public determineMetadata(runnerData: RunnerStatsExtended): MetadataObject {
+        /**
+         * in a multi-remote session, the capabilities have one entry for each
+         * instance: use the first instance
+         */
+        const firstInstanceName = runnerData.isMultiRemote ? Object.keys(runnerData.capabilities)[0] : undefined
+        const data = firstInstanceName
+            ? { ...runnerData, capabilities: (runnerData.capabilities as Record<string, unknown>)[firstInstanceName] } as RunnerStatsExtended
+            : runnerData
+        const instance = (firstInstanceName
+            ? (browser as unknown as { getInstance?: (name: string) => unknown })?.getInstance?.(firstInstanceName)
+            : browser) as WebdriverIOExtended | undefined
         const currentCapabilities = data.capabilities as WebdriverIO.Capabilities
-        const optsCaps = browser.requestedCapabilities as W3CCapabilitiesExtended
+        const optsCaps = instance?.requestedCapabilities as unknown as W3CCapabilitiesExtended
         const currentConfigCapabilities = data?.capabilities as DesiredCapabilitiesExtended
         const w3cCaps: cjson_metadata = (data.capabilities)
             ? Object.prototype.hasOwnProperty.call(data.capabilities, 'cjson:metadata')
                 // Fixes: https://github.com/webdriverio-community/wdio-cucumberjs-json-reporter/issues/73
                 ? (data.capabilities as DesiredCapabilitiesExtended)['cjson:metadata'] as cjson_metadata
                 // Fallback
-                : (browser as WebdriverIOExtended)?.requestedCapabilities?.['cjson:metadata'] as cjson_metadata
+                : instance?.requestedCapabilities?.['cjson:metadata'] as cjson_metadata
             : {}
         const metadata: cjson_metadata = (currentConfigCapabilities as W3CCapabilitiesExtended)?.['cjson:metadata']
             || w3cCaps // When an app is used to test

@@ -7,6 +7,7 @@ import {
     SMALL_RUNNER_STATS,
     WDIO6_RUNNER_STATS,
 } from './__mocks__/mocks.js'
+import { browser } from '@wdio/globals'
 import { Metadata } from '../src/metadata.js'
 import { NOT_KNOWN } from '../src/constants.js'
 import type { cjson_metadata } from '../src/types'
@@ -371,6 +372,43 @@ describe('metadata', () => {
             expect(determineDeviceNameSpy).toHaveBeenCalledTimes(1)
             expect(determinePlatformNameSpy).toHaveBeenCalledTimes(1)
             expect(determinePlatformVersionSpy).toHaveBeenCalledTimes(1)
+        })
+    })
+})
+
+describe('metadata in a multi-remote session', () => {
+    it('reads cjson:metadata from the requested capabilities of the first instance', () => {
+        const runner = {
+            isMultiRemote: true,
+            capabilities: {
+                browserA: { browserName: 'chrome', browserVersion: '154.0', platformName: 'linux' },
+                browserB: { browserName: 'firefox', browserVersion: '160.0', platformName: 'linux' }
+            }
+        }
+        const getInstance = vi.fn().mockReturnValue({ requestedCapabilities: { 'cjson:metadata': { device: 'Requested device A' } } })
+        Object.assign(browser, { getInstance })
+        expect(new Metadata().determineMetadata(runner as never).device).toBe('Requested device A')
+        expect(getInstance).toBeCalledWith('browserA')
+        delete (browser as { getInstance?: unknown }).getInstance
+    })
+
+    it('uses the capabilities and the cjson:metadata of the first instance', () => {
+        const runner = {
+            isMultiRemote: true,
+            capabilities: {
+                browserA: {
+                    browserName: 'chrome',
+                    browserVersion: '154.0',
+                    platformName: 'mac',
+                    'cjson:metadata': { device: 'Device A' }
+                },
+                browserB: { browserName: 'firefox', browserVersion: '160.0', platformName: 'linux' }
+            }
+        }
+        expect(new Metadata().determineMetadata(runner as never)).toEqual({
+            browser: { name: 'chrome', version: '154.0' },
+            device: 'Device A',
+            platform: { name: 'osx', version: `Version ${NOT_KNOWN}` }
         })
     })
 })
