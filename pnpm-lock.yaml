@@ -246,6 +246,9 @@ importers:
       '@wdio/ai-service':
         specifier: workspace:*
         version: link:../packages/wdio-ai-service
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-allure-reporter
       '@wdio/browser-runner':
         specifier: workspace:*
         version: link:../packages/wdio-browser-runner
@@ -300,6 +303,9 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../packages/wdio-types
+      '@wdio/video-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-video-reporter
       babel-plugin-transform-hook-names:
         specifier: ^1.0.2
         version: 1.0.2(@babel/core@7.29.7(supports-color@8.1.1))
