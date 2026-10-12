@@ -17,7 +17,7 @@ import {
 } from './constants.js'
 import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
-import { findScenarioLines, findStepLine, readFeatureLines, type FeatureLines, type ScenarioLines } from './featureLines.js'
+import { findScenarioLines, findStepLine, readFeatureLines, scenarioNameOf, type FeatureLines, type ScenarioLines } from './featureLines.js'
 import { containsSteps, keywordStartsWith, getFailedMessage } from './utils.js'
 import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
@@ -277,7 +277,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         id: string,
     ): Scenario {
         const scenarioName = scenarioData.title
-        const lines = this.#featureLines && findScenarioLines(this.#featureLines, scenarioName)
+        const lines = this.#featureLines &&
+            findScenarioLines(this.#featureLines, scenarioNameOf(scenarioName, (scenarioData as SuiteStatsExtended).tags))
 
         const scenario: Scenario = {
             keyword: SCENARIO,
@@ -354,7 +355,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const step = this.getStepDataObject(test)
         const scenarioLines = this.#scenarioLines.get(scenario)
         if (!step.hidden && scenarioLines && this.#featureLines) {
-            step.line = findStepLine(this.#featureLines, scenarioLines.lines, step.name ?? '', scenarioLines.usedLines) ?? null
+            step.line = findStepLine(scenarioLines.lines, step.name ?? '', scenarioLines.usedLines) ?? null
         }
         if (this.#pendingEmbeddings.length) {
             step.embeddings = this.#pendingEmbeddings

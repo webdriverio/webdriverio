@@ -9,11 +9,14 @@ export interface StepLine {
 export interface ScenarioLines {
     name: string
     line: number
+    /**
+     * the background steps of the feature and of the rule of the scenario
+     */
+    background: StepLine[]
     steps: StepLine[]
 }
 
 export interface FeatureLines {
-    background: StepLine[]
     scenarios: ScenarioLines[]
 }
 
@@ -37,20 +40,24 @@ export function readFeatureLines (file: string, language: string): FeatureLines 
         let id = 0
         const parser = new Parser(new AstBuilder(() => String(id++)), new GherkinClassicTokenMatcher(language))
         const document = parser.parse(fs.readFileSync(file, 'utf-8'))
-        const lines: FeatureLines = { background: [], scenarios: [] }
-        const walk = (children: readonly GherkinChild[]) => {
+        const lines: FeatureLines = { scenarios: [] }
+        /**
+         * a background applies to the scenarios of its feature or of its rule
+         */
+        const walk = (children: readonly GherkinChild[], inherited: StepLine[]) => {
+            let background = inherited
             for (const child of children) {
-                if (child.rule) {
-                    walk(child.rule.children)
-                } else if (child.background) {
-                    lines.background.push(...toSteps(child.background.steps))
+                if (child.background) {
+                    background = [...inherited, ...toSteps(child.background.steps)]
+                } else if (child.rule) {
+                    walk(child.rule.children, background)
                 } else if (child.scenario) {
                     const { name, location, steps } = child.scenario
-                    lines.scenarios.push({ name, line: location.line, steps: toSteps(steps) })
+                    lines.scenarios.push({ name, line: location.line, background, steps: toSteps(steps) })
                 }
             }
         }
-        walk((document.feature?.children ?? []) as readonly GherkinChild[])
+        walk((document.feature?.children ?? []) as readonly GherkinChild[], [])
         return lines
     } catch {
         return undefined
@@ -75,6 +82,16 @@ function matchesTemplate (template: string, text: string) {
     return new RegExp(`^${pattern}$`).test(text)
 }
 
+/**
+ * The scenario name of a title: with `cucumberOpts.tagsInTitle`, the framework writes
+ * the title as `@tag1, @tag2: Name`
+ */
+export function scenarioNameOf (title: string, tags?: readonly (string | { name: string })[] | string) {
+    const names = Array.isArray(tags) ? tags.map((tag) => typeof tag === 'string' ? tag : tag.name) : []
+    const prefix = `${names.join(', ')}: `
+    return names.length && title.startsWith(prefix) ? title.slice(prefix.length) : title
+}
+
 export function findScenarioLines (lines: FeatureLines, name: string) {
     return lines.scenarios.find((scenario) => scenario.name === name) ??
         lines.scenarios.find((scenario) => matchesTemplate(scenario.name, name))
@@ -82,10 +99,10 @@ export function findScenarioLines (lines: FeatureLines, name: string) {
 
 /**
  * Line of the next step with this text that was not used yet: the background
- * steps first, then the steps of the scenario
+ * steps of the scenario first, then its own steps
  */
-export function findStepLine (lines: FeatureLines, scenario: ScenarioLines, text: string, usedLines: Set<number>) {
-    const step = [...lines.background, ...scenario.steps]
+export function findStepLine (scenario: ScenarioLines, text: string, usedLines: Set<number>) {
+    const step = [...scenario.background, ...scenario.steps]
         .find((candidate) => !usedLines.has(candidate.line) && matchesTemplate(candidate.text, text))
     if (step) {
         usedLines.add(step.line)

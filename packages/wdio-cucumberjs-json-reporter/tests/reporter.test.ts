@@ -465,6 +465,19 @@ describe('reporter', () => {
         })
     })
 
+    describe('scenario lines', () => {
+        it('finds the line of a scenario whose title has its tags (cucumberOpts.tagsInTitle)', () => {
+            const featureFile = path.join(logFolderPath, 'tags.feature')
+            fs.writeFileSync(featureFile, 'Feature: Tags\n  @smoke\n  Scenario: Login\n    Given a step\n')
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, file: featureFile, parent: undefined } as SuiteStatsExtended)
+            const scenario = tmpReporter.getScenarioDataObject(
+                { ...SUITE_SCENARIO_STATS, title: '@smoke: Login', tags: ['@smoke'] } as SuiteStatsExtended,
+                'tags'
+            )
+            expect(scenario.line).toBe(3)
+        })
+    })
+
     describe('updateStepStatus', () => {
         it('should update step data of the current scenario step', () => {
             const pendingStep = { foo: 'current-step', status: PENDING }
