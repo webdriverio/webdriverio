@@ -189,11 +189,11 @@ class HtmlGenerator {
                 if (!reportOptions.linkUrls) {
                     return value
                 }
-                // escape the text, then make links of the URLs (stop at an escaped character)
-                const linked = escapeHtml(value).replace(
-                    /https?:\/\/(?:(?!&(?:lt|gt|quot|#39);)[^\s])+/g,
-                    (url: string) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
-                )
+                // find the URLs in the text, then escape each part: a URL can have an apostrophe
+                const linked = value.split(/(https?:\/\/[^\s<>"]+)/g).map((part, index) => index % 2
+                    ? `<a href="${escapeHtml(part)}" target="_blank" rel="noopener noreferrer">${escapeHtml(part)}</a>`
+                    : escapeHtml(part)
+                ).join('')
                 return new nunjucks.runtime.SafeString(linked)
             })
 

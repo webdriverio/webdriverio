@@ -179,7 +179,11 @@ export default class HtmlReporter extends WDIOReporter {
         this._suites.push(suite)
         if (this.#countScenarios && suite.type === 'scenario') {
             const failed = suite.tests.some((test) => test.state === 'failed') || suite.hooks.some((hook) => hook.error)
-            const state = failed ? 'failed' : suite.tests.some((test) => test.state === 'passed') ? 'passed' : 'skipped'
+            /**
+             * passed only when all its steps passed, as Cucumber counts it
+             */
+            const passed = suite.tests.length > 0 && suite.tests.every((test) => test.state === 'passed')
+            const state = failed ? 'failed' : passed ? 'passed' : 'skipped'
             this.metrics[state]++
             this.#scenarioStates.set(suite.uid, state)
         }
