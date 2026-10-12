@@ -19,6 +19,7 @@ pnpm run test:e2e:session      # @wdio/session (Chrome, Firefox, Electron)
 pnpm run test:e2e:display-server # @wdio/display-server
 pnpm run test:e2e:chromedriver # Chromedriver setup; needs CHROMIUM_130_BINARY (see test-chromedriver.yml)
 pnpm run test:e2e:cucumberjs-json-reporter # @wdio/cucumberjs-json-reporter in Chrome, with its multiple-cucumber-html-reporter report (local only)
+pnpm run test:e2e:video-reporter # @wdio/video-reporter + Allure in Chrome (also in the CI testrunner lane)
 pnpm run test:e2e:cloud        # Sauce — needs credentials, main-branch CI
 pnpm run test:ios:local        # iOS Safari Simulator with Appium — local only, not in CI
 pnpm run test:android:local    # Android emulator Chrome with Appium — local only, not in CI
