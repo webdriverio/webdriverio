@@ -187,6 +187,33 @@ describe('Video Reporter', () => {
             expect(browser.saveScreenshot).toBeCalledTimes(1)
         })
 
+        it.each([
+            '/session/1234/window/rect',
+            '/session/1234/window/minimize',
+            '/session/1234/alert/accept',
+            '/session/1234/alert/dismiss',
+            '/session/1234/actions',
+            '/session/1234/execute/sync'
+        ])('should add a frame by default for the W3C endpoint %s', (endpoint) => {
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            reporter.onAfterCommand({ endpoint } as any)
+            expect(browser.saveScreenshot).toBeCalledTimes(1)
+        })
+
+        it.each([
+            '/session/1234/moveto',
+            '/session/1234/buttondown',
+            '/session/1234/window/1/size',
+            '/session/1234/accept_alert',
+            '/session/1234/element/1/text'
+        ])('should not add a frame by default for %s', (endpoint) => {
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            reporter.onAfterCommand({ endpoint } as any)
+            expect(browser.saveScreenshot).toBeCalledTimes(0)
+        })
+
         it('should add frame if recordAllActions is set', () => {
             const reporter = new VideoReporter({ recordAllActions: true })
             reporter.recordingPath = '/foo/bar'

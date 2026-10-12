@@ -47,41 +47,29 @@ export const DEFAULT_OPTIONS = {
 
     // Which commands should result in a screenshot (without `/session/:sessionId/`)
     // https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol
+    /**
+     * Last part of the WebDriver endpoints that change the page
+     */
     snapshotCommands: [
         'url',
-        'forward',
         'back',
+        'forward',
         'refresh',
-        'execute',
         'sync',
-        'size',
-        'position',
         'maximize',
+        'minimize',
+        'fullscreen',
+        'rect',
         'click',
-        'submit',
         'value',
-        'keys',
         'clear',
         'selected',
         'enabled',
         'displayed',
-        'orientation',
-        'alert_text',
-        'accept_alert',
-        'dismiss_alert',
-        'moveto',
-        'buttondown',
-        'buttonup',
-        'doubleclick',
-        'down',
-        'up',
-        'move',
-        'scroll',
-        'doubleclick',
-        'longclick',
-        'flick',
-        'location',
-        'actions'
+        'accept',
+        'dismiss',
+        'actions',
+        'orientation'
     ],
 
     // If test speed is not an issue, this option can be enabled to do a screenshot on every json wire message

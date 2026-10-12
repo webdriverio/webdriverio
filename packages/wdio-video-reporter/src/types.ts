@@ -16,7 +16,7 @@ export interface ReporterOptions extends Reporters.Options {
 
     /**
    * Where to save screenshots
-   * @default 'rawSeleniumVideoGrabs'
+   * @default '.video-reporter-screenshots'
    */
     rawPath?: string
 
@@ -62,8 +62,9 @@ export interface ReporterOptions extends Reporters.Options {
     excludedActions?: string[],
 
     /**
-   * Which commands should result in a screenshot (without `/session/:sessionId/`)
-   * @default ['url', 'forward', 'back', 'refresh', 'execute', 'size', 'position', 'maximize', 'click', 'submit', 'value', 'keys', 'clear', 'selected', 'enabled', 'displayed', 'orientation', 'alert_text', 'accept_alert', 'dismiss_alert', 'moveto', 'buttondown', 'buttonup', 'doubleclick', 'down', 'up', 'move', 'scroll', 'doubleclick', 'longclick', 'flick', 'location']
+   * Which commands should result in a screenshot: the last part of the WebDriver endpoint
+   * (for example `click` for `/session/:sessionId/element/:elementId/click`)
+   * @default ['url', 'back', 'forward', 'refresh', 'sync', 'maximize', 'minimize', 'fullscreen', 'rect', 'click', 'value', 'clear', 'selected', 'enabled', 'displayed', 'accept', 'dismiss', 'actions', 'orientation']
    */
     snapshotCommands?: string[]
 
