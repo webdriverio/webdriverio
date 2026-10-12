@@ -101,13 +101,18 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * 2. add the scenario to the feature
      */
     public onSuiteStart(payload: SuiteStats): void {
-        if (!this.report.feature) {
+        /**
+         * a suite without parent is a feature: a worker can run several feature
+         * files (grouped specs), so start a new feature each time
+         */
+        if (!this.report.feature || !payload.parent) {
             this.report.feature = this.getFeatureDataObject(payload)
+            this.report.features = [...(this.report.features ?? []), this.report.feature]
         }
 
         /* istanbul ignore else */
         if (!this.report.feature.metadata) {
-            this.report.feature = { ...this.report.feature, metadata: { ...this.instanceMetadata } }
+            this.report.feature.metadata = { ...this.instanceMetadata } as Feature['metadata']
         }
 
         if (typeof this.report.feature.elements !== 'undefined' && payload.parent) {
@@ -214,19 +219,20 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         if (!this.report.feature) {
             return
         }
-        const uniqueId = String(Date.now() + Math.random()).replace('.', '')
-        const filename = this.options.reportFilePerRetry
-            ? `${this.report.feature.id}_${uniqueId}.json`
-            : `${this.report.feature.id}.json`
         const jsonFolder = path.resolve(process.cwd(), this.options.jsonFolder!)
-        const jsonFile = path.resolve(jsonFolder, filename)
-        const json = [this.report.feature]
-        // Check if there is an existing file, if so concat the data, else add the new
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const output = fs.existsSync(jsonFile) ? json.concat(JSON.parse(fs.readFileSync(jsonFile, 'utf-8'))) : json
-
         fs.mkdirSync(jsonFolder, { recursive: true })
-        fs.writeFileSync(jsonFile, JSON.stringify(output) + '\n')
+        for (const feature of this.report.features ?? [this.report.feature]) {
+            const uniqueId = String(Date.now() + Math.random()).replace('.', '')
+            const filename = this.options.reportFilePerRetry
+                ? `${feature.id}_${uniqueId}.json`
+                : `${feature.id}.json`
+            const jsonFile = path.resolve(jsonFolder, filename)
+            const json = [feature]
+            // Check if there is an existing file, if so concat the data, else add the new
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            const output = fs.existsSync(jsonFile) ? json.concat(JSON.parse(fs.readFileSync(jsonFile, 'utf-8'))) : json
+            fs.writeFileSync(jsonFile, JSON.stringify(output) + '\n')
+        }
     }
 
     /**

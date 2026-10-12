@@ -725,6 +725,36 @@ const cucumberJsJsonReporter = async () => {
 }
 
 /**
+ * Cucumber with @wdio/cucumberjs-json-reporter and 2 features in one worker: one
+ * JSON file for each feature
+ */
+const cucumberJsJsonReporterGroupedSpecs = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = path.join(basePath, 'json')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporterGroupedSpecs',
+        path.resolve(basePath, 'cucumberjs-json.config.js'),
+        { specs: [[
+            path.resolve(basePath, 'cucumberjs-json.feature'),
+            path.resolve(basePath, 'cucumberjs-json-second.feature')
+        ]] }
+    )
+    const features = []
+    for (const file of await fs.readdir(jsonFolder)) {
+        features.push(...JSON.parse(await fs.readFile(path.join(jsonFolder, file), 'utf-8')))
+    }
+    assert.deepEqual(
+        features.map((feature) => [feature.name, feature.elements.map((scenario) => scenario.name)]).sort(),
+        [
+            ['CucumberJS JSON report', ['Attach data to the steps']],
+            ['Second feature', ['Check the title']]
+        ]
+    )
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
  * Cucumber with @wdio/cucumberjs-json-reporter in a multi-remote session: the
  * metadata comes from the first instance
  */
@@ -1589,6 +1619,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberSameFeatureFileName,
         cucumberJsJsonReporter,
         cucumberJsJsonReporterMultiRemote,
+        cucumberJsJsonReporterGroupedSpecs,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,

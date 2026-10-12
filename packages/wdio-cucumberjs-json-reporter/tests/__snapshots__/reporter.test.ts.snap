@@ -267,6 +267,12 @@ exports[`reporter > onSuiteStart > should add the CucumberJS feature object if i
     "keyword": "feature",
     "metadata": {},
   },
+  "features": [
+    {
+      "keyword": "feature",
+      "metadata": {},
+    },
+  ],
 }
 `;
 

@@ -41,7 +41,10 @@ export interface MetadataObject {
 }
 
 export interface Report {
+    /** the feature that runs now */
     feature: Feature;
+    /** all features of the worker (a worker can run several feature files) */
+    features?: Feature[];
 }
 
 export interface FeatureMetadata {
