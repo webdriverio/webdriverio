@@ -465,6 +465,21 @@ describe('reporter', () => {
         })
     })
 
+    describe('Cucumber retry', () => {
+        it('keeps only the steps of the last try, as Cucumber does', () => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            vi.mocked(containsSteps).mockReturnValue(false)
+            tmpReporter.report.feature = EMPTY_FEATURE
+            tmpReporter.report.feature.elements!.push(EMPTY_SCENARIO)
+            tmpReporter.addStepData({ ...STEP_TEST_ONSTART_STATS, state: FAILED } as TestStatsExtended)
+
+            tmpReporter.onSuiteRetry(SUITE_SCENARIO_STATS as SuiteStatsExtended)
+            tmpReporter.addStepData({ ...STEP_TEST_ONSTART_STATS, state: PASSED } as TestStatsExtended)
+
+            expect(tmpReporter.getCurrentScenario().steps!.map((step) => step.result.status)).toEqual([PASSED])
+        })
+    })
+
     describe('scenario lines', () => {
         it('finds the line of a scenario whose title has its tags (cucumberOpts.tagsInTitle)', () => {
             const featureFile = path.join(logFolderPath, 'tags.feature')

@@ -128,6 +128,19 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     }
 
     /**
+     * Cucumber `retry`: the scenario runs again. The CucumberJS JSON format has only
+     * the last try of a scenario, so start its steps again
+     */
+    public onSuiteRetry(payload: SuiteStats): void {
+        const scenario = this.report.feature?.elements?.at(-1)
+        if (!scenario || scenario.name !== payload.title) {
+            return
+        }
+        scenario.steps = []
+        this.#scenarioLines.get(scenario)?.usedLines.clear()
+    }
+
+    /**
      * This one is for the start of the hook and determines if this is a pending `before` or `after` hook.
      * The data will be equal to a step, so a hook is added as a step.
      */

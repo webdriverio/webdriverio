@@ -13,6 +13,8 @@ feature files, and hooks are steps with `hidden: true`. It also adds `metadata` 
 (attachments) to the steps, which [multiple-cucumber-html-reporter](https://github.com/wswebcreation/multiple-cucumber-html-reporter)
 uses. When a worker runs several feature files (grouped specs), the reporter writes one file for each feature.
 
+With the Cucumber `retry` option, a scenario has only the steps of its last try, as in the JSON of Cucumber.
+
 ## Installation
 
 The easiest way is to keep `@wdio/cucumberjs-json-reporter` as a devDependency in your `package.json`, via:
