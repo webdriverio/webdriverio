@@ -466,6 +466,22 @@ describe('reporter', () => {
         })
     })
 
+    describe('doc string argument', () => {
+        it('writes a doc string as { content, line }, as Cucumber does', () => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            const featureFile = path.join(logFolderPath, 'docstring.feature')
+            fs.writeFileSync(featureFile, 'Feature: Doc\n  Scenario: Text\n    Given a doc string\n      """\n      some text\n      """\n')
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, file: featureFile, parent: undefined } as SuiteStatsExtended)
+            tmpReporter.onSuiteStart({ ...SUITE_SCENARIO_STATS, title: 'Text', file: featureFile } as SuiteStatsExtended)
+            const docStringStep = { ...STEP_TEST_ONSTART_STATS, title: 'Given a doc string', keyword: 'Given', argument: 'some text' } as unknown as TestStatsExtended
+            tmpReporter.addStepData(docStringStep)
+            tmpReporter.onTestPass({ ...docStringStep, state: PASSED } as TestStatsExtended)
+
+            expect(tmpReporter.getCurrentStep()!.line).toBe(3)
+            expect(tmpReporter.getCurrentStep()!.arguments).toEqual([{ content: 'some text', line: 4 }])
+        })
+    })
+
     describe('attach() before the first feature', () => {
         it('keeps the attachment for the first step (for example from the WebdriverIO before hook)', () => {
             vi.mocked(getFailedMessage).mockReturnValue({})

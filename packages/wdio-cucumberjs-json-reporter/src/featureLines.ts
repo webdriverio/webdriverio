@@ -4,6 +4,8 @@ import { AstBuilder, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherki
 export interface StepLine {
     text: string
     line: number
+    /** line of the doc string of the step */
+    docStringLine?: number
 }
 
 export interface ScenarioLines {
@@ -20,7 +22,7 @@ export interface FeatureLines {
     scenarios: ScenarioLines[]
 }
 
-interface GherkinStep { text: string, location: { line: number } }
+interface GherkinStep { text: string, location: { line: number }, docString?: { location: { line: number } } }
 interface GherkinScenario { name: string, location: { line: number }, steps: readonly GherkinStep[] }
 interface GherkinChild {
     background?: GherkinScenario
@@ -28,7 +30,11 @@ interface GherkinChild {
     rule?: { children: readonly GherkinChild[] }
 }
 
-const toSteps = (steps: readonly GherkinStep[]) => steps.map((step) => ({ text: step.text, line: step.location.line }))
+const toSteps = (steps: readonly GherkinStep[]) => steps.map((step) => ({
+    text: step.text,
+    line: step.location.line,
+    docStringLine: step.docString?.location.line
+}))
 
 /**
  * Read the line numbers of the scenarios and steps of a feature file. WebdriverIO
@@ -108,4 +114,11 @@ export function findStepLine (scenario: ScenarioLines, text: string, usedLines: 
         usedLines.add(step.line)
     }
     return step?.line
+}
+
+/**
+ * Line of the doc string of the step at `stepLine`
+ */
+export function findDocStringLine (scenario: ScenarioLines, stepLine: number) {
+    return [...scenario.background, ...scenario.steps].find((step) => step.line === stepLine)?.docStringLine
 }
