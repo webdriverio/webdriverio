@@ -221,7 +221,8 @@ Check out the simple template at [wdio-template](https://github.com/presidenten/
 # Older WebdriverIO Versions
 
 This package supports WebdriverIO v10 and later. For WebdriverIO v9, use the community package
-[`wdio-video-reporter`](https://github.com/webdriverio-community/wdio-video-reporter). Its configuration and options are the same.
+[`wdio-video-reporter`](https://github.com/webdriverio-community/wdio-video-reporter). To move from that package to
+this one, see the [v10 migration guide](https://webdriver.io/docs/v10-migration#video-reporter).
 
 Thanks
 ======
