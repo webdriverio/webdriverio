@@ -4,7 +4,7 @@ import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest'
 import {
     sleep, generateFilename, getVideoPath, getVideoFormatSettings, waitForVideosToExist,
-    waitForVideosToBeWritten, pad, getCurrentCapabilities, getBidiSnapshotCommand
+    waitForVideosToBeWritten, pad, getCurrentCapabilities, getBidiSnapshotCommand, getScreenshotBrowser
 } from '../src/helpers.js'
 import { DEFAULT_OPTIONS, SUPPORTED_VIDEO_FORMATS } from '../src/constants.js'
 
@@ -280,14 +280,24 @@ describe('getCurrentCapabilities', () => {
                 alwaysMatch: caps
             }
         }
-        const mrBrowser: any = {
-            capabilities: {
-                browserA: { capabilities: caps }
-            },
-            isMultiRemote: true
-        }
         expect(getCurrentCapabilities(browser)).toEqual(caps)
         expect(getCurrentCapabilities(w3cBrowser)).toEqual(caps)
+    })
+
+    it('should return the capabilities of the first instance of a multi-remote browser', () => {
+        const caps: any = { browserName: 'chrome' }
+        const instanceA: any = { capabilities: caps }
+        const mrBrowser: any = {
+            isMultiRemote: true,
+            instances: ['browserA', 'browserB'],
+            getInstance: (name: string) => name === 'browserA' ? instanceA : { capabilities: { browserName: 'firefox' } }
+        }
         expect(getCurrentCapabilities(mrBrowser)).toEqual(caps)
+        expect(getScreenshotBrowser(mrBrowser)).toBe(instanceA)
+    })
+
+    it('should use the browser itself for screenshots if it is not multi-remote', () => {
+        const browser: any = { capabilities: {} }
+        expect(getScreenshotBrowser(browser)).toBe(browser)
     })
 })

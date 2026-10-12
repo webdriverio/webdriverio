@@ -14,7 +14,7 @@ import { glob } from 'glob'
 import AllureReporterExtension from './allure.js'
 import {
     waitForVideosToExist, waitForVideosToBeWritten, getCurrentCapabilities, getVideoFormatSettings,
-    getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime
+    getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser
 } from './helpers.js'
 import { DEFAULT_OPTIONS, SCREENSHOT_PADDING_WITH, FRAME_REGEX } from './constants.js'
 import type { ReporterOptions } from './types.js'
@@ -151,7 +151,8 @@ export default class VideoReporter extends WdioReporter {
      * `client:afterCommand`. Take their frame when their result comes back.
      */
     listenToBidiCommands () {
-        if (!browser?.isBidi || this.#listensToBidiCommands || typeof browser.on !== 'function') {
+        const instance = browser && getScreenshotBrowser(browser)
+        if (!instance?.isBidi || this.#listensToBidiCommands || typeof instance.on !== 'function') {
             return
         }
         this.#listensToBidiCommands = true
@@ -159,10 +160,10 @@ export default class VideoReporter extends WdioReporter {
          * a result has the id of its command, but not its method: keep the commands
          * in the order they were sent, and take the oldest one for each result
          */
-        browser.on('bidiCommand', (command: { method?: string, params?: unknown }) => {
+        instance.on('bidiCommand', (command: { method?: string, params?: unknown }) => {
             this.#pendingBidiCommands.push(getBidiSnapshotCommand(command))
         })
-        browser.on('bidiResult', () => {
+        instance.on('bidiResult', () => {
             const commandName = this.#pendingBidiCommands.shift()
             if (!commandName || !this.#record) {
                 return
@@ -401,7 +402,7 @@ export default class VideoReporter extends WdioReporter {
          * command that is still pending then never ends. Each frame also has a time
          * limit, so a lost screenshot cannot stop the video.
          */
-        const screenshot = browser.takeScreenshot()
+        const screenshot = getScreenshotBrowser(browser).takeScreenshot()
             .then((data: string) => {
                 fs.writeFileSync(filePath, data, 'base64')
                 this.#log(`- Screenshot (frame: ${frame})`)
