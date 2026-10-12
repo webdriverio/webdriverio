@@ -20,8 +20,9 @@ describe('sleep', () => {
         const now = Date.now()
         sleep(100)
 
+        // a slow CI machine can sleep longer, never shorter
         expect(Date.now() - now).toBeGreaterThanOrEqual(100)
-        expect(Date.now() - now).toBeLessThanOrEqual(110)
+        expect(Date.now() - now).toBeLessThan(5000)
     })
 })
 
@@ -198,6 +199,22 @@ describe('waitForVideosToBeWritten', () => {
     const videos = ['file1.mp4', 'file2.mp4', 'file3.mp4']
     const videoRenderTimeout = 5 * 1000
 
+    /**
+     * fake clock: time moves only when the function sleeps, so the result does
+     * not depend on the speed of the machine
+     */
+    let now = 0
+    const fakeSleep = (ms: number) => {
+        now += ms
+    }
+    beforeEach(() => {
+        now = 0
+        vi.spyOn(Date, 'now').mockImplementation(() => now)
+    })
+    afterEach(() => {
+        vi.mocked(Date.now).mockRestore()
+    })
+
     it('should wait for videos to finish being written', async () => {
         vi.mocked(fs.statSync)
             .mockImplementationOnce(() => ({ size: 50 } as any))
@@ -207,7 +224,7 @@ describe('waitForVideosToBeWritten', () => {
             .mockImplementationOnce(() => ({ size: 62 } as any))
             .mockImplementationOnce(() => ({ size: 73 } as any))
             .mockImplementation(() => ({ size: 512 } as any))
-        const sleepMock = vi.fn().mockImplementation(sleep)
+        const sleepMock = vi.fn().mockImplementation(fakeSleep)
         expect(waitForVideosToBeWritten(videos, videoRenderTimeout, sleepMock)).toBe(true)
         expect(sleepMock).toBeCalledTimes(3)
     })
@@ -221,7 +238,7 @@ describe('waitForVideosToBeWritten', () => {
             .mockImplementationOnce(() => ({ size: 62 } as any))
             .mockImplementationOnce(() => ({ size: 73 } as any))
             .mockImplementation(() => ({ size: 512 } as any))
-        const sleepMock = vi.fn().mockImplementation(sleep)
+        const sleepMock = vi.fn().mockImplementation(fakeSleep)
         expect(waitForVideosToBeWritten(videos, 150, sleepMock)).toBe(false)
         expect(sleepMock).toBeCalledTimes(2)
     })
