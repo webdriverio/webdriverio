@@ -507,16 +507,19 @@ export default class VideoReporter extends WdioReporter {
             return Promise.all(insertionPromises)
         })
 
-        const command = `"${ffmpegPath}"`
+        /**
+         * no shell: each argument goes to ffmpeg as it is, also a path with quotes or `$`
+         */
+        const command = ffmpegPath
         const args = [
             '-y',
             '-r', '10',
-            '-i', `"${this.recordingPath}/%04d.png"`,
+            '-i', `${this.recordingPath}/%04d.png`,
             '-vcodec', formatSettings.vcodec,
             '-crf', '32',
             '-pix_fmt', 'yuv420p',
-            '-vf', `"scale=${this.options.videoScale}","setpts=${this.options.videoSlowdownMultiplier}.0*PTS"`,
-            `"${videoPath}"`,
+            '-vf', `scale=${this.options.videoScale},setpts=${this.options.videoSlowdownMultiplier}.0*PTS`,
+            videoPath,
         ]
         this.#log(`ffmpeg command: ${command} ${args.join(' ')}`)
 
@@ -527,7 +530,6 @@ export default class VideoReporter extends WdioReporter {
             .then(() => new Promise((resolve) => {
                 const cp = spawn(command, args, {
                     stdio: ['ignore', 'ignore', 'pipe'],
-                    shell: true,
                     windowsHide: true,
                 })
                 this.processList.add(cp)
