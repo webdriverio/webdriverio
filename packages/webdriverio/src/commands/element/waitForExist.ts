@@ -1,6 +1,7 @@
 import { ELEMENT_KEY } from 'webdriver'
 import { canFindAgain, findElementAgain } from '../../utils/findElementAgain.js'
 import type { WaitForOptions } from '../../types.js'
+import { describeSelector } from '../../utils/describeSelector.js'
 
 /**
  *
@@ -51,7 +52,7 @@ export async function waitForExist (
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         reverse = false,
-        timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}existing after ${timeout}ms`
+        timeoutMsg = `element ("${describeSelector(this)}") still ${reverse ? '' : 'not '}existing after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
     const isExisting = await this.waitUntil(
