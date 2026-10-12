@@ -528,17 +528,26 @@ const cucumberGroupedSpecsRandomOrder = async () => {
 }
 
 /**
+ * The JSON folder of a Cucumber JSON suite: each suite has its own, because an
+ * unfiltered local run starts the suites at the same time
+ */
+const cucumberJsJsonFolder = (suite) => path.resolve(__dirname, 'cucumber', 'cucumberjs-json', 'json', suite)
+
+/**
  * Cucumber with @wdio/cucumberjs-json-reporter: writes one JSON file per feature,
  * with the attachments that the steps send with `attach()`
  */
 const cucumberJsJsonReporter = async () => {
     const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
-    const jsonFolder = path.join(basePath, 'json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporter')
     await fs.rm(jsonFolder, { recursive: true, force: true })
     await launch(
         'cucumberJsJsonReporter',
         path.resolve(basePath, 'cucumberjs-json.config.js'),
-        { specs: [path.resolve(basePath, 'cucumberjs-json.feature')] }
+        {
+            specs: [path.resolve(basePath, 'cucumberjs-json.feature')],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
     )
     const files = await fs.readdir(jsonFolder)
     assert.equal(files.length, 1)
@@ -570,15 +579,18 @@ const cucumberJsJsonReporter = async () => {
  */
 const cucumberJsJsonReporterGroupedSpecs = async () => {
     const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
-    const jsonFolder = path.join(basePath, 'json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterGroupedSpecs')
     await fs.rm(jsonFolder, { recursive: true, force: true })
     await launch(
         'cucumberJsJsonReporterGroupedSpecs',
         path.resolve(basePath, 'cucumberjs-json.config.js'),
-        { specs: [[
-            path.resolve(basePath, 'cucumberjs-json.feature'),
-            path.resolve(basePath, 'cucumberjs-json-second.feature')
-        ]] }
+        {
+            specs: [[
+                path.resolve(basePath, 'cucumberjs-json.feature'),
+                path.resolve(basePath, 'cucumberjs-json-second.feature')
+            ]],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
     )
     const features = []
     for (const file of await fs.readdir(jsonFolder)) {
@@ -600,12 +612,15 @@ const cucumberJsJsonReporterGroupedSpecs = async () => {
  */
 const cucumberJsJsonReporterMultiRemote = async () => {
     const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
-    const jsonFolder = path.join(basePath, 'json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterMultiRemote')
     await fs.rm(jsonFolder, { recursive: true, force: true })
     await launch(
         'cucumberJsJsonReporterMultiRemote',
         path.resolve(basePath, 'cucumberjs-json.multiremote.config.js'),
-        { specs: [path.resolve(basePath, 'cucumberjs-json.feature')] }
+        {
+            specs: [path.resolve(basePath, 'cucumberjs-json.feature')],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
     )
     const files = await fs.readdir(jsonFolder)
     assert.equal(files.length, 1)

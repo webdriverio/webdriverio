@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 
-import { readFeatureLines, findScenarioLines, findStepLine } from '../src/featureLines.js'
+import { readFeatureLines, findScenarioLines, findStepLine, scenarioNameOf } from '../src/featureLines.js'
 
 const FEATURE = `Feature: F
   Background:
@@ -44,11 +44,52 @@ describe('featureLines', () => {
         const lines = readFeatureLines(file, 'en')!
         const scenario = findScenarioLines(lines, 'S1')!
         const used = new Set<number>()
-        expect(findStepLine(lines, scenario, 'bg', used)).toBe(3)
-        expect(findStepLine(lines, scenario, 'a', used)).toBe(5)
-        expect(findStepLine(lines, scenario, 'b', used)).toBe(6)
-        expect(findStepLine(lines, scenario, 'a', used)).toBe(7)
-        expect(findStepLine(lines, findScenarioLines(lines, 'O 1')!, 'c 1', new Set())).toBe(12)
+        expect(findStepLine(scenario, 'bg', used)).toBe(3)
+        expect(findStepLine(scenario, 'a', used)).toBe(5)
+        expect(findStepLine(scenario, 'b', used)).toBe(6)
+        expect(findStepLine(scenario, 'a', used)).toBe(7)
+        expect(findStepLine(findScenarioLines(lines, 'O 1')!, 'c 1', new Set())).toBe(12)
+    })
+
+    it('uses only the backgrounds of the feature and of the rule of the scenario', () => {
+        const rulesFile = path.join(path.dirname(file), 'rules.feature')
+        fs.writeFileSync(rulesFile, [
+            'Feature: F',                   // 1
+            '  Background:',                // 2
+            '    Given feature setup',      // 3
+            '  Rule: R1',                   // 4
+            '    Background:',              // 5
+            '      Given rule setup',       // 6
+            '    Scenario: S1',             // 7
+            '      Given rule setup',       // 8
+            '  Rule: R2',                   // 9
+            '    Background:',              // 10
+            '      Given rule setup',       // 11
+            '    Scenario: S2',             // 12
+            '      Given other',            // 13
+            ''
+        ].join('\n'))
+        const lines = readFeatureLines(rulesFile, 'en')!
+
+        const s1 = findScenarioLines(lines, 'S1')!
+        const used1 = new Set<number>()
+        expect(findStepLine(s1, 'feature setup', used1)).toBe(3)
+        expect(findStepLine(s1, 'rule setup', used1)).toBe(6)
+        expect(findStepLine(s1, 'rule setup', used1)).toBe(8)
+
+        const s2 = findScenarioLines(lines, 'S2')!
+        const used2 = new Set<number>()
+        expect(findStepLine(s2, 'feature setup', used2)).toBe(3)
+        expect(findStepLine(s2, 'rule setup', used2)).toBe(11)
+        expect(findStepLine(s2, 'other', used2)).toBe(13)
+    })
+
+    it('removes the tags that cucumberOpts.tagsInTitle adds to the title', () => {
+        expect(scenarioNameOf('@smoke, @login: Login', ['@smoke', '@login'])).toBe('Login')
+        expect(scenarioNameOf('@smoke: Login', [{ name: '@smoke' }])).toBe('Login')
+        expect(scenarioNameOf('Login', ['@smoke'])).toBe('Login')
+        expect(scenarioNameOf('Ratio: 2', [])).toBe('Ratio: 2')
+        expect(scenarioNameOf('Ratio: 2', undefined)).toBe('Ratio: 2')
     })
 
     it('returns undefined for a file it cannot read', () => {
