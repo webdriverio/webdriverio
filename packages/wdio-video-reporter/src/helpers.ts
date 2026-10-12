@@ -117,3 +117,38 @@ export function getCurrentCapabilities (browser: WebdriverIO.Browser) {
 export function pad (frameNumber: number) {
     return frameNumber.toString().padStart(SCREENSHOT_PADDING_WITH, '0')
 }
+
+/**
+ * WebDriver BiDi commands that change the page, and the name of the classic
+ * command they replace (the name used in `snapshotCommands`). `script.callFunction`
+ * is not in the list: WebdriverIO uses it inside many commands of a BiDi session.
+ */
+const BIDI_SNAPSHOT_COMMANDS: Record<string, string> = {
+    'browsingContext.navigate': 'url',
+    'browsingContext.reload': 'refresh',
+    'input.performActions': 'actions'
+}
+
+/**
+ * Return the snapshot command name of a WebDriver BiDi command, or `undefined` if
+ * the command does not change the page
+ */
+export function getBidiSnapshotCommand (command: { method?: string, params?: unknown }): string | undefined {
+    if (command.method === 'browsingContext.traverseHistory') {
+        const delta = (command.params as { delta?: number } | undefined)?.delta ?? 0
+        return delta < 0 ? 'back' : 'forward'
+    }
+    return command.method ? BIDI_SNAPSHOT_COMMANDS[command.method] : undefined
+}
+
+/**
+ * Resolve when the promise ends, or after `ms` milliseconds
+ * @returns `true` if the promise ended in time
+ */
+export function endsInTime (promise: Promise<unknown>, ms: number): Promise<boolean> {
+    let timer: NodeJS.Timeout | undefined
+    const timeout = new Promise<boolean>((resolve) => {
+        timer = setTimeout(() => resolve(false), ms)
+    })
+    return Promise.race([promise.then(() => true, () => true), timeout]).finally(() => clearTimeout(timer))
+}

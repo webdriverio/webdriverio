@@ -7,7 +7,6 @@ import { spawn, type ChildProcess } from 'node:child_process'
 import WdioReporter, { type RunnerStats, type AfterCommandArgs, type SuiteStats, type TestStats } from '@wdio/reporter'
 import { browser } from '@wdio/globals'
 import type { Options } from '@wdio/types'
-import type { remote } from 'webdriver'
 
 import { path as ffmpegPath } from '@ffmpeg-installer/ffmpeg'
 import { glob } from 'glob'
@@ -15,7 +14,7 @@ import { glob } from 'glob'
 import AllureReporterExtension from './allure.js'
 import {
     waitForVideosToExist, waitForVideosToBeWritten, getCurrentCapabilities, getVideoFormatSettings,
-    getVideoPath, pad, generateFilename
+    getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime
 } from './helpers.js'
 import { DEFAULT_OPTIONS, SCREENSHOT_PADDING_WITH, FRAME_REGEX } from './constants.js'
 import type { ReporterOptions } from './types.js'
@@ -43,6 +42,8 @@ export default class VideoReporter extends WdioReporter {
     testNameStructure: string[] = []
     testName?: string
     isCucumberFramework = false
+    #pendingBidiCommands: (string | undefined)[] = []
+    #listensToBidiCommands = false
 
     /**
    * Set reporter options
@@ -92,6 +93,8 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
+        this.listenToBidiCommands()
+
         this.#outputDir = this.options.outputDir ?? runner.config.outputDir as string
         this.#outputDir = this.#outputDir ?? this.#defaultOutputDir
         const sessionId = runner.isMultiRemote
@@ -139,7 +142,36 @@ export default class VideoReporter extends WdioReporter {
 
         const command = commandArgs.endpoint?.match(/[^/]+$/)
         const commandName = command ? command[0] : 'undefined'
+        return this.#addFrameForCommand(commandName, commandArgs.endpoint)
+    }
 
+    /**
+     * In a WebDriver BiDi session, some commands (for example `url` with an http URL,
+     * `back`, `forward` and `execute`) use WebDriver BiDi and do not send
+     * `client:afterCommand`. Take their frame when their result comes back.
+     */
+    listenToBidiCommands () {
+        if (!browser?.isBidi || this.#listensToBidiCommands || typeof browser.on !== 'function') {
+            return
+        }
+        this.#listensToBidiCommands = true
+        /**
+         * a result has the id of its command, but not its method: keep the commands
+         * in the order they were sent, and take the oldest one for each result
+         */
+        browser.on('bidiCommand', (command: { method?: string, params?: unknown }) => {
+            this.#pendingBidiCommands.push(getBidiSnapshotCommand(command))
+        })
+        browser.on('bidiResult', () => {
+            const commandName = this.#pendingBidiCommands.shift()
+            if (!commandName || !this.#record) {
+                return
+            }
+            this.#addFrameForCommand(commandName, `WebDriver BiDi ${commandName}`)
+        })
+    }
+
+    #addFrameForCommand (commandName: string, label?: string) {
         /**
      * Filter out non-action commands and keep only last action command
      */
@@ -156,7 +188,7 @@ export default class VideoReporter extends WdioReporter {
             return false
         }
 
-        this.#log(`Add frame for command: ${commandArgs.endpoint} => [${commandName}]`)
+        this.#log(`Add frame for command: ${label} => [${commandName}]`)
         return this.addFrame()
     }
 
@@ -362,35 +394,30 @@ export default class VideoReporter extends WdioReporter {
         const frame = this.frameNr++
         const filePath = path.resolve(this.recordingPath, frame.toString().padStart(SCREENSHOT_PADDING_WITH, '0') + '.png')
 
-        if (browser.isBidi) {
-            browser.getWindowHandle().then((contextId:string) => {
-                const contextCaptureScreenshotParameters: remote.BrowsingContextCaptureScreenshotParameters = {
-                    context: contextId,
-                    origin: 'viewport',
-                    format: { type: 'image/png' }
-                }
-                this.screenshotPromises.push(
-                    browser.browsingContextCaptureScreenshot(contextCaptureScreenshotParameters)
-                        .then((captureScreenshotResult) => {
-                            this.#log(`- Bidi Screenshot (frame: ${frame})`)
-                            fs.writeFileSync(filePath, captureScreenshotResult.data, 'base64')
-                        }).catch((error: Error) => {
-                            fs.writeFileSync(filePath, notAvailableImage, 'base64')
-                            this.#log(`Bidi Screenshot not available (frame: ${frame}). Error: ${error}..`)
-                        })
-                )
+        /**
+         * Use the classic WebDriver screenshot command (`takeScreenshot`), also in a
+         * WebDriver BiDi session, where `saveScreenshot` uses WebDriver BiDi: the
+         * testrunner ends the session before the reporters are done, and a BiDi
+         * command that is still pending then never ends. Each frame also has a time
+         * limit, so a lost screenshot cannot stop the video.
+         */
+        const screenshot = browser.takeScreenshot()
+            .then((data: string) => {
+                fs.writeFileSync(filePath, data, 'base64')
+                this.#log(`- Screenshot (frame: ${frame})`)
             })
-
-        } else {
-            this.screenshotPromises.push(
-                browser.saveScreenshot(filePath)
-                    .then(() => this.#log(`- Screenshot (frame: ${frame})`))
-                    .catch((error: Error) => {
-                        fs.writeFileSync(filePath, notAvailableImage, 'base64')
-                        this.#log(`Screenshot not available (frame: ${frame}). Error: ${error}..`)
-                    })
-            )
-        }
+            .catch((error: Error) => {
+                fs.writeFileSync(filePath, notAvailableImage, 'base64')
+                this.#log(`Screenshot not available (frame: ${frame}). Error: ${error}..`)
+            })
+        this.screenshotPromises.push(
+            endsInTime(screenshot, this.options.videoRenderTimeout).then((inTime) => {
+                if (!inTime) {
+                    fs.writeFileSync(filePath, notAvailableImage, 'base64')
+                    this.#log(`Screenshot not available (frame: ${frame}). Error: no answer in ${this.options.videoRenderTimeout}ms`)
+                }
+            })
+        )
     }
 
     clearScreenshotInterval () {
