@@ -277,6 +277,103 @@ describe('BidiCore', () => {
         })
     })
 
+    describe('close', () => {
+        beforeAll(() => {
+            delete process.env.WDIO_UNIT_TESTS
+        })
+
+        /**
+         * the listener `BidiCore.connect` registers for a socket event
+         */
+        const listenerOf = (handler: BidiCore | { on: unknown }, event: string) => {
+            const socket = 'socket' in handler ? handler.socket : handler
+            const registration = vi.mocked((socket as { on: (...args: unknown[]) => unknown }).on).mock.calls.find(([name]) => name === event)
+            return registration?.[1] as ((...args: unknown[]) => void) | undefined
+        }
+
+        it('rejects a pending command at once when the session closes the connection (#16051)', async () => {
+            vi.useFakeTimers()
+            try {
+                const handler = new BidiCore('ws://foo/bar')
+                await handler.connect()
+                const error = handler.send({ method: 'browsingContext.captureScreenshot', params: {} }).catch((err: Error) => err)
+
+                handler.close()
+                await vi.advanceTimersByTimeAsync(0)
+
+                expect((await error).message).toBe(
+                    'WebDriver Bidi command "browsingContext.captureScreenshot" with id 1 got no result: the connection was closed'
+                )
+                expect(vi.getTimerCount()).toBe(0)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('rejects a pending command at once when the browser or driver closes the socket', async () => {
+            vi.useFakeTimers()
+            try {
+                const handler = new BidiCore('ws://foo/bar')
+                await handler.connect()
+                const error = handler.send({ method: 'browsingContext.getTree', params: {} }).catch((err: Error) => err)
+
+                listenerOf(handler, 'close')?.(1006)
+                await vi.advanceTimersByTimeAsync(0)
+
+                expect((await error).message).toBe(
+                    'WebDriver Bidi command "browsingContext.getTree" with id 1 got no result: the browser or the driver closed the connection (code 1006)'
+                )
+                expect(vi.getTimerCount()).toBe(0)
+                expect(handler.isConnected).toBe(false)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('gives the error the stack of the line that sent the command', async () => {
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+            const error = handler.send({ method: 'session.status', params: {} }).catch((err: Error) => err)
+            /**
+             * not from this file: in real use `deleteSession` closes the connection
+             */
+            setTimeout(handler.close.bind(handler), 0)
+
+            expect((await error).stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:\d+:/)
+        })
+
+        it('ignores the close event of the socket of an earlier connection', async () => {
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+            const oldSocket = handler.socket!
+            await handler.reconnect('ws://foo/baz')
+            const pending = handler.send({ method: 'session.status', params: {} })
+
+            listenerOf(oldSocket as never, 'close')?.(1000)
+            deliverBidiMessage(handler, Buffer.from(JSON.stringify({ id: 1, result: 'foobar' })))
+
+            await expect(pending).resolves.toEqual({ id: 1, result: 'foobar' })
+            expect(handler.isConnected).toBe(true)
+        })
+
+        it('removes its socket listeners when it closes the connection', async () => {
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+            const socket = handler.socket!
+            const onMessage = listenerOf(handler, 'message')
+            const onClose = listenerOf(handler, 'close')
+
+            handler.close()
+
+            expect(socket.off).toHaveBeenCalledWith('message', onMessage)
+            expect(socket.off).toHaveBeenCalledWith('close', onClose)
+        })
+
+        afterAll(() => {
+            process.env.WDIO_UNIT_TESTS = '1'
+        })
+    })
+
     describe('sendAsync', () => {
         beforeAll(() => {
             delete process.env.WDIO_UNIT_TESTS
