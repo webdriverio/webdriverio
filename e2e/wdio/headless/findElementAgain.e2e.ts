@@ -180,6 +180,55 @@ describe('finding an element again', () => {
         })
     })
 
+    /**
+     * A BiDi session gives a script the node that the page removed (Classic fails with a
+     * stale element error first): the check commands find the element again, as in Classic,
+     * instead of checking the removed node
+     */
+    describe('the checks of an element that the page rendered again', () => {
+        it('isDisplayed finds it again, and a reverse wait does not pass', async () => {
+            const elem = await $('.item')
+            await renderItems(['replaced'])
+
+            expect(await elem.isDisplayed()).toBe(true)
+            const error = await errorOf(elem.waitForDisplayed({ reverse: true, timeout: 500 }))
+            expect(error?.message).toContain('still displayed after 500ms')
+            await expect(expect(elem).not.toBeDisplayed({ wait: 500 })).rejects.toThrow()
+            expect(await elem.isClickable()).toBe(true)
+        })
+
+        it('isFocused finds it again', async () => {
+            const elem = await $('.item')
+            await renderItems(['replaced'])
+            await browser.execute(() => {
+                const item = document.querySelector('.item') as HTMLElement
+                item.tabIndex = 0
+                item.focus()
+            })
+
+            expect(await elem.isFocused()).toBe(true)
+        })
+
+        it('isStable finds it again and checks the movement of the new element', async () => {
+            const elem = await $('.item')
+            await renderItems(['replaced'])
+            await browser.execute(() => {
+                const style = document.createElement('style')
+                style.textContent = '@keyframes move { from { margin-left: 0 } to { margin-left: 300px } } .item { animation: move 1s linear infinite }'
+                document.head.appendChild(style)
+            })
+
+            expect(await elem.isStable()).toBe(false)
+        })
+
+        it('isDisplayed finds it again after the page is loaded again', async () => {
+            const elem = await $('.item')
+            await browser.url(FIXTURE)
+
+            expect(await elem.isDisplayed()).toBe(true)
+        })
+    })
+
     it('a stale element of a held browsing context is found again in that context', async function () {
         if (!browser.isBidi) {
             return this.skip()

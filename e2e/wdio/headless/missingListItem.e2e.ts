@@ -224,11 +224,15 @@ describe('an index that the list of $$ never reaches', () => {
             getText: (elem: WebdriverIO.Element) => elem.getText()
         }
         /**
-         * the value of a check, `stale` for a stale element error, or `error: <message>`
+         * the value of a check, `stale` for a stale element error, or `error: <message>`. In
+         * BiDi a check script throws the stale element error itself: it has the message of that
+         * error, not its name
          */
         const outcomeOf = (promise: Promise<unknown>) => promise.then(
             (value) => value,
-            (error: Error) => error.name === 'stale element reference' ? 'stale' : `error: ${error.message}`
+            (error: Error) => error.name === 'stale element reference' || error.message.includes('stale element reference')
+                ? 'stale'
+                : `error: ${error.message}`
         )
         const STILL_EXISTING = expect.stringMatching(/^error: element .* still existing after 500ms/)
         const OUT_OF_BOUNDS = expect.stringMatching(/^error: Index out of bounds!/)
@@ -243,10 +247,9 @@ describe('an index that the list of $$ never reaches', () => {
                     isExisting: true,
                     'waitForExist reverse': STILL_EXISTING,
                     /**
-                     * BiDi gives `false` for a stale element without looking for it again,
-                     * as on `main`: not part of this matrix
+                     * the stale element is found again, also in BiDi
                      */
-                    isDisplayed: browser.isBidi ? expect.anything() : true,
+                    isDisplayed: true,
                     getText: 'y'
                 }
             case 'stale in a shorter list':
@@ -254,10 +257,10 @@ describe('an index that the list of $$ never reaches', () => {
                     isExisting: false,
                     'waitForExist reverse': true,
                     /**
-                     * Classic looks for the stale element again and throws its stale element
-                     * error, BiDi gives `false`, both as on `main`
+                     * the stale element is looked for again and is not found: its stale element
+                     * error, in Classic and BiDi
                      */
-                    isDisplayed: browser.isBidi ? false : 'stale',
+                    isDisplayed: 'stale',
                     getText: 'stale'
                 }
             }
