@@ -80,3 +80,9 @@ describe('utils', () => {
         })
     })
 })
+
+describe('getFailedMessage without a stack', () => {
+    it('uses the error message when the error has no stack', () => {
+        expect(getFailedMessage({ state: 'failed', error: { message: 'boom' } } as never)).toEqual({ error_message: 'boom' })
+    })
+})

@@ -98,7 +98,8 @@ export class Metadata {
         const metaAppName: string = (metadata?.app && metadata.app?.name) ? metadata?.app?.name : 'No metadata.app.name available'
         const metaAppVersion: string = (metadata?.app && metadata.app.version) ? metadata.app.version : 'No metadata.app.version available'
         const appPath = currentConfigCapabilities.app || metaAppName
-        const appName = appPath.substring(appPath.replace('\\', '/').lastIndexOf('/')).replace('/', '')
+        // file name of the app, also for a Windows path
+        const appName = appPath.split(/[\\/]/).pop() ?? appPath
 
         return {
             app: {
