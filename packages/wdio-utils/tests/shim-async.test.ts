@@ -234,6 +234,33 @@ describe('wrapCommand', () => {
         expect(rawCommand$$).toBeCalledWith('bar')
     })
 
+    /**
+     * an `async` `overwriteCommand('$$')` gives a promise of an element list: the list
+     * reads its own index, with its own wait and its "not found" item (#12576)
+     */
+    it('reads an index of a promise of an element list from the list', async () => {
+        const waitUntil = vi.fn()
+        const items = [{ elementId: 'a' }, { elementId: 'b' }, { elementId: 'c' }]
+        const notFound = { index: 5, error: new Error('Index out of bounds! $$(li) returned only 3 elements.') }
+        const list = new Proxy(items, {
+            get (target, prop, receiver) {
+                if (prop === Symbol.for('wdio.kind')) {
+                    return 'element-array'
+                }
+                if (prop === '5') {
+                    return Promise.resolve(notFound)
+                }
+                return Reflect.get(target, prop, receiver)
+            }
+        })
+        const scope = { options: {}, waitUntil, $$: vi.fn().mockReturnValue(Promise.resolve(list)) }
+
+        const command$$ = wrapCommand('$$', scope.$$)
+        expect(await command$$.call(scope, 'li')[1]).toBe(items[1])
+        expect(await command$$.call(scope, 'li')[5]).toBe(notFound)
+        expect(waitUntil).not.toHaveBeenCalled()
+    })
+
     it('offers array methods on elements', async () => {
         const rawCommand$ = vi.fn()
         const rawCommand$$ = vi.fn()
