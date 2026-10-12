@@ -421,7 +421,11 @@ export default class VideoReporter extends WdioReporter {
         const startTime = new Date().getTime()
 
         waitForVideosToExist(this.videos, abortTime)
-        waitForVideosToBeWritten(this.videos, abortTime)
+        /**
+         * a render that failed or was stopped by `videoRenderTimeout` has no file
+         */
+        const videos = this.videos.filter((video) => fs.existsSync(video))
+        waitForVideosToBeWritten(videos, abortTime)
 
         if (new Date().getTime() - startTime > abortTime) {
             console.log('videoRenderTimeout triggered, not all videos finished writing to disk before patching Allure')
@@ -438,20 +442,16 @@ export default class VideoReporter extends WdioReporter {
 
         // Dont parse other browsers videos since they may not be ready
         placeholders
-            .filter(({ videoFilePath }) => this.videos.includes(videoFilePath))
-            .forEach(({ allureFile, videoFilePath }) => {
-                if (fs.existsSync(videoFilePath)) {
-                    fs.copyFileSync(videoFilePath, allureFile)
-                }
-            })
+            .filter(({ videoFilePath }) => videos.includes(videoFilePath))
+            .forEach(({ allureFile, videoFilePath }) => fs.copyFileSync(videoFilePath, allureFile))
 
         /**
          * the attachment is added when the test starts; remove it for the tests of
          * this worker that got no video (for example a passed test without
-         * `saveAllVideos`), else Allure shows an empty video
+         * `saveAllVideos`, or a render that failed), else Allure shows an empty video
          */
         removeAllureAttachments(allureOutputDir, placeholders
-            .filter(({ videoFilePath }) => this.allureVideos.includes(videoFilePath) && !this.videos.includes(videoFilePath))
+            .filter(({ videoFilePath }) => this.allureVideos.includes(videoFilePath) && !videos.includes(videoFilePath))
             .map(({ allureFile }) => allureFile))
     }
 
