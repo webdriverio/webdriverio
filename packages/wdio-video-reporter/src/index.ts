@@ -715,6 +715,8 @@ export default class VideoReporter extends WdioReporter {
 
         const testName = this.testName = generateFilename(this.options.maxTestNameCharacters, browserName, fullName)
         this.frameNr = 0
+        // a new recording starts with the main window, not with the tab of the last test
+        this.#frameContext = undefined
         this.recordingPath = path.resolve(this.#outputDir ?? this.options.outputDir, this.options.rawPath, testName)
 
         fs.mkdirSync(this.recordingPath, { recursive: true })
