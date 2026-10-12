@@ -618,7 +618,7 @@ describe('finding an element again', () => {
             expect(error?.name).toBe('stale element reference')
         })
 
-        it('a command throws "Index out of bounds" without a second wait or another lookup', async () => {
+        it('a command throws "Index out of bounds" after one lookup, without a second wait', async () => {
             const browser = await session()
             const elem = await browser.$$('.item')[3]
             const waitForExist = vi.spyOn(elem, 'waitForExist')
@@ -627,7 +627,49 @@ describe('finding an element again', () => {
             const { error } = await settle(elem.click())
             expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
             expect(waitForExist).not.toHaveBeenCalled()
-            expect(driver.findsIn.length).toBe(finds)
+            expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document'])
+        })
+
+        /**
+         * the item is the same object after the list reaches its index: a command finds it
+         * once more, as `isExisting()` does, and keeps its element id
+         */
+        it('a command uses the item once the list reaches its index, without a second wait', async () => {
+            const browser = await session()
+            const elem = await browser.$$('.item')[3]
+            const waitForExist = vi.spyOn(elem, 'waitForExist')
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+            const finds = driver.findsIn.length
+
+            expect(await elem.getText()).toBe('text of elem-d')
+            expect(waitForExist).not.toHaveBeenCalled()
+            expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document'])
+            expect(elem.elementId).toBe('elem-d')
+            expect(elem.error).toBeUndefined()
+
+            expect(await elem.getText()).toBe('text of elem-d')
+            expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document'])
+        })
+
+        it('a command uses the item after isExisting() saw it', async () => {
+            const browser = await session()
+            const elem = browser.$$('.item')[3]
+            expect(await elem.isExisting()).toBe(false)
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+
+            expect(await elem.isExisting()).toBe(true)
+            expect(await elem.getText()).toBe('text of elem-d')
+        })
+
+        it('a command uses the item of a custom$$ list once the strategy reaches its index', async () => {
+            const browser = await session()
+            driver.light.set('#host', ['host-a'])
+            driver.scripts.set('customList', ['elem-a'])
+            const elem = await browser.$('#host').custom$$('customList')[3]
+            driver.scripts.set('customList', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+
+            expect(await elem.getText()).toBe('text of elem-d')
+            expect(driver.findsIn.at(-1)).toBe('script customList with host-a')
         })
     })
 

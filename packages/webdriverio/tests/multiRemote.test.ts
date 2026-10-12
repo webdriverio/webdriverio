@@ -336,6 +336,23 @@ describe('Multi-Remote tests', () => {
                 expect(element.getInstance('browserB').error?.message).toBe('Index out of bounds! $$(#foo) returned only 2 elements.')
                 await expect(element.click()).rejects.toThrow('Index out of bounds! $$(#foo) returned only 2 elements.')
             })
+
+            test('a command uses the not found item of an instance once its list reaches the index', async () => {
+                const browser = await multiRemote(caps())
+                browser.getInstance('browserB').options.waitforTimeout = 50
+                let queriesA = 0
+                vi.spyOn(browser.getInstance('browserA'), 'findElements')
+                    .mockImplementation(async () => elementRefs(++queriesA >= 2 ? 3 : 2))
+                const findB = vi.spyOn(browser.getInstance('browserB'), 'findElements').mockResolvedValue(elementRefs(2))
+
+                const element = await browser.$$('#foo')[2]
+                expect(element.getInstance('browserA').elementId).toBe('elem-2')
+                expect(element.getInstance('browserB').elementId).toBeUndefined()
+                findB.mockResolvedValue(elementRefs(3))
+
+                await element.click()
+                expect(element.getInstance('browserB').elementId).toBe('elem-2')
+            })
         })
 
         test('keeps isMultiRemote when $$ is chained from an element query', async () => {
