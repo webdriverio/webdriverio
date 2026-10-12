@@ -237,6 +237,8 @@ test('watch mode shutdown keeps each worker session when config is shared', asyn
     delete workerA.childProcess
     delete workerB.childProcess
     setTimeout(() => {
+        workerA['_handleMessage']({ name: 'ready' } as any)
+        workerB['_handleMessage']({ name: 'ready' } as any)
         workerA.isBusy = false
         workerB.isBusy = false
     }, 260)
