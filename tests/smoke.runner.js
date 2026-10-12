@@ -1075,7 +1075,7 @@ const htmlReporter = async () => {
     assert.strictEqual(passed, 1)
     const outDir = path.join(basePath, 'out')
     const html = await fs.readFile(path.join(outDir, 'master-report.html'), 'utf-8')
-    for (const text of ['Smoke Master Report', 'html reporter', 'reports a passing test with a log line', 'a message from the test']) {
+    for (const text of ['Smoke Master Report', 'html reporter', 'reports a passing test with a log line', 'a message from the test', 'as an object']) {
         assert.ok(html.includes(text), `master-report.html does not contain "${text}"`)
     }
     await fs.access(path.join(outDir, 'report-styles.css'))

@@ -85,6 +85,14 @@ describe('HtmlReporter', () => {
         ])
     })
 
+    it('keeps a log value that is not a string as readable text (#105)', () => {
+        const test = SUITES[0].tests[2]
+        new ReportEvents().logMessage({ foobar: 'object', count: NaN } as never)
+        const event = eventsOf(test).at(-1)!
+        expect(event.type).toBe('log')
+        expect(event.value).toBe("{ foobar: 'object', count: NaN }")
+    })
+
     it('decreases the indent on suite end', () => {
         htmlReporter.onSuiteEnd(SUITES[0])
         expect(htmlReporter._indents).toBe(0)
