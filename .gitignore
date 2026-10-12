@@ -140,3 +140,4 @@ website/i18n/*
 .pnpm-store
 
 e2e/wdio/wdio-chrome-*
+e2e/wdio/reporters/*/results/

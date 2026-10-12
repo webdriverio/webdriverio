@@ -264,6 +264,9 @@ importers:
       '@wdio/globals':
         specifier: workspace:*
         version: link:../packages/wdio-globals
+      '@wdio/html-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-html-reporter
       '@wdio/jasmine-framework':
         specifier: workspace:*
         version: link:../packages/wdio-jasmine-framework

@@ -62,6 +62,7 @@
     "@wdio/display-server": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",
+    "@wdio/html-reporter": "workspace:*",
     "@wdio/jasmine-framework": "workspace:*",
     "@wdio/junit-reporter": "workspace:*",
     "@wdio/lighthouse-service": "workspace:*",
