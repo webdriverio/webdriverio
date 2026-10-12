@@ -74,6 +74,7 @@ export const config: WebdriverIO.Config = {
 | `collapseSuites` | `false` | Collapse the suites in the report. |
 | `useOnAfterCommandForScreenshot` | `false` | Add the result of each screenshot command to the current test. |
 | `linkScreenshots` | `false` | Link the screenshots in the report. If `false`, the report includes them as base64 data. |
+| `linkUrls` | `false` | Make the `http` and `https` URLs in log messages links. The rest of the message stays escaped: HTML in a log message shows as text. |
 | `browserName` | `not specified` | Browser name to show in the report. The browser is not known when the configuration loads, so set it yourself. |
 | `removeOutput` | `true` | Remove the console output of the tests from the JSON files. |
 | `produceJson` | `true` | Write the JSON file of each worker. The `ReportAggregator` needs these files. |

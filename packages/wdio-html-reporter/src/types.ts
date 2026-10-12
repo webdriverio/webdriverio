@@ -14,6 +14,8 @@ export class HtmlReporterOptions implements Reporters.Options  {
     browserName:string
     removeOutput?: boolean | undefined
     linkScreenshots?: boolean
+    /** make the http and https URLs in log messages links (the text stays escaped) */
+    linkUrls?: boolean
     produceJson?:boolean | undefined
 
     constructor() {
@@ -28,6 +30,7 @@ export class HtmlReporterOptions implements Reporters.Options  {
         this.browserName = 'not specified'
         this.removeOutput = true
         this.linkScreenshots = false
+        this.linkUrls = false
         this.collapseTests = false
         this.collapseSuites = false
         this.produceJson = true

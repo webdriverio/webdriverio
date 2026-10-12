@@ -12,6 +12,16 @@ import url from 'node:url'
 
 dayjs.extend(duration)
 
+/**
+ * the same escaping as the nunjucks autoescape
+ */
+const escapeHtml = (value: string) => value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
 class HtmlGenerator {
     private static LOG = logger('HtmlGenerator')
     static writeJson(jsonFile:string, stringified:string, _reportOptions:HtmlReporterOptions, _reportData: ReportData) {
@@ -168,6 +178,19 @@ class HtmlGenerator {
 
             environment.addGlobal('ifCollapseSuites', (_text:string) => {
                 return reportOptions.collapseSuites
+            })
+
+            environment.addGlobal('formatLog', (text: unknown) => {
+                const value = typeof text === 'string' ? text : String(text)
+                if (!reportOptions.linkUrls) {
+                    return value
+                }
+                // escape the text, then make links of the URLs (stop at an escaped character)
+                const linked = escapeHtml(value).replace(
+                    /https?:\/\/(?:(?!&(?:lt|gt|quot|#39);)[^\s])+/g,
+                    (url: string) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+                )
+                return new nunjucks.runtime.SafeString(linked)
             })
 
             environment.addGlobal('logClass', (text: unknown) => {
