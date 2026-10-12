@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
 import type { VideoFileExtension } from './types.js'
-import { SUPPORTED_VIDEO_FORMATS, SCREENSHOT_PADDING_WITH, TO_LOCAL_STRING_OPTIONS } from './constants.js'
+import { SUPPORTED_VIDEO_FORMATS, SCREENSHOT_PADDING_WITH } from './constants.js'
 
 const log = logger('@wdio/video-reporter:helpers')
 
@@ -15,10 +15,14 @@ export function sleep(ms: number) {
 
 export function generateFilename (maxTestNameCharacters: number, browserName: string, fullName: string) {
     const date = new Date()
-    const msec = ('000' + date.getMilliseconds()).slice(-3)
-    const timestamp = date.toLocaleString('iso', TO_LOCAL_STRING_OPTIONS)
-        .replace(/[ ]/g, '--')
-        .replace(/:|\//g, '-') + `-${msec}`
+    /**
+     * ISO date and time (local time), the same on every machine: the community
+     * versions used the locale of the machine
+     */
+    const pad2 = (value: number) => value.toString().padStart(2, '0')
+    const timestamp = `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}--` +
+        `${pad2(date.getHours())}-${pad2(date.getMinutes())}-${pad2(date.getSeconds())}-` +
+        date.getMilliseconds().toString().padStart(3, '0')
 
     const wdioWorkerText = process.env.WDIO_WORKER_ID ? `${process.env.WDIO_WORKER_ID}-` : ''
     let filename = encodeURIComponent(`${fullName.replace(/\s+/g, '-')}-${wdioWorkerText}-${browserName}--${timestamp}`)
@@ -94,7 +98,7 @@ export function waitForVideosToBeWritten (videos: string[], abortTime: number, s
             return fileMap
         }, {} as Record<string, number>)
         const hasChanged = Object.entries(currentSizes)
-            .every(([filename, size]) => size !== updatedSizes[filename])
+            .some(([filename, size]) => size !== updatedSizes[filename])
         if (!hasChanged) {
             return true
         }
@@ -161,4 +165,27 @@ export function endsInTime (promise: Promise<unknown>, ms: number): Promise<bool
         timer = setTimeout(() => resolve(false), ms)
     })
     return Promise.race([promise.then(() => true, () => true), timeout]).finally(() => clearTimeout(timer))
+}
+
+type ReporterEntry = string | (new (...args: never[]) => unknown) | [string | (new (...args: never[]) => unknown), Record<string, unknown>?]
+
+/**
+ * Return the options of the Allure reporter in the `reporters` config (an empty
+ * object if it has none), or `undefined` if Allure is not used. Allure can be set
+ * by its name, its package name or its class.
+ */
+export function findAllureReporter (reporters?: unknown[]): Record<string, unknown> | undefined {
+    const isAllure = (reporter: unknown) => reporter === 'allure' ||
+        reporter === '@wdio/allure-reporter' ||
+        // the build of @wdio/allure-reporter names the class `_AllureReporter`
+        (typeof reporter === 'function' && /^_*AllureReporter$/.test(reporter.name))
+    for (const entry of (reporters ?? []) as ReporterEntry[]) {
+        if (Array.isArray(entry) && isAllure(entry[0])) {
+            return entry[1] ?? {}
+        }
+        if (isAllure(entry)) {
+            return {}
+        }
+    }
+    return undefined
 }

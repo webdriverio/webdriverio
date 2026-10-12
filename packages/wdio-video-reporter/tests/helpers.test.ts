@@ -4,7 +4,8 @@ import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest'
 import {
     sleep, generateFilename, getVideoPath, getVideoFormatSettings, waitForVideosToExist,
-    waitForVideosToBeWritten, pad, getCurrentCapabilities, getBidiSnapshotCommand, getScreenshotBrowser
+    waitForVideosToBeWritten, pad, getCurrentCapabilities, getBidiSnapshotCommand, getScreenshotBrowser,
+    findAllureReporter
 } from '../src/helpers.js'
 import { DEFAULT_OPTIONS, SUPPORTED_VIDEO_FORMATS } from '../src/constants.js'
 
@@ -29,25 +30,12 @@ describe('sleep', () => {
 describe('generateFilename - ', () => {
     const name = 'DESCRIBE-TEST'
     const browser = 'BROWSER'
-    const date = '09-04-1989--11-22-33-044'
+    const date = '1989-09-04--11-22-33-044'
     const maxTestNameCharacters = DEFAULT_OPTIONS.maxTestNameCharacters
 
     beforeEach(() => {
         vi.useFakeTimers()
         vi.setSystemTime(new Date(1989, 8, 4, 11, 22, 33, 44))
-        /**
-         * `generateFilename` calls `toLocaleString('iso', ...)`. 'iso' is not a
-         * real locale, so the system locale formats the date. Use en-US so the
-         * result does not depend on the machine.
-         */
-        const toLocaleString = Date.prototype.toLocaleString
-        vi.spyOn(Date.prototype, 'toLocaleString').mockImplementation(function (this: Date, _locales, options) {
-            return toLocaleString.call(this, 'en-US', options)
-        })
-    })
-
-    afterEach(() => {
-        vi.mocked(Date.prototype.toLocaleString).mockRestore()
     })
 
     afterAll(() => {
@@ -229,6 +217,20 @@ describe('waitForVideosToBeWritten', () => {
         expect(sleepMock).toBeCalledTimes(3)
     })
 
+    it('should wait while one of the videos still grows', async () => {
+        const sizes = [
+            [50, 60], // start
+            [50, 70], // file1 stopped, file2 grows
+            [50, 80], // file2 still grows
+            [50, 80] // both stopped
+        ]
+        let call = 0
+        vi.mocked(fs.statSync).mockImplementation(() => ({ size: sizes[Math.floor(call / 2)][call++ % 2] } as any))
+        const sleepMock = vi.fn().mockImplementation(fakeSleep)
+        expect(waitForVideosToBeWritten(['file1.mp4', 'file2.mp4'], videoRenderTimeout, sleepMock)).toBe(true)
+        expect(sleepMock).toBeCalledTimes(3)
+    })
+
     it('should wait for videos to finish being written and bail if timeout is reached', async () => {
         vi.mocked(fs.statSync)
             .mockImplementationOnce(() => ({ size: 50 } as any))
@@ -241,6 +243,25 @@ describe('waitForVideosToBeWritten', () => {
         const sleepMock = vi.fn().mockImplementation(fakeSleep)
         expect(waitForVideosToBeWritten(videos, 150, sleepMock)).toBe(false)
         expect(sleepMock).toBeCalledTimes(2)
+    })
+})
+
+describe('findAllureReporter', () => {
+    class AllureReporter {}
+    it.each([
+        ['the name', ['spec', 'allure'], {}],
+        ['the name with options', ['spec', ['allure', { outputDir: '/a' }]], { outputDir: '/a' }],
+        ['the package name', [['@wdio/allure-reporter', { outputDir: '/b' }]], { outputDir: '/b' }],
+        ['the class', [AllureReporter], {}],
+        ['the class with options', [[AllureReporter, { outputDir: '/c' }]], { outputDir: '/c' }],
+        ['the built class (`_AllureReporter`)', [class _AllureReporter {}], {}]
+    ])('finds the Allure reporter by %s', (_, reporters, options) => {
+        expect(findAllureReporter(reporters as any)).toEqual(options)
+    })
+
+    it('returns undefined without Allure', () => {
+        expect(findAllureReporter(['spec', ['dot', {}]] as any)).toBeUndefined()
+        expect(findAllureReporter(undefined)).toBeUndefined()
     })
 })
 
