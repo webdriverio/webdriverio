@@ -152,3 +152,19 @@ export interface Scenario {
      */
     tags: Tag[]
 }
+
+export interface FrameworkLaunchParams {
+    config: WebdriverIO.Config
+    /** Resolved absolute spec file paths, after `--spec` and `exclude` filtering. */
+    specs: string[]
+    configFile: string
+}
+
+/**
+ * Frameworks that schedule specs themselves export `launch`. The CLI then
+ * calls it in the launcher process instead of starting WDIO workers.
+ */
+export interface FrameworkLauncher {
+    /** @returns number of failures, `0` when the run passed */
+    launch(params: FrameworkLaunchParams): Promise<number>
+}
