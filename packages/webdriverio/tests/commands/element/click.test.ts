@@ -325,7 +325,7 @@ describe('click test', () => {
                 const points: number[][] = []
                 const frames: (() => void)[] = []
                 const page = globalThis as unknown as { window?: unknown, document?: unknown, requestAnimationFrame?: unknown }
-                const saved = { window: page.window, document: page.document, requestAnimationFrame: page.requestAnimationFrame }
+                const saved = { window: page.window, document: page.document }
                 page.window = { innerWidth: 1000, innerHeight: 800 }
                 page.document = {
                     visibilityState: options.visibilityState ?? 'visible',
@@ -334,6 +334,7 @@ describe('click test', () => {
                         return options.hitAt(elem, x, y, scrolls.length)
                     }
                 }
+                // stays until afterEach: the first frame callback asks for the second frame
                 page.requestAnimationFrame = (callback: () => void) => frames.push(callback)
                 let result: Promise<void> | undefined
                 try {
@@ -341,10 +342,13 @@ describe('click test', () => {
                 } finally {
                     page.window = saved.window
                     page.document = saved.document
-                    page.requestAnimationFrame = saved.requestAnimationFrame
                 }
                 return { scrolls, points, result, frames }
             }
+            afterEach(() => {
+                delete (globalThis as { requestAnimationFrame?: unknown }).requestAnimationFrame
+            })
+
             const inView = { x: 100, y: 100, width: 100, height: 40 }
             const other = { parentNode: null }
 
@@ -373,7 +377,7 @@ describe('click test', () => {
                 expect(never.scrolls).toEqual([CENTER, END, START])
             })
 
-            it('waits for the next animation frame after a scroll, so the scroll events fire before the click', async () => {
+            it('waits for two animation frames after a scroll, so the scroll events fire before the click', async () => {
                 const { result, frames } = await runInPage({ rects: [inView], hitAt: () => other })
                 let resolved = false
                 result!.then(() => { resolved = true })
@@ -382,6 +386,11 @@ describe('click test', () => {
 
                 expect(frames).toHaveLength(1)
                 frames[0]()
+                await Promise.resolve()
+                expect(resolved).toBe(false)
+
+                expect(frames).toHaveLength(2)
+                frames[1]()
                 await result
                 expect(resolved).toBe(true)
             })

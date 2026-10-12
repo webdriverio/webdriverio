@@ -153,9 +153,11 @@ async function workaround(element: WebdriverIO.Element) {
  *   ("start"). "nearest" would not move it: at the center, it is already in view
  * An element without a box (`display: none`) is left to the driver, which throws.
  *
- * After a scroll, the script resolves on the next animation frame. The browser fires the
+ * After a scroll, the script resolves after two animation frames. The browser fires the
  * `scroll` events of the page before the animation frame callbacks, so the page handles
- * them before the click, as it does for a user.
+ * them before the click, as it does for a user. The second frame is for Firefox 156, which
+ * rounds a fractional scroll position (the center) one frame later, with one more `scroll`
+ * event.
  *
  * All steps run in one `execute`. The page scrolls the element itself
  * (`Element.scrollIntoView()`, without a smooth animation), not with the `scrollIntoView`
@@ -226,7 +228,7 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
                 return
             }
             return new Promise<void>((resolve) => {
-                requestAnimationFrame(() => resolve())
+                requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
                 setTimeout(resolve, 100)
             })
         }, element as unknown as HTMLElement, offset)

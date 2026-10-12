@@ -109,7 +109,13 @@ describe('click with options', () => {
     it('keeps the offset from the center of an element that the window clips', async () => {
         const top = await browser.execute(() => document.getElementById('partial')!.getBoundingClientRect().top + window.scrollY)
         const { clicks } = await clickAndRecord($('#partial'), { y: 40 }, { scrollY: top + 40 })
-        expect(clicks.map(({ target, dy }) => ({ target, dy }))).toEqual([{ target: 'partial', dy: 40 }])
+        expect(clicks.map(({ target }) => target)).toEqual(['partial'])
+        /**
+         * the element is scrolled to the center, which can be half a pixel: Firefox 156
+         * rounds it and clicks 1 px off. Counted from the clipped center, the click was
+         * 40 px off.
+         */
+        expect(Math.abs(clicks[0].dy - 40)).toBeLessThanOrEqual(1)
     })
 
     it('keeps a key that the test holds (Shift-click)', async () => {
