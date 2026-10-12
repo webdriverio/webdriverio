@@ -209,6 +209,18 @@ describe('finding an element again', () => {
             expect(await elem.isFocused()).toBe(true)
         })
 
+        it('isStable finds it again and checks the movement of the new element', async () => {
+            const elem = await $('.item')
+            await renderItems(['replaced'])
+            await browser.execute(() => {
+                const style = document.createElement('style')
+                style.textContent = '@keyframes move { from { margin-left: 0 } to { margin-left: 300px } } .item { animation: move 1s linear infinite }'
+                document.head.appendChild(style)
+            })
+
+            expect(await elem.isStable()).toBe(false)
+        })
+
         it('isDisplayed finds it again after the page is loaded again', async () => {
             const elem = await $('.item')
             await browser.url(FIXTURE)
