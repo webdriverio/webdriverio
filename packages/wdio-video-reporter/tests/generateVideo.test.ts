@@ -49,8 +49,8 @@ vi.mock('@wdio/allure-reporter', () => ({ addAttachment: vi.fn(), addArgument: v
 
 vi.mock('@wdio/globals', () => ({ browser: { capabilities: { browserName: 'chrome' }, on: vi.fn() } }))
 
-const render = async (recordingPath = '/foo/bar/rawSeleniumVideoGrabs/my-test') => {
-    const reporter = new VideoReporter({})
+const render = async (recordingPath = '/foo/bar/rawSeleniumVideoGrabs/my-test', options = {}) => {
+    const reporter = new VideoReporter(options)
     reporter.testName = 'my-test'
     reporter.recordingPath = recordingPath
     await reporter.generateVideo()
@@ -84,7 +84,7 @@ describe('generateVideo', () => {
         expect(command).toBe('/foo/bar/ffmpeg')
         expect(options.shell).toBeFalsy()
         expect(args).toContain(`${recordingPath}/%04d.png`)
-        expect(args).toContain('scale=1200:trunc(ow/a/2)*2,setpts=3.0*PTS')
+        expect(args).toContain('scale=1200:trunc(ow/a/2)*2,setpts=3*PTS')
         expect(args.at(-1)).toMatch(/my-test\.webm$/)
         expect(args.some((arg) => arg.startsWith('"'))).toBe(false)
     })
@@ -98,5 +98,13 @@ describe('generateVideo', () => {
         } finally {
             ffmpeg.spawnError = undefined
         }
+    })
+    it('accepts a videoSlowdownMultiplier that is not an integer', async () => {
+        ffmpeg.exitCode = 0
+        ffmpeg.stderr = ''
+        vi.mocked(spawn).mockClear()
+        await render(undefined, { videoSlowdownMultiplier: 1.5 })
+        const [, args] = vi.mocked(spawn).mock.calls[0] as unknown as [string, string[]]
+        expect(args).toContain('scale=1200:trunc(ow/a/2)*2,setpts=1.5*PTS')
     })
 })

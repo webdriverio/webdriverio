@@ -632,7 +632,7 @@ export default class VideoReporter extends WdioReporter {
             '-vcodec', formatSettings.vcodec,
             '-crf', '32',
             '-pix_fmt', 'yuv420p',
-            '-vf', `scale=${this.options.videoScale},setpts=${this.options.videoSlowdownMultiplier}.0*PTS`,
+            '-vf', `scale=${this.options.videoScale},setpts=${this.options.videoSlowdownMultiplier}*PTS`,
             videoPath,
         ]
         this.#log(`ffmpeg command: ${command} ${args.join(' ')}`)
