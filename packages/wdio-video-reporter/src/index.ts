@@ -304,15 +304,21 @@ export default class VideoReporter extends WdioReporter {
         if (this.isCucumberFramework || this.options.filenamePrefixSource === 'suite') {
             this.testNameStructure.pop()
         }
+        /**
+         * only a Cucumber scenario with step reporting has its video made here. For the
+         * other suites, the video of the last test already started: a frame now would
+         * not be in it, and ffmpeg could read it half written.
+         */
+        if (!this.#isCucumberStepReporter || suite.type !== 'scenario') {
+            return
+        }
         const hasFailedTests = suite.tests.filter(test => test.state === 'failed').length > 0
         const allTestsPassed = suite.tests.filter(test => test.state === 'failed').length === 0
 
         if (hasFailedTests || (allTestsPassed && this.options.saveAllVideos)) {
             this.addFrame()
             // Cucumber reports each step as a test: make one video when the scenario ends
-            if (this.#isCucumberStepReporter && suite.type === 'scenario') {
-                this.generateVideo()
-            }
+            this.generateVideo()
         }
     }
 
