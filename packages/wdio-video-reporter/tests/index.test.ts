@@ -328,6 +328,22 @@ describe('Video Reporter', () => {
             )
         })
 
+        it('sets the recording path for a Cucumber scenario reported as a test (scenarioLevelReporter)', () => {
+            const reporter = new VideoReporter({})
+            reporter.onRunnerStart({
+                ...allureRunner,
+                instanceOptions: { 1234: { framework: 'cucumber', cucumberOpts: { scenarioLevelReporter: true } } }
+            })
+            expect(reporter.isCucumberFramework).toBe(true)
+            reporter.onTestStart({ title: 'my scenario' } as any)
+            expect(fs.mkdirSync).toBeCalledWith(
+                expect.stringContaining(`${path.sep}my-scenario--CHROME--`),
+                { recursive: true }
+            )
+            reporter.onTestFail({ title: 'my scenario', state: 'failed' } as any)
+            expect(reporter.testNameStructure).toEqual([])
+        })
+
         it('adds a frame on interval', () => {
             const reporter = new VideoReporter({ screenshotIntervalSecs: 1 })
             reporter.addFrame = vi.fn() as any

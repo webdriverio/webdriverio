@@ -43,6 +43,11 @@ export default class VideoReporter extends WdioReporter {
     testNameStructure: string[] = []
     testName?: string
     isCucumberFramework = false
+    /**
+     * Cucumber with `scenarioLevelReporter`: each scenario is reported as a test,
+     * not as a suite with its steps as tests
+     */
+    #isScenarioLevelReporter = false
     #pendingBidiCommands: (string | undefined)[] = []
     #listensToBidiCommands = false
 
@@ -113,6 +118,8 @@ export default class VideoReporter extends WdioReporter {
         }
 
         this.isCucumberFramework = runnerInstance.framework === 'cucumber'
+        this.#isScenarioLevelReporter = this.isCucumberFramework &&
+            Boolean((runnerInstance as { cucumberOpts?: { scenarioLevelReporter?: boolean } }).cucumberOpts?.scenarioLevelReporter)
         const allureConfig = runnerInstance.reporters?.find((r) => r === 'allure' || (r as [string, WebdriverIO.ReporterOption])[0] === 'allure') as [string, WebdriverIO.ReporterOption]
         if (allureConfig?.[1]?.outputDir) {
             this.#allureOutputDir = path.resolve(allureConfig[1].outputDir)
@@ -251,7 +258,7 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
-        if (!this.isCucumberFramework && this.options.filenamePrefixSource === 'test') {
+        if ((!this.isCucumberFramework || this.#isScenarioLevelReporter) && this.options.filenamePrefixSource === 'test') {
             this.testNameStructure.push(suite.title.replace(/ /g, '-').replace(/-{2,}/g, '-'))
             this.#setRecordingPath()
         }
@@ -310,7 +317,7 @@ export default class VideoReporter extends WdioReporter {
         }
 
         this.clearScreenshotInterval()
-        if (this.options.filenamePrefixSource === 'test' && !this.isCucumberFramework) {
+        if (this.options.filenamePrefixSource === 'test' && (!this.isCucumberFramework || this.#isScenarioLevelReporter)) {
             this.testNameStructure.pop()
         }
         this.#extendAllureReport()
