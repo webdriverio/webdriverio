@@ -19,7 +19,56 @@ That said, taking a screenshot after almost every command can slow down your tes
 
 # Installation
 
-First, install the reporter:
+## Install ffmpeg
+
+The reporter makes the videos with [ffmpeg](https://ffmpeg.org/). WebdriverIO does not install ffmpeg. Install it on
+each machine that runs the tests, also on the CI machines:
+
+```sh
+# macOS (Homebrew)
+brew install ffmpeg
+
+# Ubuntu, Debian
+sudo apt-get update && sudo apt-get install -y ffmpeg
+
+# Windows (winget or Chocolatey)
+winget install --id Gyan.FFmpeg -e
+choco install ffmpeg -y
+```
+
+For other systems, see [ffmpeg.org/download.html](https://ffmpeg.org/download.html). Then make sure that ffmpeg
+starts:
+
+```sh
+ffmpeg -version
+```
+
+The reporter looks for ffmpeg in this order:
+
+1. the [`ffmpegPath`](#ffmpegpath) option
+2. the `FFMPEG_PATH` environment variable
+3. `ffmpeg` on the `PATH` (`ffmpeg.exe` on Windows)
+
+When it does not find ffmpeg, the reporter logs a warning and makes no video. The tests run as usual.
+
+The default video format `webm` uses the VP9 encoder (`libvpx-vp9`). The `mp4` format needs a ffmpeg with the H.264
+encoder (`libx264`). The packages above have both. ffmpeg has its own license (LGPL or GPL, depending on the build):
+you install it from your own source, under the license of that source.
+
+In GitHub Actions, add a step before the tests:
+
+```yaml
+- name: Install ffmpeg
+  shell: bash
+  run: |
+    if [ "$RUNNER_OS" = "Linux" ]; then sudo apt-get update && sudo apt-get install -y ffmpeg; fi
+    if [ "$RUNNER_OS" = "macOS" ]; then brew install ffmpeg; fi
+    if [ "$RUNNER_OS" = "Windows" ]; then choco install ffmpeg -y --no-progress; fi
+```
+
+In a Docker image based on Debian or Ubuntu, add `RUN apt-get update && apt-get install -y ffmpeg`.
+
+## Install the reporter
 
 ```sh
 npm install @wdio/video-reporter --save-dev
@@ -171,6 +220,13 @@ Video format (container) to be used. Supported formats: `mp4`, `webm`.
 Type: `string`<br />
 Default: `webm`
 
+### `ffmpegPath`
+
+Path of the ffmpeg executable. If it is not set, the reporter uses the `FFMPEG_PATH` environment variable, then
+`ffmpeg` on the `PATH`. See [Install ffmpeg](#install-ffmpeg).
+
+Type: `string`
+
 ### `onlyRecordLastFailure`
 
 Only record the last failure when `specFileRetries` is > 0
@@ -221,8 +277,9 @@ Check out the simple template at [wdio-template](https://github.com/presidenten/
 # Older WebdriverIO Versions
 
 This package supports WebdriverIO v10 and later. For WebdriverIO v9, use the community package
-[`wdio-video-reporter`](https://github.com/webdriverio-community/wdio-video-reporter). To move from that package to
-this one, see the [v10 migration guide](https://webdriver.io/docs/v10-migration#video-reporter).
+[`wdio-video-reporter`](https://github.com/webdriverio-community/wdio-video-reporter). That package installs ffmpeg
+itself; this one uses the ffmpeg that you [install](#install-ffmpeg). To move from that package to this one, see the
+[v10 migration guide](https://webdriver.io/docs/v10-migration#video-reporter).
 
 Thanks
 ======

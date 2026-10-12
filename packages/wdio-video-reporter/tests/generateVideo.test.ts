@@ -1,8 +1,9 @@
 import { spawn } from 'node:child_process'
 import { describe, it, expect, vi } from 'vitest'
+import type * as HelpersModule from '../src/helpers.js'
 import VideoReporter from '../src/index.js'
 
-const ffmpeg = vi.hoisted(() => ({ exitCode: 0, stderr: '' }))
+const ffmpeg = vi.hoisted(() => ({ exitCode: 0, stderr: '', spawnError: undefined as Error | undefined }))
 
 vi.mock('node:child_process', async () => {
     const { EventEmitter } = await import('node:events')
@@ -10,6 +11,10 @@ vi.mock('node:child_process', async () => {
         spawn: vi.fn(() => {
             const cp = Object.assign(new EventEmitter(), { stderr: new EventEmitter(), kill: vi.fn() })
             setTimeout(() => {
+                if (ffmpeg.spawnError) {
+                    cp.emit('error', ffmpeg.spawnError)
+                    return
+                }
                 cp.stderr.emit('data', Buffer.from(ffmpeg.stderr))
                 cp.emit('close', ffmpeg.exitCode)
             }, 10)
@@ -25,7 +30,10 @@ vi.mock('node:fs', () => {
 
 vi.mock('glob', () => ({ glob: () => Promise.resolve([]) }))
 
-vi.mock('@ffmpeg-installer/ffmpeg', () => ({ path: '/foo/bar/ffmpeg' }))
+vi.mock('../src/helpers.js', async (importOriginal) => ({
+    ...await importOriginal<typeof HelpersModule>(),
+    findFfmpeg: vi.fn(() => '/foo/bar/ffmpeg')
+}))
 
 vi.mock('@wdio/reporter', () => ({
     default: class {
@@ -79,5 +87,16 @@ describe('generateVideo', () => {
         expect(args).toContain('scale=1200:trunc(ow/a/2)*2,setpts=3.0*PTS')
         expect(args.at(-1)).toMatch(/my-test\.webm$/)
         expect(args.some((arg) => arg.startsWith('"'))).toBe(false)
+    })
+
+    it('logs a ffmpeg that cannot start, and does not throw', async () => {
+        ffmpeg.spawnError = Object.assign(new Error('spawn /foo/bar/ffmpeg ENOENT'), { code: 'ENOENT' })
+        try {
+            const log = await render()
+            expect(log).toContain('could not start ffmpeg')
+            expect(log).toContain('ENOENT')
+        } finally {
+            ffmpeg.spawnError = undefined
+        }
     })
 })

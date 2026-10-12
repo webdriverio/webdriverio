@@ -43,6 +43,16 @@ jobs:
           [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($screen.Bounds.Left, ($screen.Bounds.Bottom - 1))
           Write-Host "Cursor after: $([System.Windows.Forms.Cursor]::Position)"
 
+      # @wdio/video-reporter does not ship ffmpeg (test:e2e:video-reporter needs it)
+      - name: Install ffmpeg
+        shell: bash
+        run: |
+          if ! command -v ffmpeg >/dev/null; then
+            if [ "$RUNNER_OS" = "macOS" ]; then brew install ffmpeg; fi
+            if [ "$RUNNER_OS" = "Windows" ]; then choco install ffmpeg -y --no-progress; fi
+          fi
+          ffmpeg -version | head -1
+
       - name: Testrunner Tests
         run: |
           pnpm run test:e2e:testrunner

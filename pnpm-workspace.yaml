@@ -23,14 +23,6 @@ allowBuilds:
   esbuild: false
   geckodriver: false
   nx: false
-  '@ffmpeg-installer/darwin-arm64': false
-  '@ffmpeg-installer/darwin-x64': false
-  '@ffmpeg-installer/linux-arm': false
-  '@ffmpeg-installer/linux-arm64': false
-  '@ffmpeg-installer/linux-ia32': false
-  '@ffmpeg-installer/linux-x64': false
-  '@ffmpeg-installer/win32-ia32': false
-  '@ffmpeg-installer/win32-x64': false
 
 # first-party releases for v10 published inside pnpm's minimumReleaseAge window:
 # expect-webdriverio 8.0.0 and @wdio/visual-service 11.0.0 (with
