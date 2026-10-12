@@ -105,12 +105,22 @@ export function waitForVideosToBeWritten (videos: string[], abortTime: number, s
     return false
 }
 
-export function getCurrentCapabilities (browser: WebdriverIO.Browser) {
-    const mrCaps = browser.capabilities as Capabilities.RequestedMultiRemoteCapabilities
-    const w3cCaps = browser.capabilities as Capabilities.W3CCapabilities
-    const currentCapabilities: WebdriverIO.Capabilities = browser.isMultiRemote
-        ? mrCaps[Object.keys(browser.capabilities)[0]].capabilities as WebdriverIO.Capabilities
-        : w3cCaps.alwaysMatch || browser.capabilities as WebdriverIO.Capabilities
+/**
+ * The browser that takes the screenshots: the first instance of a multi-remote
+ * browser (its commands would run on all instances), else the browser itself
+ */
+export function getScreenshotBrowser (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser): WebdriverIO.Browser {
+    if (browser.isMultiRemote) {
+        const multiRemoteBrowser = browser as WebdriverIO.MultiRemoteBrowser
+        return multiRemoteBrowser.getInstance(multiRemoteBrowser.instances[0])
+    }
+    return browser as WebdriverIO.Browser
+}
+
+export function getCurrentCapabilities (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+    const instance = getScreenshotBrowser(browser)
+    const w3cCaps = instance.capabilities as Capabilities.W3CCapabilities
+    const currentCapabilities: WebdriverIO.Capabilities = w3cCaps.alwaysMatch || instance.capabilities as WebdriverIO.Capabilities
     return currentCapabilities
 }
 

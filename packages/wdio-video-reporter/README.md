@@ -13,6 +13,8 @@ As this reporter is using the WebDriver screenshot command ([`takeScreenshot`](h
 
 In a WebDriver BiDi session, some commands use WebDriver BiDi instead of a WebDriver endpoint: `url` (with an `http` or `https` URL), `back`, `forward`, `refresh` and `actions`. The reporter also takes a frame for these commands. `execute` in a BiDi session gives no frame (WebdriverIO also uses the same BiDi command inside many other commands).
 
+In a multi-remote session, the reporter records the first browser instance.
+
 That said, taking a screenshot after almost every command can slow down your tests. Also, note that the videos don't include alert-boxes and popups.
 
 # Installation
