@@ -48,14 +48,30 @@ export const config: WebdriverIO.Config = {
 
     onComplete () {
         const errors: string[] = []
-        const isFile = (file: string) => fs.existsSync(file) && fs.statSync(file).size > 0
+        /**
+         * a WebM file starts with the EBML signature: a placeholder that still holds the
+         * path of the video as text does not
+         */
+        const isVideo = (file: string) => {
+            if (!fs.existsSync(file)) {
+                return false
+            }
+            const fd = fs.openSync(file, 'r')
+            try {
+                const signature = Buffer.alloc(4)
+                fs.readSync(fd, signature, 0, 4, 0)
+                return signature.equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]))
+            } finally {
+                fs.closeSync(fd)
+            }
+        }
 
         const videos = fs.existsSync(videoDir)
             ? fs.readdirSync(videoDir).filter((file) => file.endsWith('.webm'))
             : []
         for (const test of TESTS) {
             const prefix = test.replace(/ /g, '-')
-            if (!videos.some((video) => video.startsWith(prefix) && isFile(path.join(videoDir, video)))) {
+            if (!videos.some((video) => video.startsWith(prefix) && isVideo(path.join(videoDir, video)))) {
                 errors.push(`no video for "${test}" in ${videoDir} (found: ${videos.join(', ') || 'none'})`)
             }
         }
@@ -78,8 +94,8 @@ export const config: WebdriverIO.Config = {
             const video = result && attachmentsOf(result).find((a) => a.type === 'video/webm')
             if (!video) {
                 errors.push(`no Allure video attachment for "${test}"`)
-            } else if (!isFile(path.join(allureDir, video.source))) {
-                errors.push(`the Allure video of "${test}" is not a video file: ${video.source}`)
+            } else if (!isVideo(path.join(allureDir, video.source))) {
+                errors.push(`the Allure video of "${test}" is not a WebM video: ${video.source}`)
             }
         }
 

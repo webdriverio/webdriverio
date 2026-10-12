@@ -319,6 +319,19 @@ describe('Video Reporter', () => {
         })
     })
 
+    describe('own screenshots', () => {
+        it('takes no frame for the result of a screenshot command, also with recordAllActions', () => {
+            const reporter = new VideoReporter({ recordAllActions: true })
+            reporter.recordingPath = '/foo/bar'
+            reporter.addFrame = vi.fn() as any
+            reporter.onAfterCommand({ endpoint: '/session/1234/screenshot' } as any)
+            reporter.onAfterCommand({ endpoint: '/session/1234/element/5678/screenshot' } as any)
+            expect(reporter.addFrame).toBeCalledTimes(0)
+            reporter.onAfterCommand({ endpoint: '/session/1234/url' } as any)
+            expect(reporter.addFrame).toBeCalledTimes(1)
+        })
+    })
+
     describe('ffmpeg', () => {
         it('records with the ffmpeg of the user', () => {
             const reporter = new VideoReporter({ ffmpegPath: '/my/ffmpeg' })
@@ -563,6 +576,21 @@ describe('Video Reporter', () => {
             listeners.bidiResult({ id: 1, type: 'success', result: {} })
             expect(browser.takeScreenshot).toBeCalledTimes(1)
             listeners.bidiResult({ id: 2, type: 'success', result: {} })
+            expect(browser.takeScreenshot).toBeCalledTimes(1)
+            browser.isBidi = false
+        })
+
+        it('matches each BiDi result to its command by id, also when they come out of order', () => {
+            browser.isBidi = true
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            reporter.listenToBidiCommands()
+            listeners.bidiCommand({ id: 5, method: 'script.callFunction', params: {} })
+            listeners.bidiCommand({ id: 6, method: 'browsingContext.navigate', params: {} })
+            // the navigation answers first, the slow script after it
+            listeners.bidiResult({ id: 6, type: 'success', result: {} })
+            expect(browser.takeScreenshot).toBeCalledTimes(1)
+            listeners.bidiResult({ id: 5, type: 'success', result: {} })
             expect(browser.takeScreenshot).toBeCalledTimes(1)
             browser.isBidi = false
         })
