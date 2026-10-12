@@ -367,12 +367,14 @@ describe('Video Reporter', () => {
             expect(addArgumentExtensionMock).toBeCalledWith('browserVersion', '1.2.3')
         })
 
-        it('should add frame if test failed', async () => {
+        it('should add frame if a step of the Cucumber scenario failed', async () => {
             const reporter = new VideoReporter({})
             reporter.testName = 'foo bar'
             reporter.recordingPath = '/foo/bar'
             reporter.onRunnerStart(allureRunner)
-            reporter.onSuiteEnd({ tests: [{ state: 'failed' }] } as any)
+            reporter.isCucumberFramework = true
+            reporter.generateVideo = vi.fn() as any
+            reporter.onSuiteEnd({ type: 'scenario', tests: [{ state: 'failed' }] } as any)
             await sleep()
             expect(browser.takeScreenshot).toBeCalledTimes(1)
             expect(fs.writeFileSync).toBeCalledTimes(1)
@@ -385,10 +387,24 @@ describe('Video Reporter', () => {
             reporter.testName = 'foo bar'
             reporter.recordingPath = '/foo/bar'
             reporter.onRunnerStart(allureRunner)
-            reporter.onSuiteEnd({ tests: [{ state: 'failed' }] } as any)
+            reporter.isCucumberFramework = true
+            reporter.generateVideo = vi.fn() as any
+            reporter.onSuiteEnd({ type: 'scenario', tests: [{ state: 'failed' }] } as any)
             await sleep()
             expect(browser.takeScreenshot).toBeCalledTimes(1)
             expect(fs.writeFileSync).toBeCalledTimes(1)
+        })
+
+        it('takes no frame at the end of a Mocha or Jasmine suite, or of a Cucumber feature', () => {
+            const reporter = new VideoReporter({ saveAllVideos: true })
+            reporter.testName = 'foo bar'
+            reporter.recordingPath = '/foo/bar'
+            reporter.addFrame = vi.fn() as any
+            // the video of the last test already started: a frame now is not in it
+            reporter.onSuiteEnd({ type: 'suite', tests: [{ state: 'failed' }] } as any)
+            reporter.isCucumberFramework = true
+            reporter.onSuiteEnd({ type: 'feature', tests: [] } as any)
+            expect(reporter.addFrame).toBeCalledTimes(0)
         })
 
         it('should not call addFrame', () => {
