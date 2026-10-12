@@ -179,9 +179,11 @@ Default: `5000`
 
 ### `outputDir`
 
-If it's not set, it uses [`outputDir`](https://webdriver.io/docs/configuration#outputdir).
+If it's not set, it uses [`outputDir`](https://webdriver.io/docs/configuration#outputdir). If that is not set
+either, it uses `_results_`.
 
 Type: `string`<br />
+Default: the WebdriverIO `outputDir`, else `_results_`
 
 ### `maxTestNameCharacters`
 
