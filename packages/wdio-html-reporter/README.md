@@ -120,3 +120,4 @@ To create a PDF file from the report, see [`@rpii/wdio-html-reporter-pdf`](https
 ## Older WebdriverIO Versions
 
 This package supports WebdriverIO v10 and later. For WebdriverIO v9, use [`wdio-html-nice-reporter`](https://www.npmjs.com/package/wdio-html-nice-reporter). For v9, its reporter name is `html-nice`. For v10, the name is `html`.
+To move from that package to this one, see the [v10 migration guide](https://webdriver.io/docs/v10-migration#html-reporter).

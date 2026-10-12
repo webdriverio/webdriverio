@@ -420,6 +420,33 @@ winget install --id Gyan.FFmpeg -e                          # Windows
 - `videoFormat` accepts `webm` (the default) and `mp4`. Before, `videoFormat: 'default'` made mp4 videos; now it logs a warning and makes webm videos. Use `videoFormat: 'mp4'`.
 - With the Allure reporter, a test without a video no longer gets an empty video attachment.
 
+### HTML reporter
+
+`wdio-html-nice-reporter` moved into the WebdriverIO repository as [`@wdio/html-reporter`](/docs/html-reporter). The old package is for v9 only.
+
+```sh
+npm uninstall wdio-html-nice-reporter
+npm install @wdio/html-reporter --save-dev
+```
+
+The reporter name is `html`. Change the name in `reporters` and the imports:
+
+```diff
+- import { ReportAggregator } from 'wdio-html-nice-reporter'
++ import { ReportAggregator } from '@wdio/html-reporter'
+
+  reporters: [
+-     ['html-nice', { outputDir: './reports/html-reports/' }]
++     ['html', { outputDir: './reports/html-reports/' }]
+  ]
+```
+
+The options are the same. Also change these:
+
+- `ReportEvents` comes from `@wdio/html-reporter`. Tests that still use `@rpii/wdio-report-events` work, because both send the same events.
+- The command line script is `node_modules/@wdio/html-reporter/build/makeReport.js`. It was `node_modules/wdio-html-nice-reporter/lib/makeReport.js`.
+- With Cucumber, the report counts scenarios, not steps, and counts only the last try of a retried scenario.
+
 ## `$` is strict
 
 `$` now represents __exactly one__ element. If the selector resolves to more than one element, the command throws a `StrictSelectorError` instead of silently using the first match:
