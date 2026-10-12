@@ -707,6 +707,31 @@ describe('Video Reporter', () => {
             browser.isBidi = false
         })
 
+        it('starts each test with the main window, not with the tab of the last test', async () => {
+            browser.isBidi = true
+            vi.mocked(browser.takeScreenshot).mockResolvedValue('aW1hZ2U=')
+            vi.mocked(browser.getWindowHandle).mockResolvedValue('main-tab')
+            vi.mocked(browser.browsingContextCaptureScreenshot).mockResolvedValue({ data: 'dGFi' } as any)
+            const reporter = new VideoReporter({})
+            reporter.listenToBidiCommands()
+            await sleep(0)
+            reporter.onTestStart({ uid: '1', title: 'test 1' } as any)
+            listeners.bidiCommand({ id: 1, method: 'browsingContext.navigate', params: { context: 'second-tab', url: 'https://x' } })
+            listeners.bidiResult({ id: 1, type: 'success', result: {} })
+            reporter.onTestEnd({ uid: '1', state: 'passed' } as any)
+            await sleep()
+            vi.mocked(browser.takeScreenshot).mockClear()
+            vi.mocked(browser.browsingContextCaptureScreenshot).mockClear()
+
+            // test 2 sends no command that takes a frame: its end frame shows the main window
+            reporter.onTestStart({ uid: '2', title: 'test 2' } as any)
+            reporter.addFrame()
+            await sleep()
+            expect(browser.takeScreenshot).toBeCalledTimes(1)
+            expect(browser.browsingContextCaptureScreenshot).toBeCalledTimes(0)
+            browser.isBidi = false
+        })
+
         it('takes the classic screenshot when the tab of the frame was closed', async () => {
             browser.isBidi = true
             vi.mocked(browser.takeScreenshot).mockResolvedValue('aW1hZ2U=')
