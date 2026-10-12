@@ -17,6 +17,8 @@ export class HtmlReporterOptions implements Reporters.Options  {
     /** make the http and https URLs in log messages links (the text stays escaped) */
     linkUrls?: boolean
     produceJson?:boolean | undefined
+    /** also write an HTML report for each worker (next to its JSON file) */
+    produceHtml?: boolean
 
     constructor() {
         this.outputDir = 'reports/html-reports/'

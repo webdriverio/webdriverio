@@ -60,13 +60,13 @@ export const config: WebdriverIO.Config = {
 }
 ```
 
-`outputDir` must be a path relative to the folder where you start WebdriverIO.
+`outputDir` can be relative to the folder where you start WebdriverIO, or absolute.
 
 ## Options
 
 | Option | Default | Description |
 |---|---|---|
-| `outputDir` | `reports/html-reports/` | Folder of the JSON files and the report. Relative to the current working folder. |
+| `outputDir` | `reports/html-reports/` | Folder of the JSON files and the report: relative to the current working folder, or absolute. |
 | `filename` | `report.html` | File name of the report. |
 | `reportTitle` | `Test Report Title` | Title of the report. |
 | `showInBrowser` | `false` | Open the report in a browser when it is done (`ReportAggregator` only). |
@@ -78,6 +78,7 @@ export const config: WebdriverIO.Config = {
 | `browserName` | `not specified` | Browser name to show in the report. The browser is not known when the configuration loads, so set it yourself. |
 | `removeOutput` | `true` | Remove the console output of the tests from the JSON files. |
 | `produceJson` | `true` | Write the JSON file of each worker. The `ReportAggregator` needs these files. |
+| `produceHtml` | `false` | Also write an HTML report for each worker, next to its JSON file. |
 
 ## Logs, screenshots and videos
 
@@ -105,10 +106,12 @@ it('logs in', async () => {
 If the report is not created in `onComplete` (for example with some Cucumber or Jasmine setups), create it after the test run:
 
 ```sh
-node node_modules/@wdio/html-reporter/build/makeReport.js master-report.html
+node node_modules/@wdio/html-reporter/build/makeReport.js master-report.html reports/html-reports/ "Master Report"
 ```
 
-The script reads the JSON files in `./reports/html-reports/`.
+The arguments are the file name of the report, the folder of the JSON files (default `reports/html-reports/`) and
+the title (default `Master Report`). The script opens the report in a browser, except when the `CI` environment
+variable is set.
 
 ## PDF report
 
