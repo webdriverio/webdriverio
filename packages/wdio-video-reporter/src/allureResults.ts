@@ -33,9 +33,22 @@ export function removeAllureAttachments (allureOutputDir: string, placeholderFil
     }
     for (const file of fs.readdirSync(allureOutputDir).filter((name) => name.endsWith('-result.json'))) {
         const resultPath = path.resolve(allureOutputDir, file)
-        const result = JSON.parse(fs.readFileSync(resultPath, 'utf-8')) as AllureNode
+        let result: AllureNode
+        try {
+            result = JSON.parse(fs.readFileSync(resultPath, 'utf-8')) as AllureNode
+        } catch {
+            /**
+             * another worker can write this file at the same time: it is not one of ours
+             */
+            continue
+        }
         if (removeFromNode(result, sources)) {
-            fs.writeFileSync(resultPath, JSON.stringify(result))
+            /**
+             * a rename replaces the file at once, so another worker never reads half of it
+             */
+            const tempPath = `${resultPath}.${process.pid}.tmp`
+            fs.writeFileSync(tempPath, JSON.stringify(result))
+            fs.renameSync(tempPath, resultPath)
         }
     }
 }

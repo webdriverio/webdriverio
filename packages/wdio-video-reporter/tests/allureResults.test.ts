@@ -44,4 +44,17 @@ describe('removeAllureAttachments', () => {
         removeAllureAttachments(dir, [])
         expect(fs.readFileSync(path.join(dir, '1-result.json'), 'utf-8')).toBe('{"name":"x","attachments":[]}')
     })
+
+    it('skips a result file that another worker is writing, and keeps going', () => {
+        const result = { name: 'passes', attachments: [{ name: 'Execution video', source: 'a-attachment.webm', type: 'video/webm' }] }
+        fs.writeFileSync(path.join(dir, '1-result.json'), '{"name":"half writ')
+        fs.writeFileSync(path.join(dir, '2-result.json'), JSON.stringify(result))
+        fs.writeFileSync(path.join(dir, 'a-attachment.webm'), '/videos/passes.webm')
+
+        expect(() => removeAllureAttachments(dir, [path.join(dir, 'a-attachment.webm')])).not.toThrow()
+
+        expect(JSON.parse(fs.readFileSync(path.join(dir, '2-result.json'), 'utf-8')).attachments).toEqual([])
+        expect(fs.readFileSync(path.join(dir, '1-result.json'), 'utf-8')).toBe('{"name":"half writ')
+        expect(fs.readdirSync(dir).filter((file) => file.includes('.tmp'))).toEqual([])
+    })
 })

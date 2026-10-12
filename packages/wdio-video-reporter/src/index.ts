@@ -53,6 +53,7 @@ export default class VideoReporter extends WdioReporter {
      */
     #isScenarioLevelReporter = false
     #pendingBidiCommands: (string | undefined)[] = []
+    #bidiCommandsById = new Map<number, string | undefined>()
     #listensToBidiCommands = false
 
     /**
@@ -168,6 +169,13 @@ export default class VideoReporter extends WdioReporter {
 
         const command = commandArgs.endpoint?.match(/[^/]+$/)
         const commandName = command ? command[0] : 'undefined'
+        /**
+         * a screenshot does not change the page, and the frames of this reporter are
+         * screenshots: with `recordAllActions`, each frame would start the next one
+         */
+        if (commandName === 'screenshot') {
+            return false
+        }
         return this.#addFrameForCommand(commandName, commandArgs.endpoint)
     }
 
@@ -183,14 +191,23 @@ export default class VideoReporter extends WdioReporter {
         }
         this.#listensToBidiCommands = true
         /**
-         * a result has the id of its command, but not its method: keep the commands
-         * in the order they were sent, and take the oldest one for each result
+         * a result has the id of its command, but not its method: keep the command of
+         * each id (results can come in another order). Without an id, take the oldest.
          */
-        instance.on('bidiCommand', (command: { method?: string, params?: unknown }) => {
-            this.#pendingBidiCommands.push(getBidiSnapshotCommand(command))
+        instance.on('bidiCommand', (command: { id?: number, method?: string, params?: unknown }) => {
+            const commandName = getBidiSnapshotCommand(command)
+            if (typeof command.id === 'number') {
+                this.#bidiCommandsById.set(command.id, commandName)
+            } else {
+                this.#pendingBidiCommands.push(commandName)
+            }
         })
-        instance.on('bidiResult', () => {
-            const commandName = this.#pendingBidiCommands.shift()
+        instance.on('bidiResult', (result: { id?: number }) => {
+            const hasId = typeof result?.id === 'number' && this.#bidiCommandsById.has(result.id)
+            const commandName = hasId ? this.#bidiCommandsById.get(result.id!) : this.#pendingBidiCommands.shift()
+            if (hasId) {
+                this.#bidiCommandsById.delete(result.id!)
+            }
             if (!commandName || !this.#record) {
                 return
             }
