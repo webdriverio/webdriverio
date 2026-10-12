@@ -693,6 +693,38 @@ const cucumberSameFeatureFileName = async () => {
 }
 
 /**
+ * Cucumber with @wdio/cucumberjs-json-reporter: writes one JSON file per feature,
+ * with the attachments that the steps send with `attach()`
+ */
+const cucumberJsJsonReporter = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = path.join(basePath, 'json')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporter',
+        path.resolve(basePath, 'cucumberjs-json.config.js'),
+        { specs: [path.resolve(basePath, 'cucumberjs-json.feature')] }
+    )
+    const files = await fs.readdir(jsonFolder)
+    assert.equal(files.length, 1)
+    const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+    assert.equal(feature.name, 'CucumberJS JSON report')
+    assert.equal(feature.elements.length, 1)
+    const steps = feature.elements[0].steps.filter((step) => !['Before', 'After'].includes(step.keyword))
+    assert.deepEqual(
+        steps.map((step) => [step.keyword, step.name, step.result.status]),
+        [
+            ['Given', 'I attach the text "hello"', 'passed'],
+            ['And', 'I attach the JSON value "world"', 'passed'],
+            ['Then', 'the page title is "Mock Page Title"', 'passed']
+        ]
+    )
+    assert.deepEqual(steps[0].embeddings, [{ data: Buffer.from('hello').toString('base64'), mime_type: 'text/plain' }])
+    assert.deepEqual(steps[1].embeddings, [{ data: Buffer.from('{"value":"world"}').toString('base64'), mime_type: 'application/json' }])
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
  * Cucumber file option
  */
 const cucumberFileOption = async () => {
@@ -1534,6 +1566,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberGroupedSpecsRandomOrder,
         cucumberGroupedSpecsRandomOrderHistory,
         cucumberSameFeatureFileName,
+        cucumberJsJsonReporter,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,

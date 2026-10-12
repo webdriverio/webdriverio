@@ -1,0 +1,290 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`reporter > addStepData > should add step data to a current scenario 1`] = `
+[
+  {
+    "foo": "current-step",
+  },
+]
+`;
+
+exports[`reporter > cucumberJsAttachment > should be able to add embeddings to a current step when they have not been added 1`] = `
+{
+  "foo": "current-step",
+  "status": "pending",
+}
+`;
+
+exports[`reporter > cucumberJsAttachment > should be able to add embeddings to a current step when they have not been added 2`] = `
+{
+  "embeddings": [
+    {
+      "data": "ZGF0YQ==",
+      "mime_type": "text/plain",
+    },
+  ],
+  "foo": "current-step",
+  "status": "pending",
+}
+`;
+
+exports[`reporter > cucumberJsAttachment > should be able to add embeddings to a current step which already has embeddings 1`] = `
+{
+  "embeddings": [
+    {
+      "data": "data-1",
+      "mime_type": "text/plain",
+    },
+  ],
+  "foo": "current-step",
+  "result": {
+    "duration": 1,
+    "status": "pending",
+  },
+}
+`;
+
+exports[`reporter > cucumberJsAttachment > should be able to add embeddings to a current step which already has embeddings 2`] = `
+{
+  "embeddings": [
+    {
+      "data": "data-1",
+      "mime_type": "text/plain",
+    },
+    {
+      "data": "ZGF0YS0y",
+      "mime_type": "text/plain",
+    },
+  ],
+  "foo": "current-step",
+  "result": {
+    "duration": 1,
+    "status": "pending",
+  },
+}
+`;
+
+exports[`reporter > getFeatureDataObject > should be able to to create a feature JSON data object 1`] = `
+{
+  "description": "",
+  "elements": [],
+  "id": "create-passed-feature",
+  "keyword": "Feature",
+  "line": null,
+  "name": "Create passed feature",
+  "tags": [],
+  "type": "feature",
+  "uri": "Can not be determined",
+}
+`;
+
+exports[`reporter > getFeatureDataObject > should be able to to create a feature JSON data object with no line data 1`] = `
+{
+  "description": "",
+  "elements": [],
+  "id": "create-passed-feature",
+  "keyword": "Feature",
+  "line": null,
+  "name": "Create passed feature",
+  "tags": [],
+  "type": "feature",
+  "uri": "Can not be determined",
+}
+`;
+
+exports[`reporter > getScenarioDataObject > should be able to to create a scenario JSON data object 1`] = `
+{
+  "description": "",
+  "id": "create-passed-featurehook-this-is-doing-nothing-because-it's-a-background"",
+  "keyword": "Scenario",
+  "name": "Hook This is doing nothing because it's a background"",
+  "steps": [],
+  "tags": [],
+  "type": "test",
+}
+`;
+
+exports[`reporter > getStepDataObject > should be able to add arguments to the step if they are present 1`] = `
+{
+  "arguments": [
+    {
+      "rows": [
+        {
+          "cells": [
+            "Cucumber",
+            "Cucumis sativus",
+          ],
+        },
+        {
+          "cells": [
+            "Burr Gherkin",
+            "Cucumis anguria",
+          ],
+        },
+      ],
+    },
+  ],
+  "keyword": "Given",
+  "line": null,
+  "match": {
+    "location": "can not be determined with webdriver.io",
+  },
+  "name": "I open "http://webdriver.io/"",
+  "result": {
+    "duration": 0,
+    "status": "",
+  },
+}
+`;
+
+exports[`reporter > getStepDataObject > should be able to to create a step JSON data object 1`] = `
+{
+  "arguments": [],
+  "keyword": "Given",
+  "line": null,
+  "match": {
+    "location": "can not be determined with webdriver.io",
+  },
+  "name": "I open "http://webdriver.io/"",
+  "result": {
+    "duration": 0,
+    "status": "",
+  },
+}
+`;
+
+exports[`reporter > getStepDataObject > should be able to to create a step JSON data object based on a hook 1`] = `
+{
+  "arguments": [],
+  "keyword": "Before",
+  "line": null,
+  "match": {
+    "location": "can not be determined with webdriver.io",
+  },
+  "name": "Hook",
+  "result": {
+    "duration": 0,
+    "status": "",
+  },
+}
+`;
+
+exports[`reporter > getStepDataObject > should be able to to create a step JSON data object based on malformed data 1`] = `
+{
+  "arguments": [],
+  "keyword": "",
+  "line": null,
+  "match": {
+    "location": "can not be determined with webdriver.io",
+  },
+  "name": "",
+  "result": {
+    "duration": 0,
+    "status": "pending",
+  },
+}
+`;
+
+exports[`reporter > getStepDataObject > should be able to to create a step JSON data object based on missing keyword data 1`] = `
+{
+  "arguments": [],
+  "keyword": "",
+  "line": null,
+  "match": {
+    "location": "can not be determined with webdriver.io",
+  },
+  "name": "I load the Swag Labs demo website",
+  "result": {
+    "duration": 555000000,
+    "status": "passed",
+  },
+}
+`;
+
+exports[`reporter > on create > should set the defaults if only the logfile option is provided 1`] = `
+{
+  "jsonFolder": ".tmp/json/",
+  "language": "en",
+  "reportFilePerRetry": true,
+}
+`;
+
+exports[`reporter > on create > should verify initial properties 1`] = `
+{
+  "language": "en",
+  "reportFilePerRetry": true,
+}
+`;
+
+exports[`reporter > on create > should verify initial properties 2`] = `{}`;
+
+exports[`reporter > onSuiteStart > should add a scenario to the feature if the feature is already there 1`] = `
+[
+  {
+    "description": "",
+    "id": "create-passed-featureopen-website",
+    "keyword": "Scenario",
+    "name": "Open website",
+    "steps": [],
+    "tags": "",
+  },
+]
+`;
+
+exports[`reporter > onSuiteStart > should add instance data to the feature if the feature is already there 1`] = `{}`;
+
+exports[`reporter > onSuiteStart > should add instance data to the feature if the feature is already there 2`] = `
+{
+  "feature": {
+    "description": "",
+    "elements": [
+      {
+        "description": "",
+        "id": "create-passed-featureopen-website",
+        "keyword": "Scenario",
+        "name": "Open website",
+        "steps": [],
+        "tags": "",
+      },
+    ],
+    "id": "empty-feature",
+    "keyword": "Feature",
+    "line": 2,
+    "metadata": {
+      "foo": "bar",
+    },
+    "name": "Empty feature",
+    "tags": "",
+  },
+}
+`;
+
+exports[`reporter > onSuiteStart > should add the CucumberJS feature object if it is not available 1`] = `{}`;
+
+exports[`reporter > onSuiteStart > should add the CucumberJS feature object if it is not available 2`] = `
+{
+  "feature": {
+    "keyword": "feature",
+    "metadata": {},
+  },
+}
+`;
+
+exports[`reporter > updateStepStatus > should update step data of the current scenario step 1`] = `
+[
+  {
+    "foo": "current-step",
+    "status": "pending",
+  },
+]
+`;
+
+exports[`reporter > updateStepStatus > should update step data of the current scenario step 2`] = `
+[
+  {
+    "bar": false,
+    "foo": "current-step",
+    "status": "passed",
+  },
+]
+`;
