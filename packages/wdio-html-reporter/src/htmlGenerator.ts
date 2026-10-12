@@ -170,8 +170,8 @@ class HtmlGenerator {
                 return reportOptions.collapseSuites
             })
 
-            environment.addGlobal('logClass', (text:string) => {
-                if (text && text.includes('Test Iteration')) {
+            environment.addGlobal('logClass', (text: unknown) => {
+                if (typeof text === 'string' && text.includes('Test Iteration')) {
                     return 'test-iteration'
                 }
                 return 'log-output'

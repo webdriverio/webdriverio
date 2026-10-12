@@ -3,14 +3,14 @@
  * Same API and events as `@rpii/wdio-report-events`, so both packages work
  * with this reporter.
  */
-type Emit = (event: string, value: string) => boolean
+type Emit = (event: string, value: unknown) => boolean
 
-function emit (event: string, value: string) {
+function emit (event: string, value: unknown) {
     (process.emit as unknown as Emit).call(process, event, value)
 }
 
 export default class ReportEvents {
-    logMessage(message: string) {
+    logMessage(message: unknown) {
         emit('test:log', message)
         return this
     }
@@ -25,7 +25,7 @@ export default class ReportEvents {
         return this
     }
 
-    connectMessageEvent(fn: (message: string) => void) {
+    connectMessageEvent(fn: (message: unknown) => void) {
         process.on('test:log' as 'message', fn)
         return this
     }

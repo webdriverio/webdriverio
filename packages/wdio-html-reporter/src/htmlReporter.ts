@@ -16,6 +16,7 @@ import ReportGenerator from './reportGenerator.js'
 
 import fs from 'fs-extra'
 import path from 'node:path'
+import util from 'node:util'
 import logger from '@wdio/logger'
 
 const reportProxy = new ReportEvents()
@@ -262,13 +263,18 @@ export default class HtmlReporter extends WDIOReporter {
             test.events.push(new InternalReportEvent('video-capture', filepath))
         }
     }
-    saveMessage(message: string) {
-        this.LOG.info(String.format('saveMessage: {0}', message))
+    saveMessage(message: unknown) {
+        /**
+         * the report shows text: show other values (for example an object) as
+         * readable text, else the template fails and the suite is missing
+         */
+        const text = typeof message === 'string' ? message : util.inspect(message, { depth: null })
+        this.LOG.info(String.format('saveMessage: {0}', text))
         const test = this.getTest(this._currentTestUid)
         if (test) {
             this.moveErrorsToEvents(test)
             //@ts-ignore
-            test.events.push({ type: 'log', value: message })
+            test.events.push({ type: 'log', value: text })
         }
     }
 
