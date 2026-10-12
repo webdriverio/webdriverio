@@ -13,9 +13,15 @@
     .spacer { display: inline-block; width: 400px; height: 1px; }
     .vscroll { height: 100px; width: 300px; overflow-y: auto; }
     .vscroll .spacer { display: block; width: auto; height: 300px; }
+    .both { width: 200px; height: 100px; overflow: auto; }
+    .both .inner { position: relative; width: 600px; height: 400px; }
+    .both button { position: absolute; left: 450px; top: 300px; }
     #fixed-header { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #fcc; z-index: 10; display: none; }
     #fixed-footer { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; background: #cfc; z-index: 10; display: none; }
     #far { margin-top: 3000px; }
+    #below-box { margin-top: 1000px; }
+    #wide-row { display: none; width: 5000px; }
+    #wide { margin-left: 3000px; }
     #end { height: 1500px; }
 </style>
 </head>
@@ -29,9 +35,15 @@
     <div class="box hscroll"><span class="spacer"></span><button id="with-child"><span id="child">child</span></button></div>
     <div class="box hscroll" style="scroll-behavior: smooth"><span class="spacer"></span><button id="smooth-clip">smooth-clip</button></div>
     <div class="box" id="host"></div>
+    <!-- hidden in both directions by its container -->
+    <div class="box both"><div class="inner"><button id="both">both</button></div></div>
 
     <button id="far">far</button>
     <button id="partial" style="display: block; width: 200px; height: 100px">partial</button>
+    <!-- below the window and hidden by its container: the page and the container scroll -->
+    <div class="box hscroll" id="below-box"><span class="spacer"></span><button id="below">below</button></div>
+    <!-- below and right of the window, shown only by reset({ wide: true }): the page scrolls in both directions -->
+    <div id="wide-row"><button id="wide">wide</button></div>
     <div id="end"></div>
 
     <div id="fixed-header">header</div>
@@ -44,7 +56,11 @@
         '<span style="display: inline-block; width: 400px; height: 1px"></span><button id="shadow-clip">shadow-clip</button></div>'
 
     window.clicks = []
+    // the order of the scroll and click events that the page gets
+    window.events = []
+    document.addEventListener('scroll', () => window.events.push('scroll'), true)
     const record = (event) => {
+        window.events.push(event.type)
         const target = event.composedPath()[0]
         const rect = target.getBoundingClientRect()
         window.clicks.push({
@@ -61,16 +77,24 @@
         event.preventDefault()
     }, true)
 
-    window.reset = (options) => {
-        window.clicks = []
+    /**
+     * resolves when the scroll events of the reset have fired: the browser fires them
+     * before the animation frame callbacks
+     */
+    window.reset = (options) => new Promise((resolve) => {
         document.getElementById('fixed-header').style.display = options.header ? 'block' : 'none'
         document.getElementById('fixed-footer').style.display = options.footer ? 'block' : 'none'
+        document.getElementById('wide-row').style.display = options.wide ? 'block' : 'none'
         for (const el of [...document.querySelectorAll('.box'), shadow.querySelector('.scroll')]) {
-            el.scrollLeft = 0
-            el.scrollTop = 0
+            el.scrollTo({ left: 0, top: 0, behavior: 'instant' })
         }
-        window.scrollTo(0, options.scrollY || 0)
-    }
+        window.scrollTo({ left: 0, top: options.scrollY || 0, behavior: 'instant' })
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            window.clicks = []
+            window.events = []
+            resolve()
+        }))
+    })
 </script>
 </body>
 </html>

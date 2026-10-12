@@ -15,8 +15,10 @@ const log = logger('webdriver')
  * give added capabilities like passing button type, coordinates etc. By default, when using options a release action
  * command is send after performing the click action, pass `option.skipRelease=true` to skip this action.
  * Before the actions, when the pointer would not hit the element at its center (it is outside the window, hidden by a
- * scroll container or covered by a fixed header or footer), the element is scrolled into view, then to the center
- * if it is still covered. An element that the pointer already hits is not scrolled.
+ * scroll container or covered by a fixed header or footer), the element is scrolled to the center of the window and of
+ * its scroll containers, and the page gets its `scroll` events before the click. An element that the pointer already
+ * hits is not scrolled. In Firefox, a click without options does the same before the WebDriver `click` command,
+ * because geckodriver scrolls and clicks without giving the page its `scroll` events first.
  *
  * :::info
  *
@@ -142,9 +144,14 @@ async function workaround(element: WebdriverIO.Element) {
  * - the pointer already hits the element: don't scroll, the page doesn't move. With an
  *   offset, the window must not clip the element (the offset counts from the center of
  *   the part in the window), and the pointer must hit the element at the click point
- * - scroll it just into view ("nearest"), and check again
- * - still missed, for example under a fixed header or footer: scroll it to the center
+ * - missed: scroll it to the center. At an edge of the window, a fixed header or footer
+ *   or a scrollbar can cover it: Safari shows its overlay scrollbar after a scroll, and
+ *   that scrollbar takes the click of an element at the bottom edge
  * An element without a box (`display: none`) is left to the driver, which throws.
+ *
+ * After a scroll, the script resolves on the next animation frame. The browser fires the
+ * `scroll` events of the page before the animation frame callbacks, so the page handles
+ * them before the click, as it does for a user.
  *
  * All steps run in one `execute`. The page scrolls the element itself
  * (`Element.scrollIntoView()`, without a smooth animation), not with the `scrollIntoView`
@@ -197,14 +204,18 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
                 }
                 return 'missed'
             }
-            for (const scroll of [null, { block: 'nearest', inline: 'nearest' }, { block: 'center', inline: 'center' }] as const) {
-                if (scroll) {
-                    elem.scrollIntoView({ ...scroll, behavior: 'instant' })
-                }
-                if (hitTest() !== 'missed') {
-                    return
-                }
+            if (hitTest() !== 'missed') {
+                return
             }
+            elem.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' })
+            // a hidden page gets no animation frame
+            if (document.visibilityState === 'hidden') {
+                return
+            }
+            return new Promise<void>((resolve) => {
+                requestAnimationFrame(() => resolve())
+                setTimeout(resolve, 100)
+            })
         }, element as unknown as HTMLElement, offset)
     } catch (err) {
         log.debug(`Could not scroll the element into view before the click: ${(err as Error).message}`)
@@ -212,6 +223,16 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
 }
 
 async function elementClick(element: WebdriverIO.Element) {
+    const browser = getBrowserObject(element) as WebdriverIO.Browser
+    /**
+     * geckodriver scrolls the element into view and clicks it in one step, so the page
+     * gets its `scroll` events after the click. ChromeDriver almost always gives the page
+     * a frame between the scroll and the click (it missed about 1 click in 300),
+     * safaridriver always does. This costs one more request, so only Firefox pays it.
+     */
+    if (browser.isFirefox) {
+        await bringIntoView(browser, element, { x: 0, y: 0 })
+    }
     try {
         return await element.elementClick(element.elementId)
     } catch (error) {

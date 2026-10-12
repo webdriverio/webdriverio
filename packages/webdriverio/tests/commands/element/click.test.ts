@@ -285,7 +285,7 @@ describe('click test', () => {
             expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
         })
 
-        it('should not check or scroll for a click without options', async () => {
+        it('should not check or scroll for a click without options outside Firefox', async () => {
             const { elem, scrollIntoView, execute } = await setup()
 
             await elem.click()
@@ -295,7 +295,6 @@ describe('click test', () => {
 
         describe('the script in the page', () => {
             type Rect = { x: number, y: number, width: number, height: number }
-            const NEAREST = { block: 'nearest', inline: 'nearest', behavior: 'instant' }
             const CENTER = { block: 'center', inline: 'center', behavior: 'instant' }
 
             /**
@@ -307,10 +306,11 @@ describe('click test', () => {
                 rects: (Rect | undefined)[]
                 hitAt: (elem: object, x: number, y: number, scrolls: number) => unknown
                 offset?: { x: number, y: number }
+                visibilityState?: string
             }) => {
                 const { elem: element, execute } = await setup()
                 await element.click(options.offset ?? {})
-                const script = execute.mock.calls[0][0] as unknown as (elem: unknown, offset: { x: number, y: number }) => void
+                const script = execute.mock.calls[0][0] as unknown as (elem: unknown, offset: { x: number, y: number }) => Promise<void> | undefined
 
                 const scrolls: unknown[] = []
                 const elem = {
@@ -321,46 +321,85 @@ describe('click test', () => {
                     }
                 }
                 const points: number[][] = []
-                const page = globalThis as unknown as { window?: unknown, document?: unknown }
-                const saved = { window: page.window, document: page.document }
+                const frames: (() => void)[] = []
+                const page = globalThis as unknown as { window?: unknown, document?: unknown, requestAnimationFrame?: unknown }
+                const saved = { window: page.window, document: page.document, requestAnimationFrame: page.requestAnimationFrame }
                 page.window = { innerWidth: 1000, innerHeight: 800 }
-                page.document = { elementFromPoint: (x: number, y: number) => {
-                    points.push([x, y])
-                    return options.hitAt(elem, x, y, scrolls.length)
-                } }
+                page.document = {
+                    visibilityState: options.visibilityState ?? 'visible',
+                    elementFromPoint: (x: number, y: number) => {
+                        points.push([x, y])
+                        return options.hitAt(elem, x, y, scrolls.length)
+                    }
+                }
+                page.requestAnimationFrame = (callback: () => void) => frames.push(callback)
+                let result: Promise<void> | undefined
                 try {
-                    script(elem, options.offset ?? { x: 0, y: 0 })
+                    result = script(elem, options.offset ?? { x: 0, y: 0 })
                 } finally {
                     page.window = saved.window
                     page.document = saved.document
+                    page.requestAnimationFrame = saved.requestAnimationFrame
                 }
-                return { scrolls, points }
+                return { scrolls, points, result, frames }
             }
             const inView = { x: 100, y: 100, width: 100, height: 40 }
             const other = { parentNode: null }
 
-            it('does not scroll when the element is hit', async () => {
-                const { scrolls, points } = await runInPage({ rects: [inView], hitAt: (elem) => elem })
+            it('does not scroll or wait when the element is hit', async () => {
+                const { scrolls, points, result, frames } = await runInPage({ rects: [inView], hitAt: (elem) => elem })
                 expect(scrolls).toEqual([])
+                expect(points).toEqual([[150, 120]])
+                expect(result).toBeUndefined()
+                expect(frames).toHaveLength(0)
+            })
+
+            it('scrolls to the center when the element is not hit', async () => {
+                const { scrolls, points } = await runInPage({ rects: [inView], hitAt: () => other })
+                expect(scrolls).toEqual([CENTER])
                 expect(points).toEqual([[150, 120]])
             })
 
-            it('scrolls just into view, then to the center while the element is not hit', async () => {
-                const afterNearest = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 1 ? elem : other })
-                expect(afterNearest.scrolls).toEqual([NEAREST])
+            it('waits for the next animation frame after a scroll, so the scroll events fire before the click', async () => {
+                const { result, frames } = await runInPage({ rects: [inView], hitAt: () => other })
+                let resolved = false
+                result!.then(() => { resolved = true })
+                await Promise.resolve()
+                expect(resolved).toBe(false)
 
-                const afterCenter = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 2 ? elem : other })
-                expect(afterCenter.scrolls).toEqual([NEAREST, CENTER])
+                expect(frames).toHaveLength(1)
+                frames[0]()
+                await result
+                expect(resolved).toBe(true)
+            })
 
-                const never = await runInPage({ rects: [inView], hitAt: () => other })
-                expect(never.scrolls).toEqual([NEAREST, CENTER])
+            it('does not wait longer than 100 ms when no animation frame comes', async () => {
+                vi.useFakeTimers()
+                try {
+                    const { result } = await runInPage({ rects: [inView], hitAt: () => other })
+                    let resolved = false
+                    result!.then(() => { resolved = true })
+                    await vi.advanceTimersByTimeAsync(99)
+                    expect(resolved).toBe(false)
+                    await vi.advanceTimersByTimeAsync(1)
+                    expect(resolved).toBe(true)
+                } finally {
+                    vi.useRealTimers()
+                }
+            })
+
+            it('does not wait on a hidden page, which gets no animation frame', async () => {
+                const { scrolls, result, frames } = await runInPage({ rects: [inView], hitAt: () => other, visibilityState: 'hidden' })
+                expect(scrolls).toEqual([CENTER])
+                expect(result).toBeUndefined()
+                expect(frames).toHaveLength(0)
             })
 
             it('does not hit-test a point outside the window', async () => {
                 const below = { x: 100, y: 3000, width: 100, height: 40 }
                 const { scrolls, points } = await runInPage({ rects: [below, inView], hitAt: (elem) => elem })
-                expect(scrolls).toEqual([NEAREST])
-                expect(points).toEqual([[150, 120]])
+                expect(scrolls).toEqual([CENTER])
+                expect(points).toEqual([])
             })
 
             it('does not scroll an element without a box', async () => {
@@ -384,8 +423,12 @@ describe('click test', () => {
                 const clipped = { x: 100, y: -40, width: 100, height: 100 }
                 const whole = { x: 100, y: 100, width: 100, height: 100 }
                 const { scrolls, points } = await runInPage({ rects: [clipped, whole], hitAt: (elem) => elem, offset: { x: 0, y: 40 } })
-                expect(scrolls).toEqual([NEAREST])
-                expect(points).toEqual([[150, 190]])
+                expect(scrolls).toEqual([CENTER])
+                expect(points).toEqual([])
+
+                const onElement = await runInPage({ rects: [whole], hitAt: (elem) => elem, offset: { x: 0, y: 40 } })
+                expect(onElement.scrolls).toEqual([])
+                expect(onElement.points).toEqual([[150, 190]])
 
                 const outside = await runInPage({ rects: [whole], hitAt: (elem) => elem, offset: { x: 0, y: 80 } })
                 expect(outside.points).toEqual([[150, 150]])
@@ -431,6 +474,41 @@ describe('click test', () => {
         await click.call(scope as never, { button: 'left' })
         expect(scope.execute).toHaveBeenCalledTimes(1)
         expect(scope.perform).toHaveBeenCalled()
+    })
+
+    describe('click without options in Firefox', () => {
+        const scope = (isFirefox: boolean) => ({
+            elementId: 'some-elem',
+            isFirefox,
+            execute: vi.fn(),
+            elementClick: vi.fn()
+        })
+
+        it('should bring the element into view before the WebDriver click', async () => {
+            const elem = scope(true)
+
+            await click.call(elem as never)
+            expect(elem.execute).toHaveBeenCalledTimes(1)
+            expect(elem.execute.mock.calls[0][2]).toEqual({ x: 0, y: 0 })
+            expect(elem.execute.mock.invocationCallOrder[0]).toBeLessThan(elem.elementClick.mock.invocationCallOrder[0])
+            expect(elem.elementClick).toHaveBeenCalledWith('some-elem')
+        })
+
+        it('should still click when the element could not be checked', async () => {
+            const elem = scope(true)
+            elem.execute.mockRejectedValueOnce(new Error('stale element reference'))
+
+            await click.call(elem as never)
+            expect(elem.elementClick).toHaveBeenCalledTimes(1)
+        })
+
+        it('should send only the WebDriver click in other browsers', async () => {
+            const elem = scope(false)
+
+            await click.call(elem as never)
+            expect(elem.execute).not.toHaveBeenCalled()
+            expect(elem.elementClick).toHaveBeenCalledTimes(1)
+        })
     })
 
     it('should scroll to the center and click again when the pointer action fails', async () => {
