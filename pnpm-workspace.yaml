@@ -13,7 +13,8 @@ packages:
   - 'examples/appium/**'
   - '!e2e/session/__fixtures__/**'
 
-# only sharp runs its install script; the rest work without theirs
+# only sharp and the ffmpeg binaries of @wdio/video-reporter (`chmod u+x ffmpeg`)
+# run their install scripts; the rest work without theirs
 allowBuilds:
   sharp: true
   '@swc/core': false
@@ -23,6 +24,14 @@ allowBuilds:
   esbuild: false
   geckodriver: false
   nx: false
+  '@ffmpeg-installer/darwin-arm64': true
+  '@ffmpeg-installer/darwin-x64': true
+  '@ffmpeg-installer/linux-arm': true
+  '@ffmpeg-installer/linux-arm64': true
+  '@ffmpeg-installer/linux-ia32': true
+  '@ffmpeg-installer/linux-x64': true
+  '@ffmpeg-installer/win32-ia32': true
+  '@ffmpeg-installer/win32-x64': true
 
 # first-party releases for v10 published inside pnpm's minimumReleaseAge window:
 # expect-webdriverio 8.0.0 and @wdio/visual-service 11.0.0 (with
