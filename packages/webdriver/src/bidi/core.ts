@@ -46,6 +46,17 @@ const MAX_TIMER_DELAY = 2 ** 31 - 1
  */
 export const MAX_EXPIRED_COMMANDS = 1000
 
+/**
+ * a command that waits for its result
+ */
+interface PendingCommand {
+    resolve: (payload: CommandResponse) => void
+    /**
+     * reject with why the command gets no result
+     */
+    reject: (reason: string) => void
+}
+
 export class BidiCore {
     #id = 0
     #ws: WebSocket | undefined
@@ -55,7 +66,12 @@ export class BidiCore {
     #clientOptions: ClientOptions | undefined
     #responseTimeout: number
     #connectTimeout: number | undefined
-    #pendingCommands: Map<number, (value: CommandResponse) => void> = new Map()
+    #pendingCommands: Map<number, PendingCommand> = new Map()
+    /**
+     * the socket listeners, kept to remove them again in `close()`
+     */
+    #onMessage = this.#handleResponse.bind(this)
+    #onClose?: (code?: number) => void
     /**
      * commands that ran out of their script timeout: their late result is ignored
      */
@@ -109,8 +125,19 @@ export class BidiCore {
         this._isConnected = Boolean(this.#ws)
         this.#resolveWaitForConnected(this._isConnected)
 
-        if (this.#ws) {
-            this.#ws.on('message', this.#handleResponse.bind(this))
+        const ws = this.#ws
+        if (ws) {
+            ws.on('message', this.#onMessage)
+            /**
+             * only the socket of this connection: after `reconnect()`, the old socket
+             * can still send its close event
+             */
+            this.#onClose = (code?: number) => {
+                if (this.#ws === ws) {
+                    this.#handleClose(code)
+                }
+            }
+            ws.on('close', this.#onClose)
         }
 
         return this._isConnected
@@ -124,11 +151,50 @@ export class BidiCore {
         log.info(`Close Bidi connection to ${this.#webSocketUrl}`)
         this._isConnected = false
         this.#expiredCommands.clear()
-        if (this.#ws) {
-            this.#ws.off('message', this.#handleResponse.bind(this))
-            this.#ws.close()
-            this.#ws.terminate()
-            this.#ws = undefined
+        /**
+         * first: the socket teardown below can throw
+         */
+        this.#rejectPendingCommands('the connection was closed')
+        const ws = this.#ws
+        this.#ws = undefined
+        if (ws) {
+            ws.off('message', this.#onMessage)
+            if (this.#onClose) {
+                ws.off('close', this.#onClose)
+            }
+            ws.close()
+            /**
+             * the `BrowserSocket` of the browser build has no `terminate()`
+             */
+            if (typeof ws.terminate === 'function') {
+                ws.terminate()
+            }
+        }
+    }
+
+    /**
+     * The browser or the driver closed the socket (for example a browser crash, a
+     * cloud timeout or a lost network): no pending command can get a result anymore.
+     */
+    #handleClose (code?: number) {
+        log.info(`Bidi connection to ${this.#webSocketUrl} closed${typeof code === 'number' ? ` (code ${code})` : ''}`)
+        this._isConnected = false
+        this.#expiredCommands.clear()
+        this.#ws = undefined
+        this.#rejectPendingCommands(
+            `the browser or the driver closed the connection${typeof code === 'number' ? ` (code ${code})` : ''}`
+        )
+    }
+
+    /**
+     * Reject the pending commands at once: without a connection, they would wait
+     * for `bidiResponseTimeout` and then fail with a misleading timeout error.
+     */
+    #rejectPendingCommands (reason: string) {
+        const pending = [...this.#pendingCommands.values()]
+        this.#pendingCommands.clear()
+        for (const command of pending) {
+            command.reject(reason)
         }
     }
 
@@ -177,8 +243,8 @@ export class BidiCore {
 
             log.info('BIDI RESULT', resultLog)
             this.client?.emit('bidiResult', payload)
-            const resolve = this.#pendingCommands.get(payload.id)
-            if (!resolve) {
+            const command = this.#pendingCommands.get(payload.id)
+            if (!command) {
                 if (this.#expiredCommands.delete(payload.id)) {
                     log.debug(`Ignore the result of command with id ${payload.id}, it ran out of its script timeout`)
                     return
@@ -188,7 +254,7 @@ export class BidiCore {
             }
 
             this.#pendingCommands.delete(payload.id)
-            resolve(payload)
+            command.resolve(payload)
         } catch (err) {
             const error = err instanceof Error ? err : new Error(`Failed parse message: ${String(err)}`)
             log.error(`Failed parse message: ${error.message}`)
@@ -224,10 +290,21 @@ export class BidiCore {
                     this.#expiredCommands.add(id)
                 }, scriptTimeout)
                 : undefined
-            this.#pendingCommands.set(id, (payload) => {
-                clearTimeout(t)
-                clearTimeout(scriptTimer)
-                resolve(payload)
+            this.#pendingCommands.set(id, {
+                resolve: (payload) => {
+                    clearTimeout(t)
+                    clearTimeout(scriptTimer)
+                    resolve(payload)
+                },
+                /**
+                 * `failError` has the stack of the line that sent the command
+                 */
+                reject: (reason) => {
+                    clearTimeout(t)
+                    clearTimeout(scriptTimer)
+                    failError.message = `WebDriver Bidi command "${params.method}" with id ${id} got no result: ${reason}`
+                    reject(failError)
+                }
             })
         })
 

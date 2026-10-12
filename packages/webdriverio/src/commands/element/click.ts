@@ -15,8 +15,12 @@ const log = logger('webdriver')
  * give added capabilities like passing button type, coordinates etc. By default, when using options a release action
  * command is send after performing the click action, pass `option.skipRelease=true` to skip this action.
  * Before the actions, when the pointer would not hit the element at its center (it is outside the window, hidden by a
- * scroll container or covered by a fixed header or footer), the element is scrolled into view, then to the center
- * if it is still covered. An element that the pointer already hits is not scrolled.
+ * scroll container or covered by a fixed header or footer), the element is scrolled to the center of the window and of
+ * its scroll containers (to the bottom or the top when something covers it at the center), and the page gets its
+ * `scroll` events before the click. An element that the pointer already hits is not scrolled. In Firefox, a click
+ * without options does the same before the WebDriver `click` command, because geckodriver scrolls and clicks without
+ * giving the page its `scroll` events first. When something intercepts a click without options in any browser
+ * (for example a sticky header), the element is brought under the pointer in the same way and clicked again.
  *
  * :::info
  *
@@ -142,9 +146,19 @@ async function workaround(element: WebdriverIO.Element) {
  * - the pointer already hits the element: don't scroll, the page doesn't move. With an
  *   offset, the window must not clip the element (the offset counts from the center of
  *   the part in the window), and the pointer must hit the element at the click point
- * - scroll it just into view ("nearest"), and check again
- * - still missed, for example under a fixed header or footer: scroll it to the center
+ * - missed: scroll it to the center, and check again. At an edge of the window, a fixed
+ *   header or footer or a scrollbar can cover it: Safari shows its overlay scrollbar
+ *   after a scroll, and that scrollbar takes the click of an element at the bottom edge
+ * - still missed, for example under a sticky header or footer that covers the center of
+ *   a small scroll container: align it with the bottom ("end"), then with the top
+ *   ("start"). "nearest" would not move it: at the center, it is already in view
  * An element without a box (`display: none`) is left to the driver, which throws.
+ *
+ * After a scroll, the script resolves after two animation frames. The browser fires the
+ * `scroll` events of the page before the animation frame callbacks, so the page handles
+ * them before the click, as it does for a user. The second frame is for Firefox 156, which
+ * rounds a fractional scroll position (the center) one frame later, with one more `scroll`
+ * event.
  *
  * All steps run in one `execute`. The page scrolls the element itself
  * (`Element.scrollIntoView()`, without a smooth animation), not with the `scrollIntoView`
@@ -197,14 +211,27 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
                 }
                 return 'missed'
             }
-            for (const scroll of [null, { block: 'nearest', inline: 'nearest' }, { block: 'center', inline: 'center' }] as const) {
-                if (scroll) {
-                    elem.scrollIntoView({ ...scroll, behavior: 'instant' })
-                }
+            if (hitTest() !== 'missed') {
+                return
+            }
+            for (const scroll of [
+                { block: 'center', inline: 'center' },
+                { block: 'end', inline: 'nearest' },
+                { block: 'start', inline: 'nearest' }
+            ] as const) {
+                elem.scrollIntoView({ ...scroll, behavior: 'instant' })
                 if (hitTest() !== 'missed') {
-                    return
+                    break
                 }
             }
+            // a hidden page gets no animation frame
+            if (document.visibilityState === 'hidden') {
+                return
+            }
+            return new Promise<void>((resolve) => {
+                requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+                setTimeout(resolve, 100)
+            })
         }, element as unknown as HTMLElement, offset)
     } catch (err) {
         log.debug(`Could not scroll the element into view before the click: ${(err as Error).message}`)
@@ -212,6 +239,16 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
 }
 
 async function elementClick(element: WebdriverIO.Element) {
+    const browser = getBrowserObject(element) as WebdriverIO.Browser
+    /**
+     * geckodriver scrolls the element into view and clicks it in one step, so the page
+     * gets its `scroll` events after the click. ChromeDriver almost always gives the page
+     * a frame between the scroll and the click (it missed about 1 click in 300),
+     * safaridriver always does. This costs one more request, so only Firefox pays it.
+     */
+    if (browser.isFirefox) {
+        await bringIntoView(browser, element, { x: 0, y: 0 })
+    }
     try {
         return await element.elementClick(element.elementId)
     } catch (error) {
@@ -223,12 +260,24 @@ async function elementClick(element: WebdriverIO.Element) {
         if (typeof error === 'string') {
             err = new Error(error)
         }
-        if (!err.message.includes('element click intercepted')) {
+        /**
+         * The error name is the code: "element click intercepted", "click intercepted"
+         * in Safari. Only ChromeDriver also puts it in the message, geckodriver says
+         * "… obscures it".
+         */
+        if (!`${err.name} ${err.message}`.includes('click intercepted')) {
             // we only apply the workaround when the click got intercepted
             // so that the middleware can handle any other errors
             throw err
         }
-        await workaround(element)
+        /**
+         * The driver scrolled the element under something, e.g. a sticky header of its
+         * scroll container: bring it where the pointer hits it, and click again. The
+         * driver does not scroll an element that is in view. This costs nothing when the
+         * first click works.
+         */
+        const isNativeApp = browser.isMobile && (await browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)
+        await (isNativeApp ? workaround(element) : bringIntoView(browser, element, { x: 0, y: 0 }))
         return element.elementClick(element.elementId)
     }
 }

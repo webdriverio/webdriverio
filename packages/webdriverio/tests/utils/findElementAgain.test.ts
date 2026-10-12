@@ -661,6 +661,40 @@ describe('finding an element again', () => {
             expect(await elem.getText()).toBe('text of elem-d')
         })
 
+        /**
+         * an `async` overwrite of `$$` gives a promise, not the element list: its index
+         * gives the same not found item as a plain `$$`
+         */
+        it('gives the same not found item for the list of an async overwrite of $$', async () => {
+            const browser = await session()
+            browser.overwriteCommand('$$', async (original$$, selector) => original$$(selector))
+
+            expect(await browser.$$('.item')[0].getText()).toBe('text of elem-a')
+            const elem = await browser.$$('.item')[3]
+            expect(elem.elementId).toBeUndefined()
+            expect(elem.index).toBe(3)
+            expect(await browser.$$('.item')[3].isExisting()).toBe(false)
+            expect(await browser.$$('.item')[3].isDisplayed()).toBe(false)
+            const { error } = await settle(browser.$$('.item')[3].click())
+            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+            expect(await elem.getText()).toBe('text of elem-d')
+        })
+
+        it('gives the same not found item for a custom command whose name ends with $$', async () => {
+            const browser = await session()
+            browser.addCommand('items$$', function (this: WebdriverIO.Browser, selector: string) {
+                return this.$$(selector)
+            })
+            const items$$ = (selector: string) => (browser as unknown as { items$$ (selector: string): WebdriverIO.ElementArray }).items$$(selector)
+
+            expect(await items$$('.item')[0].getText()).toBe('text of elem-a')
+            expect(await items$$('.item')[3].isExisting()).toBe(false)
+            const { error } = await settle(items$$('.item')[3].click())
+            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+        })
+
         it('a command uses the item of a custom$$ list once the strategy reaches its index', async () => {
             const browser = await session()
             driver.light.set('#host', ['host-a'])

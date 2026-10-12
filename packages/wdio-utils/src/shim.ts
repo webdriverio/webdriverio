@@ -3,7 +3,7 @@ import type { Frameworks, Services, Options } from '@wdio/types'
 
 import * as iterators from './pIteration.js'
 import { getBrowserObject } from './utils.js'
-import { WDIO_KIND, WDIO_CHAINABLE, type WdioKind } from './kind.js'
+import { WDIO_KIND, WDIO_CHAINABLE, getWdioKind, type WdioKind } from './kind.js'
 
 const log = logger('@wdio/utils:shim')
 
@@ -272,6 +272,16 @@ function createElementPromiseProxy (
                          * `this` is an array of WebdriverIO elements
                          */
                         function (this: WebdriverIOInstance, index: number) {
+                            /**
+                             * an element list reads its own index: it waits for an index past
+                             * its end and gives a "not found" element when the list never
+                             * reaches it. For example the list of an `async`
+                             * `overwriteCommand('$$')`, which comes here as a promise
+                             */
+                            if (getWdioKind(this) === 'element-array') {
+                                return (this as unknown as Record<number, unknown>)[index]
+                            }
+
                             /**
                              * if we access an index that is out of bounds we wait for the
                              * array to get that long, and timeout eventually if it doesn't
