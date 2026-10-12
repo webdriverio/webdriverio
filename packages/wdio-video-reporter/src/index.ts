@@ -60,6 +60,10 @@ export default class VideoReporter extends WdioReporter {
      * not as a suite with its steps as tests
      */
     #isScenarioLevelReporter = false
+    /**
+     * the title of the test that started and did not end yet
+     */
+    #openTestTitle?: string
     #pendingBidiCommands: BidiFrameCommand[] = []
     #bidiCommandsById = new Map<number, BidiFrameCommand>()
     #listensToBidiCommands = false
@@ -343,7 +347,13 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
-        if (!this.isCucumberFramework || this.#isScenarioLevelReporter) {
+        /**
+         * Mocha reports a test as started again (with a new uid) when its beforeEach
+         * hook failed: keep the recording of the first start, with the frames of the hook
+         */
+        const startedAgain = this.#openTestTitle === suite.title
+        this.#openTestTitle = suite.title
+        if ((!this.isCucumberFramework || this.#isScenarioLevelReporter) && !startedAgain) {
             if (this.options.filenamePrefixSource === 'test') {
                 this.testNameStructure.push(suite.title.replace(/ /g, '-').replace(/-{2,}/g, '-'))
             }
@@ -352,9 +362,9 @@ export default class VideoReporter extends WdioReporter {
         }
 
         // Ensure video attachment happens for Allure, even when disableWebdriverStepsReporting is false
-        this.#attachVideoToAllure()
+        this.#attachVideoToAllure(startedAgain)
 
-        if (this.options.screenshotIntervalSecs) {
+        if (this.options.screenshotIntervalSecs && !this.intervalScreenshot) {
             const instance = this
             this.intervalScreenshot = setInterval(
                 () => instance.addFrame(),
@@ -405,6 +415,7 @@ export default class VideoReporter extends WdioReporter {
         }
 
         this.clearScreenshotInterval()
+        this.#openTestTitle = undefined
         if (this.options.filenamePrefixSource === 'test' && (!this.isCucumberFramework || this.#isScenarioLevelReporter)) {
             this.testNameStructure.pop()
         }
@@ -688,15 +699,21 @@ export default class VideoReporter extends WdioReporter {
         fs.mkdirSync(this.recordingPath, { recursive: true })
     }
 
-    #attachVideoToAllure () {
+    /**
+     * @param again  attach also when this video is attached already: the test that
+     *               started again is another Allure test
+     */
+    #attachVideoToAllure (again = false) {
         if (!this.#usingAllure || !this.testName || !this.#record) {
             return
         }
 
         const formatSettings = getVideoFormatSettings(this.options.videoFormat)
         const videoPath = getVideoPath(this.#outputDir, this.testName, formatSettings.fileExtension)
-        if (!this.allureVideos.includes(videoPath)) {
-            this.allureVideos.push(videoPath)
+        if (again || !this.allureVideos.includes(videoPath)) {
+            if (!this.allureVideos.includes(videoPath)) {
+                this.allureVideos.push(videoPath)
+            }
             this.#log(`Adding execution video attachment as ${videoPath}`)
             this.#allureReporter.addAttachment('Execution video', videoPath, formatSettings.contentType)
         }

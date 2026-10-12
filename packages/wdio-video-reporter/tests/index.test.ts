@@ -347,6 +347,26 @@ describe('Video Reporter', () => {
             } as any)
             expect(reporter.generateVideo).toBeCalledTimes(1)
         })
+
+        it('keeps one recording when Mocha reports a test as started again after its beforeEach hook failed', () => {
+            vi.useFakeTimers()
+            try {
+                const reporter = new VideoReporter({ screenshotIntervalSecs: 1 })
+                reporter.addFrame = vi.fn() as any
+                reporter.generateVideo = vi.fn() as any
+                reporter.onTestStart({ uid: 'test-00-0', title: 'test after a failing hook' } as any)
+                const firstPath = reporter.recordingPath
+                reporter.onTestStart({ uid: 'test-00-1', title: 'test after a failing hook' } as any)
+                expect(reporter.recordingPath).toBe(firstPath)
+                expect(reporter.testNameStructure).toEqual(['test-after-a-failing-hook'])
+
+                reporter.onTestEnd({ uid: 'test-00-1', state: 'failed' } as any)
+                expect(reporter.testNameStructure).toEqual([])
+                expect(vi.getTimerCount()).toBe(0)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
     })
 
     describe('ffmpeg', () => {
