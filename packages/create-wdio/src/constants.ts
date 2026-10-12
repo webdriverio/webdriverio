@@ -132,9 +132,9 @@ export const SUPPORTED_PACKAGES = {
         { name: 'sumologic', value: '@wdio/sumologic-reporter$--$sumologic' },
         { name: 'concise', value: '@wdio/concise-reporter$--$concise' },
         { name: 'json', value: '@wdio/json-reporter$--$json' },
+        { name: 'video', value: '@wdio/video-reporter$--$video' },
         // external
         { name: 'reportportal', value: 'wdio-reportportal-reporter$--$reportportal' },
-        { name: 'video', value: 'wdio-video-reporter$--$video' },
         { name: 'cucumber-json', value: 'wdio-cucumberjs-json-reporter$--$cucumberjs-json' },
         { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
         { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },

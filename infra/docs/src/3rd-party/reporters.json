@@ -7,12 +7,6 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-reportportal-reporter"
   },
   {
-    "packageName": "wdio-video-reporter",
-    "title": "Video",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-video-reporter",
-    "npmUrl": "https://www.npmjs.com/package/wdio-video-reporter"
-  },
-  {
     "packageName": "wdio-html-nice-reporter",
     "title": "HTML",
     "branch": "master",
