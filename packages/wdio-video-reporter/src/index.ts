@@ -317,8 +317,12 @@ export default class VideoReporter extends WdioReporter {
         if (!this.#isCucumberStepReporter || suite.type !== 'scenario') {
             return
         }
-        const hasFailedTests = suite.tests.filter(test => test.state === 'failed').length > 0
-        const allTestsPassed = suite.tests.filter(test => test.state === 'failed').length === 0
+        /**
+         * a failed Before or After hook fails the scenario too, without a failed step
+         */
+        const hasFailedTests = suite.tests.some((test) => test.state === 'failed') ||
+            (suite.hooks ?? []).some((hook) => hook.error)
+        const allTestsPassed = !hasFailedTests
 
         if (hasFailedTests || (allTestsPassed && this.options.saveAllVideos)) {
             this.addFrame()
