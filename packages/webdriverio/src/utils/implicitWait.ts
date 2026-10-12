@@ -7,7 +7,7 @@ import { getBrowserObject } from '@wdio/utils'
  * circular import back onto this file via `middlewares.js` -> `refetchElement.js`
  */
 import { StrictSelectorError } from './strictSelectorError.js'
-import { INDEX_NOT_FOUND, findAllAgain, findElementAgain } from './findElementAgain.js'
+import { INDEX_NOT_FOUND, findElementAgain } from './findElementAgain.js'
 
 const log = logger('webdriverio')
 
@@ -23,16 +23,11 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
     if (!currentElement.elementId && !/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/.test(commandName) && !skipForMobileScroll) {
         /**
          * `$$(selector)[index]` already waited `waitforTimeout` for the index, see
-         * `elementAt` in `element/array.ts`: look for it once more, without a wait
+         * `elementAt` in `element/array.ts`: throw its "Index out of bounds" error, without
+         * a second wait and without another lookup
          */
         if ((currentElement as WebdriverIO.Element & { [INDEX_NOT_FOUND]?: boolean })[INDEX_NOT_FOUND]) {
-            const nextElement = await findElementAgain(currentElement)
-            if (nextElement?.elementId) {
-                return nextElement
-            }
-            const elements = await findAllAgain(currentElement).catch(() => [])
-            throw new Error(
-                `Index out of bounds! $$(${String(currentElement.selector)}) returned only ${elements.length} elements.`)
+            throw currentElement.error
         }
 
         log.debug(

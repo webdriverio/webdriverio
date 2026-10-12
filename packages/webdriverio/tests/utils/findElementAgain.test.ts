@@ -552,20 +552,16 @@ describe('finding an element again', () => {
             expect(await browser.$$('.item')[3].waitForDisplayed({ reverse: true })).toBe(true)
         })
 
-        it('a command throws "Index out of bounds" and does not wait a second time', async () => {
-            const browser = await session()
-            const start = Date.now()
-            const { error } = await settle(browser.$$('.item')[3].click())
-            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
-            expect(Date.now() - start).toBeLessThan(190)
-        })
-
-        it('a command finds the index when the list has reached it since', async () => {
+        it('a command throws "Index out of bounds" without a second wait or another lookup', async () => {
             const browser = await session()
             const elem = await browser.$$('.item')[3]
-            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
-            await elem.click()
-            expect(elem.elementId).toBe('elem-d')
+            const waitForExist = vi.spyOn(elem, 'waitForExist')
+            const finds = driver.findsIn.length
+
+            const { error } = await settle(elem.click())
+            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+            expect(waitForExist).not.toHaveBeenCalled()
+            expect(driver.findsIn.length).toBe(finds)
         })
     })
 
