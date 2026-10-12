@@ -241,6 +241,11 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * spawns process to kick of wdio-runner
      */
     async startProcess() {
+        // A watch worker object survives its child process. Wait for the new
+        // process to install its IPC listener before sending another command.
+        this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
+        this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })
+        this.isKilled = false
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 

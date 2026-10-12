@@ -504,6 +504,15 @@ export default class Runner extends EventEmitter {
      * within a hook by the user
      */
     async endSession(payload?: any) {
+        // Requested capabilities can include browsers excluded from this worker.
+        // Only retained instances may be attached during shutdown.
+        const shutdownCapabilities = payload?.args.isMultiRemote && payload.args.instances
+            ? Object.fromEntries(Object.keys(payload.args.instances).map((name) => [
+                name,
+                payload.args.capabilities?.[name] ?? { capabilities: payload.args.instances[name].capabilities ?? {} }
+            ]))
+            : payload?.args.capabilities
+
         if (!this._config && payload?.args.config) {
             this._specs = payload.specs
             this._cid = payload.cid
@@ -514,14 +523,20 @@ export default class Runner extends EventEmitter {
                 delete configOverrides[hook]
             }
             delete configOverrides.services
-            this._configParser = new ConfigParser(payload.configFile)
-            await this._configParser.initialize(configOverrides)
-            this._config = this._configParser.getConfig()
-            ;(await initializeWorkerService(
-                this._config,
-                payload.args.capabilities,
-                payload.args.ignoredWorkerServices
-            )).forEach((service) => this._configParser!.addService(service))
+            this._config = { ...configOverrides, afterSession: [] }
+            try {
+                this._configParser = new ConfigParser(payload.configFile)
+                await this._configParser.initialize(configOverrides)
+                this._config = this._configParser.getConfig()
+                ;(await initializeWorkerService(
+                    this._config,
+                    shutdownCapabilities,
+                    payload.args.ignoredWorkerServices
+                )).forEach((service) => this._configParser!.addService(service))
+            } catch (err) {
+                const reason = err instanceof Error ? err.stack || err.message : String(err)
+                log.error(`Failed to restore shutdown hooks: ${reason}. Closing retained sessions anyway.`)
+            }
         }
 
         /**
@@ -553,14 +568,14 @@ export default class Runner extends EventEmitter {
             this._isMultiRemote = true
             this._browser = await initializeInstance(
                 payload.args.config,
-                payload.args.capabilities,
+                shutdownCapabilities,
                 true,
                 payload.args.instances
             )
         } else if (!hasSessionId && payload?.args.config.sessionId) {
             this._browser = await attach({
                 ...payload.args.config,
-                capabilities: payload?.args.capabilities
+                capabilities: shutdownCapabilities
             })
         } else if (!hasSessionId) {
             /**
