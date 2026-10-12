@@ -82,7 +82,7 @@ describe('reporter', () => {
 
         it('should set the defaults if only the logfile option is provided', () => {
             const noOptionsReporter = new WdioCucumberJsJsonReporter({
-                logFile: logFile.replace('\\', '/'),
+                logFile,
             })
 
             const { logFile: logFileOption, ...options } = noOptionsReporter.options
