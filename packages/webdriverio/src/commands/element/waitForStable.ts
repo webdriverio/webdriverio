@@ -1,5 +1,6 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { WaitForOptions } from '../../types.js'
+import { describeSelector } from '../../utils/describeSelector.js'
 
 /**
  *
@@ -71,7 +72,7 @@ export async function waitForStable (
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         reverse = false,
-        timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}stable after ${timeout}ms`
+        timeoutMsg = `element ("${describeSelector(this)}") still ${reverse ? '' : 'not '}stable after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
     let errorMsg!: string

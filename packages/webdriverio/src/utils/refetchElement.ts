@@ -1,5 +1,6 @@
 import implicitWait from './implicitWait.js'
 import { findElementAgain } from './findElementAgain.js'
+import { describeSelector } from './describeSelector.js'
 
 /**
  * helper utility to refetch an element and all its parent elements when running
@@ -33,7 +34,7 @@ export default async function refetchElement (
         const nextElement = await findElementAgain(element, { parent, wait: true })
 
         if (!nextElement) {
-            throw new Error(`element with selector "${element.selector}" has no match at index ${element.index}`)
+            throw new Error(`element with selector "${describeSelector(element)}" has no match at index ${element.index}`)
         }
         /**
          *  For error purposes, changing command name to '$' if we aren't

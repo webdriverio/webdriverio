@@ -25,6 +25,7 @@ import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
 import { ElementArray } from '../element/array.js'
 import { findElementAgain } from './findElementAgain.js'
+import { describeSelector } from './describeSelector.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -1324,7 +1325,7 @@ export function verifyArgsAndStripIfElement(args: unknown) {
     function verify(arg: unknown) {
         if (isLoadedElement(arg)) {
             if (!arg.elementId) {
-                throw new Error(`The element with selector "${arg.selector}" you are trying to pass into the execute method wasn't found`)
+                throw new Error(`The element with selector "${describeSelector(arg)}" you are trying to pass into the execute method wasn't found`)
             }
 
             return {

@@ -5,6 +5,7 @@ import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { getBrowsingContext } from '../../browsingContext.js'
 import { StrictSelectorError } from '../../utils/strictSelectorError.js'
+import { describeSelector } from '../../utils/describeSelector.js'
 
 type FrameTarget = string | WebdriverIO.Element | ChainablePromiseElement | FrameQuery | FramePredicate
 
@@ -195,7 +196,7 @@ async function frameFromElement (
     element: WebdriverIO.Element
 ): Promise<WebdriverIO.BrowsingContext> {
     await element.waitForExist({
-        timeoutMsg: `Can't find a frame with selector ${element.selector} because it doesn't exist`
+        timeoutMsg: `Can't find a frame with selector ${describeSelector(element)} because it doesn't exist`
     })
     const result = await parent.execute(
         (iframe: HTMLIFrameElement) => iframe.contentWindow,

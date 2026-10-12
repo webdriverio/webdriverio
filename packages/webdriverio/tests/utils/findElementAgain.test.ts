@@ -933,6 +933,41 @@ describe('finding an element again in strict mode', () => {
     })
 })
 
+/**
+ * the selector of a `custom$` / `custom$$` element is the strategy reference, an object:
+ * the messages show the strategy name, not `[object Object]`
+ */
+describe('the selector of a custom strategy element in messages', () => {
+    it('names the strategy in the timeout message of a wait command', async () => {
+        const browser = await session()
+        const { error } = await settle(browser.custom$('customItem').waitForExist({ timeout: 50 }))
+        expect(error?.message).toBe('element ("custom$(customItem)") still not existing after 50ms')
+
+        driver.scripts.set('customList', ['elem-a'])
+        const { error: reverse } = await settle(browser.custom$$('customList')[0].waitForDisplayed({ reverse: true, timeout: 50 }))
+        expect(reverse?.message).toBe('element ("custom$$(customList)") still displayed after 50ms')
+    })
+
+    it('names the strategy when a command is called on an element that was not found', async () => {
+        const browser = await session()
+        const { error } = await settle(browser.custom$('customItem').click())
+        expect(error?.message).toBe('Can\'t call click on element with selector "custom$(customItem)" because element wasn\'t found')
+    })
+
+    it('names the strategy when a missing element is passed to execute', async () => {
+        const browser = await session()
+        const elem = await browser.custom$('customItem')
+        const { error } = await settle(browser.execute((el) => el, elem as unknown as HTMLElement))
+        expect(error?.message).toBe('The element with selector "custom$(customItem)" you are trying to pass into the execute method wasn\'t found')
+    })
+
+    it('keeps a string selector as it is', async () => {
+        const browser = await session()
+        const { error } = await settle(browser.$('.missing').waitForExist({ timeout: 50 }))
+        expect(error?.message).toBe('element (".missing") still not existing after 50ms')
+    })
+})
+
 describe('itemOf', () => {
     const strategy = function items () { return [] }
     const browser = { strategies: new Map([['items', strategy]]) } as unknown as WebdriverIO.Browser

@@ -1,5 +1,6 @@
 import type { WaitForOptions } from '../../types.js'
 import { getBrowserObject } from '@wdio/utils'
+import { describeSelector } from '../../utils/describeSelector.js'
 
 /**
  * Wait for an element for the provided amount of milliseconds to be clickable or not clickable.
@@ -40,7 +41,7 @@ export async function waitForClickable (
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         reverse = false,
-        timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}clickable after ${timeout}ms`
+        timeoutMsg = `element ("${describeSelector(this)}") still ${reverse ? '' : 'not '}clickable after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
     const browser = getBrowserObject(this)

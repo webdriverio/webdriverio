@@ -8,6 +8,7 @@ import { getBrowserObject } from '@wdio/utils'
  */
 import { StrictSelectorError } from './strictSelectorError.js'
 import { INDEX_NOT_FOUND, findElementAgain } from './findElementAgain.js'
+import { describeSelector } from './describeSelector.js'
 
 const log = logger('webdriverio')
 
@@ -37,7 +38,7 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
         }
 
         log.debug(
-            `command ${commandName} was called on an element ("${currentElement.selector}") ` +
+            `command ${commandName} was called on an element ("${describeSelector(currentElement)}") ` +
             'that wasn\'t found, waiting for it...'
         )
 
@@ -57,7 +58,7 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
 
             if (!nextElement) {
                 throw new Error(
-                    `element with selector "${currentElement.selector}" has no match at index ${currentElement.index}`)
+                    `element with selector "${describeSelector(currentElement)}" has no match at index ${currentElement.index}`)
             }
 
             return nextElement
@@ -72,21 +73,21 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
 
             if (currentElement.selector.toString().includes('this.previousElementSibling')) {
                 throw new Error(
-                    `Can't call ${commandName} on previous element of element with selector "${(currentElement.parent as WebdriverIO.Element).selector}" because sibling wasn't found`)
+                    `Can't call ${commandName} on previous element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`)
             }
 
             if (currentElement.selector.toString().includes('this.nextElementSibling')) {
                 throw new Error(
-                    `Can't call ${commandName} on next element of element with selector "${(currentElement.parent as WebdriverIO.Element).selector}" because sibling wasn't found`)
+                    `Can't call ${commandName} on next element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`)
             }
 
             if (currentElement.selector.toString().includes('this.parentElement')) {
                 throw new Error(
-                    `Can't call ${commandName} on parent element of element with selector "${(currentElement.parent as WebdriverIO.Element).selector}" because it wasn't found`)
+                    `Can't call ${commandName} on parent element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because it wasn't found`)
             }
 
             throw new Error(
-                `Can't call ${commandName} on element with selector "${currentElement.selector}" because element wasn't found`)
+                `Can't call ${commandName} on element with selector "${describeSelector(currentElement)}" because element wasn't found`)
         }
     }
 
