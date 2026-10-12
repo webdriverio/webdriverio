@@ -15,7 +15,7 @@ import type { ErrorMessage, Step } from './types.js'
 export function getStepKeywords(language: string): string[] {
     const dialect = dialects[language]
     return ([] as string[])
-        .concat(dialect.given, dialect.when, dialect.then, dialect.and)
+        .concat(dialect.given, dialect.when, dialect.then, dialect.and, dialect.but)
         .map((keyword) => keyword.replace(/\s*$/, ''))
 }
 

@@ -19,7 +19,7 @@ import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
 import { findScenarioLines, findStepLine, readFeatureLines, type FeatureLines, type ScenarioLines } from './featureLines.js'
 import { containsSteps, keywordStartsWith, getFailedMessage } from './utils.js'
-import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
+import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
 
 const log = logger('@wdio/cucumberjs-json-reporter')
@@ -31,6 +31,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     #featureLines?: FeatureLines
     /** line data of each scenario of the report, and the step lines it used */
     #scenarioLines = new WeakMap<Scenario, { lines: ScenarioLines, usedLines: Set<number> }>()
+    /** attachments sent while the scenario has no step yet (for example in a `Before` hook with `disableHooks`) */
+    #pendingEmbeddings: Embedding[] = []
 
     public constructor(public options: CucumberJsJsonReporterInterface) {
         super(options)
@@ -300,7 +302,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     public getStepDataObject(stepData: TestStatsExtended | HookStatsExtended): Step {
         const keyword =
             stepData?.keyword || keywordStartsWith(stepData.title, this.options.language!) || ''
-        const regex = new RegExp(`^(${keyword})\\s`)
+        const regex = new RegExp(`^(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\s`)
         const result = regex.exec(stepData.title)
         const title = (stepData.title.slice(result ? result.index + keyword.length : 0) || '').trim()
         const step: Step = {
@@ -337,10 +339,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     /**
      * Get the current step
      */
-    public getCurrentStep(): Step {
-        const currentScenario = this.getCurrentScenario()
-
-        const steps = currentScenario.steps!
+    public getCurrentStep(): Step | undefined {
+        const steps = this.getCurrentScenario()?.steps ?? []
         return steps[steps.length - 1]
     }
 
@@ -356,6 +356,10 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         if (!step.hidden && scenarioLines && this.#featureLines) {
             step.line = findStepLine(this.#featureLines, scenarioLines.lines, step.name ?? '', scenarioLines.usedLines) ?? null
         }
+        if (this.#pendingEmbeddings.length) {
+            step.embeddings = this.#pendingEmbeddings
+            this.#pendingEmbeddings = []
+        }
         scenario.steps!.push(step)
     }
 
@@ -369,7 +373,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const stepData = this.getStepDataObject(test)
 
         const currentStep = this.getCurrentStep()
-        currentSteps[currentStepsLength - 1] = { ...currentStep, ...stepData, line: currentStep.line ?? stepData.line }
+        currentSteps[currentStepsLength - 1] = { ...currentStep, ...stepData, line: currentStep?.line ?? stepData.line }
     }
 
     /**
@@ -391,6 +395,12 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const embeddings = {
             data: data,
             mime_type: attachment.type,
+        }
+
+        // no step yet: keep the attachment for the next step
+        if (!currentStep) {
+            this.#pendingEmbeddings.push(embeddings)
+            return
         }
 
         // Check if there is an embedding, if not, add it, else push it

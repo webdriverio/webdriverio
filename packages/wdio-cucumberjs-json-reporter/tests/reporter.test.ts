@@ -5,7 +5,7 @@ import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll, vi, type MockInstance } from 'vitest'
 
-import { containsSteps, getFailedMessage } from '../src/utils.js'
+import { containsSteps, getFailedMessage, keywordStartsWith } from '../src/utils.js'
 import { AFTER, BEFORE, FAILED, PASSED, PENDING, TEXT_PLAIN } from '../src/constants.js'
 import {
     EMPTY_FEATURE,
@@ -395,6 +395,13 @@ describe('reporter', () => {
             expect(tmpReporter.getStepDataObject(TEST_NO_KEYWORD_STATS)).toMatchSnapshot()
             expect(getFailedMessage).toHaveBeenCalled()
         })
+
+        it('keeps a step that starts with the * keyword', () => {
+            vi.mocked(keywordStartsWith).mockReturnValue('*')
+            const step = tmpReporter.getStepDataObject({ ...TEST_NO_KEYWORD_STATS, title: '* I have milk' } as TestStatsExtended)
+            expect(step.keyword).toBe('*')
+            expect(step.name).toBe('I have milk')
+        })
     })
 
     describe('getCurrentScenario', () => {
@@ -439,6 +446,22 @@ describe('reporter', () => {
             expect(tmpReporter.report.feature.elements![0].steps).toMatchSnapshot()
             expect(getCurrentScenarioSpy).toHaveBeenCalledTimes(1)
             expect(getStepDataObjectSpy).toHaveBeenCalledTimes(1)
+        })
+    })
+
+    describe('cucumberJsAttachment', () => {
+        it('keeps an attachment sent before the first step and adds it to that step', () => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            tmpReporter.report.feature = EMPTY_FEATURE
+            tmpReporter.report.feature.elements!.push(EMPTY_SCENARIO)
+
+            // with `disableHooks: true`, an attach() in a Before hook comes before any step
+            expect(() => tmpReporter.cucumberJsAttachment({ data: 'from the hook', type: TEXT_PLAIN })).not.toThrow()
+            tmpReporter.addStepData(STEP_TEST_ONSTART_STATS)
+
+            expect(tmpReporter.getCurrentStep().embeddings).toEqual([
+                { data: Buffer.from('from the hook').toString('base64'), mime_type: TEXT_PLAIN }
+            ])
         })
     })
 

@@ -78,6 +78,10 @@ describe('utils', () => {
             // * is a valid keyword in Gherkin
             expect(keywordStartsWith('* I have milk', language)).toEqual('*')
         })
+
+        it('knows the But keyword', () => {
+            expect(keywordStartsWith('But I have no milk', 'en')).toEqual('But')
+        })
     })
 })
 
