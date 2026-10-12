@@ -261,6 +261,58 @@ describe('Video Reporter', () => {
         })
     })
 
+    describe('Greptile review points', () => {
+        it('sets a recording path for each Mocha test with filenamePrefixSource: suite', () => {
+            const reporter = new VideoReporter({ filenamePrefixSource: 'suite' })
+            reporter.onSuiteStart({ title: 'my suite', type: 'suite' } as any)
+            reporter.onTestStart({ title: 'my test' } as any)
+            expect(reporter.recordingPath).toEqual(expect.stringContaining(`${path.sep}my-suite--CHROME--`))
+        })
+
+        it('uses the same Allure folder as the Allure reporter', () => {
+            const runnerWith = (options?: object) => ({
+                ...allureRunner,
+                instanceOptions: { 1234: { reporters: [options ? ['allure', options] : 'allure'] } }
+            })
+            const withDefault = new VideoReporter({})
+            withDefault.onRunnerStart(runnerWith())
+            expect(withDefault.allureOutputDir).toBe(path.resolve('allure-results'))
+
+            const withResultsDir = new VideoReporter({})
+            withResultsDir.onRunnerStart(runnerWith({ resultsDir: '/results' }))
+            expect(withResultsDir.allureOutputDir).toBe(path.resolve('/results'))
+        })
+
+        it('makes one video for each Cucumber scenario, not one for each step', () => {
+            const reporter = new VideoReporter({ saveAllVideos: true })
+            reporter.isCucumberFramework = true
+            reporter.addFrame = vi.fn() as any
+            reporter.generateVideo = vi.fn() as any
+            reporter.onSuiteStart({ title: 'my scenario', type: 'scenario' } as any)
+            reporter.onTestPass({ state: 'passed' } as any)
+            reporter.onTestPass({ state: 'passed' } as any)
+            reporter.onTestPass({ state: 'passed' } as any)
+            expect(reporter.generateVideo).toBeCalledTimes(0)
+
+            reporter.onSuiteEnd({ type: 'scenario', tests: [{ state: 'passed' }, { state: 'passed' }, { state: 'passed' }] } as any)
+            expect(reporter.generateVideo).toBeCalledTimes(1)
+        })
+
+        it('makes the video of a failed Cucumber scenario when the scenario ends', () => {
+            const reporter = new VideoReporter({})
+            reporter.isCucumberFramework = true
+            reporter.addFrame = vi.fn() as any
+            reporter.generateVideo = vi.fn() as any
+            reporter.onSuiteStart({ title: 'my scenario', type: 'scenario' } as any)
+            reporter.onTestFail({ state: 'failed' } as any)
+            reporter.onTestSkip({ state: 'skipped' } as any)
+            expect(reporter.generateVideo).toBeCalledTimes(0)
+
+            reporter.onSuiteEnd({ type: 'scenario', tests: [{ state: 'failed' }, { state: 'skipped' }] } as any)
+            expect(reporter.generateVideo).toBeCalledTimes(1)
+        })
+    })
+
     describe('onSuiteEnd', () => {
         it('extends Allure report', async () => {
             const addArgumentExtensionMock = vi.spyOn(AllureReporterExtension.prototype, 'addArgument')
