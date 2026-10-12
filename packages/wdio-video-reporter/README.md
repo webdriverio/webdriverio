@@ -85,76 +85,76 @@ Most users may want to set these configurations:
 
 Set to true to save videos for passing tests.
 
-Type: `boolean`<br>
+Type: `boolean`<br />
 Default: `false`
 
 ### `rawPath`
 
 Where to save the screenshots for the video.
 
-Type: `string`<br>
+Type: `string`<br />
 Default: `.video-reporter-screenshots`
 
 ### `filenamePrefixSource`
 
 Prefix for video filenames by either suite or test name. When using cucumber it will always be suite.
 
-Type: `'suite' | 'test'`<br>
+Type: `'suite' | 'test'`<br />
 Default: `test`
 
 ### `videoSlowdownMultiplier`
 
 Integer between [1-100]. Increase if videos are playing to quick.
 
-Type: `number`<br>
+Type: `number`<br />
 Default: `3`
 
 ### `videoScale`
 
 Scaling of video. See https://trac.ffmpeg.org/wiki/Scaling.
 
-Type: `string`<br>
+Type: `string`<br />
 Default: `'1200:trunc(ow/a/2)*2'`
 
 ### `videoRenderTimeout`
 
 Maximum time to wait for a video to finish rendering (in ms).
 
-Type: `number`<br>
+Type: `number`<br />
 Default: `5000`
 
 ### `outputDir`
 
 If it's not set, it uses [`outputDir`](https://webdriver.io/docs/configuration#outputdir).
 
-Type: `string`<br>
+Type: `string`<br />
 
 ### `maxTestNameCharacters`
 
 Max length of test name.
 
-Type: `number`<br>
+Type: `number`<br />
 Default: `250`
 
 ### `snapshotCommands`
 
 Which commands should result in a screenshot (without: `/session/:sessionId/`).
 
-Type: `string[]`<br>
+Type: `string[]`<br />
 Default: `['url', 'forward', 'back', 'refresh', 'execute', 'size', 'position', 'maximize', 'click', 'submit', 'value', 'keys', 'clear', 'selected', 'enabled', 'displayed', 'orientation', 'alert_text', 'accept_alert', 'dismiss_alert', 'moveto', 'buttondown', 'buttonup', 'doubleclick', 'down', 'up', 'move', 'scroll', 'doubleclick', 'longclick', 'flick', 'location']`
 
 ### `excludedActions`
 
 Add actions where screenshots are unnecessary.
 
-Type: `string[]`<br>
+Type: `string[]`<br />
 Default: `[]`
 
 ### `recordAllActions`
 
 Skip filtering and screenshot everything. (Not recommended)
 
-Type: `boolean`<br>
+Type: `boolean`<br />
 Default: `false`
 
 ### `screenshotIntervalSecs`
@@ -167,14 +167,14 @@ Type: `number`
 
 Video format (container) to be used. Supported formats: `mp4`, `webm`.
 
-Type: `string`<br>
+Type: `string`<br />
 Default: `webm`
 
 ### `onlyRecordLastFailure`
 
 Only record the last failure when `specFileRetries` is > 0
 
-Type: `boolean`<br>
+Type: `boolean`<br />
 Default: `false`
 
 ## Cucumber Support
