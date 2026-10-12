@@ -8,13 +8,12 @@ import Mocha from 'mocha'
 import { handleRequires } from 'mocha/lib/cli/run-helpers.cjs'
 
 import logger from '@wdio/logger'
-import { executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, type ParallelMode } from '@wdio/utils'
 import type { Services } from '@wdio/types'
 
 import { applyMochaDefaults, formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
 import type { MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types.js'
-import type { ParallelMode } from './parallel.js'
 import { runParallelTests } from './parallel.js'
 import type { EventEmitter } from 'node:events'
 

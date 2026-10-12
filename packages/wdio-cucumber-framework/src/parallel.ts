@@ -35,6 +35,7 @@ import { EventEmitter } from 'node:events'
 import type { AsyncLocalStorage } from 'node:async_hooks'
 
 import logger from '@wdio/logger'
+import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelContextAllocation } from '@wdio/utils'
 import * as Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import type * as messages from '@cucumber/messages'
@@ -224,66 +225,6 @@ try {
 
 export function isParallelAvailable(): boolean {
     return parallelModulesAvailable
-}
-
-// ============================================================
-// Context allocation
-// ============================================================
-
-interface ParallelContextAllocation {
-    context: string
-    userContext?: string
-}
-
-function resolveMaxContexts(value: unknown, fallback: number): number {
-    return typeof value === 'number' && Number.isFinite(value) && value > 0
-        ? Math.max(1, Math.floor(value))
-        : Math.max(1, fallback)
-}
-
-async function removeUserContext(bidi: ParallelBrowser, userContext: string): Promise<void> {
-    try {
-        await bidi.browserRemoveUserContext?.({ userContext })
-    } catch (err) {
-        log.debug(`Cleanup error removing user context ${userContext}: ${(err as Error).message}`)
-    }
-}
-
-async function closeContext(bidi: ParallelBrowser, context: string, level: 'debug' | 'warn', label: string): Promise<void> {
-    try {
-        await bidi.browsingContextClose({ context })
-    } catch (err) {
-        log[level](`${label} ${context}: ${(err as Error).message}`)
-    }
-}
-
-async function cleanupAllocation(bidi: ParallelBrowser, { context, userContext }: ParallelContextAllocation): Promise<void> {
-    await closeContext(bidi, context, 'debug', 'Cleanup error closing context')
-    if (userContext) {
-        await removeUserContext(bidi, userContext)
-    }
-    bidi.__parallelContexts?.delete(context)
-}
-
-async function allocateContext(bidi: ParallelBrowser, mode: ParallelMode): Promise<ParallelContextAllocation> {
-    let allocation: ParallelContextAllocation
-    if (mode !== 'userContexts') {
-        const { context } = await bidi.browsingContextCreate({ type: 'window' })
-        allocation = { context }
-    } else {
-        const { userContext } = await bidi.browserCreateUserContext!({})
-        try {
-            const { context } = await bidi.browsingContextCreate({ type: 'window', userContext })
-            allocation = { context, userContext }
-        } catch (err) {
-            await removeUserContext(bidi, userContext)
-            throw err
-        }
-    }
-    // Register with the session ContextManager so navigations inside these
-    // windows don't trigger session-global re-anchoring (tree fetch + switchToWindow).
-    bidi.__parallelContexts?.add(allocation.context)
-    return allocation
 }
 
 // ============================================================
