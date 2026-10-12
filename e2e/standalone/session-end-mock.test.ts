@@ -26,9 +26,10 @@ test('a mock does not leave an unhandled rejection when the session ends', async
     const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
     process.on('unhandledRejection', onUnhandled)
 
-    const browser = await startStandaloneChrome()
+    let browser: Awaited<ReturnType<typeof startStandaloneChrome>> | undefined
     let sessionEnded = false
     try {
+        browser = await startStandaloneChrome()
         await browser.url(`http://127.0.0.1:${(server.address() as AddressInfo).port}/`)
         await browser.mock('**/slow/**')
         /**
@@ -52,7 +53,7 @@ test('a mock does not leave an unhandled rejection when the session ends', async
         expect(unhandled.map((reason) => (reason as Error)?.message ?? String(reason))).toEqual([])
     } finally {
         process.off('unhandledRejection', onUnhandled)
-        if (!sessionEnded) {
+        if (browser && !sessionEnded) {
             await browser.deleteSession().catch(() => {})
         }
         server.close()
