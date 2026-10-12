@@ -706,6 +706,19 @@ const htmlReporter = async () => {
 }
 
 /**
+ * @wdio/html-reporter with Cucumber: it counts scenarios, not steps, and a
+ * scenario that passes on retry counts as passed
+ */
+const htmlReporterCucumber = async () => {
+    const basePath = path.resolve(__dirname, 'html-reporter')
+    await launch('htmlReporterCucumber', path.resolve(basePath, 'html-reporter.cucumber.conf.js'))
+    const outDir = path.join(basePath, 'out')
+    const { metrics } = JSON.parse(await fs.readFile(path.join(outDir, 'master-report.json'), 'utf-8'))
+    assert.deepStrictEqual({ passed: metrics.passed, failed: metrics.failed, skipped: metrics.skipped }, { passed: 2, failed: 0, skipped: 0 })
+    await fs.rm(outDir, { recursive: true, force: true })
+}
+
+/**
  * wdio test run with before/after Test/Hook
  */
 const wdioHooks = async () => {
@@ -1391,6 +1404,7 @@ const jasmineAfterHookArgsValidation = async () => {
         sessionGoneReport,
         reporterTestrunner,
         htmlReporter,
+        htmlReporterCucumber,
         severeErrorTest,
         nonGlobalTestrunner,
         mochaHooksTestrunner,

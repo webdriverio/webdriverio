@@ -36,6 +36,12 @@ export default class HtmlReporter extends WDIOReporter {
     private LOG = logger('HtmlReporter')
 
     private _suites: SuiteStats[] = []
+    /**
+     * Cucumber (without `scenarioLevelReporter`) reports each step as a test:
+     * count the scenarios instead, and only the last try of a retried scenario
+     */
+    #countScenarios = false
+    #scenarioStates = new Map<string, 'passed' | 'failed' | 'skipped'>()
     private reportGenerator?: ReportGenerator
 
     constructor(options: HtmlReporterOptions) {
@@ -82,6 +88,17 @@ export default class HtmlReporter extends WDIOReporter {
         this.metrics.failed = 0
         this.metrics.start = dayjs().utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
         this._specs.set(runner.cid, runner)
+        const config = runner.config as { framework?: string, cucumberOpts?: { scenarioLevelReporter?: boolean } } | undefined
+        this.#countScenarios = config?.framework === 'cucumber' && !config.cucumberOpts?.scenarioLevelReporter
+    }
+
+    onSuiteRetry(suite: SuiteStats) {
+        // the earlier try of the scenario does not count
+        const state = this.#scenarioStates.get(suite.uid)
+        if (state) {
+            this.metrics[state]--
+            this.#scenarioStates.delete(suite.uid)
+        }
     }
 
     onSuiteStart(suite: SuiteStats) {
@@ -113,12 +130,16 @@ export default class HtmlReporter extends WDIOReporter {
         if (test) {
             this.moveErrorsToEvents(test)
         }
-        this.metrics.passed++
+        if (!this.#countScenarios) {
+            this.metrics.passed++
+        }
     }
 
     onTestSkip(test: TestStats) {
         this.LOG.info(String.format('onTestSkip: {0}:{1}', test.cid, test.uid))
-        this.metrics.skipped++
+        if (!this.#countScenarios) {
+            this.metrics.skipped++
+        }
     }
 
     onTestFail(theTest: TestStats) {
@@ -127,7 +148,9 @@ export default class HtmlReporter extends WDIOReporter {
         if (test) {
             this.moveErrorsToEvents(test)
         }
-        this.metrics.failed++
+        if (!this.#countScenarios) {
+            this.metrics.failed++
+        }
     }
 
     onTestEnd(theTest: TestStats) {
@@ -144,7 +167,7 @@ export default class HtmlReporter extends WDIOReporter {
 
     onHookEnd(hook: HookStats) {
         this.LOG.info(String.format('onHookEnd: {0}:{1}', hook.cid, hook.uid))
-        if (hook.error) {
+        if (hook.error && !this.#countScenarios) {
             this.metrics.failed++
         }
     }
@@ -154,6 +177,12 @@ export default class HtmlReporter extends WDIOReporter {
         this._indents--
         suite.end = new Date()
         this._suites.push(suite)
+        if (this.#countScenarios && suite.type === 'scenario') {
+            const failed = suite.tests.some((test) => test.state === 'failed') || suite.hooks.some((hook) => hook.error)
+            const state = failed ? 'failed' : suite.tests.some((test) => test.state === 'passed') ? 'passed' : 'skipped'
+            this.metrics[state]++
+            this.#scenarioStates.set(suite.uid, state)
+        }
     }
 
     isScreenshotCommand(command: CommandArgs) {
