@@ -15,6 +15,9 @@ uses. When a worker runs several feature files (grouped specs), the reporter wri
 
 With the Cucumber `retry` option, a scenario has only the steps of its last try, as in the JSON of Cucumber.
 
+The reporter needs the steps of the scenarios. With `cucumberOpts.scenarioLevelReporter: true`, the framework reports
+no steps: the reporter logs a warning and makes no report.
+
 ## Installation
 
 The easiest way is to keep `@wdio/cucumberjs-json-reporter` as a devDependency in your `package.json`, via:

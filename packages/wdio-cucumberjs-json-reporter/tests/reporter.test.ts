@@ -37,7 +37,8 @@ vi.mock('../src/utils', () => ({
 
 vi.mock('@wdio/logger', () => ({
     default: vi.fn().mockReturnValue({
-        info: vi.fn()
+        info: vi.fn(),
+        warn: vi.fn()
     })
 }))
 
@@ -490,6 +491,15 @@ describe('reporter', () => {
             tmpReporter.addStepData({ ...STEP_TEST_ONSTART_STATS, state: PASSED } as TestStatsExtended)
 
             expect(tmpReporter.getCurrentScenario().steps!.map((step) => step.result.status)).toEqual([PASSED])
+        })
+    })
+
+    describe('cucumberOpts.scenarioLevelReporter', () => {
+        it('does not fail the run: the CucumberJS JSON format needs the steps', () => {
+            tmpReporter.onRunnerStart({ config: { cucumberOpts: { scenarioLevelReporter: true } }, capabilities: {} } as unknown as RunnerStatsExtended)
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, parent: undefined } as SuiteStatsExtended)
+            expect(() => tmpReporter.onTestStart(TEST_SCENARIO_STATS as TestStatsExtended)).not.toThrow()
+            expect(() => tmpReporter.onTestPass(TEST_SCENARIO_STATS as TestStatsExtended)).not.toThrow()
         })
     })
 
