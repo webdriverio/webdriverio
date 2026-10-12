@@ -619,12 +619,17 @@ export default class VideoReporter extends WdioReporter {
         // @ts-expect-error
         process.emit('test:video-capture', videoPath)
 
-        const frameCheckPromise = glob(`${this.recordingPath}/*.png`).then((frames) => {
+        /**
+         * check the frames when all screenshots are done: a frame that is still
+         * pending is not missing
+         */
+        const recordingPath = this.recordingPath
+        const checkFrames = () => glob(`${recordingPath}/*.png`).then((frames) => {
             const insertionPromises: Promise<void>[] = []
 
             const insertMissing = (sourceFrame: number, targetFrame: number) => {
-                const src = `${this.recordingPath}/${pad(sourceFrame)}.png`
-                const dest = `${this.recordingPath}/${pad(targetFrame)}.png`
+                const src = `${recordingPath}/${pad(sourceFrame)}.png`
+                const dest = `${recordingPath}/${pad(targetFrame)}.png`
                 this.#log(`copying ${pad(sourceFrame)} to missing frame ${pad(targetFrame)}...`)
                 insertionPromises.push(fsp.copyFile(src, dest))
             }
@@ -676,7 +681,7 @@ export default class VideoReporter extends WdioReporter {
         const start = Date.now()
         const promise: Promise<void> = Promise
             .all(this.screenshotPromises)
-            .then(() => frameCheckPromise)
+            .then(checkFrames)
             .then(() => new Promise((resolve) => {
                 const cp = spawn(command, args, {
                     stdio: ['ignore', 'ignore', 'pipe'],
