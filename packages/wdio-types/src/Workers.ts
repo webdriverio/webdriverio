@@ -37,6 +37,8 @@ export interface Job {
     baseUrl?: string
     config?: TestrunnerOptions & { sessionId?: string }
     capabilities?: WebdriverIO.Capabilities
+    isMultiRemote?: boolean
+    instances?: Record<string, WorkerInstanceData>
 }
 
 export type WorkerMessageArgs = Omit<Job, 'caps' | 'specs' | 'hasTests'>
@@ -81,9 +83,20 @@ export interface WorkerMessage {
         sessionId?: string
         isMultiRemote?: boolean
         capabilities: WebdriverIO.Capabilities
+        instances?: Record<string, WorkerInstanceData>
     }
     origin: string
     params: Record<string, string>
+}
+
+export interface WorkerInstanceData {
+    sessionId: string
+    capabilities?: Omit<WebdriverIO.Capabilities, 'webSocketUrl'> & { webSocketUrl?: boolean | string }
+    protocol?: string
+    hostname?: string
+    port?: number
+    path?: string
+    queryParams?: Record<string, string>
 }
 
 export interface Worker
@@ -97,6 +110,7 @@ export interface Worker
     postMessage: (command: string, args: WorkerMessageArgs | WorkerRequest['args']) => void
     specs: string[]
     sessionId?: string
+    instances?: Record<string, WorkerInstanceData>
     logsAggregator: string[]
 }
 

@@ -37,6 +37,20 @@ const actions: Action[] = [{
 
 async function bar() {
     // Multi-remote
+    const attached = await multiRemote({
+        myBrowserInstance: { capabilities: { browserName: 'chrome' } }
+    }, {
+        instances: {
+            myBrowserInstance: {
+                sessionId: 'retained-session',
+                capabilities: { browserName: 'chrome', webSocketUrl: 'ws://localhost/session/retained-session' },
+                hostname: 'localhost',
+                port: 4444
+            }
+        }
+    })
+    expectType<string>(attached.getInstance('myBrowserInstance').sessionId)
+
     const mr = await multiRemote({
         myBrowserInstance: {
             capabilities: { browserName: 'chrome' }

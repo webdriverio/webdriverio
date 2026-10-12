@@ -4,7 +4,7 @@ import { remote, multiRemote, attach, type AttachOptions } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { AsymmetricMatchers, InverseAsymmetricMatchers } from 'expect-webdriverio'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities, Workers } from '@wdio/types'
 import { enableFileLogging } from '@wdio/utils'
 
 const log = logger('@wdio/runner')
@@ -55,7 +55,8 @@ export function sanitizeCaps (
 export async function initializeInstance (
     config: ConfigWithSessionId | WebdriverIO.Config,
     capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities,
-    isMultiRemote?: boolean
+    isMultiRemote?: boolean,
+    instances?: Record<string, Workers.WorkerInstanceData>
 ): Promise<WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser> {
     /**
      * keep the log file that @wdio/local-runner gave this worker
@@ -65,7 +66,7 @@ export async function initializeInstance (
     /**
      * check if config has sessionId and attach it to a running session if so
      */
-    if ('sessionId' in config) {
+    if ('sessionId' in config && config.sessionId) {
         log.debug(`attach to session with id ${config.sessionId}`)
         config.capabilities = sanitizeCaps(capabilities as WebdriverIO.Capabilities)
 
@@ -113,7 +114,8 @@ export async function initializeInstance (
         )
     }
 
-    const browser = await multiRemote(options, config)
+    const multiRemoteConfig = instances ? { ...config, instances } : config
+    const browser = await multiRemote(options, multiRemoteConfig)
 
     /**
      * only attach to global environment if `injectGlobals` is set to true
@@ -127,17 +129,8 @@ export async function initializeInstance (
     return browser
 }
 
-type BrowserData = {
-    sessionId: string
-    protocol: string
-    hostname: string
-    port: number
-    path: string
-    queryParams: Record<string, string>
-}
-
 /**
- * Gets { sessionId, protocol, hostname, port, path, queryParams } of every MultiRemote instance
+ * Gets the session id, capabilities and connection details of every MultiRemote instance
  * @param {object} browser browser
  * @param {boolean} isMultiRemote isMultiRemote
  * @return {object}
@@ -151,12 +144,13 @@ export function getInstancesData (
     }
 
     const multiRemoteBrowser = browser as WebdriverIO.MultiRemoteBrowser
-    const instances: Record<string, Partial<BrowserData>> = {}
+    const instances: Record<string, Workers.WorkerInstanceData> = {}
     multiRemoteBrowser.instances.forEach((browserName: string) => {
-        const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser.getInstance(browserName).options
-        const { sessionId } = multiRemoteBrowser.getInstance(browserName)
+        const instance = multiRemoteBrowser.getInstance(browserName)
+        const { protocol, hostname, port, path, queryParams } = instance.options
+        const { sessionId, capabilities } = instance
 
-        instances[browserName] = { sessionId, protocol, hostname, port, path, queryParams }
+        instances[browserName] = { sessionId, capabilities, protocol, hostname, port, path, queryParams }
     })
 
     return instances

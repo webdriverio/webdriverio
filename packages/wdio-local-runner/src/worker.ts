@@ -195,7 +195,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     server?: Record<string, string>
     logsAggregator: string[] = []
 
-    instances?: Record<string, { sessionId: string }>
+    instances?: Record<string, Workers.WorkerInstanceData>
     isMultiRemote?: boolean
 
     isBusy = false

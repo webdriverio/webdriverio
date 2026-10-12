@@ -143,12 +143,13 @@ export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configP
             while (true) {
                 const counts = new Map()
                 for (const run of runs) {
+                    const runIndex = counts.get(run.cid) ?? 0
                     assert.equal(
                         run.exitCode,
-                        expectedExitCode,
+                        Array.isArray(expectedExitCode) ? expectedExitCode[runIndex] : expectedExitCode,
                         `${name} worker ${run.cid} exited with an unexpected code`
                     )
-                    counts.set(run.cid, (counts.get(run.cid) ?? 0) + 1)
+                    counts.set(run.cid, runIndex + 1)
                 }
                 const finished = [...counts.values()].filter((count) => count >= runsPerWorker).length
                 if (finished >= workerCount) {
