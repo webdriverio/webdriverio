@@ -4,7 +4,7 @@ import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest'
 import {
     sleep, generateFilename, getVideoPath, getVideoFormatSettings, waitForVideosToExist,
-    waitForVideosToBeWritten, pad, getCurrentCapabilities
+    waitForVideosToBeWritten, pad, getCurrentCapabilities, getBidiSnapshotCommand
 } from '../src/helpers.js'
 import { DEFAULT_OPTIONS, SUPPORTED_VIDEO_FORMATS } from '../src/constants.js'
 
@@ -241,6 +241,21 @@ describe('waitForVideosToBeWritten', () => {
         const sleepMock = vi.fn().mockImplementation(fakeSleep)
         expect(waitForVideosToBeWritten(videos, 150, sleepMock)).toBe(false)
         expect(sleepMock).toBeCalledTimes(2)
+    })
+})
+
+describe('getBidiSnapshotCommand', () => {
+    it.each([
+        ['browsingContext.navigate', {}, 'url'],
+        ['browsingContext.reload', {}, 'refresh'],
+        ['browsingContext.traverseHistory', { delta: -1 }, 'back'],
+        ['browsingContext.traverseHistory', { delta: 1 }, 'forward'],
+        ['script.callFunction', {}, undefined],
+        ['input.performActions', {}, 'actions'],
+        ['browsingContext.captureScreenshot', {}, undefined],
+        ['session.subscribe', {}, undefined]
+    ])('maps %s %j to %s', (method, params, expected) => {
+        expect(getBidiSnapshotCommand({ method, params })).toBe(expected)
     })
 })
 

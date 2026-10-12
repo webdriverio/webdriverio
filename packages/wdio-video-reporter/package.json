@@ -43,7 +43,6 @@
     "glob": "^13.0.6"
   },
   "devDependencies": {
-    "webdriver": "workspace:*",
     "webdriverio": "workspace:*"
   },
   "publishConfig": {

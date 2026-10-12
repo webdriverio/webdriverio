@@ -9,7 +9,9 @@ WebdriverIO Video Reporter
 
 This is a [WebdriverIO](https://webdriver.io/) reporter that generates videos of your test executions. If you use it in combination with the [Allure Reporter](https://webdriver.io/docs/allure-reporter), then the test cases automatically get decorated with the videos as well (see [example project](https://presidenten.github.io/wdio-video-reporter-example-report/)).
 
-As this reporter is using the [`saveScreenshot`](https://webdriver.io/docs/api/element/saveScreenshot/) command to render the video it supports all environments including mobile environments.
+As this reporter is using the WebDriver screenshot command ([`takeScreenshot`](https://webdriver.io/docs/api/webdriver#takescreenshot)) to render the video it supports all environments including mobile environments.
+
+In a WebDriver BiDi session, some commands use WebDriver BiDi instead of a WebDriver endpoint: `url` (with an `http` or `https` URL), `back`, `forward`, `refresh` and `actions`. The reporter also takes a frame for these commands. `execute` in a BiDi session gives no frame (WebdriverIO also uses the same BiDi command inside many other commands).
 
 That said, taking a screenshot after almost every command can slow down your tests. Also, note that the videos don't include alert-boxes and popups.
 

@@ -1777,9 +1777,6 @@ importers:
         specifier: ^13.0.6
         version: 13.0.6
     devDependencies:
-      webdriver:
-        specifier: workspace:*
-        version: link:../webdriver
       webdriverio:
         specifier: workspace:*
         version: link:../webdriverio
