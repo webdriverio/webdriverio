@@ -182,11 +182,12 @@ describe('installAtomically', () => {
         let started = 0
         let bothStarted = () => {}
         const both = new Promise<void>((resolve) => { bothStarted = resolve })
+        const guard = setTimeout(() => bothStarted(), fast.maxWait)
         const install = vi.fn(async (dir: string) => {
             if (++started === 2) {
                 bothStarted()
             }
-            await Promise.race([both, sleep(fast.maxWait)])
+            await both
             await download()(dir)
         })
 
@@ -194,7 +195,11 @@ describe('installAtomically', () => {
          * staleAfter 0 and no refresh: the second setup stops waiting after one poll,
          * both download
          */
-        await Promise.all([1, 2].map(() => installAtomically(target, install, { ...fast, staleAfter: 0, refreshInterval: 60_000 })))
+        try {
+            await Promise.all([1, 2].map(() => installAtomically(target, install, { ...fast, staleAfter: 0, refreshInterval: 60_000 })))
+        } finally {
+            clearTimeout(guard)
+        }
 
         expect(downloads).toBe(2)
         expect(maxRunning).toBe(2)
@@ -288,11 +293,14 @@ describe('installAtomically', () => {
              * the other process publishes its build with one rename too, and keeps its
              * marker fresh until it removes it
              */
-            const other = path.join(cacheDir, 'other')
-            await download()(other)
-            await fs.mkdir(path.dirname(buildDir(cacheDir)), { recursive: true })
-            await fs.rename(buildDir(other), buildDir(cacheDir))
-            clearInterval(refresh)
+            try {
+                const other = path.join(cacheDir, 'other')
+                await download()(other)
+                await fs.mkdir(path.dirname(buildDir(cacheDir)), { recursive: true })
+                await fs.rename(buildDir(other), buildDir(cacheDir))
+            } finally {
+                clearInterval(refresh)
+            }
             await fs.rm(target.markerPath)
         })
 
