@@ -465,6 +465,19 @@ describe('reporter', () => {
         })
     })
 
+    describe('attach() before the first feature', () => {
+        it('keeps the attachment for the first step (for example from the WebdriverIO before hook)', () => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            expect(() => tmpReporter.cucumberJsAttachment({ data: 'from the before hook', type: TEXT_PLAIN })).not.toThrow()
+            tmpReporter.report.feature = EMPTY_FEATURE
+            tmpReporter.report.feature.elements!.push(EMPTY_SCENARIO)
+            tmpReporter.addStepData(STEP_TEST_ONSTART_STATS)
+            expect(tmpReporter.getCurrentStep()!.embeddings).toEqual([
+                { data: Buffer.from('from the before hook').toString('base64'), mime_type: TEXT_PLAIN }
+            ])
+        })
+    })
+
     describe('Cucumber retry', () => {
         it('keeps only the steps of the last try, as Cucumber does', () => {
             vi.mocked(getFailedMessage).mockReturnValue({})
