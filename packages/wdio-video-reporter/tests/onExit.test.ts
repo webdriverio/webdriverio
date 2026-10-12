@@ -60,6 +60,6 @@ describe('onExit', () => {
         // no video: no attachment that holds the path as text
         expect(fs.existsSync(path.join(allureDir, 'a-attachment.webm'))).toBe(false)
         const result = JSON.parse(fs.readFileSync(path.join(allureDir, '1-result.json'), 'utf-8'))
-        expect(result.steps[0].attachments).toEqual([])
+        expect(result.steps).toEqual([])
     })
 })
