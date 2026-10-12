@@ -249,3 +249,28 @@ describe('absolute outputDir and makeReport', () => {
         expect(fs.readFileSync(reportFile, 'utf-8')).toContain('CLI title')
     })
 })
+
+describe('video type', () => {
+    let dir: string
+    afterAll(() => {
+        process.removeAllListeners('test:video-capture')
+        fs.rmSync(dir, { recursive: true, force: true })
+    })
+
+    it('uses the type of the video file (the video reporter makes webm files by default)', async () => {
+        dir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-reporter-video-')) + path.sep
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Video' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onTestStart(SUITES[0].tests[0])
+        new ReportEvents().videoCapture(path.join(dir, 'test.webm')).videoCapture(path.join(dir, 'test.mp4'))
+        reporter.onTestPass(SUITES[0].tests[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(RUNNER)
+        const reportAggregator = new ReportAggregator({ outputDir: dir, filename: 'master-report.html', reportTitle: 'Video', browserName: 'chrome' } as never)
+        await reportAggregator.createReport()
+        const html = fs.readFileSync(reportAggregator.reportFile, 'utf-8')
+        expect(html).toContain('<source src="test.webm" type="video/webm">')
+        expect(html).toContain('<source src="test.mp4" type="video/mp4">')
+    })
+})
