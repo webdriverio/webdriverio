@@ -82,12 +82,3 @@ export const DEFAULT_OPTIONS = {
     screenshotIntervalSecs: 0,
 } as const
 
-export const TO_LOCAL_STRING_OPTIONS = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-} as const

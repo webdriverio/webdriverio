@@ -15,7 +15,8 @@ import AllureReporterExtension from './allure.js'
 import { removeAllureAttachments } from './allureResults.js'
 import {
     waitForVideosToExist, waitForVideosToBeWritten, getCurrentCapabilities, getVideoFormatSettings,
-    getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser
+    getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser,
+    findAllureReporter
 } from './helpers.js'
 import { DEFAULT_OPTIONS, SCREENSHOT_PADDING_WITH, FRAME_REGEX } from './constants.js'
 import type { ReporterOptions } from './types.js'
@@ -120,11 +121,11 @@ export default class VideoReporter extends WdioReporter {
         this.isCucumberFramework = runnerInstance.framework === 'cucumber'
         this.#isScenarioLevelReporter = this.isCucumberFramework &&
             Boolean((runnerInstance as { cucumberOpts?: { scenarioLevelReporter?: boolean } }).cucumberOpts?.scenarioLevelReporter)
-        const allureConfig = runnerInstance.reporters?.find((r) => r === 'allure' || (r as [string, WebdriverIO.ReporterOption])[0] === 'allure') as [string, WebdriverIO.ReporterOption]
-        if (allureConfig?.[1]?.outputDir) {
-            this.#allureOutputDir = path.resolve(allureConfig[1].outputDir)
+        const allureOptions = findAllureReporter(runnerInstance.reporters)
+        if (typeof allureOptions?.outputDir === 'string') {
+            this.#allureOutputDir = path.resolve(allureOptions.outputDir)
         }
-        this.#usingAllure = Boolean(allureConfig)
+        this.#usingAllure = Boolean(allureOptions)
 
         if (this.#usingAllure) {
             process.on('exit', () => this.onExit.call(this))
