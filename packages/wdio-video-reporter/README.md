@@ -158,7 +158,7 @@ Default: `test`
 
 ### `videoSlowdownMultiplier`
 
-Integer between [1-100]. Increase if videos are playing to quick.
+A number from 1 to 100, also with decimals (for example `1.5`). Increase it if the videos play too fast.
 
 Type: `number`<br />
 Default: `3`
