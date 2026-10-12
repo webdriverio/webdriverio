@@ -74,6 +74,10 @@ export default class VideoReporter extends WdioReporter {
      */
     #mainContext?: string
     #frameContext?: string
+    /**
+     * the top-level browsing context (tab or window) of each context, for frames
+     */
+    #topLevelContexts = new Map<string, Promise<string | undefined>>()
 
     /**
    * Set reporter options
@@ -543,15 +547,21 @@ export default class VideoReporter extends WdioReporter {
         const context = this.#frameContext
         /**
          * a tab or window other than the main one (a BiDi browsing context): capture
-         * that one; if it was closed, the classic screenshot of the main window
+         * that one (for a frame, its tab: BiDi captures top-level contexts only); the
+         * main window, a closed tab or a failed capture use the classic screenshot
          */
-        const capture: Promise<string> = context
-            ? instance.browsingContextCaptureScreenshot({ context, origin: 'viewport', format: { type: 'image/png' } })
-                .then((result) => result.data, (error: Error) => {
-                    this.#log(`Screenshot of browsing context ${context} failed (frame: ${frame}), using the main window: ${error.message}`)
+        const capture: Promise<string> = !context
+            ? instance.takeScreenshot()
+            : this.#topLevelContext(instance, context).then((topLevel) => {
+                if (!topLevel || topLevel === this.#mainContext) {
                     return instance.takeScreenshot()
-                })
-            : instance.takeScreenshot()
+                }
+                return instance.browsingContextCaptureScreenshot({ context: topLevel, origin: 'viewport', format: { type: 'image/png' } })
+                    .then((result) => result.data, (error: Error) => {
+                        this.#log(`Screenshot of browsing context ${topLevel} failed (frame: ${frame}), using the main window: ${error.message}`)
+                        return instance.takeScreenshot()
+                    })
+            })
         const screenshot = capture
             .then((data: string) => {
                 fs.writeFileSync(filePath, data, 'base64')
@@ -569,6 +579,24 @@ export default class VideoReporter extends WdioReporter {
                 }
             })
         )
+    }
+
+    /**
+     * The top-level browsing context that holds `context` (itself for a tab or a
+     * window), or `undefined` if no open tab or window holds it
+     */
+    #topLevelContext (instance: WebdriverIO.Browser, context: string) {
+        let topLevel = this.#topLevelContexts.get(context)
+        if (!topLevel) {
+            type Tree = { context: string, children?: Tree[] | null }
+            const holds = (tree: Tree): boolean => tree.context === context || (tree.children ?? []).some(holds)
+            topLevel = instance.browsingContextGetTree({})
+                .then(({ contexts }) => (contexts as Tree[]).find(holds)?.context, () => undefined)
+            this.#topLevelContexts.set(context, topLevel)
+            // an unknown context can be a tab that is still opening: ask again next time
+            topLevel.then((found) => { if (!found) { this.#topLevelContexts.delete(context) } })
+        }
+        return topLevel
     }
 
     clearScreenshotInterval () {
