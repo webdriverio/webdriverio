@@ -5,7 +5,7 @@
  */
 import isPlainObject from 'is-plain-obj'
 import { ELEMENT_KEY } from 'webdriver'
-import { getWdioKind } from '@wdio/utils'
+import { getBrowserObject, getWdioKind } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 import type { CustomStrategyReference, ReactSelectorOptions, Selector } from '../types.js'
 
@@ -54,27 +54,45 @@ function selectorIn (element: WebdriverIO.Element, parent: Scope): Selector {
 /**
  * The list commands whose items can be found again, with the flags that their
  * items get. `findAllAgain` below goes the other way, from the flags to the
- * command. A `custom$$` list and a multi-remote list are not in it.
+ * command (the items of `custom$$` carry their strategy in their selector). A
+ * multi-remote list is not in it.
  */
 const LIST_QUERIES = new Map<string, { isShadowElement: boolean, isReactElement: boolean }>([
     ['$$', { isShadowElement: false, isReactElement: false }],
     ['shadow$$', { isShadowElement: true, isReactElement: false }],
-    ['react$$', { isShadowElement: false, isReactElement: true }]
+    ['react$$', { isShadowElement: false, isReactElement: true }],
+    ['custom$$', { isShadowElement: false, isReactElement: false }]
 ])
 
 /**
- * The props of an item of a list that `foundWith` found, for `getElements`.
- * `props` are the arguments of that command after the selector. `undefined` for
- * a list command that is not in `LIST_QUERIES`.
+ * The selector and the props of an item of a list that `foundWith` found in
+ * `parent`, for `getElements`. `selector` and `props` are the selector of that
+ * command and its arguments after it. An item of `custom$$` gets the strategy
+ * reference that `custom$$` gives to its items: on an element, the element is the
+ * last argument of the strategy. `undefined` for a list command that is not in
+ * `LIST_QUERIES`, a list of elements or element references, or a strategy that is
+ * not registered.
  */
-export function itemPropsOf (foundWith: string, props: unknown[]) {
+export function itemOf (foundWith: string, selector: unknown, props: unknown[], parent: Scope) {
     const flags = LIST_QUERIES.get(foundWith)
-    if (!flags) {
+    if (!flags || selector === undefined || Array.isArray(selector)) {
         return undefined
     }
+    if (foundWith === 'custom$$') {
+        const strategy = getBrowserObject(parent).strategies?.get(selector as string)
+        if (!strategy) {
+            return undefined
+        }
+        const strategyArguments = getWdioKind(parent) === 'element' ? [...props, parent] : props
+        const strategyRef = { strategy, strategyName: selector, strategyArguments } as CustomStrategyReference
+        return { selector: strategyRef as unknown as Selector, props: { ...flags } }
+    }
     return {
-        ...flags,
-        ...(flags.isReactElement && props[0] ? { reactOptions: props[0] as ReactSelectorOptions } : {})
+        selector: selector as Selector,
+        props: {
+            ...flags,
+            ...(flags.isReactElement && props[0] ? { reactOptions: props[0] as ReactSelectorOptions } : {})
+        }
     }
 }
 

@@ -342,6 +342,28 @@ describe('ElementArray', () => {
             expect(item.index).toBe(1)
         })
 
+        it('gives a not found element with the strategy reference of custom$$', async () => {
+            const strategy = vi.fn()
+            const browser = {
+                options: { waitforTimeout: 50 },
+                strategies: new Map([['items', strategy]]),
+                custom$$: vi.fn(async () => ElementArray.fromResolved([element('a')], { selector: 'items', foundWith: 'custom$$', props: ['x'] })),
+                waitUntil: waitOnce()
+            }
+            const elements = await ElementArray.fromAsyncCallback(async () => [element('a')], {
+                selector: 'items',
+                foundWith: 'custom$$',
+                parent: browser as unknown as WebdriverIO.Browser,
+                props: ['x']
+            })
+
+            const item = await elements[1] as unknown as { selector: object, props: object, index: number }
+            expect(item.selector).toEqual({ strategy, strategyName: 'items', strategyArguments: ['x'] })
+            expect(item.props).toEqual({ isShadowElement: false, isReactElement: false })
+            expect(item.index).toBe(1)
+            expect(browser.custom$$).toHaveBeenCalledWith('items', 'x')
+        })
+
         it('throws an error of the query itself, not a not found element', async () => {
             const browser = {
                 options: { waitforTimeout: 50 },

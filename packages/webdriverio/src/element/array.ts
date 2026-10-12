@@ -4,7 +4,7 @@ import type { Selector } from '../types.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
  */
-import { INDEX_NOT_FOUND, itemPropsOf } from '../utils/findElementAgain.js'
+import { INDEX_NOT_FOUND, itemOf } from '../utils/findElementAgain.js'
 
 /**
  * A plain element or a multi-remote element. Both travel in the same list
@@ -248,12 +248,12 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
         }
 
         /**
-         * the props of the "not found" item, see below. `undefined` for a list whose index
-         * that is never reached still throws: a `custom$$` list (its items carry a strategy
-         * reference) and a list of elements or element references
+         * the selector and the props of the "not found" item, see below. `undefined` for a
+         * list whose index that is never reached still throws: a list of elements or element
+         * references, or a `custom$$` list whose strategy is not registered
          */
-        const itemProps = selector !== undefined && !Array.isArray(selector) ? itemPropsOf(foundWith, props) : undefined
-        if (!itemProps) {
+        const item = itemOf(foundWith, selector, props, parent as WebdriverIO.Browser | WebdriverIO.Element)
+        if (!item) {
             throw err
         }
 
@@ -269,7 +269,7 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
          * imported here: `getElementObject` imports the utils barrel, which imports this file
          */
         const { getElements } = await import('../utils/getElementObject.js')
-        const [notFound] = getElements.call(parent as WebdriverIO.Element, selector as Selector, [err], itemProps)
+        const [notFound] = getElements.call(parent as WebdriverIO.Element, item.selector, [err], item.props)
         notFound.index = index
         /**
          * the index was already waited for: the implicit wait of a command does not wait again

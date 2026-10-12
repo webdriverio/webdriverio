@@ -206,6 +206,16 @@ export function checkUnicode(value: string) {
     return [UNICODE_CHARACTERS[value as keyof typeof UNICODE_CHARACTERS]]
 }
 
+/**
+ * The object that runs a custom strategy: the browser or the held browsing context
+ * that queries, so the strategy runs in that context and not in the session's current
+ * one. On an element, the element is an argument of the strategy, which routes the
+ * script to its own context, as `fetchElementByJSFunction` does.
+ */
+function strategyScope (scope: WebdriverIO.Browser | WebdriverIO.Element, browserObject: WebdriverIO.Browser) {
+    return 'elementId' in scope ? browserObject : scope as WebdriverIO.Browser
+}
+
 function fetchElementByJSFunction(
     selector: ElementFunction,
     scope: WebdriverIO.Browser | WebdriverIO.Element,
@@ -1177,7 +1187,7 @@ export async function findElement(
     if (selector && typeof selector === 'object' && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyName, strategyArguments } = selector as CustomStrategyReference
         const notFoundError = new Error(`Custom Strategy "${strategyName}" did not return an HTMLElement`)
-        let elem = await browserObject.execute(strategy, ...strategyArguments)
+        let elem = await strategyScope(this, browserObject).execute(strategy, ...strategyArguments)
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
     }
@@ -1270,7 +1280,7 @@ export async function findElements(
      */
     if (isPlainObject(selector) && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyArguments } = selector as CustomStrategyReference
-        const elems = await browserObject.execute(strategy, ...strategyArguments)
+        const elems = await strategyScope(this, browserObject).execute(strategy, ...strategyArguments)
         const elemArray = Array.isArray(elems) ? elems as ElementReference[] : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
     }
