@@ -1,3 +1,4 @@
+import type { SuiteStats } from '@wdio/reporter'
 import type { HtmlReporterOptions, ReportData } from './types.js'
 import logger from '@wdio/logger'
 import json from 'big-json'
@@ -11,19 +12,25 @@ class JsonGenerator {
         JsonGenerator.LOG.info('Json write completed: ' + jsonFile )
     }
 
+    /**
+     * remove the command output of the tests, also in nested suites
+     */
+    static removeOutput(suites: SuiteStats[] = []) {
+        for (const suite of suites) {
+            for (const test of suite.tests ?? []) {
+                test.output = []
+            }
+            JsonGenerator.removeOutput(suite.suites)
+        }
+    }
+
     static async jsonOutput(reportOptions: HtmlReporterOptions, reportData: ReportData) {
 
         try {
 
             if (fs.pathExistsSync(reportOptions.outputDir)) {
                 if (reportOptions.removeOutput) {
-                    for (let i = 0; i < reportData.suites.length; i++) {
-                        const suite = reportData.suites[i]
-                        for (let j = 0; j < suite.tests.length; j++) {
-                            const test = suite.tests[j]
-                            test.output = []
-                        }
-                    }
+                    JsonGenerator.removeOutput(reportData.suites)
                 }
 
                 if (reportOptions.produceJson ) {

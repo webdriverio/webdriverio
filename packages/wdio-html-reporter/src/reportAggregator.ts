@@ -40,7 +40,7 @@ function  walk(dir:string, extensions: string[], filelist: string[] = []) {
 
 class ReportAggregator {
     private LOG = logger('ReportAggregator')
-    constructor(opts: HtmlReporterOptions) {
+    constructor(opts: Partial<HtmlReporterOptions> = {}) {
         this.options  = Object.assign(new HtmlReporterOptions(), {
             outputDir: 'reports/html-reports/',
             filename: 'master-report.html',
@@ -59,7 +59,9 @@ class ReportAggregator {
     }
 
     readJsonFiles() {
-        return walk(this.options.outputDir, ['.json'])
+        // the JSON of the master report is in the same folder: it is not the result of a worker
+        const masterJson = path.resolve(process.cwd(), this.options.outputDir, this.options.filename.replace('.html', '.json'))
+        return walk(this.options.outputDir, ['.json']).filter((file) => path.resolve(file) !== masterJson)
     }
     updateSuiteMetrics(metrics: Metrics, suiteInfo : SuiteStats) {
         const start = dayjs.utc(suiteInfo.start)
@@ -87,6 +89,7 @@ class ReportAggregator {
         const suites : SuiteStats[] = []
         const specs : string[] =  []
 
+        this.reports = []
         const files = this.readJsonFiles()
         if (files.length === 0) {
             this.LOG.error(String.format('No Json files found in: {0}. Make sure options.produceJson is not false',  this.options.outputDir))

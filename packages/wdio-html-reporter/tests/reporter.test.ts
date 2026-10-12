@@ -274,3 +274,94 @@ describe('video type', () => {
         expect(html).toContain('<source src="test.mp4" type="video/mp4">')
     })
 })
+
+describe('Greptile review points', () => {
+    const dirs: string[] = []
+    const tempDir = (name: string) => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), `html-reporter-${name}-`)) + path.sep
+        dirs.push(dir)
+        return dir
+    }
+    const suite = (extra: Record<string, unknown>) => ({
+        ...SUITES[0],
+        uid: 'review suite',
+        title: 'Review suite',
+        type: 'suite',
+        tests: [],
+        suites: [],
+        hooks: [],
+        ...extra
+    }) as never
+
+    afterAll(() => {
+        for (const dir of dirs) {
+            fs.rmSync(dir, { recursive: true, force: true })
+        }
+    })
+
+    it('creates the report again without the results of the previous master report', async () => {
+        const dir = tempDir('again')
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Again' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onTestStart(SUITES[0].tests[0])
+        reporter.onTestPass(SUITES[0].tests[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(RUNNER)
+
+        const options = { outputDir: dir, filename: 'master-report.html', reportTitle: 'Again', browserName: 'chrome' }
+        const first = new ReportAggregator(options)
+        await first.createReport()
+        await first.createReport()
+        expect(first.reports).toHaveLength(1)
+
+        const again = new ReportAggregator(options)
+        expect(again.readJsonFiles()).toHaveLength(1)
+        await again.createReport()
+        const master = JSON.parse(fs.readFileSync(path.join(dir, 'master-report.json'), 'utf-8'))
+        expect(master.metrics.passed).toBe(1)
+        expect(master.suites).toHaveLength(1)
+    })
+
+    it('creates the screenshots folder inside an outputDir without a trailing slash', () => {
+        const dir = tempDir('slash')
+        new HtmlReporter({ logFile: os.devNull, outputDir: path.join(dir, 'html') } as never)
+        expect(fs.existsSync(path.join(dir, 'html', 'screenshots'))).toBe(true)
+        expect(fs.existsSync(path.join(dir, 'htmlscreenshots'))).toBe(false)
+    })
+
+    it('shows the error of a failed hook', async () => {
+        const dir = tempDir('hook')
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Hook' } as never)
+        reporter.onRunnerStart(RUNNER)
+        const failedSuite = suite({
+            hooks: [{ uid: 'hook1', title: '"before all" hook for "Review suite"', state: 'failed', error: { message: 'cannot open the page', stack: 'Error: cannot open the page\n    at before' } }]
+        })
+        reporter.onSuiteStart(failedSuite)
+        reporter.onSuiteEnd(failedSuite)
+        await reporter.onRunnerEnd(RUNNER)
+        const reportAggregator = new ReportAggregator({ outputDir: dir, filename: 'master-report.html', reportTitle: 'Hook', browserName: 'chrome' })
+        await reportAggregator.createReport()
+        const html = fs.readFileSync(reportAggregator.reportFile, 'utf-8')
+        expect(html).toContain('&quot;before all&quot; hook for &quot;Review suite&quot;')
+        expect(html).toContain('cannot open the page')
+        expect(html).toContain('at before')
+    })
+
+    it('removes the output of the tests in nested suites', async () => {
+        const dir = tempDir('nested')
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Nested' } as never)
+        reporter.onRunnerStart(RUNNER)
+        const nested = suite({
+            uid: 'nested suite',
+            title: 'Nested suite',
+            tests: [{ ...SUITES[0].tests[0], output: [{ type: 'command', value: 'a lot of data' }] }]
+        })
+        const parent = suite({ suites: [nested] })
+        reporter.onSuiteStart(parent)
+        reporter.onSuiteEnd(parent)
+        await reporter.onRunnerEnd(RUNNER)
+        const [workerJson] = new ReportAggregator({ outputDir: dir, filename: 'master-report.html', reportTitle: 'Nested', browserName: 'chrome' }).readJsonFiles()
+        expect(fs.readFileSync(workerJson, 'utf-8')).not.toContain('a lot of data')
+    })
+})

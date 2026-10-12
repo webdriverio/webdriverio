@@ -53,6 +53,19 @@
     {% endif %}
     {% endif %}
 
+    {% for hook in suite.hooks %}
+        {% if hook.error %}
+            <tr>
+                <td colspan="2" class="test-fail">
+                    <p class="pre assert">Hook failed: {{ hook.title }}: {{ hook.error.message }}</p>
+                    {% if hook.error.stack %}
+                        <pre class='pre stack panel'>{{ hook.error.stack }}</pre>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endif %}
+    {% endfor %}
+
     {% for aSuite in suite.suites %}
         {{ renderSuite(aSuite) }}
     {% endfor %}
