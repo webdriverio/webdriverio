@@ -1,5 +1,10 @@
 export const SCREENSHOT_PADDING_WITH = 4
 export const FRAME_REGEX = new RegExp(`^.*\\/(\\d{${SCREENSHOT_PADDING_WITH}})\\.png`)
+
+/**
+ * characters of the ffmpeg output kept for the log of a failed render
+ */
+export const STDERR_TAIL_LENGTH = 2000
 export const SUPPORTED_VIDEO_FORMATS = {
     mp4: {
         fileExtension: 'mp4',

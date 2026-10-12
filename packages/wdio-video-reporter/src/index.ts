@@ -18,7 +18,7 @@ import {
     getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser,
     findAllureReporter
 } from './helpers.js'
-import { DEFAULT_OPTIONS, SCREENSHOT_PADDING_WITH, FRAME_REGEX } from './constants.js'
+import { DEFAULT_OPTIONS, SCREENSHOT_PADDING_WITH, FRAME_REGEX, STDERR_TAIL_LENGTH } from './constants.js'
 import type { ReporterOptions } from './types.js'
 
 import notAvailableImage from './assets/notAvailableImage.js'
@@ -122,8 +122,10 @@ export default class VideoReporter extends WdioReporter {
         this.#isScenarioLevelReporter = this.isCucumberFramework &&
             Boolean((runnerInstance as { cucumberOpts?: { scenarioLevelReporter?: boolean } }).cucumberOpts?.scenarioLevelReporter)
         const allureOptions = findAllureReporter(runnerInstance.reporters)
-        if (typeof allureOptions?.outputDir === 'string') {
-            this.#allureOutputDir = path.resolve(allureOptions.outputDir)
+        // the same folder as the Allure reporter: `outputDir`, then `resultsDir`, then `allure-results`
+        const allureDir = allureOptions && (allureOptions.outputDir || allureOptions.resultsDir || 'allure-results')
+        if (typeof allureDir === 'string') {
+            this.#allureOutputDir = path.resolve(allureDir)
         }
         this.#usingAllure = Boolean(allureOptions)
 
@@ -248,7 +250,15 @@ export default class VideoReporter extends WdioReporter {
 
         if (hasFailedTests || (allTestsPassed && this.options.saveAllVideos)) {
             this.addFrame()
+            // Cucumber reports each step as a test: make one video when the scenario ends
+            if (this.#isCucumberStepReporter && suite.type === 'scenario') {
+                this.generateVideo()
+            }
         }
+    }
+
+    get #isCucumberStepReporter () {
+        return this.isCucumberFramework && !this.#isScenarioLevelReporter
     }
 
     /**
@@ -259,8 +269,11 @@ export default class VideoReporter extends WdioReporter {
             return
         }
 
-        if ((!this.isCucumberFramework || this.#isScenarioLevelReporter) && this.options.filenamePrefixSource === 'test') {
-            this.testNameStructure.push(suite.title.replace(/ /g, '-').replace(/-{2,}/g, '-'))
+        if (!this.isCucumberFramework || this.#isScenarioLevelReporter) {
+            if (this.options.filenamePrefixSource === 'test') {
+                this.testNameStructure.push(suite.title.replace(/ /g, '-').replace(/-{2,}/g, '-'))
+            }
+            // one recording for each test, also when the suite title gives the file name
             this.#setRecordingPath()
         }
 
@@ -325,7 +338,9 @@ export default class VideoReporter extends WdioReporter {
 
         if (test.state === 'failed' || (test.state === 'passed' && this.options.saveAllVideos)) {
             this.addFrame()
-            this.generateVideo()
+            if (!this.#isCucumberStepReporter) {
+                this.generateVideo()
+            }
         }
     }
 
@@ -511,14 +526,23 @@ export default class VideoReporter extends WdioReporter {
             .then(() => frameCheckPromise)
             .then(() => new Promise((resolve) => {
                 const cp = spawn(command, args, {
-                    stdio: 'ignore',
+                    stdio: ['ignore', 'ignore', 'pipe'],
                     shell: true,
                     windowsHide: true,
                 })
                 this.processList.add(cp)
-                cp.on('close', () => {
+                // keep the end of the ffmpeg output to explain a failed render
+                let stderr = ''
+                cp.stderr?.on('data', (data: Buffer) => {
+                    stderr = (stderr + data.toString()).slice(-STDERR_TAIL_LENGTH)
+                })
+                cp.on('close', (code: number | null) => {
                     this.processList.delete(cp)
-                    this.#log(`Generated video: "${videoPath}" (${Date.now() - start}ms)`)
+                    if (code === 0) {
+                        this.#log(`Generated video: "${videoPath}" (${Date.now() - start}ms)`)
+                    } else {
+                        this.#log(`ffmpeg failed with exit code ${code} for video "${videoPath}": ${stderr.trim()}`)
+                    }
                     return resolve()
                 })
             }))
