@@ -23,11 +23,17 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
     if (!currentElement.elementId && !/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/.test(commandName) && !skipForMobileScroll) {
         /**
          * `$$(selector)[index]` already waited `waitforTimeout` for the index, see
-         * `elementAt` in `element/array.ts`: throw its "Index out of bounds" error, without
-         * a second wait and without another lookup
+         * `elementAt` in `element/array.ts`: look for the item once more, without a second
+         * wait, as `isExisting()` does. The list can reach the index after that wait. If it
+         * still does not, throw the "Index out of bounds" error of the wait
          */
         if ((currentElement as WebdriverIO.Element & { [INDEX_NOT_FOUND]?: boolean })[INDEX_NOT_FOUND]) {
-            throw currentElement.error
+            const item = await findElementAgain(currentElement)
+            if (!item?.elementId) {
+                throw currentElement.error
+            }
+            delete currentElement.error
+            return item
         }
 
         log.debug(
