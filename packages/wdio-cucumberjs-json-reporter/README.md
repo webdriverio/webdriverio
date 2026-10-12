@@ -231,7 +231,7 @@ To create an HTML report with the [multiple-cucumber-html-reporter](https://gith
        */
       onPrepare: () => {
         // Remove the `.tmp/` folder that holds the json and report files
-        return fs.rm('.tmp/', { recursive: true });
+        return fs.rm('.tmp/', { recursive: true, force: true });
       },
       /**
        * Gets executed after all workers got shut down and the process is about to exit.
