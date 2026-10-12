@@ -29,7 +29,7 @@ export function getStepKeywords(language: string): string[] {
 export function getFailedMessage(testObject: TestStats | HookStats): ErrorMessage {
     if (testObject.state === FAILED) {
         return {
-            error_message: stripAnsi(testObject.error!.stack!),
+            error_message: stripAnsi(testObject.error?.stack ?? testObject.error?.message ?? ''),
         }
     }
 

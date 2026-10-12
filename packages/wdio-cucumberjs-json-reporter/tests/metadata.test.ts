@@ -412,3 +412,9 @@ describe('metadata in a multi-remote session', () => {
         })
     })
 })
+
+describe('app name of a Windows path', () => {
+    it('uses the file name of the app', () => {
+        expect(new Metadata().determineAppData({ app: 'C:\\apps\\my\\app.apk' } as never, {} as never).app?.name).toBe('app.apk')
+    })
+})
