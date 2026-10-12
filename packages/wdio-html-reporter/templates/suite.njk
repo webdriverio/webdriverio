@@ -1,0 +1,64 @@
+{% from "tests.njk" import renderTests %}
+{% macro renderSuite(suite) %}
+
+{% if suite.type %}
+{% if suite.type.includes('suite') or suite.type.includes('feature') or suite.type.includes('scenario') %}
+<table class="table table-bordered table-suite">
+    <tr class="suite-header">
+        <td colspan="2"
+            class="{{ suiteStateColour(suite) }}">
+            <h3>
+                <span style="margin: 2px; padding: 1px" class="glyphicon glyphicon-chevron-up">&nbsp;</span>{{ suite.title }}
+            </h3>
+            {% if suite.description %}
+            <h4>
+                <span class="description">&nbsp;</span>{{ suite.description }}
+            </h4>
+            {% endif %}
+        </td>
+    </tr>
+    {% if displaySpecFile(suite) %}
+        <tr>
+            <td>Spec File</td>
+            <td>{{ formatSpecFile(suite) }}</td>
+        </tr>
+    {% endif %}
+
+    {% if suite.tests %}
+    {% if suite.type.includes('suite') or suite.type.includes('scenario') %}
+        <tr>
+            <td>Suite Start</td>
+            <td>{{suite.start}}</td>
+        </tr>
+        <tr>
+            <td>Suite End</td>
+            <td>{{suite.end}}</td>
+        </tr>
+        <tr>
+            <td>Suite Duration</td>
+            <td>{{ humanizeDuration(suite._duration) }}</td>
+        </tr>
+
+        {% if suite.tests.length %}
+            <tr>
+                <td>Tests</td>
+                <td>{{suite.tests.length}}</td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    {{ renderTests(suite) }}
+                </td>
+            </tr>
+        {% endif %}
+    {% endif %}
+    {% endif %}
+
+    {% for aSuite in suite.suites %}
+        {{ renderSuite(aSuite) }}
+    {% endfor %}
+
+
+</table>
+{% endif %}
+{% endif %}
+{% endmacro %}

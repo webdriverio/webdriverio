@@ -1,0 +1,68 @@
+{% macro renderTests(suite) %}
+    {% for testInfo in suite.tests %}
+    <table>
+        <tr>
+            <td>
+                <table class="table table-test">
+                    <tr class="test-header">
+                        <td colspan="2" class="{{ testStateColour(testInfo) }}">
+                            <span class="test-expand glyphicon glyphicon-chevron-up">&nbsp;</span>
+                            <span class="{{ testStateClass(testInfo) }}">{{ testStateIcon(testInfo) |safe}}</span>
+                            <span class="test-title">{{testInfo.title}}</span>
+                        </td>
+                    </tr>
+                    {% for event in testInfo.events %}
+                        {% if event.type and event.type.includes('Error')  %}
+                            <tr class="test-row expandable-control">
+                                <td colspan="2">
+                                    <p class="pre assert ">
+                                <span style="margin: 2px; padding: 1px"
+                                      class='glyphicon glyphicon-chevron-down'>&nbsp;</span>
+                                        Assertion: {{event.value.message}}
+                                    </p>
+                                </td>
+                            </tr>
+                            {% if event.value.stack %}
+                                <tr class="test-row">
+                                    <td colspan="2">
+                                        <pre class='pre stack panel'>{{event.value.stack}}</pre>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endif %}
+                        {% if event.type and event.type === 'screenshot' %}
+                            <tr class="test-row screenshot">
+                                <td colspan="2">
+                                    <div class="screenshotWrapper">
+                                        <img class="toggle screenshot screenshot-small"
+                                             src="{{ renderImage(event.value,runnerStat.config.screenshotPath) }}"/>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                        {% if event.type and event.type === 'video-capture' %}
+                            <tr class="test-row video">
+                                <td colspan="2">
+                                    <div class="videoWrapper">
+                                        <video controls class="video">
+                                            <source src="{{ renderVideo(event.value) }}" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                        {% if event.type === 'log' %}
+                            <tr class="test-row log">
+                                <td colspan="2">
+                                    <pre class='pre {{ logClass(event.value) }}'>{{event.value}}</pre>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
+            </td>
+        <tr>
+    </table>
+    {% endfor %}
+{% endmacro %}

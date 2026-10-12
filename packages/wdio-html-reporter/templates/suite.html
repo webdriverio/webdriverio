@@ -1,0 +1,11 @@
+{% from "suite.njk" import renderSuite %}
+
+<tr>
+  <td colspan="2">
+    {% if suites and suites.length > 0 %}
+    <h3>{{info.cid}}</h3>
+    {% else %}
+    <h3 class="warning">{{info.cid}}</h3>
+    {% endif %} {% if suite %} {{ renderSuite(suite) }} {% endif %}
+  </td>
+</tr>
