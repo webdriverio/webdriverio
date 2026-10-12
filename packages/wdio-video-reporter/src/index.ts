@@ -4,11 +4,11 @@ import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { spawn, type ChildProcess } from 'node:child_process'
 
+import logger from '@wdio/logger'
 import WdioReporter, { type RunnerStats, type AfterCommandArgs, type SuiteStats, type TestStats } from '@wdio/reporter'
 import { browser } from '@wdio/globals'
 import type { Options } from '@wdio/types'
 
-import { path as ffmpegPath } from '@ffmpeg-installer/ffmpeg'
 import { glob } from 'glob'
 
 import AllureReporterExtension from './allure.js'
@@ -16,12 +16,14 @@ import { removeAllureAttachments } from './allureResults.js'
 import {
     waitForVideosToExist, waitForVideosToBeWritten, getCurrentCapabilities, getVideoFormatSettings,
     getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser,
-    findAllureReporter
+    findAllureReporter, findFfmpeg
 } from './helpers.js'
 import { DEFAULT_OPTIONS, SCREENSHOT_PADDING_WITH, FRAME_REGEX, STDERR_TAIL_LENGTH } from './constants.js'
 import type { ReporterOptions } from './types.js'
 
 import notAvailableImage from './assets/notAvailableImage.js'
+
+const log = logger('@wdio/video-reporter')
 
 export default class VideoReporter extends WdioReporter {
     options: Required<ReporterOptions>
@@ -31,6 +33,7 @@ export default class VideoReporter extends WdioReporter {
     #allureOutputDir?: string
     #allureReporter = new AllureReporterExtension()
     #record = true
+    #ffmpegPath?: string
     #defaultOutputDir = '_results_'
 
     screenshotPromises: Promise<void>[] = []
@@ -61,6 +64,18 @@ export default class VideoReporter extends WdioReporter {
 
         if (this.options.screenshotIntervalSecs) {
             this.options.screenshotIntervalSecs = Math.max(this.options.screenshotIntervalSecs, 0.5)
+        }
+
+        this.#ffmpegPath = findFfmpeg(options.ffmpegPath)
+        if (!this.#ffmpegPath) {
+            this.#record = false
+            const message = 'ffmpeg was not found, so no video is made. Install ffmpeg, or set the "ffmpegPath" option ' +
+                'or the FFMPEG_PATH environment variable: https://webdriver.io/docs/video-reporter#install-ffmpeg'
+            log.warn(message)
+            /**
+             * also in the terminal: with `outputDir`, WebdriverIO writes the worker log only to a file
+             */
+            console.warn(`[@wdio/video-reporter] ${message}`)
         }
     }
 
@@ -510,7 +525,7 @@ export default class VideoReporter extends WdioReporter {
         /**
          * no shell: each argument goes to ffmpeg as it is, also a path with quotes or `$`
          */
-        const command = ffmpegPath
+        const command = this.#ffmpegPath!
         const args = [
             '-y',
             '-r', '10',
@@ -537,6 +552,14 @@ export default class VideoReporter extends WdioReporter {
                 let stderr = ''
                 cp.stderr?.on('data', (data: Buffer) => {
                     stderr = (stderr + data.toString()).slice(-STDERR_TAIL_LENGTH)
+                })
+                /**
+                 * for example an ffmpegPath that was removed after the start
+                 */
+                cp.on('error', (err: Error) => {
+                    this.processList.delete(cp)
+                    this.#log(`could not start ffmpeg ${command} for video "${videoPath}": ${err.message}`)
+                    resolve()
                 })
                 cp.on('close', (code: number | null) => {
                     this.processList.delete(cp)

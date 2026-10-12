@@ -55,7 +55,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | Sauce `tunnelIdentifier` / `parentTunnel` | `tunnelName` / `tunnelOwner` |
 | `import type { Element }` from `webdriverio` | `WebdriverIO.Element` (also `MultiRemoteBrowser`, `MultiRemoteElement`) |
 | `onAfterCommand` argument `name` | `command` |
-| `wdio-video-reporter` | `@wdio/video-reporter`. Uninstall the old package. `reporters: ['video']` stays. Rename JSON Wire Protocol names in `snapshotCommands` (see the guide). |
+| `wdio-video-reporter` | `@wdio/video-reporter`. Uninstall the old package. `reporters: ['video']` stays. Install ffmpeg on every machine that runs the tests (also CI and Docker), or set `ffmpegPath`: v10 does not install it. Rename JSON Wire Protocol names in `snapshotCommands` (see the guide). |
 | `addEnvironment(` | `reportedEnvironmentVars` in the Allure reporter options |
 | `addCommand(name, fn, true)` | `addCommand(name, fn, { attachToElement: true })`. A boolean third argument throws. Same for `overwriteCommand`. |
 | `getCookies('name')` or `getCookies(['name'])` | `getCookies({ name: 'name' })`. One call filters one name. |

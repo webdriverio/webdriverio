@@ -9,6 +9,12 @@ export interface ReporterOptions extends Reporters.Options {
     outputDir?: string
 
     /**
+   * Path of the ffmpeg executable. Defaults to the `FFMPEG_PATH` environment variable,
+   * then to `ffmpeg` on the `PATH`. WebdriverIO does not install ffmpeg.
+   */
+    ffmpegPath?: string
+
+    /**
    * Maximum time to wait for a video to finish rendering (in ms).
    * @default 5000
    */

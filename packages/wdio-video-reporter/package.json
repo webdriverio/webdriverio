@@ -34,7 +34,6 @@
   },
   "typeScriptVersion": "6.0.3",
   "dependencies": {
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@wdio/allure-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",

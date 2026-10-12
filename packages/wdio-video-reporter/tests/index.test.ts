@@ -2,9 +2,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
+import type * as HelpersModule from '../src/helpers.js'
 import { browser } from '@wdio/globals'
 import AllureReporterExtension from '../src/allure.js'
 import VideoReporter from '../src/index.js'
+import { findFfmpeg } from '../src/helpers.js'
 
 vi.mock('node:fs', () => {
     const mod = {
@@ -25,8 +27,12 @@ vi.mock('glob', () => ({
     glob: () => Promise.resolve(['/foo/bar.js', '/foo/baz.js'])
 }))
 
-vi.mock('@ffmpeg-installer/ffmpeg', () => ({
-    path: '/foo/bar/ffmpeg'
+const logMock = vi.hoisted(() => ({ warn: vi.fn(), info: vi.fn(), error: vi.fn(), debug: vi.fn() }))
+vi.mock('@wdio/logger', () => ({ default: () => logMock }))
+
+vi.mock('../src/helpers.js', async (importOriginal) => ({
+    ...await importOriginal<typeof HelpersModule>(),
+    findFfmpeg: vi.fn(() => '/foo/bar/ffmpeg')
 }))
 
 vi.mock('@wdio/reporter', () => ({
@@ -310,6 +316,26 @@ describe('Video Reporter', () => {
 
             reporter.onSuiteEnd({ type: 'scenario', tests: [{ state: 'failed' }, { state: 'skipped' }] } as any)
             expect(reporter.generateVideo).toBeCalledTimes(1)
+        })
+    })
+
+    describe('ffmpeg', () => {
+        it('records with the ffmpeg of the user', () => {
+            const reporter = new VideoReporter({ ffmpegPath: '/my/ffmpeg' })
+            expect(findFfmpeg).toHaveBeenLastCalledWith('/my/ffmpeg')
+            expect(reporter.record).toBe(true)
+        })
+
+        it('makes no video and tells how to install ffmpeg when it is not found', () => {
+            vi.mocked(findFfmpeg).mockReturnValueOnce(undefined)
+            const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            const reporter = new VideoReporter({})
+            expect(reporter.record).toBe(false)
+            // the terminal too: with `outputDir`, WebdriverIO writes the worker log only to a file
+            expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining('ffmpeg was not found'))
+            consoleWarn.mockRestore()
+            expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('ffmpeg was not found'))
+            expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('https://webdriver.io/docs/video-reporter#install-ffmpeg'))
         })
     })
 
