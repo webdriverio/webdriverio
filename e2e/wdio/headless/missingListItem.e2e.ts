@@ -138,6 +138,29 @@ describe('an index that the list of $$ never reaches', () => {
         expect(error?.message).toContain('Index out of bounds! $$(#list li) returned only 3 elements.')
     })
 
+    it('checks a custom$$ item of another held tab in that tab', async function () {
+        if (!browser.isBidi) {
+            return this.skip()
+        }
+        await browser.addLocatorStrategy('itemsOfTab', () => [...document.querySelectorAll<HTMLElement>('#list li')])
+        /**
+         * in a BiDi session `newWindow` gives the held browsing context of the new tab
+         */
+        const tab = await browser.newWindow(`http://127.0.0.1:${(server.address() as AddressInfo).port}/`, { type: 'tab' }) as WebdriverIO.BrowsingContext
+        try {
+            await tab.execute(() => (window as unknown as { renderList (texts: string[]): void }).renderList(['x']))
+
+            /**
+             * the tab of the browser still has 3 items: the strategy must run in the held tab
+             */
+            expect(await tab.custom$$('itemsOfTab')[2].isExisting()).toBe(false)
+            expect(await tab.custom$$('itemsOfTab')[2].isDisplayed()).toBe(false)
+            expect(await $$('#list li').length).toBe(3)
+        } finally {
+            await tab.closeWindow()
+        }
+    })
+
     it('still waits for a list that loads later', async () => {
         await browser.execute(() => (window as unknown as { renderLate (): void }).renderLate())
         expect(await $$('#late li')[2].getText()).toBe('c')
