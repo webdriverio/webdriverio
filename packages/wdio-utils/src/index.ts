@@ -20,6 +20,7 @@ import { TimingTracker, type TimingMetrics, type TimingPhase } from './profiler.
 import {
     WDIO_KIND, WDIO_CHAINABLE, WDIO_KINDS, setWdioKind, getWdioKind, getLoadedWdioKind, isLoadedElement, isArrayOfElements, type WdioKind
 } from './kind.js'
+import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelMode, type ParallelContextAllocation, type ParallelContextBrowser } from './parallel/contexts.js'
 import { knownRoles, roleTable, ROLE_SYNONYMS, type AttributeTest, type RoleRule } from './roles.js'
 
 export {
@@ -100,5 +101,15 @@ export {
     knownRoles,
     ROLE_SYNONYMS,
     type AttributeTest,
-    type RoleRule
+    type RoleRule,
+
+    /**
+     * BiDi context allocation for parallel test execution
+     */
+    allocateContext,
+    cleanupAllocation,
+    resolveMaxContexts,
+    type ParallelMode,
+    type ParallelContextAllocation,
+    type ParallelContextBrowser
 }

@@ -22,6 +22,7 @@ import logger from '@wdio/logger'
 import { dottedFullTitle, formatError, type TitledNode } from './common.js'
 import { MOCHA_TIMEOUT_MESSAGE } from './constants.js'
 import type { MochaError } from './types.js'
+import { allocateContext, cleanupAllocation, resolveMaxContexts, type ParallelContextAllocation, type ParallelMode } from '@wdio/utils'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework:parallel')
@@ -82,23 +83,10 @@ interface ParallelBrowser extends WebdriverIO.Browser {
     __parallelContextStore?: AsyncLocalStorage<string>
     /** Set of framework-managed parallel contexts (see session/context.ts). */
     __parallelContexts?: Set<string>
-    browsingContextCreate?(params: { type: string; userContext?: string }): Promise<{ context: string }>
-    browsingContextClose?(params: { context: string }): Promise<void>
+    browsingContextCreate(params: { type: string; userContext?: string }): Promise<{ context: string }>
+    browsingContextClose(params: { context: string }): Promise<void>
     browserCreateUserContext?(params: Record<string, never>): Promise<{ userContext: string }>
     browserRemoveUserContext?(params: { userContext: string }): Promise<void>
-}
-
-export type ParallelMode = 'contexts' | 'userContexts'
-
-export interface ParallelContextAllocation {
-    context: string
-    userContext?: string
-}
-
-export function resolveMaxContexts(value: number | undefined, fallback: number): number {
-    return typeof value === 'number' && Number.isFinite(value) && value > 0
-        ? Math.max(1, Math.floor(value))
-        : Math.max(1, fallback)
 }
 
 interface CollectedTest {
@@ -548,48 +536,6 @@ function callHook(hook: any, ctx: object, timeoutMs?: number, uncaught?: Uncaugh
                 (err) => settle(() => reject(err))
             )
     })
-}
-
-// ============================================================
-// Context pre-allocation
-// ============================================================
-
-async function removeUserContext(bidi: ParallelBrowser, userContext: string, level: 'warn' | 'debug' = 'warn') {
-    await bidi.browserRemoveUserContext!({ userContext }).catch(
-        (err) => { log[level](`[Parallel] failed to remove user context ${userContext}: ${(err as Error).message}`) }
-    )
-}
-
-async function allocateContext(bidi: ParallelBrowser, mode: ParallelMode): Promise<ParallelContextAllocation> {
-    let allocation: ParallelContextAllocation
-    if (mode !== 'userContexts') {
-        const { context } = await bidi.browsingContextCreate!({ type: 'window' })
-        allocation = { context }
-    } else {
-        const { userContext } = await bidi.browserCreateUserContext!({})
-        try {
-            const { context } = await bidi.browsingContextCreate!({ type: 'window', userContext })
-            allocation = { context, userContext }
-        } catch (err) {
-            await removeUserContext(bidi, userContext)
-            throw err
-        }
-    }
-    // Register with the session ContextManager so navigations inside these
-    // windows don't trigger session-global re-anchoring (tree fetch + switchToWindow).
-    bidi.__parallelContexts?.add(allocation.context)
-    return allocation
-}
-
-/** Never rejects: close window, then remove its user context, then unregister. */
-async function cleanupAllocation(bidi: ParallelBrowser, { context, userContext }: ParallelContextAllocation) {
-    await bidi.browsingContextClose!({ context }).catch(
-        (err) => { log.debug(`[Parallel] cleanup: failed to close context ${context}: ${(err as Error).message}`) }
-    )
-    if (userContext) {
-        await removeUserContext(bidi, userContext, 'debug')
-    }
-    bidi.__parallelContexts?.delete(context)
 }
 
 interface TestRunResult {
