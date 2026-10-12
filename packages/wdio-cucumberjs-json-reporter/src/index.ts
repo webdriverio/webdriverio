@@ -346,7 +346,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * Get the current scenario
      */
     public getCurrentScenario(): Scenario {
-        const elements = this.report.feature!.elements!
+        // no feature yet, for example for an attachment from the WebdriverIO `before` hook
+        const elements = this.report.feature?.elements ?? []
         return elements[elements.length - 1]
     }
 
@@ -411,7 +412,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             mime_type: attachment.type,
         }
 
-        // no step yet: keep the attachment for the next step
+        // no feature or no step yet: keep the attachment for the next step
         if (!currentStep) {
             this.#pendingEmbeddings.push(embeddings)
             return
