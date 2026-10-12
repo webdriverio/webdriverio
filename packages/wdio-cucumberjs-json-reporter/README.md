@@ -254,7 +254,7 @@ To create an HTML report with the [multiple-cucumber-html-reporter](https://gith
 
 This package supports WebdriverIO v10 and later. For WebdriverIO v9, use the community package
 [`wdio-cucumberjs-json-reporter`](https://github.com/webdriverio-community/wdio-cucumberjs-json-reporter).
-Its configuration and options are the same.
+To move from that package to this one, see the [v10 migration guide](https://webdriver.io/docs/v10-migration#cucumber-json-reporter).
 
 > This module only creates the JSON files, not a report. To create an HTML report, see
 > [Use it with multiple-cucumber-html-reporter](#use-it-with-multiple-cucumber-html-reporter).
