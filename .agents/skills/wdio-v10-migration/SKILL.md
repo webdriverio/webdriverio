@@ -60,6 +60,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `import type { Element }` from `webdriverio` | `WebdriverIO.Element` (also `MultiRemoteBrowser`, `MultiRemoteElement`) |
 | `onAfterCommand` argument `name` | `command` |
 | a `beforeCommand` / `afterCommand` hook that expects an element command 2 or 3 times, `[]` as `args`, or an `emit` command | the hooks run once for each element command, with its arguments, and not for `emit`. `beforeCommand` runs before the wait for the element: read the found element in `afterCommand`. |
+| `wdio-video-reporter` | `@wdio/video-reporter`. Uninstall the old package. `reporters: ['video']` stays. Rename JSON Wire Protocol names in `snapshotCommands` (see the guide). |
 | `addEnvironment(` | `reportedEnvironmentVars` in the Allure reporter options |
 | `addCommand(name, fn, true)` | `addCommand(name, fn, { attachToElement: true })`. A boolean third argument throws. Same for `overwriteCommand`. |
 | `getCookies('name')` or `getCookies(['name'])` | `getCookies({ name: 'name' })`. One call filters one name. |
