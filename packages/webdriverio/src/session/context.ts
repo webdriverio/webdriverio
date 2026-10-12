@@ -111,19 +111,27 @@ export class ContextManager extends SessionManager {
          * current tree and see if our context is still there, if not, we need to reset
          * the context to the first context in the tree.
          */
-        const { contexts } = await this.#browser.browsingContextGetTree({})
-        /**
-         * check if the context is still in the tree, if not, switch to...
-         */
-        const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
-        /**
-         * ...the context we are navigating to
-         */
-        const newContext = contexts.find((context) => context.context === nav.context)
-        if (!hasContext && newContext) {
-            this.setCurrentContext(newContext.context)
-            await this.#browser.switchToWindow(this.#currentContext)
-            return
+        try {
+            const { contexts } = await this.#browser.browsingContextGetTree({})
+            /**
+             * check if the context is still in the tree, if not, switch to...
+             */
+            const hasContext = this.findContext(this.#currentContext, contexts, 'byContextId')
+            /**
+             * ...the context we are navigating to
+             */
+            const newContext = contexts.find((context) => context.context === nav.context)
+            if (!hasContext && newContext) {
+                this.setCurrentContext(newContext.context)
+                await this.#browser.switchToWindow(this.#currentContext)
+                return
+            }
+        } catch (err) {
+            /**
+             * an event handler has no caller to give the error to, e.g. when the
+             * session ends while the tree is requested
+             */
+            log.warn(`Failed to update the context after a navigation in "${nav.context}": ${(err as Error).message}`)
         }
     }
 
@@ -284,6 +292,8 @@ export class ContextManager extends SessionManager {
                     return
                 }
                 this.setCurrentContext(parentContext.context)
+            }).catch((err: Error) => {
+                log.warn(`Failed to update the context after switchToParentFrame: ${err.message}`)
             })
         }
 
