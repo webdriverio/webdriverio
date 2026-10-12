@@ -725,6 +725,27 @@ const cucumberJsJsonReporter = async () => {
 }
 
 /**
+ * Cucumber with @wdio/cucumberjs-json-reporter in a multi-remote session: the
+ * metadata comes from the first instance
+ */
+const cucumberJsJsonReporterMultiRemote = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = path.join(basePath, 'json')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporterMultiRemote',
+        path.resolve(basePath, 'cucumberjs-json.multiremote.config.js'),
+        { specs: [path.resolve(basePath, 'cucumberjs-json.feature')] }
+    )
+    const files = await fs.readdir(jsonFolder)
+    assert.equal(files.length, 1)
+    const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+    assert.equal(feature.metadata.device, 'Device A')
+    assert.notEqual(feature.metadata.browser.name, 'No metadata.browser.name available')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
  * Cucumber file option
  */
 const cucumberFileOption = async () => {
@@ -1567,6 +1588,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberGroupedSpecsRandomOrderHistory,
         cucumberSameFeatureFileName,
         cucumberJsJsonReporter,
+        cucumberJsJsonReporterMultiRemote,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,
