@@ -19,7 +19,8 @@ const log = logger('webdriver')
  * its scroll containers (to the bottom or the top when something covers it at the center), and the page gets its
  * `scroll` events before the click. An element that the pointer already hits is not scrolled. In Firefox, a click
  * without options does the same before the WebDriver `click` command, because geckodriver scrolls and clicks without
- * giving the page its `scroll` events first.
+ * giving the page its `scroll` events first. When something intercepts a click without options in any browser
+ * (for example a sticky header), the element is brought under the pointer in the same way and clicked again.
  *
  * :::info
  *
@@ -259,12 +260,24 @@ async function elementClick(element: WebdriverIO.Element) {
         if (typeof error === 'string') {
             err = new Error(error)
         }
-        if (!err.message.includes('element click intercepted')) {
+        /**
+         * The error name is the code: "element click intercepted", "click intercepted"
+         * in Safari. Only ChromeDriver also puts it in the message, geckodriver says
+         * "… obscures it".
+         */
+        if (!`${err.name} ${err.message}`.includes('click intercepted')) {
             // we only apply the workaround when the click got intercepted
             // so that the middleware can handle any other errors
             throw err
         }
-        await workaround(element)
+        /**
+         * The driver scrolled the element under something, e.g. a sticky header of its
+         * scroll container: bring it where the pointer hits it, and click again. The
+         * driver does not scroll an element that is in view. This costs nothing when the
+         * first click works.
+         */
+        const isNativeApp = browser.isMobile && (await browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)
+        await (isNativeApp ? workaround(element) : bringIntoView(browser, element, { x: 0, y: 0 }))
         return element.elementClick(element.elementId)
     }
 }

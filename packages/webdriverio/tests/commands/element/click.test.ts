@@ -533,6 +533,51 @@ describe('click test', () => {
         })
     })
 
+    describe('click without options that something intercepts', () => {
+        const intercepted = (name: string, message: string) => Object.assign(new Error(message), { name })
+        const scope = (error: Error, context: Record<string, unknown> = {}) => ({
+            elementId: 'some-elem',
+            isFirefox: false,
+            ...context,
+            execute: vi.fn(),
+            scrollIntoView: vi.fn(),
+            elementClick: vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce(undefined)
+        })
+
+        it.each([
+            ['ChromeDriver', intercepted('element click intercepted', 'element click intercepted: Element <button> is not clickable at point (50, 20)')],
+            ['geckodriver', intercepted('element click intercepted', 'Element <button> is not clickable at point (50,20) because another element <div> obscures it')],
+            ['safaridriver', intercepted('click intercepted', 'click intercepted')]
+        ])('should bring the element under the pointer and click again (%s)', async (_, error) => {
+            const elem = scope(error)
+
+            await click.call(elem as never)
+            expect(elem.execute).toHaveBeenCalledTimes(1)
+            expect(elem.execute.mock.calls[0][2]).toEqual({ x: 0, y: 0 })
+            expect(elem.execute.mock.invocationCallOrder[0]).toBeGreaterThan(elem.elementClick.mock.invocationCallOrder[0])
+            expect(elem.execute.mock.invocationCallOrder[0]).toBeLessThan(elem.elementClick.mock.invocationCallOrder[1])
+            expect(elem.elementClick).toHaveBeenCalledTimes(2)
+            expect(elem.scrollIntoView).not.toHaveBeenCalled()
+        })
+
+        it('should throw other errors without a second click', async () => {
+            const elem = scope(intercepted('element not interactable', 'element not interactable'))
+
+            await expect(click.call(elem as never)).rejects.toThrow('element not interactable')
+            expect(elem.execute).not.toHaveBeenCalled()
+            expect(elem.elementClick).toHaveBeenCalledTimes(1)
+        })
+
+        it('should scroll with the scrollIntoView command in a native app', async () => {
+            const elem = scope(intercepted('element click intercepted', 'element click intercepted'), { isMobile: true, isNativeContext: true })
+
+            await click.call(elem as never)
+            expect(elem.execute).not.toHaveBeenCalled()
+            expect(elem.scrollIntoView).toHaveBeenCalledWith({ block: 'center', inline: 'center' })
+            expect(elem.elementClick).toHaveBeenCalledTimes(2)
+        })
+    })
+
     it('should scroll to the center and click again when the pointer action fails', async () => {
         const perform = vi.fn()
             .mockRejectedValueOnce(new Error('move target out of bounds'))

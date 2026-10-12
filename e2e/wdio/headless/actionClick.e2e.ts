@@ -254,6 +254,10 @@ describe('click without options', () => {
         }
     })
 
+    /**
+     * safaridriver scrolls the element to the center, under the header, and says "click
+     * intercepted": WebdriverIO brings it under the pointer and clicks again
+     */
     it('clicks an element in a scroll container whose sticky header covers its center', async () => {
         const { clicks } = await clickAndRecord($('#under-sticky'), undefined)
         expect(clicks.map(({ target }) => target)).toEqual(['under-sticky'])
