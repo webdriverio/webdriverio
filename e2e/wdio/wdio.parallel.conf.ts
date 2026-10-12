@@ -8,17 +8,18 @@ export const config: WebdriverIO.Config = {
      * specify test files
      */
     specs: [
-        path.join(__dirname, 'headless', 'parallel.e2e.ts')
+        path.join(__dirname, 'headless', 'parallel.e2e.ts'),
+        path.join(__dirname, 'headless', 'parallel-storage.e2e.ts')
     ],
 
     /**
      * capabilities
      */
+    maxInstances: 1,
     capabilities: [{
         browserName: 'chrome',
         webSocketUrl: true,
         'wdio:experimentalBiDiCommands': true,
-        maxInstances: 1,
         'goog:chromeOptions': {
             args: [
                 'headless',

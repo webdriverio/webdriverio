@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
@@ -5,7 +6,7 @@ import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 
 import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
-import { attach } from 'webdriverio'
+import { attach, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setDefaultOptions, SnapshotService } from 'expect-webdriverio'
 
@@ -491,6 +492,29 @@ describe('wdio-runner', () => {
             expect(reporter.emit).toBeCalledWith(
                 'client:afterCommand',
                 { bar: 'foo', sessionId: 'fakeid' })
+        })
+
+        it('should forward the parallel context id from the async store', async () => {
+            const reporter = { emit: vi.fn() }
+            const runner = new WDIORunner()
+            runner['_reporter'] = reporter as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const store = new AsyncLocalStorage<string>()
+            ;(browser as any)[PARALLEL_CONTEXT_STORE_KEY] = store
+            const [, beforeListener] = vi.mocked(browser!.on).mock.calls[0] as any
+            const [, afterListener] = vi.mocked(browser!.on).mock.calls[1] as any
+
+            store.run('ctx-1', () => beforeListener({ foo: 'bar' }))
+            store.run('ctx-2', () => afterListener({ bar: 'foo' }))
+            expect(reporter.emit).toBeCalledWith('client:beforeCommand', { foo: 'bar', sessionId: 'fakeid', contextId: 'ctx-1' })
+            expect(reporter.emit).toBeCalledWith('client:afterCommand', { bar: 'foo', sessionId: 'fakeid', contextId: 'ctx-2' })
+
+            reporter.emit.mockClear()
+            beforeListener({ foo: 'bar' })
+            expect(reporter.emit).toBeCalledWith('client:beforeCommand', { foo: 'bar', sessionId: 'fakeid' })
         })
 
         it('should return null if initiating session fails', async () => {

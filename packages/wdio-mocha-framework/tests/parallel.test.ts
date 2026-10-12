@@ -43,6 +43,7 @@ function mockBrowser(opts?: { contexts?: string[]; store?: AsyncLocalStorage<str
     const store = opts?.store || new AsyncLocalStorage<string>()
     const contexts = opts?.contexts || ['ctx-0', 'ctx-1', 'ctx-2', 'ctx-3', 'ctx-4']
     let idx = 0
+    let userIdx = 0
     return {
         isBidi: true,
         __parallelContextStore: store,
@@ -52,7 +53,9 @@ function mockBrowser(opts?: { contexts?: string[]; store?: AsyncLocalStorage<str
             const ctx = contexts[idx++] || `ctx-${idx}`
             return { context: ctx }
         }),
-        browsingContextClose: vi.fn().mockResolvedValue(undefined)
+        browsingContextClose: vi.fn().mockResolvedValue(undefined),
+        browserCreateUserContext: vi.fn().mockImplementation(async () => ({ userContext: `uc-${userIdx++}` })),
+        browserRemoveUserContext: vi.fn().mockResolvedValue(undefined)
     } as any
 }
 
@@ -354,7 +357,7 @@ describe('runParallelTests — suite hooks', () => {
         expect(starts.length).toBe(0)
     })
 
-    test('batches tests respecting maxParallelContexts with fresh contexts per batch', async () => {
+    test('runs every test in a fresh context and closes every context it created', async () => {
         const testFns = Array.from({ length: 6 }, (_, i) =>
             vi.fn().mockResolvedValue(undefined)
         )
@@ -366,11 +369,13 @@ describe('runParallelTests — suite hooks', () => {
             contexts: ['ctx-a', 'ctx-b', 'ctx-c', 'ctx-d', 'ctx-e', 'ctx-f'],
         })
 
-        // maxParallelContexts=2, 6 tests → 3 batches × 2 contexts = 6 create calls
         await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
 
-        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(6)
-        expect(browser.browsingContextClose).toHaveBeenCalledTimes(6)
+        // Prefetched-but-unused allocations may add creates; each must be closed too
+        const created = browser.browsingContextCreate.mock.calls.length
+        expect(created).toBeGreaterThanOrEqual(6)
+        expect(created).toBeLessThanOrEqual(6 + 2)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(created)
         // All contexts registered at allocate time are unregistered after close
         expect((browser as unknown as { __parallelContexts: Set<string> }).__parallelContexts.size).toBe(0)
     })
@@ -695,5 +700,299 @@ describe('runParallelTests — per-test timeout', () => {
 
         expect(failures).toBe(0)
         expect(quick).toBeCalledTimes(1)
+    })
+})
+
+describe('runParallelTests — hook failure counting', () => {
+    let reporter: EventEmitter
+    let emitted: any[]
+
+    beforeEach(() => {
+        reporter = new EventEmitter()
+        emitted = []
+        for (const ev of ['test:start', 'test:pass', 'test:fail', 'test:pending', 'hook:end']) {
+            reporter.on(ev, (p) => emitted.push({ event: ev, payload: p }))
+        }
+    })
+
+    test('afterEach throwing keeps the test passed but adds one failure', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _afterEach: [() => { throw new Error('teardown boom') }]
+        })
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        expect(failures).toBe(1)
+        expect(emitted.some((e) => e.event === 'test:pass')).toBe(true)
+        expect(emitted.some((e) => e.event === 'test:fail')).toBe(false)
+        const hookEnd = emitted.find((e) => e.event === 'hook:end')
+        expect(hookEnd.payload.state).toBe('fail')
+        expect(hookEnd.payload.error.message).toBe('teardown boom')
+    })
+
+    test('afterAll throwing adds one failure per failing hook', async () => {
+        const suite = mockSuite('root', {
+            tests: [mockTest('t1')],
+            _afterEach: [() => { throw new Error('a') }],
+            _afterAll: [() => { throw new Error('b') }]
+        })
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        expect(failures).toBe(2)
+    })
+})
+
+describe('runParallelTests — reporter contextId', () => {
+    test('test:start and test:pending carry the browsing context id', async () => {
+        const reporter = new EventEmitter()
+        const events: any[] = []
+        for (const ev of ['test:start', 'test:pending']) {
+            reporter.on(ev, (p) => events.push({ event: ev, payload: p }))
+        }
+        const suite = mockSuite('root', { tests: [mockTest('t1'), mockTest('t2', undefined, true)] })
+        const browser = mockBrowser({ contexts: ['ctx-a', 'ctx-b'] })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'])
+
+        expect(events.find((e) => e.event === 'test:start').payload.contextId).toBe('ctx-a')
+        expect(events.find((e) => e.event === 'test:pending').payload.contextId).toBe('ctx-b')
+    })
+})
+
+describe('runParallelTests — userContexts mode', () => {
+    const reporter = new EventEmitter()
+    const opts = { mode: 'userContexts' as const }
+
+    test('creates a user context per test and opens the tab inside it', async () => {
+        const suite = mockSuite('root', { tests: [mockTest('t1'), mockTest('t2')] })
+        const browser = mockBrowser({ contexts: ['ctx-0', 'ctx-1'] })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], undefined, opts)
+
+        expect(browser.browserCreateUserContext).toHaveBeenCalledTimes(2)
+        expect(browser.browsingContextCreate).toHaveBeenCalledWith({ type: 'window', userContext: 'uc-0' })
+        expect(browser.browsingContextCreate).toHaveBeenCalledWith({ type: 'window', userContext: 'uc-1' })
+    })
+
+    test('closes the tab before removing the user context and clears the registry', async () => {
+        const suite = mockSuite('root', { tests: [mockTest('t1')] })
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], undefined, opts)
+
+        expect(browser.browserRemoveUserContext).toHaveBeenCalledWith({ userContext: 'uc-0' })
+        expect(browser.browsingContextClose.mock.invocationCallOrder[0])
+            .toBeLessThan(browser.browserRemoveUserContext.mock.invocationCallOrder[0])
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('cleans up in the same order when the test fails', async () => {
+        const suite = mockSuite('root', { tests: [mockTest('t1', () => { throw new Error('nope') })] })
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], undefined, opts)
+
+        expect(failures).toBe(1)
+        expect(browser.browsingContextClose.mock.invocationCallOrder[0])
+            .toBeLessThan(browser.browserRemoveUserContext.mock.invocationCallOrder[0])
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('rolls back created contexts and user contexts when a later create rejects', async () => {
+        const suite = mockSuite('root', { tests: [mockTest('t1'), mockTest('t2')] })
+        const browser = mockBrowser({ contexts: ['ctx-0', 'ctx-1'] })
+        let calls = 0
+        browser.browserCreateUserContext.mockImplementation(async () => {
+            if (calls++ === 1) {
+                throw new Error('create failed')
+            }
+            return { userContext: 'uc-ok' }
+        })
+
+        await expect(
+            runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], undefined, opts)
+        ).rejects.toThrow('create failed')
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(1)
+        expect(browser.browserRemoveUserContext).toHaveBeenCalledWith({ userContext: 'uc-ok' })
+        expect(browser.browsingContextClose.mock.invocationCallOrder[0])
+            .toBeLessThan(browser.browserRemoveUserContext.mock.invocationCallOrder[0])
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('removes the user context when its tab fails to open', async () => {
+        const suite = mockSuite('root', { tests: [mockTest('t1')] })
+        const browser = mockBrowser({ contexts: ['ctx-0'] })
+        browser.browsingContextCreate.mockRejectedValue(new Error('tab failed'))
+
+        await expect(
+            runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], undefined, opts)
+        ).rejects.toThrow('tab failed')
+        expect(browser.browserRemoveUserContext).toHaveBeenCalledWith({ userContext: 'uc-0' })
+    })
+
+    test('throws naming browser.createUserContext on an unsupported driver, but contexts mode still runs', async () => {
+        const suite = mockSuite('root', { tests: [mockTest('t1')] })
+        const unsupported = () => {
+            const browser = mockBrowser({ contexts: ['ctx-0'] })
+            delete browser.browserCreateUserContext
+            delete browser.browserRemoveUserContext
+            return browser
+        }
+
+        await expect(
+            runParallelTests(suite as Suite, unsupported(), reporter, '0-0', ['/spec.js'], undefined, opts)
+        ).rejects.toThrow('browser.createUserContext')
+        const failures = await runParallelTests(suite as Suite, unsupported(), reporter, '0-0', ['/spec.js'])
+        expect(failures).toBe(0)
+    })
+
+    test('non-finite or non-positive maxParallelContexts falls back instead of producing phantom failures', async () => {
+        for (const bad of ['abc' as any, Infinity, NaN, 0, -3]) {
+            const suite = mockSuite('root', { tests: [mockTest('t1'), mockTest('t2')] })
+            const browser = mockBrowser()
+            const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], bad)
+            expect(failures).toBe(0)
+            expect(browser.browsingContextCreate).toHaveBeenCalledTimes(2)
+        }
+    })
+
+    test('fractional maxParallelContexts below 1 still advances and runs every test', async () => {
+        const suite = mockSuite('root', { tests: [mockTest('t1'), mockTest('t2')] })
+        const browser = mockBrowser()
+        const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 0.5)
+        expect(failures).toBe(0)
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(2)
+    })
+})
+
+describe('runParallelTests — worker pool', () => {
+    const reporter = new EventEmitter()
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+    test('never runs more tests than maxParallelContexts and keeps live contexts bounded', async () => {
+        let inFlight = 0
+        let maxInFlight = 0
+        const body = async () => {
+            inFlight++
+            maxInFlight = Math.max(maxInFlight, inFlight)
+            await sleep(5)
+            inFlight--
+        }
+        const suite = mockSuite('root', { tests: Array.from({ length: 8 }, (_, i) => mockTest(`t${i}`, body)) })
+        const browser = mockBrowser()
+        let live = 0
+        let maxLive = 0
+        browser.browsingContextCreate.mockImplementation(async () => {
+            maxLive = Math.max(maxLive, ++live)
+            return { context: `ctx-${maxLive}-${Math.random()}` }
+        })
+        browser.browsingContextClose.mockImplementation(async () => { live-- })
+
+        const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
+
+        expect(failures).toBe(0)
+        expect(maxInFlight).toBe(2)
+        expect(maxLive).toBeLessThanOrEqual(4)
+        expect(live).toBe(0)
+    })
+
+    test('contexts mode creates a window (never a tab) for every context incl. prefetched', async () => {
+        const suite = mockSuite('root', { tests: Array.from({ length: 5 }, (_, i) => mockTest(`t${i}`)) })
+        const browser = mockBrowser()
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
+
+        const calls = browser.browsingContextCreate.mock.calls
+        expect(calls.length).toBeGreaterThanOrEqual(5)
+        for (const [params] of calls) {
+            expect(params).toEqual({ type: 'window' })
+        }
+    })
+
+    test('a slow test does not block other slots', async () => {
+        const finished: string[] = []
+        const make = (name: string, ms: number) => mockTest(name, async () => { await sleep(ms); finished.push(name) })
+        const suite = mockSuite('root', {
+            tests: [make('slow', 80), make('f1', 5), make('f2', 5), make('f3', 5)]
+        })
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'], 2)
+
+        expect(finished).toEqual(['f1', 'f2', 'f3', 'slow'])
+    })
+
+    test('all closes finish before resolving, even when tests throw', async () => {
+        const browser = mockBrowser()
+        let closed = 0
+        browser.browsingContextClose.mockImplementation(async () => { await sleep(20); closed++ })
+        const suite = mockSuite('root', {
+            tests: [mockTest('a', () => { throw new Error('boom') }), mockTest('b'), mockTest('c')]
+        })
+        const failures = await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
+
+        expect(failures).toBe(1)
+        expect(closed).toBe(browser.browsingContextCreate.mock.calls.length)
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('does not wait for a close before starting the next test on that slot', async () => {
+        const browser = mockBrowser()
+        browser.browsingContextClose.mockImplementation(async () => { await sleep(60) })
+        const starts: number[] = []
+        const t0 = Date.now()
+        const body = () => { starts.push(Date.now() - t0) }
+        const suite = mockSuite('root', { tests: [mockTest('a', body), mockTest('b', body)] })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 1)
+
+        expect(starts[1] - starts[0]).toBeLessThan(40)
+    })
+
+    test('keeps close-before-remove order per allocation in userContexts mode with concurrent slots', async () => {
+        const order: string[] = []
+        const browser = mockBrowser()
+        const ownerOf = new Map<string, string>()
+        browser.browsingContextCreate.mockImplementation(async ({ userContext }: any) => {
+            const context = `ctx-of-${userContext}`
+            ownerOf.set(context, userContext)
+            return { context }
+        })
+        browser.browsingContextClose.mockImplementation(async ({ context }: any) => {
+            await sleep(5)
+            order.push(`${ownerOf.get(context)}:close`)
+        })
+        browser.browserRemoveUserContext.mockImplementation(async ({ userContext }: any) => {
+            order.push(`${userContext}:remove`)
+        })
+        const suite = mockSuite('root', { tests: [mockTest('a'), mockTest('b'), mockTest('c')] })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2, { mode: 'userContexts' })
+
+        const userContexts = [...ownerOf.values()]
+        expect(userContexts.length).toBeGreaterThanOrEqual(3)
+        for (const uc of userContexts) {
+            expect(order.indexOf(`${uc}:close`)).toBeGreaterThanOrEqual(0)
+            expect(order.indexOf(`${uc}:close`)).toBeLessThan(order.indexOf(`${uc}:remove`))
+        }
+    })
+
+    test('cleans up a prefetched allocation that no test ends up using', async () => {
+        // 1 slot would prefetch only while tests remain; with 2 slots and 3 tests
+        // one slot's prefetch can lose the race for the last test.
+        const browser = mockBrowser()
+        const suite = mockSuite('root', { tests: [mockTest('a'), mockTest('b'), mockTest('c')] })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
+
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('a failed prefetch does not leak and the error is thrown after cleanup', async () => {
+        const browser = mockBrowser()
+        let n = 0
+        browser.browsingContextCreate.mockImplementation(async () => {
+            if (n++ === 1) { throw new Error('prefetch failed') }
+            return { context: `ctx-${n}` }
+        })
+        const suite = mockSuite('root', { tests: [mockTest('a'), mockTest('b')] })
+        await expect(
+            runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 1)
+        ).rejects.toThrow('prefetch failed')
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(1)
+        expect(browser.__parallelContexts.size).toBe(0)
     })
 })

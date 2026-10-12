@@ -206,6 +206,24 @@ describe('CucumberAdapter', () => {
         delete (globalThis as Record<string, unknown>).browser
     })
 
+    it('accepts userContexts and never falls back to sequential on pre-start failure', async () => {
+        vi.mocked(parallelRunHasStarted).mockReturnValue(false)
+        vi.mocked(runParallelCucumber).mockRejectedValue(new Error('no createUserContext'))
+        ;(globalThis as Record<string, unknown>).browser = { isBidi: true, __bidiCommandsEnabled: true }
+
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: { parallelMode: 'userContexts' } },
+            [], {}, {}, {}, false, ['progress']
+        )
+        ;(adapter as any)._runSequential = vi.fn().mockResolvedValue(0)
+
+        await expect(adapter.run()).rejects.toThrow('no createUserContext')
+        expect(runParallelCucumber).toHaveBeenCalledTimes(1)
+        expect((adapter as any)._runSequential).not.toHaveBeenCalled()
+        delete (globalThis as Record<string, unknown>).browser
+    })
+
     it('should not initiated with no tests', async () => {
         const adapter = await CucumberAdapter.init!('0-0', {}, [], {}, {}, {}, false, ['progress'])
         expect(executeHooksWithArgs).toBeCalledTimes(0)

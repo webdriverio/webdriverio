@@ -162,6 +162,35 @@ describe('wrapCommand', () => {
         expect(afterHook).toBeCalledWith('getData', ['param1', 'param2'], { success: true, data: 'test' }, undefined)
     })
 
+    describe('hook re-entrancy', () => {
+        it('should run hooks for every concurrent chain', async () => {
+            const delay = () => new Promise((resolve) => setTimeout(resolve, 5))
+            const beforeHook = vi.fn(delay)
+            const afterHook = vi.fn(delay)
+            const scope = { options: { beforeCommand: [beforeHook], afterCommand: [afterHook] } }
+            const command = wrapCommand('someCommand', vi.fn().mockResolvedValue('ok'))
+            const chain = async () => { for (let i = 0; i < 5; i++) { await command.call(scope) } }
+
+            await Promise.all([chain(), chain()])
+
+            expect(beforeHook).toBeCalledTimes(10)
+            expect(afterHook).toBeCalledTimes(10)
+        })
+
+        it('should skip hooks for commands issued from within a hook', async () => {
+            const inner = wrapCommand('inner', vi.fn().mockResolvedValue('inner'))
+            const scope: any = { options: {} }
+            const beforeHook = vi.fn(() => inner.call(scope))
+            const afterHook = vi.fn(() => inner.call(scope))
+            scope.options = { beforeCommand: [beforeHook], afterCommand: [afterHook] }
+
+            await wrapCommand('outer', vi.fn().mockResolvedValue('outer')).call(scope)
+
+            expect(beforeHook).toBeCalledTimes(1)
+            expect(afterHook).toBeCalledTimes(1)
+        })
+    })
+
 })
 
 describe('executeAsync', () => {

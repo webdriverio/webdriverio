@@ -253,8 +253,42 @@ describe('parallel mode mocha options', () => {
         expect(runParallelTests).toBeCalledWith(
             expect.anything(), expect.anything(), expect.anything(), '0-2', ['/foo/bar.test.js'],
             undefined,
-            { grep: /beta/, invert: true, timeout: 5000 }
+            { grep: /beta/, invert: true, timeout: 5000, mode: 'contexts' }
         )
+    })
+
+    test('passes parallelMode: userContexts through as mode', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'userContexts' } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+        vi.mocked(runParallelTests).mockClear()
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        expect(vi.mocked(runParallelTests).mock.calls[0][6]).toMatchObject({ mode: 'userContexts' })
+    })
+
+    test('interpolates the mode into the sequential-fallback warning', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'userContexts' } })
+        await adapter.init()
+        const warn = vi.mocked(logger('').warn)
+        warn.mockClear()
+
+        ;(globalThis as any).browser = { isBidi: false }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        expect(warn.mock.calls.some((c) => String(c[0]).includes('parallelMode: "userContexts"'))).toBe(true)
     })
 
     test('applies filterOnly when the suite has .only tests', async () => {

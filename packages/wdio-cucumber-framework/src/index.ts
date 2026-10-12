@@ -34,6 +34,7 @@ import type {
     HookFunctionExtension as HookFunctionExtensionImport,
     StepDefinitionOptions,
     ParallelBrowser,
+    ParallelMode,
 } from './types.js'
 import { runParallelCucumber, parallelRunHasStarted } from './parallel.js'
 
@@ -241,8 +242,9 @@ export class CucumberAdapter {
 
             const supportCodeLibrary = supportCodeLibraryBuilder.finalize()
 
-            result = this._cucumberOpts.parallelMode === 'contexts'
-                ? await this._runParallelMode(supportCodeLibrary)
+            const { parallelMode } = this._cucumberOpts
+            result = parallelMode === 'contexts' || parallelMode === 'userContexts'
+                ? await this._runParallelMode(supportCodeLibrary, parallelMode)
                 : await this._runSequential(supportCodeLibrary)
         } catch (err) {
             runtimeError = err
@@ -277,13 +279,14 @@ export class CucumberAdapter {
      * @throws if a runtime error occurs (errors are caught by run())
      */
     private async _runParallelMode(
-        supportCodeLibrary: Awaited<ReturnType<typeof supportCodeLibraryBuilder.finalize>>
+        supportCodeLibrary: Awaited<ReturnType<typeof supportCodeLibraryBuilder.finalize>>,
+        mode: ParallelMode
     ): Promise<number> {
         const browser = (globalThis as Record<string, unknown>).browser as ParallelBrowser
 
         if (!browser) {
             throw new Error(
-                'Parallel mode (cucumberOpts.parallelMode: "contexts") requires ' +
+                `Parallel mode (cucumberOpts.parallelMode: "${mode}") requires ` +
                 'a browser instance to be on globalThis.'
             )
         }
@@ -296,7 +299,7 @@ export class CucumberAdapter {
 
         if (!browser.isBidi) {
             log.warn(
-                'Parallel mode (cucumberOpts.parallelMode: "contexts") requires ' +
+                `Parallel mode (cucumberOpts.parallelMode: "${mode}") requires ` +
                 'a WebDriver Bidi session. Falling back to sequential execution.'
             )
             return this._runSequential(supportCodeLibrary)
@@ -304,7 +307,7 @@ export class CucumberAdapter {
 
         if (!hasBidiCommands) {
             log.warn(
-                'Parallel mode (cucumberOpts.parallelMode: "contexts") requires ' +
+                `Parallel mode (cucumberOpts.parallelMode: "${mode}") requires ` +
                 '"wdio:experimentalBiDiCommands" to be set in capabilities. ' +
                 'Falling back to sequential execution.'
             )
@@ -334,6 +337,11 @@ export class CucumberAdapter {
                     `Parallel Cucumber execution failed after execution began: ${(err as Error).message}. ` +
                     'Not falling back to sequential execution to avoid re-running side effects.'
                 )
+                throw err
+            }
+            if (mode === 'userContexts') {
+                // A sequential fallback would share storage between scenarios
+                // while the config asked for isolation.
                 throw err
             }
             log.warn(

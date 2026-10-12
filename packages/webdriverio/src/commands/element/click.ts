@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 
 import { getBrowserObject } from '@wdio/utils'
-import { isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+import { bidiAssertClickable, bidiGetRect, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 import { buttonValue } from '../../utils/actions/index.js'
 
 import type { ClickOptions } from '../../types.js'
@@ -121,7 +121,7 @@ export function click(
 
     const browser = getBrowserObject(this) as WebdriverIO.Browser
     if (isBidiCommandsEnabled(browser)) {
-        return actionClick(this, {})
+        return actionClick(this, {}, browser)
     }
 
     return elementClick(this)
@@ -158,7 +158,11 @@ async function elementClick(element: WebdriverIO.Element) {
     }
 }
 
-async function actionClick(element: WebdriverIO.Element, options: Partial<ClickOptions>) {
+async function actionClick(
+    element: WebdriverIO.Element,
+    options: Partial<ClickOptions>,
+    bidiBrowser?: WebdriverIO.Browser
+) {
     const defaultOptions: ClickOptions = {
         button: 0,
         x: 0,
@@ -182,9 +186,11 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
         throw new Error('Button type not supported.')
     }
 
-    const browser = getBrowserObject(element) as WebdriverIO.Browser
+    const browser = bidiBrowser ?? getBrowserObject(element) as WebdriverIO.Browser
     if (x || y) {
-        const { width, height } = await browser.getElementRect(element.elementId)
+        const { width, height } = isBidiCommandsEnabled(browser)
+            ? await bidiGetRect(element)
+            : await browser.getElementRect(element.elementId)
         if ((x && x < (-Math.floor(width / 2))) || (x && x > Math.floor(width / 2))) {
             log.warn('x would cause a out of bounds error as it goes outside of element')
         }
@@ -192,11 +198,15 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
             log.warn('y would cause a out of bounds error as it goes outside of element')
         }
     }
+    if (bidiBrowser) {
+        await bidiAssertClickable(element)
+    }
+    const moveDuration = bidiBrowser ? { duration: 0 } : {}
     const clickNested = async () => {
         await browser.action('pointer', {
             parameters: { pointerType: browser.isMobile ? 'touch' : 'mouse' }
         })
-            .move({ origin: element, x, y })
+            .move({ origin: element, x, y, ...moveDuration })
             .down({ button })
             .pause(duration)
             .up({ button })

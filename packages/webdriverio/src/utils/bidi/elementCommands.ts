@@ -11,10 +11,11 @@
  * Do NOT use TypeScript type annotations in parameter lists — they
  * become invalid JavaScript in the browser.
  */
-import { ELEMENT_KEY } from 'webdriver'
+import { BIDI_MASK, ELEMENT_KEY, type remote } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
 
-import { heldBrowsingContext } from '../../session/browsingContext.js'
+import { contextIdValue, heldBrowsingContext } from '../../session/browsingContext.js'
+import { getContextManager, getParallelContextStore } from '../../session/context.js'
 
 /** Check if the experimental Bidi commands capability is enabled.  Merges the
  *  `browser.isBidi` check so callers don't need to test both separately. */
@@ -70,6 +71,28 @@ export function bidiClearValue(element: WebdriverIO.Element): Promise<void> {
 }
 
 /**
+ * Function bodies sent to the page are stringified and cannot close over module
+ * scope, so the shared guard is inlined into the composed function's source.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const assertEditableTarget = function (el: any) {
+    // Mirrors bot.action.checkInteractable_ + bot.dom.isEditable
+    if (el.disabled || el.readOnly) { throw new Error('element not interactable') }
+    const tag = el.tagName.toLowerCase()
+    const editable = tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable
+    if (!editable) { throw new Error('element not editable') }
+    const style = window.getComputedStyle(el)
+    if (style.display === 'none' || style.visibility === 'hidden') {
+        throw new Error('element not interactable')
+    }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function withEditableGuard(body: (el: any, ...args: any[]) => unknown) {
+    return new Function('el', 'value', `(${assertEditableTarget})(el); return (${body})(el, value)`) as (...args: unknown[]) => void
+}
+
+/**
  * Inspired by the Selenium atom: bot.action.type(), dispatched via
  * webdriver.atoms.inputs.sendKeys → webdriver.atoms.element.type.
  * @see https://github.com/SeleniumHQ/selenium/blob/trunk/javascript/atoms/action.js
@@ -80,17 +103,7 @@ export function bidiClearValue(element: WebdriverIO.Element): Promise<void> {
  * app relies on individual key events.
  */
 export function bidiAddValue(element: WebdriverIO.Element, value: string): Promise<void> {
-    return exec(element, function (el, val) {
-        // Mirrors bot.action.checkInteractable_ + bot.dom.isEditable
-        if (el.disabled || el.readOnly) { throw new Error('element not interactable') }
-        const tag = el.tagName.toLowerCase()
-        const editable = tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable
-        if (!editable) { throw new Error('element not editable') }
-        const style = window.getComputedStyle(el)
-        if (style.display === 'none' || style.visibility === 'hidden') {
-            throw new Error('element not interactable')
-        }
-
+    return exec(element, withEditableGuard(function (el, val) {
         // Atom only scrolls+focuses if element is not already the active element
         if (document.activeElement !== el) {
             el.scrollIntoView({ block: 'center', inline: 'center' })
@@ -113,7 +126,110 @@ export function bidiAddValue(element: WebdriverIO.Element, value: string): Promi
         }
         el.dispatchEvent(new Event('input', { bubbles: true }))
         el.dispatchEvent(new Event('change', { bubbles: true }))
-    }, value)
+    }), value)
+}
+
+/**
+ * Types `value` through BiDi key actions so the text can be redacted from logs
+ * and `bidiCommand` events via `BIDI_MASK`. Unlike `elementSendKeys`, this
+ * reaches the element's own tab in parallel mode and held browsing contexts.
+ */
+export async function bidiAddMaskedValue(element: WebdriverIO.Element, value: string): Promise<void> {
+    await exec(element, withEditableGuard(function (el) {
+        if (el.ownerDocument.activeElement !== el) {
+            el.scrollIntoView({ block: 'center', inline: 'center' })
+            el.focus()
+            if (el.isContentEditable) {
+                el.ownerDocument.getSelection().setPosition(el, el.childNodes.length)
+            } else if (typeof el.value === 'string') {
+                try { el.setSelectionRange(el.value.length, el.value.length) } catch { /* e.g. type=email has no selection API */ }
+            }
+        }
+        const root = el.getRootNode()
+        const active = (root && root.activeElement) || el.ownerDocument.activeElement
+        if (!active || (active !== el && !el.contains(active) && !(el.shadowRoot && el.shadowRoot.contains(active)))) {
+            throw new Error('element not interactable: element could not receive focus')
+        }
+    }))
+    if (!value) { return }
+
+    const held = heldBrowsingContext(element)
+    const browser = held ? held.browser : getBrowserObject(element)
+    const context = held?.contextId
+        ?? getParallelContextStore().getStore()
+        ?? contextIdValue(await getContextManager(browser).getCurrentContext())
+    const params: remote.InputPerformActionsParameters = {
+        context,
+        actions: [{
+            id: 'keyboard',
+            type: 'key',
+            actions: Array.from(value).flatMap((key) => [
+                { type: 'keyDown' as const, value: key },
+                { type: 'keyUp' as const, value: key }
+            ])
+        }]
+    }
+    await browser.inputPerformActions(Object.assign(params, { [BIDI_MASK]: true }))
+    await browser.inputReleaseActions({ context })
+}
+
+interface ClickableCheck {
+    ok: boolean
+    x: number
+    y: number
+    target: string
+    hit: string
+    notInteractable?: string
+}
+
+/**
+ * Restores chromedriver's "element click intercepted" check for Actions-based
+ * clicks: scrolls the element to the center if needed, then verifies the
+ * element (or a descendant) is what sits at its center point.
+ */
+export async function bidiAssertClickable(element: WebdriverIO.Element): Promise<void> {
+    const result = await exec(element, function (el): ClickableCheck {
+        const describe = (node: Element) => {
+            let out = '<' + node.tagName.toLowerCase()
+            if (node.id) { out += ' id="' + node.id + '"' }
+            const cls = node.getAttribute('class')
+            if (cls) { out += ' class="' + cls + '"' }
+            return out + '>'
+        }
+        const rect = el.getClientRects()[0]
+        if (!rect) {
+            return { ok: false, x: 0, y: 0, target: describe(el), hit: 'null', notInteractable: 'element is not displayed' }
+        }
+        if (!rect.width || !rect.height) {
+            return { ok: false, x: 0, y: 0, target: describe(el), hit: 'null', notInteractable: 'element has zero size' }
+        }
+        const center = () => {
+            const r = el.getClientRects()[0] || el.getBoundingClientRect()
+            return { x: Math.floor(r.left + r.width / 2), y: Math.floor(r.top + r.height / 2) }
+        }
+        let p = center()
+        if (p.x < 0 || p.y < 0 || p.x >= window.innerWidth || p.y >= window.innerHeight) {
+            el.scrollIntoView({ block: 'center', inline: 'center' })
+            p = center()
+        }
+        const root = el.getRootNode()
+        const hit = (root && typeof root.elementFromPoint === 'function' ? root : document).elementFromPoint(p.x, p.y)
+        const ok = !!hit && (hit === el || el.contains(hit) || (!!el.shadowRoot && el.shadowRoot.contains(hit)))
+        return { ok, x: p.x, y: p.y, target: describe(el), hit: hit ? describe(hit) : 'null' }
+    })
+    if (result.notInteractable) {
+        const error = new Error(`element not interactable: ${result.notInteractable}`)
+        error.name = 'element not interactable'
+        throw error
+    }
+    if (!result.ok) {
+        const error = new Error(
+            `element click intercepted: Element ${result.target} is not clickable at point (${result.x}, ${result.y}). ` +
+            `Other element would receive the click: ${result.hit}`
+        )
+        error.name = 'element click intercepted'
+        throw error
+    }
 }
 
 // ── Reads ────────────────────────────────────────────────
@@ -202,7 +318,7 @@ export function bidiGetAttribute(element: WebdriverIO.Element, name: string): Pr
         // 7. General case: DOM property first, attribute fallback
         let prop
         try { prop = el[propName] } catch { /* property access may throw on some nodes */ }
-        if (prop === null || prop === undefined || (typeof prop === 'object' && prop !== null)) {
+        if (prop === null || prop === undefined || (typeof prop === 'object' && prop !== null) || typeof prop === 'function') {
             const attr = el.getAttribute(n)
             return attr !== null ? attr : null
         }
@@ -216,6 +332,19 @@ export function bidiGetTagName(element: WebdriverIO.Element): Promise<string> {
 
 export function bidiGetProperty(element: WebdriverIO.Element, property: string): Promise<unknown> {
     return exec(element, function (el, prop) { return el[prop] }, property)
+}
+
+export function bidiGetRect(element: WebdriverIO.Element): Promise<{ x: number, y: number, width: number, height: number }> {
+    return exec(element, function (el) {
+        const rect = el.getBoundingClientRect()
+        const view = el.ownerDocument.defaultView
+        return {
+            x: rect.x + (view ? view.scrollX : 0),
+            y: rect.y + (view ? view.scrollY : 0),
+            width: rect.width,
+            height: rect.height
+        }
+    })
 }
 
 /**

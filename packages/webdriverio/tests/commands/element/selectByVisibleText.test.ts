@@ -4,8 +4,13 @@ import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 import { remote } from '../../../src/index.js'
 import * as utils from '../../../src/utils/index.js'
+import { bidiSelectByVisibleText, isBidiCommandsEnabled } from '../../../src/utils/bidi/elementCommands.js'
 
 vi.mock('fetch')
+vi.mock('../../../src/utils/bidi/elementCommands.js', async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>()
+    return { ...actual, isBidiCommandsEnabled: vi.fn(() => false), bidiSelectByVisibleText: vi.fn() }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('selectByVisibleText test', () => {
@@ -26,6 +31,7 @@ describe('selectByVisibleText test', () => {
     afterEach(() => {
         vi.mocked(fetch).mockClear()
         getElementFromResponseSpy.mockClear()
+        vi.mocked(isBidiCommandsEnabled).mockReturnValue(false)
     })
 
     it('should select value by visible text', async () => {
@@ -67,6 +73,12 @@ describe('selectByVisibleText test', () => {
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
         })
+    })
+
+    it('collapses every whitespace run on the BiDi path', async () => {
+        vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+        await elem.selectByVisibleText(' foo  bar \t baz ')
+        expect(bidiSelectByVisibleText).toHaveBeenCalledWith(elem, 'foo bar baz')
     })
 
     it('should select value by visible text with leading and trailing white-space', async () => {
