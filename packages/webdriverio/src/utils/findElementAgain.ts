@@ -56,11 +56,11 @@ function selectorIn (element: WebdriverIO.Element, parent: Scope): Selector {
  * items get. `findAllAgain` below goes the other way, from the flags to the
  * command. A `custom$$` list and a multi-remote list are not in it.
  */
-const LIST_QUERIES: Record<string, { isShadowElement: boolean, isReactElement: boolean }> = {
-    '$$': { isShadowElement: false, isReactElement: false },
-    'shadow$$': { isShadowElement: true, isReactElement: false },
-    'react$$': { isShadowElement: false, isReactElement: true }
-}
+const LIST_QUERIES = new Map<string, { isShadowElement: boolean, isReactElement: boolean }>([
+    ['$$', { isShadowElement: false, isReactElement: false }],
+    ['shadow$$', { isShadowElement: true, isReactElement: false }],
+    ['react$$', { isShadowElement: false, isReactElement: true }]
+])
 
 /**
  * The props of an item of a list that `foundWith` found, for `getElements`.
@@ -68,10 +68,10 @@ const LIST_QUERIES: Record<string, { isShadowElement: boolean, isReactElement: b
  * a list command that is not in `LIST_QUERIES`.
  */
 export function itemPropsOf (foundWith: string, props: unknown[]) {
-    if (!Object.hasOwn(LIST_QUERIES, foundWith)) {
+    const flags = LIST_QUERIES.get(foundWith)
+    if (!flags) {
         return undefined
     }
-    const flags = LIST_QUERIES[foundWith]
     return {
         ...flags,
         ...(flags.isReactElement && props[0] ? { reactOptions: props[0] as ReactSelectorOptions } : {})
