@@ -158,6 +158,11 @@ describe('click with options', () => {
         expect(clicks.map(({ target }) => target)).toEqual(['both'])
     })
 
+    it('clicks an element in a scroll container whose sticky header covers its center', async () => {
+        const { clicks } = await clickAndRecord($('#under-sticky'), {})
+        expect(clicks.map(({ target }) => target)).toEqual(['under-sticky'])
+    })
+
     it('clicks an element in a scroll container below the window', async () => {
         const { clicks, scrolledY } = await clickAndRecord($('#below'), {})
         expect(clicks.map(({ target }) => target)).toEqual(['below'])
@@ -241,6 +246,11 @@ describe('click without options', () => {
                 expectScrollEventsBeforeTheClick(events)
             }
         }
+    })
+
+    it('clicks an element in a scroll container whose sticky header covers its center', async () => {
+        const { clicks } = await clickAndRecord($('#under-sticky'), undefined)
+        expect(clicks.map(({ target }) => target)).toEqual(['under-sticky'])
     })
 
     it('clicks an element below the window and a fixed footer', async () => {

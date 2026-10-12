@@ -16,6 +16,9 @@
     .both { width: 200px; height: 100px; overflow: auto; }
     .both .inner { position: relative; width: 600px; height: 400px; }
     .both button { position: absolute; left: 450px; top: 300px; }
+    .sticky-box { width: 300px; height: 100px; overflow-y: auto; }
+    .sticky-box .head { position: sticky; top: 0; height: 60px; background: #fcc; }
+    .sticky-box .spacer { display: block; width: auto; height: 300px; }
     #fixed-header { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #fcc; z-index: 10; display: none; }
     #fixed-footer { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; background: #cfc; z-index: 10; display: none; }
     #far { margin-top: 3000px; }
@@ -37,6 +40,8 @@
     <div class="box" id="host"></div>
     <!-- hidden in both directions by its container -->
     <div class="box both"><div class="inner"><button id="both">both</button></div></div>
+    <!-- hidden by its container, whose sticky header covers the center of the container -->
+    <div class="box sticky-box"><div class="head" id="sticky-head">sticky-head</div><div class="spacer"></div><button id="under-sticky">under-sticky</button><div class="spacer"></div></div>
 
     <button id="far">far</button>
     <button id="partial" style="display: block; width: 200px; height: 100px">partial</button>

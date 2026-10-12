@@ -16,9 +16,10 @@ const log = logger('webdriver')
  * command is send after performing the click action, pass `option.skipRelease=true` to skip this action.
  * Before the actions, when the pointer would not hit the element at its center (it is outside the window, hidden by a
  * scroll container or covered by a fixed header or footer), the element is scrolled to the center of the window and of
- * its scroll containers, and the page gets its `scroll` events before the click. An element that the pointer already
- * hits is not scrolled. In Firefox, a click without options does the same before the WebDriver `click` command,
- * because geckodriver scrolls and clicks without giving the page its `scroll` events first.
+ * its scroll containers (to the bottom or the top when something covers it at the center), and the page gets its
+ * `scroll` events before the click. An element that the pointer already hits is not scrolled. In Firefox, a click
+ * without options does the same before the WebDriver `click` command, because geckodriver scrolls and clicks without
+ * giving the page its `scroll` events first.
  *
  * :::info
  *
@@ -144,9 +145,12 @@ async function workaround(element: WebdriverIO.Element) {
  * - the pointer already hits the element: don't scroll, the page doesn't move. With an
  *   offset, the window must not clip the element (the offset counts from the center of
  *   the part in the window), and the pointer must hit the element at the click point
- * - missed: scroll it to the center. At an edge of the window, a fixed header or footer
- *   or a scrollbar can cover it: Safari shows its overlay scrollbar after a scroll, and
- *   that scrollbar takes the click of an element at the bottom edge
+ * - missed: scroll it to the center, and check again. At an edge of the window, a fixed
+ *   header or footer or a scrollbar can cover it: Safari shows its overlay scrollbar
+ *   after a scroll, and that scrollbar takes the click of an element at the bottom edge
+ * - still missed, for example under a sticky header or footer that covers the center of
+ *   a small scroll container: align it with the bottom ("end"), then with the top
+ *   ("start"). "nearest" would not move it: at the center, it is already in view
  * An element without a box (`display: none`) is left to the driver, which throws.
  *
  * After a scroll, the script resolves on the next animation frame. The browser fires the
@@ -207,7 +211,16 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
             if (hitTest() !== 'missed') {
                 return
             }
-            elem.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' })
+            for (const scroll of [
+                { block: 'center', inline: 'center' },
+                { block: 'end', inline: 'nearest' },
+                { block: 'start', inline: 'nearest' }
+            ] as const) {
+                elem.scrollIntoView({ ...scroll, behavior: 'instant' })
+                if (hitTest() !== 'missed') {
+                    break
+                }
+            }
             // a hidden page gets no animation frame
             if (document.visibilityState === 'hidden') {
                 return

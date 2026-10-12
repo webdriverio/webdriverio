@@ -296,6 +296,8 @@ describe('click test', () => {
         describe('the script in the page', () => {
             type Rect = { x: number, y: number, width: number, height: number }
             const CENTER = { block: 'center', inline: 'center', behavior: 'instant' }
+            const END = { block: 'end', inline: 'nearest', behavior: 'instant' }
+            const START = { block: 'start', inline: 'nearest', behavior: 'instant' }
 
             /**
              * runs the script that click gives to execute, on a fake page: the element
@@ -354,10 +356,21 @@ describe('click test', () => {
                 expect(frames).toHaveLength(0)
             })
 
-            it('scrolls to the center when the element is not hit', async () => {
-                const { scrolls, points } = await runInPage({ rects: [inView], hitAt: () => other })
-                expect(scrolls).toEqual([CENTER])
-                expect(points).toEqual([[150, 120]])
+            it('scrolls to the center, then to the bottom and the top while the element is not hit', async () => {
+                const afterCenter = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 1 ? elem : other })
+                expect(afterCenter.scrolls).toEqual([CENTER])
+                expect(afterCenter.points).toEqual([[150, 120], [150, 120]])
+
+                // a sticky header covers the center of a small scroll container
+                const afterEnd = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 2 ? elem : other })
+                expect(afterEnd.scrolls).toEqual([CENTER, END])
+
+                // a sticky footer covers the center and the bottom
+                const afterStart = await runInPage({ rects: [inView], hitAt: (elem, x, y, n) => n >= 3 ? elem : other })
+                expect(afterStart.scrolls).toEqual([CENTER, END, START])
+
+                const never = await runInPage({ rects: [inView], hitAt: () => other })
+                expect(never.scrolls).toEqual([CENTER, END, START])
             })
 
             it('waits for the next animation frame after a scroll, so the scroll events fire before the click', async () => {
@@ -390,7 +403,7 @@ describe('click test', () => {
 
             it('does not wait on a hidden page, which gets no animation frame', async () => {
                 const { scrolls, result, frames } = await runInPage({ rects: [inView], hitAt: () => other, visibilityState: 'hidden' })
-                expect(scrolls).toEqual([CENTER])
+                expect(scrolls).toEqual([CENTER, END, START])
                 expect(result).toBeUndefined()
                 expect(frames).toHaveLength(0)
             })
@@ -399,7 +412,7 @@ describe('click test', () => {
                 const below = { x: 100, y: 3000, width: 100, height: 40 }
                 const { scrolls, points } = await runInPage({ rects: [below, inView], hitAt: (elem) => elem })
                 expect(scrolls).toEqual([CENTER])
-                expect(points).toEqual([])
+                expect(points).toEqual([[150, 120]])
             })
 
             it('does not scroll an element without a box', async () => {
@@ -424,7 +437,7 @@ describe('click test', () => {
                 const whole = { x: 100, y: 100, width: 100, height: 100 }
                 const { scrolls, points } = await runInPage({ rects: [clipped, whole], hitAt: (elem) => elem, offset: { x: 0, y: 40 } })
                 expect(scrolls).toEqual([CENTER])
-                expect(points).toEqual([])
+                expect(points).toEqual([[150, 190]])
 
                 const onElement = await runInPage({ rects: [whole], hitAt: (elem) => elem, offset: { x: 0, y: 40 } })
                 expect(onElement.scrolls).toEqual([])
