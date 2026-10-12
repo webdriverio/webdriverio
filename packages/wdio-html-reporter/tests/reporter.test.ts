@@ -274,6 +274,8 @@ describe('video type', () => {
         reporter.onRunnerStart(RUNNER)
         reporter.onSuiteStart(SUITES[0])
         reporter.onTestStart(SUITES[0].tests[0])
+        fs.writeFileSync(path.join(dir, 'test.webm'), 'video')
+        fs.writeFileSync(path.join(dir, 'test.mp4'), 'video')
         new ReportEvents().videoCapture(path.join(dir, 'test.webm')).videoCapture(path.join(dir, 'test.mp4'))
         reporter.onTestPass(SUITES[0].tests[0])
         reporter.onSuiteEnd(SUITES[0])
@@ -283,6 +285,33 @@ describe('video type', () => {
         const html = fs.readFileSync(reportAggregator.reportFile, 'utf-8')
         expect(html).toContain('<source src="test.webm" type="video/webm">')
         expect(html).toContain('<source src="test.mp4" type="video/mp4">')
+    })
+})
+
+describe('video that failed to render', () => {
+    let dir: string
+    afterAll(() => {
+        process.removeAllListeners('test:video-capture')
+        fs.rmSync(dir, { recursive: true, force: true })
+    })
+
+    it('shows no video player in the master report for a video file that does not exist', async () => {
+        dir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-reporter-no-video-')) + path.sep
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Video' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onTestStart(SUITES[0].tests[0])
+        // the video reporter sends the path before the render, and the render failed
+        fs.writeFileSync(path.join(dir, 'rendered.webm'), 'video')
+        new ReportEvents().videoCapture(path.join(dir, 'failed.webm')).videoCapture(path.join(dir, 'rendered.webm'))
+        reporter.onTestPass(SUITES[0].tests[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(RUNNER)
+        const reportAggregator = new ReportAggregator({ outputDir: dir, filename: 'master-report.html', reportTitle: 'Video', browserName: 'chrome' } as never)
+        await reportAggregator.createReport()
+        const html = fs.readFileSync(reportAggregator.reportFile, 'utf-8')
+        expect(html).not.toContain('failed.webm')
+        expect(html).toContain('<source src="rendered.webm" type="video/webm">')
     })
 })
 

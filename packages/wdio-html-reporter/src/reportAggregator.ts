@@ -38,6 +38,25 @@ function  walk(dir:string, extensions: string[], filelist: string[] = []) {
     return filelist
 }
 
+type ReportSuite = { tests?: { events?: { type?: string, value?: unknown }[] }[], suites?: ReportSuite[] }
+
+/**
+ * Remove the videos that have no file. `@wdio/video-reporter` sends the path of a
+ * video before its render: when the render fails, there is no file. The master
+ * report is made after all workers, so a video that does not exist now never will.
+ */
+function removeMissingVideos (suites: ReportSuite[] = []) {
+    for (const suite of suites) {
+        for (const test of suite.tests ?? []) {
+            if (Array.isArray(test.events)) {
+                test.events = test.events.filter((event) => event.type !== 'video-capture' ||
+                    (typeof event.value === 'string' && fs.existsSync(event.value)))
+            }
+        }
+        removeMissingVideos(suite.suites)
+    }
+}
+
 class ReportAggregator {
     private LOG = logger('ReportAggregator')
     constructor(opts: Partial<HtmlReporterOptions> = {}) {
@@ -129,6 +148,7 @@ class ReportAggregator {
                 metrics.passed += report.metrics.passed
                 metrics.failed += report.metrics.failed
                 metrics.skipped += report.metrics.skipped
+                removeMissingVideos(report.suites)
                 for (let k = 0; k < report.suites.length; k++) {
                     const suiteInfo = report.suites[k]
                     this.updateSuiteMetrics(metrics, suiteInfo)
