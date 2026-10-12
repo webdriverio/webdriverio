@@ -353,18 +353,35 @@ describe('Video Reporter', () => {
     })
 
     describe('onSuiteEnd', () => {
-        it('extends Allure report', async () => {
-            const addArgumentExtensionMock = vi.spyOn(AllureReporterExtension.prototype, 'addArgument')
+        it('adds the Allure arguments once for each test (Mocha, Jasmine)', async () => {
+            const addArgumentExtensionMock = vi.spyOn(AllureReporterExtension.prototype, 'addArgument').mockClear()
             const reporter = new VideoReporter({})
-            reporter.onSuiteEnd({} as any)
+            reporter.onTestEnd({ state: 'passed' } as any)
             await sleep()
             expect(addArgumentExtensionMock).toBeCalledTimes(0)
 
             reporter.onRunnerStart(allureRunner)
-            reporter.onSuiteEnd({} as any)
+            reporter.testName = 'foo bar'
+            reporter.onTestEnd({ state: 'passed' } as any)
+            reporter.onSuiteEnd({ type: 'suite', tests: [{ state: 'passed' }] } as any)
             await sleep()
             expect(addArgumentExtensionMock).toBeCalledTimes(1)
             expect(addArgumentExtensionMock).toBeCalledWith('browserVersion', '1.2.3')
+        })
+
+        it('adds the Allure arguments once for each Cucumber scenario, not for each step', async () => {
+            const addArgumentExtensionMock = vi.spyOn(AllureReporterExtension.prototype, 'addArgument').mockClear()
+            const reporter = new VideoReporter({})
+            reporter.onRunnerStart(allureRunner)
+            reporter.isCucumberFramework = true
+            reporter.testName = 'foo bar'
+            reporter.generateVideo = vi.fn() as any
+            reporter.onTestPass({ state: 'passed' } as any)
+            reporter.onTestPass({ state: 'passed' } as any)
+            reporter.onTestPass({ state: 'passed' } as any)
+            reporter.onSuiteEnd({ type: 'scenario', tests: [{ state: 'passed' }] } as any)
+            await sleep()
+            expect(addArgumentExtensionMock).toBeCalledTimes(1)
         })
 
         it('should add frame if a step of the Cucumber scenario failed', async () => {
