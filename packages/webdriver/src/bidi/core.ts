@@ -151,16 +151,25 @@ export class BidiCore {
         log.info(`Close Bidi connection to ${this.#webSocketUrl}`)
         this._isConnected = false
         this.#expiredCommands.clear()
-        if (this.#ws) {
-            this.#ws.off('message', this.#onMessage)
-            if (this.#onClose) {
-                this.#ws.off('close', this.#onClose)
-            }
-            this.#ws.close()
-            this.#ws.terminate()
-            this.#ws = undefined
-        }
+        /**
+         * first: the socket teardown below can throw
+         */
         this.#rejectPendingCommands('the connection was closed')
+        const ws = this.#ws
+        this.#ws = undefined
+        if (ws) {
+            ws.off('message', this.#onMessage)
+            if (this.#onClose) {
+                ws.off('close', this.#onClose)
+            }
+            ws.close()
+            /**
+             * the `BrowserSocket` of the browser build has no `terminate()`
+             */
+            if (typeof ws.terminate === 'function') {
+                ws.terminate()
+            }
+        }
     }
 
     /**

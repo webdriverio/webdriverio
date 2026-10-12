@@ -342,6 +342,23 @@ describe('BidiCore', () => {
             expect((await error).stack).toMatch(/packages[\\/]webdriver[\\/]tests[\\/]bidi\.test\.ts:\d+:/)
         })
 
+        it('rejects the pending commands also with a socket that has no terminate(), as in the browser', async () => {
+            vi.mocked(environment.value.createBidiConnection).mockResolvedValueOnce({
+                on: vi.fn(),
+                off: vi.fn(),
+                send: vi.fn(),
+                close: vi.fn()
+            } as never)
+            const handler = new BidiCore('ws://foo/bar')
+            await handler.connect()
+            const error = handler.send({ method: 'session.status', params: {} }).catch((err: Error) => err)
+
+            expect(() => handler.close()).not.toThrow()
+
+            expect((await error).message).toBe('WebDriver Bidi command "session.status" with id 1 got no result: the connection was closed')
+            expect(handler.socket).toBeUndefined()
+        })
+
         it('ignores the close event of the socket of an earlier connection', async () => {
             const handler = new BidiCore('ws://foo/bar')
             await handler.connect()
