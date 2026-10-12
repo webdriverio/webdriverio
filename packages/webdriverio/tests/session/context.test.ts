@@ -352,7 +352,8 @@ describe('ContextManager', () => {
 
         const navigationHandlers = stub.getListeners()['browsingContext.navigationStarted']
         await expect(navigationHandlers![0]({ context: 'iframe-1', navigation: null, timestamp: 0, url: '' })).resolves.toBeUndefined()
-        expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('got no result: the connection was closed'))
+        expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('the session ended: WebDriver Bidi command'))
+        expect(logMock.warn).not.toHaveBeenCalled()
     })
 
     it('does not reject when the connection closes while switchToParentFrame is handled', async () => {
@@ -369,7 +370,55 @@ describe('ContextManager', () => {
 
         const commandHandlers = stub.getListeners().command
         await expect(commandHandlers![commandHandlers!.length - 1]({ command: 'switchToParentFrame', body: {} })).resolves.toBeUndefined()
-        expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('got no result: the connection was closed'))
+        expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('the session ended: WebDriver Bidi command'))
+        expect(logMock.warn).not.toHaveBeenCalled()
+    })
+
+    it('warns when a navigation event cannot update the context for another reason', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true } as any)
+        ;(stub.browser as any).browsingContextGetTree.mockRejectedValue(new Error('unknown error: the tree is not available'))
+        const manager = getContextManager(stub.browser)
+        process.env.WDIO_UNIT_TESTS = wid
+        manager.setCurrentContext('context-1')
+
+        const navigationHandlers = stub.getListeners()['browsingContext.navigationStarted']
+        await expect(navigationHandlers![0]({ context: 'iframe-1', navigation: null, timestamp: 0, url: '' })).resolves.toBeUndefined()
+        expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('unknown error: the tree is not available'))
+    })
+
+    it('does not reject when the session ends while the navigation events are subscribed', async () => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const unhandled: unknown[] = []
+        const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
+        process.on('unhandledRejection', onUnhandled)
+        try {
+            const stub = createBrowserStub({ isBidi: true } as any)
+            ;(stub.browser as any).sessionSubscribe.mockRejectedValue(new Error(
+                'WebDriver Bidi command "session.subscribe" with id 3 got no result: the connection was closed'
+            ))
+            getContextManager(stub.browser)
+            await new Promise((resolve) => setTimeout(resolve, 10))
+            expect(unhandled).toEqual([])
+            expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('the session ended: WebDriver Bidi command "session.subscribe"'))
+        } finally {
+            process.off('unhandledRejection', onUnhandled)
+            process.env.WDIO_UNIT_TESTS = wid
+        }
+    })
+
+    it('does not reject when the session ends while it switches to a window after closeWindow', async () => {
+        const stub = createBrowserStub()
+        stub.browser.switchToWindow.mockRejectedValue(new Error(
+            'Trying to run command "switchToWindow("handle-A")" after session has been deleted, aborting request without executing it'
+        ))
+        getContextManager(stub.browser)
+        const resultHandlers = stub.getListeners().result
+
+        await expect(resultHandlers![0]({ command: 'closeWindow', result: { value: ['handle-A'] } })).resolves.toBeUndefined()
+        expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('the session ended: Trying to run command'))
     })
 
     it('drops a cached context that switchToParentFrame cannot find a parent for', async () => {

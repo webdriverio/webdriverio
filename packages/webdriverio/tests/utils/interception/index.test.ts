@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { Buffer } from 'node:buffer'
 import { runInNewContext } from 'node:vm'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import { type local } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
@@ -2131,6 +2131,88 @@ describe('WebDriverInterception', () => {
 
             expect(browser.networkContinueRequest).toHaveBeenCalledTimes(1)
             expect(browser.networkProvideResponse).toHaveBeenCalledTimes(1)
+        })
+    })
+
+    /**
+     * A mock answers a paused request in a network event listener, with no caller to give
+     * an error to. When the session ends while the answer is in flight, the WebDriver BiDi
+     * command is rejected: that is no unhandled rejection
+     */
+    describe('a network command of a mock when the session ends', () => {
+        const CLOSED = 'WebDriver Bidi command "network.continueRequest" with id 7 got no result: the connection was closed'
+        const unhandled: unknown[] = []
+        const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
+
+        beforeEach(() => {
+            unhandled.length = 0
+            process.on('unhandledRejection', onUnhandled)
+        })
+
+        afterEach(() => {
+            process.off('unhandledRejection', onUnhandled)
+        })
+
+        const expectNoUnhandledRejection = async () => {
+            await waitForAsyncHandlers()
+            expect(unhandled).toEqual([])
+            expect(loggerMock.debug).toHaveBeenCalledWith(expect.stringContaining('the session ended'))
+        }
+
+        it('continues a request', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+            })
+            await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+            await expectNoUnhandledRejection()
+        })
+
+        it('continues a request with an overwrite', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            mock.redirect('https://webdriver.io')
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            expect(browser.networkContinueRequest).toHaveBeenCalled()
+            await expectNoUnhandledRejection()
+        })
+
+        it('fails a request', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkFailRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            mock.abort()
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-123' })
+            await expectNoUnhandledRejection()
+        })
+
+        it('continues a paused request that does not match the mock', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+            })
+            await WebDriverInterception.initiate('http://test.com/foo', {}, browser)
+            browser.emit('network.beforeRequestSent', {
+                ...getBlockedRequestStub(),
+                request: { ...getBlockedRequestStub().request, url: 'http://other.com/bar' }
+            })
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+            await expectNoUnhandledRejection()
+        })
+
+        it('responds without fetching', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkProvideResponse: vi.fn().mockRejectedValue(new Error(CLOSED))
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            mock.respond('mocked response', { fetchResponse: false })
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            expect(browser.networkProvideResponse).toHaveBeenCalled()
+            await expectNoUnhandledRejection()
         })
     })
 })
