@@ -52,9 +52,10 @@ Adding the Allure reporter as well automatically updates the reports with videos
   ],
 ```
 
-## With [`wdio-html-nice-reporter`](https://github.com/rpii/wdio-html-reporter)
+## With [`@wdio/html-reporter`](https://webdriver.io/docs/html-reporter)
 
-Adding the html nice reporter automatically updates the reports with videos without any need to configure anything 🙂
+The HTML reporter adds the videos to its report without more configuration. Use the same `outputDir` for both
+reporters:
 
 ```js
  reporters: [
@@ -63,16 +64,11 @@ Adding the html nice reporter automatically updates the reports with videos with
       videoSlowdownMultiplier: 3, // Higher to get slower videos, lower for faster videos [Value 1-100]
       outputDir: './reports/html-reports/',
     }],
-    ['html-nice', {
-          outputDir: './reports/html-reports/',
-          filename: 'report.html',
-          reportTitle: 'Test Report Title',
-          linkScreenshots: true,
-          //to show the report in a browser when done
-          showInBrowser: true,
-          collapseTests: false,
-          //to turn on screenshots after every test must be false to use video
-          useOnAfterCommandForScreenshot: false,
+    ['html', {
+      outputDir: './reports/html-reports/',
+      filename: 'report.html',
+      reportTitle: 'Test Report Title',
+      linkScreenshots: true,
     }],
   ],
 ```
@@ -138,10 +134,11 @@ Default: `250`
 
 ### `snapshotCommands`
 
-Which commands should result in a screenshot (without: `/session/:sessionId/`).
+Which commands should result in a screenshot: the last part of the WebDriver endpoint, for example `click` for
+`/session/:sessionId/element/:elementId/click`.
 
 Type: `string[]`<br />
-Default: `['url', 'forward', 'back', 'refresh', 'execute', 'size', 'position', 'maximize', 'click', 'submit', 'value', 'keys', 'clear', 'selected', 'enabled', 'displayed', 'orientation', 'alert_text', 'accept_alert', 'dismiss_alert', 'moveto', 'buttondown', 'buttonup', 'doubleclick', 'down', 'up', 'move', 'scroll', 'doubleclick', 'longclick', 'flick', 'location']`
+Default: `['url', 'back', 'forward', 'refresh', 'sync', 'maximize', 'minimize', 'fullscreen', 'rect', 'click', 'value', 'clear', 'selected', 'enabled', 'displayed', 'accept', 'dismiss', 'actions', 'orientation']`
 
 ### `excludedActions`
 
@@ -200,34 +197,17 @@ For a complete example, check out the cucumber branch at the [wdio-template](htt
 
 ## Appium Support
 
-There is support to help Allure differentiate between safari and chrome browsers on desktop and devices. The reporter uses the custom property `appium:deviceType` to id the different devices.
-Recommended values are `phone` and `tablet`. It is recommended to include `browserVersion` as well for _all_ browsers to avoid a bug in Chrome webdriver when using devices in same Selenium grid as desktop Chrome browsers.
+When the capabilities have no `browserName`, the reporter uses `appium:deviceName` and `platformName` in the video
+file names, for example `PIXEL7-ANDROID`. With Allure, it also adds `deviceName` and `browserVersion` as arguments
+of the test.
 
-The generated video files will also get `appium:deviceType` added to the browser name.
-
-Example Appium configuration:
-
-```json
-  "capabilities": [
-    {
-      ...
-      "deviceType": "phone",
-      "browserVersion": "73.0-phone-1",
-      ...
-    }
-  ],
-```
-
-And `wdio.conf.js`:
 ```js
-  capabilities: [
-    {
-      ...
-      'appium:deviceType': 'phone',
-      'browserVersion': '73.0-phone-1',
-      ...
-    },
-  ],
+  capabilities: [{
+    platformName: 'Android',
+    'appium:deviceName': 'Pixel 7',
+    'appium:automationName': 'UiAutomator2',
+    // ...
+  }],
 ```
 
 # Example
