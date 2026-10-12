@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import { spawn } from 'node:child_process'
 import { describe, it, expect, vi } from 'vitest'
 import type * as HelpersModule from '../src/helpers.js'
@@ -24,7 +25,7 @@ vi.mock('node:child_process', async () => {
 })
 
 vi.mock('node:fs', () => {
-    const mod = { writeFileSync: vi.fn(), mkdirSync: vi.fn(), existsSync: vi.fn().mockReturnValue(false) }
+    const mod = { writeFileSync: vi.fn(), mkdirSync: vi.fn(), existsSync: vi.fn().mockReturnValue(false), rmSync: vi.fn() }
     return { ...mod, default: mod }
 })
 
@@ -99,6 +100,7 @@ describe('generateVideo', () => {
             ffmpeg.spawnError = undefined
         }
     })
+
     it('accepts a videoSlowdownMultiplier that is not an integer', async () => {
         ffmpeg.exitCode = 0
         ffmpeg.stderr = ''
@@ -106,5 +108,17 @@ describe('generateVideo', () => {
         await render(undefined, { videoSlowdownMultiplier: 1.5 })
         const [, args] = vi.mocked(spawn).mock.calls[0] as unknown as [string, string[]]
         expect(args).toContain('scale=1200:trunc(ow/a/2)*2,setpts=1.5*PTS')
+    })
+
+    it('removes the file of a failed render, so it is not used as a video', async () => {
+        ffmpeg.exitCode = 1
+        ffmpeg.stderr = 'Error while parsing expression'
+        vi.mocked(fs.rmSync).mockClear()
+        const reporter = new VideoReporter({})
+        reporter.testName = 'my-test'
+        reporter.recordingPath = '/foo/bar/rawSeleniumVideoGrabs/my-test'
+        await reporter.generateVideo()
+        expect(fs.rmSync).toHaveBeenCalledWith(expect.stringMatching(/my-test\.webm$/), { force: true })
+        expect(reporter.videos).toEqual([])
     })
 })

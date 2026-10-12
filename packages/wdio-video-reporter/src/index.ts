@@ -637,6 +637,14 @@ export default class VideoReporter extends WdioReporter {
         ]
         this.#log(`ffmpeg command: ${command} ${args.join(' ')}`)
 
+        /**
+         * a failed render can leave an empty or broken file: it is not a video
+         */
+        const dropVideo = () => {
+            fs.rmSync(videoPath, { force: true })
+            this.videos = this.videos.filter((video) => video !== videoPath)
+        }
+
         const start = Date.now()
         const promise: Promise<void> = Promise
             .all(this.screenshotPromises)
@@ -658,6 +666,7 @@ export default class VideoReporter extends WdioReporter {
                 cp.on('error', (err: Error) => {
                     this.processList.delete(cp)
                     this.#log(`could not start ffmpeg ${command} for video "${videoPath}": ${err.message}`)
+                    dropVideo()
                     resolve()
                 })
                 cp.on('close', (code: number | null) => {
@@ -666,6 +675,7 @@ export default class VideoReporter extends WdioReporter {
                         this.#log(`Generated video: "${videoPath}" (${Date.now() - start}ms)`)
                     } else {
                         this.#log(`ffmpeg failed with exit code ${code} for video "${videoPath}": ${stderr.trim()}`)
+                        dropVideo()
                     }
                     return resolve()
                 })
