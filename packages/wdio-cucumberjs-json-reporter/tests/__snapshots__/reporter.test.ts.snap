@@ -95,8 +95,9 @@ exports[`reporter > getFeatureDataObject > should be able to to create a feature
 exports[`reporter > getScenarioDataObject > should be able to to create a scenario JSON data object 1`] = `
 {
   "description": "",
-  "id": "create-passed-featurehook-this-is-doing-nothing-because-it's-a-background"",
+  "id": "create-passed-feature;hook-this-is-doing-nothing-because-it's-a-background"",
   "keyword": "Scenario",
+  "line": null,
   "name": "Hook This is doing nothing because it's a background"",
   "steps": [],
   "tags": [],
@@ -156,12 +157,11 @@ exports[`reporter > getStepDataObject > should be able to to create a step JSON 
 exports[`reporter > getStepDataObject > should be able to to create a step JSON data object based on a hook 1`] = `
 {
   "arguments": [],
+  "hidden": true,
   "keyword": "Before",
-  "line": null,
   "match": {
     "location": "can not be determined with webdriver.io",
   },
-  "name": "Hook",
   "result": {
     "duration": 0,
     "status": "",
@@ -290,6 +290,7 @@ exports[`reporter > updateStepStatus > should update step data of the current sc
   {
     "bar": false,
     "foo": "current-step",
+    "line": undefined,
     "status": "passed",
   },
 ]

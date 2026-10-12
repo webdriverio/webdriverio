@@ -720,6 +720,11 @@ const cucumberJsJsonReporter = async () => {
         ]
     )
     assert.deepEqual(steps[0].embeddings, [{ data: Buffer.from('hello').toString('base64'), mime_type: 'text/plain' }])
+    // line numbers and ids as the Cucumber JSON format has them
+    assert.equal(feature.elements[0].id, 'cucumberjs-json-report;attach-data-to-the-steps')
+    assert.equal(feature.elements[0].line, 2)
+    assert.deepEqual(steps.map((step) => step.line), [3, 4, 5])
+    assert.ok(feature.elements[0].steps.filter((step) => ['Before', 'After'].includes(step.keyword)).every((hook) => hook.hidden === true))
     assert.deepEqual(steps[1].embeddings, [{ data: Buffer.from('{"value":"world"}').toString('base64'), mime_type: 'application/json' }])
     await fs.rm(jsonFolder, { recursive: true, force: true })
 }
