@@ -77,6 +77,10 @@ class HtmlGenerator {
                     return relPath
                 }
             })
+            // @wdio/video-reporter makes webm videos by default
+            environment.addGlobal('videoType', (videoCaptureFile: string) => {
+                return path.extname(videoCaptureFile).toLowerCase() === '.webm' ? 'video/webm' : 'video/mp4'
+            })
             environment.addGlobal('displaySpecFile', (suiteInfo:SuiteStats) => {
                 if (suiteInfo && suiteInfo.file) {
                     if (specFileReferences && !specFileReferences.includes(suiteInfo.file)) {
