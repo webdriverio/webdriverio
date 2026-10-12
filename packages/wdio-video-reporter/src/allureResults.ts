@@ -13,8 +13,18 @@ function removeFromNode (node: AllureNode, sources: Set<string>): boolean {
         changed = kept.length !== node.attachments.length
         node.attachments = kept
     }
-    for (const step of node.steps ?? []) {
-        changed = removeFromNode(step, sources) || changed
+    if (Array.isArray(node.steps)) {
+        node.steps = node.steps.filter((step) => {
+            if (!removeFromNode(step, sources)) {
+                return true
+            }
+            changed = true
+            /**
+             * `addAttachment` puts the video in a step of its own: drop the step
+             * when nothing is left in it
+             */
+            return Boolean(step.attachments?.length || step.steps?.length)
+        })
     }
     return changed
 }

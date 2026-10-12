@@ -39,6 +39,24 @@ describe('removeAllureAttachments', () => {
         expect(JSON.parse(fs.readFileSync(path.join(dir, '2-result.json'), 'utf-8'))).toEqual(other)
     })
 
+    it('removes the step that held only the removed video, and keeps the other steps', () => {
+        const result = {
+            name: 'passes',
+            steps: [
+                // the step of `addAttachment`, as the Allure reporter writes it
+                { name: 'Execution video', attachments: [{ name: 'Execution video', source: 'a-attachment.webm', type: 'video/webm' }], start: 1, stop: 1 },
+                { name: 'click', attachments: [], steps: [], start: 2, stop: 3 }
+            ]
+        }
+        fs.writeFileSync(path.join(dir, '1-result.json'), JSON.stringify(result))
+        fs.writeFileSync(path.join(dir, 'a-attachment.webm'), '/videos/passes.webm')
+
+        removeAllureAttachments(dir, [path.join(dir, 'a-attachment.webm')])
+
+        const updated = JSON.parse(fs.readFileSync(path.join(dir, '1-result.json'), 'utf-8'))
+        expect(updated.steps).toEqual([{ name: 'click', attachments: [], steps: [], start: 2, stop: 3 }])
+    })
+
     it('does nothing without placeholders', () => {
         fs.writeFileSync(path.join(dir, '1-result.json'), '{"name":"x","attachments":[]}')
         removeAllureAttachments(dir, [])
