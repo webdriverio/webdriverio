@@ -169,3 +169,49 @@ describe('HtmlReporter with Cucumber', () => {
         expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0 })
     })
 })
+
+describe('links in log messages', () => {
+    const linksOutputDir = path.join(outputRoot, 'links') + path.sep
+    const message = 'see https://webdriver.io/docs?a=1&b=2 and <b>bold</b>'
+
+    beforeAll(async () => {
+        fs.mkdirSync(linksOutputDir, { recursive: true })
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: linksOutputDir, filename: 'report.html', reportTitle: 'Links' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onTestStart(SUITES[0].tests[0])
+        new ReportEvents().logMessage(message)
+        reporter.onTestPass(SUITES[0].tests[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(RUNNER)
+    })
+
+    afterAll(() => {
+        process.removeAllListeners('test:log')
+        fs.rmSync(outputRoot, { recursive: true, force: true })
+    })
+
+    const createReport = async (linkUrls?: boolean) => {
+        const reportAggregator = new ReportAggregator({
+            outputDir: linksOutputDir,
+            filename: `master-${linkUrls}.html`,
+            reportTitle: 'Links',
+            browserName: 'chrome',
+            ...(linkUrls === undefined ? {} : { linkUrls })
+        } as never)
+        await reportAggregator.createReport()
+        return fs.readFileSync(reportAggregator.reportFile, 'utf-8')
+    }
+
+    it('escapes the log text and makes no links by default', async () => {
+        const html = await createReport()
+        expect(html).toContain('see https://webdriver.io/docs?a=1&amp;b=2 and &lt;b&gt;bold&lt;/b&gt;')
+        expect(html).not.toContain('<a href="https://webdriver.io/docs')
+    })
+
+    it('makes the URLs links with linkUrls, and still escapes the text', async () => {
+        const html = await createReport(true)
+        expect(html).toContain('<a href="https://webdriver.io/docs?a=1&amp;b=2" target="_blank" rel="noopener noreferrer">https://webdriver.io/docs?a=1&amp;b=2</a>')
+        expect(html).toContain('&lt;b&gt;bold&lt;/b&gt;')
+    })
+})

@@ -55,7 +55,7 @@
                         {% if event.type === 'log' %}
                             <tr class="test-row log">
                                 <td colspan="2">
-                                    <pre class='pre {{ logClass(event.value) }}'>{{event.value}}</pre>
+                                    <pre class='pre {{ logClass(event.value) }}'>{{ formatLog(event.value) }}</pre>
                                 </td>
                             </tr>
                         {% endif %}
