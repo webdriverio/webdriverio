@@ -21,6 +21,14 @@ import {
 import { DEFAULT_OPTIONS, SCREENSHOT_PADDING_WITH, FRAME_REGEX, STDERR_TAIL_LENGTH } from './constants.js'
 import type { ReporterOptions } from './types.js'
 
+/**
+ * a BiDi command that can take a frame, and its browsing context
+ */
+interface BidiFrameCommand {
+    name?: string
+    context?: string
+}
+
 import notAvailableImage from './assets/notAvailableImage.js'
 
 const log = logger('@wdio/video-reporter')
@@ -52,9 +60,16 @@ export default class VideoReporter extends WdioReporter {
      * not as a suite with its steps as tests
      */
     #isScenarioLevelReporter = false
-    #pendingBidiCommands: (string | undefined)[] = []
-    #bidiCommandsById = new Map<number, string | undefined>()
+    #pendingBidiCommands: BidiFrameCommand[] = []
+    #bidiCommandsById = new Map<number, BidiFrameCommand>()
     #listensToBidiCommands = false
+    /**
+     * BiDi session: the window of the classic commands (it does not change, BiDi
+     * sessions have no `switchWindow`), and the browsing context of the last frame
+     * when it is another tab or window (for example one from `newWindow()`)
+     */
+    #mainContext?: string
+    #frameContext?: string
 
     /**
    * Set reporter options
@@ -190,32 +205,40 @@ export default class VideoReporter extends WdioReporter {
             return
         }
         this.#listensToBidiCommands = true
+        instance.getWindowHandle().then(
+            (handle) => { this.#mainContext = handle },
+            () => { /* no window: the frames use the classic screenshot */ }
+        )
         /**
          * a result has the id of its command, but not its method: keep the command of
          * each id (results can come in another order). Without an id, take the oldest.
          */
         instance.on('bidiCommand', (command: { id?: number, method?: string, params?: unknown }) => {
-            const commandName = getBidiSnapshotCommand(command)
+            const params = command.params as { context?: string, target?: { context?: string } } | undefined
+            const frameCommand = { name: getBidiSnapshotCommand(command), context: params?.context ?? params?.target?.context }
             if (typeof command.id === 'number') {
-                this.#bidiCommandsById.set(command.id, commandName)
+                this.#bidiCommandsById.set(command.id, frameCommand)
             } else {
-                this.#pendingBidiCommands.push(commandName)
+                this.#pendingBidiCommands.push(frameCommand)
             }
         })
         instance.on('bidiResult', (result: { id?: number }) => {
             const hasId = typeof result?.id === 'number' && this.#bidiCommandsById.has(result.id)
-            const commandName = hasId ? this.#bidiCommandsById.get(result.id!) : this.#pendingBidiCommands.shift()
+            const frameCommand = hasId ? this.#bidiCommandsById.get(result.id!) : this.#pendingBidiCommands.shift()
             if (hasId) {
                 this.#bidiCommandsById.delete(result.id!)
             }
-            if (!commandName || !this.#record) {
+            if (!frameCommand?.name || !this.#record) {
                 return
             }
-            this.#addFrameForCommand(commandName, `WebDriver BiDi ${commandName}`)
+            this.#addFrameForCommand(frameCommand.name, `WebDriver BiDi ${frameCommand.name}`, frameCommand.context)
         })
     }
 
-    #addFrameForCommand (commandName: string, label?: string) {
+    /**
+     * @param context  browsing context of a BiDi command, `undefined` for a classic command
+     */
+    #addFrameForCommand (commandName: string, label?: string, context?: string) {
         /**
      * Filter out non-action commands and keep only last action command
      */
@@ -232,7 +255,11 @@ export default class VideoReporter extends WdioReporter {
             return false
         }
 
-        this.#log(`Add frame for command: ${label} => [${commandName}]`)
+        /**
+         * the classic commands and the main window use the classic screenshot
+         */
+        this.#frameContext = context && context !== this.#mainContext ? context : undefined
+        this.#log(`Add frame for command: ${label} => [${commandName}]${this.#frameContext ? ` (browsing context ${this.#frameContext})` : ''}`)
         return this.addFrame()
     }
 
@@ -470,7 +497,20 @@ export default class VideoReporter extends WdioReporter {
          * command that is still pending then never ends. Each frame also has a time
          * limit, so a lost screenshot cannot stop the video.
          */
-        const screenshot = getScreenshotBrowser(browser).takeScreenshot()
+        const instance = getScreenshotBrowser(browser)
+        const context = this.#frameContext
+        /**
+         * a tab or window other than the main one (a BiDi browsing context): capture
+         * that one; if it was closed, the classic screenshot of the main window
+         */
+        const capture: Promise<string> = context
+            ? instance.browsingContextCaptureScreenshot({ context, origin: 'viewport', format: { type: 'image/png' } })
+                .then((result) => result.data, (error: Error) => {
+                    this.#log(`Screenshot of browsing context ${context} failed (frame: ${frame}), using the main window: ${error.message}`)
+                    return instance.takeScreenshot()
+                })
+            : instance.takeScreenshot()
+        const screenshot = capture
             .then((data: string) => {
                 fs.writeFileSync(filePath, data, 'base64')
                 this.#log(`- Screenshot (frame: ${frame})`)

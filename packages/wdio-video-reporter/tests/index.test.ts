@@ -595,6 +595,52 @@ describe('Video Reporter', () => {
             browser.isBidi = false
         })
 
+        it('takes the frames of a second tab from that tab, and the main tab with the classic screenshot', async () => {
+            browser.isBidi = true
+            vi.mocked(browser.takeScreenshot).mockResolvedValue('aW1hZ2U=')
+            vi.mocked(browser.getWindowHandle).mockResolvedValue('main-tab')
+            vi.mocked(browser.browsingContextCaptureScreenshot).mockResolvedValue({ data: 'dGFi' } as any)
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            reporter.listenToBidiCommands()
+            await sleep(0)
+
+            // a step in the second tab: its frame comes from that tab
+            listeners.bidiCommand({ id: 1, method: 'browsingContext.navigate', params: { context: 'second-tab', url: 'https://x' } })
+            listeners.bidiResult({ id: 1, type: 'success', result: {} })
+            // a frame without a command (test end) stays on the last tab
+            reporter.addFrame()
+            await sleep()
+            expect(browser.browsingContextCaptureScreenshot).toBeCalledTimes(2)
+            expect(browser.browsingContextCaptureScreenshot).toHaveBeenLastCalledWith(expect.objectContaining({ context: 'second-tab' }))
+            expect(browser.takeScreenshot).toBeCalledTimes(0)
+
+            // a step in the main tab: classic screenshot again
+            listeners.bidiCommand({ id: 2, method: 'browsingContext.navigate', params: { context: 'main-tab', url: 'https://y' } })
+            listeners.bidiResult({ id: 2, type: 'success', result: {} })
+            await sleep()
+            expect(browser.takeScreenshot).toBeCalledTimes(1)
+            expect(browser.browsingContextCaptureScreenshot).toBeCalledTimes(2)
+            browser.isBidi = false
+        })
+
+        it('takes the classic screenshot when the tab of the frame was closed', async () => {
+            browser.isBidi = true
+            vi.mocked(browser.takeScreenshot).mockResolvedValue('aW1hZ2U=')
+            vi.mocked(browser.getWindowHandle).mockResolvedValue('main-tab')
+            vi.mocked(browser.browsingContextCaptureScreenshot).mockRejectedValue(new Error('no such frame'))
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            reporter.listenToBidiCommands()
+            await sleep(0)
+            listeners.bidiCommand({ id: 1, method: 'browsingContext.reload', params: { context: 'closed-tab' } })
+            listeners.bidiResult({ id: 1, type: 'success', result: {} })
+            await sleep()
+            expect(browser.takeScreenshot).toBeCalledTimes(1)
+            expect(fs.writeFileSync).toBeCalledWith(path.resolve('/foo/bar', '0000.png'), 'aW1hZ2U=', 'base64')
+            browser.isBidi = false
+        })
+
         it('takes no frame for other BiDi commands or excluded actions', () => {
             browser.isBidi = true
             const reporter = new VideoReporter({ excludedActions: ['refresh'] })
