@@ -32,6 +32,22 @@ describe('logBackgroundError', () => {
         expect(logger.warn).not.toHaveBeenCalled()
     })
 
+    it('logs any error at debug level when the WebDriver BiDi connection of the browser is closed', () => {
+        const logger = log()
+        const browser = { _bidiHandler: { isConnected: false } }
+        logBackgroundError(logger, 'Failed to switch', new Error('Request failed with error code UND_ERR_CLOSED'), browser)
+        expect(logger.debug).toHaveBeenCalledWith('Failed to switch, the session ended: Request failed with error code UND_ERR_CLOSED')
+        expect(logger.warn).not.toHaveBeenCalled()
+    })
+
+    it('warns for that error while the connection is open, or without a WebDriver BiDi connection', () => {
+        for (const browser of [{ _bidiHandler: { isConnected: true } }, {}, undefined]) {
+            const logger = log()
+            logBackgroundError(logger, 'Failed to switch', new Error('Request failed with error code UND_ERR_CLOSED'), browser)
+            expect(logger.warn).toHaveBeenCalledWith('Failed to switch: Request failed with error code UND_ERR_CLOSED')
+        }
+    })
+
     it('logs another error as a warning', () => {
         const logger = log()
         logBackgroundError(logger, 'Failed to update', new Error('unknown error'))

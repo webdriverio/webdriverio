@@ -84,7 +84,7 @@ export class ContextManager extends SessionManager {
              */
             Promise.resolve(this.#browser.sessionSubscribe({
                 events: ['browsingContext.navigationStarted', 'browsingContext.contextDestroyed']
-            })).catch((err) => logBackgroundError(log, 'Failed to subscribe to the navigation events of the context manager', err))
+            })).catch((err) => logBackgroundError(log, 'Failed to subscribe to the navigation events of the context manager', err, this.#browser))
             this.#browser.on('browsingContext.navigationStarted', this.#navigationStartedListener)
             this.#browser.on('browsingContext.contextDestroyed', this.#destroyedListener)
         }
@@ -135,7 +135,7 @@ export class ContextManager extends SessionManager {
              * an event handler has no caller to give the error to, e.g. when the
              * session ends while the tree is requested
              */
-            logBackgroundError(log, `Failed to update the context after a navigation in "${nav.context}"`, err)
+            logBackgroundError(log, `Failed to update the context after a navigation in "${nav.context}"`, err, this.#browser)
         }
     }
 
@@ -207,7 +207,7 @@ export class ContextManager extends SessionManager {
                 this.#currentContext = undefined
                 this.#currentWindowHandle = undefined
             }
-            logBackgroundError(log, `Failed to switch context after "${destroyed.context}" was destroyed`, err)
+            logBackgroundError(log, `Failed to switch context after "${destroyed.context}" was destroyed`, err, this.#browser)
         }
     }
 
@@ -244,7 +244,7 @@ export class ContextManager extends SessionManager {
              */
             return Promise.resolve(this.#browser.switchToWindow(this.#currentContext))
                 .then(() => undefined)
-                .catch((err) => logBackgroundError(log, `Failed to switch to window "${windowHandles[0]}" after closeWindow`, err))
+                .catch((err) => logBackgroundError(log, `Failed to switch to window "${windowHandles[0]}" after closeWindow`, err, this.#browser))
         }
 
         /**
@@ -302,7 +302,7 @@ export class ContextManager extends SessionManager {
                 }
                 this.setCurrentContext(parentContext.context)
             }).catch((err: Error) => {
-                logBackgroundError(log, 'Failed to update the context after switchToParentFrame', err)
+                logBackgroundError(log, 'Failed to update the context after switchToParentFrame', err, this.#browser)
             })
         }
 

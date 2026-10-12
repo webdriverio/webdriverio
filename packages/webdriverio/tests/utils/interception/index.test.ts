@@ -2204,6 +2204,27 @@ describe('WebDriverInterception', () => {
             await expectNoUnhandledRejection()
         })
 
+        it('continues a request whose method does not match a postData mock', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+            })
+            await WebDriverInterception.initiate('http://test.com/**', { method: 'post', postData: 'request-body' }, browser)
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+            await expectNoUnhandledRejection()
+        })
+
+        it('continues a request whose body does not match a postData mock', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+            })
+            await WebDriverInterception.initiate('http://test.com/**', { postData: 'other-body' }, browser)
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            await waitForAsyncHandlers()
+            expect(browser.networkContinueRequest).toHaveBeenCalledWith({ request: 'req-123' })
+            await expectNoUnhandledRejection()
+        })
+
         it('responds without fetching', async () => {
             const browser = getResponseCollectionBrowserMock({}, {
                 networkProvideResponse: vi.fn().mockRejectedValue(new Error(CLOSED))

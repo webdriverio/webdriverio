@@ -37,6 +37,16 @@ export function isSessionEndedError (err: unknown) {
     return SESSION_ENDED_MESSAGES.some((text) => message.includes(text))
 }
 
+/**
+ * `true` when the WebDriver BiDi connection of `browser` is closed: after `deleteSession`,
+ * or when the browser or the driver closed it. Then a command of the session fails with
+ * any error, e.g. a WebDriver Classic request to a driver that `deleteSession` stopped.
+ * A session without a WebDriver BiDi connection gives `false`.
+ */
+export function isBidiConnectionClosed (browser: unknown) {
+    return (browser as { _bidiHandler?: { isConnected?: boolean } } | undefined)?._bidiHandler?.isConnected === false
+}
+
 interface ListenerLog {
     debug (...args: unknown[]): void
     warn (...args: unknown[]): void
@@ -45,11 +55,12 @@ interface ListenerLog {
 /**
  * Log the error of a command that an event listener or a background task sent: it has
  * no caller to give the error to. At the end of a session such an error is expected,
- * so it is a debug message; any other error is a warning.
+ * so it is a debug message; any other error is a warning. With `browser`, any error after
+ * its WebDriver BiDi connection closed is a session end too.
  */
-export function logBackgroundError (log: ListenerLog, message: string, err: unknown) {
+export function logBackgroundError (log: ListenerLog, message: string, err: unknown, browser?: unknown) {
     const reason = err instanceof Error ? err.message : String(err)
-    if (isSessionEndedError(err)) {
+    if (isSessionEndedError(err) || isBidiConnectionClosed(browser)) {
         log.debug(`${message}, the session ended: ${reason}`)
         return
     }

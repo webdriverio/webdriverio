@@ -421,6 +421,36 @@ describe('ContextManager', () => {
         expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('the session ended: Trying to run command'))
     })
 
+    /**
+     * after closeWindow and deleteSession, a destroyed context switches to a window with a
+     * WebDriver Classic request to a driver that is already stopped: its error has no
+     * session end message, but the WebDriver BiDi connection is closed
+     */
+    const destroyedWithClosedDriver = async (isConnected: boolean) => {
+        const wid = process.env.WDIO_UNIT_TESTS
+        delete process.env.WDIO_UNIT_TESTS
+        const stub = createBrowserStub({ isBidi: true, _bidiHandler: { isConnected } } as any)
+        ;(stub.browser as any).getWindowHandles.mockResolvedValue(['handle-B'])
+        stub.browser.switchToWindow.mockRejectedValue(new Error(
+            'WebDriverError: Request failed with error code UND_ERR_CLOSED when running "window" with method "POST"'
+        ))
+        const manager = getContextManager(stub.browser)
+        process.env.WDIO_UNIT_TESTS = wid
+        manager.setCurrentContext('context-1')
+        await stub.getListeners()['browsingContext.contextDestroyed']![0]({ context: 'context-1' })
+    }
+
+    it('logs at debug level when a destroyed context cannot switch because the connection closed', async () => {
+        await destroyedWithClosedDriver(false)
+        expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('the session ended: WebDriverError: Request failed with error code UND_ERR_CLOSED'))
+        expect(logMock.warn).not.toHaveBeenCalled()
+    })
+
+    it('warns when a destroyed context cannot switch while the connection is open', async () => {
+        await destroyedWithClosedDriver(true)
+        expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('UND_ERR_CLOSED'))
+    })
+
     it('drops a cached context that switchToParentFrame cannot find a parent for', async () => {
         const wid = process.env.WDIO_UNIT_TESTS
         delete process.env.WDIO_UNIT_TESTS
