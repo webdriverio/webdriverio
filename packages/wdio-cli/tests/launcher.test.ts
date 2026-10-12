@@ -952,6 +952,71 @@ describe('launcher', () => {
             expect(dispose.mock.invocationCallOrder[0]).toBeGreaterThan(serviceOnComplete.mock.invocationCallOrder[0])
         })
 
+        describe('framework with launch export', () => {
+            const launch = vi.fn()
+            const defaultPlugin = vi.mocked(initializePlugin).getMockImplementation()!
+
+            const mockFramework = (framework: () => Promise<unknown>) => vi.mocked(initializePlugin).mockImplementation(
+                (name, type) => type === 'framework' ? framework() as never : defaultPlugin(name, type)
+            )
+
+            beforeEach(() => {
+                launch.mockReset()
+                config.framework = 'selfScheduling'
+                launcher['_configFilePath'] = '/repo/wdio.conf.ts'
+                launcher.configParser.getSpecs = vi.fn().mockReturnValue(['file:///repo/a.ts', ['/repo/b.ts', 'file:///repo/c.ts']])
+            })
+
+            afterEach(() => {
+                vi.mocked(initializePlugin).mockImplementation(defaultPlugin)
+            })
+
+            it('delegates to launch instead of scheduling workers', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockResolvedValue(0)
+
+                expect(await launcher.run()).toEqual(0)
+                expect(launch).toHaveBeenCalledWith({
+                    config: { ...config, capabilities: {} },
+                    specs: ['/repo/a.ts', '/repo/b.ts', '/repo/c.ts'],
+                    configFile: '/repo/wdio.conf.ts'
+                })
+                expect(launcher['_runMode']).not.toBeCalled()
+                expect(config.onComplete![0]).toBeCalledTimes(1)
+            })
+
+            it('turns a failure count into exit code 1', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockResolvedValue(3)
+
+                expect(await launcher.run()).toEqual(1)
+                expect(launcher['_runMode']).not.toBeCalled()
+                expect(config.onComplete![0]).toBeCalledTimes(1)
+            })
+
+            it('reports exit code 1 to onComplete and rethrows when launch throws', async () => {
+                mockFramework(async () => ({ launch }))
+                launch.mockRejectedValue(new Error('vitest crashed'))
+
+                await expect(launcher.run()).rejects.toThrow('vitest crashed')
+                expect(vi.mocked(config.onComplete![0])).toBeCalledWith(1, expect.anything(), expect.anything(), expect.anything())
+            })
+
+            it('keeps scheduling workers when the framework has no launch export', async () => {
+                mockFramework(async () => ({ default: {} }))
+
+                expect(await launcher.run()).toEqual(0)
+                expect(launcher['_runMode']).toBeCalledTimes(1)
+            })
+
+            it('keeps scheduling workers when the framework cannot be imported in the launcher', async () => {
+                mockFramework(async () => { throw new Error('not found') })
+
+                expect(await launcher.run()).toEqual(0)
+                expect(launcher['_runMode']).toBeCalledTimes(1)
+            })
+        })
+
         it('onComplete error', async () => {
             // ConfigParser.addFileConfig() will return onComplete as an array of functions
             config.onComplete = [() => { throw new Error() }]

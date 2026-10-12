@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
@@ -6,7 +7,7 @@ import { validateConfig, DEFAULT_MAX_INSTANCES_PER_CAPABILITY_VALUE } from '@wdi
 import { ConfigParser } from '@wdio/config/node'
 import { initializePlugin, initializeLauncherService, sleep, enableFileLogging } from '@wdio/utils'
 import { setupDriver, setupBrowser } from '@wdio/utils/node'
-import type { Capabilities, Services } from '@wdio/types'
+import type { Capabilities, Frameworks, Services } from '@wdio/types'
 
 import CLInterface from './interface.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook, type HookError, shouldEnableTsx, enableTsx } from './utils.js'
@@ -145,7 +146,19 @@ class Launcher {
                 setupBrowser(config, caps)
             ])
 
-            exitCode = await this._runMode(config, caps)
+            const framework = await this.#loadFrameworkLauncher(config)
+            exitCode = framework
+                ? Number(await framework.launch({
+                    // ConfigParser keeps capabilities outside of getConfig()
+                    config: { ...config, capabilities: caps } as WebdriverIO.Config,
+                    specs: this.configParser.getSpecs().flat().map((spec) => spec.startsWith('file://') ? fileURLToPath(spec) : spec),
+                    configFile: this._configFilePath
+                }).catch((err) => {
+                    // onComplete hooks must not see a green exit code for a crashed run
+                    exitCode = 1
+                    throw err
+                }) > 0)
+                : await this._runMode(config, caps)
             await logger.waitForBuffer()
             this.interface.finalise()
         } catch (err) {
@@ -179,6 +192,23 @@ class Launcher {
         }
 
         return exitCode
+    }
+
+    /**
+     * Frameworks that export `launch` schedule specs themselves, so the
+     * launcher skips WDIO workers. Import failures are left to the worker,
+     * which reports them as it does for any framework.
+     */
+    async #loadFrameworkLauncher(config: Required<WebdriverIO.Config>) {
+        if (!config.framework) {
+            return
+        }
+        try {
+            const plugin = await initializePlugin(config.framework, 'framework') as Partial<Frameworks.FrameworkLauncher>
+            return typeof plugin.launch === 'function' ? plugin as Frameworks.FrameworkLauncher : undefined
+        } catch (err) {
+            log.debug(`Could not load framework "${config.framework}" in the launcher: ${(err as Error).message}`)
+        }
     }
 
     /**
