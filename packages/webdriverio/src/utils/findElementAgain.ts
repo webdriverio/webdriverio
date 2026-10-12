@@ -107,7 +107,16 @@ export async function findElementAgain (
 ): Promise<WebdriverIO.Element | undefined> {
     if (element.index !== undefined) {
         if (wait) {
-            return findAllAgain(element, parent)[element.index]?.getElement()
+            const item = await findAllAgain(element, parent)[element.index]?.getElement()
+            /**
+             * the wait of an index gives a "not found" item when the list never reaches the
+             * index (#12576). A lookup that waits rejects then with its error, as before, so
+             * `waitForExist`, the implicit wait and the refetch of a stale item don't change
+             */
+            if (item && !item.elementId && item.error) {
+                throw item.error
+            }
+            return item
         }
 
         /**

@@ -552,16 +552,43 @@ describe('finding an element again', () => {
             expect(await browser.$$('.item')[3].waitForDisplayed({ reverse: true })).toBe(true)
         })
 
-        it('keeps the error when waitForExist saw the index but the lookup after it does not find it', async () => {
+        /**
+         * A lookup that waits (`waitForExist`, the implicit wait, the refetch of a stale item)
+         * rejects as before when the index is still missing; only `$$(selector)[index]`
+         * itself gives the not found element
+         */
+        it('waitForExist rejects when it saw the index but the lookup after it does not find it', async () => {
             const browser = await session()
             const elem = await browser.$$('.item')[3]
             vi.spyOn(elem, 'isExisting').mockResolvedValueOnce(true)
 
-            expect(await elem.waitForExist()).toBe(true)
+            const { error } = await settle(elem.waitForExist())
+            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
             expect(elem.elementId).toBeUndefined()
             expect((elem.error as Error).message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
-            const { error } = await settle(elem.click())
-            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+        })
+
+        it('the implicit wait of an item without element id gives the same error as before', async () => {
+            const browser = await session()
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+            const elem = await browser.$$('.item')[3]
+            driver.light.set('.item', ['elem-a'])
+            elem.elementId = undefined as unknown as string
+            vi.spyOn(elem, 'waitForExist').mockResolvedValueOnce(true)
+
+            const { error } = await settle(elem.getText())
+            expect(error?.message).toBe('Can\'t call getText on element with selector ".item" because element wasn\'t found')
+        })
+
+        it('a stale item of a list that is shorter now throws the stale element error', async () => {
+            const browser = await session()
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+            const elem = await browser.$$('.item')[3]
+            driver.stale.add('elem-d')
+            driver.light.set('.item', ['elem-a'])
+
+            const { error } = await settle(elem.getText())
+            expect(error?.name).toBe('stale element reference')
         })
 
         it('a command throws "Index out of bounds" without a second wait or another lookup', async () => {
