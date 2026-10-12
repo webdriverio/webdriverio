@@ -17,6 +17,9 @@ const PAGE = `
 <script src="/react.js"></script><script src="/react-dom.js"></script>
 <script>
     document.getElementById('host').attachShadow({ mode: 'open' }).innerHTML = '<p>in shadow</p>'
+    window.renderShadow = (texts) => {
+        document.getElementById('host').shadowRoot.innerHTML = texts.map((text) => '<p>' + text + '</p>').join('')
+    }
     window.renderLate = () => setTimeout(() => {
         document.getElementById('late').innerHTML = '<li>a</li><li>b</li><li>c</li>'
     }, 300)
@@ -179,7 +182,7 @@ describe('an index that the list of $$ never reaches', () => {
     describe('the matrix of list commands, item states and checks', () => {
         type Kind = '$$' | 'custom$$' | 'react$$'
         type State = 'in range' | 'never reached' | 'stale with the same length' | 'stale in a shorter list'
-        type Page = { renderList (texts: string[]): void, renderReactList (texts: string[]): void }
+        type Page = { renderList (texts: string[]): void, renderReactList (texts: string[]): void, renderShadow (texts: string[]): void }
 
         const renderPlain = (texts: string[]) => browser.execute((texts) => (window as unknown as Page).renderList(texts), texts)
         const renderReact = (texts: string[]) => browser.execute((texts) => (window as unknown as Page).renderReactList(texts), texts)
@@ -279,5 +282,64 @@ describe('an index that the list of $$ never reaches', () => {
                 })
             }
         }
+
+        /**
+         * A list of a held tab (BiDi) runs its queries and checks in that tab: the tab of
+         * the browser has 3 items in each list, the held tab 1. So `[0]` is the item of
+         * the held tab, and `[2]`, that only the tab of the browser has, is not found.
+         */
+        describe('a list of another held tab', () => {
+            let tab: WebdriverIO.BrowsingContext
+            const TAB_LISTS: Record<string, (tab: WebdriverIO.BrowsingContext) => ReturnType<typeof $$>> = {
+                '$$': (tab) => tab.$$('#list li'),
+                '$$(function)': (tab) => tab.$$(() => [...document.querySelectorAll<HTMLElement>('#list li')]),
+                'custom$$': (tab) => tab.custom$$('tabListItems'),
+                'react$$': (tab) => tab.react$$('Item'),
+                'shadow$$': (tab) => tab.$('#host').shadow$$('p')
+            }
+
+            before(async function () {
+                if (!browser.isBidi) {
+                    return this.skip()
+                }
+                await browser.addLocatorStrategy('tabListItems', () => [...document.querySelectorAll<HTMLElement>('#list li')])
+            })
+
+            beforeEach(async () => {
+                await browser.execute(() => (window as unknown as Page).renderShadow(['a', 'b', 'c']))
+                tab = await browser.newWindow(`http://127.0.0.1:${(server.address() as AddressInfo).port}/`, { type: 'tab' }) as WebdriverIO.BrowsingContext
+                await browser.waitUntil(() => tab.execute(() => document.querySelectorAll('#react-root li').length === 3))
+                await tab.execute(() => {
+                    const page = window as unknown as Page
+                    page.renderList(['x'])
+                    page.renderReactList(['x'])
+                    page.renderShadow(['x'])
+                })
+            })
+
+            afterEach(async () => {
+                await tab.closeWindow()
+            })
+
+            for (const [kind, list] of Object.entries(TAB_LISTS)) {
+                it(`${kind} reads the held tab, and an index that only the tab of the browser reaches is not found`, async () => {
+                    const actual = {
+                        '[0] getText': await outcomeOf(list(tab)[0].getText()),
+                        '[2] isExisting': await outcomeOf(list(tab)[2].isExisting()),
+                        '[2] waitForExist reverse': await outcomeOf(list(tab)[2].waitForExist({ reverse: true, timeout: 500 })),
+                        '[2] isDisplayed': await outcomeOf(list(tab)[2].isDisplayed()),
+                        '[2] getText': await outcomeOf(list(tab)[2].getText())
+                    }
+                    expect(actual).toEqual({
+                        '[0] getText': 'x',
+                        '[2] isExisting': false,
+                        '[2] waitForExist reverse': true,
+                        '[2] isDisplayed': false,
+                        '[2] getText': OUT_OF_BOUNDS
+                    })
+                    expect(await $$('#list li').length).toBe(3)
+                })
+            }
+        })
     })
 })
