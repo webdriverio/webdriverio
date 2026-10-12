@@ -28,6 +28,7 @@ export interface Test {
     retries?: number
     argument?: string | Argument
     state?: string
+    contextId?: string
 }
 
 interface Output {

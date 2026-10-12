@@ -141,7 +141,7 @@ export async function navigateInContext (
              * this test's context. Retry over BiDi instead of `navigateTo`.
              */
             if (getParallelContextStore().getStore()) {
-                return browser.browsingContextNavigate({ context, url: path, wait: 'none' })
+                return browser.browsingContextNavigate({ context, url: path, wait })
             }
             const current = contextIdValue(await getContextManager(browser).getCurrentContext())
             if (contextIdValue(context) === current) {

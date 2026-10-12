@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
 import logger from '@wdio/logger'
 import type { Frameworks, Services, Options } from '@wdio/types'
 
@@ -7,7 +8,13 @@ import { WDIO_KIND, WDIO_CHAINABLE, type WdioKind } from './kind.js'
 
 const log = logger('@wdio/utils:shim')
 
-let inCommandHook = false
+/**
+ * Scoped per async chain so a hook running for one concurrent test (parallel
+ * mode) does not suppress hooks of commands issued by other tests.
+ */
+const commandHookScope = new AsyncLocalStorage<true>()
+const isInCommandHook = () => commandHookScope.getStore() === true
+const runInCommandHook = (fn: () => Promise<unknown>) => commandHookScope.run(true, fn)
 
 const ELEMENT_QUERY_COMMANDS = [
     '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
@@ -442,10 +449,8 @@ function attachElementArrayHooks (
     const self = this
     wrap(async (load) => {
         const beforeHookArgs = [commandName, args]
-        if (!inCommandHook && self.options?.beforeCommand) {
-            inCommandHook = true
-            await executeHooksWithArgs.call(self, 'beforeCommand', self.options.beforeCommand, beforeHookArgs)
-            inCommandHook = false
+        if (!isInCommandHook() && self.options?.beforeCommand) {
+            await runInCommandHook(() => executeHooksWithArgs.call(self, 'beforeCommand', self.options!.beforeCommand, beforeHookArgs))
         }
 
         let commandError: unknown
@@ -455,11 +460,9 @@ function attachElementArrayHooks (
             commandError = err
         }
 
-        if (!inCommandHook && self.options?.afterCommand) {
-            inCommandHook = true
+        if (!isInCommandHook() && self.options?.afterCommand) {
             const afterHookArgs = [...beforeHookArgs, elementArray, commandError]
-            await executeHooksWithArgs.call(self, 'afterCommand', self.options.afterCommand, afterHookArgs)
-            inCommandHook = false
+            await runInCommandHook(() => executeHooksWithArgs.call(self, 'afterCommand', self.options!.afterCommand, afterHookArgs))
         }
 
         if (commandError) {
@@ -477,10 +480,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
 
     async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
-        if (!inCommandHook && this.options.beforeCommand) {
-            inCommandHook = true
-            await executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs)
-            inCommandHook = false
+        if (!isInCommandHook() && this.options.beforeCommand) {
+            await runInCommandHook(() => executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs))
         }
 
         let commandResult
@@ -491,11 +492,9 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
             commandError = err
         }
 
-        if (!inCommandHook && this.options.afterCommand) {
-            inCommandHook = true
+        if (!isInCommandHook() && this.options.afterCommand) {
             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
-            await executeHooksWithArgs.call(this, 'afterCommand', this.options.afterCommand, afterHookArgs)
-            inCommandHook = false
+            await runInCommandHook(() => executeHooksWithArgs.call(this, 'afterCommand', this.options.afterCommand, afterHookArgs))
         }
 
         if (commandError) {

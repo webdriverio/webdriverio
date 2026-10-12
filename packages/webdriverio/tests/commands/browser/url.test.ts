@@ -246,7 +246,7 @@ describe('url', () => {
             expect(url).toBeCalledWith('http://google.com')
         })
 
-        it('should retry over BiDi with wait:none on concurrent navigation in a parallel test scope', async () => {
+        it('should retry over BiDi with the same wait state on concurrent navigation in a parallel test scope', async () => {
             let callCount = 0
             browsingContextNavigate.mockImplementation((async () => {
                 callCount++
@@ -260,7 +260,7 @@ describe('url', () => {
             expect(browsingContextNavigate).toBeCalledTimes(2)
             expect(browsingContextNavigate).toHaveBeenNthCalledWith(2, expect.objectContaining({
                 url: 'http://google.com/',
-                wait: 'none'
+                wait: browsingContextNavigate.mock.calls[0][0].wait
             }))
             expect(navigateTo).not.toBeCalled()
             navigateTo.mockRestore()

@@ -2,9 +2,16 @@ export { default } from 'mocha'
 
 export interface MochaOpts {
     /**
-     * Enable parallel test execution within a spec file. When set to
-     * `'contexts'`, each `it()` block runs simultaneously in its own
-     * browsing context (tab). Requires a WebDriver Bidi session.
+     * Enable parallel test execution within a spec file. Each `it()` block
+     * runs simultaneously in its own browsing context (window). Requires a
+     * WebDriver Bidi session.
+     *
+     * - `'contexts'`: windows share the default user context, so cookies,
+     *   localStorage and service workers are shared across concurrent tests.
+     * - `'userContexts'`: each test gets its own user context, so storage is
+     *   isolated per test. Every test pays its own login cost, and
+     *   `browser.mock()` remains session-wide. Throws if the driver does not
+     *   support `browser.createUserContext`.
      *
      * If the browser session does not support Bidi (e.g. classic
      * WebDriver is enforced via `'wdio:enforceWebDriverClassic': true`),
@@ -13,12 +20,13 @@ export interface MochaOpts {
      *
      * @default undefined (sequential execution)
      */
-    parallelMode?: 'contexts'
+    parallelMode?: 'contexts' | 'userContexts'
 
     /**
-     * Maximum number of browsing contexts (tabs) to use in parallel.
-     * Tests are processed in batches of this size. Higher values
-     * increase parallelism but also resource usage.
+     * Maximum number of browsing contexts (windows) to use in parallel.
+     * Runs a pool of this many slots, each running one test at a time in its
+     * own window. A slot opens its next window while its test runs, so up to
+     * twice this many windows can be open briefly.
      * @default os.cpus().length
      */
     maxParallelContexts?: number
