@@ -1,3 +1,4 @@
+import { spawn } from 'node:child_process'
 import { describe, it, expect, vi } from 'vitest'
 import VideoReporter from '../src/index.js'
 
@@ -40,10 +41,10 @@ vi.mock('@wdio/allure-reporter', () => ({ addAttachment: vi.fn(), addArgument: v
 
 vi.mock('@wdio/globals', () => ({ browser: { capabilities: { browserName: 'chrome' }, on: vi.fn() } }))
 
-const render = async () => {
+const render = async (recordingPath = '/foo/bar/rawSeleniumVideoGrabs/my-test') => {
     const reporter = new VideoReporter({})
     reporter.testName = 'my-test'
-    reporter.recordingPath = '/foo/bar/rawSeleniumVideoGrabs/my-test'
+    reporter.recordingPath = recordingPath
     await reporter.generateVideo()
     return vi.mocked(reporter.write).mock.calls.map(([line]) => String(line)).join('')
 }
@@ -62,5 +63,21 @@ describe('generateVideo', () => {
         expect(log).not.toContain('Generated video: ')
         expect(log).toContain('ffmpeg failed with exit code 1')
         expect(log).toContain('Unknown encoder \'libvpx\'')
+    })
+
+    it('starts ffmpeg without a shell, with the paths as they are', async () => {
+        ffmpeg.exitCode = 0
+        ffmpeg.stderr = ''
+        vi.mocked(spawn).mockClear()
+        const recordingPath = '/foo/a "quoted" $HOME folder/my-test'
+        await render(recordingPath)
+
+        const [command, args, options] = vi.mocked(spawn).mock.calls[0] as unknown as [string, string[], { shell?: boolean }]
+        expect(command).toBe('/foo/bar/ffmpeg')
+        expect(options.shell).toBeFalsy()
+        expect(args).toContain(`${recordingPath}/%04d.png`)
+        expect(args).toContain('scale=1200:trunc(ow/a/2)*2,setpts=3.0*PTS')
+        expect(args.at(-1)).toMatch(/my-test\.webm$/)
+        expect(args.some((arg) => arg.startsWith('"'))).toBe(false)
     })
 })
