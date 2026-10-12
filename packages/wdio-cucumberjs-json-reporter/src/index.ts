@@ -33,6 +33,11 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     #scenarioLines = new WeakMap<Scenario, { lines: ScenarioLines, usedLines: Set<number> }>()
     /** attachments sent while the scenario has no step yet (for example in a `Before` hook with `disableHooks`) */
     #pendingEmbeddings: Embedding[] = []
+    /**
+     * `cucumberOpts.scenarioLevelReporter`: the framework reports no steps, and the
+     * CucumberJS JSON format needs them, so make no report
+     */
+    #noSteps = false
 
     public constructor(public options: CucumberJsJsonReporterInterface) {
         super(options)
@@ -96,6 +101,15 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * This hook is used to retrieve the browser data, but this is done only once
      */
     public onRunnerStart(runnerData: RunnerStats): void {
+        const cucumberOpts = (runnerData.config as { cucumberOpts?: { scenarioLevelReporter?: boolean } } | undefined)?.cucumberOpts
+        if (cucumberOpts?.scenarioLevelReporter) {
+            this.#noSteps = true
+            const message = 'The CucumberJS JSON report needs the steps of the scenarios: set ' +
+                '"cucumberOpts.scenarioLevelReporter" to false. No CucumberJS JSON report is made.'
+            log.warn(message)
+            console.warn(`[@wdio/cucumberjs-json-reporter] ${message}`)
+            return
+        }
         if (!this.instanceMetadata) {
             this.instanceMetadata = this.metadataClassObject.determineMetadata(runnerData)
         }
@@ -107,6 +121,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * 2. add the scenario to the feature
      */
     public onSuiteStart(payload: SuiteStats): void {
+        if (this.#noSteps) {
+            return
+        }
         /**
          * a suite without parent is a feature: a worker can run several feature
          * files (grouped specs), so start a new feature each time
@@ -145,6 +162,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * The data will be equal to a step, so a hook is added as a step.
      */
     public onHookStart(payload: HookStatsExtended): void {
+        if (this.#noSteps) {
+            return
+        }
         // There is always a scenario, take the last one
         if (this.options.disableHooks) {
             return
@@ -161,6 +181,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * A hook is the same  as a 'normal' step, so use the update step
      */
     public onHookEnd(payload: HookStats): void {
+        if (this.#noSteps) {
+            return
+        }
         if (this.options.disableHooks) {
             return
         }
@@ -173,6 +196,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * This one starts the step, which will be set to pending
      */
     public onTestStart(payload: TestStats): void {
+        if (this.#noSteps) {
+            return
+        }
         this.addStepData(payload)
     }
 
@@ -202,6 +228,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * The passed step
      */
     public onTestPass(payload: TestStats): void {
+        if (this.#noSteps) {
+            return
+        }
         this.updateStepStatus(payload)
     }
 
@@ -209,6 +238,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * The failed step including the logs
      */
     public onTestFail(payload: TestStats): void {
+        if (this.#noSteps) {
+            return
+        }
         this.updateStepStatus(payload)
     }
 
@@ -216,6 +248,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * The skippe step
      */
     public onTestSkip(payload: TestStats): void {
+        if (this.#noSteps) {
+            return
+        }
         this.updateStepStatus(payload)
     }
 
