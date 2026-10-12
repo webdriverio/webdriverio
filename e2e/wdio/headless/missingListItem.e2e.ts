@@ -211,12 +211,7 @@ describe('an index that the list of $$ never reaches', () => {
             case 'in range':
                 return { isExisting: true, 'waitForExist reverse': STILL_EXISTING, isDisplayed: true, getText: 'b' }
             case 'never reached':
-                /**
-                 * a `custom$$` list still throws, see "Limitations and follow-up" in #16041
-                 */
-                return kind === 'custom$$'
-                    ? { isExisting: OUT_OF_BOUNDS, 'waitForExist reverse': OUT_OF_BOUNDS, isDisplayed: OUT_OF_BOUNDS, getText: OUT_OF_BOUNDS }
-                    : { isExisting: false, 'waitForExist reverse': true, isDisplayed: false, getText: OUT_OF_BOUNDS }
+                return { isExisting: false, 'waitForExist reverse': true, isDisplayed: false, getText: OUT_OF_BOUNDS }
             case 'stale with the same length':
                 return {
                     isExisting: true,

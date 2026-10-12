@@ -5,7 +5,7 @@ import { describe, it, afterEach, beforeEach, expect, vi } from 'vitest'
 
 import { remote } from '../../src/index.js'
 import { StrictSelectorError } from '../../src/utils/strictMode.js'
-import { itemPropsOf } from '../../src/utils/findElementAgain.js'
+import { itemOf } from '../../src/utils/findElementAgain.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -557,6 +557,33 @@ describe('finding an element again', () => {
          * rejects as before when the index is still missing; only `$$(selector)[index]`
          * itself gives the not found element
          */
+        it('gives the same not found element for custom$$, with the strategy of the list', async () => {
+            const browser = await session()
+            driver.scripts.set('customList', ['elem-a'])
+            const elem = await browser.custom$$('customList')[3]
+            expect(elem.elementId).toBeUndefined()
+            expect(elem.index).toBe(3)
+            expect(elem.selector).toMatchObject({ strategyName: 'customList', strategyArguments: [] })
+            expect(await browser.custom$$('customList')[3].isExisting()).toBe(false)
+            expect(await browser.custom$$('customList')[3].isDisplayed()).toBe(false)
+            const { error } = await settle(elem.click())
+            expect(error?.message).toBe('Index out of bounds! $$(customList) returned only 1 elements.')
+
+            driver.scripts.set('customList', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
+            expect(await elem.isExisting()).toBe(true)
+        })
+
+        it('gives the not found element of element.custom$$ its parent as the last strategy argument', async () => {
+            const browser = await session()
+            driver.light.set('#host', ['host-a'])
+            driver.scripts.set('customList', ['elem-a'])
+            const elem = await browser.$('#host').custom$$('customList')[3]
+            expect(elem.elementId).toBeUndefined()
+
+            expect(await elem.isExisting()).toBe(false)
+            expect(driver.findsIn.at(-1)).toBe('script customList with host-a')
+        })
+
         it('waitForExist rejects when it saw the index but the lookup after it does not find it', async () => {
             const browser = await session()
             const elem = await browser.$$('.item')[3]
@@ -830,20 +857,38 @@ describe('finding an element again in strict mode', () => {
     })
 })
 
-describe('itemPropsOf', () => {
-    it('gives the flags of the items of a list command', () => {
-        expect(itemPropsOf('$$', [])).toEqual({ isShadowElement: false, isReactElement: false })
-        expect(itemPropsOf('shadow$$', [])).toEqual({ isShadowElement: true, isReactElement: false })
+describe('itemOf', () => {
+    const strategy = function items () { return [] }
+    const browser = { strategies: new Map([['items', strategy]]) } as unknown as WebdriverIO.Browser
+    const element = { parent: browser, [Symbol.for('wdio.kind')]: 'element' } as unknown as WebdriverIO.Element
+    const FLAGS = { isShadowElement: false, isReactElement: false }
+
+    it('gives the selector and the flags of the items of a list command', () => {
+        expect(itemOf('$$', '.item', [], browser)).toEqual({ selector: '.item', props: FLAGS })
+        expect(itemOf('shadow$$', '.item', [], element)).toEqual({ selector: '.item', props: { isShadowElement: true, isReactElement: false } })
     })
 
     it('gives the React options of a react$$ list', () => {
         const reactOptions = { props: { a: 1 }, state: {} }
-        expect(itemPropsOf('react$$', [reactOptions])).toEqual({ isShadowElement: false, isReactElement: true, reactOptions })
-        expect(itemPropsOf('react$$', [])).toEqual({ isShadowElement: false, isReactElement: true })
+        expect(itemOf('react$$', 'Item', [reactOptions], browser)).toEqual({ selector: 'Item', props: { isShadowElement: false, isReactElement: true, reactOptions } })
+        expect(itemOf('react$$', 'Item', [], browser)).toEqual({ selector: 'Item', props: { isShadowElement: false, isReactElement: true } })
+    })
+
+    it('gives the strategy reference of a custom$$ item, with the element as its last argument', () => {
+        expect(itemOf('custom$$', 'items', ['a'], browser)).toEqual({
+            selector: { strategy, strategyName: 'items', strategyArguments: ['a'] },
+            props: FLAGS
+        })
+        expect(itemOf('custom$$', 'items', ['a'], element)).toEqual({
+            selector: { strategy, strategyName: 'items', strategyArguments: ['a', element] },
+            props: FLAGS
+        })
     })
 
     it('gives undefined for a list whose items cannot be found again', () => {
-        expect(itemPropsOf('custom$$', [])).toBeUndefined()
-        expect(itemPropsOf('constructor', [])).toBeUndefined()
+        expect(itemOf('custom$$', 'unknown', [], browser)).toBeUndefined()
+        expect(itemOf('$$', [{ 'element-6066-11e4-a52e-4f735466cecf': 'id' }], [], browser)).toBeUndefined()
+        expect(itemOf('$$', undefined, [], browser)).toBeUndefined()
+        expect(itemOf('constructor', '.item', [], browser)).toBeUndefined()
     })
 })
