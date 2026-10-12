@@ -139,7 +139,7 @@ describe('HtmlReporter', () => {
 describe('HtmlReporter with Cucumber', () => {
     const cucumberOutputDir = path.join(outputRoot, 'cucumber') + path.sep
     const runner = { cid: '0-0', config: { framework: 'cucumber' } } as never
-    const scenario = (state: 'passed' | 'failed') => ({
+    const scenario = (state: 'passed' | 'failed' | 'skipped' | 'pending') => ({
         uid: 'scenario-1',
         type: 'scenario',
         tests: [{ state: 'passed' }, { state }],
@@ -163,6 +163,15 @@ describe('HtmlReporter with Cucumber', () => {
         expect(reporter.metrics).toMatchObject({ passed: 0, failed: 1, skipped: 0 })
     })
 
+    it('counts a scenario with a skipped or pending step as skipped, not passed', () => {
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: cucumberOutputDir } as never)
+        reporter.onRunnerStart(runner)
+        reporter.onSuiteEnd({ ...scenario('skipped'), uid: 'scenario-skipped' } as never)
+        reporter.onSuiteEnd({ ...scenario('pending'), uid: 'scenario-pending' } as never)
+        reporter.onSuiteEnd({ ...scenario('passed'), uid: 'scenario-passed' } as never)
+        expect(reporter.metrics).toMatchObject({ passed: 1, failed: 0, skipped: 2 })
+    })
+
     it('counts the steps as tests with scenarioLevelReporter', () => {
         const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: cucumberOutputDir } as never)
         reporter.onRunnerStart({ cid: '0-0', config: { framework: 'cucumber', cucumberOpts: { scenarioLevelReporter: true } } } as never)
@@ -173,7 +182,7 @@ describe('HtmlReporter with Cucumber', () => {
 
 describe('links in log messages', () => {
     const linksOutputDir = path.join(outputRoot, 'links') + path.sep
-    const message = 'see https://webdriver.io/docs?a=1&b=2 and <b>bold</b>'
+    const message = "see https://webdriver.io/docs?a=1&b=2 and <b>bold</b> and https://example.com/O'Reilly"
 
     beforeAll(async () => {
         fs.mkdirSync(linksOutputDir, { recursive: true })
@@ -214,6 +223,8 @@ describe('links in log messages', () => {
         const html = await createReport(true)
         expect(html).toContain('<a href="https://webdriver.io/docs?a=1&amp;b=2" target="_blank" rel="noopener noreferrer">https://webdriver.io/docs?a=1&amp;b=2</a>')
         expect(html).toContain('&lt;b&gt;bold&lt;/b&gt;')
+        // an apostrophe is part of a URL
+        expect(html).toContain('<a href="https://example.com/O&#39;Reilly" target="_blank" rel="noopener noreferrer">https://example.com/O&#39;Reilly</a>')
     })
 })
 
