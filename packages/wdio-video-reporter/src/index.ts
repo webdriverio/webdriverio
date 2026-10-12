@@ -12,6 +12,7 @@ import { path as ffmpegPath } from '@ffmpeg-installer/ffmpeg'
 import { glob } from 'glob'
 
 import AllureReporterExtension from './allure.js'
+import { removeAllureAttachments } from './allureResults.js'
 import {
     waitForVideosToExist, waitForVideosToBeWritten, getCurrentCapabilities, getVideoFormatSettings,
     getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser
@@ -372,19 +373,31 @@ export default class VideoReporter extends WdioReporter {
         }
 
         const video = getVideoFormatSettings(this.options.videoFormat)
-        fs
+        // The contents of a placeholder file is the video path
+        const placeholders = fs
             .readdirSync(allureOutputDir)
             .filter(line => line.endsWith(video.fileExtension))
             .map(filename => path.resolve(allureOutputDir, filename))
             .filter(allureFile => fs.statSync(allureFile).size < 1024)
+            .map((allureFile) => ({ allureFile, videoFilePath: fs.readFileSync(allureFile).toString() }))
+
         // Dont parse other browsers videos since they may not be ready
-            .filter(allureFile => this.videos.includes(fs.readFileSync(allureFile).toString()))
-            .forEach((filePath) => {
-                const videoFilePath = fs.readFileSync(filePath).toString() // The contents of the placeholder file is the video path
+        placeholders
+            .filter(({ videoFilePath }) => this.videos.includes(videoFilePath))
+            .forEach(({ allureFile, videoFilePath }) => {
                 if (fs.existsSync(videoFilePath)) {
-                    fs.copyFileSync(videoFilePath, filePath)
+                    fs.copyFileSync(videoFilePath, allureFile)
                 }
             })
+
+        /**
+         * the attachment is added when the test starts; remove it for the tests of
+         * this worker that got no video (for example a passed test without
+         * `saveAllVideos`), else Allure shows an empty video
+         */
+        removeAllureAttachments(allureOutputDir, placeholders
+            .filter(({ videoFilePath }) => this.allureVideos.includes(videoFilePath) && !this.videos.includes(videoFilePath))
+            .map(({ allureFile }) => allureFile))
     }
 
     addFrame() {
