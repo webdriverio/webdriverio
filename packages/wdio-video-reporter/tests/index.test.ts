@@ -332,6 +332,23 @@ describe('Video Reporter', () => {
         })
     })
 
+    describe('hook failures', () => {
+        it('makes the video of a Cucumber scenario whose Before hook failed', () => {
+            const reporter = new VideoReporter({})
+            reporter.isCucumberFramework = true
+            reporter.testName = 'foo bar'
+            reporter.recordingPath = '/foo/bar'
+            reporter.addFrame = vi.fn() as any
+            reporter.generateVideo = vi.fn() as any
+            reporter.onSuiteEnd({
+                type: 'scenario',
+                tests: [{ state: 'skipped' }],
+                hooks: [{ title: 'Before', error: new Error('hook failed') }]
+            } as any)
+            expect(reporter.generateVideo).toBeCalledTimes(1)
+        })
+    })
+
     describe('ffmpeg', () => {
         it('records with the ffmpeg of the user', () => {
             const reporter = new VideoReporter({ ffmpegPath: '/my/ffmpeg' })
