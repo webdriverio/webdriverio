@@ -175,12 +175,26 @@ describe('installAtomically', () => {
     })
 
     it('uses the build of the process that published first', async () => {
-        const install = download()
+        /**
+         * the downloads overlap on every machine: each one starts when both setups
+         * install (at most after maxWait), not after a fixed time
+         */
+        let started = 0
+        let bothStarted = () => {}
+        const both = new Promise<void>((resolve) => { bothStarted = resolve })
+        const install = vi.fn(async (dir: string) => {
+            if (++started === 2) {
+                bothStarted()
+            }
+            await Promise.race([both, sleep(fast.maxWait)])
+            await download()(dir)
+        })
 
         /**
-         * staleAfter 0: no waiting, both download
+         * staleAfter 0 and no refresh: the second setup stops waiting after one poll,
+         * both download
          */
-        await Promise.all([1, 2].map(() => installAtomically(target, install, { ...fast, staleAfter: 0 })))
+        await Promise.all([1, 2].map(() => installAtomically(target, install, { ...fast, staleAfter: 0, refreshInterval: 60_000 })))
 
         expect(downloads).toBe(2)
         expect(maxRunning).toBe(2)
@@ -270,14 +284,15 @@ describe('installAtomically', () => {
             fs.utimes(target.markerPath, now, now).catch(() => {})
         }, 20)
         const otherDone = sleep(300).then(async () => {
-            clearInterval(refresh)
             /**
-             * the other process publishes its build with one rename too
+             * the other process publishes its build with one rename too, and keeps its
+             * marker fresh until it removes it
              */
             const other = path.join(cacheDir, 'other')
             await download()(other)
             await fs.mkdir(path.dirname(buildDir(cacheDir)), { recursive: true })
             await fs.rename(buildDir(other), buildDir(cacheDir))
+            clearInterval(refresh)
             await fs.rm(target.markerPath)
         })
 
