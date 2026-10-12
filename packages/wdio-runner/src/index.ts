@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events'
 
 import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs, TimingTracker } from '@wdio/utils'
-import { ConfigParser } from '@wdio/config/node'
+import { ConfigParser, SUPPORTED_HOOKS } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
@@ -505,9 +505,23 @@ export default class Runner extends EventEmitter {
      */
     async endSession(payload?: any) {
         if (!this._config && payload?.args.config) {
-            this._config = payload.args.config
             this._specs = payload.specs
             this._cid = payload.cid
+            // A fresh shutdown worker receives JSON over IPC. Reload the config
+            // and services to restore hook functions that cannot be serialized.
+            const configOverrides = { ...payload.args.config }
+            for (const hook of SUPPORTED_HOOKS) {
+                delete configOverrides[hook]
+            }
+            delete configOverrides.services
+            this._configParser = new ConfigParser(payload.configFile)
+            await this._configParser.initialize(configOverrides)
+            this._config = this._configParser.getConfig()
+            ;(await initializeWorkerService(
+                this._config,
+                payload.args.capabilities,
+                payload.args.ignoredWorkerServices
+            )).forEach((service) => this._configParser!.addService(service))
         }
 
         /**

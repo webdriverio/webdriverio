@@ -33,6 +33,11 @@ export default class WebDriver {
         }
 
         log.info('Initiate new session using the WebDriver protocol')
+        // `watch` is a runner option, so protocol validation does not retain it.
+        // Driver startup needs it to keep local drivers alive between workers.
+        if ((options as Options.Testrunner).watch) {
+            Object.assign(params, { watch: true })
+        }
         const driverProcess = await startWebDriver(params)
         const requestedCapabilities = { ...params.capabilities }
         const { sessionId, capabilities } = await startWebDriverSession(params)
@@ -156,8 +161,10 @@ export default class WebDriver {
          * parse and propagate all Bidi events to the browser instance
          */
         if (isBidi(options.capabilities || {})) {
-            client._bidiHandler?.waitForConnected().then(()=>{
-                client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+            client._bidiHandler?.waitForConnected().then((connected: boolean) => {
+                if (connected) {
+                    client._bidiHandler?.socket.on('message', parseBidiMessage.bind(client))
+                }
             })
         }
         return client

@@ -1,4 +1,7 @@
+import { config as baseConfig } from '../spec-change/wdio.conf.js'
+
 export const config = {
+    ...baseConfig,
     hostname: '127.0.0.1',
     port: Number(process.env.WDIO_WATCH_PORT),
     path: '/',

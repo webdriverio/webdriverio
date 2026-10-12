@@ -168,7 +168,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
         cid: '0-6',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
-        args: { sessionId: 'abc' } as any,
+        args: { sessionId: 'abc', ignoredWorkerServices: ['launcher-only'] } as any,
         caps: {},
         specs: ['/foo/bar2.test.js'],
         execArgv: [],
@@ -198,6 +198,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
     expect(call.args.isMultiRemote).toBeFalsy()
     expect(call.args.config.sessionId).toBe('abc')
     expect(call.args.config.host).toEqual('foo')
+    expect(call.args.ignoredWorkerServices).toEqual(['launcher-only'])
 })
 
 test('watch mode shutdown keeps each worker session when config is shared', async () => {

@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 'vitest'
-import { executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, initializeWorkerService } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
 import { attach, multiRemote } from 'webdriverio'
@@ -108,6 +108,12 @@ describe('wdio-runner', () => {
         it('should attach to retained multi-remote sessions in a shutdown worker', async () => {
             const hook = vi.fn()
             const config = { sessionId: undefined, afterSession: [hook] }
+            vi.spyOn(ConfigParser.prototype as any, 'addConfigFile').mockResolvedValue(undefined)
+            const initialize = vi.spyOn(ConfigParser.prototype, 'initialize')
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            const service = { afterSession: vi.fn() }
+            vi.mocked(initializeWorkerService).mockResolvedValueOnce([service] as any)
+            const addService = vi.spyOn(ConfigParser.prototype, 'addService')
             const first = { sessionId: 'first-session', capabilities: { browserName: 'chrome' }, deleteSession: vi.fn() }
             const second = { sessionId: 'second-session', capabilities: { browserName: 'firefox' }, deleteSession: vi.fn() }
             const browser = {
@@ -120,26 +126,32 @@ describe('wdio-runner', () => {
                 first: { sessionId: 'first-session' },
                 second: { sessionId: 'second-session' }
             }
+            const serializedConfig = JSON.parse(JSON.stringify({ ...config, port: 1234, services: [vi.fn()] }))
 
             const runner = new WDIORunner()
             await runner.endSession({
                 cid: '0-0',
+                configFile: '/foo/wdio.conf.js',
                 specs: ['/foo/watch.test.js'],
                 args: {
-                    config,
+                    config: serializedConfig,
                     capabilities: {
                         first: { capabilities: first.capabilities },
                         second: { capabilities: second.capabilities }
                     },
                     isMultiRemote: true,
-                    instances
+                    instances,
+                    ignoredWorkerServices: ['launcher-only']
                 }
             })
 
             expect(multiRemote).toBeCalledWith({
-                first: { ...config, capabilities: first.capabilities },
-                second: { ...config, capabilities: second.capabilities }
-            }, { ...config, instances })
+                first: { ...serializedConfig, capabilities: first.capabilities },
+                second: { ...serializedConfig, capabilities: second.capabilities }
+            }, { ...serializedConfig, instances })
+            expect(initialize).toBeCalledWith({ port: 1234 })
+            expect(initializeWorkerService).toBeCalledWith(config, expect.any(Object), ['launcher-only'])
+            expect(addService).toBeCalledWith(service)
             expect(first.deleteSession).toBeCalledTimes(1)
             expect(second.deleteSession).toBeCalledTimes(1)
             expect(first.sessionId).toBeUndefined()
