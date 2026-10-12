@@ -17,9 +17,9 @@ import {
 } from './constants.js'
 import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
-import { findScenarioLines, findStepLine, readFeatureLines, scenarioNameOf, type FeatureLines, type ScenarioLines } from './featureLines.js'
+import { findDocStringLine, findScenarioLines, findStepLine, readFeatureLines, scenarioNameOf, type FeatureLines, type ScenarioLines } from './featureLines.js'
 import { containsSteps, keywordStartsWith, getFailedMessage } from './utils.js'
-import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
+import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
 
 const log = logger('@wdio/cucumberjs-json-reporter')
@@ -355,7 +355,13 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const result = regex.exec(stepData.title)
         const title = (stepData.title.slice(result ? result.index + keyword.length : 0) || '').trim()
         const step: Step = {
-            arguments: stepData.argument ? [stepData.argument] : [],
+            /**
+             * the framework sends a doc string as text: the Cucumber JSON format has
+             * `{ content, line }` (the line is added with the step line)
+             */
+            arguments: typeof stepData.argument === 'string'
+                ? [{ content: stepData.argument }]
+                : stepData.argument ? [stepData.argument] : [],
             keyword,
             name: title,
             result: {
@@ -405,6 +411,13 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const scenarioLines = this.#scenarioLines.get(scenario)
         if (!step.hidden && scenarioLines && this.#featureLines) {
             step.line = findStepLine(scenarioLines.lines, step.name ?? '', scenarioLines.usedLines) ?? null
+            const docString = step.arguments?.[0] as Partial<DocString> | undefined
+            const docStringLine = step.line !== null && typeof docString?.content === 'string'
+                ? findDocStringLine(scenarioLines.lines, step.line)
+                : undefined
+            if (docString && docStringLine) {
+                docString.line = docStringLine
+            }
         }
         if (this.#pendingEmbeddings.length) {
             step.embeddings = this.#pendingEmbeddings
@@ -423,7 +436,13 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const stepData = this.getStepDataObject(test)
 
         const currentStep = this.getCurrentStep()
-        currentSteps[currentStepsLength - 1] = { ...currentStep, ...stepData, line: currentStep?.line ?? stepData.line }
+        // keep the line data that `addStepData` found (the step and its doc string)
+        currentSteps[currentStepsLength - 1] = {
+            ...currentStep,
+            ...stepData,
+            line: currentStep?.line ?? stepData.line,
+            ...(currentStep?.arguments ? { arguments: currentStep.arguments } : {})
+        }
     }
 
     /**

@@ -83,7 +83,7 @@ export interface Scenario {
 }
 
 export interface Step {
-    arguments?: ( string | Argument )[];
+    arguments?: ( string | Argument | DocString )[];
     keyword?: string;
     name?: string;
     result?: {
@@ -138,4 +138,12 @@ export interface cjson_metadata {
         name: string;
         version: string;
     };
+}
+
+/**
+ * A doc string argument in the Cucumber JSON format
+ */
+export interface DocString {
+    content: string;
+    line?: number;
 }
