@@ -51,7 +51,7 @@ class HtmlGenerator {
                         screenshotFile = screenshotPath ? `${screenshotPath}/${screenshotFile}` : `${screenshotFile}`
                     }
                     if (!fs.existsSync(screenshotFile)) {
-                        HtmlGenerator.LOG.error('renderImage: file doesnt exist: ' + relPath )
+                        HtmlGenerator.LOG.error('renderImage: file does not exist: ' + screenshotFile)
                     }
 
                     relPath =  path.relative(reportOptions.outputDir, screenshotFile)

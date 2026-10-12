@@ -165,7 +165,7 @@ class ReportAggregator {
         }
 
         this.LOG.info('Aggregated ' + specs.length + ' specs, ' + suites.length + ' suites, ' )
-        this.reportFile = path.join(process.cwd(), this.options.outputDir, this.options.filename)
+        this.reportFile = path.resolve(process.cwd(), this.options.outputDir, this.options.filename)
 
         const reportData = new ReportData(
             this.options.reportTitle,
@@ -188,7 +188,7 @@ class ReportAggregator {
     async finalize() {
         const cssDir = url.fileURLToPath(new URL('../css/', import.meta.url))
         const jsFiles = cssDir
-        const reportDir = path.join(process.cwd(), this.options.outputDir)
+        const reportDir = path.resolve(process.cwd(), this.options.outputDir)
         await copyFiles(jsFiles, reportDir)
         this.LOG.info('copyied css : ' + jsFiles + ' to ' + reportDir)
         if (this.options.showInBrowser) {

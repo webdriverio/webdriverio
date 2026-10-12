@@ -5,6 +5,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { TestStats } from '@wdio/reporter'
 
 import { HtmlReporter, ReportAggregator, ReportEvents } from '../src/index.js'
+import { makeReport } from '../src/makeReportCli.js'
 import { RUNNER, SUITES } from './testdata.js'
 
 /**
@@ -213,5 +214,38 @@ describe('links in log messages', () => {
         const html = await createReport(true)
         expect(html).toContain('<a href="https://webdriver.io/docs?a=1&amp;b=2" target="_blank" rel="noopener noreferrer">https://webdriver.io/docs?a=1&amp;b=2</a>')
         expect(html).toContain('&lt;b&gt;bold&lt;/b&gt;')
+    })
+})
+
+describe('absolute outputDir and makeReport', () => {
+    let absoluteDir: string
+
+    beforeAll(async () => {
+        absoluteDir = fs.mkdtempSync(path.join(os.tmpdir(), 'html-reporter-absolute-')) + path.sep
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: absoluteDir, filename: 'report.html', reportTitle: 'Absolute' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onTestStart(SUITES[0].tests[0])
+        reporter.onTestPass(SUITES[0].tests[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(RUNNER)
+    })
+
+    afterAll(() => {
+        fs.rmSync(absoluteDir, { recursive: true, force: true })
+    })
+
+    it('writes the worker JSON and the master report in an absolute outputDir', async () => {
+        const reportAggregator = new ReportAggregator({ outputDir: absoluteDir, filename: 'master-report.html', reportTitle: 'Absolute master', browserName: 'chrome' } as never)
+        expect(reportAggregator.readJsonFiles()).toHaveLength(1)
+        await reportAggregator.createReport()
+        expect(reportAggregator.reportFile).toBe(path.join(absoluteDir, 'master-report.html'))
+        expect(fs.readFileSync(reportAggregator.reportFile, 'utf-8')).toContain('Absolute master')
+    })
+
+    it('makeReport reads the report name, folder and title arguments', async () => {
+        const reportFile = await makeReport(['from-cli.html', absoluteDir, 'CLI title'], { CI: 'true' })
+        expect(reportFile).toBe(path.join(absoluteDir, 'from-cli.html'))
+        expect(fs.readFileSync(reportFile, 'utf-8')).toContain('CLI title')
     })
 })

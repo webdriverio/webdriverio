@@ -220,7 +220,7 @@ export default class HtmlReporter extends WDIOReporter {
         this.metrics.end = dayjs().utc().format()
         this.metrics.duration = runner._duration
         const suites = this.filterChildSuites()
-        const reportFile = path.join(process.cwd(), this.options.outputDir, encodeURIComponent(this._currentSuiteUid), encodeURIComponent(this._currentCid), this.options.filename)
+        const reportFile = path.resolve(process.cwd(), this.options.outputDir, encodeURIComponent(this._currentSuiteUid), encodeURIComponent(this._currentCid), this.options.filename)
         const reportData = new ReportData(
             this.options.reportTitle,
             runner,

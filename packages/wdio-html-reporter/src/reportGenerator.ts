@@ -90,13 +90,12 @@ class ReportGenerator {
         metrics.duration = dayjs.duration(dayjs(metrics.end).utc().diff(dayjs(metrics.start).utc())).as('milliseconds')
 
         this.LOG.info('Generated ' + specs.length + ' specs, ' + suites.length + ' suites, ' )
-        this.reportFile = path.join(process.cwd(), this.options.outputDir, this.options.filename)
+        this.reportFile = path.resolve(process.cwd(), this.options.outputDir, this.options.filename)
         reportData.reportFile = this.reportFile
 
         try {
             reportData.reportFile = reportData.reportFile.replace('.html', String.format('-{0}.html', reportData.info.cid))
             await JsonGenerator.jsonOutput(this.options, reportData)
-            //@ts-ignore
             if (this.options.produceHtml) {
                 await HtmlGenerator.htmlOutput(this.options, reportData)
             }
