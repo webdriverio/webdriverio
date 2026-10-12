@@ -85,7 +85,13 @@ export async function waitForExist (
             this.elementId = element?.elementId as string
             this[ELEMENT_KEY] = this.elementId
         }
-        delete this.error
+        /**
+         * the element can be gone again since the check. Keep its error then: the
+         * "not found" item of a `$$` index throws that error at its next command
+         */
+        if (this.elementId) {
+            delete this.error
+        }
     }
 
     return isExisting

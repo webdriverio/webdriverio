@@ -552,6 +552,18 @@ describe('finding an element again', () => {
             expect(await browser.$$('.item')[3].waitForDisplayed({ reverse: true })).toBe(true)
         })
 
+        it('keeps the error when waitForExist saw the index but the lookup after it does not find it', async () => {
+            const browser = await session()
+            const elem = await browser.$$('.item')[3]
+            vi.spyOn(elem, 'isExisting').mockResolvedValueOnce(true)
+
+            expect(await elem.waitForExist()).toBe(true)
+            expect(elem.elementId).toBeUndefined()
+            expect((elem.error as Error).message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+            const { error } = await settle(elem.click())
+            expect(error?.message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
+        })
+
         it('a command throws "Index out of bounds" without a second wait or another lookup', async () => {
             const browser = await session()
             const elem = await browser.$$('.item')[3]
