@@ -44,7 +44,7 @@ export default class HtmlReporter extends WDIOReporter {
     #scenarioStates = new Map<string, 'passed' | 'failed' | 'skipped'>()
     private reportGenerator?: ReportGenerator
 
-    constructor(options: HtmlReporterOptions) {
+    constructor(options: Partial<HtmlReporterOptions> = {}) {
         super(Object.assign(
             {
                 stdout: true,
@@ -55,7 +55,7 @@ export default class HtmlReporter extends WDIOReporter {
         const opts = new HtmlReporterOptions()
         opts.stdout = true
         this.options = Object.assign(opts, options)
-        const dir = this.options.outputDir + 'screenshots'
+        const dir = path.join(this.options.outputDir, 'screenshots')
 
         fs.ensureDirSync(dir)
         this._indents = 0

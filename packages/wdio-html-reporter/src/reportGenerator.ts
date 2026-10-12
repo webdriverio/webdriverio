@@ -15,8 +15,8 @@ const timeFormat ='YYYY-MM-DDTHH:mm:ss.SSS[Z]'
 
 class ReportGenerator {
     private LOG = logger('ReportGenerator')
-    constructor(opts: HtmlReporterOptions) {
-        opts = Object.assign({}, {
+    constructor(opts: Partial<HtmlReporterOptions> = {}) {
+        this.options = Object.assign({}, {
             outputDir: 'reports/html-reports/',
             filename: 'master-report.html',
             reportTitle: 'Test Master Report',
@@ -27,8 +27,6 @@ class ReportGenerator {
             LOG: null,
             removeOutput: true
         }, opts)
-
-        this.options = opts
         this.synchronised = true
     }
     public options: HtmlReporterOptions
