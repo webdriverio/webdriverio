@@ -81,6 +81,12 @@ export interface ReporterOptions extends Reporters.Options {
     recordAllActions?: boolean
 
     /**
+   * Only record the last try of a spec file when `specFileRetries` is set
+   * @default false
+   */
+    onlyRecordLastFailure?: boolean
+
+    /**
    * Add a screenshot at a regular interval (in seconds)
    */
     screenshotIntervalSecs?: number
