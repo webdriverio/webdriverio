@@ -3,10 +3,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import { getContextManager } from '../../src/session/context.js'
 import { logMock } from '@wdio/logger'
+import { SESSION_ENDED_ERROR } from 'webdriver'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 type ListenerMap = Record<string, Array<(arg: any) => any>>
+
+/**
+ * the error that `webdriver` gives a command when the session or its connection ended
+ */
+const sessionEnded = (message: string) => Object.assign(new Error(message), { name: SESSION_ENDED_ERROR })
 
 function createBrowserStub(overrides: Partial<WebdriverIO.Browser> = {}) {
     const listeners: ListenerMap = {}
@@ -20,8 +26,8 @@ function createBrowserStub(overrides: Partial<WebdriverIO.Browser> = {}) {
             listeners[event].push(handler)
         }),
         off: vi.fn(),
-        switchToWindow: vi.fn(),
-        sessionSubscribe: vi.fn(),
+        switchToWindow: vi.fn().mockResolvedValue(undefined),
+        sessionSubscribe: vi.fn().mockResolvedValue(undefined),
         browsingContextGetTree: vi.fn(),
         getWindowHandles: vi.fn(),
         getWindowHandle: vi.fn(),
@@ -43,6 +49,7 @@ describe('ContextManager', () => {
         browser = stub.browser
         getListeners = stub.getListeners
         vi.mocked(logMock.warn).mockClear()
+        vi.mocked(logMock.debug).mockClear()
         // instantiate to register listeners
         getContextManager(browser)
     })
@@ -343,7 +350,7 @@ describe('ContextManager', () => {
         /**
          * the session ends while the tree is requested: the pending command is rejected
          */
-        ;(browser as any).browsingContextGetTree.mockRejectedValue(new Error(
+        ;(browser as any).browsingContextGetTree.mockRejectedValue(sessionEnded(
             'WebDriver Bidi command "browsingContext.getTree" with id 13 got no result: the connection was closed'
         ))
         const manager = getContextManager(browser)
@@ -361,7 +368,7 @@ describe('ContextManager', () => {
         delete process.env.WDIO_UNIT_TESTS
         const stub = createBrowserStub({ isBidi: true } as any)
         const browser = stub.browser
-        ;(browser as any).browsingContextGetTree.mockRejectedValue(new Error(
+        ;(browser as any).browsingContextGetTree.mockRejectedValue(sessionEnded(
             'WebDriver Bidi command "browsingContext.getTree" with id 13 got no result: the connection was closed'
         ))
         const manager = getContextManager(browser)
@@ -396,7 +403,7 @@ describe('ContextManager', () => {
         process.on('unhandledRejection', onUnhandled)
         try {
             const stub = createBrowserStub({ isBidi: true } as any)
-            ;(stub.browser as any).sessionSubscribe.mockRejectedValue(new Error(
+            ;(stub.browser as any).sessionSubscribe.mockRejectedValue(sessionEnded(
                 'WebDriver Bidi command "session.subscribe" with id 3 got no result: the connection was closed'
             ))
             getContextManager(stub.browser)
@@ -411,7 +418,7 @@ describe('ContextManager', () => {
 
     it('does not reject when the session ends while it switches to a window after closeWindow', async () => {
         const stub = createBrowserStub()
-        stub.browser.switchToWindow.mockRejectedValue(new Error(
+        stub.browser.switchToWindow.mockRejectedValue(sessionEnded(
             'Trying to run command "switchToWindow("handle-A")" after session has been deleted, aborting request without executing it'
         ))
         getContextManager(stub.browser)
@@ -426,10 +433,10 @@ describe('ContextManager', () => {
      * WebDriver Classic request to a driver that is already stopped: its error has no
      * session end message, but the WebDriver BiDi connection is closed
      */
-    const destroyedWithClosedDriver = async (isConnected: boolean) => {
+    const destroyedWithClosedDriver = async (bidiHandler: { isConnected: boolean, isClosed: boolean }) => {
         const wid = process.env.WDIO_UNIT_TESTS
         delete process.env.WDIO_UNIT_TESTS
-        const stub = createBrowserStub({ isBidi: true, _bidiHandler: { isConnected } } as any)
+        const stub = createBrowserStub({ isBidi: true, _bidiHandler: bidiHandler } as any)
         ;(stub.browser as any).getWindowHandles.mockResolvedValue(['handle-B'])
         stub.browser.switchToWindow.mockRejectedValue(new Error(
             'WebDriverError: Request failed with error code UND_ERR_CLOSED when running "window" with method "POST"'
@@ -441,14 +448,24 @@ describe('ContextManager', () => {
     }
 
     it('logs at debug level when a destroyed context cannot switch because the connection closed', async () => {
-        await destroyedWithClosedDriver(false)
+        await destroyedWithClosedDriver({ isConnected: false, isClosed: true })
         expect(logMock.debug).toHaveBeenCalledWith(expect.stringContaining('the session ended: WebDriverError: Request failed with error code UND_ERR_CLOSED'))
         expect(logMock.warn).not.toHaveBeenCalled()
     })
 
     it('warns when a destroyed context cannot switch while the connection is open', async () => {
-        await destroyedWithClosedDriver(true)
+        await destroyedWithClosedDriver({ isConnected: true, isClosed: false })
         expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('UND_ERR_CLOSED'))
+    })
+
+    /**
+     * a session whose WebDriver BiDi connection could not be made goes on with WebDriver
+     * Classic: its errors are real errors, not a session end
+     */
+    it('warns when a destroyed context cannot switch and the connection was never made', async () => {
+        await destroyedWithClosedDriver({ isConnected: false, isClosed: false })
+        expect(logMock.warn).toHaveBeenCalledWith(expect.stringContaining('UND_ERR_CLOSED'))
+        expect(logMock.debug).not.toHaveBeenCalledWith(expect.stringContaining('the session ended'))
     })
 
     it('drops a cached context that switchToParentFrame cannot find a parent for', async () => {

@@ -8,7 +8,7 @@ import type { WebDriverResponse } from './request/types.js'
 import type { BaseClient, BidiCommands, BidiResponses, WebDriverResultEvent } from './types.js'
 import { CommandRuntimeOptions } from './types.js'
 import { mask } from './utils.js'
-import { APPIUM_MASKING_HEADER } from './constants.js'
+import { APPIUM_MASKING_HEADER, SESSION_ENDED_ERROR } from './constants.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS: BidiCommands[] = Object.values(WebDriverBidiProtocol).map((def) => def.socket.command)
@@ -151,7 +151,9 @@ export default function (
         const { isAborted, abortSignal, cleanup } = manageSessionAbortions.call(this)
         const requiresSession = endpointUri.includes('/:sessionId/')
         if (isAborted && command !== 'deleteSession' && requiresSession) {
-            throw new Error(`Trying to run command "${commandCallStructure(command, maskedArgs)}" after session has been deleted, aborting request without executing it`)
+            const error = new Error(`Trying to run command "${commandCallStructure(command, maskedArgs)}" after session has been deleted, aborting request without executing it`)
+            error.name = SESSION_ENDED_ERROR
+            throw error
         }
 
         const request = new environment.value.Request(method, endpoint, unmaskedBody, abortSignal, isHubCommand, {

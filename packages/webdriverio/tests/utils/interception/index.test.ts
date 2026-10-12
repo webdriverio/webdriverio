@@ -3,7 +3,7 @@ import { Buffer } from 'node:buffer'
 import { runInNewContext } from 'node:vm'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
-import { type local } from 'webdriver'
+import { type local, SESSION_ENDED_ERROR } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 import WebDriverInterception, { parseUrlPattern } from '../../../src/utils/interception/index.js'
 import { SESSION_MOCKS } from '../../../src/commands/browser/mock.js'
@@ -2141,6 +2141,10 @@ describe('WebDriverInterception', () => {
      */
     describe('a network command of a mock when the session ends', () => {
         const CLOSED = 'WebDriver Bidi command "network.continueRequest" with id 7 got no result: the connection was closed'
+        /**
+         * the error that `webdriver` gives a command when the connection closes
+         */
+        const sessionEnded = () => Object.assign(new Error(CLOSED), { name: SESSION_ENDED_ERROR })
         const unhandled: unknown[] = []
         const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
 
@@ -2161,7 +2165,7 @@ describe('WebDriverInterception', () => {
 
         it('continues a request', async () => {
             const browser = getResponseCollectionBrowserMock({}, {
-                networkContinueRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+                networkContinueRequest: vi.fn().mockRejectedValue(sessionEnded())
             })
             await WebDriverInterception.initiate('http://test.com/**', {}, browser)
             browser.emit('network.beforeRequestSent', getBlockedRequestStub())
@@ -2171,7 +2175,7 @@ describe('WebDriverInterception', () => {
 
         it('continues a request with an overwrite', async () => {
             const browser = getResponseCollectionBrowserMock({}, {
-                networkContinueRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+                networkContinueRequest: vi.fn().mockRejectedValue(sessionEnded())
             })
             const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
             mock.redirect('https://webdriver.io')
@@ -2182,7 +2186,7 @@ describe('WebDriverInterception', () => {
 
         it('fails a request', async () => {
             const browser = getResponseCollectionBrowserMock({}, {
-                networkFailRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+                networkFailRequest: vi.fn().mockRejectedValue(sessionEnded())
             })
             const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
             mock.abort()
@@ -2193,7 +2197,7 @@ describe('WebDriverInterception', () => {
 
         it('continues a paused request that does not match the mock', async () => {
             const browser = getResponseCollectionBrowserMock({}, {
-                networkContinueRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+                networkContinueRequest: vi.fn().mockRejectedValue(sessionEnded())
             })
             await WebDriverInterception.initiate('http://test.com/foo', {}, browser)
             browser.emit('network.beforeRequestSent', {
@@ -2206,7 +2210,7 @@ describe('WebDriverInterception', () => {
 
         it('continues a request whose method does not match a postData mock', async () => {
             const browser = getResponseCollectionBrowserMock({}, {
-                networkContinueRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+                networkContinueRequest: vi.fn().mockRejectedValue(sessionEnded())
             })
             await WebDriverInterception.initiate('http://test.com/**', { method: 'post', postData: 'request-body' }, browser)
             browser.emit('network.beforeRequestSent', getBlockedRequestStub())
@@ -2216,7 +2220,7 @@ describe('WebDriverInterception', () => {
 
         it('continues a request whose body does not match a postData mock', async () => {
             const browser = getResponseCollectionBrowserMock({}, {
-                networkContinueRequest: vi.fn().mockRejectedValue(new Error(CLOSED))
+                networkContinueRequest: vi.fn().mockRejectedValue(sessionEnded())
             })
             await WebDriverInterception.initiate('http://test.com/**', { postData: 'other-body' }, browser)
             browser.emit('network.beforeRequestSent', getBlockedRequestStub())
@@ -2225,9 +2229,25 @@ describe('WebDriverInterception', () => {
             await expectNoUnhandledRejection()
         })
 
+        /**
+         * no caller waits for the answer of a paused request: another error is a warning,
+         * not an unhandled rejection
+         */
+        it('logs another error of a network command as a warning', async () => {
+            const browser = getResponseCollectionBrowserMock({}, {
+                networkContinueRequest: vi.fn().mockRejectedValue(new Error('invalid argument: the URL is not valid'))
+            })
+            const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+            mock.redirect('https://webdriver.io')
+            browser.emit('network.beforeRequestSent', getBlockedRequestStub())
+            await waitForAsyncHandlers()
+            expect(unhandled).toEqual([])
+            expect(loggerMock.warn).toHaveBeenCalledWith('Failed to answer a paused request: invalid argument: the URL is not valid')
+        })
+
         it('responds without fetching', async () => {
             const browser = getResponseCollectionBrowserMock({}, {
-                networkProvideResponse: vi.fn().mockRejectedValue(new Error(CLOSED))
+                networkProvideResponse: vi.fn().mockRejectedValue(sessionEnded())
             })
             const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
             mock.respond('mocked response', { fetchResponse: false })

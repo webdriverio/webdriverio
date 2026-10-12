@@ -10,7 +10,7 @@ import { parseOverwrite, getPatternParam } from './utils.js'
 import { SESSION_MOCKS } from '../../commands/browser/mock.js'
 import type { MockFilterOptions, RequestWithOptions, RespondWithOptions, Response } from './types.js'
 import type { WaitForOptions } from '../../types.js'
-import { isSessionEndedError } from '../sessionEnded.js'
+import { logBackgroundError } from '../sessionEnded.js'
 
 const log = logger('WebDriverInterception')
 
@@ -778,20 +778,16 @@ export default class WebDriverInterception {
         return this.#browser.networkProvideResponse({ request: requestId }).catch(this.#handleNetworkProvideResponseError)
     }
 
-    #handleNetworkProvideResponseError(err: Error) {
+    /**
+     * The error of a network command that answers a paused request. It runs in a network
+     * event listener: no caller waits for it, so it is logged, not thrown (a thrown error
+     * would be an unhandled rejection). A request that is gone needs no answer.
+     */
+    #handleNetworkProvideResponseError = (err: Error) => {
         if (err.message.endsWith('no such request')) {
             return
         }
-
-        /**
-         * the session ended while the request was answered: nothing waits for the answer
-         */
-        if (isSessionEndedError(err)) {
-            log.debug(`Did not answer a paused request, the session ended: ${err.message}`)
-            return
-        }
-
-        throw err
+        logBackgroundError(log, 'Failed to answer a paused request', err, this.#browser)
     }
 
     /**

@@ -82,9 +82,9 @@ export class ContextManager extends SessionManager {
             /**
              * not awaited: an error has no caller, e.g. when the session ends at once
              */
-            Promise.resolve(this.#browser.sessionSubscribe({
+            this.#browser.sessionSubscribe({
                 events: ['browsingContext.navigationStarted', 'browsingContext.contextDestroyed']
-            })).catch((err) => logBackgroundError(log, 'Failed to subscribe to the navigation events of the context manager', err, this.#browser))
+            }).catch((err) => logBackgroundError(log, 'Failed to subscribe to the navigation events of the context manager', err, this.#browser))
             this.#browser.on('browsingContext.navigationStarted', this.#navigationStartedListener)
             this.#browser.on('browsingContext.contextDestroyed', this.#destroyedListener)
         }
@@ -242,8 +242,7 @@ export class ContextManager extends SessionManager {
             /**
              * an event listener: the error has no caller, e.g. when the session ends at once
              */
-            return Promise.resolve(this.#browser.switchToWindow(this.#currentContext))
-                .then(() => undefined)
+            return this.#browser.switchToWindow(this.#currentContext)
                 .catch((err) => logBackgroundError(log, `Failed to switch to window "${windowHandles[0]}" after closeWindow`, err, this.#browser))
         }
 

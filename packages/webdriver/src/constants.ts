@@ -10,6 +10,12 @@ import type { RemoteConfig } from './types.js'
 export const DEFAULT_RESPONSE_TIMEOUT = 1000 * 180
 export const DEFAULT_CONNECT_TIMEOUT = 1000 * 10
 
+/**
+ * The `name` of the error of a command that can get no result because its session or
+ * its WebDriver BiDi connection ended, see `isSessionEndedError`.
+ */
+export const SESSION_ENDED_ERROR = 'session ended'
+
 export const DEFAULTS: Options.Definition<Required<RemoteConfig>> = {
     /**
      * protocol of automation driver

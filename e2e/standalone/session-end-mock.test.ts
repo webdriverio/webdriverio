@@ -26,16 +26,24 @@ test('a mock does not leave an unhandled rejection when the session ends', async
     const onUnhandled = (reason: unknown) => { unhandled.push(reason) }
     process.on('unhandledRejection', onUnhandled)
 
+    const browser = await startStandaloneChrome()
+    let sessionEnded = false
     try {
-        const browser = await startStandaloneChrome()
         await browser.url(`http://127.0.0.1:${(server.address() as AddressInfo).port}/`)
         await browser.mock('**/slow/**')
+        /**
+         * a burst of requests right before `deleteSession`, and more while it runs: the
+         * mock still answers some of them when the connection closes
+         */
         await browser.execute(() => {
-            for (let i = 0; i < 50; i++) {
+            let i = 0
+            for (; i < 100; i++) {
                 fetch(`/slow/${i}`).catch(() => {})
             }
+            setInterval(() => { fetch(`/slow/${i++}`).catch(() => {}) }, 1)
         })
         await browser.deleteSession()
+        sessionEnded = true
 
         /**
          * the answers that were in flight are rejected when the connection closes
@@ -44,6 +52,9 @@ test('a mock does not leave an unhandled rejection when the session ends', async
         expect(unhandled.map((reason) => (reason as Error)?.message ?? String(reason))).toEqual([])
     } finally {
         process.off('unhandledRejection', onUnhandled)
+        if (!sessionEnded) {
+            await browser.deleteSession().catch(() => {})
+        }
         server.close()
     }
 })
