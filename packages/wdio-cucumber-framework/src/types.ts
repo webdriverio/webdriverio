@@ -20,9 +20,27 @@ export interface ParallelBrowser extends WebdriverIO.Browser {
     __parallelContexts?: Set<string>
     requestedCapabilities: Record<string, unknown>
     capabilities: Record<string, unknown>
-    browsingContextCreate(params: { type: string }): Promise<{ context: string }>
+    browsingContextCreate(params: { type: string; userContext?: string }): Promise<{ context: string }>
     browsingContextClose(params: { context: string }): Promise<void>
+    browserCreateUserContext?(params: Record<string, never>): Promise<{ userContext: string }>
+    browserRemoveUserContext?(params: { userContext: string }): Promise<void>
 }
+
+export type ParallelMode =
+    /**
+     * Each scenario runs in a window of the default user context. Cookies,
+     * localStorage and service workers are shared across concurrently
+     * running scenarios.
+     */
+    | 'contexts'
+    /**
+     * Each scenario runs in a window of its own BiDi user context (isolated
+     * cookies, localStorage and service workers). Recommended for scenarios
+     * touching auth or storage. Costs a fresh profile per scenario (e.g. a
+     * login per scenario) and requires `browser.createUserContext`;
+     * `browser.mock()` stays session-level and is not isolated per user context.
+     */
+    | 'userContexts'
 
 export interface CucumberOptions {
     /**
@@ -166,8 +184,9 @@ export interface CucumberOptions {
     file?: string | false | undefined;
     /**
      * Enable parallel scenario execution within a spec file. When set to
-     * `'contexts'`, each scenario runs simultaneously in its own
-     * browsing context (tab). Requires a WebDriver Bidi session AND the
+     * `'contexts'` or `'userContexts'`, each scenario runs simultaneously in
+     * its own browsing context (window); `'userContexts'` additionally isolates
+     * storage per scenario. Requires a WebDriver Bidi session AND the
      * `wdio:experimentalBiDiCommands: true` capability — if either is
      * missing, parallel mode falls back to sequential execution with a
      * warning.
@@ -182,7 +201,8 @@ export interface CucumberOptions {
      * Constraints in parallel mode:
      * - No window management: `switchToWindow`, `switchToParentFrame`,
      *   `refresh` and `closeWindow` throw inside a parallel scenario.
-     * - Cookies and storage are shared across all browsing contexts.
+     * - `'contexts'` shares cookies and storage across all browsing contexts;
+     *   `'userContexts'` isolates them.
      * - `beforeFeature`/`afterFeature` (BeforeAll/AfterAll) run once per
      *   test run, not per feature.
      * - Do not fire-and-forget timers that outlive the test: the context
@@ -190,14 +210,26 @@ export interface CucumberOptions {
      *
      * @default undefined (sequential execution)
      */
-    parallelMode?: 'contexts'
+    parallelMode?: ParallelMode
     /**
-     * Maximum number of browsing contexts (tabs) to use in parallel.
-     * Scenarios are processed in batches of this size. Higher values
-     * increase parallelism but also resource usage.
+     * Maximum number of browsing contexts (windows) to use in parallel.
+     * Runs a pool of this many slots, each running one scenario at a time in its
+     * own window. A slot opens its next window while its scenario runs, so up to
+     * twice this many windows can be open briefly.
      * @default os.cpus().length
      */
     maxParallelContexts?: number
+    /**
+     * Snippet interface used when generating step definition snippets for
+     * undefined steps in parallel mode.
+     * @default 'synchronous'
+     */
+    snippetInterface?: 'async-await' | 'callback' | 'promise' | 'synchronous'
+    /**
+     * Snippet syntax (path to a custom snippet syntax module) used when
+     * generating step definition snippets in parallel mode.
+     */
+    snippetSyntax?: string
 }
 
 export interface HookParams {
@@ -303,4 +335,5 @@ export interface Payload {
     title?: string
     fullTitle?: string
     passed?: boolean
+    contextId?: string
 }

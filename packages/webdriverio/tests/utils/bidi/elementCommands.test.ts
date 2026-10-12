@@ -16,6 +16,7 @@ const {
     isBidiCommandsEnabled,
     bidiClearValue,
     bidiAddValue,
+    bidiAddMaskedValue,
     bidiGetText,
     bidiGetValue,
     bidiGetAttribute,
@@ -27,6 +28,7 @@ const {
     bidiSelectByIndex,
     bidiIsSelected,
     bidiIsEnabled,
+    bidiAssertClickable,
 } = await import('../../../src/utils/bidi/elementCommands.js')
 
 /**
@@ -365,6 +367,64 @@ describe('bidiAddValue', () => {
     })
 })
 
+describe('bidiAddMaskedValue', () => {
+    function makeInput(overrides: Record<string, unknown> = {}) {
+        const el: any = {
+            tagName: 'INPUT', disabled: false, readOnly: false, isContentEditable: false, value: '',
+            scrollIntoView: vi.fn(), focus: vi.fn(), setSelectionRange: vi.fn(), contains: (n: unknown) => n === el,
+            shadowRoot: null, getRootNode: () => ({}), ownerDocument: { activeElement: null as unknown }, ...overrides
+        }
+        return el
+    }
+    async function runWith(el: any, style = { display: 'block', visibility: 'visible' }) {
+        const browser = {
+            execute: vi.fn(async (fn: Function, _ref: unknown, ...a: unknown[]) => {
+                const g = globalThis as any
+                const orig = g.window
+                g.window = { getComputedStyle: () => style }
+                try { return fn(el, ...a) } finally { g.window = orig }
+            }),
+            inputPerformActions: vi.fn(),
+            inputReleaseActions: vi.fn()
+        }
+        const { getBrowserObject } = await import('@wdio/utils')
+        vi.mocked(getBrowserObject).mockReturnValue(browser as any)
+        const err = await bidiAddMaskedValue({ elementId: 'e-masked' } as any, 'secret').catch((e: Error) => e)
+        return { browser, err }
+    }
+
+    it.each([
+        ['non-editable', { tagName: 'DIV' }, undefined, 'element not editable'],
+        ['readOnly', { readOnly: true }, undefined, 'element not interactable'],
+        ['hidden', {}, { display: 'none', visibility: 'visible' }, 'element not interactable']
+    ])('throws before any key action for a %s target', async (_n, overrides, style, message) => {
+        const el = makeInput(overrides)
+        const { browser, err } = await runWith(el, style)
+        expect((err as Error).message).toBe(message)
+        expect(el.focus).not.toHaveBeenCalled()
+        expect(browser.inputPerformActions).not.toHaveBeenCalled()
+    })
+
+    it('throws before any key action when focus lands elsewhere', async () => {
+        const el = makeInput()
+        el.getRootNode = () => ({ activeElement: { tagName: 'INPUT' } })
+        const { browser, err } = await runWith(el)
+        expect(el.focus).toHaveBeenCalledOnce()
+        expect((err as Error).message).toContain('could not receive focus')
+        expect(browser.inputPerformActions).not.toHaveBeenCalled()
+    })
+
+    it('accepts focus that lands on the element in its shadow root', async () => {
+        const el = makeInput()
+        el.getRootNode = () => ({ activeElement: el })
+        const { fn } = await captureExecutedFn(bidiAddMaskedValue, [''], undefined)
+        const g = globalThis as any
+        const orig = g.window
+        g.window = { getComputedStyle: () => ({ display: 'block', visibility: 'visible' }) }
+        try { expect(() => fn(el)).not.toThrow() } finally { g.window = orig }
+    })
+})
+
 describe('bidiGetAttribute', () => {
     it('returns style.cssText when attr is "style"', async () => {
         const { fn } = await captureExecutedFn(bidiGetAttribute, ['style'], 'attr-result')
@@ -439,6 +499,13 @@ describe('bidiGetAttribute', () => {
         const { fn } = await captureExecutedFn(bidiGetAttribute, ['class'])
         const el = { tagName: 'DIV', className: 'my-class', getAttribute: () => null }
         expect(fn(el, 'class')).toBe('my-class')
+    })
+
+    it('falls back to the attribute when the property is a function', async () => {
+        const { fn } = await captureExecutedFn(bidiGetAttribute, ['onclick'])
+        const el = { tagName: 'BUTTON', onclick: function () {}, getAttribute: (name: string) => name === 'onclick' ? 'doIt()' : null }
+        expect(fn(el, 'onclick')).toBe('doIt()')
+        expect(fn({ tagName: 'BUTTON', focus: function () {}, getAttribute: () => null }, 'focus')).toBeNull()
     })
 
     it('returns null when both property and attribute are absent', async () => {
@@ -528,5 +595,111 @@ describe('exec caching', () => {
         vi.mocked(getBrowserObject).mockClear()
         await bidiGetText(element)
         expect(getBrowserObject).not.toHaveBeenCalled()
+    })
+})
+
+describe('bidiAssertClickable', () => {
+    function makeEl(overrides: Record<string, unknown> = {}) {
+        const el: any = {
+            tagName: 'BUTTON', id: 'b', getAttribute: () => null,
+            getClientRects: () => [{ left: 10, top: 20, width: 100, height: 40 }],
+            scrollIntoView: vi.fn(), contains: () => false, shadowRoot: null,
+            getRootNode: () => ({}), ...overrides
+        }
+        el.contains = overrides.contains ?? ((n: unknown) => n === el)
+        return el
+    }
+    function run(fn: Function, el: any, hit: unknown, win = { innerWidth: 800, innerHeight: 600 }) {
+        const doc = { elementFromPoint: vi.fn().mockReturnValue(hit) }
+        const g = globalThis as any
+        const orig = { window: g.window, document: g.document }
+        try {
+            g.window = win
+            g.document = doc
+            return { result: fn(el), doc }
+        } finally {
+            g.window = orig.window
+            g.document = orig.document
+        }
+    }
+
+    it('executes one script with the element ref', async () => {
+        const { mockExecute } = await captureExecutedFn(bidiAssertClickable, [], { ok: true })
+        expect(mockExecute).toHaveBeenCalledOnce()
+        expect(mockExecute.mock.calls[0][1]).toEqual({ [ELEMENT_KEY]: 'elem-test' })
+    })
+
+    it('reports ok when the element or a descendant is hit', async () => {
+        const { fn } = await captureExecutedFn(bidiAssertClickable, [], { ok: true })
+        const el = makeEl()
+        expect(run(fn, el, el).result).toMatchObject({ ok: true, x: 60, y: 40 })
+        const child = { tagName: 'SPAN', id: '', getAttribute: () => null }
+        el.contains = (n: unknown) => n === child
+        expect(run(fn, el, child).result.ok).toBe(true)
+    })
+
+    it('reports a description of the intercepting element', async () => {
+        const { fn } = await captureExecutedFn(bidiAssertClickable, [], { ok: true })
+        const other = { tagName: 'DIV', id: '', getAttribute: () => 'overlay' }
+        expect(run(fn, makeEl(), other).result).toMatchObject({
+            ok: false, target: '<button id="b">', hit: '<div class="overlay">'
+        })
+    })
+
+    it('scrolls into view only when the center is outside the viewport', async () => {
+        const { fn } = await captureExecutedFn(bidiAssertClickable, [], { ok: true })
+        const inView = makeEl()
+        run(fn, inView, inView)
+        expect(inView.scrollIntoView).not.toHaveBeenCalled()
+        const outside = makeEl()
+        run(fn, outside, outside, { innerWidth: 50, innerHeight: 600 })
+        expect(outside.scrollIntoView).toHaveBeenCalledWith({ block: 'center', inline: 'center' })
+    })
+
+    it('uses the shadow root of the element for the lookup', async () => {
+        const { fn } = await captureExecutedFn(bidiAssertClickable, [], { ok: true })
+        const el = makeEl()
+        const rootLookup = vi.fn().mockReturnValue(el)
+        el.getRootNode = () => ({ elementFromPoint: rootLookup })
+        const { doc } = run(fn, el, null)
+        expect(rootLookup).toHaveBeenCalledWith(60, 40)
+        expect(doc.elementFromPoint).not.toHaveBeenCalled()
+    })
+
+    it('throws the chromedriver-style error when not ok', async () => {
+        const { getBrowserObject } = await import('@wdio/utils')
+        vi.mocked(getBrowserObject).mockReturnValue({
+            execute: vi.fn().mockResolvedValue({ ok: false, x: 60, y: 40, target: '<button id="b">', hit: '<div>' })
+        } as any)
+        const err = await bidiAssertClickable({ elementId: 'e-throw' } as any).catch((e: Error) => e)
+        expect(err.name).toBe('element click intercepted')
+        expect(err.message).toBe('element click intercepted: Element <button id="b"> is not clickable at point (60, 40). Other element would receive the click: <div>')
+    })
+
+    it.each([
+        ['no client rects', [], 'element is not displayed'],
+        ['zero width', [{ left: 10, top: 20, width: 0, height: 40 }], 'element has zero size'],
+        ['zero height', [{ left: 10, top: 20, width: 100, height: 0 }], 'element has zero size']
+    ])('reports not interactable without hit-testing for %s', async (_n, rects, reason) => {
+        const { fn } = await captureExecutedFn(bidiAssertClickable, [], { ok: true })
+        const { result, doc } = run(fn, makeEl({ getClientRects: () => rects }), null)
+        expect(result).toMatchObject({ ok: false, notInteractable: reason })
+        expect(doc.elementFromPoint).not.toHaveBeenCalled()
+    })
+
+    it('throws element not interactable when the page reports it', async () => {
+        const { getBrowserObject } = await import('@wdio/utils')
+        vi.mocked(getBrowserObject).mockReturnValue({
+            execute: vi.fn().mockResolvedValue({ ok: false, x: 0, y: 0, target: '<a>', hit: 'null', notInteractable: 'element has zero size' })
+        } as any)
+        const err = await bidiAssertClickable({ elementId: 'e-zero' } as any).catch((e: Error) => e)
+        expect(err.name).toBe('element not interactable')
+        expect(err.message).toBe('element not interactable: element has zero size')
+    })
+
+    it('resolves when ok', async () => {
+        const { getBrowserObject } = await import('@wdio/utils')
+        vi.mocked(getBrowserObject).mockReturnValue({ execute: vi.fn().mockResolvedValue({ ok: true }) } as any)
+        await expect(bidiAssertClickable({ elementId: 'e-ok' } as any)).resolves.toBeUndefined()
     })
 })

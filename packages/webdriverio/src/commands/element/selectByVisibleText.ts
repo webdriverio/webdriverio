@@ -45,7 +45,7 @@ export async function selectByVisibleText (
 
     const normalized = text
         .trim() // strip leading and trailing white-space characters
-        .replace(/\s+/, ' ') // replace sequences of whitespace characters by a single space
+        .replace(/\s+/g, ' ') // replace sequences of whitespace characters by a single space
 
     const browser = getBrowserObject(this) as WebdriverIO.Browser
     if (isBidiCommandsEnabled(browser)) {

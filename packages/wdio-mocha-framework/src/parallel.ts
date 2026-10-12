@@ -1,10 +1,10 @@
 /**
  * Parallel test execution for the Mocha framework adapter.
  *
- * When `mochaOpts.parallelMode: 'contexts'` is set, this module
+ * When `mochaOpts.parallelMode` is set (`'contexts'` or `'userContexts'`), this module
  * replaces the sequential `mocha.run()` with parallel execution:
  *   1. Walk the Mocha suite tree to collect all it() blocks
- *   2. Pre-create a browsing context (tab) for each test
+ *   2. Pre-create a browsing context (window) for each test
  *   3. Run all tests simultaneously via Promise.allSettled()
  *   4. Each test runs inside an AsyncLocalStorage scope that
  *      overrides ContextManager.getCurrentContext() → every
@@ -78,8 +78,23 @@ interface ParallelBrowser extends WebdriverIO.Browser {
     __parallelContextStore?: AsyncLocalStorage<string>
     /** Set of framework-managed parallel contexts (see session/context.ts). */
     __parallelContexts?: Set<string>
-    browsingContextCreate?(params: { type: string }): Promise<{ context: string }>
+    browsingContextCreate?(params: { type: string; userContext?: string }): Promise<{ context: string }>
     browsingContextClose?(params: { context: string }): Promise<void>
+    browserCreateUserContext?(params: Record<string, never>): Promise<{ userContext: string }>
+    browserRemoveUserContext?(params: { userContext: string }): Promise<void>
+}
+
+export type ParallelMode = 'contexts' | 'userContexts'
+
+export interface ParallelContextAllocation {
+    context: string
+    userContext?: string
+}
+
+export function resolveMaxContexts(value: number | undefined, fallback: number): number {
+    return typeof value === 'number' && Number.isFinite(value) && value > 0
+        ? Math.max(1, Math.floor(value))
+        : Math.max(1, fallback)
 }
 
 interface CollectedTest {
@@ -224,23 +239,25 @@ interface TestMessage {
     fullTitle: string
     parent: string
     file: string
+    contextId?: string
     duration?: number
     passed?: boolean
     error?: { name: string; message: string; stack?: string }
 }
 
-function baseMessage(type: string, test: CollectedTest, cid: string, specs: string[], uid: string) {
+function baseMessage(type: string, test: CollectedTest, cid: string, specs: string[], uid: string, contextId?: string) {
     return {
         type, cid, specs, uid,
         title: test.title,
         fullTitle: test.fullTitle,
         parent: test.parentTitle,
-        file: test.file || specs[0]
+        file: test.file || specs[0],
+        ...(contextId ? { contextId } : {})
     } satisfies TestMessage
 }
 
-function emitTestStart(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string) {
-    reporter.emit('test:start', baseMessage('test:start', test, cid, specs, uid))
+function emitTestStart(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
+    reporter.emit('test:start', baseMessage('test:start', test, cid, specs, uid, contextId))
 }
 
 function emitTestPass(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number) {
@@ -268,8 +285,8 @@ function emitTestFail(
 
 type HookKind = 'before all' | 'after all' | 'before each' | 'after each'
 
-function emitTestPending(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number) {
-    reporter.emit('test:pending', { ...baseMessage('test:pending', test, cid, specs, uid), duration, pending: true })
+function emitTestPending(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number, contextId: string) {
+    reporter.emit('test:pending', { ...baseMessage('test:pending', test, cid, specs, uid, contextId), duration, pending: true })
     reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid), duration, passed: false, pending: true })
 }
 
@@ -369,13 +386,13 @@ function callHook(hook: any, testTitle?: string, parentTitle?: string, timeoutMs
     const ctx = {
         test: testTitle ? { title: testTitle, parent: { title: parentTitle || '' } } : undefined,
         skip: () => { throw new Error('sync skip; aborting execution') },
-        timeout: () => { throw new Error('this.timeout() is not supported in parallel mode (parallelMode: "contexts")') },
-        retries: () => { throw new Error('this.retries() is not supported in parallel mode (parallelMode: "contexts")') },
+        timeout: () => { throw new Error('this.timeout() is not supported in parallel mode') },
+        retries: () => { throw new Error('this.retries() is not supported in parallel mode') },
     }
     const run = (): Promise<unknown> => {
         if (fn.length >= 1) {
             return Promise.resolve(fn.call(ctx, (err?: Error) => {
-                throw err || new Error('done() callback is not supported in parallel mode (parallelMode: "contexts")')
+                throw err || new Error('done() callback is not supported in parallel mode')
             }))
         }
         return Promise.resolve(fn.call(ctx))
@@ -402,36 +419,42 @@ function callHook(hook: any, testTitle?: string, parentTitle?: string, timeoutMs
 // Context pre-allocation
 // ============================================================
 
-async function preallocateContexts(
-    browser: WebdriverIO.Browser,
-    count: number
-): Promise<string[]> {
-    const bidi = browser as ParallelBrowser
-    const results = await Promise.allSettled(
-        Array.from({ length: count }, () =>
-            bidi.browsingContextCreate!({ type: 'tab' })
-        )
+async function removeUserContext(bidi: ParallelBrowser, userContext: string, level: 'warn' | 'debug' = 'warn') {
+    await bidi.browserRemoveUserContext!({ userContext }).catch(
+        (err) => { log[level](`[Parallel] failed to remove user context ${userContext}: ${(err as Error).message}`) }
     )
-    const failed = results.filter((r) => r.status === 'rejected')
-    if (failed.length > 0) {
-        // Close any successfully-created contexts before throwing
-        const created = results
-            .filter((r): r is PromiseFulfilledResult<{ context: string }> => r.status === 'fulfilled')
-            .map((r) => r.value.context)
-        await Promise.allSettled(
-            created.map((ctx) => bidi.browsingContextClose!({ context: ctx }).catch(
-                (err) => { log.warn(`[Parallel] preallocate rollback: failed to close context ${ctx}: ${(err as Error).message}`) }
-            ))
-        )
-        throw (failed[0] as PromiseRejectedResult).reason
+}
+
+async function allocateContext(bidi: ParallelBrowser, mode: ParallelMode): Promise<ParallelContextAllocation> {
+    let allocation: ParallelContextAllocation
+    if (mode !== 'userContexts') {
+        const { context } = await bidi.browsingContextCreate!({ type: 'window' })
+        allocation = { context }
+    } else {
+        const { userContext } = await bidi.browserCreateUserContext!({})
+        try {
+            const { context } = await bidi.browsingContextCreate!({ type: 'window', userContext })
+            allocation = { context, userContext }
+        } catch (err) {
+            await removeUserContext(bidi, userContext)
+            throw err
+        }
     }
-    const contexts = (results as PromiseFulfilledResult<{ context: string }>[]).map((r) => r.value.context)
     // Register with the session ContextManager so navigations inside these
-    // tabs don't trigger session-global re-anchoring (tree fetch + switchToWindow).
-    for (const ctx of contexts) {
-        bidi.__parallelContexts?.add(ctx)
+    // windows don't trigger session-global re-anchoring (tree fetch + switchToWindow).
+    bidi.__parallelContexts?.add(allocation.context)
+    return allocation
+}
+
+/** Never rejects: close window, then remove its user context, then unregister. */
+async function cleanupAllocation(bidi: ParallelBrowser, { context, userContext }: ParallelContextAllocation) {
+    await bidi.browsingContextClose!({ context }).catch(
+        (err) => { log.debug(`[Parallel] cleanup: failed to close context ${context}: ${(err as Error).message}`) }
+    )
+    if (userContext) {
+        await removeUserContext(bidi, userContext, 'debug')
     }
-    return contexts
+    bidi.__parallelContexts?.delete(context)
 }
 
 interface TestRunResult {
@@ -439,6 +462,8 @@ interface TestRunResult {
     name: string
     duration: number
     error?: string
+    /** failing non-fatal hooks; each counts as its own failure, like Mocha */
+    hookFailures: number
 }
 
 // ============================================================
@@ -447,21 +472,21 @@ interface TestRunResult {
 
 async function runOneTest(
     test: CollectedTest,
-    contextId: string,
+    allocation: ParallelContextAllocation,
     cid: string,
     specs: string[],
     uid: string,
     reporter: EventEmitter,
     parallelStore: AsyncLocalStorage<string>,
-    bidi: ParallelBrowser,
     timeoutMs: number
 ): Promise<TestRunResult> {
+    const contextId = allocation.context
     return parallelStore.run(contextId, async () => {
         // Static pending tests (it.skip / it without fn): no hooks, no
         // test:start — matches the Mocha runner.
         if (test.pending) {
-            emitTestPending(reporter, test, cid, specs, uid, 0)
-            return { status: 'pending' as const, name: test.title, duration: 0 }
+            emitTestPending(reporter, test, cid, specs, uid, 0, contextId)
+            return { status: 'pending' as const, name: test.title, duration: 0, hookFailures: 0 }
         }
 
         let hookCnt = 0
@@ -469,12 +494,14 @@ async function runOneTest(
         let started = false
         let fnDuration = 0
         let passed = false
+        let hookFailures = 0
 
         /**
          * Run a hook chain, emitting hook:start/hook:end with per-hook
          * durations and paired uids. Fatal chains (beforeAll/beforeEach)
          * stop on the first failure; non-fatal chains (afterEach/afterAll)
-         * log and continue — Mocha does not fail the test on teardown errors.
+         * log, count the failure and continue — the test keeps its status,
+         * and the failing hook is reported as its own failure.
          */
         const runHookChain = async (hooks: Function[], kind: HookKind, fatal: boolean) => {
             for (const hook of hooks) {
@@ -491,6 +518,7 @@ async function runOneTest(
                         caughtError = hookError
                         break
                     }
+                    hookFailures++
                     log.warn(`[Parallel] ${kind} hook failed for "${test.title}": ${hookError.message}`)
                 }
             }
@@ -502,7 +530,7 @@ async function runOneTest(
         await runHookChain(test._beforeAll, 'before all', true)
         if (!caughtError) {
             started = true
-            emitTestStart(reporter, test, cid, specs, uid)
+            emitTestStart(reporter, test, cid, specs, uid, contextId)
             await runHookChain(test._beforeEach, 'before each', true)
             if (!caughtError) {
                 const fnStart = Date.now()
@@ -523,27 +551,22 @@ async function runOneTest(
         if (!started) {
             // this.skip() in a suite before() hook → pending, not failed (Mocha parity)
             if (isSkipError(caughtError)) {
-                emitTestPending(reporter, test, cid, specs, uid, 0)
-                return { status: 'pending' as const, name: test.title, duration: 0 }
+                emitTestPending(reporter, test, cid, specs, uid, 0, contextId)
+                return { status: 'pending' as const, name: test.title, duration: 0, hookFailures }
             }
             emitTestFail(reporter, test, cid, specs, uid, 0, caughtError!)
-            return { status: 'failed' as const, name: test.title, duration: 0, error: caughtError!.message }
+            return { status: 'failed' as const, name: test.title, duration: 0, error: caughtError!.message, hookFailures }
         }
         if (isSkipError(caughtError)) {
-            emitTestPending(reporter, test, cid, specs, uid, fnDuration)
-            return { status: 'pending' as const, name: test.title, duration: fnDuration }
+            emitTestPending(reporter, test, cid, specs, uid, fnDuration, contextId)
+            return { status: 'pending' as const, name: test.title, duration: fnDuration, hookFailures }
         }
         if (passed) {
             emitTestPass(reporter, test, cid, specs, uid, fnDuration)
-            return { status: 'passed' as const, name: test.title, duration: fnDuration }
+            return { status: 'passed' as const, name: test.title, duration: fnDuration, hookFailures }
         }
         emitTestFail(reporter, test, cid, specs, uid, fnDuration, caughtError!)
-        return { status: 'failed' as const, name: test.title, duration: fnDuration, error: caughtError!.message }
-    }).finally(async () => {
-        await bidi.browsingContextClose!({ context: contextId }).catch(
-            (err) => { log.debug(`[Parallel] cleanup: failed to close context ${contextId}: ${(err as Error).message}`) }
-        )
-        bidi.__parallelContexts?.delete(contextId)
+        return { status: 'failed' as const, name: test.title, duration: fnDuration, error: caughtError!.message, hookFailures }
     })
 }
 
@@ -555,6 +578,7 @@ export interface ParallelMochaOptions {
     grep?: RegExp
     invert?: boolean
     timeout?: number | string
+    mode?: ParallelMode
 }
 
 export async function runParallelTests(
@@ -567,10 +591,17 @@ export async function runParallelTests(
     mochaOptions?: ParallelMochaOptions
 ): Promise<number> {
     const bidi = browser as ParallelBrowser
+    const mode = mochaOptions?.mode ?? 'contexts'
     if (!bidi.isBidi) {
         throw new Error(
-            'Parallel mode (parallelMode: "contexts") requires a WebDriver Bidi session. '
-            + 'Ensure your capabilities enable Bidi.'
+            `Parallel mode (parallelMode: "${mode}") requires a WebDriver Bidi session. ` +
+            'Ensure your capabilities enable Bidi.'
+        )
+    }
+    if (mode === 'userContexts' && (!bidi.browserCreateUserContext || !bidi.browserRemoveUserContext)) {
+        throw new Error(
+            'parallelMode: "userContexts" requires browser.createUserContext and browser.removeUserContext, ' +
+            'which this driver does not support. Use parallelMode: "contexts" or a driver with BiDi user context support.'
         )
     }
 
@@ -585,7 +616,7 @@ export async function runParallelTests(
     if (tests.some((t) => t._beforeAll.length > 0 || t._afterAll.length > 0)) {
         log.warn(
             'Suite-level hooks (before()/after()) run once per test in parallel mode ' +
-            '(parallelMode: "contexts") because each test runs in its own browsing context. ' +
+            `(parallelMode: "${mode}") because each test runs in its own browsing context. ` +
             'Use beforeSuite/afterSuite hooks in wdio.conf.ts for setup that should run only once per spec file.'
         )
     }
@@ -607,43 +638,81 @@ export async function runParallelTests(
         )
     }
 
-    const maxContexts = Math.max(1, maxParallelContexts || os.cpus().length)
-    const batchSize = Math.min(maxContexts, tests.length)
+    const maxContexts = resolveMaxContexts(maxParallelContexts, os.cpus().length)
+    const slotCount = Math.min(maxContexts, tests.length)
     const timeoutMs = resolveTimeoutMs(mochaOptions?.timeout)
     const runStart = Date.now()
-    const allResults: PromiseSettledResult<TestRunResult>[] = []
+    const allResults: PromiseSettledResult<TestRunResult>[] = new Array(tests.length)
+    const cleanups: Promise<void>[] = []
+    let cursor = 0
+    let allocationError: unknown
+    let allocationFailed = false
 
     log.info(
         `[Parallel] Collected ${tests.length} tests. ` +
-        `Batch size: ${batchSize}, max contexts: ${maxContexts}`
+        `Slots: ${slotCount}, max contexts: ${maxContexts}`
     )
 
-    // --- Run tests in batches ---
-    for (let batchStart = 0; batchStart < tests.length; batchStart += batchSize) {
-        const batchEnd = Math.min(batchStart + batchSize, tests.length)
-        const currentBatchSize = batchEnd - batchStart
-
-        const allocStart = Date.now()
-        const contexts = await preallocateContexts(browser, currentBatchSize)
-        log.info(`[Parallel] ${contexts.length} contexts created in ${Date.now() - allocStart}ms`)
-
-        const batchResults = await Promise.allSettled(
-            tests.slice(batchStart, batchEnd).map((test, i) =>
-                runOneTest(
-                    test, contexts[i], cid, specs,
-                    `test-${cid}-${batchStart + i}`,
-                    reporter, parallelStore, bidi, timeoutMs
-                )
-            )
-        )
-        allResults.push(...batchResults)
+    // Each slot owns one live allocation plus at most one prefetched for its
+    // next test, so creating/closing windows stays off the gap between tests.
+    const runSlot = async () => {
+        let prefetched: Promise<ParallelContextAllocation> | undefined
+        try {
+            while (!allocationFailed) {
+                const index = cursor++
+                if (index >= tests.length) { break }
+                let allocation: ParallelContextAllocation
+                try {
+                    allocation = await (prefetched ?? allocateContext(bidi, mode))
+                } catch (err) {
+                    prefetched = undefined
+                    if (!allocationFailed) { allocationFailed = true; allocationError = err }
+                    break
+                }
+                prefetched = undefined
+                if (cursor < tests.length) {
+                    prefetched = allocateContext(bidi, mode)
+                    prefetched.catch(() => {})
+                }
+                try {
+                    allResults[index] = {
+                        status: 'fulfilled',
+                        value: await runOneTest(
+                            tests[index], allocation, cid, specs,
+                            `test-${cid}-${index}`,
+                            reporter, parallelStore, timeoutMs
+                        )
+                    }
+                } catch (reason) {
+                    allResults[index] = { status: 'rejected', reason }
+                } finally {
+                    cleanups.push(cleanupAllocation(bidi, allocation))
+                }
+            }
+        } finally {
+            if (prefetched) {
+                const unused = await prefetched.catch(() => undefined)
+                if (unused) { cleanups.push(cleanupAllocation(bidi, unused)) }
+            }
+        }
     }
+
+    try {
+        await Promise.all(Array.from({ length: slotCount }, runSlot))
+    } finally {
+        const settled = await Promise.allSettled(cleanups)
+        for (const r of settled) {
+            if (r.status === 'rejected') { log.warn(`[Parallel] cleanup failed: ${(r.reason as Error).message}`) }
+        }
+    }
+    if (allocationFailed) { throw allocationError }
 
     const totalDuration = Date.now() - runStart
     const passed = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'passed').length
     const pending = allResults.filter(r => r.status === 'fulfilled' && r.value.status === 'pending').length
-    // Pending tests are not failures — Mocha parity
-    const failed = tests.length - passed - pending
+    // Pending tests are not failures; failing teardown hooks are, like Mocha
+    const hookFailures = allResults.reduce((n, r) => n + (r.status === 'fulfilled' ? r.value.hookFailures : 0), 0)
+    const failed = tests.length - passed - pending + hookFailures
 
     // --- Emit suite:end for nested describe blocks (reverse order) ---
     for (const s of [...suites].reverse()) {

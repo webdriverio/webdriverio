@@ -87,9 +87,7 @@ export default class BaseAction {
      * @param duration idle time of tick
      */
     pause(duration: number) {
-        if (duration > 0) {
-            this.sequence.push({ type: 'pause', duration })
-        }
+        this.sequence.push({ type: 'pause', duration })
         return this
     }
 

@@ -56,6 +56,7 @@ export default class BaseReporter {
         instanceOptions?: Options.Testrunner
         capabilities?: unknown
         retry?: number,
+        contextId?: string
     }) {
         payload.cid = this._cid
 

@@ -14,6 +14,7 @@ import type { Services } from '@wdio/types'
 import { applyMochaDefaults, formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
 import type { MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types.js'
+import type { ParallelMode } from './parallel.js'
 import { runParallelTests } from './parallel.js'
 import type { EventEmitter } from 'node:events'
 
@@ -125,14 +126,15 @@ class MochaAdapter {
     async run () {
         const mocha = this._mocha!
 
-        if (this._config.mochaOpts?.parallelMode === 'contexts') {
-            return this._runParallelMode(mocha)
+        const parallelMode = this._config.mochaOpts?.parallelMode
+        if (parallelMode === 'contexts' || parallelMode === 'userContexts') {
+            return this._runParallelMode(mocha, parallelMode)
         }
 
         return this._runSequential(mocha)
     }
 
-    private async _runParallelMode(mocha: Mocha) {
+    private async _runParallelMode(mocha: Mocha, mode: ParallelMode) {
         const browser = (globalThis as Record<string, unknown>).browser as WebdriverIO.Browser & { isBidi: boolean; __bidiCommandsEnabled?: boolean }
         if (!browser) {
             throw new Error(
@@ -143,7 +145,7 @@ class MochaAdapter {
 
         if (!browser.isBidi) {
             log.warn(
-                'parallelMode: "contexts" is set but the browser session does not support ' +
+                `parallelMode: "${mode}" is set but the browser session does not support ` +
                 'WebDriver Bidi. This may be because "wdio:enforceWebDriverClassic" is enabled ' +
                 'or the browser does not support Bidi. Falling back to sequential execution.'
             )
@@ -152,7 +154,7 @@ class MochaAdapter {
 
         if (browser.__bidiCommandsEnabled !== true) {
             log.warn(
-                'parallelMode: "contexts" requires \'wdio:experimentalBiDiCommands\': true ' +
+                `parallelMode: "${mode}" requires 'wdio:experimentalBiDiCommands': true ` +
                 'to be set in capabilities. Without it, element commands use classic protocol ' +
                 'which cannot target Bidi-created browsing contexts. ' +
                 'Falling back to sequential execution.'
@@ -161,10 +163,10 @@ class MochaAdapter {
         }
 
         if (this._config.mochaOpts.bail) {
-            throw new Error('bail is not supported in parallel mode (parallelMode: "contexts")')
+            throw new Error(`bail is not supported in parallel mode (parallelMode: "${mode}")`)
         }
         if (this._config.mochaOpts.retries) {
-            throw new Error('retries is not supported in parallel mode (parallelMode: "contexts")')
+            throw new Error(`retries is not supported in parallel mode (parallelMode: "${mode}")`)
         }
 
         // mocha.run() applies .only() via rootSuite.filterOnly(); the parallel
@@ -199,7 +201,8 @@ class MochaAdapter {
                     // options.grep (fgrep wins when both are set)
                     grep: mocha.options?.grep as RegExp | undefined,
                     invert: mocha.options?.invert,
-                    timeout: this._config.mochaOpts.timeout
+                    timeout: this._config.mochaOpts.timeout,
+                    mode
                 }
             )
         } catch (err) {

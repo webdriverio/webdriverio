@@ -20,6 +20,8 @@ import { getShadowRootManager, type ShadowRootManager } from '../session/shadowR
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, foreignContextId, heldBrowsingContext } from '../session/browsingContext.js'
 import { findLinksInContext, foreignContext } from './foreignContext.js'
+import { bidiGetRect, isBidiCommandsEnabled } from './bidi/elementCommands.js'
+import { isParallelContextActive, locateRelativeXPath } from './bidi/locate.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
@@ -242,7 +244,7 @@ function fetchElementByJSFunction(
      * its own context; `execute` passes the element as first argument.
      */
     const browser = getBrowserObject(scope)
-    if (browser.isBidi && heldBrowsingContext(scope)) {
+    if (browser.isBidi && (heldBrowsingContext(scope) || isParallelContextActive())) {
         /**
          * Classic serializes a `NodeList` (e.g. from `querySelectorAll`) as a
          * list of elements; make that an array here so BiDi does the same.
@@ -760,6 +762,10 @@ export async function findDeepElement(
      * does not support relative xpath selectors with a start node
      */
     if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+        if (isParallelContextActive()) {
+            const [first] = await locateRelativeXPath(browser, context, (this as WebdriverIO.Element).elementId, value)
+            return first
+        }
         return this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
@@ -959,6 +965,9 @@ export async function findDeepElements(
      * does not support relative xpath selectors with a start node
      */
     if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+        if (isParallelContextActive()) {
+            return locateRelativeXPath(browser, context, (this as WebdriverIO.Element).elementId, value)
+        }
         return this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
@@ -1343,7 +1352,9 @@ export function verifyArgsAndStripIfElement(args: unknown) {
  * getElementRect
  */
 export async function getElementRect(scope: WebdriverIO.Element) {
-    const rect = await scope.getElementRect(scope.elementId)
+    const rect = isBidiCommandsEnabled(getBrowserObject(scope) as WebdriverIO.Browser)
+        ? await bidiGetRect(scope)
+        : await scope.getElementRect(scope.elementId)
 
     const defaults = { x: 0, y: 0, width: 0, height: 0 }
 

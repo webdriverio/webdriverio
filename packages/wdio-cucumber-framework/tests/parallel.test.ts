@@ -1,8 +1,10 @@
 import path from 'node:path'
+import { createRequire } from 'node:module'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { EventEmitter } from 'node:events'
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 
+import logger from '@wdio/logger'
 import * as Gherkin from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 import type * as messages from '@cucumber/messages'
@@ -22,16 +24,25 @@ function mockBrowser(opts?: {
     store?: AsyncLocalStorage<string>
     isBidi?: boolean
     bidiCommandsEnabled?: boolean
+    userContexts?: boolean
 }) {
     const store = opts?.store || new AsyncLocalStorage<string>()
     const contexts = opts?.contexts || ['ctx-0', 'ctx-1', 'ctx-2', 'ctx-3', 'ctx-4', 'ctx-5']
     let idx = 0
+    let userIdx = 0
+    const userContextCommands = opts?.userContexts
+        ? {
+            browserCreateUserContext: vi.fn().mockImplementation(async () => ({ userContext: `uc-${userIdx++}` })),
+            browserRemoveUserContext: vi.fn().mockResolvedValue(undefined),
+        }
+        : {}
     return {
+        ...userContextCommands,
         isBidi: opts?.isBidi ?? true,
         __parallelContextStore: store,
         __parallelContexts: new Set<string>(),
         __bidiCommandsEnabled: opts?.bidiCommandsEnabled ?? true,
-        browsingContextCreate: vi.fn().mockImplementation(async () => {
+        browsingContextCreate: vi.fn().mockImplementation(async (_params?: unknown) => {
             const ctx = contexts[idx++] || `ctx-${idx}`
             return { context: ctx }
         }),
@@ -196,7 +207,7 @@ describe('runParallelCucumber', () => {
 
         // Two contexts pre-allocated for two scenarios
         expect(browser.browsingContextCreate).toHaveBeenCalledTimes(2)
-        expect(browser.browsingContextCreate).toHaveBeenCalledWith({ type: 'tab' })
+        expect(browser.browsingContextCreate).toHaveBeenCalledWith({ type: 'window' })
         // All contexts registered at allocate time are unregistered after close
         expect((browser as unknown as { __parallelContexts: Set<string> }).__parallelContexts.size).toBe(0)
     })
@@ -278,7 +289,30 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts(),
         })
 
-        expect(afterHookCalls).toEqual(['after1', 'after2'])
+        expect(afterHookCalls).toEqual(['after2', 'after1'])
+    })
+
+    test('logs the error of a failing BeforeAll hook', async () => {
+        const errorLog = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'error')
+        const supportCodeLibrary = mockSupportCodeLibrary({
+            beforeTestRunHooks: [
+                function () { throw new Error('boom in BeforeAll') },
+            ],
+        })
+
+        await runOrCatch({
+            browser: mockBrowser() as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])],
+            supportCodeLibrary,
+            cucumberOpts: defaultCucumberOpts(),
+        })
+
+        expect(errorLog).toHaveBeenCalledWith(expect.stringContaining('boom in BeforeAll'))
+        errorLog.mockRestore()
     })
 
     test('runs BeforeAll once per run when multiple features exist', async () => {
@@ -436,7 +470,27 @@ describe('runParallelCucumber', () => {
 
     // ---- Concurrency limiting ----
 
-    test('allocates fresh contexts per batch respecting maxParallelContexts', async () => {
+    test('creates a window (never a tab) for every context incl. prefetched', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-0', 'ctx-1', 'ctx-2', 'ctx-3', 'ctx-4'] })
+        await runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2', 's3', 's4'])],
+            supportCodeLibrary: mockSupportCodeLibrary(),
+            cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2 }),
+        })
+
+        const calls = browser.browsingContextCreate.mock.calls
+        expect(calls.length).toBeGreaterThanOrEqual(4)
+        for (const [params] of calls) {
+            expect(params).toEqual({ type: 'window' })
+        }
+    })
+
+    test('allocates a fresh context per scenario respecting maxParallelContexts', async () => {
         const browser = mockBrowser({
             contexts: ['ctx-0', 'ctx-1', 'ctx-2', 'ctx-3', 'ctx-4'],
         })
@@ -453,11 +507,14 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2 }),
         })
 
-        // 4 scenarios with batch size 2 → 2 batches, each allocates 2 fresh contexts = 4 total
-        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(4)
+        // 4 scenarios, 2 slots; prefetched-but-unused tabs may add creates, each is closed
+        const created = browser.browsingContextCreate.mock.calls.length
+        expect(created).toBeGreaterThanOrEqual(4)
+        expect(created).toBeLessThanOrEqual(4 + 2)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(created)
     })
 
-    test('processes all scenarios even when batched', async () => {
+    test('processes all scenarios when limited by slots', async () => {
         const browser = mockBrowser({
             contexts: ['ctx-0', 'ctx-1'],
         })
@@ -474,16 +531,16 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2 }),
         })
 
-        // 4 scenarios across 2 batches — each scenario gets a contextClose call
-        expect(browser.browsingContextClose).toHaveBeenCalledTimes(4)
+        // each scenario's tab is closed (plus any unused prefetched tab)
+        expect(browser.browsingContextClose.mock.calls.length).toBeGreaterThanOrEqual(4)
     })
 
     // ---- failFast ----
 
-    test('failFast stops batch loop after first batch failure', async () => {
+    test('failFast stops taking new scenarios after the first failure', async () => {
         const browser = mockBrowser({ contexts: ['ctx-0', 'ctx-1'] })
-        // 4 scenarios with batch size 2 → 2 batches. First batch will fail
-        // (no step defs) and failFast should skip the second batch.
+        // 4 scenarios, 2 slots. The first two fail (no step defs) and failFast
+        // must not start the rest.
         const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2', 's3', 's4'])
 
         await runOrCatch({
@@ -497,9 +554,9 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2, failFast: true }),
         })
 
-        // Only first batch ran (2 scenarios), second batch skipped
-        // Each scenario in the first batch still calls contextClose
-        expect(browser.browsingContextClose).toHaveBeenCalledTimes(2)
+        // Only 2 scenarios ran; the slots' prefetched tabs were closed unused
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
+        expect(browser.browsingContextCreate.mock.calls.length).toBeLessThanOrEqual(2 + 2)
     })
 
     // ---- Event stream balance ----
@@ -822,6 +879,46 @@ describe('runParallelCucumber', () => {
         expect(second).toBeLessThan(first)
     })
 
+    test('step-level test:start payloads carry the scenario contextId', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-step'] })
+        const doc = makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 'one step', steps: ['something'] }])
+
+        await runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [doc],
+            supportCodeLibrary: mockSupportCodeLibrary({
+                stepDefinitions: [makeStepDefinition('something', async function () {})],
+            }),
+            cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: false }),
+        })
+
+        const stepStarts = reporterEvents.filter((e) => e.event === 'test:start')
+        expect(stepStarts.length).toBe(1)
+        expect(stepStarts[0].payload.contextId).toBe('ctx-step')
+    })
+
+    test('fractional maxParallelContexts below 1 still runs every scenario', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-0', 'ctx-1'] })
+        const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2'])
+
+        await runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [doc],
+            supportCodeLibrary: mockSupportCodeLibrary(),
+            cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 0.5 }),
+        })
+
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(2)
+    })
+
     // ---- failFast summary ----
 
     test('failFast reports unrun scenarios as skipped and reconciles the summary', async () => {
@@ -839,7 +936,7 @@ describe('runParallelCucumber', () => {
             cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2, failFast: true }),
         })
 
-        // Batch 1: 2 scenarios fail (no step defs); scenario 3 is skipped
+        // 2 scenarios fail (no step defs); scenario 3 is skipped
         const starts = reporterEvents.filter((e) => e.event === 'test:start')
         const fails = reporterEvents.filter((e) => e.event === 'test:fail')
         const skips = reporterEvents.filter((e) => e.event === 'test:skip')
@@ -848,8 +945,9 @@ describe('runParallelCucumber', () => {
         expect(skips.length).toBe(1)
         // Every start is closed exactly once — the stream stays balanced
         expect(starts.length).toBe(fails.length + skips.length)
-        // No contexts were created for skipped scenarios
-        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(2)
+        // The skipped scenario gets no tab; only unused prefetched tabs may exceed 2, all closed
+        expect(browser.browsingContextCreate.mock.calls.length).toBeLessThanOrEqual(2 + 2)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
     })
 })
 
@@ -914,5 +1012,345 @@ describe('collectFeatureGroups (via runParallelCucumber)', () => {
 
         expect(browser.browsingContextCreate).toHaveBeenCalledTimes(1)
         expect(result).toBeGreaterThanOrEqual(0)
+    })
+})
+
+describe('runParallelCucumber userContexts mode', () => {
+    let reporter: EventEmitter
+    let eventEmitter: EventEmitter
+    let reporterEvents: Array<{ event: string; payload: Record<string, unknown> }>
+    const passingLibrary = () => mockSupportCodeLibrary({
+        stepDefinitions: [makeStepDefinition('something', async function () {})],
+    })
+    const userOpts = (overrides?: Partial<CucumberOptions>) =>
+        defaultCucumberOpts({ parallelMode: 'userContexts', ...overrides })
+
+    function run(browser: ReturnType<typeof mockBrowser>, extra: Partial<Parameters<typeof runParallelCucumber>[0]> = {}) {
+        return runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2'])],
+            supportCodeLibrary: passingLibrary(),
+            cucumberOpts: userOpts(),
+            ...extra,
+        })
+    }
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+        reporter = new EventEmitter()
+        eventEmitter = new EventEmitter()
+        reporterEvents = []
+        for (const ev of ['test:start', 'test:pass', 'test:fail', 'test:skip']) {
+            reporter.on(ev, (p) => reporterEvents.push({ event: ev, payload: p }))
+        }
+    })
+
+    test('creates a user context per scenario and passes it to the tab', async () => {
+        const browser = mockBrowser({ userContexts: true })
+        const { result } = await run(browser)
+
+        expect(result).toBe(0)
+        expect(browser.browserCreateUserContext).toHaveBeenCalledTimes(2)
+        expect(browser.browsingContextCreate).toHaveBeenCalledWith({ type: 'window', userContext: 'uc-0' })
+        expect(browser.browsingContextCreate).toHaveBeenCalledWith({ type: 'window', userContext: 'uc-1' })
+    })
+
+    test('closes the tab before removing its user context and unregisters it (pass)', async () => {
+        const browser = mockBrowser({ userContexts: true })
+        await run(browser)
+
+        expect(browser.browserRemoveUserContext).toHaveBeenCalledTimes(2)
+        for (let i = 0; i < 2; i++) {
+            expect(browser.browsingContextClose.mock.invocationCallOrder[i])
+                .toBeLessThan(browser.browserRemoveUserContext.mock.invocationCallOrder[i])
+        }
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('closes the tab before removing its user context and unregisters it (failure)', async () => {
+        const browser = mockBrowser({ userContexts: true })
+        const { result } = await run(browser, { supportCodeLibrary: mockSupportCodeLibrary() })
+
+        expect(result).toBe(2)
+        expect(browser.browserRemoveUserContext).toHaveBeenCalledTimes(2)
+        expect(Math.max(...browser.browsingContextClose.mock.invocationCallOrder))
+            .toBeLessThan(Math.min(...browser.browserRemoveUserContext.mock.invocationCallOrder))
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('rolls back tabs then user contexts when a later allocation rejects', async () => {
+        const browser = mockBrowser({ userContexts: true })
+        browser.browsingContextCreate
+            .mockResolvedValueOnce({ context: 'ctx-0' })
+            .mockRejectedValueOnce(new Error('tab boom'))
+        const { error } = await run(browser)
+
+        expect(error?.message).toBe('tab boom')
+        expect(browser.browsingContextClose).toHaveBeenCalledWith({ context: 'ctx-0' })
+        expect(browser.browserRemoveUserContext).toHaveBeenCalledWith({ userContext: 'uc-0' })
+        expect(browser.browserRemoveUserContext).toHaveBeenCalledWith({ userContext: 'uc-1' })
+        expect(browser.browsingContextClose.mock.invocationCallOrder[0])
+            .toBeLessThan(browser.browserRemoveUserContext.mock.invocationCallOrder[1])
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('throws naming browser.createUserContext when the driver lacks it, but contexts mode still runs', async () => {
+        const browser = mockBrowser()
+        const { error } = await run(browser)
+        expect(error?.message).toContain('browser.createUserContext')
+        expect(browser.browsingContextCreate).not.toHaveBeenCalled()
+
+        const contexts = await run(browser, { cucumberOpts: defaultCucumberOpts() })
+        expect(contexts.result).toBe(0)
+    })
+
+    test.each([['abc'], [Infinity], [0], [-3], [NaN]])('falls back to a single slot for maxParallelContexts %s', async (value) => {
+        const browser = mockBrowser({ userContexts: true })
+        const { result } = await run(browser, {
+            cucumberOpts: userOpts({ maxParallelContexts: value as unknown as number }),
+        })
+
+        expect(result).toBe(0)
+        // 2 scenarios, 1 slot: the second tab is prefetched during the first scenario
+        expect(browser.browserCreateUserContext).toHaveBeenCalledTimes(2)
+        expect(browser.browserRemoveUserContext).toHaveBeenCalledTimes(2)
+    })
+})
+
+describe('runParallelCucumber run-level behavior', () => {
+    const requireCjs = createRequire(import.meta.url)
+    let reporter: EventEmitter
+    let eventEmitter: EventEmitter
+    let reporterEvents: Array<{ event: string; payload: Record<string, unknown> }>
+    const failing = () => { throw new Error('hook boom') }
+    const passingLibrary = (hooks: { beforeTestRunHooks?: Function[]; afterTestRunHooks?: Function[] } = {}) =>
+        mockSupportCodeLibrary({
+            ...hooks,
+            stepDefinitions: [makeStepDefinition('something', async function () {})],
+        })
+
+    function run(browser: ReturnType<typeof mockBrowser>, supportCodeLibrary: ReturnType<typeof mockSupportCodeLibrary>, cucumberOpts = defaultCucumberOpts(), runner: typeof runParallelCucumber = runParallelCucumber) {
+        return runner({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', ['s1'])],
+            supportCodeLibrary,
+            cucumberOpts,
+        })
+    }
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+        reporter = new EventEmitter()
+        eventEmitter = new EventEmitter()
+        reporterEvents = []
+        reporter.on('test:start', (p) => reporterEvents.push({ event: 'test:start', payload: p }))
+    })
+
+    test('adds one failure and skips scenarios when BeforeAll fails, still running AfterAll', async () => {
+        const browser = mockBrowser()
+        const afterAll = vi.fn()
+        const result = await run(browser, passingLibrary({ beforeTestRunHooks: [failing], afterTestRunHooks: [afterAll] }))
+
+        expect(result).toBe(1)
+        expect(browser.browsingContextCreate).not.toHaveBeenCalled()
+        expect(reporterEvents).toHaveLength(0)
+        expect(afterAll).toHaveBeenCalledTimes(1)
+    })
+
+    test('adds one failure when AfterAll fails', async () => {
+        const browser = mockBrowser()
+        const result = await run(browser, passingLibrary({ afterTestRunHooks: [failing] }))
+
+        expect(result).toBe(1)
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(1)
+    })
+
+    test('adds one failure per failing hook phase', async () => {
+        const result = await run(mockBrowser(), passingLibrary({ beforeTestRunHooks: [failing], afterTestRunHooks: [failing] }))
+        expect(result).toBe(2)
+    })
+
+    test('emits the browsing context id on test:start', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-abc'] })
+        await run(browser, passingLibrary())
+
+        expect(reporterEvents).toHaveLength(1)
+        expect(reporterEvents[0].payload.contextId).toBe('ctx-abc')
+    })
+
+    test('passes snippetInterface and snippetSyntax to the snippet builder', async () => {
+        const builder = requireCjs('@cucumber/cucumber/lib/formatter/builder').default
+        const spy = vi.spyOn(builder, 'getStepDefinitionSnippetBuilder').mockResolvedValue({ build: () => '' })
+        await run(mockBrowser(), passingLibrary(), defaultCucumberOpts({
+            snippetInterface: 'async-await',
+            snippetSyntax: '/custom/syntax.js',
+        }))
+
+        expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+            snippetInterface: 'async-await',
+            snippetSyntax: '/custom/syntax.js',
+        }))
+        spy.mockRestore()
+    })
+
+    test('cleans up the preallocated tab and counts the scenario as skipped when no test case was assembled', async () => {
+        const assembleModule = requireCjs('@cucumber/cucumber/lib/assemble/assemble_test_cases')
+        const spy = vi.spyOn(assembleModule, 'assembleTestCases').mockResolvedValue([])
+        vi.resetModules()
+        const { runParallelCucumber: fresh } = await import('../src/parallel.js')
+        const infoLog = vi.spyOn(logger('@wdio-cucumber-framework:parallel'), 'info')
+        const browser = mockBrowser({ userContexts: true })
+        const result = await run(browser, passingLibrary(), defaultCucumberOpts({ parallelMode: 'userContexts' }), fresh)
+
+        expect(result).toBe(0)
+        expect(browser.browsingContextClose).toHaveBeenCalledWith({ context: 'ctx-0' })
+        expect(browser.browserRemoveUserContext).toHaveBeenCalledWith({ userContext: 'uc-0' })
+        expect(browser.__parallelContexts.size).toBe(0)
+        expect(infoLog).toHaveBeenCalledWith(expect.stringContaining('0 passed, 0 failed, 1 skipped'))
+        spy.mockRestore()
+        infoLog.mockRestore()
+    })
+})
+
+describe('runParallelCucumber worker pool', () => {
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    let reporter: EventEmitter
+    let eventEmitter: EventEmitter
+    const names = (n: number) => Array.from({ length: n }, (_, i) => ({ name: `s${i}`, steps: [`step${i}`] }))
+
+    function run(browser: ReturnType<typeof mockBrowser>, scenarios: ReturnType<typeof names>, bodies: Record<string, () => Promise<void> | void>, max: number, extra: Partial<CucumberOptions> = {}) {
+        return runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [makeFeatureDoc('/test/foo.feature', 'Test', scenarios)],
+            supportCodeLibrary: mockSupportCodeLibrary({
+                stepDefinitions: Object.entries(bodies).map(([text, fn]) => makeStepDefinition(text, fn)),
+            }),
+            cucumberOpts: defaultCucumberOpts({ maxParallelContexts: max, ...extra }),
+        })
+    }
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+        reporter = new EventEmitter()
+        eventEmitter = new EventEmitter()
+    })
+
+    test('never runs more scenarios than maxParallelContexts and keeps live tabs bounded', async () => {
+        let inFlight = 0
+        let maxInFlight = 0
+        const bodies: Record<string, () => Promise<void>> = {}
+        for (let i = 0; i < 8; i++) {
+            bodies[`step${i}`] = async () => {
+                maxInFlight = Math.max(maxInFlight, ++inFlight)
+                await sleep(5)
+                inFlight--
+            }
+        }
+        const browser = mockBrowser()
+        let live = 0
+        let maxLive = 0
+        browser.browsingContextCreate.mockImplementation(async () => ({ context: `ctx-${maxLive = Math.max(maxLive, ++live)}-${Math.random()}` }))
+        browser.browsingContextClose.mockImplementation(async () => { live-- })
+
+        const { result } = await run(browser, names(8), bodies, 2)
+
+        expect(result).toBe(0)
+        expect(maxInFlight).toBe(2)
+        expect(maxLive).toBeLessThanOrEqual(4)
+        expect(live).toBe(0)
+    })
+
+    test('a slow scenario does not block other slots', async () => {
+        const finished: string[] = []
+        const mk = (n: string, ms: number) => async () => { await sleep(ms); finished.push(n) }
+        const { result } = await run(
+            mockBrowser(), names(4),
+            { step0: mk('slow', 80), step1: mk('f1', 5), step2: mk('f2', 5), step3: mk('f3', 5) },
+            2
+        )
+        expect(result).toBe(0)
+        expect(finished).toEqual(['f1', 'f2', 'f3', 'slow'])
+    })
+
+    test('all closes finish before resolving, even when a scenario fails', async () => {
+        const browser = mockBrowser()
+        let closed = 0
+        browser.browsingContextClose.mockImplementation(async () => { await sleep(20); closed++ })
+        const { result } = await run(browser, names(3), {
+            step0: () => { throw new Error('boom') }, step1: () => {}, step2: () => {},
+        }, 2)
+
+        expect(result).toBe(1)
+        expect(closed).toBe(browser.browsingContextCreate.mock.calls.length)
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('does not wait for a close before starting the next scenario on that slot', async () => {
+        const browser = mockBrowser()
+        browser.browsingContextClose.mockImplementation(async () => { await sleep(60) })
+        const starts: number[] = []
+        const t0 = Date.now()
+        const body = () => { starts.push(Date.now() - t0) }
+        await run(browser, names(2), { step0: body, step1: body }, 1)
+
+        expect(starts[1] - starts[0]).toBeLessThan(40)
+    })
+
+    test('keeps close-before-remove order per allocation with concurrent slots in userContexts mode', async () => {
+        const order: string[] = []
+        const browser = mockBrowser({ userContexts: true })
+        const ownerOf = new Map<string, string>()
+        browser.browsingContextCreate.mockImplementation(async ({ userContext }: any) => {
+            const context = `ctx-of-${userContext}`
+            ownerOf.set(context, userContext)
+            return { context }
+        })
+        browser.browsingContextClose.mockImplementation(async ({ context }: any) => {
+            await sleep(5)
+            order.push(`${ownerOf.get(context)}:close`)
+        })
+        browser.browserRemoveUserContext!.mockImplementation(async ({ userContext }: any) => { order.push(`${userContext}:remove`) })
+        await run(browser, names(3), { step0: () => {}, step1: () => {}, step2: () => {} }, 2, { parallelMode: 'userContexts' })
+
+        const userContexts = [...ownerOf.values()]
+        expect(userContexts.length).toBeGreaterThanOrEqual(3)
+        for (const uc of userContexts) {
+            expect(order.indexOf(`${uc}:close`)).toBeGreaterThanOrEqual(0)
+            expect(order.indexOf(`${uc}:close`)).toBeLessThan(order.indexOf(`${uc}:remove`))
+        }
+    })
+
+    test('cleans up prefetched allocations that no scenario ends up using', async () => {
+        const browser = mockBrowser()
+        await run(browser, names(3), { step0: () => {}, step1: () => {}, step2: () => {} }, 2)
+
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('a failed prefetch is thrown after cleanup without leaking tabs', async () => {
+        const browser = mockBrowser()
+        let n = 0
+        browser.browsingContextCreate.mockImplementation(async () => {
+            if (n++ === 1) { throw new Error('prefetch failed') }
+            return { context: `ctx-${n}` }
+        })
+        const { error } = await run(browser, names(2), { step0: () => {}, step1: () => {} }, 1)
+
+        expect(error?.message).toBe('prefetch failed')
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(1)
+        expect(browser.__parallelContexts.size).toBe(0)
     })
 })
