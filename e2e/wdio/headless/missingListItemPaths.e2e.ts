@@ -129,15 +129,11 @@ describe('an index that the list never reaches, by entry path', () => {
     })
 
     const item = (value: unknown): [Item] => [value as Item]
-    /**
-     * the type of a pending list has no `at()` and no `slice()`, but the list has them
-     */
-    const list = (selector: string) => browser.$$(selector) as unknown as WebdriverIO.ElementArray
     const ENTRIES: Array<[string, () => Promise<[Item]> | [Item], Row, { bidiOnly?: boolean }?]> = [
         ['reference: $(\'#missing\')', () => item(browser.$('#missing')), REFERENCE],
         ['$$(selector)[5]', () => item(browser.$$('#list li')[5]), NOT_FOUND_ITEM],
         ['(await $$(selector))[5]', async () => item((await browser.$$('#list li'))[5]), NOT_FOUND_ITEM],
-        ['$$(selector).at(5)', () => item(list('#list li').at(5)), NOT_FOUND_ITEM],
+        ['$$(selector).at(5)', () => item(browser.$$('#list li').at(5)), NOT_FOUND_ITEM],
         ['(await $$(selector)).at(5)', async () => item((await browser.$$('#list li')).at(5)), NOT_FOUND_ITEM],
         ['$$(selector)[0] of an empty list', () => item(browser.$$('#none li')[0]), NOT_FOUND_ITEM],
         ['$$(xpath)[5]', () => item(browser.$$('//ul[@id="list"]/li')[5]), NOT_FOUND_ITEM],
@@ -164,9 +160,9 @@ describe('an index that the list never reaches, by entry path', () => {
          * current behavior, a follow-up changes it: a derived list and a negative index
          * give no item
          */
-        ['$$(selector).slice(0, 2)[3]', () => item(list('#list li').slice(0, 2)[3]), NO_ITEM('Element could not be found')],
+        ['$$(selector).slice(0, 2)[3]', () => item(browser.$$('#list li').slice(0, 2)[3]), NO_ITEM('Element could not be found')],
         ['(await $$(selector).filter(fn))[3]', async () => item((await browser.$$('#list li').filter(() => true))[3]), NO_ITEM('the item is undefined')],
-        ['$$(selector).at(-5)', () => item(list('#list li').at(-5)), NO_ITEM('Element could not be found')],
+        ['$$(selector).at(-5)', () => item(browser.$$('#list li').at(-5)), NO_ITEM('Element could not be found')],
         /**
          * the same as a child of a missing element, `$('#missing').$('li')` (#13253)
          */
