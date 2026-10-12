@@ -301,6 +301,38 @@ describe('CucumberFormatter', () => {
             eventBroadcaster.emit('envelope', { testRunFinished })
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
+
+        /**
+         * the scenario is the test: its end event has the title, type and parent of
+         * its start event, also when the scenario is pending
+         */
+        function finishScenarioWith (status: string) {
+            const step: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            ;(step.testStepResult as { status: string }).status = status
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            const [, started] = wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:start')
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: step })
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('envelope', { testCaseFinished })
+            return { started, finished: wdioReporter.emit.mock.calls[0] }
+        }
+
+        it('keeps the scenario title of a pending scenario', () => {
+            const { started, finished: [event, payload] } = finishScenarioWith('PENDING')
+            expect(event).toBe('test:pending')
+            expect(payload).toMatchObject({ uid: started.uid, title: 'Get size of an element', type: 'scenario', parent: started.parent })
+        })
+
+        it('names the scenario in the error of an undefined step', () => {
+            const { finished: [event, payload] } = finishScenarioWith('UNDEFINED')
+            expect(event).toBe('test:fail')
+            expect(payload.title).toBe('Get size of an element')
+            expect(payload.error.message).toContain('Scenario Get size of an element has undefined steps.')
+        })
     })
 
     describe('provides a fail counter', () => {

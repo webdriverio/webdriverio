@@ -420,15 +420,12 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
   [
     "test:pass",
     {
-      "argument": undefined,
       "cid": "0-1",
       "error": undefined,
-      "featureName": "Example feature",
       "file": "/some/path/to/features/my-feature.feature",
-      "fullTitle": "0: Undefined Step",
-      "parent": "0",
+      "fullTitle": "my-feature.feature:3:1: Get size of an element",
+      "parent": "my-feature.feature:3:1",
       "passed": true,
-      "scenarioName": "Get size of an element",
       "specs": [
         "/foobar.js",
       ],
@@ -455,8 +452,8 @@ exports[`CucumberFormatter > emits messages for certain cucumber events when exe
           "name": "@scenario-tag2",
         },
       ],
-      "title": "Undefined Step",
-      "type": "step",
+      "title": "Get size of an element",
+      "type": "scenario",
       "uid": "0",
     },
   ],

@@ -181,11 +181,14 @@ export default class CucumberFormatter extends Formatter {
         this.emit('hook:end', payload)
     }
 
+    /**
+     * @param step  the step, or `undefined` for a scenario that is reported as a test (`scenarioLevelReporter`)
+     */
     afterTest(
         uri: string,
         feature: Feature,
         scenario: Pickle,
-        step: PickleStep,
+        step: PickleStep | undefined,
         result: TestStepResult
     ) {
         let state = convertStatus(result.status)
@@ -216,7 +219,7 @@ export default class CucumberFormatter extends Formatter {
                 if (featChildren) {
                     err.stack += `\tat Scenario(${featChildren.scenario?.name}):${featChildren.scenario?.location?.line}:${featChildren.scenario?.location?.column}\n`
 
-                    const featStep = featChildren.scenario?.steps?.find(s => step.astNodeIds && s.id === step.astNodeIds[0])
+                    const featStep = featChildren.scenario?.steps?.find(s => step?.astNodeIds && s.id === step.astNodeIds[0])
                     if (featStep) {
                         err.stack += `\tat Step(${featStep.text}):${featStep.location?.line}:${featStep.location?.column}\n`
                     }
@@ -555,7 +558,11 @@ export default class CucumberFormatter extends Formatter {
         }
 
         if (this.scenarioLevelReporter) {
-            return this.afterTest(uri as string, feature as Feature, scenario, { id: scenario.id } as PickleStep, finalResult as TestStepResult)
+            /**
+             * no step: the end event has the title, type and parent of the scenario,
+             * as its `test:start` event
+             */
+            return this.afterTest(uri as string, feature as Feature, scenario, undefined, finalResult as TestStepResult)
         }
         this.emit('suite:end', payload)
     }
