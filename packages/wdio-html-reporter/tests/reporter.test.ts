@@ -1,0 +1,127 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import type { TestStats } from '@wdio/reporter'
+
+import { HtmlReporter, ReportAggregator, ReportEvents } from '../src/index.js'
+import { RUNNER, SUITES } from './testdata.js'
+
+/**
+ * The reporter joins `process.cwd()` and `outputDir`, so `outputDir` must be
+ * relative. Vitest runs from the repository root.
+ */
+const outputRoot = path.join('packages', 'wdio-html-reporter', 'tests', '.reports')
+const outputDir = path.join(outputRoot, 'valid') + path.sep
+const emptyOutputDir = path.join(outputRoot, 'empty') + path.sep
+
+const eventsOf = (test: TestStats) => (test as TestStats & { events: { type: string, value: unknown }[] }).events
+
+describe('HtmlReporter', () => {
+    let htmlReporter: HtmlReporter
+
+    beforeAll(() => {
+        fs.rmSync(outputRoot, { recursive: true, force: true })
+        fs.mkdirSync(outputRoot, { recursive: true })
+        htmlReporter = new HtmlReporter({
+            logFile: path.join(outputRoot, 'reporter.log'),
+            outputDir,
+            filename: 'report.html',
+            reportTitle: 'Unit Test Report Title',
+            browserName: 'dummy'
+        } as never)
+    })
+
+    afterAll(() => {
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        fs.rmSync(outputRoot, { recursive: true, force: true })
+    })
+
+    it('has the initial properties', () => {
+        expect(htmlReporter._suiteUids.size).toBe(0)
+        expect(htmlReporter._indents).toBe(0)
+        expect(htmlReporter._suiteIndents).toEqual({})
+        expect(htmlReporter.defaultTestIndent).toBe('   ')
+        expect(htmlReporter.metrics).toEqual({ passed: 0, skipped: 0, failed: 0, duration: 0 })
+    })
+
+    it('sets the cid on runner start', () => {
+        htmlReporter.onRunnerStart(RUNNER)
+        expect(htmlReporter._currentCid).toBe(RUNNER.cid)
+    })
+
+    it('adds the suite on suite start', () => {
+        htmlReporter.onSuiteStart(SUITES[0])
+        expect(htmlReporter._suiteUids.size).toBe(1)
+        expect(htmlReporter._currentSuiteUid).toBe('Foo test1')
+        expect(htmlReporter._suiteIndents['Foo test1']).toBe(1)
+    })
+
+    it('counts passed, failed and skipped tests', () => {
+        const [passed, failed, skipped] = SUITES[0].tests
+        htmlReporter.onTestStart(passed)
+        htmlReporter.onTestPass(passed)
+        htmlReporter.onTestEnd(passed)
+        htmlReporter.onTestStart(failed)
+        htmlReporter.onTestFail(failed)
+        htmlReporter.onTestEnd(failed)
+        htmlReporter.onTestStart(skipped)
+        htmlReporter.onTestSkip(skipped)
+        htmlReporter.onTestEnd(skipped)
+        expect(htmlReporter.metrics).toMatchObject({ passed: 1, failed: 1, skipped: 1 })
+    })
+
+    it('adds logs, screenshots and videos sent with ReportEvents to the current test', () => {
+        const test = SUITES[0].tests[2]
+        new ReportEvents()
+            .logMessage('a log line')
+            .logScreenshot('shot.png')
+            .videoCapture('video.webm')
+        expect(eventsOf(test).map((event) => [event.type, event.value])).toEqual([
+            ['log', 'a log line'],
+            ['screenshot', 'shot.png'],
+            ['video-capture', 'video.webm']
+        ])
+    })
+
+    it('decreases the indent on suite end', () => {
+        htmlReporter.onSuiteEnd(SUITES[0])
+        expect(htmlReporter._indents).toBe(0)
+        expect(htmlReporter._suiteUids.size).toBe(1)
+    })
+
+    it('writes the JSON of the worker on runner end, and the aggregator creates the HTML report', async () => {
+        await htmlReporter.onRunnerEnd(RUNNER)
+        const reportAggregator = new ReportAggregator({
+            outputDir,
+            filename: 'master-report.html',
+            reportTitle: 'Master Report',
+            browserName: 'test browser',
+            produceJson: true
+        } as never)
+        expect(reportAggregator.readJsonFiles()).toHaveLength(1)
+
+        await reportAggregator.createReport()
+
+        expect(reportAggregator.reportFile).toBe(path.join(process.cwd(), outputDir, 'master-report.html'))
+        const html = fs.readFileSync(reportAggregator.reportFile, 'utf-8')
+        expect(html).toContain('Master Report')
+        expect(html).toContain('Foo test')
+        expect(fs.existsSync(path.join(outputDir, 'report-styles.css'))).toBe(true)
+    })
+
+    it('creates a report when no worker wrote a JSON file', async () => {
+        fs.mkdirSync(emptyOutputDir, { recursive: true })
+        const reportAggregator = new ReportAggregator({
+            outputDir: emptyOutputDir,
+            filename: 'master-report.html',
+            reportTitle: 'Empty Report',
+            browserName: 'test browser'
+        } as never)
+
+        await reportAggregator.createReport()
+
+        expect(fs.readFileSync(reportAggregator.reportFile, 'utf-8')).toContain('Empty Report')
+    })
+})

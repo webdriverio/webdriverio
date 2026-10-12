@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{title}}">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="report-styles.css">
+</head>
+
+{% from "suite.njk" import renderSuite %}
+
+<body>
+
+<div class="container">
+
+    <div id="wdio-html-report" class="page-header"><h1>{{title}}</h1></div>
+
+    <h2>Summary</h2>
+    <table class="table">
+        <thead>
+        <th>Key</th>
+        <th>Value</th>
+        </thead>
+
+        <tbody>
+        <tr>
+            <td>Browser</td>
+            <td>{{browserName}}</td>
+        </tr>
+
+        <tr>
+            <td>Start</td>
+            <td>{{metrics.start}}</td>
+        </tr>
+        <tr>
+            <td>End</td>
+            <td>{{metrics.end}}</td>
+        </tr>
+        <tr>
+            <td>Duration</td>
+            <td>{{ humanizeDuration(metrics.duration) }}</td>
+        </tr>
+        <tr>
+            <td>Breakdown</td>
+            <td>
+                <table class="table table-bordered">
+                    <tr>
+                        <td class='test-pass'>Tests Passed</td>
+                        <td class='test-skipped'>Tests Skipped</td>
+                        <td class='test-fail'>Test Failures</td>
+                    </tr>
+                    <tr>
+                        <td>{{metrics.passed}}</td>
+                        <td>{{metrics.skipped}}</td>
+                        <td>{{metrics.failed}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    
+    <div class="filter-panel">
+        <span class="filter toggleFailingSuites"><span>Hide</span> Failing Suites</span>
+        <span class="filter togglePassingSuites"><span>Hide</span> Passing Suites</span>
+        <span class="filter toggleFailingTests"><span>Hide</span> Failing Tests</span>
+        <span class="filter togglePassingTests"><span>Hide</span> Passing Tests</span>
+    </div>
+                
+    <h2>Results</h2>
+
+    <table>
+        <tr>
+          <td>
+</div>
+
+<script>
+
+    window.addEventListener("load", (event) => {
+        /*
+            Helper functions
+        */
+        //Next Until - jQuery
+        let nextUntil = (elem, selector, filter) => {
+            var siblings = [];
+            elem = elem.nextElementSibling;
+
+            while (elem) {
+                if (elem.matches(selector)) break;
+                if (filter && !elem.matches(filter)) {
+                    elem = elem.nextElementSibling;
+                    continue;
+                }
+                siblings.push(elem);
+                elem = elem.nextElementSibling;
+            }
+
+            return siblings;
+        };
+
+        //Slide Toggle - jQuery
+        let slideUp = (target, duration = 500) => {
+            target.style.transitionProperty = 'height, margin, padding';
+            target.style.transitionDuration = duration + 'ms';
+            target.style.boxSizing = 'border-box';
+            target.style.height = target.offsetHeight + 'px';
+            target.offsetHeight;
+            target.style.overflow = 'hidden';
+            target.style.height = 0;
+            target.style.paddingTop = 0;
+            target.style.paddingBottom = 0;
+            target.style.marginTop = 0;
+            target.style.marginBottom = 0;
+            window.setTimeout(() => {
+                target.style.display = 'none';
+                target.style.removeProperty('height');
+                target.style.removeProperty('padding-top');
+                target.style.removeProperty('padding-bottom');
+                target.style.removeProperty('margin-top');
+                target.style.removeProperty('margin-bottom');
+                target.style.removeProperty('overflow');
+                target.style.removeProperty('transition-duration');
+                target.style.removeProperty('transition-property');
+                //alert("!");
+            }, duration);
+        }
+
+        let slideDown = (target, duration = 500) => {
+            target.style.removeProperty('display');
+            let display = window.getComputedStyle(target).display;
+
+            if (display === 'none')
+                display = 'block';
+
+            target.style.display = display;
+            let height = target.offsetHeight;
+            target.style.overflow = 'hidden';
+            target.style.height = 0;
+            target.style.paddingTop = 0;
+            target.style.paddingBottom = 0;
+            target.style.marginTop = 0;
+            target.style.marginBottom = 0;
+            target.offsetHeight;
+            target.style.boxSizing = 'border-box';
+            target.style.transitionProperty = "height, margin, padding";
+            target.style.transitionDuration = duration + 'ms';
+            target.style.height = height + 'px';
+            target.style.removeProperty('padding-top');
+            target.style.removeProperty('padding-bottom');
+            target.style.removeProperty('margin-top');
+            target.style.removeProperty('margin-bottom');
+            window.setTimeout(() => {
+                target.style.removeProperty('height');
+                target.style.removeProperty('overflow');
+                target.style.removeProperty('transition-duration');
+                target.style.removeProperty('transition-property');
+            }, duration);
+        }
+        let slideToggle = (target, duration = 500) => {
+            if (window.getComputedStyle(target).display === 'none') {
+                return slideDown(target, duration);
+            } else {
+                return slideUp(target, duration);
+            }
+        }
+
+        //Parents - jQuery
+        let getParents = (el, parentSelector) => {
+            if (parentSelector === undefined) {
+                parentSelector = document;
+            }
+            var parents = [];
+            var p = el.parentNode;
+            while (p && p !== parentSelector) {
+                var o = p;
+                parents.push(o);
+                p = o.parentNode;
+            }
+            parents.push(parentSelector);
+            return parents;
+        }
+        let toggleVisibilityText = (selector) => {
+            if (selector.innerText == 'Show') {
+                selector.innerText = 'Hide';
+            } else {
+                selector.innerText = 'Show';
+            }
+        }
+        /*
+            DOM Manipulations
+        */
+        // increase/decrease size of screenshot
+        document.querySelectorAll('.screenshot').forEach(elem => {
+            elem.addEventListener('click', event => {
+                event.currentTarget.classList.toggle('screenshot-large');
+                event.currentTarget.classList.toggle('screenshot-small');
+            });
+        });
+
+        //setup the suites/scenarios
+        document.querySelectorAll('.suite-header').forEach(elem => {
+            Array.from(elem.children).filter((child) => {
+                if (!child.classList.contains('suite-unknown')) {
+                    nextUntil(elem, '.suite-header').forEach(item => {
+                        slideDown(item, 100);
+                    });
+                }
+            });
+        });
+
+        //hide the suites/scenarios
+        document.querySelectorAll('.suite-header').forEach(elem => {
+            elem.addEventListener('click', event => {
+                Array.from(event.currentTarget.children).filter(child => {
+                    if (!child.classList.contains('suite-unknown')) {
+                        elem.querySelector('span').classList.toggle('glyphicon-chevron-up');
+                        elem.querySelector('span').classList.toggle('glyphicon-chevron-down');
+                        nextUntil(elem, '.suite-header').forEach(item => {
+                            slideToggle(item, 100);
+                        })
+                    }
+                })
+            })
+        });
+
+        document.querySelectorAll('.test-header').forEach(elem => {
+            Array.from(elem.children).filter(child => {
+                if (!child.classList.contains('test-unknown')) {
+                    nextUntil(elem, '.test-header').forEach(item => {
+                        slideDown(item, 100);
+                    })
+                }
+            })
+        })
+
+        //hide the test steps
+        document.querySelectorAll('.test-header').forEach(elem => {
+            elem.addEventListener('click', event => {
+                Array.from(elem.children).filter(child => {
+                    if (!child.classList.contains('test-unknown')) {
+                        elem.querySelector('.test-expand').classList.toggle('glyphicon-chevron-up');
+                        elem.querySelector('.test-expand').classList.toggle('glyphicon-chevron-down');
+                        nextUntil(elem, '.test-header').forEach(item => {
+                            slideToggle(item, 100);
+                        })
+                    }
+                })
+            })
+        });
+
+        document.querySelector('.toggleFailingSuites').addEventListener('click', event => {
+            document.querySelectorAll('.suite-fail').forEach(item => {
+                if (item.parentElement.querySelector('span').classList.contains('glyphicon-chevron-up')) {
+                    item.parentElement.querySelector('span').classList.toggle('glyphicon-chevron-up');
+                    item.parentElement.querySelector('span').classList.toggle('glyphicon-chevron-down');
+                    nextUntil(item.parentElement, '.suite-header').forEach(elItem => {
+                        slideUp(elItem, 100);
+                    })
+                }
+                slideToggle(item, 100);
+            });
+
+            let showHideTxt = event.currentTarget.querySelector('span');
+            toggleVisibilityText(showHideTxt) ;
+
+            event.currentTarget.classList.toggle('filter');
+            event.currentTarget.classList.toggle('filterOff');
+        });
+
+        document.querySelector('.togglePassingSuites').addEventListener('click', event => {
+            document.querySelectorAll('.suite-pass').forEach(item => {
+                if (item.parentElement.querySelector('span').classList.contains('glyphicon-chevron-up')) {
+                    item.parentElement.querySelector('span').classList.toggle('glyphicon-chevron-up');
+                    item.parentElement.querySelector('span').classList.toggle('glyphicon-chevron-down');
+                    nextUntil(item.parentElement, '.suite-header').forEach(elItem => {
+                        slideUp(elItem, 100);
+                    })
+                }
+                slideToggle(item, 100);
+            });
+
+            let showHideTxt = event.currentTarget.querySelector('span');
+            toggleVisibilityText(showHideTxt) ;
+            event.currentTarget.classList.toggle('filter');
+            event.currentTarget.classList.toggle('filterOff');
+        });
+
+        document.querySelector('.togglePassingTests').addEventListener('click', event => {
+            document.querySelectorAll('.test-pass').forEach(item => {
+                if (item.parentElement.querySelector('span')) {
+                    if (item.parentElement.querySelector('span').classList.contains('glyphicon-chevron-up')) {
+                        item.parentElement.querySelector('span').classList.toggle('glyphicon-chevron-up');
+                        item.parentElement.querySelector('span').classList.toggle('glyphicon-chevron-down');
+                        nextUntil(item.parentElement, '.test-header').forEach(elItem => {
+                            slideUp(elItem, 100);
+                        })
+                    }
+                    slideToggle(item, 100);
+                }
+            });
+
+            // Hide also all passed suites - they include only passed tests
+            document.querySelectorAll('.suite-pass').forEach(item => {
+                if (item.parentElement.querySelector('span').classList.contains('glyphicon-chevron-up')) {
+                    item.parentElement.querySelector('span').classList.toggle('glyphicon-chevron-up');
+                    item.parentElement.querySelector('span').classList.toggle('glyphicon-chevron-down');
+                    nextUntil(item.parentElement, '.suite-header').forEach(elItem => {
+                        slideUp(elItem, 100);
+                    })
+                }
+                slideToggle(item, 100);
+            });
+
+            let showHideTxt = event.currentTarget.querySelector('span');
+            toggleVisibilityText(showHideTxt) ;
+            event.currentTarget.classList.toggle('filter');
+            event.currentTarget.classList.toggle('filterOff');
+        });
+        document.querySelector('.toggleFailingTests').addEventListener('click', event => {
+            document.querySelectorAll('.test-fail').forEach(item => {
+                if (item.parentElement.querySelector('span')) {
+                    if (item.parentElement.querySelector('span').classList.contains('glyphicon-chevron-up')) {
+                        item.parentElement.querySelector('span').classList.toggle('glyphicon-chevron-up');
+                        item.parentElement.querySelector('span').classList.toggle('glyphicon-chevron-down');
+                        nextUntil(item.parentElement, '.test-header').forEach(elItem => {
+                            slideUp(elItem, 100);
+                        })
+                    }
+                    slideToggle(item, 100);
+                }
+            });
+
+            // Note: do not need to hide failed suites - they can include passed tests
+
+            let showHideTxt = event.currentTarget.querySelector('span');
+            toggleVisibilityText(showHideTxt) ;
+            event.currentTarget.classList.toggle('filter');
+            event.currentTarget.classList.toggle('filterOff');
+        });
+
+        document.querySelectorAll('.expandable-control').forEach(item => {
+            item.addEventListener('click', event => {
+                event.currentTarget.querySelector('span').classList.toggle('glyphicon-chevron-down');
+                event.currentTarget.querySelector('span').classList.toggle('glyphicon-chevron-up');
+                let panel = event.currentTarget.nextElementSibling.querySelector('.pre.stack.panel');
+                slideToggle(panel, 100);
+            });
+        });
+
+        if ({{ ifCollapseTests() }}) {
+            document.querySelectorAll('.test-header').forEach(item => {
+                item.click();
+            });
+        }
+        if ({{ ifCollapseSuites() }}) {
+            document.querySelectorAll('.suite-header').forEach(item => {
+                item.click();
+            });
+        }
+    }, false);
+</script>
+</body>
+</html>

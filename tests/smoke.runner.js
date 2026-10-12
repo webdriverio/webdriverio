@@ -689,6 +689,23 @@ const reporterTestrunner = async () => {
 }
 
 /**
+ * wdio test run with @wdio/html-reporter: each worker writes a JSON file and
+ * the ReportAggregator in `onComplete` creates the HTML report
+ */
+const htmlReporter = async () => {
+    const basePath = path.resolve(__dirname, 'html-reporter')
+    const { passed } = await launch('htmlReporter', path.resolve(basePath, 'html-reporter.conf.js'))
+    assert.strictEqual(passed, 1)
+    const outDir = path.join(basePath, 'out')
+    const html = await fs.readFile(path.join(outDir, 'master-report.html'), 'utf-8')
+    for (const text of ['Smoke Master Report', 'html reporter', 'reports a passing test with a log line', 'a message from the test']) {
+        assert.ok(html.includes(text), `master-report.html does not contain "${text}"`)
+    }
+    await fs.access(path.join(outDir, 'report-styles.css'))
+    await fs.rm(outDir, { recursive: true, force: true })
+}
+
+/**
  * wdio test run with before/after Test/Hook
  */
 const wdioHooks = async () => {
@@ -1373,6 +1390,7 @@ const jasmineAfterHookArgsValidation = async () => {
         customReporterObject,
         sessionGoneReport,
         reporterTestrunner,
+        htmlReporter,
         severeErrorTest,
         nonGlobalTestrunner,
         mochaHooksTestrunner,

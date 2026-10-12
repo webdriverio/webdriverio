@@ -1,0 +1,118 @@
+WebdriverIO HTML Reporter
+=========================
+
+> A WebdriverIO reporter that creates an HTML report
+
+Each worker writes a JSON file of its results. The `ReportAggregator` then creates one HTML report for all workers, with logs, screenshots and videos for each test.
+
+This package was [`wdio-html-nice-reporter`](https://github.com/rpii/wdio-html-reporter) by Rich Peters.
+
+## Installation
+
+The easiest way is to keep `@wdio/html-reporter` as a devDependency in your `package.json`, via:
+
+```sh
+npm install @wdio/html-reporter --save-dev
+```
+
+Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted).
+
+## Configuration
+
+Add the reporter to the `reporters` array, and create the full report in the `onPrepare` and `onComplete` hooks:
+
+```ts
+// wdio.conf.ts
+import { ReportAggregator } from '@wdio/html-reporter'
+
+let reportAggregator: ReportAggregator
+
+export const config: WebdriverIO.Config = {
+    // ...
+    reporters: ['spec',
+        ['html', {
+            outputDir: './reports/html-reports/',
+            filename: 'report.html',
+            reportTitle: 'Test Report Title',
+            linkScreenshots: true,
+            // show the report in a browser when it is done
+            showInBrowser: true,
+            collapseTests: false,
+            // take a screenshot after each screenshot command
+            useOnAfterCommandForScreenshot: false
+        }]
+    ],
+
+    onPrepare: function (config, capabilities) {
+        reportAggregator = new ReportAggregator({
+            outputDir: './reports/html-reports/',
+            filename: 'master-report.html',
+            reportTitle: 'Master Report',
+            browserName: 'chrome',
+            collapseTests: true
+        })
+        reportAggregator.clean()
+    },
+
+    onComplete: async function () {
+        await reportAggregator.createReport()
+    }
+}
+```
+
+`outputDir` must be a path relative to the folder where you start WebdriverIO.
+
+## Options
+
+| Option | Default | Description |
+|---|---|---|
+| `outputDir` | `reports/html-reports/` | Folder of the JSON files and the report. Relative to the current working folder. |
+| `filename` | `report.html` | File name of the report. |
+| `reportTitle` | `Test Report Title` | Title of the report. |
+| `showInBrowser` | `false` | Open the report in a browser when it is done (`ReportAggregator` only). |
+| `collapseTests` | `false` | Collapse the tests in the report. |
+| `collapseSuites` | `false` | Collapse the suites in the report. |
+| `useOnAfterCommandForScreenshot` | `false` | Add the result of each screenshot command to the current test. |
+| `linkScreenshots` | `false` | Link the screenshots in the report. If `false`, the report includes them as base64 data. |
+| `browserName` | `not specified` | Browser name to show in the report. The browser is not known when the configuration loads, so set it yourself. |
+| `removeOutput` | `true` | Remove the console output of the tests from the JSON files. |
+| `produceJson` | `true` | Write the JSON file of each worker. The `ReportAggregator` needs these files. |
+
+## Logs, screenshots and videos
+
+Send messages, screenshots and videos from your tests to the current test of the report with `ReportEvents`:
+
+```ts
+import { ReportEvents } from '@wdio/html-reporter'
+
+const reportEvents = new ReportEvents()
+
+it('logs in', async () => {
+    reportEvents.logMessage('Show the login screen')
+    const file = './reports/html-reports/screenshots/login.png'
+    await browser.saveScreenshot(file)
+    reportEvents.logScreenshot(file)
+})
+```
+
+`ReportEvents` sends the same events as [`@rpii/wdio-report-events`](https://www.npmjs.com/package/@rpii/wdio-report-events), so tests that use that package still work.
+
+[`@wdio/video-reporter`](https://webdriver.io/docs/video-reporter) sends the video of each test to this reporter. Set the same `outputDir` for both reporters.
+
+## Create the report from the command line
+
+If the report is not created in `onComplete` (for example with some Cucumber or Jasmine setups), create it after the test run:
+
+```sh
+node node_modules/@wdio/html-reporter/build/makeReport.js master-report.html
+```
+
+The script reads the JSON files in `./reports/html-reports/`.
+
+## PDF report
+
+To create a PDF file from the report, see [`@rpii/wdio-html-reporter-pdf`](https://www.npmjs.com/package/@rpii/wdio-html-reporter-pdf).
+
+## Older WebdriverIO Versions
+
+This package supports WebdriverIO v10 and later. For WebdriverIO v9, use [`wdio-html-nice-reporter`](https://www.npmjs.com/package/wdio-html-nice-reporter). For v9, its reporter name is `html-nice`. For v10, the name is `html`.
