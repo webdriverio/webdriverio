@@ -1,0 +1,94 @@
+import fs from 'node:fs'
+import { AstBuilder, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherkin'
+
+export interface StepLine {
+    text: string
+    line: number
+}
+
+export interface ScenarioLines {
+    name: string
+    line: number
+    steps: StepLine[]
+}
+
+export interface FeatureLines {
+    background: StepLine[]
+    scenarios: ScenarioLines[]
+}
+
+interface GherkinStep { text: string, location: { line: number } }
+interface GherkinScenario { name: string, location: { line: number }, steps: readonly GherkinStep[] }
+interface GherkinChild {
+    background?: GherkinScenario
+    scenario?: GherkinScenario
+    rule?: { children: readonly GherkinChild[] }
+}
+
+const toSteps = (steps: readonly GherkinStep[]) => steps.map((step) => ({ text: step.text, line: step.location.line }))
+
+/**
+ * Read the line numbers of the scenarios and steps of a feature file. WebdriverIO
+ * does not report them, and the Cucumber JSON format has them.
+ * @returns `undefined` if the file cannot be read or parsed
+ */
+export function readFeatureLines (file: string, language: string): FeatureLines | undefined {
+    try {
+        let id = 0
+        const parser = new Parser(new AstBuilder(() => String(id++)), new GherkinClassicTokenMatcher(language))
+        const document = parser.parse(fs.readFileSync(file, 'utf-8'))
+        const lines: FeatureLines = { background: [], scenarios: [] }
+        const walk = (children: readonly GherkinChild[]) => {
+            for (const child of children) {
+                if (child.rule) {
+                    walk(child.rule.children)
+                } else if (child.background) {
+                    lines.background.push(...toSteps(child.background.steps))
+                } else if (child.scenario) {
+                    const { name, location, steps } = child.scenario
+                    lines.scenarios.push({ name, line: location.line, steps: toSteps(steps) })
+                }
+            }
+        }
+        walk((document.feature?.children ?? []) as readonly GherkinChild[])
+        return lines
+    } catch {
+        return undefined
+    }
+}
+
+/**
+ * `true` if the text matches the template of a scenario outline (`<name>` parts
+ * are the values of the examples)
+ */
+function matchesTemplate (template: string, text: string) {
+    if (template === text) {
+        return true
+    }
+    if (!template.includes('<')) {
+        return false
+    }
+    const pattern = template
+        .split(/<[^>]+>/)
+        .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join('.*')
+    return new RegExp(`^${pattern}$`).test(text)
+}
+
+export function findScenarioLines (lines: FeatureLines, name: string) {
+    return lines.scenarios.find((scenario) => scenario.name === name) ??
+        lines.scenarios.find((scenario) => matchesTemplate(scenario.name, name))
+}
+
+/**
+ * Line of the next step with this text that was not used yet: the background
+ * steps first, then the steps of the scenario
+ */
+export function findStepLine (lines: FeatureLines, scenario: ScenarioLines, text: string, usedLines: Set<number>) {
+    const step = [...lines.background, ...scenario.steps]
+        .find((candidate) => !usedLines.has(candidate.line) && matchesTemplate(candidate.text, text))
+    if (step) {
+        usedLines.add(step.line)
+    }
+    return step?.line
+}

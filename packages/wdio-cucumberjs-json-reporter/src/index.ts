@@ -17,6 +17,7 @@ import {
 } from './constants.js'
 import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
+import { findScenarioLines, findStepLine, readFeatureLines, type FeatureLines, type ScenarioLines } from './featureLines.js'
 import { containsSteps, keywordStartsWith, getFailedMessage } from './utils.js'
 import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
@@ -27,6 +28,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     public instanceMetadata: MetadataObject | null
     public report: Report
     public metadataClassObject: Metadata
+    #featureLines?: FeatureLines
+    /** line data of each scenario of the report, and the step lines it used */
+    #scenarioLines = new WeakMap<Scenario, { lines: ScenarioLines, usedLines: Set<number> }>()
 
     public constructor(public options: CucumberJsJsonReporterInterface) {
         super(options)
@@ -108,6 +112,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         if (!this.report.feature || !payload.parent) {
             this.report.feature = this.getFeatureDataObject(payload)
             this.report.features = [...(this.report.features ?? []), this.report.feature]
+            this.#featureLines = payload.file ? readFeatureLines(payload.file, this.options.language!) : undefined
         }
 
         /* istanbul ignore else */
@@ -270,16 +275,23 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         id: string,
     ): Scenario {
         const scenarioName = scenarioData.title
+        const lines = this.#featureLines && findScenarioLines(this.#featureLines, scenarioName)
 
-        return {
+        const scenario: Scenario = {
             keyword: SCENARIO,
             type: scenarioData.type,
             description: scenarioData.description || '',
             name: scenarioName,
             tags: scenarioData.tags || [],
-            id: `${id}${scenarioData.title.replace(/ /g, '-').toLowerCase()}`,
+            // `<feature id>;<scenario id>` as in the Cucumber JSON format
+            id: `${id};${scenarioData.title.replace(/ /g, '-').toLowerCase()}`,
+            line: lines?.line ?? null,
             steps: [],
         }
+        if (lines) {
+            this.#scenarioLines.set(scenario, { lines, usedLines: new Set() })
+        }
+        return scenario
     }
 
     /**
@@ -291,7 +303,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const regex = new RegExp(`^(${keyword})\\s`)
         const result = regex.exec(stepData.title)
         const title = (stepData.title.slice(result ? result.index + keyword.length : 0) || '').trim()
-        return {
+        const step: Step = {
             arguments: stepData.argument ? [stepData.argument] : [],
             keyword,
             name: title,
@@ -305,6 +317,13 @@ export class CucumberJsJsonReporter extends WDIOReporter {
                 location: 'can not be determined with webdriver.io',
             },
         }
+        // a hook has no name and no line in the Cucumber JSON format
+        if (keyword === BEFORE || keyword === AFTER) {
+            delete step.name
+            delete step.line
+            step.hidden = true
+        }
+        return step
     }
 
     /**
@@ -331,7 +350,13 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     public addStepData(test: TestStats | HookStats): void {
         // Always add the finished step to the end of the steps
         // of the last current scenario that is running
-        this.getCurrentScenario().steps!.push(this.getStepDataObject(test))
+        const scenario = this.getCurrentScenario()
+        const step = this.getStepDataObject(test)
+        const scenarioLines = this.#scenarioLines.get(scenario)
+        if (!step.hidden && scenarioLines && this.#featureLines) {
+            step.line = findStepLine(this.#featureLines, scenarioLines.lines, step.name ?? '', scenarioLines.usedLines) ?? null
+        }
+        scenario.steps!.push(step)
     }
 
     /**
@@ -343,7 +368,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const currentStepsLength = currentSteps.length
         const stepData = this.getStepDataObject(test)
 
-        currentSteps[currentStepsLength - 1] = { ...this.getCurrentStep(), ...stepData }
+        const currentStep = this.getCurrentStep()
+        currentSteps[currentStepsLength - 1] = { ...currentStep, ...stepData, line: currentStep.line ?? stepData.line }
     }
 
     /**

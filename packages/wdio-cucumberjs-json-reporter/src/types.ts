@@ -75,6 +75,7 @@ export interface Scenario {
     name?: string;
     tags?: string[] | Tag[] | string;
     id?: string;
+    line?: number | null;
     steps?: Step[];
     foo?: string;
     bar?: string;
@@ -91,6 +92,8 @@ export interface Step {
         error_message?: string;
     };
     line?: number | null;
+    /** `true` for a hook (Cucumber JSON format) */
+    hidden?: boolean;
     match?: {
         location: number | string;
     };
