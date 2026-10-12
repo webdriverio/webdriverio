@@ -221,62 +221,70 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
         return refetched && refetched.length > index ? refetched[index] : false
     }
 
+    /**
+     * Waits in one browser or element for the index. When the list still does not reach
+     * the index after `waitforTimeout`, gives a "not found" element, see below.
+     */
+    const itemIn = async (target: WebdriverIO.Browser | WebdriverIO.Element): Promise<WebdriverIO.Element> => {
+        const browser = getBrowserObject(target)
+        try {
+            return await browser.waitUntil(() => findIn(target), {
+                timeout: browser.options?.waitforTimeout,
+                timeoutMsg
+            })
+        } catch (err) {
+            if (!(err instanceof Error) || err.message !== timeoutMsg) {
+                throw err
+            }
+
+            /**
+             * the selector and the props of the "not found" item, see below. `undefined` for a
+             * list whose index that is never reached still throws: a list of elements or element
+             * references, or a `custom$$` list whose strategy is not registered
+             */
+            const item = itemOf(foundWith, selector, props, target)
+            if (!item) {
+                throw err
+            }
+
+            /**
+             * The index is still not there after the wait. Like `$('.missing')`, give a
+             * "not found" element instead of an error: check commands (`isDisplayed`,
+             * `isExisting`) give `false` and matchers can check that it is not there
+             * (#12576). A command that needs the element throws "Index out of bounds".
+             *
+             * It is built like every other item of a list (`getElements`), with the error as
+             * its response, then given its index.
+             *
+             * imported here: `getElementObject` imports the utils barrel, which imports this file
+             */
+            const { getElements } = await import('../utils/getElementObject.js')
+            const [notFound] = getElements.call(target, item.selector, [err], item.props)
+            notFound.index = index
+            /**
+             * the index was already waited for: the implicit wait of a command does not wait again
+             */
+            ;(notFound as WebdriverIO.Element & { [INDEX_NOT_FOUND]?: boolean })[INDEX_NOT_FOUND] = true
+            return notFound
+        }
+    }
+
     if (wrapMultiRemote) {
         /**
-         * A multi-remote `waitUntil` runs the condition once per instance, with `this`
-         * as the browser or the element of that instance and with the timeout of that
-         * instance. So every instance queries and waits for itself, and their elements
-         * build one multi-remote element. A multi-remote element has no `parent`, so a
-         * multi-remote parent waits itself.
+         * Every instance of a multi-remote list waits for itself, in its own browser or
+         * element and with its own timeout, and gets its own item: found, or "not found"
+         * when its list never reaches the index. Their items build one multi-remote
+         * element. A multi-remote element has no `parent`, so a multi-remote parent waits
+         * itself.
          */
         const multiRemoteParent = parent as WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement
-        const elements = await multiRemoteParent.waitUntil(function (this: WebdriverIO.Browser | WebdriverIO.Element) {
-            return findIn(this)
-        }, { timeoutMsg })
+        const elements = await Promise.all(multiRemoteParent.instances.map((name) => (
+            itemIn(multiRemoteParent.getInstance(name) as WebdriverIO.Browser | WebdriverIO.Element)
+        )))
         return wrapMultiRemote(elements)
     }
 
-    const browser = getBrowserObject(parent as WebdriverIO.Element)
-    try {
-        return await browser.waitUntil(() => findIn(parent), {
-            timeout: browser.options?.waitforTimeout,
-            timeoutMsg
-        })
-    } catch (err) {
-        if (!(err instanceof Error) || err.message !== timeoutMsg) {
-            throw err
-        }
-
-        /**
-         * the selector and the props of the "not found" item, see below. `undefined` for a
-         * list whose index that is never reached still throws: a list of elements or element
-         * references, or a `custom$$` list whose strategy is not registered
-         */
-        const item = itemOf(foundWith, selector, props, parent as WebdriverIO.Browser | WebdriverIO.Element)
-        if (!item) {
-            throw err
-        }
-
-        /**
-         * The index is still not there after the wait. Like `$('.missing')`, give a
-         * "not found" element instead of an error: check commands (`isDisplayed`,
-         * `isExisting`) give `false` and matchers can check that it is not there
-         * (#12576). A command that needs the element throws "Index out of bounds".
-         *
-         * It is built like every other item of a list (`getElements`), with the error as
-         * its response, then given its index.
-         *
-         * imported here: `getElementObject` imports the utils barrel, which imports this file
-         */
-        const { getElements } = await import('../utils/getElementObject.js')
-        const [notFound] = getElements.call(parent as WebdriverIO.Element, item.selector, [err], item.props)
-        notFound.index = index
-        /**
-         * the index was already waited for: the implicit wait of a command does not wait again
-         */
-        ;(notFound as WebdriverIO.Element & { [INDEX_NOT_FOUND]?: boolean })[INDEX_NOT_FOUND] = true
-        return notFound
-    }
+    return itemIn(parent as WebdriverIO.Browser | WebdriverIO.Element)
 }
 
 const methods: Record<string, Function> = {
