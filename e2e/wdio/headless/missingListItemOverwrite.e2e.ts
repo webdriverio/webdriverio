@@ -9,10 +9,11 @@ const WAIT = 200
 
 /**
  * An `overwriteCommand('$$')` with an async function returns a promise, not the element
- * list. The index of that promise has its own wait in `@wdio/utils`, which throws. A spec
- * file of its own, because the overwrite stays for the whole session.
+ * list. An index of that promise is read from the list, so it gives the same "not found"
+ * item as a plain `$$`. A spec file of its own, because the overwrite stays for the
+ * whole session.
  */
-describe('an index that the list never reaches, with an async overwrite of $$', () => {
+describe('an index that the list never reaches, with an async overwrite of $$ or a custom $$ command', () => {
     let server: Server
     let waitforTimeout: number | undefined
 
@@ -41,9 +42,9 @@ describe('an index that the list never reaches, with an async overwrite of $$', 
     })
 
     /**
-     * current behavior, a follow-up changes it to the "not found" item of a plain `$$`
+     * the "not found" item of a plain `$$`, see `missingListItemPaths.e2e.ts`
      */
-    it('$$(selector)[5] throws "Index out of bounds" for every check', async () => {
+    it('$$(selector)[5] gives the not found item', async () => {
         expect(await row(() => [browser.$$('#list li')[5] as unknown as Item], {
             'isExisting': (item: Item) => item.isExisting(),
             'isDisplayed': (item: Item) => item.isDisplayed(),
@@ -52,11 +53,32 @@ describe('an index that the list never reaches, with an async overwrite of $$', 
             'not.toBeDisplayed': (item: Item) => expect(item).not.toBeDisplayed({ wait: WAIT }),
             'click': (item: Item) => item.click(),
         })).toEqual({
-            'isExisting': 'Index out of bounds',
-            'isDisplayed': 'Index out of bounds',
-            'waitForDisplayed reverse': 'Index out of bounds',
-            'not.toExist': 'Index out of bounds',
-            'not.toBeDisplayed': 'Index out of bounds',
+            'isExisting': 'false',
+            'isDisplayed': 'false',
+            'waitForDisplayed reverse': 'true',
+            'not.toExist': 'ok',
+            'not.toBeDisplayed': 'ok',
+            'click': 'Index out of bounds',
+        })
+    })
+
+    /**
+     * a custom command whose name ends with `$$` is a pending element list too
+     */
+    it('a custom command whose name ends with $$ gives the not found item', async () => {
+        browser.addCommand('missingListItems$$', function (this: WebdriverIO.Browser, selector: string) {
+            return this.$$(selector)
+        })
+        const items$$ = (selector: string) => (browser as unknown as { missingListItems$$ (selector: string): WebdriverIO.ElementArray }).missingListItems$$(selector)
+
+        expect(await items$$('#list li')[1].getText()).toBe('b')
+        expect(await row(() => [items$$('#list li')[5] as unknown as Item], {
+            'isExisting': (item: Item) => item.isExisting(),
+            'not.toExist': (item: Item) => expect(item).not.toExist({ wait: WAIT }),
+            'click': (item: Item) => item.click(),
+        })).toEqual({
+            'isExisting': 'false',
+            'not.toExist': 'ok',
             'click': 'Index out of bounds',
         })
     })
