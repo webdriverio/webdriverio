@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { spawn, execSync, exec } from 'node:child_process'
+import { spawn, execSync, execFile } from 'node:child_process'
 import os from 'node:os'
 import url from 'node:url'
 import { resolve as resolveModule } from 'import-meta-resolve'
@@ -15,7 +15,7 @@ import {
 vi.mock('node:child_process', () => ({
     spawn: vi.fn(),
     execSync: vi.fn(),
-    exec: vi.fn()
+    execFile: vi.fn()
 }))
 
 vi.mock('import-meta-resolve', () => ({
@@ -300,12 +300,12 @@ describe('startAppiumForCli', () => {
         await promise
     })
 
-    it('should spawn Appium process with Windows command format on Windows', async () => {
+    it('should spawn Node directly, without cmd, on Windows', async () => {
         vi.mocked(os.platform).mockReturnValue('win32')
 
         const promise = startAppiumForCli('/path/to/appium', ['server', '--port=4723'])
 
-        expect(spawn).toHaveBeenCalledWith('cmd', ['/c', 'node', '/path/to/appium', 'server', '--port=4723'], {
+        expect(spawn).toHaveBeenCalledWith('node', ['/path/to/appium', 'server', '--port=4723'], {
             stdio: ['ignore', 'pipe', 'pipe']
         })
 
@@ -466,22 +466,23 @@ describe('checkInspectorPluginInstalled', () => {
         const mockOutput = `✔ Listing installed plugins
 - inspector@2025.11.1 [installed (npm)]`
 
-        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
             setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
             return {} as any
         })
 
         await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
 
-        expect(exec).toHaveBeenCalledWith(
-            '/path/to/appium plugin list --installed',
+        expect(execFile).toHaveBeenCalledWith(
+            'node',
+            ['/path/to/appium', 'plugin', 'list', '--installed'],
             expect.objectContaining({ encoding: 'utf-8' }),
             expect.any(Function)
         )
     })
 
     it('should throw error when both stdout and stderr are empty', async () => {
-        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
             setImmediate(() => callback(null, { stdout: '', stderr: '' }))
             return {} as any
         })
@@ -495,7 +496,7 @@ describe('checkInspectorPluginInstalled', () => {
         const mockOutput = `✔ Listing installed plugins
 - execute-driver [installed (npm)]`
 
-        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
             setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
 
             return {} as any
@@ -506,9 +507,9 @@ describe('checkInspectorPluginInstalled', () => {
         )
     })
 
-    it('should throw error when exec fails', async () => {
+    it('should throw error when execFile fails', async () => {
         const mockError = new Error('Command failed')
-        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
             setImmediate(() => callback(mockError, { stdout: '', stderr: '' }))
 
             return {} as any
@@ -523,7 +524,7 @@ describe('checkInspectorPluginInstalled', () => {
         const mockOutput = `✔ Listing installed plugins
 - execute-driver [installed (npm)]`
 
-        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
             setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
 
             return {} as any
@@ -538,7 +539,7 @@ describe('checkInspectorPluginInstalled', () => {
         const mockOutput = `✔ Listing installed plugins
 - inspector@2025.7.1 [installed (npm)]`
 
-        vi.mocked(exec).mockImplementation((command, options, callback: any) => {
+        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
             setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
 
             return {} as any

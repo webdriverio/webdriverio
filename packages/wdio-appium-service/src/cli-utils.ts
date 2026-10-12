@@ -1,5 +1,5 @@
 import { resolveOptionalDependency } from '@wdio/utils/node'
-import { execSync, spawn, exec, type ChildProcessByStdio } from 'node:child_process'
+import { execSync, spawn, execFile, type ChildProcessByStdio } from 'node:child_process'
 import { type Readable } from 'node:stream'
 import os from 'node:os'
 import { promisify } from 'node:util'
@@ -80,7 +80,7 @@ export async function checkInspectorPluginInstalled(appiumCommandPath: string): 
 
     try {
         // Using --installed flag returns only installed plugins
-        const { stdout, stderr } = await promisify(exec)(`${appiumCommandPath} plugin list --installed`, {
+        const { stdout, stderr } = await promisify(execFile)('node', [appiumCommandPath, 'plugin', 'list', '--installed'], {
             encoding: 'utf-8'
         })
 
@@ -115,15 +115,7 @@ export async function startAppiumForCli(
     args: string[],
     timeout = APPIUM_START_TIMEOUT
 ): Promise<ChildProcessByStdio<null, Readable, Readable>> {
-    let command = 'node'
-    const appiumArgs = [appiumCommandPath, ...args]
-
-    if (os.platform() === 'win32') {
-        appiumArgs.unshift('/c', command)
-        command = 'cmd'
-    }
-
-    const appiumProcess: ChildProcessByStdio<null, Readable, Readable> = spawn(command, appiumArgs, {
+    const appiumProcess: ChildProcessByStdio<null, Readable, Readable> = spawn('node', [appiumCommandPath, ...args], {
         stdio: ['ignore', 'pipe', 'pipe']
     })
     // just to validate the first error
