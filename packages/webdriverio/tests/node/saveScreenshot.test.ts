@@ -29,7 +29,8 @@ const browserBidi = {
     }),
     takeElementScreenshot: vi.fn().mockResolvedValue(btoa('bidi iframe screenshot')),
     browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [] }),
-    browsingContextCaptureScreenshot: vi.fn().mockResolvedValue({ data: btoa('bidi screenshot') })
+    browsingContextCaptureScreenshot: vi.fn().mockResolvedValue({ data: btoa('bidi screenshot') }),
+    emit: vi.fn()
 } as unknown as WebdriverIO.Browser
 
 describe('saveScreenshot', () => {
@@ -64,6 +65,18 @@ describe('saveScreenshot', () => {
                 },
                 clip: undefined
             })
+        })
+
+        it('sends the events of the classic screenshot command, so reporters get the screenshot', async () => {
+            const contextManager = getContextManager(browserBidi)
+            vi.mocked(contextManager.findParentContext).mockReturnValue(undefined)
+            vi.mocked(browserBidi.emit).mockClear()
+            await saveScreenshot.call(browserBidi, 'screenshot.png')
+            const event = { command: 'takeScreenshot', method: 'GET', endpoint: '/session/:sessionId/screenshot', body: {} }
+            expect(vi.mocked(browserBidi.emit).mock.calls).toEqual([
+                ['command', event],
+                ['result', { ...event, result: { value: btoa('bidi screenshot') } }]
+            ])
         })
 
         it('should save a screenshot of a specific rectangle', async () => {

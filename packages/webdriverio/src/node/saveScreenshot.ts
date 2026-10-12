@@ -7,6 +7,7 @@ import { assertDirectoryExists } from './utils.js'
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, isBrowsingContext } from '../session/browsingContext.js'
 import { frameOffset } from '../utils/frameOffset.js'
+import { withScreenshotEvents } from '../utils/screenshotEvents.js'
 import type { SaveScreenshotOptions } from '../types.js'
 /**
  *
@@ -136,7 +137,7 @@ export async function takeScreenshotBidi (this: WebdriverIO.Browser | WebdriverI
             const rect = document.documentElement.getBoundingClientRect()
             return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
         })
-        const shot = await browser.browsingContextCaptureScreenshot({
+        return withScreenshotEvents(browser, 'takeScreenshot', () => browser.browsingContextCaptureScreenshot({
             context: top.contextId,
             origin: 'viewport',
             format,
@@ -147,8 +148,7 @@ export async function takeScreenshotBidi (this: WebdriverIO.Browser | WebdriverI
                 width: Math.round(html.width),
                 height: Math.round(html.height)
             }
-        })
-        return shot.data
+        }).then(({ data }) => data))
     }
 
     /**
@@ -157,10 +157,14 @@ export async function takeScreenshotBidi (this: WebdriverIO.Browser | WebdriverI
      * we are within an iframe and if so, take a screenshot of the document element
      * instead.
      */
-    const { data } = contextManager.findParentContext(context, tree.contexts)
-        ? await browser.$('html').getElement().then(
-            (el) => browser.takeElementScreenshot(el.elementId).then((screen) => ({ data: screen })))
-        : await browser.browsingContextCaptureScreenshot({ context, origin, format, clip })
-    return data
+    if (contextManager.findParentContext(context, tree.contexts)) {
+        const el = await browser.$('html').getElement()
+        return browser.takeElementScreenshot(el.elementId)
+    }
+    /**
+     * the Classic command above sends its events itself
+     */
+    return withScreenshotEvents(browser, 'takeScreenshot', () => browser.browsingContextCaptureScreenshot({ context, origin, format, clip })
+        .then(({ data }) => data))
 }
 
