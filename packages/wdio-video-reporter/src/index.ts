@@ -293,6 +293,17 @@ export default class VideoReporter extends WdioReporter {
     }
 
     /**
+     * Cucumber `retry`: the scenario runs again in the same recording, and the Allure
+     * reporter opens a new Allure test for this try. Attach the video to it too.
+     */
+    onSuiteRetry (suite: SuiteStats) {
+        if (!this.#record || !this.#isCucumberStepReporter || suite.type !== 'scenario') {
+            return
+        }
+        this.#attachVideoToAllure(true)
+    }
+
+    /**
    * Clear suite name from naming structure
    */
     onSuiteEnd (suite: SuiteStats) {

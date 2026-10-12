@@ -348,6 +348,19 @@ describe('Video Reporter', () => {
             expect(reporter.generateVideo).toBeCalledTimes(1)
         })
 
+        it('attaches the video to the Allure test of each Cucumber retry (step reporting)', async () => {
+            const addAttachmentMock = vi.spyOn(AllureReporterExtension.prototype, 'addAttachment').mockClear()
+            const reporter = new VideoReporter({})
+            reporter.onRunnerStart(allureRunner)
+            reporter.isCucumberFramework = true
+            reporter.onSuiteStart({ title: 'my scenario', type: 'scenario' } as any)
+            expect(addAttachmentMock).toBeCalledTimes(1)
+            // the Allure reporter closes the first try and opens a new Allure test
+            reporter.onSuiteRetry({ title: 'my scenario', type: 'scenario' } as any)
+            expect(addAttachmentMock).toBeCalledTimes(2)
+            expect(addAttachmentMock.mock.calls[1]).toEqual(addAttachmentMock.mock.calls[0])
+        })
+
         it('keeps one recording when Mocha reports a test as started again after its beforeEach hook failed', () => {
             vi.useFakeTimers()
             try {
