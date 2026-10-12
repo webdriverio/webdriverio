@@ -61,6 +61,10 @@ vi.mock('@wdio/globals', () => ({
         takeScreenshot: vi.fn().mockResolvedValue('aW1hZ2U='),
         browsingContextCaptureScreenshot: vi.fn().mockResolvedValue({}),
         getWindowHandle: vi.fn().mockResolvedValue('contextString'),
+        browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [
+            { context: 'main-tab', children: [{ context: 'main-frame', children: [] }] },
+            { context: 'second-tab', children: [{ context: 'tab-frame', children: [] }] }
+        ] }),
         on: vi.fn()
     }
 }))
@@ -704,6 +708,32 @@ describe('Video Reporter', () => {
             await sleep()
             expect(browser.takeScreenshot).toBeCalledTimes(1)
             expect(browser.browsingContextCaptureScreenshot).toBeCalledTimes(2)
+            browser.isBidi = false
+        })
+
+        it('takes the frame of a frame (iframe) from its tab', async () => {
+            browser.isBidi = true
+            vi.mocked(browser.takeScreenshot).mockResolvedValue('aW1hZ2U=')
+            vi.mocked(browser.getWindowHandle).mockResolvedValue('main-tab')
+            vi.mocked(browser.browsingContextCaptureScreenshot).mockResolvedValue({ data: 'dGFi' } as any)
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            reporter.listenToBidiCommands()
+            await sleep(0)
+
+            // a frame of the second tab: capture the second tab, not the frame (BiDi cannot)
+            listeners.bidiCommand({ id: 1, method: 'input.performActions', params: { context: 'tab-frame', actions: [] } })
+            listeners.bidiResult({ id: 1, type: 'success', result: {} })
+            await sleep()
+            expect(browser.browsingContextCaptureScreenshot).toBeCalledTimes(1)
+            expect(browser.browsingContextCaptureScreenshot).toHaveBeenLastCalledWith(expect.objectContaining({ context: 'second-tab' }))
+
+            // a frame of the main window: the classic screenshot
+            listeners.bidiCommand({ id: 2, method: 'input.performActions', params: { context: 'main-frame', actions: [] } })
+            listeners.bidiResult({ id: 2, type: 'success', result: {} })
+            await sleep()
+            expect(browser.browsingContextCaptureScreenshot).toBeCalledTimes(1)
+            expect(browser.takeScreenshot).toBeCalledTimes(1)
             browser.isBidi = false
         })
 
