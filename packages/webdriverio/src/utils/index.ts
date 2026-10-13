@@ -23,7 +23,7 @@ import { findLinksInContext, foreignContext } from './foreignContext.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
-import { isStaleError } from './staleElement.js'
+import { isStaleError } from './elementLookup.js'
 import { ElementArray } from '../element/array.js'
 import { findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
@@ -265,7 +265,7 @@ export function isElement(o: Selector) {
     )
 }
 
-export { isStaleElementError } from './staleElement.js'
+export { isStaleElementError } from './elementLookup.js'
 
 /**
  * handle promise result (resolved or rejected promises)
