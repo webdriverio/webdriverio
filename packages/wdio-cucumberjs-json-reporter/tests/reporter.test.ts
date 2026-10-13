@@ -350,6 +350,36 @@ describe('reporter', () => {
             expect(newFileContent.length).toEqual(2)
         })
 
+        it('waits for another worker that writes the same file (reportFilePerRetry false)', async () => {
+            const jsonFile = path.join(jsonFolder, 'this-feature.json')
+            await fsp.rm(jsonFolder, { recursive: true, force: true })
+            await fsp.mkdir(jsonFolder, { recursive: true })
+            const { spawn } = await import('node:child_process')
+            // another worker: it holds the lock of the file and writes its feature 150 ms later
+            const other = spawn(process.execPath, ['-e', `
+                const fs = require('node:fs')
+                fs.mkdirSync(${JSON.stringify(`${jsonFile}.lock`)})
+                console.log('locked')
+                setTimeout(() => {
+                    fs.writeFileSync(${JSON.stringify(jsonFile)}, JSON.stringify([{ id: 'other-worker' }]))
+                    fs.rmSync(${JSON.stringify(`${jsonFile}.lock`)}, { recursive: true })
+                }, 150)
+            `])
+            const exited = new Promise((resolve) => other.once('exit', resolve))
+            await new Promise((resolve) => other.stdout.once('data', resolve))
+
+            tmpReporter.report.feature = { id: 'this-feature' }
+            tmpReporter.report.features = [tmpReporter.report.feature]
+            tmpReporter.options.jsonFolder = jsonFolder
+            tmpReporter.options.reportFilePerRetry = false
+            tmpReporter.onRunnerEnd()
+            await exited
+
+            const content = JSON.parse(await fsp.readFile(jsonFile, 'utf-8'))
+            expect(content.map((feature: { id: string }) => feature.id).sort()).toEqual(['other-worker', 'this-feature'])
+            expect(fs.existsSync(`${jsonFile}.lock`)).toBe(false)
+        })
+
         afterEach(async () => {
             await fsp.rm(jsonFolder, {
                 recursive: true,
