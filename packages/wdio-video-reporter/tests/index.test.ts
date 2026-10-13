@@ -665,7 +665,7 @@ describe('Video Reporter', () => {
             const reporter = new VideoReporter({})
             reporter.recordingPath = '/foo/bar'
             reporter.listenToBidiCommands()
-            listeners.bidiCommand({ method: 'browsingContext.navigate', params: {} })
+            listeners.bidiCommand({ id: 1, method: 'browsingContext.navigate', params: {} })
             expect(browser.takeScreenshot).toBeCalledTimes(0)
             listeners.bidiResult({ id: 1, type: 'success', result: {} })
             expect(browser.takeScreenshot).toBeCalledTimes(1)
@@ -791,9 +791,9 @@ describe('Video Reporter', () => {
             const reporter = new VideoReporter({ excludedActions: ['refresh'] })
             reporter.recordingPath = '/foo/bar'
             reporter.listenToBidiCommands()
-            listeners.bidiCommand({ method: 'script.callFunction', params: {} })
+            listeners.bidiCommand({ id: 1, method: 'script.callFunction', params: {} })
             listeners.bidiResult({ id: 1, type: 'success', result: {} })
-            listeners.bidiCommand({ method: 'browsingContext.reload', params: {} })
+            listeners.bidiCommand({ id: 2, method: 'browsingContext.reload', params: {} })
             listeners.bidiResult({ id: 2, type: 'success', result: {} })
             expect(browser.takeScreenshot).toBeCalledTimes(0)
             browser.isBidi = false
@@ -804,9 +804,9 @@ describe('Video Reporter', () => {
             const reporter = new VideoReporter({})
             reporter.recordingPath = '/foo/bar'
             reporter.listenToBidiCommands()
-            listeners.bidiCommand({ method: 'browsingContext.traverseHistory', params: { delta: -1 } })
-            listeners.bidiCommand({ method: 'script.callFunction', params: {} })
-            listeners.bidiCommand({ method: 'script.callFunction', params: {} })
+            listeners.bidiCommand({ id: 1, method: 'browsingContext.traverseHistory', params: { delta: -1 } })
+            listeners.bidiCommand({ id: 2, method: 'script.callFunction', params: {} })
+            listeners.bidiCommand({ id: 3, method: 'script.callFunction', params: {} })
             listeners.bidiResult({ id: 1, type: 'success', result: {} })
             expect(browser.takeScreenshot).toBeCalledTimes(1)
             listeners.bidiResult({ id: 2, type: 'success', result: {} })

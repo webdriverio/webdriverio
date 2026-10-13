@@ -22,7 +22,7 @@ import type { ReporterOptions } from './types.js'
  * a BiDi command that can take a frame, and its browsing context
  */
 interface BidiFrameCommand {
-    name?: string
+    name: string
     context?: string
 }
 
@@ -61,7 +61,6 @@ export default class VideoReporter extends WdioReporter {
      * the title of the test that started and did not end yet
      */
     #openTestTitle?: string
-    #pendingBidiCommands: BidiFrameCommand[] = []
     #bidiCommandsById = new Map<number, BidiFrameCommand>()
     #listensToBidiCommands = false
     /**
@@ -220,28 +219,26 @@ export default class VideoReporter extends WdioReporter {
             () => { /* no window: the frames use the classic screenshot */ }
         )
         /**
-         * a result has the id of its command, but not its method: keep the command of
-         * each id (results can come in another order). Without an id, take the oldest.
+         * a result has the id of its command, but not its method: keep the commands
+         * that take a frame by id (results can come in another order)
          */
         instance.on('bidiCommand', (command: { id?: number, method?: string, params?: unknown }) => {
-            const params = command.params as { context?: string, target?: { context?: string } } | undefined
-            const frameCommand = { name: getBidiSnapshotCommand(command), context: params?.context ?? params?.target?.context }
-            if (typeof command.id === 'number') {
-                this.#bidiCommandsById.set(command.id, frameCommand)
-            } else {
-                this.#pendingBidiCommands.push(frameCommand)
-            }
-        })
-        instance.on('bidiResult', (result: { id?: number }) => {
-            const hasId = typeof result?.id === 'number' && this.#bidiCommandsById.has(result.id)
-            const frameCommand = hasId ? this.#bidiCommandsById.get(result.id!) : this.#pendingBidiCommands.shift()
-            if (hasId) {
-                this.#bidiCommandsById.delete(result.id!)
-            }
-            if (!frameCommand?.name || !this.#record) {
+            const name = getBidiSnapshotCommand(command)
+            if (!name || typeof command.id !== 'number') {
                 return
             }
-            this.#addFrameForCommand(frameCommand.name, `WebDriver BiDi ${frameCommand.name}`, frameCommand.context)
+            const params = command.params as { context?: string, target?: { context?: string } } | undefined
+            this.#bidiCommandsById.set(command.id, { name, context: params?.context ?? params?.target?.context })
+        })
+        instance.on('bidiResult', (result: { id?: number }) => {
+            const frameCommand = typeof result?.id === 'number' ? this.#bidiCommandsById.get(result.id) : undefined
+            if (!frameCommand) {
+                return
+            }
+            this.#bidiCommandsById.delete(result.id!)
+            if (this.#record) {
+                this.#addFrameForCommand(frameCommand.name, `WebDriver BiDi ${frameCommand.name}`, frameCommand.context)
+            }
         })
     }
 
