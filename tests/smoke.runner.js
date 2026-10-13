@@ -500,8 +500,28 @@ const cucumberGroupedSpecsRandomOrder = async () => {
         )
         const logs = await fs.readFile(logFile, 'utf-8')
         assert.ok(logs.includes('6 passing'), `the spec reporter does not count the 6 scenarios:\n${logs}`)
-        const missing = scenarios.filter((scenario) => !logs.includes(scenario))
-        assert.deepStrictEqual(missing, [], `scenarioLevelReporter: ${scenarioLevelReporter}, the spec reporter does not list:\n${logs}`)
+        /**
+         * each scenario under the heading of its feature: a scenario is a suite title
+         * (step level) or a passed test (`✓ a one`, scenario level)
+         */
+        const headings = []
+        const listed = []
+        for (const line of logs.split('\n').map((text) => text.replace(/^\[[^\]]*\]\s*/, '').trim())) {
+            const feature = line.match(/^Feature ([ab])$/)
+            const scenario = line.replace(/^✓ /, '')
+            if (feature) {
+                headings.push(feature[1])
+            } else if (scenarios.includes(scenario)) {
+                listed.push(`${headings.at(-1)}: ${scenario}`)
+            }
+        }
+        assert.deepStrictEqual(
+            [...listed].sort(),
+            scenarios.map((scenario) => `${scenario[0]}: ${scenario}`).sort(),
+            `scenarioLevelReporter: ${scenarioLevelReporter}, each scenario must be under its feature:\n${logs}`
+        )
+        // the test needs the features to alternate (a, b, a, ...), as the random order gives them
+        assert.ok(headings.length > 2, `the scenarios of the features did not mix, the test checks nothing: ${headings}`)
         await fs.rm(logFile, { force: true })
     }
 }
