@@ -44,8 +44,7 @@
     "dayjs": "^1.11.9",
     "fs-extra": "^11.1.0",
     "nunjucks": "^3.2.4",
-    "open": "^8.4.0",
-    "typescript-string-operations": "^1.5.0"
+    "open": "^8.4.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
