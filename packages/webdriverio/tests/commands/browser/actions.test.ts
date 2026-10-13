@@ -139,6 +139,19 @@ describe('actions command in a parallel test scope', () => {
         expect(moves.map((a: any) => a.duration)).toEqual([0, 50])
     })
 
+    it('keeps an explicit duration of 100 and zeroes an omitted one', async () => {
+        const perform = vi.spyOn(browser, 'inputPerformActions').mockResolvedValue({})
+        perform.mockClear()
+        vi.spyOn(browser, 'inputReleaseActions').mockResolvedValue({})
+
+        await parallelStore.run('ctx-1', () => browser.actions([
+            browser.action('pointer').move({ x: 1, y: 2, duration: 100 }).move({ x: 3, y: 4 }).move(5, 6)
+        ]))
+
+        const moves = (perform.mock.calls[0][0].actions[0] as any).actions
+        expect(moves.map((a: any) => a.duration)).toEqual([100, 0, 0])
+    })
+
     it('keeps the classic path outside the scope', async () => {
         const perform = vi.spyOn(browser, 'inputPerformActions').mockResolvedValue({})
         perform.mockClear()

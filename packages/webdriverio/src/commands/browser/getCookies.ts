@@ -40,7 +40,7 @@ const log = logger('webdriverio')
  *
  * @alias browser.getCookies
  * @param {remote.StorageCookieFilter}  filter  an object that allows to filter for cookies with specific attributes
- * @param {string|null} sourceOrigin  an optional source origin to fetch cookies for, if not provided it will default to the current page's origin, if explicitly set to null it will fetch cookies without a partition (only supported in BiDi)
+ * @param {string|null} sourceOrigin  an optional source origin to fetch cookies for, if not provided it will default to the current page's origin, if explicitly set to null it will fetch cookies without a partition (only supported in BiDi). Inside a parallel test, null drops only the origin; cookies stay limited to the test's user context
  * @return {Cookie[]}                           requested cookies
  *
  */
@@ -64,7 +64,7 @@ export async function getCookies(
         }, filter)
     }
 
-    const parallelPartition = await parallelCookiePartition(this)
+    const parallelPartition = await parallelCookiePartition(this, sourceOrigin)
     if (parallelPartition) {
         return readBidiCookies(this, {
             partition: parallelPartition,

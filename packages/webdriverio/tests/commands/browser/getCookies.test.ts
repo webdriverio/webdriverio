@@ -174,6 +174,34 @@ describe('getCookies', () => {
             })
         })
 
+        it('should honor an explicit sourceOrigin inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', userContext: 'uc-1', children: [] }]
+            } as any)
+            await parallelStore.run('ctx-1', () => browser.getCookies(undefined, 'https://other.example'))
+            expect(storageGetCookies).toBeCalledWith({
+                partition: { type: 'storageKey', sourceOrigin: 'https://other.example', userContext: 'uc-1' }
+            })
+        })
+
+        it('should drop the origin but keep the user context for a null sourceOrigin inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', userContext: 'uc-1', children: [] }]
+            } as any)
+            await parallelStore.run('ctx-1', () => browser.getCookies(undefined, null))
+            expect(storageGetCookies).toBeCalledWith({
+                partition: { type: 'storageKey', userContext: 'uc-1' }
+            })
+        })
+
+        it('should use an unscoped storageKey for a null sourceOrigin without user context', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'about:blank', children: [] }]
+            } as any)
+            await parallelStore.run('ctx-1', () => browser.getCookies(undefined, null))
+            expect(storageGetCookies).toBeCalledWith({ partition: { type: 'storageKey' } })
+        })
+
         it('should not fall back to classic on an empty origin partition inside a parallel scope', async () => {
             vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
                 contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', children: [] }]

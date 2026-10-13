@@ -7,6 +7,12 @@ import { foreignContextId, isBrowsingContext } from '../../session/browsingConte
 import { getParallelContextStore } from '../../session/context.js'
 
 /**
+ * Moves whose duration came from the default rather than the caller. Tracked
+ * out of band so the Classic wire format stays unchanged.
+ */
+export const DEFAULT_DURATION_MOVES = new WeakSet<object>()
+
+/**
  * Converts classic action sources to BiDi input sources: element origins become
  * `{ type: 'element', sharedId }` references.
  */
@@ -19,9 +25,10 @@ export function toBidiActions<T extends { actions: object[] }>(sequence: T[]): r
              * A pointer move into another navigable starts from the last
              * top-level position. The default 100ms interpolation crosses
              * the frame and fires mouse events an in-frame action does not.
-             * An instant move lands on the element. A chosen duration stays.
+             * An instant move lands on the element. An explicit duration,
+             * including 100, stays.
              */
-            const instant = action.type === 'pointerMove' && action.duration === 100
+            const instant = action.type === 'pointerMove' && DEFAULT_DURATION_MOVES.has(rawAction)
                 ? { ...action, duration: 0 }
                 : action
             const origin = instant.origin
