@@ -497,6 +497,44 @@ describe('reporter', () => {
         })
     })
 
+    describe('features of the same worker', () => {
+        const featureIn = (folder: string) => {
+            fs.mkdirSync(path.join(logFolderPath, folder), { recursive: true })
+            const file = path.join(logFolderPath, folder, 'login.feature')
+            fs.writeFileSync(file, `Feature: ${folder}\n  Scenario: ${folder} one\n    Given a step\n`)
+            return file
+        }
+
+        it('keeps 2 feature files with the same name in other folders apart (same uid)', () => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            const admin = featureIn('admin')
+            const user = featureIn('user')
+            // the framework uid is `<file name>:<line>:<column>`
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, uid: 'login.feature:1:1', title: 'admin', file: admin, parent: undefined } as SuiteStatsExtended)
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, uid: 'login.feature:1:1', title: 'user', file: user, parent: undefined } as SuiteStatsExtended)
+            tmpReporter.onSuiteStart({ ...SUITE_SCENARIO_STATS, title: 'admin one', parent: 'login.feature:1:1', file: admin } as SuiteStatsExtended)
+            const [adminFeature, userFeature] = tmpReporter.report.features!
+            expect(adminFeature.elements!.map((scenario) => scenario.name)).toEqual(['admin one'])
+            expect(userFeature.elements).toEqual([])
+        })
+
+        it('continues a feature that starts again (grouped specs in a random order)', () => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            const admin = featureIn('admin')
+            const user = featureIn('user')
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, uid: 'a:1:1', title: 'admin', file: admin, parent: undefined } as SuiteStatsExtended)
+            tmpReporter.onSuiteStart({ ...SUITE_SCENARIO_STATS, title: 'admin one', parent: 'a:1:1', file: admin } as SuiteStatsExtended)
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, uid: 'u:1:1', title: 'user', file: user, parent: undefined } as SuiteStatsExtended)
+            // the framework starts the feature again with the uid of this part
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, uid: 'a:1:1#2', title: 'admin', file: admin, parent: undefined } as SuiteStatsExtended)
+            tmpReporter.onSuiteStart({ ...SUITE_SCENARIO_STATS, title: 'admin two', parent: 'a:1:1#2', file: admin } as SuiteStatsExtended)
+            expect(tmpReporter.report.features!.map((feature) => [feature.name, feature.elements!.map((scenario) => scenario.name)])).toEqual([
+                ['admin', ['admin one', 'admin two']],
+                ['user', []]
+            ])
+        })
+    })
+
     describe('scenario lines and ids as Cucumber writes them', () => {
         it('gives each scenario with the same name (in other Rules) its own lines, and the Rule in its id', () => {
             vi.mocked(getFailedMessage).mockReturnValue({})
