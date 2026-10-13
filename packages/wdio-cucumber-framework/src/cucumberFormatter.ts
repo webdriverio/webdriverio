@@ -193,7 +193,8 @@ export default class CucumberFormatter extends Formatter {
     ) {
         let state = convertStatus(result.status)
         let error = result.message ? new Error(result.message) : undefined
-        let title = step ? step?.text : this.getTitle(scenario)
+        const title = step ? step?.text : this.getTitle(scenario)
+        let titleSuffix = ''
 
         if (result.status === Status.UNDEFINED) {
             if (this.ignoreUndefinedDefinitions) {
@@ -201,7 +202,7 @@ export default class CucumberFormatter extends Formatter {
                  * mark test as pending
                  */
                 state = 'pending'
-                title += ' (undefined step)'
+                titleSuffix = ' (undefined step)'
             } else {
                 /**
                  * mark test as failed
@@ -263,6 +264,13 @@ export default class CucumberFormatter extends Formatter {
                 ...common,
             }
 
+        /**
+         * after `buildStepPayload`, which builds the title of a step from its keyword
+         * and text: reporters tell an undefined step from a pending one by this suffix
+         */
+        if (titleSuffix) {
+            payload.title += titleSuffix
+        }
         this.emit('test:' + state, payload)
     }
 
