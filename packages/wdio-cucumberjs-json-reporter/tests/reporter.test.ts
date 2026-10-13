@@ -466,6 +466,29 @@ describe('reporter', () => {
         })
     })
 
+    describe('grouped specs in random order', () => {
+        it('adds a scenario to the feature of its parent, also after another feature started', () => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            const featureFile = (name: string) => {
+                const file = path.join(logFolderPath, `${name}.feature`)
+                fs.writeFileSync(file, `Feature: ${name}\n  Scenario: ${name} one\n    Given a step\n`)
+                return file
+            }
+            const fileA = featureFile('a')
+            const fileB = featureFile('b')
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, uid: 'a.feature:1:1', title: 'a', file: fileA, parent: undefined } as SuiteStatsExtended)
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, uid: 'b.feature:1:1', title: 'b', file: fileB, parent: undefined } as SuiteStatsExtended)
+            // the framework sends the start of each feature one time, so a scenario of a comes after b started
+            tmpReporter.onSuiteStart({ ...SUITE_SCENARIO_STATS, title: 'a one', parent: 'a.feature:1:1', file: fileA } as SuiteStatsExtended)
+            tmpReporter.addStepData({ ...STEP_TEST_ONSTART_STATS, title: 'Given a step', keyword: 'Given' } as TestStatsExtended)
+
+            const [featureA, featureB] = tmpReporter.report.features!
+            expect(featureA.elements!.map((scenario) => scenario.name)).toEqual(['a one'])
+            expect(featureB.elements).toEqual([])
+            expect(featureA.elements![0]).toMatchObject({ line: 2, steps: [{ name: 'a step', line: 3 }] })
+        })
+    })
+
     describe('scenario lines and ids as Cucumber writes them', () => {
         it('gives each scenario with the same name (in other Rules) its own lines, and the Rule in its id', () => {
             vi.mocked(getFailedMessage).mockReturnValue({})

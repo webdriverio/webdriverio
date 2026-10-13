@@ -31,6 +31,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     #featureLines?: FeatureLines
     /** line data of each scenario of the report, and the step lines it used */
     #scenarioLines = new WeakMap<Scenario, { lines: ScenarioLines, usedLines: Set<number> }>()
+    /** each feature of the worker and the lines of its file, by the uid of its suite */
+    #featuresByUid = new Map<string, { feature: Feature, lines?: FeatureLines }>()
     /** attachments sent while the scenario has no step yet (for example in a `Before` hook with `disableHooks`) */
     #pendingEmbeddings: Embedding[] = []
     /**
@@ -132,6 +134,17 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             this.report.feature = this.getFeatureDataObject(payload)
             this.report.features = [...(this.report.features ?? []), this.report.feature]
             this.#featureLines = payload.file ? readFeatureLines(payload.file, this.options.language!) : undefined
+            this.#featuresByUid.set(payload.uid, { feature: this.report.feature, lines: this.#featureLines })
+        } else {
+            /**
+             * the framework starts each feature one time: in a random order, the
+             * scenarios of 2 features mix, so use the feature of the parent
+             */
+            const parent = this.#featuresByUid.get(payload.parent)
+            if (parent) {
+                this.report.feature = parent.feature
+                this.#featureLines = parent.lines
+            }
         }
 
         /* istanbul ignore else */
