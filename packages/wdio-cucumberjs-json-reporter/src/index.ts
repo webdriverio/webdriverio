@@ -84,8 +84,11 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * Add a custom listener for the attachments
      */
     public registerListeners(): void {
-        process.on(events.attachment as 'message', this.cucumberJsAttachment.bind(this))
+        process.on(events.attachment as 'message', this.#onAttachment)
     }
+
+    /** the listener of the attachments, removed when the runner ends */
+    #onAttachment = (attachment: CucumberJsAttachment) => this.cucumberJsAttachment(attachment)
 
     /**
      * The order of running of the `on*` is the following:
@@ -290,6 +293,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * Runner is done, write the file
      */
     public onRunnerEnd(): void {
+        process.off(events.attachment as 'message', this.#onAttachment)
         // the last scenario of the worker ended with no step
         this.#dropPendingEmbeddingsOfOtherScenario()
         if (!this.report.feature) {

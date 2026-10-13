@@ -662,6 +662,17 @@ describe('reporter', () => {
         })
     })
 
+    describe('process listener', () => {
+        it('removes its attachment listener when the runner ends', () => {
+            const event = 'wdioCucumberJsReporter:attachment'
+            const before = process.listenerCount(event)
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, language: 'en', logFile })
+            expect(process.listenerCount(event)).toBe(before + 1)
+            reporter.onRunnerEnd()
+            expect(process.listenerCount(event)).toBe(before)
+        })
+    })
+
     describe('attach() in a scenario with no step', () => {
         it('does not move the attachment to the next scenario (disableHooks)', () => {
             vi.mocked(getFailedMessage).mockReturnValue({})
