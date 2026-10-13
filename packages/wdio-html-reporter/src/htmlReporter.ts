@@ -142,6 +142,17 @@ export default class HtmlReporter extends WDIOReporter {
         }
     }
 
+    /**
+     * a test with the state `pending`, for example a pending scenario with
+     * `cucumberOpts.scenarioLevelReporter`: the report shows it as skipped
+     */
+    onTestPending(test: TestStats) {
+        this.LOG.info(String.format('onTestPending: {0}:{1}', test.cid, test.uid))
+        if (!this.#countScenarios) {
+            this.metrics.skipped++
+        }
+    }
+
     onTestFail(theTest: TestStats) {
         this.LOG.info(String.format('onTestFail: {0}:{1}', theTest.cid, theTest.uid))
         const test = this.getTest(theTest.uid)

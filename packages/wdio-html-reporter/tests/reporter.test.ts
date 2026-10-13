@@ -405,3 +405,21 @@ describe('Greptile review points', () => {
         expect(fs.readFileSync(workerJson, 'utf-8')).not.toContain('a lot of data')
     })
 })
+
+describe('pending tests', () => {
+    afterAll(() => {
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+    })
+
+    it('counts a pending test as skipped (for example a pending scenario with scenarioLevelReporter)', () => {
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Pending' } as never)
+        reporter.onRunnerStart(RUNNER)
+        const [, , pending] = SUITES[0].tests
+        reporter.onTestStart(pending)
+        reporter.onTestPending({ ...pending, state: 'pending' } as TestStats)
+        reporter.onTestEnd(pending)
+        expect(reporter.metrics).toMatchObject({ passed: 0, failed: 0, skipped: 1 })
+    })
+})
