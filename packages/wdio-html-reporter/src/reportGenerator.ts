@@ -35,12 +35,11 @@ class ReportGenerator {
         const specs : string[] =  reportData.info.specs
 
         this.LOG.info('Generated ' + specs.length + ' specs, ' + suites.length + ' suites, ' )
-        // the report file of the data (the reporter sets it from its options)
-        this.reportFile = path.resolve(reportData.reportFile)
+        // the report file of the data (the reporter sets it from its options), with the cid of the worker
+        this.reportFile = workerFile(path.resolve(reportData.reportFile), reportData.info.cid)
         reportData.reportFile = this.reportFile
 
         try {
-            reportData.reportFile = workerFile(reportData.reportFile, reportData.info.cid)
             await JsonGenerator.jsonOutput(this.options, reportData)
             if (this.options.produceHtml) {
                 await HtmlGenerator.htmlOutput(this.options, reportData)
