@@ -26,12 +26,8 @@ function  walk(dir:string, extensions: string[], filelist: string[] = []) {
 
         if (stat.isDirectory()) {
             filelist = walk(filepath, extensions, filelist)
-        } else {
-            extensions.forEach(function (extension: string) {
-                if (file.indexOf(extension) === file.length - extension.length) {
-                    filelist.push(filepath)
-                }
-            })
+        } else if (extensions.some((extension) => file.endsWith(extension))) {
+            filelist.push(filepath)
         }
     })
 
