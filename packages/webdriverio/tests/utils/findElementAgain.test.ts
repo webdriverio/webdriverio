@@ -6,6 +6,7 @@ import { describe, it, afterEach, beforeEach, expect, vi } from 'vitest'
 import { remote } from '../../src/index.js'
 import { StrictSelectorError } from '../../src/utils/strictMode.js'
 import { itemOf } from '../../src/utils/findElementAgain.js'
+import refetchElement from '../../src/utils/refetchElement.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -704,6 +705,71 @@ describe('finding an element again', () => {
 
             expect(await elem.getText()).toBe('text of elem-d')
             expect(driver.findsIn.at(-1)).toBe('script customList with host-a')
+        })
+    })
+
+    /**
+     * The page replaced the item of a list: a command gets a stale element error, and the
+     * item is found again at its index without the wait of `$$(selector)[index]`. When the
+     * list is shorter now, the item is "not found", like `$(selector)` when the page removed
+     * its element: a check gives its answer at once, a command that needs the element waits
+     * for it and then throws the stale element error (#12576)
+     */
+    describe('a stale item of a list that no longer reaches its index', () => {
+        const goneItem = async () => {
+            const browser = await session()
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
+            const elem = (await browser.$$('.item'))[2]
+            driver.stale.add('elem-c')
+            driver.light.set('.item', ['elem-x'])
+            return elem
+        }
+
+        it('isDisplayed is false, without a wait for the index', async () => {
+            const elem = await goneItem()
+            const finds = driver.findsIn.length
+            expect(await elem.isDisplayed()).toBe(false)
+            /**
+             * one lookup finds the item again, one more is the lookup of `isDisplayed` for a
+             * not found element. The wait for the index would look every `waitforInterval`
+             */
+            expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document', 'elements .item in document'])
+        })
+
+        it('waitForDisplayed with reverse is true', async () => {
+            const elem = await goneItem()
+            expect(await elem.waitForDisplayed({ reverse: true, timeout: 50 })).toBe(true)
+        })
+
+        it('is found again once at its index, as a not found item', async () => {
+            const elem = await goneItem()
+            const finds = driver.findsIn.length
+
+            const item = await refetchElement(elem, 'isDisplayed')
+            expect(item.elementId).toBeUndefined()
+            expect(item.index).toBe(2)
+            expect(item.selector).toBe('.item')
+            expect(item.error?.message).toBe('element with selector ".item" has no match at index 2')
+            expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document'])
+        })
+
+        it('getText waits for the item and throws the stale element error', async () => {
+            const elem = await goneItem()
+            const { error } = await settle(elem.getText())
+            expect(error?.name).toBe('stale element reference')
+        })
+
+        it('getText uses the item when the list reaches its index again while it waits', async () => {
+            const elem = await goneItem()
+            setTimeout(() => driver.light.set('.item', ['elem-x', 'elem-y', 'elem-z']), 30)
+            expect(await elem.getText()).toBe('text of elem-z')
+        })
+
+        it('a stale item whose index the list still reaches is found again', async () => {
+            const elem = await goneItem()
+            driver.light.set('.item', ['elem-x', 'elem-y', 'elem-z'])
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(await elem.getText()).toBe('text of elem-z')
         })
     })
 

@@ -1,6 +1,35 @@
 import implicitWait from './implicitWait.js'
-import { findElementAgain } from './findElementAgain.js'
+import { REACT_OPTIONS, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
+import type { ReactSelectorOptions } from '../types.js'
+
+type Scope = WebdriverIO.Browser | WebdriverIO.Element
+
+/**
+ * The item of a list, found again in `parent` at its index without a wait, or a
+ * "not found" item when the list is now shorter. Like `$()` finds a gone element
+ * again as a "not found" element: check commands (`isDisplayed`,
+ * `waitForDisplayed({ reverse: true })`) give their answer at once, and a command
+ * that needs the element waits for it in `implicitWait` (#12576).
+ */
+async function findItemAgain (item: WebdriverIO.Element, parent: Scope): Promise<WebdriverIO.Element> {
+    const found = await findElementAgain(item, { parent })
+    if (found) {
+        return found
+    }
+    /**
+     * imported here: `getElementObject` imports the utils barrel, see `implicitWait.ts`
+     */
+    const { getElements } = await import('./getElementObject.js')
+    const error = new Error(`element with selector "${describeSelector(item)}" has no match at index ${item.index}`)
+    const [notFound] = getElements.call(parent, item.selector, [error], {
+        isReactElement: item.isReactElement,
+        isShadowElement: item.isShadowElement,
+        reactOptions: (item as WebdriverIO.Element & { [REACT_OPTIONS]?: ReactSelectorOptions })[REACT_OPTIONS]
+    })
+    notFound.index = item.index
+    return notFound
+}
 
 /**
  * helper utility to refetch an element and all its parent elements when running
@@ -31,7 +60,9 @@ export default async function refetchElement (
      */
     return chain.reduce(async (elementPromise, element, currentIndex) => {
         const parent = await elementPromise
-        const nextElement = await findElementAgain(element, { parent, wait: true })
+        const nextElement = currentIndex + 1 === length && element.index !== undefined
+            ? await findItemAgain(element, parent)
+            : await findElementAgain(element, { parent, wait: true })
 
         if (!nextElement) {
             throw new Error(`element with selector "${describeSelector(element)}" has no match at index ${element.index}`)
