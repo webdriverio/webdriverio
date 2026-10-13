@@ -9,6 +9,11 @@ import ReportAggregator from './reportAggregator.js'
  */
 export async function makeReport (args: string[], env: Record<string, string | undefined> = process.env) {
     const [reportName = 'master-report.html', outputDir = 'reports/html-reports/', reportTitle = 'Master Report'] = args
+    // a folder name with a typo: the aggregator would create it and write an empty report
+    if (!fs.existsSync(outputDir)) {
+        throw new Error(`The folder of the JSON files does not exist: ${outputDir}`)
+    }
+    const started = Date.now()
     const reportAggregator = new ReportAggregator({
         outputDir,
         filename: reportName,
@@ -18,8 +23,9 @@ export async function makeReport (args: string[], env: Record<string, string | u
         showInBrowser: !env.CI
     } as ConstructorParameters<typeof ReportAggregator>[0])
     await reportAggregator.createReport()
-    // the aggregator logs some errors and does not throw them
-    if (!fs.existsSync(reportAggregator.reportFile)) {
+    // the aggregator logs some errors and does not throw them: a report of an earlier run is not this report
+    const reportFile = reportAggregator.reportFile
+    if (!fs.existsSync(reportFile) || fs.statSync(reportFile).mtimeMs < started - 1000) {
         throw new Error(`No report was made at ${reportAggregator.reportFile}`)
     }
     return reportAggregator.reportFile

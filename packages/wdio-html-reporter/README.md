@@ -111,7 +111,8 @@ node node_modules/@wdio/html-reporter/build/makeReport.js master-report.html rep
 
 The arguments are the file name of the report, the folder of the JSON files (default `reports/html-reports/`) and
 the title (default `Master Report`). The script opens the report in a browser, except when the `CI` environment
-variable is set.
+variable is set. It ends with exit code 1 when the folder does not exist or when it cannot make the report, so a CI
+step fails.
 
 ## PDF report
 
