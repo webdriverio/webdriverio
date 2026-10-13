@@ -239,7 +239,9 @@ export function retakeScenarioLines (
     options: { rule?: string, tags?: readonly string[] } = {}
 ): TakenScenario | undefined {
     const hasStep = (scenario: ScenarioLines) => scenario.steps.some((step) => matchesTemplate(step.text, stepText))
-    if (hasStep(taken.scenario)) {
+    // a background step is a step of each scenario with this background
+    const inBackground = taken.scenario.background.some((step) => matchesTemplate(step.text, stepText))
+    if (inBackground || hasStep(taken.scenario)) {
         return undefined
     }
     const others = lines.scenarios.filter((scenario) => scenario !== taken.scenario && hasStep(scenario))

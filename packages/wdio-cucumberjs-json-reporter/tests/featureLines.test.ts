@@ -138,6 +138,25 @@ describe('featureLines', () => {
         expect(retakeScenarioLines(lines, retaken, 'Buy milk', 'I buy milk')).toBeUndefined()
     })
 
+    it('does not take another scenario with the same name for a background step', () => {
+        const background = path.join(path.dirname(file), 'background-same-name.feature')
+        fs.writeFileSync(background, [
+            'Feature: F',              // 1
+            '  Background:',           // 2
+            '    Given setup',         // 3
+            '  Scenario: S',           // 4
+            '    Given a',             // 5
+            '  Scenario: S',           // 6
+            '    Given setup',         // 7
+            '    Given a'              // 8
+        ].join('\n'))
+        const lines = readFeatureLines(background, 'en')!
+        const taken = takeScenarioLines(lines, 'S')!
+        expect(taken.line).toBe(4)
+        // the first step is the background step: it is a step of each scenario
+        expect(retakeScenarioLines(lines, taken, 'S', 'setup')).toBeUndefined()
+    })
+
     it('takes the Examples row of the tags of the example, not an untagged row before it', () => {
         const tagged = path.join(path.dirname(file), 'tagged.feature')
         fs.writeFileSync(tagged, [
