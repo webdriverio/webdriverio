@@ -968,6 +968,29 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
+        /**
+         * after the wait for the child, a check of the child would find the removed parent again
+         * through the middleware of the parent, and wait for it again (#16072 review)
+         */
+        it('does not wait for a removed parent again after the wait for a child without an element id', async () => {
+            const lookups = async (run: (child: WebdriverIO.Element) => Promise<unknown>) => {
+                const browser = await session()
+                driver.stale.delete('host-a')
+                driver.light.set('#host', ['host-a'])
+                const host = await browser.$('#host')
+                const child = await host.$('.missing')
+                driver.stale.add('host-a')
+                driver.light.set('#host', [])
+                vi.mocked(refetchElement).mockClear()
+                await settle(run(child))
+                return vi.mocked(refetchElement).mock.calls.length
+            }
+
+            const wait = await lookups((child) => child.waitForExist())
+            expect(wait).toBeGreaterThan(0)
+            expect(await lookups((child) => child.getText())).toBe(wait)
+        })
+
         it('fails both commands that run at the same time on a removed element', async () => {
             const elem = await removedRef()
             const results = await Promise.allSettled([elem.getText(), elem.getAttribute('id')])

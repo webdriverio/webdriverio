@@ -26,11 +26,11 @@ const notExisting = async () => { throw new Error('still not existing') }
 
 /**
  * The implicit wait flags its "element wasn't found" error and marks the element when the
- * wait for the element ended and the element is still missing: the element middleware
- * does not wait for it again (#16072)
+ * wait for the element ended without it: the element middleware does not wait for it
+ * again (#16072)
  */
 describe('implicitWait', () => {
-    it('flags the error and marks the element when the wait ends and the element is still missing', async () => {
+    it('flags the error and marks the element when the wait ends without the element', async () => {
         const el = missing(notExisting)
         const layer = enterCommand(el)
         try {
@@ -43,17 +43,14 @@ describe('implicitWait', () => {
         }
     })
 
-    it('does not flag the error when the element exists after the wait', async () => {
-        const el = missing(notExisting, async () => true)
-        const layer = enterCommand(el)
-        try {
-            const error = await implicitWait(el, 'getText').then(() => null, (err: Error) => err)
-            expect(error?.message).toContain('because element wasn\'t found')
-            expect(waitedFor(error)).toBe(false)
-            expect(isMarkedNotFound(el)).toBe(false)
-        } finally {
-            leaveCommand(el, layer)
-        }
+    /**
+     * a check would look for the element again, and for a removed parent through the
+     * middleware of the parent, which waits for it again (#16072 review)
+     */
+    it('does not look for the element again after the wait', async () => {
+        const el = missing(notExisting)
+        await implicitWait(el, 'getText').catch(() => {})
+        expect(el.isExisting).not.toHaveBeenCalled()
     })
 
     it('does not flag the error when the element existed and its lookup failed after', async () => {
@@ -63,20 +60,6 @@ describe('implicitWait', () => {
         expect(error?.message).toContain('because element wasn\'t found')
         expect(waitedFor(error)).toBe(false)
         expect(el.isExisting).not.toHaveBeenCalled()
-    })
-
-    it('keeps the error when the existence check fails', async () => {
-        const el = missing(notExisting, async () => { throw new Error('session deleted') })
-        const error = await implicitWait(el, 'getText').then(() => null, (err: Error) => err)
-        expect(error?.message).toBe('Can\'t call getText on element with selector "#missing" because element wasn\'t found')
-        expect(waitedFor(error)).toBe(false)
-    })
-
-    it('keeps the error when the existence check throws at once', async () => {
-        const el = missing(notExisting, () => { throw new TypeError('isExisting is not a function') })
-        const error = await implicitWait(el, 'getText').then(() => null, (err: Error) => err)
-        expect(error?.message).toBe('Can\'t call getText on element with selector "#missing" because element wasn\'t found')
-        expect(waitedFor(error)).toBe(false)
     })
 
     it('throws a strict-mode violation as it is, without a flag', async () => {
