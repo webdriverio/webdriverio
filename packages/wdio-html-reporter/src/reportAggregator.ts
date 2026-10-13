@@ -169,7 +169,8 @@ class ReportAggregator {
         }
         metrics.duration = dayjs.duration(dayjs(metrics.end).utc().diff(dayjs(metrics.start).utc())).as('milliseconds')
 
-        if (!this.reports || !this.reports.length ) {
+        const noWorkerReport = !this.reports || !this.reports.length
+        if (noWorkerReport) {
             // the test failed hard at the beginning.  Create a dummy structure to get through html generation
             const report = {
                 'info' : {
@@ -203,6 +204,9 @@ class ReportAggregator {
             this.reportFile,
             this.options.browserName)
         reportData.master = true
+        if (noWorkerReport) {
+            reportData.message = `${this.reports[0].info.cid}`
+        }
 
         try {
             await JsonGenerator.jsonOutput(this.options, reportData)

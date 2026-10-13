@@ -33,7 +33,11 @@ describe('ReportAggregator', () => {
         const dir = path.join(tempDir(), 'not-created')
         const reportAggregator = new ReportAggregator({ outputDir: dir, filename: 'master-report.html', reportTitle: 'No results' })
         await expect(reportAggregator.createReport()).resolves.toBeUndefined()
-        expect(fs.readFileSync(path.join(dir, 'master-report.html'), 'utf-8')).toContain('No results')
+        const html = fs.readFileSync(path.join(dir, 'master-report.html'), 'utf-8')
+        expect(html).toContain('No results')
+        // the report says why it is empty
+        expect(html).toContain('The execution of the test suite has failed before report generation was started')
+        expect(html).not.toContain('<h3 class="warning"></h3>')
         expect(fs.existsSync(path.join(dir, 'master-report.json'))).toBe(true)
     })
 
