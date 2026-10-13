@@ -129,8 +129,15 @@ describe('Video Reporter', () => {
 
         it('should set record to false when onlyRecordLastFailure is set and not last retry', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
-            reporter.onRunnerStart({ ...allureRunner, retry: 1, specFileRetries: 2 })
+            reporter.onRunnerStart({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 2 } })
             expect(reporter.record).toBe(false)
+        })
+
+        it('records the only attempt when specFileRetries is 0 (the first attempt has retry 1)', () => {
+            const reporter = new VideoReporter({ onlyRecordLastFailure: true })
+            // the launcher sends retries -1 (unknown) to the first attempt: retry = specFileRetries + 1
+            reporter.onRunnerStart({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 0 } })
+            expect(reporter.record).toBe(true)
         })
 
         it('should set record to true when onlyRecordLastFailure is set and is on the last retry', () => {
@@ -564,7 +571,7 @@ describe('Video Reporter', () => {
         it('should not generate video when retry < specFileRetries and the test has failed', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
             reporter.testName = 'foo bar'
-            reporter.onRunnerStart({ ...allureRunner, retry: 1, specFileRetries: 2 })
+            reporter.onRunnerStart({ ...allureRunner, retry: 1, config: { ...allureRunner.config, specFileRetries: 2 } })
             reporter.generateVideo = vi.fn() as any
             reporter.onTestEnd({ state: 'failed' } as any)
             expect(reporter.generateVideo).toBeCalledTimes(0)
