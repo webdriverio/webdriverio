@@ -961,6 +961,55 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
+        it('waits once for setValue when clearing the input removes it', async () => {
+            const browser = await session()
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            /**
+             * the page removes the input when its value is cleared
+             */
+            const handler = vi.mocked(fetch).getMockImplementation()!
+            vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                if (String(uri).endsWith('/element/elem-r/clear')) {
+                    driver.stale.add('elem-r')
+                    driver.light.set('#ref', [])
+                    return Response.json({ value: null })
+                }
+                return handler(uri, params)
+            }) as typeof fetch)
+
+            const { error, waits: count } = await waits(elem.setValue('x'))
+            expect(error?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+        })
+
+        it('types into the input that the page renders again when clearing it', async () => {
+            const browser = await session()
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            const handler = vi.mocked(fetch).getMockImplementation()!
+            const typedInto: string[] = []
+            vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                const url = String(uri)
+                if (url.endsWith('/element/elem-r/clear')) {
+                    driver.stale.add('elem-r')
+                    driver.light.set('#ref', ['elem-r2'])
+                    return Response.json({ value: null })
+                }
+                const typed = url.match(/\/element\/([^/]+)\/value$/)
+                if (typed && !driver.stale.has(typed[1])) {
+                    typedInto.push(typed[1])
+                    return Response.json({ value: null })
+                }
+                return handler(uri, params)
+            }) as typeof fetch)
+
+            const { error, waits: count } = await waits(elem.setValue('x'))
+            expect(error).toBeUndefined()
+            expect(typedInto).toEqual(['elem-r2'])
+            expect(count).toBe(0)
+        })
+
         it('waits once for waitForEnabled of a removed element', async () => {
             const elem = await removedRef()
             const { error, waits: count } = await waits(elem.waitForEnabled())

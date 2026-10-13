@@ -80,6 +80,19 @@ export async function setValue (
 }
 
 /**
+ * A failed property lookup gives no value, except when it waited for the element and did not
+ * find it: the next command (`clearValue`, `addValue`) would wait for it again.
+ */
+function noPropertyUnlessGone (elem: WebdriverIO.Element) {
+    return (err: unknown) => {
+        if (isStaleError(err) && isMarkedNotFound(elem)) {
+            throw err
+        }
+        return undefined
+    }
+}
+
+/**
  * A field whose framework keeps the value in its own state (React, Vue) can
  * put it back right after `clearValue`, and the new value would be typed
  * after it ("Phoenix, AZ90210"). Clearing the way a user does, select all
@@ -90,7 +103,7 @@ async function clearStubbornValue (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return
     }
-    const remaining = await elem.getElementProperty(elem.elementId, 'value').catch(() => undefined)
+    const remaining = await elem.getElementProperty(elem.elementId, 'value').catch(noPropertyUnlessGone(elem))
     if (typeof remaining !== 'string' || remaining === '') {
         return
     }
@@ -108,15 +121,6 @@ async function setsDirectly (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return false
     }
-    /**
-     * a failed lookup gives no type, except when it waited for the element and did not find
-     * it: `clearValue` would wait for it again
-     */
-    const type = await elem.getElementProperty(elem.elementId, 'type').catch((err) => {
-        if (isStaleError(err) && isMarkedNotFound(elem)) {
-            throw err
-        }
-        return undefined
-    })
+    const type = await elem.getElementProperty(elem.elementId, 'type').catch(noPropertyUnlessGone(elem))
     return typeof type === 'string' && SET_DIRECTLY.includes(type)
 }
