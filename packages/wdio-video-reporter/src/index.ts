@@ -246,7 +246,7 @@ export default class VideoReporter extends WdioReporter {
          */
         instance.on('bidiCommand', (command: { id?: number, method?: string, params?: unknown }) => {
             const name = getBidiSnapshotCommand(command)
-            if (!name || typeof command.id !== 'number') {
+            if (!name || typeof command.id !== 'number' || !this.#record) {
                 return
             }
             const params = command.params as { context?: string, target?: { context?: string } } | undefined

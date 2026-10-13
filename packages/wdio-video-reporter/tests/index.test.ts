@@ -833,6 +833,20 @@ describe('Video Reporter', () => {
             browser.isBidi = false
         })
 
+        it('keeps no BiDi command when it does not record', () => {
+            browser.isBidi = true
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            reporter.record = false
+            reporter.listenToBidiCommands()
+            listeners.bidiCommand({ id: 1, method: 'browsingContext.navigate', params: {} })
+            // the command was not kept: its result takes no frame, also after a change
+            reporter.record = true
+            listeners.bidiResult({ id: 1, type: 'success', result: {} })
+            expect(browser.takeScreenshot).toBeCalledTimes(0)
+            browser.isBidi = false
+        })
+
         it('does not listen in a classic session', () => {
             browser.isBidi = false
             const reporter = new VideoReporter({})
