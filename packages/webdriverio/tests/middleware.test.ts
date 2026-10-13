@@ -243,6 +243,41 @@ describe('middleware', () => {
             expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
         })
 
+        /**
+         * a command on a host that runs a command on a child: the host was found again,
+         * the child was waited for and not found (#16072 review)
+         */
+        it('is not looked for again when the retry failed on an inner lookup that waited', async () => {
+            browser.addCommand('childGoneAfterRefetch', vi.fn()
+                .mockRejectedValueOnce(staleError())
+                .mockRejectedValueOnce(notFound()), { attachToElement: true })
+            browser.addCommand('outerChildGone', async function (this: WebdriverIO.Element) {
+                // @ts-expect-error undefined custom command
+                return this.childGoneAfterRefetch()
+            }, { attachToElement: true })
+            const elem = await browser.$('#foo')
+            refetchGives(elem)
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.outerChildGone().then(() => null, (e: Error) => e)
+            expect(error?.name).toBe('stale element reference')
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        it('throws the stale error of the command when the lookup fails with a value that is not an Error', async () => {
+            const original = staleError()
+            browser.addCommand('staleNotError', vi.fn().mockRejectedValueOnce(original), { attachToElement: true })
+            const elem = await browser.$('#foo')
+            vi.mocked(refetchElement).mockClear()
+            vi.mocked(refetchElement).mockImplementation(async () => {
+                throw { name: 'stale element reference', message: 'stale element reference: from another realm' }
+            })
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.staleNotError().then(() => null, (e: Error) => e)
+            expect(error).toBe(original)
+        })
+
         it('is looked for again when the inner command found it and failed again', async () => {
             browser.addCommand('staleTwice', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
             browser.addCommand('outerStaleTwice', async function (this: WebdriverIO.Element) {

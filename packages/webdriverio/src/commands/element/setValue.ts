@@ -100,19 +100,6 @@ async function clearStubbornValue (elem: WebdriverIO.Element) {
 }
 
 /**
- * The `type` lookup of `setValue` gives `undefined` when it fails, except for a stale
- * element error: the middleware of `setValue` throws it at once when the element was
- * waited for and not found, and finds the element again and runs `setValue` again
- * when it was replaced. A `type` of `undefined` would type into a date or range input.
- */
-function staleOrUndefined (err: unknown): undefined {
-    if (isStaleError(err)) {
-        throw err
-    }
-    return undefined
-}
-
-/**
  * The `value` lookup after clearing gives `undefined` when it fails, except for an
  * element that was waited for and not found. A field that a page renders again when
  * its value is empty is found again by `addValue`, as before.
@@ -133,6 +120,28 @@ async function setsDirectly (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return false
     }
-    const type = await elem.getElementProperty(elem.elementId, 'type').catch(staleOrUndefined)
-    return typeof type === 'string' && SET_DIRECTLY.includes(type)
+    return SET_DIRECTLY.includes(await typeOf(elem) ?? '')
+}
+
+/**
+ * The `type` of the element, `undefined` when the lookup fails. When the page replaced
+ * the element, the middleware found it again and gave it its new element id, but its
+ * retry of the lookup used the old one: the type is looked up once more. A `type` of
+ * `undefined` would type into a date or range input. An element that was waited for
+ * and not found is not looked up again.
+ */
+async function typeOf (elem: WebdriverIO.Element): Promise<string | undefined> {
+    try {
+        const type = await elem.getElementProperty(elem.elementId, 'type')
+        return typeof type === 'string' ? type : undefined
+    } catch (err) {
+        if (wasNotFoundAgain(err)) {
+            throw err
+        }
+        if (!isStaleError(err)) {
+            return undefined
+        }
+    }
+    const type = await elem.getElementProperty(elem.elementId, 'type').catch(goneOrUndefined)
+    return typeof type === 'string' ? type : undefined
 }

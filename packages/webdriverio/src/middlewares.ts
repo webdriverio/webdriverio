@@ -83,7 +83,7 @@ async function invokeElementCommand (
                 if (refetchErr instanceof StrictSelectorError) {
                     throw refetchErr
                 }
-                const thrown = isStaleError(refetchErr) ? refetchErr : err
+                const thrown = refetchErr instanceof Error && isStaleError(refetchErr) ? refetchErr : err
                 /**
                  * the lookup waited for the element and did not find it: an outer layer
                  * does not look again. Any other failure of the lookup leaves the outer
@@ -104,14 +104,20 @@ async function invokeElementCommand (
             try {
                 return await execute()
             } catch (retryErr) {
-                /**
-                 * the element was found again: the error of the command is not marked,
-                 * an outer layer can still find the element again
-                 */
                 if (retryErr instanceof StrictSelectorError) {
                     throw retryErr
                 }
-                throw isStaleError(retryErr) ? retryErr : err
+                const thrown = retryErr instanceof Error && isStaleError(retryErr) ? retryErr : err
+                /**
+                 * The element was found again, so a failure of the command does not get a
+                 * mark here and an outer layer can still find the element again, except when
+                 * an inner lookup of the command already waited for its element and did not
+                 * find it: an outer layer would only wait for it again.
+                 */
+                if (wasNotFoundAgain(retryErr)) {
+                    markNotFoundAgain(thrown)
+                }
+                throw thrown
             }
         }
 

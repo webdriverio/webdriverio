@@ -78,16 +78,36 @@ describe('setValue', () => {
         return err
     }
 
-    it('should throw the stale element error of the type lookup', async () => {
-        for (const waited of [true, false]) {
-            const elem = await browser.$('#foo')
-            const error = stale(waited)
-            vi.spyOn(elem, 'getElementProperty').mockRejectedValue(error)
-            const clearValue = vi.spyOn(elem, 'clearValue')
+    it('should throw the error of a type lookup that waited and did not find the element', async () => {
+        const elem = await browser.$('#foo')
+        const error = stale(true)
+        vi.spyOn(elem, 'getElementProperty').mockRejectedValue(error)
+        const clearValue = vi.spyOn(elem, 'clearValue')
 
-            await expect(elem.setValue('foobar')).rejects.toBe(error)
-            expect(clearValue).not.toHaveBeenCalled()
-        }
+        await expect(elem.setValue('foobar')).rejects.toBe(error)
+        expect(clearValue).not.toHaveBeenCalled()
+    })
+
+    /**
+     * the middleware found the replaced element and gave it its new id, but retried the
+     * lookup with the old one (#16072 review)
+     */
+    it('should look up the type once more after a stale element error of a replaced element', async () => {
+        const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'getElementProperty').mockRejectedValueOnce(stale(false)).mockResolvedValueOnce('date')
+        const execute = vi.spyOn(browser, 'execute').mockResolvedValue(true as never)
+
+        await elem.setValue('2026-10-04')
+        expect(execute).toHaveBeenCalledWith(expect.any(Function), elem, '2026-10-04')
+        expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/clear')
+    })
+
+    it('should type the value when the second type lookup fails too', async () => {
+        const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'getElementProperty').mockRejectedValue(stale(false))
+
+        await elem.setValue('foobar')
+        expect(paths()).toContain('/session/foobar-123/element/some-elem-123/clear')
     })
 
     it('should throw the stale element error of the value lookup after clearing', async () => {

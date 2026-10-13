@@ -12,21 +12,31 @@
  * wait (for example a parent that the page replaces again while the chain is found
  * again) has no mark, and an outer layer looks again.
  */
-const NOT_FOUND_AGAIN = Symbol('wdio:notFoundAgain')
+/**
+ * a registered symbol: another copy of webdriverio in the same process sees the mark
+ */
+const NOT_FOUND_AGAIN = Symbol.for('wdio:notFoundAgain')
 
-export function isStaleElementError(err: Error) {
+/**
+ * a stale element error by its message, `false` for a value without a message
+ */
+export function isStaleElementError(err: unknown) {
+    const message = (err as { message?: unknown } | null | undefined)?.message
+    if (typeof message !== 'string') {
+        return false
+    }
     return (
         // Chrome
-        err.message.includes('stale element reference') ||
+        message.includes('stale element reference') ||
         // Firefox
-        err.message.includes('is no longer attached to the DOM') ||
+        message.includes('is no longer attached to the DOM') ||
         // Safari
-        err.message.toLowerCase().includes('stale element found') ||
+        message.toLowerCase().includes('stale element found') ||
         // Chrome through JS execution
-        err.message.includes('stale element not found in the current frame') ||
+        message.includes('stale element not found in the current frame') ||
         // BIDI
-        err.message.includes('belongs to different document') ||
-        err.message.includes('no such node - The node with the reference')
+        message.includes('belongs to different document') ||
+        message.includes('no such node - The node with the reference')
     )
 }
 
@@ -38,8 +48,7 @@ export function isStaleError(err: unknown): boolean {
     if (!err || typeof err !== 'object') {
         return false
     }
-    const { name, message } = err as { name?: unknown, message?: unknown }
-    return name === 'stale element reference' || (typeof message === 'string' && isStaleElementError(err as Error))
+    return (err as { name?: unknown }).name === 'stale element reference' || isStaleElementError(err)
 }
 
 /**

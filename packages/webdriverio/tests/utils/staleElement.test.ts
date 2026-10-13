@@ -24,8 +24,11 @@ describe('isStaleError', () => {
         }
     })
 
-    it('is the message check of isStaleElementError for an error', () => {
+    it('is the message check of isStaleElementError, which is false for a value without a message', () => {
         expect(isStaleElementError(new Error('Element is no longer attached to the DOM'))).toBe(true)
+        for (const value of [undefined, null, 'stale element reference', { message: 1 }]) {
+            expect(isStaleElementError(value)).toBe(false)
+        }
     })
 })
 
@@ -34,6 +37,12 @@ describe('markNotFoundAgain', () => {
         const err = new Error('stale element reference')
         expect(wasNotFoundAgain(err)).toBe(false)
         markNotFoundAgain(err)
+        expect(wasNotFoundAgain(err)).toBe(true)
+    })
+
+    it('uses a registered symbol, so another copy of webdriverio sees the mark', () => {
+        const err = new Error('stale element reference')
+        Object.assign(err, { [Symbol.for('wdio:notFoundAgain')]: true })
         expect(wasNotFoundAgain(err)).toBe(true)
     })
 

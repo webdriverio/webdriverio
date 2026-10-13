@@ -43,8 +43,10 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             'that wasn\'t found, waiting for it...'
         )
 
+        let existed = false
         try {
             await currentElement.waitForExist()
+            existed = true
             /**
              * if waitForExist was successful requery element and assign elementId to the scope,
              * with the command, index and strictness it was originally queried with. Falling
@@ -73,18 +75,22 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             }
 
             const selector = currentElement.selector.toString()
-            const notFound = new Error(
-                selector.includes('this.previousElementSibling')
-                    ? `Can't call ${commandName} on previous element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`
-                    : selector.includes('this.nextElementSibling')
-                        ? `Can't call ${commandName} on next element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`
-                        : selector.includes('this.parentElement')
-                            ? `Can't call ${commandName} on parent element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because it wasn't found`
-                            : `Can't call ${commandName} on element with selector "${describeSelector(currentElement)}" because element wasn't found`)
+            let message = `Can't call ${commandName} on element with selector "${describeSelector(currentElement)}" because element wasn't found`
+            if (selector.includes('this.previousElementSibling')) {
+                message = `Can't call ${commandName} on previous element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`
+            } else if (selector.includes('this.nextElementSibling')) {
+                message = `Can't call ${commandName} on next element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`
+            } else if (selector.includes('this.parentElement')) {
+                message = `Can't call ${commandName} on parent element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because it wasn't found`
+            }
+            const notFound = new Error(message)
             /**
-             * the element was waited for and not found, see `markNotFoundAgain`
+             * the wait for the element ended without it, see `markNotFoundAgain`. A lookup
+             * that failed after the element existed is not marked: it can be there again
              */
-            markNotFoundAgain(notFound)
+            if (!existed) {
+                markNotFoundAgain(notFound)
+            }
             throw notFound
         }
     }
