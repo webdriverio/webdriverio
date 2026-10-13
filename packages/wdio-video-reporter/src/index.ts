@@ -691,8 +691,13 @@ export default class VideoReporter extends WdioReporter {
          * a failed render can leave an empty or broken file: it is not a video
          */
         const dropVideo = () => {
-            fs.rmSync(videoPath, { force: true })
             this.videos = this.videos.filter((video) => video !== videoPath)
+            try {
+                fs.rmSync(videoPath, { force: true })
+            } catch (error: unknown) {
+                // on Windows, a killed ffmpeg can still hold the file for a short time (EBUSY)
+                this.#log(`Could not remove the partial video ${videoPath}: ${(error as Error).message}`)
+            }
         }
 
         const start = Date.now()
