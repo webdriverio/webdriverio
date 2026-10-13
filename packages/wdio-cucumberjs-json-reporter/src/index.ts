@@ -18,6 +18,7 @@ import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
 import { findDocStringLine, findStepLine, readFeatureLines, scenarioNameOf, takeScenarioLines, type FeatureLines, type ScenarioLines } from './featureLines.js'
 import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage } from './utils.js'
+import { withFileLock, writeFileAtomic } from './files.js'
 import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
 
@@ -273,9 +274,11 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             const jsonFile = path.resolve(jsonFolder, filename)
             const json = [feature]
             // Check if there is an existing file, if so concat the data, else add the new
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            const output = fs.existsSync(jsonFile) ? json.concat(JSON.parse(fs.readFileSync(jsonFile, 'utf-8'))) : json
-            fs.writeFileSync(jsonFile, JSON.stringify(output) + '\n')
+            withFileLock(jsonFile, () => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                const output = fs.existsSync(jsonFile) ? json.concat(JSON.parse(fs.readFileSync(jsonFile, 'utf-8'))) : json
+                writeFileAtomic(jsonFile, JSON.stringify(output) + '\n')
+            })
         }
     }
 
