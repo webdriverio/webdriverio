@@ -455,7 +455,7 @@ describe('CucumberFormatter', () => {
                     _failAmbiguousDefinitions: true,
                 },
             } as any)
-            const uris = ['/project/features/admin/login.feature', '/project/features/user/login.feature', '/project/features/other.feature']
+            const uris = ['/project/features/admin/login.feature', '/project/features/user/login.feature', '/project/features/other.feature', '/project/features/a:b/login.feature', '/project/features/ab/login.feature']
             for (const uri of uris) {
                 eventBroadcaster.emit('envelope', { gherkinDocument: { ...gherkinDocument, uri, feature: { ...gherkinDocument.feature!, name: uri } } })
             }
@@ -476,8 +476,12 @@ describe('CucumberFormatter', () => {
             expect(featureUids).toEqual([
                 `${relative(uris[0])}:3:1`,
                 `${relative(uris[1])}:3:1`,
-                'other.feature:3:1'
+                'other.feature:3:1',
+                // a `:` in a folder name is encoded: the uid stays unique, and `:` separates only the line and column
+                `${relative(uris[3]).replace(':', '%3A')}:3:1`,
+                `${relative(uris[4])}:3:1`
             ])
+            expect(new Set(featureUids).size).toBe(uris.length)
         })
     })
 

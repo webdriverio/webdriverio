@@ -159,7 +159,7 @@ export default class CucumberFormatter extends Formatter {
     /**
      * The id of a feature: `<file name>:<line>:<column>`. When another feature file of
      * the run has the same name (`admin/login.feature` and `user/login.feature`), the
-     * path of the file from the current folder (with `/` and no `:`): else a reporter
+     * path of the file from the current folder (with `/`, and `:` encoded): else a reporter
      * replaces the suite of one feature with the other.
      */
     featureId(uri: string, feature: Feature) {
@@ -168,7 +168,8 @@ export default class CucumberFormatter extends Formatter {
         if (!sameName) {
             return getFeatureId(uri, feature)
         }
-        const file = path.relative(process.cwd(), uri).split(path.sep).join('/').replace(/:/g, '')
+        // `:` separates the line and the column: encode it (and `%`), so 2 paths never give the same uid
+        const file = path.relative(process.cwd(), uri).split(path.sep).join('/').replace(/%/g, '%25').replace(/:/g, '%3A')
         return getFeatureId(uri, feature, file)
     }
 
