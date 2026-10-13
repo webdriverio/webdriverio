@@ -28,4 +28,12 @@ describe('ReportAggregator', () => {
         const files = new ReportAggregator({ outputDir: dir, filename: 'master-report.html' }).readJsonFiles()
         expect(files.map((file) => path.basename(file))).toEqual(['report-0-0.json'])
     })
+
+    it('makes the report of a run with no worker results when the folder does not exist', async () => {
+        const dir = path.join(tempDir(), 'not-created')
+        const reportAggregator = new ReportAggregator({ outputDir: dir, filename: 'master-report.html', reportTitle: 'No results' })
+        await expect(reportAggregator.createReport()).resolves.toBeUndefined()
+        expect(fs.readFileSync(path.join(dir, 'master-report.html'), 'utf-8')).toContain('No results')
+        expect(fs.existsSync(path.join(dir, 'master-report.json'))).toBe(true)
+    })
 })
