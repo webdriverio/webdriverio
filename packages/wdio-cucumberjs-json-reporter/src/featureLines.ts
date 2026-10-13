@@ -178,8 +178,16 @@ export function takeScenarioLines (
             free[0]
     }
     const isFree = (scenario: ScenarioLines) => scenario.examples.length ? Boolean(rowOf(scenario)) : scenario.used === 0
+    /**
+     * first, in the order of the file, a free scenario with this name or an outline with
+     * a free Examples row of this name: an example and a plain scenario can have the same
+     * name (`Scenario Outline: Buy <item>` and `Scenario: Buy milk`)
+     */
+    const sameName = inRule.find((scenario) => scenario.examples.length
+        ? scenario.examples.some((row) => !row.used && row.name === name)
+        : scenario.name === name && scenario.used === 0)
     // all used: the same spec file runs again, start with the first one
-    const scenario = candidates.find(isFree) ?? candidates[0]
+    const scenario = sameName ?? candidates.find(isFree) ?? candidates[0]
     if (!scenario) {
         return undefined
     }

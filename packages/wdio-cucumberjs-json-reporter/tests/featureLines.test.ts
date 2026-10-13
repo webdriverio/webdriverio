@@ -94,6 +94,23 @@ describe('featureLines', () => {
         expect(scenarioNameOf('Ratio: 2', undefined)).toBe('Ratio: 2')
     })
 
+    it('gives an example and a plain scenario with the same name their own lines (in the order of the file)', () => {
+        const sameName = path.join(path.dirname(file), 'same-name.feature')
+        fs.writeFileSync(sameName, [
+            'Feature: F',                           // 1
+            '  Scenario Outline: Buy <item>',       // 2
+            '    Given I buy "<item>"',             // 3
+            '    Examples:',                        // 4
+            '      | item |',                       // 5
+            '      | milk |',                       // 6
+            '  Scenario: Buy milk',                 // 7
+            '    Given I buy milk'                  // 8
+        ].join('\n'))
+        const lines = readFeatureLines(sameName, 'en')!
+        expect(takeScenarioLines(lines, 'Buy milk')?.line).toBe(6)
+        expect(takeScenarioLines(lines, 'Buy milk')?.line).toBe(7)
+    })
+
     it('takes the Examples row of the tags of the example, not an untagged row before it', () => {
         const tagged = path.join(path.dirname(file), 'tagged.feature')
         fs.writeFileSync(tagged, [
