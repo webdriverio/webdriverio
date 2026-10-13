@@ -67,6 +67,22 @@ describe('metadata', () => {
         })
     })
 
+    describe('appium:app', () => {
+        it('gives the app name from the W3C capability appium:app', () => {
+            expect(metadataClassObject.determineAppData(
+                { 'appium:app': 'here/there/app.apk' } as WebdriverIO.Capabilities,
+                {} as cjson_metadata,
+            ).app.name).toBe('app.apk')
+        })
+
+        it('gives app data, not browser data, for a native app session with appium:app', () => {
+            const runner = { ...FULL_RUNNER_STATS, capabilities: { platformName: 'Android', 'appium:app': '/apps/shop.apk' } } as never
+            const metadata = metadataClassObject.determineMetadata(runner)
+            expect(metadata).toHaveProperty('app', expect.objectContaining({ name: 'shop.apk' }))
+            expect(metadata).not.toHaveProperty('browser')
+        })
+    })
+
     describe('determineBrowserData', () => {
         it('should return that no browser metadata could be determined', () => {
             expect(
