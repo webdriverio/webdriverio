@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 
 import { ReportAggregator } from '../src/index.js'
 
@@ -65,6 +65,29 @@ describe('ReportAggregator', () => {
         const file = path.join(tempDir(), 'a-file')
         fs.writeFileSync(file, 'not a folder')
         expect(await runCli(['master-report.html', file, 'Title'], { CI: 'true' })).toBe(1)
+    })
+
+    it('makeReport gives exit code 1 for a folder that does not exist, and does not create it', async () => {
+        const { runCli } = await import('../src/makeReportCli.js')
+        const typo = path.join(tempDir(), 'reprots')
+        expect(await runCli(['master-report.html', typo, 'Title'], { CI: 'true' })).toBe(1)
+        expect(fs.existsSync(typo)).toBe(false)
+    })
+
+    it('makeReport gives exit code 1 when only an old report is there', async () => {
+        const { runCli } = await import('../src/makeReportCli.js')
+        const dir = tempDir()
+        const old = path.join(dir, 'master-report.html')
+        fs.writeFileSync(old, 'old report')
+        fs.utimesSync(old, new Date(2020, 0, 1), new Date(2020, 0, 1))
+        // the HTML step fails: the aggregator logs the error and does not throw it
+        const { default: HtmlGenerator } = await import('../src/htmlGenerator.js')
+        const htmlOutput = vi.spyOn(HtmlGenerator, 'htmlOutput').mockRejectedValue(new Error('render failed'))
+        try {
+            expect(await runCli(['master-report.html', dir, 'Title'], { CI: 'true' })).toBe(1)
+        } finally {
+            htmlOutput.mockRestore()
+        }
     })
 
     it('writes no cloud credentials into the JSON files', async () => {
