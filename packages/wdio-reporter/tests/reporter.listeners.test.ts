@@ -83,6 +83,14 @@ describe('WDIOReporter Listeners', () => {
             }
         })
 
+        it('keeps the commands of a started test that ends as pending', () => {
+            reporter.emit('test:start', { ...stat, uid: 'step-3' })
+            reporter.emit('client:beforeCommand', { method: 'POST', endpoint: '/session/:sessionId/url', body: {} })
+            reporter.emit('client:afterCommand', { method: 'POST', endpoint: '/session/:sessionId/url', body: {}, result: null })
+            reporter.emit('test:pending', { ...stat, uid: 'step-3', state: 'pending' })
+            expect(reporter.tests['step-3'].output.map((entry) => entry.type)).toEqual(['command', 'result'])
+        })
+
         it('gives a pending test that never started no duration (Mocha it.skip)', () => {
             vi.useFakeTimers({ toFake: ['Date'] })
             try {
