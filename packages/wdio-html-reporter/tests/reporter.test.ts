@@ -9,8 +9,8 @@ import { makeReport } from '../src/makeReportCli.js'
 import { RUNNER, SUITES } from './testdata.js'
 
 /**
- * The reporter joins `process.cwd()` and `outputDir`, so `outputDir` must be
- * relative. Vitest runs from the repository root.
+ * A relative `outputDir` is relative to the current folder: Vitest runs from the
+ * repository root.
  */
 const outputRoot = path.join('packages', 'wdio-html-reporter', 'tests', '.reports')
 const outputDir = path.join(outputRoot, 'valid') + path.sep

@@ -9,8 +9,8 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 /**
  * The configuration of an html reporter smoke test, with its own folder: the
  * smoke runner can run the Mocha and the Cucumber suites at the same time.
- * `outputDir` is relative to the smoke runner folder (`tests/`), because the
- * reporter joins `process.cwd()` and `outputDir`.
+ * A relative `outputDir` is relative to the folder of the smoke runner
+ * (`tests/`).
  * @param {string} folder  folder name in `tests/html-reporter/`
  */
 export function htmlSmokeConfig (folder) {
