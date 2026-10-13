@@ -166,7 +166,8 @@ describe('HtmlReporter with Cucumber', () => {
 
 describe('links in log messages', () => {
     const linksOutputDir = path.join(outputRoot, 'links') + path.sep
-    const message = "see https://webdriver.io/docs?a=1&b=2 and <b>bold</b> and https://example.com/O'Reilly"
+    const message = "see https://webdriver.io/docs?a=1&b=2 and <b>bold</b> and https://example.com/O'Reilly" +
+        ' Opened https://example.com/page. (see https://example.com/a) and https://en.wikipedia.org/wiki/Foo_(bar), done'
 
     beforeAll(async () => {
         fs.mkdirSync(linksOutputDir, { recursive: true })
@@ -209,6 +210,15 @@ describe('links in log messages', () => {
         expect(html).toContain('&lt;b&gt;bold&lt;/b&gt;')
         // an apostrophe is part of a URL
         expect(html).toContain('<a href="https://example.com/O&#39;Reilly" target="_blank" rel="noopener noreferrer">https://example.com/O&#39;Reilly</a>')
+    })
+
+    it('does not put the punctuation after a URL in the link', async () => {
+        const html = await createReport(true)
+        const link = (url: string) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+        expect(html).toContain(`Opened ${link('https://example.com/page')}.`)
+        expect(html).toContain(`(see ${link('https://example.com/a')})`)
+        // a closing parenthesis that has its opening one in the URL stays
+        expect(html).toContain(`${link('https://en.wikipedia.org/wiki/Foo_(bar)')}, done`)
     })
 })
 
