@@ -75,8 +75,12 @@ export function getStepType (step: TestStep) {
     return step.hookId ? StepType.hook : StepType.test
 }
 
-export function getFeatureId (uri: string, feature: Feature) {
-    return `${path.basename(uri)}:${feature.location?.line}:${feature.location?.column}`
+/**
+ * @param file  the file name of the feature (default), or its path when another feature
+ *              file of the run has the same name
+ */
+export function getFeatureId (uri: string, feature: Feature, file = path.basename(uri)) {
+    return `${file}:${feature.location?.line}:${feature.location?.column}`
 }
 
 /**
