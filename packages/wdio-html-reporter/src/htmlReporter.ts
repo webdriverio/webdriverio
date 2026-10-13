@@ -52,19 +52,13 @@ function reportInfo (runner: RunnerStats): RunnerStats {
 
 export default class HtmlReporter extends WDIOReporter {
     options: HtmlReporterOptions
-    defaultTestIndent: string
     metrics: Metrics
-    _indents: number
-    _suiteIndents: Record<string, number> = {}
     _suiteUids = new Map()
     _testUids = new Map()
-    _specs = new Map()
-    _currentSuiteUid: string
     _currentTestUid: string
     _currentCid: string
     private LOG = logger('HtmlReporter')
 
-    private _suites: SuiteStats[] = []
     /**
      * Cucumber (without `scenarioLevelReporter`) reports each step as a test:
      * count the scenarios instead, and only the last try of a retried scenario
@@ -91,11 +85,7 @@ export default class HtmlReporter extends WDIOReporter {
         const dir = path.join(this.options.outputDir, 'screenshots')
 
         fs.ensureDirSync(dir)
-        this._indents = 0
-        this._suiteIndents = {}
         this.metrics = new Metrics()
-        this.defaultTestIndent = '   '
-        this._currentSuiteUid = 'suite uid'
         this._currentTestUid = 'test uid'
         this._currentCid = 'cid'
         reportProxy.connectMessageEvent(this.#onMessage)
@@ -120,7 +110,6 @@ export default class HtmlReporter extends WDIOReporter {
         this.metrics.skipped = 0
         this.metrics.failed = 0
         this.metrics.start = dayjs().utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
-        this._specs.set(runner.cid, runner)
         const config = runner.config as { framework?: string, cucumberOpts?: { scenarioLevelReporter?: boolean } } | undefined
         this.#countScenarios = config?.framework === 'cucumber' && !config.cucumberOpts?.scenarioLevelReporter
     }
@@ -136,13 +125,6 @@ export default class HtmlReporter extends WDIOReporter {
 
     onSuiteStart(suite: SuiteStats) {
         this._suiteUids.set(suite.uid, suite)
-        if (suite.type === 'feature') {
-            this._indents = 0
-            this._suiteIndents[suite.uid] = this._indents
-        } else {
-            this._suiteIndents[suite.uid] = ++this._indents
-        }
-        this._currentSuiteUid = suite.uid
         suite.start = new Date()
         this.LOG.info(String.format('onSuiteStart: {0}:{1}', suite.cid, suite.uid))
     }
@@ -218,9 +200,7 @@ export default class HtmlReporter extends WDIOReporter {
 
     onSuiteEnd(suite: SuiteStats) {
         this.LOG.info(String.format('onSuiteEnd: {0}:{1}', suite.cid, suite.uid))
-        this._indents--
         suite.end = new Date()
-        this._suites.push(suite)
         if (this.#countScenarios && suite.type === 'scenario') {
             const failed = suite.tests.some((test) => test.state === 'failed') || suite.hooks.some((hook) => hook.error)
             /**
@@ -268,7 +248,8 @@ export default class HtmlReporter extends WDIOReporter {
         this.metrics.end = dayjs().utc().format()
         this.metrics.duration = runner._duration
         const suites = this.filterChildSuites()
-        const reportFile = path.resolve(process.cwd(), this.options.outputDir, encodeURIComponent(this._currentSuiteUid), encodeURIComponent(this._currentCid), this.options.filename)
+        // the report generator adds the cid to the file name
+        const reportFile = path.resolve(process.cwd(), this.options.outputDir, this.options.filename)
         const reportData = new ReportData(
             this.options.reportTitle,
             reportInfo(runner),
@@ -281,13 +262,6 @@ export default class HtmlReporter extends WDIOReporter {
         reportProxy.disconnectScreenshotEvent(this.#onScreenshot)
         reportProxy.disconnectVideoCaptureEvent(this.#onVideo)
 
-    }
-
-    getSuite(uid: string | undefined): SuiteStats | undefined {
-        if (this._suiteUids.has(uid)) {
-            return this._suiteUids.get(uid)
-        }
-        return undefined
     }
 
     removeSuite(uid: string | undefined) {
@@ -370,11 +344,6 @@ export default class HtmlReporter extends WDIOReporter {
             }
         }
         return Array.from(this._suiteUids.values())
-    }
-
-    indent(uid: string) {
-        const indents = this._suiteIndents[uid]
-        return indents === 0 ? '' : Array(indents).join('    ')
     }
 
 }

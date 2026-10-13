@@ -42,9 +42,6 @@ describe('HtmlReporter', () => {
 
     it('has the initial properties', () => {
         expect(htmlReporter._suiteUids.size).toBe(0)
-        expect(htmlReporter._indents).toBe(0)
-        expect(htmlReporter._suiteIndents).toEqual({})
-        expect(htmlReporter.defaultTestIndent).toBe('   ')
         expect(htmlReporter.metrics).toEqual({ passed: 0, skipped: 0, failed: 0, duration: 0 })
     })
 
@@ -56,8 +53,6 @@ describe('HtmlReporter', () => {
     it('adds the suite on suite start', () => {
         htmlReporter.onSuiteStart(SUITES[0])
         expect(htmlReporter._suiteUids.size).toBe(1)
-        expect(htmlReporter._currentSuiteUid).toBe('Foo test1')
-        expect(htmlReporter._suiteIndents['Foo test1']).toBe(1)
     })
 
     it('counts passed, failed and skipped tests', () => {
@@ -95,9 +90,8 @@ describe('HtmlReporter', () => {
         expect(event.value).toBe("{ foobar: 'object', count: NaN }")
     })
 
-    it('decreases the indent on suite end', () => {
+    it('keeps the suite on suite end', () => {
         htmlReporter.onSuiteEnd(SUITES[0])
-        expect(htmlReporter._indents).toBe(0)
         expect(htmlReporter._suiteUids.size).toBe(1)
     })
 
