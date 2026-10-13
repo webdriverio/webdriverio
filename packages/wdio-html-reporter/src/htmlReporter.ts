@@ -52,7 +52,6 @@ function reportInfo (runner: RunnerStats): RunnerStats {
         start: runner.start,
         end: runner.end,
         _duration: runner._duration,
-        sanitizedCapabilities: runner.sanitizedCapabilities,
         isMultiRemote: runner.isMultiRemote,
         retry: runner.retry,
         capabilities
