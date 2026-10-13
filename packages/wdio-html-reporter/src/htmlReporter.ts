@@ -11,7 +11,6 @@ import WDIOReporter from '@wdio/reporter'
 import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from './types.js'
 import dayjs from 'dayjs'
 import ReportEvents from './reportEvents.js'
-import { String } from 'typescript-string-operations'
 import ReportGenerator from './reportGenerator.js'
 
 import fs from 'fs-extra'
@@ -103,7 +102,7 @@ export default class HtmlReporter extends WDIOReporter {
         return inSync
     }
     onRunnerStart(runner: RunnerStats) {
-        this.LOG.info(String.format('onRunnerStart: {0}', runner.cid))
+        this.LOG.info(`onRunnerStart: ${runner.cid}`)
         //todo look at fix, not async safe. but one cid per report file
         this._currentCid = runner.cid
         this.metrics.passed = 0
@@ -126,11 +125,11 @@ export default class HtmlReporter extends WDIOReporter {
     onSuiteStart(suite: SuiteStats) {
         this._suiteUids.set(suite.uid, suite)
         suite.start = new Date()
-        this.LOG.info(String.format('onSuiteStart: {0}:{1}', suite.cid, suite.uid))
+        this.LOG.info(`onSuiteStart: ${suite.cid}:${suite.uid}`)
     }
 
     onTestStart(theTest: TestStats) {
-        this.LOG.info(String.format('onTestStart: {0}:{1}', theTest.cid, theTest.uid))
+        this.LOG.info(`onTestStart: ${theTest.cid}:${theTest.uid}`)
         this._currentTestUid = theTest.uid
         //@ts-ignore
         theTest.events = []
@@ -140,7 +139,7 @@ export default class HtmlReporter extends WDIOReporter {
     }
 
     onTestPass(theTest: TestStats) {
-        this.LOG.info(String.format('onTestPass: {0}:{1}', theTest.cid, theTest.uid))
+        this.LOG.info(`onTestPass: ${theTest.cid}:${theTest.uid}`)
         const test = this.getTest(theTest.uid)
         if (test) {
             this.moveErrorsToEvents(test)
@@ -151,7 +150,7 @@ export default class HtmlReporter extends WDIOReporter {
     }
 
     onTestSkip(test: TestStats) {
-        this.LOG.info(String.format('onTestSkip: {0}:{1}', test.cid, test.uid))
+        this.LOG.info(`onTestSkip: ${test.cid}:${test.uid}`)
         if (!this.#countScenarios) {
             this.metrics.skipped++
         }
@@ -162,14 +161,14 @@ export default class HtmlReporter extends WDIOReporter {
      * `cucumberOpts.scenarioLevelReporter`: the report shows it as skipped
      */
     onTestPending(test: TestStats) {
-        this.LOG.info(String.format('onTestPending: {0}:{1}', test.cid, test.uid))
+        this.LOG.info(`onTestPending: ${test.cid}:${test.uid}`)
         if (!this.#countScenarios) {
             this.metrics.skipped++
         }
     }
 
     onTestFail(theTest: TestStats) {
-        this.LOG.info(String.format('onTestFail: {0}:{1}', theTest.cid, theTest.uid))
+        this.LOG.info(`onTestFail: ${theTest.cid}:${theTest.uid}`)
         const test = this.getTest(theTest.uid)
         if (test) {
             this.moveErrorsToEvents(test)
@@ -180,7 +179,7 @@ export default class HtmlReporter extends WDIOReporter {
     }
 
     onTestEnd(theTest: TestStats) {
-        this.LOG.info(String.format('onTestEnd: {0}:{1}', theTest.cid, theTest.uid))
+        this.LOG.info(`onTestEnd: ${theTest.cid}:${theTest.uid}`)
         const test = this.getTest(theTest.uid)
         if (test) {
             this.moveErrorsToEvents(test)
@@ -188,18 +187,18 @@ export default class HtmlReporter extends WDIOReporter {
     }
 
     onHookStart(hook: HookStats) {
-        this.LOG.info(String.format('onHookStart: {0}:{1}', hook.cid, hook.uid))
+        this.LOG.info(`onHookStart: ${hook.cid}:${hook.uid}`)
     }
 
     onHookEnd(hook: HookStats) {
-        this.LOG.info(String.format('onHookEnd: {0}:{1}', hook.cid, hook.uid))
+        this.LOG.info(`onHookEnd: ${hook.cid}:${hook.uid}`)
         if (hook.error && !this.#countScenarios) {
             this.metrics.failed++
         }
     }
 
     onSuiteEnd(suite: SuiteStats) {
-        this.LOG.info(String.format('onSuiteEnd: {0}:{1}', suite.cid, suite.uid))
+        this.LOG.info(`onSuiteEnd: ${suite.cid}:${suite.uid}`)
         suite.end = new Date()
         if (this.#countScenarios && suite.type === 'scenario') {
             const failed = suite.tests.some((test) => test.state === 'failed') || suite.hooks.some((hook) => hook.error)
@@ -231,7 +230,7 @@ export default class HtmlReporter extends WDIOReporter {
             if (this.isScreenshotCommand(command) && result?.value) {
                 const timestamp = dayjs().format('YYYYMMDD-HHmmss.SSS')
                 const filepath = path.join(this.options.outputDir, '/screenshots/', encodeURIComponent(this._currentCid), timestamp, this.options.filename + '.png')
-                this.LOG.info(String.format('onAfterCommand: {0}:{1} taking screenshot {2}', this._currentCid, this._currentTestUid, filepath))
+                this.LOG.info(`onAfterCommand: ${this._currentCid}:${this._currentTestUid} taking screenshot ${filepath}`)
                 fs.outputFileSync(filepath, Buffer.from(result.value, 'base64'))
 
                 const test = this.getTest(this._currentTestUid)
@@ -244,7 +243,7 @@ export default class HtmlReporter extends WDIOReporter {
     }
 
     async onRunnerEnd(runner: RunnerStats) {
-        this.LOG.info(String.format('onRunnerEnd: {0}', runner.cid))
+        this.LOG.info(`onRunnerEnd: ${runner.cid}`)
         this.metrics.end = dayjs().utc().format()
         this.metrics.duration = runner._duration
         const suites = this.filterChildSuites()
@@ -299,7 +298,7 @@ export default class HtmlReporter extends WDIOReporter {
     }
 
     saveScreenshot(filepath: string) {
-        this.LOG.info(String.format('saveScreenshot: {0}', filepath))
+        this.LOG.info(`saveScreenshot: ${filepath}`)
         const test = this.getTest(this._currentTestUid)
         if (test) {
             this.moveErrorsToEvents(test)
@@ -309,7 +308,7 @@ export default class HtmlReporter extends WDIOReporter {
     }
 
     saveVideo(filepath: string) {
-        this.LOG.info(String.format('saveVideo: {0}', filepath))
+        this.LOG.info(`saveVideo: ${filepath}`)
         const test = this.getTest(this._currentTestUid)
         if (test) {
             this.moveErrorsToEvents(test)
@@ -323,7 +322,7 @@ export default class HtmlReporter extends WDIOReporter {
          * readable text, else the template fails and the suite is missing
          */
         const text = typeof message === 'string' ? message : util.inspect(message, { depth: null })
-        this.LOG.info(String.format('saveMessage: {0}', text))
+        this.LOG.info(`saveMessage: ${text}`)
         const test = this.getTest(this._currentTestUid)
         if (test) {
             this.moveErrorsToEvents(test)

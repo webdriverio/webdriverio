@@ -1210,9 +1210,6 @@ importers:
       open:
         specifier: ^8.4.0
         version: 8.4.2
-      typescript-string-operations:
-        specifier: ^1.5.0
-        version: 1.6.1
     devDependencies:
       '@types/fs-extra':
         specifier: ^11.0.4
@@ -14415,9 +14412,6 @@ packages:
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
       typescript: '>=4.8.4 <6.1.0'
-
-  typescript-string-operations@1.6.1:
-    resolution: {integrity: sha512-F6ScCJ15PcOniU2Rve/9ber5bDgFHlys74HbNXzpB3jP63gdM15Uow4DpT9sIwoyyiOW9HbIjSDVs/U0XtfjfQ==}
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -29980,8 +29974,6 @@ snapshots:
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
-
-  typescript-string-operations@1.6.1: {}
 
   typescript@5.9.3: {}
 

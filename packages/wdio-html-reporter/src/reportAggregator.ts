@@ -1,6 +1,5 @@
 import HtmlGenerator from './htmlGenerator.js'
 import { HtmlReporterOptions, Metrics, ReportData } from './types.js'
-import { String } from 'typescript-string-operations'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js'
 dayjs.extend(utc)
@@ -94,7 +93,7 @@ class ReportAggregator {
         } else {
             metrics.end = end.utc().format(timeFormat)
         }
-        this.LOG.info(String.format('Included metrics for suite: {0} {1}', suiteInfo.cid, suiteInfo.uid) )
+        this.LOG.info(`Included metrics for suite: ${suiteInfo.cid} ${suiteInfo.uid}` )
     }
 
     async createReport( ) {
@@ -111,7 +110,7 @@ class ReportAggregator {
         fs.ensureDirSync(this.options.outputDir)
         const files = this.readJsonFiles()
         if (files.length === 0) {
-            this.LOG.error(String.format('No Json files found in: {0}. Make sure options.produceJson is not false',  this.options.outputDir))
+            this.LOG.error(`No Json files found in: ${this.options.outputDir}. Make sure options.produceJson is not false`)
         }
         for (let i = 0; i < files.length; i++) {
             try {
@@ -165,7 +164,7 @@ class ReportAggregator {
         }
 
         if (!metrics.start || !metrics.end) {
-            this.LOG.error(String.format('Invalid Metrics computed: {0} -- {1}', metrics.start, metrics.end))
+            this.LOG.error(`Invalid Metrics computed: ${metrics.start} -- ${metrics.end}`)
         }
         metrics.duration = dayjs.duration(dayjs(metrics.end).utc().diff(dayjs(metrics.start).utc())).as('milliseconds')
 
