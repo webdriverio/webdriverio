@@ -18,7 +18,7 @@ import {
     getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser,
     findAllureReporter, findFfmpeg
 } from './helpers.js'
-import { DEFAULT_OPTIONS, SCREENSHOT_PADDING_WITH, FRAME_REGEX, STDERR_TAIL_LENGTH } from './constants.js'
+import { DEFAULT_OPTIONS, SCREENSHOT_PADDING_WITH, FRAME_REGEX, STDERR_TAIL_LENGTH, SUPPORTED_VIDEO_FORMATS } from './constants.js'
 import type { ReporterOptions } from './types.js'
 
 /**
@@ -88,6 +88,11 @@ export default class VideoReporter extends WdioReporter {
 
         if (this.options.screenshotIntervalSecs) {
             this.options.screenshotIntervalSecs = Math.max(this.options.screenshotIntervalSecs, 0.5)
+        }
+
+        if (!Object.hasOwn(SUPPORTED_VIDEO_FORMATS, this.options.videoFormat)) {
+            log.warn(`videoFormat "${this.options.videoFormat}" is not supported, using "${DEFAULT_OPTIONS.videoFormat}". Use "mp4" or "webm".`)
+            this.options.videoFormat = DEFAULT_OPTIONS.videoFormat
         }
 
         this.#ffmpegPath = findFfmpeg(options.ffmpegPath)
