@@ -149,6 +149,19 @@ export default class VideoReporter extends WdioReporter {
 
         this.listenToBidiCommands()
 
+        /**
+         * the runner waits for the reporters only `reporterSyncTimeout`: when it is not
+         * larger, the worker can end before the videos are rendered
+         */
+        const reporterSyncTimeout = runner.config.reporterSyncTimeout ?? 5000
+        if (this.options.videoRenderTimeout > reporterSyncTimeout) {
+            const message = `videoRenderTimeout (${this.options.videoRenderTimeout} ms) is larger than reporterSyncTimeout ` +
+                `(${reporterSyncTimeout} ms): the runner can stop waiting for the videos before they are rendered. ` +
+                'Set reporterSyncTimeout to a larger value in your WebdriverIO configuration.'
+            log.warn(message)
+            console.warn(`[@wdio/video-reporter] ${message}`)
+        }
+
         this.#outputDir = this.options.outputDir ?? runner.config.outputDir as string
         this.#outputDir = this.#outputDir ?? this.#defaultOutputDir
         const sessionId = runner.isMultiRemote

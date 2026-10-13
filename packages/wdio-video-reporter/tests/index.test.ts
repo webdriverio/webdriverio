@@ -140,6 +140,17 @@ describe('Video Reporter', () => {
             expect(reporter.record).toBe(true)
         })
 
+        it('warns when videoRenderTimeout is larger than reporterSyncTimeout (the runner stops waiting first)', () => {
+            const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            vi.mocked(logMock.warn).mockClear()
+            new VideoReporter({ videoRenderTimeout: 30000 }).onRunnerStart({ ...allureRunner, config: { ...allureRunner.config, reporterSyncTimeout: 5000 } })
+            expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining('reporterSyncTimeout'))
+            vi.mocked(logMock.warn).mockClear()
+            new VideoReporter({ videoRenderTimeout: 30000 }).onRunnerStart({ ...allureRunner, config: { ...allureRunner.config, reporterSyncTimeout: 40000 } })
+            expect(logMock.warn).not.toHaveBeenCalled()
+            consoleWarn.mockRestore()
+        })
+
         it('should set record to true when onlyRecordLastFailure is set and is on the last retry', () => {
             const reporter = new VideoReporter({ onlyRecordLastFailure: true })
             reporter.onRunnerStart({ ...allureRunner, retry: 2, config: { specFileRetries: 2 } })
