@@ -3,7 +3,7 @@ import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@w
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
-import { isStaleError, markNotFoundAgain, wasNotFoundAgain } from './utils/staleElement.js'
+import { enterCommand, leaveCommand, isMarkedNotFound, markNotFound, waitedFor, isStaleError } from './utils/elementLookup.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
  */
@@ -12,9 +12,22 @@ import { StrictSelectorError } from './utils/strictSelectorError.js'
 export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
 
 /**
+ * The error to throw when the lookup of a stale element, or the command after it, failed
+ * with `lookupErr`: a stale element error of the lookup, else the original error `err`.
+ */
+function errorAfterLookup (lookupErr: unknown, err: Error): unknown {
+    return lookupErr instanceof Error && isStaleError(lookupErr) ? lookupErr : err
+}
+
+/**
  * Run an element command after the implicit wait, and retry it when the element
  * is stale or not yet interactable. `execute` is the command itself, without
  * this wrapper, so a retry does not wait a second time.
+ *
+ * A command runs other commands on its element, each in a layer of this wrapper. While
+ * a layer of the element is active, a lookup that waited for the element and did not find
+ * it marks the element (`utils/elementLookup.ts`): the other layers throw their stale
+ * element error at once instead of waiting again.
  */
 async function invokeElementCommand (
     element: WebdriverIO.Element,
@@ -25,6 +38,19 @@ async function invokeElementCommand (
         return execute()
     }
 
+    enterCommand(element)
+    try {
+        return await runElementCommand(element, commandName, execute)
+    } finally {
+        leaveCommand(element)
+    }
+}
+
+async function runElementCommand (
+    element: WebdriverIO.Element,
+    commandName: string,
+    execute: () => Promise<unknown>
+): Promise<unknown> {
     const fetched = await implicitWait(element, commandName)
     element.elementId = fetched.elementId
     element[ELEMENT_KEY] = fetched.elementId
@@ -61,9 +87,9 @@ async function invokeElementCommand (
 
         if (isStaleError(err)) {
             /**
-             * an inner command already looked for its element and did not find it
+             * a layer of this command already waited for the element and did not find it
              */
-            if (wasNotFoundAgain(err)) {
+            if (isMarkedNotFound(element)) {
                 throw err
             }
             let refetched: WebdriverIO.Element
@@ -83,16 +109,15 @@ async function invokeElementCommand (
                 if (refetchErr instanceof StrictSelectorError) {
                     throw refetchErr
                 }
-                const thrown = refetchErr instanceof Error && isStaleError(refetchErr) ? refetchErr : err
                 /**
-                 * the lookup waited for the element and did not find it: an outer layer
-                 * does not look again. Any other failure of the lookup leaves the outer
-                 * layer to look again.
+                 * the lookup waited for the element (or a parent) and did not find it: the
+                 * other layers of the element do not look again. Any other failure of the
+                 * lookup leaves them to look again.
                  */
-                if (wasNotFoundAgain(refetchErr)) {
-                    markNotFoundAgain(thrown)
+                if (waitedFor(refetchErr)) {
+                    markNotFound(element)
                 }
-                throw thrown
+                throw errorAfterLookup(refetchErr, err)
             }
 
             element.elementId = refetched.elementId
@@ -107,17 +132,14 @@ async function invokeElementCommand (
                 if (retryErr instanceof StrictSelectorError) {
                     throw retryErr
                 }
-                const thrown = retryErr instanceof Error && isStaleError(retryErr) ? retryErr : err
                 /**
-                 * The element was found again, so a failure of the command does not get a
-                 * mark here and an outer layer can still find the element again, except when
-                 * an inner lookup of the command already waited for its element and did not
-                 * find it: an outer layer would only wait for it again.
+                 * the element was found again and the command waited for an element that it
+                 * did not find: that is the cause of the failure
                  */
-                if (wasNotFoundAgain(retryErr)) {
-                    markNotFoundAgain(thrown)
+                if (waitedFor(retryErr)) {
+                    throw retryErr
                 }
-                throw thrown
+                throw errorAfterLookup(retryErr, err)
             }
         }
 

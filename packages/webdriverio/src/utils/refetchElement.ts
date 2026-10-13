@@ -61,13 +61,13 @@ export default async function refetchElement (
      */
     return chain.reduce(async (elementPromise, element, currentIndex) => {
         const parent = await elementPromise
+        /**
+         * an element without an index is always found again, as a "not found" element when
+         * it is gone, like `$()` gives one
+         */
         const nextElement = element.index !== undefined
             ? await findItemAgain(element, parent)
-            : await findElementAgain(element, { parent, wait: true })
-
-        if (!nextElement) {
-            throw new Error(`element with selector "${describeSelector(element)}" has no match at index ${element.index}`)
-        }
+            : await findElementAgain(element, { parent, wait: true }) as WebdriverIO.Element
         /**
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array
