@@ -39,7 +39,6 @@ export default class VideoReporter extends WdioReporter {
     #allureReporter = new AllureReporterExtension()
     #record = true
     #ffmpegPath?: string
-    #defaultOutputDir = '_results_'
 
     screenshotPromises: Promise<void>[] = []
     videos: string[] = []
@@ -164,8 +163,8 @@ export default class VideoReporter extends WdioReporter {
             console.warn(`[@wdio/video-reporter] ${message}`)
         }
 
-        this.#outputDir = this.options.outputDir ?? runner.config.outputDir as string
-        this.#outputDir = this.#outputDir ?? this.#defaultOutputDir
+        // the option, else the WebdriverIO outputDir, else `_results_`
+        this.#outputDir = this.options.outputDir ?? runner.config.outputDir ?? '_results_'
         const sessionId = runner.isMultiRemote
             ? Object.entries(runner.capabilities).map(([, caps]) => caps.sessionId)[0] as string
             : runner.sessionId
@@ -402,9 +401,8 @@ export default class VideoReporter extends WdioReporter {
         this.#attachVideoToAllure(startedAgain)
 
         if (this.options.screenshotIntervalSecs && !this.intervalScreenshot) {
-            const instance = this
             this.intervalScreenshot = setInterval(
-                () => instance.addFrame(),
+                () => this.addFrame(),
                 this.options.screenshotIntervalSecs * 1000
             )
         }
@@ -778,7 +776,7 @@ export default class VideoReporter extends WdioReporter {
         this.frameNr = 0
         // a new recording starts with the main window, not with the tab of the last test
         this.#frameContext = undefined
-        this.recordingPath = path.resolve(this.#outputDir ?? this.options.outputDir, this.options.rawPath, testName)
+        this.recordingPath = path.resolve(this.#outputDir, this.options.rawPath, testName)
 
         fs.mkdirSync(this.recordingPath, { recursive: true })
     }
