@@ -459,6 +459,18 @@ describe('reporter', () => {
     })
 
     describe('cucumberJsAttachment', () => {
+        it('writes an object with the default type as JSON text, not [object Object]', () => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            tmpReporter.report.feature = EMPTY_FEATURE
+            tmpReporter.report.feature.elements!.push(EMPTY_SCENARIO)
+            tmpReporter.addStepData(STEP_TEST_ONSTART_STATS)
+            // `attach({ orderId: 42 })` sends the default type text/plain
+            tmpReporter.cucumberJsAttachment({ data: { orderId: 42 }, type: TEXT_PLAIN })
+            const [embedding] = tmpReporter.getCurrentStep().embeddings!
+            expect(Buffer.from(embedding.data as string, 'base64').toString()).toBe('{"orderId":42}')
+            expect(embedding.mime_type).toBe(TEXT_PLAIN)
+        })
+
         it('keeps an attachment sent before the first step and adds it to that step', () => {
             vi.mocked(getFailedMessage).mockReturnValue({})
             tmpReporter.report.feature = EMPTY_FEATURE
