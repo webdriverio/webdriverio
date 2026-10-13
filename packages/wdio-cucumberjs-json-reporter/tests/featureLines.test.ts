@@ -94,6 +94,28 @@ describe('featureLines', () => {
         expect(scenarioNameOf('Ratio: 2', undefined)).toBe('Ratio: 2')
     })
 
+    it('takes the Examples row of the tags of the example, not an untagged row before it', () => {
+        const tagged = path.join(path.dirname(file), 'tagged.feature')
+        fs.writeFileSync(tagged, [
+            'Feature: F',                           // 1
+            '  Scenario Outline: Order a drink',    // 2
+            '    Given I order "<drink>"',          // 3
+            '    Examples:',                        // 4
+            '      | drink |',                      // 5
+            '      | water |',                      // 6
+            '    @selected',                        // 7
+            '    Examples:',                        // 8
+            '      | drink  |',                     // 9
+            '      | coffee |'                      // 10
+        ].join('\n'))
+        // a tag filter runs only the coffee example
+        expect(takeScenarioLines(readFeatureLines(tagged, 'en')!, 'Order a drink', { tags: ['@selected'] })?.line).toBe(10)
+        // with no filter, the untagged example first
+        const lines = readFeatureLines(tagged, 'en')!
+        expect(takeScenarioLines(lines, 'Order a drink')?.line).toBe(6)
+        expect(takeScenarioLines(lines, 'Order a drink', { tags: ['@selected'] })?.line).toBe(10)
+    })
+
     it('returns undefined for a file it cannot read', () => {
         expect(readFeatureLines('/does/not/exist.feature', 'en')).toBeUndefined()
     })
