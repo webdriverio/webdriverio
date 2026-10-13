@@ -164,12 +164,16 @@ export function takeScenarioLines (
     ]
     /**
      * the Examples row of this example: the row with this name whose table tags the
-     * scenario has (a tag filter or a random order can skip rows), then a row with
-     * this name, then any row that is not used yet
+     * scenario has (a tag filter or a random order can skip rows), with the most of
+     * these tags (an untagged table matches every example), then a row with this
+     * name, then any row that is not used yet
      */
     const rowOf = (scenario: ScenarioLines) => {
         const free = scenario.examples.filter((row) => !row.used)
-        return free.find((row) => row.name === name && row.tags.every((tag) => tags.includes(tag))) ??
+        const withTags = free
+            .filter((row) => row.name === name && row.tags.every((tag) => tags.includes(tag)))
+            .sort((a, b) => b.tags.length - a.tags.length)
+        return withTags[0] ??
             free.find((row) => row.name === name) ??
             free[0]
     }
