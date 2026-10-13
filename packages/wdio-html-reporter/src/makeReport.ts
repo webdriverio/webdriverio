@@ -1,5 +1,3 @@
-import { makeReport } from './makeReportCli.js'
+import { runCli } from './makeReportCli.js'
 
-makeReport(process.argv.slice(2)).catch((error: unknown) => {
-    console.error(error)
-})
+process.exitCode = await runCli(process.argv.slice(2))

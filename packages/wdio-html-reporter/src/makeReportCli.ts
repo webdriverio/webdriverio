@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+
 import ReportAggregator from './reportAggregator.js'
 
 /**
@@ -16,5 +18,23 @@ export async function makeReport (args: string[], env: Record<string, string | u
         showInBrowser: !env.CI
     } as ConstructorParameters<typeof ReportAggregator>[0])
     await reportAggregator.createReport()
+    // the aggregator logs some errors and does not throw them
+    if (!fs.existsSync(reportAggregator.reportFile)) {
+        throw new Error(`No report was made at ${reportAggregator.reportFile}`)
+    }
     return reportAggregator.reportFile
+}
+
+/**
+ * Run `makeReport` for the command line
+ * @returns the exit code: 1 when no report was made, so a CI step fails
+ */
+export async function runCli (args: string[], env: Record<string, string | undefined> = process.env) {
+    try {
+        await makeReport(args, env)
+        return 0
+    } catch (error: unknown) {
+        console.error(error)
+        return 1
+    }
 }
