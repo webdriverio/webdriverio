@@ -31,8 +31,12 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     #featureLines?: FeatureLines
     /** line data of each scenario of the report, and the step lines it used */
     #scenarioLines = new WeakMap<Scenario, { lines: ScenarioLines, usedLines: Set<number> }>()
-    /** each feature of the worker and the lines of its file, by the uid of its suite */
-    #featuresByUid = new Map<string, { feature: Feature, lines?: FeatureLines }>()
+    /**
+     * each feature of the worker and the lines of its file, by the path of the file:
+     * the uid of the framework has only the file name, and a feature that starts again
+     * (grouped specs in a random order) gets another uid
+     */
+    #featuresByFile = new Map<string, { feature: Feature, lines?: FeatureLines }>()
     /** attachments sent while the scenario has no step yet (for example in a `Before` hook with `disableHooks`) */
     #pendingEmbeddings: Embedding[] = []
     /**
@@ -130,20 +134,20 @@ export class CucumberJsJsonReporter extends WDIOReporter {
          * a suite without parent is a feature: a worker can run several feature
          * files (grouped specs), so start a new feature each time
          */
-        if (!this.report.feature || !payload.parent) {
+        const known = payload.file ? this.#featuresByFile.get(payload.file) : undefined
+        if (known) {
+            /**
+             * in a random order the scenarios of the features mix: use the feature of
+             * the file of the scenario, also for a feature that starts again
+             */
+            this.report.feature = known.feature
+            this.#featureLines = known.lines
+        } else if (!this.report.feature || !payload.parent) {
             this.report.feature = this.getFeatureDataObject(payload)
             this.report.features = [...(this.report.features ?? []), this.report.feature]
             this.#featureLines = payload.file ? readFeatureLines(payload.file, this.options.language!) : undefined
-            this.#featuresByUid.set(payload.uid, { feature: this.report.feature, lines: this.#featureLines })
-        } else {
-            /**
-             * the framework starts each feature one time: in a random order, the
-             * scenarios of 2 features mix, so use the feature of the parent
-             */
-            const parent = this.#featuresByUid.get(payload.parent)
-            if (parent) {
-                this.report.feature = parent.feature
-                this.#featureLines = parent.lines
+            if (payload.file) {
+                this.#featuresByFile.set(payload.file, { feature: this.report.feature, lines: this.#featureLines })
             }
         }
 
