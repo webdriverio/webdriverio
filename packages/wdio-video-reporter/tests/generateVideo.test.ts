@@ -65,6 +65,19 @@ describe('generateVideo', () => {
         expect(await render()).toContain('Generated video: ')
     })
 
+    it('adds no frame to a recording after its render starts (for example from an afterEach hook)', async () => {
+        ffmpeg.exitCode = 0
+        ffmpeg.stderr = ''
+        const reporter = new VideoReporter({})
+        reporter.testName = 'my-test'
+        reporter.recordingPath = '/foo/bar/rawSeleniumVideoGrabs/my-test'
+        const video = reporter.generateVideo()
+        const frame = reporter.frameNr
+        expect(reporter.addFrame()).toBe(false)
+        expect(reporter.frameNr).toBe(frame)
+        await video
+    })
+
     it('logs the error of a failed ffmpeg run, not a generated video', async () => {
         ffmpeg.exitCode = 1
         ffmpeg.stderr = 'some output\nUnknown encoder \'libvpx\''

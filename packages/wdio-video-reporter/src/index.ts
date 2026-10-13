@@ -672,6 +672,13 @@ export default class VideoReporter extends WdioReporter {
         this.#log(`ffmpeg command: ${command} ${args.join(' ')}`)
 
         /**
+         * the recording ends here: the commands after the test (for example of an
+         * `afterEach` hook) would add frames while ffmpeg reads them. The next test
+         * starts a new recording.
+         */
+        this.recordingPath = undefined
+
+        /**
          * a failed render can leave an empty or broken file: it is not a video
          */
         const dropVideo = () => {
