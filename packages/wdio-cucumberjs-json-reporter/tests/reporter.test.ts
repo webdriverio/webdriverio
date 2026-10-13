@@ -662,6 +662,17 @@ describe('reporter', () => {
         })
     })
 
+    describe('feature file that cannot be read', () => {
+        it('logs a warning: else all lines are null with no reason', async () => {
+            const logger = (await import('@wdio/logger')).default
+            const featureFile = path.join(logFolderPath, 'language.feature')
+            fs.writeFileSync(featureFile, 'Feature: F\n  Scenario: S\n    Given a step\n')
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, language: 'xx', logFile })
+            reporter.onSuiteStart({ ...SUITE_FEATURE_STATS, file: featureFile, parent: undefined } as SuiteStatsExtended)
+            expect(vi.mocked(logger('@wdio/cucumberjs-json-reporter').warn)).toHaveBeenCalledWith(expect.stringContaining(featureFile))
+        })
+    })
+
     describe('process listener', () => {
         it('removes its attachment listener when the runner ends', () => {
             const event = 'wdioCucumberJsReporter:attachment'
