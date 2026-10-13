@@ -124,24 +124,31 @@ async function setsDirectly (elem: WebdriverIO.Element) {
 }
 
 /**
+ * how many times `setValue` looks up the type of an input that the page replaces
+ */
+const TYPE_LOOKUPS = 3
+
+/**
  * The `type` of the element, `undefined` when the lookup fails. When the page replaced
- * the element, the middleware found it again and gave it its new element id, but its
- * retry of the lookup used the old one: the type is looked up once more. A `type` of
- * `undefined` would type into a date or range input. An element that was waited for
+ * the input, the middleware found it again and gave it its new element id, but retried
+ * the lookup with the old one: the type is looked up again, up to `TYPE_LOOKUPS` times.
+ * A `type` of `undefined` would type into a date or range input, so an input that the
+ * page still replaces after that gets its stale element error: the middleware of
+ * `setValue` finds it again and runs `setValue` again. An element that was waited for
  * and not found is not looked up again.
  */
 async function typeOf (elem: WebdriverIO.Element): Promise<string | undefined> {
-    try {
-        const type = await elem.getElementProperty(elem.elementId, 'type')
-        return typeof type === 'string' ? type : undefined
-    } catch (err) {
-        if (wasNotFoundAgain(err)) {
-            throw err
-        }
-        if (!isStaleError(err)) {
-            return undefined
+    for (let lookup = 1; ; lookup++) {
+        try {
+            const type = await elem.getElementProperty(elem.elementId, 'type')
+            return typeof type === 'string' ? type : undefined
+        } catch (err) {
+            if (wasNotFoundAgain(err) || (isStaleError(err) && lookup >= TYPE_LOOKUPS)) {
+                throw err
+            }
+            if (!isStaleError(err)) {
+                return undefined
+            }
         }
     }
-    const type = await elem.getElementProperty(elem.elementId, 'type').catch(goneOrUndefined)
-    return typeof type === 'string' ? type : undefined
 }

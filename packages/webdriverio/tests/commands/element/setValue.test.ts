@@ -102,9 +102,33 @@ describe('setValue', () => {
         expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/clear')
     })
 
-    it('should type the value when the second type lookup fails too', async () => {
+    it('should look up the type again while the page replaces the input', async () => {
         const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'getElementProperty').mockRejectedValue(stale(false))
+        vi.spyOn(elem, 'getElementProperty')
+            .mockRejectedValueOnce(stale(false))
+            .mockRejectedValueOnce(stale(false))
+            .mockResolvedValueOnce('date')
+        const execute = vi.spyOn(browser, 'execute').mockResolvedValue(true as never)
+
+        await elem.setValue('2026-10-04')
+        expect(execute).toHaveBeenCalledWith(expect.any(Function), elem, '2026-10-04')
+        expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/clear')
+    })
+
+    it('should throw the stale element error of an input that the page keeps replacing', async () => {
+        const elem = await browser.$('#foo')
+        const error = stale(false)
+        const lookup = vi.spyOn(elem, 'getElementProperty').mockRejectedValue(error)
+        const clearValue = vi.spyOn(elem, 'clearValue')
+
+        await expect(elem.setValue('foobar')).rejects.toBe(error)
+        expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(3)
+        expect(clearValue).not.toHaveBeenCalled()
+    })
+
+    it('should type the value when a type lookup after a stale element error fails with another error', async () => {
+        const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'getElementProperty').mockRejectedValueOnce(stale(false)).mockRejectedValueOnce(new Error('unknown command'))
 
         await elem.setValue('foobar')
         expect(paths()).toContain('/session/foobar-123/element/some-elem-123/clear')
