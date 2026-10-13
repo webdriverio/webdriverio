@@ -11,7 +11,8 @@
  */
 
 /**
- * errors thrown by a layer that waited for its element and did not find it, with that element
+ * errors thrown by a layer that waited for its element and did not find it, with that element.
+ * Each copy of webdriverio has its own: the layers of another copy look again (one more wait)
  */
 const gaveUp = new WeakMap<object, object>()
 

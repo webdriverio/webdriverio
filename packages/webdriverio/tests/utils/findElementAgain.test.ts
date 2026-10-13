@@ -1130,6 +1130,26 @@ describe('finding an element again', () => {
                 }, { timeout: 1000 })).toBe(true)
             })
 
+            it('waitForStable with reverse finds the element that comes back and is not stable', async () => {
+                const elem = await removedRef()
+                /**
+                 * the stability script of the element that came back says "not stable"
+                 */
+                const handler = vi.mocked(fetch).getMockImplementation()!
+                vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                    if (/\/execute\/(sync|async)$/.test(String(uri))) {
+                        const body = JSON.parse(String(params?.body))
+                        const ids = (body.args ?? []).map((arg: Record<string, string> | null) => arg?.[ELEMENT_KEY]).filter(Boolean)
+                        if (ids.includes('elem-r2') && String(body.script).includes('requestAnimationFrame')) {
+                            return Response.json({ value: false })
+                        }
+                    }
+                    return handler(uri, params)
+                }) as typeof fetch)
+                later(250, () => driver.light.set('#ref', ['elem-r2']))
+                expect(await elem.waitForStable({ reverse: true, timeout: 1000 })).toBeUndefined()
+            })
+
             it('a command that starts while the wait runs finds the element that came back', async () => {
                 const elem = await removedRef()
                 later(150, () => driver.light.set('#ref', ['elem-r2']))

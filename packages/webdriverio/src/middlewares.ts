@@ -13,7 +13,8 @@ export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit'
 
 /**
  * checks, whose lookup of a stale element does not wait for it: they look again, and
- * answer at once
+ * answer at once. Not the wider list of `implicitWait`: a `waitFor*` or `waitUntil`
+ * layer that looked again would run the whole wait again
  */
 const CHECK_COMMANDS = /^(isExisting|is\w*Displayed|is\w*Clickable)$/
 
