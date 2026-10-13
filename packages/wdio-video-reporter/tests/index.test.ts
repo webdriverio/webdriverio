@@ -279,6 +279,17 @@ describe('Video Reporter', () => {
             expect(reporter.recordingPath).toEqual(expect.stringContaining(`${path.sep}my-suite--CHROME--`))
         })
 
+        it('removes the name of a suite with no started test from the file names (filenamePrefixSource: suite)', () => {
+            const reporter = new VideoReporter({ filenamePrefixSource: 'suite' })
+            // Mocha sends no test:start for a skipped test
+            reporter.onSuiteStart({ title: 'only skipped', type: 'suite' } as any)
+            reporter.onSuiteEnd({ title: 'only skipped', type: 'suite', tests: [], hooks: [] } as any)
+            reporter.onSuiteStart({ title: 'next suite', type: 'suite' } as any)
+            reporter.onTestStart({ title: 'my test' } as any)
+            expect(reporter.testNameStructure).toEqual(['next-suite'])
+            expect(reporter.recordingPath).toEqual(expect.stringContaining(`${path.sep}next-suite--CHROME--`))
+        })
+
         it('uses the same Allure folder as the Allure reporter', () => {
             const runnerWith = (options?: object) => ({
                 ...allureRunner,
