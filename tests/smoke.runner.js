@@ -528,6 +528,39 @@ const cucumberGroupedSpecsRandomOrder = async () => {
 }
 
 /**
+ * Cucumber with grouped specs and 2 feature files with the same file name in other
+ * folders: each feature must keep its heading and its scenarios
+ */
+const cucumberGroupedSpecsSameFileName = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'same-file-name')
+    const logFile = path.resolve(basePath, 'spec-reporter.log')
+    await fs.rm(logFile, { force: true })
+    await launch(
+        'cucumberGroupedSpecsSameFileName',
+        path.resolve(basePath, 'same-file-name.conf.js'),
+        { reporters: [['spec', { stdout: false, logFile }]] }
+    )
+    // the spec reporter colors its output when the terminal supports colors
+    const logs = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '')
+    const lines = logs.split('\n').map((text) => text.replace(/^\[[^\]]*\]\s*/, '').trim())
+    const listed = []
+    let heading
+    for (const line of lines) {
+        if (['Admin login', 'User login'].includes(line)) {
+            heading = line
+        } else if (['admin logs in', 'admin logs out', 'user logs in'].includes(line)) {
+            listed.push(`${heading}: ${line}`)
+        }
+    }
+    assert.deepStrictEqual(listed, [
+        'Admin login: admin logs in',
+        'Admin login: admin logs out',
+        'User login: user logs in'
+    ], `each scenario must be under the heading of its feature:\n${logs}`)
+    await fs.rm(logFile, { force: true })
+}
+
+/**
  * Cucumber file option
  */
 const cucumberFileOption = async () => {
@@ -1353,6 +1386,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberPendingTest,
         cucumberReporter,
         cucumberGroupedSpecsRandomOrder,
+        cucumberGroupedSpecsSameFileName,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,
