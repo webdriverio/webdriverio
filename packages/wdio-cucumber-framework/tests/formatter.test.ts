@@ -422,4 +422,89 @@ describe('CucumberFormatter', () => {
         wdioReporter.write.mockClear()
         wdioReporter.emit.mockClear()
     })
+
+    describe('grouped specs in a random order (A/B/A)', () => {
+        afterEach(() => {
+            vi.useRealTimers()
+        })
+
+        /**
+         * 2 feature files in one worker, and their scenarios in the order a1, b1, a2,
+         * each scenario takes 10 ms
+         */
+        function runGroupedFeatures (scenarioLevelReporter: boolean) {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            vi.setSystemTime(0)
+            wdioReporter.emit.mockClear()
+            const eventBroadcaster = new EventEmitter()
+            new CucumberFormatter({
+                eventBroadcaster,
+                parsedArgvOptions: {
+                    _reporter: wdioReporter,
+                    _cid: cid,
+                    _specs: specs,
+                    _eventEmitter: new EventEmitter(),
+                    _scenarioLevelReporter: scenarioLevelReporter,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: true,
+                },
+            } as any)
+            const doc = (name: string) => ({ ...gherkinDocument, uri: `/features/${name}.feature`, feature: { ...gherkinDocument.feature!, name: `Feature ${name}` } })
+            const scenario = (name: string, uri: string) => ({ ...pickle, id: `pickle-${name}`, name, uri })
+            for (const gherkin of [doc('a'), doc('b')]) {
+                eventBroadcaster.emit('envelope', { gherkinDocument: gherkin })
+            }
+            eventBroadcaster.emit('envelope', { testRunStarted })
+            for (const [name, uri] of [['a1', '/features/a.feature'], ['b1', '/features/b.feature'], ['a2', '/features/a.feature']]) {
+                eventBroadcaster.emit('envelope', { pickle: scenario(name, uri) })
+                eventBroadcaster.emit('envelope', { testCase: { ...testCase, id: `case-${name}`, pickleId: `pickle-${name}` } })
+            }
+            for (const name of ['a1', 'b1', 'a2']) {
+                eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, testCaseId: `case-${name}` } })
+                vi.advanceTimersByTime(10)
+                if (scenarioLevelReporter) {
+                    // the result of the scenario test comes from the results of its steps
+                    eventBroadcaster.emit('envelope', { testStepFinished })
+                }
+                eventBroadcaster.emit('envelope', { testCaseFinished })
+            }
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            return wdioReporter.emit.mock.calls
+                .filter(([event]: [string]) => /^(suite|test):(start|end|pass)$/.test(event))
+                .map(([event, payload]: [string, any]) => ({ event, type: payload.type, title: payload.title, uid: payload.uid, parent: payload.parent, duration: payload.duration }))
+        }
+
+        it('starts a feature again when the run comes back to it, with its own uid', () => {
+            const events = runGroupedFeatures(false)
+            const a = 'a.feature:3:1'
+            const b = 'b.feature:3:1'
+            expect(events.map(({ event, type, uid, parent }) => [event, type, type === 'feature' ? uid : parent])).toEqual([
+                ['suite:start', 'feature', a],
+                ['suite:start', 'scenario', a],
+                ['suite:end', 'scenario', a],
+                ['suite:end', 'feature', a],
+                ['suite:start', 'feature', b],
+                ['suite:start', 'scenario', b],
+                ['suite:end', 'scenario', b],
+                ['suite:end', 'feature', b],
+                ['suite:start', 'feature', `${a}#2`],
+                ['suite:start', 'scenario', `${a}#2`],
+                ['suite:end', 'scenario', `${a}#2`],
+                ['suite:end', 'feature', `${a}#2`],
+            ])
+        })
+
+        it('uses the uid of the part as the parent of the scenario tests (scenarioLevelReporter)', () => {
+            const tests = runGroupedFeatures(true).filter(({ event }) => event.startsWith('test:'))
+            expect(tests.map(({ event, title, parent }) => [event, title, parent])).toEqual([
+                ['test:start', 'a1', 'a.feature:3:1'],
+                ['test:pass', 'a1', 'a.feature:3:1'],
+                ['test:start', 'b1', 'b.feature:3:1'],
+                ['test:pass', 'b1', 'b.feature:3:1'],
+                ['test:start', 'a2', 'a.feature:3:1#2'],
+                ['test:pass', 'a2', 'a.feature:3:1#2'],
+            ])
+        })
+    })
 })
