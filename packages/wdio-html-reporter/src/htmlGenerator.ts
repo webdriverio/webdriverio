@@ -3,10 +3,11 @@ import nunjucks from 'nunjucks'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration.js'
 import type { SuiteStats, TestStats } from '@wdio/reporter'
-import util from 'node:util'
-import fs from 'fs-extra'
+import fs from 'node:fs'
+import fsp from 'node:fs/promises'
 import path from 'node:path'
 import encode from './encode.js'
+import { writeFile } from './files.js'
 import logger from '@wdio/logger'
 import url from 'node:url'
 
@@ -200,10 +201,10 @@ class HtmlGenerator {
 
             })
 
-            if (fs.pathExistsSync(reportOptions.outputDir)) {
+            if (fs.existsSync(reportOptions.outputDir)) {
                 try {
                     const html = nunjucks.render('report.html', reportData)
-                    fs.outputFileSync(reportData.reportFile, html)
+                    writeFile(reportData.reportFile, html)
 
                     const sortedSuites = reportData.suites.sort((suite1, suite2) => {
                         const first = dayjs.utc(suite1.start)
@@ -231,23 +232,22 @@ class HtmlGenerator {
                                 })
                             })
 
-                            await fs.appendFile(reportData.reportFile, suiteHtml)
+                            await fsp.appendFile(reportData.reportFile, suiteHtml)
                             HtmlGenerator.LOG.info(`Appended suite: ${suite.title}`)
                         } catch (error) {
                             HtmlGenerator.LOG.error('Error processing suite:', error)
                         }
                     }
 
-                    if (fs.pathExistsSync(reportOptions.outputDir)) {
-                        const copyFile = util.promisify(fs.copyFile)
+                    if (fs.existsSync(reportOptions.outputDir)) {
 
                         const reportCss = rootdirname + '/css/report-styles.css'
                         const destCss = reportOptions.outputDir + '/report-styles.css'
-                        await copyFile(reportCss, destCss)
+                        await fsp.copyFile(reportCss, destCss)
 
                         const cssFont = rootdirname + '/css/glyphicons-halflings-regular.woff'
                         const fontDest = reportOptions.outputDir + '/glyphicons-halflings-regular.woff'
-                        await copyFile(cssFont, fontDest)
+                        await fsp.copyFile(cssFont, fontDest)
                     }
                 } catch (error) {
                     HtmlGenerator.LOG.error('Html Generation failed: ' + error)
