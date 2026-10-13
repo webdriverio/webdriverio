@@ -62,4 +62,41 @@ describe('onExit', () => {
         const result = JSON.parse(fs.readFileSync(path.join(allureDir, '1-result.json'), 'utf-8'))
         expect(result.steps).toEqual([])
     })
+
+    it('does not throw when another worker deletes its placeholder while this worker reads the folder', () => {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'video-reporter-exit-'))
+        dirs.push(dir)
+        const allureDir = path.join(dir, 'allure')
+        fs.mkdirSync(allureDir)
+        const video = path.join(dir, 'my-video.webm')
+        fs.writeFileSync(video, Buffer.alloc(2048, 1))
+        fs.writeFileSync(path.join(allureDir, 'mine-attachment.webm'), video)
+        fs.writeFileSync(path.join(allureDir, 'other-attachment.webm'), '/other/worker/video.webm')
+
+        const reporter = new VideoReporter({ videoRenderTimeout: 200 })
+        reporter.onRunnerStart({
+            isMultiRemote: false,
+            sessionId: '1',
+            config: { outputDir: dir },
+            instanceOptions: { 1: { reporters: [['allure', { outputDir: allureDir }]] } }
+        } as never)
+        reporter.videos.push(video)
+        reporter.allureVideos.push(video)
+
+        // the other worker deletes its placeholder after this worker listed the folder
+        const statSync = fs.statSync
+        const spy = vi.spyOn(fs, 'statSync').mockImplementation(((file: fs.PathLike, options?: never) => {
+            if (String(file).endsWith('other-attachment.webm')) {
+                fs.rmSync(file, { force: true })
+            }
+            return statSync(file, options)
+        }) as typeof fs.statSync)
+        try {
+            expect(() => reporter.onExit()).not.toThrow()
+        } finally {
+            spy.mockRestore()
+        }
+        // this worker still puts its video into its own attachment
+        expect(fs.statSync(path.join(allureDir, 'mine-attachment.webm')).size).toBe(2048)
+    })
 })
