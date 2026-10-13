@@ -70,7 +70,7 @@ export interface ReporterOptions extends Reporters.Options {
     /**
    * Which commands should result in a screenshot: the last part of the WebDriver endpoint
    * (for example `click` for `/session/:sessionId/element/:elementId/click`)
-   * @default ['url', 'back', 'forward', 'refresh', 'sync', 'maximize', 'minimize', 'fullscreen', 'rect', 'click', 'value', 'clear', 'selected', 'enabled', 'displayed', 'accept', 'dismiss', 'actions', 'orientation']
+   * @default ['url', 'back', 'forward', 'refresh', 'sync', 'maximize', 'minimize', 'fullscreen', 'rect', 'click', 'value', 'clear', 'accept', 'dismiss', 'actions', 'orientation']
    */
     snapshotCommands?: string[]
 
