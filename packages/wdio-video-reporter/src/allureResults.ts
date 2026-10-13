@@ -45,7 +45,12 @@ export function removeAllureAttachments (allureOutputDir: string, placeholderFil
         const resultPath = path.resolve(allureOutputDir, file)
         let result: AllureNode
         try {
-            result = JSON.parse(fs.readFileSync(resultPath, 'utf-8')) as AllureNode
+            const text = fs.readFileSync(resultPath, 'utf-8')
+            // most results have none of these attachments: do not parse them
+            if (![...sources].some((source) => text.includes(source))) {
+                continue
+            }
+            result = JSON.parse(text) as AllureNode
         } catch {
             /**
              * another worker can write this file at the same time: it is not one of ours
