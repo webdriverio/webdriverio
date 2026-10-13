@@ -28,20 +28,6 @@ vi.mock('node:child_process', async () => {
     }
 })
 
-/**
- * the glob lists the folder when it is called, and answers a little later
- */
-vi.mock('glob', async () => {
-    const fsModule = await import('node:fs')
-    return {
-        glob: vi.fn((pattern: string) => {
-            const dir = path.dirname(pattern)
-            const files = fsModule.readdirSync(dir).filter((file) => file.endsWith('.png')).sort().map((file) => `${dir}/${file}`)
-            return new Promise((resolve) => setTimeout(() => resolve(files), 10))
-        })
-    }
-})
-
 vi.mock('../src/helpers.js', async (importOriginal) => ({
     ...await importOriginal<typeof HelpersModule>(),
     findFfmpeg: vi.fn(() => '/foo/bar/ffmpeg')
@@ -93,7 +79,7 @@ describe('frames that end after the end of the test', () => {
         return { reporter, pending }
     }
 
-    it('does not overwrite a frame that ends while the frames are checked', async () => {
+    it('starts ffmpeg after a frame that ends after the test is written', async () => {
         const { reporter, pending } = setup([0, 1, 3])
         const endFrame2 = pending(2)
 

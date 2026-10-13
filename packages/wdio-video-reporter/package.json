@@ -38,8 +38,7 @@
     "@wdio/globals": "workspace:*",
     "@wdio/logger": "workspace:*",
     "@wdio/reporter": "workspace:*",
-    "@wdio/types": "workspace:*",
-    "glob": "^13.0.6"
+    "@wdio/types": "workspace:*"
   },
   "devDependencies": {
     "webdriverio": "workspace:*"

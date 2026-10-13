@@ -29,8 +29,6 @@ vi.mock('node:fs', () => {
     return { ...mod, default: mod }
 })
 
-vi.mock('glob', () => ({ glob: () => Promise.resolve([]) }))
-
 vi.mock('../src/helpers.js', async (importOriginal) => ({
     ...await importOriginal<typeof HelpersModule>(),
     findFfmpeg: vi.fn(() => '/foo/bar/ffmpeg')

@@ -23,10 +23,6 @@ vi.mock('node:fs', () => {
 
 vi.mock('node:fs/promises', () => ({}))
 
-vi.mock('glob', () => ({
-    glob: () => Promise.resolve(['/foo/bar.js', '/foo/baz.js'])
-}))
-
 const logMock = vi.hoisted(() => ({ warn: vi.fn(), info: vi.fn(), error: vi.fn(), debug: vi.fn() }))
 vi.mock('@wdio/logger', () => ({ default: () => logMock }))
 
