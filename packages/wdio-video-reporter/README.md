@@ -174,6 +174,10 @@ Default: `'1200:trunc(ow/a/2)*2'`
 
 Maximum time to wait for a video to finish rendering (in ms).
 
+The runner waits for the reporters only [`reporterSyncTimeout`](https://webdriver.io/docs/configuration#reportersynctimeout)
+(default `5000`). When you increase `videoRenderTimeout`, set `reporterSyncTimeout` to a larger value, else the worker can
+end before the videos are rendered. The reporter logs a warning when `videoRenderTimeout` is larger.
+
 Type: `number`<br />
 Default: `5000`
 
