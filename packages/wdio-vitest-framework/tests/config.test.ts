@@ -24,9 +24,11 @@ describe('toVitestConfig', () => {
             isolate: true,
             globals: true,
             environment: 'node',
-            testTimeout: 60_000
+            testTimeout: 60_000,
+            hookTimeout: 120_000
         })
         expect(test!.setupFiles).toEqual([expect.stringMatching(/setup\.js$/)])
+        expect(build({ connectionRetryTimeout: 30_000 }).test).toMatchObject({ hookTimeout: 30_000 })
     })
 
     it('keeps the setup file when vitestOpts.setupFiles is a string or an array', () => {
