@@ -20,10 +20,19 @@ export interface ScenarioLines {
      */
     background: StepLine[]
     steps: StepLine[]
-    /** the lines of the Examples rows of a Scenario Outline (empty for a scenario) */
-    examples: number[]
+    /** the Examples rows of a Scenario Outline (empty for a scenario) */
+    examples: ExampleRow[]
     /** how many pickles of the run already used this scenario */
     used: number
+}
+
+export interface ExampleRow {
+    line: number
+    /** the name of the outline with the values of this row */
+    name: string
+    /** the tags of the Examples table of this row */
+    tags: string[]
+    used: boolean
 }
 
 export interface FeatureLines {
@@ -35,7 +44,11 @@ interface GherkinScenario {
     name: string
     location: { line: number }
     steps: readonly GherkinStep[]
-    examples?: readonly { tableBody: readonly { location: { line: number } }[] }[]
+    examples?: readonly {
+        tags: readonly { name: string }[]
+        tableHeader?: { cells: readonly { value: string }[] }
+        tableBody: readonly { location: { line: number }, cells: readonly { value: string }[] }[]
+    }[]
 }
 interface GherkinChild {
     background?: GherkinScenario
@@ -78,7 +91,15 @@ export function readFeatureLines (file: string, language: string): FeatureLines 
                         rule,
                         background,
                         steps: toSteps(steps),
-                        examples: examples.flatMap((table) => table.tableBody.map((row) => row.location.line)),
+                        examples: examples.flatMap((table) => table.tableBody.map((row) => ({
+                            line: row.location.line,
+                            name: (table.tableHeader?.cells ?? []).reduce(
+                                (text, header, index) => text.split(`<${header.value}>`).join(row.cells[index]?.value ?? ''),
+                                name
+                            ),
+                            tags: table.tags.map((tag) => tag.name),
+                            used: false
+                        }))),
                         used: 0
                     })
                 }
@@ -128,7 +149,7 @@ export function scenarioNameOf (title: string, tags?: readonly (string | { name:
 export function takeScenarioLines (
     lines: FeatureLines,
     name: string,
-    { rule }: { rule?: string } = {}
+    { rule, tags = [] }: { rule?: string, tags?: readonly string[] } = {}
 ): { scenario: ScenarioLines, line: number } | undefined {
     // a scenario of the Rule of the payload (the framework sends it), or outside a Rule
     const inRule = lines.scenarios.filter((scenario) => (scenario.rule || undefined) === (rule || undefined))
@@ -136,15 +157,32 @@ export function takeScenarioLines (
         ...inRule.filter((scenario) => scenario.name === name),
         ...inRule.filter((scenario) => scenario.name !== name && matchesTemplate(scenario.name, name))
     ]
-    const isFree = (scenario: ScenarioLines) => scenario.used < Math.max(scenario.examples.length, 1)
+    /**
+     * the Examples row of this example: the row with this name whose table tags the
+     * scenario has (a tag filter or a random order can skip rows), then a row with
+     * this name, then any row that is not used yet
+     */
+    const rowOf = (scenario: ScenarioLines) => {
+        const free = scenario.examples.filter((row) => !row.used)
+        return free.find((row) => row.name === name && row.tags.every((tag) => tags.includes(tag))) ??
+            free.find((row) => row.name === name) ??
+            free[0]
+    }
+    const isFree = (scenario: ScenarioLines) => scenario.examples.length ? Boolean(rowOf(scenario)) : scenario.used === 0
     // all used: the same spec file runs again, start with the first one
     const scenario = candidates.find(isFree) ?? candidates[0]
     if (!scenario) {
         return undefined
     }
-    const index = isFree(scenario) ? scenario.used : 0
+    if (!isFree(scenario)) {
+        scenario.examples.forEach((row) => { row.used = false })
+    }
     scenario.used++
-    return { scenario, line: scenario.examples[index] ?? scenario.line }
+    const row = rowOf(scenario)
+    if (row) {
+        row.used = true
+    }
+    return { scenario, line: row?.line ?? scenario.line }
 }
 
 /**
