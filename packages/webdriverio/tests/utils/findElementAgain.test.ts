@@ -794,6 +794,7 @@ describe('finding an element again', () => {
             }
 
             const reference = await refetches((browser) => browser.$('#ref').getElement(), 'elem-r')
+            expect(reference).toBeGreaterThan(0)
             expect([
                 await refetches(async (browser) => (await browser.$$('.item'))[0], 'elem-a'),
                 await refetches(async (browser) => (await browser.$$('.item'))[2], 'elem-c')
