@@ -6,6 +6,7 @@ import * as path from 'node:path'
 import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll, vi, type MockInstance } from 'vitest'
 
 import { containsSteps, getFailedMessage, keywordStartsWith } from '../src/utils.js'
+import type * as UtilsModule from '../src/utils.js'
 import { AFTER, BEFORE, FAILED, PASSED, PENDING, TEXT_PLAIN } from '../src/constants.js'
 import {
     EMPTY_FEATURE,
@@ -29,7 +30,8 @@ const logFolderPath = path.join(os.tmpdir(), 'wdio-cucumberjs-json-reporter-test
 const logFile = path.join(logFolderPath, 'logFile.json')
 const jsonFolder = path.join(logFolderPath, 'ut-folder')
 
-vi.mock('../src/utils', () => ({
+vi.mock('../src/utils', async (importOriginal) => ({
+    escapeRegExp: (await importOriginal<typeof UtilsModule>()).escapeRegExp,
     containsSteps: vi.fn(),
     getFailedMessage: vi.fn(),
     keywordStartsWith: vi.fn()
@@ -285,7 +287,9 @@ describe('reporter', () => {
 
     describe('onRunnerEnd', () => {
         it('should store the json file on the file system', async () => {
+            // onSuiteStart sets both: the current feature and the list of the features
             tmpReporter.report.feature = { id: 'this-feature' }
+            tmpReporter.report.features = [tmpReporter.report.feature]
             tmpReporter.options.jsonFolder = jsonFolder
             await fsp.rm(jsonFolder, {
                 recursive: true,
@@ -301,7 +305,9 @@ describe('reporter', () => {
             expect(fs.existsSync(jsonFolder)).toEqual(true)
         })
         it('should by default create a unique Json file and should not add in existing Json file onRunnerEnd', async () => {
+            // onSuiteStart sets both: the current feature and the list of the features
             tmpReporter.report.feature = { id: 'this-feature' }
+            tmpReporter.report.features = [tmpReporter.report.feature]
             tmpReporter.options.jsonFolder = jsonFolder
 
             await tmpReporter.onRunnerEnd()
@@ -326,7 +332,9 @@ describe('reporter', () => {
             await fsp.mkdir(jsonFolder, { recursive: true })
             await fsp.copyFile(__dirname + '/__mocks__/mock.json', jsonFile)
 
+            // onSuiteStart sets both: the current feature and the list of the features
             tmpReporter.report.feature = { id: 'this-feature' }
+            tmpReporter.report.features = [tmpReporter.report.feature]
             tmpReporter.options.jsonFolder = jsonFolder
             tmpReporter.options.reportFilePerRetry = false
 

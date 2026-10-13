@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import { AstBuilder, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherkin'
 
+import { escapeRegExp } from './utils.js'
+
 export interface StepLine {
     text: string
     line: number
@@ -99,7 +101,7 @@ function matchesTemplate (template: string, text: string) {
     }
     const pattern = template
         .split(/<[^>]+>/)
-        .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .map(escapeRegExp)
         .join('.*')
     return new RegExp(`^${pattern}$`).test(text)
 }

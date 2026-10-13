@@ -18,7 +18,7 @@ import {
 import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
 import { findDocStringLine, findStepLine, readFeatureLines, scenarioNameOf, takeScenarioLines, type FeatureLines, type ScenarioLines } from './featureLines.js'
-import { containsSteps, keywordStartsWith, getFailedMessage } from './utils.js'
+import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage } from './utils.js'
 import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
 
@@ -289,7 +289,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         }
         const jsonFolder = path.resolve(process.cwd(), this.options.jsonFolder!)
         fs.mkdirSync(jsonFolder, { recursive: true })
-        for (const feature of this.report.features ?? [this.report.feature]) {
+        for (const feature of this.report.features ?? []) {
             const uniqueId = String(Date.now() + Math.random()).replace('.', '')
             const filename = this.options.reportFilePerRetry
                 ? `${feature.id}_${uniqueId}.json`
@@ -367,7 +367,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     public getStepDataObject(stepData: TestStatsExtended | HookStatsExtended): Step {
         const keyword =
             stepData?.keyword || keywordStartsWith(stepData.title, this.options.language!) || ''
-        const regex = new RegExp(`^(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\s`)
+        const regex = new RegExp(`^(${escapeRegExp(keyword)})\\s`)
         const result = regex.exec(stepData.title)
         const title = (stepData.title.slice(result ? result.index + keyword.length : 0) || '').trim()
         const step: Step = {
