@@ -1,7 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { Key } from '../../constants.js'
-import { isStaleError } from '../../utils/staleElement.js'
+import { isStaleError, wasNotFoundAgain } from '../../utils/staleElement.js'
 import type { InputOptions } from '../../types.js'
 
 /**
@@ -90,7 +90,7 @@ async function clearStubbornValue (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return
     }
-    const remaining = await elem.getElementProperty(elem.elementId, 'value').catch(gone)
+    const remaining = await elem.getElementProperty(elem.elementId, 'value').catch(goneOrUndefined)
     if (typeof remaining !== 'string' || remaining === '') {
         return
     }
@@ -100,13 +100,25 @@ async function clearStubbornValue (elem: WebdriverIO.Element) {
 }
 
 /**
- * A lookup of `setValue` that fails gives `undefined`, except a stale element error:
- * the element middleware of `setValue` throws it at once when the element was waited
- * for and not found, and finds the element again and runs `setValue` again when it was
- * replaced. A `type` of `undefined` would type into a date or range input.
+ * The `type` lookup of `setValue` gives `undefined` when it fails, except for a stale
+ * element error: the middleware of `setValue` throws it at once when the element was
+ * waited for and not found, and finds the element again and runs `setValue` again
+ * when it was replaced. A `type` of `undefined` would type into a date or range input.
  */
-function gone (err: unknown): undefined {
+function staleOrUndefined (err: unknown): undefined {
     if (isStaleError(err)) {
+        throw err
+    }
+    return undefined
+}
+
+/**
+ * The `value` lookup after clearing gives `undefined` when it fails, except for an
+ * element that was waited for and not found. A field that a page renders again when
+ * its value is empty is found again by `addValue`, as before.
+ */
+function goneOrUndefined (err: unknown): undefined {
+    if (wasNotFoundAgain(err)) {
         throw err
     }
     return undefined
@@ -121,6 +133,6 @@ async function setsDirectly (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return false
     }
-    const type = await elem.getElementProperty(elem.elementId, 'type').catch(gone)
+    const type = await elem.getElementProperty(elem.elementId, 'type').catch(staleOrUndefined)
     return typeof type === 'string' && SET_DIRECTLY.includes(type)
 }

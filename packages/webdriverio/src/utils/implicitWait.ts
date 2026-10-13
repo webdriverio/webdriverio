@@ -9,6 +9,7 @@ import { getBrowserObject } from '@wdio/utils'
 import { StrictSelectorError } from './strictSelectorError.js'
 import { INDEX_NOT_FOUND, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
+import { markNotFoundAgain } from './staleElement.js'
 
 const log = logger('webdriverio')
 
@@ -71,23 +72,20 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
                 throw err
             }
 
-            if (currentElement.selector.toString().includes('this.previousElementSibling')) {
-                throw new Error(
-                    `Can't call ${commandName} on previous element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`)
-            }
-
-            if (currentElement.selector.toString().includes('this.nextElementSibling')) {
-                throw new Error(
-                    `Can't call ${commandName} on next element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`)
-            }
-
-            if (currentElement.selector.toString().includes('this.parentElement')) {
-                throw new Error(
-                    `Can't call ${commandName} on parent element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because it wasn't found`)
-            }
-
-            throw new Error(
-                `Can't call ${commandName} on element with selector "${describeSelector(currentElement)}" because element wasn't found`)
+            const selector = currentElement.selector.toString()
+            const notFound = new Error(
+                selector.includes('this.previousElementSibling')
+                    ? `Can't call ${commandName} on previous element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`
+                    : selector.includes('this.nextElementSibling')
+                        ? `Can't call ${commandName} on next element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`
+                        : selector.includes('this.parentElement')
+                            ? `Can't call ${commandName} on parent element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because it wasn't found`
+                            : `Can't call ${commandName} on element with selector "${describeSelector(currentElement)}" because element wasn't found`)
+            /**
+             * the element was waited for and not found, see `markNotFoundAgain`
+             */
+            markNotFoundAgain(notFound)
+            throw notFound
         }
     }
 

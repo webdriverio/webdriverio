@@ -8,7 +8,6 @@ import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject, getWdioKind } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 import type { CustomStrategyReference, ReactSelectorOptions, Selector } from '../types.js'
-import { markNotFoundAgain } from './staleElement.js'
 
 /**
  * The React selector options of an element found with `react$` or `react$$`,
@@ -133,10 +132,6 @@ export async function findElementAgain (
              * `waitForExist`, the implicit wait and the refetch of a stale item don't change
              */
             if (item && !item.elementId && item.error) {
-                /**
-                 * the list did not reach the index in `waitforTimeout`, see `markNotFoundAgain`
-                 */
-                markNotFoundAgain(item.error)
                 throw item.error
             }
             return item

@@ -4,13 +4,13 @@
  */
 
 /**
- * Set on an error when a lookup waited `waitforTimeout` for an element and did not find
- * it: the implicit wait of `refetchElement`, or the index wait of a list item. A command
- * runs other commands, on its element or on other elements, and each of them has a
- * layer of the element middleware: an outer layer throws a stale element error with
- * this mark at once instead of waiting again. A lookup that failed for another reason
- * (a parent replaced while the chain is found again, a closed window) has no mark, and
- * an outer layer looks again.
+ * Set on an error when `implicitWait` waited `waitforTimeout` for an element and did not
+ * find it, also the wait of a parent while `refetchElement` finds the chain again. A
+ * command runs other commands, on its element or on other elements, and each of them
+ * has a layer of the element middleware: an outer layer throws a stale element error
+ * with this mark at once instead of waiting again. A lookup that failed without that
+ * wait (for example a parent that the page replaces again while the chain is found
+ * again) has no mark, and an outer layer looks again.
  */
 const NOT_FOUND_AGAIN = Symbol('wdio:notFoundAgain')
 
@@ -34,7 +34,7 @@ export function isStaleElementError(err: Error) {
  * a stale element error, by its name (the error of a driver) or its message. Any
  * object, also an error of another realm or a plain object with these properties
  */
-export function isStaleError(err: unknown): err is Error {
+export function isStaleError(err: unknown): boolean {
     if (!err || typeof err !== 'object') {
         return false
     }

@@ -105,6 +105,24 @@ describe('setValue', () => {
         expect(addValue).not.toHaveBeenCalled()
     })
 
+    /**
+     * a field that the page renders again when its value is empty: `addValue` finds it
+     * again, as before (#16072 review)
+     */
+    it('should go on when the value lookup after clearing gets a stale element error of a replaced field', async () => {
+        const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'getElementProperty').mockImplementation(async (_id: string, name: string) => {
+            if (name === 'type') {
+                return 'text'
+            }
+            throw stale(false)
+        })
+        const addValue = vi.spyOn(elem, 'addValue')
+
+        await elem.setValue('foobar')
+        expect(addValue).toHaveBeenCalledWith('foobar', undefined)
+    })
+
     it('should go on when a lookup fails with another error or a value that is not an error', async () => {
         for (const error of [new Error('unknown command'), 'not an error']) {
             const elem = await browser.$('#foo')

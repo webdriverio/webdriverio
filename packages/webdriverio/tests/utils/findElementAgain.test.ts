@@ -843,6 +843,33 @@ describe('finding an element again', () => {
             expect(wasNotFoundAgain(error)).toBe(true)
         })
 
+        it('is set when a command waited for an element that was never found', async () => {
+            const browser = await session()
+            const error = await browser.$('#never').getText().then(() => null, (err: Error) => err)
+            expect(error?.message).toContain('because element wasn\'t found')
+            expect(wasNotFoundAgain(error)).toBe(true)
+        })
+
+        /**
+         * a check (`isDisplayed`) of a gone parent leaves it without an element id: the
+         * middleware of the parent waits for it when its child is found again (#16072 review)
+         */
+        it('is set when the parent without an element id was waited for and not found', async () => {
+            const browser = await session()
+            driver.light.set('#host', ['host-a'])
+            driver.light.set('.child', ['child-a'])
+            const host = await browser.$('#host')
+            const child = await host.$('.child')
+            driver.stale.add('host-a')
+            driver.stale.add('child-a')
+            driver.light.set('#host', [])
+            host.elementId = undefined as unknown as string
+
+            const error = await lookup(child)
+            expect(error).toBeInstanceOf(Error)
+            expect(wasNotFoundAgain(error)).toBe(true)
+        })
+
         it('is not set when the parent found again is replaced before its child is found', async () => {
             const browser = await session()
             driver.light.set('#host', ['host-a'])

@@ -1,8 +1,6 @@
 import implicitWait from './implicitWait.js'
 import { REACT_OPTIONS, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
-import { StrictSelectorError } from './strictSelectorError.js'
-import { markNotFoundAgain } from './staleElement.js'
 import type { ReactSelectorOptions } from '../types.js'
 
 type Scope = WebdriverIO.Browser | WebdriverIO.Element
@@ -12,7 +10,8 @@ type Scope = WebdriverIO.Browser | WebdriverIO.Element
  * "not found" item when the list is now shorter. Like `$()` finds a gone element
  * again as a "not found" element: check commands (`isDisplayed`,
  * `waitForDisplayed({ reverse: true })`) give their answer at once, and a command
- * that needs the element waits for it in `implicitWait` (#12576).
+ * that needs the element, or a parent of its element, waits for it in `implicitWait`
+ * (#12576), which marks the error when the item does not come back.
  */
 async function findItemAgain (item: WebdriverIO.Element, parent: Scope): Promise<WebdriverIO.Element> {
     const found = await findElementAgain(item, { parent })
@@ -62,7 +61,7 @@ export default async function refetchElement (
      */
     return chain.reduce(async (elementPromise, element, currentIndex) => {
         const parent = await elementPromise
-        const nextElement = currentIndex + 1 === length && element.index !== undefined
+        const nextElement = element.index !== undefined
             ? await findItemAgain(element, parent)
             : await findElementAgain(element, { parent, wait: true })
 
@@ -73,17 +72,6 @@ export default async function refetchElement (
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array
          */
-        try {
-            return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
-        } catch (err) {
-            /**
-             * the element was not there and the implicit wait waited for it, see
-             * `markNotFoundAgain`
-             */
-            if (!nextElement.elementId && !(err instanceof StrictSelectorError)) {
-                markNotFoundAgain(err)
-            }
-            throw err
-        }
+        return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
     }, Promise.resolve(currentElement))
 }
