@@ -39,6 +39,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     #featuresByFile = new Map<string, { feature: Feature, lines?: FeatureLines }>()
     /** attachments sent while the scenario has no step yet (for example in a `Before` hook with `disableHooks`) */
     #pendingEmbeddings: Embedding[] = []
+    /** the scenario that was running when the waiting attachments came (none: before the first scenario) */
+    #pendingEmbeddingsScenario?: Scenario
     /**
      * `cucumberOpts.scenarioLevelReporter`: the framework reports no steps, and the
      * CucumberJS JSON format needs them, so make no report
@@ -288,6 +290,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * Runner is done, write the file
      */
     public onRunnerEnd(): void {
+        // the last scenario of the worker ended with no step
+        this.#dropPendingEmbeddingsOfOtherScenario()
         if (!this.report.feature) {
             return
         }
@@ -440,6 +444,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
                 docString.line = docStringLine
             }
         }
+        this.#dropPendingEmbeddingsOfOtherScenario(scenario)
         if (this.#pendingEmbeddings.length) {
             step.embeddings = this.#pendingEmbeddings
             this.#pendingEmbeddings = []
@@ -467,6 +472,19 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     }
 
     /**
+     * The waiting attachments of a scenario that ended with no step (for example an
+     * `After` hook with `disableHooks`) have no step to go to: the Cucumber JSON
+     * format has attachments only on steps. Do not move them to another scenario.
+     */
+    #dropPendingEmbeddingsOfOtherScenario(scenario?: Scenario) {
+        const owner = this.#pendingEmbeddingsScenario
+        if (owner && owner !== scenario && this.#pendingEmbeddings.length) {
+            log.warn(`${this.#pendingEmbeddings.length} attachment(s) of the scenario "${owner.name}" not in the report: the scenario has no step`)
+            this.#pendingEmbeddings = []
+        }
+    }
+
+    /**
      * Add the attachment to the result
      */
     public cucumberJsAttachment(attachment: CucumberJsAttachment): void {
@@ -489,6 +507,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
 
         // no feature or no step yet: keep the attachment for the next step
         if (!currentStep) {
+            this.#dropPendingEmbeddingsOfOtherScenario(this.getCurrentScenario())
+            this.#pendingEmbeddingsScenario = this.getCurrentScenario()
             this.#pendingEmbeddings.push(embeddings)
             return
         }
