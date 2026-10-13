@@ -97,6 +97,8 @@ describe('ReportAggregator', () => {
         const runner = Object.assign(Object.create(Object.getPrototypeOf(RUNNER)), RUNNER, {
             config: { ...RUNNER.config, user: 'cloud-user', key: 'cloud-access-key' },
             instanceOptions: { 'session-1': { user: 'cloud-user', key: 'cloud-access-key' } },
+            // @wdio/reporter makes it from the capabilities, with the query of `appium:app`
+            sanitizedCapabilities: 'pixel_7.14.app_apk?token=cloud-access-key',
             capabilities: {
                 ...RUNNER.capabilities,
                 'bstack:options': { userName: 'cloud-user', accessKey: 'cloud-access-key' },
