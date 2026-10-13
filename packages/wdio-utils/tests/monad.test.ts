@@ -388,6 +388,15 @@ describe('monad', () => {
             expect(second.someFunc(1)).toBe('[result-1]')
         })
 
+        it('wraps the commands of each client of one monad once', () => {
+            const monad = webdriverMonad({}, (client: any) => client, prototype)
+            const first = monad(sessionId, layer)
+            const second = monad(sessionId, layer)
+
+            expect(first.someFunc(1)).toBe('[result-1]')
+            expect(second.someFunc(1)).toBe('[result-1]')
+        })
+
         it('applies the element overrides to each client once', () => {
             const properties = {
                 scope: { value: 'element' },

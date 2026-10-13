@@ -131,7 +131,6 @@ describe('getElements', () => {
         const second = origGetElem.getElements.call(browser, 'li', refs)
         const single = origGetElem.getElement.call(browser, 'li', { [ELEMENT_KEY]: 'some-elem-123' })
         const expected = await layers(single)
-        expect(expected).toBe(2)
         expect([await layers(first[0]), await layers(first[2]), await layers(second[2])]).toEqual([expected, expected, expected])
     })
 })

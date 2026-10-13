@@ -48,23 +48,6 @@ function setElementOverride(overrides: Record<string, Function>, name: string, c
     overrides[name] = composeElementOverrides(overrides[name], command)
 }
 
-/**
- * A copy of the property descriptors for one client, without the `scope` of the
- * caller. The command wrapper and the element overrides change the descriptors of
- * a client, and a caller can give the same object to the monad of many clients:
- * `getElements` gives one object to all items of a list. Changed in place, the
- * commands of each new client were wrapped again: item `[n]` had `n + 1` layers.
- */
-function clientProperties(properties: PropertiesObject): PropertiesObject {
-    const copy: PropertiesObject = {}
-    for (const key of Reflect.ownKeys(properties)) {
-        if (key !== 'scope') {
-            copy[key] = { ...properties[key] }
-        }
-    }
-    return copy
-}
-
 export default function WebDriver(options: object, modifier?: Function, properties: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
@@ -191,7 +174,15 @@ export default function WebDriver(options: object, modifier?: Function, properti
      * WebDriver monad
      */
     function unit(this: void, sessionId: string, commandWrapper?: Function, elementCmdImplicitWaitExclusionList?: string[]) {
-        const propertiesObject = clientProperties(properties)
+        /**
+         * The client gets its own map of the property descriptors, and a new descriptor
+         * for each command that it wraps or overrides: the descriptors of the caller do
+         * not change. A caller can give the same object to the monad of many clients,
+         * e.g. `getElements` to all items of a list. Wrapped in place, the commands of
+         * each new client were wrapped again: item `[n]` had `n + 1` layers.
+         */
+        const propertiesObject: PropertiesObject = { ...properties }
+        delete propertiesObject.scope
 
         /**
          * capabilities attached to the instance prototype not being shown if
@@ -208,7 +199,8 @@ export default function WebDriver(options: object, modifier?: Function, properti
          * e.g. in wdio-cli to allow element chaining
          */
         if (typeof commandWrapper === 'function') {
-            for (const [commandName, { value }] of Object.entries(propertiesObject)) {
+            for (const [commandName, descriptor] of Object.entries(propertiesObject)) {
+                const { value } = descriptor
                 /**
                  * no need to apply a command wrapper if:
                  * - there is no wrapper
@@ -218,8 +210,11 @@ export default function WebDriver(options: object, modifier?: Function, properti
                     continue
                 }
 
-                propertiesObject[commandName].value = commandWrapper(commandName, value, propertiesObject)
-                propertiesObject[commandName].configurable = true
+                propertiesObject[commandName] = {
+                    ...descriptor,
+                    value: commandWrapper(commandName, value, propertiesObject),
+                    configurable: true
+                }
             }
         }
 

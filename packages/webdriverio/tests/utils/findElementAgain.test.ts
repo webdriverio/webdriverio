@@ -10,6 +10,13 @@ import refetchElement from '../../src/utils/refetchElement.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+/**
+ * runs the real refetch: each layer of the element middleware calls it once for a stale element
+ */
+vi.mock('../../src/utils/refetchElement.js', async (importOriginal) => {
+    const actual = await importOriginal<{ default: typeof refetchElement }>()
+    return { __esModule: true, default: vi.fn(actual.default) }
+})
 
 const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
 
@@ -763,6 +770,34 @@ describe('finding an element again', () => {
             const elem = await goneItem()
             setTimeout(() => driver.light.set('.item', ['elem-x', 'elem-y', 'elem-z']), 30)
             expect(await elem.getText()).toBe('text of elem-z')
+        })
+
+        /**
+         * Each layer of the element middleware finds a stale element again once. An item
+         * has as many layers as `$()`, whatever its index: with one more layer for each
+         * item, a command on a gone item `[n]` threw after `(n + 1) * 2 * waitforTimeout`
+         */
+        it('is found again as often as $() when it is stale, whatever its index', async () => {
+            const refetches = async (find: (browser: WebdriverIO.Browser) => Promise<WebdriverIO.Element>, id: string) => {
+                const browser = await session()
+                driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
+                driver.light.set('#ref', ['elem-r'])
+                const elem = await find(browser)
+                driver.stale.add(id)
+                driver.light.set('.item', [])
+                driver.light.set('#ref', [])
+                vi.mocked(refetchElement).mockClear()
+
+                const { error } = await settle(elem.getText())
+                expect(error?.name).toBe('stale element reference')
+                return vi.mocked(refetchElement).mock.calls.length
+            }
+
+            const reference = await refetches((browser) => browser.$('#ref').getElement(), 'elem-r')
+            expect([
+                await refetches(async (browser) => (await browser.$$('.item'))[0], 'elem-a'),
+                await refetches(async (browser) => (await browser.$$('.item'))[2], 'elem-c')
+            ]).toEqual([reference, reference])
         })
 
         it('a stale item whose index the list still reaches is found again', async () => {
