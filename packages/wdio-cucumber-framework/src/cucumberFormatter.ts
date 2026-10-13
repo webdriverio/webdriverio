@@ -50,6 +50,12 @@ export default class CucumberFormatter extends Formatter {
     private _suiteMap: Map<string, string> = new Map()
     private _pickleMap: Map<string, string> = new Map()
     private _currentDoc: GherkinDocument = { comments: [] }
+    /**
+     * grouped specs: the uid of the current part of the feature, and how many times
+     * each feature started
+     */
+    private _currentFeatureUid?: string
+    private _featureStarts = new Map<string, number>()
     private _startedFeatures: string[] = []
 
     private reporter: EventEmitter
@@ -141,6 +147,18 @@ export default class CucumberFormatter extends Formatter {
 
     featureIsStarted(feature: string) {
         return this._startedFeatures.includes(feature)
+    }
+
+    /**
+     * The uid of the feature of the current scenario. With grouped specs in a random
+     * order, a feature starts again when the run comes back to it: each part has its
+     * own uid (`<feature id>#2`, ...), so a reporter does not replace the suite (and
+     * the tests) of the earlier part.
+     */
+    featureUid(uri: string, feature: Feature) {
+        return this.usesSpecGrouping() && this._currentFeatureUid
+            ? this._currentFeatureUid
+            : getFeatureId(uri, feature)
     }
 
     getTitle(featureOrScenario: Feature | Pickle) {
@@ -258,7 +276,7 @@ export default class CucumberFormatter extends Formatter {
             : {
                 type: 'scenario',
                 uid: scenario.id,
-                parent: getFeatureId(uri, feature),
+                parent: this.featureUid(uri, feature),
                 tags: scenario.tags,
                 ...common,
             }
@@ -339,10 +357,7 @@ export default class CucumberFormatter extends Formatter {
             this.featureIsStarted(this._currentDoc.uri)
         ) {
             const payload = {
-                uid: getFeatureId(
-                    this._currentDoc.uri as string,
-                    this._currentDoc.feature as Feature
-                ),
+                uid: this.featureUid(this._currentDoc.uri as string, this._currentDoc.feature as Feature),
                 title: this.getTitle(this._currentDoc.feature),
                 type: 'feature',
                 file: this._currentDoc.uri,
@@ -366,8 +381,12 @@ export default class CucumberFormatter extends Formatter {
             doc.uri &&
             doc !== this._currentDoc
         ) {
+            const starts = (this._featureStarts.get(doc.uri) ?? 0) + 1
+            this._featureStarts.set(doc.uri, starts)
+            const featureId = getFeatureId(doc.uri as string, doc.feature as Feature)
+            this._currentFeatureUid = starts === 1 ? featureId : `${featureId}#${starts}`
             const payload = {
-                uid: getFeatureId(doc.uri as string, doc.feature as Feature),
+                uid: this._currentFeatureUid,
                 title: this.getTitle(doc.feature as Feature),
                 type: 'feature',
                 file: doc.uri,
@@ -408,7 +427,7 @@ export default class CucumberFormatter extends Formatter {
         const payload = {
             uid: reporterScenario.id,
             title: this.getTitle(reporterScenario),
-            parent: getFeatureId(scenario.uri, doc?.feature as Feature),
+            parent: this.featureUid(scenario.uri, doc?.feature as Feature),
             type: 'scenario',
             description: getScenarioDescription(doc?.feature as Feature, this._pickleMap.get(scenario.id)!),
             file: scenario.uri,
@@ -556,7 +575,7 @@ export default class CucumberFormatter extends Formatter {
         const payload = {
             uid: scenario.id,
             title: this.getTitle(scenario),
-            parent: getFeatureId(doc?.uri as string, doc?.feature as Feature),
+            parent: this.featureUid(doc?.uri as string, doc?.feature as Feature),
             type: 'scenario',
             file: doc?.uri,
             duration: this._scenarioStart
@@ -582,10 +601,7 @@ export default class CucumberFormatter extends Formatter {
 
         if (this.usesSpecGrouping()) {
             const payload = {
-                uid: getFeatureId(
-                    this._currentDoc.uri as string,
-                    this._currentDoc.feature as Feature
-                ),
+                uid: this.featureUid(this._currentDoc.uri as string, this._currentDoc.feature as Feature),
                 title: this.getTitle(this._currentDoc.feature as Feature),
                 type: 'feature',
                 file: this._currentDoc.uri,

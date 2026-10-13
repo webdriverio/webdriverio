@@ -485,16 +485,25 @@ const cucumberReporter = async () => {
  */
 const cucumberGroupedSpecsRandomOrder = async () => {
     const basePath = path.resolve(__dirname, 'cucumber', 'random-order')
-    const logFile = path.resolve(basePath, 'spec-reporter.log')
-    await fs.rm(logFile, { force: true })
-    await launch(
-        'cucumberGroupedSpecsRandomOrder',
-        path.resolve(basePath, 'random-order.conf.js'),
-        { reporters: [['spec', { stdout: false, logFile }]] }
-    )
-    const logs = await fs.readFile(logFile, 'utf-8')
-    assert.ok(logs.includes('6 passing'), `the spec reporter does not show the 6 scenarios:\n${logs}`)
-    await fs.rm(logFile, { force: true })
+    const scenarios = ['a one', 'a two', 'a three', 'b one', 'b two', 'b three']
+    // the scenarios are suites (step level) or tests (scenarioLevelReporter)
+    for (const scenarioLevelReporter of [false, true]) {
+        const logFile = path.resolve(basePath, `spec-reporter-${scenarioLevelReporter}.log`)
+        await fs.rm(logFile, { force: true })
+        await launch(
+            'cucumberGroupedSpecsRandomOrder',
+            path.resolve(basePath, 'random-order.conf.js'),
+            {
+                reporters: [['spec', { stdout: false, logFile }]],
+                cucumberOpts: { scenarioLevelReporter }
+            }
+        )
+        const logs = await fs.readFile(logFile, 'utf-8')
+        assert.ok(logs.includes('6 passing'), `the spec reporter does not count the 6 scenarios:\n${logs}`)
+        const missing = scenarios.filter((scenario) => !logs.includes(scenario))
+        assert.deepStrictEqual(missing, [], `scenarioLevelReporter: ${scenarioLevelReporter}, the spec reporter does not list:\n${logs}`)
+        await fs.rm(logFile, { force: true })
+    }
 }
 
 /**
