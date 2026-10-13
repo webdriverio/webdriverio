@@ -137,4 +137,16 @@ describe('ReportAggregator', () => {
         const metrics = JSON.parse(fs.readFileSync(path.join(outputDir, 'from-cli.json'), 'utf-8')).metrics
         expect(metrics.passed).toBe(1)
     })
+
+    it('writes each test one time in the worker JSON (no hooksAndTests copy)', async () => {
+        const { HtmlReporter } = await import('../src/index.js')
+        const { RUNNER, SUITES } = await import('./testdata.js')
+        const outputDir = path.join(tempDir(), 'out')
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Size' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart({ ...SUITES[0], hooksAndTests: SUITES[0].tests } as never)
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(RUNNER)
+        expect(fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf-8')).not.toContain('hooksAndTests')
+    })
 })

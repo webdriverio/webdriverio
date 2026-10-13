@@ -39,7 +39,11 @@ class JsonGenerator {
                     const jsonFile = withExtension(reportData.reportFile, '.json')
                     JsonGenerator.LOG.info('Json report write starting: ' + jsonFile)
                     try {
-                        const stringified = JSON.stringify(reportData)
+                        /**
+                         * `hooksAndTests` is a second copy of the tests and hooks of a
+                         * suite, which the report does not use
+                         */
+                        const stringified = JSON.stringify(reportData, (key, value) => key === 'hooksAndTests' ? undefined : value)
                         JsonGenerator.writeJson(jsonFile, stringified, reportOptions, reportData)
                     } catch (error) {
                         JsonGenerator.LOG.error('Json write failed: ' + error)
