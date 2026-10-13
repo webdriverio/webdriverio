@@ -72,6 +72,13 @@ describe('implicitWait', () => {
         expect(waitedFor(error)).toBe(false)
     })
 
+    it('keeps the error when the existence check throws at once', async () => {
+        const el = missing(notExisting, () => { throw new TypeError('isExisting is not a function') })
+        const error = await implicitWait(el, 'getText').then(() => null, (err: Error) => err)
+        expect(error?.message).toBe('Can\'t call getText on element with selector "#missing" because element wasn\'t found')
+        expect(waitedFor(error)).toBe(false)
+    })
+
     it('throws a strict-mode violation as it is, without a flag', async () => {
         const strict = new StrictSelectorError('#missing', 2)
         const error = await implicitWait(missing(async () => { throw strict }), 'getText').then(() => null, (err: Error) => err)

@@ -87,9 +87,12 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             /**
              * the wait for the element ended without it and the element is still missing,
              * see `markWaited`. A lookup that failed after the element existed, or an element
-             * that is there after the wait, gets no flag: it can be found again
+             * that is there after the wait, gets no flag: it can be found again. A failure of
+             * this check leaves the error as it is
              */
-            const stillMissing = !existed && await currentElement.isExisting().then((exists) => !exists, () => false)
+            const stillMissing = !existed && await Promise.resolve()
+                .then(() => currentElement.isExisting())
+                .then((exists) => !exists, () => false)
             if (stillMissing) {
                 markWaited(notFound)
                 markNotFound(currentElement)
