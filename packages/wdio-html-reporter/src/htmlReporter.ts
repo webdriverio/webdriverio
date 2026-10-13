@@ -22,32 +22,41 @@ import logger from '@wdio/logger'
 const reportProxy = new ReportEvents()
 
 /**
- * names of capability values that can be credentials, for example `accessKey`
- * in `bstack:options`
+ * the capabilities that the report files keep: they name the browser or the
+ * device, and they have no credentials
  */
-const SECRET_NAME = /key|password|secret|token|credential/i
+const REPORT_CAPABILITIES = ['browserName', 'browserVersion', 'platformName', 'appium:deviceName', 'appium:platformVersion', 'appium:automationName']
 
-function hideSecrets (value: unknown): unknown {
-    if (Array.isArray(value)) {
-        return value.map(hideSecrets)
-    }
-    if (value && typeof value === 'object') {
-        return Object.fromEntries(Object.entries(value).map(([name, item]) => [
-            name,
-            SECRET_NAME.test(name) && typeof item === 'string' ? '[hidden]' : hideSecrets(item)
-        ]))
-    }
-    return value
+function reportCapabilities (capabilities: unknown) {
+    const caps = (capabilities ?? {}) as Record<string, unknown>
+    return Object.fromEntries(REPORT_CAPABILITIES.filter((name) => caps[name] !== undefined).map((name) => [name, caps[name]]))
 }
 
 /**
  * The runner data for the report files, which are often shared (for example as CI
- * artifacts): without the configuration and the session options, which have the
- * cloud credentials (`user`, `key`). The report does not use them.
+ * artifacts): only the fields that the report uses, and no configuration, session
+ * options or capabilities with credentials (`user`, `key`, `accessKey`, a URL with a
+ * password, ...).
  */
 function reportInfo (runner: RunnerStats): RunnerStats {
-    const { config: _config, instanceOptions: _instanceOptions, ...info } = runner
-    return { ...info, capabilities: hideSecrets(runner.capabilities) } as unknown as RunnerStats
+    const capabilities = runner.isMultiRemote
+        ? Object.fromEntries(Object.entries(runner.capabilities ?? {}).map(([name, instance]) => [
+            name,
+            reportCapabilities((instance as { capabilities?: unknown }).capabilities ?? instance)
+        ]))
+        : reportCapabilities(runner.capabilities)
+    return {
+        type: runner.type,
+        cid: runner.cid,
+        specs: runner.specs,
+        start: runner.start,
+        end: runner.end,
+        _duration: runner._duration,
+        sanitizedCapabilities: runner.sanitizedCapabilities,
+        isMultiRemote: runner.isMultiRemote,
+        retry: runner.retry,
+        capabilities
+    } as unknown as RunnerStats
 }
 
 export default class HtmlReporter extends WDIOReporter {
