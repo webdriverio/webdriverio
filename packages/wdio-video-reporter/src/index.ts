@@ -322,11 +322,12 @@ export default class VideoReporter extends WdioReporter {
             this.#extendAllureReport()
         }
 
-        if (!this.testName) {
-            return
-        }
+        // also for a suite with no started test (for example only skipped Mocha tests)
         if (this.isCucumberFramework || this.options.filenamePrefixSource === 'suite') {
             this.testNameStructure.pop()
+        }
+        if (!this.testName) {
+            return
         }
         /**
          * only a Cucumber scenario with step reporting has its video made here. For the
