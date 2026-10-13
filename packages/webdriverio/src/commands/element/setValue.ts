@@ -1,6 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { Key } from '../../constants.js'
+import { isStaleElementError } from '../../utils/index.js'
 import type { InputOptions } from '../../types.js'
 
 /**
@@ -107,6 +108,15 @@ async function setsDirectly (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return false
     }
-    const type = await elem.getElementProperty(elem.elementId, 'type').catch(() => undefined)
+    const type = await elem.getElementProperty(elem.elementId, 'type').catch((err: Error) => {
+        /**
+         * the element was already looked for again and is gone: `clearValue` would
+         * wait for it a second time
+         */
+        if (err?.name === 'stale element reference' || isStaleElementError(err)) {
+            throw err
+        }
+        return undefined
+    })
     return typeof type === 'string' && SET_DIRECTLY.includes(type)
 }

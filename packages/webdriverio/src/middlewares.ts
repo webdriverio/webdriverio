@@ -12,6 +12,15 @@ import { StrictSelectorError } from './utils/strictSelectorError.js'
 export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
 
 /**
+ * Set on a stale element error when the middleware looked for its element again and
+ * did not find it. A command that runs another command on the same element (`getText`
+ * runs `getElementText`) has a middleware layer for each: the outer layer throws the
+ * error at once instead of waiting for the element a second time.
+ */
+const NOT_FOUND_AGAIN = Symbol('wdio:notFoundAgain')
+type MarkedError = Error & { [NOT_FOUND_AGAIN]?: WebdriverIO.Element }
+
+/**
  * Run an element command after the implicit wait, and retry it when the element
  * is stale or not yet interactable. `execute` is the command itself, without
  * this wrapper, so a retry does not wait a second time.
@@ -60,8 +69,13 @@ async function invokeElementCommand (
         }
 
         if (err.name === 'stale element reference' || isStaleElementError(err)) {
+            if ((err as MarkedError)[NOT_FOUND_AGAIN] === element) {
+                throw err
+            }
+            let found = false
             try {
                 const refetched = await refetchElement(element, commandName)
+                found = true
                 element.elementId = refetched.elementId
                 /**
                  * also the w3c identifier, which e.g. an action origin reads
@@ -83,10 +97,16 @@ async function invokeElementCommand (
                 if (refetchErr instanceof StrictSelectorError) {
                     throw refetchErr
                 }
-                if (!(refetchErr instanceof Error) || !isStaleElementError(refetchErr)) {
-                    throw err
+                const thrown: MarkedError = refetchErr instanceof Error && isStaleElementError(refetchErr) ? refetchErr : err
+                /**
+                 * the element was looked for and not found: an outer layer does not
+                 * look again. An error of the command after the element was found
+                 * is not marked, the outer layer can still find it again.
+                 */
+                if (!found) {
+                    thrown[NOT_FOUND_AGAIN] = element
                 }
-                throw refetchErr
+                throw thrown
             }
         }
 

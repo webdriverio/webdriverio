@@ -63,6 +63,28 @@ describe('setValue', () => {
         expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/value')
     })
 
+    /**
+     * the type lookup of an element that is gone already waited for it: `setValue` does
+     * not go on to `clearValue`, which would wait a second time
+     */
+    it('should throw the stale element error of the type lookup', async () => {
+        const elem = await browser.$('#foo')
+        const stale = Object.assign(new Error('stale element reference: element is not attached'), { name: 'stale element reference' })
+        vi.spyOn(elem, 'getElementProperty').mockRejectedValue(stale)
+        const clearValue = vi.spyOn(elem, 'clearValue')
+
+        await expect(elem.setValue('foobar')).rejects.toBe(stale)
+        expect(clearValue).not.toHaveBeenCalled()
+    })
+
+    it('should go on when the type lookup fails with another error', async () => {
+        const elem = await browser.$('#foo')
+        vi.spyOn(elem, 'getElementProperty').mockRejectedValue(new Error('unknown command'))
+
+        await elem.setValue('foobar')
+        expect(paths()).toContain('/session/foobar-123/element/some-elem-123/clear')
+    })
+
     it('should pass numbers as strings', async () => {
         const elem = await browser.$('#foo')
         vi.spyOn(elem, 'getElementProperty').mockResolvedValue('range')
