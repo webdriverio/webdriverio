@@ -68,6 +68,21 @@ describe('WDIOReporter Listeners', () => {
             }
         })
 
+        it('gives a started test that ends as skipped its duration (Jasmine pending())', () => {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            try {
+                vi.setSystemTime(1000)
+                // Jasmine sends test:pending with the uid of the start and no state
+                reporter.emit('test:start', { ...stat, uid: 'spec-1' })
+                vi.setSystemTime(1120)
+                reporter.emit('test:pending', { ...stat, uid: 'spec-1', pendingReason: 'not ready' })
+                expect(reporter.tests['spec-1'].state).toBe('skipped')
+                expect(reporter.tests['spec-1']._duration).toBe(120)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
         it('gives a pending test that never started no duration (Mocha it.skip)', () => {
             reporter.emit('test:pending', { ...stat, uid: 'never-started', state: 'pending' })
             expect(reporter.tests['never-started']._duration).toBe(0)

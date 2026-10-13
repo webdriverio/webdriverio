@@ -168,13 +168,15 @@ export default class WDIOReporter extends EventEmitter {
             test.retries = this.retries
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             /**
-             * a test that started and then ends as pending (for example a Cucumber step
-             * that returns 'pending') keeps its start, to give its duration
+             * a test that started and then ends as pending or skipped (for example a
+             * Cucumber step that returns 'pending', or Jasmine `pending()`) keeps its
+             * start, to give its duration
              */
             const startedTest = this.tests[test.uid]?.state === 'pending' ? this.tests[test.uid] : undefined
             currentTest = new TestStats(test)
             if (startedTest) {
                 currentTest.start = startedTest.start
+                currentTest.complete()
             }
 
             /**
@@ -197,9 +199,6 @@ export default class WDIOReporter extends EventEmitter {
             this.tests[currentTest.uid] = currentTest
             if (test.state === 'pending') {
                 currentTest.state = 'pending'
-                if (startedTest) {
-                    currentTest.complete()
-                }
                 this.counts.pending++
                 this.counts.tests++
                 this.onTestPending(currentTest)
