@@ -702,8 +702,11 @@ export default class VideoReporter extends WdioReporter {
          * each frame is written when its screenshot ends (or with the "not available"
          * image), so ffmpeg starts when all frames of the recording exist
          */
+        // the frames of this recording; the next recording has its own
+        const screenshots = this.screenshotPromises
+        this.screenshotPromises = []
         const promise: Promise<void> = Promise
-            .all(this.screenshotPromises)
+            .all(screenshots)
             .then(() => new Promise((resolve) => {
                 const cp = spawn(command, args, {
                     stdio: ['ignore', 'ignore', 'pipe'],
