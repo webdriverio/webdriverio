@@ -22,6 +22,8 @@ Pick your language in the tabs below; the choice follows you down the page.
 npm install @wdio/selenium-devtools
 ```
 
+Requires `selenium-webdriver` 4.8 or later. Encoding a screencast `.webm` needs `ffmpeg` on `PATH`.
+
 </TabItem>
 <TabItem value="python" label="Python">
 
@@ -31,6 +33,16 @@ pip install selenium-devtools-py
 
 **Requires Python 3.10+ and `selenium>=4.44`.** Both are declared in the package metadata, so pip enforces them rather than leaving you to find an empty Network tab at runtime. Network capture subscribes through the public BiDi event API that selenium regenerated in 4.44; the private connection it replaced was removed in the same release, and 4.44 is what sets the Python floor.
 
+Then install the backend, once:
+
+```bash
+selenium-devtools install-backend
+```
+
+pip cannot do this for you: a wheel has no install hook, and the backend is a Node package. Skip it and runs still work, falling back to fetching `@wdio/devtools-backend` with `npx` on first use. That fallback costs a registry round trip on every run and fails mid-session if a proxy declines the package. `selenium-devtools backend-path` says whether the backend is installed, `install-backend --force` reinstalls a broken one, and `uninstall-backend` removes it. The install goes under `$XDG_CACHE_HOME` (default `~/.cache`).
+
+A `chromedriver` on `PATH` that does not match your Chrome breaks every Selenium run; with none on `PATH`, Selenium Manager resolves a matching one.
+
 </TabItem>
 </Tabs>
 
@@ -38,6 +50,8 @@ pip install selenium-devtools-py
 
 <Tabs groupId="devtools-language">
 <TabItem value="node" label="Node.js" default>
+
+The minimum is one import, `import '@wdio/selenium-devtools'`, in your test file. Under Mocha, Jest and Cucumber nothing else is needed; `DevTools.configure(...)` is optional and only changes defaults.
 
 Each block below is a **complete, copy-paste-ready example** including the `DevTools.configure(...)` call. Pick the runner you use, drop the snippet into your project, and run it.
 
@@ -80,7 +94,7 @@ Run it:
 mocha --timeout 60000 tests/example.test.js
 ```
 
-> Alternative: skip the per-file import and use `mocha --require @wdio/selenium-devtools` to load the plugin once for the whole run.
+> Alternative: skip the per-file import and use `mocha --require @wdio/selenium-devtools` to load the plugin once for the whole run. You still need a one-time `DevTools.configure(...)` call somewhere if you want non-default options.
 
 ### Jest
 
@@ -312,6 +326,21 @@ If the backend cannot be launched or reached, `enable()` logs a warning and retu
 
 What genuinely reads as separate runs: two independent `pytest` invocations, or a worker started without the environment. Export `DEVTOOLS_RUN_ID` yourself to join such processes into one run.
 
+### Run controls (Run, Rerun, Run-all)
+
+All three work under pytest and for a plain script. A rerun is not a message to the running process: the backend spawns a fresh one from a command the adapter publishes at startup, and a control it cannot service stays disabled with a reason.
+
+- Under pytest each control selects its row by **nodeid** (`file.py`, `file.py::Class`, `file.py::Class::test`), using the interpreter that ran your tests. For a plain script all three relaunch the script.
+- Options that narrow a run are dropped from a targeted rerun: `-k`, `-m`, `--deselect`, `--lf`/`--ff`/`--sw`, and `-n`/`--dist`. A surviving filter could only narrow the named test to nothing, which pytest reports as a clean exit.
+- The rerun spawns in pytest's **rootdir**, and positional paths in the Run-all command are made absolute. An option carrying a *relative* path (`-c`, `--junitxml`) resolves against rootdir on a rerun.
+- A rerun reports into **the dashboard you pressed the button in** and opens no second window. Run-all keeps your original invocation even after a targeted rerun.
+
+Two limits: a dashboard that was already running when you connected keeps the directory it was started in, and under `pytest -n` the dashboard's state belongs to whichever worker connected last.
+
+### Preserve & Rerun
+
+A failed row carries a second button beside Rerun. It snapshots the attempt, reruns the test, and the **Compare** tab diffs the two: commands, console and network side by side. The snapshot is taken before the rerun starts; preserving after a new run has connected is refused (HTTP 409). A plain Rerun drops every baseline, so the Compare tab disappears after an ordinary rerun.
+
 </TabItem>
 </Tabs>
 
@@ -325,7 +354,7 @@ What genuinely reads as separate runs: two independent `pytest` invocations, or 
 | `port` | `number` | `3000` | Port for the DevTools backend server. Auto-incremented if already in use. |
 | `hostname` | `string` | `'localhost'` | Hostname the backend server binds to. |
 | `openUi` | `boolean` | `true` | Auto-open the DevTools UI in a new Chrome window. Set `false` for CI. |
-| `captureScreenshots` | `boolean` | `true` | Capture a screenshot after every WebDriver command. |
+| `captureScreenshots` | `boolean` | `true` | Capture a screenshot after every successful WebDriver command. |
 | `headless` | `boolean` | `false` | Run the **test** browser headless (injects `--headless=old`). The DevTools UI window is unaffected. |
 | `screencast` | `ScreencastOptions` | `{ enabled: false }` | Per-session `.webm` video recording. Options match the [WebdriverIO Screencast](/docs/devtools/wdio/screencast) page. |
 | `rerunCommand` | `string` | auto | Command template for per-test rerun. `{{testName}}` is substituted. Auto-derived from runner argv if omitted. |
@@ -347,6 +376,8 @@ DevTools.configure({
   openUi: true
 })
 ```
+
+> `port` and `hostname` only take effect before the backend starts, which happens when the first driver is built, so call `DevTools.configure(...)` before that; a later call ignores them with a warning. A rerun keeps its parent's backend whatever they say.
 
 > **For CI**, set both `headless: true` (hide the test browser) and `openUi: false` (don't try to open the dashboard window - CI environments have no display). The backend keeps running on the configured port so you can still open the UI later if needed.
 
@@ -379,7 +410,9 @@ Highest wins: CLI, then ini, then the environment below. `pytest -o devtools=fal
 | `DEVTOOLS_RUN_ID=<id>` | Join several processes into one run. |
 | `DEVTOOLS_BACKEND_CMD=<cmd>` | Start the backend with an explicit command instead of the resolved one. |
 
-The backend is a Node application, so **Node.js 22.19 or later must be available in every mode** - even in trace mode, where no dashboard window ever opens. It is not only the UI: the page collector is served by the backend, the whole event stream travels over its WebSocket, and in trace mode it is also what builds the archive. `enable()` checks for Node up front and names what is missing rather than failing later as a spawn timeout. The adapter finds or launches the backend for you - see [running the backend on its own](/docs/devtools/dashboard#running-the-backend-on-its-own) if you would rather manage it yourself, or point `DEVTOOLS_PORT` at one you are already running, in which case no local Node is needed.
+Set for you rather than by you (listed so an unexpected value is recognisable): `DEVTOOLS_RUNNER_CWD`, `DEVTOOLS_APP_REUSE` / `DEVTOOLS_APP_HOST` / `DEVTOOLS_APP_PORT`, and `DEVTOOLS_RERUN_LAUNCH_COMMAND`.
+
+The backend is a Node application, so **Node.js 18 or later must be available in every mode** - even in trace mode, where no dashboard window ever opens. It is not only the UI: the page collector is served by the backend, the whole event stream travels over its WebSocket, and in trace mode it is also what builds the archive. `enable()` checks for Node up front and names what is missing rather than failing later as a spawn timeout. The adapter finds or launches the backend for you, in this order: a backend that spawned this run as a rerun, then `DEVTOOLS_PORT` (attach), then `DEVTOOLS_BACKEND_CMD`, then the backend installed by `selenium-devtools install-backend`, then `npx @wdio/devtools-backend@<pinned version>`. The pin is fixed per adapter release so the backend always speaks the adapter's wire contract. See [running the backend on its own](/docs/devtools/dashboard#running-the-backend-on-its-own) if you would rather manage it yourself, or point `DEVTOOLS_PORT` at one you are already running, in which case no local Node is needed.
 
 ### Assertions
 
@@ -441,7 +474,7 @@ devtools.enable(trace=True)           # write a trace.zip instead of opening a d
 
 The archive lands in `test-results/` beside the test file the first captured command came from - the same directory screencast videos already write to - named `trace-<sessionId>.zip`, or named after each test when you ask for [one archive per test](#how-many-archives-and-which-ones-to-keep). When no command carried a source location of yours, it falls back to `test-results/` under the current directory.
 
-**No dashboard window opens.** The artifact is the output, and a live run blocks on the window until you close it - a window would turn writing a file into an interactive session. The backend still starts, because it is what *builds* the archive: the trace transforms are TypeScript, so a Python run asks the backend for them rather than shipping a second copy of them. That is the one way this differs from the Node.js adapter's backend-free trace mode, and the reason [Node.js 22.19 or later is required in every mode](#configuration-options).
+**No dashboard window opens.** The artifact is the output, and a live run blocks on the window until you close it - a window would turn writing a file into an interactive session. The backend still starts, because it is what *builds* the archive: the trace transforms are TypeScript, so a Python run asks the backend for them rather than shipping a second copy of them. That is the one way this differs from the Node.js adapter's backend-free trace mode, and the reason [Node.js 18 or later is required in every mode](#configuration-options).
 
 Beyond the command rows, per-command screenshots and selectors, console and network that both modes capture, the archive carries:
 
@@ -503,7 +536,7 @@ devtools_trace_granularity = test
 devtools_trace_policy = retain-on-failure
 ```
 
-`[tool.pytest.ini_options]` in `pyproject.toml` takes the same keys, and `pytest -o devtools_trace_policy=on tests/` overrides one of them for a single run without editing the file. A fully commented version - every setting and every environment variable, with what each one is for - is in the repo at [`examples/selenium/python-test/trace-py-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/python-test/trace-py-test).
+`[tool.pytest.ini_options]` in `pyproject.toml` takes the same keys, and `pytest -o devtools_trace_policy=on tests/` overrides one of them for a single run without editing the file. A fully commented version - every setting and every environment variable, with what each one is for - is in the repo at [`examples/selenium-py/pytest/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-py/pytest).
 
 A plain script passes the same two as keyword arguments:
 
@@ -557,6 +590,7 @@ devtools.disable()                    # tear down; safe to call twice
 devtools.wait_for_dashboard_close()   # block until the window is closed
 devtools.get_capturer()               # the live SessionCapturer, or None
 devtools.dashboard_url()              # the URL the dashboard is served on
+devtools.export_trace()               # write the trace archive now (trace mode only)
 ```
 
 `enable()` takes an optional `host` and `port`, plus keyword arguments:
@@ -585,20 +619,23 @@ Working examples live in the repo's top-level `examples/` directory. Build the w
 
 | Directory | Runner | Command |
 |-----------|--------|---------|
-| [`examples/selenium/mocha-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/mocha-test) | Mocha | `pnpm --filter @wdio/selenium-devtools example:mocha` |
-| [`examples/selenium/jest-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/jest-test) | Jest | `pnpm --filter @wdio/selenium-devtools example:jest` |
-| [`examples/selenium/cucumber-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/cucumber-test) | Cucumber | `pnpm demo:selenium` |
+| [`examples/selenium-js/mocha/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-js/mocha) | Mocha | `pnpm --filter @wdio/selenium-devtools example:mocha` |
+| [`examples/selenium-js/mocha/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-js/mocha) | Mocha + allure-mocha | `pnpm --filter @wdio/selenium-devtools example:mocha:allure` |
+| [`examples/selenium-js/jest/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-js/jest) | Jest | `pnpm --filter @wdio/selenium-devtools example:jest` |
+| [`examples/selenium-js/cucumber/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-js/cucumber) | Cucumber | `pnpm demo:selenium` |
+| [`examples/selenium-js/mobile/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-js/mobile) | Mocha on Appium | `pnpm demo:selenium:mobile` |
 
 </TabItem>
 <TabItem value="python" label="Python">
 
-The Python examples live in [`examples/selenium/python-test/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium/python-test). Install the adapter and build the workspace once (`pnpm install && pnpm build`, so the backend exists), then run from the repo root:
+The Python examples live in [`examples/selenium-py/`](https://github.com/webdriverio/devtools/tree/main/examples/selenium-py). Install the adapter and build the workspace once (`pnpm install && pnpm build`, so the backend exists), then run from the repo root. The demos run bare `python3`, so the adapter must be installed into that interpreter: `python3 -m venv .venv && source .venv/bin/activate && pip install -e packages/selenium-devtools-py`.
 
 | Example | What it shows | Command |
 |---|---|---|
-| `web_form.py` | The three-line plain-script setup | `pnpm demo:python` |
-| `login.py` | A longer script: navigation, form fill, assertions | `pnpm demo:python:login` |
-| `trace-py-test/` | pytest with a class and a module-level test, plus a `pytest.ini` that commits trace mode, granularity and retention - every setting in it is commented with what it does | `pnpm demo:python:pytest` |
+| `scripts/web_form.py` | The three-line plain-script setup | `pnpm demo:python` |
+| `scripts/login.py` | A longer script: navigation, form fill, assertions | `pnpm demo:python:login` |
+| `mobile/android/`, `mobile/ios/` | Appium: the Android Clock app, or iOS Settings with `DEVTOOLS_MOBILE_PLATFORM=ios` (`pip install -r examples/selenium-py/requirements-mobile.txt` first) | `pnpm demo:python:mobile` |
+| `pytest/` | pytest with a class and a module-level test, plus a `pytest.ini` that commits trace mode, granularity and retention - every setting in it is commented with what it does | `pnpm demo:python:pytest` |
 
 </TabItem>
 </Tabs>
@@ -615,6 +652,7 @@ The Selenium adapter provides the same DevTools UI experience as WebdriverIO, in
 - **[Metadata](/docs/devtools/wdio/metadata)** - Session capabilities, environment, and timing per browser session
 - **[TestLens](/docs/devtools/wdio/testlens)** - Jump from any command to the source line that triggered it
 - **[Session Screencast](/docs/devtools/wdio/screencast)** - Automatic video recording of browser sessions
+- **Navigation timings** - After every navigation command, load / DOM-ready / response timings, resource counts, cookies and document info are attached to that command row
 - **[Trace Mode](/docs/devtools/wdio/trace-mode)** - Headless capture producing a portable `trace.zip` (no UI window), in both languages, with per-test slicing and retention in both (`traceGranularity` / `tracePolicy` in Node.js; `--devtools-trace-granularity` / `--devtools-trace-policy` in Python). Per-test `screenshot` / `video` and inline Allure attachment remain Node.js only; see [Trace mode](#trace-mode)
 
 In Node.js, screencast is the one feature with its own options (see [Configuration Options](#configuration-options)):
@@ -623,7 +661,9 @@ In Node.js, screencast is the one feature with its own options (see [Configurati
 DevTools.configure({ screencast: { enabled: true, quality: 70, maxWidth: 1280, maxHeight: 720 } })
 ```
 
-In Python it needs no configuration: Chrome streams frames over CDP, other browsers fall back to one screenshot per command, and encoding the `.webm` needs `ffmpeg` on `PATH`. In trace mode the same frames become the archive's dense filmstrip instead of a `.webm`, so nothing is encoded and `ffmpeg` is not needed.
+In Python the run's own output also reaches the Console tab: Python `logging` records (selenium's and the adapter's) and the test's `print()` output, which is teed so your terminal still shows it.
+
+In Python screencast needs no configuration: Chrome streams frames over CDP, other browsers fall back to one screenshot per command, and encoding the `.webm` needs `ffmpeg` on `PATH`. In trace mode the same frames become the archive's dense filmstrip instead of a `.webm`, so nothing is encoded and `ffmpeg` is not needed.
 
 ## How It Works
 
@@ -638,7 +678,7 @@ The plugin patches `selenium-webdriver`'s `Builder`, `WebDriver`, and `WebElemen
 
 When BiDi is available (Chrome ≥114), console logs, JavaScript exceptions, and network events stream directly via the Selenium BiDi handlers. Otherwise the plugin falls back to an injected browser-side collector script.
 
-The same injected collector also records the page's **DOM mutation stream** and a per-command element / accessibility snapshot, so a trace carries enough to rebuild the live DOM at each step (per-navigation mapping) — this is what powers the player's DOM time-travel and A11y tab rather than a screenshot-only replay.
+The page-side collector is registered at document start through BiDi (`script.addPreloadScript`), so every page instruments itself before any of its own script runs; without BiDi it falls back to injecting a `<script>` after each navigation. It records the page's **DOM mutation stream** and a per-command element / accessibility snapshot, so a trace carries enough to rebuild the live DOM at each step (per-navigation mapping) — this is what powers the player's DOM time-travel and A11y tab rather than a screenshot-only replay.
 
 </TabItem>
 <TabItem value="python" label="Python">
@@ -651,10 +691,16 @@ There are no prototypes to patch, so the Python adapter wraps one method instead
 
 Console, JavaScript exceptions and network stream over selenium's BiDi layer (4.44+), which the adapter enables for you by injecting the `webSocketUrl` capability into the `newSession` request.
 
-The **DOM mutation stream** comes from the same browser-side collector as Node.js, registered at document start through BiDi so a page instruments itself before any of its own script runs. On Chrome the screencast is pushed by the browser over a CDP websocket of its own — separate from the session's command channel, which is what makes a real frame stream safe when a Selenium session is not thread-safe.
+The **DOM mutation stream** comes from the same browser-side collector as Node.js, registered at document start through BiDi so a page instruments itself before any of its own script runs. With BiDi disabled (`DEVTOOLS_BIDI=0`) the collector is injected per document with a `<script>` instead. On Chrome the screencast is pushed by the browser over a CDP websocket of its own — separate from the session's command channel, which is what makes a real frame stream safe when a Selenium session is not thread-safe.
 
 </TabItem>
 </Tabs>
+
+## Mobile (Appium)
+
+Appium sessions are captured in live and trace mode, in both languages. A mobile-browser session is captured like a desktop one; a native app gets commands, screenshots and element data from the platform's XML tree, with no DOM. This adapter decides from the startup capabilities, so a hybrid app's webview half is captured as if it were still native (only the WebdriverIO service follows context switches).
+
+Try it with `pnpm demo:selenium:mobile` (Node.js) or `pnpm demo:python:mobile` (Python). `DEVTOOLS_MOBILE_PLATFORM=ios` runs the iOS spec, and `DEVTOOLS_MOBILE=web` drives the device's own browser. Prerequisites are in [`examples/MOBILE.md`](https://github.com/webdriverio/devtools/blob/main/examples/MOBILE.md); see the [Mobile Testing page](/docs/devtools/mobile) for the full mobile reference.
 
 ## Limitations
 
@@ -666,6 +712,7 @@ The **DOM mutation stream** comes from the same browser-side collector as Node.j
 | Cucumber leaf-step rerun | Cucumber's `--name` filter targets scenarios, not individual Gherkin steps. The dashboard's per-step rerun is disabled under Cucumber. |
 | Headless mode caveat | `headless: true` injects `--headless=old`; `--headless=new` produces all-black CDP frames in the screencast. |
 | Initial viewport | The dashboard's snapshot iframe falls back to 1280×800 until the first navigation completes and the browser-side collector reports the real viewport. |
+| Parallel workers | Jest/Vitest worker processes each load the plugin and report as a separate run, so the dashboard keeps only the latest worker's state. Run serially (`--runInBand`) for a single dashboard run. |
 
 </TabItem>
 <TabItem value="python" label="Python">
@@ -674,7 +721,7 @@ The **DOM mutation stream** comes from the same browser-side collector as Node.j
 |-----------|--------|
 | No per-test screenshot, video or Allure attach | Per-test **trace archives** are supported (`--devtools-trace-granularity test`), but the Node.js adapter's per-test `screenshot` and `video` options and its inline `allure-js-commons` attachment have no Python equivalent - the archives are the artifacts. |
 | Retry-aware retention degrades | `retain-on-first-failure`, `on-first-retry`, `on-all-retries` and `retain-on-failure-and-retries` are accepted but behave exactly like `retain-on-failure`: nothing on the wire carries an attempt number, so a retried test overwrites its own earlier outcome. The backend logs the degradation. |
-| Node is required in every mode | The backend is a Node application - it serves the page collector, carries the event stream, and builds the trace archive - so Node.js 22.19 or later must be present even in trace mode, where no window opens. The adapter finds or launches it for you. |
+| Node is required in every mode | The backend is a Node application - it serves the page collector, carries the event stream, and builds the trace archive - so Node.js 18 or later must be present even in trace mode, where no window opens. The adapter finds or launches it for you. |
 | Browser options are yours | There is no `headless` option; configure Chrome through selenium's own `Options` object as you normally would. |
 | Live-mode video needs ffmpeg | Without `ffmpeg` on `PATH` the `.webm` encode is skipped with a warning rather than an error. Trace mode encodes none - its frames go into the filmstrip - so it never needs ffmpeg. |
 

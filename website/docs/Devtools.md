@@ -4,7 +4,7 @@ title: DevTools
 description: "Visualize, control and inspect test runs in a browser-based debugging UI that works with WebdriverIO, Nightwatch.js and Selenium WebDriver."
 ---
 
-DevTools is a powerful browser-based debugging interface for visualizing, controlling, and inspecting your test executions in real-time. It works with **WebdriverIO**, **Nightwatch.js**, and **Selenium WebDriver** (any runner) — same backend, same UI, same capture infrastructure.
+DevTools is a powerful browser-based debugging interface for visualizing, controlling, and inspecting your test executions in real-time. It works with **WebdriverIO**, **Nightwatch.js**, **Selenium WebDriver** (any runner) and **Python Selenium** — same backend, same UI, same capture infrastructure.
 
 ## What It Provides
 
@@ -15,6 +15,7 @@ DevTools is a powerful browser-based debugging interface for visualizing, contro
 - **Monitor network & console** - Inspect API calls and JavaScript logs ([network](/docs/devtools/wdio/network-logs) · [console](/docs/devtools/wdio/console-logs))
 - **Navigate to code** - Jump directly to test source files with TestLens ([details](/docs/devtools/wdio/testlens))
 - **Record sessions** - Continuous `.webm` video of the browser, per session ([details](/docs/devtools/wdio/screencast))
+- **Mobile** - Appium sessions (mobile browser, native and hybrid apps) in live and trace mode ([details](/docs/devtools/mobile))
 - **Trace mode** - Headless capture path producing a portable `trace.zip` artifact for offline replay or agentic consumption ([details](/docs/devtools/wdio/trace-mode))
 
 ## How It Works
@@ -22,10 +23,11 @@ DevTools is a powerful browser-based debugging interface for visualizing, contro
 1. Start your tests as normal
 2. DevTools automatically opens a browser window at `http://localhost:3000`
 3. The UI shows test hierarchy, browser preview, command timeline, and logs in real-time
-4. After tests complete, click any test to rerun it individually in the same browser session
+4. After tests complete, click any test to rerun it; the rerun runs in a fresh test process and streams into the same dashboard window
 
 ## Choose Your Framework
 
 - **[WebDriverIO](/docs/devtools/wdio)** - Use `@wdio/devtools-service` with Mocha, Jasmine, or Cucumber
 - **[Nightwatch](/docs/devtools/nightwatch)** - Use `@wdio/nightwatch-devtools` with zero test code changes
 - **[Selenium](/docs/devtools/selenium)** - Use `@wdio/selenium-devtools` with Mocha, Jest, Cucumber, or plain Node scripts
+- **[Python Selenium](/docs/devtools/selenium)** - Use `selenium-devtools-py` under pytest or a plain script (see the Python tabs)
