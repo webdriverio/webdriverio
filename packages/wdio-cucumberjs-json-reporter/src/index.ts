@@ -12,7 +12,6 @@ import {
     DEFAULT_REPORT_FILE_PER_RETRY,
     FEATURE,
     PASSED,
-    //   PENDING,
     SCENARIO,
 } from './constants.js'
 import { attach, events } from './common/api.js'
@@ -224,28 +223,6 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         this.addStepData(payload)
     }
 
-    // /**
-    //  * This one starts a command
-    //  *
-    //  * @param payload
-    //  */
-    // onBeforeCommand(payload) {
-    //     // console.log('\nconst onBeforeCommand= ', JSON.stringify(payload), '\n')
-    // }
-
-    // /**
-    //  * This is the result of the command
-    //  *
-    //  * @param payload
-    //  */
-    // onAfterCommand(payload) {
-    //     // console.log('\nconst onAfterCommand= ', JSON.stringify(payload), '\n')
-    // }
-
-    // onScreenshot(payload) {
-    //     // console.log('\nconst onScreenshot= ', JSON.stringify(payload), '\n')
-    // }
-
     /**
      * The passed step
      */
@@ -275,19 +252,6 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         }
         this.updateStepStatus(payload)
     }
-
-    // onTestEnd(payload) {
-    //     console.log('\nonTestEnd')
-    // }
-
-    // /**
-    //  * Executed twice:
-    //  * - at the end of a scenario
-    //  * - at the end of all scenario's
-    //  *
-    //  * @param payload
-    //  */
-    // onSuiteEnd(payload) {}
 
     /**
      * Runner is done, write the file
