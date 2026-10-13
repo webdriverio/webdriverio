@@ -1089,7 +1089,7 @@ const htmlReporter = async () => {
 const htmlReporterCucumber = async () => {
     const basePath = path.resolve(__dirname, 'html-reporter')
     await launch('htmlReporterCucumber', path.resolve(basePath, 'html-reporter.cucumber.conf.js'))
-    const outDir = path.join(basePath, 'out')
+    const outDir = path.join(basePath, 'out-cucumber')
     const { metrics } = JSON.parse(await fs.readFile(path.join(outDir, 'master-report.json'), 'utf-8'))
     assert.deepStrictEqual({ passed: metrics.passed, failed: metrics.failed, skipped: metrics.skipped }, { passed: 2, failed: 0, skipped: 0 })
     await fs.rm(outDir, { recursive: true, force: true })
