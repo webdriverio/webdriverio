@@ -4,10 +4,13 @@
  */
 
 /**
- * Set on a stale element error when the element middleware looked for the element
- * again (with its parents) and did not find it. A command runs other commands on its
- * element or on other elements, and each of them has a middleware layer: an outer
- * layer throws a marked error at once instead of looking and waiting again.
+ * Set on an error when a lookup waited `waitforTimeout` for an element and did not find
+ * it: the implicit wait of `refetchElement`, or the index wait of a list item. A command
+ * runs other commands, on its element or on other elements, and each of them has a
+ * layer of the element middleware: an outer layer throws a stale element error with
+ * this mark at once instead of waiting again. A lookup that failed for another reason
+ * (a parent replaced while the chain is found again, a closed window) has no mark, and
+ * an outer layer looks again.
  */
 const NOT_FOUND_AGAIN = Symbol('wdio:notFoundAgain')
 
@@ -28,22 +31,30 @@ export function isStaleElementError(err: Error) {
 }
 
 /**
- * a stale element error, by its name (the error of a driver) or its message.
- * `false` for a value that is not an `Error`
+ * a stale element error, by its name (the error of a driver) or its message. Any
+ * object, also an error of another realm or a plain object with these properties
  */
 export function isStaleError(err: unknown): err is Error {
-    return err instanceof Error && typeof err.message === 'string' &&
-        (err.name === 'stale element reference' || isStaleElementError(err))
-}
-
-export function markNotFoundAgain(err: Error) {
-    (err as Error & { [NOT_FOUND_AGAIN]?: boolean })[NOT_FOUND_AGAIN] = true
+    if (!err || typeof err !== 'object') {
+        return false
+    }
+    const { name, message } = err as { name?: unknown, message?: unknown }
+    return name === 'stale element reference' || (typeof message === 'string' && isStaleElementError(err as Error))
 }
 
 /**
- * whether the element of this stale element error was already looked for again and
- * not found, see `NOT_FOUND_AGAIN`
+ * see `NOT_FOUND_AGAIN`. An error that can not get the mark (frozen) is left as it is.
  */
-export function wasNotFoundAgain(err: unknown): err is Error {
-    return err instanceof Error && (err as Error & { [NOT_FOUND_AGAIN]?: boolean })[NOT_FOUND_AGAIN] === true
+export function markNotFoundAgain(err: unknown) {
+    if (err && typeof err === 'object' && Object.isExtensible(err)) {
+        (err as { [NOT_FOUND_AGAIN]?: boolean })[NOT_FOUND_AGAIN] = true
+    }
+}
+
+/**
+ * whether a lookup already waited for the element of this error and did not find it,
+ * see `NOT_FOUND_AGAIN`
+ */
+export function wasNotFoundAgain(err: unknown): boolean {
+    return Boolean(err && typeof err === 'object' && (err as { [NOT_FOUND_AGAIN]?: boolean })[NOT_FOUND_AGAIN] === true)
 }

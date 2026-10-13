@@ -1,6 +1,8 @@
 import implicitWait from './implicitWait.js'
 import { REACT_OPTIONS, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
+import { StrictSelectorError } from './strictSelectorError.js'
+import { markNotFoundAgain } from './staleElement.js'
 import type { ReactSelectorOptions } from '../types.js'
 
 type Scope = WebdriverIO.Browser | WebdriverIO.Element
@@ -71,6 +73,17 @@ export default async function refetchElement (
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array
          */
-        return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
+        try {
+            return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
+        } catch (err) {
+            /**
+             * the element was not there and the implicit wait waited for it, see
+             * `markNotFoundAgain`
+             */
+            if (!nextElement.elementId && !(err instanceof StrictSelectorError)) {
+                markNotFoundAgain(err)
+            }
+            throw err
+        }
     }, Promise.resolve(currentElement))
 }

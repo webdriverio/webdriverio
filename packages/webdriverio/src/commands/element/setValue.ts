@@ -1,7 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { Key } from '../../constants.js'
-import { wasNotFoundAgain } from '../../utils/staleElement.js'
+import { isStaleError } from '../../utils/staleElement.js'
 import type { InputOptions } from '../../types.js'
 
 /**
@@ -100,12 +100,13 @@ async function clearStubbornValue (elem: WebdriverIO.Element) {
 }
 
 /**
- * A lookup of `setValue` that fails gives `undefined`, except for an element that the
- * middleware already looked for again and did not find: the next command would wait
- * for it a second time.
+ * A lookup of `setValue` that fails gives `undefined`, except a stale element error:
+ * the element middleware of `setValue` throws it at once when the element was waited
+ * for and not found, and finds the element again and runs `setValue` again when it was
+ * replaced. A `type` of `undefined` would type into a date or range input.
  */
 function gone (err: unknown): undefined {
-    if (wasNotFoundAgain(err)) {
+    if (isStaleError(err)) {
         throw err
     }
     return undefined

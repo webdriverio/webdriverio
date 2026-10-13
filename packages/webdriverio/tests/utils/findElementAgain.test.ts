@@ -7,6 +7,7 @@ import { remote } from '../../src/index.js'
 import { StrictSelectorError } from '../../src/utils/strictMode.js'
 import { itemOf } from '../../src/utils/findElementAgain.js'
 import refetchElement from '../../src/utils/refetchElement.js'
+import { wasNotFoundAgain } from '../../src/utils/staleElement.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -806,6 +807,56 @@ describe('finding an element again', () => {
             driver.light.set('.item', ['elem-x', 'elem-y', 'elem-z'])
             expect(await elem.isDisplayed()).toBe(true)
             expect(await elem.getText()).toBe('text of elem-z')
+        })
+    })
+
+    /**
+     * The middleware does not look again for an element whose lookup waited for it and did
+     * not find it. A lookup that failed without that wait leaves it to look again.
+     */
+    describe('the mark of a lookup that waited and did not find the element', () => {
+        const lookup = (elem: WebdriverIO.Element) => refetchElement(elem, 'getText').then(() => null, (err: Error) => err)
+
+        it('is set when the implicit wait did not find a gone element', async () => {
+            const browser = await session()
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            driver.stale.add('elem-r')
+            driver.light.set('#ref', [])
+
+            const error = await lookup(elem)
+            expect(error).toBeInstanceOf(Error)
+            expect(wasNotFoundAgain(error)).toBe(true)
+        })
+
+        it('is set when the list of a parent did not reach its index', async () => {
+            const browser = await session()
+            driver.light.set('.section', ['section-a', 'section-b', 'section-c'])
+            driver.light.set('.child', ['child-c'])
+            const child = await (await browser.$$('.section'))[2].$('.child')
+            driver.stale.add('section-c')
+            driver.stale.add('child-c')
+            driver.light.set('.section', ['section-x'])
+
+            const error = await lookup(child)
+            expect(error).toBeInstanceOf(Error)
+            expect(wasNotFoundAgain(error)).toBe(true)
+        })
+
+        it('is not set when the parent found again is replaced before its child is found', async () => {
+            const browser = await session()
+            driver.light.set('#host', ['host-a'])
+            driver.light.set('.child', ['child-a'])
+            const child = await (await browser.$('#host')).$('.child')
+            driver.stale.add('child-a')
+            /**
+             * the page replaces the host again while the chain is found again
+             */
+            driver.stale.add('host-a')
+
+            const error = await lookup(child)
+            expect(error?.name).toBe('stale element reference')
+            expect(wasNotFoundAgain(error)).toBe(false)
         })
     })
 

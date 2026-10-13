@@ -66,17 +66,9 @@ async function invokeElementCommand (
             if (wasNotFoundAgain(err)) {
                 throw err
             }
-            let found = false
+            let refetched: WebdriverIO.Element
             try {
-                const refetched = await refetchElement(element, commandName)
-                found = true
-                element.elementId = refetched.elementId
-                /**
-                 * also the w3c identifier, which e.g. an action origin reads
-                 */
-                element[ELEMENT_KEY] = refetched.elementId
-                element.parent = refetched.parent
-                return await execute()
+                refetched = await refetchElement(element, commandName)
             } catch (refetchErr) {
                 /**
                  * If refetch fails (e.g., page navigated away and elements
@@ -93,14 +85,33 @@ async function invokeElementCommand (
                 }
                 const thrown = isStaleError(refetchErr) ? refetchErr : err
                 /**
-                 * the element was looked for and not found: an outer layer does not
-                 * look again. An error of the command after the element was found
-                 * is not marked, the outer layer can still find it again.
+                 * the lookup waited for the element and did not find it: an outer layer
+                 * does not look again. Any other failure of the lookup leaves the outer
+                 * layer to look again.
                  */
-                if (!found) {
+                if (wasNotFoundAgain(refetchErr)) {
                     markNotFoundAgain(thrown)
                 }
                 throw thrown
+            }
+
+            element.elementId = refetched.elementId
+            /**
+             * also the w3c identifier, which e.g. an action origin reads
+             */
+            element[ELEMENT_KEY] = refetched.elementId
+            element.parent = refetched.parent
+            try {
+                return await execute()
+            } catch (retryErr) {
+                /**
+                 * the element was found again: the error of the command is not marked,
+                 * an outer layer can still find the element again
+                 */
+                if (retryErr instanceof StrictSelectorError) {
+                    throw retryErr
+                }
+                throw isStaleError(retryErr) ? retryErr : err
             }
         }
 
