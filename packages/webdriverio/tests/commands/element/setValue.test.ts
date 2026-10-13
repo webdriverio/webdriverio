@@ -4,7 +4,6 @@ import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 import { remote } from '../../../src/index.js'
 import { setValue } from '../../../src/commands/element/setValue.js'
 import { Key } from '../../../src/constants.js'
-import { markNotFoundAgain } from '../../../src/utils/staleElement.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -62,120 +61,6 @@ describe('setValue', () => {
         expect(execute).toHaveBeenCalledWith(expect.any(Function), elem, '2026-10-04')
         expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/clear')
         expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/value')
-    })
-
-    /**
-     * The lookups of `setValue` drop their errors, except a stale element error: the
-     * element middleware of `setValue` throws it at once when the element was waited for
-     * and not found, and finds the element again and runs `setValue` again when it was
-     * replaced. A `type` of `undefined` would type into a date input.
-     */
-    const stale = (waited: boolean) => {
-        const err = Object.assign(new Error('stale element reference: element is not attached'), { name: 'stale element reference' })
-        if (waited) {
-            markNotFoundAgain(err)
-        }
-        return err
-    }
-
-    it('should throw the error of a type lookup that waited and did not find the element', async () => {
-        const elem = await browser.$('#foo')
-        const error = stale(true)
-        vi.spyOn(elem, 'getElementProperty').mockRejectedValue(error)
-        const clearValue = vi.spyOn(elem, 'clearValue')
-
-        await expect(elem.setValue('foobar')).rejects.toBe(error)
-        expect(clearValue).not.toHaveBeenCalled()
-    })
-
-    /**
-     * the middleware found the replaced element and gave it its new id, but retried the
-     * lookup with the old one (#16072 review)
-     */
-    it('should look up the type once more after a stale element error of a replaced element', async () => {
-        const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'getElementProperty').mockRejectedValueOnce(stale(false)).mockResolvedValueOnce('date')
-        const execute = vi.spyOn(browser, 'execute').mockResolvedValue(true as never)
-
-        await elem.setValue('2026-10-04')
-        expect(execute).toHaveBeenCalledWith(expect.any(Function), elem, '2026-10-04')
-        expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/clear')
-    })
-
-    it('should look up the type again while the page replaces the input', async () => {
-        const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'getElementProperty')
-            .mockRejectedValueOnce(stale(false))
-            .mockRejectedValueOnce(stale(false))
-            .mockResolvedValueOnce('date')
-        const execute = vi.spyOn(browser, 'execute').mockResolvedValue(true as never)
-
-        await elem.setValue('2026-10-04')
-        expect(execute).toHaveBeenCalledWith(expect.any(Function), elem, '2026-10-04')
-        expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/clear')
-    })
-
-    it('should throw the stale element error of an input that the page keeps replacing', async () => {
-        const elem = await browser.$('#foo')
-        const error = stale(false)
-        const lookup = vi.spyOn(elem, 'getElementProperty').mockRejectedValue(error)
-        const clearValue = vi.spyOn(elem, 'clearValue')
-
-        await expect(elem.setValue('foobar')).rejects.toBe(error)
-        expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(3)
-        expect(clearValue).not.toHaveBeenCalled()
-    })
-
-    it('should type the value when a type lookup after a stale element error fails with another error', async () => {
-        const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'getElementProperty').mockRejectedValueOnce(stale(false)).mockRejectedValueOnce(new Error('unknown command'))
-
-        await elem.setValue('foobar')
-        expect(paths()).toContain('/session/foobar-123/element/some-elem-123/clear')
-    })
-
-    it('should throw the stale element error of the value lookup after clearing', async () => {
-        const elem = await browser.$('#foo')
-        const error = stale(true)
-        vi.spyOn(elem, 'getElementProperty').mockImplementation(async (_id: string, name: string) => {
-            if (name === 'type') {
-                return 'text'
-            }
-            throw error
-        })
-        const addValue = vi.spyOn(elem, 'addValue')
-
-        await expect(elem.setValue('foobar')).rejects.toBe(error)
-        expect(addValue).not.toHaveBeenCalled()
-    })
-
-    /**
-     * a field that the page renders again when its value is empty: `addValue` finds it
-     * again, as before (#16072 review)
-     */
-    it('should go on when the value lookup after clearing gets a stale element error of a replaced field', async () => {
-        const elem = await browser.$('#foo')
-        vi.spyOn(elem, 'getElementProperty').mockImplementation(async (_id: string, name: string) => {
-            if (name === 'type') {
-                return 'text'
-            }
-            throw stale(false)
-        })
-        const addValue = vi.spyOn(elem, 'addValue')
-
-        await elem.setValue('foobar')
-        expect(addValue).toHaveBeenCalledWith('foobar', undefined)
-    })
-
-    it('should go on when a lookup fails with another error or a value that is not an error', async () => {
-        for (const error of [new Error('unknown command'), 'not an error']) {
-            const elem = await browser.$('#foo')
-            vi.mocked(fetch).mockClear()
-            vi.spyOn(elem, 'getElementProperty').mockRejectedValue(error)
-
-            await elem.setValue('foobar')
-            expect(paths()).toContain('/session/foobar-123/element/some-elem-123/clear')
-        }
     })
 
     it('should pass numbers as strings', async () => {

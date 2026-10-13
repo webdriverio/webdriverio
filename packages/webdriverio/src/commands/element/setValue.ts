@@ -1,7 +1,6 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { Key } from '../../constants.js'
-import { isStaleError, wasNotFoundAgain } from '../../utils/staleElement.js'
 import type { InputOptions } from '../../types.js'
 
 /**
@@ -90,25 +89,13 @@ async function clearStubbornValue (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return
     }
-    const remaining = await elem.getElementProperty(elem.elementId, 'value').catch(goneOrUndefined)
+    const remaining = await elem.getElementProperty(elem.elementId, 'value').catch(() => undefined)
     if (typeof remaining !== 'string' || remaining === '') {
         return
     }
     await browser.execute((el: HTMLElement) => el.focus(), elem as unknown as HTMLElement)
     await browser.keys([Key.Ctrl, 'a'])
     await browser.keys(Key.Backspace)
-}
-
-/**
- * The `value` lookup after clearing gives `undefined` when it fails, except for an
- * element that was waited for and not found. A field that a page renders again when
- * its value is empty is found again by `addValue`, as before.
- */
-function goneOrUndefined (err: unknown): undefined {
-    if (wasNotFoundAgain(err)) {
-        throw err
-    }
-    return undefined
 }
 
 /**
@@ -120,35 +107,6 @@ async function setsDirectly (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return false
     }
-    return SET_DIRECTLY.includes(await typeOf(elem) ?? '')
-}
-
-/**
- * how many times `setValue` looks up the type of an input that the page replaces
- */
-const TYPE_LOOKUPS = 3
-
-/**
- * The `type` of the element, `undefined` when the lookup fails. When the page replaced
- * the input, the middleware found it again and gave it its new element id, but retried
- * the lookup with the old one: the type is looked up again, up to `TYPE_LOOKUPS` times.
- * A `type` of `undefined` would type into a date or range input, so an input that the
- * page still replaces after that gets its stale element error: the middleware of
- * `setValue` finds it again and runs `setValue` again. An element that was waited for
- * and not found is not looked up again.
- */
-async function typeOf (elem: WebdriverIO.Element): Promise<string | undefined> {
-    for (let lookup = 1; ; lookup++) {
-        try {
-            const type = await elem.getElementProperty(elem.elementId, 'type')
-            return typeof type === 'string' ? type : undefined
-        } catch (err) {
-            if (wasNotFoundAgain(err) || (isStaleError(err) && lookup >= TYPE_LOOKUPS)) {
-                throw err
-            }
-            if (!isStaleError(err)) {
-                return undefined
-            }
-        }
-    }
+    const type = await elem.getElementProperty(elem.elementId, 'type').catch(() => undefined)
+    return typeof type === 'string' && SET_DIRECTLY.includes(type)
 }
