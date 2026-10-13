@@ -23,8 +23,11 @@ export async function makeReport (args: string[], env: Record<string, string | u
         showInBrowser: !env.CI
     } as ConstructorParameters<typeof ReportAggregator>[0])
     await reportAggregator.createReport()
-    // the aggregator logs some errors and does not throw them: a report of an earlier run is not this report
+    // the aggregator logs its errors and does not throw them: a report of an earlier run is not this report
     const reportFile = reportAggregator.reportFile
+    if (reportAggregator.failed) {
+        throw new Error(`The report at ${reportFile} is not complete: see the errors above`)
+    }
     if (!fs.existsSync(reportFile) || fs.statSync(reportFile).mtimeMs < started - 1000) {
         throw new Error(`No report was made at ${reportAggregator.reportFile}`)
     }

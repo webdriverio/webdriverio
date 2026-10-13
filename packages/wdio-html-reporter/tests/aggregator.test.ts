@@ -90,6 +90,35 @@ describe('ReportAggregator', () => {
         }
     })
 
+    it('makeReport gives exit code 1 when a suite of the report fails to render', async () => {
+        const { HtmlReporter } = await import('../src/index.js')
+        const { runCli } = await import('../src/makeReportCli.js')
+        const { RUNNER, SUITES } = await import('./testdata.js')
+        const outputDir = path.join(tempDir(), 'out')
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Render' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(RUNNER)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        const { default: nunjucks } = await import('nunjucks')
+        const render = nunjucks.render.bind(nunjucks)
+        const spy = vi.spyOn(nunjucks, 'render').mockImplementation(((name: string, context: object, callback?: (err: Error | null, result?: string) => void) => {
+            if (name === 'suite.html' && callback) {
+                callback(new Error('suite render failed'))
+                return undefined as never
+            }
+            return render(name, context, callback as never)
+        }) as never)
+        try {
+            expect(await runCli(['master-report.html', outputDir, 'Title'], { CI: 'true' })).toBe(1)
+        } finally {
+            spy.mockRestore()
+        }
+    })
+
     it('writes no cloud credentials into the JSON files', async () => {
         const { HtmlReporter } = await import('../src/index.js')
         const { RUNNER, SUITES } = await import('./testdata.js')

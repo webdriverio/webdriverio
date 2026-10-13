@@ -44,9 +44,13 @@ function splitTrailingPunctuation (text: string): [string, string] {
 
 class HtmlGenerator {
     private static LOG = logger('HtmlGenerator')
-    static async htmlOutput(reportOptions: HtmlReporterOptions, reportData: ReportData) {
+    /**
+     * @returns false when a part of the report failed (the errors are logged)
+     */
+    static async htmlOutput(reportOptions: HtmlReporterOptions, reportData: ReportData): Promise<boolean> {
 
         HtmlGenerator.LOG.info('Html Generation started')
+        let failed = false
 
         const specFileReferences: string[] = []
         try {
@@ -262,6 +266,7 @@ class HtmlGenerator {
                             await fsp.appendFile(reportData.reportFile, suiteHtml)
                             HtmlGenerator.LOG.info(`Appended suite: ${suite.title}`)
                         } catch (error) {
+                            failed = true
                             HtmlGenerator.LOG.error('Error processing suite:', error)
                         }
                     }
@@ -277,13 +282,16 @@ class HtmlGenerator {
                         await fsp.copyFile(cssFont, fontDest)
                     }
                 } catch (error) {
+                    failed = true
                     HtmlGenerator.LOG.error('Html Generation failed: ' + error)
                 }
             }
             HtmlGenerator.LOG.info('Html Generation Completed')
         } catch (ex) {
+            failed = true
             HtmlGenerator.LOG.error('Html Generation processing ended in error: ' + ex)
         }
+        return !failed
     }
 }
 
