@@ -23,6 +23,25 @@ const escapeHtml = (value: string) => value
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
 
+/**
+ * The punctuation at the end of a URL in a text (`see https://a.com/b.`, `(https://a.com)`)
+ * is not part of the URL. A closing parenthesis stays when the URL has its opening one
+ * (`https://en.wikipedia.org/wiki/Foo_(bar)`).
+ */
+function splitTrailingPunctuation (text: string): [string, string] {
+    let end = text.length
+    while (end > 0) {
+        const char = text[end - 1]
+        const url = text.slice(0, end)
+        const unbalanced = char === ')' && url.split('(').length < url.split(')').length
+        if (!/[.,;:!?]/.test(char) && !unbalanced) {
+            break
+        }
+        end--
+    }
+    return [text.slice(0, end), text.slice(end)]
+}
+
 class HtmlGenerator {
     private static LOG = logger('HtmlGenerator')
     static async htmlOutput(reportOptions: HtmlReporterOptions, reportData: ReportData) {
@@ -191,10 +210,13 @@ class HtmlGenerator {
                     return value
                 }
                 // find the URLs in the text, then escape each part: a URL can have an apostrophe
-                const linked = value.split(/(https?:\/\/[^\s<>"]+)/g).map((part, index) => index % 2
-                    ? `<a href="${escapeHtml(part)}" target="_blank" rel="noopener noreferrer">${escapeHtml(part)}</a>`
-                    : escapeHtml(part)
-                ).join('')
+                const linked = value.split(/(https?:\/\/[^\s<>"]+)/g).map((part, index) => {
+                    if (index % 2 === 0) {
+                        return escapeHtml(part)
+                    }
+                    const [url, after] = splitTrailingPunctuation(part)
+                    return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>${escapeHtml(after)}`
+                }).join('')
                 return new nunjucks.runtime.SafeString(linked)
             })
 
