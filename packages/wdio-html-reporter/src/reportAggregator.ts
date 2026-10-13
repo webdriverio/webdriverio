@@ -14,6 +14,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import url from 'node:url'
 import JsonGenerator from './jsonGenerator.js'
+import { withExtension } from './fileNames.js'
 
 const timeFormat ='YYYY-MM-DDTHH:mm:ss.SSS[Z]'
 
@@ -75,7 +76,7 @@ class ReportAggregator {
 
     readJsonFiles() {
         // the JSON of the master report is in the same folder: it is not the result of a worker
-        const masterJson = path.resolve(process.cwd(), this.options.outputDir, this.options.filename.replace('.html', '.json'))
+        const masterJson = withExtension(path.resolve(process.cwd(), this.options.outputDir, this.options.filename), '.json')
         return walk(this.options.outputDir, ['.json']).filter((file) => path.resolve(file) !== masterJson)
     }
     updateSuiteMetrics(metrics: Metrics, suiteInfo : SuiteStats) {
