@@ -341,7 +341,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         // without the tags that `cucumberOpts.tagsInTitle` adds to the title
         const scenarioName = scenarioNameOf(scenarioData.title, (scenarioData as SuiteStatsExtended).tags)
         const rule = (scenarioData as SuiteStatsExtended).rule
-        const taken = this.#featureLines && takeScenarioLines(this.#featureLines, scenarioName, { rule })
+        const tags = ((scenarioData as SuiteStatsExtended).tags ?? []).map((tag) => typeof tag === 'string' ? tag : tag.name)
+        const taken = this.#featureLines && takeScenarioLines(this.#featureLines, scenarioName, { rule, tags })
         // `<feature id>;<rule id>;<scenario id>` as in the Cucumber JSON format
         const toId = (name: string) => name.replace(/ /g, '-').toLowerCase()
 

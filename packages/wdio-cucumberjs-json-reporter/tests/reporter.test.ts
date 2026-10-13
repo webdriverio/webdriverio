@@ -558,6 +558,31 @@ describe('reporter', () => {
             const a = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'works', rule: 'A' } as SuiteStatsExtended, 'rules')
             expect([b.line, a.line]).toEqual([6, 3])
         })
+
+        it('gives an example the line of its own Examples row: tags of the table, values in the name', () => {
+            const featureFile = path.join(logFolderPath, 'examples-tags.feature')
+            fs.writeFileSync(featureFile, [
+                'Feature: Examples',            // 1
+                '  Scenario Outline: value <n>', // 2
+                '    Given the value <n>',      // 3
+                '    @smoke',                   // 4
+                '    Examples:',                // 5
+                '      | n |',                  // 6
+                '      | 1 |',                  // 7
+                '      | 2 |',                  // 8
+                '    @regression',              // 9
+                '    Examples:',                // 10
+                '      | n |',                  // 11
+                '      | 3 |',                  // 12
+                '      | 4 |',                  // 13
+                ''
+            ].join('\n'))
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, title: 'Examples', file: featureFile, parent: undefined } as SuiteStatsExtended)
+            // cucumberOpts.tags: '@regression', in a random order
+            const four = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'value 4', tags: [{ name: '@regression' }] } as unknown as SuiteStatsExtended, 'examples')
+            const three = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'value 3', tags: [{ name: '@regression' }] } as unknown as SuiteStatsExtended, 'examples')
+            expect([four.line, three.line]).toEqual([13, 12])
+        })
     })
 
     describe('cucumberOpts.tagsInTitle', () => {
