@@ -700,7 +700,7 @@ The **DOM mutation stream** comes from the same browser-side collector as Node.j
 
 Appium sessions are captured in live and trace mode, in both languages. A mobile-browser session is captured like a desktop one; a native app gets commands, screenshots and element data from the platform's XML tree, with no DOM. This adapter decides from the startup capabilities, so a hybrid app's webview half is captured as if it were still native (only the WebdriverIO service follows context switches).
 
-Try it with `pnpm demo:selenium:mobile` (Node.js) or `pnpm demo:python:mobile` (Python). `DEVTOOLS_MOBILE_PLATFORM=ios` runs the iOS spec, and `DEVTOOLS_MOBILE=web` drives the device's own browser. Prerequisites are in [`examples/MOBILE.md`](https://github.com/webdriverio/devtools/blob/main/examples/MOBILE.md); see the [Mobile Testing page](/docs/devtools/mobile) for the full mobile reference.
+Try it with `pnpm demo:selenium:mobile` (Node.js) or `pnpm demo:python:mobile` (Python), run from the root of a built checkout of the devtools repo (setup steps in [Running an example](/docs/devtools/mobile#running-an-example)). `DEVTOOLS_MOBILE_PLATFORM=ios` runs the iOS spec, and `DEVTOOLS_MOBILE=web` drives the device's own browser. Prerequisites are in [`examples/MOBILE.md`](https://github.com/webdriverio/devtools/blob/main/examples/MOBILE.md); see the [Mobile Testing page](/docs/devtools/mobile) for the full mobile reference.
 
 ## Limitations
 

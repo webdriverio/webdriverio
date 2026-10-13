@@ -53,7 +53,32 @@ These absences are by design. They are not a capture failure, and they are the m
 
 The repo carries one mobile example per adapter, and all four drive the same
 flow, so a difference between two dashboards is a difference in the adapter
-rather than in the test:
+rather than in the test.
+
+The examples live in the [devtools repo](https://github.com/webdriverio/devtools),
+not in the adapter packages, so installing an adapter into your own project does
+not give you these scripts. Clone and build that repo once:
+
+```sh
+git clone https://github.com/webdriverio/devtools.git
+cd devtools
+pnpm install
+pnpm build
+```
+
+The Python example runs the `python3` on your `PATH`, so install the adapter and
+the Appium client into it first (a virtual environment keeps them out of your
+system Python):
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e packages/selenium-devtools-py
+pip install -r examples/selenium-py/requirements-mobile.txt
+```
+
+Then, with Appium and a device ready (see [Prerequisites](#prerequisites)), run
+any of them from the root of that checkout:
 
 ```sh
 pnpm demo:wdio:mobile

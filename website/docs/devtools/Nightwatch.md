@@ -243,7 +243,7 @@ module.exports = {
 }
 ```
 
-Native sessions record commands, screenshots and element data from the platform's XML tree, with no DOM. A hybrid app's webview is captured as if it were still native. See the [Mobile Testing page](/docs/devtools/mobile) for the full mobile reference.
+Native sessions record commands, screenshots and element data from the platform's XML tree, with no DOM. A hybrid app's webview is captured as if it were still native. Try it with `pnpm demo:nightwatch:mobile`, run from the root of a built checkout of the devtools repo (setup steps in [Running an example](/docs/devtools/mobile#running-an-example)). See the [Mobile Testing page](/docs/devtools/mobile) for the full mobile reference.
 
 ## Features
 
