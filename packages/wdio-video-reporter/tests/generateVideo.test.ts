@@ -112,6 +112,35 @@ describe('generateVideo', () => {
         }
     })
 
+    it('ends when the killed render still holds its file (Windows EBUSY)', async () => {
+        ffmpeg.hang = true
+        const onUncaught = vi.fn()
+        // the abort runs in a timer: a throw there is an uncaught exception
+        const listeners = process.listeners('uncaughtException')
+        process.removeAllListeners('uncaughtException')
+        process.on('uncaughtException', onUncaught)
+        try {
+            vi.mocked(fs.rmSync).mockImplementationOnce(() => {
+                throw Object.assign(new Error('EBUSY: resource busy or locked'), { code: 'EBUSY' })
+            })
+            const reporter = new VideoReporter({ videoRenderTimeout: 30 })
+            reporter.testName = 'my-test'
+            reporter.recordingPath = '/foo/bar/rawSeleniumVideoGrabs/my-test'
+            void reporter.generateVideo()
+            await new Promise((resolve) => setTimeout(resolve, 5))
+            reporter.onRunnerEnd()
+            await new Promise((resolve) => setTimeout(resolve, 60))
+            expect(onUncaught).not.toHaveBeenCalled()
+            expect(reporter.isSynchronised).toBe(true)
+            // the partial file is not a video of the report
+            expect(reporter.videos).toEqual([])
+        } finally {
+            ffmpeg.hang = false
+            process.off('uncaughtException', onUncaught)
+            listeners.forEach((listener) => process.on('uncaughtException', listener))
+        }
+    })
+
     it('waits only for the frames of its own recording', async () => {
         ffmpeg.exitCode = 0
         ffmpeg.stderr = ''
