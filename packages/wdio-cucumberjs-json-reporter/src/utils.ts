@@ -12,11 +12,26 @@ import type { ErrorMessage, Step } from './types.js'
  *
  * @return {string[]}
  */
+const stepKeywords = new Map<string, string[]>()
+const keywordRegExps = new Map<string, RegExp>()
+
+/**
+ * Escape a text for a RegExp
+ */
+export function escapeRegExp(text: string): string {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 export function getStepKeywords(language: string): string[] {
-    const dialect = dialects[language]
-    return ([] as string[])
-        .concat(dialect.given, dialect.when, dialect.then, dialect.and, dialect.but)
-        .map((keyword) => keyword.replace(/\s*$/, ''))
+    let keywords = stepKeywords.get(language)
+    if (!keywords) {
+        const dialect = dialects[language]
+        keywords = ([] as string[])
+            .concat(dialect.given, dialect.when, dialect.then, dialect.and, dialect.but)
+            .map((keyword) => keyword.replace(/\s*$/, ''))
+        stepKeywords.set(language, keywords)
+    }
+    return keywords
 }
 
 /**
@@ -60,10 +75,11 @@ export function containsSteps(steps: Step[], language: string): boolean {
  * @return {string|undefined}
  */
 export function keywordStartsWith(title: string, language: string): string | undefined {
-    const stepKeywords = ([] as string[]).concat(getStepKeywords(language), ['After', 'Before'])
-    const escapedStepKeywords = stepKeywords.map((keyword: string) =>
-        keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-    )
-    const regex = new RegExp(`^(${escapedStepKeywords.join('|')})\\s`)
+    let regex = keywordRegExps.get(language)
+    if (!regex) {
+        const keywords = [...getStepKeywords(language), 'After', 'Before']
+        regex = new RegExp(`^(${keywords.map(escapeRegExp).join('|')})\\s`)
+        keywordRegExps.set(language, regex)
+    }
     return (regex.exec(title) || []).pop()
 }
