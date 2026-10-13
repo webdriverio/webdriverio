@@ -199,10 +199,11 @@ Default: `250`
 ### `snapshotCommands`
 
 Which commands should result in a screenshot: the last part of the WebDriver endpoint, for example `click` for
-`/session/:sessionId/element/:elementId/click`.
+`/session/:sessionId/element/:elementId/click`. A `GET` command only reads the page, so it gives no screenshot (for
+example `getUrl` for `url`, or `getSize` for `rect`), except with `recordAllActions`.
 
 Type: `string[]`<br />
-Default: `['url', 'back', 'forward', 'refresh', 'sync', 'maximize', 'minimize', 'fullscreen', 'rect', 'click', 'value', 'clear', 'selected', 'enabled', 'displayed', 'accept', 'dismiss', 'actions', 'orientation']`
+Default: `['url', 'back', 'forward', 'refresh', 'sync', 'maximize', 'minimize', 'fullscreen', 'rect', 'click', 'value', 'clear', 'accept', 'dismiss', 'actions', 'orientation']`
 
 ### `excludedActions`
 

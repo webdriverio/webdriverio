@@ -221,6 +221,13 @@ export default class VideoReporter extends WdioReporter {
         if (commandName === 'screenshot') {
             return false
         }
+        /**
+         * a GET command only reads the page (for example `getUrl` or `getSize`, which
+         * have the same last part as `url` and `setWindowSize`): no new frame
+         */
+        if (commandArgs.method === 'GET' && !this.options.recordAllActions) {
+            return false
+        }
         return this.#addFrameForCommand(commandName, commandArgs.endpoint)
     }
 

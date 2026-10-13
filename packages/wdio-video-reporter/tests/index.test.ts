@@ -239,6 +239,27 @@ describe('Video Reporter', () => {
             expect(browser.takeScreenshot).toBeCalledTimes(0)
         })
 
+        it.each([
+            '/session/1234/url',
+            '/session/1234/element/1/rect',
+            '/session/1234/element/1/property/value',
+            '/session/1234/element/1/selected',
+            '/session/1234/element/1/enabled',
+            '/session/1234/element/1/displayed'
+        ])('should not add a frame for the read-only GET %s', (endpoint) => {
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            reporter.onAfterCommand({ method: 'GET', endpoint } as any)
+            expect(browser.takeScreenshot).toBeCalledTimes(0)
+        })
+
+        it('should add a frame for a command that changes the page with the same name (POST /url)', () => {
+            const reporter = new VideoReporter({})
+            reporter.recordingPath = '/foo/bar'
+            reporter.onAfterCommand({ method: 'POST', endpoint: '/session/1234/url' } as any)
+            expect(browser.takeScreenshot).toBeCalledTimes(1)
+        })
+
         it('should add frame if recordAllActions is set', () => {
             const reporter = new VideoReporter({ recordAllActions: true })
             reporter.recordingPath = '/foo/bar'
