@@ -74,6 +74,8 @@ export class ReportData {
     title: string
     reportFile: string
     browserName: string
+    /** a master report of the ReportAggregator, not the report of a worker */
+    master?: boolean
     constructor(title: string, info: RunnerStats, suites: SuiteStats[], metrics: Metrics, reportFile:string, browserName :string) {
         this.info = info
         this.metrics = metrics
