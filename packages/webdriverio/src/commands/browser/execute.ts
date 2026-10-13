@@ -85,7 +85,12 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
             awaitPromise: true,
-            arguments: args.map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
+            /**
+             * like in Classic, an element becomes its reference, and an element that was
+             * not found throws a clear error: the serializer would read it as a plain
+             * object and fail on its first command ("Unsupported type: function")
+             */
+            arguments: (verifyArgsAndStripIfElement(args) as unknown[]).map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
             target: {
                 context
             }

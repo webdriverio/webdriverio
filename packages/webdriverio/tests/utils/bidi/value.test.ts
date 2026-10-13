@@ -247,6 +247,20 @@ describe('LocalValue', () => {
             .toEqual({ [ELEMENT_KEY]: 'f.1.d.1.e.8' })
     })
 
+    it('should serialize every item of an array whose forEach is async, as an element list', () => {
+        /**
+         * `$$()` gives an array whose `forEach` is async, like its other array methods
+         */
+        class ElementList extends Array {
+            // @ts-expect-error an async forEach, as the one of an element list
+            forEach () {
+                return Promise.resolve()
+            }
+        }
+        const list = ElementList.from(['a', 'b'])
+        expect(LocalValue.getArgument(list).asMap()).toEqual(LocalValue.getArgument(['a', 'b']).asMap())
+    })
+
     it('should pass a shadow root reference as a shared id', () => {
         expect(LocalValue.getArgument({ [SHADOW_ELEMENT_KEY]: 'f.1.d.1.e.6' }).asMap())
             .toEqual({ sharedId: 'f.1.d.1.e.6' })
