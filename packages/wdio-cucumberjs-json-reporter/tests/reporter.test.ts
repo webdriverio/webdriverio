@@ -466,6 +466,49 @@ describe('reporter', () => {
         })
     })
 
+    describe('scenario lines and ids as Cucumber writes them', () => {
+        it('gives each scenario with the same name (in other Rules) its own lines, and the Rule in its id', () => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            const featureFile = path.join(logFolderPath, 'same-names.feature')
+            fs.writeFileSync(featureFile, [
+                'Feature: Same names',          // 1
+                '  Rule: Admin',                // 2
+                '    Scenario: login',          // 3
+                '      Given an admin',         // 4
+                '  Rule: Guest',                // 5
+                '    Scenario: login',          // 6
+                '      Given a guest',          // 7
+                ''
+            ].join('\n'))
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, title: 'Same names', file: featureFile, parent: undefined } as SuiteStatsExtended)
+            const admin = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'login', rule: 'Admin' } as SuiteStatsExtended, 'same-names')
+            const guest = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'login', rule: 'Guest' } as SuiteStatsExtended, 'same-names')
+            expect([admin.line, guest.line]).toEqual([3, 6])
+            expect([admin.id, guest.id]).toEqual(['same-names;admin;login', 'same-names;guest;login'])
+            tmpReporter.report.feature!.elements!.push(guest)
+            tmpReporter.addStepData({ ...STEP_TEST_ONSTART_STATS, title: 'Given a guest', keyword: 'Given' } as TestStatsExtended)
+            expect(tmpReporter.getCurrentStep()!.line).toBe(7)
+        })
+
+        it('gives each example of a Scenario Outline the line of its Examples row', () => {
+            const featureFile = path.join(logFolderPath, 'outline.feature')
+            fs.writeFileSync(featureFile, [
+                'Feature: Outline',             // 1
+                '  Scenario Outline: value <n>', // 2
+                '    Given the value <n>',      // 3
+                '    Examples:',                // 4
+                '      | n |',                  // 5
+                '      | 1 |',                  // 6
+                '      | 2 |',                  // 7
+                ''
+            ].join('\n'))
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, title: 'Outline', file: featureFile, parent: undefined } as SuiteStatsExtended)
+            const first = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'value 1' } as SuiteStatsExtended, 'outline')
+            const second = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'value 2' } as SuiteStatsExtended, 'outline')
+            expect([first.line, second.line]).toEqual([6, 7])
+        })
+    })
+
     describe('cucumberOpts.tagsInTitle', () => {
         it('writes the feature and scenario names and ids without the tags of the title', () => {
             const feature = tmpReporter.getFeatureDataObject({ ...SUITE_FEATURE_STATS, title: '@featuretag: Tagged feature', tags: ['@featuretag'] } as unknown as SuiteStatsExtended)

@@ -16,6 +16,10 @@ export interface ScenarioLines {
      */
     background: StepLine[]
     steps: StepLine[]
+    /** the lines of the Examples rows of a Scenario Outline (empty for a scenario) */
+    examples: number[]
+    /** how many pickles of the run already used this scenario */
+    used: number
 }
 
 export interface FeatureLines {
@@ -23,7 +27,12 @@ export interface FeatureLines {
 }
 
 interface GherkinStep { text: string, location: { line: number }, docString?: { location: { line: number } } }
-interface GherkinScenario { name: string, location: { line: number }, steps: readonly GherkinStep[] }
+interface GherkinScenario {
+    name: string
+    location: { line: number }
+    steps: readonly GherkinStep[]
+    examples?: readonly { tableBody: readonly { location: { line: number } }[] }[]
+}
 interface GherkinChild {
     background?: GherkinScenario
     scenario?: GherkinScenario
@@ -58,8 +67,15 @@ export function readFeatureLines (file: string, language: string): FeatureLines 
                 } else if (child.rule) {
                     walk(child.rule.children, background)
                 } else if (child.scenario) {
-                    const { name, location, steps } = child.scenario
-                    lines.scenarios.push({ name, line: location.line, background, steps: toSteps(steps) })
+                    const { name, location, steps, examples = [] } = child.scenario
+                    lines.scenarios.push({
+                        name,
+                        line: location.line,
+                        background,
+                        steps: toSteps(steps),
+                        examples: examples.flatMap((table) => table.tableBody.map((row) => row.location.line)),
+                        used: 0
+                    })
                 }
             }
         }
@@ -98,9 +114,26 @@ export function scenarioNameOf (title: string, tags?: readonly (string | { name:
     return names.length && title.startsWith(prefix) ? title.slice(prefix.length) : title
 }
 
-export function findScenarioLines (lines: FeatureLines, name: string) {
-    return lines.scenarios.find((scenario) => scenario.name === name) ??
-        lines.scenarios.find((scenario) => matchesTemplate(scenario.name, name))
+/**
+ * The lines of the next scenario with this name that the run did not use yet, and
+ * its line as in the Cucumber JSON format: the line of its Examples row for an
+ * example of a Scenario Outline. Scenarios with the same name (for example in
+ * other Rules) are used in the order of the file.
+ */
+export function takeScenarioLines (lines: FeatureLines, name: string): { scenario: ScenarioLines, line: number } | undefined {
+    const candidates = [
+        ...lines.scenarios.filter((scenario) => scenario.name === name),
+        ...lines.scenarios.filter((scenario) => scenario.name !== name && matchesTemplate(scenario.name, name))
+    ]
+    const isFree = (scenario: ScenarioLines) => scenario.used < Math.max(scenario.examples.length, 1)
+    // all used: the same spec file runs again, start with the first one
+    const scenario = candidates.find(isFree) ?? candidates[0]
+    if (!scenario) {
+        return undefined
+    }
+    const index = isFree(scenario) ? scenario.used : 0
+    scenario.used++
+    return { scenario, line: scenario.examples[index] ?? scenario.line }
 }
 
 /**

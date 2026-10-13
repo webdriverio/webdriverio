@@ -17,7 +17,7 @@ import {
 } from './constants.js'
 import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
-import { findDocStringLine, findScenarioLines, findStepLine, readFeatureLines, scenarioNameOf, type FeatureLines, type ScenarioLines } from './featureLines.js'
+import { findDocStringLine, findStepLine, readFeatureLines, scenarioNameOf, takeScenarioLines, type FeatureLines, type ScenarioLines } from './featureLines.js'
 import { containsSteps, keywordStartsWith, getFailedMessage } from './utils.js'
 import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
@@ -327,7 +327,10 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     ): Scenario {
         // without the tags that `cucumberOpts.tagsInTitle` adds to the title
         const scenarioName = scenarioNameOf(scenarioData.title, (scenarioData as SuiteStatsExtended).tags)
-        const lines = this.#featureLines && findScenarioLines(this.#featureLines, scenarioName)
+        const taken = this.#featureLines && takeScenarioLines(this.#featureLines, scenarioName)
+        // `<feature id>;<rule id>;<scenario id>` as in the Cucumber JSON format
+        const rule = (scenarioData as SuiteStatsExtended).rule
+        const toId = (name: string) => name.replace(/ /g, '-').toLowerCase()
 
         const scenario: Scenario = {
             keyword: SCENARIO,
@@ -335,13 +338,12 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             description: scenarioData.description || '',
             name: scenarioName,
             tags: scenarioData.tags || [],
-            // `<feature id>;<scenario id>` as in the Cucumber JSON format
-            id: `${id};${scenarioName.replace(/ /g, '-').toLowerCase()}`,
-            line: lines?.line ?? null,
+            id: [id, ...(rule ? [toId(rule)] : []), toId(scenarioName)].join(';'),
+            line: taken?.line ?? null,
             steps: [],
         }
-        if (lines) {
-            this.#scenarioLines.set(scenario, { lines, usedLines: new Set() })
+        if (taken) {
+            this.#scenarioLines.set(scenario, { lines: taken.scenario, usedLines: new Set() })
         }
         return scenario
     }
