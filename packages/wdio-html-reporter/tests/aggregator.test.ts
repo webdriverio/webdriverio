@@ -91,4 +91,18 @@ describe('ReportAggregator', () => {
         expect(json.info).toMatchObject({ cid: '0-0', start: RUNNER.start.toISOString?.() ?? RUNNER.start })
         expect(json.info.capabilities.browserName).toBe('chrome')
     })
+
+    it('removes its process listeners when the runner ends', async () => {
+        const { HtmlReporter } = await import('../src/index.js')
+        const { RUNNER, SUITES } = await import('./testdata.js')
+        const events = ['test:log', 'test:screenshot', 'test:video-capture'] as const
+        const before = events.map((event) => process.listenerCount(event))
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: path.join(tempDir(), 'out'), filename: 'report.html', reportTitle: 'Listeners' } as never)
+        expect(events.map((event) => process.listenerCount(event))).toEqual(before.map((count) => count + 1))
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(RUNNER)
+        expect(events.map((event) => process.listenerCount(event))).toEqual(before)
+    })
 })

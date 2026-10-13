@@ -39,4 +39,19 @@ export default class ReportEvents {
         process.on('test:video-capture' as 'message', fn)
         return this
     }
+
+    disconnectMessageEvent(fn: (message: unknown) => void) {
+        process.off('test:log' as 'message', fn)
+        return this
+    }
+
+    disconnectScreenshotEvent(fn: (filename: string) => void) {
+        process.off('test:screenshot' as 'message', fn)
+        return this
+    }
+
+    disconnectVideoCaptureEvent(fn: (filename: string) => void) {
+        process.off('test:video-capture' as 'message', fn)
+        return this
+    }
 }
