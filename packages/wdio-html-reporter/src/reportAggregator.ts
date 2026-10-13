@@ -6,13 +6,11 @@ import utc from 'dayjs/plugin/utc.js'
 dayjs.extend(utc)
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore.js'
 dayjs.extend(isSameOrBefore)
-import copyFiles from './copyFiles.js'
 import type { SuiteStats } from '@wdio/reporter'
 import open from 'open'
 import fs from 'fs-extra'
 import path from 'node:path'
 import logger from '@wdio/logger'
-import url from 'node:url'
 import JsonGenerator from './jsonGenerator.js'
 import { withExtension } from './fileNames.js'
 
@@ -211,11 +209,7 @@ class ReportAggregator {
         }
     }
     async finalize() {
-        const cssDir = url.fileURLToPath(new URL('../css/', import.meta.url))
-        const jsFiles = cssDir
-        const reportDir = path.resolve(process.cwd(), this.options.outputDir)
-        await copyFiles(jsFiles, reportDir)
-        this.LOG.info('copyied css : ' + jsFiles + ' to ' + reportDir)
+        // `HtmlGenerator.htmlOutput` already copied the CSS and the font next to the report
         if (this.options.showInBrowser) {
             await open(this.reportFile)
             this.LOG.info('browser launched')
