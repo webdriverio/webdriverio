@@ -1,15 +1,16 @@
 import type { SuiteStats } from '@wdio/reporter'
 import type { HtmlReporterOptions, ReportData } from './types.js'
 import logger from '@wdio/logger'
-import json from 'big-json'
-import fs from 'fs-extra'
+import fs from 'node:fs'
+
+import { writeFile } from './files.js'
 import { withExtension } from './fileNames.js'
 
 class JsonGenerator {
     private static LOG = logger('JsonGenerator')
 
     static writeJson(jsonFile:string, stringified:string, _reportOptions:HtmlReporterOptions, _reportData: ReportData) {
-        fs.outputFileSync(jsonFile, stringified)
+        writeFile(jsonFile, stringified)
         JsonGenerator.LOG.info('Json write completed: ' + jsonFile )
     }
 
@@ -29,7 +30,7 @@ class JsonGenerator {
 
         try {
 
-            if (fs.pathExistsSync(reportOptions.outputDir)) {
+            if (fs.existsSync(reportOptions.outputDir)) {
                 if (reportOptions.removeOutput) {
                     JsonGenerator.removeOutput(reportData.suites)
                 }
@@ -38,7 +39,7 @@ class JsonGenerator {
                     const jsonFile = withExtension(reportData.reportFile, '.json')
                     JsonGenerator.LOG.info('Json report write starting: ' + jsonFile)
                     try {
-                        const stringified = await json.stringify({ body: reportData })
+                        const stringified = JSON.stringify(reportData)
                         JsonGenerator.writeJson(jsonFile, stringified, reportOptions, reportData)
                     } catch (error) {
                         JsonGenerator.LOG.error('Json write failed: ' + error)

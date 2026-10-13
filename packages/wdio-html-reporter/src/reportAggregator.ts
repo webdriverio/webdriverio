@@ -7,10 +7,11 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore.js'
 dayjs.extend(isSameOrBefore)
 import type { SuiteStats } from '@wdio/reporter'
 import open from 'open'
-import fs from 'fs-extra'
+import fs from 'node:fs'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import JsonGenerator from './jsonGenerator.js'
+import { emptyDir } from './files.js'
 import { withExtension } from './fileNames.js'
 
 const timeFormat ='YYYY-MM-DDTHH:mm:ss.SSS[Z]'
@@ -68,7 +69,7 @@ class ReportAggregator {
     public reports: any[]
 
     clean() {
-        fs.emptyDirSync(this.options.outputDir)
+        emptyDir(this.options.outputDir)
     }
 
     readJsonFiles() {
@@ -107,7 +108,7 @@ class ReportAggregator {
          * no folder when no worker wrote a report (for example a configuration error):
          * still make the report that says so
          */
-        fs.ensureDirSync(this.options.outputDir)
+        fs.mkdirSync(this.options.outputDir, { recursive: true })
         const files = this.readJsonFiles()
         if (files.length === 0) {
             this.LOG.error(`No Json files found in: ${this.options.outputDir}. Make sure options.produceJson is not false`)

@@ -12,8 +12,9 @@ import  { HtmlReporterOptions, InternalReportEvent, Metrics, ReportData } from '
 import dayjs from 'dayjs'
 import ReportEvents from './reportEvents.js'
 import ReportGenerator from './reportGenerator.js'
+import { writeFile } from './files.js'
 
-import fs from 'fs-extra'
+import fs from 'node:fs'
 import path from 'node:path'
 import util from 'node:util'
 import logger from '@wdio/logger'
@@ -83,7 +84,7 @@ export default class HtmlReporter extends WDIOReporter {
         this.options = Object.assign(opts, options)
         const dir = path.join(this.options.outputDir, 'screenshots')
 
-        fs.ensureDirSync(dir)
+        fs.mkdirSync(dir, { recursive: true })
         this.metrics = new Metrics()
         this._currentTestUid = 'test uid'
         this._currentCid = 'cid'
@@ -231,7 +232,7 @@ export default class HtmlReporter extends WDIOReporter {
                 const timestamp = dayjs().format('YYYYMMDD-HHmmss.SSS')
                 const filepath = path.join(this.options.outputDir, '/screenshots/', encodeURIComponent(this._currentCid), timestamp, this.options.filename + '.png')
                 this.LOG.info(`onAfterCommand: ${this._currentCid}:${this._currentTestUid} taking screenshot ${filepath}`)
-                fs.outputFileSync(filepath, Buffer.from(result.value, 'base64'))
+                writeFile(filepath, Buffer.from(result.value, 'base64'))
 
                 const test = this.getTest(this._currentTestUid)
                 if (test) {

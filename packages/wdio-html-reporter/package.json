@@ -40,14 +40,11 @@
     "@wdio/logger": "workspace:*",
     "@wdio/reporter": "workspace:*",
     "@wdio/types": "workspace:*",
-    "big-json": "^3.2.0",
     "dayjs": "^1.11.9",
-    "fs-extra": "^11.1.0",
     "nunjucks": "^3.2.4",
     "open": "^8.4.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "^11.0.4",
     "@types/nunjucks": "^3.2.3"
   },
   "publishConfig": {
