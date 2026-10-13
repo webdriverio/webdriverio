@@ -29,6 +29,15 @@ export interface ScenarioLines {
     used: number
 }
 
+/**
+ * the scenario (and its Examples row) that a pickle of the run took, with its line
+ */
+export interface TakenScenario {
+    scenario: ScenarioLines
+    line: number
+    row?: ExampleRow
+}
+
 export interface ExampleRow {
     line: number
     /** the name of the outline with the values of this row */
@@ -155,7 +164,7 @@ export function takeScenarioLines (
     lines: FeatureLines,
     name: string,
     { rule, tags = [] }: { rule?: string, tags?: readonly string[] } = {}
-): { scenario: ScenarioLines, line: number } | undefined {
+): TakenScenario | undefined {
     // a scenario of the Rule of the payload (the framework sends it), or outside a Rule
     const inRule = lines.scenarios.filter((scenario) => (scenario.rule || undefined) === (rule || undefined))
     const candidates = [
@@ -199,7 +208,7 @@ export function takeScenarioLines (
     if (row) {
         row.used = true
     }
-    return { scenario, line: row?.line ?? scenario.line }
+    return { scenario, line: row?.line ?? scenario.line, row }
 }
 
 /**
@@ -213,6 +222,36 @@ export function findStepLine (scenario: ScenarioLines, text: string, usedLines: 
         usedLines.add(step.line)
     }
     return step?.line
+}
+
+/**
+ * A random order or a tag filter can run a later scenario with the same name first,
+ * for example `Scenario: Buy milk` before the example `Buy milk` of an outline: the
+ * pickle took the lines of the other one. When a step of the pickle is not a step of
+ * the scenario that it took, give that scenario back and take the scenario with this
+ * name that has the step.
+ */
+export function retakeScenarioLines (
+    lines: FeatureLines,
+    taken: TakenScenario,
+    name: string,
+    stepText: string,
+    options: { rule?: string, tags?: readonly string[] } = {}
+): TakenScenario | undefined {
+    const hasStep = (scenario: ScenarioLines) => scenario.steps.some((step) => matchesTemplate(step.text, stepText))
+    if (hasStep(taken.scenario)) {
+        return undefined
+    }
+    const others = lines.scenarios.filter((scenario) => scenario !== taken.scenario && hasStep(scenario))
+    const retaken = takeScenarioLines({ ...lines, scenarios: others }, name, options)
+    if (!retaken) {
+        return undefined
+    }
+    taken.scenario.used--
+    if (taken.row) {
+        taken.row.used = false
+    }
+    return retaken
 }
 
 /**
