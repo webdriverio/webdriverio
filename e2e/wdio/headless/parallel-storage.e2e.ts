@@ -1,6 +1,7 @@
 import { browser, expect } from '@wdio/globals'
+import { PARALLEL_FIXTURE_ORIGIN } from '../parallelFixtureServer.js'
 
-const ORIGIN = 'https://the-internet.herokuapp.com/'
+const ORIGIN = `${PARALLEL_FIXTURE_ORIGIN}/`
 const MARKER_A = 'parallel-marker-a'
 const MARKER_B = 'parallel-marker-b'
 

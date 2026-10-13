@@ -938,7 +938,7 @@ export async function findDeepElement(
         if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findInFrameByScript(this, browser, using, value, 0) as Promise<ElementReference | undefined>
         }
-        if (isParallelContextActive() && !(this as WebdriverIO.Element).elementId) {
+        if (isParallelContextActive()) {
             throw err
         }
         return findElementViaClassic(this, browser, using, value, shadowRoots)
@@ -1129,7 +1129,7 @@ export async function findDeepElements(
         if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findAllInFrame(this, browser, using, value)
         }
-        if (isParallelContextActive() && !(this as WebdriverIO.Element).elementId) {
+        if (isParallelContextActive()) {
             throw err
         }
         return findElementsViaClassic(this, browser, using, value, shadowRoots)

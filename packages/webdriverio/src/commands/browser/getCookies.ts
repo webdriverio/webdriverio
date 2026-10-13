@@ -64,12 +64,12 @@ export async function getCookies(
         }, filter)
     }
 
-    const parallelPartition = parallelCookiePartition()
+    const parallelPartition = await parallelCookiePartition(this)
     if (parallelPartition) {
         return readBidiCookies(this, {
             partition: parallelPartition,
             ...(typeof filter !== 'undefined' ? { filter } : {})
-        }, filter)
+        }, filter, true)
     }
 
     let url: URL
@@ -97,16 +97,17 @@ export async function getCookies(
 async function readBidiCookies (
     browser: WebdriverIO.Browser,
     params: remote.StorageGetCookiesParameters,
-    filter?: remote.StorageCookieFilter
+    filter?: remote.StorageCookieFilter,
+    isolated = params.partition?.type === 'context'
 ): Promise<Cookie[]> {
     try {
         const { cookies } = await browser.storageGetCookies(params)
         /**
-         * A context partition is already the held tab. An empty result is that
-         * tab's cookies. The classic fallback would read the focused window.
+         * A context partition, or a parallel test's origin partition, already
+         * names the right tab or origin. An empty result is authoritative. The
+         * classic fallback would read the focused window.
          */
-        const partitionedByContext = params.partition?.type === 'context'
-        if (cookies.length === 0 && !partitionedByContext) {
+        if (cookies.length === 0 && !isolated) {
             log.debug('BiDi getCookies returned empty, falling back to classic')
             return getCookiesClassic.call(browser, filter)
         }
@@ -117,7 +118,7 @@ async function readBidiCookies (
                 : cookie.value.value,
         }))
     } catch (err) {
-        if (params.partition?.type === 'context') {
+        if (isolated) {
             throw err
         }
         log.warn(`BiDi getCookies failed, falling back to classic: ${(err as Error).message}`)

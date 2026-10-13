@@ -232,6 +232,38 @@ describe('parallel mode config hooks', () => {
         expect(hookEnds[1][1].duration).toBeGreaterThanOrEqual(0)
         expect(runParallelTests).toBeCalledTimes(1)
     })
+
+    test('beforeSuite hook:end does not leak its duration into the afterSuite payload', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        const rootSuite = { title: 'first suite' }
+        adapter['_mocha']!.suite = { suites: [rootSuite] } as any
+        const now = vi.spyOn(Date, 'now')
+        now.mockReturnValue(1000)
+        vi.mocked(executeHooksWithArgs).mockImplementationOnce(async () => {
+            now.mockReturnValue(1500)
+            return []
+        })
+        vi.mocked(runParallelTests).mockImplementationOnce(async () => {
+            now.mockReturnValue(9000)
+            return 0
+        })
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+            now.mockRestore()
+        }
+
+        const hookEnds = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:end')
+        const hookStarts = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:start')
+        expect(hookEnds[0][1].duration).toBe(500)
+        expect(hookStarts[1][1].duration).toBe(8000)
+        expect(hookEnds[1][1].duration).toBe(8000)
+    })
 })
 
 describe('parallel mode setBrowser', () => {

@@ -108,16 +108,22 @@ describe('setCookies', () => {
             setParallelContextStore(parallelStore)
         })
 
-        it('should use the context partition inside a parallel scope', async () => {
+        it('should scope to the context origin inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://webdriver.io/', userContext: 'uc-1', children: [] }]
+            } as any)
             await parallelStore.run('ctx-1', () => browser.setCookies(cookie1))
             expect(storageSetCookie).toBeCalledWith(expect.objectContaining({
-                partition: { type: 'context', context: 'ctx-1' }
+                partition: { type: 'storageKey', sourceOrigin: 'https://webdriver.io', userContext: 'uc-1' }
             }))
         })
 
         it('should propagate BiDi errors inside a parallel scope without addCookie', async () => {
             const addCookie = vi.spyOn(browser, 'addCookie')
             addCookie.mockClear()
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'about:blank', children: [] }]
+            } as any)
             storageSetCookie.mockRejectedValueOnce(new Error('bidi boom'))
             await expect(parallelStore.run('ctx-1', () => browser.setCookies(cookie1)))
                 .rejects.toThrow('bidi boom')

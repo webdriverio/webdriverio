@@ -267,6 +267,15 @@ describe('url', () => {
             navigateTo.mockRestore()
         })
 
+        it('should not retry when the parallel test context was disposed', async () => {
+            browsingContextNavigate.mockImplementation((async () => {
+                throw new Error('WebDriver Bidi command "browsingContext.navigate" failed with error: unknown error - navigation canceled by context disposal')
+            }) as any)
+            await expect(getParallelContextStore().run('123', () => browser.url('http://google.com')))
+                .rejects.toThrow('navigation canceled by context disposal')
+            expect(browsingContextNavigate).toBeCalledTimes(1)
+        })
+
         it('navigates the parallel test context over BiDi for a data: url', async () => {
             browsingContextNavigate.mockImplementation((async () => ({ navigation: 'nav-1' })) as any)
             vi.mocked(getContextManager).mockImplementationOnce(() => ({

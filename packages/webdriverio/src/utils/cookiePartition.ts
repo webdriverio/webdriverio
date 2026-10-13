@@ -3,15 +3,38 @@ import type { remote } from 'webdriver'
 import { getParallelContextStore } from '../session/context.js'
 
 /**
- * Parallel tests each own a user context, so a cookie must be scoped to the
- * test's browsing context rather than the origin-wide storage key that
- * concurrent tests would share.
+ * Parallel tests share one user context by default, so a `context` partition
+ * would resolve to the whole user-context jar in Chrome. The partition is
+ * scoped to the origin of the test's own browsing context instead. Without a
+ * usable origin (e.g. about:blank) it falls back to the context partition.
  */
-export function parallelCookiePartition(): remote.StoragePartitionDescriptor | undefined {
+export async function parallelCookiePartition(
+    browser: WebdriverIO.Browser
+): Promise<remote.StoragePartitionDescriptor | undefined> {
     const context = getParallelContextStore().getStore()
-    return context ? { type: 'context', context } : undefined
+    if (!context) {
+        return undefined
+    }
+
+    const { contexts } = await browser.browsingContextGetTree({ root: context, maxDepth: 0 })
+    const info = contexts[0]
+    let sourceOrigin: string | undefined
+    try {
+        const { origin } = new URL(info?.url)
+        sourceOrigin = origin === 'null' ? undefined : origin
+    } catch {
+        sourceOrigin = undefined
+    }
+    if (!sourceOrigin) {
+        return { type: 'context', context }
+    }
+    return {
+        type: 'storageKey',
+        sourceOrigin,
+        ...(info.userContext ? { userContext: info.userContext } : {})
+    }
 }
 
 export function getCookiePartition(sourceOrigin: string): remote.StoragePartitionDescriptor {
-    return parallelCookiePartition() ?? { type: 'storageKey', sourceOrigin }
+    return { type: 'storageKey', sourceOrigin }
 }

@@ -106,7 +106,7 @@ export async function setCookies(
      * A parallel test owns its browsing context. Falling back to addCookie would
      * act on the session's main window, so BiDi errors propagate.
      */
-    const parallelPartition = parallelCookiePartition()
+    const parallelPartition = await parallelCookiePartition(this)
     if (parallelPartition) {
         const defaultDomain = cookieObjsList.every((cookie) => cookie.domain)
             ? undefined

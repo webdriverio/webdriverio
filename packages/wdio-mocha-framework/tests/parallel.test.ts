@@ -1,9 +1,13 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { EventEmitter } from 'node:events'
+import path from 'node:path'
+import { logMock } from '../../../__mocks__/@wdio/logger.js'
 
 import { collectTests, parseTimeoutString, runParallelTests } from '../src/parallel.js'
 import type { Suite } from 'mocha'
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 // ---------------------------------------------------------------------------
 // Helpers to build mock Mocha suite trees
@@ -712,6 +716,20 @@ describe('runParallelTests — per-test timeout', () => {
         expect(failures).toBe(0)
         expect(quick).toBeCalledTimes(1)
     })
+
+    test('exposes the resolved timeout and full title on this._runnable for the wdio shim', async () => {
+        let runnable: any
+        const fn = function (this: any) { runnable = this._runnable }
+        const suite = mockSuite('root', {
+            suites: [mockSuite('outer', { tests: [{ ...mockTest('my test', fn), fullTitle: () => 'outer my test' }] })],
+        })
+        const failures = await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'], undefined, { timeout: 60000 })
+
+        expect(failures).toBe(0)
+        expect(runnable._timeout).toBe(60000)
+        expect(runnable.title).toBe('my test')
+        expect(runnable.fullTitle()).toBe('outer my test')
+    })
 })
 
 describe('runParallelTests — hook failure counting', () => {
@@ -1138,5 +1156,36 @@ describe('runParallelTests — reporter event contract', () => {
         await expect(runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js']))
             .rejects.toThrow(message)
         expect(onSuiteStart).not.toBeCalled()
+    })
+})
+
+describe('runParallelTests timeout warning', () => {
+    const timeoutWarnings = () => logMock.warn.mock.calls.filter((c) => String(c[0]).includes('timeouts'))
+    const run = (suite: Suite, timeout = 5000) =>
+        runParallelTests(suite, mockBrowser(), new EventEmitter(), '0-0', ['/spec.js'], undefined, { timeout })
+
+    beforeEach(() => logMock.warn.mockClear())
+
+    test('warns once when a test timeout differs from mochaOpts.timeout', async () => {
+        const slow = { ...mockTest('slow'), _timeout: 30000 }
+        const fast = { ...mockTest('fast'), _timeout: 5000 }
+        const other = { ...mockTest('other'), _timeout: 1 }
+        await run(mockSuite('root', { tests: [slow, fast, other] }))
+
+        expect(timeoutWarnings()).toHaveLength(1)
+        expect(String(timeoutWarnings()[0][0])).toContain('mochaOpts.timeout (5000ms) applies')
+    })
+
+    test('warns when only a suite timeout differs', async () => {
+        const child = { ...mockSuite('child', { tests: [{ ...mockTest('t'), _timeout: 5000 }] }), _timeout: 9000 }
+        await run(mockSuite('root', { suites: [child] }))
+
+        expect(timeoutWarnings()).toHaveLength(1)
+    })
+
+    test('does not warn when all timeouts match mochaOpts.timeout', async () => {
+        await run(mockSuite('root', { tests: [{ ...mockTest('t'), _timeout: 5000 }] }))
+
+        expect(timeoutWarnings()).toHaveLength(0)
     })
 })

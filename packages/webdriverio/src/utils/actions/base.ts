@@ -6,6 +6,39 @@ import { getBrowserObject } from '@wdio/utils'
 import { foreignContextId, isBrowsingContext } from '../../session/browsingContext.js'
 import { getParallelContextStore } from '../../session/context.js'
 
+/**
+ * Converts classic action sources to BiDi input sources: element origins become
+ * `{ type: 'element', sharedId }` references.
+ */
+export function toBidiActions<T extends { actions: object[] }>(sequence: T[]): remote.InputSourceActions[] {
+    return sequence.map((source) => ({
+        ...source,
+        actions: source.actions.map((rawAction) => {
+            const action = rawAction as { type?: string, duration?: number, origin?: ElementReference }
+            /**
+             * A pointer move into another navigable starts from the last
+             * top-level position. The default 100ms interpolation crosses
+             * the frame and fires mouse events an in-frame action does not.
+             * An instant move lands on the element. A chosen duration stays.
+             */
+            const instant = action.type === 'pointerMove' && action.duration === 100
+                ? { ...action, duration: 0 }
+                : action
+            const origin = instant.origin
+            if (!origin || typeof origin !== 'object' || !(ELEMENT_KEY in origin)) {
+                return instant
+            }
+            return {
+                ...instant,
+                origin: {
+                    type: 'element' as const,
+                    element: { sharedId: origin[ELEMENT_KEY] }
+                }
+            }
+        })
+    })) as unknown as remote.InputSourceActions[]
+}
+
 export type ActionType = 'key' | 'pointer' | 'wheel'
 export type KeyActionType = 'mouse' | 'pen' | 'touch'
 export interface ActionParameters {
@@ -137,34 +170,10 @@ export default class BaseAction {
             ? this.#instance.contextId
             : originContext ?? getParallelContextStore().getStore()
         if (contextId) {
-            const actions = sequence.map((source) => ({
-                ...source,
-                actions: source.actions.map((action) => {
-                    /**
-                     * A pointer move into another navigable starts from the last
-                     * top-level position. The default 100ms interpolation crosses
-                     * the frame and fires mouse events an in-frame action does not.
-                     * An instant move lands on the element. A chosen duration stays.
-                     */
-                    const instant = action.type === 'pointerMove' && action.duration === 100
-                        ? { ...action, duration: 0 }
-                        : action
-                    const origin = (instant as { origin?: ElementReference }).origin
-                    if (!origin || typeof origin !== 'object' || !(ELEMENT_KEY in origin)) {
-                        return instant
-                    }
-                    return {
-                        ...instant,
-                        origin: {
-                            type: 'element' as const,
-                            element: { sharedId: origin[ELEMENT_KEY] }
-                        }
-                    }
-                })
-            }))
+            const actions = toBidiActions(sequence)
             await browser.inputPerformActions({
                 context: contextId,
-                actions: actions as remote.InputSourceActions[]
+                actions
             })
             if (!skipRelease) {
                 await browser.inputReleaseActions({ context: contextId })

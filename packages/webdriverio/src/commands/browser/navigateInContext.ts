@@ -10,6 +10,7 @@ type WaitState = 'none' | 'interactive' | 'networkIdle' | 'complete'
 
 const DEFAULT_NETWORK_IDLE_TIMEOUT = 5000
 const DEFAULT_WAIT_STATE = 'complete'
+const CONTEXT_GONE_MARKERS = ['context disposal', 'no such frame']
 
 export interface UrlCommandOptions {
     /**
@@ -141,6 +142,9 @@ export async function navigateInContext (
              * this test's context. Retry over BiDi instead of `navigateTo`.
              */
             if (getParallelContextStore().getStore()) {
+                if (CONTEXT_GONE_MARKERS.some((marker) => err.message.includes(marker))) {
+                    throw err
+                }
                 return browser.browsingContextNavigate({ context, url: path, wait })
             }
             const current = contextIdValue(await getContextManager(browser).getCurrentContext())

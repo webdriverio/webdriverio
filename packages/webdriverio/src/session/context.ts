@@ -1,5 +1,6 @@
 import type { local } from 'webdriver'
 import logger from '@wdio/logger'
+import { WebDriverProtocol } from '@wdio/protocols'
 
 import { SessionManager } from './session.js'
 import { getMobileContext, getNativeContext } from '../utils/mobile.js'
@@ -10,21 +11,23 @@ const log = logger('webdriverio:context')
 const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
 
 /**
- * Classic endpoints that act on the session's current top-level window or
- * frame pointer, which concurrent tests share. Commands with an in-scope
- * internal caller (getWindowHandle, executeScript, findElement, findElements,
- * getAlertText) are not listed.
+ * Classic commands act on the session's single focused window/frame, which
+ * concurrent tests share. An allowlist fails closed for any Classic command not
+ * explicitly vetted, unlike a denylist that leaks every command nobody listed.
+ * Safe means: neither reads nor mutates the focused window/frame nor resolves element ids in it.
  */
-const PARALLEL_FORBIDDEN_COMMANDS: readonly string[] = [
-    'switchToWindow', 'switchToParentFrame', 'refresh', 'closeWindow',
-    'switchToFrame', 'getWindowRect', 'setWindowRect', 'maximizeWindow', 'minimizeWindow',
-    'fullscreenWindow', 'back', 'forward', 'dismissAlert', 'acceptAlert', 'sendAlertText',
-    'performActions', 'releaseActions', 'takeScreenshot', 'executeAsyncScript'
+export const PARALLEL_SAFE_CLASSIC_COMMANDS: readonly string[] = [
+    'newSession', 'deleteSession', 'status', 'getTimeouts', 'setTimeouts', 'getWindowHandles'
 ]
 
+export const CLASSIC_COMMANDS: ReadonlySet<string> = new Set(
+    Object.values(WebDriverProtocol).flatMap((endpoint) =>
+        Object.values(endpoint).map((method) => (method as { command: string }).command))
+)
+
 function parallelModeError(command: string) {
-    return `${command} is not supported in parallel mode (parallelMode: 'contexts') — ` +
-        'window/frame management mutates session-global state shared by concurrent tests'
+    return `${command} is not supported in parallel mode — ` +
+        "WebDriver Classic commands act on the session's focused window, which concurrent tests share"
 }
 
 /**
@@ -118,7 +121,7 @@ export class ContextManager extends SessionManager {
     #getContextSupport = true
     #currentWindowHandle?: string
     #onCommandResultBidiAndClassicListener: (event: { command: string, result: unknown, body: unknown }) => void
-    #onCommandListener: (event: { command: string, body: unknown }) => void
+    #onCommandListener: (event: { command: string, body: unknown, endpoint?: string }) => void
     #onCommandResultMobileListener: (event: { command: string, result: unknown }) => void
     #navigationStartedListener: (nav: local.BrowsingContextNavigationInfo) => void
     #destroyedListener: (destroyed: local.BrowsingContextInfo) => void
@@ -385,10 +388,13 @@ export class ContextManager extends SessionManager {
         }
     }
 
-    #onCommand(event: { command: string, body: unknown }) {
+    #onCommand(event: { command: string, body: unknown, endpoint?: string }) {
+        // wrapper events also fire for BiDi overrides; only the HTTP request (with `endpoint`) reaches the focused window
         if (
+            typeof event.endpoint === 'string' &&
             parallelContextStore.getStore() &&
-            PARALLEL_FORBIDDEN_COMMANDS.includes(event.command)
+            CLASSIC_COMMANDS.has(event.command) &&
+            !PARALLEL_SAFE_CLASSIC_COMMANDS.includes(event.command)
         ) {
             throw new Error(parallelModeError(event.command))
         }

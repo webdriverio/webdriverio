@@ -145,6 +145,9 @@ describe('getCookies', () => {
         })
 
         it('should read the context partition on about:blank without classic fallback', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'about:blank', children: [] }]
+            } as any)
             const getUrl = vi.spyOn(browser, 'getUrl')
             getUrl.mockClear()
             getUrl.mockResolvedValue('about:blank')
@@ -159,11 +162,28 @@ describe('getCookies', () => {
             expect(cookies).toEqual([{ name: 'cookie', value: 'hello world' }])
         })
 
-        it('should use the context partition inside a parallel scope', async () => {
+        it('should scope to the context origin and user context inside a parallel scope', async () => {
+            const getTree = vi.spyOn(browser, 'browsingContextGetTree')
+            getTree.mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', userContext: 'uc-1', children: [] }]
+            } as any)
             await parallelStore.run('ctx-1', () => browser.getCookies())
+            expect(getTree).toBeCalledWith({ root: 'ctx-1', maxDepth: 0 })
             expect(storageGetCookies).toBeCalledWith({
-                partition: { type: 'context', context: 'ctx-1' }
+                partition: { type: 'storageKey', sourceOrigin: 'https://app.example.com', userContext: 'uc-1' }
             })
+        })
+
+        it('should not fall back to classic on an empty origin partition inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', children: [] }]
+            } as any)
+            storageGetCookies.mockResolvedValueOnce({ cookies: [] })
+            const getAllCookies = vi.spyOn(browser, 'getAllCookies')
+            getAllCookies.mockClear()
+            const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
+            expect(getAllCookies).not.toBeCalled()
+            expect(cookies).toEqual([])
         })
 
         it('should return all cookies', async () => {

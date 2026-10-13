@@ -1,7 +1,11 @@
+import type { Server } from 'node:http'
 import url from 'node:url'
 import path from 'node:path'
+import { startParallelFixtureServer, stopParallelFixtureServer } from './parallelFixtureServer.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+
+let server: Server
 
 export const config: WebdriverIO.Config = {
     /**
@@ -35,6 +39,13 @@ export const config: WebdriverIO.Config = {
     framework: 'mocha',
     outputDir: __dirname,
     reporters: ['spec'],
+
+    onPrepare: async () => {
+        server = await startParallelFixtureServer()
+    },
+    onComplete: async () => {
+        await stopParallelFixtureServer(server)
+    },
 
     mochaOpts: {
         ui: 'bdd',

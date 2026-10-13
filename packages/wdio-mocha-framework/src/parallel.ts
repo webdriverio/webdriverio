@@ -113,6 +113,8 @@ interface CollectedTest {
     file: string | undefined
     /** {@link CollectedSuite.depth} of the owning suite; undefined for root-level tests */
     suiteIndex?: number
+    /** Mocha's resolved timeout for this test (`_timeout`) */
+    timeout?: number
 }
 
 interface CollectedSuite {
@@ -123,6 +125,8 @@ interface CollectedSuite {
     depth: number
     /** {@link depth} of the parent suite; undefined for top-level describes */
     parentIndex?: number
+    /** Mocha's resolved timeout for this suite (`_timeout`) */
+    timeout?: number
 }
 
 const suiteUid = (cid: string, index: number) => `suite-${cid}-${index}`
@@ -188,7 +192,8 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
                 _afterAll: mergedAfterAll,
                 pending: !!test.pending || !fn,
                 file: test.file || undefined,
-                suiteIndex
+                suiteIndex,
+                timeout: (test as unknown as { _timeout?: number })._timeout
             }
             if (!match || match(collected)) {
                 tests.push(collected)
@@ -206,7 +211,8 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
                 fullTitle: typeof s.fullTitle === 'function' ? s.fullTitle() : s.title,
                 file: (s as unknown as { file?: string }).file,
                 depth: suiteIndex!,
-                parentIndex
+                parentIndex,
+                timeout: (s as unknown as { _timeout?: number })._timeout
             })
         }
 
@@ -398,11 +404,13 @@ export function isSkipError(err?: unknown): boolean {
  * function arguments before the user fn runs (filterSpecArgs) — the same
  * limitation sequential mode has.
  */
-function createHookContext(testTitle?: string, parentTitle?: string) {
+function createHookContext(testTitle: string | undefined, parentTitle: string | undefined, timeoutMs: number, fullTitle?: string) {
     const test = testTitle ? { title: testTitle, parent: { title: parentTitle || '' }, state: undefined as 'passed' | 'failed' | undefined } : undefined
+    const resolvedFullTitle = fullTitle ?? `${parentTitle || ''} ${testTitle || ''}`.trim()
     return {
         test,
         currentTest: test,
+        _runnable: { _timeout: timeoutMs, title: testTitle, fullTitle: () => resolvedFullTitle },
         skip: () => { throw new Error('sync skip; aborting execution') },
         timeout: () => { throw new Error('this.timeout() is not supported in parallel mode') },
         retries: () => { throw new Error('this.retries() is not supported in parallel mode') },
@@ -514,7 +522,7 @@ async function runOneTest(
 
         let hookCnt = 0
         // One context per test so `this.x` set in beforeEach is visible in the test and afterEach
-        const ctx = createHookContext(test.title, test.parentTitle)
+        const ctx = createHookContext(test.title, test.parentTitle, timeoutMs, test.fullTitle)
         let caughtError: Error | undefined
         let started = false
         let fnDuration = 0
@@ -649,6 +657,15 @@ export async function runParallelTests(
         )
     }
 
+    const timeoutMs = resolveTimeoutMs(mochaOptions?.timeout)
+    const hasCustomTimeout = (r: { timeout?: number }) => r.timeout !== undefined && r.timeout !== timeoutMs
+    if (tests.some(hasCustomTimeout) || suites.some(hasCustomTimeout)) {
+        log.warn(
+            'Per-test and per-suite timeouts (it(...).timeout(n), this.timeout(n)) are not supported ' +
+            `in parallel mode (parallelMode: "${mode}"); mochaOpts.timeout (${timeoutMs}ms) applies.`
+        )
+    }
+
     const parallelStore = (browser as ParallelBrowser).__parallelContextStore as AsyncLocalStorage<string>
     if (!parallelStore) {
         throw new Error('Parallel context store not found on browser.')
@@ -668,7 +685,6 @@ export async function runParallelTests(
 
     const maxContexts = resolveMaxContexts(maxParallelContexts, os.cpus().length)
     const slotCount = Math.min(maxContexts, tests.length)
-    const timeoutMs = resolveTimeoutMs(mochaOptions?.timeout)
     const runStart = Date.now()
     const allResults: PromiseSettledResult<TestRunResult>[] = new Array(tests.length)
     const cleanups: Promise<void>[] = []

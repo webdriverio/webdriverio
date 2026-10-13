@@ -1,4 +1,5 @@
 import { browser, $, $$, expect } from '@wdio/globals'
+import { PARALLEL_FIXTURE_ORIGIN } from '../parallelFixtureServer.js'
 
 describe('parallel mode e2e test', () => {
     it('navigates the checkboxes page in its own context', async function () {
@@ -6,7 +7,7 @@ describe('parallel mode e2e test', () => {
             return this.skip()
         }
 
-        const url = 'https://the-internet.herokuapp.com/checkboxes'
+        const url = `${PARALLEL_FIXTURE_ORIGIN}/checkboxes`
         await browser.url(url)
         expect(await browser.getUrl()).toBe(url)
         await expect(browser).toHaveTitle('The Internet')
@@ -22,7 +23,7 @@ describe('parallel mode e2e test', () => {
             return this.skip()
         }
 
-        const url = 'https://the-internet.herokuapp.com/login'
+        const url = `${PARALLEL_FIXTURE_ORIGIN}/login`
         await browser.url(url)
         expect(await browser.getUrl()).toBe(url)
         await expect($('h2')).toHaveText('Login Page')
@@ -33,7 +34,7 @@ describe('parallel mode e2e test', () => {
         expect(await $('#password').getValue()).toBe('SuperSecretPassword!')
 
         await $('button[type="submit"]').click()
-        await expect(browser).toHaveUrl('https://the-internet.herokuapp.com/secure')
+        await expect(browser).toHaveUrl(`${PARALLEL_FIXTURE_ORIGIN}/secure`)
         await expect($('h2')).toHaveText('Secure Area')
     })
 
@@ -42,7 +43,7 @@ describe('parallel mode e2e test', () => {
             return this.skip()
         }
 
-        const url = 'https://the-internet.herokuapp.com/dropdown'
+        const url = `${PARALLEL_FIXTURE_ORIGIN}/dropdown`
         await browser.url(url)
         expect(await browser.getUrl()).toBe(url)
 
@@ -56,7 +57,7 @@ describe('parallel mode e2e test', () => {
             return this.skip()
         }
 
-        const url = 'https://the-internet.herokuapp.com/add_remove_elements/'
+        const url = `${PARALLEL_FIXTURE_ORIGIN}/add_remove_elements/`
         await browser.url(url)
         expect(await browser.getUrl()).toBe(url)
 
@@ -73,7 +74,7 @@ describe('parallel mode e2e test', () => {
             return this.skip()
         }
 
-        const url = 'https://the-internet.herokuapp.com/inputs'
+        const url = `${PARALLEL_FIXTURE_ORIGIN}/inputs`
         await browser.url(url)
         expect(await browser.getUrl()).toBe(url)
 
@@ -87,7 +88,7 @@ describe('parallel mode e2e test', () => {
             return this.skip()
         }
 
-        const url = 'https://the-internet.herokuapp.com/tables'
+        const url = `${PARALLEL_FIXTURE_ORIGIN}/tables`
         await browser.url(url)
         expect(await browser.getUrl()).toBe(url)
 

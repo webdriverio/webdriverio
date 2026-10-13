@@ -98,6 +98,15 @@ describe('element-scoped lookups while a parallel test context is active', () =>
         expect(browser.getElementShadowRoot).not.toHaveBeenCalled()
     })
 
+    it('element-scoped $ and $$ rethrow a BiDi locate rejection instead of classic find from element', async () => {
+        const { browser, element } = setup()
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('locate failed'))
+        await expect(findDeepElement.call(element, '#x')).rejects.toThrow('locate failed')
+        await expect(findDeepElements.call(element, '#x')).rejects.toThrow('locate failed')
+        expect(element.findElementFromElement).not.toHaveBeenCalled()
+        expect(element.findElementsFromElement).not.toHaveBeenCalled()
+    })
+
     describe('browser-level lookups never reach the session window through classic', () => {
         function browserSetup() {
             const { browser } = setup()

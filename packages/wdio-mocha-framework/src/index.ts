@@ -189,10 +189,10 @@ class MochaAdapter {
         this._reporter.emit('hook:start', { ...beforeSuiteMsg, type: 'hook:start', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
         try {
             await executeHooksWithArgs('beforeSuite', this._config.beforeSuite as Function, [beforeSuiteMsg])
-            this._reporter.emit('hook:end', { ...this.prepareMessage('afterSuite'), type: 'hook:end', state: 'pass', cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+            this._reporter.emit('hook:end', { ...beforeSuiteMsg, type: 'hook:end', state: 'pass', duration: Date.now() - this._suiteStartDate, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
         } catch (err) {
             log.error(`Error in beforeSuite hook: ${(err as Error).stack?.slice(7) || (err as Error).message}`)
-            this._reporter.emit('hook:end', { ...this.prepareMessage('afterSuite'), type: 'hook:end', state: 'fail', error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
+            this._reporter.emit('hook:end', { ...beforeSuiteMsg, type: 'hook:end', state: 'fail', duration: Date.now() - this._suiteStartDate, error: { name: (err as Error).name || 'Error', message: (err as Error).message, stack: (err as Error).stack }, cid: this._cid, specs: this._specs, uid: beforeSuiteUid })
         }
 
         let failures: number

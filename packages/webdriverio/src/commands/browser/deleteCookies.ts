@@ -56,7 +56,7 @@ export async function deleteCookies(
      * A parallel test owns its browsing context. Falling back to classic would
      * act on the session's main window, so BiDi errors propagate.
      */
-    const parallelPartition = parallelCookiePartition()
+    const parallelPartition = await parallelCookiePartition(this)
     if (parallelPartition) {
         await deleteBidiCookies(this, parallelPartition, filterArray)
         return

@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 import { ELEMENT_KEY } from 'webdriver'
 import { Key } from '../../../src/constants.js'
+import { GET_VISIBLE_TEXT } from '../../../src/utils/thirdParty/getVisibleText.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -101,10 +102,10 @@ describe('bidiGetText', () => {
         expect(mockExecute.mock.calls[0][1]).toEqual({ [ELEMENT_KEY]: 'elem-test' })
     })
 
-    it('returns innerText from the DOM element', async () => {
+    it('runs the visible-text atom so non-rendered elements yield an empty string', async () => {
         const { fn } = await captureExecutedFn(bidiGetText)
-        expect(fn({ innerText: 'some text' })).toBe('some text')
-        expect(fn({ innerText: '' })).toBe('')
+        expect(fn.toString()).toContain(GET_VISIBLE_TEXT)
+        expect(fn.toString()).not.toContain('innerText')
     })
 })
 
@@ -388,6 +389,18 @@ describe('bidiAddValue', () => {
             (globalThis as any).window = origWindow
             ;(globalThis as any).document = origDoc
         }
+    })
+
+    it('appends at the end of an element that was not yet focused, ignoring its stale selection', async () => {
+        const { fn } = await captureExecutedFn(bidiAddValue, ['typed'], undefined)
+        const el = {
+            tagName: 'INPUT', disabled: false, readOnly: false, isContentEditable: false,
+            value: 'before after', selectionStart: 0, selectionEnd: 0,
+            scrollIntoView: vi.fn(), focus: vi.fn(), dispatchEvent: vi.fn(), style: {} as any,
+        }
+        await withPageGlobals(null, () => fn(el, 'typed'))
+        expect(el.focus).toHaveBeenCalled()
+        expect(el.value).toBe('before aftertyped')
     })
 
     it('appends value at end when no selection', async () => {

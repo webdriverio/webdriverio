@@ -114,6 +114,9 @@ describe('deleteCookies', () => {
         beforeEach(() => {
             storageDeleteCookies.mockClear()
             storageGetCookies.mockClear()
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://webdriver.io/', userContext: 'uc-0', children: [] }]
+            } as any)
             setParallelContextStore(parallelStore)
         })
 
@@ -128,12 +131,27 @@ describe('deleteCookies', () => {
             expect(deleteCookie).not.toBeCalled()
             expect(storageDeleteCookies).toBeCalledWith({
                 filter: { name: 'nope' },
-                partition: { type: 'context', context: 'ctx-1' }
+                partition: { type: 'storageKey', sourceOrigin: 'https://webdriver.io', userContext: 'uc-0' }
             })
             storageGetCookies.mockReturnValue(Promise.resolve({ cookies: [{ name: 'foo', value: 'bar' }] }))
         })
 
-        it('should use the context partition inside a parallel scope', async () => {
+        it('should scope to the context origin and user context inside a parallel scope', async () => {
+            const getTree = vi.spyOn(browser, 'browsingContextGetTree')
+            getTree.mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://app.example.com/page', userContext: 'uc-1', children: [] }]
+            } as any)
+            await parallelStore.run('ctx-1', () => browser.deleteCookies())
+            expect(getTree).toBeCalledWith({ root: 'ctx-1', maxDepth: 0 })
+            expect(storageDeleteCookies).toBeCalledWith({
+                partition: { type: 'storageKey', sourceOrigin: 'https://app.example.com', userContext: 'uc-1' }
+            })
+        })
+
+        it('should fall back to the context partition without a usable origin', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'about:blank', userContext: 'uc-1', children: [] }]
+            } as any)
             await parallelStore.run('ctx-1', () => browser.deleteCookies())
             expect(storageDeleteCookies).toBeCalledWith({
                 partition: { type: 'context', context: 'ctx-1' }

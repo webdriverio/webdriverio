@@ -73,8 +73,10 @@ export default class WDIOReporter extends EventEmitter {
             }
         }
         const getCommandTarget = (payload: { contextId?: string }) => {
-            const contextTest = payload.contextId ? contextTests.get(payload.contextId) : undefined
-            return contextTest ?? (contextTests.size === 0 ? currentTest : undefined)
+            if (payload.contextId) {
+                return contextTests.get(payload.contextId)
+            }
+            return contextTests.size === 0 ? currentTest : undefined
         }
 
         const rootSuite = new SuiteStats({

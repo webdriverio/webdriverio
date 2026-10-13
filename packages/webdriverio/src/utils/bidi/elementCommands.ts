@@ -16,6 +16,7 @@ import { getBrowserObject } from '@wdio/utils'
 
 import { contextIdValue, heldBrowsingContext } from '../../session/browsingContext.js'
 import { getContextManager, getParallelContextStore } from '../../session/context.js'
+import { GET_VISIBLE_TEXT } from '../thirdParty/getVisibleText.js'
 
 /** Check if the experimental Bidi commands capability is enabled.  Merges the
  *  `browser.isBidi` check so callers don't need to test both separately. */
@@ -132,7 +133,8 @@ export function bidiAddValue(element: WebdriverIO.Element, value: string): Promi
     }
     return exec(element, withEditableGuard(function (el, val) {
         // Atom only scrolls+focuses if element is not already the active element
-        if (document.activeElement !== el) {
+        const wasActive = document.activeElement === el
+        if (!wasActive) {
             el.scrollIntoView({ block: 'center', inline: 'center' })
             el.focus()
         }
@@ -143,8 +145,9 @@ export function bidiAddValue(element: WebdriverIO.Element, value: string): Promi
         // (form element, no active selection) and undefined (contentEditable
         // div, property absent) fall back to vLen.  The original !== null check
         // treated undefined as a real value, causing doubled content.
-        const s = typeof el.selectionStart === 'number' ? el.selectionStart : vLen
-        const e2 = typeof el.selectionEnd === 'number' ? el.selectionEnd : vLen
+        // A freshly focused element has its caret at the start; send-keys types at the end
+        const s = wasActive && typeof el.selectionStart === 'number' ? el.selectionStart : vLen
+        const e2 = wasActive && typeof el.selectionEnd === 'number' ? el.selectionEnd : vLen
         // contentEditable: splice into textContent; form controls: splice into value
         if (el.isContentEditable) {
             el.textContent = (el.textContent || '').substring(0, s) + val + (el.textContent || '').substring(e2)
@@ -267,7 +270,9 @@ export async function bidiAssertClickable(element: WebdriverIO.Element): Promise
 // ── Reads ────────────────────────────────────────────────
 
 export function bidiGetText(element: WebdriverIO.Element): Promise<string> {
-    return exec(element, function (el) { return el.innerText || '' }) as Promise<string>
+    // innerText returns the full text of non-rendered elements; Classic Get Element Text returns ''
+    const fn = new Function('el', `return (${GET_VISIBLE_TEXT}).call(null, el)`) as (...args: unknown[]) => string
+    return exec(element, fn) as Promise<string>
 }
 
 export function bidiGetValue(element: WebdriverIO.Element): Promise<string> {

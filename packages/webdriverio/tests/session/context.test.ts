@@ -10,6 +10,8 @@ import {
     unregisterParallelContext,
     isParallelContext,
     PARALLEL_CONTEXTS_KEY,
+    PARALLEL_SAFE_CLASSIC_COMMANDS,
+    CLASSIC_COMMANDS,
 } from '../../src/session/context.js'
 import { logMock } from '@wdio/logger'
 import { SESSION_ENDED_ERROR } from 'webdriver'
@@ -695,8 +697,8 @@ describe('ContextManager — parallel mode guards', () => {
     })
 
     const parallelModeError = (command: string) =>
-        `${command} is not supported in parallel mode (parallelMode: 'contexts') — ` +
-        'window/frame management mutates session-global state shared by concurrent tests'
+        `${command} is not supported in parallel mode — ` +
+        "WebDriver Classic commands act on the session's focused window, which concurrent tests share"
 
     function createBidiBrowser() {
         const wid = process.env.WDIO_UNIT_TESTS
@@ -716,7 +718,7 @@ describe('ContextManager — parallel mode guards', () => {
             const commandHandlers = stub.getListeners().command
             const cmHandler = commandHandlers![commandHandlers!.length - 1]
             getParallelContextStore().run('ctx-parallel-a', () => {
-                expect(() => cmHandler({ command: 'switchToWindow', body: { handle: 'handle-A' } }))
+                expect(() => cmHandler({ command: 'switchToWindow', endpoint: '/session/:sessionId/x', body: { handle: 'handle-A' } }))
                     .toThrow(parallelModeError('switchToWindow'))
             })
         } finally {
@@ -731,9 +733,9 @@ describe('ContextManager — parallel mode guards', () => {
             const commandHandlers = stub.getListeners().command
             const cmHandler = commandHandlers![commandHandlers!.length - 1]
             getParallelContextStore().run('ctx-parallel-a', () => {
-                expect(() => cmHandler({ command: 'switchToParentFrame' }))
+                expect(() => cmHandler({ command: 'switchToParentFrame', endpoint: '/session/:sessionId/x' }))
                     .toThrow(parallelModeError('switchToParentFrame'))
-                expect(() => cmHandler({ command: 'refresh' }))
+                expect(() => cmHandler({ command: 'refresh', endpoint: '/session/:sessionId/x' }))
                     .toThrow(parallelModeError('refresh'))
             })
         } finally {
@@ -748,7 +750,7 @@ describe('ContextManager — parallel mode guards', () => {
             const commandHandlers = stub.getListeners().command
             const cmHandler = commandHandlers![commandHandlers!.length - 1]
             getParallelContextStore().run('ctx-parallel-a', () => {
-                expect(() => cmHandler({ command: 'closeWindow', body: {} }))
+                expect(() => cmHandler({ command: 'closeWindow', endpoint: '/session/:sessionId/x', body: {} }))
                     .toThrow(parallelModeError('closeWindow'))
                 expect(bidiBrowser.switchToWindow).not.toHaveBeenCalled()
             })
@@ -757,41 +759,59 @@ describe('ContextManager — parallel mode guards', () => {
         }
     })
 
-    it.each([
-        'switchToFrame', 'getWindowRect', 'setWindowRect', 'maximizeWindow', 'minimizeWindow',
-        'fullscreenWindow', 'back', 'forward', 'dismissAlert', 'acceptAlert', 'sendAlertText',
-        'performActions', 'releaseActions', 'takeScreenshot', 'executeAsyncScript'
-    ])('throws for %s inside a parallel test scope but not outside', (command) => {
+    function getCommandHandler() {
         const { wid, stub, bidiBrowser } = createBidiBrowser()
+        getContextManager(bidiBrowser)
+        const commandHandlers = stub.getListeners().command
+        return { wid, bidiBrowser, cmHandler: commandHandlers![commandHandlers!.length - 1] }
+    }
+
+    it('only lists safe commands that exist in the WebDriver Classic protocol', () => {
+        for (const command of PARALLEL_SAFE_CLASSIC_COMMANDS) {
+            expect(CLASSIC_COMMANDS.has(command), command).toBe(true)
+        }
+    })
+
+    it.each([...CLASSIC_COMMANDS])('guards Classic command %s by the parallel allowlist', (command) => {
+        const { wid, cmHandler } = getCommandHandler()
         try {
-            getContextManager(bidiBrowser)
-            const commandHandlers = stub.getListeners().command
-            const cmHandler = commandHandlers![commandHandlers!.length - 1]
-            expect(() => cmHandler({ command, body: {} })).not.toThrow()
+            expect(() => cmHandler({ command, endpoint: '/session/:sessionId/x', body: {} })).not.toThrow()
             getParallelContextStore().run('ctx-parallel-a', () => {
-                expect(() => cmHandler({ command, body: {} })).toThrow(parallelModeError(command))
+                const call = () => cmHandler({ command, endpoint: '/session/:sessionId/x', body: {} })
+                if (PARALLEL_SAFE_CLASSIC_COMMANDS.includes(command)) {
+                    expect(call).not.toThrow()
+                } else {
+                    expect(call).toThrow(parallelModeError(command))
+                }
             })
         } finally {
             process.env.WDIO_UNIT_TESTS = wid
         }
     })
 
-    it.each(['getWindowHandle', 'executeScript', 'findElement', 'findElements', 'getAlertText'])(
-        'does not throw for %s inside a parallel test scope',
-        (command) => {
-            const { wid, stub, bidiBrowser } = createBidiBrowser()
-            try {
-                getContextManager(bidiBrowser)
-                const commandHandlers = stub.getListeners().command
-                const cmHandler = commandHandlers![commandHandlers!.length - 1]
-                getParallelContextStore().run('ctx-parallel-a', () => {
-                    expect(() => cmHandler({ command, body: {} })).not.toThrow()
-                })
-            } finally {
-                process.env.WDIO_UNIT_TESTS = wid
-            }
+    it('does not throw for a wrapper command event without an endpoint (BiDi override)', () => {
+        const { wid, cmHandler } = getCommandHandler()
+        try {
+            getParallelContextStore().run('ctx-parallel-a', () => {
+                expect(() => cmHandler({ command: 'getUrl', body: [] })).not.toThrow()
+                expect(() => cmHandler({ command: 'getUrl', endpoint: '/session/:sessionId/url', body: {} }))
+                    .toThrow(parallelModeError('getUrl'))
+            })
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
         }
-    )
+    })
+
+    it('does not throw for BiDi commands inside a parallel test scope', () => {
+        const { wid, cmHandler } = getCommandHandler()
+        try {
+            getParallelContextStore().run('ctx-parallel-a', () => {
+                expect(() => cmHandler({ command: 'browsingContextGetTree', endpoint: '/session/:sessionId/x', body: {} })).not.toThrow()
+            })
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
+    })
 
     it('works outside a parallel test scope', async () => {
         const { wid, stub, bidiBrowser } = createBidiBrowser()
@@ -799,7 +819,7 @@ describe('ContextManager — parallel mode guards', () => {
             const manager = getContextManager(bidiBrowser)
             const commandHandlers = stub.getListeners().command
             const cmHandler = commandHandlers![commandHandlers!.length - 1]
-            cmHandler({ command: 'switchToWindow', body: { handle: 'handle-A' } })
+            cmHandler({ command: 'switchToWindow', endpoint: '/session/:sessionId/x', body: { handle: 'handle-A' } })
             expect(await manager.getCurrentContext()).toBe('handle-A')
         } finally {
             process.env.WDIO_UNIT_TESTS = wid

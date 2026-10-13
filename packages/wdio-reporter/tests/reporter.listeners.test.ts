@@ -813,6 +813,14 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests.B.output).toHaveLength(0)
         })
 
+        it('does not attribute commands from an unstarted context to the last ended test', () => {
+            start('A', 'ctx-a')
+            reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+            command('client:beforeCommand', 'hook', 'ctx-b')
+            command('client:afterCommand', 'hook', 'ctx-b')
+            expect(reporter.tests.A.output).toHaveLength(0)
+        })
+
         it('drops commands without contextId while a context-tracked test is active', () => {
             start('A', 'ctx-a')
             start('B', 'ctx-b')

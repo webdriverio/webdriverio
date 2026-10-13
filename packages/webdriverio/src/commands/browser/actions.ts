@@ -1,29 +1,8 @@
-import { ELEMENT_KEY } from 'webdriver'
-import type { remote } from 'webdriver'
-
+import { toBidiActions } from '../../utils/actions/base.js'
 import type { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index.js'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
 import { getParallelContextStore } from '../../session/context.js'
-
-function toBidiActions (payload: ReturnType<(KeyAction | PointerAction | WheelAction)['toJSON']>[]) {
-    return payload.map((source) => ({
-        ...source,
-        actions: source.actions.map((action) => {
-            const origin = (action as { origin?: { [key: string]: string } }).origin
-            if (!origin || typeof origin !== 'object' || !(ELEMENT_KEY in origin)) {
-                return action
-            }
-            return {
-                ...action,
-                origin: {
-                    type: 'element',
-                    element: { sharedId: origin[ELEMENT_KEY] }
-                }
-            }
-        })
-    })) as remote.InputSourceActions[]
-}
 
 /**
  * Allows to run multiple action interactions at once, e.g. to simulate a pinch zoom or hold a modifier key while
