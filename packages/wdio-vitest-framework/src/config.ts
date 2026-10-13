@@ -16,6 +16,7 @@ declare module 'vitest' {
 }
 
 const DEFAULT_TEST_TIMEOUT_MS = 60_000
+const DEFAULT_HOOK_TIMEOUT_MS = 120_000
 const SETUP_FILE = fileURLToPath(new URL('./setup.js', import.meta.url))
 
 function isPositiveNumber(value: unknown): value is number {
@@ -67,6 +68,8 @@ export function toVitestConfig({ config, specs, configFile }: Frameworks.Framewo
         test: {
             ...shared,
             testTimeout: DEFAULT_TEST_TIMEOUT_MS,
+            // beforeAll starts the session, which Vitest's 10s hook default cuts off on a loaded machine
+            hookTimeout: isPositiveNumber(config.connectionRetryTimeout) ? config.connectionRetryTimeout : DEFAULT_HOOK_TIMEOUT_MS,
             ...(isPositiveNumber(config.maxInstances) ? { maxWorkers: config.maxInstances } : {}),
             ...(isPositiveNumber(config.bail) ? { bail: config.bail } : {}),
             ...(parallelMode ? { maxConcurrency: resolveMaxContexts(maxParallelContexts, os.cpus().length) } : {}),
