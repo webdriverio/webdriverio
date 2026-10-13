@@ -1,7 +1,10 @@
 import fs from 'node:fs'
 import { AstBuilder, GherkinClassicTokenMatcher, Parser } from '@cucumber/gherkin'
+import logger from '@wdio/logger'
 
 import { escapeRegExp } from './utils.js'
+
+const log = logger('@wdio/cucumberjs-json-reporter')
 
 export interface StepLine {
     text: string
@@ -107,7 +110,9 @@ export function readFeatureLines (file: string, language: string): FeatureLines 
         }
         walk((document.feature?.children ?? []) as readonly GherkinChild[], [])
         return lines
-    } catch {
+    } catch (error: unknown) {
+        // for example an unknown `language`: without the lines, each line is null
+        log.warn(`No line numbers for ${file} (language "${language}"): ${(error as Error).message}`)
         return undefined
     }
 }
