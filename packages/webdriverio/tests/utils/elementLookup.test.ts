@@ -2,57 +2,47 @@ import vm from 'node:vm'
 import { describe, it, expect } from 'vitest'
 
 import {
-    enterCommand, leaveCommand, markNotFound, isMarkedNotFound, markWaited, waitedFor,
+    markGaveUp, gaveUpFor, passOn, markWaited, waitedFor,
     isStaleElementError, isStaleError
 } from '../../src/utils/elementLookup.js'
 
-describe('the not found mark of an element', () => {
-    it('marks only the layers that are active when the wait fails', () => {
+describe('the record of a lookup that gave up', () => {
+    it('records the element whose lookup gave up on the error', () => {
         const el = {}
-        markNotFound(el)
-        expect(isMarkedNotFound(el)).toBe(false)
+        const other = {}
+        const err = new Error('stale element reference')
+        expect(gaveUpFor(err, el)).toBe(false)
 
-        const outer = enterCommand(el)
-        const inner = enterCommand(el)
-        markNotFound(el)
-        expect(isMarkedNotFound(el, outer)).toBe(true)
-        expect(isMarkedNotFound(el, inner)).toBe(true)
-        expect(isMarkedNotFound(el)).toBe(true)
-
-        /**
-         * a layer that starts after the mark, e.g. the next poll of `waitUntil`
-         */
-        leaveCommand(el, inner)
-        const next = enterCommand(el)
-        expect(isMarkedNotFound(el, next)).toBe(false)
-        expect(isMarkedNotFound(el, outer)).toBe(true)
-        leaveCommand(el, next)
+        markGaveUp(err, el)
+        expect(gaveUpFor(err, el)).toBe(true)
+        expect(gaveUpFor(err, other)).toBe(false)
+        expect(gaveUpFor(new Error('stale element reference'), el)).toBe(false)
     })
 
-    it('forgets a layer when it ends', () => {
+    it('records a frozen error, not a value that is not an object', () => {
         const el = {}
-        const outer = enterCommand(el)
-        markNotFound(el)
-        leaveCommand(el, outer)
-        expect(isMarkedNotFound(el, outer)).toBe(false)
-        expect(isMarkedNotFound(el)).toBe(false)
+        const frozen = Object.freeze(new Error('stale element reference'))
+        markGaveUp(frozen, el)
+        expect(gaveUpFor(frozen, el)).toBe(true)
 
-        const again = enterCommand(el)
-        expect(isMarkedNotFound(el, again)).toBe(false)
-        expect(isMarkedNotFound(el)).toBe(false)
-        leaveCommand(el, again)
+        for (const value of ['stale element reference', undefined, null, 42]) {
+            expect(() => markGaveUp(value, el)).not.toThrow()
+            expect(gaveUpFor(value, el)).toBe(false)
+        }
     })
 
-    it('keeps the marks of different elements apart', () => {
-        const a = {}
-        const b = {}
-        const layerA = enterCommand(a)
-        const layerB = enterCommand(b)
-        markNotFound(a)
-        expect(isMarkedNotFound(a, layerA)).toBe(true)
-        expect(isMarkedNotFound(b, layerB)).toBe(false)
-        leaveCommand(a, layerA)
-        leaveCommand(b, layerB)
+    it('passes the record on to an error that replaces it', () => {
+        const el = {}
+        const err = new Error('stale element reference')
+        const wrapped = new Error('waitUntil condition failed with the following reason: stale element reference')
+        passOn(err, wrapped)
+        expect(gaveUpFor(wrapped, el)).toBe(false)
+
+        markGaveUp(err, el)
+        passOn(err, wrapped)
+        expect(gaveUpFor(wrapped, el)).toBe(true)
+        expect(() => passOn(err, 'not an object')).not.toThrow()
+        expect(() => passOn(undefined, wrapped)).not.toThrow()
     })
 })
 

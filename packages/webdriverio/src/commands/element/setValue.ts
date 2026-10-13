@@ -1,7 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { Key } from '../../constants.js'
-import { isMarkedNotFound, isStaleError } from '../../utils/elementLookup.js'
+import { gaveUpFor } from '../../utils/elementLookup.js'
 import type { InputOptions } from '../../types.js'
 
 /**
@@ -85,7 +85,7 @@ export async function setValue (
  */
 function noPropertyUnlessGone (elem: WebdriverIO.Element) {
     return (err: unknown) => {
-        if (isStaleError(err) && isMarkedNotFound(elem)) {
+        if (gaveUpFor(err, elem)) {
             throw err
         }
         return undefined

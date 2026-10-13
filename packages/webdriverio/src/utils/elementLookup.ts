@@ -1,29 +1,19 @@
 /**
- * A leaf module without imports: the element middleware, `implicitWait`, `setValue` and
- * the `utils/index.ts` barrel import it.
+ * A leaf module without imports: the element middleware, `implicitWait`, `waitUntil`,
+ * `waitForStable`, `setValue` and the `utils/index.ts` barrel import it.
  *
  * A command runs other commands on its element (`getText` runs `getElementText`), and each
  * of them has a layer of the element middleware. When the page removed the element, the
- * first lookup that waits `waitforTimeout` and does not find it marks the layers of the
- * element that are active at that time: they throw their stale element error at once
- * instead of waiting again. A layer that starts later (the next poll of `waitUntil`, a
- * check after a caught failure, the next command) looks for the element again.
+ * first layer that waits `waitforTimeout` for it and does not find it records that on the
+ * error that it throws. The outer layers of the element get this error and throw it at
+ * once instead of waiting again. Any other stale error, for example of a script that got
+ * the element after the page rendered it again, makes a layer look for the element again.
  */
 
 /**
- * a layer of the element middleware
+ * errors thrown by a layer that waited for its element and did not find it, with that element
  */
-export type Layer = object
-
-/**
- * the active layers of each element
- */
-const activeLayers = new WeakMap<object, Set<Layer>>()
-
-/**
- * the layers that were active when a lookup waited for their element and did not find it
- */
-const notFound = new WeakSet<Layer>()
+const gaveUp = new WeakMap<object, object>()
 
 /**
  * a registered symbol: another copy of webdriverio in the same process sees the flag
@@ -31,46 +21,30 @@ const notFound = new WeakSet<Layer>()
 const WAITED_FOR = Symbol.for('wdio:waitedFor')
 
 /**
- * a middleware layer of the element starts
+ * a layer of the element waited for it, did not find it and throws `err`. A value that is
+ * not an object gets no record: the outer layers look for the element again.
  */
-export function enterCommand(el: object): Layer {
-    const layer: Layer = {}
-    const layers = activeLayers.get(el) ?? new Set<Layer>()
-    layers.add(layer)
-    activeLayers.set(el, layers)
-    return layer
-}
-
-/**
- * a middleware layer of the element ends
- */
-export function leaveCommand(el: object, layer: Layer) {
-    const layers = activeLayers.get(el)
-    layers?.delete(layer)
-    if (layers?.size === 0) {
-        activeLayers.delete(el)
+export function markGaveUp(err: unknown, el: object) {
+    if (err && typeof err === 'object') {
+        gaveUp.set(err, el)
     }
 }
 
 /**
- * a lookup waited for the element and did not find it: mark the layers of the element
- * that are active now, so that a mark never outlives a command
+ * whether a layer of the element waited for it, did not find it and threw `err`
  */
-export function markNotFound(el: object) {
-    for (const layer of activeLayers.get(el) ?? []) {
-        notFound.add(layer)
-    }
+export function gaveUpFor(err: unknown, el: object): boolean {
+    return Boolean(err && typeof err === 'object' && gaveUp.get(err) === el)
 }
 
 /**
- * whether the layer was active when a lookup waited for the element and did not find it;
- * without a layer, whether an active layer of the element was
+ * give the record of `from` to `to`, an error that replaces it (e.g. the error of `waitUntil`)
  */
-export function isMarkedNotFound(el: object, layer?: Layer): boolean {
-    if (layer) {
-        return notFound.has(layer) && Boolean(activeLayers.get(el)?.has(layer))
+export function passOn(from: unknown, to: unknown) {
+    const el = from && typeof from === 'object' ? gaveUp.get(from) : undefined
+    if (el) {
+        markGaveUp(to, el)
     }
-    return [...activeLayers.get(el) ?? []].some((active) => notFound.has(active))
 }
 
 /**

@@ -2,6 +2,7 @@ import { getBrowserObject } from '@wdio/utils'
 import type { WebDriverResultEvent } from 'webdriver'
 
 import Timer from '../../utils/Timer.js'
+import { passOn } from '../../utils/elementLookup.js'
 import type { WaitUntilOptions } from '../../types.js'
 
 /**
@@ -73,6 +74,10 @@ export function waitUntil<ReturnValue>(
         }
 
         const err = new Error(`waitUntil condition failed with the following reason: ${e && e.message || e}`)
+        /**
+         * the element middleware does not look again for an element whose lookup gave up
+         */
+        passOn(e, err)
         const origStack = e.stack
         if (!origStack || !err.stack) {
             throw err

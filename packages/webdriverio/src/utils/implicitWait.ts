@@ -9,7 +9,7 @@ import { getBrowserObject } from '@wdio/utils'
 import { StrictSelectorError } from './strictSelectorError.js'
 import { INDEX_NOT_FOUND, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
-import { markNotFound, markWaited } from './elementLookup.js'
+import { markWaited } from './elementLookup.js'
 
 const log = logger('webdriverio')
 
@@ -91,7 +91,6 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
              */
             if (!existed) {
                 markWaited(notFound)
-                markNotFound(currentElement)
             }
             throw notFound
         }

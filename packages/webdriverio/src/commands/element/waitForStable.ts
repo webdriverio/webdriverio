@@ -1,6 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { WaitForOptions } from '../../types.js'
 import { describeSelector } from '../../utils/describeSelector.js'
+import { passOn } from '../../utils/elementLookup.js'
 
 /**
  *
@@ -76,6 +77,7 @@ export async function waitForStable (
     }: WaitForOptions = {}
 ) {
     let errorMsg!: string
+    let failure: unknown
     const browser = getBrowserObject(this)
 
     if (browser.isMobile && browser.isNativeContext) {
@@ -87,6 +89,7 @@ export async function waitForStable (
             try {
                 return reverse !== await this.isStable()
             } catch (error) {
+                failure = error
                 if (error instanceof Error) {
                     errorMsg = error.message
                 } else if (typeof error === 'string') {
@@ -102,6 +105,11 @@ export async function waitForStable (
     )
 
     if (errorMsg) {
-        throw Error(errorMsg)
+        const err = Error(errorMsg)
+        /**
+         * the element middleware does not look again for an element whose lookup gave up
+         */
+        passOn(failure, err)
+        throw err
     }
 }

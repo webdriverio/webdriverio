@@ -60,7 +60,7 @@ function fakeDriver (fallback: Fallback) {
     const refs = (ids: string[]) => ids.map((id) => ({ [ELEMENT_KEY]: id }))
     const staleError = () => reply({
         error: 'stale element reference',
-        message: 'element is not attached to the page document'
+        message: 'stale element reference: element is not attached to the page document'
     }, 404)
 
     const handler = async (uri: URL | string, params?: RequestInit) => {
@@ -1012,9 +1012,14 @@ describe('finding an element again', () => {
 
         it('waits once for waitForEnabled of a removed element', async () => {
             const elem = await removedRef()
+            vi.mocked(refetchElement).mockClear()
             const { error, waits: count } = await waits(elem.waitForEnabled())
             expect(error).toBeInstanceOf(Error)
             expect(count).toBe(1)
+            /**
+             * the layers of the wait do not look again (and run the wait again)
+             */
+            expect(vi.mocked(refetchElement).mock.calls.map(([, commandName]) => commandName)).toEqual(['isElementEnabled'])
         })
 
         /**
@@ -1135,6 +1140,41 @@ describe('finding an element again', () => {
             })
         })
 
+        /**
+         * a command of the element catches its failure, the page has the element again, and the
+         * command uses the element without a new lookup: its own layer finds it again, as on
+         * `main` (#16072 second final review)
+         */
+        describe('a command of the element that uses it again after a caught failure', () => {
+            const commandOfGoneElement = async (secondUse: (elem: WebdriverIO.Element, browser: WebdriverIO.Browser) => Promise<unknown>) => {
+                const browser = await session()
+                browser.addCommand('useAgain', async function (this: WebdriverIO.Element) {
+                    await this.getText().catch(() => 'caught')
+                    driver.light.set('#ref', ['elem-r2'])
+                    return secondUse(this, browser)
+                }, { attachToElement: true })
+                driver.light.set('#ref', ['elem-r'])
+                const elem = await browser.$('#ref')
+                driver.stale.add('elem-r')
+                driver.light.set('#ref', [])
+                // @ts-expect-error undefined custom command
+                return elem.useAgain()
+            }
+
+            it('recovers when it runs a script with the element', async () => {
+                const scriptGot: string[] = []
+                await commandOfGoneElement(async (elem, browser) => {
+                    await browser.execute((el) => el, elem as unknown as HTMLElement)
+                    scriptGot.push(elem.elementId)
+                })
+                expect(scriptGot).toEqual(['elem-r2'])
+            })
+
+            it('recovers when it runs a protocol command with the element id', async () => {
+                expect(await commandOfGoneElement((elem) => elem.getElementText(elem.elementId))).toBe('text of elem-r2')
+            })
+        })
+
         it('a command of the element answers a check at once after it caught a failure of the element', async () => {
             const browser = await session()
             browser.addCommand('textOrGone', async function (this: WebdriverIO.Element) {
@@ -1154,9 +1194,11 @@ describe('finding an element again', () => {
 
         it('waits once for waitForStable of a removed element', async () => {
             const elem = await removedRef()
+            vi.mocked(refetchElement).mockClear()
             const { error, waits: count } = await waits(elem.waitForStable())
             expect(error?.message).toContain('element is not attached to the page document')
             expect(count).toBe(1)
+            expect(vi.mocked(refetchElement).mock.calls.map(([, commandName]) => commandName)).toEqual(['isStable'])
         })
     })
 

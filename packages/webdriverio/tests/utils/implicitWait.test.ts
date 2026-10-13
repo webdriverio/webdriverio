@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest'
 import implicitWait from '../../src/utils/implicitWait.js'
 import { findElementAgain } from '../../src/utils/findElementAgain.js'
 import { StrictSelectorError } from '../../src/utils/strictSelectorError.js'
-import { enterCommand, leaveCommand, isMarkedNotFound, waitedFor } from '../../src/utils/elementLookup.js'
+import { waitedFor } from '../../src/utils/elementLookup.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../src/utils/findElementAgain.js', async (importOriginal) => ({
@@ -15,32 +15,27 @@ vi.mock('../../src/utils/findElementAgain.js', async (importOriginal) => ({
 /**
  * an element without an element id, in a browser
  */
-const missing = (waitForExist: () => Promise<unknown>, isExisting: () => Promise<boolean> = async () => false) => ({
+const missing = (waitForExist: () => Promise<unknown>) => ({
     selector: '#missing',
     parent: { isMobile: false },
     waitForExist: vi.fn(waitForExist),
-    isExisting: vi.fn(isExisting)
+    /**
+     * a spy: no check runs after the wait
+     */
+    isExisting: vi.fn(async () => false)
 }) as unknown as WebdriverIO.Element
 
 const notExisting = async () => { throw new Error('still not existing') }
 
 /**
- * The implicit wait flags its "element wasn't found" error and marks the element when the
- * wait for the element ended without it: the element middleware does not wait for it
- * again (#16072)
+ * The implicit wait flags its "element wasn't found" error when the wait for the element
+ * ended without it: the element middleware does not wait for it again (#16072)
  */
 describe('implicitWait', () => {
-    it('flags the error and marks the element when the wait ends without the element', async () => {
-        const el = missing(notExisting)
-        const layer = enterCommand(el)
-        try {
-            const error = await implicitWait(el, 'getText').then(() => null, (err: Error) => err)
-            expect(error?.message).toBe('Can\'t call getText on element with selector "#missing" because element wasn\'t found')
-            expect(waitedFor(error)).toBe(true)
-            expect(isMarkedNotFound(el)).toBe(true)
-        } finally {
-            leaveCommand(el, layer)
-        }
+    it('flags the error when the wait ends without the element', async () => {
+        const error = await implicitWait(missing(notExisting), 'getText').then(() => null, (err: Error) => err)
+        expect(error?.message).toBe('Can\'t call getText on element with selector "#missing" because element wasn\'t found')
+        expect(waitedFor(error)).toBe(true)
     })
 
     /**
