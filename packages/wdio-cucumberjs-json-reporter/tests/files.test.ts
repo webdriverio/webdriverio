@@ -4,7 +4,7 @@ import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { describe, it, expect, afterEach } from 'vitest'
 
-import { withFileLock } from '../src/files.js'
+import { isLeft, withFileLock } from '../src/files.js'
 
 describe('withFileLock', () => {
     const dirs: string[] = []
@@ -51,5 +51,15 @@ describe('withFileLock', () => {
         expect(withFileLock(file, () => 'done', 5000)).toBe('done')
         expect(Date.now() - start).toBeLessThan(1000)
         expect(fs.existsSync(lock)).toBe(false)
+    })
+
+    it('does not know the owner of a lock with an empty or invalid process id (it can time out)', () => {
+        const lock = `${tempFile()}.lock`
+        fs.mkdirSync(lock)
+        for (const pid of ['', '0', 'abc', '-1']) {
+            fs.writeFileSync(path.join(lock, 'pid'), pid)
+            // process.kill(0, 0) checks the process group of this process: it does not throw
+            expect(isLeft(lock), `pid "${pid}"`).toBeUndefined()
+        }
     })
 })
