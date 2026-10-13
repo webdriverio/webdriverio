@@ -3,6 +3,7 @@ import type { HtmlReporterOptions, ReportData } from './types.js'
 import logger from '@wdio/logger'
 import json from 'big-json'
 import fs from 'fs-extra'
+import { withExtension } from './fileNames.js'
 
 class JsonGenerator {
     private static LOG = logger('JsonGenerator')
@@ -34,7 +35,7 @@ class JsonGenerator {
                 }
 
                 if (reportOptions.produceJson ) {
-                    const jsonFile = reportData.reportFile.replace('.html', '.json')
+                    const jsonFile = withExtension(reportData.reportFile, '.json')
                     JsonGenerator.LOG.info('Json report write starting: ' + jsonFile)
                     try {
                         const stringified = await json.stringify({ body: reportData })

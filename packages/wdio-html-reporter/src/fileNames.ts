@@ -1,0 +1,19 @@
+import path from 'node:path'
+
+/**
+ * The file with the same folder and name, and another extension. Only the file
+ * name changes, also when a folder name has `.html` in it.
+ */
+export function withExtension (file: string, extension: string) {
+    const { dir, name } = path.parse(file)
+    return path.join(dir, `${name}${extension}`)
+}
+
+/**
+ * The HTML file of a worker: `report.html` → `report-0-0.html` (`.html` when the
+ * file name has no extension)
+ */
+export function workerFile (file: string, cid: string) {
+    const { dir, name, ext } = path.parse(file)
+    return path.join(dir, `${name}-${cid}${ext || '.html'}`)
+}

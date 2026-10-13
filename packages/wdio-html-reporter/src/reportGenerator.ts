@@ -11,6 +11,7 @@ import type { SuiteStats } from '@wdio/reporter'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import JsonGenerator from './jsonGenerator.js'
+import { workerFile } from './fileNames.js'
 const timeFormat ='YYYY-MM-DDTHH:mm:ss.SSS[Z]'
 
 class ReportGenerator {
@@ -92,7 +93,7 @@ class ReportGenerator {
         reportData.reportFile = this.reportFile
 
         try {
-            reportData.reportFile = reportData.reportFile.replace('.html', String.format('-{0}.html', reportData.info.cid))
+            reportData.reportFile = workerFile(reportData.reportFile, reportData.info.cid)
             await JsonGenerator.jsonOutput(this.options, reportData)
             if (this.options.produceHtml) {
                 await HtmlGenerator.htmlOutput(this.options, reportData)

@@ -36,4 +36,23 @@ describe('ReportAggregator', () => {
         expect(fs.readFileSync(path.join(dir, 'master-report.html'), 'utf-8')).toContain('No results')
         expect(fs.existsSync(path.join(dir, 'master-report.json'))).toBe(true)
     })
+
+    it('names the worker files from the file name only, also with no .html or a folder with .html', async () => {
+        const { HtmlReporter } = await import('../src/index.js')
+        const { RUNNER, SUITES } = await import('./testdata.js')
+        for (const [outputDir, filename, expected] of [
+            [path.join(tempDir(), 'out'), 'report', 'report-0-0.json'],
+            [path.join(tempDir(), 'site.html', 'out'), 'report.html', 'report-0-0.json']
+        ]) {
+            const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename, reportTitle: 'Names' } as never)
+            reporter.onRunnerStart(RUNNER)
+            reporter.onSuiteStart(SUITES[0])
+            reporter.onSuiteEnd(SUITES[0])
+            await reporter.onRunnerEnd(RUNNER)
+            expect(fs.readdirSync(outputDir).filter((file) => file.endsWith('.json'))).toEqual([expected])
+        }
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+    })
 })
