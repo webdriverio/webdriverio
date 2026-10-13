@@ -335,51 +335,44 @@ describe('CucumberFormatter', () => {
         })
     })
 
-    describe('provides a fail counter', () => {
-        function reportedFailedCount (status: TestStepResultStatus, ignoreUndefinedDefinitions = false) {
-            const eventBroadcaster = new EventEmitter()
-            const events = new EventEmitter()
-            const counts: unknown[] = []
-            events.on('getFailedCount', (count) => counts.push(count))
-            new CucumberFormatter({
-                eventBroadcaster,
-                parsedArgvOptions: {
-                    _reporter: wdioReporter,
-                    _cid: cid,
-                    _specs: specs,
-                    _eventEmitter: events,
-                    _scenarioLevelReporter: false,
-                    _tagsInTitle: false,
-                    _ignoreUndefinedDefinitions: ignoreUndefinedDefinitions,
-                    _failAmbiguousDefinitions: true,
-                },
-            } as any)
+    /**
+     * the events of a scenario with one step that ends with this status, and the failed counts
+     */
+    function reportedFailedCount (status: TestStepResultStatus, ignoreUndefinedDefinitions = false) {
+        const eventBroadcaster = new EventEmitter()
+        const events = new EventEmitter()
+        const counts: unknown[] = []
+        events.on('getFailedCount', (count) => counts.push(count))
+        new CucumberFormatter({
+            eventBroadcaster,
+            parsedArgvOptions: {
+                _reporter: wdioReporter,
+                _cid: cid,
+                _specs: specs,
+                _eventEmitter: events,
+                _scenarioLevelReporter: false,
+                _tagsInTitle: false,
+                _ignoreUndefinedDefinitions: ignoreUndefinedDefinitions,
+                _failAmbiguousDefinitions: true,
+            },
+        } as any)
 
-            loadGherkin(eventBroadcaster)
-            acceptPickle(eventBroadcaster)
-            prepareSuite(eventBroadcaster)
-            startSuite(eventBroadcaster)
+        loadGherkin(eventBroadcaster)
+        acceptPickle(eventBroadcaster)
+        prepareSuite(eventBroadcaster)
+        startSuite(eventBroadcaster)
 
-            const step: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
-            step.testStepResult = {
-                ...step.testStepResult,
-                status,
-            }
-            eventBroadcaster.emit('envelope', { testStepFinished: step })
-            eventBroadcaster.emit('envelope', { testRunFinished })
-            return counts
+        const step: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        step.testStepResult = {
+            ...step.testStepResult,
+            status,
         }
+        eventBroadcaster.emit('envelope', { testStepFinished: step })
+        eventBroadcaster.emit('envelope', { testRunFinished })
+        return counts
+    }
 
-        it('marks an undefined step as pending with "(undefined step)" in its title (ignoreUndefinedDefinitions)', () => {
-            wdioReporter.emit.mockClear()
-            reportedFailedCount(TestStepResultStatus.UNDEFINED, true)
-            const [, payload] = wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:pending')
-            expect(payload.state).toBe('pending')
-            expect(payload.title).toMatch(/ \(undefined step\)$/)
-            // the keyword stays: reporters find the step by its title
-            expect(payload.title).toMatch(/^(Given|When|Then|And|But) /)
-        })
-
+    describe('provides a fail counter', () => {
         it('should increment failed counter on `failed` status', () => {
             expect(reportedFailedCount(TestStepResultStatus.FAILED)).toEqual([1])
         })
@@ -394,6 +387,18 @@ describe('CucumberFormatter', () => {
 
         it('should not increment failed counter on `undefined` status if ignoreUndefinedDefinitions set to true', () => {
             expect(reportedFailedCount(TestStepResultStatus.UNDEFINED, true)).toEqual([0])
+        })
+    })
+
+    describe('undefined steps', () => {
+        it('marks an undefined step as pending with "(undefined step)" in its title (ignoreUndefinedDefinitions)', () => {
+            wdioReporter.emit.mockClear()
+            reportedFailedCount(TestStepResultStatus.UNDEFINED, true)
+            const [, payload] = wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:pending')
+            expect(payload.state).toBe('pending')
+            expect(payload.title).toMatch(/ \(undefined step\)$/)
+            // the keyword stays: reporters find the step by its title
+            expect(payload.title).toMatch(/^(Given|When|Then|And|But) /)
         })
     })
 
