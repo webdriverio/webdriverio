@@ -727,9 +727,13 @@ describe('finding an element again', () => {
 
         it('isDisplayed is false, without a wait for the index', async () => {
             const elem = await goneItem()
-            const start = Date.now()
+            const finds = driver.findsIn.length
             expect(await elem.isDisplayed()).toBe(false)
-            expect(Date.now() - start).toBeLessThan(100)
+            /**
+             * one lookup finds the item again, one more is the lookup of `isDisplayed` for a
+             * not found element. The wait for the index would look every `waitforInterval`
+             */
+            expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document', 'elements .item in document'])
         })
 
         it('waitForDisplayed with reverse is true', async () => {
