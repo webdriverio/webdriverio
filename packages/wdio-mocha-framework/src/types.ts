@@ -25,8 +25,9 @@ export interface MochaOpts {
     /**
      * Maximum number of browsing contexts (windows) to use in parallel.
      * Runs a pool of this many slots, each running one test at a time in its
-     * own window. A slot opens its next window while its test runs, so up to
-     * twice this many windows can be open briefly.
+     * own window. A slot opens its next window while its test runs and closes
+     * the previous one in the background, so up to three times this many
+     * windows can be open briefly.
      * @default os.cpus().length
      */
     maxParallelContexts?: number

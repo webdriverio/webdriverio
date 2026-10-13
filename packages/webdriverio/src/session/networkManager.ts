@@ -23,6 +23,7 @@ export class NetworkManager extends SessionManager {
     #initialize: Promise<boolean>
     #requests = new Map<Context, WebdriverIO.Request>()
     #lastNetworkId?: string
+    #lastNavigationByContext = new Map<Context, string>()
 
     #navigationStartedListener = this.#navigationStarted.bind(this)
     #responseCompletedListener = this.#responseCompleted.bind(this)
@@ -82,7 +83,7 @@ export class NetworkManager extends SessionManager {
             return
         }
 
-        const request = this.#findRootRequest(log.navigation)
+        const request = this.#findRootRequest(log.navigation, log.context)
         if (!request) {
             return
         }
@@ -138,6 +139,7 @@ export class NetworkManager extends SessionManager {
         }
 
         this.#lastNetworkId = log.navigation
+        this.#lastNavigationByContext.set(log.context, log.navigation)
         this.#requests.set(log.navigation, {
             url: log.url,
             headers: {},
@@ -149,7 +151,7 @@ export class NetworkManager extends SessionManager {
     }
 
     #fetchError (log: local.NetworkFetchErrorParameters) {
-        const response = this.#findRootRequest(log.navigation)
+        const response = this.#findRootRequest(log.navigation, log.context)
         if (!response) {
             return
         }
@@ -161,10 +163,21 @@ export class NetworkManager extends SessionManager {
         request.error = log.errorText
     }
 
-    #findRootRequest (navigationId: string | null) {
+    #findRootRequest (navigationId: string | null, context?: string | null) {
         const response = this.#requests.get(navigationId || UNKNOWN_NAVIGATION_ID)
         if (response) {
             return response
+        }
+
+        /**
+         * Subresources carry no navigation id: attribute them to the last navigation
+         * of their own context so parallel tabs don't share one. Iframe contexts are
+         * not tracked and fall through to the global fallback below.
+         */
+        const contextNavigation = context ? this.#lastNavigationByContext.get(context) : undefined
+        const contextRequest = contextNavigation ? this.#requests.get(contextNavigation) : undefined
+        if (contextRequest) {
+            return contextRequest
         }
 
         /**
@@ -181,7 +194,7 @@ export class NetworkManager extends SessionManager {
     }
 
     #responseCompleted (log: local.NetworkResponseCompletedParameters) {
-        const response = this.#findRootRequest(log.navigation)
+        const response = this.#findRootRequest(log.navigation, log.context)
         if (!response) {
             return
         }
