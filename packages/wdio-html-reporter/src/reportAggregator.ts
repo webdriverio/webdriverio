@@ -65,6 +65,10 @@ class ReportAggregator {
     }
     public options: HtmlReporterOptions
     public reportFile : string = ''
+    /**
+     * true when the last createReport failed for a part of the report (it logs the errors)
+     */
+    public failed = false
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public reports: any[]
 
@@ -208,13 +212,15 @@ class ReportAggregator {
             reportData.message = `${this.reports[0].info.cid}`
         }
 
+        this.failed = false
         try {
             await JsonGenerator.jsonOutput(this.options, reportData)
-            await HtmlGenerator.htmlOutput(this.options, reportData)
+            this.failed = !await HtmlGenerator.htmlOutput(this.options, reportData)
             await this.finalize()
             this.LOG.info('Report Aggregation completed')
 
         } catch (ex) {
+            this.failed = true
             console.error('Report Aggregation failed: ' + ex)
         }
     }
