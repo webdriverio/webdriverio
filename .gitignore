@@ -139,3 +139,4 @@ website/i18n/*
 
 e2e/wdio/wdio-chrome-*
 e2e/wdio/reporters/*/results/
+tests/cucumber/cucumberjs-json/json/
