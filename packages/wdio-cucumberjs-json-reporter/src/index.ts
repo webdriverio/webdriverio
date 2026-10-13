@@ -16,7 +16,7 @@ import {
 } from './constants.js'
 import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
-import { findDocStringLine, findStepLine, readFeatureLines, scenarioNameOf, takeScenarioLines, type FeatureLines, type ScenarioLines } from './featureLines.js'
+import { findDocStringLine, findStepLine, readFeatureLines, retakeScenarioLines, scenarioNameOf, takeScenarioLines, type FeatureLines, type TakenScenario } from './featureLines.js'
 import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage } from './utils.js'
 import { withFileLock, writeFileAtomic } from './files.js'
 import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
@@ -30,7 +30,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     public metadataClassObject: Metadata
     #featureLines?: FeatureLines
     /** line data of each scenario of the report, and the step lines it used */
-    #scenarioLines = new WeakMap<Scenario, { lines: ScenarioLines, usedLines: Set<number> }>()
+    #scenarioLines = new WeakMap<Scenario, { taken: TakenScenario, usedLines: Set<number>, rule?: string, tags: string[] }>()
     /**
      * each feature of the worker and the lines of its file, by the path of the file:
      * the uid of the framework has only the file name, and a feature that starts again
@@ -336,7 +336,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             steps: [],
         }
         if (taken) {
-            this.#scenarioLines.set(scenario, { lines: taken.scenario, usedLines: new Set() })
+            this.#scenarioLines.set(scenario, { taken, usedLines: new Set(), rule, tags })
         }
         return scenario
     }
@@ -406,10 +406,15 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         const step = this.getStepDataObject(test)
         const scenarioLines = this.#scenarioLines.get(scenario)
         if (!step.hidden && scenarioLines && this.#featureLines) {
-            step.line = findStepLine(scenarioLines.lines, step.name ?? '', scenarioLines.usedLines) ?? null
+            const retaken = retakeScenarioLines(this.#featureLines, scenarioLines.taken, scenario.name ?? '', step.name ?? '', scenarioLines)
+            if (retaken) {
+                scenarioLines.taken = retaken
+                scenario.line = retaken.line
+            }
+            step.line = findStepLine(scenarioLines.taken.scenario, step.name ?? '', scenarioLines.usedLines) ?? null
             const docString = step.arguments?.[0] as Partial<DocString> | undefined
             const docStringLine = step.line !== null && typeof docString?.content === 'string'
-                ? findDocStringLine(scenarioLines.lines, step.line)
+                ? findDocStringLine(scenarioLines.taken.scenario, step.line)
                 : undefined
             if (docString && docStringLine) {
                 docString.line = docStringLine

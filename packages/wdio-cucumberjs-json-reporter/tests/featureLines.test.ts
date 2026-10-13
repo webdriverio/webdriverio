@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 
-import { readFeatureLines, takeScenarioLines, findStepLine, scenarioNameOf } from '../src/featureLines.js'
+import { readFeatureLines, takeScenarioLines, retakeScenarioLines, findStepLine, scenarioNameOf } from '../src/featureLines.js'
 
 const FEATURE = `Feature: F
   Background:
@@ -109,6 +109,33 @@ describe('featureLines', () => {
         const lines = readFeatureLines(sameName, 'en')!
         expect(takeScenarioLines(lines, 'Buy milk')?.line).toBe(6)
         expect(takeScenarioLines(lines, 'Buy milk')?.line).toBe(7)
+    })
+
+    it('takes the scenario with the same name that has the step, when a later one runs first', () => {
+        const sameName = path.join(path.dirname(file), 'same-name-filter.feature')
+        fs.writeFileSync(sameName, [
+            'Feature: F',                           // 1
+            '  Scenario Outline: Buy <item>',       // 2
+            '    Given I buy "<item>"',             // 3
+            '    Examples:',                        // 4
+            '      | item |',                       // 5
+            '      | milk |',                       // 6
+            '  @plain',                             // 7
+            '  Scenario: Buy milk',                 // 8
+            '    Given I buy milk'                  // 9
+        ].join('\n'))
+        const lines = readFeatureLines(sameName, 'en')!
+        // a tag filter runs only the plain scenario: the name alone gives the outline row
+        const taken = takeScenarioLines(lines, 'Buy milk', { tags: ['@plain'] })!
+        expect(taken.line).toBe(6)
+        // its first step is a step of the plain scenario
+        const retaken = retakeScenarioLines(lines, taken, 'Buy milk', 'I buy milk', { tags: ['@plain'] })!
+        expect(retaken.line).toBe(8)
+        expect(findStepLine(retaken.scenario, 'I buy milk', new Set())).toBe(9)
+        // the outline row is free again for its example
+        expect(takeScenarioLines(lines, 'Buy milk')?.line).toBe(6)
+        // no change when the step is a step of the scenario that it took
+        expect(retakeScenarioLines(lines, retaken, 'Buy milk', 'I buy milk')).toBeUndefined()
     })
 
     it('takes the Examples row of the tags of the example, not an untagged row before it', () => {
