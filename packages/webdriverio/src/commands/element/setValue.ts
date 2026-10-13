@@ -1,6 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { Key } from '../../constants.js'
+import { isMarkedNotFound, isStaleError } from '../../utils/elementLookup.js'
 import type { InputOptions } from '../../types.js'
 
 /**
@@ -107,6 +108,15 @@ async function setsDirectly (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return false
     }
-    const type = await elem.getElementProperty(elem.elementId, 'type').catch(() => undefined)
+    /**
+     * a failed lookup gives no type, except when it waited for the element and did not find
+     * it: `clearValue` would wait for it again
+     */
+    const type = await elem.getElementProperty(elem.elementId, 'type').catch((err) => {
+        if (isStaleError(err) && isMarkedNotFound(elem)) {
+            throw err
+        }
+        return undefined
+    })
     return typeof type === 'string' && SET_DIRECTLY.includes(type)
 }

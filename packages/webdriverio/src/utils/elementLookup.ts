@@ -1,24 +1,29 @@
 /**
- * A leaf module without imports: the element middleware, `implicitWait` and the
- * `utils/index.ts` barrel import it.
+ * A leaf module without imports: the element middleware, `implicitWait`, `setValue` and
+ * the `utils/index.ts` barrel import it.
  *
  * A command runs other commands on its element (`getText` runs `getElementText`), and each
  * of them has a layer of the element middleware. When the page removed the element, the
- * first lookup that waits `waitforTimeout` and does not find it marks the element; every
- * other layer of the element then throws its stale element error at once instead of
- * waiting again. The mark lives only while the element has an active layer, so the next
- * command on the element looks for it again.
+ * first lookup that waits `waitforTimeout` and does not find it marks the layers of the
+ * element that are active at that time: they throw their stale element error at once
+ * instead of waiting again. A layer that starts later (the next poll of `waitUntil`, a
+ * check after a caught failure, the next command) looks for the element again.
  */
 
 /**
- * the number of active middleware layers of each element
+ * a layer of the element middleware
  */
-const activeCommands = new WeakMap<object, number>()
+export type Layer = object
 
 /**
- * elements that a lookup waited for and did not find, see `markNotFound`
+ * the active layers of each element
  */
-const notFound = new WeakSet<object>()
+const activeLayers = new WeakMap<object, Set<Layer>>()
+
+/**
+ * the layers that were active when a lookup waited for their element and did not find it
+ */
+const notFound = new WeakSet<Layer>()
 
 /**
  * a registered symbol: another copy of webdriverio in the same process sees the flag
@@ -28,35 +33,44 @@ const WAITED_FOR = Symbol.for('wdio:waitedFor')
 /**
  * a middleware layer of the element starts
  */
-export function enterCommand(el: object) {
-    activeCommands.set(el, (activeCommands.get(el) ?? 0) + 1)
+export function enterCommand(el: object): Layer {
+    const layer: Layer = {}
+    const layers = activeLayers.get(el) ?? new Set<Layer>()
+    layers.add(layer)
+    activeLayers.set(el, layers)
+    return layer
 }
 
 /**
- * a middleware layer of the element ends; with the last one the mark of the element goes
+ * a middleware layer of the element ends
  */
-export function leaveCommand(el: object) {
-    const count = (activeCommands.get(el) ?? 0) - 1
-    if (count > 0) {
-        activeCommands.set(el, count)
-        return
+export function leaveCommand(el: object, layer: Layer) {
+    const layers = activeLayers.get(el)
+    layers?.delete(layer)
+    if (layers?.size === 0) {
+        activeLayers.delete(el)
     }
-    activeCommands.delete(el)
-    notFound.delete(el)
 }
 
 /**
- * a lookup waited for the element and did not find it. Only while the element has an
- * active layer, so that a mark never outlives the command.
+ * a lookup waited for the element and did not find it: mark the layers of the element
+ * that are active now, so that a mark never outlives a command
  */
 export function markNotFound(el: object) {
-    if (activeCommands.has(el)) {
-        notFound.add(el)
+    for (const layer of activeLayers.get(el) ?? []) {
+        notFound.add(layer)
     }
 }
 
-export function isMarkedNotFound(el: object): boolean {
-    return notFound.has(el)
+/**
+ * whether the layer was active when a lookup waited for the element and did not find it;
+ * without a layer, whether an active layer of the element was
+ */
+export function isMarkedNotFound(el: object, layer?: Layer): boolean {
+    if (layer) {
+        return notFound.has(layer) && Boolean(activeLayers.get(el)?.has(layer))
+    }
+    return [...activeLayers.get(el) ?? []].some((active) => notFound.has(active))
 }
 
 /**

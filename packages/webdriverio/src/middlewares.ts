@@ -4,6 +4,7 @@ import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@w
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
 import { enterCommand, leaveCommand, isMarkedNotFound, markNotFound, waitedFor, isStaleError } from './utils/elementLookup.js'
+import type { Layer } from './utils/elementLookup.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
  */
@@ -24,10 +25,10 @@ function errorAfterLookup (lookupErr: unknown, err: Error): unknown {
  * is stale or not yet interactable. `execute` is the command itself, without
  * this wrapper, so a retry does not wait a second time.
  *
- * A command runs other commands on its element, each in a layer of this wrapper. While
- * a layer of the element is active, a lookup that waited for the element and did not find
- * it marks the element (`utils/elementLookup.ts`): the other layers throw their stale
- * element error at once instead of waiting again.
+ * A command runs other commands on its element, each in a layer of this wrapper. A lookup
+ * that waited for the element and did not find it marks the layers of the element that are
+ * active at that time (`utils/elementLookup.ts`): they throw their stale element error at
+ * once instead of waiting again.
  */
 async function invokeElementCommand (
     element: WebdriverIO.Element,
@@ -38,16 +39,17 @@ async function invokeElementCommand (
         return execute()
     }
 
-    enterCommand(element)
+    const layer = enterCommand(element)
     try {
-        return await runElementCommand(element, commandName, execute)
+        return await runElementCommand(element, layer, commandName, execute)
     } finally {
-        leaveCommand(element)
+        leaveCommand(element, layer)
     }
 }
 
 async function runElementCommand (
     element: WebdriverIO.Element,
+    layer: Layer,
     commandName: string,
     execute: () => Promise<unknown>
 ): Promise<unknown> {
@@ -89,7 +91,7 @@ async function runElementCommand (
             /**
              * a layer of this command already waited for the element and did not find it
              */
-            if (isMarkedNotFound(element)) {
+            if (isMarkedNotFound(element, layer)) {
                 throw err
             }
             let refetched: WebdriverIO.Element

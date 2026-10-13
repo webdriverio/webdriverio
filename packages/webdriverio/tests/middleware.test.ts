@@ -209,7 +209,11 @@ describe('middleware', () => {
             expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
         })
 
-        it('does not look again for an element that an inner command waited for, also after the error was dropped', async () => {
+        /**
+         * a command that starts after the failed wait (here after a dropped error) looks again,
+         * as on `main`; the outer command, active during the failed wait, does not (#16072 final review)
+         */
+        it('looks again in a later command after a dropped error, and not in the outer command', async () => {
             browser.addCommand('innerStaleA', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
             browser.addCommand('innerStaleB', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
             browser.addCommand('outerDropsError', async function (this: WebdriverIO.Element) {
@@ -224,7 +228,7 @@ describe('middleware', () => {
             // @ts-expect-error undefined custom command
             const error = await elem.outerDropsError().then(() => null, (e: Error) => e)
             expect(error?.name).toBe('stale element reference')
-            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(2)
         })
 
         /**

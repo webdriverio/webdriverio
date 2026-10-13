@@ -968,6 +968,74 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
+        it('fails both commands that run at the same time on a removed element', async () => {
+            const elem = await removedRef()
+            const results = await Promise.allSettled([elem.getText(), elem.getAttribute('id')])
+            expect(results.map((result) => result.status === 'rejected' && (result.reason as Error).name))
+                .toEqual(['stale element reference', 'stale element reference'])
+        })
+
+        /**
+         * Each poll of a wait on the element looks for it again: the element can come back
+         * before the timeout of the wait (#16072 final review)
+         */
+        describe('a wait that polls the element', () => {
+            const later = (ms: number, change: () => void) => setTimeout(change, ms)
+
+            it('waitForEnabled with a long timeout finds the element that comes back', async () => {
+                const elem = await removedRef()
+                later(250, () => driver.light.set('#ref', ['elem-r2']))
+                expect(await elem.waitForEnabled({ timeout: 1000 })).toBe(true)
+            })
+
+            it('waitUntil of the element finds the element that comes back', async () => {
+                const elem = await removedRef()
+                later(250, () => driver.light.set('#ref', ['elem-r2']))
+                expect(await elem.waitUntil(async function (this: WebdriverIO.Element) {
+                    return await this.getText() === 'text of elem-r2'
+                }, { timeout: 1000 })).toBe(true)
+            })
+
+            it('waitUntil of the element finds an element that is late and then replaced', async () => {
+                const browser = await session()
+                const elem = await browser.$('#late')
+                later(150, () => driver.light.set('#late', ['late-1']))
+                later(300, () => {
+                    driver.stale.add('late-1')
+                    driver.light.set('#late', ['late-2'])
+                })
+                expect(await elem.waitUntil(async function (this: WebdriverIO.Element) {
+                    return await this.getText() === 'text of late-2'
+                }, { timeout: 1000 })).toBe(true)
+            })
+
+            it('a command that starts while the wait runs finds the element that came back', async () => {
+                const elem = await removedRef()
+                later(150, () => driver.light.set('#ref', ['elem-r2']))
+                const wait = settle(elem.waitForEnabled({ timeout: 600 }))
+                await new Promise((resolve) => setTimeout(resolve, 250))
+                expect(await elem.getText()).toBe('text of elem-r2')
+                expect((await wait).error).toBeUndefined()
+            })
+        })
+
+        it('a command of the element answers a check at once after it caught a failure of the element', async () => {
+            const browser = await session()
+            browser.addCommand('textOrGone', async function (this: WebdriverIO.Element) {
+                const text = await this.getText().catch(() => 'no text')
+                const displayed = await this.isDisplayed()
+                const gone = await this.waitForDisplayed({ reverse: true, timeout: 300 })
+                return { text, displayed, gone }
+            }, { attachToElement: true })
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            driver.stale.add('elem-r')
+            driver.light.set('#ref', [])
+
+            // @ts-expect-error undefined custom command
+            expect(await elem.textOrGone()).toEqual({ text: 'no text', displayed: false, gone: true })
+        })
+
         it('waits once for waitForStable of a removed element', async () => {
             const elem = await removedRef()
             const { error, waits: count } = await waits(elem.waitForStable())

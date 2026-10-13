@@ -32,27 +32,27 @@ const notExisting = async () => { throw new Error('still not existing') }
 describe('implicitWait', () => {
     it('flags the error and marks the element when the wait ends and the element is still missing', async () => {
         const el = missing(notExisting)
-        enterCommand(el)
+        const layer = enterCommand(el)
         try {
             const error = await implicitWait(el, 'getText').then(() => null, (err: Error) => err)
             expect(error?.message).toBe('Can\'t call getText on element with selector "#missing" because element wasn\'t found')
             expect(waitedFor(error)).toBe(true)
             expect(isMarkedNotFound(el)).toBe(true)
         } finally {
-            leaveCommand(el)
+            leaveCommand(el, layer)
         }
     })
 
     it('does not flag the error when the element exists after the wait', async () => {
         const el = missing(notExisting, async () => true)
-        enterCommand(el)
+        const layer = enterCommand(el)
         try {
             const error = await implicitWait(el, 'getText').then(() => null, (err: Error) => err)
             expect(error?.message).toContain('because element wasn\'t found')
             expect(waitedFor(error)).toBe(false)
             expect(isMarkedNotFound(el)).toBe(false)
         } finally {
-            leaveCommand(el)
+            leaveCommand(el, layer)
         }
     })
 

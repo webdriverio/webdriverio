@@ -7,24 +7,52 @@ import {
 } from '../../src/utils/elementLookup.js'
 
 describe('the not found mark of an element', () => {
-    it('marks an element only while it has an active command, and forgets it when the last one ends', () => {
+    it('marks only the layers that are active when the wait fails', () => {
         const el = {}
         markNotFound(el)
         expect(isMarkedNotFound(el)).toBe(false)
 
-        enterCommand(el)
-        enterCommand(el)
+        const outer = enterCommand(el)
+        const inner = enterCommand(el)
         markNotFound(el)
+        expect(isMarkedNotFound(el, outer)).toBe(true)
+        expect(isMarkedNotFound(el, inner)).toBe(true)
         expect(isMarkedNotFound(el)).toBe(true)
 
-        leaveCommand(el)
-        expect(isMarkedNotFound(el)).toBe(true)
-        leaveCommand(el)
+        /**
+         * a layer that starts after the mark, e.g. the next poll of `waitUntil`
+         */
+        leaveCommand(el, inner)
+        const next = enterCommand(el)
+        expect(isMarkedNotFound(el, next)).toBe(false)
+        expect(isMarkedNotFound(el, outer)).toBe(true)
+        leaveCommand(el, next)
+    })
+
+    it('forgets a layer when it ends', () => {
+        const el = {}
+        const outer = enterCommand(el)
+        markNotFound(el)
+        leaveCommand(el, outer)
+        expect(isMarkedNotFound(el, outer)).toBe(false)
         expect(isMarkedNotFound(el)).toBe(false)
 
-        enterCommand(el)
+        const again = enterCommand(el)
+        expect(isMarkedNotFound(el, again)).toBe(false)
         expect(isMarkedNotFound(el)).toBe(false)
-        leaveCommand(el)
+        leaveCommand(el, again)
+    })
+
+    it('keeps the marks of different elements apart', () => {
+        const a = {}
+        const b = {}
+        const layerA = enterCommand(a)
+        const layerB = enterCommand(b)
+        markNotFound(a)
+        expect(isMarkedNotFound(a, layerA)).toBe(true)
+        expect(isMarkedNotFound(b, layerB)).toBe(false)
+        leaveCommand(a, layerA)
+        leaveCommand(b, layerB)
     })
 })
 
