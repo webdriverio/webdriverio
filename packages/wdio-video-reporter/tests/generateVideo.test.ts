@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest'
 import type * as HelpersModule from '../src/helpers.js'
 import VideoReporter from '../src/index.js'
 
-const ffmpeg = vi.hoisted(() => ({ exitCode: 0, stderr: '', spawnError: undefined as Error | undefined }))
+const ffmpeg = vi.hoisted(() => ({ exitCode: 0, stderr: '', spawnError: undefined as Error | undefined, hang: false }))
 
 vi.mock('node:child_process', async () => {
     const { EventEmitter } = await import('node:events')
@@ -12,6 +12,10 @@ vi.mock('node:child_process', async () => {
         spawn: vi.fn(() => {
             const cp = Object.assign(new EventEmitter(), { stderr: new EventEmitter(), kill: vi.fn() })
             setTimeout(() => {
+                // a render that does not end (until the reporter kills it)
+                if (ffmpeg.hang) {
+                    return
+                }
                 if (ffmpeg.spawnError) {
                     cp.emit('error', ffmpeg.spawnError)
                     return
@@ -84,6 +88,28 @@ describe('generateVideo', () => {
         const [, args] = vi.mocked(spawn).mock.calls[0] as unknown as [string, string[]]
         expect(args[args.length - 1]).toMatch(/\.webm$/)
         expect(args).toContain('libvpx-vp9')
+    })
+
+    it('drops the video of a render that it kills at the timeout, at once', async () => {
+        ffmpeg.hang = true
+        try {
+            vi.mocked(spawn).mockClear()
+            vi.mocked(fs.rmSync).mockClear()
+            const reporter = new VideoReporter({ videoRenderTimeout: 30 })
+            reporter.testName = 'my-test'
+            reporter.recordingPath = '/foo/bar/rawSeleniumVideoGrabs/my-test'
+            void reporter.generateVideo()
+            await new Promise((resolve) => setTimeout(resolve, 5))
+            const [videoPath] = reporter.videos
+            reporter.onRunnerEnd()
+            await new Promise((resolve) => setTimeout(resolve, 60))
+            expect(reporter.isSynchronised).toBe(true)
+            // the worker can exit now: the partial file must not be kept as a video
+            expect(reporter.videos).toEqual([])
+            expect(fs.rmSync).toHaveBeenCalledWith(videoPath, { force: true })
+        } finally {
+            ffmpeg.hang = false
+        }
     })
 
     it('logs the error of a failed ffmpeg run, not a generated video', async () => {

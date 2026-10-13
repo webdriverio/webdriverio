@@ -45,6 +45,8 @@ export default class VideoReporter extends WdioReporter {
     videos: string[] = []
     videoPromises: Promise<unknown>[] = []
     processList: Set<ChildProcess> = new Set()
+    /** how to drop the video of each running render */
+    #dropVideoOf = new Map<ChildProcess, () => void>()
     frameNr = 0
     intervalScreenshot?: NodeJS.Timeout
     allureVideos: string[] = []
@@ -480,7 +482,14 @@ export default class VideoReporter extends WdioReporter {
 
         const abortTimer = setTimeout(() => {
             this.#log('videoRenderTimeout triggered before ffmpeg had a chance to wrap up')
-            this.processList.forEach((cp) => cp.kill())
+            /**
+             * a killed render leaves a partial file, and the worker can exit before
+             * the close event of ffmpeg: drop these videos now
+             */
+            this.processList.forEach((cp) => {
+                cp.kill()
+                this.#dropVideoOf.get(cp)?.()
+            })
             wrapItUp()
         }, this.options.videoRenderTimeout)
 
@@ -701,6 +710,7 @@ export default class VideoReporter extends WdioReporter {
                     windowsHide: true,
                 })
                 this.processList.add(cp)
+                this.#dropVideoOf.set(cp, dropVideo)
                 // keep the end of the ffmpeg output to explain a failed render
                 let stderr = ''
                 cp.stderr?.on('data', (data: Buffer) => {
@@ -711,12 +721,14 @@ export default class VideoReporter extends WdioReporter {
                  */
                 cp.on('error', (err: Error) => {
                     this.processList.delete(cp)
+                    this.#dropVideoOf.delete(cp)
                     this.#log(`could not start ffmpeg ${command} for video "${videoPath}": ${err.message}`)
                     dropVideo()
                     resolve()
                 })
                 cp.on('close', (code: number | null) => {
                     this.processList.delete(cp)
+                    this.#dropVideoOf.delete(cp)
                     if (code === 0) {
                         this.#log(`Generated video: "${videoPath}" (${Date.now() - start}ms)`)
                     } else {
