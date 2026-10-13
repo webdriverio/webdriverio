@@ -299,7 +299,28 @@ export default class WebDriverInterception {
             }]
         })
 
-        return new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData, scope.sessionKey, scope.contexts)
+        const mock = new WebDriverInterception(pattern, interception.intercept, filterOptions, browser, isCollectingNetworkData, scope.sessionKey, scope.contexts)
+        await mock.#seedDescendantContexts()
+        return mock
+    }
+
+    /**
+     * `contextCreated` only reports iframes created after the mock, so iframes
+     * already below a held context are read from the tree.
+     */
+    async #seedDescendantContexts() {
+        for (const root of this.#contexts ?? []) {
+            try {
+                const { contexts } = await this.#browser.browsingContextGetTree({ root })
+                const pending = contexts.flatMap(({ children }) => children ?? [])
+                for (let info = pending.pop(); info; info = pending.pop()) {
+                    this.#descendantContexts.add(info.context)
+                    pending.push(...(info.children ?? []))
+                }
+            } catch (err: unknown) {
+                log.warn(`Mock may miss requests of iframes that already exist: failed to read the context tree of ${root}: ${(err as Error).message}`)
+            }
+        }
     }
 
     #emit(event: string, args: unknown) {
@@ -899,16 +920,17 @@ export default class WebDriverInterception {
     /**
      * A blocked request belongs to the mock whose intercept paused it, whatever
      * context (e.g. an iframe) it came from; the intercept is already scoped to
-     * the held contexts. Observed requests are matched on the context tree.
+     * the held contexts. Observed requests are matched on the context tree, or
+     * on a call this mock already recorded, as the tree can lag behind events.
      */
-    #isOwnEvent(event: { context: string | null, isBlocked?: boolean, intercepts?: string[] }) {
+    #isOwnEvent(event: { context: string | null, isBlocked?: boolean, intercepts?: string[], request: { request: string } }) {
         if (!this.#contexts?.length) {
             return true
         }
         if (event.isBlocked) {
             return !!event.intercepts?.includes(this.#mockId)
         }
-        return event.context !== null && this.#isOwnedContext(event.context)
+        return (event.context !== null && this.#isOwnedContext(event.context)) || !!this.#getCall(event.request.request)
     }
 
     #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T) {

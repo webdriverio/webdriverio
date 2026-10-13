@@ -140,7 +140,7 @@ describe('CucumberAdapter', () => {
     })
 
     it('can be initiated with tests', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, ['packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature'], {}, {}, {}, false, ['progress'])
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['packages/wdio-cucumber-framework/tests/fixtures/test_no_tags.feature'], {}, {}, {}, false, 'progress')
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(true)
     })
@@ -156,7 +156,7 @@ describe('CucumberAdapter', () => {
 
     it('throws if parallel cucumber opts is set', async () => {
         await expect(
-            CucumberAdapter.init!('0-0', { cucumberOpts: { parallel: 1 } }, [], {}, {}, {}, false, ['progress'])
+            CucumberAdapter.init!('0-0', { cucumberOpts: { parallel: 1 } }, [], {}, {}, {}, false, 'progress')
         ).rejects.toEqual(expect.objectContaining({
             message: 'The option "parallel" is not supported by WebdriverIO'
         }))
@@ -164,7 +164,7 @@ describe('CucumberAdapter', () => {
 
     it('throws if tagExpression is set', async () => {
         await expect(
-            CucumberAdapter.init!('0-0', { cucumberOpts: { tagExpression: '@smoke' } }, [], {}, {}, {}, false, ['progress'])
+            CucumberAdapter.init!('0-0', { cucumberOpts: { tagExpression: '@smoke' } }, [], {}, {}, {}, false, 'progress')
         ).rejects.toEqual(expect.objectContaining({
             message: 'The option "tagExpression" was removed. Use "tags" instead. See https://github.com/cucumber/cucumber-js/blob/main/UPGRADING.md#1300'
         }))
@@ -178,7 +178,7 @@ describe('CucumberAdapter', () => {
         const adapter = await CucumberAdapter.init!(
             '0-0',
             { cucumberOpts: { parallelMode: 'contexts' } },
-            [], {}, {}, {}, false, ['progress']
+            [], {}, {}, {}, false, 'progress'
         )
         ;(adapter as any)._runSequential = vi.fn().mockResolvedValue(0)
 
@@ -197,7 +197,7 @@ describe('CucumberAdapter', () => {
         const adapter = await CucumberAdapter.init!(
             '0-0',
             { cucumberOpts: { parallelMode: 'contexts' } },
-            [], {}, {}, {}, false, ['progress']
+            [], {}, {}, {}, false, 'progress'
         )
         ;(adapter as any)._runSequential = vi.fn().mockResolvedValue(0)
 
@@ -216,7 +216,7 @@ describe('CucumberAdapter', () => {
         const adapter = await CucumberAdapter.init!(
             '0-0',
             { cucumberOpts: { parallelMode: 'userContexts' } },
-            [], {}, {}, {}, false, ['progress']
+            [], {}, {}, {}, false, 'progress'
         )
         ;(adapter as any)._runSequential = vi.fn().mockResolvedValue(0)
 
@@ -234,12 +234,34 @@ describe('CucumberAdapter', () => {
         const adapter = await CucumberAdapter.init!(
             '0-0',
             { cucumberOpts: { parallelMode: 'contexts' } },
-            [], {}, {}, {}, false, ['progress']
+            [], {}, {}, {}, false, 'progress'
         )
         adapter.setBrowser(browser)
 
         await adapter.run()
         expect(runParallelCucumber).toHaveBeenCalledWith(expect.objectContaining({ browser }))
+    })
+
+    it('applies tags from cucumberOpts.profiles to parallel scenario selection', async () => {
+        vi.mocked(runParallelCucumber).mockResolvedValue(0)
+        const browser = { isBidi: true, __bidiCommandsEnabled: true } as unknown as WebdriverIO.Browser
+
+        const adapter = await CucumberAdapter.init!(
+            '0-0',
+            { cucumberOpts: {
+                parallelMode: 'contexts',
+                tags: '@fast',
+                profiles: ['smoke'],
+                file: 'packages/wdio-cucumber-framework/tests/fixtures/cucumber.profiles.json',
+            } },
+            [], {}, {}, {}, false, 'progress'
+        )
+        adapter.setBrowser(browser)
+
+        await adapter.run()
+        expect(runParallelCucumber).toHaveBeenCalledWith(expect.objectContaining({
+            cucumberOpts: expect.objectContaining({ tags: '(@smoke) and (@fast)' }),
+        }))
     })
 
     it('prefers the setBrowser browser over globalThis.browser', async () => {
@@ -250,7 +272,7 @@ describe('CucumberAdapter', () => {
         const adapter = await CucumberAdapter.init!(
             '0-0',
             { cucumberOpts: { parallelMode: 'contexts' } },
-            [], {}, {}, {}, false, ['progress']
+            [], {}, {}, {}, false, 'progress'
         )
         adapter.setBrowser(browser)
 
@@ -264,14 +286,14 @@ describe('CucumberAdapter', () => {
         const adapter = await CucumberAdapter.init!(
             '0-0',
             { cucumberOpts: { parallelMode: 'contexts' } },
-            [], {}, {}, {}, false, ['progress']
+            [], {}, {}, {}, false, 'progress'
         )
 
         await expect(adapter.run()).rejects.toThrow('requires a browser instance')
     })
 
     it('should not initiated with no tests', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, [], {}, {}, {}, false, ['progress'])
+        const adapter = await CucumberAdapter.init!('0-0', {}, [], {}, {}, {}, false, 'progress')
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(false)
     })
@@ -305,7 +327,7 @@ describe('CucumberAdapter', () => {
                     }
                 ]
             }
-        }, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        }, ['/foo/bar'], {}, {}, {}, false, 'progress')
         expect(global.MODULE_A_WAS_LOADED).toBe(undefined)
         expect(global.MODULE_A_WAS_LOADED).toBe(undefined)
         expect(global.MODULE_INLINE_WAS_LOADED).toBe(undefined)
@@ -331,13 +353,13 @@ describe('CucumberAdapter', () => {
                     path.join(process.cwd(), '__mocks__', 'module*.ts')
                 ]
             }
-        }, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        }, ['/foo/bar'], {}, {}, {}, false, 'progress')
 
         expect(await adapter.loadFilesWithType(adapter._cucumberOpts.require)).toHaveLength(4)
     })
 
     it('loadSpecFiles', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, 'progress')
         adapter.loadFilesWithType = vi.fn().mockReturnValue([path.resolve(process.cwd(), '__mocks__', 'moduleC.ts')])
 
         expect(global.MODULE_C_WAS_LOADED).toBe(undefined)
@@ -754,7 +776,7 @@ describe('CucumberAdapter', () => {
     })
 
     it('wrapSteps should not call wrapStep if step doesn\'t has wrapperOptions', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, 'progress')
         adapter.wrapStep  = vi.fn()
         expect(adapter.wrapStep).toBeCalledTimes(0)
         adapter.wrapSteps()
@@ -764,7 +786,7 @@ describe('CucumberAdapter', () => {
     })
 
     it('wrapSteps should call wrapStep if step has wrapperOptions', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, 'progress')
         const wrapperOptions = { retry: 1 }
         adapter.wrapStep  = vi.fn()
         expect(adapter.wrapStep).toBeCalledTimes(0)
@@ -783,7 +805,7 @@ describe('CucumberAdapter', () => {
     })
 
     it('wrapSteps should not wrap wdio hooks', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, 'progress')
         adapter.wrapStep  = vi.fn()
         expect(adapter.wrapStep).toBeCalledTimes(0)
         adapter.wrapSteps()
@@ -796,7 +818,7 @@ describe('CucumberAdapter', () => {
 
     it('wrapSteps keeps getHookParams per parallel context', async () => {
         const store = new AsyncLocalStorage<string>()
-        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, 'progress')
         adapter.setBrowser({ __parallelContextStore: store } as never)
         adapter.wrapSteps({} as never)
         const emitter = (adapter as unknown as { _eventEmitter: EventEmitter })._eventEmitter
@@ -817,7 +839,7 @@ describe('CucumberAdapter', () => {
     })
 
     it('wrapStep', async () => {
-        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, 'progress')
         const wrappedStep = adapter.wrapStep('code', true, {}, '0-2', {}, () => 'hookParams')
         expect(testFnWrapper).toBeCalledTimes(0)
         wrappedStep('someWorld', 1, 2, 3)

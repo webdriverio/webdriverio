@@ -324,6 +324,7 @@ export class CucumberAdapter {
 
         // Parse Gherkin documents from filtered specs
         const gherkinDocuments = this.getGherkinDocuments([this._specs])
+        const { sources, runtime } = await this._loadRunConfiguration({ cwd: this._cwd })
 
         try {
             return await runParallelCucumber({
@@ -334,7 +335,17 @@ export class CucumberAdapter {
                 specs: this._specs,
                 gherkinDocuments,
                 supportCodeLibrary,
-                cucumberOpts: this._cucumberOpts,
+                cucumberOpts: {
+                    ...this._cucumberOpts,
+                    tags: sources.tagExpression,
+                    name: sources.names,
+                    dryRun: runtime.dryRun,
+                    failFast: runtime.failFast,
+                    retry: runtime.retry,
+                    retryTagFilter: runtime.retryTagFilter,
+                    strict: runtime.strict,
+                    worldParameters: runtime.worldParameters,
+                },
             })
         } catch (err) {
             if (parallelRunHasStarted()) {
@@ -358,6 +369,17 @@ export class CucumberAdapter {
             )
             return this._runSequential(supportCodeLibrary)
         }
+    }
+
+    /**
+     * Resolve `cucumberOpts` merged with `profiles` / `file` the way Cucumber does.
+     */
+    private async _loadRunConfiguration(environment: IRunEnvironment) {
+        const { runConfiguration } = await loadConfiguration(
+            { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts as Partial<IConfiguration>, file: this._cucumberOpts.file },
+            environment
+        )
+        return runConfiguration
     }
 
     /**
@@ -388,10 +410,7 @@ export class CucumberAdapter {
                 stdout: outStream,
             }
 
-            const { runConfiguration } = await loadConfiguration(
-                { profiles: this._cucumberOpts.profiles, provided: this._cucumberOpts as Partial<IConfiguration>, file: this._cucumberOpts.file },
-                environment
-            )
+            const runConfiguration = await this._loadRunConfiguration(environment)
 
             const { success } = await runCucumber(
                 {
