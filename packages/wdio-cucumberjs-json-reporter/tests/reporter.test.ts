@@ -662,6 +662,20 @@ describe('reporter', () => {
         })
     })
 
+    describe('attach() in a scenario with no step', () => {
+        it('does not move the attachment to the next scenario (disableHooks)', () => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, language: 'en', logFile, disableHooks: true })
+            reporter.onSuiteStart({ ...SUITE_FEATURE_STATS, parent: undefined } as SuiteStatsExtended)
+            reporter.onSuiteStart({ ...SUITE_SCENARIO_STATS, title: 'no steps' } as SuiteStatsExtended)
+            // an After hook of the scenario with no step
+            reporter.cucumberJsAttachment({ data: 'screenshot of no steps', type: TEXT_PLAIN })
+            reporter.onSuiteStart({ ...SUITE_SCENARIO_STATS, title: 'next' } as SuiteStatsExtended)
+            reporter.addStepData({ ...STEP_TEST_ONSTART_STATS, title: 'Given a step', keyword: 'Given' } as TestStatsExtended)
+            expect(reporter.getCurrentStep()!.embeddings).toBeUndefined()
+        })
+    })
+
     describe('attach() before the first feature', () => {
         it('keeps the attachment for the first step (for example from the WebdriverIO before hook)', () => {
             vi.mocked(getFailedMessage).mockReturnValue({})
