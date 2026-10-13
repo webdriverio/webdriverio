@@ -480,6 +480,54 @@ const cucumberReporter = async () => {
 }
 
 /**
+ * Cucumber with grouped specs in a random order: the scenarios of 2 features mix,
+ * and the reporters must still get each scenario
+ */
+const cucumberGroupedSpecsRandomOrder = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'random-order')
+    const scenarios = ['a one', 'a two', 'a three', 'b one', 'b two', 'b three']
+    // the scenarios are suites (step level) or tests (scenarioLevelReporter)
+    for (const scenarioLevelReporter of [false, true]) {
+        const logFile = path.resolve(basePath, `spec-reporter-${scenarioLevelReporter}.log`)
+        await fs.rm(logFile, { force: true })
+        await launch(
+            'cucumberGroupedSpecsRandomOrder',
+            path.resolve(basePath, 'random-order.conf.js'),
+            {
+                reporters: [['spec', { stdout: false, logFile }]],
+                cucumberOpts: { scenarioLevelReporter }
+            }
+        )
+        // the spec reporter colors its output when the terminal supports colors
+        const logs = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '')
+        assert.ok(logs.includes('6 passing'), `the spec reporter does not count the 6 scenarios:\n${logs}`)
+        /**
+         * each scenario under the heading of its feature: a scenario is a suite title
+         * (step level) or a passed test (`✓ a one`, scenario level)
+         */
+        const headings = []
+        const listed = []
+        for (const line of logs.split('\n').map((text) => text.replace(/^\[[^\]]*\]\s*/, '').trim())) {
+            const feature = line.match(/^Feature ([ab])$/)
+            const scenario = line.replace(/^✓ /, '')
+            if (feature) {
+                headings.push(feature[1])
+            } else if (scenarios.includes(scenario)) {
+                listed.push(`${headings.at(-1)}: ${scenario}`)
+            }
+        }
+        assert.deepStrictEqual(
+            [...listed].sort(),
+            scenarios.map((scenario) => `${scenario[0]}: ${scenario}`).sort(),
+            `scenarioLevelReporter: ${scenarioLevelReporter}, each scenario must be under its feature:\n${logs}`
+        )
+        // the test needs the features to alternate (a, b, a, ...), as the random order gives them
+        assert.ok(headings.length > 2, `the scenarios of the features did not mix, the test checks nothing: ${headings}`)
+        await fs.rm(logFile, { force: true })
+    }
+}
+
+/**
  * Cucumber file option
  */
 const cucumberFileOption = async () => {
@@ -1304,6 +1352,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberFailAmbiguousDefinitions,
         cucumberPendingTest,
         cucumberReporter,
+        cucumberGroupedSpecsRandomOrder,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,

@@ -50,7 +50,12 @@ export default class CucumberFormatter extends Formatter {
     private _suiteMap: Map<string, string> = new Map()
     private _pickleMap: Map<string, string> = new Map()
     private _currentDoc: GherkinDocument = { comments: [] }
-    private _startedFeatures: string[] = []
+    /**
+     * grouped specs: the uid of the current part of the feature, and how many times
+     * each feature started
+     */
+    private _currentFeatureUid?: string
+    private _featureStarts = new Map<string, number>()
 
     private reporter: EventEmitter
     private cid: string
@@ -139,8 +144,16 @@ export default class CucumberFormatter extends Formatter {
         return this._gherkinDocEvents.length > 1
     }
 
-    featureIsStarted(feature: string) {
-        return this._startedFeatures.includes(feature)
+    /**
+     * The uid of the feature of the current scenario. With grouped specs in a random
+     * order, a feature starts again when the run comes back to it: each part has its
+     * own uid (`<feature id>#2`, ...), so a reporter does not replace the suite (and
+     * the tests) of the earlier part.
+     */
+    featureUid(uri: string, feature: Feature) {
+        return this.usesSpecGrouping() && this._currentFeatureUid
+            ? this._currentFeatureUid
+            : getFeatureId(uri, feature)
     }
 
     getTitle(featureOrScenario: Feature | Pickle) {
@@ -258,7 +271,7 @@ export default class CucumberFormatter extends Formatter {
             : {
                 type: 'scenario',
                 uid: scenario.id,
-                parent: getFeatureId(uri, feature),
+                parent: this.featureUid(uri, feature),
                 tags: scenario.tags,
                 ...common,
             }
@@ -335,14 +348,10 @@ export default class CucumberFormatter extends Formatter {
             this._currentDoc.uri &&
             this._currentDoc.feature &&
             this.usesSpecGrouping() &&
-            doc !== this._currentDoc &&
-            this.featureIsStarted(this._currentDoc.uri)
+            doc !== this._currentDoc
         ) {
             const payload = {
-                uid: getFeatureId(
-                    this._currentDoc.uri as string,
-                    this._currentDoc.feature as Feature
-                ),
+                uid: this.featureUid(this._currentDoc.uri as string, this._currentDoc.feature as Feature),
                 title: this.getTitle(this._currentDoc.feature),
                 type: 'feature',
                 file: this._currentDoc.uri,
@@ -354,14 +363,24 @@ export default class CucumberFormatter extends Formatter {
             this.emit('suite:end', payload)
         }
 
+        /**
+         * start the feature of the scenario when it is not the current one. In a
+         * random order the scenarios of the features mix: the feature that ended
+         * above starts again later, so each `suite:end` of a feature has its
+         * `suite:start`, and the reporters keep each scenario
+         */
         if (
             this.usesSpecGrouping() &&
             doc &&
             doc.uri &&
-            !this.featureIsStarted(doc.uri)
+            doc !== this._currentDoc
         ) {
+            const starts = (this._featureStarts.get(doc.uri) ?? 0) + 1
+            this._featureStarts.set(doc.uri, starts)
+            const featureId = getFeatureId(doc.uri as string, doc.feature as Feature)
+            this._currentFeatureUid = starts === 1 ? featureId : `${featureId}#${starts}`
             const payload = {
-                uid: getFeatureId(doc.uri as string, doc.feature as Feature),
+                uid: this._currentFeatureUid,
                 title: this.getTitle(doc.feature as Feature),
                 type: 'feature',
                 file: doc.uri,
@@ -372,7 +391,8 @@ export default class CucumberFormatter extends Formatter {
 
             this.emit('suite:start', payload)
             this._currentDoc = doc
-            this._startedFeatures.push(doc.uri)
+            // the duration of this part of the feature
+            this._featureStart = new Date()
         }
         /**
          * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
@@ -400,7 +420,7 @@ export default class CucumberFormatter extends Formatter {
         const payload = {
             uid: reporterScenario.id,
             title: this.getTitle(reporterScenario),
-            parent: getFeatureId(scenario.uri, doc?.feature as Feature),
+            parent: this.featureUid(scenario.uri, doc?.feature as Feature),
             type: 'scenario',
             description: getScenarioDescription(doc?.feature as Feature, this._pickleMap.get(scenario.id)!),
             file: scenario.uri,
@@ -548,7 +568,7 @@ export default class CucumberFormatter extends Formatter {
         const payload = {
             uid: scenario.id,
             title: this.getTitle(scenario),
-            parent: getFeatureId(doc?.uri as string, doc?.feature as Feature),
+            parent: this.featureUid(doc?.uri as string, doc?.feature as Feature),
             type: 'scenario',
             file: doc?.uri,
             duration: this._scenarioStart
@@ -574,10 +594,7 @@ export default class CucumberFormatter extends Formatter {
 
         if (this.usesSpecGrouping()) {
             const payload = {
-                uid: getFeatureId(
-                    this._currentDoc.uri as string,
-                    this._currentDoc.feature as Feature
-                ),
+                uid: this.featureUid(this._currentDoc.uri as string, this._currentDoc.feature as Feature),
                 title: this.getTitle(this._currentDoc.feature as Feature),
                 type: 'feature',
                 file: this._currentDoc.uri,
