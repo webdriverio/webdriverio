@@ -35,9 +35,10 @@ describe('featureLines', () => {
     it('finds the line of the scenarios, also in rules and outlines', () => {
         const lines = readFeatureLines(file, 'en')!
         expect(takeScenarioLines(lines, 'S1')?.line).toBe(4)
-        expect(takeScenarioLines(lines, 'S2')?.line).toBe(9)
+        expect(takeScenarioLines(lines, 'S2', { rule: 'R' })?.line).toBe(9)
         // an example of an outline has the line of its Examples row
-        expect(takeScenarioLines(lines, 'O 1')?.line).toBe(15)
+        // the outline comes after `Rule: R`, so it is in that Rule
+        expect(takeScenarioLines(lines, 'O 1', { rule: 'R' })?.line).toBe(15)
         expect(takeScenarioLines(lines, 'unknown')).toBeUndefined()
     })
 
@@ -49,7 +50,7 @@ describe('featureLines', () => {
         expect(findStepLine(scenario, 'a', used)).toBe(5)
         expect(findStepLine(scenario, 'b', used)).toBe(6)
         expect(findStepLine(scenario, 'a', used)).toBe(7)
-        expect(findStepLine(takeScenarioLines(lines, 'O 1')!.scenario, 'c 1', new Set())).toBe(12)
+        expect(findStepLine(takeScenarioLines(lines, 'O 1', { rule: 'R' })!.scenario, 'c 1', new Set())).toBe(12)
     })
 
     it('uses only the backgrounds of the feature and of the rule of the scenario', () => {
@@ -72,13 +73,13 @@ describe('featureLines', () => {
         ].join('\n'))
         const lines = readFeatureLines(rulesFile, 'en')!
 
-        const s1 = takeScenarioLines(lines, 'S1')!.scenario
+        const s1 = takeScenarioLines(lines, 'S1', { rule: 'R1' })!.scenario
         const used1 = new Set<number>()
         expect(findStepLine(s1, 'feature setup', used1)).toBe(3)
         expect(findStepLine(s1, 'rule setup', used1)).toBe(6)
         expect(findStepLine(s1, 'rule setup', used1)).toBe(8)
 
-        const s2 = takeScenarioLines(lines, 'S2')!.scenario
+        const s2 = takeScenarioLines(lines, 'S2', { rule: 'R2' })!.scenario
         const used2 = new Set<number>()
         expect(findStepLine(s2, 'feature setup', used2)).toBe(3)
         expect(findStepLine(s2, 'rule setup', used2)).toBe(11)

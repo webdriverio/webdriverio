@@ -13,6 +13,8 @@ export interface StepLine {
 export interface ScenarioLines {
     name: string
     line: number
+    /** the name of the Rule of the scenario */
+    rule?: string
     /**
      * the background steps of the feature and of the rule of the scenario
      */
@@ -38,7 +40,7 @@ interface GherkinScenario {
 interface GherkinChild {
     background?: GherkinScenario
     scenario?: GherkinScenario
-    rule?: { children: readonly GherkinChild[] }
+    rule?: { name: string, children: readonly GherkinChild[] }
 }
 
 const toSteps = (steps: readonly GherkinStep[]) => steps.map((step) => ({
@@ -61,18 +63,19 @@ export function readFeatureLines (file: string, language: string): FeatureLines 
         /**
          * a background applies to the scenarios of its feature or of its rule
          */
-        const walk = (children: readonly GherkinChild[], inherited: StepLine[]) => {
+        const walk = (children: readonly GherkinChild[], inherited: StepLine[], rule?: string) => {
             let background = inherited
             for (const child of children) {
                 if (child.background) {
                     background = [...inherited, ...toSteps(child.background.steps)]
                 } else if (child.rule) {
-                    walk(child.rule.children, background)
+                    walk(child.rule.children, background, child.rule.name)
                 } else if (child.scenario) {
                     const { name, location, steps, examples = [] } = child.scenario
                     lines.scenarios.push({
                         name,
                         line: location.line,
+                        rule,
                         background,
                         steps: toSteps(steps),
                         examples: examples.flatMap((table) => table.tableBody.map((row) => row.location.line)),
@@ -122,10 +125,16 @@ export function scenarioNameOf (title: string, tags?: readonly (string | { name:
  * example of a Scenario Outline. Scenarios with the same name (for example in
  * other Rules) are used in the order of the file.
  */
-export function takeScenarioLines (lines: FeatureLines, name: string): { scenario: ScenarioLines, line: number } | undefined {
+export function takeScenarioLines (
+    lines: FeatureLines,
+    name: string,
+    { rule }: { rule?: string } = {}
+): { scenario: ScenarioLines, line: number } | undefined {
+    // a scenario of the Rule of the payload (the framework sends it), or outside a Rule
+    const inRule = lines.scenarios.filter((scenario) => (scenario.rule || undefined) === (rule || undefined))
     const candidates = [
-        ...lines.scenarios.filter((scenario) => scenario.name === name),
-        ...lines.scenarios.filter((scenario) => scenario.name !== name && matchesTemplate(scenario.name, name))
+        ...inRule.filter((scenario) => scenario.name === name),
+        ...inRule.filter((scenario) => scenario.name !== name && matchesTemplate(scenario.name, name))
     ]
     const isFree = (scenario: ScenarioLines) => scenario.used < Math.max(scenario.examples.length, 1)
     // all used: the same spec file runs again, start with the first one

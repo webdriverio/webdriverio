@@ -540,6 +540,26 @@ describe('reporter', () => {
         })
     })
 
+    describe('scenario lines when the run does not follow the file', () => {
+        it('uses the Rule of the scenario, also when the second Rule runs first', () => {
+            const featureFile = path.join(logFolderPath, 'rules-random.feature')
+            fs.writeFileSync(featureFile, [
+                'Feature: Rules',               // 1
+                '  Rule: A',                    // 2
+                '    Scenario: works',          // 3
+                '      Given in A',             // 4
+                '  Rule: B',                    // 5
+                '    Scenario: works',          // 6
+                '      Given in B',             // 7
+                ''
+            ].join('\n'))
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, title: 'Rules', file: featureFile, parent: undefined } as SuiteStatsExtended)
+            const b = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'works', rule: 'B' } as SuiteStatsExtended, 'rules')
+            const a = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'works', rule: 'A' } as SuiteStatsExtended, 'rules')
+            expect([b.line, a.line]).toEqual([6, 3])
+        })
+    })
+
     describe('cucumberOpts.tagsInTitle', () => {
         it('writes the feature and scenario names and ids without the tags of the title', () => {
             const feature = tmpReporter.getFeatureDataObject({ ...SUITE_FEATURE_STATS, title: '@featuretag: Tagged feature', tags: ['@featuretag'] } as unknown as SuiteStatsExtended)
