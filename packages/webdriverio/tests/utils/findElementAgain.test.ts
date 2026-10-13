@@ -7,6 +7,7 @@ import { remote } from '../../src/index.js'
 import { StrictSelectorError } from '../../src/utils/strictMode.js'
 import { itemOf } from '../../src/utils/findElementAgain.js'
 import refetchElement from '../../src/utils/refetchElement.js'
+import { markWaited } from '../../src/utils/elementLookup.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -16,6 +17,14 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('../../src/utils/refetchElement.js', async (importOriginal) => {
     const actual = await importOriginal<{ default: typeof refetchElement }>()
     return { __esModule: true, default: vi.fn(actual.default) }
+})
+
+/**
+ * the real lookup state; each call of `markWaited` is one wait that ended without the element
+ */
+vi.mock('../../src/utils/elementLookup.js', async (importOriginal) => {
+    const actual = await importOriginal<Record<string, (...args: unknown[]) => unknown>>()
+    return { ...actual, markWaited: vi.fn(actual.markWaited) }
 })
 
 const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
@@ -125,6 +134,14 @@ function fakeDriver (fallback: Fallback) {
                 return staleError()
             }
             return reply(name === 'name' ? 'li' : `text of ${id}`)
+        }
+
+        /**
+         * any other command on an element that the page replaced fails as in a driver
+         */
+        const elementCommand = pathname.match(/\/element\/([^/]+)\//)
+        if (elementCommand && stale.has(elementCommand[1])) {
+            return staleError()
         }
 
         return fallback(uri, params)
@@ -806,6 +823,156 @@ describe('finding an element again', () => {
             driver.light.set('.item', ['elem-x', 'elem-y', 'elem-z'])
             expect(await elem.isDisplayed()).toBe(true)
             expect(await elem.getText()).toBe('text of elem-z')
+        })
+    })
+
+    /**
+     * A command on an element that the page removed waits `waitforTimeout` once for it, also
+     * when the command runs other commands on it, or on its children (#16072). Each call of
+     * `markWaited` is one wait that ended without the element.
+     */
+    describe('one wait for an element that the page removed', () => {
+        const waits = async (command: Promise<unknown>) => {
+            vi.mocked(markWaited).mockClear()
+            const outcome = await settle(command)
+            return { ...outcome, waits: vi.mocked(markWaited).mock.calls.length }
+        }
+        const removedHost = async () => {
+            const browser = await session()
+            driver.light.set('#host', ['host-a'])
+            driver.light.set('.child', ['child-a'])
+            const host = await browser.$('#host')
+            const child = await host.$('.child')
+            return { browser, host, child }
+        }
+        const removedRef = async () => {
+            const browser = await session()
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            driver.stale.add('elem-r')
+            driver.light.set('#ref', [])
+            return elem
+        }
+
+        it('waits once for a removed list item', async () => {
+            const browser = await session()
+            driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
+            const elem = (await browser.$$('.item'))[2]
+            driver.stale.add('elem-c')
+            driver.light.set('.item', [])
+
+            const { error, waits: count } = await waits(elem.getText())
+            expect(error?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+        })
+
+        it('waits once for a removed child', async () => {
+            const { child } = await removedHost()
+            driver.stale.add('child-a')
+            driver.light.set('.child', [])
+
+            const { error, waits: count } = await waits(child.getText())
+            expect(error?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+        })
+
+        it('waits once for a child whose parent was removed', async () => {
+            const { child } = await removedHost()
+            driver.stale.add('host-a')
+            driver.stale.add('child-a')
+            driver.light.set('#host', [])
+
+            const { error, waits: count } = await waits(child.getText())
+            expect(error?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+        })
+
+        /**
+         * a check (`isDisplayed`) of a gone parent leaves it without an element id
+         */
+        it('waits once for a child after isDisplayed of its removed parent', async () => {
+            const { host, child } = await removedHost()
+            driver.stale.add('host-a')
+            driver.stale.add('child-a')
+            driver.light.set('#host', [])
+            host.elementId = undefined as unknown as string
+
+            const { error, waits: count } = await waits(child.getText())
+            expect(error?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+        })
+
+        /**
+         * a command of a list finds its item again in a new way (#16072 review, finding 1)
+         */
+        it('finds the item again when the page replaced the list during a list command', async () => {
+            const browser = await session()
+            driver.light.set('#list', ['list-a'])
+            driver.light.set('.item', ['elem-a', 'target-1'])
+            let replaced = false
+            browser.addCommand('clickTarget', async function (this: WebdriverIO.Element) {
+                const items = await this.$$('.item')
+                const texts = await items.map((item) => item.getText())
+                const target = items[texts.findIndex((text) => text.includes('target'))]
+                if (!replaced) {
+                    replaced = true
+                    driver.stale.add('target-1')
+                    driver.light.set('.item', ['target-2'])
+                }
+                await target.click()
+                return target.elementId
+            }, { attachToElement: true })
+            const list = await browser.$('#list')
+            vi.mocked(refetchElement).mockClear()
+
+            // @ts-expect-error undefined custom command
+            const { value, error, waits: count } = await waits(list.clickTarget())
+            expect(error).toBeUndefined()
+            expect(value).toBe('target-2')
+            expect(vi.mocked(refetchElement).mock.calls.map(([el]) => el.selector)).toContain('#list')
+            expect(count).toBe(1)
+        })
+
+        it('waits once per run of the host for a stale child', async () => {
+            const { browser, child } = await removedHost()
+            browser.addCommand('clickKept', function () {
+                return child.click()
+            }, { attachToElement: true })
+            /**
+             * an element gets the commands that were added before it
+             */
+            const host = await browser.$('#host')
+            driver.stale.add('child-a')
+            driver.light.set('.child', [])
+
+            // @ts-expect-error undefined custom command
+            const { error, waits: count } = await waits(host.clickKept())
+            expect(error?.name).toBe('stale element reference')
+            /**
+             * the run of the host, and its run after the host was found again
+             */
+            expect(count).toBe(2)
+        })
+
+        it('waits once for setValue of a removed element', async () => {
+            const elem = await removedRef()
+            const { error, waits: count } = await waits(elem.setValue('x'))
+            expect(error?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+        })
+
+        it('waits once for waitForEnabled of a removed element', async () => {
+            const elem = await removedRef()
+            const { error, waits: count } = await waits(elem.waitForEnabled())
+            expect(error).toBeInstanceOf(Error)
+            expect(count).toBe(1)
+        })
+
+        it('waits once for waitForStable of a removed element', async () => {
+            const elem = await removedRef()
+            const { error, waits: count } = await waits(elem.waitForStable())
+            expect(error?.message).toContain('element is not attached to the page document')
+            expect(count).toBe(1)
         })
     })
 
