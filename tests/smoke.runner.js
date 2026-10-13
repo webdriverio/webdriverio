@@ -498,7 +498,8 @@ const cucumberGroupedSpecsRandomOrder = async () => {
                 cucumberOpts: { scenarioLevelReporter }
             }
         )
-        const logs = await fs.readFile(logFile, 'utf-8')
+        // the spec reporter colors its output when the terminal supports colors
+        const logs = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '')
         assert.ok(logs.includes('6 passing'), `the spec reporter does not count the 6 scenarios:\n${logs}`)
         /**
          * each scenario under the heading of its feature: a scenario is a suite title
