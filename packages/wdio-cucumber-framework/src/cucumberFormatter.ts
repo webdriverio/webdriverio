@@ -397,6 +397,8 @@ export default class CucumberFormatter extends Formatter {
 
             this.emit('suite:start', payload)
             this._currentDoc = doc
+            // the duration of this part of the feature
+            this._featureStart = new Date()
             if (!this.featureIsStarted(doc.uri)) {
                 this._startedFeatures.push(doc.uri)
             }

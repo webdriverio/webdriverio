@@ -495,6 +495,11 @@ describe('CucumberFormatter', () => {
             ])
         })
 
+        it('gives each part of a feature its duration', () => {
+            const featureEnds = runGroupedFeatures(false).filter(({ event, type }) => event === 'suite:end' && type === 'feature')
+            expect(featureEnds.map(({ duration }) => duration)).toEqual([10, 10, 10])
+        })
+
         it('uses the uid of the part as the parent of the scenario tests (scenarioLevelReporter)', () => {
             const tests = runGroupedFeatures(true).filter(({ event }) => event.startsWith('test:'))
             expect(tests.map(({ event, title, parent }) => [event, title, parent])).toEqual([
