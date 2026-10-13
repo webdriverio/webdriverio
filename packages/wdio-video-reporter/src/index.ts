@@ -135,7 +135,14 @@ export default class VideoReporter extends WdioReporter {
    * Set wdio config options
    */
     onRunnerStart (runner: RunnerStats) {
-        if (this.options.onlyRecordLastFailure && runner.retry !== runner.config.specFileRetries) {
+        /**
+         * the last attempt of a spec file: retry is specFileRetries. With no retries, the
+         * only attempt is the last one, but the first attempt has retry specFileRetries + 1
+         * (the launcher does not know the retries yet)
+         */
+        const specFileRetries = runner.config.specFileRetries ?? 0
+        const isLastAttempt = specFileRetries === 0 || runner.retry === specFileRetries
+        if (this.options.onlyRecordLastFailure && !isLastAttempt) {
             this.#record = false
             return
         }
