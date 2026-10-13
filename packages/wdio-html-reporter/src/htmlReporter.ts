@@ -72,6 +72,10 @@ export default class HtmlReporter extends WDIOReporter {
     #countScenarios = false
     #scenarioStates = new Map<string, 'passed' | 'failed' | 'skipped'>()
     private reportGenerator?: ReportGenerator
+    /** the listeners of the events from `ReportEvents`, removed when the runner ends */
+    #onMessage = this.saveMessage.bind(this)
+    #onScreenshot = this.saveScreenshot.bind(this)
+    #onVideo = this.saveVideo.bind(this)
 
     constructor(options: Partial<HtmlReporterOptions> = {}) {
         super(Object.assign(
@@ -94,9 +98,9 @@ export default class HtmlReporter extends WDIOReporter {
         this._currentSuiteUid = 'suite uid'
         this._currentTestUid = 'test uid'
         this._currentCid = 'cid'
-        reportProxy.connectMessageEvent(this.saveMessage.bind(this))
-        reportProxy.connectScreenshotEvent(this.saveScreenshot.bind(this))
-        reportProxy.connectVideoCaptureEvent(this.saveVideo.bind(this))
+        reportProxy.connectMessageEvent(this.#onMessage)
+        reportProxy.connectScreenshotEvent(this.#onScreenshot)
+        reportProxy.connectVideoCaptureEvent(this.#onVideo)
         this.reportGenerator = new ReportGenerator(this.options)
 
     }
@@ -273,6 +277,9 @@ export default class HtmlReporter extends WDIOReporter {
             reportFile,
             this.options.browserName)
         await this.reportGenerator?.createReport(reportData)
+        reportProxy.disconnectMessageEvent(this.#onMessage)
+        reportProxy.disconnectScreenshotEvent(this.#onScreenshot)
+        reportProxy.disconnectVideoCaptureEvent(this.#onVideo)
 
     }
 
