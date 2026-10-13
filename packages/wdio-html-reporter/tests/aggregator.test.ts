@@ -117,7 +117,8 @@ describe('ReportAggregator', () => {
         const outputDir = tempDir()
         const generator = new ReportGenerator({ outputDir })
         await generator.createReport(new ReportData('Generator', RUNNER, [SUITES[0]], new Metrics(), path.join(outputDir, 'x.html'), 'chrome'))
-        expect(fs.readdirSync(outputDir).filter((file) => file.endsWith('.json'))).toEqual(['master-report-0-0.json'])
+        // the file of the report data, with the cid of the worker
+        expect(fs.readdirSync(outputDir).filter((file) => file.endsWith('.json'))).toEqual(['x-0-0.json'])
     })
 
     it('does not read a master report of another name as a worker report', async () => {

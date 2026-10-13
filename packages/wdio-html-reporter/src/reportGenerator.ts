@@ -35,7 +35,8 @@ class ReportGenerator {
         const specs : string[] =  reportData.info.specs
 
         this.LOG.info('Generated ' + specs.length + ' specs, ' + suites.length + ' suites, ' )
-        this.reportFile = path.resolve(process.cwd(), this.options.outputDir, this.options.filename)
+        // the report file of the data (the reporter sets it from its options)
+        this.reportFile = path.resolve(reportData.reportFile)
         reportData.reportFile = this.reportFile
 
         try {
