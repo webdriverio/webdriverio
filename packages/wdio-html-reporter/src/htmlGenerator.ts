@@ -143,10 +143,15 @@ class HtmlGenerator {
                     }
                 })
 
-                const fail = Object.values(tests).find((test: TestStats) => {
-                    return test.state === 'failed'
-                })
-                if (fail !== undefined) {
+                /**
+                 * a failed test, a failed hook or a failed child suite: the "hide passing"
+                 * filters must not hide a suite with a failure inside
+                 */
+                const hasFailure = (suite: SuiteStats): boolean =>
+                    Object.values(suite.tests ?? []).some((test: TestStats) => test.state === 'failed') ||
+                    (suite.hooks ?? []).some((hook) => hook.error) ||
+                    (suite.suites ?? []).some(hasFailure)
+                if (hasFailure(suiteInfo)) {
                     return 'suite-fail'
                 }
 

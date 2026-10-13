@@ -466,3 +466,40 @@ describe('tests with no describe()', () => {
         expect(json.suites.flatMap((suite: { tests: { title: string }[] }) => suite.tests.map((t) => t.title))).toEqual(['a top-level test'])
     })
 })
+
+describe('suite state', () => {
+    it('does not show a suite as passed when a child suite or a hook failed', async () => {
+        const dir = path.join(outputRoot, 'suite-state') + path.sep
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'State', produceHtml: true } as never)
+        reporter.onRunnerStart(RUNNER)
+        const common = { cid: '0-0', specs: [], file: 'spec.js' }
+        const suite = (uid: string, title: string, parent = '') => ({ ...common, type: 'suite:start', uid, title, fullTitle: title, parent })
+        const test = (uid: string, title: string, parent: string) => ({ ...common, type: 'test:start', uid, title, fullTitle: title, parent })
+        reporter.emit('suite:start', suite('parent', 'parent suite'))
+        reporter.emit('test:start', test('t1', 'parent test passes', 'parent'))
+        reporter.emit('test:pass', test('t1', 'parent test passes', 'parent'))
+        reporter.emit('suite:start', suite('child', 'child suite', 'parent'))
+        reporter.emit('test:start', test('t2', 'child test fails', 'child'))
+        reporter.emit('test:fail', { ...test('t2', 'child test fails', 'child'), error: { message: 'child failure' } })
+        reporter.emit('suite:end', suite('child', 'child suite', 'parent'))
+        reporter.emit('suite:end', suite('parent', 'parent suite'))
+        reporter.emit('suite:start', suite('hooked', 'suite with a failed after hook'))
+        reporter.emit('test:start', test('t3', 'test passes', 'hooked'))
+        reporter.emit('test:pass', test('t3', 'test passes', 'hooked'))
+        reporter.emit('hook:start', { ...common, type: 'hook:start', uid: 'h1', title: '"after all" hook', parent: 'hooked' })
+        reporter.emit('hook:end', { ...common, type: 'hook:end', uid: 'h1', title: '"after all" hook', parent: 'hooked', error: { message: 'hook failure' } })
+        reporter.emit('suite:end', suite('hooked', 'suite with a failed after hook'))
+        await reporter.onRunnerEnd(RUNNER)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        const html = fs.readFileSync(path.join(dir, 'report-0-0.html'), 'utf-8')
+        const classOf = (title: string) => {
+            const index = html.indexOf(`&nbsp;</span>${title}`)
+            return html.slice(0, index).match(/suite-(pass|fail|pending|unknown)/g)?.pop()
+        }
+        expect(classOf('child suite')).toBe('suite-fail')
+        expect(classOf('parent suite')).toBe('suite-fail')
+        expect(classOf('suite with a failed after hook')).toBe('suite-fail')
+    })
+})
