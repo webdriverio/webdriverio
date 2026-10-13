@@ -407,3 +407,42 @@ describe('pending tests', () => {
         expect(reporter.metrics).toMatchObject({ passed: 0, failed: 0, skipped: 1 })
     })
 })
+
+describe('failed hooks', () => {
+    afterAll(() => {
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+    })
+
+    const failedHook = { uid: 'hook-1', title: '"before all" hook', error: { name: 'Error', message: 'hook fails' } }
+    const start = () => {
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Hooks' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(SUITES[0])
+        return reporter
+    }
+
+    it('counts a failed before hook one time when Mocha fails the tests that it affects', () => {
+        const reporter = start()
+        reporter.onHookEnd(failedHook as never)
+        for (const uid of ['t1', 't2', 't3']) {
+            const test = { ...SUITES[0].tests[1], uid } as TestStats
+            reporter.onTestStart(test)
+            reporter.onTestFail(test)
+        }
+        reporter.onSuiteEnd(SUITES[0])
+        // 3 tests: the failures of the tests show the failure of the hook
+        expect(reporter.metrics).toMatchObject({ passed: 0, failed: 3 })
+    })
+
+    it('counts a failed hook that fails no test (an after hook)', () => {
+        const reporter = start()
+        const test = SUITES[0].tests[0]
+        reporter.onTestStart(test)
+        reporter.onTestPass(test)
+        reporter.onHookEnd({ ...failedHook, title: '"after all" hook' } as never)
+        reporter.onSuiteEnd(SUITES[0])
+        expect(reporter.metrics).toMatchObject({ passed: 1, failed: 1 })
+    })
+})

@@ -65,6 +65,11 @@ export default class HtmlReporter extends WDIOReporter {
      * try): the base reporter clears the tests of the earlier try
      */
     #countScenarios = false
+    /**
+     * failed hooks that no failed test shows yet: Mocha (`failHookAffectedTests`,
+     * the v10 default) and Jasmine fail the tests that a failed before hook affects
+     */
+    #openHookFailures = 0
     private reportGenerator?: ReportGenerator
     /** the listeners of the events from `ReportEvents`, removed when the runner ends */
     #onMessage = this.saveMessage.bind(this)
@@ -167,6 +172,7 @@ export default class HtmlReporter extends WDIOReporter {
         }
         if (!this.#countScenarios) {
             this.metrics.failed++
+            this.#openHookFailures = 0
         }
     }
 
@@ -185,13 +191,22 @@ export default class HtmlReporter extends WDIOReporter {
     onHookEnd(hook: HookStats) {
         this.LOG.info(`onHookEnd: ${hook.cid}:${hook.uid}`)
         if (hook.error && !this.#countScenarios) {
-            this.metrics.failed++
+            this.#openHookFailures++
         }
+    }
+
+    /**
+     * a failed hook that failed no test (for example an after hook) counts as a failure
+     */
+    #countOpenHookFailures() {
+        this.metrics.failed += this.#openHookFailures
+        this.#openHookFailures = 0
     }
 
     onSuiteEnd(suite: SuiteStats) {
         this.LOG.info(`onSuiteEnd: ${suite.cid}:${suite.uid}`)
         suite.end = new Date()
+        this.#countOpenHookFailures()
         if (this.#countScenarios && suite.type === 'scenario') {
             const failed = suite.tests.some((test) => test.state === 'failed') || suite.hooks.some((hook) => hook.error)
             /**
@@ -235,6 +250,7 @@ export default class HtmlReporter extends WDIOReporter {
 
     async onRunnerEnd(runner: RunnerStats) {
         this.LOG.info(`onRunnerEnd: ${runner.cid}`)
+        this.#countOpenHookFailures()
         this.metrics.end = dayjs().utc().format()
         this.metrics.duration = runner._duration
         const suites = this.filterChildSuites()
