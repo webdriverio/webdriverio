@@ -84,8 +84,35 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('gives a pending test that never started no duration (Mocha it.skip)', () => {
-            reporter.emit('test:pending', { ...stat, uid: 'never-started', state: 'pending' })
-            expect(reporter.tests['never-started']._duration).toBe(0)
+            vi.useFakeTimers({ toFake: ['Date'] })
+            try {
+                vi.setSystemTime(1000)
+                reporter.emit('test:pending', { ...stat, uid: 'never-started', state: 'pending' })
+                reporter.emit('test:pending', { ...stat, uid: 'never-started-skip' })
+                vi.setSystemTime(31000)
+                // the duration does not increase after the end of the test
+                expect(reporter.tests['never-started'].end).toBeInstanceOf(Date)
+                expect(reporter.tests['never-started'].duration).toBe(0)
+                expect(reporter.tests['never-started-skip'].duration).toBe(0)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('does not take the start of a test that already ended as pending', () => {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            try {
+                vi.setSystemTime(1000)
+                reporter.emit('test:start', { ...stat, uid: 'step-2' })
+                vi.setSystemTime(1120)
+                reporter.emit('test:pending', { ...stat, uid: 'step-2', state: 'pending' })
+                vi.setSystemTime(2000)
+                // a second pending event, with no new start
+                reporter.emit('test:pending', { ...stat, uid: 'step-2', state: 'pending' })
+                expect(reporter.tests['step-2'].duration).toBe(0)
+            } finally {
+                vi.useRealTimers()
+            }
         })
 
         it('should add a pending test to the test list', () => {
