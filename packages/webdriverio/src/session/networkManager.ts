@@ -9,6 +9,10 @@ type Context = string
 const UNKNOWN_NAVIGATION_ID = 'UNKNOWN_NAVIGATION_ID'
 const SUPPORTED_NAVIGATION_PROTOCOLS = ['http', 'https', 'data', 'file']
 
+export function isTrackedNavigationUrl(url: string) {
+    return SUPPORTED_NAVIGATION_PROTOCOLS.some((protocol) => url.startsWith(protocol))
+}
+
 /**
  * This class is responsible for managing shadow roots and their elements.
  * It allows to do deep element lookups and pierce into shadow DOMs across
@@ -113,7 +117,7 @@ export class NetworkManager extends SessionManager {
             /**
              * ignore urls that users wouldn't navigate to
              */
-            !SUPPORTED_NAVIGATION_PROTOCOLS.some((protocol) => log.url.startsWith(protocol))
+            !isTrackedNavigationUrl(log.url)
         ) {
             /**
              * Chrome v127 and below does not support yet navigation ids, hence we have to

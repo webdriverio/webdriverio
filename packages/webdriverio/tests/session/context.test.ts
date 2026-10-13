@@ -757,6 +757,42 @@ describe('ContextManager — parallel mode guards', () => {
         }
     })
 
+    it.each([
+        'switchToFrame', 'getWindowRect', 'setWindowRect', 'maximizeWindow', 'minimizeWindow',
+        'fullscreenWindow', 'back', 'forward', 'dismissAlert', 'acceptAlert', 'sendAlertText',
+        'performActions', 'releaseActions', 'takeScreenshot', 'executeAsyncScript'
+    ])('throws for %s inside a parallel test scope but not outside', (command) => {
+        const { wid, stub, bidiBrowser } = createBidiBrowser()
+        try {
+            getContextManager(bidiBrowser)
+            const commandHandlers = stub.getListeners().command
+            const cmHandler = commandHandlers![commandHandlers!.length - 1]
+            expect(() => cmHandler({ command, body: {} })).not.toThrow()
+            getParallelContextStore().run('ctx-parallel-a', () => {
+                expect(() => cmHandler({ command, body: {} })).toThrow(parallelModeError(command))
+            })
+        } finally {
+            process.env.WDIO_UNIT_TESTS = wid
+        }
+    })
+
+    it.each(['getWindowHandle', 'executeScript', 'findElement', 'findElements', 'getAlertText'])(
+        'does not throw for %s inside a parallel test scope',
+        (command) => {
+            const { wid, stub, bidiBrowser } = createBidiBrowser()
+            try {
+                getContextManager(bidiBrowser)
+                const commandHandlers = stub.getListeners().command
+                const cmHandler = commandHandlers![commandHandlers!.length - 1]
+                getParallelContextStore().run('ctx-parallel-a', () => {
+                    expect(() => cmHandler({ command, body: {} })).not.toThrow()
+                })
+            } finally {
+                process.env.WDIO_UNIT_TESTS = wid
+            }
+        }
+    )
+
     it('works outside a parallel test scope', async () => {
         const { wid, stub, bidiBrowser } = createBidiBrowser()
         try {

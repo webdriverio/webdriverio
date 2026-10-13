@@ -592,7 +592,7 @@ describe('runParallelCucumber', () => {
         expect(passes.length).toBe(0)
     })
 
-    test('emits scenario suite:end and no test:end in step-level mode', async () => {
+    test('emits scenario suite:end and a test:end per step in step-level mode', async () => {
         const browser = mockBrowser({ contexts: ['ctx-0'] })
         const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['scenario a'])
 
@@ -611,12 +611,11 @@ describe('runParallelCucumber', () => {
         const suiteStarts = reporterEvents.filter((e) => e.event === 'suite:start')
         // feature suite:end + scenario suite:end (testCaseFinished)
         const suiteEnds = reporterEvents.filter((e) => e.event === 'suite:end')
-        // test:end is never emitted — matches sequential mode
         const testEnds = reporterEvents.filter((e) => e.event === 'test:end')
 
         expect(suiteStarts.length).toBe(2)
         expect(suiteEnds.length).toBe(2)
-        expect(testEnds.length).toBe(0)
+        expect(testEnds.length).toBe(1)
 
         const featureUid = suiteStarts.find((e) => e.payload.type !== 'scenario')!.payload.uid
         const scenarioStart = suiteStarts.find((e) => e.payload.type === 'scenario')!
@@ -908,6 +907,33 @@ describe('runParallelCucumber', () => {
         expect(stepStarts[0].payload.contextId).toBe('ctx-step')
     })
 
+    test('step-level test:end carries the contextId and the step uid', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-step'] })
+        const doc = makeFeatureDoc('/test/foo.feature', 'Test', [{ name: 'one step', steps: ['something'] }])
+
+        await runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [doc],
+            supportCodeLibrary: mockSupportCodeLibrary({
+                stepDefinitions: [makeStepDefinition('something', async function () {})],
+            }),
+            cucumberOpts: defaultCucumberOpts({ scenarioLevelReporter: false }),
+        })
+
+        const start = reporterEvents.find((e) => e.event === 'test:start')!
+        const ends = reporterEvents.filter((e) => e.event === 'test:end')
+        expect(ends).toHaveLength(1)
+        expect(ends[0].payload.contextId).toBe('ctx-step')
+        expect(ends[0].payload.uid).toBe(start.payload.uid)
+        const names = reporterEvents.map((e) => e.event)
+        expect(names.indexOf('test:end')).toBeGreaterThan(names.indexOf('test:pass'))
+        expect(names.indexOf('test:end')).toBeLessThan(names.lastIndexOf('suite:end'))
+    })
+
     test('fractional maxParallelContexts below 1 still runs every scenario', async () => {
         const browser = mockBrowser({ contexts: ['ctx-0', 'ctx-1'] })
         const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2'])
@@ -927,6 +953,27 @@ describe('runParallelCucumber', () => {
     })
 
     // ---- failFast summary ----
+
+    test('failFast in step-level mode reports skipped steps as start, skip, end with one uid', async () => {
+        const browser = mockBrowser({ contexts: ['ctx-0', 'ctx-1'] })
+        const doc = makeFeatureDoc('/test/foo.feature', 'Test', ['s1', 's2', 's3'])
+
+        await runOrCatch({
+            browser: browser as unknown as WebdriverIO.Browser,
+            reporter,
+            eventEmitter,
+            cid: '0-0',
+            specs: ['/test/foo.feature'],
+            gherkinDocuments: [doc],
+            supportCodeLibrary: mockSupportCodeLibrary(),
+            cucumberOpts: defaultCucumberOpts({ maxParallelContexts: 2, failFast: true, scenarioLevelReporter: false }),
+        })
+
+        const skip = reporterEvents.find((e) => e.event === 'test:skip')!
+        const uid = skip.payload.uid
+        const trail = reporterEvents.filter((e) => e.payload?.uid === uid).map((e) => e.event)
+        expect(trail).toEqual(['test:start', 'test:skip', 'test:end'])
+    })
 
     test('failFast reports unrun scenarios as skipped and reconciles the summary', async () => {
         const browser = mockBrowser({ contexts: ['ctx-0', 'ctx-1'] })
@@ -952,6 +999,7 @@ describe('runParallelCucumber', () => {
         expect(skips.length).toBe(1)
         // Every start is closed exactly once — the stream stays balanced
         expect(starts.length).toBe(fails.length + skips.length)
+        expect(reporterEvents.filter((e) => e.event === 'test:end').length).toBe(starts.length)
         // The skipped scenario gets no tab; only unused prefetched tabs may exceed 2, all closed
         expect(browser.browsingContextCreate.mock.calls.length).toBeLessThanOrEqual(2 + 2)
         expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
@@ -1483,7 +1531,11 @@ describe('runParallelCucumber reporter contract and teardown', () => {
             expect(owner).toBeDefined()
             expect(owner!.title).toBe(step.scenarioName)
         }
-        expect(events.filter((e) => e.event === 'test:end')).toHaveLength(0)
+        const stepEnds = events.filter((e) => e.event === 'test:end')
+        expect(stepEnds).toHaveLength(2)
+        for (const end of stepEnds) {
+            expect(end.payload.contextId).toBeDefined()
+        }
     })
 
     test('a slot never has more than one window close in flight', async () => {

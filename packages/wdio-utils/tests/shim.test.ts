@@ -1,5 +1,6 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { wrapCommand, executeAsync } from '../src/shim.js'
+import { AsyncLocalStorage } from 'node:async_hooks'
+import { vi, describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest'
+import { wrapCommand, executeAsync, setCommandHookStore } from '../src/shim.js'
 import { WDIO_KIND, WDIO_CHAINABLE } from '../src/kind.js'
 
 type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
@@ -163,6 +164,8 @@ describe('wrapCommand', () => {
     })
 
     describe('hook re-entrancy', () => {
+        beforeAll(() => setCommandHookStore(new AsyncLocalStorage<true>()))
+
         it('should run hooks for every concurrent chain', async () => {
             const delay = () => new Promise((resolve) => setTimeout(resolve, 5))
             const beforeHook = vi.fn(delay)

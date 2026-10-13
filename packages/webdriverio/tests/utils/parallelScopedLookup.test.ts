@@ -98,6 +98,60 @@ describe('element-scoped lookups while a parallel test context is active', () =>
         expect(browser.getElementShadowRoot).not.toHaveBeenCalled()
     })
 
+    describe('browser-level lookups never reach the session window through classic', () => {
+        function browserSetup() {
+            const { browser } = setup()
+            browser.findElement = vi.fn().mockResolvedValue({ [ELEMENT_KEY]: 'classic' })
+            browser.findElements = vi.fn().mockResolvedValue([{ [ELEMENT_KEY]: 'classic' }])
+            return browser
+        }
+
+        it('$ rethrows a BiDi locate rejection instead of calling findElement', async () => {
+            const browser = browserSetup()
+            browser.browsingContextLocateNodes.mockRejectedValue(new Error('locate failed'))
+            await expect(findDeepElement.call(browser, '#x')).rejects.toThrow('locate failed')
+            expect(browser.findElement).not.toHaveBeenCalled()
+        })
+
+        it('$$ rethrows a BiDi locate rejection instead of calling findElements', async () => {
+            const browser = browserSetup()
+            browser.browsingContextLocateNodes.mockRejectedValue(new Error('locate failed'))
+            await expect(findDeepElements.call(browser, '#x')).rejects.toThrow('locate failed')
+            expect(browser.findElements).not.toHaveBeenCalled()
+        })
+
+        it('aria not found retries the XPath over BiDi on the root document', async () => {
+            const browser = browserSetup()
+            browser.browsingContextLocateNodes
+                .mockResolvedValueOnce({ nodes: [] })
+                .mockResolvedValueOnce({ nodes: [{ sharedId: 'x1' }] })
+            expect(await findDeepElement.call(browser, 'aria/Foo')).toEqual(expect.objectContaining({ [ELEMENT_KEY]: 'x1' }))
+            expect(browser.browsingContextLocateNodes).toHaveBeenLastCalledWith(expect.objectContaining({
+                context: 'ctx-1',
+                locator: expect.objectContaining({ type: 'xpath' })
+            }))
+            expect(browser.findElement).not.toHaveBeenCalled()
+        })
+
+        it('aria not found anywhere returns not-found without classic', async () => {
+            const browser = browserSetup()
+            browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+            expect(await findDeepElement.call(browser, 'aria/Foo')).toBeUndefined()
+            expect(await findDeepElements.call(browser, 'aria/Foo')).toEqual([])
+            expect(browser.findElement).not.toHaveBeenCalled()
+            expect(browser.findElements).not.toHaveBeenCalled()
+        })
+
+        it('aria XPath rejection is rethrown without classic', async () => {
+            const browser = browserSetup()
+            browser.browsingContextLocateNodes.mockRejectedValue(new Error('boom'))
+            await expect(findDeepElement.call(browser, 'aria/Foo')).rejects.toThrow('boom')
+            await expect(findDeepElements.call(browser, 'aria/Foo')).rejects.toThrow('boom')
+            expect(browser.findElement).not.toHaveBeenCalled()
+            expect(browser.findElements).not.toHaveBeenCalled()
+        })
+    })
+
     describe('without a parallel context (unchanged)', () => {
         beforeEach(() => {
             parallelStore.value = undefined

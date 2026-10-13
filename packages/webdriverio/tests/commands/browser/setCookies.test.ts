@@ -115,6 +115,15 @@ describe('setCookies', () => {
             }))
         })
 
+        it('should propagate BiDi errors inside a parallel scope without addCookie', async () => {
+            const addCookie = vi.spyOn(browser, 'addCookie')
+            addCookie.mockClear()
+            storageSetCookie.mockRejectedValueOnce(new Error('bidi boom'))
+            await expect(parallelStore.run('ctx-1', () => browser.setCookies(cookie1)))
+                .rejects.toThrow('bidi boom')
+            expect(addCookie).not.toBeCalled()
+        })
+
         it('should support passing an array', async () => {
             await browser.setCookies([cookie1])
             expect(storageSetCookie).toBeCalledTimes(1)

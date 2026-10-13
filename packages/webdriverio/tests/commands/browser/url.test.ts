@@ -17,7 +17,8 @@ vi.mock('../../../src/session/networkManager.js', () => {
         })
     }
     return {
-        getNetworkManager: vi.fn().mockReturnValue(networkManagerMock)
+        getNetworkManager: vi.fn().mockReturnValue(networkManagerMock),
+        isTrackedNavigationUrl: (url: string) => /^(https?|data|file):/.test(url)
     }
 })
 
@@ -300,6 +301,17 @@ describe('url', () => {
             expect(browsingContextNavigate).toBeCalledWith(expect.objectContaining({
                 wait: 'complete' // Default fallback for networkIdle in browsingContextNavigate
             }))
+        })
+
+        it('should skip network idle wait for urls the network manager does not track', async () => {
+            browsingContextNavigate.mockImplementation((async () => ({
+                navigation: 'nav-about'
+            })) as any)
+
+            const page = await getParallelContextStore().run('123', () => browser.url('about:blank', { wait: 'networkIdle' }))
+            expect(page?.contextId).toBe('123')
+            expect(networkManager.getPendingRequests).not.toHaveBeenCalled()
+            expect(networkManager.getRequestResponseData).not.toHaveBeenCalled()
         })
 
         it('should skip network idle wait when navigation id is null', async () => {

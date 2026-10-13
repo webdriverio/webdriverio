@@ -111,8 +111,8 @@ interface CollectedTest {
     /** static skip (it.skip / it without fn) */
     pending?: boolean
     file: string | undefined
-    /** {@link CollectedSuite.depth} of the owning suite; {@link ROOT_SUITE} for root-level tests */
-    suiteIndex: SuiteIndex
+    /** {@link CollectedSuite.depth} of the owning suite; undefined for root-level tests */
+    suiteIndex?: number
 }
 
 interface CollectedSuite {
@@ -120,17 +120,14 @@ interface CollectedSuite {
     fullTitle: string
     file: string | undefined
     /** index into the suites array for reverse-order suite:end emission */
-    depth: SuiteIndex
-    /** {@link depth} of the parent suite; undefined only for the root suite */
-    parentIndex?: SuiteIndex
+    depth: number
+    /** {@link depth} of the parent suite; undefined for top-level describes */
+    parentIndex?: number
 }
 
-const ROOT_SUITE = 'root'
-type SuiteIndex = number | typeof ROOT_SUITE
-
-const suiteUid = (cid: string, index: SuiteIndex) => `suite-${cid}-${index}`
-const parentUidField = (cid: string, index?: SuiteIndex) => index === undefined ? {} : { parentUid: suiteUid(cid, index) }
-const suiteParentUidField = (cid: string, suite: CollectedSuite) => ({ parentUid: suite.parentIndex === undefined ? null : suiteUid(cid, suite.parentIndex) })
+const suiteUid = (cid: string, index: number) => `suite-${cid}-${index}`
+// null parents to the reporter's own '(root)' suite; Mocha's root suite is never emitted (sequential adapter drops it too)
+const parentUidField = (cid: string, index?: number) => ({ parentUid: index === undefined ? null : suiteUid(cid, index) })
 
 // ============================================================
 // Suite tree walker — collects everything in a single pass
@@ -139,7 +136,6 @@ const suiteParentUidField = (cid: string, suite: CollectedSuite) => ({ parentUid
 interface SuiteCollection {
     tests: CollectedTest[]
     suites: CollectedSuite[]
-    root: CollectedSuite
 }
 
 /**
@@ -161,9 +157,9 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
         parentAfterAll: Function[],
         depth: number,
         ancestors: Suite[],
-        parentIndex?: SuiteIndex
+        parentIndex?: number
     ) => {
-        const suiteIndex: SuiteIndex = depth > 0 ? nextDepth++ : ROOT_SUITE
+        const suiteIndex = depth > 0 ? nextDepth++ : undefined
 
         const ownBeforeEach = (s as unknown as { _beforeEach?: Function[] })._beforeEach || []
         const ownAfterEach = (s as unknown as { _afterEach?: Function[] })._afterEach || []
@@ -209,7 +205,7 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
                 title: s.title,
                 fullTitle: typeof s.fullTitle === 'function' ? s.fullTitle() : s.title,
                 file: (s as unknown as { file?: string }).file,
-                depth: suiteIndex,
+                depth: suiteIndex!,
                 parentIndex
             })
         }
@@ -224,7 +220,6 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
 
     return {
         tests,
-        root: { title: suite.title, fullTitle: suite.title, file: undefined, depth: ROOT_SUITE },
         suites: [...suiteStubs.entries()]
             .filter(([s]) => matchedSuites.has(s))
             .map(([, stub]) => stub)
@@ -256,7 +251,7 @@ interface TestMessage {
     title: string
     fullTitle: string
     parent: string
-    parentUid?: string
+    parentUid?: string | null
     file: string
     contextId?: string
     duration?: number
@@ -276,7 +271,7 @@ function baseMessage(type: string, test: CollectedTest, cid: string, specs: stri
     } satisfies TestMessage
 }
 
-function emitTestStart(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
+function emitTestStart(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, contextId?: string) {
     reporter.emit('test:start', baseMessage('test:start', test, cid, specs, uid, contextId))
 }
 
@@ -359,7 +354,7 @@ function emitSuiteStart(reporter: EventEmitter, suite: CollectedSuite, cid: stri
         fullTitle: suite.fullTitle,
         parent: '',
         file: suite.file || specs[0],
-        ...suiteParentUidField(cid, suite)
+        ...parentUidField(cid, suite.parentIndex)
     })
 }
 
@@ -373,7 +368,7 @@ function emitSuiteEnd(reporter: EventEmitter, suite: CollectedSuite, cid: string
         fullTitle: suite.fullTitle,
         parent: '',
         file: suite.file || specs[0],
-        ...suiteParentUidField(cid, suite)
+        ...parentUidField(cid, suite.parentIndex)
     })
 }
 
@@ -404,8 +399,10 @@ export function isSkipError(err?: unknown): boolean {
  * limitation sequential mode has.
  */
 function createHookContext(testTitle?: string, parentTitle?: string) {
+    const test = testTitle ? { title: testTitle, parent: { title: parentTitle || '' }, state: undefined as 'passed' | 'failed' | undefined } : undefined
     return {
-        test: testTitle ? { title: testTitle, parent: { title: parentTitle || '' } } : undefined,
+        test,
+        currentTest: test,
         skip: () => { throw new Error('sync skip; aborting execution') },
         timeout: () => { throw new Error('this.timeout() is not supported in parallel mode') },
         retries: () => { throw new Error('this.retries() is not supported in parallel mode') },
@@ -572,6 +569,7 @@ async function runOneTest(
                     fnDuration = Date.now() - fnStart
                 }
             }
+            if (ctx.test && !isSkipError(caughtError)) { ctx.test.state = passed ? 'passed' : 'failed' }
             await runHookChain(test._afterEach, 'after each', false)
         }
         await runHookChain(test._afterAll, 'after all', false)
@@ -582,6 +580,8 @@ async function runOneTest(
                 emitTestPending(reporter, test, cid, specs, uid, 0, contextId)
                 return { status: 'pending' as const, name: test.title, duration: 0, hookFailures }
             }
+            // WDIOReporter's test:fail handler needs a prior test:start for this uid
+            emitTestStart(reporter, test, cid, specs, uid)
             emitTestFail(reporter, test, cid, specs, uid, 0, caughtError!)
             return { status: 'failed' as const, name: test.title, duration: 0, error: caughtError!.message, hookFailures }
         }
@@ -635,7 +635,7 @@ export async function runParallelTests(
 
     const grep = mochaOptions?.grep
     const invert = !!mochaOptions?.invert
-    const { tests, suites, root } = collectAll(
+    const { tests, suites } = collectAll(
         mochaSuite,
         grep ? (test: CollectedTest) => grep.test(test.fullTitle) !== invert : undefined
     )
@@ -649,12 +649,6 @@ export async function runParallelTests(
         )
     }
 
-    // --- Emit suite:start for nested describe blocks ---
-    const emitted = [root, ...suites]
-    for (const s of emitted) {
-        emitSuiteStart(reporter, s, cid, specs, suiteUid(cid, s.depth))
-    }
-
     const parallelStore = (browser as ParallelBrowser).__parallelContextStore as AsyncLocalStorage<string>
     if (!parallelStore) {
         throw new Error('Parallel context store not found on browser.')
@@ -665,6 +659,11 @@ export async function runParallelTests(
             'Parallel context registry not found on browser. ' +
             'The session ContextManager must expose __parallelContexts for re-anchor protection.'
         )
+    }
+
+    // After the guards: a throw above must not leave suites started but never ended
+    for (const s of suites) {
+        emitSuiteStart(reporter, s, cid, specs, suiteUid(cid, s.depth))
     }
 
     const maxContexts = resolveMaxContexts(maxParallelContexts, os.cpus().length)
@@ -749,7 +748,7 @@ export async function runParallelTests(
     const failed = tests.length - passed - pending + hookFailures
 
     // --- Emit suite:end for nested describe blocks (reverse order) ---
-    for (const s of [...emitted].reverse()) {
+    for (const s of [...suites].reverse()) {
         emitSuiteEnd(reporter, s, cid, specs, suiteUid(cid, s.depth))
     }
 

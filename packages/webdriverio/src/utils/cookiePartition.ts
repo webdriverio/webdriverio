@@ -7,9 +7,11 @@ import { getParallelContextStore } from '../session/context.js'
  * test's browsing context rather than the origin-wide storage key that
  * concurrent tests would share.
  */
-export function getCookiePartition(sourceOrigin: string): remote.StoragePartitionDescriptor {
+export function parallelCookiePartition(): remote.StoragePartitionDescriptor | undefined {
     const context = getParallelContextStore().getStore()
-    return context
-        ? { type: 'context', context }
-        : { type: 'storageKey', sourceOrigin }
+    return context ? { type: 'context', context } : undefined
+}
+
+export function getCookiePartition(sourceOrigin: string): remote.StoragePartitionDescriptor {
+    return parallelCookiePartition() ?? { type: 'storageKey', sourceOrigin }
 }

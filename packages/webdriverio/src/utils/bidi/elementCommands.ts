@@ -37,37 +37,43 @@ function exec<T>(
     el.__bidiBrowser = target
     // Wrap in raw ELEMENT_KEY reference for proper Bidi argument conversion
     const rawEl = { [ELEMENT_KEY]: element.elementId }
-    return target.execute(fn, rawEl, ...args) as Promise<T>
+    return (target.execute(fn, rawEl, ...args) as Promise<T>).catch(nameNotInteractable)
 }
+
+const NOT_INTERACTABLE = 'element not interactable'
+
+/**
+ * An error thrown inside the page reaches Node with a generic name, so the
+ * middleware's `waitForClickable` retry would never see it. Match on the message.
+ */
+function nameNotInteractable(err: unknown): never {
+    if (err instanceof Error && err.message.includes(NOT_INTERACTABLE)) {
+        err.name = NOT_INTERACTABLE
+    }
+    throw err
+}
+
+/** Matches any WebDriver special key (Key.Enter, Key.Tab, ...), which splicing into `value` would type as literal characters. */
+const SPECIAL_KEY = /[\uE000-\uE05D]/
 
 /**
  * Inspired by the Selenium atom: bot.action.clear()
  * @see https://github.com/SeleniumHQ/selenium/blob/trunk/javascript/atoms/action.js
  */
 export function bidiClearValue(element: WebdriverIO.Element): Promise<void> {
-    return exec(element, function (el) {
-        // Mirrors bot.action.checkInteractable_ + bot.dom.isEditable
-        if (el.disabled || el.readOnly) { throw new Error('element not interactable') }
-        const tag = el.tagName.toLowerCase()
-        const editable = tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable
-        if (!editable) { throw new Error('element not editable') }
-        // Basic visibility check: not display:none, not visibility:hidden, has layout
-        const style = window.getComputedStyle(el)
-        if (style.display === 'none' || style.visibility === 'hidden') {
-            throw new Error('element not interactable')
-        }
-
+    return exec(element, withEditableGuard(function (el) {
         el.scrollIntoView({ block: 'center', inline: 'center' })
         el.focus()
         // contentEditable uses textContent; form controls use value (matches atom)
         if (el.isContentEditable) {
             el.textContent = ''
         } else {
-            el.value = ''
+            setNativeValue(el, '')
         }
-        // Atom fires only 'change', not 'input'
+        // The atom fires only 'change'; frameworks that listen for 'input' (React) need both
+        el.dispatchEvent(new Event('input', { bubbles: true }))
         el.dispatchEvent(new Event('change', { bubbles: true }))
-    })
+    }))
 }
 
 /**
@@ -87,9 +93,27 @@ const assertEditableTarget = function (el: any) {
     }
 }
 
+/**
+ * Writes through the prototype's setter: React's value tracker shadows the
+ * instance property, so a plain `el.value = x` never triggers its onChange.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const setNativeValue = function (el: any, newValue: string) {
+    const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value')
+    if (descriptor && descriptor.set) {
+        descriptor.set.call(el, newValue)
+    } else {
+        el.value = newValue
+    }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function withEditableGuard(body: (el: any, ...args: any[]) => unknown) {
-    return new Function('el', 'value', `(${assertEditableTarget})(el); return (${body})(el, value)`) as (...args: unknown[]) => void
+    return new Function(
+        'el',
+        'value',
+        `const setNativeValue = ${setNativeValue}; (${assertEditableTarget})(el); return (${body})(el, value)`
+    ) as (...args: unknown[]) => void
 }
 
 /**
@@ -103,6 +127,9 @@ function withEditableGuard(body: (el: any, ...args: any[]) => unknown) {
  * app relies on individual key events.
  */
 export function bidiAddValue(element: WebdriverIO.Element, value: string): Promise<void> {
+    if (SPECIAL_KEY.test(value)) {
+        return typeKeys(element, value, false)
+    }
     return exec(element, withEditableGuard(function (el, val) {
         // Atom only scrolls+focuses if element is not already the active element
         if (document.activeElement !== el) {
@@ -122,7 +149,7 @@ export function bidiAddValue(element: WebdriverIO.Element, value: string): Promi
         if (el.isContentEditable) {
             el.textContent = (el.textContent || '').substring(0, s) + val + (el.textContent || '').substring(e2)
         } else {
-            el.value = v.substring(0, s) + val + v.substring(e2)
+            setNativeValue(el, v.substring(0, s) + val + v.substring(e2))
         }
         el.dispatchEvent(new Event('input', { bubbles: true }))
         el.dispatchEvent(new Event('change', { bubbles: true }))
@@ -131,10 +158,15 @@ export function bidiAddValue(element: WebdriverIO.Element, value: string): Promi
 
 /**
  * Types `value` through BiDi key actions so the text can be redacted from logs
- * and `bidiCommand` events via `BIDI_MASK`. Unlike `elementSendKeys`, this
+ * and `bidiCommand` events via `BIDI_MASK`. `typeKeys` also serves unmasked
+ * values holding special keys. Unlike `elementSendKeys`, this
  * reaches the element's own tab in parallel mode and held browsing contexts.
  */
-export async function bidiAddMaskedValue(element: WebdriverIO.Element, value: string): Promise<void> {
+export function bidiAddMaskedValue(element: WebdriverIO.Element, value: string): Promise<void> {
+    return typeKeys(element, value, true)
+}
+
+async function typeKeys(element: WebdriverIO.Element, value: string, mask: boolean): Promise<void> {
     await exec(element, withEditableGuard(function (el) {
         if (el.ownerDocument.activeElement !== el) {
             el.scrollIntoView({ block: 'center', inline: 'center' })
@@ -169,7 +201,7 @@ export async function bidiAddMaskedValue(element: WebdriverIO.Element, value: st
             ])
         }]
     }
-    await browser.inputPerformActions(Object.assign(params, { [BIDI_MASK]: true }))
+    await browser.inputPerformActions(mask ? Object.assign(params, { [BIDI_MASK]: true }) : params)
     await browser.inputReleaseActions({ context })
 }
 

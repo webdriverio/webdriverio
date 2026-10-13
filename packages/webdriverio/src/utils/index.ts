@@ -627,7 +627,8 @@ type BidiStartNode = { sharedId: string }
 /**
  * Retry an `aria/` lookup with the XPath heuristic, searching the same
  * shadow-root start nodes as the primary BiDi query. Classic XPath is
- * used when BiDi rejects the relative expression or finds nothing.
+ * used when BiDi rejects the relative expression or finds nothing, except in
+ * a parallel scope where classic would search the session's main window.
  */
 async function findAriaElementViaXPathFallback(
     ctx: WebdriverIO.Browser | WebdriverIO.Element,
@@ -639,7 +640,8 @@ async function findAriaElementViaXPathFallback(
     shadowRoots: string[]
 ) {
     const xpathLocator = toAriaXPathLocator(value)
-    if (startNodes && startNodes.length > 0) {
+    const bidiOnly = isParallelContextActive() && !getScopedElementId(ctx)
+    if (bidiOnly || (startNodes && startNodes.length > 0)) {
         try {
             const result = await browser.browsingContextLocateNodes({
                 locator: xpathLocator,
@@ -656,8 +658,14 @@ async function findAriaElementViaXPathFallback(
                 return nodes[0]
             }
         } catch (err) {
+            if (bidiOnly) {
+                throw err
+            }
             log.warn(`BiDi XPath fallback for "aria/${value}" failed due to ${err}, using Classic`)
         }
+    }
+    if (bidiOnly) {
+        return undefined
     }
     return findElementViaClassic(ctx, browser, using, value, shadowRoots)
 }
@@ -672,7 +680,8 @@ async function findAriaElementsViaXPathFallback(
     shadowRoots: string[]
 ) {
     const xpathLocator = toAriaXPathLocator(value)
-    if (startNodes && startNodes.length > 0) {
+    const bidiOnly = isParallelContextActive() && !getScopedElementId(ctx)
+    if (bidiOnly || (startNodes && startNodes.length > 0)) {
         try {
             const result = await browser.browsingContextLocateNodes({
                 locator: xpathLocator,
@@ -689,8 +698,14 @@ async function findAriaElementsViaXPathFallback(
                 return nodes
             }
         } catch (err) {
+            if (bidiOnly) {
+                throw err
+            }
             log.warn(`BiDi XPath fallback for "aria/${value}" failed due to ${err}, using Classic`)
         }
+    }
+    if (bidiOnly) {
+        return []
     }
     return findElementsViaClassic(ctx, browser, using, value, shadowRoots)
 }
@@ -923,6 +938,9 @@ export async function findDeepElement(
         if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findInFrameByScript(this, browser, using, value, 0) as Promise<ElementReference | undefined>
         }
+        if (isParallelContextActive() && !(this as WebdriverIO.Element).elementId) {
+            throw err
+        }
         return findElementViaClassic(this, browser, using, value, shadowRoots)
     })
 
@@ -1110,6 +1128,9 @@ export async function findDeepElements(
          */
         if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findAllInFrame(this, browser, using, value)
+        }
+        if (isParallelContextActive() && !(this as WebdriverIO.Element).elementId) {
+            throw err
         }
         return findElementsViaClassic(this, browser, using, value, shadowRoots)
     })

@@ -1,4 +1,6 @@
 import path from 'node:path'
+import type { EventEmitter } from 'node:events'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
@@ -790,6 +792,28 @@ describe('CucumberAdapter', () => {
         expect(
             vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0](wdioHookFn)()
         ).toBe('foobar')
+    })
+
+    it('wrapSteps keeps getHookParams per parallel context', async () => {
+        const store = new AsyncLocalStorage<string>()
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {}, {}, false, ['progress'])
+        adapter.setBrowser({ __parallelContextStore: store } as never)
+        adapter.wrapSteps({} as never)
+        const emitter = (adapter as unknown as { _eventEmitter: EventEmitter })._eventEmitter
+        const wrap = vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0]
+        const wrapped = wrap(vi.fn(), { retry: 1 }) as () => void
+        vi.mocked(testFnWrapper).mockClear()
+
+        store.run('ctx-a', () => emitter.emit('getHookParams', { step: 'stepA' }))
+        store.run('ctx-b', () => emitter.emit('getHookParams', { step: 'stepB' }))
+        store.run('ctx-a', () => wrapped.call({}))
+        store.run('ctx-b', () => wrapped.call({}))
+
+        const stepsSeen = vi.mocked(testFnWrapper).mock.calls.map((call) => {
+            const beforeFnArgs = (call[2] as { beforeFnArgs: (c: unknown) => unknown[] }).beforeFnArgs
+            return beforeFnArgs('ctx')[0]
+        })
+        expect(stepsSeen).toEqual(['stepA', 'stepB'])
     })
 
     it('wrapStep', async () => {

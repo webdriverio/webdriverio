@@ -117,6 +117,22 @@ describe('deleteCookies', () => {
             setParallelContextStore(parallelStore)
         })
 
+        it('should not fall back to classic on empty match inside a parallel scope', async () => {
+            storageGetCookies.mockReturnValue(Promise.resolve({ cookies: [] }))
+            const deleteAllCookies = vi.spyOn(browser, 'deleteAllCookies')
+            const deleteCookie = vi.spyOn(browser, 'deleteCookie')
+            deleteAllCookies.mockClear()
+            deleteCookie.mockClear()
+            await parallelStore.run('ctx-1', () => browser.deleteCookies('nope'))
+            expect(deleteAllCookies).not.toBeCalled()
+            expect(deleteCookie).not.toBeCalled()
+            expect(storageDeleteCookies).toBeCalledWith({
+                filter: { name: 'nope' },
+                partition: { type: 'context', context: 'ctx-1' }
+            })
+            storageGetCookies.mockReturnValue(Promise.resolve({ cookies: [{ name: 'foo', value: 'bar' }] }))
+        })
+
         it('should use the context partition inside a parallel scope', async () => {
             await parallelStore.run('ctx-1', () => browser.deleteCookies())
             expect(storageDeleteCookies).toBeCalledWith({

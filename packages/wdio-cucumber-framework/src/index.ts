@@ -549,6 +549,11 @@ export class CucumberAdapter {
         })
     }
 
+    private _getParallelContextId(): string | undefined {
+        const browser = (this._browser ?? (globalThis as Record<string, unknown>).browser) as ParallelBrowser | undefined
+        return browser?.__parallelContextStore?.getStore()
+    }
+
     /**
      * wraps step definition code with sync/async runner with a retry option
      * @param {object} config
@@ -558,11 +563,20 @@ export class CucumberAdapter {
         const cid = this._cid
 
         let params: unknown
+        const paramsByContext = new Map<string, unknown>()
         this._eventEmitter.on('getHookParams', (payload) => {
-            params = payload
+            const contextId = payload?.contextId ?? this._getParallelContextId()
+            if (contextId) {
+                paramsByContext.set(contextId, payload)
+            } else {
+                params = payload
+            }
         })
 
-        const getHookParams = () => params
+        const getHookParams = () => {
+            const contextId = this._getParallelContextId()
+            return contextId && paramsByContext.has(contextId) ? paramsByContext.get(contextId) : params
+        }
 
         setDefinitionFunctionWrapper(
             (fn: Function, options: StepDefinitionOptions = { retry: 0 }) => {

@@ -1,6 +1,10 @@
 import path from 'node:path'
-import { describe, it, expect, beforeAll, vi, beforeEach } from 'vitest'
+import { AsyncLocalStorage } from 'node:async_hooks'
+import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from 'vitest'
 import { remote } from '../../../src/index.js'
+import { setParallelContextStore, getParallelContextStore } from '../../../src/session/context.js'
+
+const noopParallelContextStore = getParallelContextStore()
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -89,5 +93,47 @@ describe('actions command', () => {
         expect(performActionParam.method).toBe('POST')
         expect(releaseActionParam.method).toBe('DELETE')
         expect(JSON.parse(performActionParam.body)).toMatchSnapshot()
+    })
+})
+
+describe('actions command in a parallel test scope', () => {
+    const parallelStore = new AsyncLocalStorage<string>()
+    let browser: WebdriverIO.Browser
+
+    beforeAll(async () => {
+        setParallelContextStore(parallelStore)
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: { browserName: 'bidi' }
+        })
+    })
+
+    afterAll(() => {
+        setParallelContextStore(noopParallelContextStore)
+    })
+
+    it('routes through BiDi input with the store context', async () => {
+        const perform = vi.spyOn(browser, 'inputPerformActions').mockResolvedValue({})
+        const release = vi.spyOn(browser, 'inputReleaseActions').mockResolvedValue({})
+        const classicPerform = vi.spyOn(browser, 'performActions')
+
+        await parallelStore.run('ctx-1', () => browser.actions([
+            browser.action('key', { id: 'k' }).down('f').up('f')
+        ]))
+
+        expect(perform).toHaveBeenCalledWith(expect.objectContaining({ context: 'ctx-1' }))
+        expect(release).toHaveBeenCalledWith({ context: 'ctx-1' })
+        expect(classicPerform).not.toHaveBeenCalled()
+    })
+
+    it('keeps the classic path outside the scope', async () => {
+        const perform = vi.spyOn(browser, 'inputPerformActions').mockResolvedValue({})
+        perform.mockClear()
+        const classicPerform = vi.spyOn(browser, 'performActions').mockResolvedValue(undefined as any)
+
+        await browser.actions([browser.action('key', { id: 'k' }).down('f').up('f')])
+
+        expect(classicPerform).toHaveBeenCalledTimes(1)
+        expect(perform).not.toHaveBeenCalled()
     })
 })

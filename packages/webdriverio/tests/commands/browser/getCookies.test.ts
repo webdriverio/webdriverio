@@ -144,6 +144,21 @@ describe('getCookies', () => {
             storageGetCookies.mockClear()
         })
 
+        it('should read the context partition on about:blank without classic fallback', async () => {
+            const getUrl = vi.spyOn(browser, 'getUrl')
+            getUrl.mockClear()
+            getUrl.mockResolvedValue('about:blank')
+            const getAllCookies = vi.spyOn(browser, 'getAllCookies')
+            getAllCookies.mockClear()
+            const cookies = await parallelStore.run('ctx-1', () => browser.getCookies())
+            expect(storageGetCookies).toBeCalledWith({
+                partition: { type: 'context', context: 'ctx-1' }
+            })
+            expect(getAllCookies).not.toBeCalled()
+            getUrl.mockResolvedValue('https://webdriver.io')
+            expect(cookies).toEqual([{ name: 'cookie', value: 'hello world' }])
+        })
+
         it('should use the context partition inside a parallel scope', async () => {
             await parallelStore.run('ctx-1', () => browser.getCookies())
             expect(storageGetCookies).toBeCalledWith({

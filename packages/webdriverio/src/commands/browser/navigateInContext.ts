@@ -1,7 +1,7 @@
 import { setWdioKind } from '@wdio/utils'
 
 import { validateUrl } from '../../utils/index.js'
-import { getNetworkManager } from '../../session/networkManager.js'
+import { getNetworkManager, isTrackedNavigationUrl } from '../../session/networkManager.js'
 import { getContextManager, getParallelContextStore } from '../../session/context.js'
 import { contextIdValue } from '../../session/browsingContext.js'
 import { addInitScript, type InitScript } from './addInitScript.js'
@@ -166,7 +166,11 @@ export async function navigateInContext (
 
         const network = getNetworkManager(browser)
 
-        if (options.wait === 'networkIdle') {
+        /**
+         * The network manager does not track `about:` / `blob:` navigations, so
+         * polling pending requests for them would throw until timeout.
+         */
+        if (options.wait === 'networkIdle' && isTrackedNavigationUrl(path)) {
             const timeout = options.timeout || DEFAULT_NETWORK_IDLE_TIMEOUT
             await browser.waitUntil(async () => {
                 return network.getPendingRequests(navigationId).length === 0

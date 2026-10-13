@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { getCookiePartition } from '../../utils/cookiePartition.js'
+import { getCookiePartition, parallelCookiePartition } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -52,6 +52,16 @@ export async function deleteCookies(
         return
     }
 
+    /**
+     * A parallel test owns its browsing context. Falling back to classic would
+     * act on the session's main window, so BiDi errors propagate.
+     */
+    const parallelPartition = parallelCookiePartition()
+    if (parallelPartition) {
+        await deleteBidiCookies(this, parallelPartition, filterArray)
+        return
+    }
+
     let url: URL
     try {
         url = new URL(await this.getUrl())
@@ -78,31 +88,39 @@ export async function deleteCookies(
     }
 
     try {
-        if (!filterArray) {
-            await this.storageDeleteCookies({ partition })
-            return
-        }
-
-        const bidiFilter = filterArray.map((f) => {
-            if (typeof f === 'string') {
-                return { name: f } as remote.StorageCookieFilter
-            }
-            if (typeof f === 'object') {
-                return f
-            }
-
-            throw new Error(`Invalid value for cookie filter, expected 'string' or 'remote.StorageCookieFilter' but found "${typeof f}"`)
-        })
-
-        await Promise.all(bidiFilter.map((filter) => (
-            this.storageDeleteCookies({ filter, partition })
-        )))
+        await deleteBidiCookies(this, partition, filterArray)
     } catch (err) {
         log.warn(`BiDi deleteCookies failed, falling back to classic: ${(err as Error).message}`)
         await deleteCookiesClassic.call(this, getNamesForClassic(filterArray))
     }
 
     return
+}
+
+async function deleteBidiCookies(
+    browser: WebdriverIO.Browser,
+    partition: remote.StoragePartitionDescriptor,
+    filterArray?: (string | remote.StorageCookieFilter)[]
+) {
+    if (!filterArray) {
+        await browser.storageDeleteCookies({ partition })
+        return
+    }
+
+    const bidiFilter = filterArray.map((f) => {
+        if (typeof f === 'string') {
+            return { name: f } as remote.StorageCookieFilter
+        }
+        if (typeof f === 'object') {
+            return f
+        }
+
+        throw new Error(`Invalid value for cookie filter, expected 'string' or 'remote.StorageCookieFilter' but found "${typeof f}"`)
+    })
+
+    await Promise.all(bidiFilter.map((filter) => (
+        browser.storageDeleteCookies({ filter, partition })
+    )))
 }
 
 function getNamesForClassic(filterArray?: (string | remote.StorageCookieFilter)[]) {

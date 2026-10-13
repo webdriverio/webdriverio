@@ -3,7 +3,7 @@ import type { Cookie } from '@wdio/protocols'
 import type { remote } from 'webdriver'
 
 import { isBrowsingContext } from '../../session/browsingContext.js'
-import { getCookiePartition } from '../../utils/cookiePartition.js'
+import { getCookiePartition, parallelCookiePartition } from '../../utils/cookiePartition.js'
 
 const log = logger('webdriverio')
 
@@ -60,6 +60,14 @@ export async function getCookies(
             ...(sourceOrigin === null ? {} : {
                 partition: { type: 'context', context: this.contextId }
             }),
+            ...(typeof filter !== 'undefined' ? { filter } : {})
+        }, filter)
+    }
+
+    const parallelPartition = parallelCookiePartition()
+    if (parallelPartition) {
+        return readBidiCookies(this, {
+            partition: parallelPartition,
             ...(typeof filter !== 'undefined' ? { filter } : {})
         }, filter)
     }

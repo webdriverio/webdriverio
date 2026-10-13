@@ -1,7 +1,9 @@
 import path from 'node:path'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 import { ELEMENT_KEY } from 'webdriver'
+import { Key } from '../../../src/constants.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -51,6 +53,30 @@ async function captureExecutedFn(
     if (!fn) { throw new Error('Expected mockExecute to have been called') }
 
     return { fn, mockExecute }
+}
+
+/** An input whose `value` is an accessor on the prototype, with a shadowing instance property like React's value tracker. */
+function makeReactLikeInput(initial: string) {
+    const protoSet = vi.fn()
+    const instanceSet = vi.fn()
+    const proto = { get value() { return initial }, set value(v: string) { protoSet(v) } }
+    const el: any = Object.create(proto)
+    Object.defineProperty(el, 'value', { get: () => initial, set: instanceSet, configurable: true })
+    Object.assign(el, {
+        tagName: 'INPUT', disabled: false, readOnly: false, isContentEditable: false,
+        selectionStart: null, selectionEnd: null,
+        scrollIntoView: vi.fn(), focus: vi.fn(), dispatchEvent: vi.fn(), style: {}
+    })
+    return { el, protoSet, instanceSet }
+}
+
+async function withPageGlobals<T>(el: unknown, run: () => T): Promise<T> {
+    const g = globalThis as any
+    const origWindow = g.window
+    const origDoc = g.document
+    g.window = { getComputedStyle: () => ({ display: 'block', visibility: 'visible' }) }
+    g.document = { activeElement: el }
+    try { return run() } finally { g.window = origWindow; g.document = origDoc }
 }
 
 describe('isBidiCommandsEnabled', () => {
@@ -270,7 +296,71 @@ describe('bidiClearValue', () => {
     })
 })
 
+describe('bidiClearValue native setter and events', () => {
+    it('writes through the prototype setter and fires input then change', async () => {
+        const { fn } = await captureExecutedFn(bidiClearValue, [], undefined)
+        const { el, protoSet, instanceSet } = makeReactLikeInput('old')
+        await withPageGlobals(el, () => fn(el))
+        expect(protoSet).toHaveBeenCalledWith('')
+        expect(instanceSet).not.toHaveBeenCalled()
+        expect(el.dispatchEvent.mock.calls.map((c: any[]) => c[0].type)).toEqual(['input', 'change'])
+    })
+})
+
+describe('bidi in-page not interactable errors', () => {
+    it('names the error so the middleware retry applies', async () => {
+        const { getBrowserObject } = await import('@wdio/utils')
+        vi.mocked(getBrowserObject).mockReturnValue({
+            execute: vi.fn().mockRejectedValue(new Error('Error: element not interactable'))
+        } as any)
+        const err = await bidiClearValue({ elementId: 'e-ni' } as any).catch((e: Error) => e)
+        expect(err).toBeInstanceOf(Error)
+        expect((err as Error).name).toBe('element not interactable')
+    })
+
+    it('leaves other errors untouched', async () => {
+        const { getBrowserObject } = await import('@wdio/utils')
+        vi.mocked(getBrowserObject).mockReturnValue({
+            execute: vi.fn().mockRejectedValue(new Error('element not editable'))
+        } as any)
+        const err = await bidiClearValue({ elementId: 'e-ne' } as any).catch((e: Error) => e)
+        expect((err as Error).name).toBe('Error')
+    })
+})
+
 describe('bidiAddValue', () => {
+    it('writes through the prototype setter and fires input then change', async () => {
+        const { fn } = await captureExecutedFn(bidiAddValue, ['x'], undefined)
+        const { el, protoSet, instanceSet } = makeReactLikeInput('ab')
+        await withPageGlobals(el, () => fn(el, 'x'))
+        expect(protoSet).toHaveBeenCalledWith('abx')
+        expect(instanceSet).not.toHaveBeenCalled()
+        expect(el.dispatchEvent.mock.calls.map((c: any[]) => c[0].type)).toEqual(['input', 'change'])
+    })
+
+    it('routes text with special keys through key actions instead of splicing', async () => {
+        const execute = vi.fn().mockResolvedValue(undefined)
+        const browser = { execute, inputPerformActions: vi.fn(), inputReleaseActions: vi.fn() }
+        const { getBrowserObject } = await import('@wdio/utils')
+        vi.mocked(getBrowserObject).mockReturnValue(browser as any)
+        const { getParallelContextStore, setParallelContextStore } = await import('../../../src/session/context.js')
+        const previousStore = getParallelContextStore()
+        setParallelContextStore(new AsyncLocalStorage<string>())
+        try {
+            await getParallelContextStore().run('ctx-1', () => bidiAddValue({ elementId: 'e-key' } as any, 'q' + Key.Enter))
+        } finally {
+            setParallelContextStore(previousStore)
+        }
+        const params = browser.inputPerformActions.mock.calls[0][0]
+        expect(params.context).toBe('ctx-1')
+        expect(params.actions[0].actions).toEqual([
+            { type: 'keyDown', value: 'q' }, { type: 'keyUp', value: 'q' },
+            { type: 'keyDown', value: Key.Enter }, { type: 'keyUp', value: Key.Enter }
+        ])
+        expect(Object.getOwnPropertySymbols(params)).toHaveLength(0)
+        expect(browser.inputReleaseActions).toHaveBeenCalledWith({ context: 'ctx-1' })
+    })
+
     it('splices value at cursor position when element is already focused', async () => {
         const { fn } = await captureExecutedFn(bidiAddValue, ['typed'], undefined)
         const el = {

@@ -1,4 +1,3 @@
-import { AsyncLocalStorage } from 'node:async_hooks'
 import logger from '@wdio/logger'
 import type { Frameworks, Services, Options } from '@wdio/types'
 
@@ -8,11 +7,49 @@ import { WDIO_KIND, WDIO_CHAINABLE, getWdioKind, type WdioKind } from './kind.js
 
 const log = logger('@wdio/utils:shim')
 
+export interface CommandHookStore {
+    getStore(): true | undefined
+    run<T>(value: true, fn: () => T): T
+}
+
 /**
- * Scoped per async chain so a hook running for one concurrent test (parallel
- * mode) does not suppress hooks of commands issued by other tests.
+ * Fallback for runtimes without `AsyncLocalStorage` (browser bundles): a plain
+ * flag, so a hook still does not trigger itself via the commands it issues.
  */
-const commandHookScope = new AsyncLocalStorage<true>()
+const flagCommandHookStore: CommandHookStore = (() => {
+    let active = false
+    return {
+        getStore: () => active ? true : undefined,
+        run: <T>(_: true, fn: () => T): T => {
+            const previous = active
+            active = true
+            let result: T
+            try {
+                result = fn()
+            } catch (err) {
+                active = previous
+                throw err
+            }
+            if (result instanceof Promise) {
+                return result.finally(() => { active = previous }) as T
+            }
+            active = previous
+            return result
+        }
+    }
+})()
+
+let commandHookScope: CommandHookStore = flagCommandHookStore
+
+/**
+ * Node entry points register an `AsyncLocalStorage` so a hook running for one
+ * concurrent test (parallel mode) does not suppress hooks of commands issued by
+ * other tests.
+ */
+export function setCommandHookStore (store: CommandHookStore) {
+    commandHookScope = store
+}
+
 const isInCommandHook = () => commandHookScope.getStore() === true
 const runInCommandHook = (fn: () => Promise<unknown>) => commandHookScope.run(true, fn)
 

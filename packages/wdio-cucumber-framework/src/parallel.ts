@@ -416,6 +416,7 @@ function emitSkippedScenario(
         const skipped = { ...payload, parentUid: group.uid, state: 'skip', duration: 0, passed: true }
         reporter.emit('test:start', formatMessage({ payload: { ...payload, parentUid: group.uid } }))
         reporter.emit('test:skip', formatMessage({ payload: skipped }))
+        reporter.emit('test:end', formatMessage({ payload: skipped }))
         return
     }
 
@@ -428,7 +429,10 @@ function emitSkippedScenario(
             passed: true,
             duration: 0,
         })
-        reporter.emit('test:skip', formatMessage({ payload: { ...stepPayload, parentUid: payload.uid } }))
+        const skippedStep = { ...stepPayload, parentUid: payload.uid }
+        reporter.emit('test:start', formatMessage({ payload: skippedStep }))
+        reporter.emit('test:skip', formatMessage({ payload: skippedStep }))
+        reporter.emit('test:end', formatMessage({ payload: skippedStep }))
     }
     const closed = { ...payload, parentUid: group.uid, duration: 0 }
     reporter.emit('suite:end', formatMessage({ payload: closed }))
@@ -511,7 +515,7 @@ interface ScenarioTranslatorParams {
     contextId: string
 }
 
-function wireScenarioTranslator(params: ScenarioTranslatorParams) {
+function wireScenarioTranslator(params: ScenarioTranslatorParams): (error: Error) => void {
     const {
         broadcaster, reporter, eventEmitter, cid, specs,
         gherkinDocument, featureUID, pickle, testCase, cucumberOpts,
@@ -526,6 +530,20 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
     let testStart: Date | undefined
     let stepStart: Date | undefined
     let stepResults: messages.TestStepResult[] = []
+    let scenarioOpen = false
+    let openStep: Record<string, unknown> | undefined
+    /**
+     * test:end of the last finished step is held back: only testCaseFinished
+     * knows whether a retry follows, and the reporter's per-context state must
+     * not be cleared for a step whose attempt is repeated.
+     */
+    let pendingStepEnd: Record<string, unknown> | undefined
+
+    const flushStepEnd = () => {
+        if (!pendingStepEnd) { return }
+        reporter.emit('test:end', formatMessage({ payload: pendingStepEnd }))
+        pendingStepEnd = undefined
+    }
 
     /**
      * Shared scenario payload — every event emitted for this scenario
@@ -571,6 +589,8 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
     const onTestCaseStarted = (started: messages.TestCaseStarted) => {
         testStart = new Date()
         stepResults = []
+        scenarioOpen = true
+        pendingStepEnd = undefined
 
         // Mirrors sequential mode (cucumberFormatter.ts): retry attempts emit
         // `suite:retry` instead of `suite:start` in step-level mode, keeping
@@ -605,6 +625,10 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
         stepStart = new Date()
 
         const payload = { ...buildStepPayload(uri, feature, pickle, step as ReporterStep, { type }), contextId, parentUid: scenarioUID }
+        if (!info.isHook) {
+            flushStepEnd()
+            openStep = payload
+        }
         reporter.emit(`${type}:start`, formatMessage({ payload }))
     }
 
@@ -652,6 +676,8 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
             parentUid: scenarioUID,
         }
         reporter.emit(`test:${state}`, formatMessage({ payload }))
+        openStep = undefined
+        pendingStepEnd = payload
     }
 
     /**
@@ -661,7 +687,12 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
      * `test:fail` resolved from the first non-passing step result (or the last).
      */
     const onTestCaseFinished = (finished: messages.TestCaseFinished) => {
-        if (finished.willBeRetried) { return }
+        if (finished.willBeRetried) {
+            pendingStepEnd = undefined
+            return
+        }
+        scenarioOpen = false
+        flushStepEnd()
 
         const duration = testStart ? Date.now() - testStart.getTime() : 0
 
@@ -717,6 +748,31 @@ function wireScenarioTranslator(params: ScenarioTranslatorParams) {
         if (envelope.testStepFinished) { return onTestStepFinished(envelope.testStepFinished) }
         if (envelope.testCaseFinished) { return onTestCaseFinished(envelope.testCaseFinished) }
     })
+
+    /**
+     * runner.run() rejected mid-scenario: close whatever is open so the
+     * reporter's per-context state is released.
+     */
+    return (error: Error) => {
+        if (!scenarioOpen) { return }
+        scenarioOpen = false
+        const duration = testStart ? Date.now() - testStart.getTime() : 0
+        if (scenarioLevel) {
+            const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, state: 'fail', error, duration, passed: false }
+            reporter.emit('test:fail', formatMessage({ payload }))
+            reporter.emit('test:end', formatMessage({ payload: { ...payload, contextId } }))
+            return
+        }
+        if (openStep) {
+            const payload = { ...openStep, state: 'fail', error, passed: false }
+            reporter.emit('test:fail', formatMessage({ payload }))
+            reporter.emit('test:end', formatMessage({ payload }))
+            openStep = undefined
+        }
+        flushStepEnd()
+        const payload = { ...buildScenarioPayload(scenarioPayloadParams), parentUid: featureUID, duration }
+        reporter.emit('suite:end', formatMessage({ payload }))
+    }
 }
 
 // ============================================================
@@ -774,7 +830,7 @@ async function runScenario(
     return parallelStore.run(contextId, async () => {
         const scenarioBroadcaster = new EventEmitter()
 
-        wireScenarioTranslator({
+        const abortScenario = wireScenarioTranslator({
             broadcaster: scenarioBroadcaster,
             reporter,
             eventEmitter,
@@ -805,7 +861,13 @@ async function runScenario(
         })
 
         const testStart = Date.now()
-        const status = await runner.run()
+        let status: messages.TestStepResultStatus
+        try {
+            status = await runner.run()
+        } catch (err) {
+            abortScenario(err as Error)
+            throw err
+        }
         const duration = Date.now() - testStart
 
         return { status, name: pickle.name, duration }

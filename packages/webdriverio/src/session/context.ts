@@ -9,6 +9,19 @@ import { logBackgroundError } from '../utils/sessionEnded.js'
 const log = logger('webdriverio:context')
 const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
 
+/**
+ * Classic endpoints that act on the session's current top-level window or
+ * frame pointer, which concurrent tests share. Commands with an in-scope
+ * internal caller (getWindowHandle, executeScript, findElement, findElements,
+ * getAlertText) are not listed.
+ */
+const PARALLEL_FORBIDDEN_COMMANDS: readonly string[] = [
+    'switchToWindow', 'switchToParentFrame', 'refresh', 'closeWindow',
+    'switchToFrame', 'getWindowRect', 'setWindowRect', 'maximizeWindow', 'minimizeWindow',
+    'fullscreenWindow', 'back', 'forward', 'dismissAlert', 'acceptAlert', 'sendAlertText',
+    'performActions', 'releaseActions', 'takeScreenshot', 'executeAsyncScript'
+]
+
 function parallelModeError(command: string) {
     return `${command} is not supported in parallel mode (parallelMode: 'contexts') — ` +
         'window/frame management mutates session-global state shared by concurrent tests'
@@ -375,7 +388,7 @@ export class ContextManager extends SessionManager {
     #onCommand(event: { command: string, body: unknown }) {
         if (
             parallelContextStore.getStore() &&
-            ['switchToWindow', 'switchToParentFrame', 'refresh', 'closeWindow'].includes(event.command)
+            PARALLEL_FORBIDDEN_COMMANDS.includes(event.command)
         ) {
             throw new Error(parallelModeError(event.command))
         }
