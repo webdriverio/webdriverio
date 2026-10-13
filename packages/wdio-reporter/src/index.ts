@@ -167,15 +167,28 @@ export default class WDIOReporter extends EventEmitter {
         this.on('test:pending', (test: Test) => {
             test.retries = this.retries
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            /**
+             * a test that started and did not end, and now ends as pending or skipped
+             * (for example a Cucumber step that returns 'pending', or Jasmine
+             * `pending()`), keeps its start, to give its duration, and its commands
+             */
+            const existingTest = this.tests[test.uid]
+            const startedTest = existingTest?.state === 'pending' && !existingTest.end ? existingTest : undefined
             currentTest = new TestStats(test)
+            if (startedTest) {
+                currentTest.start = startedTest.start
+                currentTest.output = startedTest.output
+            }
+            // a pending test that never started (Mocha `it.skip`) ends now, with no duration
+            currentTest.complete()
 
             /**
              * In Mocha: tests that are skipped don't have a start event but a test end.
              * In Jasmine: tests have a start event, therefore we need to replace the
              * test instance with the pending test here
              */
-            if (test.uid in this.tests && this.tests[test.uid].state !== 'pending') {
-                currentTest.uid = test.uid in this.tests ? 'skipped-' + this.counts.skipping : currentTest.uid
+            if (existingTest && existingTest.state !== 'pending') {
+                currentTest.uid = 'skipped-' + this.counts.skipping
             }
             const suiteTests = currentSuite.tests
             if (!suiteTests.length || currentTest.uid !== suiteTests[suiteTests.length - 1].uid) {

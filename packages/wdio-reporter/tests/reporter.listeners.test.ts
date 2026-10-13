@@ -53,6 +53,76 @@ describe('WDIOReporter Listeners', () => {
             spy2.mockClear()
         })
 
+        it('keeps the start of a started test that ends as pending, and its duration', () => {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            try {
+                vi.setSystemTime(1000)
+                // a Cucumber step that returns 'pending' after 120 ms
+                reporter.emit('test:start', { ...stat, uid: 'step-1' })
+                vi.setSystemTime(1120)
+                reporter.emit('test:pending', { ...stat, uid: 'step-1', state: 'pending' })
+                expect(reporter.tests['step-1'].state).toBe('pending')
+                expect(reporter.tests['step-1']._duration).toBe(120)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('gives a started test that ends as skipped its duration (Jasmine pending())', () => {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            try {
+                vi.setSystemTime(1000)
+                // Jasmine sends test:pending with the uid of the start and no state
+                reporter.emit('test:start', { ...stat, uid: 'spec-1' })
+                vi.setSystemTime(1120)
+                reporter.emit('test:pending', { ...stat, uid: 'spec-1', pendingReason: 'not ready' })
+                expect(reporter.tests['spec-1'].state).toBe('skipped')
+                expect(reporter.tests['spec-1']._duration).toBe(120)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('keeps the commands of a started test that ends as pending', () => {
+            reporter.emit('test:start', { ...stat, uid: 'step-3' })
+            reporter.emit('client:beforeCommand', { method: 'POST', endpoint: '/session/:sessionId/url', body: {} })
+            reporter.emit('client:afterCommand', { method: 'POST', endpoint: '/session/:sessionId/url', body: {}, result: null })
+            reporter.emit('test:pending', { ...stat, uid: 'step-3', state: 'pending' })
+            expect(reporter.tests['step-3'].output.map((entry) => entry.type)).toEqual(['command', 'result'])
+        })
+
+        it('gives a pending test that never started no duration (Mocha it.skip)', () => {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            try {
+                vi.setSystemTime(1000)
+                reporter.emit('test:pending', { ...stat, uid: 'never-started', state: 'pending' })
+                reporter.emit('test:pending', { ...stat, uid: 'never-started-skip' })
+                vi.setSystemTime(31000)
+                // the duration does not increase after the end of the test
+                expect(reporter.tests['never-started'].end).toBeInstanceOf(Date)
+                expect(reporter.tests['never-started'].duration).toBe(0)
+                expect(reporter.tests['never-started-skip'].duration).toBe(0)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('does not take the start of a test that already ended as pending', () => {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            try {
+                vi.setSystemTime(1000)
+                reporter.emit('test:start', { ...stat, uid: 'step-2' })
+                vi.setSystemTime(1120)
+                reporter.emit('test:pending', { ...stat, uid: 'step-2', state: 'pending' })
+                vi.setSystemTime(2000)
+                // a second pending event, with no new start
+                reporter.emit('test:pending', { ...stat, uid: 'step-2', state: 'pending' })
+                expect(reporter.tests['step-2'].duration).toBe(0)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
         it('should add a pending test to the test list', () => {
             reporter.emit('test:pending', stat)
             expect(reporter.tests).toHaveProperty(stat.uid)
