@@ -161,6 +161,18 @@ describe('element-scoped lookups while a parallel test context is active', () =>
         })
     })
 
+    it('element-scoped aria with no match returns not-found without classic find from element', async () => {
+        const { browser, element } = setup()
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+        expect(await findDeepElement.call(element, 'aria/Foo')).toBeUndefined()
+        expect(await findDeepElements.call(element, 'aria/Foo')).toEqual([])
+        expect(browser.browsingContextLocateNodes).toHaveBeenLastCalledWith(expect.objectContaining({
+            startNodes: [{ sharedId: 'parent-id' }]
+        }))
+        expect(element.findElementFromElement).not.toHaveBeenCalled()
+        expect(element.findElementsFromElement).not.toHaveBeenCalled()
+    })
+
     describe('without a parallel context (unchanged)', () => {
         beforeEach(() => {
             parallelStore.value = undefined

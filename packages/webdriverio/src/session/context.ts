@@ -1,6 +1,5 @@
 import type { local } from 'webdriver'
 import logger from '@wdio/logger'
-import { WebDriverProtocol } from '@wdio/protocols'
 
 import { SessionManager } from './session.js'
 import { getMobileContext, getNativeContext } from '../utils/mobile.js'
@@ -11,23 +10,35 @@ const log = logger('webdriverio:context')
 const COMMANDS_REQUIRING_RESET = ['deleteSession', 'refresh', 'switchToParentFrame']
 
 /**
- * Classic commands act on the session's single focused window/frame, which
- * concurrent tests share. An allowlist fails closed for any Classic command not
- * explicitly vetted, unlike a denylist that leaks every command nobody listed.
- * Safe means: neither reads nor mutates the focused window/frame nor resolves element ids in it.
+ * Any HTTP command (Classic, Chromium, Appium, Selenium) reaches the session's
+ * single focused window/frame, which concurrent tests share. An allowlist fails
+ * closed for any command not explicitly vetted. Safe means: does not read or
+ * mutate the focused window/frame AND does not change state shared by every
+ * concurrent test.
  */
-export const PARALLEL_SAFE_CLASSIC_COMMANDS: readonly string[] = [
-    'newSession', 'deleteSession', 'status', 'getTimeouts', 'setTimeouts', 'getWindowHandles'
-]
+export const PARALLEL_SAFE_CLASSIC_COMMANDS: readonly string[] = ['status', 'getTimeouts', 'getWindowHandles']
 
-export const CLASSIC_COMMANDS: ReadonlySet<string> = new Set(
-    Object.values(WebDriverProtocol).flatMap((endpoint) =>
-        Object.values(endpoint).map((method) => (method as { command: string }).command))
-)
+const SESSION_GLOBAL_COMMANDS: readonly string[] = ['deleteSession', 'newSession', 'setTimeouts']
+const ALERT_COMMANDS: readonly string[] = ['acceptAlert', 'dismissAlert', 'getAlertText', 'sendAlertText']
+const COMPUTED_A11Y_COMMANDS: readonly string[] = ['getElementComputedRole', 'getElementComputedLabel']
 
 function parallelModeError(command: string) {
+    if (SESSION_GLOBAL_COMMANDS.includes(command)) {
+        return `${command} cannot run inside a parallel test: it changes the session that all concurrently running tests share ` +
+            '(browser.reloadSession() sends deleteSession, browser.setTimeout() sends setTimeouts). ' +
+            'Call it outside the test, e.g. in the `before` config hook.'
+    }
+    if (ALERT_COMMANDS.includes(command)) {
+        return `${command} is not supported in parallel mode: alerts belong to a browsing context. ` +
+            'Use the per-context API instead, e.g. `const [context] = await browser.browsingContexts(); await context.acceptAlert()` ' +
+            '(also `dismissAlert()` and `getAlertText()` on the BrowsingContext).'
+    }
+    if (COMPUTED_A11Y_COMMANDS.includes(command)) {
+        return `${command} is not supported in parallel mode: WebDriver BiDi has no command to read an element's computed role or label.`
+    }
     return `${command} is not supported in parallel mode — ` +
-        "WebDriver Classic commands act on the session's focused window, which concurrent tests share"
+        "WebDriver Classic commands act on the session's focused window, which concurrent tests share. " +
+        `If you did not call ${command} yourself, a WebdriverIO command fell back to WebDriver Classic — please report it.`
 }
 
 /**
@@ -393,7 +404,6 @@ export class ContextManager extends SessionManager {
         if (
             typeof event.endpoint === 'string' &&
             parallelContextStore.getStore() &&
-            CLASSIC_COMMANDS.has(event.command) &&
             !PARALLEL_SAFE_CLASSIC_COMMANDS.includes(event.command)
         ) {
             throw new Error(parallelModeError(event.command))

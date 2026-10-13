@@ -437,6 +437,17 @@ describe('monad', () => {
         })
     })
 
+    it('does not wrap an element-scoped emit so a throwing listener throws at the emit site', () => {
+        const browserEmit = vi.fn(() => { throw new Error('listener failed') })
+        const wrapper = vi.fn((_name: string, fn: Function) => async (...args: unknown[]) => fn(...args))
+        const element = webdriverMonad({}, (client: any) => client, {
+            ...prototype,
+            emit: { value: browserEmit }
+        })(sessionId, wrapper)
+        expect(() => element.emit('command', { command: 'foo' })).toThrow('listener failed')
+        expect(wrapper).not.toHaveBeenCalledWith('emit', expect.anything(), expect.anything())
+    })
+
     it('should allow empty prototype object', () => {
         const monad = webdriverMonad({}, (client: any) => client)
         const client = monad(sessionId)

@@ -11,9 +11,9 @@ import {
     isParallelContext,
     PARALLEL_CONTEXTS_KEY,
     PARALLEL_SAFE_CLASSIC_COMMANDS,
-    CLASSIC_COMMANDS,
 } from '../../src/session/context.js'
 import { logMock } from '@wdio/logger'
+import { WebDriverProtocol } from '@wdio/protocols'
 import { SESSION_ENDED_ERROR } from 'webdriver'
 
 setParallelContextStore(new AsyncLocalStorage<string>())
@@ -766,27 +766,51 @@ describe('ContextManager — parallel mode guards', () => {
         return { wid, bidiBrowser, cmHandler: commandHandlers![commandHandlers!.length - 1] }
     }
 
-    it('only lists safe commands that exist in the WebDriver Classic protocol', () => {
-        for (const command of PARALLEL_SAFE_CLASSIC_COMMANDS) {
-            expect(CLASSIC_COMMANDS.has(command), command).toBe(true)
-        }
-    })
-
-    it.each([...CLASSIC_COMMANDS])('guards Classic command %s by the parallel allowlist', (command) => {
+    function inParallel(command: string) {
         const { wid, cmHandler } = getCommandHandler()
         try {
             expect(() => cmHandler({ command, endpoint: '/session/:sessionId/x', body: {} })).not.toThrow()
-            getParallelContextStore().run('ctx-parallel-a', () => {
-                const call = () => cmHandler({ command, endpoint: '/session/:sessionId/x', body: {} })
-                if (PARALLEL_SAFE_CLASSIC_COMMANDS.includes(command)) {
-                    expect(call).not.toThrow()
-                } else {
-                    expect(call).toThrow(parallelModeError(command))
-                }
-            })
+            return () => getParallelContextStore().run('ctx-parallel-a', () =>
+                cmHandler({ command, endpoint: '/session/:sessionId/x', body: {} }))
         } finally {
             process.env.WDIO_UNIT_TESTS = wid
         }
+    }
+
+    it('allows exactly the read-only safe commands', () => {
+        expect(PARALLEL_SAFE_CLASSIC_COMMANDS).toEqual(['status', 'getTimeouts', 'getWindowHandles'])
+        for (const command of PARALLEL_SAFE_CLASSIC_COMMANDS) {
+            expect(inParallel(command), command).not.toThrow()
+        }
+    })
+
+    const webDriverCommands = Object.values(WebDriverProtocol).flatMap((endpoint) =>
+        Object.values(endpoint).map((method) => (method as { command: string }).command))
+
+    it.each(webDriverCommands)('guards WebDriver command %s by the parallel allowlist', (command) => {
+        if (PARALLEL_SAFE_CLASSIC_COMMANDS.includes(command)) {
+            expect(inParallel(command)).not.toThrow()
+        } else {
+            expect(inParallel(command)).toThrow(command)
+        }
+    })
+
+    it.each(['deleteSession', 'newSession', 'setTimeouts'])('%s throws the session-global message', (command) => {
+        expect(inParallel(command)).toThrow(`${command} cannot run inside a parallel test`)
+        expect(inParallel(command)).toThrow('Call it outside the test')
+    })
+
+    it.each(['acceptAlert', 'dismissAlert', 'getAlertText', 'sendAlertText'])('%s throws the alert message', (command) => {
+        expect(inParallel(command)).toThrow(`${command} is not supported in parallel mode: alerts belong to a browsing context`)
+    })
+
+    it.each(['getElementComputedRole', 'getElementComputedLabel'])('%s throws the computed a11y message', (command) => {
+        expect(inParallel(command)).toThrow('WebDriver BiDi has no command to read an element\'s computed role or label')
+    })
+
+    it.each(['getUrl', 'getLogs', 'chromiumFoo'])('%s with an endpoint throws the default message', (command) => {
+        expect(inParallel(command)).toThrow(parallelModeError(command))
+        expect(inParallel(command)).toThrow('please report it')
     })
 
     it('does not throw for a wrapper command event without an endpoint (BiDi override)', () => {
@@ -806,7 +830,7 @@ describe('ContextManager — parallel mode guards', () => {
         const { wid, cmHandler } = getCommandHandler()
         try {
             getParallelContextStore().run('ctx-parallel-a', () => {
-                expect(() => cmHandler({ command: 'browsingContextGetTree', endpoint: '/session/:sessionId/x', body: {} })).not.toThrow()
+                expect(() => cmHandler({ command: 'browsingContextGetTree', body: {} })).not.toThrow()
             })
         } finally {
             process.env.WDIO_UNIT_TESTS = wid

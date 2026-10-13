@@ -125,6 +125,38 @@ function applyBidiBrowserOverwrites(browser: WebdriverIO.Browser) {
         }
         return origCommand()
     })
+
+    overwrite('takeScreenshot', async function (this: WebdriverIO.Browser, origCommand: () => Promise<string>) {
+        if (isBidiCommandsEnabled(this)) {
+            const context = await getContextManager(this).getCurrentTopLevelContext()
+            const { data } = await this.browsingContextCaptureScreenshot({
+                context,
+                origin: 'viewport',
+                format: { type: 'image/png' }
+            })
+            return data
+        }
+        return origCommand()
+    })
+
+    overwrite('refresh', async function (this: WebdriverIO.Browser, origCommand: () => Promise<null>) {
+        if (isBidiCommandsEnabled(this)) {
+            const context = await getContextManager(this).getCurrentTopLevelContext()
+            await this.browsingContextReload({ context, wait: 'complete' })
+            return null
+        }
+        return origCommand()
+    })
+
+    overwrite('takeElementScreenshot', async function (this: WebdriverIO.Browser, origCommand: (elementId: string) => Promise<string>, elementId: string) {
+        if (isBidiCommandsEnabled(this)) {
+            const context = await getContextManager(this).getCurrentContext()
+            const clip: WebDriverTypes.remote.BrowsingContextElementClipRectangle = { type: 'element', element: { sharedId: elementId } }
+            const { data } = await this.browsingContextCaptureScreenshot({ context, clip })
+            return data
+        }
+        return origCommand(elementId)
+    })
 }
 
 /**
