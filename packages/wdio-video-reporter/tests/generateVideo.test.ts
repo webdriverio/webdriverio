@@ -78,6 +78,16 @@ describe('generateVideo', () => {
         await video
     })
 
+    it('uses webm for a videoFormat that it does not support', async () => {
+        ffmpeg.exitCode = 0
+        ffmpeg.stderr = ''
+        vi.mocked(spawn).mockClear()
+        await expect(render(undefined, { videoFormat: 'mov' })).resolves.toContain('Generated video: ')
+        const [, args] = vi.mocked(spawn).mock.calls[0] as unknown as [string, string[]]
+        expect(args[args.length - 1]).toMatch(/\.webm$/)
+        expect(args).toContain('libvpx-vp9')
+    })
+
     it('logs the error of a failed ffmpeg run, not a generated video', async () => {
         ffmpeg.exitCode = 1
         ffmpeg.stderr = 'some output\nUnknown encoder \'libvpx\''

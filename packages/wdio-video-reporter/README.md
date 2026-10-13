@@ -222,7 +222,8 @@ Type: `number`
 
 ### `videoFormat`
 
-Video format (container) to be used. Supported formats: `mp4`, `webm`.
+Video format (container) to be used. Supported formats: `mp4`, `webm`. For another value, the reporter logs a warning
+and uses `webm`.
 
 Type: `string`<br />
 Default: `webm`
