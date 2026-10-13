@@ -34,9 +34,7 @@ export interface WebdriverIOExtended extends Options.WebdriverIO {
     requestedCapabilities?: {
         'cjson:metadata'?: cjson_metadata
         w3cCaps: {
-            alwaysMatch?: {
-                foo?: true
-            }
+            alwaysMatch?: Record<string, unknown>
         }
     }
 }
@@ -61,14 +59,10 @@ export interface TestStatsExtended extends TestStats {
     keyword?: string
     name?: string
     id?: string
-    foo?: string | boolean
-    bar?: boolean
 }
 
 export interface RunnerStatsExtended extends RunnerStats {
-    metadata?: {
-        foo?: string
-    }
+    metadata?: Record<string, unknown>
 }
 
 export interface SuiteStatsExtended extends SuiteStats {
