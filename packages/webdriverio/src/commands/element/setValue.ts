@@ -1,7 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { Key } from '../../constants.js'
-import { isStaleElementError } from '../../utils/index.js'
+import { wasNotFoundAgain } from '../../utils/staleElement.js'
 import type { InputOptions } from '../../types.js'
 
 /**
@@ -90,13 +90,25 @@ async function clearStubbornValue (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return
     }
-    const remaining = await elem.getElementProperty(elem.elementId, 'value').catch(() => undefined)
+    const remaining = await elem.getElementProperty(elem.elementId, 'value').catch(gone)
     if (typeof remaining !== 'string' || remaining === '') {
         return
     }
     await browser.execute((el: HTMLElement) => el.focus(), elem as unknown as HTMLElement)
     await browser.keys([Key.Ctrl, 'a'])
     await browser.keys(Key.Backspace)
+}
+
+/**
+ * A lookup of `setValue` that fails gives `undefined`, except for an element that the
+ * middleware already looked for again and did not find: the next command would wait
+ * for it a second time.
+ */
+function gone (err: unknown): undefined {
+    if (wasNotFoundAgain(err)) {
+        throw err
+    }
+    return undefined
 }
 
 /**
@@ -108,15 +120,6 @@ async function setsDirectly (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return false
     }
-    const type = await elem.getElementProperty(elem.elementId, 'type').catch((err: Error) => {
-        /**
-         * the element was already looked for again and is gone: `clearValue` would
-         * wait for it a second time
-         */
-        if (err?.name === 'stale element reference' || isStaleElementError(err)) {
-            throw err
-        }
-        return undefined
-    })
+    const type = await elem.getElementProperty(elem.elementId, 'type').catch(gone)
     return typeof type === 'string' && SET_DIRECTLY.includes(type)
 }

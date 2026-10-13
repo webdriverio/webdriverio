@@ -23,6 +23,7 @@ import { findLinksInContext, foreignContext } from './foreignContext.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
+import { isStaleElementError } from './staleElement.js'
 import { ElementArray } from '../element/array.js'
 import { findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
@@ -264,21 +265,7 @@ export function isElement(o: Selector) {
     )
 }
 
-export function isStaleElementError(err: Error) {
-    return (
-        // Chrome
-        err.message.includes('stale element reference') ||
-        // Firefox
-        err.message.includes('is no longer attached to the DOM') ||
-        // Safari
-        err.message.toLowerCase().includes('stale element found') ||
-        // Chrome through JS execution
-        err.message.includes('stale element not found in the current frame') ||
-        // BIDI
-        err.message.includes('belongs to different document') ||
-        err.message.includes('no such node - The node with the reference')
-    )
-}
+export { isStaleElementError }
 
 /**
  * handle promise result (resolved or rejected promises)

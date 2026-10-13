@@ -3,22 +3,13 @@ import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@w
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
-import { isStaleElementError } from './utils/index.js'
+import { isStaleError, markNotFoundAgain, wasNotFoundAgain } from './utils/staleElement.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
  */
 import { StrictSelectorError } from './utils/strictSelectorError.js'
 
 export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
-
-/**
- * Set on a stale element error when the middleware looked for its element again and
- * did not find it. A command that runs another command on the same element (`getText`
- * runs `getElementText`) has a middleware layer for each: the outer layer throws the
- * error at once instead of waiting for the element a second time.
- */
-const NOT_FOUND_AGAIN = Symbol('wdio:notFoundAgain')
-type MarkedError = Error & { [NOT_FOUND_AGAIN]?: WebdriverIO.Element }
 
 /**
  * Run an element command after the implicit wait, and retry it when the element
@@ -68,8 +59,11 @@ async function invokeElementCommand (
             }
         }
 
-        if (err.name === 'stale element reference' || isStaleElementError(err)) {
-            if ((err as MarkedError)[NOT_FOUND_AGAIN] === element) {
+        if (isStaleError(err)) {
+            /**
+             * an inner command already looked for its element and did not find it
+             */
+            if (wasNotFoundAgain(err)) {
                 throw err
             }
             let found = false
@@ -97,14 +91,14 @@ async function invokeElementCommand (
                 if (refetchErr instanceof StrictSelectorError) {
                     throw refetchErr
                 }
-                const thrown: MarkedError = refetchErr instanceof Error && isStaleElementError(refetchErr) ? refetchErr : err
+                const thrown = isStaleError(refetchErr) ? refetchErr : err
                 /**
                  * the element was looked for and not found: an outer layer does not
                  * look again. An error of the command after the element was found
                  * is not marked, the outer layer can still find it again.
                  */
                 if (!found) {
-                    thrown[NOT_FOUND_AGAIN] = element
+                    markNotFoundAgain(thrown)
                 }
                 throw thrown
             }

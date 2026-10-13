@@ -148,9 +148,9 @@ describe('middleware', () => {
     })
 
     /**
-     * A command that runs another command on the same element has a middleware layer for
-     * each. When the inner layer did not find the element again, the outer layer does not
-     * look (and wait) a second time.
+     * A command that runs other commands, on its element or on a child, has a middleware
+     * layer for each. When an inner layer did not find its element again (the refetch also
+     * finds its parents again), an outer layer does not look (and wait) a second time.
      */
     describe('a stale element that the inner command did not find again', () => {
         const staleError = () => Object.assign(new Error('stale element reference: element is not attached'), { name: 'stale element reference' })
@@ -189,7 +189,7 @@ describe('middleware', () => {
             expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
         })
 
-        it('is looked for again by the command of another element', async () => {
+        it('is not looked for again by a command of its parent element', async () => {
             browser.addCommand('childStale', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
             browser.addCommand('parentRunsChild', async function (this: WebdriverIO.Element) {
                 // @ts-expect-error undefined custom command
@@ -201,7 +201,7 @@ describe('middleware', () => {
             // @ts-expect-error undefined custom command
             const error = await elem.parentRunsChild().then(() => null, (e: Error) => e)
             expect(error?.name).toBe('stale element reference')
-            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(2)
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
         })
 
         it('is looked for again when the inner command found it and failed again', async () => {
