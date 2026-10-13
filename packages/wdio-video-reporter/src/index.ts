@@ -510,9 +510,17 @@ export default class VideoReporter extends WdioReporter {
         const placeholders = fs
             .readdirSync(allureOutputDir)
             .filter(line => line.endsWith(video.fileExtension))
-            .map(filename => path.resolve(allureOutputDir, filename))
-            .filter(allureFile => fs.statSync(allureFile).size < 1024)
-            .map((allureFile) => ({ allureFile, videoFilePath: fs.readFileSync(allureFile).toString() }))
+            .flatMap((filename) => {
+                const allureFile = path.resolve(allureOutputDir, filename)
+                try {
+                    return fs.statSync(allureFile).size < 1024
+                        ? [{ allureFile, videoFilePath: fs.readFileSync(allureFile).toString() }]
+                        : []
+                } catch {
+                    // another worker removed its placeholder after the folder was read
+                    return []
+                }
+            })
 
         // Dont parse other browsers videos since they may not be ready
         placeholders
