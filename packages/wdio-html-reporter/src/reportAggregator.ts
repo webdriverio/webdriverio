@@ -117,6 +117,11 @@ class ReportAggregator {
             try {
                 const filename = files[i]
                 const report = JSON.parse(fs.readFileSync(filename, 'utf-8'))
+                // a master report of another name (for example from the command line)
+                if (report.master) {
+                    this.LOG.info(`Skip the master report ${filename}`)
+                    continue
+                }
                 if (!report.info || !report.info.specs) {
                     this.LOG.error('report structure in question, no info or info.specs ', JSON.stringify(report))
                     this.LOG.debug('report content: ', JSON.stringify(report))
@@ -197,6 +202,7 @@ class ReportAggregator {
             metrics,
             this.reportFile,
             this.options.browserName)
+        reportData.master = true
 
         try {
             await JsonGenerator.jsonOutput(this.options, reportData)

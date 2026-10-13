@@ -115,4 +115,22 @@ describe('ReportAggregator', () => {
         await generator.createReport(new ReportData('Generator', RUNNER, [SUITES[0]], new Metrics(), path.join(outputDir, 'x.html'), 'chrome'))
         expect(fs.readdirSync(outputDir).filter((file) => file.endsWith('.json'))).toEqual(['master-report-0-0.json'])
     })
+
+    it('does not read a master report of another name as a worker report', async () => {
+        const { HtmlReporter } = await import('../src/index.js')
+        const { RUNNER, SUITES } = await import('./testdata.js')
+        const outputDir = path.join(tempDir(), 'out')
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Masters' } as never)
+        reporter.onRunnerStart(RUNNER)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onTestStart(SUITES[0].tests[0])
+        reporter.onTestPass(SUITES[0].tests[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(RUNNER)
+        // the onComplete hook makes a master report, then the command line another one
+        await new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Masters' }).createReport()
+        await new ReportAggregator({ outputDir, filename: 'from-cli.html', reportTitle: 'Masters' }).createReport()
+        const metrics = JSON.parse(fs.readFileSync(path.join(outputDir, 'from-cli.json'), 'utf-8')).metrics
+        expect(metrics.passed).toBe(1)
+    })
 })
