@@ -24,11 +24,6 @@ const escapeHtml = (value: string) => value
 
 class HtmlGenerator {
     private static LOG = logger('HtmlGenerator')
-    static writeJson(jsonFile:string, stringified:string, _reportOptions:HtmlReporterOptions, _reportData: ReportData) {
-        fs.outputFileSync(jsonFile, stringified)
-        HtmlGenerator.LOG.info('Json write completed: ' + jsonFile )
-    }
-
     static async htmlOutput(reportOptions: HtmlReporterOptions, reportData: ReportData) {
 
         HtmlGenerator.LOG.info('Html Generation started')
