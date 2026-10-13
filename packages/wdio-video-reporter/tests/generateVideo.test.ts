@@ -112,6 +112,19 @@ describe('generateVideo', () => {
         }
     })
 
+    it('waits only for the frames of its own recording', async () => {
+        ffmpeg.exitCode = 0
+        ffmpeg.stderr = ''
+        const reporter = new VideoReporter({})
+        reporter.testName = 'my-test'
+        reporter.recordingPath = '/foo/bar/rawSeleniumVideoGrabs/my-test'
+        reporter.screenshotPromises.push(Promise.resolve())
+        const video = reporter.generateVideo()
+        // the next recording starts with no frame to wait for
+        expect(reporter.screenshotPromises).toEqual([])
+        await video
+    })
+
     it('logs the error of a failed ffmpeg run, not a generated video', async () => {
         ffmpeg.exitCode = 1
         ffmpeg.stderr = 'some output\nUnknown encoder \'libvpx\''
