@@ -8,13 +8,18 @@ import path from 'node:path'
 const LOCK_TIMEOUT = 10_000
 
 /**
- * true when the process that holds the lock does not run anymore
+ * true when the process that holds the lock does not run anymore, undefined when the
+ * lock has no valid process id
  */
-function isLeft (lock: string) {
+export function isLeft (lock: string) {
     let pid: number
     try {
         pid = Number(fs.readFileSync(path.join(lock, 'pid'), 'utf-8'))
     } catch {
+        return undefined
+    }
+    // an empty or broken pid file: process.kill(0, 0) would check the process group of this process
+    if (!Number.isInteger(pid) || pid <= 0) {
         return undefined
     }
     try {
