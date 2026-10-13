@@ -53,6 +53,26 @@ describe('WDIOReporter Listeners', () => {
             spy2.mockClear()
         })
 
+        it('keeps the start of a started test that ends as pending, and its duration', () => {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            try {
+                vi.setSystemTime(1000)
+                // a Cucumber step that returns 'pending' after 120 ms
+                reporter.emit('test:start', { ...stat, uid: 'step-1' })
+                vi.setSystemTime(1120)
+                reporter.emit('test:pending', { ...stat, uid: 'step-1', state: 'pending' })
+                expect(reporter.tests['step-1'].state).toBe('pending')
+                expect(reporter.tests['step-1']._duration).toBe(120)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('gives a pending test that never started no duration (Mocha it.skip)', () => {
+            reporter.emit('test:pending', { ...stat, uid: 'never-started', state: 'pending' })
+            expect(reporter.tests['never-started']._duration).toBe(0)
+        })
+
         it('should add a pending test to the test list', () => {
             reporter.emit('test:pending', stat)
             expect(reporter.tests).toHaveProperty(stat.uid)
