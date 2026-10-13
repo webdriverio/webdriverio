@@ -1,8 +1,10 @@
 import path from 'node:path'
 import { describe, it, beforeEach, expect, vi } from 'vitest'
+import { ELEMENT_KEY } from 'webdriver'
 import { remote, type ElementArray } from '../../src/index.js'
 
 import * as getElem from '../../src/utils/getElementObject.js'
+import implicitWait from '../../src/utils/implicitWait.js'
 
 const origGetElem: typeof getElem = await vi.importActual('../../src/utils/getElementObject')
 
@@ -58,6 +60,14 @@ vi.mock('../../src/utils/getElementObject.js', async () => {
     return { __esModule: true, ...mod, default: { ...mod } }
 })
 
+/**
+ * the element middleware runs the implicit wait once in each of its layers
+ */
+vi.mock('../../src/utils/implicitWait.js', async (importOriginal) => {
+    const actual = await importOriginal<{ default: typeof implicitWait }>()
+    return { __esModule: true, default: vi.fn(actual.default) }
+})
+
 describe('getElements', () => {
 
     let browser: WebdriverIO.Browser
@@ -101,5 +111,27 @@ describe('getElements', () => {
         expect(elemError).toBeInstanceOf(Error)
         expect(elemError.message).toEqual(error.message)
         expect(elemError.stack).toEqual(error.stack)
+    })
+
+    /**
+     * Each item has one layer of the element middleware, whatever its index and however
+     * many lists the session built. Each layer handles a stale element error again, with
+     * its own implicit wait: with one layer more for each item, a command on a gone item
+     * `[n]` threw after `(n + 1) * 2 * waitforTimeout`.
+     */
+    it('wraps the commands of every item once', async () => {
+        const refs = [0, 1, 2].map(() => ({ [ELEMENT_KEY]: 'some-elem-123' }))
+        const layers = async (elem: WebdriverIO.Element) => {
+            vi.mocked(implicitWait).mockClear()
+            await elem.getTagName()
+            return vi.mocked(implicitWait).mock.calls.length
+        }
+
+        const first = origGetElem.getElements.call(browser, 'li', refs)
+        const second = origGetElem.getElements.call(browser, 'li', refs)
+        const single = origGetElem.getElement.call(browser, 'li', { [ELEMENT_KEY]: 'some-elem-123' })
+        const expected = await layers(single)
+        expect(expected).toBe(2)
+        expect([await layers(first[0]), await layers(first[2]), await layers(second[2])]).toEqual([expected, expected, expected])
     })
 })

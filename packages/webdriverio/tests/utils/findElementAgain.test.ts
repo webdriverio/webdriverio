@@ -765,25 +765,6 @@ describe('finding an element again', () => {
             expect(await elem.getText()).toBe('text of elem-z')
         })
 
-        /**
-         * every item of a list has one layer of the element middleware, not `index + 1`
-         */
-        it('handles the stale element error of item [2] once, as for item [0]', async () => {
-            const lookups = async (index: number) => {
-                const browser = await session()
-                driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
-                const elem = (await browser.$$('.item'))[index]
-                driver.stale.add(['elem-a', 'elem-b', 'elem-c'][index])
-                driver.light.set('.item', [])
-                const finds = driver.findsIn.length
-
-                const { error } = await settle(elem.getText())
-                expect(error?.name).toBe('stale element reference')
-                return driver.findsIn.length - finds
-            }
-            expect(await lookups(2)).toBe(await lookups(0))
-        })
-
         it('a stale item whose index the list still reaches is found again', async () => {
             const elem = await goneItem()
             driver.light.set('.item', ['elem-x', 'elem-y', 'elem-z'])

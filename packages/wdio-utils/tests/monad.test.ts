@@ -372,6 +372,47 @@ describe('monad', () => {
         expect(client.someFunc(123)).toBe('someFunc(123) = result-123')
     })
 
+    /**
+     * `getElements` gives one property object to the monad of every item of a list
+     */
+    describe('clients built from one property object', () => {
+        const layer = (commandName: string, commandFn: Function) => function (this: unknown, ...args: unknown[]) {
+            return `[${commandFn.apply(this, args)}]`
+        }
+
+        it('wraps the commands of each client once', () => {
+            const first = webdriverMonad({}, (client: any) => client, prototype)(sessionId, layer)
+            const second = webdriverMonad({}, (client: any) => client, prototype)(sessionId, layer)
+
+            expect(first.someFunc(1)).toBe('[result-1]')
+            expect(second.someFunc(1)).toBe('[result-1]')
+        })
+
+        it('applies the element overrides to each client once', () => {
+            const properties = {
+                scope: { value: 'element' },
+                someFunc: { value: (arg: number) => `result-${arg}` },
+                __elementOverrides__: { value: { someFunc (origCommand: Function, arg: number) { return `override(${origCommand(arg)})` } } }
+            }
+            const first = webdriverMonad({}, (client: any) => client, properties)(sessionId, layer)
+            const second = webdriverMonad({}, (client: any) => client, properties)(sessionId, layer)
+
+            expect(first.someFunc(1)).toBe('override([result-1])')
+            expect(second.someFunc(1)).toBe('override([result-1])')
+        })
+
+        it('does not change the property object of the caller', () => {
+            const command = prototype.someFunc.value
+            prototype.scope.value = 'element'
+            const client = webdriverMonad({}, (client: any) => client, prototype)(sessionId, layer)
+
+            expect(client.constructor.name).toBe('Element')
+            expect(prototype.someFunc.value).toBe(command)
+            expect(Object.keys(prototype)).toEqual(['scope', 'someFunc'])
+            expect(prototype.scope).toEqual({ value: 'element' })
+        })
+    })
+
     it('should allow empty prototype object', () => {
         const monad = webdriverMonad({}, (client: any) => client)
         const client = monad(sessionId)
