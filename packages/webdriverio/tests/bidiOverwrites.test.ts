@@ -2,9 +2,10 @@ import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import { attach } from '../src/index.js'
+import { applyBidiBrowserOverwrites } from '../src/utils/bidi/browserOverwrites.js'
 
 const overwrites = new Map<string, (...args: any[]) => Promise<unknown>>()
-const client: Record<string, any> = {}
+let client: Record<string, any> = {}
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio', 'logger')))
 vi.mock('../src/session/index.js', () => ({ registerSessionManager: vi.fn() }))
@@ -21,6 +22,8 @@ vi.mock('../src/utils/driver.js', () => ({
     })
 }))
 
+const OVERWRITTEN = ['getTitle', 'getUrl', 'getPageSource', 'takeScreenshot', 'refresh', 'takeElementScreenshot']
+
 describe('BiDi overwrites for takeScreenshot, refresh, takeElementScreenshot', () => {
     let unitTests: string | undefined
 
@@ -28,6 +31,7 @@ describe('BiDi overwrites for takeScreenshot, refresh, takeElementScreenshot', (
         unitTests = process.env.WDIO_UNIT_TESTS
         delete process.env.WDIO_UNIT_TESTS
         overwrites.clear()
+        client = {}
         Object.assign(client, {
             isBidi: true,
             __bidiCommandsEnabled: true,
@@ -97,5 +101,27 @@ describe('BiDi overwrites for takeScreenshot, refresh, takeElementScreenshot', (
         expect(await overwrites.get('takeElementScreenshot')!.call(client, orig, 'el-1')).toBe('classic-data')
         expect(orig).toHaveBeenCalledWith('el-1')
         expect(client.browsingContextCaptureScreenshot).not.toHaveBeenCalled()
+    })
+
+    it('registers all six overwrites when BiDi commands are enabled', () => {
+        expect([...overwrites.keys()].sort()).toEqual([...OVERWRITTEN].sort())
+    })
+
+    it('registers overwrites once per browser even when applied twice', () => {
+        const overwriteCommand = vi.fn()
+        const browser: any = { isBidi: true, __bidiCommandsEnabled: true, options: {}, overwriteCommand }
+        applyBidiBrowserOverwrites(browser)
+        applyBidiBrowserOverwrites(browser)
+        expect(overwriteCommand).toHaveBeenCalledTimes(OVERWRITTEN.length)
+    })
+
+    it.each([
+        ['the flag is off', { isBidi: true, __bidiCommandsEnabled: false }],
+        ['the flag is absent', { isBidi: true }],
+        ['the session is not BiDi', { isBidi: false, __bidiCommandsEnabled: true }]
+    ])('registers no overwrites when %s', (_, props) => {
+        const overwriteCommand = vi.fn()
+        applyBidiBrowserOverwrites({ ...props, options: {}, overwriteCommand } as any)
+        expect(overwriteCommand).not.toHaveBeenCalled()
     })
 })

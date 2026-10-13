@@ -1,9 +1,11 @@
 import path from 'node:path'
 import { expect, describe, afterEach, it, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
+import { applyBidiBrowserOverwrites } from '../../../src/utils/bidi/browserOverwrites.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../../../src/utils/bidi/browserOverwrites.js', () => ({ applyBidiBrowserOverwrites: vi.fn() }))
 vi.mock('@wdio/utils', async (origMod) => {
     const orig: any = await origMod()
     return {
@@ -39,6 +41,20 @@ describe('reloadSession test', () => {
         expect(vi.mocked(fetch).mock.calls[2][0].pathname)
             .toBe('/session')
         expect(hook).toBeCalledWith(oldSessionId, sessionResponse.sessionId)
+    })
+
+    it('should apply the BiDi browser overwrites after the session was reloaded', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: { browserName: 'foobar' }
+        })
+        vi.mocked(applyBidiBrowserOverwrites).mockClear()
+
+        vi.mocked(fetch).setMockResponse([{}, sessionResponse])
+        await browser.reloadSession()
+
+        expect(applyBidiBrowserOverwrites).toHaveBeenCalledTimes(1)
+        expect(applyBidiBrowserOverwrites).toHaveBeenCalledWith(browser)
     })
 
     it('should fail when the new session response has no session id', async () => {
