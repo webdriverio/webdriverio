@@ -462,7 +462,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
 
         // If the mime_type is 'text/plain' or 'application/json', encode the data to a base64 string (like Cucumber v10+ does)
         if (attachment.type === 'text/plain') {
-            data = Buffer.from(String(data)).toString('base64')
+            // an object (`attach({ orderId: 42 })` has the default type text/plain) is written as JSON text
+            const text = data && typeof data === 'object' && !Buffer.isBuffer(data) ? JSON.stringify(data) : String(data)
+            data = Buffer.from(text).toString('base64')
         }
         if (attachment.type === 'application/json') {
             data = Buffer.from(JSON.stringify(data)).toString('base64')
