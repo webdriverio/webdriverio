@@ -1,8 +1,10 @@
 import path from 'node:path'
 import url from 'node:url'
-import { config as htmlConfig } from './html-reporter.conf.js'
+import { htmlSmokeConfig } from './html-reporter.conf.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+// own folder: the Mocha suite can run at the same time
+const htmlConfig = htmlSmokeConfig('out-cucumber')
 
 export const config = {
     ...htmlConfig,
