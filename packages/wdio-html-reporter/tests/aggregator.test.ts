@@ -62,4 +62,33 @@ describe('ReportAggregator', () => {
         fs.writeFileSync(file, 'not a folder')
         expect(await runCli(['master-report.html', file, 'Title'], { CI: 'true' })).toBe(1)
     })
+
+    it('writes no cloud credentials into the JSON files', async () => {
+        const { HtmlReporter } = await import('../src/index.js')
+        const { RUNNER, SUITES } = await import('./testdata.js')
+        const outputDir = path.join(tempDir(), 'out')
+        const runner = Object.assign(Object.create(Object.getPrototypeOf(RUNNER)), RUNNER, {
+            config: { ...RUNNER.config, user: 'cloud-user', key: 'cloud-access-key' },
+            instanceOptions: { 'session-1': { user: 'cloud-user', key: 'cloud-access-key' } },
+            capabilities: { ...RUNNER.capabilities, 'bstack:options': { userName: 'cloud-user', accessKey: 'cloud-access-key' } }
+        })
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Secrets' } as never)
+        reporter.onRunnerStart(runner)
+        reporter.onSuiteStart(SUITES[0])
+        reporter.onSuiteEnd(SUITES[0])
+        await reporter.onRunnerEnd(runner)
+        const reportAggregator = new ReportAggregator({ outputDir, filename: 'master-report.html', reportTitle: 'Secrets' })
+        await reportAggregator.createReport()
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+
+        for (const file of fs.readdirSync(outputDir).filter((name) => name.endsWith('.json') || name.endsWith('.html'))) {
+            expect(fs.readFileSync(path.join(outputDir, file), 'utf-8'), file).not.toContain('cloud-access-key')
+        }
+        // the report still has what it uses
+        const json = JSON.parse(fs.readFileSync(path.join(outputDir, 'report-0-0.json'), 'utf-8'))
+        expect(json.info).toMatchObject({ cid: '0-0', start: RUNNER.start.toISOString?.() ?? RUNNER.start })
+        expect(json.info.capabilities.browserName).toBe('chrome')
+    })
 })

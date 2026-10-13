@@ -21,6 +21,35 @@ import logger from '@wdio/logger'
 
 const reportProxy = new ReportEvents()
 
+/**
+ * names of capability values that can be credentials, for example `accessKey`
+ * in `bstack:options`
+ */
+const SECRET_NAME = /key|password|secret|token|credential/i
+
+function hideSecrets (value: unknown): unknown {
+    if (Array.isArray(value)) {
+        return value.map(hideSecrets)
+    }
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(Object.entries(value).map(([name, item]) => [
+            name,
+            SECRET_NAME.test(name) && typeof item === 'string' ? '[hidden]' : hideSecrets(item)
+        ]))
+    }
+    return value
+}
+
+/**
+ * The runner data for the report files, which are often shared (for example as CI
+ * artifacts): without the configuration and the session options, which have the
+ * cloud credentials (`user`, `key`). The report does not use them.
+ */
+function reportInfo (runner: RunnerStats): RunnerStats {
+    const { config: _config, instanceOptions: _instanceOptions, ...info } = runner
+    return { ...info, capabilities: hideSecrets(runner.capabilities) } as unknown as RunnerStats
+}
+
 export default class HtmlReporter extends WDIOReporter {
     options: HtmlReporterOptions
     defaultTestIndent: string
@@ -238,7 +267,7 @@ export default class HtmlReporter extends WDIOReporter {
         const reportFile = path.resolve(process.cwd(), this.options.outputDir, encodeURIComponent(this._currentSuiteUid), encodeURIComponent(this._currentCid), this.options.filename)
         const reportData = new ReportData(
             this.options.reportTitle,
-            runner,
+            reportInfo(runner),
             suites,
             this.metrics,
             reportFile,
