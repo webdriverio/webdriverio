@@ -147,16 +147,6 @@ describe('HtmlReporter with Cucumber', () => {
         fs.rmSync(outputRoot, { recursive: true, force: true })
     })
 
-    it('counts a scenario that fails again on retry once', () => {
-        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: cucumberOutputDir } as never)
-        reporter.onRunnerStart(runner)
-        reporter.onTestFail({ uid: 'step', state: 'failed' } as never)
-        reporter.onSuiteEnd(scenario('failed'))
-        reporter.onSuiteRetry(scenario('failed'))
-        reporter.onSuiteEnd(scenario('failed'))
-        expect(reporter.metrics).toMatchObject({ passed: 0, failed: 1, skipped: 0 })
-    })
-
     it('counts a scenario with a skipped or pending step as skipped, not passed', () => {
         const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: cucumberOutputDir } as never)
         reporter.onRunnerStart(runner)

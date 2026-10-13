@@ -61,10 +61,10 @@ export default class HtmlReporter extends WDIOReporter {
 
     /**
      * Cucumber (without `scenarioLevelReporter`) reports each step as a test:
-     * count the scenarios instead, and only the last try of a retried scenario
+     * count the scenarios instead. A retried scenario ends one time (its last
+     * try): the base reporter clears the tests of the earlier try
      */
     #countScenarios = false
-    #scenarioStates = new Map<string, 'passed' | 'failed' | 'skipped'>()
     private reportGenerator?: ReportGenerator
     /** the listeners of the events from `ReportEvents`, removed when the runner ends */
     #onMessage = this.saveMessage.bind(this)
@@ -112,15 +112,6 @@ export default class HtmlReporter extends WDIOReporter {
         this.metrics.start = dayjs().utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
         const config = runner.config as { framework?: string, cucumberOpts?: { scenarioLevelReporter?: boolean } } | undefined
         this.#countScenarios = config?.framework === 'cucumber' && !config.cucumberOpts?.scenarioLevelReporter
-    }
-
-    onSuiteRetry(suite: SuiteStats) {
-        // the earlier try of the scenario does not count
-        const state = this.#scenarioStates.get(suite.uid)
-        if (state) {
-            this.metrics[state]--
-            this.#scenarioStates.delete(suite.uid)
-        }
     }
 
     onSuiteStart(suite: SuiteStats) {
@@ -209,7 +200,6 @@ export default class HtmlReporter extends WDIOReporter {
             const passed = suite.tests.length > 0 && suite.tests.every((test) => test.state === 'passed')
             const state = failed ? 'failed' : passed ? 'passed' : 'skipped'
             this.metrics[state]++
-            this.#scenarioStates.set(suite.uid, state)
         }
     }
 
