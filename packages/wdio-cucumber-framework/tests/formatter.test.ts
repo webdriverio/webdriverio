@@ -370,6 +370,16 @@ describe('CucumberFormatter', () => {
             return counts
         }
 
+        it('marks an undefined step as pending with "(undefined step)" in its title (ignoreUndefinedDefinitions)', () => {
+            wdioReporter.emit.mockClear()
+            reportedFailedCount(TestStepResultStatus.UNDEFINED, true)
+            const [, payload] = wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:pending')
+            expect(payload.state).toBe('pending')
+            expect(payload.title).toMatch(/ \(undefined step\)$/)
+            // the keyword stays: reporters find the step by its title
+            expect(payload.title).toMatch(/^(Given|When|Then|And|But) /)
+        })
+
         it('should increment failed counter on `failed` status', () => {
             expect(reportedFailedCount(TestStepResultStatus.FAILED)).toEqual([1])
         })
