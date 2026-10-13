@@ -253,7 +253,7 @@ export default class HtmlReporter extends WDIOReporter {
         this.#countOpenHookFailures()
         this.metrics.end = dayjs().utc().format()
         this.metrics.duration = runner._duration
-        const suites = this.filterChildSuites()
+        const suites = [...this.rootSuiteWithTests(runner), ...this.filterChildSuites()]
         // the report generator adds the cid to the file name
         const reportFile = path.resolve(process.cwd(), this.options.outputDir, this.options.filename)
         const reportData = new ReportData(
@@ -268,6 +268,23 @@ export default class HtmlReporter extends WDIOReporter {
         reportProxy.disconnectScreenshotEvent(this.#onScreenshot)
         reportProxy.disconnectVideoCaptureEvent(this.#onVideo)
 
+    }
+
+    /**
+     * The root suite of the base reporter has the tests and hooks that are in no
+     * suite (Mocha `it()` with no `describe()`): no suite start event adds it. Its
+     * child suites are already in the report.
+     */
+    rootSuiteWithTests(runner: RunnerStats): SuiteStats[] {
+        const root = this.currentSuites[0]
+        if (!root || (!root.tests.length && !root.hooks.some((hook) => hook.error))) {
+            return []
+        }
+        return [Object.assign(Object.create(Object.getPrototypeOf(root)), root, {
+            suites: [],
+            file: root.file || runner.specs[0],
+            end: new Date()
+        })]
     }
 
     removeSuite(uid: string | undefined) {

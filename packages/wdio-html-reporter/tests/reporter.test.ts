@@ -446,3 +446,23 @@ describe('failed hooks', () => {
         expect(reporter.metrics).toMatchObject({ passed: 1, failed: 1 })
     })
 })
+
+describe('tests with no describe()', () => {
+    it('writes the tests of the root suite in the report (Mocha top-level it())', async () => {
+        const dir = path.join(outputRoot, 'root-tests') + path.sep
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Root' } as never)
+        reporter.onRunnerStart(RUNNER)
+        // the base reporter puts a test with no suite in its root suite
+        const test = { type: 'test:start', title: 'a top-level test', fullTitle: 'a top-level test', uid: 'root-test', cid: '0-0', parent: '', specs: [] }
+        reporter.emit('test:start', test)
+        reporter.emit('test:fail', { ...test, error: { message: 'top-level failure' } })
+        reporter.emit('test:end', test)
+        await reporter.onRunnerEnd(RUNNER)
+        process.removeAllListeners('test:log')
+        process.removeAllListeners('test:screenshot')
+        process.removeAllListeners('test:video-capture')
+        const json = JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8'))
+        expect(json.metrics.failed).toBe(1)
+        expect(json.suites.flatMap((suite: { tests: { title: string }[] }) => suite.tests.map((t) => t.title))).toEqual(['a top-level test'])
+    })
+})
