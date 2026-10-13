@@ -9,7 +9,7 @@ import { getBrowserObject } from '@wdio/utils'
 import { StrictSelectorError } from './strictSelectorError.js'
 import { INDEX_NOT_FOUND, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
-import { markNotFoundAgain } from './staleElement.js'
+import { markNotFound, markWaited } from './elementLookup.js'
 
 const log = logger('webdriverio')
 
@@ -85,11 +85,14 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             }
             const notFound = new Error(message)
             /**
-             * the wait for the element ended without it, see `markNotFoundAgain`. A lookup
-             * that failed after the element existed is not marked: it can be there again
+             * the wait for the element ended without it and the element is still missing,
+             * see `markWaited`. A lookup that failed after the element existed, or an element
+             * that is there after the wait, gets no flag: it can be found again
              */
-            if (!existed) {
-                markNotFoundAgain(notFound)
+            const stillMissing = !existed && await currentElement.isExisting().then((exists) => !exists, () => false)
+            if (stillMissing) {
+                markWaited(notFound)
+                markNotFound(currentElement)
             }
             throw notFound
         }
