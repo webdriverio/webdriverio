@@ -74,7 +74,13 @@ describe('ReportAggregator', () => {
         const runner = Object.assign(Object.create(Object.getPrototypeOf(RUNNER)), RUNNER, {
             config: { ...RUNNER.config, user: 'cloud-user', key: 'cloud-access-key' },
             instanceOptions: { 'session-1': { user: 'cloud-user', key: 'cloud-access-key' } },
-            capabilities: { ...RUNNER.capabilities, 'bstack:options': { userName: 'cloud-user', accessKey: 'cloud-access-key' } }
+            capabilities: {
+                ...RUNNER.capabilities,
+                'bstack:options': { userName: 'cloud-user', accessKey: 'cloud-access-key' },
+                // secrets under names with no secret word, or in objects, arrays and URLs
+                'x:options': { credentials: { user: 'cloud-user', pass: 'cloud-access-key' }, apiKeys: ['cloud-access-key'] },
+                'appium:app': 'https://cloud-user:cloud-access-key@example.com/app.apk'
+            }
         })
         const reporter = new HtmlReporter({ logFile: os.devNull, outputDir, filename: 'report.html', reportTitle: 'Secrets' } as never)
         reporter.onRunnerStart(runner)
