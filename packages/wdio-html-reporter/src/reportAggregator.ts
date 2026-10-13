@@ -105,6 +105,11 @@ class ReportAggregator {
         const specs : string[] =  []
 
         this.reports = []
+        /**
+         * no folder when no worker wrote a report (for example a configuration error):
+         * still make the report that says so
+         */
+        fs.ensureDirSync(this.options.outputDir)
         const files = this.readJsonFiles()
         if (files.length === 0) {
             this.LOG.error(String.format('No Json files found in: {0}. Make sure options.produceJson is not false',  this.options.outputDir))
