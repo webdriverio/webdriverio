@@ -173,8 +173,18 @@ export const getElements = function getElements(
             return res as WebdriverIO.Element
         }
 
-        propertiesObject.scope = { value: 'element' }
-        propertiesObject.emit = { value: this.emit.bind(this) }
+        /**
+         * Each element gets its own copy of the property descriptors: the monad wraps the
+         * commands of the object it gets in place. With one object for the whole list, the
+         * commands of item `[n]` were wrapped `n + 1` times, and each of these layers
+         * handled a stale element error again, with its own implicit wait.
+         */
+        const elementProperties: PropertyDescriptorMap = {}
+        for (const key of Reflect.ownKeys(propertiesObject)) {
+            elementProperties[key] = { ...propertiesObject[key as keyof PropertyDescriptorMap] }
+        }
+        elementProperties.scope = { value: 'element' }
+        elementProperties.emit = { value: this.emit.bind(this) }
         const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
             const elementId = getElementFromResponse(res as ElementReference)
 
@@ -218,7 +228,7 @@ export const getElements = function getElements(
             }
 
             return client
-        }, propertiesObject)
+        }, elementProperties)
 
         const elementInstance: WebdriverIO.Element = element((this as WebdriverIO.Browser).sessionId, elementErrorHandler(wrapCommand))
 
