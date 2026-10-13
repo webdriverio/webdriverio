@@ -55,4 +55,11 @@ describe('ReportAggregator', () => {
         process.removeAllListeners('test:screenshot')
         process.removeAllListeners('test:video-capture')
     })
+
+    it('makeReport gives exit code 1 when it cannot make the report', async () => {
+        const { runCli } = await import('../src/makeReportCli.js')
+        const file = path.join(tempDir(), 'a-file')
+        fs.writeFileSync(file, 'not a folder')
+        expect(await runCli(['master-report.html', file, 'Title'], { CI: 'true' })).toBe(1)
+    })
 })
