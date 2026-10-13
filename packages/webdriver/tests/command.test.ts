@@ -8,6 +8,7 @@ import type { Options } from '@wdio/types'
 
 import '../src/browser.js'
 import { environment } from '../src/environment.js'
+import { SESSION_ENDED_ERROR } from '../src/constants.js'
 // @ts-expect-error mock feature
 import { WebDriverRequest as RequestMock, thenMock, catchMock, makeRequestMock, getCapturedRequestHandler } from '../src/request/request.js'
 import commandWrapper from '../src/command.js'
@@ -234,6 +235,19 @@ describe('command wrapper', () => {
 
         expect(scope.on).toHaveBeenCalledTimes(1)
         expect(scope.on).toHaveBeenLastCalledWith('result', expect.any(Function))
+    })
+
+    it('names the error of a command after deleteSession as a session end', async () => {
+        scope.sessionId = 'deleted-session'
+        vi.mocked(scope.on).mockClear()
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
+        await commandFn.call(scope, '/path', 'css selector', '#body', 123)
+        const onResult = vi.mocked(scope.on).mock.calls.find(([event]) => event === 'result')![1] as (result: { command: string }) => void
+        onResult({ command: 'deleteSession' })
+
+        const error = await (commandFn.call(scope, '/path', 'css selector', '#body', 123) as Promise<unknown>).catch((err: Error) => err) as Error
+        expect(error.message).toContain('after session has been deleted')
+        expect(error.name).toBe(SESSION_ENDED_ERROR)
     })
 
     it('should register abort listener once when request was called multiple times', async () => {
