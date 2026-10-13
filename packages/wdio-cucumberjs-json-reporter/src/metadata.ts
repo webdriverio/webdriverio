@@ -9,6 +9,13 @@ import type {
     WebdriverIOExtended,
 } from './types/wdio.js'
 
+/**
+ * the app of an Appium session: `appium:app` (W3C) or `app`
+ */
+function appOf (capabilities?: DesiredCapabilitiesExtended): string | undefined {
+    return (capabilities as Record<string, string | undefined> | undefined)?.['appium:app'] || capabilities?.app
+}
+
 export class Metadata {
     /**
      * Determine the metadata that needs to be added
@@ -41,7 +48,7 @@ export class Metadata {
             || {} as cjson_metadata
 
         // When an app is used to test, else a browser
-        const instanceData: AppData | BrowserData = (currentConfigCapabilities?.app || metadata?.app)
+        const instanceData: AppData | BrowserData = (appOf(currentConfigCapabilities) || metadata?.app)
             ? this.determineAppData(currentConfigCapabilities, metadata)
             : this.determineBrowserData(currentCapabilities, metadata)
 
@@ -97,7 +104,7 @@ export class Metadata {
     public determineAppData(currentConfigCapabilities: DesiredCapabilitiesExtended, metadata: cjson_metadata): AppData {
         const metaAppName: string = (metadata?.app && metadata.app?.name) ? metadata?.app?.name : 'No metadata.app.name available'
         const metaAppVersion: string = (metadata?.app && metadata.app.version) ? metadata.app.version : 'No metadata.app.version available'
-        const appPath = currentConfigCapabilities.app || metaAppName
+        const appPath = appOf(currentConfigCapabilities) || metaAppName
         // file name of the app, also for a Windows path
         const appName = appPath.split(/[\\/]/).pop() ?? appPath
 
