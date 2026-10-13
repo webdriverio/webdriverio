@@ -56,7 +56,6 @@ export default class CucumberFormatter extends Formatter {
      */
     private _currentFeatureUid?: string
     private _featureStarts = new Map<string, number>()
-    private _startedFeatures: string[] = []
 
     private reporter: EventEmitter
     private cid: string
@@ -143,10 +142,6 @@ export default class CucumberFormatter extends Formatter {
 
     usesSpecGrouping() {
         return this._gherkinDocEvents.length > 1
-    }
-
-    featureIsStarted(feature: string) {
-        return this._startedFeatures.includes(feature)
     }
 
     /**
@@ -353,8 +348,7 @@ export default class CucumberFormatter extends Formatter {
             this._currentDoc.uri &&
             this._currentDoc.feature &&
             this.usesSpecGrouping() &&
-            doc !== this._currentDoc &&
-            this.featureIsStarted(this._currentDoc.uri)
+            doc !== this._currentDoc
         ) {
             const payload = {
                 uid: this.featureUid(this._currentDoc.uri as string, this._currentDoc.feature as Feature),
@@ -399,9 +393,6 @@ export default class CucumberFormatter extends Formatter {
             this._currentDoc = doc
             // the duration of this part of the feature
             this._featureStart = new Date()
-            if (!this.featureIsStarted(doc.uri)) {
-                this._startedFeatures.push(doc.uri)
-            }
         }
         /**
          * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
