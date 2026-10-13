@@ -466,6 +466,29 @@ describe('reporter', () => {
         })
     })
 
+    describe('cucumberOpts.tagsInTitle', () => {
+        it('writes the feature and scenario names and ids without the tags of the title', () => {
+            const feature = tmpReporter.getFeatureDataObject({ ...SUITE_FEATURE_STATS, title: '@featuretag: Tagged feature', tags: ['@featuretag'] } as unknown as SuiteStatsExtended)
+            expect(feature).toMatchObject({ name: 'Tagged feature', id: 'tagged-feature' })
+            const scenario = tmpReporter.getScenarioDataObject(
+                { ...SUITE_SCENARIO_STATS, title: '@featuretag, @smoke: Login', tags: ['@featuretag', '@smoke'] } as SuiteStatsExtended,
+                feature.id!
+            )
+            expect(scenario).toMatchObject({ name: 'Login', id: 'tagged-feature;login' })
+        })
+
+        it('keeps only the last try of a retried scenario that has tags in its title', () => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            const title = '@smoke: Login'
+            const tags = ['@smoke']
+            tmpReporter.report.feature = EMPTY_FEATURE
+            tmpReporter.report.feature.elements!.push(tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title, tags } as SuiteStatsExtended, 'f'))
+            tmpReporter.addStepData({ ...STEP_TEST_ONSTART_STATS, state: FAILED } as TestStatsExtended)
+            tmpReporter.onSuiteRetry({ ...SUITE_SCENARIO_STATS, title, tags } as SuiteStatsExtended)
+            expect(tmpReporter.getCurrentScenario().steps).toEqual([])
+        })
+    })
+
     describe('doc string argument', () => {
         it('writes a doc string as { content, line }, as Cucumber does', () => {
             vi.mocked(getFailedMessage).mockReturnValue({})

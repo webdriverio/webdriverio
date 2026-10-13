@@ -150,7 +150,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      */
     public onSuiteRetry(payload: SuiteStats): void {
         const scenario = this.report.feature?.elements?.at(-1)
-        if (!scenario || scenario.name !== payload.title) {
+        if (!scenario || scenario.name !== scenarioNameOf(payload.title, payload.tags)) {
             return
         }
         scenario.steps = []
@@ -298,7 +298,8 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * Get the feature data object
      */
     public getFeatureDataObject(featureData: SuiteStats): Feature {
-        const featureName = featureData.title
+        // without the tags that `cucumberOpts.tagsInTitle` adds to the title
+        const featureName = scenarioNameOf(featureData.title, featureData.tags)
 
         return {
             keyword: FEATURE,
@@ -324,9 +325,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         scenarioData: TestStatsExtended | SuiteStatsExtended | HookStatsExtended,
         id: string,
     ): Scenario {
-        const scenarioName = scenarioData.title
-        const lines = this.#featureLines &&
-            findScenarioLines(this.#featureLines, scenarioNameOf(scenarioName, (scenarioData as SuiteStatsExtended).tags))
+        // without the tags that `cucumberOpts.tagsInTitle` adds to the title
+        const scenarioName = scenarioNameOf(scenarioData.title, (scenarioData as SuiteStatsExtended).tags)
+        const lines = this.#featureLines && findScenarioLines(this.#featureLines, scenarioName)
 
         const scenario: Scenario = {
             keyword: SCENARIO,
@@ -335,7 +336,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             name: scenarioName,
             tags: scenarioData.tags || [],
             // `<feature id>;<scenario id>` as in the Cucumber JSON format
-            id: `${id};${scenarioData.title.replace(/ /g, '-').toLowerCase()}`,
+            id: `${id};${scenarioName.replace(/ /g, '-').toLowerCase()}`,
             line: lines?.line ?? null,
             steps: [],
         }
