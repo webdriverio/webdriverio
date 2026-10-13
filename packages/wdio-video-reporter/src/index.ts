@@ -590,18 +590,28 @@ export default class VideoReporter extends WdioReporter {
                         return instance.takeScreenshot()
                     })
             })
+        /**
+         * after the timeout, the frame has the "not available" image and ffmpeg can read
+         * it: a screenshot that ends later must not write the frame again
+         */
+        let timedOut = false
         const screenshot = capture
             .then((data: string) => {
-                fs.writeFileSync(filePath, data, 'base64')
-                this.#log(`- Screenshot (frame: ${frame})`)
+                if (!timedOut) {
+                    fs.writeFileSync(filePath, data, 'base64')
+                    this.#log(`- Screenshot (frame: ${frame})`)
+                }
             })
             .catch((error: Error) => {
-                fs.writeFileSync(filePath, notAvailableImage, 'base64')
-                this.#log(`Screenshot not available (frame: ${frame}). Error: ${error}..`)
+                if (!timedOut) {
+                    fs.writeFileSync(filePath, notAvailableImage, 'base64')
+                    this.#log(`Screenshot not available (frame: ${frame}). Error: ${error}..`)
+                }
             })
         this.screenshotPromises.push(
             endsInTime(screenshot, this.options.videoRenderTimeout).then((inTime) => {
                 if (!inTime) {
+                    timedOut = true
                     fs.writeFileSync(filePath, notAvailableImage, 'base64')
                     this.#log(`Screenshot not available (frame: ${frame}). Error: no answer in ${this.options.videoRenderTimeout}ms`)
                 }
