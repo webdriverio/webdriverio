@@ -480,6 +480,24 @@ const cucumberReporter = async () => {
 }
 
 /**
+ * Cucumber with grouped specs in a random order: the scenarios of 2 features mix,
+ * and the reporters must still get each scenario
+ */
+const cucumberGroupedSpecsRandomOrder = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'random-order')
+    const logFile = path.resolve(basePath, 'spec-reporter.log')
+    await fs.rm(logFile, { force: true })
+    await launch(
+        'cucumberGroupedSpecsRandomOrder',
+        path.resolve(basePath, 'random-order.conf.js'),
+        { reporters: [['spec', { stdout: false, logFile }]] }
+    )
+    const logs = await fs.readFile(logFile, 'utf-8')
+    assert.ok(logs.includes('6 passing'), `the spec reporter does not show the 6 scenarios:\n${logs}`)
+    await fs.rm(logFile, { force: true })
+}
+
+/**
  * Cucumber file option
  */
 const cucumberFileOption = async () => {
@@ -1304,6 +1322,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberFailAmbiguousDefinitions,
         cucumberPendingTest,
         cucumberReporter,
+        cucumberGroupedSpecsRandomOrder,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,

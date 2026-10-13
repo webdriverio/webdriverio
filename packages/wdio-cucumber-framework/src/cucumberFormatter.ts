@@ -354,11 +354,17 @@ export default class CucumberFormatter extends Formatter {
             this.emit('suite:end', payload)
         }
 
+        /**
+         * start the feature of the scenario when it is not the current one. In a
+         * random order the scenarios of the features mix: the feature that ended
+         * above starts again later, so each `suite:end` of a feature has its
+         * `suite:start`, and the reporters keep each scenario
+         */
         if (
             this.usesSpecGrouping() &&
             doc &&
             doc.uri &&
-            !this.featureIsStarted(doc.uri)
+            doc !== this._currentDoc
         ) {
             const payload = {
                 uid: getFeatureId(doc.uri as string, doc.feature as Feature),
@@ -372,7 +378,9 @@ export default class CucumberFormatter extends Formatter {
 
             this.emit('suite:start', payload)
             this._currentDoc = doc
-            this._startedFeatures.push(doc.uri)
+            if (!this.featureIsStarted(doc.uri)) {
+                this._startedFeatures.push(doc.uri)
+            }
         }
         /**
          * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
