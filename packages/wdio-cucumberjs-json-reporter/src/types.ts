@@ -5,6 +5,11 @@ export interface CucumberJsJsonReporterInterface extends Reporters.Options {
     jsonFolder?: string;
     language?: string;
     disableHooks?: boolean;
+    /**
+     * a JSON file for each try of a retried spec (`true`), or the tries in one file (`false`)
+     * @default true
+     */
+    reportFilePerRetry?: boolean;
 }
 
 export interface BrowserData {
