@@ -1,6 +1,5 @@
 import os from 'node:os'
 import fs from 'node:fs'
-import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { spawn, type ChildProcess } from 'node:child_process'
 
@@ -9,8 +8,6 @@ import WdioReporter, { type RunnerStats, type AfterCommandArgs, type SuiteStats,
 import { browser } from '@wdio/globals'
 import type { Options } from '@wdio/types'
 
-import { glob } from 'glob'
-
 import AllureReporterExtension from './allure.js'
 import { removeAllureAttachments } from './allureResults.js'
 import {
@@ -18,7 +15,7 @@ import {
     getVideoPath, pad, generateFilename, getBidiSnapshotCommand, endsInTime, getScreenshotBrowser,
     findAllureReporter, findFfmpeg
 } from './helpers.js'
-import { DEFAULT_OPTIONS, SCREENSHOT_PADDING_WITH, FRAME_REGEX, STDERR_TAIL_LENGTH, SUPPORTED_VIDEO_FORMATS } from './constants.js'
+import { DEFAULT_OPTIONS, STDERR_TAIL_LENGTH, SUPPORTED_VIDEO_FORMATS } from './constants.js'
 import type { ReporterOptions } from './types.js'
 
 /**
@@ -548,7 +545,7 @@ export default class VideoReporter extends WdioReporter {
         }
 
         const frame = this.frameNr++
-        const filePath = path.resolve(this.recordingPath, frame.toString().padStart(SCREENSHOT_PADDING_WITH, '0') + '.png')
+        const filePath = path.resolve(this.recordingPath, `${pad(frame)}.png`)
 
         /**
          * Use the classic WebDriver screenshot command (`takeScreenshot`), also in a
@@ -634,41 +631,6 @@ export default class VideoReporter extends WdioReporter {
         process.emit('test:video-capture', videoPath)
 
         /**
-         * check the frames when all screenshots are done: a frame that is still
-         * pending is not missing
-         */
-        const recordingPath = this.recordingPath
-        const checkFrames = () => glob(`${recordingPath}/*.png`).then((frames) => {
-            const insertionPromises: Promise<void>[] = []
-
-            const insertMissing = (sourceFrame: number, targetFrame: number) => {
-                const src = `${recordingPath}/${pad(sourceFrame)}.png`
-                const dest = `${recordingPath}/${pad(targetFrame)}.png`
-                this.#log(`copying ${pad(sourceFrame)} to missing frame ${pad(targetFrame)}...`)
-                insertionPromises.push(fsp.copyFile(src, dest))
-            }
-
-            if (frames.length) {
-                const frameNumbers = frames.map((path) => +path.replace(FRAME_REGEX, '$1'))
-
-                if (frameNumbers.length !== frameNumbers[frameNumbers.length - 1] - frameNumbers[0] + 1) {
-                    // fill in any blanks
-                    let nextFrame: number | undefined
-                    let lastFrame: number | undefined
-                    for (let i = frameNumbers[0]; i < frameNumbers[frameNumbers.length - 1]; ++i) {
-                        if (lastFrame && nextFrame && !frameNumbers.includes(i)) {
-                            insertMissing(lastFrame, i)
-                        } else {
-                            lastFrame = i
-                        }
-                        nextFrame = i + 1
-                    }
-                }
-            }
-            return Promise.all(insertionPromises)
-        })
-
-        /**
          * no shell: each argument goes to ffmpeg as it is, also a path with quotes or `$`
          */
         const command = this.#ffmpegPath!
@@ -700,9 +662,12 @@ export default class VideoReporter extends WdioReporter {
         }
 
         const start = Date.now()
+        /**
+         * each frame is written when its screenshot ends (or with the "not available"
+         * image), so ffmpeg starts when all frames of the recording exist
+         */
         const promise: Promise<void> = Promise
             .all(this.screenshotPromises)
-            .then(checkFrames)
             .then(() => new Promise((resolve) => {
                 const cp = spawn(command, args, {
                     stdio: ['ignore', 'ignore', 'pipe'],

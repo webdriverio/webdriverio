@@ -1,5 +1,4 @@
 export const SCREENSHOT_PADDING_WITH = 4
-export const FRAME_REGEX = new RegExp(`^.*\\/(\\d{${SCREENSHOT_PADDING_WITH}})\\.png`)
 
 /**
  * characters of the ffmpeg output kept for the log of a failed render
