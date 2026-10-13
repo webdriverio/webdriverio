@@ -375,7 +375,7 @@ npm install @wdio/cucumberjs-json-reporter --save-dev
 
 The options are the same. The JSON files follow the Cucumber JSON format more closely. Check the tools that read them:
 
-- The scenario `id` is `<feature id>;<scenario id>`. Before, the two parts had no separator.
+- The scenario `id` is `<feature id>;<scenario id>`, and `<feature id>;<rule id>;<scenario id>` for a scenario in a `Rule:`, as in the Cucumber JSON format. Before, the parts had no separator.
 - Scenarios and steps have a `line`. Hooks are steps with `hidden: true`.
 - When a worker runs several feature files (grouped specs), the reporter writes one file for each feature. Before, all scenarios went into the file of the first feature.
 - In a multi-remote session, the metadata comes from the first instance.
