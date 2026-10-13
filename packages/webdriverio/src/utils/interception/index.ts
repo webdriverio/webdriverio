@@ -179,6 +179,7 @@ export default class WebDriverInterception {
     #warnedAboutEarlyAnswer = false
     #filterOptions: MockFilterOptions
     #browser: WebdriverIO.Browser
+    #contexts?: string[]
 
     #eventHandler: Map<string, Function[]> = new Map()
     #restored = false
@@ -208,6 +209,7 @@ export default class WebDriverInterception {
         this.#mockId = mockId
         this.#filterOptions = filterOptions
         this.#browser = browser
+        this.#contexts = contexts
         this.#isCollectingNetworkData = isCollectingNetworkData
 
         /**
@@ -347,6 +349,9 @@ export default class WebDriverInterception {
     }
 
     #handleBeforeRequestSent(request: local.NetworkBeforeRequestSentParameters) {
+        if (!this.#isOwnContext(request)) {
+            return
+        }
         if (this.#restored) {
             // If restored during in-flight request, continue it to prevent hanging
             if (request.intercepts?.includes(this.#mockId)) {
@@ -541,6 +546,9 @@ export default class WebDriverInterception {
     }
 
     #handleResponseStarted(request: Response) {
+        if (!this.#isOwnContext(request)) {
+            return
+        }
         if (this.#restored) {
             // If restored during in-flight request, provide response to prevent hanging
             if (request.intercepts?.includes(this.#mockId)) {
@@ -677,6 +685,9 @@ export default class WebDriverInterception {
     }
 
     async #handleResponseCompleted(response: Response) {
+        if (!this.#isOwnContext(response)) {
+            return
+        }
         if (this.#restored) {
             return
         }
@@ -864,6 +875,10 @@ export default class WebDriverInterception {
                 return call
             }
         }
+    }
+
+    #isOwnContext(event: { context: string | null }) {
+        return !this.#contexts?.length || (event.context !== null && this.#contexts.includes(event.context))
     }
 
     #isRequestMatching<T extends local.NetworkBeforeRequestSentParameters | Response>(request: T) {

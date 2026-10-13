@@ -766,6 +766,36 @@ describe('WebDriverInterception', () => {
         expect(browser.networkProvideResponse).not.toHaveBeenCalled()
     })
 
+    it('ignores network events of contexts other than its own', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mockA = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['A'] })
+        const mockB = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['B'] })
+
+        mockB.abort()
+        browser.emit('network.beforeRequestSent', { ...getBlockedRequestStub('req-1'), context: 'A' })
+        expect(browser.networkFailRequest).not.toHaveBeenCalled()
+
+        browser.emit('network.beforeRequestSent', { ...getBlockedRequestStub('req-2'), context: 'B' })
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-2' })
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-3'), isBlocked: false, context: 'A' })
+        expect(mockA.calls).toHaveLength(1)
+        expect(mockB.calls).toHaveLength(0)
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-4'), isBlocked: false, context: null })
+        expect(mockA.calls).toHaveLength(1)
+        expect(mockB.calls).toHaveLength(0)
+    })
+
+    it('handles network events of any context without contexts', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-1'), isBlocked: false, context: 'A' })
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-2'), isBlocked: false, context: null })
+        expect(mock.calls).toHaveLength(2)
+    })
+
     it('should not record requests that do not match the mock pattern', async () => {
         const browser = getResponseCollectionBrowserMock()
         const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
