@@ -221,6 +221,7 @@ describe('an index that the list of $$ never reaches', () => {
             isExisting: (elem: WebdriverIO.Element) => elem.isExisting(),
             'waitForExist reverse': (elem: WebdriverIO.Element) => elem.waitForExist({ reverse: true, timeout: 500 }),
             isDisplayed: (elem: WebdriverIO.Element) => elem.isDisplayed(),
+            'waitForDisplayed reverse': (elem: WebdriverIO.Element) => elem.waitForDisplayed({ reverse: true, timeout: 500 }),
             getText: (elem: WebdriverIO.Element) => elem.getText()
         }
         /**
@@ -235,13 +236,14 @@ describe('an index that the list of $$ never reaches', () => {
                 : `error: ${error.message}`
         )
         const STILL_EXISTING = expect.stringMatching(/^error: element .* still existing after 500ms/)
+        const STILL_DISPLAYED = expect.stringMatching(/^error: element .* still displayed after 500ms/)
         const OUT_OF_BOUNDS = expect.stringMatching(/^error: Index out of bounds!/)
         const expected = (kind: Kind, state: State) => {
             switch (state) {
             case 'in range':
-                return { isExisting: true, 'waitForExist reverse': STILL_EXISTING, isDisplayed: true, getText: 'b' }
+                return { isExisting: true, 'waitForExist reverse': STILL_EXISTING, isDisplayed: true, 'waitForDisplayed reverse': STILL_DISPLAYED, getText: 'b' }
             case 'never reached':
-                return { isExisting: false, 'waitForExist reverse': true, isDisplayed: false, getText: OUT_OF_BOUNDS }
+                return { isExisting: false, 'waitForExist reverse': true, isDisplayed: false, 'waitForDisplayed reverse': true, getText: OUT_OF_BOUNDS }
             case 'stale with the same length':
                 return {
                     isExisting: true,
@@ -250,6 +252,7 @@ describe('an index that the list of $$ never reaches', () => {
                      * the stale element is found again, also in BiDi
                      */
                     isDisplayed: true,
+                    'waitForDisplayed reverse': STILL_DISPLAYED,
                     getText: 'y'
                 }
             case 'stale in a shorter list':
@@ -257,10 +260,12 @@ describe('an index that the list of $$ never reaches', () => {
                     isExisting: false,
                     'waitForExist reverse': true,
                     /**
-                     * the stale element is looked for again and is not found: its stale element
-                     * error, in Classic and BiDi
+                     * the stale element is looked for again, once, and is not found: a check
+                     * gives its answer, like for `$()` (#12576). A command that needs the
+                     * element throws its stale element error, in Classic and BiDi
                      */
-                    isDisplayed: 'stale',
+                    isDisplayed: false,
+                    'waitForDisplayed reverse': true,
                     getText: 'stale'
                 }
             }
