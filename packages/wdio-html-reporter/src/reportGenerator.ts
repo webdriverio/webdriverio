@@ -1,5 +1,5 @@
 import HtmlGenerator from './htmlGenerator.js'
-import type { HtmlReporterOptions, ReportData } from './types.js'
+import { HtmlReporterOptions, type ReportData } from './types.js'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js'
 dayjs.extend(utc)
@@ -13,16 +13,10 @@ import { workerFile } from './fileNames.js'
 class ReportGenerator {
     private LOG = logger('ReportGenerator')
     constructor(opts: Partial<HtmlReporterOptions> = {}) {
-        this.options = Object.assign({}, {
-            outputDir: 'reports/html-reports/',
+        // the defaults of the reporter (also produceJson), as the ReportAggregator uses them
+        this.options = Object.assign(new HtmlReporterOptions(), {
             filename: 'master-report.html',
-            reportTitle: 'Test Master Report',
-            showInBrowser: false,
-            browserName: 'not specified',
-            collapseTests: false,
-            collapseSuites: false,
-            LOG: null,
-            removeOutput: true
+            reportTitle: 'Test Master Report'
         }, opts)
         this.synchronised = true
     }

@@ -105,4 +105,14 @@ describe('ReportAggregator', () => {
         await reporter.onRunnerEnd(RUNNER)
         expect(events.map((event) => process.listenerCount(event))).toEqual(before)
     })
+
+    it('ReportGenerator writes the worker JSON with its default options', async () => {
+        const { ReportGenerator } = await import('../src/index.js')
+        const { RUNNER, SUITES } = await import('./testdata.js')
+        const { ReportData, Metrics } = await import('../src/types.js')
+        const outputDir = tempDir()
+        const generator = new ReportGenerator({ outputDir })
+        await generator.createReport(new ReportData('Generator', RUNNER, [SUITES[0]], new Metrics(), path.join(outputDir, 'x.html'), 'chrome'))
+        expect(fs.readdirSync(outputDir).filter((file) => file.endsWith('.json'))).toEqual(['master-report-0-0.json'])
+    })
 })
