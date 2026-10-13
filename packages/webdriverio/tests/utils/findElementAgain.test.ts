@@ -1040,6 +1040,50 @@ describe('finding an element again', () => {
             expect(await lookups((child) => child.getText())).toBe(wait)
         })
 
+        it('waits once when the page removes the element between two inner commands', async () => {
+            const browser = await session()
+            browser.addCommand('textThenClick', async function (this: WebdriverIO.Element) {
+                await this.getText()
+                driver.stale.add('elem-r')
+                driver.light.set('#ref', [])
+                return this.click()
+            }, { attachToElement: true })
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+
+            // @ts-expect-error undefined custom command
+            const { error, waits: count } = await waits(elem.textThenClick())
+            expect(error?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+        })
+
+        it('waits once for a child of a removed shadow host', async () => {
+            const browser = await session()
+            driver.light.set('#host', ['host-a'])
+            driver.shadow.set('.x', ['shadow-x'])
+            const child = await browser.$('#host').shadow$('.x').getElement()
+            driver.stale.add('host-a')
+            driver.stale.add('shadow-x')
+            driver.light.set('#host', [])
+
+            const { error, waits: count } = await waits(child.getText())
+            expect(error?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+        })
+
+        it('waits once for shadow$ of a removed host', async () => {
+            const browser = await session()
+            driver.light.set('#host', ['host-a'])
+            driver.shadow.set('.x', ['shadow-x'])
+            const host = await browser.$('#host').getElement()
+            driver.stale.add('host-a')
+            driver.light.set('#host', [])
+
+            const { error, waits: count } = await waits(host.shadow$('.x').getText())
+            expect(error?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+        })
+
         it('fails both commands that run at the same time on a removed element', async () => {
             const elem = await removedRef()
             const results = await Promise.allSettled([elem.getText(), elem.getAttribute('id')])
