@@ -1,7 +1,8 @@
 import path from 'node:path'
 import { describe, it, expect, vi } from 'vitest'
 
-import implicitWait, { waitedFor } from '../../src/utils/implicitWait.js'
+import implicitWait from '../../src/utils/implicitWait.js'
+import { waitedFor } from '../../src/utils/elementNotFound.js'
 import { findElementAgain } from '../../src/utils/findElementAgain.js'
 import { StrictSelectorError } from '../../src/utils/strictSelectorError.js'
 

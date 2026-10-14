@@ -2,7 +2,8 @@ import { ELEMENT_KEY } from 'webdriver'
 import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@wdio/utils'
 
 import refetchElement from './utils/refetchElement.js'
-import implicitWait, { waitedFor } from './utils/implicitWait.js'
+import implicitWait from './utils/implicitWait.js'
+import { ELEMENT_NOT_FOUND_AGAIN, waitedFor } from './utils/elementNotFound.js'
 import { isStaleElementError } from './utils/index.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
@@ -61,7 +62,21 @@ async function invokeElementCommand (
 
         if (err.name === 'stale element reference' || isStaleElementError(err)) {
             try {
-                const refetched = await refetchElement(element, commandName)
+                let refetched: WebdriverIO.Element
+                try {
+                    refetched = await refetchElement(element, commandName)
+                } catch (lookupErr) {
+                    /**
+                     * the page removed the element (or a parent): name the error, and keep the
+                     * stale element error as its cause, see `ELEMENT_NOT_FOUND_AGAIN`
+                     */
+                    if (waitedFor(lookupErr) && lookupErr instanceof Error && Object.isExtensible(lookupErr)) {
+                        lookupErr.name = ELEMENT_NOT_FOUND_AGAIN
+                        const withCause: Error & { cause?: unknown } = lookupErr
+                        withCause.cause ??= err
+                    }
+                    throw lookupErr
+                }
                 element.elementId = refetched.elementId
                 /**
                  * also the w3c identifier, which e.g. an action origin reads

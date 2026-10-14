@@ -6,6 +6,7 @@ import { waitForExist } from '../src/commands/element/waitForExist.js'
 import refetchElement from '../src/utils/refetchElement.js'
 import { StrictSelectorError } from '../src/utils/strictSelectorError.js'
 import { remote } from '../src/index.js'
+import { ELEMENT_NOT_FOUND_AGAIN, markWaited } from '../src/utils/elementNotFound.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -136,15 +137,18 @@ describe('middleware', () => {
         /**
          * the error of a lookup that waited for the element and did not find it
          */
-        const notFound = (selector = '#foo', commandName = 'getText') => Object.defineProperty(
-            new Error(`Can't call ${commandName} on element with selector "${selector}" because element wasn't found`),
-            Symbol.for('wdio:waitedFor'),
-            { value: true }
-        )
+        const notFound = (selector = '#foo', commandName = 'getText') => {
+            const err = new Error(`Can't call ${commandName} on element with selector "${selector}" because element wasn't found`)
+            markWaited(err)
+            return err
+        }
         /**
          * the error of a command whose lookup waited for the element and did not find it
          */
-        const expectGone = (error: Error | null) => expect(error?.message).toMatch(/wasn't found/)
+        const expectGone = (error: Error | null) => {
+            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect(error?.message).toMatch(/wasn't found/)
+        }
         const real = vi.mocked(refetchElement).getMockImplementation()!
         /**
          * the refetch gives the results in order, then does not find the element
@@ -216,8 +220,25 @@ describe('middleware', () => {
             // @ts-expect-error undefined custom command
             const error = await elem.clickSpinner().then(() => null, (e: Error) => e)
             expect(error).toBe(spinnerGone)
+            /**
+             * `#spinner` was never found: it keeps its plain error
+             */
+            expect(error?.name).toBe('Error')
             expect(error?.message).toBe('Can\'t call click on element with selector "#spinner" because element wasn\'t found')
             expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        it('names the error of a stale element that was not found again, with the stale error as its cause', async () => {
+            const stale = staleError()
+            browser.addCommand('staleGone', vi.fn().mockRejectedValueOnce(stale), { attachToElement: true })
+            const elem = await browser.$('#foo')
+            refetchGives()
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.staleGone().then(() => null, (e: Error) => e)
+            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect(error?.message).toBe('Can\'t call getText on element with selector "#foo" because element wasn\'t found')
+            expect((error as Error & { cause?: unknown }).cause).toBe(stale)
         })
 
         it('looks again in the next command after a lookup gave up', async () => {

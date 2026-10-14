@@ -9,6 +9,7 @@ import { itemOf } from '../../src/utils/findElementAgain.js'
 import refetchElement from '../../src/utils/refetchElement.js'
 import implicitWait from '../../src/utils/implicitWait.js'
 import { isStaleElementError } from '../../src/utils/index.js'
+import { ELEMENT_NOT_FOUND_AGAIN } from '../../src/utils/elementNotFound.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -544,14 +545,14 @@ describe('finding an element again', () => {
             expect(await elem.waitForExist({ reverse: true })).toBe(true)
         })
 
-        it('getText on a stale element throws the stale element error', async () => {
+        it('getText on a stale element throws that it was not found again', async () => {
             driver.light.set('.item', ['elem-x', 'elem-a'])
             const elem = (await (await session()).$$('.item'))[1]
             driver.stale.add('elem-a')
             driver.light.set('.item', ['elem-b'])
 
             const { error } = await settle(elem.getText())
-            expect(error?.name).toBe('stale element reference')
+            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
         })
     })
 
@@ -640,7 +641,7 @@ describe('finding an element again', () => {
             expect(error?.message).toBe('Can\'t call getText on element with selector ".item" because element wasn\'t found')
         })
 
-        it('a stale item of a list that is shorter now throws the stale element error', async () => {
+        it('a stale item of a list that is shorter now throws that it was not found again', async () => {
             const browser = await session()
             driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
             const elem = await browser.$$('.item')[3]
@@ -648,7 +649,7 @@ describe('finding an element again', () => {
             driver.light.set('.item', ['elem-a'])
 
             const { error } = await settle(elem.getText())
-            expect(error?.name).toBe('stale element reference')
+            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
         })
 
         it('a command throws "Index out of bounds" after one lookup, without a second wait', async () => {
@@ -745,7 +746,7 @@ describe('finding an element again', () => {
      * item is found again at its index without the wait of `$$(selector)[index]`. When the
      * list is shorter now, the item is "not found", like `$(selector)` when the page removed
      * its element: a check gives its answer at once, a command that needs the element waits
-     * for it and then throws the stale element error (#12576)
+     * for it and then throws that it was not found again (#12576, #16072)
      */
     describe('a stale item of a list that no longer reaches its index', () => {
         const goneItem = async () => {
@@ -785,10 +786,10 @@ describe('finding an element again', () => {
             expect(driver.findsIn.slice(finds)).toEqual(['elements .item in document'])
         })
 
-        it('getText waits for the item and throws the stale element error', async () => {
+        it('getText waits for the item and throws that it was not found again', async () => {
             const elem = await goneItem()
             const { error } = await settle(elem.getText())
-            expect(error?.name).toBe('stale element reference')
+            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
         })
 
         it('getText uses the item when the list reaches its index again while it waits', async () => {
@@ -814,7 +815,7 @@ describe('finding an element again', () => {
                 vi.mocked(refetchElement).mockClear()
 
                 const { error } = await settle(elem.getText())
-                expect(error?.name).toBe('stale element reference')
+                expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
                 return vi.mocked(refetchElement).mock.calls.length
             }
 
@@ -850,7 +851,10 @@ describe('finding an element again', () => {
         /**
          * the error of a command on an element that the page removed
          */
-        const expectGone = (error?: Error) => expect(error?.message).toMatch(/wasn't found/)
+        const expectGone = (error?: Error) => {
+            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect(error?.message).toMatch(/wasn't found/)
+        }
         const removedHost = async () => {
             const browser = await session()
             driver.light.set('#host', ['host-a'])
@@ -1202,7 +1206,10 @@ describe('finding an element again', () => {
             const elem = await removedRef()
             vi.mocked(refetchElement).mockClear()
             const { error, waits: count } = await waits(elem.waitForStable())
-            expectGone(error)
+            /**
+             * `waitForStable` throws a new error with the message of the error of its check
+             */
+            expect(error?.message).toMatch(/wasn't found/)
             expect(count).toBe(1)
             expect(vi.mocked(refetchElement).mock.calls.map(([, commandName]) => commandName)).toEqual(['isStable'])
         })
@@ -1396,10 +1403,10 @@ describe('finding an element again in strict mode', () => {
             return elem
         }
 
-        it('throws the stale element error when nothing matches', async () => {
+        it('throws that it was not found again when nothing matches', async () => {
             const elem = await staleElement([])
             const { error } = await settle(elem.getText())
-            expect(error?.name).toBe('stale element reference')
+            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
         })
 
         it('resolves the only match', async () => {

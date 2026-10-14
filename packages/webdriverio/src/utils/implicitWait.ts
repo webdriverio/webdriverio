@@ -9,21 +9,9 @@ import { getBrowserObject } from '@wdio/utils'
 import { StrictSelectorError } from './strictSelectorError.js'
 import { INDEX_NOT_FOUND, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
+import { markWaited } from './elementNotFound.js'
 
 const log = logger('webdriverio')
-
-/**
- * a registered symbol: another copy of webdriverio in the same process sees the flag
- */
-const WAITED_FOR = Symbol.for('wdio:waitedFor')
-
-/**
- * whether the "element wasn't found" error comes from a wait for the element that ended
- * without it, see `implicitWait`
- */
-export function waitedFor(err: unknown): boolean {
-    return Boolean(err && typeof err === 'object' && (err as { [WAITED_FOR]?: boolean })[WAITED_FOR] === true)
-}
 
 /**
  * wait on element if:
@@ -101,7 +89,7 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
              * element existed gets no flag: the element can be found again
              */
             if (!existed) {
-                Object.defineProperty(notFound, WAITED_FOR, { value: true })
+                markWaited(notFound)
             }
             throw notFound
         }
