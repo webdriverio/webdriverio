@@ -90,7 +90,11 @@ async function invokeElementCommand (
                     if (waitedFor(lookupErr) && lookupErr instanceof Error && Object.isExtensible(lookupErr)) {
                         nameNotFoundAgain(lookupErr, element, commandName)
                         const withCause: Error & { cause?: unknown } = lookupErr
-                        withCause.cause ??= err
+                        /**
+                         * the stale element error of the driver, also after a list item that
+                         * was not found again
+                         */
+                        withCause.cause ??= isElementNotFoundAgain(err) ? (err as Error & { cause?: unknown }).cause ?? err : err
                     }
                     throw lookupErr
                 }

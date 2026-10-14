@@ -1023,6 +1023,28 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
+        it('keeps the stale element error as the cause when the page removed the whole list during a list command', async () => {
+            const browser = await session()
+            driver.light.set('#list', ['list-a'])
+            driver.light.set('.item', ['elem-a', 'target-1'])
+            browser.addCommand('clickTargetGone', async function (this: WebdriverIO.Element) {
+                const items = await this.$$('.item')
+                const texts = await items.map((item) => item.getText())
+                const target = items[texts.findIndex((text) => text.includes('target'))]
+                driver.stale.add('list-a')
+                driver.stale.add('target-1')
+                driver.light.set('#list', [])
+                driver.light.set('.item', [])
+                return target.click()
+            }, { attachToElement: true })
+            const list = await browser.$('#list')
+
+            // @ts-expect-error undefined custom command
+            const { error } = await waits(list.clickTargetGone())
+            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect((error as Error & { cause?: Error }).cause?.name).toBe('stale element reference')
+        })
+
         it('waits once for a command of the host that clicks a stale child', async () => {
             const { browser, child } = await removedHost()
             browser.addCommand('clickKept', function () {
