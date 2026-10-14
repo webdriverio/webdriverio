@@ -300,15 +300,21 @@ describe('cli interface', () => {
 
         it('matches cwd literally', () => {
             const cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue('/tmp/project (1)')
-            expect(wdioClInterface.getFilenames(['/tmp/project (1)/foo.ts', '/tmp/project 1/bar.ts']))
-                .toEqual('- /foo.ts, /tmp/project 1/bar.ts')
-            cwdSpy.mockRestore()
+            try {
+                expect(wdioClInterface.getFilenames(['/tmp/project (1)/foo.ts', '/tmp/project 1/bar.ts']))
+                    .toEqual('- /foo.ts, /tmp/project 1/bar.ts')
+            } finally {
+                cwdSpy.mockRestore()
+            }
         })
 
         it('does not throw for a cwd that is an invalid regex', () => {
             const cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue('/tmp/project (1')
-            expect(wdioClInterface.getFilenames(['/tmp/project (1/foo.ts'])).toEqual('- /foo.ts')
-            cwdSpy.mockRestore()
+            try {
+                expect(wdioClInterface.getFilenames(['/tmp/project (1/foo.ts'])).toEqual('- /foo.ts')
+            } finally {
+                cwdSpy.mockRestore()
+            }
         })
     })
 
