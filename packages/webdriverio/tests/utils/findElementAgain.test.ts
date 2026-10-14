@@ -629,7 +629,7 @@ describe('finding an element again', () => {
             expect((elem.error as Error).message).toBe('Index out of bounds! $$(.item) returned only 1 elements.')
         })
 
-        it('the implicit wait of an item without element id gives the same error as before', async () => {
+        it('the implicit wait of an item without element id gives the not found error with the index of the item', async () => {
             const browser = await session()
             driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c', 'elem-d'])
             const elem = await browser.$$('.item')[3]
@@ -638,7 +638,7 @@ describe('finding an element again', () => {
             vi.spyOn(elem, 'waitForExist').mockResolvedValueOnce(true)
 
             const { error } = await settle(elem.getText())
-            expect(error?.message).toBe('Can\'t call getText on element with selector ".item" because element wasn\'t found')
+            expect(error?.message).toBe('Can\'t call getText on element with selector ".item" at index 3 because element wasn\'t found')
         })
 
         it('a stale item of a list that is shorter now throws that it was not found again', async () => {
@@ -881,6 +881,10 @@ describe('finding an element again', () => {
 
             const { error, waits: count } = await waits(elem.getText())
             expectGone(error)
+            /**
+             * the index tells which item of the list was not found (#16077 review)
+             */
+            expect(error?.message).toBe('Can\'t call getText on element with selector ".item" at index 2 because element wasn\'t found')
             expect(count).toBe(1)
         })
 
@@ -900,6 +904,7 @@ describe('finding an element again', () => {
 
             const { error, waits: count } = await waits(input.getText())
             expectGone(error)
+            expect(error?.message).toBe('Can\'t call $ on element with selector ".row" at index 1 because element wasn\'t found')
             expect(count).toBe(1)
             /**
              * the inner layer looks once: the outer layer does not look again

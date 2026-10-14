@@ -75,7 +75,12 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             }
 
             const selector = currentElement.selector.toString()
-            let message = `Can't call ${commandName} on element with selector "${describeSelector(currentElement)}" because element wasn't found`
+            /**
+             * an item of a list: the index tells which item was not found, other elements can
+             * match the selector
+             */
+            const index = currentElement.index === undefined ? '' : ` at index ${currentElement.index}`
+            let message = `Can't call ${commandName} on element with selector "${describeSelector(currentElement)}"${index} because element wasn't found`
             if (selector.includes('this.previousElementSibling')) {
                 message = `Can't call ${commandName} on previous element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`
             } else if (selector.includes('this.nextElementSibling')) {
