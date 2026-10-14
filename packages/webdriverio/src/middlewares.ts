@@ -3,20 +3,13 @@ import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@w
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
-import { gaveUpFor, markGaveUp, waitedFor, isStaleError } from './utils/elementLookup.js'
+import { gaveUpFor, markGaveUp, waitedFor, isStaleError, isCoreCheck } from './utils/elementLookup.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
  */
 import { StrictSelectorError } from './utils/strictSelectorError.js'
 
 export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
-
-/**
- * checks, whose lookup of a stale element does not wait for it: they look again, and
- * answer at once. Not the wider list of `implicitWait`: a `waitFor*` or `waitUntil`
- * layer that looked again would run the whole wait again
- */
-const CHECK_COMMANDS = /^(isExisting|is\w*Displayed|is\w*Clickable)$/
 
 /**
  * The error to throw when the lookup of a stale element, or the command after it, failed
@@ -83,7 +76,7 @@ async function invokeElementCommand (
             /**
              * an inner layer already waited for the element and did not find it
              */
-            if (gaveUpFor(err, element) && !CHECK_COMMANDS.test(commandName)) {
+            if (gaveUpFor(err, element) && !isCoreCheck(commandName)) {
                 throw err
             }
             let refetched: WebdriverIO.Element

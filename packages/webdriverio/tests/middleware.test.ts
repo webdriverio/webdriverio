@@ -284,21 +284,22 @@ describe('middleware', () => {
         })
 
         /**
-         * the lookup of a check does not wait, and a check answers at once (#16072 second final review)
+         * a custom check may run commands that wait for the element: it does not look again
+         * (#16072 review)
          */
-        it('looks again in a check command after its inner command gave up', async () => {
-            browser.addCommand('innerStaleOfCheck', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
-            browser.addCommand('isFooDisplayed', async function (this: WebdriverIO.Element) {
+        it('does not look again in a custom check command after its inner command gave up', async () => {
+            browser.addCommand('innerStaleOfCustomCheck', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
+            browser.addCommand('isMenuDisplayed', async function (this: WebdriverIO.Element) {
                 // @ts-expect-error undefined custom command
-                return this.innerStaleOfCheck()
+                return this.innerStaleOfCustomCheck()
             }, { attachToElement: true })
             const elem = await browser.$('#foo')
             refetchGives()
 
             // @ts-expect-error undefined custom command
-            const error = await elem.isFooDisplayed().then(() => null, (e: Error) => e)
+            const error = await elem.isMenuDisplayed().then(() => null, (e: Error) => e)
             expect(error?.name).toBe('stale element reference')
-            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(2)
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
         })
 
         it('is handled for a stale error that is not an Error instance', async () => {

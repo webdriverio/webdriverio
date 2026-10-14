@@ -7,7 +7,7 @@ import { remote } from '../../src/index.js'
 import { StrictSelectorError } from '../../src/utils/strictMode.js'
 import { itemOf } from '../../src/utils/findElementAgain.js'
 import refetchElement from '../../src/utils/refetchElement.js'
-import { markWaited } from '../../src/utils/elementLookup.js'
+import { markWaited, isStaleElementError } from '../../src/utils/elementLookup.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -27,6 +27,7 @@ vi.mock('../../src/utils/elementLookup.js', async (importOriginal) => {
     return { ...actual, markWaited: vi.fn(actual.markWaited) }
 })
 
+const CHROME_STALE_MESSAGE = 'stale element reference: element is not attached to the page document'
 const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
 
 type Fallback = (uri: URL | string, params?: RequestInit) => Promise<Response>
@@ -58,9 +59,14 @@ function fakeDriver (fallback: Fallback) {
 
     const reply = (value: unknown, status = 200) => Response.json({ value }, { status })
     const refs = (ids: string[]) => ids.map((id) => ({ [ELEMENT_KEY]: id }))
+    /**
+     * the message of a stale element error. By default only its name says that it is one, as
+     * from Appium and other drivers; Chrome also puts it in the message
+     */
+    const options = { staleMessage: 'element is not attached to the page document' }
     const staleError = () => reply({
         error: 'stale element reference',
-        message: 'stale element reference: element is not attached to the page document'
+        message: options.staleMessage
     }, 404)
 
     const handler = async (uri: URL | string, params?: RequestInit) => {
@@ -147,7 +153,7 @@ function fakeDriver (fallback: Fallback) {
         return fallback(uri, params)
     }
 
-    return { light, shadow, react, scripts, stale, finds, findsIn, handler }
+    return { light, shadow, react, scripts, stale, finds, findsIn, handler, options }
 }
 
 let driver: ReturnType<typeof fakeDriver>
@@ -1010,7 +1016,12 @@ describe('finding an element again', () => {
             expect(count).toBe(0)
         })
 
+        /**
+         * with Chrome's message, the error of `waitUntil` that wraps the stale error is a stale
+         * error too, and its layers would look again
+         */
         it('waits once for waitForEnabled of a removed element', async () => {
+            driver.options.staleMessage = CHROME_STALE_MESSAGE
             const elem = await removedRef()
             vi.mocked(refetchElement).mockClear()
             const { error, waits: count } = await waits(elem.waitForEnabled())
@@ -1086,6 +1097,14 @@ describe('finding an element again', () => {
 
             const { error, waits: count } = await waits(host.shadow$('.x').getText())
             expect(error?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+        })
+
+        it('waits once for a stale element error that only its name identifies', async () => {
+            const elem = await removedRef()
+            const { error, waits: count } = await waits(elem.getText())
+            expect(error?.name).toBe('stale element reference')
+            expect(isStaleElementError(error)).toBe(false)
             expect(count).toBe(1)
         })
 
@@ -1213,6 +1232,7 @@ describe('finding an element again', () => {
         })
 
         it('waits once for waitForStable of a removed element', async () => {
+            driver.options.staleMessage = CHROME_STALE_MESSAGE
             const elem = await removedRef()
             vi.mocked(refetchElement).mockClear()
             const { error, waits: count } = await waits(elem.waitForStable())

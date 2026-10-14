@@ -12,9 +12,11 @@
 
 /**
  * errors thrown by a layer that waited for its element and did not find it, with that element.
- * Each copy of webdriverio has its own: the layers of another copy look again (one more wait)
+ * A weak reference: a reporter that keeps the error does not keep the element. The element is
+ * alive while its layers run, which is when the record is read. Each copy of webdriverio has
+ * its own records: the layers of another copy look again (one more wait)
  */
-const gaveUp = new WeakMap<object, object>()
+const gaveUp = new WeakMap<object, WeakRef<object>>()
 
 /**
  * a registered symbol: another copy of webdriverio in the same process sees the flag
@@ -27,25 +29,54 @@ const WAITED_FOR = Symbol.for('wdio:waitedFor')
  */
 export function markGaveUp(err: unknown, el: object) {
     if (err && typeof err === 'object') {
-        gaveUp.set(err, el)
+        gaveUp.set(err, new WeakRef(el))
     }
 }
 
 /**
- * whether a layer of the element waited for it, did not find it and threw `err`
+ * the element whose lookup gave up and threw `err`, or an error that `err` wraps as its `cause`
+ */
+function gaveUpElement(err: unknown): object | undefined {
+    const seen = new Set<object>()
+    while (err && typeof err === 'object' && !seen.has(err)) {
+        const el = gaveUp.get(err)?.deref()
+        if (el) {
+            return el
+        }
+        seen.add(err)
+        err = (err as { cause?: unknown }).cause
+    }
+    return undefined
+}
+
+/**
+ * whether a layer of the element waited for it, did not find it and threw `err` (or the
+ * `cause` of `err`)
  */
 export function gaveUpFor(err: unknown, el: object): boolean {
-    return Boolean(err && typeof err === 'object' && gaveUp.get(err) === el)
+    return gaveUpElement(err) === el
 }
 
 /**
  * give the record of `from` to `to`, an error that replaces it (e.g. the error of `waitUntil`)
  */
 export function passOn(from: unknown, to: unknown) {
-    const el = from && typeof from === 'object' ? gaveUp.get(from) : undefined
+    const el = gaveUpElement(from)
     if (el) {
         markGaveUp(to, el)
     }
+}
+
+/**
+ * the checks of webdriverio, whose lookup of a stale element does not wait for it: they look
+ * again after an inner layer gave up, and answer at once. Exact names: a custom check can run
+ * commands that wait for the element, and a `waitFor*` or `waitUntil` layer that looked again
+ * would run the whole wait again
+ */
+const CORE_CHECKS = new Set(['isExisting', 'isDisplayed', 'isClickable'])
+
+export function isCoreCheck(commandName: string): boolean {
+    return CORE_CHECKS.has(commandName)
 }
 
 /**

@@ -2,7 +2,7 @@ import vm from 'node:vm'
 import { describe, it, expect } from 'vitest'
 
 import {
-    markGaveUp, gaveUpFor, passOn, markWaited, waitedFor,
+    markGaveUp, gaveUpFor, passOn, markWaited, waitedFor, isCoreCheck,
     isStaleElementError, isStaleError
 } from '../../src/utils/elementLookup.js'
 
@@ -31,6 +31,21 @@ describe('the record of a lookup that gave up', () => {
         }
     })
 
+    it('finds the record through the cause of an error that wraps it', () => {
+        const el = {}
+        const err = new Error('stale element reference')
+        markGaveUp(err, el)
+        const wrapped = new Error('click failed', { cause: err })
+        expect(gaveUpFor(wrapped, el)).toBe(true)
+        expect(gaveUpFor(new Error('outer', { cause: wrapped }), el)).toBe(true)
+        expect(gaveUpFor(new Error('other', { cause: new Error('stale element reference') }), el)).toBe(false)
+        expect(gaveUpFor(new Error('not an error cause', { cause: 'stale element reference' }), el)).toBe(false)
+
+        const loop = new Error('a') as Error & { cause?: unknown }
+        loop.cause = new Error('b', { cause: loop })
+        expect(gaveUpFor(loop, el)).toBe(false)
+    })
+
     it('passes the record on to an error that replaces it', () => {
         const el = {}
         const err = new Error('stale element reference')
@@ -43,6 +58,17 @@ describe('the record of a lookup that gave up', () => {
         expect(gaveUpFor(wrapped, el)).toBe(true)
         expect(() => passOn(err, 'not an object')).not.toThrow()
         expect(() => passOn(undefined, wrapped)).not.toThrow()
+    })
+})
+
+describe('isCoreCheck', () => {
+    it('is true only for the checks of webdriverio, whose lookup does not wait', () => {
+        for (const name of ['isExisting', 'isDisplayed', 'isClickable']) {
+            expect(isCoreCheck(name)).toBe(true)
+        }
+        for (const name of ['isMenuDisplayed', 'isDisplayedInViewport', 'isEnabled', 'isFocused', 'waitForDisplayed', 'waitForClickable', 'waitUntil', 'getText']) {
+            expect(isCoreCheck(name)).toBe(false)
+        }
     })
 })
 
