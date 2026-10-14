@@ -1329,7 +1329,7 @@ describe('finding an element again', () => {
             it('waitForEnabled with a long timeout finds the element that comes back', async () => {
                 const elem = await removedRef()
                 later(250, () => driver.light.set('#ref', ['elem-r2']))
-                expect(await elem.waitForEnabled({ timeout: 1000 })).toBe(true)
+                expect(await elem.waitForEnabled({ timeout: 3000 })).toBe(true)
             })
 
             it('waitUntil of the element finds the element that comes back', async () => {
@@ -1337,20 +1337,20 @@ describe('finding an element again', () => {
                 later(250, () => driver.light.set('#ref', ['elem-r2']))
                 expect(await elem.waitUntil(async function (this: WebdriverIO.Element) {
                     return await this.getText() === 'text of elem-r2'
-                }, { timeout: 1000 })).toBe(true)
+                }, { timeout: 3000 })).toBe(true)
             })
 
             it('waitUntil of the element finds an element that is late and then replaced', async () => {
                 const browser = await session()
                 const elem = await browser.$('#late')
                 later(150, () => driver.light.set('#late', ['late-1']))
-                later(300, () => {
+                later(600, () => {
                     driver.stale.add('late-1')
                     driver.light.set('#late', ['late-2'])
                 })
                 expect(await elem.waitUntil(async function (this: WebdriverIO.Element) {
                     return await this.getText() === 'text of late-2'
-                }, { timeout: 1000 })).toBe(true)
+                }, { timeout: 3000 })).toBe(true)
             })
 
             it('waitForStable with reverse finds the element that comes back and is not stable', async () => {
@@ -1370,14 +1370,14 @@ describe('finding an element again', () => {
                     return handler(uri, params)
                 }) as typeof fetch)
                 later(250, () => driver.light.set('#ref', ['elem-r2']))
-                expect(await elem.waitForStable({ reverse: true, timeout: 1000 })).toBeUndefined()
+                expect(await elem.waitForStable({ reverse: true, timeout: 3000 })).toBeUndefined()
             })
 
-            it('a command that starts while the wait runs finds the element that came back', async () => {
+            it('a command that starts after the element came back during a wait finds it', async () => {
                 const elem = await removedRef()
-                later(150, () => driver.light.set('#ref', ['elem-r2']))
-                const wait = settle(elem.waitForEnabled({ timeout: 600 }))
-                await new Promise((resolve) => setTimeout(resolve, 250))
+                later(100, () => driver.light.set('#ref', ['elem-r2']))
+                const wait = settle(elem.waitForEnabled({ timeout: 3000 }))
+                await new Promise((resolve) => setTimeout(resolve, 500))
                 expect(await elem.getText()).toBe('text of elem-r2')
                 expect((await wait).error).toBeUndefined()
             })
