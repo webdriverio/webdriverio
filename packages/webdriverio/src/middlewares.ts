@@ -3,7 +3,7 @@ import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@w
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
-import { isElementNotFoundAgain, nameNotFoundAgain, waitedFor } from './utils/elementNotFound.js'
+import { isElementNotFoundAgain, isListItemNotFoundAgain, nameNotFoundAgain, waitedFor } from './utils/elementNotFound.js'
 import { isStaleElementError } from './utils/index.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
@@ -66,7 +66,13 @@ async function invokeElementCommand (
             }
         }
 
-        if (err.name === 'stale element reference' || isStaleElementError(err)) {
+        /**
+         * The command looked for an item of a `$$()` list of this element, and the page
+         * rendered the list again without it: run the command once more, it finds its items
+         * again. Not for an element that the command kept from before (`$()`): it would only
+         * wait for it again.
+         */
+        if (err.name === 'stale element reference' || isStaleElementError(err) || isListItemNotFoundAgain(err, element)) {
             try {
                 let refetched: WebdriverIO.Element
                 try {

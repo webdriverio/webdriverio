@@ -920,6 +920,38 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
+        /**
+         * a command of a list finds its item again in a new way: when the item of its list is
+         * not found again, the command runs once more (#16072 review, finding 1)
+         */
+        it('finds the item again when the page replaced the list during a list command', async () => {
+            const browser = await session()
+            driver.light.set('#list', ['list-a'])
+            driver.light.set('.item', ['elem-a', 'target-1'])
+            let replaced = false
+            browser.addCommand('clickTarget', async function (this: WebdriverIO.Element) {
+                const items = await this.$$('.item')
+                const texts = await items.map((item) => item.getText())
+                const target = items[texts.findIndex((text) => text.includes('target'))]
+                if (!replaced) {
+                    replaced = true
+                    driver.stale.add('target-1')
+                    driver.light.set('.item', ['target-2'])
+                }
+                await target.click()
+                return target.elementId
+            }, { attachToElement: true })
+            const list = await browser.$('#list')
+            vi.mocked(refetchElement).mockClear()
+
+            // @ts-expect-error undefined custom command
+            const { value, error, waits: count } = await waits(list.clickTarget())
+            expect(error).toBeUndefined()
+            expect(value).toBe('target-2')
+            expect(vi.mocked(refetchElement).mock.calls.map(([el]) => el.selector)).toContain('#list')
+            expect(count).toBe(1)
+        })
+
         it('waits once for a command of the host that clicks a stale child', async () => {
             const { browser, child } = await removedHost()
             browser.addCommand('clickKept', function () {
