@@ -11,7 +11,8 @@ type Scope = WebdriverIO.Browser | WebdriverIO.Element
  * "not found" item when the list is now shorter. Like `$()` finds a gone element
  * again as a "not found" element: check commands (`isDisplayed`,
  * `waitForDisplayed({ reverse: true })`) give their answer at once, and a command
- * that needs the element waits for it in `implicitWait` (#12576).
+ * that needs the element, or a parent of its element, waits for it in `implicitWait`
+ * (#12576), which flags its error when the item does not come back.
  */
 async function findItemAgain (item: WebdriverIO.Element, parent: Scope): Promise<WebdriverIO.Element> {
     const found = await findElementAgain(item, { parent })
@@ -61,7 +62,11 @@ export default async function refetchElement (
      */
     return chain.reduce(async (elementPromise, element, currentIndex) => {
         const parent = await elementPromise
-        const nextElement = currentIndex + 1 === length && element.index !== undefined
+        /**
+         * every item of the chain, also a parent of the element (a row of a table): the wait
+         * for its index would not flag its error, see `implicitWait`
+         */
+        const nextElement = element.index !== undefined
             ? await findItemAgain(element, parent)
             : await findElementAgain(element, { parent, wait: true })
 

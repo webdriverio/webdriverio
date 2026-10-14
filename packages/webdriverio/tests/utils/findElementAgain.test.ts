@@ -884,6 +884,29 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
+        /**
+         * a page object pattern: a child of a row of a table. The lookup of the row does not wait
+         * for its index: the implicit wait of the row waits once (#16072 review)
+         */
+        it('waits once for a child of a list item whose list was removed', async () => {
+            const browser = await session()
+            driver.light.set('.row', ['row-a', 'row-b'])
+            driver.light.set('.input', ['input-b'])
+            const input = await (await browser.$$('.row'))[1].$('.input')
+            driver.stale.add('row-b')
+            driver.stale.add('input-b')
+            driver.light.set('.row', [])
+            vi.mocked(refetchElement).mockClear()
+
+            const { error, waits: count } = await waits(input.getText())
+            expectGone(error)
+            expect(count).toBe(1)
+            /**
+             * the inner layer looks once: the outer layer does not look again
+             */
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
         it('waits once for a removed child', async () => {
             const { child } = await removedHost()
             driver.stale.add('child-a')
