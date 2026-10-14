@@ -72,7 +72,12 @@ async function invokeElementCommand (
          * again. Not for an element that the command kept from before (`$()`): it would only
          * wait for it again.
          */
-        if (err.name === 'stale element reference' || isStaleElementError(err) || isListItemNotFoundAgain(err, element)) {
+        /**
+         * the error of an element that was not found again is not a stale element error, also
+         * when its message has that text (a selector like `[data-error="stale element reference"]`)
+         */
+        const stale = !isElementNotFoundAgain(err) && (err.name === 'stale element reference' || isStaleElementError(err))
+        if (stale || isListItemNotFoundAgain(err, element)) {
             try {
                 let refetched: WebdriverIO.Element
                 try {

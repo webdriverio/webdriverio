@@ -975,6 +975,54 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
+        /**
+         * a command of a container that finds the list inside it: the item is an item of the list,
+         * not of the container (#16077 review)
+         */
+        it('finds the item again when the page replaced the list inside the container of a command', async () => {
+            const browser = await session()
+            driver.light.set('#box', ['box-a'])
+            driver.light.set('#list', ['list-a'])
+            driver.light.set('.item', ['elem-a', 'target-1'])
+            let replaced = false
+            browser.addCommand('clickTargetInList', async function (this: WebdriverIO.Element) {
+                const items = await this.$('#list').$$('.item')
+                const texts = await items.map((item) => item.getText())
+                const target = items[texts.findIndex((text) => text.includes('target'))]
+                if (!replaced) {
+                    replaced = true
+                    driver.stale.add('target-1')
+                    driver.light.set('.item', ['target-2'])
+                }
+                await target.click()
+                return target.elementId
+            }, { attachToElement: true })
+            const box = await browser.$('#box')
+
+            // @ts-expect-error undefined custom command
+            const { value, error, waits: count } = await waits(box.clickTargetInList())
+            expect(error).toBeUndefined()
+            expect(value).toBe('target-2')
+            expect(count).toBe(1)
+        })
+
+        /**
+         * the text "stale element reference" in a selector is in the message of the error: the
+         * error is still not a stale element error (#16077 review)
+         */
+        it('waits once for an element whose selector has the text of a stale element error', async () => {
+            const browser = await session()
+            const selector = '[data-error="stale element reference"]'
+            driver.light.set(selector, ['elem-s'])
+            const elem = await browser.$(selector)
+            driver.stale.add('elem-s')
+            driver.light.set(selector, [])
+
+            const { error, waits: count } = await waits(elem.getText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
         it('waits once for a command of the host that clicks a stale child', async () => {
             const { browser, child } = await removedHost()
             browser.addCommand('clickKept', function () {
