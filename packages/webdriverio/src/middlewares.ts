@@ -4,10 +4,6 @@ import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@w
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
 import { isStaleElementError } from './utils/index.js'
-/**
- * imported from the leaf module directly, see `utils/implicitWait.ts`
- */
-import { StrictSelectorError } from './utils/strictSelectorError.js'
 
 export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
 
@@ -60,34 +56,14 @@ async function invokeElementCommand (
         }
 
         if (err.name === 'stale element reference' || isStaleElementError(err)) {
-            try {
-                const refetched = await refetchElement(element, commandName)
-                element.elementId = refetched.elementId
-                /**
-                 * also the w3c identifier, which e.g. an action origin reads
-                 */
-                element[ELEMENT_KEY] = refetched.elementId
-                element.parent = refetched.parent
-                return await execute()
-            } catch (refetchErr) {
-                /**
-                 * If refetch fails (e.g., page navigated away and elements
-                 * are no longer found), re-throw the original stale element
-                 * error instead of masking it with "Index out of bounds"
-                 * or other refetch errors.
-                 *
-                 * A strict-mode violation is the exception: the element was
-                 * found again, but more than once, which is a real error the
-                 * user needs to see, as in `implicitWait`.
-                 */
-                if (refetchErr instanceof StrictSelectorError) {
-                    throw refetchErr
-                }
-                if (!(refetchErr instanceof Error) || !isStaleElementError(refetchErr)) {
-                    throw err
-                }
-                throw refetchErr
-            }
+            const refetched = await refetchElement(element, commandName)
+            element.elementId = refetched.elementId
+            /**
+             * also the w3c identifier, which e.g. an action origin reads
+             */
+            element[ELEMENT_KEY] = refetched.elementId
+            element.parent = refetched.parent
+            return await execute()
         }
 
         throw err

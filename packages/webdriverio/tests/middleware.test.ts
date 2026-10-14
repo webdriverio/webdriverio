@@ -126,27 +126,6 @@ describe('middleware', () => {
         expect(vi.mocked(warn).mock.calls).toEqual([['Request encountered a stale element - terminating request']])
     })
 
-    it('re-throws the original stale error when the refetch itself fails', async () => {
-        // If the page navigated away, the refetch can fail with an unrelated
-        // error ("Index out of bounds"). That must not mask the original stale
-        // element error, which is the actionable one for the user.
-        const staleError = new Error(
-            'WebDriver Bidi command "script.callFunction" failed with error: no such node - The node with the reference stale-element-123 is not known'
-        )
-        const staleCheck = vi.fn().mockRejectedValueOnce(staleError)
-        browser.addCommand('rethrowStaleCheck', staleCheck, { attachToElement: true })
-        const elem = await browser.$('#foo')
-
-        vi.mocked(refetchElement).mockRejectedValueOnce(new Error('Index out of bounds'))
-
-        // @ts-expect-error undefined custom command
-        const error = await elem.rethrowStaleCheck().then(() => null, (e: Error) => e)
-        expect(vi.mocked(refetchElement)).toHaveBeenCalled()
-        expect(error).toBeInstanceOf(Error)
-        expect(error?.message).toContain('stale-element-123')
-        expect(error?.message).not.toContain('Index out of bounds')
-    })
-
     it('throws a strict-mode violation from the refetch instead of the stale error', async () => {
         const staleError = new Error('stale element reference')
         staleError.name = 'stale element reference'
