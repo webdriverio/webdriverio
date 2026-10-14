@@ -938,6 +938,35 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
+        it('waits once for setValue of a removed element', async () => {
+            const elem = await removedRef()
+            const { error, waits: count } = await waits(elem.setValue('x'))
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        it('waits once for setValue when clearing the input removes it', async () => {
+            const browser = await session()
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            /**
+             * the page removes the input when its value is cleared
+             */
+            const handler = vi.mocked(fetch).getMockImplementation()!
+            vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                if (String(uri).endsWith('/element/elem-r/clear')) {
+                    driver.stale.add('elem-r')
+                    driver.light.set('#ref', [])
+                    return Response.json({ value: null })
+                }
+                return handler(uri, params)
+            }) as typeof fetch)
+
+            const { error, waits: count } = await waits(elem.setValue('x'))
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
         it('types into the input that the page renders again when clearing it', async () => {
             const browser = await session()
             driver.light.set('#ref', ['elem-r'])
