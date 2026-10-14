@@ -2,8 +2,12 @@ import { ELEMENT_KEY } from 'webdriver'
 import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@wdio/utils'
 
 import refetchElement from './utils/refetchElement.js'
-import implicitWait from './utils/implicitWait.js'
+import implicitWait, { waitedFor } from './utils/implicitWait.js'
 import { isStaleElementError } from './utils/index.js'
+/**
+ * imported from the leaf module directly, see `utils/implicitWait.ts`
+ */
+import { StrictSelectorError } from './utils/strictSelectorError.js'
 
 export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
 
@@ -56,14 +60,35 @@ async function invokeElementCommand (
         }
 
         if (err.name === 'stale element reference' || isStaleElementError(err)) {
-            const refetched = await refetchElement(element, commandName)
-            element.elementId = refetched.elementId
-            /**
-             * also the w3c identifier, which e.g. an action origin reads
-             */
-            element[ELEMENT_KEY] = refetched.elementId
-            element.parent = refetched.parent
-            return await execute()
+            try {
+                const refetched = await refetchElement(element, commandName)
+                element.elementId = refetched.elementId
+                /**
+                 * also the w3c identifier, which e.g. an action origin reads
+                 */
+                element[ELEMENT_KEY] = refetched.elementId
+                element.parent = refetched.parent
+                return await execute()
+            } catch (refetchErr) {
+                /**
+                 * The lookup, or a lookup of the command run again, waited `waitforTimeout`
+                 * for the element (or a parent) and did not find it: throw its "element
+                 * wasn't found" error. The outer layers of the command do not handle it, so
+                 * they do not wait for the element again (#16072).
+                 *
+                 * A strict-mode violation is a real error the user needs to see, as in
+                 * `implicitWait`. Any other failure gives the original stale element error
+                 * instead of masking it with an unrelated error, and an outer layer can find
+                 * the element again (#15627).
+                 */
+                if (refetchErr instanceof StrictSelectorError || waitedFor(refetchErr)) {
+                    throw refetchErr
+                }
+                if (!(refetchErr instanceof Error) || !isStaleElementError(refetchErr)) {
+                    throw err
+                }
+                throw refetchErr
+            }
         }
 
         throw err

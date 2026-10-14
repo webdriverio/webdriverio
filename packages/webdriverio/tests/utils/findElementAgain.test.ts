@@ -26,7 +26,7 @@ vi.mock('../../src/utils/refetchElement.js', async (importOriginal) => {
  */
 vi.mock('../../src/utils/implicitWait.js', async (importOriginal) => {
     const actual = await importOriginal<{ default: typeof implicitWait }>()
-    return { __esModule: true, default: vi.fn(actual.default) }
+    return { ...actual, __esModule: true, default: vi.fn(actual.default) }
 })
 
 const CHROME_STALE_MESSAGE = 'stale element reference: element is not attached to the page document'
@@ -1064,6 +1064,30 @@ describe('finding an element again', () => {
             driver.light.set('#host', [])
 
             const { error, waits: count } = await waits(child.isClickable())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
+        /**
+         * a page object command of a container: the lookup of its child waits for the removed
+         * container, and the container command does not wait for it again (#16072 review)
+         */
+        it('waits once for a command of a container that the page removed', async () => {
+            const browser = await session()
+            browser.addCommand('childText', function (this: WebdriverIO.Element) {
+                return this.$('.child').getText()
+            }, { attachToElement: true })
+            driver.light.set('#host', ['host-a'])
+            driver.light.set('.child', ['child-a'])
+            const host = await browser.$('#host')
+            // @ts-expect-error undefined custom command
+            expect(await host.childText()).toBe('text of child-a')
+            driver.stale.add('host-a')
+            driver.stale.add('child-a')
+            driver.light.set('#host', [])
+
+            // @ts-expect-error undefined custom command
+            const { error, waits: count } = await waits(host.childText())
             expectGone(error)
             expect(count).toBe(1)
         })

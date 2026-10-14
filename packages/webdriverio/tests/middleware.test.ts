@@ -136,8 +136,11 @@ describe('middleware', () => {
         /**
          * the error of a lookup that waited for the element and did not find it
          */
-        const notFound = (selector = '#foo', commandName = 'getText') =>
-            new Error(`Can't call ${commandName} on element with selector "${selector}" because element wasn't found`)
+        const notFound = (selector = '#foo', commandName = 'getText') => Object.defineProperty(
+            new Error(`Can't call ${commandName} on element with selector "${selector}" because element wasn't found`),
+            Symbol.for('wdio:waitedFor'),
+            { value: true }
+        )
         /**
          * the error of a command whose lookup waited for the element and did not find it
          */
@@ -261,6 +264,38 @@ describe('middleware', () => {
             // @ts-expect-error undefined custom command
             await elem.plainStale()
             expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        it('throws the stale error of the command when the lookup fails with a value that is not an Error', async () => {
+            const original = staleError()
+            browser.addCommand('staleNotError', vi.fn().mockRejectedValueOnce(original), { attachToElement: true })
+            const elem = await browser.$('#foo')
+            vi.mocked(refetchElement).mockClear()
+            vi.mocked(refetchElement).mockImplementation(async () => {
+                throw { name: 'stale element reference', message: 'stale element reference: from another realm' }
+            })
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.staleNotError().then(() => null, (e: Error) => e)
+            expect(error).toBe(original)
+        })
+
+        /**
+         * a lookup that failed without a wait (for example a script error while a shadow root
+         * is found again) leaves the outer layers to look again, with the stale element error (#15627)
+         */
+        it('throws the stale error of the command when the lookup failed without a wait', async () => {
+            const original = staleError()
+            browser.addCommand('staleLookupError', vi.fn().mockRejectedValueOnce(original), { attachToElement: true })
+            const elem = await browser.$('#foo')
+            vi.mocked(refetchElement).mockClear()
+            vi.mocked(refetchElement).mockImplementation(async () => {
+                throw new Error('this.querySelector is not a function')
+            })
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.staleLookupError().then(() => null, (e: Error) => e)
+            expect(error).toBe(original)
         })
 
         /**
