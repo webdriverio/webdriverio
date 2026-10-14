@@ -84,6 +84,11 @@ export async function waitForStable (
 
     await this.waitUntil(
         async () => {
+            /**
+             * only the error of the last check counts: a later check can succeed, e.g. when the
+             * page rendered the element again
+             */
+            errorMsg = ''
             try {
                 return reverse !== await this.isStable()
             } catch (error) {
