@@ -34,49 +34,40 @@ export function markGaveUp(err: unknown, el: object) {
 }
 
 /**
- * the element whose lookup gave up and threw `err`, or an error that `err` wraps as its `cause`
+ * the elements whose lookup gave up and threw `err`, or an error that `err` wraps as its
+ * `cause`, nearest first
  */
-function gaveUpElement(err: unknown): object | undefined {
+function gaveUpElements(err: unknown): object[] {
+    const elements: object[] = []
     const seen = new Set<object>()
     while (err && typeof err === 'object' && !seen.has(err)) {
         const el = gaveUp.get(err)?.deref()
         if (el) {
-            return el
+            elements.push(el)
         }
         seen.add(err)
         err = (err as { cause?: unknown }).cause
     }
-    return undefined
+    return elements
 }
 
 /**
- * whether a layer of the element waited for it, did not find it and threw `err` (or the
- * `cause` of `err`)
+ * whether a layer of the element waited for it, did not find it and threw `err` (or an error
+ * in the `cause` chain of `err`)
  */
 export function gaveUpFor(err: unknown, el: object): boolean {
-    return gaveUpElement(err) === el
+    return gaveUpElements(err).includes(el)
 }
 
 /**
- * give the record of `from` to `to`, an error that replaces it (e.g. the error of `waitUntil`)
+ * give the nearest record of `from` to `to`, an error that replaces it (e.g. the error of
+ * `waitUntil`)
  */
 export function passOn(from: unknown, to: unknown) {
-    const el = gaveUpElement(from)
+    const [el] = gaveUpElements(from)
     if (el) {
         markGaveUp(to, el)
     }
-}
-
-/**
- * the checks of webdriverio, whose lookup of a stale element does not wait for it: they look
- * again after an inner layer gave up, and answer at once. Exact names: a custom check can run
- * commands that wait for the element, and a `waitFor*` or `waitUntil` layer that looked again
- * would run the whole wait again
- */
-const CORE_CHECKS = new Set(['isExisting', 'isDisplayed', 'isClickable'])
-
-export function isCoreCheck(commandName: string): boolean {
-    return CORE_CHECKS.has(commandName)
 }
 
 /**

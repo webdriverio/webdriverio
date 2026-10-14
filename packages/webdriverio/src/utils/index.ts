@@ -23,7 +23,7 @@ import { findLinksInContext, foreignContext } from './foreignContext.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
-import { isStaleError } from './elementLookup.js'
+import { isStaleElementError } from './elementLookup.js'
 import { ElementArray } from '../element/array.js'
 import { findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
@@ -265,7 +265,7 @@ export function isElement(o: Selector) {
     )
 }
 
-export { isStaleElementError } from './elementLookup.js'
+export { isStaleElementError }
 
 /**
  * handle promise result (resolved or rejected promises)
@@ -1227,7 +1227,7 @@ export async function findElement(
              * WebDriver throws a stale element reference error if the element is not found
              * and therefor can't be serialized
              */
-            if (isStaleError(err)) {
+            if (isStaleElementError(err)) {
                 return undefined
             }
             throw err

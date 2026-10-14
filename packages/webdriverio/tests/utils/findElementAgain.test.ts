@@ -1108,6 +1108,21 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
+        /**
+         * the lookup of `isDisplayed` inside `isClickable` waits for the removed parent: the
+         * check does not wait for it again (#16072 review)
+         */
+        it('waits once for a check of a child whose parent was removed', async () => {
+            const { child } = await removedHost()
+            driver.stale.add('host-a')
+            driver.stale.add('child-a')
+            driver.light.set('#host', [])
+
+            const { error, waits: count } = await waits(child.isClickable())
+            expect(error?.name).toBe('stale element reference')
+            expect(count).toBe(1)
+        })
+
         it('fails both commands that run at the same time on a removed element', async () => {
             const elem = await removedRef()
             const results = await Promise.allSettled([elem.getText(), elem.getAttribute('id')])

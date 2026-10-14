@@ -2,7 +2,7 @@ import vm from 'node:vm'
 import { describe, it, expect } from 'vitest'
 
 import {
-    markGaveUp, gaveUpFor, passOn, markWaited, waitedFor, isCoreCheck,
+    markGaveUp, gaveUpFor, passOn, markWaited, waitedFor,
     isStaleElementError, isStaleError
 } from '../../src/utils/elementLookup.js'
 
@@ -46,6 +46,18 @@ describe('the record of a lookup that gave up', () => {
         expect(gaveUpFor(loop, el)).toBe(false)
     })
 
+    it('finds the record of each element in the cause chain', () => {
+        const child = {}
+        const parent = {}
+        const childErr = new Error('stale element reference')
+        markGaveUp(childErr, child)
+        const wrapper = new Error('stale element reference: in a command of the parent', { cause: childErr })
+        markGaveUp(wrapper, parent)
+        expect(gaveUpFor(wrapper, parent)).toBe(true)
+        expect(gaveUpFor(wrapper, child)).toBe(true)
+        expect(gaveUpFor(wrapper, {})).toBe(false)
+    })
+
     it('passes the record on to an error that replaces it', () => {
         const el = {}
         const err = new Error('stale element reference')
@@ -58,17 +70,6 @@ describe('the record of a lookup that gave up', () => {
         expect(gaveUpFor(wrapped, el)).toBe(true)
         expect(() => passOn(err, 'not an object')).not.toThrow()
         expect(() => passOn(undefined, wrapped)).not.toThrow()
-    })
-})
-
-describe('isCoreCheck', () => {
-    it('is true only for the checks of webdriverio, whose lookup does not wait', () => {
-        for (const name of ['isExisting', 'isDisplayed', 'isClickable']) {
-            expect(isCoreCheck(name)).toBe(true)
-        }
-        for (const name of ['isMenuDisplayed', 'isDisplayedInViewport', 'isEnabled', 'isFocused', 'waitForDisplayed', 'waitForClickable', 'waitUntil', 'getText']) {
-            expect(isCoreCheck(name)).toBe(false)
-        }
     })
 })
 

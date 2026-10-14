@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import { waitForExist } from '../src/commands/element/waitForExist.js'
 import refetchElement from '../src/utils/refetchElement.js'
 import { StrictSelectorError } from '../src/utils/strictSelectorError.js'
-import { markWaited } from '../src/utils/elementLookup.js'
+import { markGaveUp, markWaited } from '../src/utils/elementLookup.js'
 import { remote } from '../src/index.js'
 
 vi.mock('fetch')
@@ -298,6 +298,30 @@ describe('middleware', () => {
 
             // @ts-expect-error undefined custom command
             const error = await elem.isMenuDisplayed().then(() => null, (e: Error) => e)
+            expect(error?.name).toBe('stale element reference')
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        /**
+         * the retry of an inner layer fails with a stale value that is not an `Error` instance,
+         * after an inner lookup gave up for the element: the outer layers do not look again
+         * (#16072 review)
+         */
+        it('keeps the record of a retry that failed with a stale value that is not an Error', async () => {
+            const plainStale = { name: 'stale element reference', message: 'stale element reference: from another realm' }
+            browser.addCommand('innerRetryPlain', vi.fn()
+                .mockRejectedValueOnce(staleError())
+                .mockRejectedValueOnce(plainStale), { attachToElement: true })
+            browser.addCommand('outerRetryPlain', async function (this: WebdriverIO.Element) {
+                // @ts-expect-error undefined custom command
+                return this.innerRetryPlain()
+            }, { attachToElement: true })
+            const elem = await browser.$('#foo')
+            markGaveUp(plainStale, elem)
+            refetchGives(elem)
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.outerRetryPlain().then(() => null, (e: Error) => e)
             expect(error?.name).toBe('stale element reference')
             expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
         })

@@ -3,7 +3,7 @@ import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@w
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
-import { gaveUpFor, markGaveUp, waitedFor, isStaleError, isCoreCheck } from './utils/elementLookup.js'
+import { gaveUpFor, markGaveUp, passOn, waitedFor, isStaleError } from './utils/elementLookup.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
  */
@@ -76,7 +76,7 @@ async function invokeElementCommand (
             /**
              * an inner layer already waited for the element and did not find it
              */
-            if (gaveUpFor(err, element) && !isCoreCheck(commandName)) {
+            if (gaveUpFor(err, element)) {
                 throw err
             }
             let refetched: WebdriverIO.Element
@@ -101,11 +101,11 @@ async function invokeElementCommand (
                  * outer layers of the element do not look again. Any other failure of the
                  * lookup leaves them to look again.
                  */
-                const thrown = errorAfterLookup(refetchErr, err)
                 if (waitedFor(refetchErr)) {
-                    markGaveUp(thrown, element)
+                    markGaveUp(err, element)
+                    throw err
                 }
-                throw thrown
+                throw errorAfterLookup(refetchErr, err)
             }
 
             element.elementId = refetched.elementId
@@ -127,7 +127,13 @@ async function invokeElementCommand (
                 if (waitedFor(retryErr)) {
                     throw retryErr
                 }
-                throw errorAfterLookup(retryErr, err)
+                /**
+                 * the error that replaces the error of the retry keeps its record: an inner
+                 * lookup of the retry gave up for the element
+                 */
+                const thrown = errorAfterLookup(retryErr, err)
+                passOn(retryErr, thrown)
+                throw thrown
             }
         }
 
