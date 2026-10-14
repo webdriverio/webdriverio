@@ -1237,6 +1237,29 @@ describe('finding an element again', () => {
                 expect(error?.message).toBe('Can\'t call $$ on element with selector "#host" because element wasn\'t found')
             })
 
+            it('names the command that the user called when the page removes the element during the retry', async () => {
+                const browser = await session()
+                driver.light.set('#ref', ['elem-r'])
+                const elem = await browser.$('#ref')
+                /**
+                 * the page renders the element again, and removes it when the command reads it
+                 */
+                driver.stale.add('elem-r')
+                driver.light.set('#ref', ['elem-r2'])
+                const handler = vi.mocked(fetch).getMockImplementation()!
+                vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                    if (String(uri).endsWith('/element/elem-r2/text')) {
+                        driver.stale.add('elem-r2')
+                        driver.light.set('#ref', [])
+                    }
+                    return handler(uri, params)
+                }) as typeof fetch)
+
+                const { error } = await waits(elem.getText())
+                expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+                expect(error?.message).toBe('Can\'t call getText on element with selector "#ref" because element wasn\'t found')
+            })
+
             it('names the lookup of the parent that was not found', async () => {
                 const { child } = await removedHost()
                 driver.stale.add('host-a')

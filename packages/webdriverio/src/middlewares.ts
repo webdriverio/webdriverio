@@ -114,6 +114,12 @@ async function invokeElementCommand (
                  * the element again (#15627).
                  */
                 if (refetchErr instanceof StrictSelectorError || waitedFor(refetchErr)) {
+                    /**
+                     * the command run again did not find the element again: name this command
+                     */
+                    if (isElementNotFoundAgain(refetchErr)) {
+                        nameNotFoundAgain(refetchErr as Error, element, commandName)
+                    }
                     throw refetchErr
                 }
                 if (!(refetchErr instanceof Error) || !isStaleElementError(refetchErr)) {
