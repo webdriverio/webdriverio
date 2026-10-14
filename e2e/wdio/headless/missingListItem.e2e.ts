@@ -225,15 +225,18 @@ describe('an index that the list of $$ never reaches', () => {
             getText: (elem: WebdriverIO.Element) => elem.getText()
         }
         /**
-         * the value of a check, `stale` for a stale element error, or `error: <message>`. In
-         * BiDi a check script throws the stale element error itself: it has the message of that
-         * error, not its name
+         * the value of a check, `not found again` for the error of a stale element that was
+         * not found again, `stale` for a stale element error, or `error: <message>`. In BiDi a
+         * check script throws the stale element error itself: it has the message of that error,
+         * not its name
          */
         const outcomeOf = (promise: Promise<unknown>) => promise.then(
             (value) => value,
-            (error: Error) => error.name === 'stale element reference' || error.message.includes('stale element reference')
-                ? 'stale'
-                : `error: ${error.message}`
+            (error: Error) => error.name === 'webdriverio(middleware): element was not found again'
+                ? 'not found again'
+                : error.name === 'stale element reference' || error.message.includes('stale element reference')
+                    ? 'stale'
+                    : `error: ${error.message}`
         )
         const STILL_EXISTING = expect.stringMatching(/^error: element .* still existing after 500ms/)
         const STILL_DISPLAYED = expect.stringMatching(/^error: element .* still displayed after 500ms/)
@@ -262,11 +265,12 @@ describe('an index that the list of $$ never reaches', () => {
                     /**
                      * the stale element is looked for again, once, and is not found: a check
                      * gives its answer, like for `$()` (#12576). A command that needs the
-                     * element throws its stale element error, in Classic and BiDi
+                     * element waits for it once and throws that it was not found again, in
+                     * Classic and BiDi (#16077)
                      */
                     isDisplayed: false,
                     'waitForDisplayed reverse': true,
-                    getText: 'stale'
+                    getText: 'not found again'
                 }
             }
         }
