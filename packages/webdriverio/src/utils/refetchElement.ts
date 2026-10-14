@@ -64,15 +64,12 @@ export default async function refetchElement (
         const parent = await elementPromise
         /**
          * every item of the chain, also a parent of the element (a row of a table): the wait
-         * for its index would not flag its error, see `implicitWait`
+         * for its index would not flag its error, see `implicitWait`. An element without an
+         * index is always found again, as a "not found" element when it is gone, like `$()`
          */
         const nextElement = element.index !== undefined
             ? await findItemAgain(element, parent)
-            : await findElementAgain(element, { parent, wait: true })
-
-        if (!nextElement) {
-            throw new Error(`element with selector "${describeSelector(element)}" has no match at index ${element.index}`)
-        }
+            : await findElementAgain(element, { parent, wait: true }) as WebdriverIO.Element
         /**
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array

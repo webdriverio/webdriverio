@@ -63,10 +63,15 @@ export function notFoundElement(err: unknown): object | undefined {
  * When the element that was not found is the element of the command, the message names the
  * command (the outer layers of the command name it in turn, so the message names the
  * command that the user called). The first line of the stack shows the new name and message.
+ * The `cause` is the stale element error of the driver, when the caller gives it.
  */
-export function nameNotFoundAgain(err: Error, el: object, commandName: string) {
+export function nameNotFoundAgain(err: Error, el: object, commandName: string, cause?: unknown) {
     if (!Object.isExtensible(err)) {
         return
+    }
+    if (cause !== undefined) {
+        const withCause: Error & { cause?: unknown } = err
+        withCause.cause ??= cause
     }
     const firstLine = `${err.name}: ${err.message}`
     err.name = ELEMENT_NOT_FOUND_AGAIN

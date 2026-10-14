@@ -67,14 +67,13 @@ async function invokeElementCommand (
         }
 
         /**
-         * The command looked for an item of a `$$()` list of this element, and the page
-         * rendered the list again without it: run the command once more, it finds its items
-         * again. Not for an element that the command kept from before (`$()`): it would only
-         * wait for it again.
-         */
-        /**
-         * the error of an element that was not found again is not a stale element error, also
-         * when its message has that text (a selector like `[data-error="stale element reference"]`)
+         * The error of an element that was not found again is not a stale element error, also
+         * when its message has that text (a selector like `[data-error="stale element reference"]`).
+         *
+         * The command looked for an item of a `$$()` list in this element, and the page rendered
+         * the list again without it: run the command once more, it finds its items again. Not
+         * for an element that the command kept from before (`$()`): it would only wait for it
+         * again.
          */
         const stale = !isElementNotFoundAgain(err) && (err.name === 'stale element reference' || isStaleElementError(err))
         if (stale || isListItemNotFoundAgain(err, element)) {
@@ -87,14 +86,13 @@ async function invokeElementCommand (
                      * the page removed the element (or a parent): name the error, and keep the
                      * stale element error as its cause, see `ELEMENT_NOT_FOUND_AGAIN`
                      */
-                    if (waitedFor(lookupErr) && lookupErr instanceof Error && Object.isExtensible(lookupErr)) {
-                        nameNotFoundAgain(lookupErr, element, commandName)
-                        const withCause: Error & { cause?: unknown } = lookupErr
+                    if (waitedFor(lookupErr) && lookupErr instanceof Error) {
                         /**
-                         * the stale element error of the driver, also after a list item that
-                         * was not found again
+                         * the cause is the stale element error of the driver, also after a list
+                         * item that was not found again
                          */
-                        withCause.cause ??= isElementNotFoundAgain(err) ? (err as Error & { cause?: unknown }).cause ?? err : err
+                        const staleErr = isElementNotFoundAgain(err) ? (err as Error & { cause?: unknown }).cause ?? err : err
+                        nameNotFoundAgain(lookupErr, element, commandName, staleErr)
                     }
                     throw lookupErr
                 }
