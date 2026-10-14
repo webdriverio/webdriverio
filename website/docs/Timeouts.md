@@ -91,7 +91,7 @@ describe('a removed element', () => {
         const title = await $('h1')
         await browser.execute(() => document.querySelector('h1')?.remove())
 
-        const error = await title.getText().catch((err: Error) => err)
+        const error = await title.getText().then(() => null, (err: Error) => err)
         expect(error?.name).toBe('webdriverio(middleware): element was not found again')
     })
 })
