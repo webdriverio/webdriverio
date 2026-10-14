@@ -1,4 +1,5 @@
 import implicitWait from './implicitWait.js'
+import { recordNotFound, waitedFor } from './elementNotFound.js'
 import { REACT_OPTIONS, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
 import type { ReactSelectorOptions } from '../types.js'
@@ -71,6 +72,16 @@ export default async function refetchElement (
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array
          */
-        return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
+        try {
+            return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
+        } catch (err) {
+            /**
+             * the element of the chain that was not found, see `nameNotFoundAgain`
+             */
+            if (waitedFor(err)) {
+                recordNotFound(err, element)
+            }
+            throw err
+        }
     }, Promise.resolve(currentElement))
 }

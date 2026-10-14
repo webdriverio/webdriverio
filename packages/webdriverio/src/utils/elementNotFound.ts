@@ -41,3 +41,42 @@ export function waitedFor(err: unknown): boolean {
 export function isElementNotFoundAgain(err: unknown): boolean {
     return Boolean(err && typeof err === 'object' && (err as { name?: unknown }).name === ELEMENT_NOT_FOUND_AGAIN)
 }
+
+/**
+ * the element of the chain whose lookup ended without it, for each error of `implicitWait`
+ * in `refetchElement`
+ */
+const notFoundElements = new WeakMap<object, object>()
+
+export function recordNotFound(err: unknown, el: object) {
+    if (err && typeof err === 'object') {
+        notFoundElements.set(err, el)
+    }
+}
+
+export function notFoundElement(err: unknown): object | undefined {
+    return err && typeof err === 'object' ? notFoundElements.get(err) : undefined
+}
+
+/**
+ * Name the error of a stale element that was not found again, see `ELEMENT_NOT_FOUND_AGAIN`.
+ * When the element that was not found is the element of the command, the message names the
+ * command (the outer layers of the command name it in turn, so the message names the
+ * command that the user called). The first line of the stack shows the new name and message.
+ */
+export function nameNotFoundAgain(err: Error, el: object, commandName: string) {
+    if (!Object.isExtensible(err)) {
+        return
+    }
+    const firstLine = `${err.name}: ${err.message}`
+    err.name = ELEMENT_NOT_FOUND_AGAIN
+    if (notFoundElements.get(err) === el) {
+        /**
+         * a replacer function: `$` patterns of a replacement string would turn `$$` into `$`
+         */
+        err.message = err.message.replace(/^Can't call \S+ /, () => `Can't call ${commandName} `)
+    }
+    if (typeof err.stack === 'string' && err.stack.startsWith(firstLine)) {
+        err.stack = `${err.name}: ${err.message}` + err.stack.slice(firstLine.length)
+    }
+}

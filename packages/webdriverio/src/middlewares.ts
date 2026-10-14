@@ -3,7 +3,7 @@ import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@w
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
-import { ELEMENT_NOT_FOUND_AGAIN, waitedFor } from './utils/elementNotFound.js'
+import { isElementNotFoundAgain, nameNotFoundAgain, waitedFor } from './utils/elementNotFound.js'
 import { isStaleElementError } from './utils/index.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
@@ -48,6 +48,12 @@ async function invokeElementCommand (
         return result
     } catch (_err: unknown) {
         const err = _err as Error
+        /**
+         * an inner layer of the command did not find the element again: name this command
+         */
+        if (isElementNotFoundAgain(err)) {
+            nameNotFoundAgain(err, element, commandName)
+        }
         if (err.name === 'element not interactable') {
             try {
                 await fetched.waitForClickable()
@@ -71,7 +77,7 @@ async function invokeElementCommand (
                      * stale element error as its cause, see `ELEMENT_NOT_FOUND_AGAIN`
                      */
                     if (waitedFor(lookupErr) && lookupErr instanceof Error && Object.isExtensible(lookupErr)) {
-                        lookupErr.name = ELEMENT_NOT_FOUND_AGAIN
+                        nameNotFoundAgain(lookupErr, element, commandName)
                         const withCause: Error & { cause?: unknown } = lookupErr
                         withCause.cause ??= err
                     }

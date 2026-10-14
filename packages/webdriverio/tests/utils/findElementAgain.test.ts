@@ -1096,6 +1096,49 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
+        describe('the message of the error', () => {
+            it('names the command that the user called', async () => {
+                const elem = await removedRef()
+                const { error } = await waits(elem.getText())
+                expect(error?.message).toBe('Can\'t call getText on element with selector "#ref" because element wasn\'t found')
+                expect(error?.stack?.split('\n')[0]).toBe(`${ELEMENT_NOT_FOUND_AGAIN}: ${error?.message}`)
+            })
+
+            it('names a custom command of the element', async () => {
+                const browser = await session()
+                browser.addCommand('readTitle', function (this: WebdriverIO.Element) {
+                    return this.getText()
+                }, { attachToElement: true })
+                driver.light.set('#ref', ['elem-r'])
+                const elem = await browser.$('#ref')
+                driver.stale.add('elem-r')
+                driver.light.set('#ref', [])
+
+                // @ts-expect-error undefined custom command
+                const { error } = await waits(elem.readTitle())
+                expect(error?.message).toBe('Can\'t call readTitle on element with selector "#ref" because element wasn\'t found')
+            })
+
+            it('names a list query of the element', async () => {
+                const { host } = await removedHost()
+                driver.stale.add('host-a')
+                driver.light.set('#host', [])
+
+                const { error } = await waits(settle(host.$$('.child')).then(({ error }) => { if (error) { throw error } }))
+                expect(error?.message).toBe('Can\'t call $$ on element with selector "#host" because element wasn\'t found')
+            })
+
+            it('names the lookup of the parent that was not found', async () => {
+                const { child } = await removedHost()
+                driver.stale.add('host-a')
+                driver.stale.add('child-a')
+                driver.light.set('#host', [])
+
+                const { error } = await waits(child.getText())
+                expect(error?.message).toBe('Can\'t call $ on element with selector "#host" because element wasn\'t found')
+            })
+        })
+
         it('fails both commands that run at the same time on a removed element', async () => {
             const elem = await removedRef()
             const results = await Promise.allSettled([elem.getText(), elem.getAttribute('id')])
