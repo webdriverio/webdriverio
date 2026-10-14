@@ -1066,29 +1066,6 @@ describe('finding an element again', () => {
             expect(vi.mocked(refetchElement).mock.calls.map(([, commandName]) => commandName)).toEqual(['isElementEnabled'])
         })
 
-        /**
-         * after the wait for the child, a check of the child would find the removed parent again
-         * through the middleware of the parent, and wait for it again (#16072 review)
-         */
-        it('does not wait for a removed parent again after the wait for a child without an element id', async () => {
-            const lookups = async (run: (child: WebdriverIO.Element) => Promise<unknown>) => {
-                const browser = await session()
-                driver.stale.delete('host-a')
-                driver.light.set('#host', ['host-a'])
-                const host = await browser.$('#host')
-                const child = await host.$('.missing')
-                driver.stale.add('host-a')
-                driver.light.set('#host', [])
-                vi.mocked(refetchElement).mockClear()
-                await settle(run(child))
-                return vi.mocked(refetchElement).mock.calls.length
-            }
-
-            const wait = await lookups((child) => child.waitForExist())
-            expect(wait).toBeGreaterThan(0)
-            expect(await lookups((child) => child.getText())).toBe(wait)
-        })
-
         it('waits once when the page removes the element between two inner commands', async () => {
             const browser = await session()
             browser.addCommand('textThenClick', async function (this: WebdriverIO.Element) {
@@ -1234,10 +1211,22 @@ describe('finding an element again', () => {
 
         /**
          * Each poll of a wait on the element looks for it again: the element can come back
-         * before the timeout of the wait (#16072 final review)
+         * before the timeout of the wait (#16072)
          */
         describe('a wait that polls the element', () => {
-            const later = (ms: number, change: () => void) => setTimeout(change, ms)
+            /**
+             * the page changes later; the timers end with the test, so that they never change
+             * the driver of the next test
+             */
+            const timers: ReturnType<typeof setTimeout>[] = []
+            const later = (ms: number, change: () => void) => {
+                timers.push(setTimeout(change, ms))
+            }
+            afterEach(() => {
+                for (const timer of timers.splice(0)) {
+                    clearTimeout(timer)
+                }
+            })
 
             it('waitForEnabled with a long timeout finds the element that comes back', async () => {
                 const elem = await removedRef()
@@ -1299,7 +1288,7 @@ describe('finding an element again', () => {
         /**
          * a command of the element catches its failure, the page has the element again, and the
          * command uses the element without a new lookup: its own layer finds it again, as on
-         * `main` (#16072 second final review)
+         * `main` and in 9.31.9 (#16072)
          */
         describe('a command of the element that uses it again after a caught failure', () => {
             const commandOfGoneElement = async (secondUse: (elem: WebdriverIO.Element, browser: WebdriverIO.Browser) => Promise<unknown>) => {

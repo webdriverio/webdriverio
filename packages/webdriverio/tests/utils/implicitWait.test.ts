@@ -18,7 +18,11 @@ vi.mock('../../src/utils/findElementAgain.js', async (importOriginal) => ({
 const missing = (waitForExist: () => Promise<unknown>) => ({
     selector: '#missing',
     parent: { isMobile: false },
-    waitForExist: vi.fn(waitForExist)
+    waitForExist: vi.fn(waitForExist),
+    /**
+     * a spy: no check runs after the wait
+     */
+    isExisting: vi.fn(async () => false)
 }) as unknown as WebdriverIO.Element
 
 const notExisting = async () => { throw new Error('still not existing') }
@@ -34,6 +38,17 @@ describe('implicitWait', () => {
         expect(error?.message).toBe('Can\'t call getText on element with selector "#missing" because element wasn\'t found')
         expect(waitedFor(error)).toBe(true)
         expect(Object.keys(error!)).toEqual([])
+    })
+
+    /**
+     * a check after the wait would look for the element again, and for a removed parent through
+     * the middleware of the parent, which waits for it again (#16072 review)
+     */
+    it('does not look for the element again after the wait', async () => {
+        const el = missing(notExisting)
+        await implicitWait(el, 'getText').catch(() => {})
+        expect(el.isExisting).not.toHaveBeenCalled()
+        expect(el.waitForExist).toHaveBeenCalledTimes(1)
     })
 
     it('does not flag the error when the element existed and its lookup failed after', async () => {

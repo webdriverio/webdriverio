@@ -184,8 +184,9 @@ describe('middleware', () => {
         })
 
         /**
-         * a command that starts after the failed wait (here after a dropped error) looks again,
-         * as on `main`; the outer command, active during the failed wait, does not (#16072 final review)
+         * a command that starts after the failed wait (here after a dropped error) looks again, as
+         * on `main`; the outer command gets the "wasn't found" error of the inner command and does
+         * not look again (#16072)
          */
         it('looks again in a later command after a dropped error, and not in the outer command', async () => {
             browser.addCommand('innerStaleA', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
@@ -259,8 +260,8 @@ describe('middleware', () => {
         })
 
         /**
-         * a custom check may run commands that wait for the element: it does not look again
-         * (#16072 review)
+         * a custom check that runs a command which waits for the element: it does not look for the
+         * element again (#16072)
          */
         it('does not look again in a custom check command after its inner command gave up', async () => {
             browser.addCommand('innerStaleOfCustomCheck', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
