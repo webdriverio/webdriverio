@@ -1028,7 +1028,12 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
-        it('keeps the stale element error as the cause when the page removed the whole list during a list command', async () => {
+        /**
+         * the lookup of the item fails on the removed list: the error is about the list, with the
+         * stale element error as its cause (the case of a list item that was not found again first
+         * is in tests/middleware.test.ts)
+         */
+        it('gives the stale element error as the cause when the page removed the list during a list command', async () => {
             const browser = await session()
             driver.light.set('#list', ['list-a'])
             driver.light.set('.item', ['elem-a', 'target-1'])
@@ -1371,6 +1376,20 @@ describe('finding an element again', () => {
                 }) as typeof fetch)
                 later(250, () => driver.light.set('#ref', ['elem-r2']))
                 expect(await elem.waitForStable({ reverse: true, timeout: 3000 })).toBeUndefined()
+            })
+
+            it('a command that runs while a wait of the element polls it finds the element that came back', async () => {
+                const elem = await removedRef()
+                later(150, () => driver.light.set('#ref', ['elem-r2']))
+                /**
+                 * a wait that reads the element at each poll and never ends before its timeout
+                 */
+                const wait = settle(elem.waitUntil(async function (this: WebdriverIO.Element) {
+                    return await this.getText() === 'never'
+                }, { timeout: 1500 }))
+                await new Promise((resolve) => setTimeout(resolve, 600))
+                expect(await elem.getText()).toBe('text of elem-r2')
+                expect((await wait).error?.message).toMatch(/waitUntil condition timed out/)
             })
 
             it('a command that starts after the element came back during a wait finds it', async () => {
