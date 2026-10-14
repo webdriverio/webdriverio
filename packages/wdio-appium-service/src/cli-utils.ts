@@ -84,23 +84,23 @@ export async function checkInspectorPluginInstalled(appiumCommandPath: string): 
     const helpMessage = `Please check this link for more information: ${INSPECTOR_PLUGIN_DOCS_URL}`
 
     try {
-        // Using --installed flag returns only installed plugins
-        const { stdout, stderr } = await promisify(execFile)('node', [appiumCommandPath, 'plugin', 'list', '--installed'], {
+        const { stdout, stderr } = await promisify(execFile)('node', [appiumCommandPath, 'plugin', 'list', '--installed', '--json'], {
             encoding: 'utf-8'
         })
 
-        // Appium outputs plugin list to stderr, not stdout
-        const output = stderr || stdout
-        if (!output || output.trim().length === 0) {
-            throw new InspectorPluginNotInstalledError(
-                `Appium Inspector plugin is not installed. ${helpMessage}`
-            )
-        }
+        const output = `${stdout}${stderr}`
+        const json = output.slice(output.indexOf('{'), output.lastIndexOf('}') + 1)
+        const plugins = JSON.parse(json) as Record<string, { pkgName?: string, installPath?: string }>
 
-        const lines = output.split('\n')
-        const inspectorLine = lines.find(line => /^-.*inspector/i.test(line.trim()))
+        /**
+         * Appium keeps listing a plugin as installed from its cached manifest after the
+         * package was removed from node_modules, so also check that it is on disk.
+         */
+        const isInstalled = Object.entries(plugins).some(([name, plugin]) =>
+            /inspector/i.test(`${name} ${plugin.pkgName}`) && (!plugin.installPath || fs.existsSync(plugin.installPath))
+        )
 
-        if (!inspectorLine) {
+        if (!isInstalled) {
             throw new InspectorPluginNotInstalledError(
                 `Appium Inspector plugin is not installed. ${helpMessage}`
             )

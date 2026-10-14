@@ -474,34 +474,43 @@ describe('startAppiumForCli', () => {
 })
 
 describe('checkInspectorPluginInstalled', () => {
+    const installPath = '/project/node_modules/appium-inspector-plugin'
+    const pluginList = (plugins: object) => `dbug Appium Creating hash file directory: /project\n${JSON.stringify(plugins, null, 4)}`
+    const inspector = { inspector: { pkgName: 'appium-inspector-plugin', installType: 'npm', installPath, installed: true } }
+
+    const mockOutput = (stdout: string, stderr = '') => {
+        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
+            setImmediate(() => callback(null, { stdout, stderr }))
+            return {} as any
+        })
+    }
+
     beforeEach(() => {
         vi.clearAllMocks()
+        vi.mocked(fs.existsSync).mockImplementation((file) => file === installPath)
     })
 
     it('should not throw when inspector plugin is installed', async () => {
-        const mockOutput = `✔ Listing installed plugins
-- inspector@2025.11.1 [installed (npm)]`
-
-        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
-            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
-            return {} as any
-        })
+        mockOutput(pluginList(inspector))
 
         await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
 
         expect(execFile).toHaveBeenCalledWith(
             'node',
-            ['/path/to/appium', 'plugin', 'list', '--installed'],
+            ['/path/to/appium', 'plugin', 'list', '--installed', '--json'],
             expect.objectContaining({ encoding: 'utf-8' }),
             expect.any(Function)
         )
     })
 
-    it('should throw error when both stdout and stderr are empty', async () => {
-        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
-            setImmediate(() => callback(null, { stdout: '', stderr: '' }))
-            return {} as any
-        })
+    it('should read the plugin list from stderr as well', async () => {
+        mockOutput('', pluginList(inspector))
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
+    })
+
+    it('should throw error when no plugins are installed', async () => {
+        mockOutput(pluginList({}))
 
         await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
             'Appium Inspector plugin is not installed'
@@ -509,25 +518,25 @@ describe('checkInspectorPluginInstalled', () => {
     })
 
     it('should throw error when inspector plugin is not installed', async () => {
-        const mockOutput = `✔ Listing installed plugins
-- execute-driver [installed (npm)]`
-
-        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
-            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
-
-            return {} as any
-        })
+        mockOutput(pluginList({ 'execute-driver': { pkgName: '@appium/execute-driver-plugin', installPath: '/x' } }))
 
         await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
             'Appium Inspector plugin is not installed'
         )
     })
 
-    it('should throw error when execFile fails', async () => {
-        const mockError = new Error('Command failed')
-        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
-            setImmediate(() => callback(mockError, { stdout: '', stderr: '' }))
+    it('should throw error when Appium still lists the plugin but its package is gone from disk', async () => {
+        vi.mocked(fs.existsSync).mockReturnValue(false)
+        mockOutput(pluginList(inspector))
 
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
+            'Appium Inspector plugin is not installed'
+        )
+    })
+
+    it('should throw error when exec fails', async () => {
+        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
+            setImmediate(() => callback(new Error('Command failed'), { stdout: '', stderr: '' }))
             return {} as any
         })
 
@@ -536,38 +545,26 @@ describe('checkInspectorPluginInstalled', () => {
         )
     })
 
+    it('should throw error when the output is not JSON', async () => {
+        mockOutput('something unexpected')
+
+        await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
+            'Failed to check Appium Inspector plugin installation'
+        )
+    })
+
     it('should include documentation URL in error messages', async () => {
-        const mockOutput = `✔ Listing installed plugins
-- execute-driver [installed (npm)]`
-
-        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
-            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
-
-            return {} as any
-        })
+        mockOutput(pluginList({}))
 
         await expect(checkInspectorPluginInstalled('/path/to/appium')).rejects.toThrow(
             'https://appium.github.io/appium-inspector/latest/quickstart/installation/#appium-plugin'
         )
     })
-
-    it('should handle different installed formats', async () => {
-        const mockOutput = `✔ Listing installed plugins
-- inspector@2025.7.1 [installed (npm)]`
-
-        vi.mocked(execFile).mockImplementation((file, args, options, callback: any) => {
-            setImmediate(() => callback(null, { stdout: '', stderr: mockOutput }))
-
-            return {} as any
-        })
-
-        await expect(checkInspectorPluginInstalled('/path/to/appium')).resolves.not.toThrow()
-    })
 })
 
 describe('ensureInspectorPluginInstalled', () => {
-    const missing = '✔ Listing installed plugins\n- execute-driver [installed (npm)]'
-    const installed = '✔ Listing installed plugins\n- inspector@2025.11.1 [installed (npm)]'
+    const missing = '{}'
+    const installed = JSON.stringify({ inspector: { pkgName: 'appium-inspector-plugin', installPath: '/project/node_modules/appium-inspector-plugin' } })
     let originalIsTTY: boolean | undefined
 
     const mockPluginList = (...outputs: string[]) => {
@@ -595,7 +592,7 @@ describe('ensureInspectorPluginInstalled', () => {
         vi.clearAllMocks()
         originalIsTTY = process.stdin.isTTY
         process.stdin.isTTY = true
-        vi.mocked(fs.existsSync).mockReturnValue(false)
+        vi.mocked(fs.existsSync).mockImplementation((file) => file === '/project/node_modules/appium-inspector-plugin')
         vi.mocked(os.platform).mockReturnValue('darwin')
         vi.spyOn(console, 'log').mockImplementation(() => {})
     })
@@ -633,7 +630,7 @@ describe('ensureInspectorPluginInstalled', () => {
         ['yarn.lock', 'yarn', ['add', '-D', 'appium-inspector-plugin']],
         ['bun.lock', 'bun', ['add', '-d', 'appium-inspector-plugin']]
     ])('should use the package manager of the project for %s', async (lockFile, command, args) => {
-        vi.mocked(fs.existsSync).mockImplementation((file) => file === lockFile)
+        vi.mocked(fs.existsSync).mockImplementation((file) => file === lockFile || file === '/project/node_modules/appium-inspector-plugin')
         mockPluginList(missing, installed)
         mockQuestion.mockResolvedValue('1')
         mockInstall(0)
