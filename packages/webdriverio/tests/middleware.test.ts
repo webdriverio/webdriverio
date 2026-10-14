@@ -126,6 +126,164 @@ describe('middleware', () => {
         expect(vi.mocked(warn).mock.calls).toEqual([['Request encountered a stale element - terminating request']])
     })
 
+    /**
+     * A command runs other commands on its element, and each has a middleware layer. When a
+     * layer waited for the element and did not find it, it throws the "wasn't found" error,
+     * which the outer layers do not handle: they do not look (and wait) again (#16072).
+     */
+    describe('a stale element that the inner command did not find again', () => {
+        const staleError = () => Object.assign(new Error('stale element reference: element is not attached'), { name: 'stale element reference' })
+        /**
+         * the error of a lookup that waited for the element and did not find it
+         */
+        const notFound = (selector = '#foo', commandName = 'getText') =>
+            new Error(`Can't call ${commandName} on element with selector "${selector}" because element wasn't found`)
+        /**
+         * the error of a command whose lookup waited for the element and did not find it
+         */
+        const expectGone = (error: Error | null) => expect(error?.message).toMatch(/wasn't found/)
+        const real = vi.mocked(refetchElement).getMockImplementation()!
+        /**
+         * the refetch gives the results in order, then does not find the element
+         */
+        const refetchGives = (...results: WebdriverIO.Element[]) => {
+            vi.mocked(refetchElement).mockClear()
+            vi.mocked(refetchElement).mockImplementation(async () => {
+                const next = results.shift()
+                if (!next) {
+                    throw notFound()
+                }
+                return next
+            })
+        }
+
+        afterEach(() => {
+            vi.mocked(refetchElement).mockImplementation(real)
+        })
+
+        it('looks for a stale element once when a command and its inner command run on it', async () => {
+            browser.addCommand('innerStale', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
+            browser.addCommand('outerStale', async function (this: WebdriverIO.Element) {
+                // @ts-expect-error undefined custom command
+                return this.innerStale()
+            }, { attachToElement: true })
+            const elem = await browser.$('#foo')
+            refetchGives()
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.outerStale().then(() => null, (e: Error) => e)
+            expectGone(error)
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        /**
+         * a command that starts after the failed wait (here after a dropped error) looks again,
+         * as on `main`; the outer command, active during the failed wait, does not (#16072 final review)
+         */
+        it('looks again in a later command after a dropped error, and not in the outer command', async () => {
+            browser.addCommand('innerStaleA', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
+            browser.addCommand('innerStaleB', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
+            browser.addCommand('outerDropsError', async function (this: WebdriverIO.Element) {
+                // @ts-expect-error undefined custom command
+                await this.innerStaleA().catch(() => {})
+                // @ts-expect-error undefined custom command
+                return this.innerStaleB()
+            }, { attachToElement: true })
+            const elem = await browser.$('#foo')
+            refetchGives()
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.outerDropsError().then(() => null, (e: Error) => e)
+            expectGone(error)
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(2)
+        })
+
+        /**
+         * the element was replaced and found again, and the retry of the command fails on
+         * another element that was waited for: that is the cause to show (#16072 review, finding 3)
+         */
+        it('throws the error of an element that was waited for when the retry fails on it', async () => {
+            const spinnerGone = notFound('#spinner', 'click')
+            browser.addCommand('clickSpinner', vi.fn()
+                .mockRejectedValueOnce(staleError())
+                .mockRejectedValueOnce(spinnerGone), { attachToElement: true })
+            const elem = await browser.$('#foo')
+            refetchGives(elem)
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.clickSpinner().then(() => null, (e: Error) => e)
+            expect(error).toBe(spinnerGone)
+            expect(error?.message).toBe('Can\'t call click on element with selector "#spinner" because element wasn\'t found')
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        it('looks again in the next command after a lookup gave up', async () => {
+            browser.addCommand('innerStaleNext', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
+            browser.addCommand('outerStaleNext', async function (this: WebdriverIO.Element) {
+                // @ts-expect-error undefined custom command
+                return this.innerStaleNext()
+            }, { attachToElement: true })
+            const elem = await browser.$('#foo')
+            refetchGives()
+
+            // @ts-expect-error undefined custom command
+            await elem.outerStaleNext().catch(() => {})
+            // @ts-expect-error undefined custom command
+            const error = await elem.outerStaleNext().then(() => null, (e: Error) => e)
+            expectGone(error)
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(2)
+        })
+
+        /**
+         * a custom check may run commands that wait for the element: it does not look again
+         * (#16072 review)
+         */
+        it('does not look again in a custom check command after its inner command gave up', async () => {
+            browser.addCommand('innerStaleOfCustomCheck', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
+            browser.addCommand('isMenuDisplayed', async function (this: WebdriverIO.Element) {
+                // @ts-expect-error undefined custom command
+                return this.innerStaleOfCustomCheck()
+            }, { attachToElement: true })
+            const elem = await browser.$('#foo')
+            refetchGives()
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.isMenuDisplayed().then(() => null, (e: Error) => e)
+            expectGone(error)
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        it('is handled for a stale error that is not an Error instance', async () => {
+            browser.addCommand('plainStale', vi.fn().mockRejectedValueOnce({ name: 'stale element reference', message: 'stale element reference: from another realm' }), { attachToElement: true })
+            const elem = await browser.$('#foo')
+            refetchGives(elem)
+
+            // @ts-expect-error undefined custom command
+            await elem.plainStale()
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        /**
+         * a parent replaced while the chain is found again, or a closed window: the lookup
+         * did not wait for the element, an outer layer looks again
+         */
+        it('is looked for again when the lookup of the inner command failed without a wait', async () => {
+            browser.addCommand('innerStaleNoWait', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
+            browser.addCommand('outerStaleNoWait', async function (this: WebdriverIO.Element) {
+                // @ts-expect-error undefined custom command
+                return this.innerStaleNoWait()
+            }, { attachToElement: true })
+            const elem = await browser.$('#foo')
+            vi.mocked(refetchElement).mockClear()
+            vi.mocked(refetchElement).mockImplementation(async () => { throw staleError() })
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.outerStaleNoWait().then(() => null, (e: Error) => e)
+            expect(error?.name).toBe('stale element reference')
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(2)
+        })
+    })
+
     it('throws a strict-mode violation from the refetch instead of the stale error', async () => {
         const staleError = new Error('stale element reference')
         staleError.name = 'stale element reference'
