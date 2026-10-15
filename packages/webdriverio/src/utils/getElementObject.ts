@@ -1,4 +1,4 @@
-import { webdriverMonad, wrapCommand } from '@wdio/utils'
+import { shareCommands, webdriverMonad, wrapCommand } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
@@ -145,6 +145,10 @@ export const getElements = function getElements(
     elemResponse: (ElementReference | ExtendedElementReference | Error | WebDriverError)[],
     props: GetElementProps = { isReactElement: false, isShadowElement: false }
 ): WebdriverIO.Element[] {
+    if (elemResponse.length === 0) {
+        return []
+    }
+
     const browser = getBrowserObject(this as WebdriverIO.Element)
     const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject: PropertyDescriptorMap = {
@@ -161,15 +165,14 @@ export const getElements = function getElements(
     }
     routeElementEndpoints(propertiesObject)
 
-    if (elemResponse.length === 0) {
-        return []
-    }
-
-    /**
-     * one object for all items: the monad gives each element its own copy
-     */
     propertiesObject.scope = { value: 'element' }
     propertiesObject.emit = { value: this.emit.bind(this) }
+    /**
+     * the items of the list share their wrapped commands: one wrapper and one object with
+     * the commands for the list, instead of about 280 properties on each item
+     */
+    const commandWrapper = elementErrorHandler(wrapCommand)
+    const listProperties = shareCommands(this.options, propertiesObject, commandWrapper)
     const elements = [elemResponse].flat(1).map((res: ElementReference | ExtendedElementReference | Element | Error | WebDriverError, i) => {
         /**
          * if we already deal with an element, just return it
@@ -221,9 +224,9 @@ export const getElements = function getElements(
             }
 
             return client
-        }, propertiesObject)
+        }, listProperties)
 
-        const elementInstance: WebdriverIO.Element = element((this as WebdriverIO.Browser).sessionId, elementErrorHandler(wrapCommand))
+        const elementInstance: WebdriverIO.Element = element((this as WebdriverIO.Browser).sessionId, commandWrapper)
 
         const origAddCommand = elementInstance.addCommand.bind(elementInstance)
         elementInstance.addCommand = (name: string, fn: AddCommandFn) => {
