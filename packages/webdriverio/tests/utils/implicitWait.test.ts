@@ -25,7 +25,7 @@ const missing = (waitForExist: () => Promise<unknown>) => ({
     isExisting: vi.fn(async () => false)
 }) as unknown as WebdriverIO.Element
 
-const notExisting = async () => { throw new Error('still not existing') }
+const notExisting = async () => { throw new Error('element ("#missing") still not existing after 100ms') }
 
 /**
  * The implicit wait flags its "element wasn't found" error when the wait for the element
@@ -49,6 +49,18 @@ describe('implicitWait', () => {
         await implicitWait(el, 'getText').catch(() => {})
         expect(el.isExisting).not.toHaveBeenCalled()
         expect(el.waitForExist).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * a poll that throws (a closed window) or a session that ends: not a wait that ended without
+     * the element (#16077 review)
+     */
+    it('does not flag the error when the wait failed for another reason than its timeout', async () => {
+        for (const reason of ['waitUntil condition failed with the following reason: no such window', 'invalid session id']) {
+            const error = await implicitWait(missing(async () => { throw new Error(reason) }), 'getText').then(() => null, (err: Error) => err)
+            expect(error?.message).toBe('Can\'t call getText on element with selector "#missing" because element wasn\'t found')
+            expect(waitedFor(error)).toBe(false)
+        }
     })
 
     it('does not flag the error when the element existed and its lookup failed after', async () => {

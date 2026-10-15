@@ -90,10 +90,11 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             }
             const notFound = new Error(message)
             /**
-             * the wait for the element ended without it. A lookup that failed after the
-             * element existed gets no flag: the element can be found again
+             * the wait for the element timed out without it (its timeout error ends with
+             * "still not existing after <n>ms"). A lookup that failed after the element existed,
+             * a poll that threw (a closed window) or a session that ended gets no flag
              */
-            if (!existed) {
+            if (!existed && err instanceof Error && /still not existing after \d+ms$/.test(err.message)) {
                 markWaited(notFound)
             }
             throw notFound
