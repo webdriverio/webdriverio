@@ -139,6 +139,21 @@ export function shareCommands(options: object, properties: PropertiesObject, com
             own[name] = descriptors[name]
         }
     }
+    /**
+     * Each client has its own `__propertiesObject__`, as a client with its own commands does:
+     * `addCommand` / `overwriteCommand` with `attachToElement` write into it, and the queries
+     * of a multi-remote element read it. It is made on the first read, so a client that never
+     * uses it costs nothing.
+     */
+    const snapshot = descriptors.__propertiesObject__.value as PropertiesObject
+    own.__propertiesObject__ = {
+        configurable: true,
+        get (this: object) {
+            const value = { ...snapshot, __elementOverrides__: { value: {} } }
+            Object.defineProperty(this, '__propertiesObject__', { value })
+            return value
+        }
+    }
     const shared: SharedCommands = { commands: Object.create(scopeType.prototype, descriptors), own }
     return { scope: properties.scope, [SHARED_COMMANDS]: { value: shared } }
 }

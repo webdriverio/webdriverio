@@ -682,6 +682,26 @@ describe('monad', () => {
             expect(Object.prototype.hasOwnProperty.call(clients[1], 'emit')).toBe(true)
         })
 
+        it('gives each client its own __propertiesObject__, with its own element overrides', () => {
+            const { clients } = listOf(2, { someFunc: { value: () => 'some' } })
+            const first = clients[0].__propertiesObject__
+            expect(clients[0].__propertiesObject__).toBe(first)
+            expect(clients[1].__propertiesObject__).not.toBe(first)
+            expect(Object.keys(first)).toContain('someFunc')
+            first.added = { value: 1 }
+            expect(clients[1].__propertiesObject__.added).toBeUndefined()
+            expect(first.__elementOverrides__.value).not.toBe(clients[1].__propertiesObject__.__elementOverrides__.value)
+        })
+
+        it('keeps all event functions of the map before the events of the client', () => {
+            const events = Object.fromEntries(['on', 'off', 'emit', 'once', 'removeListener', 'removeAllListeners'].map((name) => [name, { value: vi.fn() }]))
+            const { clients } = listOf(2, events)
+            for (const name of Object.keys(events)) {
+                clients[1][name]('custom', 1)
+                expect(events[name].value).toHaveBeenCalledWith('custom', 1)
+            }
+        })
+
         it('gives each client its own events', () => {
             const { clients } = listOf(2, {})
             const onFirst = vi.fn()
