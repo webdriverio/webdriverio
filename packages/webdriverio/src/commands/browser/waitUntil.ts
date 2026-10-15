@@ -70,7 +70,12 @@ export function waitUntil<ReturnValue>(
             throw Object.assign(new Error(message), { code: WAIT_UNTIL_TIMEOUT })
         }
 
-        const err = new Error(`waitUntil condition failed with the following reason: ${e && e.message || e}`)
+        const err: Error & { cause?: unknown } = new Error(`waitUntil condition failed with the following reason: ${e && e.message || e}`)
+        /**
+         * the error of the condition, e.g. the "element wasn't found" error of an element that
+         * the page removed, with its code and its own cause
+         */
+        err.cause = e
         const origStack = e.stack
         if (!origStack || !err.stack) {
             throw err

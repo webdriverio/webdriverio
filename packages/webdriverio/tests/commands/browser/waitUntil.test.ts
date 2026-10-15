@@ -311,6 +311,25 @@ describe('waitUntil', () => {
         })
     })
 
+    /**
+     * e.g. the "element wasn't found" error of an element that the page removed, with its code
+     * and its stale element cause (#16077 review)
+     */
+    describe('the error of a condition that failed', () => {
+        it('is the cause of the error of the wait', async () => {
+            const failure = Object.assign(new Error('foobar'), { code: 'ELEMENT_NOT_FOUND_AGAIN' })
+            const error = await browser.waitUntil(() => { throw failure }, { timeout: 100, interval: 20 })
+                .then(() => null, (err: Error) => err)
+            expect(error?.cause).toBe(failure)
+        })
+
+        it('is the cause also when it is not an error', async () => {
+            const error = await browser.waitUntil(() => Promise.reject('foobar'), { timeout: 100, interval: 20 })
+                .then(() => null, (err: Error) => err)
+            expect(error?.cause).toBe('foobar')
+        })
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
     })
