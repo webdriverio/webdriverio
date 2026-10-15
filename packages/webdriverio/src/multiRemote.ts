@@ -304,18 +304,24 @@ export default class MultiRemote {
             if (LIST_QUERIES.has(commandName)) {
                 const [selector, ...props] = args as [Selector, ...unknown[]]
                 let loadedInstances = instances
-                let listElements: MultiRemoteListElements | undefined
-                const wrapMultiRemote = (elements: unknown) => MultiRemote.elementWrapper(
+                const wrapMultiRemote = (elements: unknown, list?: MultiRemoteListElements) => MultiRemote.elementWrapper(
                     loadedInstances,
                     elements,
                     this.__propertiesObject__,
                     self,
-                    listElements ??= MultiRemote.listElements(this.__propertiesObject__, self)
+                    list
                 )
                 return ElementArray.fromAsyncCallback(async () => {
                     const { result, activeInstances } = await execute()
                     loadedInstances = activeInstances
-                    return zipElements(result as WebdriverIO.Element[][]).map(wrapMultiRemote)
+                    /**
+                     * the entries of one load share their commands. An entry made later (an index
+                     * past the end) gets the commands of that time, see `wrapMultiRemote`
+                     */
+                    let list: MultiRemoteListElements | undefined
+                    return zipElements(result as WebdriverIO.Element[][]).map((elements) => (
+                        wrapMultiRemote(elements, list ??= MultiRemote.listElements(this.__propertiesObject__, self))
+                    ))
                 }, {
                     selector,
                     foundWith: commandName,
