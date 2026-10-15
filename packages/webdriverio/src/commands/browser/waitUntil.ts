@@ -1,7 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { WebDriverResultEvent } from 'webdriver'
 
-import Timer from '../../utils/Timer.js'
+import Timer, { isTimeoutError } from '../../utils/Timer.js'
 import type { WaitUntilOptions } from '../../types.js'
 import { WAIT_UNTIL_TIMEOUT } from '../../utils/errorCodes.js'
 
@@ -63,7 +63,7 @@ export function waitUntil<ReturnValue>(
     const fn = condition.bind(this)
     const timer = new Timer(interval as number, timeout as number, fn, true, abort.signal)
     return timer.catch<Exclude<ReturnValue, false | 0 | '' | null | undefined>>((e: Error) => {
-        if (e.message === 'timeout') {
+        if (isTimeoutError(e)) {
             const message = typeof timeoutMsg === 'function'
                 ? timeoutMsg()
                 : typeof timeoutMsg === 'string' ? timeoutMsg : `waitUntil condition timed out after ${timeout}ms`

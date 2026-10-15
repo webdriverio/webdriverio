@@ -279,6 +279,17 @@ describe('waitUntil', () => {
             expect(error).toHaveProperty('code', 'WAIT_UNTIL_TIMEOUT')
         })
 
+        /**
+         * only a timeout of the timer gets the code, not a condition that throws an error with
+         * the message "timeout" (#16077 review)
+         */
+        it('is not on the error of a condition that throws an error with the message "timeout"', async () => {
+            const error = await browser.waitUntil(() => { throw new Error('timeout') }, { timeout: 100, interval: 20, timeoutMsg: 'Custom error message' })
+                .then(() => null, (err: Error) => err)
+            expect(error?.message).toBe('waitUntil condition failed with the following reason: timeout')
+            expect(error).not.toHaveProperty('code')
+        })
+
         it('is not on the error of a condition that failed', async () => {
             const error = await browser.waitUntil(() => { throw new Error('foobar') }, { timeout: 100, interval: 20 })
                 .then(() => null, (err: Error) => err)
