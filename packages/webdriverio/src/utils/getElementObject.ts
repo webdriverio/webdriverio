@@ -172,7 +172,7 @@ export const getElements = function getElements(
      * the commands for the list, instead of about 280 properties on each item
      */
     const commandWrapper = elementErrorHandler(wrapCommand)
-    const listProperties = shareCommands(this.options, propertiesObject, commandWrapper)
+    let listProperties: PropertyDescriptorMap | undefined
     const elements = [elemResponse].flat(1).map((res: ElementReference | ExtendedElementReference | Element | Error | WebDriverError, i) => {
         /**
          * if we already deal with an element, just return it
@@ -224,7 +224,7 @@ export const getElements = function getElements(
             }
 
             return client
-        }, listProperties)
+        }, listProperties ??= shareCommands(this.options, propertiesObject, commandWrapper))
 
         const elementInstance: WebdriverIO.Element = element((this as WebdriverIO.Browser).sessionId, commandWrapper)
 
