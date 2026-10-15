@@ -1328,32 +1328,56 @@ describe('finding an element again', () => {
 
         /**
          * Each poll of a wait on the element looks for it again: the element can come back
-         * before the timeout of the wait (#16072)
+         * before the timeout of the wait (#16072). The page changes at a given step of the
+         * command (the first wait that ends without the element, a request of the driver), not
+         * after a time, so the result does not depend on the speed of the machine.
          */
         describe('a wait that polls the element', () => {
-            /**
-             * the page changes later; the timers end with the test, so that they never change
-             * the driver of the next test
-             */
-            const timers: ReturnType<typeof setTimeout>[] = []
-            const later = (ms: number, change: () => void) => {
-                timers.push(setTimeout(change, ms))
-            }
+            const realImplicitWait = vi.mocked(implicitWait).getMockImplementation()!
             afterEach(() => {
-                for (const timer of timers.splice(0)) {
-                    clearTimeout(timer)
-                }
+                vi.mocked(implicitWait).mockImplementation(realImplicitWait)
             })
+            /**
+             * the page changes once, when the first wait for an element ends without it
+             */
+            const afterFirstFailedWait = (change: () => void) => {
+                let changed = false
+                vi.mocked(implicitWait).mockImplementation(async (...args) => {
+                    try {
+                        return await realImplicitWait(...args)
+                    } catch (err) {
+                        if (!changed && /wasn't found/.test(String((err as Error | undefined)?.message))) {
+                            changed = true
+                            change()
+                        }
+                        throw err
+                    }
+                })
+            }
+            /**
+             * runs `change` before the first request of the driver whose path ends with `path`
+             */
+            const beforeRequest = (path: string, change: () => void) => {
+                const handler = vi.mocked(fetch).getMockImplementation()!
+                let changed = false
+                vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                    if (!changed && String(uri).endsWith(path)) {
+                        changed = true
+                        change()
+                    }
+                    return handler(uri, params)
+                }) as typeof fetch)
+            }
 
             it('waitForEnabled with a long timeout finds the element that comes back', async () => {
                 const elem = await removedRef()
-                later(250, () => driver.light.set('#ref', ['elem-r2']))
+                afterFirstFailedWait(() => driver.light.set('#ref', ['elem-r2']))
                 expect(await elem.waitForEnabled({ timeout: 3000 })).toBe(true)
             })
 
             it('waitUntil of the element finds the element that comes back', async () => {
                 const elem = await removedRef()
-                later(250, () => driver.light.set('#ref', ['elem-r2']))
+                afterFirstFailedWait(() => driver.light.set('#ref', ['elem-r2']))
                 expect(await elem.waitUntil(async function (this: WebdriverIO.Element) {
                     return await this.getText() === 'text of elem-r2'
                 }, { timeout: 3000 })).toBe(true)
@@ -1362,8 +1386,8 @@ describe('finding an element again', () => {
             it('waitUntil of the element finds an element that is late and then replaced', async () => {
                 const browser = await session()
                 const elem = await browser.$('#late')
-                later(150, () => driver.light.set('#late', ['late-1']))
-                later(600, () => {
+                afterFirstFailedWait(() => driver.light.set('#late', ['late-1']))
+                beforeRequest('/element/late-1/text', () => {
                     driver.stale.add('late-1')
                     driver.light.set('#late', ['late-2'])
                 })
@@ -1388,31 +1412,28 @@ describe('finding an element again', () => {
                     }
                     return handler(uri, params)
                 }) as typeof fetch)
-                later(250, () => driver.light.set('#ref', ['elem-r2']))
+                afterFirstFailedWait(() => driver.light.set('#ref', ['elem-r2']))
                 expect(await elem.waitForStable({ reverse: true, timeout: 3000 })).toBeUndefined()
             })
 
             it('a command that runs while a wait of the element polls it finds the element that came back', async () => {
                 const elem = await removedRef()
-                later(150, () => driver.light.set('#ref', ['elem-r2']))
+                afterFirstFailedWait(() => driver.light.set('#ref', ['elem-r2']))
+                /**
+                 * the other command starts when the wait has read the element that came back
+                 */
+                let polled!: () => void
+                const waitPolled = new Promise<void>((resolve) => { polled = resolve })
+                beforeRequest('/element/elem-r2/text', () => polled())
                 /**
                  * a wait that reads the element at each poll and never ends before its timeout
                  */
                 const wait = settle(elem.waitUntil(async function (this: WebdriverIO.Element) {
                     return await this.getText() === 'never'
                 }, { timeout: 1500 }))
-                await new Promise((resolve) => setTimeout(resolve, 600))
+                await waitPolled
                 expect(await elem.getText()).toBe('text of elem-r2')
                 expect((await wait).error?.message).toMatch(/waitUntil condition timed out/)
-            })
-
-            it('a command that starts after the element came back during a wait finds it', async () => {
-                const elem = await removedRef()
-                later(100, () => driver.light.set('#ref', ['elem-r2']))
-                const wait = settle(elem.waitForEnabled({ timeout: 3000 }))
-                await new Promise((resolve) => setTimeout(resolve, 500))
-                expect(await elem.getText()).toBe('text of elem-r2')
-                expect((await wait).error).toBeUndefined()
             })
         })
 
