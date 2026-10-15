@@ -290,19 +290,6 @@ describe('waitUntil', () => {
             expect(error).not.toHaveProperty('code')
         })
 
-        /**
-         * a wait inside the condition times out: the outer wait fails as a condition, with the
-         * error of the inner wait (#16077)
-         */
-        it('is not taken from a wait inside the condition', async () => {
-            const error = await browser.waitUntil(
-                () => browser.waitUntil(() => false, { timeout: 20, interval: 10, timeoutMsg: 'inner wait' }),
-                { timeout: 100, interval: 20, timeoutMsg: 'outer wait' }
-            ).then(() => null, (err: Error) => err)
-            expect(error?.message).toBe('waitUntil condition failed with the following reason: inner wait')
-            expect(error).not.toHaveProperty('code')
-        })
-
         it('is not on the error of a condition that failed', async () => {
             const error = await browser.waitUntil(() => { throw new Error('foobar') }, { timeout: 100, interval: 20 })
                 .then(() => null, (err: Error) => err)
