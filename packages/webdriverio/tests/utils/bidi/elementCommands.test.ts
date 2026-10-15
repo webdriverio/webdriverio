@@ -617,37 +617,53 @@ describe('bidiGetAttribute', () => {
     })
 })
 
+const enabled = { disabled: false, closest: () => null }
+
 describe('bidiSelectByVisibleText', () => {
     it('selects option by visible text', async () => {
         const { fn } = await captureExecutedFn(bidiSelectByVisibleText, ['Option Text'], undefined)
         const dispatchEvent = vi.fn()
-        const option = { textContent: 'Option Text', selected: false }
-        expect(fn({ options: [option], dispatchEvent }, 'Option Text')).toBe(true)
+        const option = { ...enabled, textContent: 'Option Text', selected: false }
+        expect(fn({ options: [option], dispatchEvent }, 'text', 'Option Text')).toEqual({ selected: true, count: 1 })
         expect(option.selected).toBe(true)
         expect(dispatchEvent).toHaveBeenCalled()
     })
 
     it('matches the option label like classic', async () => {
         const { fn } = await captureExecutedFn(bidiSelectByVisibleText, ['Pretty'], undefined)
-        const option = { textContent: 'raw', label: ' Pretty ', selected: false }
-        expect(fn({ options: [option], dispatchEvent: vi.fn() }, 'Pretty')).toBe(true)
+        const option = { ...enabled, textContent: 'raw', label: ' Pretty ', selected: false }
+        expect(fn({ options: [option], dispatchEvent: vi.fn() }, 'text', 'Pretty').selected).toBe(true)
         expect(option.selected).toBe(true)
     })
 
     it('collapses whitespace when matching', async () => {
         const { fn } = await captureExecutedFn(bidiSelectByVisibleText, ['Option Text'], undefined)
         const dispatchEvent = vi.fn()
-        const option = { textContent: '  Option   Text  ', selected: false }
-        fn({ options: [option], dispatchEvent }, 'Option Text')
+        const option = { ...enabled, textContent: '  Option   Text  ', selected: false }
+        fn({ options: [option], dispatchEvent }, 'text', 'Option Text')
         expect(option.selected).toBe(true)
     })
 
     it('does not select when no text matches', async () => {
         const { fn } = await captureExecutedFn(bidiSelectByVisibleText, ['Not Found'], undefined)
         const dispatchEvent = vi.fn()
-        const option = { textContent: 'Different', selected: false }
-        expect(fn({ options: [option], dispatchEvent }, 'Not Found')).toBe(false)
+        const option = { ...enabled, textContent: 'Different', selected: false }
+        expect(fn({ options: [option], dispatchEvent }, 'text', 'Not Found')).toEqual({ selected: false, count: 1 })
         expect(option.selected).toBe(false)
+    })
+
+    it.each([
+        ['select', { disabled: true }, { ...enabled }],
+        ['option', { disabled: false }, { ...enabled, disabled: true }],
+        ['optgroup', { disabled: false }, { ...enabled, closest: (sel: string) => sel === 'optgroup[disabled]' ? {} : null }]
+    ])('reports a disabled %s without selecting', async (source, selectProps, optionProps) => {
+        const { fn } = await captureExecutedFn(bidiSelectByVisibleText, ['A'], undefined)
+        const dispatchEvent = vi.fn()
+        const option = { ...optionProps, textContent: 'A', selected: false }
+        expect(fn({ ...selectProps, options: [option], dispatchEvent }, 'text', 'A'))
+            .toEqual({ selected: false, count: 1, disabled: source })
+        expect(option.selected).toBe(false)
+        expect(dispatchEvent).not.toHaveBeenCalled()
     })
 })
 
@@ -655,24 +671,31 @@ describe('bidiSelectByAttribute', () => {
     it('selects option by attribute match', async () => {
         const { fn } = await captureExecutedFn(bidiSelectByAttribute, ['value', 'target'], undefined)
         const dispatchEvent = vi.fn()
-        const option = { selected: false, getAttribute: (name: string) => name === 'value' ? 'target' : null, value: 'other' }
-        expect(fn({ options: [option], dispatchEvent }, 'value', 'target')).toBe(true)
+        const option = { ...enabled, selected: false, getAttribute: (name: string) => name === 'value' ? 'target' : null, value: 'other' }
+        expect(fn({ options: [option], dispatchEvent }, 'attribute', 'value', 'target').selected).toBe(true)
         expect(option.selected).toBe(true)
     })
 
-    it('returns false when no option matches', async () => {
+    it('returns not selected when no option matches', async () => {
         const { fn } = await captureExecutedFn(bidiSelectByAttribute, ['value', 'x'], undefined)
-        const option = { selected: false, getAttribute: () => null, value: 'other' }
-        expect(fn({ options: [option], dispatchEvent: vi.fn() }, 'value', 'x')).toBe(false)
+        const option = { ...enabled, selected: false, getAttribute: () => null, value: 'other' }
+        expect(fn({ options: [option], dispatchEvent: vi.fn() }, 'attribute', 'value', 'x').selected).toBe(false)
         expect(option.selected).toBe(false)
     })
 
     it('selects option by property match when attribute does not match', async () => {
         const { fn } = await captureExecutedFn(bidiSelectByAttribute, ['value', 'prop-match'], undefined)
         const dispatchEvent = vi.fn()
-        const option = { selected: false, getAttribute: () => null, value: 'prop-match' }
-        fn({ options: [option], dispatchEvent }, 'value', 'prop-match')
+        const option = { ...enabled, selected: false, getAttribute: () => null, value: 'prop-match' }
+        fn({ options: [option], dispatchEvent }, 'attribute', 'value', 'prop-match')
         expect(option.selected).toBe(true)
+    })
+
+    it('reports a disabled option without selecting', async () => {
+        const { fn } = await captureExecutedFn(bidiSelectByAttribute, ['value', 'a'], undefined)
+        const option = { ...enabled, disabled: true, selected: false, getAttribute: () => 'a' }
+        expect(fn({ options: [option], dispatchEvent: vi.fn() }, 'attribute', 'value', 'a').disabled).toBe('option')
+        expect(option.selected).toBe(false)
     })
 })
 
@@ -680,9 +703,9 @@ describe('bidiSelectByIndex', () => {
     it('selects option at the given index', async () => {
         const { fn } = await captureExecutedFn(bidiSelectByIndex, [1], undefined)
         const dispatchEvent = vi.fn()
-        const option0 = { selected: false }
-        const option1 = { selected: false }
-        expect(fn({ options: [option0, option1], dispatchEvent }, 1)).toEqual({ selected: true, count: 2 })
+        const option0 = { ...enabled, selected: false }
+        const option1 = { ...enabled, selected: false }
+        expect(fn({ options: [option0, option1], dispatchEvent }, 'index', 1)).toEqual({ selected: true, count: 2 })
         expect(option0.selected).toBe(false)
         expect(option1.selected).toBe(true)
         expect(dispatchEvent).toHaveBeenCalled()
@@ -691,10 +714,17 @@ describe('bidiSelectByIndex', () => {
     it('does nothing when index is out of bounds', async () => {
         const { fn } = await captureExecutedFn(bidiSelectByIndex, [5], undefined)
         const dispatchEvent = vi.fn()
-        const option = { selected: false }
-        expect(fn({ options: [option], dispatchEvent }, 5)).toEqual({ selected: false, count: 1 })
+        const option = { ...enabled, selected: false }
+        expect(fn({ options: [option], dispatchEvent }, 'index', 5)).toEqual({ selected: false, count: 1 })
         expect(option.selected).toBe(false)
         expect(dispatchEvent).not.toHaveBeenCalled()
+    })
+
+    it('reports a disabled option without selecting', async () => {
+        const { fn } = await captureExecutedFn(bidiSelectByIndex, [0], undefined)
+        const option = { ...enabled, disabled: true, selected: false }
+        expect(fn({ options: [option], dispatchEvent: vi.fn() }, 'index', 0)).toEqual({ selected: false, count: 1, disabled: 'option' })
+        expect(option.selected).toBe(false)
     })
 })
 

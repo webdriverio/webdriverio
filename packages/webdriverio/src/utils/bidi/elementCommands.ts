@@ -397,63 +397,90 @@ export function bidiGetCSSProperty(element: WebdriverIO.Element, cssProperty: st
 
 // ── Select ─────────────────────────────────────────────────
 
+export type BidiDisabledSource = 'option' | 'optgroup' | 'select'
+
+export interface BidiSelectResult {
+    selected: boolean
+    count: number
+    disabled?: BidiDisabledSource
+}
+
+type SelectMatch = 'text' | 'attribute' | 'index'
+
 /**
- * Select an <option> by its visible text.  Uses browser.execute() to
- * set option.selected directly — options inside a <select> dropdown
- * are never visible, so clicking them via the Actions API would fail
- * with "element not interactable".
+ * Select an <option> by setting option.selected directly — options inside a
+ * <select> dropdown are never visible, so clicking them via the Actions API
+ * would fail with "element not interactable". A disabled select, optgroup or
+ * option is reported instead of selected, as a user could not pick it either.
+ * The matcher lives in the page, so all three select commands share this one
+ * function.
  */
-export function bidiSelectByVisibleText(element: WebdriverIO.Element, text: string): Promise<boolean> {
-    return exec(element, function (selectEl, targetText) {
+function selectInPage(element: WebdriverIO.Element, match: SelectMatch, first: string | number, second?: string): Promise<BidiSelectResult> {
+    return exec(element, function (selectEl, kind, a, b) {
         const normalize = (value: string) => (value || '').replace(/\s+/g, ' ').trim()
         const options = selectEl.options
-        for (let i = 0; i < options.length; i++) {
-            const opt = options[i]
-            if (normalize(opt.textContent) === targetText || normalize(opt.label) === targetText) {
-                opt.selected = true
-                selectEl.dispatchEvent(new Event('change', { bubbles: true }))
-                return true
+        const count = options.length
+        let option = null
+        if (kind === 'index') {
+            option = options[a] || null
+        } else {
+            for (let i = 0; i < count && !option; i++) {
+                const opt = options[i]
+                const matches = kind === 'text'
+                    ? normalize(opt.textContent) === a || normalize(opt.label) === a
+                    : opt.getAttribute(a) === b || opt[a] === b
+                if (matches) { option = opt }
             }
         }
-        return false
-    }, text) as Promise<boolean>
-}
-
-/**
- * Select an <option> by attribute value.  Checks both the HTML
- * attribute (getAttribute) and the DOM property — they can diverge
- * (e.g. option.value vs option.getAttribute('value')).
- */
-export function bidiSelectByAttribute(element: WebdriverIO.Element, attribute: string, value: string): Promise<boolean> {
-    return exec(element, function (selectEl, attr, val) {
-        const options = selectEl.options
-        for (let i = 0; i < options.length; i++) {
-            const opt = options[i]
-            if (opt.getAttribute(attr) === val || opt[attr] === val) {
-                opt.selected = true
-                selectEl.dispatchEvent(new Event('change', { bubbles: true }))
-                return true
-            }
+        if (!option) { return { selected: false, count } }
+        let disabled = null
+        if (selectEl.disabled) {
+            disabled = 'select'
+        } else if (option.disabled) {
+            disabled = 'option'
+        } else if (option.closest('optgroup[disabled]')) {
+            disabled = 'optgroup'
         }
-        return false
-    }, attribute, value) as Promise<boolean>
-}
-
-/**
- * Select an <option> by index. Resolves with whether it was selected and how
- * many options the select holds.
- */
-export function bidiSelectByIndex(element: WebdriverIO.Element, index: number): Promise<{ selected: boolean, count: number }> {
-    return exec(element, function (selectEl, idx) {
-        const count = selectEl.options.length
-        const option = selectEl.options[idx]
-        if (!option) {
-            return { selected: false, count }
-        }
+        if (disabled) { return { selected: false, count, disabled } }
         option.selected = true
         selectEl.dispatchEvent(new Event('change', { bubbles: true }))
         return { selected: true, count }
-    }, index) as Promise<{ selected: boolean, count: number }>
+    }, match, first, second) as Promise<BidiSelectResult>
+}
+
+export function bidiSelectByVisibleText(element: WebdriverIO.Element, text: string): Promise<BidiSelectResult> {
+    return selectInPage(element, 'text', text)
+}
+
+/**
+ * Checks both the HTML attribute (getAttribute) and the DOM property — they
+ * can diverge (e.g. option.value vs option.getAttribute('value')).
+ */
+export function bidiSelectByAttribute(element: WebdriverIO.Element, attribute: string, value: string): Promise<BidiSelectResult> {
+    return selectInPage(element, 'attribute', attribute, value)
+}
+
+export function bidiSelectByIndex(element: WebdriverIO.Element, index: number): Promise<BidiSelectResult> {
+    return selectInPage(element, 'index', index)
+}
+
+const DISABLED_SOURCE_LABEL: Record<BidiDisabledSource, string> = {
+    option: 'The option itself is disabled.',
+    optgroup: 'The option sits in a disabled <optgroup>.',
+    select: 'The <select> element is disabled.'
+}
+
+/**
+ * Builds the error for a select command that hit a disabled element, so
+ * the test does not pass on an action a user cannot perform.
+ */
+export function bidiDisabledSelectError(command: string, option: string, source: BidiDisabledSource): Error {
+    return new Error(
+        `${command} cannot select ${option}: ${DISABLED_SOURCE_LABEL[source]} ` +
+        'A user cannot select a disabled option, so this action is impossible and the test would pass on something that cannot happen. ' +
+        'This error comes from the BiDi select implementation enabled by the "wdio:experimentalBiDiCommands" capability. ' +
+        'To fix it, enable the element in the page before selecting, or select a different option.'
+    )
 }
 
 export function bidiIsSelected(element: WebdriverIO.Element): Promise<boolean> {

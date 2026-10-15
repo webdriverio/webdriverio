@@ -1,7 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { getElementFromResponse } from '../../utils/index.js'
-import { bidiSelectByVisibleText, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+import { bidiDisabledSelectError, bidiSelectByVisibleText, isBidiCommandsEnabled, type BidiDisabledSource } from '../../utils/bidi/elementCommands.js'
 
 /**
  *
@@ -49,9 +49,17 @@ export async function selectByVisibleText (
 
     const browser = getBrowserObject(this) as WebdriverIO.Browser
     if (isBidiCommandsEnabled(browser)) {
-        await this.waitUntil(() => bidiSelectByVisibleText(this, normalized), {
+        let disabled: BidiDisabledSource | undefined
+        await this.waitUntil(async () => {
+            const result = await bidiSelectByVisibleText(this, normalized)
+            disabled = result.disabled
+            return result.selected || !!disabled
+        }, {
             timeoutMsg: `Option with text "${text}" not found.`
         })
+        if (disabled) {
+            throw bidiDisabledSelectError('selectByVisibleText', `option with text "${text}"`, disabled)
+        }
         return
     }
 

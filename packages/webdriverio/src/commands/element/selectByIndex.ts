@@ -1,7 +1,7 @@
 import type { ElementReference } from '@wdio/protocols'
 import { getElementFromResponse } from '../../utils/index.js'
 import { getBrowserObject } from '@wdio/utils'
-import { bidiSelectByIndex, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
+import { bidiDisabledSelectError, bidiSelectByIndex, isBidiCommandsEnabled, type BidiDisabledSource } from '../../utils/bidi/elementCommands.js'
 
 /**
  *
@@ -46,15 +46,20 @@ export async function selectByIndex (
     const browser = getBrowserObject(this) as WebdriverIO.Browser
     if (isBidiCommandsEnabled(browser)) {
         let optionCount = 0
+        let disabled: BidiDisabledSource | undefined
         await this.waitUntil(async () => {
             const result = await bidiSelectByIndex(this, index)
             optionCount = result.count
-            return result.selected
+            disabled = result.disabled
+            return result.selected || !!disabled
         }, {
             timeoutMsg: () => optionCount === 0
                 ? 'Select element doesn\'t contain any option element'
                 : `Option with index "${index}" not found. Select element only contains ${optionCount} option elements`
         })
+        if (disabled) {
+            throw bidiDisabledSelectError('selectByIndex', `option with index "${index}"`, disabled)
+        }
         return
     }
 

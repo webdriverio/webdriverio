@@ -58,6 +58,22 @@ describe('selectByIndex test', () => {
             .rejects.toThrow('Select element doesn\'t contain any option element')
     })
 
+    describe.each(['option', 'optgroup', 'select'] as const)('disabled %s on the BiDi path', (source) => {
+        it('throws at once instead of waiting for the timeout', async () => {
+            vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+            vi.mocked(bidiSelectByIndex).mockResolvedValueOnce({ selected: false, count: 3, disabled: source })
+            const start = Date.now()
+            const err = await elem.selectByIndex(1).catch((e: Error) => e)
+            expect(err.message).toContain('selectByIndex cannot select option with index "1"')
+            expect(err.message).toContain('wdio:experimentalBiDiCommands')
+            expect(err.message).toContain('enable the element in the page before selecting, or select a different option')
+            expect(err.message).toContain({ option: 'option itself is disabled', optgroup: 'disabled <optgroup>', select: '<select> element is disabled' }[source])
+            expect(err.message).not.toContain('waitUntil')
+            expect(bidiSelectByIndex).toHaveBeenCalledTimes(1)
+            expect(Date.now() - start).toBeLessThan(90)
+        })
+    })
+
     it('should select by index', async () => {
         await elem.selectByIndex(1)
         // @ts-expect-error mock implementation

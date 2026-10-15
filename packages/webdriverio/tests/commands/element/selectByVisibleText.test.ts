@@ -9,7 +9,7 @@ import { bidiSelectByVisibleText, isBidiCommandsEnabled } from '../../../src/uti
 vi.mock('fetch')
 vi.mock('../../../src/utils/bidi/elementCommands.js', async (importOriginal) => {
     const actual = await importOriginal<Record<string, unknown>>()
-    return { ...actual, isBidiCommandsEnabled: vi.fn(() => false), bidiSelectByVisibleText: vi.fn(async () => true) }
+    return { ...actual, isBidiCommandsEnabled: vi.fn(() => false), bidiSelectByVisibleText: vi.fn(async () => ({ selected: true, count: 1 })) }
 })
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -79,16 +79,32 @@ describe('selectByVisibleText test', () => {
 
     it('waits for a late option on the BiDi path', async () => {
         vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
-        vi.mocked(bidiSelectByVisibleText).mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+        vi.mocked(bidiSelectByVisibleText).mockResolvedValueOnce({ selected: false, count: 0 }).mockResolvedValueOnce({ selected: true, count: 1 })
         await elem.selectByVisibleText('late')
         expect(bidiSelectByVisibleText).toHaveBeenCalledTimes(2)
     })
 
     it('throws the classic message on the BiDi path when the option is missing', async () => {
         vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
-        vi.mocked(bidiSelectByVisibleText).mockResolvedValue(false)
+        vi.mocked(bidiSelectByVisibleText).mockResolvedValue({ selected: false, count: 0 })
         await expect(elem.selectByVisibleText('nope')).rejects.toThrow('Option with text "nope" not found.')
-        vi.mocked(bidiSelectByVisibleText).mockResolvedValue(true)
+        vi.mocked(bidiSelectByVisibleText).mockResolvedValue({ selected: true, count: 1 })
+    })
+
+    describe.each(['option', 'optgroup', 'select'] as const)('disabled %s on the BiDi path', (source) => {
+        it('throws at once instead of waiting for the timeout', async () => {
+            vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+            vi.mocked(bidiSelectByVisibleText).mockResolvedValueOnce({ selected: false, count: 3, disabled: source })
+            const start = Date.now()
+            const err = await elem.selectByVisibleText('uno').catch((e: Error) => e)
+            expect(err.message).toContain('selectByVisibleText cannot select option with text "uno"')
+            expect(err.message).toContain('wdio:experimentalBiDiCommands')
+            expect(err.message).toContain('enable the element in the page before selecting, or select a different option')
+            expect(err.message).toContain({ option: 'option itself is disabled', optgroup: 'disabled <optgroup>', select: '<select> element is disabled' }[source])
+            expect(err.message).not.toContain('waitUntil')
+            expect(bidiSelectByVisibleText).toHaveBeenCalledTimes(1)
+            expect(Date.now() - start).toBeLessThan(90)
+        })
     })
 
     it('collapses every whitespace run on the BiDi path', async () => {
