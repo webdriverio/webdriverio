@@ -7,6 +7,7 @@ import { multiRemoteHandler } from './middlewares.js'
 import { MultiRemoteMock } from './multiRemoteMock.js'
 import { ElementArray } from './element/array.js'
 import { addLocatorStrategyHandler, getPrototype } from './utils/index.js'
+import { registerMultiRemoteInstance } from './session/context.js'
 import type { BrowserCommandsType, Selector, WebdriverIOEventMap } from './types.js'
 
 import * as BrowserCommands from './commands/browser.js'
@@ -56,6 +57,11 @@ export default class MultiRemote {
      */
     async addInstance (browserName: string, client: WebdriverIO.Browser) {
         this.instances.set(browserName, client)
+        /**
+         * closing the last window of one instance must not end the test for the
+         * other instances (#15043)
+         */
+        registerMultiRemoteInstance(client)
         return client
     }
 
