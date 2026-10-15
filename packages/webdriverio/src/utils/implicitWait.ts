@@ -10,7 +10,7 @@ import { StrictSelectorError } from './strictSelectorError.js'
 import { INDEX_NOT_FOUND, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
 import { markWaited } from './elementNotFound.js'
-import { WAIT_UNTIL_TIMEOUT } from './errorCodes.js'
+import { hasCode, WAIT_UNTIL_TIMEOUT } from './errorCodes.js'
 
 const log = logger('webdriverio')
 
@@ -95,7 +95,7 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
              * element existed, a poll that threw (a closed window) or a session that ended gets
              * no flag
              */
-            if (!existed && (err as { code?: unknown } | undefined)?.code === WAIT_UNTIL_TIMEOUT) {
+            if (!existed && hasCode(err, WAIT_UNTIL_TIMEOUT)) {
                 markWaited(notFound)
             }
             throw notFound

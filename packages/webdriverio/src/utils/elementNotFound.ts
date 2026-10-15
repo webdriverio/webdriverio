@@ -8,7 +8,7 @@
  * error as its `cause`. It is not a stale element error, so the outer layers of the command do
  * not look for the element (and wait) again.
  */
-import { ELEMENT_NOT_FOUND_AGAIN } from './errorCodes.js'
+import { ELEMENT_NOT_FOUND_AGAIN, hasCode } from './errorCodes.js'
 
 export { ELEMENT_NOT_FOUND_AGAIN }
 
@@ -38,8 +38,8 @@ export function waitedFor(err: unknown): boolean {
  * whether the error is the one of a stale element that was not found again, see
  * `ELEMENT_NOT_FOUND_AGAIN`
  */
-export function isElementNotFoundAgain(err: unknown): boolean {
-    return Boolean(err && typeof err === 'object' && (err as { code?: unknown }).code === ELEMENT_NOT_FOUND_AGAIN)
+export function isElementNotFoundAgain(err: unknown): err is Error & { code: typeof ELEMENT_NOT_FOUND_AGAIN } {
+    return hasCode(err, ELEMENT_NOT_FOUND_AGAIN)
 }
 
 /**
