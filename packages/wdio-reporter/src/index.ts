@@ -219,13 +219,17 @@ export default class WDIOReporter extends EventEmitter {
             if (existingTest && existingTest.state !== 'pending') {
                 currentTest.uid = 'skipped-' + this.counts.skipping
             }
-            const suiteTests = currentSuite.tests
-            if (!suiteTests.length || currentTest.uid !== suiteTests[suiteTests.length - 1].uid) {
+            const testIndex = currentSuite.tests.findLastIndex((entry) => entry.uid === currentTest.uid)
+            if (testIndex === -1) {
                 currentSuite.tests.push(currentTest)
+            } else {
+                currentSuite.tests[testIndex] = currentTest
+            }
+            const hooksAndTestsIndex = currentSuite.hooksAndTests.findLastIndex((entry) => entry.uid === currentTest.uid)
+            if (hooksAndTestsIndex === -1) {
                 currentSuite.hooksAndTests.push(currentTest)
             } else {
-                suiteTests[suiteTests.length - 1] = currentTest
-                currentSuite.hooksAndTests[currentSuite.hooksAndTests.length - 1] = currentTest
+                currentSuite.hooksAndTests[hooksAndTestsIndex] = currentTest
             }
 
             this.tests[currentTest.uid] = currentTest

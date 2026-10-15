@@ -918,5 +918,17 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.suites['suite-a'].tests).toHaveLength(0)
             expect(reporter.suites['suite-b'].tests.map(t => t.uid)).toEqual(['t1', 't2'])
         })
+
+        it('replaces a started test that ends pending after another test started', () => {
+            reporter.emit('test:start', { ...base, uid: 'A', title: 'A', parentUid: 'suite-a' })
+            reporter.emit('test:start', { ...base, uid: 'B', title: 'B', parentUid: 'suite-a' })
+            reporter.emit('test:pending', { ...base, uid: 'A', title: 'A', parentUid: 'suite-a', state: 'pending' })
+
+            const suite = reporter.suites['suite-a']
+            expect(suite.tests.map(t => t.uid)).toEqual(['A', 'B'])
+            expect(suite.hooksAndTests.map(t => t.uid)).toEqual(['A', 'B'])
+            expect(suite.tests[0]).toBe(reporter.tests.A)
+            expect(suite.tests[0].end).toBeDefined()
+        })
     })
 })
