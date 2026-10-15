@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import webdriverMonad, * as monadModule from '../src/monad.js'
+import webdriverMonad, { shareCommands } from '../src/monad.js'
 import logger from '@wdio/logger'
 const log = logger('webdriver')
 
@@ -634,11 +634,22 @@ describe('monad', () => {
         })
     })
 
+    it('puts a command on a given prototype as an assignment does', () => {
+        class Driver {
+            method () { return 'class method' }
+        }
+        const client = webdriverMonad({}, (c: any) => c, prototype)(sessionId)
+        client.addCommand('method', () => 'added', { proto: Driver.prototype })
+        const descriptor = Object.getOwnPropertyDescriptor(Driver.prototype, 'method')
+        expect(descriptor?.enumerable).toBe(false)
+        expect(descriptor?.value).not.toBe(undefined)
+        expect(Object.keys(Driver.prototype)).toEqual([])
+    })
+
     /**
      * the clients of one list share their wrapped commands (#16086)
      */
     describe('shareCommands', () => {
-        const { shareCommands } = monadModule as unknown as { shareCommands: (options: object, properties: object, commandWrapper?: Function) => object }
         const listOf = (count: number, properties: Record<string, PropertyDescriptor>) => {
             const commandWrapper = vi.fn((name: string, fn: Function) => function (this: unknown, ...args: unknown[]) { return fn.apply(this, args) })
             const shared = shareCommands({ baseUrl: 'option' }, { scope: { value: 'element' }, ...properties }, commandWrapper)

@@ -168,6 +168,19 @@ export default function WebDriver(options: object, modifier?: Function, properti
 
     const shared = properties[SHARED_COMMANDS]?.value as SharedCommands | undefined
     const prototype = Object.create(shared ? shared.commands : scopeType.prototype)
+
+    /**
+     * Put a function on a prototype with an assignment. The prototype of a client of a list
+     * inherits the commands of the list, which are read-only (see `shareCommands`): there an
+     * assignment throws, so the function is defined with the attributes of an assignment.
+     */
+    const setOnPrototype = (target: Record<string | symbol, unknown>, name: string, value: Function) => {
+        if (shared && target === prototype) {
+            Object.defineProperty(target, name, { configurable: true, enumerable: true, writable: true, value })
+        } else {
+            target[name] = value
+        }
+    }
     const log = logger('webdriver')
 
     const mittInstance = mitt()
@@ -324,7 +337,17 @@ export default function WebDriver(options: object, modifier?: Function, properti
                 }
 
                 this.__propertiesObject__[name] = { value: customCommand }
-            } else {
+            } else if (
+                /**
+                 * A client of a list that adds a command with the name of a command of the list
+                 * keeps the command of the list, as a client with its own commands does (its own
+                 * property hides the one of its prototype). After an overwrite of that client,
+                 * which removed its own property, the added command replaces the overwrite.
+                 */
+                !(shared && !_proto &&
+                    Object.prototype.hasOwnProperty.call(shared.commands, name) &&
+                    !Object.prototype.hasOwnProperty.call(prototype, name))
+            ) {
                 unit.lift(name, customCommand, _proto)
             }
 
@@ -397,26 +420,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     unit.lift = function (name: string, func: Function, proto?: Record<string, any>, origCommand?: Function) {
-        /**
-         * A command that a client of a list adds with the name of a command of the list does
-         * not change that client: the command of the list stays, as for a client with its own
-         * commands, where its own property hides the one of the prototype. An overwrite
-         * (`origCommand`) changes it, and a command added after an overwrite replaces it (the
-         * overwrite removed that own property).
-         */
-        if (
-            shared && !proto && !origCommand &&
-            Object.prototype.hasOwnProperty.call(shared.commands, name) &&
-            !Object.prototype.hasOwnProperty.call(prototype, name)
-        ) {
-            return
-        }
-        /**
-         * defined, not assigned: the prototype of a client of a list inherits the commands of
-         * the list, which are read-only (see `shareCommands`). The attributes are the ones of
-         * an assignment
-         */
-        Object.defineProperty(proto || prototype, name, { configurable: true, enumerable: true, writable: true, value: function next(this: { emit: (event: string, payload: unknown) => unknown }, ...args: unknown[]) {
+        setOnPrototype(proto || prototype, name, function next(this: { emit: (event: string, payload: unknown) => unknown }, ...args: unknown[]) {
             log.info('COMMAND', commandCallStructure(name, args))
             this.emit('command', { command: name, body: args })
 
@@ -463,14 +467,14 @@ export default function WebDriver(options: object, modifier?: Function, properti
                 this.emit('result', { command: name, result: { error } })
                 throw error
             }
-        } })
+        })
     }
 
     /**
      * register event emitter
      */
     for (const eventCommand of EVENTHANDLER_FUNCTIONS) {
-        Object.defineProperty(prototype, eventCommand, { configurable: true, enumerable: true, writable: true, value: function (this: unknown, ...args: [unknown, unknown]) {
+        setOnPrototype(prototype, eventCommand, function (this: unknown, ...args: [unknown, unknown]) {
             // Call the appropriate method based on eventCommand
             switch (eventCommand) {
             case 'on':
@@ -491,7 +495,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
                 break
             }
             return this
-        } })
+        })
     }
 
     return unit
