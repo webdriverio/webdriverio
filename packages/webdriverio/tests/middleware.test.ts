@@ -250,24 +250,6 @@ describe('middleware', () => {
             expect((error as Error & { cause?: unknown }).cause).toBe(stale)
         })
 
-        /**
-         * a list command runs once more after its item was not found again, and its own element is
-         * then not found either: the cause is still the stale element error (#16077 review)
-         */
-        it('keeps the stale element error as the cause when the element of a list command is not found after its item', async () => {
-            const stale = staleError()
-            const itemGone = Object.assign(new Error('Can\'t call click on element with selector ".item" because element wasn\'t found', { cause: stale }), { name: ELEMENT_NOT_FOUND_AGAIN })
-            browser.addCommand('clickItemOfGoneList', vi.fn().mockRejectedValueOnce(itemGone), { attachToElement: true })
-            const list = await browser.$('#foo')
-            recordNotFound(itemGone, { index: 1, parent: list })
-            refetchGives()
-
-            // @ts-expect-error undefined custom command
-            const error = await list.clickItemOfGoneList().then(() => null, (e: Error) => e)
-            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
-            expect((error as Error & { cause?: unknown }).cause).toBe(stale)
-        })
-
         it('looks again in the next command after a lookup gave up', async () => {
             browser.addCommand('innerStaleNext', vi.fn().mockImplementation(async () => { throw staleError() }), { attachToElement: true })
             browser.addCommand('outerStaleNext', async function (this: WebdriverIO.Element) {

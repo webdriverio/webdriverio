@@ -3,7 +3,7 @@ import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@w
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
-import { isElementNotFoundAgain, isListItemNotFoundAgain, nameNotFoundAgain, notFoundElement, waitedFor } from './utils/elementNotFound.js'
+import { isElementNotFoundAgain, nameNotFoundAgain, notFoundElement, waitedFor } from './utils/elementNotFound.js'
 import { isStaleElementError } from './utils/index.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
@@ -69,15 +69,13 @@ async function invokeElementCommand (
         /**
          * The "element wasn't found" error of a wait (an element that was not found again, or
          * never found) is not a stale element error, also when its message has that text (a
-         * selector like `[data-error="stale element reference"]`).
-         *
-         * The command looked for an item of a `$$()` list in this element, and the page rendered
-         * the list again without it: run the command once more, it finds its items again. Not
-         * for an element that the command kept from before (`$()`): it would only wait for it
-         * again.
+         * selector like `[data-error="stale element reference"]`). So the outer layers of a
+         * command do not look for an element that an inner layer did not find, and do not run
+         * the command again (9.31.9 did not either: the command would repeat its steps and wait
+         * again for an element that it kept).
          */
         const stale = !isElementNotFoundAgain(err) && !waitedFor(err) && (err.name === 'stale element reference' || isStaleElementError(err))
-        if (stale || isListItemNotFoundAgain(err, element)) {
+        if (stale) {
             try {
                 const refetched = await refetchElement(element, commandName)
                 element.elementId = refetched.elementId
@@ -101,13 +99,12 @@ async function invokeElementCommand (
                  * error. The outer layers of the command do not handle it, so they do not wait
                  * for the element again (#16072). A lookup records the element that it did not
                  * find: name the error for this command, with the stale element error of the
-                 * driver as its cause (also after a list item that was not found again). An
-                 * element that the command never found keeps its plain error.
+                 * driver as its cause. An element that the command never found keeps its plain
+                 * error.
                  */
                 if (waitedFor(refetchErr)) {
                     if (refetchErr instanceof Error && notFoundElement(refetchErr) !== undefined) {
-                        const staleErr = isElementNotFoundAgain(err) ? (err as Error & { cause?: unknown }).cause ?? err : err
-                        nameNotFoundAgain(refetchErr, element, commandName, staleErr)
+                        nameNotFoundAgain(refetchErr, element, commandName, err)
                     }
                     throw refetchErr
                 }

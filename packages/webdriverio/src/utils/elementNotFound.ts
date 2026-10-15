@@ -85,23 +85,3 @@ export function nameNotFoundAgain(err: Error, el: object, commandName: string, c
         err.stack = `${err.name}: ${err.message}` + err.stack.slice(firstLine.length)
     }
 }
-
-/**
- * whether the error is the one of an item of a `$$()` list in `el` (the list of `el`, or of an
- * element in it) that was not found again: a command of `el` that finds its items again in a
- * new way (for example by their text) can run once more, see the element middleware
- */
-export function isListItemNotFoundAgain(err: unknown, el: object): boolean {
-    const item = notFoundElement(err) as { index?: number, parent?: object } | undefined
-    if (!isElementNotFoundAgain(err) || item?.index === undefined) {
-        return false
-    }
-    const seen = new Set<object>()
-    for (let parent = item.parent as { parent?: object } | undefined; parent && !seen.has(parent); parent = parent.parent as { parent?: object } | undefined) {
-        if (parent === el) {
-            return true
-        }
-        seen.add(parent)
-    }
-    return false
-}

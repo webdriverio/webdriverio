@@ -949,66 +949,53 @@ describe('finding an element again', () => {
         })
 
         /**
-         * a command of a list finds its item again in a new way: when the item of its list is
-         * not found again, the command runs once more (#16072 review, finding 1)
+         * A command of a list (or of a container of the list) finds its item, and the page renders
+         * the list again without it at its index before the click: the command fails after one
+         * wait, and does not run again, as in 9.31.9. Running it again would repeat its steps
+         * and wait again for an item that it kept, or took by its index (#16077 review)
          */
-        it('finds the item again when the page replaced the list during a list command', async () => {
-            const browser = await session()
-            driver.light.set('#list', ['list-a'])
-            driver.light.set('.item', ['elem-a', 'target-1'])
-            let replaced = false
-            browser.addCommand('clickTarget', async function (this: WebdriverIO.Element) {
-                const items = await this.$$('.item')
-                const texts = await items.map((item) => item.getText())
-                const target = items[texts.findIndex((text) => text.includes('target'))]
-                if (!replaced) {
-                    replaced = true
+        describe('a command that uses an item of a list that the page rendered again without it', () => {
+            const listCommand = async (findList: (el: WebdriverIO.Element) => WebdriverIO.ElementArray) => {
+                const browser = await session()
+                driver.light.set('#box', ['box-a'])
+                driver.light.set('#list', ['list-a'])
+                driver.light.set('.item', ['elem-a', 'target-1'])
+                let runs = 0
+                browser.addCommand('clickTarget', async function (this: WebdriverIO.Element) {
+                    runs++
+                    const items = await findList(this)
+                    const texts = await items.map((item) => item.getText())
+                    const target = items[texts.findIndex((text) => text.includes('target'))]
                     driver.stale.add('target-1')
                     driver.light.set('.item', ['target-2'])
-                }
-                await target.click()
-                return target.elementId
-            }, { attachToElement: true })
-            const list = await browser.$('#list')
-            vi.mocked(refetchElement).mockClear()
+                    return target.click()
+                }, { attachToElement: true })
+                return { browser, runs: () => runs }
+            }
 
-            // @ts-expect-error undefined custom command
-            const { value, error, waits: count } = await waits(list.clickTarget())
-            expect(error).toBeUndefined()
-            expect(value).toBe('target-2')
-            expect(vi.mocked(refetchElement).mock.calls.map(([el]) => el.selector)).toContain('#list')
-            expect(count).toBe(1)
-        })
+            it('fails after one wait in a command of the list, and does not run it again', async () => {
+                const { browser, runs } = await listCommand((el) => el.$$('.item'))
+                const list = await browser.$('#list')
+                vi.mocked(refetchElement).mockClear()
 
-        /**
-         * a command of a container that finds the list inside it: the item is an item of the list,
-         * not of the container (#16077 review)
-         */
-        it('finds the item again when the page replaced the list inside the container of a command', async () => {
-            const browser = await session()
-            driver.light.set('#box', ['box-a'])
-            driver.light.set('#list', ['list-a'])
-            driver.light.set('.item', ['elem-a', 'target-1'])
-            let replaced = false
-            browser.addCommand('clickTargetInList', async function (this: WebdriverIO.Element) {
-                const items = await this.$('#list').$$('.item')
-                const texts = await items.map((item) => item.getText())
-                const target = items[texts.findIndex((text) => text.includes('target'))]
-                if (!replaced) {
-                    replaced = true
-                    driver.stale.add('target-1')
-                    driver.light.set('.item', ['target-2'])
-                }
-                await target.click()
-                return target.elementId
-            }, { attachToElement: true })
-            const box = await browser.$('#box')
+                // @ts-expect-error undefined custom command
+                const { error, waits: count } = await waits(list.clickTarget())
+                expectGone(error)
+                expect(count).toBe(1)
+                expect(runs()).toBe(1)
+                expect(vi.mocked(refetchElement).mock.calls.map(([el]) => el.selector)).not.toContain('#list')
+            })
 
-            // @ts-expect-error undefined custom command
-            const { value, error, waits: count } = await waits(box.clickTargetInList())
-            expect(error).toBeUndefined()
-            expect(value).toBe('target-2')
-            expect(count).toBe(1)
+            it('fails after one wait in a command of a container of the list, and does not run it again', async () => {
+                const { browser, runs } = await listCommand((el) => el.$('#list').$$('.item'))
+                const box = await browser.$('#box')
+
+                // @ts-expect-error undefined custom command
+                const { error, waits: count } = await waits(box.clickTarget())
+                expectGone(error)
+                expect(count).toBe(1)
+                expect(runs()).toBe(1)
+            })
         })
 
         /**
