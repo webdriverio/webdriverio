@@ -151,6 +151,19 @@ export default class MultiRemote {
     }
 
     /**
+     * The properties and the command wrapper of the entries of one multi-remote list: the
+     * entries share their wrapped commands, see `shareCommands`
+     */
+    static listElements (
+        propertiesObject: Record<string, PropertyDescriptor>,
+        scope: MultiRemote,
+    ): MultiRemoteListElements {
+        const commandWrapper = multiRemoteHandler(scope.commandWrapper.bind(scope))
+        const properties = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
+        return { commandWrapper, properties: shareCommands({}, properties, commandWrapper) }
+    }
+
+    /**
      * helper method to generate element objects from results, so that we can call, e.g.
      *
      * ```
@@ -165,19 +178,6 @@ export default class MultiRemote {
      * elems[0].getHTML()
      * ```
      */
-    /**
-     * The properties and the command wrapper of the entries of one multi-remote list: the
-     * entries share their wrapped commands, see `shareCommands`
-     */
-    static listElements (
-        propertiesObject: Record<string, PropertyDescriptor>,
-        scope: MultiRemote,
-    ): MultiRemoteListElements {
-        const commandWrapper = multiRemoteHandler(scope.commandWrapper.bind(scope))
-        const properties = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
-        return { commandWrapper, properties: shareCommands({}, properties, commandWrapper) }
-    }
-
     static elementWrapper (
         instances: Map<string, WebdriverIO.Browser>,
         result: unknown,
