@@ -138,6 +138,9 @@ function clientProperties(this: void, options: object, properties: PropertiesObj
  *
  * Every client uses the `options` and the command wrapper given here, also when its monad gets
  * others.
+ *
+ * Internal: `webdriverio` uses it for element lists. It is not a public API and can change in any
+ * release.
  */
 export function shareCommands(options: object, properties: PropertiesObject, commandWrapper?: Function): PropertiesObject {
     const scopeType = SCOPE_TYPES[properties.scope?.value || 'browser']
