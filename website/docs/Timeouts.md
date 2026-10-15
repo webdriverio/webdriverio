@@ -81,6 +81,8 @@ When the page removes or renders again an element, WebdriverIO finds it again wi
 - `message`: `Can't call <command> on element with selector "<selector>" because element wasn't found` (a `$$()` item: `… "<selector>" at index <n> …`; a removed parent: the message is about the parent)
 - `cause`: the stale element reference error of the driver
 
+`waitUntil` and `waitForEnabled` fail with their own error, which has this error as `cause`. `isDisplayed` and `isExisting` do not wait: they give `false`.
+
 ```ts title="test/specs/removed.e2e.ts"
 import { $, browser, expect } from '@wdio/globals'
 
@@ -88,7 +90,7 @@ describe('a removed element', () => {
     it('gives the error of an element that was not found again', async () => {
         await browser.url('https://webdriver.io')
         const title = await $('h1')
-        await browser.execute(() => document.querySelector('h1')?.remove())
+        await browser.execute(() => document.querySelectorAll('h1').forEach((h1) => h1.remove()))
 
         const error = await title.getText().then(() => null, (err: Error) => err)
         expect(error?.message).toContain('because element wasn\'t found')

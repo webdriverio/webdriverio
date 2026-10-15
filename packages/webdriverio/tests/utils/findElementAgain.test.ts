@@ -876,6 +876,14 @@ describe('finding an element again', () => {
             return elem
         }
 
+        it.each(['isDisplayed', 'isExisting'] as const)('%s of a removed element is false without a wait', async (command) => {
+            const elem = await removedRef()
+            const { value, error, waits: count } = await waits(elem[command]())
+            expect(error).toBeUndefined()
+            expect(value).toBe(false)
+            expect(count).toBe(0)
+        })
+
         it('waits once for a removed list item', async () => {
             const browser = await session()
             driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
@@ -1180,6 +1188,10 @@ describe('finding an element again', () => {
             vi.mocked(refetchElement).mockClear()
             const { error, waits: count } = await waits(elem.waitForEnabled())
             expect(error).toBeInstanceOf(Error)
+            /**
+             * the error of the wait has the error of the removed element as cause (#16077 review)
+             */
+            expectGone(error?.cause as Error | undefined)
             expect(count).toBe(1)
             /**
              * the layers of the wait do not look again (and run the wait again)
