@@ -148,6 +148,21 @@ describe('SpecReporter', () => {
         }
     })
 
+    it.each(['"before all" hook', '"after all" hook'])('counts Jasmine root hooks without a Mocha root-title suffix: %s', (title) => {
+        tmpReporter.write = vi.fn()
+        tmpReporter['_suiteUids'] = SUITE_UIDS
+        tmpReporter.suites = SUITES
+        const hook = { title, state: State.FAILED, error: new Error('root hook failed') }
+        tmpReporter.currentSuites = [{ hooks: [hook], suites: [], tests: [], hooksAndTests: [hook] }] as any
+        tmpReporter.onHookEnd(hook as any)
+        tmpReporter.printReport(getRunnerConfig({ hostname: 'localhost' }))
+
+        const output = vi.mocked(tmpReporter.write).mock.calls.map(call => String(call[0])).join('\n')
+        expect(output).toContain('1 failing hook')
+        expect(output).toContain('root hook failed')
+        expect(output).not.toMatch(/1 failing(?: \([^\n]*\))?\n/)
+    })
+
     describe('onTestPass', () => {
         beforeAll(() => {
             reporter.onTestPass({

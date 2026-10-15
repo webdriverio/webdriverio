@@ -704,7 +704,9 @@ export default class SpecReporter extends WDIOReporter {
             // a failed root hook, or a root beforeAll / afterAll with console logs
             const rootHooks = (kind: 'before' | 'after') => rootSuite.hooks.filter((hook) => this._hookLogs.get(hook)
                 ? hook.hookKind === `${kind}All`
-                : shown(hook) && hook.title.startsWith(`"${kind}`) && hook.title.endsWith('"{root}"'))
+                : shown(hook) && (hook.hookKind
+                    ? hook.hookKind === `${kind}All`
+                    : hook.title.startsWith(`"${kind}`) && hook.title.endsWith('"{root}"')))
             const beforeAllHooks = rootHooks('before')
             const afterAllHooks = rootHooks('after')
             this._orderedSuites.unshift(Object.assign({} as SuiteStats, baseRootSuite, {
