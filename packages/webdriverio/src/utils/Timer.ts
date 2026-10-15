@@ -99,11 +99,7 @@ class Timer {
         try {
             const result = this._fn()
 
-            if (!result) {
-                return this._checkCondition(timeoutError())
-            }
-
-            if (typeof result.then !== 'function') {
+            if (!result || typeof result.then !== 'function') {
                 return this._checkCondition(undefined, result)
             }
 
