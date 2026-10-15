@@ -84,6 +84,17 @@ describe('utils', () => {
             expect(remote).toHaveBeenCalledTimes(0)
         })
 
+        it('should pass existing multi-remote instances through for reattachment', async () => {
+            const capabilities = { someBrowser: { capabilities: { browserName: 'chrome' } } }
+            const instances = { someBrowser: { sessionId: 'existing-session' } }
+            await initializeInstance({ sessionId: undefined }, capabilities, true, instances)
+            expect(multiRemote).toBeCalledWith({
+                someBrowser: { sessionId: undefined, capabilities: { browserName: 'chrome' } }
+            }, { sessionId: undefined, instances })
+            expect(attach).not.toHaveBeenCalled()
+            expect(remote).not.toHaveBeenCalled()
+        })
+
         it('should create normal remote session', async () => {
             await initializeInstance({
                 // @ts-ignore test invalid params
@@ -149,8 +160,9 @@ describe('utils', () => {
 
     describe('getInstancesData', () => {
         it('isMultiRemote = true', () => {
-            const { sessionId, protocol, hostname, port, path, queryParams } = {
+            const { sessionId, capabilities, protocol, hostname, port, path, queryParams } = {
                 sessionId: 'bar',
+                capabilities: { browserName: 'chrome', webSocketUrl: 'ws://localhost:4441/session/bar' },
                 protocol: 'http',
                 hostname: 'localhost',
                 port: 4441,
@@ -161,12 +173,13 @@ describe('utils', () => {
             expect(getInstancesData({
                 instances: ['foo'],
                 getInstance: vi.fn().mockReturnValue({
+                    capabilities,
                     sessionId,
                     options: { protocol, hostname, port, path, queryParams }
                 })
             // @ts-expect-error
             } as unknown as WebdriverIO.MultiRemoteBrowserObject, true))
-                .toEqual({ foo: { sessionId, protocol, hostname, port, path, queryParams } })
+                .toEqual({ foo: { sessionId, capabilities, protocol, hostname, port, path, queryParams } })
         })
 
         it('isMultiRemote = false', () => {

@@ -76,6 +76,7 @@ async function removeTemporaryDirectory(temporaryDirectory, prefix) {
 export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configPath, setup, execute }) {
     const temporaryDirectory = await fs.mkdtemp(path.join(os.tmpdir(), temporaryDirectoryPrefix))
     const driver = createWebDriverServer()
+    const hooksPath = path.join(temporaryDirectory, 'hooks.jsonl')
     let child
     let exit
     let output = ''
@@ -98,6 +99,7 @@ export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configP
                 ...process.env,
                 WDIO_UNIT_TESTS: '1',
                 WDIO_WATCH_PORT: String(driver.server.address().port),
+                WDIO_WATCH_HOOKS: hooksPath,
                 ...env
             }
         })
@@ -143,12 +145,13 @@ export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configP
             while (true) {
                 const counts = new Map()
                 for (const run of runs) {
+                    const runIndex = counts.get(run.cid) ?? 0
                     assert.equal(
                         run.exitCode,
-                        expectedExitCode,
+                        Array.isArray(expectedExitCode) ? expectedExitCode[runIndex] : expectedExitCode,
                         `${name} worker ${run.cid} exited with an unexpected code`
                     )
-                    counts.set(run.cid, (counts.get(run.cid) ?? 0) + 1)
+                    counts.set(run.cid, runIndex + 1)
                 }
                 const finished = [...counts.values()].filter((count) => count >= runsPerWorker).length
                 if (finished >= workerCount) {
@@ -168,6 +171,15 @@ export async function runWatchModeTest({ name, temporaryDirectoryPrefix, configP
 
         const result = await stopWatchProcess(child, exit)
         assert.deepEqual(result, { code: 0, signal: null })
+        const hooks = (await fs.readFile(hooksPath, 'utf8')).trim().split('\n').map(JSON.parse)
+        for (const cid of new Set(runs.map((run) => run.cid))) {
+            const workerHooks = hooks.filter((hook) => hook.cid === cid)
+            assert.deepEqual(workerHooks.map((hook) => hook.type).sort(), ['config', 'service'],
+                `Worker ${cid} must run config and service afterSession hooks exactly once`)
+            for (const hook of workerHooks) {
+                assert.ok(hook.specs.length > 0, 'afterSession must receive the worker specs')
+            }
+        }
         assert.equal(driver.deleted.length, driver.created.length, 'Shutdown must delete every retained session')
         assert.deepEqual(new Set(driver.deleted), new Set(driver.created), 'Shutdown must delete the created sessions')
         assert.equal(driver.sessions.size, 0, 'Shutdown must delete all retained sessions')

@@ -107,6 +107,12 @@ describe('WebDriver', () => {
             )
         })
 
+        it('passes watch mode to local driver startup', async () => {
+            const options = { watch: true, capabilities: { browserName: 'chrome' } }
+            await WebDriver.newSession(options)
+            expect(startWebDriver).toHaveBeenCalledWith(expect.objectContaining({ watch: true }))
+        })
+
         it('should allow to create a new session using w3c compliant caps', async () => {
             await WebDriver.newSession({
                 path: '/',
@@ -379,6 +385,21 @@ describe('WebDriver', () => {
             const capabilities = { browserName: 'firefox', webSocketUrl: 'ws://foo/bar' } as WebdriverIO.Capabilities
             WebDriver.attachToSession({ sessionId: '123', capabilities, bidiConnectTimeout: 30000 })
             expect(utils.initiateBidi).toHaveBeenLastCalledWith('ws://foo/bar', undefined, undefined, undefined, 30000)
+        })
+
+        it.each([true, false])('only subscribes to BiDi events after a successful connection (%s)', async (connected) => {
+            const on = vi.fn()
+            const socket = vi.fn(() => connected ? { on } : undefined)
+            const handler = { waitForConnected: () => Promise.resolve(connected), get socket() { return socket() } }
+            vi.spyOn(utils, 'initiateBidi').mockReturnValueOnce({ _bidiHandler: { value: handler } })
+
+            WebDriver.attachToSession({ sessionId: '123', capabilities: { webSocketUrl: 'ws://foo/bar' } })
+            await Promise.resolve()
+
+            expect(socket).toHaveBeenCalledTimes(connected ? 1 : 0)
+            if (connected) {
+                expect(on).toHaveBeenCalledWith('message', expect.any(Function))
+            }
         })
 
         it('should fail attaching to session if sessionId is not given', () => {

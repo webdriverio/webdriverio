@@ -2,10 +2,10 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 'vitest'
-import { executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, initializeWorkerService } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
-import { attach } from 'webdriverio'
+import { attach, multiRemote } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setDefaultOptions, SnapshotService } from 'expect-webdriverio'
 
@@ -103,6 +103,64 @@ describe('wdio-runner', () => {
             expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('foo').sessionId).toBe(true)
             expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('bar').sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
+        })
+
+        it('should attach to retained multi-remote sessions in a shutdown worker', async () => {
+            const hook = vi.fn()
+            const config = { sessionId: undefined, afterSession: [hook] }
+            vi.spyOn(ConfigParser.prototype as any, 'addConfigFile').mockResolvedValue(undefined)
+            const initialize = vi.spyOn(ConfigParser.prototype, 'initialize')
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            const service = { afterSession: vi.fn() }
+            vi.mocked(initializeWorkerService).mockResolvedValueOnce([service] as any)
+            const addService = vi.spyOn(ConfigParser.prototype, 'addService')
+            const first = { sessionId: 'first-session', capabilities: { browserName: 'chrome' }, deleteSession: vi.fn() }
+            const second = { sessionId: 'second-session', capabilities: { browserName: 'firefox' }, deleteSession: vi.fn() }
+            const browser = {
+                instances: ['first', 'second'],
+                getInstance: vi.fn((name: string) => name === 'first' ? first : second),
+                capabilities: {}
+            }
+            vi.mocked(multiRemote).mockResolvedValueOnce(browser as any)
+            const instances = {
+                first: { sessionId: 'first-session' },
+                second: { sessionId: 'second-session' }
+            }
+            const serializedConfig = JSON.parse(JSON.stringify({ ...config, port: 1234, services: [vi.fn()] }))
+
+            const runner = new WDIORunner()
+            await runner.endSession({
+                cid: '0-0',
+                configFile: '/foo/wdio.conf.js',
+                specs: ['/foo/watch.test.js'],
+                args: {
+                    config: serializedConfig,
+                    capabilities: {
+                        first: { capabilities: first.capabilities },
+                        second: { capabilities: second.capabilities }
+                    },
+                    isMultiRemote: true,
+                    instances,
+                    ignoredWorkerServices: ['launcher-only']
+                }
+            })
+
+            expect(multiRemote).toBeCalledWith({
+                first: { ...serializedConfig, capabilities: first.capabilities },
+                second: { ...serializedConfig, capabilities: second.capabilities }
+            }, { ...serializedConfig, instances })
+            expect(initialize).toBeCalledWith({ port: 1234 })
+            expect(initializeWorkerService).toBeCalledWith(config, expect.any(Object), ['launcher-only'])
+            expect(addService).toBeCalledWith(service)
+            expect(first.deleteSession).toBeCalledTimes(1)
+            expect(second.deleteSession).toBeCalledTimes(1)
+            expect(first.sessionId).toBeUndefined()
+            expect(second.sessionId).toBeUndefined()
+            expect(process.send).toBeCalledWith({ origin: 'worker', name: 'sessionEnded', cid: '0-0' })
+            expect(executeHooksWithArgs).toBeCalledWith(
+                'afterSession', [hook],
+                [config, { first: first.capabilities, second: second.capabilities }, ['/foo/watch.test.js']]
+            )
         })
 
         it('should still end the worker when the session is already gone', async () => {
@@ -363,6 +421,38 @@ describe('wdio-runner', () => {
             endSession.mockClear()
             expect(await runner.run({ args: {}, caps: {}, configFile: '/foo/bar' } as any)).toBe(0)
             expect(endSession).toBeCalledTimes(1)
+        })
+
+        it('should keep retained instances out of the protocol stub', async () => {
+            const instances = {
+                browserA: { sessionId: 'session-a' },
+                browserB: { sessionId: 'session-b' }
+            }
+            const config: any = {
+                framework: 'testNoFailures', reporters: [], beforeSession: [], runner: 'local', instances
+            }
+            const caps = {
+                browserA: { capabilities: { browserName: 'chrome' } },
+                browserB: { capabilities: { browserName: 'chrome' } }
+            }
+            const browsers = {
+                browserA: { sessionId: 'session-a', options: {}, capabilities: { browserName: 'chrome' } },
+                browserB: { sessionId: 'session-b', options: {}, capabilities: { browserName: 'chrome' } }
+            }
+            const runner = new WDIORunner()
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_startSession'] = vi.fn().mockReturnValue({})
+            runner['_initSession'] = vi.fn().mockReturnValue({
+                instances: Object.keys(browsers),
+                getInstance: (name: keyof typeof browsers) => browsers[name],
+                options: {}, capabilities: {}
+            })
+
+            await runner.run({ args: { watch: true, instances }, caps, configFile: '/foo/bar' } as any)
+
+            expect(vi.mocked(runner['_startSession']).mock.calls[0][0]).not.toHaveProperty('instances')
+            expect(runner['_initSession']).toBeCalledWith(config, caps, instances)
+            expect(config.instances).toBe(instances)
         })
 
         it('should attach snapshot service to service list', async () => {

@@ -25,6 +25,19 @@ const caps = (): Capabilities.RequestedMultiRemoteCapabilities => ({
 })
 
 describe('Multi-Remote tests', () => {
+    test('should attach to existing sessions', async () => {
+        const browser = await multiRemote(caps(), {
+            instances: {
+                browserA: { sessionId: 'browser-a-session' },
+                browserB: { sessionId: 'browser-b-session' }
+            }
+        })
+
+        expect(browser.getInstance('browserA').sessionId).toBe('browser-a-session')
+        expect(browser.getInstance('browserB').sessionId).toBe('browser-b-session')
+        expect(fetch).not.toHaveBeenCalled()
+    })
+
     describe('$$', () => {
         test('returns a MultiRemoteElementArray without any opt-in', async () => {
             const browser = await multiRemote(caps())

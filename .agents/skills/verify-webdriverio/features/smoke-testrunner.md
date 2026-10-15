@@ -32,6 +32,7 @@ Preconditions:
 - **Plugin.** Run `pnpm run test:smoke customService` or `pnpm run test:smoke customReporterString`. Exit 0 and stdout contains `All smoke tests passed!`.
 - **Watch mode.** Run `pnpm run test:smoke watchMode`. Exit 0 and stdout contains `All smoke tests passed!`. The suite reruns a changed spec in the same WebDriver session, including one failing rerun.
 - **filesToWatch.** Run `pnpm run test:smoke watchFilesToWatch`. Exit 0 and stdout contains `All smoke tests passed!`. Changing a watched file reruns every spec, each spec keeps its own session, and shutdown deletes every retained session.
+- **Multi-remote watch mode.** Run `pnpm run test:smoke watchMultiRemote` and `pnpm run test:smoke watchParallelMultiRemote`. Both exit 0 and print `All smoke tests passed!`. Each worker reuses its two original sessions through a passing, failing, and passing run. Shutdown deletes every retained session and calls both config and service `afterSession` hooks exactly once per worker with its specs.
 - **Unknown name.** Run `pnpm run test:smoke notARealSuite`. Exit 1 and stdout names the suite and lists valid names. The runner prints that error with `console.log`.
 - **Proof.** Save output to `.agents/verify-artifacts/smoke-testrunner/`. `result.txt` records the suite name, exit code, and the passed or skipped count the suite asserts when it prints them.
 
