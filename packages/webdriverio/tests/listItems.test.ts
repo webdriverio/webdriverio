@@ -158,6 +158,17 @@ describe('the items of an element list', () => {
             expect(await later[2].contractLater()).toBe('some-elem-789')
         })
 
+        it('overwritten after the list: the items of the list do not run it, a later list does', async () => {
+            const browser = await session()
+            const list = await browser.$$('#foo')
+            browser.overwriteCommand('getElementAttribute', async function (this: WebdriverIO.Element, orig: Function, ...args: unknown[]) {
+                return `over:${await orig(...args)}`
+            } as never, { attachToElement: true })
+            expect(String(await list[1].getElementAttribute(list[1].elementId, 'class'))).not.toMatch(/^over:/)
+            const later = await browser.$$('#foo')
+            expect(String(await later[1].getElementAttribute(later[1].elementId, 'class'))).toMatch(/^over:/)
+        })
+
         it('overwritten before the list: every item runs the overwrite once', async () => {
             const browser = await session()
             const overwrite = vi.fn(async function (this: WebdriverIO.Element, orig: Function, ...args: unknown[]) {
@@ -269,6 +280,26 @@ describe('the entries of a multi-remote list', () => {
         expect(onlyA.getInstance('browserA').elementId).toBe('some-elem-789')
         expect([...list[2].instances].sort()).toEqual(['browserA', 'browserB'])
         expect([...list[0].instances].sort()).toEqual(['browserA', 'browserB'])
+    })
+
+    it('have a command that the browser added for elements before the list, in each instance', async () => {
+        const browser = await multiRemote(caps())
+        browser.addCommand('contractEntry', function () { return 'entry' }, { attachToElement: true })
+        const list = await browser.$$('#foo')
+        // @ts-expect-error custom command
+        expect(await list[1].contractEntry()).toEqual(['entry', 'entry'])
+    })
+
+    it('run an overwrite that the browser added for elements before the list, once per instance', async () => {
+        const browser = await multiRemote(caps())
+        const overwrite = vi.fn(async function (this: unknown, orig: Function, ...args: unknown[]) { return orig(...args) })
+        browser.overwriteCommand('getAttribute', overwrite as never, { attachToElement: true })
+        const list = await browser.$$('#foo')
+        for (const entry of [list[2], list[0]]) {
+            overwrite.mockClear()
+            await entry.getAttribute('class')
+            expect(overwrite).toHaveBeenCalledTimes(2)
+        }
     })
 
     it('have their own getInstance', async () => {
