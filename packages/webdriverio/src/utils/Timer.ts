@@ -1,22 +1,13 @@
+import { TIMER_TIMEOUT } from './errorCodes.js'
+
 const TIMEOUT_ERROR = 'timeout'
 
 /**
- * the timeout errors that a timer creates: a condition that throws an error with the same
- * message is not a timeout
+ * the timeout error of a timer, with its own code: a condition that throws an error with the
+ * same message is not a timeout
  */
-const timeoutErrors = new WeakSet<Error>()
-
 function timeoutError () {
-    const err = new Error(TIMEOUT_ERROR)
-    timeoutErrors.add(err)
-    return err
-}
-
-/**
- * whether a timer rejected with its own timeout error (and not with an error of the condition)
- */
-export function isTimeoutError (err: unknown): boolean {
-    return err instanceof Error && timeoutErrors.has(err)
+    return Object.assign(new Error(TIMEOUT_ERROR), { code: TIMER_TIMEOUT })
 }
 
 const NOOP = () => {}

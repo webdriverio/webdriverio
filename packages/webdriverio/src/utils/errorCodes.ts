@@ -10,6 +10,13 @@
 export const WAIT_UNTIL_TIMEOUT = 'WAIT_UNTIL_TIMEOUT'
 
 /**
+ * the timeout error that a `Timer` creates (internal: `waitUntil` replaces it with its own
+ * error). A condition that throws an error with the message "timeout", or a wait inside the
+ * condition that timed out (`WAIT_UNTIL_TIMEOUT`), is not a timeout of this timer
+ */
+export const TIMER_TIMEOUT = 'TIMER_TIMEOUT'
+
+/**
  * a command on a stale element that the lookup waited `waitforTimeout` for and did not find
  * again (the page removed it), see `utils/elementNotFound.ts`
  */
