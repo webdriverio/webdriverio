@@ -159,8 +159,11 @@ const proxy = http.createServer((clientRequest, clientResponse) => {
 
 // HTTPS requests arrive as CONNECT requests and are tunneled without changes
 proxy.on('connect', (request, clientSocket, head) => {
-    const { hostname, port } = new URL(`http://${request.url}`)
-    const upstreamSocket = net.connect(Number(port) || 443, stripBrackets(hostname), () => {
+    // CONNECT targets always carry an explicit port, e.g. "example.com:443" or "[::1]:80"
+    const separator = request.url.lastIndexOf(':')
+    const hostname = request.url.slice(0, separator)
+    const port = Number(request.url.slice(separator + 1))
+    const upstreamSocket = net.connect(port, stripBrackets(hostname), () => {
         clientSocket.write('HTTP/1.1 200 Connection Established\r\n\r\n')
         upstreamSocket.write(head)
         upstreamSocket.pipe(clientSocket)
