@@ -151,6 +151,21 @@ export default class MultiRemote {
     }
 
     /**
+     * the descriptors of a multi-remote element: the commands of the multi-remote browser and
+     * the element commands
+     */
+    static elementProperties (propertiesObject: Record<string, PropertyDescriptor>) {
+        return { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
+    }
+
+    /**
+     * the command wrapper of a multi-remote element, which runs a command in every instance
+     */
+    static elementCommandWrapper (scope: MultiRemote) {
+        return multiRemoteHandler(scope.commandWrapper.bind(scope))
+    }
+
+    /**
      * The properties and the command wrapper of the entries of one multi-remote list: the
      * entries share their wrapped commands, see `shareCommands`
      */
@@ -158,9 +173,8 @@ export default class MultiRemote {
         propertiesObject: Record<string, PropertyDescriptor>,
         scope: MultiRemote,
     ): MultiRemoteListElements {
-        const commandWrapper = multiRemoteHandler(scope.commandWrapper.bind(scope))
-        const properties = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
-        return { commandWrapper, properties: shareCommands({}, properties, commandWrapper) }
+        const commandWrapper = MultiRemote.elementCommandWrapper(scope)
+        return { commandWrapper, properties: shareCommands({}, MultiRemote.elementProperties(propertiesObject), commandWrapper) }
     }
 
     /**
@@ -185,7 +199,7 @@ export default class MultiRemote {
         scope: MultiRemote,
         list?: MultiRemoteListElements
     ): WebdriverIO.MultiRemoteElement {
-        const prototype = list?.properties ?? { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
+        const prototype = list?.properties ?? MultiRemote.elementProperties(propertiesObject)
         const results = Array.isArray(result) ? result as WebdriverIO.Element[] : []
 
         const element = webdriverMonad({}, (client: WebdriverIO.MultiRemoteElement) => {
@@ -257,7 +271,7 @@ export default class MultiRemote {
         // @ts-expect-error
         const sessionId = this.sessionId
 
-        return element(sessionId, list?.commandWrapper ?? multiRemoteHandler(scope.commandWrapper.bind(scope)))
+        return element(sessionId, list?.commandWrapper ?? MultiRemote.elementCommandWrapper(scope))
     }
 
     /**
