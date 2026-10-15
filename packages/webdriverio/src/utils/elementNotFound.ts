@@ -13,6 +13,11 @@
 export const ELEMENT_NOT_FOUND_AGAIN = 'webdriverio(middleware): element was not found again'
 
 /**
+ * the `code` of that error: a short, stable key to check in code (the name is for people)
+ */
+export const ELEMENT_NOT_FOUND_AGAIN_CODE = 'ELEMENT_NOT_FOUND_AGAIN'
+
+/**
  * a registered symbol: another copy of webdriverio in the same process sees the flag
  */
 const WAITED_FOR = Symbol.for('wdio:waitedFor')
@@ -63,7 +68,8 @@ export function notFoundElement(err: unknown): object | undefined {
  * When the element that was not found is the element of the command, the message names the
  * command (the outer layers of the command name it in turn, so the message names the
  * command that the user called). The first line of the stack shows the new name and message.
- * The `cause` is the stale element error of the driver, when the caller gives it.
+ * The `code` is `ELEMENT_NOT_FOUND_AGAIN_CODE`; the `cause` is the stale element error of the
+ * driver, when the caller gives it.
  */
 export function nameNotFoundAgain(err: Error, el: object, commandName: string, cause?: unknown) {
     if (!Object.isExtensible(err)) {
@@ -75,6 +81,8 @@ export function nameNotFoundAgain(err: Error, el: object, commandName: string, c
     }
     const firstLine = `${err.name}: ${err.message}`
     err.name = ELEMENT_NOT_FOUND_AGAIN
+    const withCode: Error & { code?: string } = err
+    withCode.code = ELEMENT_NOT_FOUND_AGAIN_CODE
     if (notFoundElements.get(err) === el) {
         /**
          * a replacer function: `$` patterns of a replacement string would turn `$$` into `$`

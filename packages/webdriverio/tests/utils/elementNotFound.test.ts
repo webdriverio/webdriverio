@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { ELEMENT_NOT_FOUND_AGAIN, isElementNotFoundAgain, markWaited, waitedFor } from '../../src/utils/elementNotFound.js'
+import { ELEMENT_NOT_FOUND_AGAIN, ELEMENT_NOT_FOUND_AGAIN_CODE, isElementNotFoundAgain, markWaited, nameNotFoundAgain, recordNotFound, waitedFor } from '../../src/utils/elementNotFound.js'
 
 describe('the flag of a wait that ended without the element', () => {
     it('is a hidden registered symbol', () => {
@@ -28,5 +28,27 @@ describe('isElementNotFoundAgain', () => {
         for (const value of [undefined, null, ELEMENT_NOT_FOUND_AGAIN, { name: 1 }]) {
             expect(isElementNotFoundAgain(value)).toBe(false)
         }
+    })
+})
+
+describe('nameNotFoundAgain', () => {
+    it('gives the error its name, its code and its cause', () => {
+        const el = {}
+        const stale = Object.assign(new Error('stale element reference'), { name: 'stale element reference' })
+        const err = new Error('Can\'t call getElementText on element with selector "#a" because element wasn\'t found')
+        recordNotFound(err, el)
+        nameNotFoundAgain(err, el, 'getText', stale)
+        expect(err.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+        expect((err as Error & { code?: string }).code).toBe(ELEMENT_NOT_FOUND_AGAIN_CODE)
+        expect(ELEMENT_NOT_FOUND_AGAIN_CODE).toBe('ELEMENT_NOT_FOUND_AGAIN')
+        expect((err as Error & { cause?: unknown }).cause).toBe(stale)
+        expect(err.message).toBe('Can\'t call getText on element with selector "#a" because element wasn\'t found')
+        expect(err.stack?.split('\n')[0]).toBe(`${ELEMENT_NOT_FOUND_AGAIN}: ${err.message}`)
+    })
+
+    it('leaves a frozen error as it is', () => {
+        const err = Object.freeze(new Error('Can\'t call getText on element with selector "#a" because element wasn\'t found'))
+        expect(() => nameNotFoundAgain(err, {}, 'getText')).not.toThrow()
+        expect(err.name).toBe('Error')
     })
 })

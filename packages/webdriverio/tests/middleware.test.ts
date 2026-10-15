@@ -147,6 +147,7 @@ describe('middleware', () => {
          */
         const expectGone = (error: Error | null) => {
             expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect((error as Error & { code?: string } | null)?.code).toBe('ELEMENT_NOT_FOUND_AGAIN')
             expect(error?.message).toMatch(/wasn't found/)
         }
         const real = vi.mocked(refetchElement).getMockImplementation()!
@@ -230,6 +231,7 @@ describe('middleware', () => {
              * `#spinner` was never found: it keeps its plain error
              */
             expect(error?.name).toBe('Error')
+            expect((error as Error & { code?: string } | null)?.code).toBeUndefined()
             expect(error?.message).toBe('Can\'t call click on element with selector "#spinner" because element wasn\'t found')
             expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
         })

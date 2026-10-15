@@ -853,6 +853,7 @@ describe('finding an element again', () => {
          */
         const expectGone = (error?: Error) => {
             expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect((error as Error & { code?: string } | undefined)?.code).toBe('ELEMENT_NOT_FOUND_AGAIN')
             expect(error?.message).toMatch(/wasn't found/)
         }
         const removedHost = async () => {
