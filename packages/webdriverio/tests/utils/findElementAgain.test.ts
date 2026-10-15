@@ -916,6 +916,23 @@ describe('finding an element again', () => {
             expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
         })
 
+        it('waits once with a waitforTimeout that is not a whole number', async () => {
+            const browser = await remote({
+                baseUrl: 'http://foobar.com',
+                waitforTimeout: 100.5,
+                waitforInterval: 10,
+                capabilities: { browserName: 'foobar' }
+            })
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            driver.stale.add('elem-r')
+            driver.light.set('#ref', [])
+
+            const { error, waits: count } = await waits(elem.getText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
         it('waits once for a removed child', async () => {
             const { child } = await removedHost()
             driver.stale.add('child-a')

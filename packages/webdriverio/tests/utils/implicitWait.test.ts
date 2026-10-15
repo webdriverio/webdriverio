@@ -15,7 +15,7 @@ vi.mock('../../src/utils/findElementAgain.js', async (importOriginal) => ({
 /**
  * an element without an element id, in a browser
  */
-const missing = (waitForExist: () => Promise<unknown>) => ({
+const missing = (waitForExist: (options?: { timeoutMsg?: string }) => Promise<unknown>) => ({
     selector: '#missing',
     parent: { isMobile: false },
     waitForExist: vi.fn(waitForExist),
@@ -25,7 +25,10 @@ const missing = (waitForExist: () => Promise<unknown>) => ({
     isExisting: vi.fn(async () => false)
 }) as unknown as WebdriverIO.Element
 
-const notExisting = async () => { throw new Error('element ("#missing") still not existing after 100ms') }
+/**
+ * the wait times out: `waitForExist` throws the timeout message that it gets
+ */
+const notExisting = async (options?: { timeoutMsg?: string }) => { throw new Error(options?.timeoutMsg) }
 
 /**
  * The implicit wait flags its "element wasn't found" error when the wait for the element
@@ -34,10 +37,15 @@ const notExisting = async () => { throw new Error('element ("#missing") still no
  */
 describe('implicitWait', () => {
     it('flags the error when the wait ends without the element', async () => {
-        const error = await implicitWait(missing(notExisting), 'getText').then(() => null, (err: Error) => err)
+        const el = missing(notExisting)
+        const error = await implicitWait(el, 'getText').then(() => null, (err: Error) => err)
         expect(error?.message).toBe('Can\'t call getText on element with selector "#missing" because element wasn\'t found')
         expect(waitedFor(error)).toBe(true)
         expect(Object.keys(error!)).toEqual([])
+        /**
+         * a timeout of any value: no number in the message to parse (#16077 review)
+         */
+        expect(el.waitForExist).toHaveBeenCalledWith({ timeoutMsg: expect.any(String) })
     })
 
     /**

@@ -14,6 +14,13 @@ import { markWaited } from './elementNotFound.js'
 const log = logger('webdriverio')
 
 /**
+ * the message of the timeout of the wait for the element: `implicitWait` gives it to
+ * `waitForExist`, so it knows a timeout without parsing a message (the message of
+ * `waitForExist` has the timeout value, which can be any number)
+ */
+const WAIT_TIMED_OUT = 'webdriverio(implicitWait): the element did not exist before the timeout'
+
+/**
  * wait on element if:
  *  - elementId couldn't be fetched in the first place
  *  - command is not explicit wait command for existance or displayedness
@@ -45,7 +52,7 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
 
         let existed = false
         try {
-            await currentElement.waitForExist()
+            await currentElement.waitForExist({ timeoutMsg: WAIT_TIMED_OUT })
             existed = true
             /**
              * if waitForExist was successful requery element and assign elementId to the scope,
@@ -90,11 +97,11 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             }
             const notFound = new Error(message)
             /**
-             * the wait for the element timed out without it (its timeout error ends with
-             * "still not existing after <n>ms"). A lookup that failed after the element existed,
-             * a poll that threw (a closed window) or a session that ended gets no flag
+             * the wait for the element timed out without it. A lookup that failed after the
+             * element existed, a poll that threw (a closed window) or a session that ended gets
+             * no flag
              */
-            if (!existed && err instanceof Error && /still not existing after \d+ms$/.test(err.message)) {
+            if (!existed && err instanceof Error && err.message === WAIT_TIMED_OUT) {
                 markWaited(notFound)
             }
             throw notFound
