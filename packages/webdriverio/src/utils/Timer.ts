@@ -1,4 +1,4 @@
-import { WAIT_UNTIL_TIMEOUT } from './errorCodes.js'
+import { TIMER_TIMEOUT } from './errorCodes.js'
 
 const TIMEOUT_ERROR = 'timeout'
 
@@ -7,7 +7,7 @@ const TIMEOUT_ERROR = 'timeout'
  * same message is not a timeout
  */
 function timeoutError () {
-    return Object.assign(new Error(TIMEOUT_ERROR), { code: WAIT_UNTIL_TIMEOUT })
+    return Object.assign(new Error(TIMEOUT_ERROR), { code: TIMER_TIMEOUT })
 }
 
 const NOOP = () => {}
