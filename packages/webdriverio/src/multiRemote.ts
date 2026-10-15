@@ -1,5 +1,5 @@
 import clone from 'lodash.clonedeep'
-import { setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { setWdioKind, shareCommands, webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
@@ -165,13 +165,27 @@ export default class MultiRemote {
      * elems[0].getHTML()
      * ```
      */
+    /**
+     * The properties and the command wrapper of the entries of one multi-remote list: the
+     * entries share their wrapped commands, see `shareCommands`
+     */
+    static listElements (
+        propertiesObject: Record<string, PropertyDescriptor>,
+        scope: MultiRemote,
+    ): MultiRemoteListElements {
+        const commandWrapper = multiRemoteHandler(scope.commandWrapper.bind(scope))
+        const properties = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
+        return { commandWrapper, properties: shareCommands({}, properties, commandWrapper) }
+    }
+
     static elementWrapper (
         instances: Map<string, WebdriverIO.Browser>,
         result: unknown,
         propertiesObject: Record<string, PropertyDescriptor>,
         scope: MultiRemote,
+        list?: MultiRemoteListElements
     ): WebdriverIO.MultiRemoteElement {
-        const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
+        const prototype = list?.properties ?? { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
         const results = Array.isArray(result) ? result as WebdriverIO.Element[] : []
 
         const element = webdriverMonad({}, (client: WebdriverIO.MultiRemoteElement) => {
@@ -243,7 +257,7 @@ export default class MultiRemote {
         // @ts-expect-error
         const sessionId = this.sessionId
 
-        return element(sessionId, multiRemoteHandler(scope.commandWrapper.bind(scope)))
+        return element(sessionId, list?.commandWrapper ?? multiRemoteHandler(scope.commandWrapper.bind(scope)))
     }
 
     /**
@@ -290,11 +304,13 @@ export default class MultiRemote {
             if (LIST_QUERIES.has(commandName)) {
                 const [selector, ...props] = args as [Selector, ...unknown[]]
                 let loadedInstances = instances
+                let listElements: MultiRemoteListElements | undefined
                 const wrapMultiRemote = (elements: unknown) => MultiRemote.elementWrapper(
                     loadedInstances,
                     elements,
                     this.__propertiesObject__,
-                    self
+                    self,
+                    listElements ??= MultiRemote.listElements(this.__propertiesObject__, self)
                 )
                 return ElementArray.fromAsyncCallback(async () => {
                     const { result, activeInstances } = await execute()
@@ -336,6 +352,11 @@ export default class MultiRemote {
             })()
         })
     }
+}
+
+interface MultiRemoteListElements {
+    commandWrapper: Function
+    properties: Record<string | symbol, PropertyDescriptor>
 }
 
 /**

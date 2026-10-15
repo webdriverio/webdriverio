@@ -49,6 +49,17 @@ describe('Multi-Remote tests', () => {
             }
         })
 
+        test('gives the entries of a list one set of wrapped commands (#16086)', async () => {
+            const browser = await multiRemote(caps())
+
+            const elements = await browser.$$('#foo')
+
+            expect(elements[0].getText).toBe(elements[2].getText)
+            expect(Object.prototype.hasOwnProperty.call(elements[1], 'getText')).toBe(false)
+            expect(elements[1].getInstance('browserA').elementId).toBe('some-elem-456')
+            expect(elements[0].getInstance('browserA')).not.toBe(elements[1].getInstance('browserA'))
+        })
+
         test('gives no element to an instance that finds fewer elements (#15845)', async () => {
             const browser = await multiRemote(caps())
             vi.spyOn(browser.getInstance('browserB'), 'findElements')
