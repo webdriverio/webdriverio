@@ -74,6 +74,8 @@ await myElem.waitForDisplayed()
 await myElem.waitForDisplayed({ timeout: 10000 })
 ```
 
+A wait that times out throws an error with `code` `WAIT_UNTIL_TIMEOUT` (also with a custom `timeoutMsg`); a condition that throws gives an error without this code.
+
 ### An element that the page removed
 
 When the page removes or renders again an element, WebdriverIO finds it again with its selector and waits up to `waitforTimeout`. If it is there, the command runs on it. If not, the command fails with:

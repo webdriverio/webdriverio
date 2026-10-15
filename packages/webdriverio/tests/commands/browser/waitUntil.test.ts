@@ -265,6 +265,28 @@ describe('waitUntil', () => {
         }
     })
 
+    /**
+     * a code tells a timeout from a condition that failed, whatever the message (#16077)
+     */
+    describe('the code of a timeout', () => {
+        it.each([
+            ['the default message', undefined],
+            ['a custom message', 'Custom error message'],
+            ['a message function', () => 'deferred timeout message']
+        ])('is WAIT_UNTIL_TIMEOUT with %s', async (_, timeoutMsg) => {
+            const error = await browser.waitUntil(() => false, { timeout: 100, interval: 20, timeoutMsg })
+                .then(() => null, (err: Error) => err)
+            expect(error).toHaveProperty('code', 'WAIT_UNTIL_TIMEOUT')
+        })
+
+        it('is not on the error of a condition that failed', async () => {
+            const error = await browser.waitUntil(() => { throw new Error('foobar') }, { timeout: 100, interval: 20 })
+                .then(() => null, (err: Error) => err)
+            expect(error?.message).toContain('waitUntil condition failed with the following reason: foobar')
+            expect(error).not.toHaveProperty('code')
+        })
+    })
+
     afterEach(() => {
         vi.mocked(fetch).mockClear()
     })

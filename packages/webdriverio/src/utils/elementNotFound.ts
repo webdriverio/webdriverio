@@ -1,16 +1,16 @@
 /**
- * A leaf module without imports: `implicitWait`, the element middleware and `setValue`
- * import it.
+ * A leaf module (it imports only the error codes): `implicitWait`, the element middleware,
+ * `setValue` and `waitForStable` import it.
+ *
+ * The error of a command on a stale element that the lookup waited `waitforTimeout` for and
+ * did not find again (the page removed it) is the "element wasn't found" error of
+ * `implicitWait`, as in 9.31.9, with the code `ELEMENT_NOT_FOUND_AGAIN` and the stale element
+ * error as its `cause`. It is not a stale element error, so the outer layers of the command do
+ * not look for the element (and wait) again.
  */
+import { ELEMENT_NOT_FOUND_AGAIN } from './errorCodes.js'
 
-/**
- * The `code` of the error of a command on a stale element that the lookup waited
- * `waitforTimeout` for and did not find again (the page removed it). The error is the
- * "element wasn't found" error of `implicitWait`, as in 9.31.9, with this code and the stale
- * element error as its `cause`. It is not a stale element error, so the outer layers of the
- * command do not look for the element (and wait) again.
- */
-export const ELEMENT_NOT_FOUND_AGAIN = 'ELEMENT_NOT_FOUND_AGAIN'
+export { ELEMENT_NOT_FOUND_AGAIN }
 
 /**
  * a registered symbol: another copy of webdriverio in the same process sees the flag

@@ -933,6 +933,25 @@ describe('finding an element again', () => {
             expect(count).toBe(1)
         })
 
+        /**
+         * an overwrite of waitForExist with its own timeout message: the wait still knows its
+         * timeout (#16077 review)
+         */
+        it('waits once when waitForExist is overwritten with another timeout message', async () => {
+            const browser = await session()
+            browser.overwriteCommand('waitForExist', function (this: WebdriverIO.Element, waitForExist: (options?: object) => Promise<boolean>, options?: object) {
+                return waitForExist({ ...options, timeoutMsg: 'my page is broken' })
+            }, { attachToElement: true })
+            driver.light.set('#ref', ['elem-r'])
+            const elem = await browser.$('#ref')
+            driver.stale.add('elem-r')
+            driver.light.set('#ref', [])
+
+            const { error, waits: count } = await waits(elem.getText())
+            expectGone(error)
+            expect(count).toBe(1)
+        })
+
         it('waits once for a removed child', async () => {
             const { child } = await removedHost()
             driver.stale.add('child-a')
