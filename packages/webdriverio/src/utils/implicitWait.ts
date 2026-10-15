@@ -9,6 +9,8 @@ import { getBrowserObject } from '@wdio/utils'
 import { StrictSelectorError } from './strictSelectorError.js'
 import { INDEX_NOT_FOUND, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
+import { markWaited } from './elementNotFound.js'
+import { hasCode, WAIT_UNTIL_TIMEOUT } from './errorCodes.js'
 
 const log = logger('webdriverio')
 
@@ -71,23 +73,30 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
                 throw err
             }
 
-            if (currentElement.selector.toString().includes('this.previousElementSibling')) {
-                throw new Error(
-                    `Can't call ${commandName} on previous element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`)
+            const selector = currentElement.selector.toString()
+            /**
+             * an item of a list: the index tells which item was not found, other elements can
+             * match the selector
+             */
+            const index = currentElement.index === undefined ? '' : ` at index ${currentElement.index}`
+            let message = `Can't call ${commandName} on element with selector "${describeSelector(currentElement)}"${index} because element wasn't found`
+            if (selector.includes('this.previousElementSibling')) {
+                message = `Can't call ${commandName} on previous element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`
+            } else if (selector.includes('this.nextElementSibling')) {
+                message = `Can't call ${commandName} on next element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`
+            } else if (selector.includes('this.parentElement')) {
+                message = `Can't call ${commandName} on parent element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because it wasn't found`
             }
-
-            if (currentElement.selector.toString().includes('this.nextElementSibling')) {
-                throw new Error(
-                    `Can't call ${commandName} on next element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because sibling wasn't found`)
+            const notFound = new Error(message)
+            /**
+             * the wait for the element, or for its index after `waitForExist` found it, timed
+             * out without it. A poll that threw (a closed window) or a session that ended gets
+             * no flag
+             */
+            if (hasCode(err, WAIT_UNTIL_TIMEOUT)) {
+                markWaited(notFound)
             }
-
-            if (currentElement.selector.toString().includes('this.parentElement')) {
-                throw new Error(
-                    `Can't call ${commandName} on parent element of element with selector "${describeSelector(currentElement.parent as WebdriverIO.Element)}" because it wasn't found`)
-            }
-
-            throw new Error(
-                `Can't call ${commandName} on element with selector "${describeSelector(currentElement)}" because element wasn't found`)
+            throw notFound
         }
     }
 

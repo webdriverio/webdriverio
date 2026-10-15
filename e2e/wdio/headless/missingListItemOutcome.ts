@@ -29,9 +29,9 @@ export async function outcome (check: () => Promise<unknown>): Promise<string> {
         if (message.includes('Index out of bounds!')) {
             return 'Index out of bounds'
         }
-        const notFound = message.match(/Can't call (\S+) on element with selector "([^"]*)" because element wasn't found/)
+        const notFound = message.match(/Can't call (\S+) on element with selector "([^"]*)"( at index \d+)? because element wasn't found/)
         if (notFound) {
-            return `can't call ${notFound[1]} on ${notFound[2]}`
+            return `can't call ${notFound[1]} on ${notFound[2]}${notFound[3] ?? ''}`
         }
         if (message.includes('Element could not be found')) {
             return 'Element could not be found'

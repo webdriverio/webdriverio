@@ -1,6 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { WaitForOptions } from '../../types.js'
 import { describeSelector } from '../../utils/describeSelector.js'
+import { isElementNotFoundAgain } from '../../utils/elementNotFound.js'
 
 /**
  *
@@ -75,7 +76,10 @@ export async function waitForStable (
         timeoutMsg = `element ("${describeSelector(this)}") still ${reverse ? '' : 'not '}stable after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
-    let errorMsg!: string
+    /**
+     * the error of the last check, in an object: a check can throw `undefined`
+     */
+    let failure: { error: unknown } | undefined
     const browser = getBrowserObject(this)
 
     if (browser.isMobile && browser.isNativeContext) {
@@ -84,16 +88,15 @@ export async function waitForStable (
 
     await this.waitUntil(
         async () => {
+            /**
+             * only the error of the last check counts: a later check can succeed, e.g. when the
+             * page rendered the element again
+             */
+            failure = undefined
             try {
                 return reverse !== await this.isStable()
             } catch (error) {
-                if (error instanceof Error) {
-                    errorMsg = error.message
-                } else if (typeof error === 'string') {
-                    errorMsg = error
-                } else {
-                    errorMsg = 'The waitForStable command got an unknown error'
-                }
+                failure = { error }
                 // fail early
                 return !reverse
             }
@@ -101,7 +104,21 @@ export async function waitForStable (
         { timeout, interval, timeoutMsg }
     )
 
-    if (errorMsg) {
-        throw Error(errorMsg)
+    if (!failure) {
+        return
     }
+    const { error } = failure
+    /**
+     * the error of an element that was not found again keeps its code and cause
+     */
+    if (isElementNotFoundAgain(error)) {
+        throw error
+    }
+    /**
+     * a check that threw fails the wait, also with an empty message
+     */
+    const errorMsg = error instanceof Error
+        ? error.message
+        : typeof error === 'string' ? error : ''
+    throw Error(errorMsg || 'The waitForStable command got an unknown error')
 }
