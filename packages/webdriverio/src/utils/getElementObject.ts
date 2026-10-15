@@ -47,19 +47,11 @@ class WebDriverError extends Error {
 }
 
 /**
- * transforms a findElement response into a WDIO element
- * @param  {string} selector  selector that was used to query the element
- * @param  {Object} res       findElement response
- * @return {Object}           WDIO element object
+ * The descriptors of an element that `parent` finds: the commands of the browser without the
+ * browser-only commands, the element commands (an element of another held browsing context runs
+ * the classic element endpoints in its own context), and the `emit` of the parent.
  */
-export function getElement(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector?: Selector,
-    res?: ElementReference | ExtendedElementReference | Error,
-    propsParam: GetElementProps = {}
-): WebdriverIO.Element {
-    const props: GetElementProps = { isReactElement: false, isShadowElement: false, ...propsParam }
-    const browser = getBrowserObject(this)
+function elementProperties (parent: WebdriverIO.Browser | WebdriverIO.Element, browser: WebdriverIO.Browser): PropertyDescriptorMap {
     const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject: PropertyDescriptorMap = {
         /**
@@ -74,13 +66,25 @@ export function getElement(
         ...getWDIOPrototype('element'),
         scope: { value: 'element' }
     }
-    /**
-     * An element of another held browsing context runs the classic element
-     * endpoints in its own context.
-     */
     routeElementEndpoints(propertiesObject)
+    propertiesObject.emit = { value: parent.emit.bind(parent) }
+    return propertiesObject
+}
 
-    propertiesObject.emit = { value: this.emit.bind(this) }
+/**
+ * transforms a findElement response into a WDIO element
+ * @param  {string} selector  selector that was used to query the element
+ * @param  {Object} res       findElement response
+ * @return {Object}           WDIO element object
+ */
+export function getElement(
+    this: WebdriverIO.Browser | WebdriverIO.Element,
+    selector?: Selector,
+    res?: ElementReference | ExtendedElementReference | Error,
+    propsParam: GetElementProps = {}
+): WebdriverIO.Element {
+    const props: GetElementProps = { isReactElement: false, isShadowElement: false, ...propsParam }
+    const browser = getBrowserObject(this)
     const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
         const elementId = getElementFromResponse(res as ElementReference)
 
@@ -120,7 +124,7 @@ export function getElement(
         }
 
         return client
-    }, propertiesObject)
+    }, elementProperties(this, browser))
 
     const elementInstance = element(this.sessionId as string, elementErrorHandler(wrapCommand))
 
@@ -156,25 +160,7 @@ export const getElements = function getElements(
      * commands for the list, instead of about 280 properties on each item. Built for the first
      * new item: a list of elements that are already elements needs none.
      */
-    const shareListCommands = () => {
-        const browserCommandKeys = Object.keys(browserCommands)
-        const propertiesObject: PropertyDescriptorMap = {
-            /**
-             * filter out browser commands from object
-             */
-            ...(Object.entries(clone(browser.__propertiesObject__)).reduce((commands, [name, descriptor]) => {
-                if (!browserCommandKeys.includes(name)) {
-                    commands[name] = descriptor
-                }
-                return commands
-            }, {} as Record<string, PropertyDescriptor>)),
-            ...getWDIOPrototype('element')
-        }
-        routeElementEndpoints(propertiesObject)
-        propertiesObject.scope = { value: 'element' }
-        propertiesObject.emit = { value: this.emit.bind(this) }
-        return shareCommands(this.options, propertiesObject, commandWrapper)
-    }
+    const shareListCommands = () => shareCommands(this.options, elementProperties(this, browser), commandWrapper)
     let listProperties: PropertyDescriptorMap | undefined
     const elements = [elemResponse].flat(1).map((res: ElementReference | ExtendedElementReference | Element | Error | WebDriverError, i) => {
         /**
