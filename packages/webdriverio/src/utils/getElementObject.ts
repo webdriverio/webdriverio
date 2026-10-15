@@ -150,28 +150,31 @@ export const getElements = function getElements(
     }
 
     const browser = getBrowserObject(this as WebdriverIO.Element)
-    const browserCommandKeys = Object.keys(browserCommands)
-    const propertiesObject: PropertyDescriptorMap = {
-        /**
-         * filter out browser commands from object
-         */
-        ...(Object.entries(clone(browser.__propertiesObject__)).reduce((commands, [name, descriptor]) => {
-            if (!browserCommandKeys.includes(name)) {
-                commands[name] = descriptor
-            }
-            return commands
-        }, {} as Record<string, PropertyDescriptor>)),
-        ...getWDIOPrototype('element')
-    }
-    routeElementEndpoints(propertiesObject)
-
-    propertiesObject.scope = { value: 'element' }
-    propertiesObject.emit = { value: this.emit.bind(this) }
-    /**
-     * the items of the list share their wrapped commands: one wrapper and one object with
-     * the commands for the list, instead of about 280 properties on each item
-     */
     const commandWrapper = elementErrorHandler(wrapCommand)
+    /**
+     * The items of the list share their wrapped commands: one wrapper and one object with the
+     * commands for the list, instead of about 280 properties on each item. Built for the first
+     * new item: a list of elements that are already elements needs none.
+     */
+    const shareListCommands = () => {
+        const browserCommandKeys = Object.keys(browserCommands)
+        const propertiesObject: PropertyDescriptorMap = {
+            /**
+             * filter out browser commands from object
+             */
+            ...(Object.entries(clone(browser.__propertiesObject__)).reduce((commands, [name, descriptor]) => {
+                if (!browserCommandKeys.includes(name)) {
+                    commands[name] = descriptor
+                }
+                return commands
+            }, {} as Record<string, PropertyDescriptor>)),
+            ...getWDIOPrototype('element')
+        }
+        routeElementEndpoints(propertiesObject)
+        propertiesObject.scope = { value: 'element' }
+        propertiesObject.emit = { value: this.emit.bind(this) }
+        return shareCommands(this.options, propertiesObject, commandWrapper)
+    }
     let listProperties: PropertyDescriptorMap | undefined
     const elements = [elemResponse].flat(1).map((res: ElementReference | ExtendedElementReference | Element | Error | WebDriverError, i) => {
         /**
@@ -224,7 +227,7 @@ export const getElements = function getElements(
             }
 
             return client
-        }, listProperties ??= shareCommands(this.options, propertiesObject, commandWrapper))
+        }, listProperties ??= shareListCommands())
 
         const elementInstance: WebdriverIO.Element = element((this as WebdriverIO.Browser).sessionId, commandWrapper)
 
