@@ -66,12 +66,13 @@ export default async function refetchElement (
          * every item of the chain, also a parent of the element (a row of a table): the wait
          * for its index would not flag its error, see `implicitWait`. An element without an
          * index is always found again, as a "not found" element when it is gone, like `$()`
+         * (`findElementAgain` gives `undefined`, and uses its `wait` option, only for an index)
          */
         let nextElement: WebdriverIO.Element
         try {
             nextElement = element.index !== undefined
                 ? await findItemAgain(element, parent)
-                : await findElementAgain(element, { parent, wait: true }) as WebdriverIO.Element
+                : await findElementAgain(element, { parent }) as WebdriverIO.Element
         } catch (err) {
             /**
              * the lookup in a parent without an element id waited for that parent and did not
