@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { logMock } from '../../../__mocks__/@wdio/logger.js'
 import { describe, it, vi, expect, beforeAll, afterAll } from 'vitest'
 
 import '../src/node.js'
@@ -6,7 +7,6 @@ import { BIDI_MASK, BIDI_SCRIPT_TIMEOUT, BidiCore, MAX_EXPIRED_COMMANDS, maskBid
 import { environment } from '../src/environment.js'
 import { SESSION_ENDED_ERROR } from '../src/constants.js'
 import '../src/browser.js'
-
 import { type BrowserSocket } from '../src/bidi/socket.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -472,6 +472,9 @@ describe('BidiCore', () => {
 
             const sent = JSON.parse(vi.mocked(handler.socket?.send)!.mock.calls[0][0] as string)
             expect(sent.params.actions[0].actions[0].value).toBe('s')
+            const logged = JSON.stringify(logMock.info.mock.calls.filter(([tag]) => tag === 'BIDI COMMAND'))
+            expect(logged).toContain('**MASKED**')
+            expect(logged).not.toContain('"value\\":\\"s')
             expect(emit).toHaveBeenCalledWith('bidiCommand', {
                 method: 'input.performActions',
                 params: {

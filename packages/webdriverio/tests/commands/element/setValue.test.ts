@@ -4,8 +4,13 @@ import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 import { remote } from '../../../src/index.js'
 import { setValue } from '../../../src/commands/element/setValue.js'
 import { Key } from '../../../src/constants.js'
+import { bidiGetProperty, isBidiCommandsEnabled } from '../../../src/utils/bidi/elementCommands.js'
 
 vi.mock('fetch')
+vi.mock('../../../src/utils/bidi/elementCommands.js', async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>()
+    return { ...actual, isBidiCommandsEnabled: vi.fn(() => false), bidiGetProperty: vi.fn() }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('setValue', () => {
@@ -23,6 +28,8 @@ describe('setValue', () => {
     afterEach(() => {
         vi.mocked(fetch).mockClear()
         vi.restoreAllMocks()
+        vi.mocked(isBidiCommandsEnabled).mockReturnValue(false)
+        vi.mocked(bidiGetProperty).mockReset()
     })
 
     const paths = () => vi.mocked(fetch).mock.calls.map(([url]) => (url as URL).pathname)
@@ -105,5 +112,49 @@ describe('setValue', () => {
         expect(scope.getElementProperty).not.toHaveBeenCalled()
         expect(scope.clearValue).toHaveBeenCalled()
         expect(scope.addValue).toHaveBeenCalledWith('foobar', undefined)
+    })
+
+    describe('with BiDi commands enabled', () => {
+        beforeEach(() => {
+            vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+        })
+
+        it('should set a date input directly without classic property reads', async () => {
+            const elem = await browser.$('#foo')
+            const classic = vi.spyOn(elem, 'getElementProperty')
+            vi.mocked(bidiGetProperty).mockResolvedValue('date')
+            const execute = vi.spyOn(browser, 'execute').mockResolvedValue(true as never)
+
+            await elem.setValue('2026-10-04')
+            expect(bidiGetProperty).toHaveBeenCalledWith(elem, 'type')
+            expect(classic).not.toHaveBeenCalled()
+            expect(execute).toHaveBeenCalledWith(expect.any(Function), elem, '2026-10-04')
+            expect(paths()).not.toContain('/session/foobar-123/element/some-elem-123/value')
+        })
+
+        it('should clear a stubborn value read through BiDi', async () => {
+            const elem = await browser.$('#foo')
+            const classic = vi.spyOn(elem, 'getElementProperty')
+            vi.mocked(bidiGetProperty).mockImplementation(async (_el, name) => name === 'type' ? 'text' : 'Phoenix, AZ')
+            vi.spyOn(browser, 'execute').mockResolvedValue(undefined as never)
+            const keys = vi.spyOn(browser, 'keys').mockResolvedValue(undefined as never)
+
+            await elem.setValue('90210')
+            expect(bidiGetProperty).toHaveBeenCalledWith(elem, 'value')
+            expect(classic).not.toHaveBeenCalled()
+            expect(keys).toHaveBeenNthCalledWith(1, [Key.Ctrl, 'a'])
+            expect(keys).toHaveBeenNthCalledWith(2, Key.Backspace)
+        })
+
+        it('should fall back to typing when the BiDi read fails', async () => {
+            const elem = await browser.$('#foo')
+            vi.mocked(bidiGetProperty).mockRejectedValue(new Error('no such node'))
+            vi.spyOn(browser, 'execute').mockResolvedValue(undefined as never)
+            const keys = vi.spyOn(browser, 'keys')
+
+            await elem.setValue('foobar')
+            expect(keys).not.toHaveBeenCalled()
+            expect(bidiGetProperty).toHaveBeenCalledTimes(2)
+        })
     })
 })

@@ -1,6 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { getElementFromResponse } from '../../utils/index.js'
+import { bidiDisabledSelectError, bidiSelectByVisibleText, isBidiCommandsEnabled, type BidiDisabledSource } from '../../utils/bidi/elementCommands.js'
 
 /**
  *
@@ -44,7 +45,23 @@ export async function selectByVisibleText (
 
     const normalized = text
         .trim() // strip leading and trailing white-space characters
-        .replace(/\s+/, ' ') // replace sequences of whitespace characters by a single space
+        .replace(/\s+/g, ' ') // replace sequences of whitespace characters by a single space
+
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        let disabled: BidiDisabledSource | undefined
+        await this.waitUntil(async () => {
+            const result = await bidiSelectByVisibleText(this, normalized)
+            disabled = result.disabled
+            return result.selected || !!disabled
+        }, {
+            timeoutMsg: `Option with text "${text}" not found.`
+        })
+        if (disabled) {
+            throw bidiDisabledSelectError('selectByVisibleText', `option with text "${text}"`, disabled)
+        }
+        return
+    }
 
     /**
     * find option element using xpath

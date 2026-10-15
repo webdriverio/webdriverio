@@ -383,6 +383,14 @@ export interface WebdriverIOCapabilities {
      * the WebDriver protocol only.
      */
     'wdio:enforceWebDriverClassic'?: boolean
+
+    /**
+     * If flag is set to `true` WebdriverIO runs element commands over
+     * WebDriver BiDi script evaluation instead of WebDriver Classic
+     * endpoints. Required for `parallelMode` in the mocha and cucumber
+     * frameworks. Experimental.
+     */
+    'wdio:experimentalBiDiCommands'?: boolean
 }
 
 export interface ChromeOptions {

@@ -4,8 +4,13 @@ import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 import { remote } from '../../../src/index.js'
 import * as utils from '../../../src/utils/index.js'
+import { bidiSelectByAttribute, isBidiCommandsEnabled } from '../../../src/utils/bidi/elementCommands.js'
 
 vi.mock('fetch')
+vi.mock('../../../src/utils/bidi/elementCommands.js', async (importOriginal) => {
+    const actual = await importOriginal<Record<string, unknown>>()
+    return { ...actual, isBidiCommandsEnabled: vi.fn(() => false), bidiSelectByAttribute: vi.fn() }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('selectByAttribute test', () => {
@@ -16,6 +21,8 @@ describe('selectByAttribute test', () => {
     beforeEach(async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
+            waitforTimeout: 100,
+            waitforInterval: 10,
             capabilities: {
                 browserName: 'foobar'
             }
@@ -26,6 +33,37 @@ describe('selectByAttribute test', () => {
     afterEach(() => {
         vi.mocked(fetch).mockClear()
         getElementFromResponseSpy.mockClear()
+        vi.mocked(isBidiCommandsEnabled).mockReturnValue(false)
+    })
+
+    it('waits for a late option on the BiDi path', async () => {
+        vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+        vi.mocked(bidiSelectByAttribute).mockResolvedValueOnce({ selected: false, count: 0 }).mockResolvedValueOnce({ selected: true, count: 1 })
+        await elem.selectByAttribute('value', 'late')
+        expect(bidiSelectByAttribute).toHaveBeenCalledTimes(2)
+        expect(bidiSelectByAttribute).toHaveBeenCalledWith(elem, 'value', 'late')
+    })
+
+    it('throws the classic message on the BiDi path when the option is missing', async () => {
+        vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+        vi.mocked(bidiSelectByAttribute).mockResolvedValue({ selected: false, count: 0 })
+        await expect(elem.selectByAttribute('value', 'nope')).rejects.toThrow('Option with attribute "value=nope" not found.')
+    })
+
+    describe.each(['option', 'optgroup', 'select'] as const)('disabled %s on the BiDi path', (source) => {
+        it('throws at once instead of waiting for the timeout', async () => {
+            vi.mocked(isBidiCommandsEnabled).mockReturnValue(true)
+            vi.mocked(bidiSelectByAttribute).mockResolvedValueOnce({ selected: false, count: 3, disabled: source })
+            const start = Date.now()
+            const err = await elem.selectByAttribute('value', 'a1').catch((e: Error) => e)
+            expect(err.message).toContain('selectByAttribute cannot select option with attribute "value=a1"')
+            expect(err.message).toContain('wdio:experimentalBiDiCommands')
+            expect(err.message).toContain('enable the element in the page before selecting, or select a different option')
+            expect(err.message).toContain({ option: 'option itself is disabled', optgroup: 'disabled <optgroup>', select: '<select> element is disabled' }[source])
+            expect(err.message).not.toContain('waitUntil')
+            expect(bidiSelectByAttribute).toHaveBeenCalledTimes(1)
+            expect(Date.now() - start).toBeLessThan(90)
+        })
     })
 
     it('should select value by attribute when value is string', async () => {

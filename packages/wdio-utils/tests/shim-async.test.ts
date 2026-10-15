@@ -1,7 +1,8 @@
 import path from 'node:path'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { executeHooksWithArgs, executeAsync, wrapCommand } from '../src/shim.js'
+import { executeHooksWithArgs, executeAsync, wrapCommand, setCommandHookStore } from '../src/shim.js'
 
 const globalAny: any = global
 
@@ -354,6 +355,54 @@ describe('wrapCommand', () => {
             }
         } catch (err: any) {
             expect(err.message).toBe('Can not iterate over non array')
+        }
+    })
+})
+
+describe('command hook store', () => {
+    const makeScope = (hook: () => unknown) => ({
+        options: { beforeCommand: vi.fn(), afterCommand: vi.fn().mockImplementation(hook) }
+    }) as any
+
+    it('default store releases the flag after hooks, also when a hook throws', async () => {
+        const rawCommand = vi.fn().mockResolvedValue('ok')
+        const command = wrapCommand('foobar', rawCommand)
+        const nested = wrapCommand('barfoo', rawCommand)
+        const scope = makeScope(() => nested.call(scope, 1))
+        expect(await command.call(scope)).toBe('ok')
+        expect(await command.call(scope)).toBe('ok')
+        expect(scope.options.beforeCommand).toBeCalledTimes(2)
+
+        const failing = makeScope(() => { throw new Error('hook failed') })
+        await command.call(failing).catch(() => {})
+        const after = makeScope(() => {})
+        await command.call(after)
+        expect(after.options.beforeCommand).toBeCalledTimes(1)
+    })
+
+    it('uses a registered AsyncLocalStorage and isolates concurrent chains', async () => {
+        const als = new AsyncLocalStorage<true>()
+        const runSpy = vi.spyOn(als, 'run')
+        setCommandHookStore(als)
+        try {
+            let release!: () => void
+            const gate = new Promise<void>((resolve) => { release = resolve })
+            const slow = vi.fn().mockImplementation(() => gate)
+            const fast = vi.fn().mockResolvedValue('ok')
+            const slowScope: any = { options: { beforeCommand: vi.fn(), afterCommand: vi.fn() } }
+            slowScope.options.beforeCommand.mockImplementation(() => gate)
+            const slowCmd = wrapCommand('slow', slow)
+            const fastCmd = wrapCommand('fast', fast)
+
+            const pending = slowCmd.call(slowScope)
+            const otherScope: any = { options: { beforeCommand: vi.fn(), afterCommand: vi.fn() } }
+            await fastCmd.call(otherScope)
+            expect(otherScope.options.beforeCommand).toBeCalledTimes(1)
+            release()
+            await pending
+            expect(runSpy).toBeCalled()
+        } finally {
+            setCommandHookStore({ getStore: () => undefined, run: (_, fn) => fn() })
         }
     })
 })

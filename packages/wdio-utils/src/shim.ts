@@ -7,7 +7,51 @@ import { WDIO_KIND, WDIO_CHAINABLE, getWdioKind, type WdioKind } from './kind.js
 
 const log = logger('@wdio/utils:shim')
 
-let inCommandHook = false
+export interface CommandHookStore {
+    getStore(): true | undefined
+    run<T>(value: true, fn: () => T): T
+}
+
+/**
+ * Fallback for runtimes without `AsyncLocalStorage` (browser bundles): a plain
+ * flag, so a hook still does not trigger itself via the commands it issues.
+ */
+const flagCommandHookStore: CommandHookStore = (() => {
+    let active = false
+    return {
+        getStore: () => active ? true : undefined,
+        run: <T>(_: true, fn: () => T): T => {
+            const previous = active
+            active = true
+            let result: T
+            try {
+                result = fn()
+            } catch (err) {
+                active = previous
+                throw err
+            }
+            if (result instanceof Promise) {
+                return result.finally(() => { active = previous }) as T
+            }
+            active = previous
+            return result
+        }
+    }
+})()
+
+let commandHookScope: CommandHookStore = flagCommandHookStore
+
+/**
+ * Node entry points register an `AsyncLocalStorage` so a hook running for one
+ * concurrent test (parallel mode) does not suppress hooks of commands issued by
+ * other tests.
+ */
+export function setCommandHookStore (store: CommandHookStore) {
+    commandHookScope = store
+}
+
+const isInCommandHook = () => commandHookScope.getStore() === true
+const runInCommandHook = (fn: () => Promise<unknown>) => commandHookScope.run(true, fn)
 
 const ELEMENT_QUERY_COMMANDS = [
     '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
@@ -452,10 +496,8 @@ function attachElementArrayHooks (
     const self = this
     wrap(async (load) => {
         const beforeHookArgs = [commandName, args]
-        if (!inCommandHook && self.options?.beforeCommand) {
-            inCommandHook = true
-            await executeHooksWithArgs.call(self, 'beforeCommand', self.options.beforeCommand, beforeHookArgs)
-            inCommandHook = false
+        if (!isInCommandHook() && self.options?.beforeCommand) {
+            await runInCommandHook(() => executeHooksWithArgs.call(self, 'beforeCommand', self.options!.beforeCommand, beforeHookArgs))
         }
 
         let commandError: unknown
@@ -465,11 +507,9 @@ function attachElementArrayHooks (
             commandError = err
         }
 
-        if (!inCommandHook && self.options?.afterCommand) {
-            inCommandHook = true
+        if (!isInCommandHook() && self.options?.afterCommand) {
             const afterHookArgs = [...beforeHookArgs, elementArray, commandError]
-            await executeHooksWithArgs.call(self, 'afterCommand', self.options.afterCommand, afterHookArgs)
-            inCommandHook = false
+            await runInCommandHook(() => executeHooksWithArgs.call(self, 'afterCommand', self.options!.afterCommand, afterHookArgs))
         }
 
         if (commandError) {
@@ -487,10 +527,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
 
     async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
-        if (!inCommandHook && this.options.beforeCommand) {
-            inCommandHook = true
-            await executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs)
-            inCommandHook = false
+        if (!isInCommandHook() && this.options.beforeCommand) {
+            await runInCommandHook(() => executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs))
         }
 
         let commandResult
@@ -501,11 +539,9 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
             commandError = err
         }
 
-        if (!inCommandHook && this.options.afterCommand) {
-            inCommandHook = true
+        if (!isInCommandHook() && this.options.afterCommand) {
             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
-            await executeHooksWithArgs.call(this, 'afterCommand', this.options.afterCommand, afterHookArgs)
-            inCommandHook = false
+            await runInCommandHook(() => executeHooksWithArgs.call(this, 'afterCommand', this.options.afterCommand, afterHookArgs))
         }
 
         if (commandError) {

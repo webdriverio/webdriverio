@@ -44,6 +44,7 @@ describe('WebDriverInterception', () => {
             })),
             networkContinueRequest: vi.fn().mockReturnValue(Promise.resolve()),
             networkFailRequest: vi.fn().mockReturnValue(Promise.resolve()),
+            browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [] }),
             call: vi.fn(),
         } satisfies Partial<WebdriverIO.Browser>
         const browser = Object.assign(new EventEmitter(), defaults, overrides) as unknown as WebdriverIO.Browser
@@ -764,6 +765,120 @@ describe('WebDriverInterception', () => {
 
         expect(mock.calls.length).toBe(1)
         expect(browser.networkProvideResponse).not.toHaveBeenCalled()
+    })
+
+    it('ignores network events of contexts other than its own', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        vi.mocked(browser.networkAddIntercept)
+            .mockResolvedValueOnce({ intercept: 'id-A' })
+            .mockResolvedValueOnce({ intercept: 'id-B' })
+        const mockA = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['A'] })
+        const mockB = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['B'] })
+
+        mockB.abort()
+        browser.emit('network.beforeRequestSent', { ...getBlockedRequestStub('req-1'), intercepts: ['id-A'], context: 'A' })
+        expect(browser.networkFailRequest).not.toHaveBeenCalled()
+
+        browser.emit('network.beforeRequestSent', { ...getBlockedRequestStub('req-2'), intercepts: ['id-B'], context: 'B' })
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-2' })
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-3'), isBlocked: false, context: 'A' })
+        expect(mockA.calls).toHaveLength(1)
+        expect(mockB.calls).toHaveLength(0)
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-4'), isBlocked: false, context: null })
+        expect(mockA.calls).toHaveLength(1)
+        expect(mockB.calls).toHaveLength(0)
+    })
+
+    it('answers a blocked iframe request of a held context', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+        mock.abort()
+
+        browser.emit('network.beforeRequestSent', { ...getBlockedRequestStub('req-1'), context: 'child' })
+        expect(browser.networkFailRequest).toHaveBeenCalledWith({ request: 'req-1' })
+    })
+
+    it('ignores a blocked request paused by another mock', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+        mock.abort()
+
+        browser.emit('network.beforeRequestSent', { ...getBlockedRequestStub('req-1'), intercepts: ['other-id'], context: 'top' })
+        expect(browser.networkFailRequest).not.toHaveBeenCalled()
+        expect(browser.networkContinueRequest).not.toHaveBeenCalled()
+    })
+
+    it('records observed events of descendant contexts only', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+
+        browser.emit('browsingContext.contextCreated', { context: 'child', parent: 'top' })
+        browser.emit('browsingContext.contextCreated', { context: 'grandchild', parent: 'child' })
+        browser.emit('browsingContext.contextCreated', { context: 'foreign', parent: 'other' })
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-1'), isBlocked: false, context: 'grandchild' })
+        expect(mock.calls).toHaveLength(1)
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-2'), isBlocked: false, context: 'foreign' })
+        expect(mock.calls).toHaveLength(1)
+
+        browser.emit('browsingContext.contextDestroyed', { context: 'grandchild' })
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-3'), isBlocked: false, context: 'grandchild' })
+        expect(mock.calls).toHaveLength(1)
+    })
+
+    it('records a completed response of a descendant context but not of an unrelated one', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+        browser.emit('browsingContext.contextCreated', { context: 'child', parent: 'top' })
+
+        const event = (context: string, request = getResponseCollectionRequestStub().request) => ({ ...getResponseCollectionRequestStub(), request, isBlocked: false, context })
+        browser.emit('network.responseStarted', event('child'))
+        expect(mock.calls).toHaveLength(1)
+
+        browser.emit('network.responseCompleted', event('unrelated', { ...getResponseCollectionRequestStub().request, request: 'req-other' }))
+        await waitForAsyncHandlers()
+        expect(browser.networkGetData).not.toHaveBeenCalled()
+
+        browser.emit('network.responseCompleted', event('child'))
+        await waitForAsyncHandlers()
+        expect(mock.calls[0].body).toBe('response-body')
+    })
+
+    it('records observed events of iframes that existed before the mock', async () => {
+        const browser = getResponseCollectionBrowserMock({}, {
+            browsingContextGetTree: vi.fn().mockResolvedValue({ contexts: [{
+                context: 'top',
+                children: [{ context: 'child', children: [{ context: 'grandchild', children: [] }] }]
+            }] })
+        })
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+        expect(browser.browsingContextGetTree).toHaveBeenCalledWith({ root: 'top' })
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-1'), isBlocked: false, context: 'grandchild' })
+        expect(mock.calls).toHaveLength(1)
+    })
+
+    it('collects the response body of a blocked request from an iframe unknown to the mock', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser, { contexts: ['top'] })
+
+        browser.emit('network.responseStarted', { ...getResponseCollectionRequestStub(), intercepts: ['mock-id'], context: 'child' })
+        expect(mock.calls).toHaveLength(1)
+
+        browser.emit('network.responseCompleted', { ...getResponseCollectionRequestStub(), isBlocked: false, context: 'child' })
+        await waitForAsyncHandlers()
+        expect(mock.calls[0].body).toBe('response-body')
+    })
+
+    it('handles network events of any context without contexts', async () => {
+        const browser = getResponseCollectionBrowserMock()
+        const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
+
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-1'), isBlocked: false, context: 'A' })
+        browser.emit('network.responseStarted', { ...getBlockedRequestStub('req-2'), isBlocked: false, context: null })
+        expect(mock.calls).toHaveLength(2)
     })
 
     it('should not record requests that do not match the mock pattern', async () => {
@@ -1822,7 +1937,6 @@ describe('WebDriverInterception', () => {
             const mock = await WebDriverInterception.initiate('http://test.com/**', {}, browser)
             SESSION_MOCKS['handle-1'] = new Set([mock])
 
-            mock.respond({ ok: true })
             browser.emit('network.responseStarted', {
                 ...getResponseCollectionRequestStub(),
                 intercepts: ['mock-id']

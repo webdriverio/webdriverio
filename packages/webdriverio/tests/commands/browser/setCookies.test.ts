@@ -1,7 +1,11 @@
 import path from 'node:path'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { expect, describe, beforeEach, beforeAll, afterEach, it, vi, type MockInstance } from 'vitest'
 
 import { remote } from '../../../src/index.js'
+import { setParallelContextStore } from '../../../src/session/context.js'
+
+const parallelStore = new AsyncLocalStorage<string>()
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -101,6 +105,29 @@ describe('setCookies', () => {
 
         beforeEach(() => {
             storageSetCookie.mockClear()
+            setParallelContextStore(parallelStore)
+        })
+
+        it('should scope to the context origin inside a parallel scope', async () => {
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'https://webdriver.io/', userContext: 'uc-1', children: [] }]
+            } as any)
+            await parallelStore.run('ctx-1', () => browser.setCookies(cookie1))
+            expect(storageSetCookie).toBeCalledWith(expect.objectContaining({
+                partition: { type: 'storageKey', sourceOrigin: 'https://webdriver.io', userContext: 'uc-1' }
+            }))
+        })
+
+        it('should propagate BiDi errors inside a parallel scope without addCookie', async () => {
+            const addCookie = vi.spyOn(browser, 'addCookie')
+            addCookie.mockClear()
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'ctx-1', url: 'about:blank', children: [] }]
+            } as any)
+            storageSetCookie.mockRejectedValueOnce(new Error('bidi boom'))
+            await expect(parallelStore.run('ctx-1', () => browser.setCookies(cookie1)))
+                .rejects.toThrow('bidi boom')
+            expect(addCookie).not.toBeCalled()
         })
 
         it('should support passing an array', async () => {

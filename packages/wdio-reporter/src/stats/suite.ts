@@ -7,6 +7,8 @@ export interface Suite {
     type?: string
     title: string
     parent?: string
+    /** `null` marks a top-level suite (child of the reporter root); `undefined` falls back to the open-suite stack */
+    parentUid?: string | null
     fullTitle: string
     pending?: boolean
     file: string

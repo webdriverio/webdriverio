@@ -28,6 +28,9 @@ export interface Test {
     retries?: number
     argument?: string | Argument
     state?: string
+    contextId?: string
+    /** `null` marks a top-level suite (child of the reporter root); `undefined` falls back to the open-suite stack */
+    parentUid?: string | null
 }
 
 interface Output {
