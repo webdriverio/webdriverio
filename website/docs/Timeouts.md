@@ -78,8 +78,7 @@ await myElem.waitForDisplayed({ timeout: 10000 })
 
 When the page removes or renders again an element that a command uses, the driver answers with a stale element reference. WebdriverIO then looks for the element again with the selector it was found with, and waits up to `waitforTimeout` for it. When the element is there (rendered again), the command runs on it. When it is not, the command fails after that one wait with this error:
 
-- `name`: `webdriverio(middleware): element was not found again`
-- `code`: `ELEMENT_NOT_FOUND_AGAIN`, a short key to check in code
+- `code`: `ELEMENT_NOT_FOUND_AGAIN`
 - `message`: `Can't call <command> on element with selector "<selector>" because element wasn't found`, where `<command>` is the command that you called (for an item of a `$$()` list: `… "<selector>" at index <n> because element wasn't found`). When the page removed a parent of the element, the message is about that parent: its selector, and the command that looked for it (for example `Can't call $ on element with selector "tr" at index 1 because element wasn't found`)
 - `cause`: the stale element reference error of the driver
 
@@ -93,12 +92,12 @@ describe('a removed element', () => {
         await browser.execute(() => document.querySelector('h1')?.remove())
 
         const error = await title.getText().then(() => null, (err: Error) => err)
-        expect(error?.name).toBe('webdriverio(middleware): element was not found again')
+        expect(error).toHaveProperty('code', 'ELEMENT_NOT_FOUND_AGAIN')
     })
 })
 ```
 
-In 9.32.0 and 10.0.0 to 10.0.2, a command on a removed element failed with the stale element reference error, after 1 to 4 times `waitforTimeout`. Up to 9.31.9 it failed after one wait with the same message, without this name, code and cause, and the message could name an internal command (for example `getElementText` for `getText()`).
+In 9.32.0 and 10.0.0 to 10.0.2, a command on a removed element failed with the stale element reference error, after 1 to 4 times `waitforTimeout`. Up to 9.31.9 it failed after one wait with the same message, without this code and cause, and the message could name an internal command (for example `getElementText` for `getText()`).
 
 ## Framework related timeouts
 

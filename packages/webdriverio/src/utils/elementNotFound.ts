@@ -4,18 +4,13 @@
  */
 
 /**
- * The name of the error of a command on a stale element that the lookup waited
- * `waitforTimeout` for and did not find again (the page removed it). Its message is the
- * "element wasn't found" message of `implicitWait`, its `cause` the stale element error.
- * It is not a stale element error, so the outer layers of the command do not look for the
- * element (and wait) again.
+ * The `code` of the error of a command on a stale element that the lookup waited
+ * `waitforTimeout` for and did not find again (the page removed it). The error is the
+ * "element wasn't found" error of `implicitWait`, as in 9.31.9, with this code and the stale
+ * element error as its `cause`. It is not a stale element error, so the outer layers of the
+ * command do not look for the element (and wait) again.
  */
-export const ELEMENT_NOT_FOUND_AGAIN = 'webdriverio(middleware): element was not found again'
-
-/**
- * the `code` of that error: a short, stable key to check in code (the name is for people)
- */
-export const ELEMENT_NOT_FOUND_AGAIN_CODE = 'ELEMENT_NOT_FOUND_AGAIN'
+export const ELEMENT_NOT_FOUND_AGAIN = 'ELEMENT_NOT_FOUND_AGAIN'
 
 /**
  * a registered symbol: another copy of webdriverio in the same process sees the flag
@@ -44,7 +39,7 @@ export function waitedFor(err: unknown): boolean {
  * `ELEMENT_NOT_FOUND_AGAIN`
  */
 export function isElementNotFoundAgain(err: unknown): boolean {
-    return Boolean(err && typeof err === 'object' && (err as { name?: unknown }).name === ELEMENT_NOT_FOUND_AGAIN)
+    return Boolean(err && typeof err === 'object' && (err as { code?: unknown }).code === ELEMENT_NOT_FOUND_AGAIN)
 }
 
 /**
@@ -64,12 +59,11 @@ export function notFoundElement(err: unknown): object | undefined {
 }
 
 /**
- * Name the error of a stale element that was not found again, see `ELEMENT_NOT_FOUND_AGAIN`.
- * When the element that was not found is the element of the command, the message names the
- * command (the outer layers of the command name it in turn, so the message names the
- * command that the user called). The first line of the stack shows the new name and message.
- * The `code` is `ELEMENT_NOT_FOUND_AGAIN_CODE`; the `cause` is the stale element error of the
- * driver, when the caller gives it.
+ * Give the error of a stale element that was not found again its code, see
+ * `ELEMENT_NOT_FOUND_AGAIN`, and its `cause`, the stale element error of the driver (when the
+ * caller gives it). When the element that was not found is the element of the command, the
+ * message names the command (the outer layers of the command name it in turn, so the message
+ * names the command that the user called); the first line of the stack shows that message.
  */
 export function nameNotFoundAgain(err: Error, el: object, commandName: string, cause?: unknown) {
     if (!Object.isExtensible(err)) {
@@ -80,9 +74,8 @@ export function nameNotFoundAgain(err: Error, el: object, commandName: string, c
         withCause.cause ??= cause
     }
     const firstLine = `${err.name}: ${err.message}`
-    err.name = ELEMENT_NOT_FOUND_AGAIN
     const withCode: Error & { code?: string } = err
-    withCode.code = ELEMENT_NOT_FOUND_AGAIN_CODE
+    withCode.code = ELEMENT_NOT_FOUND_AGAIN
     if (notFoundElements.get(err) === el) {
         /**
          * a replacer function: `$` patterns of a replacement string would turn `$$` into `$`

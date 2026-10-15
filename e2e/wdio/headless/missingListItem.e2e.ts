@@ -232,7 +232,7 @@ describe('an index that the list of $$ never reaches', () => {
          */
         const outcomeOf = (promise: Promise<unknown>) => promise.then(
             (value) => value,
-            (error: Error) => error.name === 'webdriverio(middleware): element was not found again'
+            (error: Error & { code?: string }) => error.code === 'ELEMENT_NOT_FOUND_AGAIN'
                 ? 'not found again'
                 : error.name === 'stale element reference' || error.message.includes('stale element reference')
                     ? 'stale'

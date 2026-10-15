@@ -146,8 +146,8 @@ describe('middleware', () => {
          * the error of a command whose lookup waited for the element and did not find it
          */
         const expectGone = (error: Error | null) => {
-            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
-            expect((error as Error & { code?: string } | null)?.code).toBe('ELEMENT_NOT_FOUND_AGAIN')
+            expect(error?.name).toBe('Error')
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
             expect(error?.message).toMatch(/wasn't found/)
         }
         const real = vi.mocked(refetchElement).getMockImplementation()!
@@ -231,7 +231,7 @@ describe('middleware', () => {
              * `#spinner` was never found: it keeps its plain error
              */
             expect(error?.name).toBe('Error')
-            expect((error as Error & { code?: string } | null)?.code).toBeUndefined()
+            expect(error).not.toHaveProperty('code')
             expect(error?.message).toBe('Can\'t call click on element with selector "#spinner" because element wasn\'t found')
             expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
         })
@@ -244,7 +244,7 @@ describe('middleware', () => {
 
             // @ts-expect-error undefined custom command
             const error = await elem.staleGone().then(() => null, (e: Error) => e)
-            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
             /**
              * the lookup recorded `#foo`, the element of this command: the message names the command
              */

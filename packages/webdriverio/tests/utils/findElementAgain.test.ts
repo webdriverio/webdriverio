@@ -552,7 +552,7 @@ describe('finding an element again', () => {
             driver.light.set('.item', ['elem-b'])
 
             const { error } = await settle(elem.getText())
-            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
         })
     })
 
@@ -649,7 +649,7 @@ describe('finding an element again', () => {
             driver.light.set('.item', ['elem-a'])
 
             const { error } = await settle(elem.getText())
-            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
         })
 
         it('a command throws "Index out of bounds" after one lookup, without a second wait', async () => {
@@ -789,7 +789,7 @@ describe('finding an element again', () => {
         it('getText waits for the item and throws that it was not found again', async () => {
             const elem = await goneItem()
             const { error } = await settle(elem.getText())
-            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
         })
 
         it('getText uses the item when the list reaches its index again while it waits', async () => {
@@ -815,7 +815,7 @@ describe('finding an element again', () => {
                 vi.mocked(refetchElement).mockClear()
 
                 const { error } = await settle(elem.getText())
-                expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+                expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
                 return vi.mocked(refetchElement).mock.calls.length
             }
 
@@ -852,8 +852,11 @@ describe('finding an element again', () => {
          * the error of a command on an element that the page removed
          */
         const expectGone = (error?: Error) => {
-            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
-            expect((error as Error & { code?: string } | undefined)?.code).toBe('ELEMENT_NOT_FOUND_AGAIN')
+            /**
+             * the error of 9.31.9, with a code (#16077)
+             */
+            expect(error?.name).toBe('Error')
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
             expect(error?.message).toMatch(/wasn't found/)
         }
         const removedHost = async () => {
@@ -1053,7 +1056,7 @@ describe('finding an element again', () => {
 
             // @ts-expect-error undefined custom command
             const { error } = await waits(list.clickTargetGone())
-            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
             expect((error as Error & { cause?: Error }).cause?.name).toBe('stale element reference')
         })
 
@@ -1244,7 +1247,7 @@ describe('finding an element again', () => {
                 const elem = await removedRef()
                 const { error } = await waits(elem.getText())
                 expect(error?.message).toBe('Can\'t call getText on element with selector "#ref" because element wasn\'t found')
-                expect(error?.stack?.split('\n')[0]).toBe(`${ELEMENT_NOT_FOUND_AGAIN}: ${error?.message}`)
+                expect(error?.stack?.split('\n')[0]).toBe(`Error: ${error?.message}`)
             })
 
             it('names a custom command of the element', async () => {
@@ -1290,7 +1293,7 @@ describe('finding an element again', () => {
                 }) as typeof fetch)
 
                 const { error } = await waits(elem.getText())
-                expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+                expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
                 expect(error?.message).toBe('Can\'t call getText on element with selector "#ref" because element wasn\'t found')
             })
 
@@ -1683,7 +1686,7 @@ describe('finding an element again in strict mode', () => {
         it('throws that it was not found again when nothing matches', async () => {
             const elem = await staleElement([])
             const { error } = await settle(elem.getText())
-            expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
+            expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
         })
 
         it('resolves the only match', async () => {
