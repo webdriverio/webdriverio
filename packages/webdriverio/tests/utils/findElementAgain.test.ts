@@ -1015,6 +1015,20 @@ describe('finding an element again', () => {
          * the text "stale element reference" in a selector is in the message of the error: the
          * error is still not a stale element error (#16077 review)
          */
+        it('waits once in a command of a container for a child that was never found and whose selector has the text of a stale element error', async () => {
+            const browser = await session()
+            browser.addCommand('clickNeverThere', function (this: WebdriverIO.Element) {
+                return this.$('[data-error="stale element reference"]').click()
+            }, { attachToElement: true })
+            driver.light.set('#host', ['host-a'])
+            const host = await browser.$('#host')
+
+            // @ts-expect-error undefined custom command
+            const { error, waits: count } = await waits(host.clickNeverThere())
+            expect(error?.message).toMatch(/wasn't found/)
+            expect(count).toBe(1)
+        })
+
         it('waits once for an element whose selector has the text of a stale element error', async () => {
             const browser = await session()
             const selector = '[data-error="stale element reference"]'
