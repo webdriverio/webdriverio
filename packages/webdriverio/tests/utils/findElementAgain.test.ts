@@ -1186,7 +1186,12 @@ describe('finding an element again', () => {
             driver.options.staleMessage = CHROME_STALE_MESSAGE
             const elem = await removedRef()
             vi.mocked(refetchElement).mockClear()
-            const { error, waits: count } = await waits(elem.waitForEnabled())
+            /**
+             * a timeout shorter than the wait for the element (waitforTimeout): that wait can end
+             * up to one waitforInterval early, and with the same timeout `waitUntil` would then
+             * still have time to check again (flaky on CI)
+             */
+            const { error, waits: count } = await waits(elem.waitForEnabled({ timeout: 50 }))
             expect(error).toBeInstanceOf(Error)
             /**
              * the error of the wait has the error of the removed element as cause (#16077 review)
