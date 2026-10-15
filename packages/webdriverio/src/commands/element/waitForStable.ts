@@ -76,8 +76,10 @@ export async function waitForStable (
         timeoutMsg = `element ("${describeSelector(this)}") still ${reverse ? '' : 'not '}stable after ${timeout}ms`
     }: WaitForOptions = {}
 ) {
-    let errorMsg!: string
-    let failure: unknown
+    /**
+     * the error of the last check, in an object: a check can throw `undefined`
+     */
+    let failure: { error: unknown } | undefined
     const browser = getBrowserObject(this)
 
     if (browser.isMobile && browser.isNativeContext) {
@@ -90,19 +92,11 @@ export async function waitForStable (
              * only the error of the last check counts: a later check can succeed, e.g. when the
              * page rendered the element again
              */
-            errorMsg = ''
             failure = undefined
             try {
                 return reverse !== await this.isStable()
             } catch (error) {
-                failure = error
-                if (error instanceof Error) {
-                    errorMsg = error.message
-                } else if (typeof error === 'string') {
-                    errorMsg = error
-                } else {
-                    errorMsg = 'The waitForStable command got an unknown error'
-                }
+                failure = { error }
                 // fail early
                 return !reverse
             }
@@ -110,12 +104,19 @@ export async function waitForStable (
         { timeout, interval, timeoutMsg }
     )
 
-    /**
-     * the error of an element that was not found again keeps its name and cause
-     */
-    if (isElementNotFoundAgain(failure)) {
-        throw failure
+    if (!failure) {
+        return
     }
+    const { error } = failure
+    /**
+     * the error of an element that was not found again keeps its code and cause
+     */
+    if (isElementNotFoundAgain(error)) {
+        throw error
+    }
+    const errorMsg = error instanceof Error
+        ? error.message
+        : typeof error === 'string' ? error : 'The waitForStable command got an unknown error'
     if (errorMsg) {
         throw Error(errorMsg)
     }
