@@ -1,6 +1,7 @@
 import { getBrowserObject } from '@wdio/utils'
 import type { WaitForOptions } from '../../types.js'
 import { describeSelector } from '../../utils/describeSelector.js'
+import { isElementNotFoundAgain } from '../../utils/elementNotFound.js'
 
 /**
  *
@@ -76,6 +77,7 @@ export async function waitForStable (
     }: WaitForOptions = {}
 ) {
     let errorMsg!: string
+    let failure: unknown
     const browser = getBrowserObject(this)
 
     if (browser.isMobile && browser.isNativeContext) {
@@ -89,9 +91,11 @@ export async function waitForStable (
              * page rendered the element again
              */
             errorMsg = ''
+            failure = undefined
             try {
                 return reverse !== await this.isStable()
             } catch (error) {
+                failure = error
                 if (error instanceof Error) {
                     errorMsg = error.message
                 } else if (typeof error === 'string') {
@@ -106,6 +110,12 @@ export async function waitForStable (
         { timeout, interval, timeoutMsg }
     )
 
+    /**
+     * the error of an element that was not found again keeps its name and cause
+     */
+    if (isElementNotFoundAgain(failure)) {
+        throw failure
+    }
     if (errorMsg) {
         throw Error(errorMsg)
     }

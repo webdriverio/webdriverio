@@ -1460,9 +1460,10 @@ describe('finding an element again', () => {
             vi.mocked(refetchElement).mockClear()
             const { error, waits: count } = await waits(elem.waitForStable())
             /**
-             * `waitForStable` throws a new error with the message of the error of its check
+             * the error of its check, with its name and cause (#16077 review)
              */
-            expect(error?.message).toMatch(/wasn't found/)
+            expectGone(error)
+            expect((error as Error & { cause?: Error }).cause?.name).toBe('stale element reference')
             expect(count).toBe(1)
             expect(vi.mocked(refetchElement).mock.calls.map(([, commandName]) => commandName)).toEqual(['isStable'])
         })
