@@ -215,7 +215,10 @@ export const getElements = function getElements(
             return client
         }, listProperties ??= shareListCommands())
 
-        const elementInstance: WebdriverIO.Element = element((this as WebdriverIO.Browser).sessionId, commandWrapper)
+        /**
+         * an item uses the command wrapper of its list, see `shareListCommands`
+         */
+        const elementInstance: WebdriverIO.Element = element((this as WebdriverIO.Browser).sessionId)
 
         const origAddCommand = elementInstance.addCommand.bind(elementInstance)
         elementInstance.addCommand = (name: string, fn: AddCommandFn) => {

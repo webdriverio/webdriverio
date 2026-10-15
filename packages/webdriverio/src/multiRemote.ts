@@ -166,15 +166,14 @@ export default class MultiRemote {
     }
 
     /**
-     * The properties and the command wrapper of the entries of one multi-remote list: the
-     * entries share their wrapped commands, see `shareCommands`
+     * The properties of the entries of one multi-remote list: the entries share their wrapped
+     * commands and the command wrapper, see `shareCommands`
      */
     static listElements (
         propertiesObject: Record<string, PropertyDescriptor>,
         scope: MultiRemote,
-    ): MultiRemoteListElements {
-        const commandWrapper = MultiRemote.elementCommandWrapper(scope)
-        return { commandWrapper, properties: shareCommands({}, MultiRemote.elementProperties(propertiesObject), commandWrapper) }
+    ): MultiRemoteListProperties {
+        return shareCommands({}, MultiRemote.elementProperties(propertiesObject), MultiRemote.elementCommandWrapper(scope))
     }
 
     /**
@@ -197,9 +196,9 @@ export default class MultiRemote {
         result: unknown,
         propertiesObject: Record<string, PropertyDescriptor>,
         scope: MultiRemote,
-        list?: MultiRemoteListElements
+        listProperties?: MultiRemoteListProperties
     ): WebdriverIO.MultiRemoteElement {
-        const prototype = list?.properties ?? MultiRemote.elementProperties(propertiesObject)
+        const prototype = listProperties ?? MultiRemote.elementProperties(propertiesObject)
         const results = Array.isArray(result) ? result as WebdriverIO.Element[] : []
 
         const element = webdriverMonad({}, (client: WebdriverIO.MultiRemoteElement) => {
@@ -271,7 +270,10 @@ export default class MultiRemote {
         // @ts-expect-error
         const sessionId = this.sessionId
 
-        return element(sessionId, list?.commandWrapper ?? MultiRemote.elementCommandWrapper(scope))
+        /**
+         * an entry of a list uses the command wrapper of its list
+         */
+        return element(sessionId, listProperties ? undefined : MultiRemote.elementCommandWrapper(scope))
     }
 
     /**
@@ -318,12 +320,12 @@ export default class MultiRemote {
             if (LIST_QUERIES.has(commandName)) {
                 const [selector, ...props] = args as [Selector, ...unknown[]]
                 let loadedInstances = instances
-                const wrapMultiRemote = (elements: unknown, list?: MultiRemoteListElements) => MultiRemote.elementWrapper(
+                const wrapMultiRemote = (elements: unknown, listProperties?: MultiRemoteListProperties) => MultiRemote.elementWrapper(
                     loadedInstances,
                     elements,
                     this.__propertiesObject__,
                     self,
-                    list
+                    listProperties
                 )
                 return ElementArray.fromAsyncCallback(async () => {
                     const { result, activeInstances } = await execute()
@@ -332,9 +334,9 @@ export default class MultiRemote {
                      * the entries of one load share their commands. An entry made later (an index
                      * past the end) gets the commands of that time, see `wrapMultiRemote`
                      */
-                    let list: MultiRemoteListElements | undefined
+                    let listProperties: MultiRemoteListProperties | undefined
                     return zipElements(result as WebdriverIO.Element[][]).map((elements) => (
-                        wrapMultiRemote(elements, list ??= MultiRemote.listElements(this.__propertiesObject__, self))
+                        wrapMultiRemote(elements, listProperties ??= MultiRemote.listElements(this.__propertiesObject__, self))
                     ))
                 }, {
                     selector,
@@ -374,10 +376,10 @@ export default class MultiRemote {
     }
 }
 
-interface MultiRemoteListElements {
-    commandWrapper: Function
-    properties: Record<string | symbol, PropertyDescriptor>
-}
+/**
+ * the properties of the entries of one multi-remote list, see `MultiRemote.listElements`
+ */
+type MultiRemoteListProperties = Record<string | symbol, PropertyDescriptor>
 
 /**
  * event listener class that propagates events to sub drivers
