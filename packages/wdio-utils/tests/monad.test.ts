@@ -708,6 +708,23 @@ describe('monad', () => {
             expect(single.someFunc()).toBe('some')
         })
 
+        it('adds a command with the name of an object method to the client, as a client with its own commands does', () => {
+            const { clients } = listOf(2, { someFunc: { value: () => 'some' } })
+            clients[0].addCommand('toString', () => 'mine')
+            expect(clients[0].toString()).toBe('mine')
+            expect(clients[1].toString()).not.toBe('mine')
+        })
+
+        it('lets a command that a client adds replace an overwrite of that client, as a client with its own commands does', () => {
+            const make = () => listOf(1, { someFunc: { value: () => 'some' } }).clients[0]
+            const single = () => webdriverMonad({}, (client: any) => client, { scope: { value: 'element' }, someFunc: { value: () => 'some' } })(sessionId, (name: string, fn: Function) => fn)
+            for (const client of [make(), single()]) {
+                client.overwriteCommand('someFunc', (orig: Function) => `over:${orig()}`)
+                client.addCommand('someFunc', () => 'added')
+                expect(client.someFunc()).toBe('added')
+            }
+        })
+
         it('overwrites a command of one client only', () => {
             const { clients } = listOf(2, { someFunc: { value: () => 'some' } })
             clients[0].overwriteCommand('someFunc', (orig: Function) => `over:${orig()}`)

@@ -386,9 +386,14 @@ export default function WebDriver(options: object, modifier?: Function, properti
          * A command that a client of a list adds with the name of a command of the list does
          * not change that client: the command of the list stays, as for a client with its own
          * commands, where its own property hides the one of the prototype. An overwrite
-         * (`origCommand`) changes it.
+         * (`origCommand`) changes it, and a command added after an overwrite replaces it (the
+         * overwrite removed that own property).
          */
-        if (shared && !proto && !origCommand && name in shared.commands) {
+        if (
+            shared && !proto && !origCommand &&
+            Object.prototype.hasOwnProperty.call(shared.commands, name) &&
+            !Object.prototype.hasOwnProperty.call(prototype, name)
+        ) {
             return
         }
         /**
