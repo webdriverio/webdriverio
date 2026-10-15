@@ -482,6 +482,10 @@ export default class SpecReporter extends WDIOReporter {
      */
     getCountDisplay (duration: string) {
         const output: string[] = []
+        const failedHooks = new Set(this.getOrderedSuites().flatMap(
+            suite => suite.hooks.filter(hook => hook.error)
+        )).size
+        const failedTests = this._stateCounts.failed - failedHooks
 
         // Get the passes
         if (this._stateCounts.passed > 0) {
@@ -491,8 +495,14 @@ export default class SpecReporter extends WDIOReporter {
         }
 
         // Get the failures
-        if (this._stateCounts.failed > 0) {
-            const text = `${this._stateCounts.failed} failing ${duration}`.trim()
+        if (failedTests > 0) {
+            const text = `${failedTests} failing ${duration}`.trim()
+            output.push(this.setMessageColor(text, State.FAILED))
+            duration = ''
+        }
+
+        if (failedHooks > 0) {
+            const text = `${failedHooks} failing hook${failedHooks === 1 ? '' : 's'} ${duration}`.trim()
             output.push(this.setMessageColor(text, State.FAILED))
             duration = ''
         }

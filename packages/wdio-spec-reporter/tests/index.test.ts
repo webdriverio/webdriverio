@@ -94,6 +94,27 @@ describe('SpecReporter', () => {
         })
     })
 
+    it.each([0, 1])('separates failed hooks from %i failed tests in the printed report', (failedTests) => {
+        tmpReporter.write = vi.fn()
+        tmpReporter['_suiteUids'] = SUITE_UIDS
+        tmpReporter.suites = SUITES_NO_TESTS_WITH_HOOK_ERROR as any
+        const hook = Object.values(SUITES_NO_TESTS_WITH_HOOK_ERROR)[0].hooks[0]
+        tmpReporter.onHookEnd(hook as any)
+        if (failedTests) {
+            tmpReporter.onTestFail({ uid: 'failed-test' } as any)
+        }
+        tmpReporter.printReport(getRunnerConfig({ hostname: 'localhost' }))
+
+        const output = vi.mocked(tmpReporter.write).mock.calls.map(call => String(call[0])).join('\n')
+        expect(output).toContain('1 failing hook')
+        expect(output).toContain('a failed hook')
+        expect(output).toContain('expected foo to equal bar')
+        expect(output).not.toMatch(new RegExp(`${failedTests + 1} failing(?: \\([^\\n]*\\))?\\n`))
+        if (failedTests) {
+            expect(output).toMatch(/1 failing(?: \([^\n]*\))?\n/)
+        }
+    })
+
     describe('onTestPass', () => {
         beforeAll(() => {
             reporter.onTestPass({
