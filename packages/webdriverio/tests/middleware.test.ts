@@ -6,7 +6,8 @@ import { waitForExist } from '../src/commands/element/waitForExist.js'
 import refetchElement from '../src/utils/refetchElement.js'
 import { StrictSelectorError } from '../src/utils/strictSelectorError.js'
 import { remote } from '../src/index.js'
-import { ELEMENT_NOT_FOUND_AGAIN, markWaited, recordNotFound } from '../src/utils/elementNotFound.js'
+import { markWaited, recordNotFound } from '../src/utils/elementNotFound.js'
+import { ELEMENT_NOT_FOUND_AGAIN } from '../src/utils/errorCodes.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
-import { ELEMENT_NOT_FOUND_AGAIN, isElementNotFoundAgain, markWaited, nameNotFoundAgain, recordNotFound, waitedFor } from '../../src/utils/elementNotFound.js'
+import { isElementNotFoundAgain, markWaited, nameNotFoundAgain, recordNotFound, waitedFor } from '../../src/utils/elementNotFound.js'
+import { ELEMENT_NOT_FOUND_AGAIN } from '../../src/utils/errorCodes.js'
 
 describe('the flag of a wait that ended without the element', () => {
     it('is hidden', () => {

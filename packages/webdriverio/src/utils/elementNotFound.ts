@@ -10,8 +10,6 @@
  */
 import { ELEMENT_NOT_FOUND_AGAIN, hasCode } from './errorCodes.js'
 
-export { ELEMENT_NOT_FOUND_AGAIN }
-
 /**
  * local to this copy of webdriverio, as the record below: an element runs its commands in
  * the copy that made it

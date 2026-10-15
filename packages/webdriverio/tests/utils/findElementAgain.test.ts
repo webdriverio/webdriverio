@@ -9,7 +9,7 @@ import { itemOf } from '../../src/utils/findElementAgain.js'
 import refetchElement from '../../src/utils/refetchElement.js'
 import implicitWait from '../../src/utils/implicitWait.js'
 import { isStaleElementError } from '../../src/utils/index.js'
-import { ELEMENT_NOT_FOUND_AGAIN } from '../../src/utils/elementNotFound.js'
+import { ELEMENT_NOT_FOUND_AGAIN } from '../../src/utils/errorCodes.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
