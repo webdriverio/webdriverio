@@ -129,6 +129,9 @@ function clientProperties(this: void, options: object, properties: PropertiesObj
  * list: the commands are wrapped once, on one object that each client inherits from, instead
  * of on each client (about 280 properties). Each client still has its own prototype (its
  * events and the commands that `addCommand` / `overwriteCommand` add to it).
+ *
+ * Give the monad of each client the same `options` and command wrapper: the commands of the
+ * list keep the ones given here, and `addCommand` / `overwriteCommand` use the ones of the client.
  */
 export function shareCommands(options: object, properties: PropertiesObject, commandWrapper?: Function): PropertiesObject {
     const scopeType = SCOPE_TYPES[properties.scope?.value || 'browser']
