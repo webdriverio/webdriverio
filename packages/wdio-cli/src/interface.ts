@@ -178,9 +178,7 @@ export default class WDIOCLInterface extends EventEmitter {
 
     getFilenames(specs: string[] = []) {
         if (specs.length > 0) {
-            return '- ' + specs
-                .map((spec) => spec.startsWith('file://') ? spec : spec.replaceAll(process.cwd(), ''))
-                .join(', ')
+            return '- ' + specs.join(', ')
         }
         return ''
     }

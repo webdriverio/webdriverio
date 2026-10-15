@@ -294,24 +294,16 @@ describe('cli interface', () => {
             expect(wdioClInterface.getFilenames([spec])).toEqual(`- ${spec}`)
         })
 
-        it('removes cwd from plain spec paths', () => {
-            expect(wdioClInterface.getFilenames([path.join(process.cwd(), 'foo.ts')])).toEqual(`- ${path.sep}foo.ts`)
-        })
-
-        it('matches cwd literally', () => {
-            const cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue('/tmp/project (1)')
-            try {
-                expect(wdioClInterface.getFilenames(['/tmp/project (1)/foo.ts', '/tmp/project 1/bar.ts']))
-                    .toEqual('- /foo.ts, /tmp/project 1/bar.ts')
-            } finally {
-                cwdSpy.mockRestore()
-            }
+        it('keeps plain spec paths intact', () => {
+            const spec = path.join(process.cwd(), 'test', 'specs', 'example.e2e.ts')
+            expect(wdioClInterface.getFilenames([spec])).toEqual(`- ${spec}`)
         })
 
         it('does not throw for a cwd that is an invalid regex', () => {
             const cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue('/tmp/project (1')
             try {
-                expect(wdioClInterface.getFilenames(['/tmp/project (1/foo.ts'])).toEqual('- /foo.ts')
+                const spec = url.pathToFileURL('/tmp/project (1/foo.ts').href
+                expect(wdioClInterface.getFilenames([spec])).toEqual(`- ${spec}`)
             } finally {
                 cwdSpy.mockRestore()
             }
