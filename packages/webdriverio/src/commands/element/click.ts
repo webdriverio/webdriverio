@@ -328,6 +328,10 @@ async function actionClick(
             log.warn('y would cause a out of bounds error as it goes outside of element')
         }
     }
+    const isNativeApp = browser.isMobile && (await browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)
+    if (!isNativeApp) {
+        await bringIntoView(browser, element, { x, y })
+    }
     if (bidiBrowser) {
         await bidiAssertClickable(element)
     }
@@ -341,10 +345,6 @@ async function actionClick(
             .pause(duration)
             .up({ button })
             .perform(skipRelease)
-    }
-    const isNativeApp = browser.isMobile && (await browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)
-    if (!isNativeApp) {
-        await bringIntoView(browser, element, { x, y })
     }
     try {
         return await clickNested()

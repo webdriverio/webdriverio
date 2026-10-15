@@ -274,11 +274,22 @@ describe('click test', () => {
             const chain = { move: vi.fn(), down: vi.fn(), pause: vi.fn(), up: vi.fn(), perform: vi.fn().mockResolvedValue(undefined) }
             for (const k of ['move', 'down', 'pause', 'up'] as const) { chain[k].mockReturnValue(chain) }
             const getElementRect = vi.fn().mockResolvedValue({ width: 100, height: 100 })
+            const execute = vi.fn().mockResolvedValue(undefined)
             vi.mocked(getBrowserObject).mockImplementation(() => (
-                { isMobile: false, action: vi.fn().mockReturnValue(chain), getElementRect } as any
+                { isMobile: false, action: vi.fn().mockReturnValue(chain), getElementRect, execute } as any
             ))
-            return { elem, chain, getElementRect }
+            return { elem, chain, getElementRect, execute }
         }
+
+        it('scrolls the element into view once, before the intercept check', async () => {
+            const { elem, chain, execute } = await setup()
+            const order: string[] = []
+            execute.mockImplementation(async () => { order.push('scroll') })
+            vi.mocked(bidiAssertClickable).mockImplementationOnce(async () => { order.push('check') })
+            chain.perform.mockImplementation(async () => { order.push('perform') })
+            await elem.click()
+            expect(order).toEqual(['scroll', 'check', 'perform'])
+        })
 
         it('moves with duration 0 on the default click', async () => {
             const { elem, chain } = await setup()
