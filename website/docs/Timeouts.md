@@ -74,13 +74,10 @@ await myElem.waitForDisplayed()
 await myElem.waitForDisplayed({ timeout: 10000 })
 ```
 
-A wait that times out throws an error with `code` `WAIT_UNTIL_TIMEOUT` (also with a custom `timeoutMsg`); a condition that throws gives an error without this code.
-
 ### An element that the page removed
 
 When the page removes or renders again an element, WebdriverIO finds it again with its selector and waits up to `waitforTimeout`. If it is there, the command runs on it. If not, the command fails with:
 
-- `code`: `ELEMENT_NOT_FOUND_AGAIN`
 - `message`: `Can't call <command> on element with selector "<selector>" because element wasn't found` (a `$$()` item: `… "<selector>" at index <n> …`; a removed parent: the message is about the parent)
 - `cause`: the stale element reference error of the driver
 
@@ -94,7 +91,7 @@ describe('a removed element', () => {
         await browser.execute(() => document.querySelector('h1')?.remove())
 
         const error = await title.getText().then(() => null, (err: Error) => err)
-        expect(error).toHaveProperty('code', 'ELEMENT_NOT_FOUND_AGAIN')
+        expect(error?.message).toContain('because element wasn\'t found')
     })
 })
 ```
