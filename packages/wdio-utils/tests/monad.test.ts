@@ -756,6 +756,20 @@ describe('monad', () => {
             }
         })
 
+        it('gives each client the options and the command wrapper of the list', () => {
+            const listWrapper = vi.fn((name: string, fn: Function) => fn)
+            const otherWrapper = vi.fn((name: string, fn: Function) => fn)
+            const modifier = vi.fn((client: any) => client)
+            const shared = shareCommands({ baseUrl: 'list' }, { scope: { value: 'element' }, someFunc: { value: () => 'some' } }, listWrapper)
+            const client = webdriverMonad({ baseUrl: 'other' }, modifier, shared as never)(sessionId, otherWrapper)
+            client.addCommand('added', () => 'added')
+            client.overwriteCommand('someFunc', (orig: Function) => `over:${orig()}`)
+            expect(otherWrapper).not.toHaveBeenCalled()
+            expect(listWrapper.mock.calls.map(([name]) => name)).toEqual(['someFunc', 'added', 'someFunc'])
+            expect(client.options).toEqual({ baseUrl: 'list' })
+            expect(modifier.mock.calls[0][1]).toEqual({ baseUrl: 'list' })
+        })
+
         it('overwrites a command of one client only', () => {
             const { clients } = listOf(2, { someFunc: { value: () => 'some' } })
             clients[0].overwriteCommand('someFunc', (orig: Function) => `over:${orig()}`)

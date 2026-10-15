@@ -63,6 +63,11 @@ interface SharedCommands {
      * client also has (the event functions), so that the client keeps the command of the map
      */
     own: PropertiesObject
+    /**
+     * the options and the command wrapper of the list, which every client uses
+     */
+    options: object
+    commandWrapper?: Function
 }
 
 /**
@@ -130,8 +135,8 @@ function clientProperties(this: void, options: object, properties: PropertiesObj
  * of on each client (about 280 properties). Each client still has its own prototype (its
  * events and the commands that `addCommand` / `overwriteCommand` add to it).
  *
- * Give the monad of each client the same `options` and command wrapper: the commands of the
- * list keep the ones given here, and `addCommand` / `overwriteCommand` use the ones of the client.
+ * Every client uses the `options` and the command wrapper given here, also when its monad gets
+ * others.
  */
 export function shareCommands(options: object, properties: PropertiesObject, commandWrapper?: Function): PropertiesObject {
     const scopeType = SCOPE_TYPES[properties.scope?.value || 'browser']
@@ -157,11 +162,11 @@ export function shareCommands(options: object, properties: PropertiesObject, com
             return value
         }
     }
-    const shared: SharedCommands = { commands: Object.create(scopeType.prototype, descriptors), own }
+    const shared: SharedCommands = { commands: Object.create(scopeType.prototype, descriptors), own, options, commandWrapper }
     return { scope: properties.scope, [SHARED_COMMANDS]: { value: shared } }
 }
 
-export default function WebDriver(options: object, modifier?: Function, properties: PropertiesObject = {}) {
+export default function WebDriver(monadOptions: object, modifier?: Function, properties: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
      * info within the `propertiesObject` object. This doesn't have any functional
@@ -170,6 +175,10 @@ export default function WebDriver(options: object, modifier?: Function, properti
     const scopeType = SCOPE_TYPES[properties.scope?.value || 'browser']
 
     const shared = properties[SHARED_COMMANDS]?.value as SharedCommands | undefined
+    /**
+     * a client of a list uses the options of the list, see `shareCommands`
+     */
+    const options = shared ? shared.options : monadOptions
     const prototype = Object.create(shared ? shared.commands : scopeType.prototype)
 
     /**
@@ -300,7 +309,11 @@ export default function WebDriver(options: object, modifier?: Function, properti
     /**
      * WebDriver monad
      */
-    function unit(this: void, sessionId: string, commandWrapper?: Function, elementCmdImplicitWaitExclusionList?: string[]) {
+    function unit(this: void, sessionId: string, clientCommandWrapper?: Function, elementCmdImplicitWaitExclusionList?: string[]) {
+        /**
+         * a client of a list wraps the commands that it adds as the list wraps its commands
+         */
+        const commandWrapper = shared ? shared.commandWrapper : clientCommandWrapper
         let client = shared
             ? Object.create(prototype, shared.own)
             : Object.create(prototype, clientProperties(options, properties, commandWrapper))
