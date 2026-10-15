@@ -13,9 +13,10 @@ import { ELEMENT_NOT_FOUND_AGAIN, hasCode } from './errorCodes.js'
 export { ELEMENT_NOT_FOUND_AGAIN }
 
 /**
- * a registered symbol: another copy of webdriverio in the same process sees the flag
+ * local to this copy of webdriverio, as the record below: an element runs its commands in
+ * the copy that made it
  */
-const WAITED_FOR = Symbol.for('wdio:waitedFor')
+const WAITED_FOR = Symbol('wdio:waitedFor')
 
 /**
  * Flag the "element wasn't found" error of `implicitWait` when its wait for the element ended

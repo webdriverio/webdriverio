@@ -3,13 +3,12 @@ import { describe, it, expect } from 'vitest'
 import { ELEMENT_NOT_FOUND_AGAIN, isElementNotFoundAgain, markWaited, nameNotFoundAgain, recordNotFound, waitedFor } from '../../src/utils/elementNotFound.js'
 
 describe('the flag of a wait that ended without the element', () => {
-    it('is a hidden registered symbol', () => {
+    it('is hidden', () => {
         const err = new Error('Can\'t call getText on element with selector "#a" because element wasn\'t found')
         expect(waitedFor(err)).toBe(false)
         markWaited(err)
         expect(waitedFor(err)).toBe(true)
         expect(Object.keys(err)).toEqual([])
-        expect((err as unknown as Record<symbol, unknown>)[Symbol.for('wdio:waitedFor')]).toBe(true)
     })
 
     it('leaves a frozen error or a value that is not an object as it is', () => {

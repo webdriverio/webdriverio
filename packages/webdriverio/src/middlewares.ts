@@ -74,7 +74,7 @@ async function invokeElementCommand (
          * the command again (9.31.9 did not either: the command would repeat its steps and wait
          * again for an element that it kept).
          */
-        const stale = !isElementNotFoundAgain(err) && !waitedFor(err) && (err.name === 'stale element reference' || isStaleElementError(err))
+        const stale = !waitedFor(err) && (err.name === 'stale element reference' || isStaleElementError(err))
         if (stale) {
             try {
                 const refetched = await refetchElement(element, commandName)
