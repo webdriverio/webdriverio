@@ -1462,6 +1462,40 @@ describe('finding an element again', () => {
                 expect(await elem.getText()).toBe('text of elem-r2')
                 expect((await wait).error?.message).toMatch(/waitUntil condition timed out/)
             })
+
+            it('waits once for a list item that the page shows during the wait and removes again', async () => {
+                const browser = await session()
+                driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
+                const elem = (await browser.$$('.item'))[2]
+                driver.stale.add('elem-c')
+                driver.light.set('.item', [])
+                /**
+                 * the page shows the item when the wait of the refetch starts, and removes it when
+                 * `waitForExist` has found it (its two lookups): the lookup of the item after it
+                 * waits for its index (#16077 review)
+                 */
+                let shown = false
+                let seen = 0
+                vi.mocked(implicitWait).mockImplementation(async (...args) => {
+                    if (!shown && !args[0].elementId) {
+                        shown = true
+                        driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c2'])
+                    }
+                    return realImplicitWait(...args)
+                })
+                const handler = vi.mocked(fetch).getMockImplementation()!
+                vi.mocked(fetch).mockImplementation((async (uri: URL | string, params?: RequestInit) => {
+                    const response = await handler(uri, params)
+                    if (String(uri).endsWith('/elements') && driver.light.get('.item')?.length === 3 && ++seen === 2) {
+                        driver.light.set('.item', [])
+                    }
+                    return response
+                }) as typeof fetch)
+
+                const { error, waits: count } = await waits(elem.getText())
+                expectGone(error)
+                expect(count).toBe(1)
+            })
         })
 
         /**

@@ -68,11 +68,18 @@ describe('implicitWait', () => {
         }
     })
 
-    it('does not flag the error when the element existed and its lookup failed after', async () => {
-        vi.mocked(findElementAgain).mockRejectedValueOnce(new Error('Index out of bounds'))
+    it('does not flag the error when the element existed and its lookup failed after for another reason than a timeout', async () => {
+        vi.mocked(findElementAgain).mockRejectedValueOnce(new Error('no such window'))
         const error = await implicitWait(missing(async () => true), 'getText').then(() => null, (err: Error) => err)
         expect(error?.message).toContain('because element wasn\'t found')
         expect(waitedFor(error)).toBe(false)
+    })
+
+    it('flags the error when the element existed and the wait for its index timed out after (#16077 review)', async () => {
+        vi.mocked(findElementAgain).mockRejectedValueOnce(Object.assign(new Error('Index out of bounds'), { code: 'WAIT_UNTIL_TIMEOUT' }))
+        const error = await implicitWait(missing(async () => true), 'getText').then(() => null, (err: Error) => err)
+        expect(error?.message).toContain('because element wasn\'t found')
+        expect(waitedFor(error)).toBe(true)
     })
 
     it('throws a strict-mode violation as it is, without a flag', async () => {

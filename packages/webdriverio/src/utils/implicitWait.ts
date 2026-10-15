@@ -44,10 +44,8 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             'that wasn\'t found, waiting for it...'
         )
 
-        let existed = false
         try {
             await currentElement.waitForExist()
-            existed = true
             /**
              * if waitForExist was successful requery element and assign elementId to the scope,
              * with the command, index and strictness it was originally queried with. Falling
@@ -91,11 +89,11 @@ export default async function implicitWait (currentElement: WebdriverIO.Element,
             }
             const notFound = new Error(message)
             /**
-             * the wait for the element timed out without it. A lookup that failed after the
-             * element existed, a poll that threw (a closed window) or a session that ended gets
+             * the wait for the element, or for its index after `waitForExist` found it, timed
+             * out without it. A poll that threw (a closed window) or a session that ended gets
              * no flag
              */
-            if (!existed && hasCode(err, WAIT_UNTIL_TIMEOUT)) {
+            if (hasCode(err, WAIT_UNTIL_TIMEOUT)) {
                 markWaited(notFound)
             }
             throw notFound
