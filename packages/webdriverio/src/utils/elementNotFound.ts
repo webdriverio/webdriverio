@@ -11,18 +11,19 @@
 import { ELEMENT_NOT_FOUND_AGAIN, hasCode } from './errorCodes.js'
 
 /**
- * local to this copy of webdriverio, as the record below: an element runs its commands in
- * the copy that made it
+ * The "element wasn't found" errors of `implicitWait` whose wait for the element ended without
+ * it: `true`, or, after `refetchElement`, the element of the chain that was not found. Local to
+ * this copy of webdriverio: an element runs its commands in the copy that made it
  */
-const WAITED_FOR = Symbol('wdio:waitedFor')
+const notFound = new WeakMap<object, object | true>()
 
 /**
  * Flag the "element wasn't found" error of `implicitWait` when its wait for the element ended
- * without it, with a hidden property. An error that can not get it (frozen) is left as it is.
+ * without it. A recorded element stays, see `recordNotFound`
  */
 export function markWaited(err: unknown) {
-    if (err && typeof err === 'object' && Object.isExtensible(err)) {
-        Object.defineProperty(err, WAITED_FOR, { value: true })
+    if (err && typeof err === 'object' && !notFound.has(err)) {
+        notFound.set(err, true)
     }
 }
 
@@ -30,7 +31,7 @@ export function markWaited(err: unknown) {
  * whether the error comes from a wait for the element that ended without it, see `markWaited`
  */
 export function waitedFor(err: unknown): boolean {
-    return Boolean(err && typeof err === 'object' && (err as { [WAITED_FOR]?: boolean })[WAITED_FOR] === true)
+    return Boolean(err && typeof err === 'object' && notFound.has(err))
 }
 
 /**
@@ -42,19 +43,18 @@ export function isElementNotFoundAgain(err: unknown): err is Error & { code: typ
 }
 
 /**
- * the element of the chain whose lookup ended without it, for each error of `implicitWait`
- * in `refetchElement`
+ * Record the element of the chain whose lookup ended without it, for an error of
+ * `implicitWait` in `refetchElement`
  */
-const notFoundElements = new WeakMap<object, object>()
-
 export function recordNotFound(err: unknown, el: object) {
     if (err && typeof err === 'object') {
-        notFoundElements.set(err, el)
+        notFound.set(err, el)
     }
 }
 
 export function notFoundElement(err: unknown): object | undefined {
-    return err && typeof err === 'object' ? notFoundElements.get(err) : undefined
+    const el = err && typeof err === 'object' ? notFound.get(err) : undefined
+    return el === true ? undefined : el
 }
 
 /**
@@ -75,7 +75,7 @@ export function nameNotFoundAgain(err: Error, el: object, commandName: string, c
     const firstLine = `${err.name}: ${err.message}`
     const withCode: Error & { code?: string } = err
     withCode.code = ELEMENT_NOT_FOUND_AGAIN
-    if (notFoundElements.get(err) === el) {
+    if (notFoundElement(err) === el) {
         /**
          * a replacer function: `$` patterns of a replacement string would turn `$$` into `$`
          */

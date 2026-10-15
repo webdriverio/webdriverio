@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { isElementNotFoundAgain, markWaited, nameNotFoundAgain, recordNotFound, waitedFor } from '../../src/utils/elementNotFound.js'
+import { isElementNotFoundAgain, markWaited, nameNotFoundAgain, notFoundElement, recordNotFound, waitedFor } from '../../src/utils/elementNotFound.js'
 import { ELEMENT_NOT_FOUND_AGAIN } from '../../src/utils/errorCodes.js'
 
 describe('the flag of a wait that ended without the element', () => {
@@ -12,11 +12,28 @@ describe('the flag of a wait that ended without the element', () => {
         expect(Object.keys(err)).toEqual([])
     })
 
-    it('leaves a frozen error or a value that is not an object as it is', () => {
-        for (const value of [Object.freeze(new Error('frozen')), 'x', undefined, null]) {
+    it('is also on a frozen error', () => {
+        const err = Object.freeze(new Error('frozen'))
+        markWaited(err)
+        expect(waitedFor(err)).toBe(true)
+    })
+
+    it('leaves a value that is not an object as it is', () => {
+        for (const value of ['x', undefined, null]) {
             expect(() => markWaited(value)).not.toThrow()
             expect(waitedFor(value)).toBe(false)
         }
+    })
+
+    it('is kept with the element that was not found, in one record', () => {
+        const el = {}
+        const err = new Error('Can\'t call $ on element with selector "#host" because element wasn\'t found')
+        markWaited(err)
+        expect(notFoundElement(err)).toBeUndefined()
+        recordNotFound(err, el)
+        markWaited(err)
+        expect(waitedFor(err)).toBe(true)
+        expect(notFoundElement(err)).toBe(el)
     })
 })
 
