@@ -59,8 +59,9 @@ interface SharedCommands {
      */
     commands: object
     /**
-     * the descriptors that each client defines on itself: names that the prototype of each
-     * client also has (the event functions), so that the client keeps the command of the map
+     * the descriptors that each client defines on itself: the event functions of the map (the
+     * prototype of each client also has them, and the client must keep the ones of the map),
+     * and a getter that makes the own `__propertiesObject__` of the client on its first read
      */
     own: PropertiesObject
     /**
@@ -182,12 +183,13 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
     const prototype = Object.create(shared ? shared.commands : scopeType.prototype)
 
     /**
-     * Put a function on a prototype with an assignment. The prototype of a client of a list
-     * inherits the commands of the list, which are read-only (see `shareCommands`): there an
-     * assignment throws, so the function is defined with the attributes of an assignment.
+     * Put a function on a prototype. The own prototype of the client gets it defined, with the
+     * attributes of an assignment: for a client of a list it inherits the read-only commands of
+     * the list (see `shareCommands`), where an assignment throws. Another prototype (`proto`)
+     * gets an assignment, which keeps the attributes of a method that it already has.
      */
     const setOnPrototype = (target: Record<string | symbol, unknown>, name: string, value: Function) => {
-        if (shared && target === prototype) {
+        if (target === prototype) {
             Object.defineProperty(target, name, { configurable: true, enumerable: true, writable: true, value })
         } else {
             target[name] = value
