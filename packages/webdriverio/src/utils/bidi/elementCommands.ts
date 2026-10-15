@@ -283,8 +283,8 @@ export function bidiGetValue(element: WebdriverIO.Element): Promise<string> {
 }
 
 /**
- * Inspired by the Selenium atom: webdriver.atoms.element.attribute.get()
- * @see https://github.com/SeleniumHQ/selenium/blob/trunk/javascript/webdriver/atoms/attribute.js
+ * W3C Get Element Attribute: boolean attributes → 'true' if present, else the raw attribute value.
+ * @see https://w3c.github.io/webdriver/#get-element-attribute
  */
 export function bidiGetAttribute(element: WebdriverIO.Element, name: string): Promise<string | null> {
     return exec(element, function (el, attrName) {
@@ -299,67 +299,10 @@ export function bidiGetAttribute(element: WebdriverIO.Element, name: string): Pr
             'reversed', 'scoped', 'seamless', 'seeking', 'selected', 'truespeed',
             'typemustmatch', 'willvalidate'
         ])
-        const PROP_ALIASES = { 'class': 'className', 'readonly': 'readOnly' }
-
-        const n = attrName.toLowerCase()
-
-        // 1. style → computed cssText
-        if (n === 'style') {
-            const style = el.style
-            if (!style) { return null }
-            return typeof style === 'string' ? style : style.cssText
+        if (BOOLEAN_PROPS.has(attrName.toLowerCase())) {
+            return el.hasAttribute(attrName) ? 'true' : null
         }
-
-        // 2. selected/checked on selectable elements → boolean normalization
-        if (n === 'selected' || n === 'checked') {
-            const isOpt = el.tagName === 'OPTION'
-            const isCheckable = el.tagName === 'INPUT' && ((el.type || '').toLowerCase() === 'checkbox' || (el.type || '').toLowerCase() === 'radio')
-            if (isOpt || isCheckable) {
-                return (isOpt ? el.selected : el.checked) ? 'true' : null
-            }
-        }
-
-        // 3. href on <a> / src on <img> → resolved URL (property, not literal attribute)
-        const tag = el.tagName.toUpperCase()
-        if ((tag === 'IMG' && n === 'src') || (tag === 'A' && n === 'href')) {
-            const raw = el.getAttribute(n)
-            if (raw) { return String(el[n]) }
-            return raw
-        }
-
-        // 4. spellcheck → normalized 'true'/'false'
-        if (n === 'spellcheck') {
-            const sa = el.getAttribute(n)
-            if (sa !== null) {
-                const lower = sa.toLowerCase()
-                if (lower === 'false') { return 'false' }
-                if (lower === 'true') { return 'true' }
-            }
-            return String(el.spellcheck)
-        }
-
-        // 5. Boolean properties → 'true' or null
-        const propName = (PROP_ALIASES as Record<string, string>)[n] || n
-        if (BOOLEAN_PROPS.has(n)) {
-            const hasAttr = el.getAttribute(n) !== null
-            const propVal = el[propName]
-            return (hasAttr || !!propVal) ? 'true' : null
-        }
-
-        // 6. value on <li> → raw attribute (avoid numeric li.value index)
-        if (n === 'value' && tag === 'LI') {
-            const v = el.getAttribute(n)
-            return v !== null ? v : null
-        }
-
-        // 7. General case: DOM property first, attribute fallback
-        let prop
-        try { prop = el[propName] } catch { /* property access may throw on some nodes */ }
-        if (prop === null || prop === undefined || (typeof prop === 'object' && prop !== null) || typeof prop === 'function') {
-            const attr = el.getAttribute(n)
-            return attr !== null ? attr : null
-        }
-        return prop !== null && prop !== undefined ? String(prop) : null
+        return el.getAttribute(attrName)
     }, name) as Promise<string | null>
 }
 
@@ -418,6 +361,7 @@ type SelectMatch = 'text' | 'attribute' | 'index'
 function selectInPage(element: WebdriverIO.Element, match: SelectMatch, first: string | number, second?: string): Promise<BidiSelectResult> {
     return exec(element, function (selectEl, kind, a, b) {
         const normalize = (value: string) => (value || '').replace(/\s+/g, ' ').trim()
+        const normalizeSpace = (value: string | null) => (value ?? '').replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, '').replace(/[ \t\r\n]+/g, ' ')
         const options = selectEl.options
         const count = options.length
         let option = null
@@ -428,7 +372,7 @@ function selectInPage(element: WebdriverIO.Element, match: SelectMatch, first: s
                 const opt = options[i]
                 const matches = kind === 'text'
                     ? normalize(opt.textContent) === a || normalize(opt.label) === a
-                    : opt.getAttribute(a) === b || opt[a] === b
+                    : normalizeSpace(opt.getAttribute(a.trim())) === b.trim()
                 if (matches) { option = opt }
             }
         }

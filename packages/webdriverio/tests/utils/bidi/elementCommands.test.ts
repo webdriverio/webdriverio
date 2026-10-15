@@ -529,91 +529,58 @@ describe('bidiAddMaskedValue', () => {
 })
 
 describe('bidiGetAttribute', () => {
-    it('returns style.cssText when attr is "style"', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['style'], 'attr-result')
-        const el = { style: { cssText: 'color: red; font-size: 16px;' } }
-        expect(fn(el, 'style')).toBe('color: red; font-size: 16px;')
-    })
+    function makeEl(attrs: Record<string, string>, props: Record<string, unknown> = {}) {
+        return {
+            ...props,
+            hasAttribute: (n: string) => n.toLowerCase() in attrs,
+            getAttribute: (n: string) => attrs[n.toLowerCase()] ?? null
+        }
+    }
 
-    it('returns null when style property is missing', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['style'])
-        expect(fn({ style: undefined }, 'style')).toBeNull()
-    })
-
-    it('returns "true" for selected option', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['selected'])
-        expect(fn({ tagName: 'OPTION', selected: true }, 'selected')).toBe('true')
-    })
-
-    it('returns null for unselected option', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['selected'])
-        expect(fn({ tagName: 'OPTION', selected: false }, 'selected')).toBeNull()
-    })
-
-    it('returns "true" for checked checkbox, null for unchecked', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['checked'])
-        expect(fn({ tagName: 'INPUT', type: 'checkbox', checked: true }, 'checked')).toBe('true')
-        expect(fn({ tagName: 'INPUT', type: 'checkbox', checked: false }, 'checked')).toBeNull()
-    })
-
-    it('returns resolved href on anchor elements', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['href'])
-        const el = { tagName: 'A', href: 'https://example.com/page', getAttribute: () => '/page' }
-        expect(fn(el, 'href')).toBe('https://example.com/page')
-    })
-
-    it('returns resolved src on img elements', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['src'])
-        const el = { tagName: 'IMG', src: 'https://example.com/img.png', getAttribute: () => '/img.png' }
-        expect(fn(el, 'src')).toBe('https://example.com/img.png')
-    })
-
-    it('returns raw attribute for href when property is empty', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['href'])
-        // When el.href is empty, String(el.href) returns '' — the resolved property wins
-        const el = { tagName: 'A', href: '', getAttribute: (name: string) => name === 'href' ? '/page' : null }
-        expect(fn(el, 'href')).toBe('')
-    })
-
-    it('normalizes spellcheck when attr is "false"', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['spellcheck'])
-        const el = { tagName: 'DIV', spellcheck: true, getAttribute: () => 'false' }
-        expect(fn(el, 'spellcheck')).toBe('false')
-    })
-
-    it('returns "true" for boolean properties when present', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['disabled'])
-        const el = { tagName: 'INPUT', disabled: true, getAttribute: (name: string) => name === 'disabled' ? '' : null }
-        expect(fn(el, 'disabled')).toBe('true')
-    })
-
-    it('returns null for boolean properties when absent', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['hidden'])
-        expect(fn({ tagName: 'DIV', getAttribute: () => null, hidden: false }, 'hidden')).toBeNull()
-    })
-
-    it('returns li value from attribute rather than numeric li.value', async () => {
+    it('returns the attribute, not the live value, after typing', async () => {
         const { fn } = await captureExecutedFn(bidiGetAttribute, ['value'])
-        const el = { tagName: 'LI', value: 3, getAttribute: (name: string) => name === 'value' ? 'custom-value' : null }
-        expect(fn(el, 'value')).toBe('custom-value')
+        expect(fn(makeEl({ value: 'initial' }, { tagName: 'INPUT', value: 'edited' }), 'value')).toBe('initial')
     })
 
-    it('falls back to DOM property when attribute is absent', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['class'])
-        const el = { tagName: 'DIV', className: 'my-class', getAttribute: () => null }
-        expect(fn(el, 'class')).toBe('my-class')
+    it.each([
+        ['input value', { tagName: 'INPUT', value: '' }, 'value'],
+        ['input type', { tagName: 'INPUT', type: 'text' }, 'type'],
+        ['checkbox value', { tagName: 'INPUT', type: 'checkbox', value: 'on' }, 'value'],
+        ['div title', { tagName: 'DIV', title: '' }, 'title'],
+        ['div class', { tagName: 'DIV', className: '' }, 'class'],
+        ['form action', { tagName: 'FORM', action: 'https://example.com/' }, 'action'],
+        ['li value', { tagName: 'LI', value: 3 }, 'value'],
+        ['style', { tagName: 'DIV', style: { cssText: 'color: red;' } }, 'style'],
+        ['spellcheck', { tagName: 'DIV', spellcheck: true }, 'spellcheck']
+    ])('returns null for a missing %s attribute despite a DOM property', async (_n, props, attr) => {
+        const { fn } = await captureExecutedFn(bidiGetAttribute, [attr])
+        expect(fn(makeEl({}, props), attr)).toBeNull()
     })
 
-    it('falls back to the attribute when the property is a function', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['onclick'])
-        const el = { tagName: 'BUTTON', onclick: function () {}, getAttribute: (name: string) => name === 'onclick' ? 'doIt()' : null }
-        expect(fn(el, 'onclick')).toBe('doIt()')
-        expect(fn({ tagName: 'BUTTON', focus: function () {}, getAttribute: () => null }, 'focus')).toBeNull()
+    it('returns null for checked when only the property is true', async () => {
+        const { fn } = await captureExecutedFn(bidiGetAttribute, ['checked'])
+        expect(fn(makeEl({}, { tagName: 'INPUT', type: 'checkbox', checked: true }), 'checked')).toBeNull()
     })
 
-    it('returns null when both property and attribute are absent', async () => {
-        const { fn } = await captureExecutedFn(bidiGetAttribute, ['data-nope'])
-        expect(fn({ tagName: 'DIV', getAttribute: () => null }, 'data-nope')).toBeNull()
+    it('returns null for selected when only the property is true', async () => {
+        const { fn } = await captureExecutedFn(bidiGetAttribute, ['selected'])
+        expect(fn(makeEl({}, { tagName: 'OPTION', selected: true }), 'selected')).toBeNull()
+    })
+
+    it('returns "true" for a present boolean attribute regardless of its value or property', async () => {
+        const { fn } = await captureExecutedFn(bidiGetAttribute, ['selected'])
+        expect(fn(makeEl({ selected: '' }, { tagName: 'OPTION', selected: false }), 'selected')).toBe('true')
+        expect(fn(makeEl({ disabled: 'false' }, { tagName: 'INPUT' }), 'DISABLED')).toBe('true')
+    })
+
+    it('returns the raw href, not the resolved URL', async () => {
+        const { fn } = await captureExecutedFn(bidiGetAttribute, ['href'])
+        expect(fn(makeEl({ href: '/x' }, { tagName: 'A', href: 'https://example.com/x' }), 'href')).toBe('/x')
+    })
+
+    it('returns non-boolean attribute values verbatim', async () => {
+        const { fn } = await captureExecutedFn(bidiGetAttribute, ['maxlength'])
+        expect(fn(makeEl({ maxlength: '5' }, { tagName: 'INPUT', maxLength: 5 }), 'maxlength')).toBe('5')
     })
 })
 
@@ -683,12 +650,24 @@ describe('bidiSelectByAttribute', () => {
         expect(option.selected).toBe(false)
     })
 
-    it('selects option by property match when attribute does not match', async () => {
+    it('ignores a property that has no matching attribute, like the Classic XPath', async () => {
         const { fn } = await captureExecutedFn(bidiSelectByAttribute, ['value', 'prop-match'], undefined)
         const dispatchEvent = vi.fn()
         const option = { ...enabled, selected: false, getAttribute: () => null, value: 'prop-match' }
-        fn({ options: [option], dispatchEvent }, 'attribute', 'value', 'prop-match')
-        expect(option.selected).toBe(true)
+        expect(fn({ options: [option], dispatchEvent }, 'attribute', 'value', 'prop-match').selected).toBe(false)
+        expect(option.selected).toBe(false)
+    })
+
+    it.each([
+        [' a ', 'a', true],
+        ['a  b', 'a b', true],
+        ['a', ' a ', true],
+        [`a${String.fromCharCode(0xa0)}b`, 'a b', false]
+    ])('matches attribute %j against %j like XPath normalize-space: %s', async (attr, search, expected) => {
+        const { fn } = await captureExecutedFn(bidiSelectByAttribute, ['value', search], undefined)
+        const option = { ...enabled, selected: false, getAttribute: (name: string) => name === 'value' ? attr : null, value: 'other' }
+        expect(fn({ options: [option], dispatchEvent: vi.fn() }, 'attribute', ' value ', search).selected).toBe(expected)
+        expect(option.selected).toBe(expected)
     })
 
     it('reports a disabled option without selecting', async () => {
