@@ -114,10 +114,11 @@ export async function waitForStable (
     if (isElementNotFoundAgain(error)) {
         throw error
     }
+    /**
+     * a check that threw fails the wait, also with an empty message
+     */
     const errorMsg = error instanceof Error
         ? error.message
-        : typeof error === 'string' ? error : 'The waitForStable command got an unknown error'
-    if (errorMsg) {
-        throw Error(errorMsg)
-    }
+        : typeof error === 'string' ? error : ''
+    throw Error(errorMsg || 'The waitForStable command got an unknown error')
 }

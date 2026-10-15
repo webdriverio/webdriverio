@@ -95,7 +95,7 @@ describe('waitForStable', () => {
             expect((await failingCheck('foo'))?.message).toBe('foo')
         })
 
-        it.each([[{}], [undefined]])('throws an unknown error for %s', async (value) => {
+        it.each([[{}], [undefined], [new Error('')], ['']])('throws an unknown error for %s', async (value) => {
             expect((await failingCheck(value))?.message).toBe('The waitForStable command got an unknown error')
         })
     })
