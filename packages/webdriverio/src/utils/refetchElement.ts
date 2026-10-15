@@ -1,5 +1,5 @@
 import implicitWait from './implicitWait.js'
-import { recordNotFound, waitedFor } from './elementNotFound.js'
+import { notFoundElement, recordNotFound, waitedFor } from './elementNotFound.js'
 import { REACT_OPTIONS, findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
 import type { ReactSelectorOptions } from '../types.js'
@@ -67,9 +67,21 @@ export default async function refetchElement (
          * for its index would not flag its error, see `implicitWait`. An element without an
          * index is always found again, as a "not found" element when it is gone, like `$()`
          */
-        const nextElement = element.index !== undefined
-            ? await findItemAgain(element, parent)
-            : await findElementAgain(element, { parent, wait: true }) as WebdriverIO.Element
+        let nextElement: WebdriverIO.Element
+        try {
+            nextElement = element.index !== undefined
+                ? await findItemAgain(element, parent)
+                : await findElementAgain(element, { parent, wait: true }) as WebdriverIO.Element
+        } catch (err) {
+            /**
+             * the lookup in a parent without an element id waited for that parent and did not
+             * find it (for example after `isDisplayed()` of a removed parent)
+             */
+            if (waitedFor(err) && notFoundElement(err) === undefined) {
+                recordNotFound(err, parent)
+            }
+            throw err
+        }
         /**
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array

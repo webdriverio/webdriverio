@@ -155,10 +155,15 @@ describe('middleware', () => {
          */
         const refetchGives = (...results: WebdriverIO.Element[]) => {
             vi.mocked(refetchElement).mockClear()
-            vi.mocked(refetchElement).mockImplementation(async () => {
+            vi.mocked(refetchElement).mockImplementation(async (el) => {
                 const next = results.shift()
                 if (!next) {
-                    throw notFound()
+                    /**
+                     * as `refetchElement`, which records the element of the chain it did not find
+                     */
+                    const err = notFound()
+                    recordNotFound(err, el)
+                    throw err
                 }
                 return next
             })
@@ -238,7 +243,10 @@ describe('middleware', () => {
             // @ts-expect-error undefined custom command
             const error = await elem.staleGone().then(() => null, (e: Error) => e)
             expect(error?.name).toBe(ELEMENT_NOT_FOUND_AGAIN)
-            expect(error?.message).toBe('Can\'t call getText on element with selector "#foo" because element wasn\'t found')
+            /**
+             * the lookup recorded `#foo`, the element of this command: the message names the command
+             */
+            expect(error?.message).toBe('Can\'t call staleGone on element with selector "#foo" because element wasn\'t found')
             expect((error as Error & { cause?: unknown }).cause).toBe(stale)
         })
 

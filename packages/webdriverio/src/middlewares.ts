@@ -3,7 +3,7 @@ import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@w
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
-import { isElementNotFoundAgain, isListItemNotFoundAgain, nameNotFoundAgain, waitedFor } from './utils/elementNotFound.js'
+import { isElementNotFoundAgain, isListItemNotFoundAgain, nameNotFoundAgain, notFoundElement, waitedFor } from './utils/elementNotFound.js'
 import { isStaleElementError } from './utils/index.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
@@ -79,24 +79,7 @@ async function invokeElementCommand (
         const stale = !isElementNotFoundAgain(err) && !waitedFor(err) && (err.name === 'stale element reference' || isStaleElementError(err))
         if (stale || isListItemNotFoundAgain(err, element)) {
             try {
-                let refetched: WebdriverIO.Element
-                try {
-                    refetched = await refetchElement(element, commandName)
-                } catch (lookupErr) {
-                    /**
-                     * the page removed the element (or a parent): name the error, and keep the
-                     * stale element error as its cause, see `ELEMENT_NOT_FOUND_AGAIN`
-                     */
-                    if (waitedFor(lookupErr) && lookupErr instanceof Error) {
-                        /**
-                         * the cause is the stale element error of the driver, also after a list
-                         * item that was not found again
-                         */
-                        const staleErr = isElementNotFoundAgain(err) ? (err as Error & { cause?: unknown }).cause ?? err : err
-                        nameNotFoundAgain(lookupErr, element, commandName, staleErr)
-                    }
-                    throw lookupErr
-                }
+                const refetched = await refetchElement(element, commandName)
                 element.elementId = refetched.elementId
                 /**
                  * also the w3c identifier, which e.g. an action origin reads
@@ -106,25 +89,33 @@ async function invokeElementCommand (
                 return await execute()
             } catch (refetchErr) {
                 /**
-                 * The lookup, or a lookup of the command run again, waited `waitforTimeout`
-                 * for the element (or a parent) and did not find it: throw its "element
-                 * wasn't found" error. The outer layers of the command do not handle it, so
-                 * they do not wait for the element again (#16072).
-                 *
                  * A strict-mode violation is a real error the user needs to see, as in
-                 * `implicitWait`. Any other failure gives the original stale element error
-                 * instead of masking it with an unrelated error, and an outer layer can find
-                 * the element again (#15627).
+                 * `implicitWait`.
                  */
-                if (refetchErr instanceof StrictSelectorError || waitedFor(refetchErr)) {
-                    /**
-                     * the command run again did not find the element again: name this command
-                     */
-                    if (isElementNotFoundAgain(refetchErr)) {
-                        nameNotFoundAgain(refetchErr as Error, element, commandName)
+                if (refetchErr instanceof StrictSelectorError) {
+                    throw refetchErr
+                }
+                /**
+                 * The lookup, or a lookup of the command run again, waited `waitforTimeout` for
+                 * the element (or a parent) and did not find it: throw its "element wasn't found"
+                 * error. The outer layers of the command do not handle it, so they do not wait
+                 * for the element again (#16072). A lookup records the element that it did not
+                 * find: name the error for this command, with the stale element error of the
+                 * driver as its cause (also after a list item that was not found again). An
+                 * element that the command never found keeps its plain error.
+                 */
+                if (waitedFor(refetchErr)) {
+                    if (refetchErr instanceof Error && notFoundElement(refetchErr) !== undefined) {
+                        const staleErr = isElementNotFoundAgain(err) ? (err as Error & { cause?: unknown }).cause ?? err : err
+                        nameNotFoundAgain(refetchErr, element, commandName, staleErr)
                     }
                     throw refetchErr
                 }
+                /**
+                 * Any other failure gives the original stale element error instead of masking
+                 * it with an unrelated error, and an outer layer can find the element again
+                 * (#15627).
+                 */
                 if (!(refetchErr instanceof Error) || !isStaleElementError(refetchErr)) {
                     throw err
                 }
