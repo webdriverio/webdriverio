@@ -602,8 +602,8 @@ export default class SpecReporter extends WDIOReporter {
                 fullTitle: '(root)',
                 suites: []
             }
-            const beforeAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"before') && hook.title.endsWith('"{root}"'))
-            const afterAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"after') && hook.title.endsWith('"{root}"'))
+            const beforeAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"before'))
+            const afterAllHooks = rootSuite.hooks.filter((hook) => hook.state && hook.title.startsWith('"after'))
             this._orderedSuites.unshift(Object.assign({} as SuiteStats, baseRootSuite, {
                 hooks: beforeAllHooks,
                 hooksAndTests: beforeAllHooks
