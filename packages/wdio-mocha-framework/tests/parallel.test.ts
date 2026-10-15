@@ -730,6 +730,64 @@ describe('runParallelTests — per-test timeout', () => {
         expect(runnable.title).toBe('my test')
         expect(runnable.fullTitle()).toBe('outer my test')
     })
+
+    describe('grace period after timeout', () => {
+        const flushUntil = async (cond: () => boolean) => {
+            for (let i = 0; i < 100 && !cond(); i++) {
+                await new Promise((resolve) => setImmediate(resolve))
+            }
+        }
+
+        beforeEach(() => {
+            vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+            return () => { vi.useRealTimers() }
+        })
+
+        test('waits for a timed-out test fn to settle before running afterEach and cleanup', async () => {
+            const order: string[] = []
+            const testFn = vi.fn(() => new Promise<void>((resolve) => setTimeout(() => {
+                order.push('fn settled')
+                resolve()
+            }, 150)))
+            const afterEachFn = vi.fn(() => { order.push('afterEach') })
+            const suite = mockSuite('root', {
+                tests: [mockTest('slow afterTest', testFn)],
+                _afterEach: [afterEachFn]
+            })
+            const browser = mockBrowser({ contexts: ['ctx-a'] })
+            browser.browsingContextClose.mockImplementation(async () => { order.push('close') })
+
+            const run = runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], undefined, { timeout: 100 })
+            await flushUntil(() => testFn.mock.calls.length > 0)
+            await vi.advanceTimersByTimeAsync(100)
+            expect(order).toEqual([])
+            await vi.advanceTimersByTimeAsync(50)
+            const failures = await run
+
+            expect(failures).toBe(1)
+            expect(order).toEqual(['fn settled', 'afterEach', 'close'])
+            const fail = emittedEvents.find((e) => e.event === 'test:fail')
+            expect(fail.payload.error.message).toContain('Timeout of 100ms exceeded')
+        })
+
+        test('rejects after twice the timeout when the fn never settles', async () => {
+            const testFn = vi.fn(() => new Promise(() => {}))
+            const suite = mockSuite('root', { tests: [mockTest('hangs forever', testFn)] })
+            const browser = mockBrowser({ contexts: ['ctx-a'] })
+
+            const run = runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], undefined, { timeout: 100 })
+            await flushUntil(() => testFn.mock.calls.length > 0)
+            await vi.advanceTimersByTimeAsync(199)
+            expect(emittedEvents.find((e) => e.event === 'test:fail')).toBeUndefined()
+            await vi.advanceTimersByTimeAsync(1)
+            const failures = await run
+
+            expect(failures).toBe(1)
+            const fail = emittedEvents.find((e) => e.event === 'test:fail')
+            expect(fail.payload.error.message).toContain('Timeout of 100ms exceeded')
+            expect(browser.browsingContextClose).toHaveBeenCalledTimes(1)
+        })
+    })
 })
 
 describe('runParallelTests — hook failure counting', () => {

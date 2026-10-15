@@ -430,16 +430,24 @@ function callHook(hook: any, ctx: object, timeoutMs?: number): Promise<unknown> 
     }
     if (timeoutMs && timeoutMs > 0) {
         return new Promise((resolve, reject) => {
-            const timer = setTimeout(() => {
-                reject(new Error(
-                    `Timeout of ${timeoutMs}ms exceeded. For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves.`
-                ))
-            }, timeoutMs)
+            const rejectTimeout = () => reject(new Error(
+                `Timeout of ${timeoutMs}ms exceeded. For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves.`
+            ))
+            let graceTimer: ReturnType<typeof setTimeout> | undefined
+            const timer = setTimeout(() => { graceTimer = setTimeout(rejectTimeout, timeoutMs) }, timeoutMs)
+            const settle = (onTime: () => void) => {
+                clearTimeout(timer)
+                if (!graceTimer) {
+                    return onTime()
+                }
+                clearTimeout(graceTimer)
+                rejectTimeout()
+            }
             Promise.resolve()
                 .then(run)
                 .then(
-                    (value) => { clearTimeout(timer); resolve(value) },
-                    (err) => { clearTimeout(timer); reject(err) }
+                    (value) => settle(() => resolve(value)),
+                    (err) => settle(() => reject(err))
                 )
         })
     }
