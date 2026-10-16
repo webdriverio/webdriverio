@@ -59,6 +59,7 @@ export default class LocalRunner {
             this.stdout,
             this.stderr,
         )
+        worker.logFileAttempt = (this.workerPool[workerOptions.cid]?.logFileAttempt ?? -1) + 1
         this.workerPool[workerOptions.cid] = worker
         await worker.postMessage(command, args)
         return worker

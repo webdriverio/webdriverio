@@ -111,6 +111,7 @@ describe('startWebDriver', () => {
         delete process.env.EDGEDRIVER_CDNURL
         delete process.env.CHROMEDRIVER_CDNURL
         vi.stubEnv('WAYLAND_DISPLAY', undefined)
+        vi.stubEnv('WDIO_WORKER_LOG_ID', undefined)
         vi.mocked(canDownload).mockClear()
         /**
          * reset rather than clear so that a test which makes the install fail can
@@ -729,6 +730,20 @@ describe('startWebDriver', () => {
             expect.stringContaining('wdio-1-2-chromedriver.log'),
             { flags: 'w' }
         )
+    })
+
+    it('uses the internal attempt log id only in a worker, with legacy and standalone fallbacks', async () => {
+        for (const [workerId, logId, filename] of [
+            ['1-2', '1-2-1', 'wdio-1-2-1-chromedriver.log'],
+            ['1-2', '1-2-2', 'wdio-1-2-2-chromedriver.log'],
+            ['1-2', undefined, 'wdio-1-2-chromedriver.log'],
+            [undefined, 'inherited-stale-id', 'wdio-chromedriver-1234.log']
+        ]) {
+            vi.stubEnv('WDIO_WORKER_ID', workerId)
+            vi.stubEnv('WDIO_WORKER_LOG_ID', logId)
+            await startWebDriver({ outputDir: '/foo/bar', capabilities: { browserName: 'chrome' } })
+            expect(fs.createWriteStream).toHaveBeenLastCalledWith(path.resolve('/foo/bar', filename!), { flags: 'w' })
+        }
     })
 
     it('should skip desktop Firefox download and binary injection when androidPackage is set', async () => {

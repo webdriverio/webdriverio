@@ -458,6 +458,8 @@ If you want your test run to stop after a specific number of test failures, use 
 
 The number of times to retry an entire specfile when it fails as a whole.
 
+With `outputDir` enabled, the first attempt keeps its original worker and driver log filenames. Each spec-file retry adds an attempt suffix, for example `test-0-0-1.log` and `wdio-0-0-1-chromedriver.log` for the first retry, then `-2` for the second. The worker ID stays unchanged. Framework-level test retries and watch-mode reruns within the same worker do not create a new set of log files; launcher and reporter log filenames are also unchanged.
+
 </Option>
 
 ### specFileRetriesDelay

@@ -257,7 +257,7 @@ export async function startWebDriver(options: Capabilities.RemoteConfig) {
     const logIdentifier = driver.split(' ').shift()?.toLowerCase() || 'driver'
     if (options.outputDir) {
         const logFileName = process.env.WDIO_WORKER_ID
-            ? `wdio-${process.env.WDIO_WORKER_ID}-${logIdentifier}.log`
+            ? `wdio-${process.env.WDIO_WORKER_LOG_ID || process.env.WDIO_WORKER_ID}-${logIdentifier}.log`
             : `wdio-${logIdentifier}-${port}.log`
         const logFile = path.resolve(options.outputDir, logFileName)
         const logStream = fs.createWriteStream(logFile, { flags: 'w' })

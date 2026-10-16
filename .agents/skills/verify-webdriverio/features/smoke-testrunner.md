@@ -33,6 +33,7 @@ Preconditions:
 - **Watch mode.** Run `pnpm run test:smoke watchMode`. Exit 0 and stdout contains `All smoke tests passed!`. The suite reruns a changed spec in the same WebDriver session, including one failing rerun.
 - **filesToWatch.** Run `pnpm run test:smoke watchFilesToWatch`. Exit 0 and stdout contains `All smoke tests passed!`. Changing a watched file reruns every spec, each spec keeps its own session, and shutdown deletes every retained session.
 - **Unknown name.** Run `pnpm run test:smoke notARealSuite`. Exit 1 and stdout names the suite and lists valid names. The runner prints that error with `console.log`.
+- **Retry log preservation.** Run `pnpm run test:smoke cucumberRetryLogs`. Exit 0 and stdout includes `Cucumber retry logs: 3 attempts, same CID, all closed worker log bytes preserved` and `All smoke tests passed!`. The scenario fails twice and then passes; it compares the actual closed log bytes again after both retries. Driver output is mocked here; the real-driver fixture is described in [Example pipeline](example-pipeline.md).
 - **Proof.** Save output to `.agents/verify-artifacts/smoke-testrunner/`. `result.txt` records the suite name, exit code, and the passed or skipped count the suite asserts when it prints them.
 
 ## Gotchas
