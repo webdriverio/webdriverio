@@ -29,16 +29,17 @@ describe('monad', () => {
     it('does not pass event handler functions through the command wrapper', () => {
         const commandWrapper = vi.fn().mockImplementation((_name, fn) => fn)
         const noop = () => {}
+        const events = ['on', 'off', 'emit', 'once', 'removeListener', 'removeAllListeners']
         webdriverMonad({}, (client: any) => client, {
             ...prototype,
-            emit: { value: noop },
-            on: { value: noop }
+            ...Object.fromEntries(events.map((name) => [name, { value: noop }]))
         })(sessionId, commandWrapper)
 
         const wrapped = commandWrapper.mock.calls.map(([name]) => name)
         expect(wrapped).toContain('someFunc')
-        expect(wrapped).not.toContain('emit')
-        expect(wrapped).not.toContain('on')
+        for (const name of events) {
+            expect(wrapped, name).not.toContain(name)
+        }
     })
 
     it('should be able to initialize client with prototype with commands', () => {

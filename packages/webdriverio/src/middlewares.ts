@@ -10,7 +10,7 @@ import { isStaleElementError } from './utils/index.js'
  */
 import { StrictSelectorError } from './utils/strictSelectorError.js'
 
-export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
+export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements']
 
 /**
  * Run an element command after the implicit wait, and retry it when the element
