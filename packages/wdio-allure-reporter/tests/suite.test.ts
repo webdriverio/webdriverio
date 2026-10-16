@@ -6,6 +6,7 @@ import { LabelName, LinkType, Stage, Status } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
 
 import AllureReporter from '../src/reporter.js'
+import { addTestCaseId } from '../src/common/api.js'
 import { DescriptionType, type AllureReporterOptions } from '../src/types.js'
 
 /**
@@ -53,6 +54,80 @@ async function runHistoryIdCase(
     const { results } = getResults(outputDir)
     return results[0].historyId as string
 }
+
+async function runTestCaseIdCase(
+    capabilities: Record<string, unknown>,
+    { cid = '0-0', file = '/tmp/user/spec.js', retry = false, metadata = async (_reporter: AllureReporter) => {}, includeVersionInHistoryId = false } = {},
+) {
+    const outputDir = temporaryDirectory()
+    try {
+        const reporter = new AllureReporter({ outputDir, includeVersionInHistoryId })
+        const runner = { ...runnerStart(), capabilities, cid, specs: [file] }
+        const suite = { ...suiteStart(), file, cid }
+        const test = { ...testStart(), cid }
+        reporter.onRunnerStart(runner as any)
+        reporter.onSuiteStart(suite)
+        reporter.onTestStart(test)
+        await metadata(reporter)
+        if (retry) {
+            reporter.onTestRetry({ ...testFailed(), cid })
+            reporter.onTestStart(test)
+        }
+        reporter.onTestPass({ ...testPassed(), cid })
+        reporter.onSuiteEnd({ ...suiteEnd(), cid })
+        await reporter.onRunnerEnd(runnerEnd())
+        return getResults(outputDir).results
+    } finally {
+        clean(outputDir)
+    }
+}
+
+describe('Test case IDs', () => {
+    it('should exclude capability parameters while preserving parameter-sensitive history', async () => {
+        const [chrome] = await runTestCaseIdCase({ browserName: 'chrome' })
+        const [firefox] = await runTestCaseIdCase({ browserName: 'firefox' })
+        expect(chrome.parameters).not.toEqual(firefox.parameters)
+        expect(chrome.testCaseId).toEqual(firefox.testCaseId)
+        expect(chrome.historyId).not.toEqual(firefox.historyId)
+    })
+
+    it('should exclude user parameters from the generated testCaseId', async () => {
+        const [first] = await runTestCaseIdCase({}, { metadata: async reporter => reporter.addArgument({ name: 'input', value: 'first' }) })
+        const [second] = await runTestCaseIdCase({}, { metadata: async reporter => reporter.addArgument({ name: 'input', value: 'second' }) })
+        expect(first.parameters).not.toEqual(second.parameters)
+        expect(first.testCaseId).toEqual(second.testCaseId)
+    })
+
+    it('should distinguish tests with the same title in different files', async () => {
+        const [first] = await runTestCaseIdCase({}, { file: '/tmp/user/first.spec.js' })
+        const [second] = await runTestCaseIdCase({}, { file: '/tmp/user/second.spec.js' })
+        expect(first.fullName).not.toEqual(second.fullName)
+        expect(first.testCaseId).not.toEqual(second.testCaseId)
+    })
+
+    it('should retain testCaseId across workers, runs and versioned parameters', async () => {
+        const [first] = await runTestCaseIdCase({ browserName: 'chrome', browserVersion: '1' }, { includeVersionInHistoryId: true })
+        const [second] = await runTestCaseIdCase({ browserName: 'chrome', browserVersion: '2' }, { cid: '2-1', includeVersionInHistoryId: true })
+        expect(first.testCaseId).toEqual(second.testCaseId)
+        expect(first.historyId).not.toEqual(second.historyId)
+    })
+
+    it('should retain testCaseId for both retry attempts', async () => {
+        const results = await runTestCaseIdCase({ browserName: 'chrome' }, { retry: true })
+        expect(results).toHaveLength(2)
+        expect(results[0].testCaseId).toBeTypeOf('string')
+        expect(results[0].testCaseId).toEqual(results[1].testCaseId)
+    })
+
+    it('should preserve an explicit testCaseId when an ALLURE_ID is added', async () => {
+        const [result] = await runTestCaseIdCase({}, { metadata: async reporter => {
+            await addTestCaseId('explicit-case-id')
+            reporter.addAllureId({ id: '1234' })
+        } })
+        expect(result.testCaseId).toEqual('explicit-case-id')
+        expect(result.labels).toContainEqual({ name: LabelName.AS_ID, value: '1234' })
+    })
+})
 
 let processOnSpy: ReturnType<typeof vi.spyOn>
 beforeAll(() => {
@@ -248,8 +323,9 @@ describe('Passing tests', () => {
         expect(allureParams[5].excluded).toEqual(true)
     })
 
-    it('should have testCaseId equal to historyId', () => {
-        expect(allureResult.testCaseId).toEqual(allureResult.historyId)
+    it('should generate a testCaseId independently of historyId', () => {
+        expect(allureResult.testCaseId).toBeTypeOf('string')
+        expect(allureResult.testCaseId).not.toEqual(allureResult.historyId)
     })
 })
 
@@ -839,7 +915,7 @@ describe('Allure ID', () => {
         clean(outputDir)
     })
 
-    it('explicitly set allureId overrides testCaseId ', () => {
+    it('should retain testCaseId with an explicitly set allureId', () => {
         const labels = mapBy<Label>(allureResult.labels, 'name')
 
         const allureId = labels[LabelName.AS_ID]

@@ -689,6 +689,46 @@ const reporterTestrunner = async () => {
 }
 
 /**
+ * Allure case identity is independent of parameters, runs and retries.
+ */
+const allureTestCaseIds = async () => {
+    const outputDir = path.resolve(__dirname, '../.agents/verify-artifacts/smoke-allure-test-case-ids/results')
+    await fs.rm(outputDir, { recursive: true, force: true })
+    for (let run = 0; run < 2; run++) {
+        const { passed, failed, skippedSpecs } = await launch(
+            'allureTestCaseIds', path.resolve(__dirname, 'helpers/allure-ids.conf.js'), {
+                specs: [path.resolve(__dirname, 'mocha/allure-ids.js')],
+                capabilities: [{ browserName: 'chrome' }, { browserName: 'firefox' }],
+                maxInstances: 1,
+                reporters: [['allure', { outputDir }]]
+            }
+        )
+        assert.strictEqual(passed, 2)
+        assert.strictEqual(failed, 0)
+        assert.strictEqual(skippedSpecs, 0)
+    }
+    const files = (await fs.readdir(outputDir)).filter(file => file.endsWith('-result.json'))
+    const results = await Promise.all(files.map(async file => JSON.parse(await fs.readFile(path.join(outputDir, file), 'utf8'))))
+    assert.strictEqual(results.length, 20)
+    const names = [...new Set(results.map(result => result.name))]
+    assert.strictEqual(names.length, 4)
+    for (const name of names) {
+        const cases = results.filter(result => result.name === name)
+        assert.strictEqual(cases.length, name.endsWith('retried') ? 8 : 4)
+        assert.strictEqual(new Set(cases.map(result => result.testCaseId)).size, 1)
+        assert.strictEqual(new Set(cases.map(result => result.historyId)).size, 2)
+        assert.ok(cases.every(result => typeof result.testCaseId === 'string' && result.testCaseId.length > 0))
+        if (name.includes('ALLURE_ID')) {
+            assert.ok(cases.every(result => result.labels.some(label => label.name === 'ALLURE_ID')))
+        }
+        if (name.includes('explicit')) {
+            assert.ok(cases.every(result => result.testCaseId === 'explicit-case-id'))
+        }
+    }
+    console.log('Allure identity: 20 written results, stable case IDs across two capability parameters, two runs and retries; explicit IDs retained.')
+}
+
+/**
  * wdio test run with before/after Test/Hook
  */
 const wdioHooks = async () => {
@@ -1373,6 +1413,7 @@ const jasmineAfterHookArgsValidation = async () => {
         customReporterObject,
         sessionGoneReport,
         reporterTestrunner,
+        allureTestCaseIds,
         severeErrorTest,
         nonGlobalTestrunner,
         mochaHooksTestrunner,
