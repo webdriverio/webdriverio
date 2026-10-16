@@ -17,6 +17,7 @@ export const config: WebdriverIO.Config = {
         path.join(__dirname, 'headless', 'shadowRootScope-repro.e2e.ts'),
         path.join(__dirname, 'headless', 'declarativeShadowRoot.e2e.ts'),
         path.join(__dirname, 'headless', 'strictSelectors.e2e.ts'),
+        path.join(__dirname, 'headless', 'children.e2e.ts'),
         path.join(__dirname, 'headless', 'findElementAgain.e2e.ts'),
         path.join(__dirname, 'headless', 'missingListItem.e2e.ts'),
         path.join(__dirname, 'headless', 'missingListItemPaths.e2e.ts'),

@@ -24,12 +24,13 @@ export * from './utils/actions/index.js'
  * re-export command types
  */
 export { InitScript } from './commands/browser/addInitScript.js'
+export type { ChildrenOptions } from './commands/element/children.js'
 
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
 
 type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
-type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
+type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$' | 'children'
 type ChainablePrototype = {
     [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement
 } & {
@@ -271,7 +272,7 @@ type MultiRemoteArrayCommandNames = ElementCommandNames | 'SESSION_MOCKS' | 'CDP
  * `shadow$`, `shadow$$` and the sibling and parent queries exist only on an element
  */
 type ElementScopeSingleElementCommandNames = SingleElementCommandNames | 'shadow$' | 'nextElement' | 'previousElement' | 'parentElement'
-type ElementScopeMultiElementCommandNames = MultiElementCommandNames | 'shadow$$'
+type ElementScopeMultiElementCommandNames = MultiElementCommandNames | 'shadow$$' | 'children'
 type MultiRemoteBrowserQueries = {
     [K in keyof Pick<BrowserCommandsType, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<WebdriverIO.MultiRemoteElement>
 } & {

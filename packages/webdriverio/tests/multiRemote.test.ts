@@ -752,6 +752,26 @@ describe('Multi-Remote tests', () => {
     })
 
     describe('list queries', () => {
+        test.each([false, true])('children supports a parent (unresolved: %s) as a multi-remote list', async (unresolved) => {
+            const browser = await multiRemote(caps())
+            for (const name of browser.instances) {
+                vi.spyOn(browser.getInstance(name), 'executeScript').mockResolvedValue([
+                    { 'element-6066-11e4-a52e-4f735466cecf': `${name}-child` }
+                ])
+            }
+            const parent = browser.$('#parent')
+            const list = unresolved ? parent.children() : (await parent).children({ withinShadowRoot: true })
+
+            expect(Array.isArray(list)).toBe(true)
+            const resolved = await list
+            expect(resolved.isMultiRemote).toBe(true)
+            expect(typeof resolved.selector).toBe('function')
+            expect(resolved).toHaveLength(1)
+            expect(resolved[0].instances).toEqual(['browserA', 'browserB'])
+            expect(resolved[0].getInstance('browserA').elementId).toBe('browserA-child')
+            expect(resolved[0].getInstance('browserB').elementId).toBe('browserB-child')
+        })
+
         const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
         /**
          * the strategy is sent as source text, so it cannot use variables from outside
