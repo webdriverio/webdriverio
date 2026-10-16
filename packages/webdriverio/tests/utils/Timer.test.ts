@@ -57,6 +57,17 @@ describe('timer', () => {
             await triggerDelay()
             expect(await timer).toBe('foobar')
         })
+
+        it('should be rejected as aborted, not as timed out, when a condition without promise is false', async () => {
+            const controller = new AbortController()
+            const timer = new Timer(10, 100, () => false, false, controller.signal)
+            await triggerDelay(1)
+            controller.abort()
+            await triggerDelay(1)
+            const error = await timer.catch((err) => err)
+            expect(error.message).toBe('Aborted')
+            expect(error).not.toHaveProperty('code')
+        })
     })
 
     it('should execute condition at least once', async () => {

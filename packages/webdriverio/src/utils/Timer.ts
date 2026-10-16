@@ -1,4 +1,15 @@
+import { TIMER_TIMEOUT } from './errorCodes.js'
+
 const TIMEOUT_ERROR = 'timeout'
+
+/**
+ * the timeout error of a timer, with its own code: a condition that throws an error with the
+ * same message is not a timeout
+ */
+function timeoutError () {
+    return Object.assign(new Error(TIMEOUT_ERROR), { code: TIMER_TIMEOUT })
+}
+
 const NOOP = () => {}
 
 /**
@@ -65,7 +76,7 @@ class Timer {
                 return
             }
 
-            const reason = this._lastError || new Error(TIMEOUT_ERROR)
+            const reason = this._lastError || timeoutError()
             this._reject(reason)
             this._stop()
         }, this._timeout)
@@ -88,11 +99,7 @@ class Timer {
         try {
             const result = this._fn()
 
-            if (!result) {
-                return this._checkCondition(new Error(TIMEOUT_ERROR))
-            }
-
-            if (typeof result.then !== 'function') {
+            if (!result || typeof result.then !== 'function') {
                 return this._checkCondition(undefined, result)
             }
 
@@ -141,7 +148,7 @@ class Timer {
             this._timeoutId = setTimeout(this._tick.bind(this), delay)
         } else {
             this._stopMain()
-            const reason = this._lastError || new Error(TIMEOUT_ERROR)
+            const reason = this._lastError || timeoutError()
             this._reject(reason)
         }
     }
