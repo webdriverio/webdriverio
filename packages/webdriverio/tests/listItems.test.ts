@@ -147,6 +147,23 @@ describe('the items of an element list', () => {
         })
     })
 
+    it('can have a spy on one item: the other items run the command, and the item gets it back on restore', async () => {
+        const browser = await session()
+        const list = await browser.$$('#foo')
+        const spy = vi.spyOn(list[0], 'getElementAttribute').mockResolvedValue('spied')
+        vi.mocked(fetch).mockClear()
+
+        expect(await list[0].getElementAttribute(list[0].elementId, 'class')).toBe('spied')
+        await list[1].getElementAttribute(list[1].elementId, 'class')
+        expect(spy).toHaveBeenCalledTimes(1)
+        expect(requests()).toEqual(['GET /element/some-elem-456/attribute/class'])
+
+        spy.mockRestore()
+        vi.mocked(fetch).mockClear()
+        expect(await list[0].getElementAttribute(list[0].elementId, 'class')).not.toBe('spied')
+        expect(requests()).toEqual(['GET /element/some-elem-123/attribute/class'])
+    })
+
     describe('a command added to the browser for elements', () => {
         it('after the list: the items of the list do not have it, a later list has it', async () => {
             const browser = await session()
