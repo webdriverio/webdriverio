@@ -1,9 +1,16 @@
 const pastVersions = [
     {
-        name: 'v9',
-        label: 'v9',
+        name: 'v10',
+        label: 'v10',
         path: 'https://webdriver.io',
         comment: 'Stable',
+        repoUrl: 'https://github.com/webdriverio/webdriverio'
+    },
+    {
+        name: 'v9',
+        label: 'v9',
+        path: 'https://v9.webdriver.io',
+        comment: 'Maintenance',
         repoUrl: 'https://github.com/webdriverio/webdriverio'
     },
     {
