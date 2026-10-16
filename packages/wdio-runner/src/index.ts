@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EventEmitter } from 'node:events'
+import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import logger from '@wdio/logger'
 import { initializeWorkerService, initializePlugin, executeHooksWithArgs, TimingTracker } from '@wdio/utils'
@@ -54,6 +56,9 @@ export default class Runner extends EventEmitter {
      * @return {Promise}                  resolves in number of failures for testrun
      */
     async run({ cid, args, specs, caps, configFile, retries }: RunParams) {
+        process.env.WDIO_SPEC_FILES = JSON.stringify((specs || []).map((spec) => (
+            spec.startsWith('file:') ? fileURLToPath(spec) : resolve(spec)
+        )))
         this._configParser = new ConfigParser(configFile, args)
         this._cid = cid
         this._specs = specs
