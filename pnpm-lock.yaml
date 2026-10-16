@@ -557,9 +557,16 @@ importers:
       depcheck:
         specifier: ^1.4.7
         version: 1.4.7(supports-color@11.0.0)
+      semver:
+        specifier: ^7.8.5
+        version: 7.8.5
       tsx:
         specifier: ^4.17.0
         version: 4.23.15
+    devDependencies:
+      '@types/semver':
+        specifier: ^7.8.0
+        version: 7.8.0
 
   infra/docs:
     dependencies:
