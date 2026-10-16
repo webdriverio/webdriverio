@@ -21,6 +21,7 @@ function Version() {
         repoUrl
     }, {
         name: 'v9',
+        label: 'v9',
         path: 'https://v9.webdriver.io',
         comment: 'Maintenance',
         repoUrl
