@@ -272,6 +272,26 @@ describe('one wait for an element that the page removed', () => {
     })
 
     /**
+     * only the removed element itself is checked without a wait (website/docs/Timeouts.md)
+     */
+    it.each([
+        ['isDisplayed', '$'],
+        ['isClickable', '$'],
+        /**
+         * `isExisting` looks for the child with `$$()` in the parent
+         */
+        ['isExisting', '$$']
+    ] as const)('%s of a child whose parent was removed waits once and fails', async (command, parentCommand) => {
+        const { child } = await host()
+        driver.stale.add('host-a').add('child-a')
+        driver.light.set('#host', [])
+        const { error, waits: count } = await waits(child[command]())
+        expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
+        expect(error?.message).toBe(`Can't call ${parentCommand} on element with selector "#host" because element wasn't found`)
+        expect(count).toBe(1)
+    })
+
+    /**
      * a check (`isDisplayed`) of a removed parent leaves it without an element id
      */
     it('waits once for a child after a check of its removed parent', async () => {
