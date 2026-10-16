@@ -1,4 +1,4 @@
-import { shareCommands, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { shareCommands, webdriverMonad, wrapCommand, WRAPPED_COMMAND } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
@@ -65,6 +65,17 @@ function elementProperties (parent: WebdriverIO.Browser | WebdriverIO.Element, b
         }, {} as Record<string, PropertyDescriptor>)),
         ...getWDIOPrototype('element'),
         scope: { value: 'element' }
+    }
+    /**
+     * The browser wrapped its commands (the protocol commands, and the commands that
+     * `addCommand` attaches to elements). The element wraps the command itself, so the
+     * command hooks run once for each command.
+     */
+    for (const [name, descriptor] of Object.entries(propertiesObject)) {
+        const command = (descriptor.value as { [WRAPPED_COMMAND]?: Function } | undefined)?.[WRAPPED_COMMAND]
+        if (command) {
+            propertiesObject[name] = { ...descriptor, value: command }
+        }
     }
     routeElementEndpoints(propertiesObject)
     propertiesObject.emit = { value: parent.emit.bind(parent) }

@@ -25,4 +25,62 @@ describe('element protocol command hooks', () => {
         expect(beforeCommand).toHaveBeenCalled()
         expect(afterCommand.mock.calls.length).toBe(beforeCommand.mock.calls.length)
     })
+
+    /**
+     * each command that runs gets one pair of hooks: the command that the user called and
+     * the commands that it runs (#16086 item 36)
+     */
+    describe('run once for each command', () => {
+        const session = async () => {
+            const before: string[] = []
+            const after: string[] = []
+            const browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: { browserName: 'foobar' },
+                beforeCommand: [(name: string) => { before.push(name) }],
+                afterCommand: [(name: string) => { after.push(name) }]
+            })
+            return { browser, before, after, reset: () => { before.length = 0; after.length = 0 } }
+        }
+
+        it('of a protocol command of an element', async () => {
+            const { browser, before, after, reset } = await session()
+            const elem = await browser.$('.foo')
+            reset()
+            await elem.elementClick(elem.elementId)
+            expect(before).toEqual(['elementClick'])
+            expect(after).toEqual(['elementClick'])
+        })
+
+        it('of an element command and the protocol command that it runs', async () => {
+            const { browser, before, after, reset } = await session()
+            const elem = await browser.$('.foo')
+            reset()
+            await elem.getText()
+            expect(before).toEqual(['getText', 'getElementText'])
+            expect(after).toEqual(['getElementText', 'getText'])
+        })
+
+        it('of a command of a list item', async () => {
+            const { browser, before, after, reset } = await session()
+            const [item] = await browser.$$('.foo')
+            reset()
+            await item.getText()
+            expect(before).toEqual(['getText', 'getElementText'])
+            expect(after).toEqual(['getElementText', 'getText'])
+        })
+
+        it('of a custom element command and the command that it runs', async () => {
+            const { browser, before, after, reset } = await session()
+            browser.addCommand('textOf', function (this: WebdriverIO.Element) {
+                return this.getElementText(this.elementId)
+            }, { attachToElement: true })
+            const elem = await browser.$('.foo')
+            reset()
+            // @ts-expect-error custom command
+            await elem.textOf()
+            expect(before).toEqual(['textOf', 'getElementText'])
+            expect(after).toEqual(['getElementText', 'textOf'])
+        })
+    })
 })
