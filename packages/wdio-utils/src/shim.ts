@@ -55,7 +55,7 @@ const runInCommandHook = (fn: () => Promise<unknown>) => commandHookScope.run(tr
 
 const ELEMENT_QUERY_COMMANDS = [
     '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
-    'react$$', 'nextElement', 'previousElement', 'parentElement', 'select'
+    'react$$', 'nextElement', 'previousElement', 'parentElement', 'children', 'select'
 ]
 const ELEMENT_PROPS = [
     'elementId', 'error', 'selector', 'parent', 'index', 'isReactElement',
@@ -70,7 +70,7 @@ const ELEMENT_RETURN_COMMANDS = ['getElement', 'getElements']
  * on it.
  */
 export const ELEMENT_ARRAY_WRAP = Symbol.for('webdriverio.elementArray.wrap')
-export const ELEMENT_ARRAY_COMMANDS = ['$$', 'custom$$', 'react$$', 'shadow$$']
+export const ELEMENT_ARRAY_COMMANDS = ['$$', 'custom$$', 'react$$', 'shadow$$', 'children']
 
 /**
  * `webdriverio` registers this so a chained call such as `$('parent').$$('child')`
@@ -103,7 +103,7 @@ const TIME_BUFFER = 3
  * browser, not an element, so it gets no brand.
  */
 function chainKind (commandName: string): WdioKind | undefined {
-    if (commandName.endsWith('$$')) {
+    if (ELEMENT_ARRAY_COMMANDS.includes(commandName) || commandName.endsWith('$$')) {
         return 'element-array'
     }
     if (commandName.endsWith('$') || ['nextElement', 'previousElement', 'parentElement'].includes(commandName)) {
@@ -399,7 +399,7 @@ function createElementPromiseProxy (
                  * await $('body').$('header').$$('div').map((elem) => elem.getLocation())
                  * ```
                  */
-                if (commandName.endsWith('$$') && typeof iterators[prop as keyof typeof iterators] === 'function') {
+                if ((ELEMENT_ARRAY_COMMANDS.includes(commandName) || commandName.endsWith('$$')) && typeof iterators[prop as keyof typeof iterators] === 'function') {
                     return (...iteratorArgs: [Function, ...unknown[]]) => createElementPromiseProxy(
                         target,
                         function (this: never, ...iteratorArgs: [Function, ...unknown[]]) {
@@ -587,7 +587,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
             if (isChainedPromise && elementArrayFactory) {
                 const parent = this
                 const metadata: ElementArrayMetadata = {
-                    selector: args[0],
+                    selector: commandName === 'children' ? undefined : args[0],
                     foundWith: commandName,
                     parent,
                     props: args.slice(1),
@@ -620,6 +620,16 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
                         ...params: unknown[]
                     ) => Promise<{ isMultiRemote?: boolean } & unknown[]>
                     const queried = await query.call(element, ...args)
+                    /**
+                     * `children` takes options, not a selector. Keep the function
+                     * selector of its underlying `$$` query so indexed refetches
+                     * use the same light or shadow root as the initial lookup.
+                     */
+                    if (commandName === 'children') {
+                        metadata.selector = (queried as { selector?: unknown }).selector
+                        metadata.foundWith = '$$'
+                        metadata.props = []
+                    }
                     if (queried?.isMultiRemote) {
                         metadata.isMultiRemote = true
                     }

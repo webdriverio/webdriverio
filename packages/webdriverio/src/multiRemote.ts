@@ -20,7 +20,7 @@ const SINGLE_QUERIES = new Set(['$', 'custom$', 'react$', 'shadow$', 'nextElemen
 /**
  * queries that find a list per instance, zipped into one multi-remote list
  */
-const LIST_QUERIES = new Set(['$$', 'custom$$', 'react$$', 'shadow$$'])
+const LIST_QUERIES = new Set(['$$', 'custom$$', 'react$$', 'shadow$$', 'children'])
 
 type EventEmitter = (args: unknown) => void
 
@@ -296,22 +296,22 @@ export default class MultiRemote {
                     this.__propertiesObject__,
                     self
                 )
+                const metadata = {
+                    selector: commandName === 'children' ? undefined : selector,
+                    foundWith: commandName === 'children' ? '$$' : commandName,
+                    parent: this,
+                    props: commandName === 'children' ? [] : props,
+                    isMultiRemote: true,
+                    wrapMultiRemote
+                }
                 return ElementArray.fromAsyncCallback(async () => {
                     const { result, activeInstances } = await execute()
                     loadedInstances = activeInstances
+                    if (commandName === 'children') {
+                        metadata.selector = (result as WebdriverIO.ElementArray[])[0]?.selector
+                    }
                     return zipElements(result as WebdriverIO.Element[][]).map(wrapMultiRemote)
-                }, {
-                    selector,
-                    foundWith: commandName,
-                    parent: this,
-                    /**
-                     * the arguments after the selector, so that
-                     * `parent[foundWith](selector, ...props)` runs the same query again
-                     */
-                    props,
-                    isMultiRemote: true,
-                    wrapMultiRemote
-                })
+                }, metadata)
             }
 
             return (async () => {

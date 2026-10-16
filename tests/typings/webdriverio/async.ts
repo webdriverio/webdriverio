@@ -2,7 +2,7 @@ import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
 import { remote, multiRemote, SevereServiceError, Key } from 'webdriverio'
-import type { ClickOptions, Selector, Action, PDFPrintOptions } from 'webdriverio'
+import type { ClickOptions, Selector, Action, PDFPrintOptions, ChildrenOptions } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
 
 declare global {
@@ -97,6 +97,8 @@ async function bar() {
     expectType<WebdriverIO.MultiRemoteElementArray>(await mrElem.custom$$('myStrategy', '.foo'))
     expectType<WebdriverIO.MultiRemoteElementArray>(await mrElem.react$$('MyComponent'))
     expectType<WebdriverIO.MultiRemoteElementArray>(await mrElem.shadow$$('.foo'))
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mrElem.children())
+    expectType<WebdriverIO.MultiRemoteElementArray>(await mrElem.children({ withinShadowRoot: true }))
     expectType<WebdriverIO.MultiRemoteElement>((await mrElem.shadow$$('.foo'))[0])
     expectType<string[][]>(await (await mr.custom$$('myStrategy', '.foo')).map((el) => el.instances))
 
@@ -129,6 +131,19 @@ async function bar() {
 
     const elements = await browser.$$('foo').getElements()
     expectType<string>(elements.foundWith)
+
+    const childrenOptions: ChildrenOptions = { withinShadowRoot: true }
+    expectType<WebdriverIO.ElementArray>(await browser.$('#host').children())
+    expectType<WebdriverIO.ElementArray>(await browser.$('#host').children(childrenOptions))
+    expectType<number>(await browser.$('#host').children().length)
+    expectType<WebdriverIO.Element>(await browser.$('#host').children()[0])
+    expectType<string>(await browser.$('#host').children()[0].getTagName())
+    expectType<string[]>(await browser.$('#host').children().map(el => el.getTagName()))
+    for await (const child of browser.$('#host').children()) {
+        expectType<WebdriverIO.Element>(child)
+    }
+    // @ts-expect-error the shadow root option must be boolean
+    browser.$('#host').children({ withinShadowRoot: 'true' })
 
     // a list before `await` has `at()` and `slice()`, like the loaded list
     expectType<string>(await browser.$$('li').at(1).getText())

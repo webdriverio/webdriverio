@@ -12,6 +12,8 @@ A user installs WebdriverIO and runs an example. The script starts a real browse
 
 ## How to get to it (user POV)
 
+- Direct children: `e2e/wdio/headless/children.e2e.ts`, selected with `--spec` from the headless testrunner config.
+
 - Standalone script: `examples/standalone/sample.js`
 - Testrunner examples, from `examples/wdio`: `pnpm run test:mocha`, `test:jasmine`, `test:cucumber`, `test:multi-remote`, `test:customReporter`, `test:customService`
 - Page objects: `examples/pageobject` then `pnpm run test`
@@ -34,9 +36,11 @@ Preconditions:
 - **BiDi scripting.** Run `cd examples/bidi && node scripting.js`. Exit 0 and stdout contains `foo`. The preload script sets `window.bar` to that value before the page loads.
 - **BiDi multiremote mock.** Run `cd examples/bidi && node multiremote-mock.js`. Exit 0. Stdout contains `instances: myChromeBrowser,myOtherChromeBrowser`, `selected: myOtherChromeBrowser,myChromeBrowser`, `Multi-remote object has no instance named "missing"`, and a `myChromeBrowser calls:` line whose count is at least 1. The script deletes both sessions. A thrown error prints `Something went wrong:` and still deletes the sessions; that is a failure.
 - **BiDi history.** Run `cd examples/bidi && node history.js`. Exit 0. Stdout contains `after back:` with a `webdriver.io` URL whose path is `/`, `after forward:` whose path contains `gettingstarted`, and `empty history back:` containing `no such history entry`. The script deletes the session.
+- **Direct children.** From `e2e`, run `node ../packages/wdio-cli/bin/wdio.js run wdio/wdio.conf.ts --spec wdio/headless/children.e2e.ts --maxInstances 1`. Exit 0; the spec reporter shows all seven `Element.children direct traversal` cases passing. This fixture uses only synthetic `data:` HTML, including light DOM, an open shadow root, chaining and a delayed child. Use an isolated Chrome profile; do not attach to a user's browser session.
 - **Proof.** Save output to `.agents/verify-artifacts/example-pipeline/`. `result.txt` quotes the URL, title, flash text, log entry, preload value, or mock instance lines the script asserted.
 
 ## Gotchas
+
 
 - These examples open a real browser. Smoke cannot replace them.
 - `examples/wdio/mocha/mocha.test.ts` asserts the live webdriver.io document title. A title change on that site fails the example even when the command works. Quote the actual title mismatch in `result.txt` instead of editing the assertion to force a pass.

@@ -33,7 +33,7 @@ describe('wrapCommand', () => {
         })
 
         it('does not brand a $$-type command that gives a value that is not an ElementArray, or its items', () => {
-            for (const command of ['$$', 'custom$$']) {
+            for (const command of ['$$', 'custom$$', 'children']) {
                 const chain = wrapCommand(command, vi.fn().mockReturnValue([{ selector: 'li' }])).call(scope) as unknown as Record<string, unknown>
 
                 expect(brandsOf(chain)).toEqual({ kind: undefined, chainable: undefined })
@@ -43,7 +43,7 @@ describe('wrapCommand', () => {
         })
 
         it('brands a $$-type command that gives a promise as a pending element list, by its name', () => {
-            for (const command of ['$$', 'custom$$']) {
+            for (const command of ['$$', 'custom$$', 'children']) {
                 const chain = wrapCommand(command, vi.fn().mockResolvedValue([{ selector: 'li' }])).call(scope) as unknown as Record<string, unknown>
 
                 expect(brandsOf(chain)).toEqual({ kind: 'element-array', chainable: undefined })
