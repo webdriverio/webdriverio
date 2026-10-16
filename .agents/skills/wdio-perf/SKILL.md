@@ -26,13 +26,14 @@ keep production edits out of generated `build/` / `cjs/`.
 - Generated Mocha / Jasmine / Cucumber fixtures (size × log profile).
 - Metrics from wall clock **and** worker `TimingTracker` phases (`setup`,
   `execution`, `teardown`). Prefer **median** over mean.
-- Default scenarios: all `*-large-*` plus `mocha-skips-quiet`.
+- Default scenarios: all `*-large-*` plus `mocha-skips-quiet` and `mocha-lists-quiet`.
 
 | Scenario intent | Example id | Use when |
 |-----------------|------------|----------|
 | Framework / worker cost, low log noise | `mocha-large-quiet` | Loader, preload, mock HTTP, skip path |
 | Realistic reporter / log cost | `mocha-large-info` | Logging, reporter wiring |
 | Skip-heavy path | `mocha-skips-quiet` | Skip detection, empty hooks |
+| Element objects (`$$()` lists, polls that count matches) | `mocha-lists-quiet` | `getElement(s)`, the monad, element command wrappers |
 | Cross-framework check | `jasmine-large-quiet`, `cucumber-large-quiet` | Shared runner / utils changes |
 
 Gate thresholds (in the runner): **≥3%** improvement on wall **or** execution

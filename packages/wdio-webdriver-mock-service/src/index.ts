@@ -74,6 +74,17 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._browser.addCommand('executeMemLeakScenario', this.executeMemLeakScenario.bind(this))
         this._browser.addCommand('requestRetryScenario', this.requestRetryScenario.bind(this))
         this._browser.addCommand('sessionGoneScenario', this.sessionGoneScenario.bind(this))
+        this._browser.addCommand('elementListScenario', this.elementListScenario.bind(this))
+    }
+
+    /**
+     * Every `findElements` gives `count` elements, e.g. for the element list scenario of the
+     * runner benchmark.
+     */
+    elementListScenario(count: number) {
+        this.nockReset()
+        const elements = Array.from({ length: count }, (_, i) => ({ [ELEM_PROP]: `${ELEMENT_ID}-${i}` }))
+        this._mock.command.findElements().times(Infinity).reply(200, { value: elements })
     }
 
     clickScenario() {
