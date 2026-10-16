@@ -5,6 +5,8 @@ import { describe, it, afterEach, beforeEach, expect, vi } from 'vitest'
 
 import { remote } from '../../src/index.js'
 import refetchElement from '../../src/utils/refetchElement.js'
+import { waitUntil } from '../../src/commands/browser/waitUntil.js'
+import { ELEMENT_NOT_FOUND_AGAIN, WAIT_UNTIL_TIMEOUT } from '../../src/utils/errorCodes.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -14,6 +16,15 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 vi.mock('../../src/utils/refetchElement.js', async (importOriginal) => {
     const actual = await importOriginal<{ default: typeof refetchElement }>()
     return { __esModule: true, default: vi.fn(actual.default) }
+})
+
+/**
+ * the real wait: the implicit wait for an element and the wait for an index of a list are
+ * waits of `waitUntil`
+ */
+vi.mock('../../src/commands/browser/waitUntil.js', async (importOriginal) => {
+    const actual = await importOriginal<{ waitUntil: typeof waitUntil }>()
+    return { ...actual, __esModule: true, waitUntil: vi.fn(actual.waitUntil) }
 })
 
 type Fallback = (uri: URL | string, params?: RequestInit) => Promise<Response>
@@ -131,5 +142,205 @@ describe('a command on an element that the page removed', () => {
             await refetches(async (browser) => (await browser.$$('.item'))[0], 'elem-a'),
             await refetches(async (browser) => (await browser.$$('.item'))[2], 'elem-c')
         ]).toEqual([reference, reference])
+    })
+})
+
+describe('one wait for an element that the page removed', () => {
+    /**
+     * the waits for the element (the implicit wait of `waitForExist`, the wait for the index of
+     * a list item) that timed out without it, counted without timing
+     */
+    const waits = async (command: Promise<unknown>) => {
+        vi.mocked(waitUntil).mockClear()
+        const outcome = await settle(command)
+        const calls = vi.mocked(waitUntil).mock.calls
+        const ended = vi.mocked(waitUntil).mock.settledResults.filter((result, i) => {
+            const timeoutMsg = String((calls[i][1] as { timeoutMsg?: unknown } | undefined)?.timeoutMsg)
+            return result.type === 'rejected' &&
+                (result.value as { code?: string } | undefined)?.code === WAIT_UNTIL_TIMEOUT &&
+                /still not existing|Index out of bounds/.test(timeoutMsg)
+        })
+        return { ...outcome, waits: ended.length }
+    }
+    /**
+     * the error of 9.31.9, with a code and the stale element error of the driver as cause
+     */
+    const expectGone = (error: Error | undefined, message: string) => {
+        expect(error?.name).toBe('Error')
+        expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
+        expect(error?.message).toBe(message)
+        expect((error?.cause as Error | undefined)?.name).toBe('stale element reference')
+    }
+    const removedRef = async () => {
+        const browser = await session()
+        driver.light.set('#ref', ['elem-r'])
+        const elem = await browser.$('#ref')
+        driver.stale.add('elem-r')
+        driver.light.set('#ref', [])
+        return elem
+    }
+    const removedItem = async (index: number) => {
+        const browser = await session()
+        driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
+        const elem = (await browser.$$('.item'))[index]
+        driver.stale.add('elem-a').add('elem-b').add('elem-c')
+        driver.light.set('.item', [])
+        return elem
+    }
+    const host = async () => {
+        const browser = await session()
+        driver.light.set('#host', ['host-a'])
+        driver.light.set('.child', ['child-a'])
+        const parent = await browser.$('#host')
+        const child = await parent.$('.child')
+        return { parent, child }
+    }
+
+    it.each(['isDisplayed', 'isExisting'] as const)('%s of a removed element is false without a wait', async (command) => {
+        const elem = await removedRef()
+        const { value, error, waits: count } = await waits(elem[command]())
+        expect(error).toBeUndefined()
+        expect(value).toBe(false)
+        expect(count).toBe(0)
+    })
+
+    it('waits once for a removed element', async () => {
+        const elem = await removedRef()
+        const { error, waits: count } = await waits(elem.getText())
+        expectGone(error, 'Can\'t call getText on element with selector "#ref" because element wasn\'t found')
+        expect(count).toBe(1)
+    })
+
+    it.each([0, 2])('waits once for a removed list item [%i]', async (index) => {
+        const elem = await removedItem(index)
+        const { error, waits: count } = await waits(elem.getText())
+        expectGone(error, `Can't call getText on element with selector ".item" at index ${index} because element wasn't found`)
+        expect(count).toBe(1)
+    })
+
+    /**
+     * a stale list after a navigation to a page with a shorter list (#15550)
+     */
+    it('waits once for a list item whose list is now shorter', async () => {
+        const elem = await removedItem(2)
+        driver.light.set('.item', ['elem-x'])
+        const { error, waits: count } = await waits(elem.getText())
+        expectGone(error, 'Can\'t call getText on element with selector ".item" at index 2 because element wasn\'t found')
+        expect(count).toBe(1)
+    })
+
+    /**
+     * a page object pattern: a child of a row of a table, whose table the page removed
+     */
+    it('waits once for a child of a list item whose list was removed', async () => {
+        const browser = await session()
+        driver.light.set('.row', ['row-a', 'row-b'])
+        driver.light.set('.input', ['input-b'])
+        const input = await (await browser.$$('.row'))[1].$('.input')
+        driver.stale.add('row-a').add('row-b').add('input-b')
+        driver.light.set('.row', [])
+        vi.mocked(refetchElement).mockClear()
+
+        const { error, waits: count } = await waits(input.getText())
+        expectGone(error, 'Can\'t call $ on element with selector ".row" at index 1 because element wasn\'t found')
+        expect(count).toBe(1)
+        /**
+         * the inner layer looks once: the outer layer does not look again
+         */
+        expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+    })
+
+    it('waits once for a removed child', async () => {
+        const { child } = await host()
+        driver.stale.add('child-a')
+        driver.light.set('.child', [])
+        const { error, waits: count } = await waits(child.getText())
+        expectGone(error, 'Can\'t call getText on element with selector ".child" because element wasn\'t found')
+        expect(count).toBe(1)
+    })
+
+    it('waits once for a child whose parent was removed', async () => {
+        const { child } = await host()
+        driver.stale.add('host-a').add('child-a')
+        driver.light.set('#host', [])
+        const { error, waits: count } = await waits(child.getText())
+        /**
+         * the parent was not found: the message stays about the parent, as in 9.31.9
+         */
+        expectGone(error, 'Can\'t call $ on element with selector "#host" because element wasn\'t found')
+        expect(count).toBe(1)
+    })
+
+    /**
+     * a check (`isDisplayed`) of a removed parent leaves it without an element id
+     */
+    it('waits once for a child after a check of its removed parent', async () => {
+        const { parent, child } = await host()
+        driver.stale.add('host-a').add('child-a')
+        driver.light.set('#host', [])
+        expect(await parent.isExisting()).toBe(false)
+        parent.elementId = undefined as unknown as string
+
+        const { error, waits: count } = await waits(child.getText())
+        expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
+        expect(error?.message).toBe('Can\'t call $ on element with selector "#host" because element wasn\'t found')
+        expect(count).toBe(1)
+    })
+
+    it('waits once in setValue', async () => {
+        const browser = await session()
+        driver.light.set('#input', ['input-a'])
+        const elem = await browser.$('#input')
+        driver.stale.add('input-a')
+        driver.light.set('#input', [])
+        const { error, waits: count } = await waits(elem.setValue('value'))
+        expectGone(error, 'Can\'t call setValue on element with selector "#input" because element wasn\'t found')
+        expect(count).toBe(1)
+    })
+
+    it('waits once in waitForEnabled, with the error of the element as cause', async () => {
+        const elem = await removedRef()
+        const { error, waits: count } = await waits(elem.waitForEnabled())
+        expect(error?.message).toMatch(/^waitUntil condition failed with the following reason: Can't call isEnabled on element with selector "#ref" because element wasn't found/)
+        expect(error?.cause).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
+        expect(count).toBe(1)
+    })
+
+    it('waits once with a waitforTimeout that is not a whole number', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            waitforTimeout: 100.5,
+            waitforInterval: 10,
+            capabilities: { browserName: 'foobar' }
+        })
+        driver.light.set('#ref', ['elem-r'])
+        const elem = await browser.$('#ref')
+        driver.stale.add('elem-r')
+        driver.light.set('#ref', [])
+        const { error, waits: count } = await waits(elem.getText())
+        expect(error).toHaveProperty('code', ELEMENT_NOT_FOUND_AGAIN)
+        expect(count).toBe(1)
+    })
+
+    it('finds a list item again when the page rendered the list again', async () => {
+        const browser = await session()
+        driver.light.set('.item', ['elem-a', 'elem-b', 'elem-c'])
+        const elem = (await browser.$$('.item'))[1]
+        driver.stale.add('elem-a').add('elem-b').add('elem-c')
+        driver.light.set('.item', ['elem-x', 'elem-y', 'elem-z'])
+        const { value, waits: count } = await waits(elem.getText())
+        expect(value).toBe('text of elem-y')
+        expect(count).toBe(0)
+    })
+
+    /**
+     * an element that a command never found keeps its plain error, without code
+     */
+    it('keeps the plain error of an element that was never found', async () => {
+        const browser = await session()
+        const { error, waits: count } = await waits(browser.$('#missing').getText())
+        expect(error?.message).toBe('Can\'t call getText on element with selector "#missing" because element wasn\'t found')
+        expect(error).not.toHaveProperty('code')
+        expect(count).toBe(1)
     })
 })
