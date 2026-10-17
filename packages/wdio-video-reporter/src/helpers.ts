@@ -222,8 +222,12 @@ export function findFfmpeg (ffmpegPath?: string, env: NodeJS.ProcessEnv = proces
         if (isExecutable(chosen)) {
             return chosen
         }
-        // a command name with no folder (`FFMPEG_PATH=ffmpeg`) is looked up on the PATH
-        return path.basename(chosen) === chosen ? onPath(chosen) : undefined
+        if (path.basename(chosen) !== chosen) {
+            return undefined
+        }
+        // a command name with no folder (`FFMPEG_PATH=ffmpeg`) is looked up on the PATH,
+        // on Windows with `.exe` when it has no extension
+        return onPath(process.platform === 'win32' && !path.extname(chosen) ? `${chosen}.exe` : chosen)
     }
 
     return onPath(process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg')

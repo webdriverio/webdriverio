@@ -50,6 +50,21 @@ describe('findFfmpeg', () => {
         expect(findFfmpeg('custom-ffmpeg', { PATH: binDir })).toBeUndefined()
     })
 
+    it('adds .exe to a command name with no extension on Windows', () => {
+        const winDir = path.join(dir, 'win')
+        fs.mkdirSync(winDir)
+        fs.writeFileSync(path.join(winDir, 'ffmpeg.exe'), '')
+        const platform = Object.getOwnPropertyDescriptor(process, 'platform')!
+        Object.defineProperty(process, 'platform', { value: 'win32' })
+        try {
+            expect(findFfmpeg('ffmpeg', { PATH: winDir })).toBe(path.join(winDir, 'ffmpeg.exe'))
+            expect(findFfmpeg(undefined, { PATH: winDir, FFMPEG_PATH: 'ffmpeg' })).toBe(path.join(winDir, 'ffmpeg.exe'))
+            expect(findFfmpeg('ffmpeg.exe', { PATH: winDir })).toBe(path.join(winDir, 'ffmpeg.exe'))
+        } finally {
+            Object.defineProperty(process, 'platform', platform)
+        }
+    })
+
     it.skipIf(process.platform === 'win32')('does not use a file on the PATH that is not executable', () => {
         const noExec = path.join(dir, 'no-exec')
         fs.mkdirSync(noExec)
