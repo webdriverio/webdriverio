@@ -253,6 +253,33 @@ describe('Passing tests', () => {
     })
 })
 
+describe('Mocha tests with Cucumber keywords', () => {
+    it('writes a result instead of treating the test as a Cucumber step', async () => {
+        const outputDir = temporaryDirectory()
+        const reporter = new AllureReporter({ outputDir })
+        const runner = Object.assign(runnerStart(), {
+            config: { ...runnerStart().config, framework: 'mocha' },
+        })
+        const test = Object.assign(testStart(), {
+            uid: 'given-mocha-test',
+            title: 'Given something works',
+            fullTitle: 'Mocha suite Given something works',
+        })
+
+        reporter.onRunnerStart(runner)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(test)
+        reporter.onTestPass(Object.assign(testPassed(), test))
+        reporter.onSuiteEnd(suiteEnd())
+        await reporter.onRunnerEnd(runnerEnd())
+
+        expect(getResults(outputDir).results.map((result: any) => result.name)).toEqual([
+            'Given something works',
+        ])
+        clean(outputDir)
+    })
+})
+
 describe('Failed tests', () => {
     let outputDir: any
 

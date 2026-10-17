@@ -838,7 +838,7 @@ export default class AllureReporter extends WDIOReporter {
         if (keyword) { return true }
         if (parentType === 'scenario') { return true }
         if (isFeatureFile) { return true }
-        if (hasCucumberKeyword) { return true }
+        if (this._config?.framework === 'cucumber' && hasCucumberKeyword) { return true }
         return false
     }
 
