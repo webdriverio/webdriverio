@@ -517,15 +517,33 @@ describe('click test', () => {
                 expect(resolved).toBe(true)
             })
 
-            it('does not wait longer than 100 ms when no animation frame comes', async () => {
+            it('does not wait longer than 1 s when no animation frame comes', async () => {
                 vi.useFakeTimers()
                 try {
                     const { result } = await runInPage({ rects: [inView], hitAt: () => other })
                     let resolved = false
                     result!.then(() => { resolved = true })
-                    await vi.advanceTimersByTimeAsync(99)
+                    await vi.advanceTimersByTimeAsync(999)
                     expect(resolved).toBe(false)
                     await vi.advanceTimersByTimeAsync(1)
+                    expect(resolved).toBe(true)
+                } finally {
+                    vi.useRealTimers()
+                }
+            })
+
+            it('waits for animation frames that come late (busy browser)', async () => {
+                vi.useFakeTimers()
+                try {
+                    const { result, frames } = await runInPage({ rects: [inView], hitAt: () => other })
+                    let resolved = false
+                    result!.then(() => { resolved = true })
+                    await vi.advanceTimersByTimeAsync(300)
+                    expect(resolved).toBe(false)
+                    frames[0]()
+                    await vi.advanceTimersByTimeAsync(0)
+                    frames[1]()
+                    await vi.advanceTimersByTimeAsync(0)
                     expect(resolved).toBe(true)
                 } finally {
                     vi.useRealTimers()
