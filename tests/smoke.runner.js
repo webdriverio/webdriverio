@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import os from 'node:os'
 import { spawn } from 'node:child_process'
 import url from 'node:url'
 import path from 'node:path'
@@ -798,6 +799,47 @@ const retryPass = async () => {
 }
 
 /**
+ * Cucumber spec-file retries keep each closed worker log, including two retries.
+ */
+const cucumberRetryLogs = async () => {
+    const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-retry-logs-'))
+    try {
+        const { passed } = await launch('cucumberRetryLogs', path.join(__dirname, 'cucumber/retry-logs/wdio.conf.js'), {
+            specs: [path.join(__dirname, 'cucumber/retry-logs/retry.feature')],
+            outputDir,
+            specFileRetriesDelay: 0,
+            specFileRetriesDeferred: false,
+            runnerEnv: { WDIO_RETRY_LOG_COUNTER: path.join(outputDir, 'counter') }
+        })
+        assert.equal(passed, 1)
+        assert.equal(await fs.readFile(path.join(outputDir, 'counter'), 'utf8'), '3')
+        for (const index of [0, 1, 2]) {
+            const suffix = index ? `-${index}` : ''
+            const filename = path.join(outputDir, `retry-0-0${suffix}.log`)
+            const bytes = await fs.readFile(filename)
+            if (index < 2) {
+                assert.deepEqual(bytes, await fs.readFile(`${filename}.closed`))
+            }
+            assert.ok(bytes.includes(`CUCUMBER_LOG_ATTEMPT_${index + 1}`))
+            for (const other of [1, 2, 3].filter((attempt) => attempt !== index + 1)) {
+                assert.ok(!bytes.includes(`CUCUMBER_LOG_ATTEMPT_${other}`))
+            }
+        }
+        assert.ok(await fileExists(path.join(outputDir, 'wdio.log')))
+        console.log('Cucumber retry logs: 3 attempts, same CID, all closed worker log bytes preserved')
+    } catch (error) {
+        for (const filename of await fs.readdir(outputDir)) {
+            if (filename.endsWith('.log')) {
+                console.error(filename, await fs.readFile(path.join(outputDir, filename), 'utf8'))
+            }
+        }
+        throw error
+    } finally {
+        await fs.rm(outputDir, { recursive: true, force: true })
+    }
+}
+
+/**
  * wdio-shared-store-service tests
  */
 const sharedStoreServiceTest = async () => {
@@ -1369,6 +1411,7 @@ const jasmineAfterHookArgsValidation = async () => {
         jasmineFailSpecWithNoExpectations,
         retryFail,
         retryPass,
+        cucumberRetryLogs,
         customReporterString,
         customReporterObject,
         sessionGoneReport,

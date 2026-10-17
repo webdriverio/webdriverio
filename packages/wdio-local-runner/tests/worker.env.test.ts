@@ -1,7 +1,7 @@
 import path from 'node:path'
 import type * as ChildProcessModule from 'node:child_process'
 import { WritableStreamBuffer } from 'stream-buffers'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import Worker from '../src/worker.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -23,6 +23,7 @@ vi.mock('node:child_process', async (importOriginal) => {
 })
 
 describe('Worker Env Generation', () => {
+    afterEach(() => vi.unstubAllEnvs())
     beforeEach(() => {
         forkMock.mockClear()
     })
@@ -79,5 +80,22 @@ describe('Worker Env Generation', () => {
         expect(forkMock).toHaveBeenCalled()
         const env = forkMock.mock.calls[0][2].env
         expect(env.WDIO_LOG_PATH).toBe(path.join('/foo/bar', 'wdio-0-5.log'))
+    })
+
+    it.each([1, 2])('uses spawn attempt %i for logs without changing the worker id', async (attempt) => {
+        vi.stubEnv('WDIO_WORKER_LOG_ID', 'inherited-stale-id')
+        vi.stubEnv('WDIO_WORKER_ID', 'inherited-stale-cid')
+        const worker = new Worker({
+            outputDir: '/foo/bar',
+            runnerEnv: { WDIO_WORKER_LOG_ID: 'configured-stale-id', WDIO_WORKER_ID: 'configured-stale-cid' }
+        } as any, {
+            cid: '0-5', caps: {}, specs: ['/path/to/my.test.e2e.ts'], execArgv: [], retries: -1
+        }, new WritableStreamBuffer(), new WritableStreamBuffer())
+        worker.logFileAttempt = attempt
+        await worker.startProcess()
+        const env = forkMock.mock.calls[0][2].env
+        expect(env.WDIO_WORKER_ID).toBe('0-5')
+        expect(env.WDIO_WORKER_LOG_ID).toBe(`0-5-${attempt}`)
+        expect(env.WDIO_LOG_PATH).toBe(path.join('/foo/bar', `my.test.e2e-0-5-${attempt}.log`))
     })
 })

@@ -188,6 +188,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     specs: string[]
     execArgv: string[]
     retries: number
+    logFileAttempt = 0
     stdout: WritableStreamBuffer
     stderr: WritableStreamBuffer
     childProcess?: ChildProcess
@@ -243,17 +244,19 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     async startProcess() {
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
+        const workerLogId = this.logFileAttempt ? `${cid}-${this.logFileAttempt}` : cid
 
         const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
             WDIO_WORKER_ID: cid,
+            WDIO_WORKER_LOG_ID: workerLogId,
             NODE_ENV: process.env.NODE_ENV || 'test'
         })
 
         if (this.config.outputDir) {
-            let logFileRunner = `wdio-${cid}.log`
+            let logFileRunner = `wdio-${workerLogId}.log`
             if (this.specs.length && this.specs[0]) {
                 const specBaseName = path.basename(this.specs[0], path.extname(this.specs[0]))
-                logFileRunner = `${specBaseName}-${cid}.log`
+                logFileRunner = `${specBaseName}-${workerLogId}.log`
             }
             runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, logFileRunner)
         }

@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { fork, type ForkOptions } from 'node:child_process'
 import type * as ChildProcessModule from 'node:child_process'
 import { expect, test, vi, beforeEach } from 'vitest'
 
@@ -69,6 +70,53 @@ test('should fork a new process', async () => {
         retries: 0,
         specs: ['/foo/bar.test.js'],
     })
+})
+
+test('numbers replacement worker logs independently of the remaining retry budget', async () => {
+    const runner = new LocalRunner({} as never, { outputDir: '/logs' })
+    const payload = {
+        cid: '0-0', command: 'run', args: {}, configFile: '/wdio.conf.js',
+        caps: {}, specs: ['/test.feature'], execArgv: [], retries: -1
+    }
+    const first = await runner.run(payload)
+    const retry = await runner.run({ ...payload, retries: 5 })
+    await runner.run({ ...payload, retries: 4 })
+    await runner.run({ ...payload, cid: '0-1', retries: -1 })
+
+    const envs = vi.mocked(fork).mock.calls.map((call) => (call[2] as ForkOptions).env!)
+    expect(envs.map((env) => env.WDIO_WORKER_LOG_ID)).toEqual(['0-0', '0-0-1', '0-0-2', '0-1'])
+    expect(envs.map((env) => env.WDIO_WORKER_ID)).toEqual(['0-0', '0-0', '0-0', '0-1'])
+    expect(envs.map((env) => path.basename(env.WDIO_LOG_PATH!))).toEqual([
+        'test-0-0.log', 'test-0-0-1.log', 'test-0-0-2.log', 'test-0-1.log'
+    ])
+    expect(first.retries).toBe(-1)
+    expect(retry.retries).toBe(5)
+
+    // Wait for the original run to reach the child before testing watch reuse.
+    const child = retry.childProcess
+    const initialCommand = {
+        cid: '0-0', command: 'run', configFile: '/wdio.conf.js', args: {},
+        caps: {}, specs: ['/test.feature'], retries: 5
+    }
+    retry['_handleMessage']({ name: 'ready' } as any)
+    await vi.waitFor(() => expect(childProcessMock.send).toHaveBeenCalledWith(initialCommand))
+    const sentBeforeRerun = childProcessMock.send.mock.calls.length
+    expect(retry.isBusy).toBe(true)
+
+    // Watch mode reuses the completed worker instead of spawning a retry.
+    retry['_handleMessage']({ name: 'finishedCommand' } as any)
+    expect(retry.isBusy).toBe(false)
+    await retry.postMessage('run', { watch: true })
+    await vi.waitFor(() => expect(childProcessMock.send).toHaveBeenCalledTimes(sentBeforeRerun + 1))
+    expect(childProcessMock.send).toHaveBeenLastCalledWith({ ...initialCommand, args: { watch: true } })
+    expect(retry.isBusy).toBe(true)
+    expect(retry.childProcess).toBe(child)
+    expect(vi.mocked(fork)).toHaveBeenCalledTimes(4)
+    expect(retry.logFileAttempt).toBe(1)
+
+    const independent = new LocalRunner({} as never, { outputDir: '/logs' })
+    await independent.run(payload)
+    expect((vi.mocked(fork).mock.lastCall![2] as ForkOptions).env!.WDIO_WORKER_LOG_ID).toBe('0-0')
 })
 
 test('should shut down worker processes', async () => {
