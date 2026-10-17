@@ -103,7 +103,8 @@ export async function executeAsync<ReturnValue, InnerArguments extends unknown[]
         const params: remote.ScriptCallFunctionParameters = {
             functionDeclaration,
             awaitPromise: true,
-            arguments: args.map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
+            // as in execute(): an element becomes its reference, an element that was not found throws
+            arguments: (verifyArgsAndStripIfElement(args) as unknown[]).map((arg) => LocalValue.getArgument(arg)) as remote.ScriptLocalValue[],
             target: {
                 context
             }

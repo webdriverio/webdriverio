@@ -4,6 +4,8 @@ import { expect, describe, it, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
 import { execute } from '../../../src/commands/browser/execute.js'
+import { executeAsync } from '../../../src/commands/browser/executeAsync.js'
+import { enhanceElementsArray } from '../../../src/utils/index.js'
 import { LocalValue } from '../../../src/utils/bidi/value.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -13,7 +15,6 @@ vi.mock('../../../src/session/context.js', () => ({
 
 const bidiBrowser = () => ({
     isBidi: true,
-    isMultiremote: false,
     scriptCallFunction: vi.fn().mockResolvedValue({ type: 'success', result: { type: 'null' } })
 })
 
@@ -21,13 +22,8 @@ const bidiBrowser = () => ({
 function Element () {}
 const element = (props: Record<string, unknown>) => Object.assign(Object.create(Element.prototype), props, { addCommand () {} })
 
-// a $$() list: its forEach is async, as its other array methods
-class ElementList extends Array {
-    // @ts-expect-error an async forEach, as the one of an element list
-    forEach () {
-        return Promise.resolve()
-    }
-}
+// a $$() list, as $$() makes it: its forEach is async, as its other array methods
+const elementList = (elements: unknown[]) => enhanceElementsArray(elements as WebdriverIO.Element[], {} as WebdriverIO.Browser, 'p')
 
 describe('execute BiDi element arguments', () => {
     it('passes an element as its reference', async () => {
@@ -50,7 +46,7 @@ describe('execute BiDi element arguments', () => {
 
     it('passes every item of a $$() list', async () => {
         const browser = bidiBrowser()
-        const list = ElementList.from([
+        const list = elementList([
             element({ selector: 'p', elementId: 'p-1', [ELEMENT_KEY]: 'p-1' }),
             element({ selector: 'p', elementId: 'p-2', [ELEMENT_KEY]: 'p-2' })
         ])
@@ -59,5 +55,40 @@ describe('execute BiDi element arguments', () => {
         expect(browser.scriptCallFunction.mock.calls[0][0].arguments).toEqual([
             LocalValue.getArgument([{ [ELEMENT_KEY]: 'p-1' }, { [ELEMENT_KEY]: 'p-2' }]).asMap()
         ])
+    })
+})
+
+describe('executeAsync BiDi element arguments', () => {
+    it('throws that an element that was not found can not be passed, as in Classic', async () => {
+        const browser = bidiBrowser()
+        const missing = element({ selector: '.missing', error: new Error('no such element') })
+
+        await expect(executeAsync.call(browser as unknown as WebdriverIO.Browser, (el: HTMLElement, done: (r: unknown) => void) => done(el), missing as never))
+            .rejects.toThrow('The element with selector ".missing" you are trying to pass into the execute method wasn\'t found')
+        expect(browser.scriptCallFunction).not.toHaveBeenCalled()
+    })
+
+    it('passes every item of a $$() list', async () => {
+        const browser = bidiBrowser()
+        const list = elementList([
+            element({ selector: 'p', elementId: 'p-1', [ELEMENT_KEY]: 'p-1' }),
+            element({ selector: 'p', elementId: 'p-2', [ELEMENT_KEY]: 'p-2' })
+        ])
+        await executeAsync.call(browser as unknown as WebdriverIO.Browser, (els: HTMLElement[], done: (r: unknown) => void) => done(els), list as never)
+
+        expect(browser.scriptCallFunction.mock.calls[0][0].arguments).toEqual([
+            LocalValue.getArgument([{ [ELEMENT_KEY]: 'p-1' }, { [ELEMENT_KEY]: 'p-2' }]).asMap()
+        ])
+    })
+})
+
+describe('execute BiDi other arguments', () => {
+    // an object without a prototype has no constructor
+    it('passes an object without a prototype', async () => {
+        const browser = bidiBrowser()
+        const plain = Object.assign(Object.create(null), { a: 1 })
+        await execute.call(browser as unknown as WebdriverIO.Browser, (o: unknown) => o, plain as never)
+
+        expect(browser.scriptCallFunction.mock.calls[0][0].arguments).toEqual([LocalValue.getArgument(plain).asMap()])
     })
 })
