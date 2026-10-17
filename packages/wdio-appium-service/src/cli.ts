@@ -1,5 +1,5 @@
 import {
-    checkInspectorPluginInstalled,
+    ensureInspectorPluginInstalled,
     determineAppiumCliCommand,
     extractPortFromCliArgs,
     openBrowser,
@@ -30,7 +30,7 @@ export async function run() {
     const serverArgs = ['server', ...args]
 
     console.log('⏳ Checking inspector plugin...')
-    await checkInspectorPluginInstalled(command)
+    await ensureInspectorPluginInstalled(command)
 
     console.log('🚀 Starting Appium server...')
     console.log(`📡 Command: ${command} ${serverArgs.join(' ')}`)
