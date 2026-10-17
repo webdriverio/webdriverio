@@ -1,6 +1,8 @@
 import path from 'node:path'
 import type { Block, Spec } from 'comment-parser'
 
+import { branch } from '../constants.js'
+
 const organizationName = 'webdriverio' // Usually your GitHub org/user name.
 const projectName = 'webdriverio' // Usually your repo name.
 const repoUrl = `https://github.com/${organizationName}/${projectName}`
@@ -313,7 +315,7 @@ export default function (docfile: {
         description: description,
         examples: files,
         exampleReferences,
-        customEditUrl: `${repoUrl}/edit/v9/packages/webdriverio/src/commands/${scope}/${name}.ts`,
+        customEditUrl: `${repoUrl}/edit/${branch}/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
         isElementScope: scope === 'element' || tagMobileElement,

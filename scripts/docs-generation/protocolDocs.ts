@@ -4,7 +4,7 @@ import path from 'node:path'
 import url from 'node:url'
 import { Eta } from 'eta'
 
-import { repoUrl } from '../constants.js'
+import { branch, repoUrl } from '../constants.js'
 import {
     PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS,
     PROTOCOL_API_DESCRIPTION
@@ -61,7 +61,7 @@ export function generateProtocolDocs (sidebars: any) {
                 description.throwsTags = [] // tbd
                 description.exampleReferences = description.exampleReferences || []
                 description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
-                description.customEditUrl = `${repoUrl}/edit/v9/packages/wdio-protocols/src/protocols/${protocolName}.ts`
+                description.customEditUrl = `${repoUrl}/edit/${branch}/packages/wdio-protocols/src/protocols/${protocolName}.ts`
 
                 let protocolNote
                 if (VENDOR_PROTOCOLS.includes(protocolName)) {
@@ -89,7 +89,7 @@ export function generateProtocolDocs (sidebars: any) {
                         '---',
                         `id: ${protocolName}`,
                         `title: ${protocol}`,
-                        `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/v9/packages/wdio-protocols/src/protocols/${protocolName}.ts`,
+                        `custom_edit_url: ${repoUrl}/edit/${branch}/packages/wdio-protocols/src/protocols/${protocolName}.ts`,
                         '---\n',
                     ].join('\n')]
 
