@@ -232,9 +232,7 @@ describe('main suite 1', () => {
             await browser.$('#parent').waitForExist()
         })
 
-        it('moveTo without iframe', async function () {
-            // Unstable on Windows: expected "center", received "center\nout"
-            this.retries(3)
+        it('moveTo without iframe', async () => {
             await browser.$('#parent').moveTo()
             await expect(browser.$('#text')).toHaveValue('center')
         })
@@ -245,10 +243,7 @@ describe('main suite 1', () => {
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async function() {
-                // Unstable test, retry up to 3 times `Expected: 90 Received: 504` with when input = `{"xOffset":10}`
-                this.retries(3)
-
+            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await setupMouseTracking()
                 await browser.$('#parent').moveTo()
                 const rectBefore = await waitForMousePosition(0)
