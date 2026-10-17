@@ -101,8 +101,9 @@
     "@vercel/routing-utils": "^6.6.0",
     "@vitejs/plugin-react": "^5.2.0",
     "@vitejs/plugin-vue": "^6.0.9",
+    "@vitest/browser": "^5.0.5",
     "@vitest/browser-webdriverio": "^5.0.0",
-    "@vitest/coverage-v8": "^5.0.2",
+    "@vitest/coverage-v8": "^5.0.5",
     "@wdio/config": "workspace:*",
     "@wdio/repl": "workspace:*",
     "camelcase": "^9.0.0",
@@ -131,7 +132,7 @@
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "unzipper": "^0.12.5",
-    "vitest": "^5.0.2",
+    "vitest": "^5.0.5",
     "webdriverio": "workspace:*"
   },
   "engines": {
