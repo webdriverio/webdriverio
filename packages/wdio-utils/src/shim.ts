@@ -740,6 +740,26 @@ export function followFrameworkTimer (runnable: unknown) {
 }
 
 /**
+ * Add the WebdriverIO attempt to a framework timeout error, for a test or hook
+ * with WebdriverIO retries
+ */
+function withAttempt (err: Error, attempt: number, totalAttempts: number) {
+    if (totalAttempts < 2) {
+        return err
+    }
+    const message = err.message
+    /**
+     * read the stack first: V8 builds its text on the first read, with the message of that time
+     */
+    const stack = err.stack
+    err.message = `${message} (WDIO attempt ${attempt}/${totalAttempts})`
+    if (typeof stack === 'string') {
+        err.stack = stack.replace(message, err.message)
+    }
+    return err
+}
+
+/**
  * execute test or hook asynchronously
  *
  * @param  {Function} fn         spec or hook method
@@ -823,7 +843,7 @@ export async function executeAsync(
                      * Mocha would fail the runnable TIME_BUFFER ms later and not wait for it, so
                      * the after hooks (e.g. `afterTest`) would overlap the next test. Restart its
                      * timer so it waits for them, and fail with Mocha's own timeout error so the
-                     * report stays the same.
+                     * report stays the same, plus the attempt when the test has WebdriverIO retries.
                      */
                     if (frameworkTimer) {
                         frameworkTimer.onRestart = undefined
@@ -831,7 +851,7 @@ export async function executeAsync(
                     runnable?.resetTimeout?.()
                     mochaTimedOut = typeof runnable?._timeoutError === 'function'
                     reject(typeof runnable?._timeoutError === 'function'
-                        ? runnable._timeoutError(current)
+                        ? withAttempt(runnable._timeoutError(current), attempt, totalAttempts)
                         : new Error(`Timeout after ${current - TIME_BUFFER}ms in ${JSON.stringify(testTitle)} (WDIO attempt ${attempt}/${totalAttempts})`))
                 }
                 if (frameworkTimer) {

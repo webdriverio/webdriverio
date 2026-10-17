@@ -24,6 +24,7 @@ function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, 
     const start = Date.now()
     const at: Record<string, number> = {}
     let afterPassed: boolean | undefined
+    let afterError: Error | undefined
     const runnable = new Mocha.Runnable('scenario', function (this: Mocha.Context) {
         return testFnWrapper.call(
             this,
@@ -31,8 +32,9 @@ function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, 
             { specFn: body, specFnArgs: [] },
             { beforeFn: [() => sleep(beforeTestTime)], beforeFnArgs: () => [{ title: 'scenario' }] },
             {
-                afterFn: [async (_test: unknown, _context: unknown, result: { passed: boolean }) => {
+                afterFn: [async (_test: unknown, _context: unknown, result: { passed: boolean, error?: Error }) => {
                     afterPassed = result.passed
+                    afterError = result.error
                     /**
                      * after a timeout, Mocha waits one more timeout for the after hooks
                      */
@@ -49,10 +51,10 @@ function run (body: (this: Mocha.Context) => Promise<unknown>, { timeout = 300, 
     runnable.parent = new Mocha.Suite('suite', new Mocha.Context())
     runnable.timeout(timeout)
     runnable.ctx = new Mocha.Context()
-    return new Promise<{ err?: Error, at: Record<string, number>, afterPassed?: boolean }>((resolve) => {
+    return new Promise<{ err?: Error, at: Record<string, number>, afterPassed?: boolean, afterError?: Error }>((resolve) => {
         runnable.run((err?: Error) => {
             at.mochaDone = Date.now() - start
-            resolve({ err, at, afterPassed })
+            resolve({ err, at, afterPassed, afterError })
         })
     })
 }
@@ -104,6 +106,25 @@ describe('Mocha timeout and the after hooks', () => {
             await sleep(1000)
         }, { retries: 1 }), 300)
         expect(attempt).toBe(2)
+    })
+
+    it('names the WebdriverIO attempt that timed out, for Mocha and afterTest', async () => {
+        let attempt = 0
+        const result = await run(async () => {
+            if (++attempt === 1) {
+                throw new Error('first attempt fails')
+            }
+            await sleep(1000)
+        }, { retries: 1 })
+        expectAfterHookBeforeMochaDone(result, 300)
+        expect(result.err?.message).toMatch(/ \(WDIO attempt 2\/2\)$/)
+        expect(result.afterError).toBe(result.err)
+    })
+
+    it('keeps the Mocha timeout error of a test without WebdriverIO retries', async () => {
+        const result = await run(() => sleep(1000))
+        expectAfterHookBeforeMochaDone(result, 300)
+        expect(result.err?.message).not.toContain('WDIO attempt')
     })
 
     it('lets Mocha wait for afterHook after a hook timeout', async () => {

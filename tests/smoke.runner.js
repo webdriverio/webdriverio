@@ -252,6 +252,39 @@ const jasmineTimeout = async () => {
 }
 
 /**
+ * Mocha timeout error names the WebdriverIO attempt of a retried test
+ * https://github.com/webdriverio/webdriverio/issues/16121
+ */
+const mochaTimeout = async () => {
+    const logFile = path.resolve(__dirname, 'mochaTimeout.spec.log')
+    await launch('mochaTimeout', baseConfig, {
+        specs: [path.resolve(__dirname, 'mocha', 'timeout.js')],
+        mochaOpts: { ui: 'bdd', timeout: 1000 },
+        reporters: [
+            ['spec', {
+                outputDir: __dirname,
+                stdout: false,
+                logFile
+            }]
+        ]
+    }).catch((err) => err) // error expected
+
+    const errors = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
+        .split('\n')
+        .filter((line) => line.includes('Error: Timeout of 1000ms exceeded.'))
+    await fs.unlink(logFile)
+    assert.strictEqual(errors.length, 2, `expected 2 timeout errors, got:\n${errors.join('\n')}`)
+    assert.ok(
+        errors.some((line) => line.includes('"Mocha timeout times out without retries"') && !line.includes('WDIO attempt')),
+        'a timeout without retries should keep the Mocha error'
+    )
+    assert.ok(
+        errors.some((line) => line.includes('"Mocha timeout times out in the 2nd attempt"') && line.endsWith(' (WDIO attempt 2/2)')),
+        'a timeout of a retried test should name the WDIO attempt'
+    )
+}
+
+/**
  * Jasmine afterAll is wrongly reported as a failing test - issue #8979
  * https://github.com/webdriverio/webdriverio/issues/8979
  */
@@ -1379,6 +1412,7 @@ const jasmineAfterHookArgsValidation = async () => {
         jasmineCustomMatcher,
         jasmineMultiRemote,
         jasmineTimeout,
+        mochaTimeout,
         jasmineAfterAll,
         jasmineFailSpecWithNoExpectations,
         retryFail,
