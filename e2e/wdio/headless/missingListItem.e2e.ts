@@ -113,9 +113,10 @@ describe('an index that the list of $$ never reaches', () => {
     })
 
     it('throws "Index out of bounds" for a command that needs the element, after one wait', async () => {
-        const started = Date.now()
+        // the monotonic clock of the wait timer: the wall clock can step back during the wait
+        const started = performance.now()
         const error = await errorOf($$('#list li')[5].click())
-        const elapsed = Date.now() - started
+        const elapsed = performance.now() - started
 
         expect(error?.message).toContain('Index out of bounds! $$(#list li) returned only 3 elements.')
         /**
