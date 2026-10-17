@@ -21,7 +21,7 @@ await browser.execute(() => alert('Hello Dialog'))
 
 :::note
 
-Dialogs are dismissed automatically, unless there is at least one `browser.on('dialog')` or `browser.once('dialog')` listener. When a listener is present, it must either [`dialog.accept()`](/docs/api/dialog/accept) or [`dialog.dismiss()`](/docs/api/dialog/dismiss) the dialog - otherwise the page will freeze waiting for the dialog, and actions like click will never finish.
+Dialogs are dismissed automatically, unless there is at least one `browser.on('dialog')` or `browser.once('dialog')` listener or the [`unhandledPromptBehavior`](https://w3c.github.io/webdriver/#dfn-unhandled-prompt-behavior) capability is set. With `unhandledPromptBehavior: 'ignore'` a dialog stays open until you handle it, e.g. with [`browser.getAlertText()`](/docs/api/webdriver#getalerttext) and [`browser.acceptAlert()`](/docs/api/webdriver#acceptalert). When a listener is present, it must either [`dialog.accept()`](/docs/api/dialog/accept) or [`dialog.dismiss()`](/docs/api/dialog/dismiss) the dialog - otherwise the page will freeze waiting for the dialog, and actions like click will never finish.
 
 :::
 

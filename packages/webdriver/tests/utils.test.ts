@@ -342,6 +342,39 @@ describe('utils', () => {
                 .toBe(undefined)
         })
 
+        it('should keep a user-defined unhandledPromptBehavior', async () => {
+            const params: RemoteConfig = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                capabilities: {
+                    browserName: 'chrome',
+                    unhandledPromptBehavior: 'accept'
+                }
+            }
+            await startWebDriverSession(params)
+            const { alwaysMatch } = JSON.parse(mockedFetch.mock.calls[0][1]?.body as string).capabilities
+            expect(alwaysMatch.webSocketUrl).toBe(true)
+            expect(alwaysMatch.unhandledPromptBehavior).toBe('accept')
+        })
+
+        it('should not modify the requested capabilities', async () => {
+            const connection = { hostname: 'localhost', port: 4444, path: '/', protocol: 'http' }
+            const flatCaps = { browserName: 'chrome' }
+            await startWebDriverSession({ ...connection, capabilities: flatCaps })
+            expect(flatCaps).toEqual({ browserName: 'chrome' })
+
+            const alwaysMatch = { browserName: 'chrome' }
+            const firstMatch = [{ browserName: 'chrome' }]
+            await startWebDriverSession({ ...connection, capabilities: { alwaysMatch, firstMatch } })
+            expect(alwaysMatch).toEqual({ browserName: 'chrome' })
+            expect(firstMatch).toEqual([{ browserName: 'chrome' }])
+
+            const { alwaysMatch: sent } = JSON.parse(mockedFetch.mock.calls[1][1]?.body as string).capabilities
+            expect(sent.unhandledPromptBehavior).toBe('ignore')
+        })
+
         it('should handle sessionRequest error', async () => {
             const error = await startWebDriverSession({
                 logLevel: 'warn',
