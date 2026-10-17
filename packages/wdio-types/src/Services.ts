@@ -303,7 +303,8 @@ export interface HookFunctions {
     afterHook?(test: Test, context: any, result: TestResult, hookName: string): unknown | Promise<unknown>
 
     /**
-     * Runs before a WebdriverIO command gets executed.
+     * Runs before a WebdriverIO command gets executed, once for each command. For an element
+     * command, it runs after WebdriverIO has waited for the element.
      * @param commandName command name
      * @param args        arguments that command would receive
      */
@@ -313,7 +314,8 @@ export interface HookFunctions {
     ): unknown | Promise<unknown>
 
     /**
-     * Runs after a WebdriverIO command gets executed
+     * Runs after a WebdriverIO command gets executed, once for each command, with the result
+     * or the error of the last try when WebdriverIO retries an element command.
      * @param commandName  command name
      * @param args         arguments that command would receive
      * @param result       result of the command
