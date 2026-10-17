@@ -784,6 +784,19 @@ describe('main suite 1', () => {
                 await expect($('h3')).not.toExist()
             })
 
+            it('switches to the top-level browsing context when leaving nested frames in quick succession', async () => {
+                await browser.url(`${navigationOrigin}/frames`)
+                await browser.switchFrame($('iframe')) // IFrame A
+                await browser.switchFrame($('iframe')) // IFrame A2
+
+                await browser.switchToParentFrame()    // back to IFrame A
+                await browser.switchToParentFrame()    // back to Frame Demo
+
+                // Unlike `expect(...).toHaveText(...)`, `browser.execute` doesn't retry,
+                // so it reveals which browsing context WebdriverIO uses right after `switchToParentFrame` resolves
+                expect(await browser.execute(() => document.title)).toBe('Frame Demo')
+            })
+
             after(() => browser.switchFrame(null))
         })
 
