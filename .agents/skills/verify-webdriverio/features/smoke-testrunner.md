@@ -32,6 +32,7 @@ Preconditions:
 - **Plugin.** Run `pnpm run test:smoke customService` or `pnpm run test:smoke customReporterString`. Exit 0 and stdout contains `All smoke tests passed!`.
 - **Watch mode.** Run `pnpm run test:smoke watchMode`. Exit 0 and stdout contains `All smoke tests passed!`. The suite reruns a changed spec in the same WebDriver session, including one failing rerun.
 - **filesToWatch.** Run `pnpm run test:smoke watchFilesToWatch`. Exit 0 and stdout contains `All smoke tests passed!`. Changing a watched file reruns every spec, each spec keeps its own session, and shutdown deletes every retained session.
+- **Whole-run deadline.** Run `pnpm run test:smoke launcherTimeout`. Exit 0 and stdout contains `All smoke tests passed!` plus seven `launcherTimeout` case lines. The suite asserts the actual launcher exit code, flushed timeout log diagnostics, executed spec indices and one completed `onComplete` for disabled/normal, delayed preparation/worker hook, serial specs, delayed retry and slow teardown. It uses the mock driver, not a real browser.
 - **Unknown name.** Run `pnpm run test:smoke notARealSuite`. Exit 1 and stdout names the suite and lists valid names. The runner prints that error with `console.log`.
 - **Proof.** Save output to `.agents/verify-artifacts/smoke-testrunner/`. `result.txt` records the suite name, exit code, and the passed or skipped count the suite asserts when it prints them.
 

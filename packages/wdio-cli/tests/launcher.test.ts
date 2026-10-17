@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
+import { setupDriver, setupBrowser } from '@wdio/utils/node'
 import { sleep, enableFileLogging, initializePlugin, initializeLauncherService } from '@wdio/utils'
 import Launcher from '../src/launcher.js'
 
@@ -723,6 +724,30 @@ describe('launcher', () => {
             } as any
         })
 
+        it('does not start a worker when a delayed worker hook finishes after the deadline', async () => {
+            let releaseHook!: () => void
+            launcher.configParser.getConfig = () => ({
+                onWorkerStart: () => new Promise<void>(resolve => { releaseHook = resolve })
+            }) as any
+            const pending = launcher['_startInstance'](['/test.js'], caps, 0, undefined, 0)
+            await vi.waitFor(() => expect(releaseHook).toBeTypeOf('function'))
+            launcher['_hasTimedOut'] = true
+            releaseHook()
+            await pending
+            expect(launcher.runner!.run).not.toHaveBeenCalled()
+        })
+
+        it('does not start a delayed retry after the deadline', async () => {
+            let finishDelay!: () => void
+            vi.mocked(sleep).mockImplementationOnce(() => new Promise<void>(resolve => { finishDelay = resolve }))
+            launcher.configParser.getConfig = () => ({ specFileRetries: 1, specFileRetriesDelay: 1 }) as any
+            const pending = launcher['_startInstance'](['/test.js'], caps, 0, undefined, 0)
+            launcher['_hasTimedOut'] = true
+            finishDelay()
+            await pending
+            expect(launcher.runner!.run).not.toHaveBeenCalled()
+        })
+
         it('should start an instance', async () => {
             const onWorkerStartMock = vi.fn()
             const caps = {
@@ -886,6 +911,232 @@ describe('launcher', () => {
             } as any
             launcher.runner = { initialize: vi.fn(), shutdown: vi.fn() } as any
             launcher['_runMode'] = vi.fn().mockImplementation(() => 0)
+        })
+
+        it('times out delayed preparation without starting work after it eventually resolves', async () => {
+            vi.useFakeTimers()
+            let releasePrepare!: () => void
+            let settled = false
+            Object.assign(config, { timeout: 100 })
+            config.onPrepare = [() => new Promise<void>((resolve) => { releasePrepare = resolve })]
+            const pending = launcher.run().then(result => { settled = true; return result })
+            try {
+                await vi.advanceTimersByTimeAsync(100)
+                const settledAtDeadline = settled
+                releasePrepare()
+                const result = await pending
+                expect(settledAtDeadline).toBe(true)
+                expect(result).toBe(1)
+                expect(launcher['_runMode']).not.toHaveBeenCalled()
+                expect(launcher.runner!.shutdown).toHaveBeenCalledOnce()
+                expect(config.onComplete).toHaveLength(1)
+                expect(config.onComplete![0]).toHaveBeenCalledWith(1, config, expect.anything(), expect.anything())
+            } finally {
+                releasePrepare?.()
+                await pending
+                vi.useRealTimers()
+            }
+        })
+
+        it('times out an active run and keeps the normal shutdown/onComplete/dispose order', async () => {
+            vi.useFakeTimers()
+            let finishRun!: (code: number) => void
+            let settled = false
+            const order: string[] = []
+            Object.assign(config, { timeout: 100 })
+            config.onComplete = [() => { order.push('complete') }]
+            mockRunner({
+                shutdown: vi.fn(async () => { order.push('shutdown'); return true }),
+                dispose: vi.fn(async () => { order.push('dispose') })
+            })
+            launcher['_runMode'] = vi.fn(() => new Promise<number>((resolve) => { finishRun = resolve }))
+            const pending = launcher.run().then(result => { settled = true; return result })
+            try {
+                await vi.advanceTimersByTimeAsync(100)
+                const settledAtDeadline = settled
+                finishRun(0)
+                const result = await pending
+                expect(settledAtDeadline).toBe(true)
+                expect(result).toBe(1)
+                expect(order).toEqual(['shutdown', 'complete', 'dispose'])
+            } finally {
+                finishRun?.(0)
+                await pending
+                vi.useRealTimers()
+            }
+        })
+
+        it('rejects a positive whole-run timeout in watch mode instead of silently ignoring it', async () => {
+            Object.assign(config, { timeout: 100 })
+            launcher['_isWatchMode'] = true
+            await expect(launcher.run()).rejects.toThrow(/timeout.*watch|watch.*timeout/i)
+        })
+
+        it('waits for in-flight runner setup before cleanup without entering late preparation', async () => {
+            vi.useFakeTimers()
+            let releaseSetup!: () => void
+            const initialize = vi.fn(() => new Promise<void>(resolve => { releaseSetup = resolve }))
+            const shutdown = vi.fn().mockResolvedValue(true)
+            const dispose = vi.fn()
+            vi.mocked(initializePlugin).mockResolvedValueOnce({ default: class {
+                initialize = initialize
+                shutdown = shutdown
+                dispose = dispose
+            } } as never)
+            config.timeout = 100
+            const pending = launcher.run()
+            try {
+                await vi.advanceTimersByTimeAsync(100)
+                expect(shutdown).not.toHaveBeenCalled()
+                releaseSetup()
+                expect(await pending).toBe(1)
+                expect(config.onPrepare![0]).not.toHaveBeenCalled()
+                expect(launcher['_runMode']).not.toHaveBeenCalled()
+                expect(shutdown).toHaveBeenCalledOnce()
+                expect(dispose).toHaveBeenCalledOnce()
+            } finally {
+                releaseSetup?.()
+                await pending
+                vi.useRealTimers()
+            }
+        })
+
+        it('settles both driver setup requests before cleanup when one rejects', async () => {
+            let releaseBrowser!: () => void
+            const problem = new Error('driver setup failed')
+            vi.mocked(setupDriver).mockRejectedValueOnce(problem)
+            vi.mocked(setupBrowser).mockImplementationOnce(() => new Promise<void>(resolve => { releaseBrowser = resolve }))
+            const pending = launcher.run()
+            const rejection = expect(pending).rejects.toBe(problem)
+            await vi.waitFor(() => expect(setupBrowser).toHaveBeenCalled())
+            expect(launcher.runner!.shutdown).not.toHaveBeenCalled()
+            releaseBrowser()
+            await rejection
+            expect(launcher.runner!.shutdown).toHaveBeenCalledOnce()
+            expect(launcher['_runMode']).not.toHaveBeenCalled()
+        })
+
+        it('keeps a timeout during slow teardown nonzero and clears the deadline', async () => {
+            vi.useFakeTimers()
+            let finishDispose!: () => void
+            mockRunner({
+                shutdown: vi.fn().mockResolvedValue(true),
+                dispose: () => new Promise<void>(resolve => { finishDispose = resolve })
+            })
+            config.timeout = 100
+            const pending = launcher.run()
+            try {
+                await vi.advanceTimersByTimeAsync(100)
+                finishDispose()
+                expect(await pending).toBe(1)
+                expect(vi.getTimerCount()).toBe(0)
+            } finally {
+                finishDispose?.()
+                await pending
+                vi.useRealTimers()
+            }
+        })
+
+        it.each([undefined, 0, 100])('clears the deadline on normal completion (%s)', async timeout => {
+            vi.useFakeTimers()
+            config.timeout = timeout
+            mockRunner({ shutdown: vi.fn().mockResolvedValue(true), dispose: vi.fn() })
+            try {
+                expect(await launcher.run()).toBe(0)
+                expect(vi.getTimerCount()).toBe(0)
+                await vi.advanceTimersByTimeAsync(200)
+                expect(launcher['_hasTimedOut']).toBe(false)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('preserves an earlier run error and clears its deadline', async () => {
+            vi.useFakeTimers()
+            const problem = new Error('original run error')
+            config.timeout = 100
+            launcher['_runMode'] = vi.fn().mockRejectedValue(problem)
+            try {
+                await expect(launcher.run()).rejects.toBe(problem)
+                expect(vi.getTimerCount()).toBe(0)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it('does not run completion hooks when the runner plugin fails to load', async () => {
+            const problem = new Error('runner plugin failed')
+            vi.mocked(initializePlugin).mockRejectedValueOnce(problem)
+            await expect(launcher.run()).rejects.toBe(problem)
+            expect(config.onComplete![0]).not.toHaveBeenCalled()
+            expect(launcher.runner!.shutdown).not.toHaveBeenCalled()
+        })
+
+        it('finalises once when a normal run expires during shutdown', async () => {
+            vi.useFakeTimers()
+            let finishShutdown!: () => void
+            config.timeout = 100
+            mockRunner({
+                shutdown: () => new Promise<void>(resolve => { finishShutdown = resolve }),
+                dispose: vi.fn()
+            })
+            const pending = launcher.run()
+            try {
+                await vi.advanceTimersByTimeAsync(100)
+                finishShutdown()
+                expect(await pending).toBe(1)
+                expect(launcher.interface!.finalise).toHaveBeenCalledOnce()
+            } finally {
+                finishShutdown?.()
+                await pending
+                vi.useRealTimers()
+            }
+        })
+
+        it('installs in-flight worker listeners before timeout shutdown', async () => {
+            vi.useFakeTimers()
+            let releaseWorker!: (worker: unknown) => void
+            const on = vi.fn()
+            const shutdown = vi.fn(async () => {
+                expect(on).toHaveBeenCalledWith('exit', expect.any(Function))
+                return true
+            })
+            vi.mocked(initializePlugin).mockResolvedValueOnce({ default: class {
+                initialize = vi.fn()
+                shutdown = shutdown
+                run = () => new Promise(resolve => { releaseWorker = resolve })
+            } } as never)
+            config.timeout = 100
+            launcher['_runMode'] = vi.fn(async () => {
+                await launcher['_startInstance'](['/test.js'], caps, 0, undefined, 0)
+                return 0
+            })
+            const pending = launcher.run()
+            try {
+                await vi.advanceTimersByTimeAsync(100)
+                expect(shutdown).not.toHaveBeenCalled()
+                releaseWorker({ on })
+                expect(await pending).toBe(1)
+                expect(shutdown).toHaveBeenCalledOnce()
+            } finally {
+                releaseWorker?.({ on })
+                await pending
+                vi.useRealTimers()
+            }
+        })
+
+        it('reports a deadline exceeded by synchronous teardown before its timer can fire', async () => {
+            let now = 0
+            const clock = vi.spyOn(performance, 'now').mockImplementation(() => now)
+            config.timeout = 100
+            config.onComplete = [() => { now = 150 }]
+            mockRunner({ shutdown: vi.fn().mockResolvedValue(true), dispose: vi.fn() })
+            try {
+                expect(await launcher.run()).toBe(1)
+                expect(launcher['_hasTimedOut']).toBe(true)
+            } finally {
+                clock.mockRestore()
+            }
         })
 
         it('exit code 0', async () => {

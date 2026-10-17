@@ -51,6 +51,9 @@ class Launcher {
 
     private _exitCode = 0
     private _hasTriggeredExitRoutine = false
+    private _hasTimedOut = false
+    private _checkTimeout = () => this._hasTimedOut
+    private _pendingWorkerStarts = new Set<Promise<unknown>>()
     private _schedule: Schedule[] = []
     private _rid: number[] = []
     private _runnerStarted = 0
@@ -83,38 +86,78 @@ class Launcher {
         this.isMultiRemote = this.isParallelMultiRemote || !Array.isArray(capabilities)
         validateConfig(TESTRUNNER_DEFAULTS, { ...config, capabilities })
 
-        await enableFileLogging(config.outputDir)
-        logger.setLogLevelsConfig(config.logLevels, config.logLevel)
+        if (config.timeout && this._isWatchMode) {
+            throw new Error('The "timeout" option is not supported in watch mode')
+        }
 
-        const [runnerName, runnerOptions] = Array.isArray(config.runner) ? config.runner : [config.runner, {} as WebdriverIO.BrowserRunnerOptions]
-        const Runner = (await initializePlugin(runnerName, 'runner') as Services.RunnerPlugin).default
-        this.runner = new Runner(runnerOptions, config)
-
-        /**
-         * catches ctrl+c event
-         */
-        exitHook(this._exitHandler.bind(this))
         let exitCode = 0
-        let error: HookError | undefined = undefined
+        let runnerCreated = false
+        let isFinalised = false
+        const finalise = () => {
+            if (this.interface && !isFinalised) {
+                isFinalised = true
+                this.interface.finalise()
+            }
+        }
+        let error: HookError | undefined
+        let pendingSetup: Promise<unknown> | undefined
+        let timeoutId: ReturnType<typeof setTimeout> | undefined
         const caps = this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
+        const startedAt = performance.now()
+        const deadline = new Promise<void>((resolve) => {
+            const expire = () => {
+                if (this._hasTimedOut) { return }
+                this._hasTimedOut = true
+                this._exitCode = exitCode = 1
+                log.error(`Test run timed out after ${config.timeout}ms. Starting graceful shutdown.`)
+                this._resolve?.(1)
+                resolve()
+            }
+            this._checkTimeout = () => {
+                if (config.timeout && performance.now() - startedAt >= config.timeout) { expire() }
+                return this._hasTimedOut
+            }
+            if (config.timeout) {
+                timeoutId = setTimeout(expire, config.timeout)
+            }
+        })
 
-        try {
-            const { ignoredWorkerServices, launcherServices } = await initializeLauncherService(config, caps)
+        const run = async () => {
+            await enableFileLogging(config.outputDir)
+            if (this._checkTimeout()) { return }
+            logger.setLogLevelsConfig(config.logLevels, config.logLevel)
+
+            const [runnerName, runnerOptions] = Array.isArray(config.runner) ? config.runner : [config.runner, {} as WebdriverIO.BrowserRunnerOptions]
+            const Runner = (await initializePlugin(runnerName, 'runner') as Services.RunnerPlugin).default
+            if (this._checkTimeout()) { return }
+            this.runner = new Runner(runnerOptions, config)
+            runnerCreated = true
+            exitHook(this._exitHandler.bind(this))
+
+            const services = initializeLauncherService(config, caps)
+            pendingSetup = services
+            const { ignoredWorkerServices, launcherServices } = await services
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
+            if (this._checkTimeout()) { return }
 
             /**
              * run pre test tasks for runner plugins
              * (e.g. deploy Lambda function to AWS)
              */
-            await this.runner.initialize()
+            pendingSetup = this.runner.initialize()
+            await pendingSetup
+            pendingSetup = undefined
+            if (this._checkTimeout()) { return }
 
             /**
              * run onPrepare hook
              */
             log.info('Run onPrepare hook')
             await runLauncherHook(config.onPrepare, config, caps)
+            if (this._checkTimeout()) { return }
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
+            if (this._checkTimeout()) { return }
 
             /**
              * For parallel multi-remote, only get the specs and excludes from the first object
@@ -140,45 +183,71 @@ class Launcher {
             /**
              * pre-configure necessary driver for worker threads
              */
-            await Promise.all([
-                setupDriver(config, caps),
-                setupBrowser(config, caps)
-            ])
+            const setup = [setupDriver(config, caps), setupBrowser(config, caps)]
+            pendingSetup = Promise.allSettled(setup)
+            await Promise.all(setup)
+            pendingSetup = undefined
+            if (this._checkTimeout()) { return }
 
-            exitCode = await this._runMode(config, caps)
+            const result = await this._runMode(config, caps)
+            exitCode = this._checkTimeout() ? 1 : result
             await logger.waitForBuffer()
-            this.interface.finalise()
+            if (!this._checkTimeout()) { finalise() }
+        }
+
+        try {
+            // A late user hook may finish after the deadline. Every continuation
+            // checks the deadline before starting another phase or worker.
+            await Promise.race([run(), deadline])
         } catch (err) {
             error = err as HookError
         } finally {
             try {
-                if (!this._hasTriggeredExitRoutine) {
-                    this._hasTriggeredExitRoutine = true
-                    const passesCodeCoverage = await this.runner.shutdown()
-                    if (!passesCodeCoverage) {
-                        exitCode = exitCode || 1
+                if (runnerCreated) {
+                    try {
+                        // Resource creation already in flight must settle before its
+                        // normal shutdown/dispose. User hooks are not awaited here.
+                        await Promise.allSettled([
+                            ...(pendingSetup ? [pendingSetup] : []),
+                            ...this._pendingWorkerStarts
+                        ])
+                        if (!this._hasTriggeredExitRoutine && this.runner) {
+                            this._hasTriggeredExitRoutine = true
+                            const passesCodeCoverage = await this.runner.shutdown()
+                            if (!passesCodeCoverage) {
+                                exitCode = exitCode || 1
+                            }
+                        }
+
+                        if (this._checkTimeout()) { finalise() }
+                        exitCode = await this.#runOnCompleteHook(config, caps, this._checkTimeout() ? 1 : exitCode)
+                    } finally {
+                        // A failing dispose must not replace the run's own error or exit code.
+                        try {
+                            await this.runner?.dispose?.()
+                        } catch (err) {
+                            log.warn('Failed to dispose the runner:', err)
+                        }
                     }
                 }
-
-                exitCode = await this.#runOnCompleteHook(config, caps, exitCode)
             } finally {
-                // A failing dispose must not replace the run's own error or exit code.
-                try {
-                    await this.runner.dispose?.()
-                } catch (err) {
-                    log.warn('Failed to dispose the runner:', err)
+                this._checkTimeout()
+                clearTimeout(timeoutId)
+                this._checkTimeout = () => this._hasTimedOut
+                if (this._hasTimedOut) {
+                    await logger.waitForBuffer()
                 }
             }
         }
 
         if (error) {
-            if (this.interface) {
+            if (runnerCreated && this.interface) {
                 this.interface.logHookError(error)
             }
             throw error
         }
 
-        return exitCode
+        return this._hasTimedOut ? 1 : exitCode
     }
 
     /**
@@ -391,7 +460,7 @@ class Launcher {
         /**
          * stop spawning new processes when CTRL+C was triggered
          */
-        if (this._hasTriggeredExitRoutine) {
+        if (this._hasTriggeredExitRoutine || this._checkTimeout()) {
             return true
         }
 
@@ -439,13 +508,13 @@ class Launcher {
             }
 
             const specs = schedulableCaps[0].specs.shift() as NonNullable<WorkerSpecs>
-            this._startInstance(
+            Promise.resolve(this._startInstance(
                 specs.files,
                 schedulableCaps[0].caps as Capabilities.ResolvedTestrunnerCapabilities,
                 schedulableCaps[0].cid,
                 specs.rid,
                 specs.retries
-            )
+            )).catch((error) => this._workerHookError(error))
             schedulableCaps[0].availableInstances--
             schedulableCaps[0].runningInstances++
         }
@@ -487,11 +556,13 @@ class Launcher {
             throw new Error('Internal Error: no runner initialized, call run() first')
         }
 
+        if (this._checkTimeout()) { return }
         const config = this.configParser.getConfig()
 
         // wait before retrying the spec file
         if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && config.specFileRetries !== retries) {
             await sleep(config.specFileRetriesDelay * 1000)
+            if (this._checkTimeout()) { return }
         }
 
         // Retried tests receive the cid of the failing test as rid
@@ -536,6 +607,7 @@ class Launcher {
                 log.warn(`Failed to create profiling output directory "${profileOutputDir}": ${(err as Error).message}`)
             }
 
+            if (this._checkTimeout()) { return }
             if (!this._hasLoggedProfiling) {
                 const enabled = [
                     enableCpuProf ? 'CPU' : undefined,
@@ -587,44 +659,53 @@ class Launcher {
         log.info('Run onWorkerStart hook')
         await runLauncherHook(config.onWorkerStart, runnerId, workerCaps, specs, this._args, execArgv)
             .catch((error) => this._workerHookError(error))
+        if (this._checkTimeout()) { return }
         await runServiceHook(this._launcher!, 'onWorkerStart', runnerId, workerCaps, specs, this._args, execArgv)
             .catch((error) => this._workerHookError(error))
 
+        if (this._checkTimeout()) { return }
+
         // prefer launcher settings in capabilities over general launcher
-        const worker = await this.runner.run({
-            cid: runnerId,
-            command: 'run',
-            configFile: this._configFilePath,
-            args: {
-                ...this._args,
-                /**
-                 * Pass on user and key values to ensure they are available in the worker process when using
-                 * environment variables that were locally exported but not part of the environment.
-                 */
-                user: config.user,
-                key: config.key
-            },
-            caps: workerCaps,
-            specs,
-            execArgv,
-            retries
-        })
-        worker.on('message', this.interface.onMessage.bind(this.interface))
-        worker.on('error', this.interface.onMessage.bind(this.interface))
-        worker.on('exit', (code) => {
-            if (!this.configParser.getConfig().groupLogsByTestSpec) {
-                return
-            }
-            if (code.exitCode === 0) {
-                console.log(WORKER_GROUPLOGS_MESSAGES.normalExit(code.cid))
-            } else {
-                console.log(WORKER_GROUPLOGS_MESSAGES.exitWithError(code.cid))
-            }
-            worker.logsAggregator.forEach((logLine) => {
-                console.log(logLine.replace(new RegExp('\\n$'), ''))
+        const runner = this.runner
+        const cli = this.interface
+        const startWorker = (async () => {
+            const worker = await runner.run({
+                cid: runnerId,
+                command: 'run',
+                configFile: this._configFilePath,
+                args: {
+                    ...this._args,
+                    /**
+                     * Pass on user and key values to ensure they are available in the worker process when using
+                     * environment variables that were locally exported but not part of the environment.
+                     */
+                    user: config.user,
+                    key: config.key
+                },
+                caps: workerCaps,
+                specs,
+                execArgv,
+                retries
             })
-        })
-        worker.on('exit', this._endHandler.bind(this))
+            worker.on('message', cli.onMessage.bind(cli))
+            worker.on('error', cli.onMessage.bind(cli))
+            worker.on('exit', (code) => {
+                if (!this.configParser.getConfig().groupLogsByTestSpec) {
+                    return
+                }
+                if (code.exitCode === 0) {
+                    console.log(WORKER_GROUPLOGS_MESSAGES.normalExit(code.cid))
+                } else {
+                    console.log(WORKER_GROUPLOGS_MESSAGES.exitWithError(code.cid))
+                }
+                worker.logsAggregator.forEach((logLine) => {
+                    console.log(logLine.replace(new RegExp('\\n$'), ''))
+                })
+            })
+            worker.on('exit', this._endHandler.bind(this))
+        })()
+        this._pendingWorkerStarts.add(startWorker)
+        await startWorker.finally(() => this._pendingWorkerStarts.delete(startWorker))
     }
 
     private _workerHookError(error: HookError) {
@@ -659,9 +740,9 @@ class Launcher {
      * @param  {string} signal    signal that terminated the worker, if any
      */
     private async _endHandler({ cid: rid, exitCode, specs, retries, signal }: EndMessage): Promise<void> {
-        const passed = this._isWatchModeHalted() || exitCode === 0
+        const passed = !this._checkTimeout() && (this._isWatchModeHalted() || exitCode === 0)
 
-        if (!passed && retries > 0) {
+        if (!passed && retries > 0 && !this._hasTimedOut) {
             // Default is true, so test for false explicitly
             const requeue = this.configParser.getConfig().specFileRetriesDeferred ? 'push' : 'unshift'
             this._schedule[parseInt(rid, 10)].specs[requeue]({ files: specs, retries: retries - 1, rid })

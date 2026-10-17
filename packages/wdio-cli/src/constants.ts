@@ -64,6 +64,18 @@ export const TESTRUNNER_DEFAULTS: Options.Definition<Options.Testrunner & { capa
         type: 'string'
     },
     /**
+     * Optional deadline for the complete testrunner, including launcher hooks.
+     */
+    timeout: {
+        type: 'number',
+        default: 0,
+        validate: (value: number) => {
+            if (!Number.isInteger(value) || value < 0 || value > 2_147_483_647) {
+                throw new Error('the "timeout" option must be an integer between 0 and 2147483647 milliseconds')
+            }
+        }
+    },
+    /**
      * If you only want to run your tests until a specific amount of tests have failed use
      * bail (default is 0 - don't bail, run all tests).
      */
