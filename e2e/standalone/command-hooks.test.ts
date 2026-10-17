@@ -82,9 +82,9 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
     })
 
     test('beforeCommand runs before the wait for an element that shows up late, afterCommand after it', async () => {
-        await browser.execute(() => { setTimeout(() => document.body.insertAdjacentHTML('beforeend', '<p id="late">late</p>'), 300) })
         const late = await browser.$('#late')
         expect(late.elementId).toBeUndefined()
+        await browser.execute(() => { setTimeout(() => document.body.insertAdjacentHTML('beforeend', '<p id="late">late</p>'), 300) })
         ids.length = 0
         expect(await late.getText()).toBe('late')
         expect(ids.filter(([, name]) => name === 'getText')).toEqual([['before', 'getText', undefined], ['after', 'getText', late.elementId]])
