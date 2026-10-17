@@ -346,6 +346,62 @@ describe('SevereServiceError in test hooks', () => {
         expect(body).toHaveBeenCalledOnce()
     })
 
+    it.each(['continue', 'close'])('pauses once with the test identity after a severe afterTest error (%s)', async (action) => {
+        const error = severeError()
+        const closed = new Error('Session closed from wdio session')
+        const order: string[] = []
+        const identity = { title: 'fails in afterTest', file: '/tmp/severe-after.spec.ts' }
+        const pause = vi.fn(async () => {
+            order.push('pause')
+            if (action === 'close') {
+                throw closed
+            }
+        })
+        setDebugAgentPause(pause)
+        executeHooksWithArgs.mockImplementation(async (name: string) => {
+            order.push(name)
+            return name === 'afterTest' ? [error] : []
+        })
+        const args = [
+            'Test',
+            { specFn: () => { order.push('body') }, specFnArgs: [] },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [identity] },
+            { afterFn: 'afterFn', afterFnArgs: () => [identity] },
+            '0-0',
+            0
+        ] as any[]
+
+        // @ts-expect-error test args
+        await expect(testFnWrapper(...args)).rejects.toBe(action === 'close' ? closed : error)
+        expect(order).toEqual(['beforeTest', 'body', 'afterTest', 'pause'])
+        expect(pause).toHaveBeenCalledExactlyOnceWith({ cid: '0-0', spec: identity.file, test: identity.title })
+        expect(executeHooksWithArgs).toHaveBeenNthCalledWith(2, 'afterTest', 'afterFn', [identity, expect.objectContaining({
+            passed: true, error: undefined
+        })])
+    })
+
+    it('does not pause twice when a body failure is followed by a severe afterTest error', async () => {
+        const bodyError = new Error('original body failure')
+        const pause = vi.fn(async () => {})
+        setDebugAgentPause(pause)
+        executeHooksWithArgs.mockResolvedValueOnce([]).mockResolvedValueOnce([severeError()])
+
+        await expect(run(() => { throw bodyError })).rejects.toBe(bodyError)
+        expect(pause).toHaveBeenCalledOnce()
+    })
+
+    it('does not pause twice for a severe beforeTest error', async () => {
+        const error = severeError()
+        const pause = vi.fn(async () => {})
+        const body = vi.fn()
+        setDebugAgentPause(pause)
+        executeHooksWithArgs.mockResolvedValueOnce([error]).mockResolvedValueOnce([])
+
+        await expect(run(body)).rejects.toBe(error)
+        expect(body).not.toHaveBeenCalled()
+        expect(pause).toHaveBeenCalledOnce()
+    })
+
     it('keeps ordinary beforeTest and afterTest errors non-fatal', async () => {
         executeHooksWithArgs.mockResolvedValueOnce([new Error('before')]).mockResolvedValueOnce([new Error('after')])
         await expect(run(() => 'body result')).resolves.toBe('body result')

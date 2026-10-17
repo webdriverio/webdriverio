@@ -953,6 +953,7 @@ const severeTestHooks = async () => {
         } else {
             process.env.WDIO_SEVERE_TEST_HOOKS_OUTPUT = oldOutput
         }
+        await fs.rm(directory, { recursive: true, force: true })
     }
 }
 

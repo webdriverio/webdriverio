@@ -219,6 +219,19 @@ export const testFrameworkFnWrapper = async function (
     await logHookError(`After${type}`, afterResults, cid)
     if (type === 'Test' && !error && !skip) {
         error = getSevereError(afterResults)
+        /**
+         * A failure first raised by afterTest could not pause before that hook.
+         * Keep its already-emitted result intact and pause only this new failure.
+         */
+        const pause = error && getDebugAgentPause()
+        if (pause) {
+            const identity = runnableFrom(afterArgs[0])
+            try {
+                await pause({ cid, spec: identity.spec, test: identity.test })
+            } catch (closeErr) {
+                error = closeErr instanceof Error ? closeErr : new Error(String(closeErr))
+            }
+        }
     }
 
     if (error && !error.matcherName) {
