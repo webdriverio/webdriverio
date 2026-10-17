@@ -25,7 +25,8 @@ export default async function isElementStable(elem: HTMLElement): Promise<boolea
          * render). Without rendering, nothing can animate either.
          */
         await new Promise<void>((resolve) => {
-            const timer = setTimeout(resolve, 100)
+            // only if no frame comes: a busy browser can render none for more than 100 ms
+            const timer = setTimeout(resolve, 1000)
             requestAnimationFrame(() => requestAnimationFrame(() => {
                 clearTimeout(timer)
                 resolve()
