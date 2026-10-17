@@ -405,22 +405,32 @@ const cucumberTestrunnerMultipleByLineNumber = async () => {
  * Cucumber fail due to failAmbiguousDefinitions
  */
 const cucumberFailAmbiguousDefinitions = async () => {
-    const hasFailed = await launch(
-        'cucumberFailAmbiguousDefinitions',
-        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
-        {
-            specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
-            cucumberOpts: {
-                ignoreUndefinedDefinitions: true,
-                failAmbiguousDefinitions: true,
-                name: ['failAmbiguousDefinitions']
+    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberAmbiguousDefinitions.log')
+    await fs.rm(logFile, { force: true })
+    try {
+        const hasFailed = await launch(
+            'cucumberFailAmbiguousDefinitions',
+            path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+            {
+                specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
+                reporters: [['spec', { stdout: false, logFile }]],
+                cucumberOpts: {
+                    ignoreUndefinedDefinitions: true,
+                    failAmbiguousDefinitions: true,
+                    name: ['failAmbiguousDefinitions']
+                }
             }
-        }
-    ).then(
-        () => false,
-        () => true
-    )
-    assert.equal(hasFailed, true)
+        ).then(
+            () => false,
+            () => true
+        )
+        assert.equal(hasFailed, true)
+        const logs = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '')
+        assert.ok(logs.includes('Step "this is ambiguous" matches multiple step definitions.'))
+        assert.ok(logs.includes('overlapping expressions'))
+    } finally {
+        await fs.rm(logFile, { force: true })
+    }
 }
 
 /**
