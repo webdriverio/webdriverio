@@ -487,25 +487,25 @@ describe('CucumberFormatter', () => {
             eventBroadcaster.emit('envelope', { testRunFinished })
             return wdioReporter.emit.mock.calls
                 .filter(([event]: [string]) => /^(suite|test):(start|end|pass)$/.test(event))
-                .map(([event, payload]: [string, any]) => ({ event, type: payload.type, title: payload.title, uid: payload.uid, parent: payload.parent, duration: payload.duration }))
+                .map(([event, payload]: [string, any]) => ({ event, type: payload.type, title: payload.title, uid: payload.uid, parent: payload.parent, fullTitle: payload.fullTitle, duration: payload.duration }))
         }
 
-        it('starts a feature again when the run comes back to it, with its own uid', () => {
+        it('starts a feature again when the run comes back to it, with its own uid, and the feature uid as the parent of its scenarios', () => {
             const events = runGroupedFeatures(false)
             const a = 'a.feature:3:1'
             const b = 'b.feature:3:1'
-            expect(events.map(({ event, type, uid, parent }) => [event, type, type === 'feature' ? uid : parent])).toEqual([
+            expect(events.map(({ event, type, uid, parent, fullTitle }) => type === 'feature' ? [event, type, uid] : [event, type, parent, fullTitle])).toEqual([
                 ['suite:start', 'feature', a],
-                ['suite:start', 'scenario', a],
-                ['suite:end', 'scenario', a],
+                ['suite:start', 'scenario', a, `${a}: a1`],
+                ['suite:end', 'scenario', a, `${a}: a1`],
                 ['suite:end', 'feature', a],
                 ['suite:start', 'feature', b],
-                ['suite:start', 'scenario', b],
-                ['suite:end', 'scenario', b],
+                ['suite:start', 'scenario', b, `${b}: b1`],
+                ['suite:end', 'scenario', b, `${b}: b1`],
                 ['suite:end', 'feature', b],
                 ['suite:start', 'feature', `${a}#2`],
-                ['suite:start', 'scenario', `${a}#2`],
-                ['suite:end', 'scenario', `${a}#2`],
+                ['suite:start', 'scenario', a, `${a}: a2`],
+                ['suite:end', 'scenario', a, `${a}: a2`],
                 ['suite:end', 'feature', `${a}#2`],
             ])
         })
@@ -515,15 +515,19 @@ describe('CucumberFormatter', () => {
             expect(featureEnds.map(({ duration }) => duration)).toEqual([10, 10, 10])
         })
 
-        it('uses the uid of the part as the parent of the scenario tests (scenarioLevelReporter)', () => {
+        /**
+         * the `fullTitle` of a scenario test gives its Allure `historyId`: it must not
+         * depend on the random order that splits the feature into parts
+         */
+        it('uses the feature uid, not the uid of the part, as the parent of the scenario tests (scenarioLevelReporter)', () => {
             const tests = runGroupedFeatures(true).filter(({ event }) => event.startsWith('test:'))
-            expect(tests.map(({ event, title, parent }) => [event, title, parent])).toEqual([
-                ['test:start', 'a1', 'a.feature:3:1'],
-                ['test:pass', 'a1', 'a.feature:3:1'],
-                ['test:start', 'b1', 'b.feature:3:1'],
-                ['test:pass', 'b1', 'b.feature:3:1'],
-                ['test:start', 'a2', 'a.feature:3:1#2'],
-                ['test:pass', 'a2', 'a.feature:3:1#2'],
+            expect(tests.map(({ event, title, parent, fullTitle }) => [event, title, parent, fullTitle])).toEqual([
+                ['test:start', 'a1', 'a.feature:3:1', 'a.feature:3:1: a1'],
+                ['test:pass', 'a1', 'a.feature:3:1', 'a.feature:3:1: a1'],
+                ['test:start', 'b1', 'b.feature:3:1', 'b.feature:3:1: b1'],
+                ['test:pass', 'b1', 'b.feature:3:1', 'b.feature:3:1: b1'],
+                ['test:start', 'a2', 'a.feature:3:1', 'a.feature:3:1: a2'],
+                ['test:pass', 'a2', 'a.feature:3:1', 'a.feature:3:1: a2'],
             ])
         })
     })

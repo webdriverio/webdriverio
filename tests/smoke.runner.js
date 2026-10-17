@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 import url from 'node:url'
 import path from 'node:path'
+import os from 'node:os'
 import assert from 'node:assert'
 import { expect } from 'expect-webdriverio'
 
@@ -524,6 +525,59 @@ const cucumberGroupedSpecsRandomOrder = async () => {
         // the test needs the features to alternate (a, b, a, ...), as the random order gives them
         assert.ok(headings.length > 2, `the scenarios of the features did not mix, the test checks nothing: ${headings}`)
         await fs.rm(logFile, { force: true })
+    }
+}
+
+/**
+ * Cucumber with grouped specs in a random order and scenario-level tests: a scenario
+ * keeps its Allure `historyId` when the random order splits its feature into parts
+ */
+const cucumberGroupedSpecsRandomOrderHistory = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'random-order')
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-random-order-history-'))
+    const historyIds = {}
+    let passed = false
+    try {
+        for (const order of ['random:42', 'defined']) {
+            const name = order.replace(':', '-')
+            const outputDir = path.join(tmpDir, `allure-${name}`)
+            const logFile = path.join(tmpDir, `spec-${name}.log`)
+            await launch(
+                'cucumberGroupedSpecsRandomOrderHistory',
+                path.resolve(basePath, 'random-order.conf.js'),
+                {
+                    reporters: [
+                        ['allure', { outputDir, disableWebdriverStepsReporting: true, disableWebdriverScreenshotsReporting: true }],
+                        ['spec', { stdout: false, logFile }]
+                    ],
+                    cucumberOpts: { scenarioLevelReporter: true, order }
+                }
+            )
+            const results = (await fs.readdir(outputDir)).filter((file) => file.endsWith('-result.json'))
+            historyIds[order] = {}
+            for (const file of results) {
+                const { name: scenario, historyId } = JSON.parse(await fs.readFile(path.join(outputDir, file), 'utf-8'))
+                assert.ok(typeof historyId === 'string' && historyId.length > 0, `Missing Allure historyId for ${scenario} in ${order}`)
+                historyIds[order][scenario] = historyId
+            }
+            if (order !== 'defined') {
+                // the test needs the features to alternate (a, b, a, ...), so that a feature has a second part
+                const headings = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '').split('\n')
+                    .filter((line) => /^Feature [ab]$/.test(line.replace(/^\[[^\]]*\]\s*/, '').trim()))
+                assert.ok(headings.length > 2, `the scenarios of the features did not mix in order ${order}, the test checks nothing`)
+            }
+        }
+        assert.equal(Object.keys(historyIds.defined).length, 6, `Allure did not get the 6 scenarios: ${JSON.stringify(historyIds)}`)
+        assert.equal(new Set(Object.values(historyIds.defined)).size, 6, `each scenario must have its own historyId: ${JSON.stringify(historyIds)}`)
+        assert.deepStrictEqual(historyIds['random:42'], historyIds.defined, 'a scenario must keep its historyId in a random order')
+        passed = true
+    } finally {
+        // keep the Allure results of a failed run to examine them
+        if (passed) {
+            await fs.rm(tmpDir, { recursive: true, force: true })
+        } else {
+            console.error(`cucumberGroupedSpecsRandomOrderHistory: Allure and spec output kept in ${tmpDir}`)
+        }
     }
 }
 
@@ -1367,6 +1421,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberPendingTest,
         cucumberReporter,
         cucumberGroupedSpecsRandomOrder,
+        cucumberGroupedSpecsRandomOrderHistory,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,
