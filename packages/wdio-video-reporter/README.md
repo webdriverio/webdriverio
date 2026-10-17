@@ -94,7 +94,9 @@ Then add the reporter to your configuration:
 
 ## With [Allure Reporter](https://webdriver.io/docs/allure-reporter)
 
-Adding the Allure reporter as well automatically updates the reports with videos without any need to configure anything :-)
+Adding the Allure reporter as well automatically updates the reports with videos. Set
+`disableWebdriverScreenshotsReporting: true` in the Allure options: each frame of the video is a WebDriver
+screenshot, and without this option Allure attaches each frame to the test as a "Screenshot".
 
 ```js
  reporters: [
