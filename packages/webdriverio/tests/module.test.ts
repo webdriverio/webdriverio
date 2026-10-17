@@ -202,11 +202,7 @@ describe('WebdriverIO module interface', () => {
                 expect.any(Function),
                 expect.any(Object),
                 expect.any(Function),
-                expect.arrayContaining([
-                    'getElement',
-                    'getElements',
-                    'emit',
-                ])
+                ['getElement', 'getElements']
             )
         })
     })
@@ -380,11 +376,7 @@ describe('WebdriverIO module interface', () => {
             expect.any(Function),
             expect.any(Object),
             expect.any(Function),
-            expect.arrayContaining([
-                'getElement',
-                'getElements',
-                'emit',
-            ])
+            ['getElement', 'getElements']
 
         )
         expect(WebDriver.newSession).toHaveBeenCalledTimes(2)

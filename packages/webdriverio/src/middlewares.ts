@@ -6,7 +6,7 @@ import implicitWait from './utils/implicitWait.js'
 import { isElementNotFoundAgain, nameNotFoundAgain, notFoundElement, waitedFor } from './utils/elementNotFound.js'
 import { isStaleElementError } from './utils/index.js'
 
-export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
+export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements']
 
 /**
  * This method is an command wrapper for elements that checks if a command is called

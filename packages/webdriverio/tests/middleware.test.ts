@@ -386,6 +386,17 @@ describe('middleware', () => {
             'isExistingFoo',
             'isDisplayedFoo']
 
+        /**
+         * `emit` is an event function, not a command: the command wrapper does not wrap it, so
+         * the middleware never sees it (#16056)
+         */
+        it('elem NOT_FOUND and the parent emits an event through it', async () => {
+            const elem = await browser.$('#nonexisting')
+            const result = elem.emit('custom-event', { x: 1 })
+            expect(result instanceof Promise).toBe(false)
+            expect(vi.mocked(waitForExist).mock.calls).toHaveLength(0)
+        })
+
         commands.forEach(commandName => {
             it(`elem NOT_FOUND and command = ${commandName}`, async () => {
                 browser.addCommand(commandName, () => {}, true)
