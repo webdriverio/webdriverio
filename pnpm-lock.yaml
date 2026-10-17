@@ -246,6 +246,9 @@ importers:
       '@wdio/ai-service':
         specifier: workspace:*
         version: link:../packages/wdio-ai-service
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-allure-reporter
       '@wdio/browser-runner':
         specifier: workspace:*
         version: link:../packages/wdio-browser-runner
@@ -300,6 +303,9 @@ importers:
       '@wdio/types':
         specifier: workspace:*
         version: link:../packages/wdio-types
+      '@wdio/video-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-video-reporter
       babel-plugin-transform-hook-names:
         specifier: ^1.0.2
         version: 1.0.2(@babel/core@7.29.7(supports-color@8.1.1))
@@ -1719,6 +1725,28 @@ importers:
       '@types/aria-query':
         specifier: ^5.0.4
         version: 5.0.4
+
+  packages/wdio-video-reporter:
+    dependencies:
+      '@wdio/allure-reporter':
+        specifier: workspace:*
+        version: link:../wdio-allure-reporter
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../wdio-reporter
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+    devDependencies:
+      webdriverio:
+        specifier: workspace:*
+        version: link:../webdriverio
 
   packages/wdio-webdriver-mock-service:
     dependencies:

@@ -142,6 +142,7 @@ This event is emitted whenever WebdriverIO sends a WebDriver Bidi command to the
 
 - `method`: WebDriver Bidi command method
 - `params`: associated command parameter (see [API](/docs/api/webdriverBidi))
+- `id`: the command id, the same as in the `bidiResult` event of this command
 
 #### `bidiResult`
 

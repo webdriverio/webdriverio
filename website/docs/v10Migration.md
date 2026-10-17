@@ -341,6 +341,30 @@ The browser `result` event is forwarded to reporters as `client:afterCommand`. T
 
 `addEnvironment(name, value)` on `@wdio/allure-reporter` was removed. It had no effect. Set environment rows with [`reportedEnvironmentVars`](/docs/allure-reporter) in the Allure reporter options.
 
+### Video reporter
+
+`wdio-video-reporter` moved into the WebdriverIO repository as [`@wdio/video-reporter`](/docs/video-reporter). The community package is for v9 only: it installs `@wdio/reporter` 9 and `@wdio/logger` 9.
+
+```sh
+npm uninstall wdio-video-reporter
+npm install @wdio/video-reporter --save-dev
+```
+
+The community package installed ffmpeg itself. `@wdio/video-reporter` does not: [install ffmpeg](/docs/video-reporter#install-ffmpeg) on each machine that runs the tests, also in CI and in Docker images, or set the `ffmpegPath` option or the `FFMPEG_PATH` environment variable. Without ffmpeg, the reporter logs a warning and makes no video.
+
+```sh
+brew install ffmpeg                                         # macOS
+sudo apt-get update && sudo apt-get install -y ffmpeg       # Ubuntu, Debian
+winget install --id Gyan.FFmpeg -e                          # Windows
+```
+
+`reporters: ['video']` stays the same: WebdriverIO loads `@wdio/video-reporter` for that name. Replace imports from `wdio-video-reporter` with `@wdio/video-reporter`. The options are the same, with these changes:
+
+- `snapshotCommands` uses the last part of the W3C WebDriver endpoints. The old default also listed JSON Wire Protocol names such as `buttonup`, `moveto`, `keys` or `accept_alert`. These names never match a v10 command. Use the names of the [default list](/docs/video-reporter#snapshotcommands), for example `actions`, `value` or `accept`.
+- In a WebDriver BiDi session, the reporter also takes a frame after `url`, `back`, `forward`, `refresh` and `actions`.
+- The date in the video file names is `YYYY-MM-DD--HH-MM-SS-mmm` on every machine. Before, it used the locale of the machine.
+- With the Allure reporter, a test without a video no longer gets an empty video attachment.
+
 ## `$` is strict
 
 `$` now represents __exactly one__ element. If the selector resolves to more than one element, the command throws a `StrictSelectorError` instead of silently using the first match:

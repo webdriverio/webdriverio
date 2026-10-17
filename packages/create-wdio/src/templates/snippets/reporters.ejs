@@ -1,7 +1,8 @@
 // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter<%
-if (reporters.length) { %>
+if (reporters.length) { %><% if (reporters.includes('video')) { %>
+    // the video reporter needs ffmpeg: https://webdriver.io/docs/video-reporter#install-ffmpeg<% } %>
     reporters: [<%- reporters.map(reporter => {
         if (reporter === 'allure') {
             return `['${reporter}', {outputDir: 'allure-results'}]`

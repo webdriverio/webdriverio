@@ -476,6 +476,7 @@ describe('BidiCore', () => {
             expect(logged).toContain('**MASKED**')
             expect(logged).not.toContain('"value\\":\\"s')
             expect(emit).toHaveBeenCalledWith('bidiCommand', {
+                id: 1,
                 method: 'input.performActions',
                 params: {
                     context: 'frame-1',
