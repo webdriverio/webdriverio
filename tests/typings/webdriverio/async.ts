@@ -217,6 +217,12 @@ async function bar() {
     })
     // @ts-expect-error windowName and windowFeatures were removed in v10
     await browser.newWindow('https://webdriver.io', { windowName: 'some name', windowFeatures: 'some features' })
+    // a browsing context in both protocols, with the window handle and the type
+    const opened = await browser.newWindow('https://webdriver.io', { type: 'tab' })
+    expectType<string>(await opened.getTitle())
+    await opened.closeWindow()
+    expectType<string>(opened.handle)
+    expectType<'tab' | 'window'>(opened.type)
 
     await browser.createWindow('tab')
     await browser.createWindow('window')

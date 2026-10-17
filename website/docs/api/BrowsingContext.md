@@ -29,7 +29,7 @@ describe('browsing contexts', () => {
 | Call | Returns |
 | --- | --- |
 | [`browser.url(url)`](/docs/api/browser/url) | The session's first top-level context, after navigating it. `browser.url()` always navigates this one. |
-| [`browser.newWindow(url, { type })`](/docs/api/browser/newWindow) | A new tab (`type: 'tab'`) or window, once its page has loaded. The session does not switch to it. |
+| [`browser.newWindow(url, { type })`](/docs/api/browser/newWindow) | A new tab (`type: 'tab'`) or window, once its page has loaded, with its window `handle` and `type`. The session does not switch to it, except in a Classic session. |
 | [`browser.browsingContexts()`](/docs/api/browser/browsingContexts) | Every open top-level context (tabs and windows, not frames), e.g. a tab the page opened itself. |
 | [`context.frame(query)`](/docs/api/browsingContext/frame) | A frame of a context, also cross-origin and nested ones. |
 
@@ -43,7 +43,7 @@ const [titleA, titleB] = await Promise.all([pageA.getTitle(), pageB.getTitle()])
 
 Browsing contexts need a WebDriver BiDi session, which is the default since v10 for Chrome, Edge and Firefox. In a WebDriver Classic session, e.g. with Appium or Safari, there is only the session's current context. There:
 
-- `browser.url()` returns a stand-in for the browser. Commands like `$`, `execute` or `getTitle` run on the browser, `url`, `isFrame` and `parent` describe the current page, and `contextId` is `undefined`.
+- `browser.url()` and `browser.newWindow()` return a stand-in for the browser. Commands like `$`, `execute` or `getTitle` run on the browser, `url`, `isFrame` and `parent` describe the current page, and `contextId` is `undefined`. `browser.newWindow()` switches the session to the new window, as in v9, so its stand-in runs on that window until you switch again.
 - `frame()`, `navigate()` and `activate()` reject and name the Classic command to use instead: [`browser.switchFrame()`](/docs/api/browser/switchFrame), [`browser.url()`](/docs/api/browser/url) or [`browser.switchWindow()`](/docs/api/browser/switchWindow).
 
 Check `browser.isBidi` when the same code runs in both kinds of session.
@@ -55,6 +55,8 @@ Check `browser.isBidi` when the same code runs in both kinds of session.
 | `contextId` | `String` | The WebDriver BiDi browsing context id. `undefined` in a Classic session. |
 | `url` | `String` | The URL the context was last navigated to with `browser.url()`, `navigate()` or `newWindow()`. Navigations the page does itself (links, `location`, `history.pushState`) only show after [`getUrl()`](/docs/api/browsingContext/getUrl). |
 | `isFrame` | `Boolean` | `true` for a frame, `false` for a tab or window. |
+| `handle` | `String` | Only on a context from `newWindow()`: its window handle. In a BiDi session, the same value as `contextId`. |
+| `type` | `'tab' \| 'window'` | Only on a context from `newWindow()`: the type it was opened with. |
 | `parent` | `BrowsingContext \| undefined` | For a frame, the context `frame()` was called on (or the frame in between, for a frame nested deeper). `undefined` for a tab or window. |
 | `browser` | `Browser` | The [browser object](/docs/api/browser) of the session. |
 | `request` | `Request \| undefined` | Load information of the last navigation through `browser.url()` or `navigate()`: URL, headers, response, redirects and the requests the page made. |
