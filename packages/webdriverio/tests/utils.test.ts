@@ -397,6 +397,12 @@ describe('utils', () => {
             expect(verifyArgsAndStripIfElement([1, 'two', true, false, null, undefined])).toEqual([1, 'two', true, false, null, undefined])
         })
 
+        // an object without a prototype has no constructor
+        it('returns an object without a prototype as it is', () => {
+            const plain = Object.assign(Object.create(null), { a: 1 })
+            expect(verifyArgsAndStripIfElement([plain])).toEqual([plain])
+        })
+
         it('strips down properties if value is element object', () => {
             const fakeObj = new Element({
                 elementId: 'foo-bar',
