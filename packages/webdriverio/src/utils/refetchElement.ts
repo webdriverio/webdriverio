@@ -1,5 +1,29 @@
 import implicitWait from './implicitWait.js'
-import type { Selector } from '../types.js'
+import { notFoundElement, recordNotFound, waitedFor } from './elementNotFound.js'
+import { hasCode, WAIT_UNTIL_TIMEOUT } from './errorCodes.js'
+
+/**
+ * Find an item of a `$$()` list again by its index. `$$()[index]` waits `waitforTimeout` for
+ * the list to reach the index: when it does not, the error says which item was not found (other
+ * elements can match the selector), and records it, see `nameNotFoundAgain`.
+ */
+async function findItemAgain (
+    item: WebdriverIO.Element,
+    parent: WebdriverIO.Browser | WebdriverIO.Element,
+    commandName: string
+): Promise<WebdriverIO.Element> {
+    try {
+        return await parent.$$(item.selector as string)[item.index as number].getElement()
+    } catch (err) {
+        if (hasCode(err, WAIT_UNTIL_TIMEOUT)) {
+            const notFound = new Error(
+                `Can't call ${commandName} on element with selector "${item.selector}" at index ${item.index} because element wasn't found`)
+            recordNotFound(notFound, item)
+            throw notFound
+        }
+        throw err
+    }
+}
 
 /**
  * helper utility to refetch an element and all its parent elements when running
@@ -9,33 +33,55 @@ export default async function refetchElement (
     currentElement: WebdriverIO.Element,
     commandName: string
 ): Promise<WebdriverIO.Element> {
-    const selectors: {
-        selector: Selector
-        index: number
-    }[] = []
+    const chain: WebdriverIO.Element[] = []
 
     /**
-     * Crawl back to the browser object, and cache all selectors
+     * Crawl back to the browser object, and cache all elements of the chain
      */
     while (currentElement.elementId && currentElement.parent) {
-        selectors.push({ selector: currentElement.selector, index: currentElement.index || 0 })
+        chain.push(currentElement)
         currentElement = currentElement.parent as WebdriverIO.Element
     }
-    selectors.reverse()
+    chain.reverse()
 
-    const length = selectors.length
+    const length = chain.length
 
     /**
      * Beginning with the browser object, re-chain
      */
-    return selectors.reduce(async (elementPromise, { selector, index }, currentIndex) => {
-        const resolvedElement = await elementPromise
-        let nextElement = index > 0 ? await resolvedElement.$$(selector as string)[index]?.getElement() : null
-        nextElement = nextElement || await resolvedElement.$(selector).getElement()
+    return chain.reduce(async (elementPromise, element, currentIndex) => {
+        const parent = await elementPromise
         /**
          *  For error purposes, changing command name to '$' if we aren't
          *  on the last element of the array
          */
-        return await implicitWait(nextElement, currentIndex + 1 < length ? '$' : commandName)
+        const name = currentIndex + 1 < length ? '$' : commandName
+        let nextElement: WebdriverIO.Element
+        try {
+            // item [0] is the first match of $(), as before: a check (isDisplayed) answers without a wait
+            nextElement = element.index
+                ? await findItemAgain(element, parent, name)
+                : await parent.$(element.selector).getElement()
+        } catch (err) {
+            /**
+             * the lookup in a parent without an element id waited for that parent and did not
+             * find it (for example after `isDisplayed()` of a removed parent)
+             */
+            if (waitedFor(err) && notFoundElement(err) === undefined) {
+                recordNotFound(err, parent)
+            }
+            throw err
+        }
+        try {
+            return await implicitWait(nextElement, name)
+        } catch (err) {
+            /**
+             * the element of the chain that was not found, see `nameNotFoundAgain`
+             */
+            if (waitedFor(err)) {
+                recordNotFound(err, element)
+            }
+            throw err
+        }
     }, Promise.resolve(currentElement))
 }

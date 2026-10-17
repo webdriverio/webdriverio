@@ -3,6 +3,7 @@ import { getBrowserObject } from '@wdio/utils'
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
+import { isElementNotFoundAgain, nameNotFoundAgain, notFoundElement, waitedFor } from './utils/elementNotFound.js'
 import { isStaleElementError } from './utils/index.js'
 
 export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
@@ -42,6 +43,12 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                 return result
             } catch (_err: unknown) {
                 const err = _err as Error
+                /**
+                 * an inner layer of the command did not find the element again: name this command
+                 */
+                if (isElementNotFoundAgain(err)) {
+                    nameNotFoundAgain(err, this, commandName)
+                }
                 if (err.name === 'element not interactable') {
                     try {
                         await element.waitForClickable()
@@ -54,7 +61,15 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                     }
                 }
 
-                if (err.name === 'stale element reference' || isStaleElementError(err)) {
+                /**
+                 * The "element wasn't found" error of a wait (an element that was not found again,
+                 * or never found) is not a stale element error, also when its message has that text
+                 * (a selector like `[data-error="stale element reference"]`). So the outer layers of
+                 * a command do not look for an element that an inner layer did not find, and do not
+                 * run the command again (9.31.9 did not either).
+                 */
+                const stale = !waitedFor(err) && (err.name === 'stale element reference' || isStaleElementError(err))
+                if (stale) {
                     try {
                         const element = await refetchElement(this, commandName)
                         this.elementId = element.elementId
@@ -62,10 +77,24 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                         return await fn(commandName, commandFn).apply(this, args)
                     } catch (refetchErr) {
                         /**
-                         * If refetch fails (e.g., page navigated away and elements
-                         * are no longer found), re-throw the original stale element
-                         * error instead of masking it with "Index out of bounds"
-                         * or other refetch errors.
+                         * The lookup, or a lookup of the command run again, waited `waitforTimeout`
+                         * for the element (or a parent) and did not find it: throw its "element
+                         * wasn't found" error. The outer layers of the command do not handle it, so
+                         * they do not wait for the element again. A lookup records the element that
+                         * it did not find: name the error for this command, with the stale element
+                         * error of the driver as its cause. An element that the command never found
+                         * keeps its plain error.
+                         */
+                        if (waitedFor(refetchErr)) {
+                            if (refetchErr instanceof Error && notFoundElement(refetchErr) !== undefined) {
+                                nameNotFoundAgain(refetchErr, this, commandName, err)
+                            }
+                            throw refetchErr
+                        }
+                        /**
+                         * Any other failure gives the original stale element error instead of
+                         * masking it with an unrelated error, and an outer layer can find the
+                         * element again (#15627).
                          */
                         if (!(refetchErr instanceof Error) || !isStaleElementError(refetchErr)) {
                             throw err

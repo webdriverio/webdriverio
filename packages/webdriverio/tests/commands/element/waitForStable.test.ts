@@ -74,4 +74,29 @@ describe('waitForStable', () => {
 
         await expect(elem.waitForStable()).rejects.toThrow('The `waitForStable` command is only available for desktop and mobile browsers.')
     })
+
+    describe('a check that throws', () => {
+        const failingCheck = async (error: unknown) => {
+            const tmpElem = await browser.$('#foo')
+            const elem = {
+                waitForStable: tmpElem.waitForStable,
+                waitUntil: (condition: () => Promise<unknown>) => condition(),
+                isStable: () => Promise.reject(error),
+                options: { waitforInterval: 5, waitforTimeout: timeout }
+            } as unknown as WebdriverIO.Element
+            return elem.waitForStable().then(() => null, (err: Error) => err)
+        }
+
+        it('throws the message of its error', async () => {
+            expect((await failingCheck(new Error('foo')))?.message).toBe('foo')
+        })
+
+        it('throws a string that it throws', async () => {
+            expect((await failingCheck('foo'))?.message).toBe('foo')
+        })
+
+        it.each([[{}], [undefined], [new Error('')], ['']])('throws an unknown error for %s', async (value) => {
+            expect((await failingCheck(value))?.message).toBe('The waitForStable command got an unknown error')
+        })
+    })
 })
