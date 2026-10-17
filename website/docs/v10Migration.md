@@ -43,6 +43,8 @@ Code passed to `browser.execute` stays at ES2021, so it can run in older browser
 
 `mochaOpts.compilers` is gone. Mocha removed the long-deprecated `--compilers` flag, so leftover compiler mappings are ignored. Load transpilers or other setup files with `mochaOpts.require`.
 
+WebdriverIO follows the Mocha timeout of a test or hook: `this.timeout(ms)`, also `this.timeout(0)`, and `mochaOpts.timeout: 0`, which turns the timeout off. In v9, WebdriverIO ignored `this.timeout()` in a test and stopped it at `mochaOpts.timeout`, and from 9.22 `mochaOpts.timeout: 0` failed every test ("Timeout after -3ms"). When a test or hook times out, the next test starts after `afterTest` (or `afterHook`) ends. With the `retry` argument of WebdriverIO, all attempts of a test share one timeout, so a test that times out is not run again. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks).
+
 `failHookAffectedTests` defaults to `true`. A failing `before` or `beforeEach` hook fails the tests that hook skipped. Set `mochaOpts.failHookAffectedTests` to `false` to report only the hook.
 
 Use `expect-webdriverio` 8, see [expect-webdriverio 8](#expect-webdriverio-8). Mocha can load that package twice in one process; it shares assertion state across those copies ([expect-webdriverio#2221](https://github.com/webdriverio/expect-webdriverio/pull/2221)).
@@ -425,7 +427,17 @@ Until the list is loaded, `length` is a promise, and `[...list]`, `Array.from(li
 
 The same is true for `custom$$`, `shadow$$` and `react$$`, and for `$$()` on a multi-remote browser. A `$()` that you did not await is still a promise.
 
-`await` gives the same list, loaded and without `then`. Then `length` is a number, and `for...of`, `[...list]` and `Array.from()` work. Before `await`, you can use `for await`, an index (`$$('li')[0]`) and the async iteration methods (`map`, `filter`, `forEach`, ...).
+`await` gives the same list, loaded and without `then`. Then `length` is a number, and `for...of`, `[...list]` and `Array.from()` work. Before `await`, you can use `for await`, an index (`$$('li')[0]`), `at()`, `slice()` and the async iteration methods (`map`, `filter`, `forEach`, ...).
+
+An index past the end of a `$$()` list is not `undefined`, also after `await`. It is an element that waits for the list to reach that index, as `$$('li')[5]` does before `await`: `isExisting()` gives `false` and a command such as `getText()` throws `Index out of bounds`, both after `waitforTimeout`. In v9, `(await $$('li'))[5]` was `undefined`. So `if (list[5])` is always true, and `list.at(5)` is never `undefined`. Compare the index with `length`, which does not wait:
+
+```diff
+  const list = await $$('li')
+- if (list[5]) {
++ if (list.length > 5) {
+```
+
+A negative index, and a list from `slice()` or `filter()`, still give `undefined` past the end.
 
 Code that awaits a value only when it is a `Promise`, or that reads `length` without `await`, does not throw. It reads a promise as the length, so a loop such as `for (let i = 0; i < list.length; i++)` runs 0 times. Always `await` the value. `await` on a value that is already loaded gives that value:
 

@@ -47,6 +47,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `jasmineOpts.stopSpecOnExpectationFailure` | `jasmineOpts.oneFailurePerSpec`. Setting the old key throws. |
 | `cucumberOpts.tagExpression` | `cucumberOpts.tags`. Setting the old key throws. |
 | `mochaOpts.compilers` | `mochaOpts.require`. A leftover `compilers` list is ignored. |
+| `this.timeout(ms)` in a Mocha test | keep it. WebdriverIO now follows it (v9 stopped the test at `mochaOpts.timeout`), and `mochaOpts.timeout: 0` turns the timeout off. With the WebdriverIO `retry` argument, all attempts share one timeout: a test that times out is not run again. |
 | `multiremotebrowser` | `multiRemoteBrowser` |
 | `browser.isMultiremote`, `isMultiremote` | `isMultiRemote` |
 | `multiremote(` | `multiRemote(` |
@@ -62,6 +63,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `newWindow` `windowName` / `windowFeatures` | delete them. `type: 'window'` or `type: 'tab'` remains. |
 | `browser.newWindow(url)`, then `browser.<command>` and `browser.closeWindow()` in a BiDi session | `const tab = await browser.newWindow(url)`, then `tab.<command>` and `tab.closeWindow()`. `newWindow` does not switch, so `browser.closeWindow()` closes the first tab. |
 | `if (value instanceof Promise) value = await value` | `value = await value`. A `$$()` that is not awaited is an array, not a `Promise`. |
+| `if (list[i])` or `list.at(i) === undefined` on a `$$()` list, to check that an item exists | `if (list.length > i)`. An index past the end is an element that waits `waitforTimeout`, not `undefined`, also after `await`. A negative index, and a list from `slice()` or `filter()`, still give `undefined`. |
 | `$$(...).length` without `await` | `await $$(...).length`. Before `await`, `length` is a promise: a comparison gives `false` and an index loop runs 0 times, with no error. |
 | `startActivity('pkg', '.Activity')` | `startActivity({ appPackage, appActivity })`. Delete `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments`. |
 | `browser.throttle(` | `browser.throttleNetwork(` |
