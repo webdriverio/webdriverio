@@ -48,7 +48,129 @@ function setElementOverride(overrides: Record<string, Function>, name: string, c
     overrides[name] = composeElementOverrides(overrides[name], command)
 }
 
-export default function WebDriver(options: object, modifier?: Function, properties: PropertiesObject = {}) {
+/**
+ * the commands of the clients of a list, see `shareCommands`
+ */
+const SHARED_COMMANDS = Symbol('wdio:sharedCommands')
+
+interface SharedCommands {
+    /**
+     * the object with the wrapped commands that the prototype of each client inherits from
+     */
+    commands: object
+    /**
+     * the descriptors that each client defines on itself: the event functions of the map (the
+     * prototype of each client also has them, and the client must keep the ones of the map),
+     * and a getter that makes the own `__propertiesObject__` of the client on its first read
+     */
+    own: PropertiesObject
+    /**
+     * the options and the command wrapper of the list, which every client uses
+     */
+    options: object
+    commandWrapper?: Function
+}
+
+/**
+ * The descriptors of a client: its own copy of the map, the wrapped commands, the element
+ * overrides and `__propertiesObject__`. The descriptors of the caller do not change. A caller
+ * can give the same object to the monad of many clients, e.g. `getElements` to all items of a
+ * list. Wrapped in place, the commands of each new client were wrapped again: item `[n]` had
+ * `n + 1` layers.
+ */
+function clientProperties(this: void, options: object, properties: PropertiesObject, commandWrapper?: Function): PropertiesObject {
+    const propertiesObject: PropertiesObject = { ...properties }
+    delete propertiesObject.scope
+
+    /**
+     * capabilities attached to the instance prototype not being shown if
+     * logging the instance
+     */
+    propertiesObject.commandList = { value: Object.keys(propertiesObject) }
+    propertiesObject.options = { value: options }
+    if ('requestedCapabilities' in options) {
+        propertiesObject.requestedCapabilities = { value: (options as { requestedCapabilities: unknown }).requestedCapabilities }
+    }
+
+    /**
+     * allow to wrap commands if necessary
+     * e.g. in wdio-cli to allow element chaining
+     */
+    if (typeof commandWrapper === 'function') {
+        for (const [commandName, descriptor] of Object.entries(propertiesObject)) {
+            const { value } = descriptor
+            /**
+             * no need to apply a command wrapper if:
+             * - there is no wrapper
+             * - command is an event handler function
+             */
+            if (typeof value !== 'function' || (EVENTHANDLER_FUNCTIONS as readonly string[]).includes(commandName)) {
+                continue
+            }
+
+            propertiesObject[commandName] = {
+                ...descriptor,
+                value: commandWrapper(commandName, value, propertiesObject),
+                configurable: true
+            }
+        }
+    }
+
+    /**
+     * overwrite native element commands with user defined
+     */
+    overwriteElementCommands.call(this, propertiesObject)
+
+    /**
+     * assign propertiesObject to itself so the client can be recreated
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { puppeteer, ...propertiesObjectWithoutPuppeteer } = propertiesObject
+    propertiesObject.__propertiesObject__ = { value: propertiesObjectWithoutPuppeteer }
+    return propertiesObject
+}
+
+/**
+ * The properties for the monads of many clients with the same commands, e.g. the items of a
+ * list: the commands are wrapped once, on one object that each client inherits from, instead
+ * of on each client (about 280 properties). Each client still has its own prototype (its
+ * events and the commands that `addCommand` / `overwriteCommand` add to it).
+ *
+ * Every client uses the `options` and the command wrapper given here, also when its monad gets
+ * others.
+ *
+ * Internal: `webdriverio` uses it for element lists. It is not a public API and can change in any
+ * release.
+ */
+export function shareCommands(options: object, properties: PropertiesObject, commandWrapper?: Function): PropertiesObject {
+    const scopeType = SCOPE_TYPES[properties.scope?.value || 'browser']
+    const descriptors = clientProperties(options, properties, commandWrapper)
+    const own: PropertiesObject = {}
+    for (const name of EVENTHANDLER_FUNCTIONS) {
+        if (descriptors[name]) {
+            own[name] = descriptors[name]
+        }
+    }
+    /**
+     * Each client has its own `__propertiesObject__`, as a client with its own commands does:
+     * `addCommand` / `overwriteCommand` with `attachToElement` write into it, and the queries
+     * of a multi-remote element read it. It is made on the first read, so a client that never
+     * uses it costs nothing.
+     */
+    const snapshot = descriptors.__propertiesObject__.value as PropertiesObject
+    own.__propertiesObject__ = {
+        configurable: true,
+        get (this: object) {
+            const value = { ...snapshot, __elementOverrides__: { value: {} } }
+            Object.defineProperty(this, '__propertiesObject__', { value })
+            return value
+        }
+    }
+    const shared: SharedCommands = { commands: Object.create(scopeType.prototype, descriptors), own, options, commandWrapper }
+    return { scope: properties.scope, [SHARED_COMMANDS]: { value: shared } }
+}
+
+export default function WebDriver(monadOptions: object, modifier?: Function, properties: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
      * info within the `propertiesObject` object. This doesn't have any functional
@@ -56,7 +178,26 @@ export default function WebDriver(options: object, modifier?: Function, properti
      */
     const scopeType = SCOPE_TYPES[properties.scope?.value || 'browser']
 
-    const prototype = Object.create(scopeType.prototype)
+    const shared = properties[SHARED_COMMANDS]?.value as SharedCommands | undefined
+    /**
+     * a client of a list uses the options of the list, see `shareCommands`
+     */
+    const options = shared ? shared.options : monadOptions
+    const prototype = Object.create(shared ? shared.commands : scopeType.prototype)
+
+    /**
+     * Put a function on a prototype. The own prototype of the client gets it defined, with the
+     * attributes of an assignment: for a client of a list it inherits the read-only commands of
+     * the list (see `shareCommands`), where an assignment throws. Another prototype (`proto`)
+     * gets an assignment, which keeps the attributes of a method that it already has.
+     */
+    const setOnPrototype = (target: Record<string | symbol, unknown>, name: string, value: Function) => {
+        if (target === prototype) {
+            Object.defineProperty(target, name, { configurable: true, enumerable: true, writable: true, value })
+        } else {
+            target[name] = value
+        }
+    }
     const log = logger('webdriver')
 
     const mittInstance = mitt()
@@ -173,64 +314,14 @@ export default function WebDriver(options: object, modifier?: Function, properti
     /**
      * WebDriver monad
      */
-    function unit(this: void, sessionId: string, commandWrapper?: Function, elementCmdImplicitWaitExclusionList?: string[]) {
+    function unit(this: void, sessionId: string, clientCommandWrapper?: Function, elementCmdImplicitWaitExclusionList?: string[]) {
         /**
-         * The client gets its own map of the property descriptors, and a new descriptor
-         * for each command that it wraps or overrides: the descriptors of the caller do
-         * not change. A caller can give the same object to the monad of many clients,
-         * e.g. `getElements` to all items of a list. Wrapped in place, the commands of
-         * each new client were wrapped again: item `[n]` had `n + 1` layers.
+         * a client of a list wraps the commands that it adds as the list wraps its commands
          */
-        const propertiesObject: PropertiesObject = { ...properties }
-        delete propertiesObject.scope
-
-        /**
-         * capabilities attached to the instance prototype not being shown if
-         * logging the instance
-         */
-        propertiesObject.commandList = { value: Object.keys(propertiesObject) }
-        propertiesObject.options = { value: options }
-        if ('requestedCapabilities' in options) {
-            propertiesObject.requestedCapabilities = { value: options.requestedCapabilities }
-        }
-
-        /**
-         * allow to wrap commands if necessary
-         * e.g. in wdio-cli to allow element chaining
-         */
-        if (typeof commandWrapper === 'function') {
-            for (const [commandName, descriptor] of Object.entries(propertiesObject)) {
-                const { value } = descriptor
-                /**
-                 * no need to apply a command wrapper if:
-                 * - there is no wrapper
-                 * - command is an event handler function
-                 */
-                if (typeof value !== 'function' || (EVENTHANDLER_FUNCTIONS as readonly string[]).includes(commandName)) {
-                    continue
-                }
-
-                propertiesObject[commandName] = {
-                    ...descriptor,
-                    value: commandWrapper(commandName, value, propertiesObject),
-                    configurable: true
-                }
-            }
-        }
-
-        /**
-         * overwrite native element commands with user defined
-         */
-        overwriteElementCommands.call(this, propertiesObject)
-
-        /**
-         * assign propertiesObject to itself so the client can be recreated
-         */
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { puppeteer, ...propertiesObjectWithoutPuppeteer } = propertiesObject
-        propertiesObject.__propertiesObject__ = { value: propertiesObjectWithoutPuppeteer }
-
-        let client = Object.create(prototype, propertiesObject)
+        const commandWrapper = shared ? shared.commandWrapper : clientCommandWrapper
+        let client = shared
+            ? Object.create(prototype, shared.own)
+            : Object.create(prototype, clientProperties(options, properties, commandWrapper))
         client.sessionId = sessionId
 
         /**
@@ -267,7 +358,17 @@ export default function WebDriver(options: object, modifier?: Function, properti
                 }
 
                 this.__propertiesObject__[name] = { value: customCommand }
-            } else {
+            } else if (
+                /**
+                 * A client of a list that adds a command with the name of a command of the list
+                 * keeps the command of the list, as a client with its own commands does (its own
+                 * property hides the one of its prototype). After an overwrite of that client,
+                 * which removed its own property, the added command replaces the overwrite.
+                 */
+                !(shared && !_proto &&
+                    Object.prototype.hasOwnProperty.call(shared.commands, name) &&
+                    !Object.prototype.hasOwnProperty.call(prototype, name))
+            ) {
                 unit.lift(name, customCommand, _proto)
             }
 
@@ -340,7 +441,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     unit.lift = function (name: string, func: Function, proto?: Record<string, any>, origCommand?: Function) {
-        (proto || prototype)[name] = function next(...args: unknown[]) {
+        setOnPrototype(proto || prototype, name, function next(this: { emit: (event: string, payload: unknown) => unknown }, ...args: unknown[]) {
             log.info('COMMAND', commandCallStructure(name, args))
             this.emit('command', { command: name, body: args })
 
@@ -387,14 +488,14 @@ export default function WebDriver(options: object, modifier?: Function, properti
                 this.emit('result', { command: name, result: { error } })
                 throw error
             }
-        }
+        })
     }
 
     /**
      * register event emitter
      */
     for (const eventCommand of EVENTHANDLER_FUNCTIONS) {
-        prototype[eventCommand] = function (...args: [unknown, unknown]) {
+        setOnPrototype(prototype, eventCommand, function (this: unknown, ...args: [unknown, unknown]) {
             // Call the appropriate method based on eventCommand
             switch (eventCommand) {
             case 'on':
@@ -415,7 +516,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
                 break
             }
             return this
-        }
+        })
     }
 
     return unit

@@ -1,4 +1,4 @@
-import { webdriverMonad, wrapCommand } from '@wdio/utils'
+import { shareCommands, webdriverMonad, wrapCommand } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 import { ELEMENT_KEY } from 'webdriver'
 import { getBrowserObject } from '@wdio/utils'
@@ -47,19 +47,11 @@ class WebDriverError extends Error {
 }
 
 /**
- * transforms a findElement response into a WDIO element
- * @param  {string} selector  selector that was used to query the element
- * @param  {Object} res       findElement response
- * @return {Object}           WDIO element object
+ * The descriptors of an element that `parent` finds: the commands of the browser without the
+ * browser-only commands, the element commands (an element of another held browsing context runs
+ * the classic element endpoints in its own context), and the `emit` of the parent.
  */
-export function getElement(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector?: Selector,
-    res?: ElementReference | ExtendedElementReference | Error,
-    propsParam: GetElementProps = {}
-): WebdriverIO.Element {
-    const props: GetElementProps = { isReactElement: false, isShadowElement: false, ...propsParam }
-    const browser = getBrowserObject(this)
+function elementProperties (parent: WebdriverIO.Browser | WebdriverIO.Element, browser: WebdriverIO.Browser): PropertyDescriptorMap {
     const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject: PropertyDescriptorMap = {
         /**
@@ -74,13 +66,25 @@ export function getElement(
         ...getWDIOPrototype('element'),
         scope: { value: 'element' }
     }
-    /**
-     * An element of another held browsing context runs the classic element
-     * endpoints in its own context.
-     */
     routeElementEndpoints(propertiesObject)
+    propertiesObject.emit = { value: parent.emit.bind(parent) }
+    return propertiesObject
+}
 
-    propertiesObject.emit = { value: this.emit.bind(this) }
+/**
+ * transforms a findElement response into a WDIO element
+ * @param  {string} selector  selector that was used to query the element
+ * @param  {Object} res       findElement response
+ * @return {Object}           WDIO element object
+ */
+export function getElement(
+    this: WebdriverIO.Browser | WebdriverIO.Element,
+    selector?: Selector,
+    res?: ElementReference | ExtendedElementReference | Error,
+    propsParam: GetElementProps = {}
+): WebdriverIO.Element {
+    const props: GetElementProps = { isReactElement: false, isShadowElement: false, ...propsParam }
+    const browser = getBrowserObject(this)
     const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
         const elementId = getElementFromResponse(res as ElementReference)
 
@@ -120,7 +124,7 @@ export function getElement(
         }
 
         return client
-    }, propertiesObject)
+    }, elementProperties(this, browser))
 
     const elementInstance = element(this.sessionId as string, elementErrorHandler(wrapCommand))
 
@@ -145,31 +149,19 @@ export const getElements = function getElements(
     elemResponse: (ElementReference | ExtendedElementReference | Error | WebDriverError)[],
     props: GetElementProps = { isReactElement: false, isShadowElement: false }
 ): WebdriverIO.Element[] {
-    const browser = getBrowserObject(this as WebdriverIO.Element)
-    const browserCommandKeys = Object.keys(browserCommands)
-    const propertiesObject: PropertyDescriptorMap = {
-        /**
-         * filter out browser commands from object
-         */
-        ...(Object.entries(clone(browser.__propertiesObject__)).reduce((commands, [name, descriptor]) => {
-            if (!browserCommandKeys.includes(name)) {
-                commands[name] = descriptor
-            }
-            return commands
-        }, {} as Record<string, PropertyDescriptor>)),
-        ...getWDIOPrototype('element')
-    }
-    routeElementEndpoints(propertiesObject)
-
     if (elemResponse.length === 0) {
         return []
     }
 
+    const browser = getBrowserObject(this as WebdriverIO.Element)
+    const commandWrapper = elementErrorHandler(wrapCommand)
     /**
-     * one object for all items: the monad gives each element its own copy
+     * The items of the list share their wrapped commands: one wrapper and one object with the
+     * commands for the list, instead of about 280 properties on each item. Built for the first
+     * new item: a list of elements that are already elements needs none.
      */
-    propertiesObject.scope = { value: 'element' }
-    propertiesObject.emit = { value: this.emit.bind(this) }
+    const shareListCommands = () => shareCommands(this.options, elementProperties(this, browser), commandWrapper)
+    let listProperties: PropertyDescriptorMap | undefined
     const elements = [elemResponse].flat(1).map((res: ElementReference | ExtendedElementReference | Element | Error | WebDriverError, i) => {
         /**
          * if we already deal with an element, just return it
@@ -221,9 +213,12 @@ export const getElements = function getElements(
             }
 
             return client
-        }, propertiesObject)
+        }, listProperties ??= shareListCommands())
 
-        const elementInstance: WebdriverIO.Element = element((this as WebdriverIO.Browser).sessionId, elementErrorHandler(wrapCommand))
+        /**
+         * an item uses the command wrapper of its list, see `shareListCommands`
+         */
+        const elementInstance: WebdriverIO.Element = element((this as WebdriverIO.Browser).sessionId)
 
         const origAddCommand = elementInstance.addCommand.bind(elementInstance)
         elementInstance.addCommand = (name: string, fn: AddCommandFn) => {

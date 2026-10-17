@@ -1,5 +1,5 @@
 import clone from 'lodash.clonedeep'
-import { setWdioKind, webdriverMonad, wrapCommand } from '@wdio/utils'
+import { setWdioKind, shareCommands, webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
@@ -151,6 +151,32 @@ export default class MultiRemote {
     }
 
     /**
+     * the descriptors of a multi-remote element: the commands of the multi-remote browser and
+     * the element commands
+     */
+    static elementProperties (propertiesObject: Record<string, PropertyDescriptor>) {
+        return { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
+    }
+
+    /**
+     * the command wrapper of a multi-remote element, which runs a command in every instance
+     */
+    static elementCommandWrapper (scope: MultiRemote) {
+        return multiRemoteHandler(scope.commandWrapper.bind(scope))
+    }
+
+    /**
+     * The properties of the entries of one multi-remote list: the entries share their wrapped
+     * commands and the command wrapper, see `shareCommands`
+     */
+    static listElements (
+        propertiesObject: Record<string, PropertyDescriptor>,
+        scope: MultiRemote,
+    ): MultiRemoteListProperties {
+        return shareCommands({}, MultiRemote.elementProperties(propertiesObject), MultiRemote.elementCommandWrapper(scope))
+    }
+
+    /**
      * helper method to generate element objects from results, so that we can call, e.g.
      *
      * ```
@@ -170,8 +196,9 @@ export default class MultiRemote {
         result: unknown,
         propertiesObject: Record<string, PropertyDescriptor>,
         scope: MultiRemote,
+        listProperties?: MultiRemoteListProperties
     ): WebdriverIO.MultiRemoteElement {
-        const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
+        const prototype = listProperties ?? MultiRemote.elementProperties(propertiesObject)
         const results = Array.isArray(result) ? result as WebdriverIO.Element[] : []
 
         const element = webdriverMonad({}, (client: WebdriverIO.MultiRemoteElement) => {
@@ -243,7 +270,10 @@ export default class MultiRemote {
         // @ts-expect-error
         const sessionId = this.sessionId
 
-        return element(sessionId, multiRemoteHandler(scope.commandWrapper.bind(scope)))
+        /**
+         * an entry of a list uses the command wrapper of its list
+         */
+        return element(sessionId, listProperties ? undefined : MultiRemote.elementCommandWrapper(scope))
     }
 
     /**
@@ -290,16 +320,24 @@ export default class MultiRemote {
             if (LIST_QUERIES.has(commandName)) {
                 const [selector, ...props] = args as [Selector, ...unknown[]]
                 let loadedInstances = instances
-                const wrapMultiRemote = (elements: unknown) => MultiRemote.elementWrapper(
+                const wrapMultiRemote = (elements: unknown, listProperties?: MultiRemoteListProperties) => MultiRemote.elementWrapper(
                     loadedInstances,
                     elements,
                     this.__propertiesObject__,
-                    self
+                    self,
+                    listProperties
                 )
                 return ElementArray.fromAsyncCallback(async () => {
                     const { result, activeInstances } = await execute()
                     loadedInstances = activeInstances
-                    return zipElements(result as WebdriverIO.Element[][]).map(wrapMultiRemote)
+                    /**
+                     * the entries of one load share their commands. An entry made later (an index
+                     * past the end) gets the commands of that time, see `wrapMultiRemote`
+                     */
+                    let listProperties: MultiRemoteListProperties | undefined
+                    return zipElements(result as WebdriverIO.Element[][]).map((elements) => (
+                        wrapMultiRemote(elements, listProperties ??= MultiRemote.listElements(this.__propertiesObject__, self))
+                    ))
                 }, {
                     selector,
                     foundWith: commandName,
@@ -337,6 +375,11 @@ export default class MultiRemote {
         })
     }
 }
+
+/**
+ * the properties of the entries of one multi-remote list, see `MultiRemote.listElements`
+ */
+type MultiRemoteListProperties = Record<string | symbol, PropertyDescriptor>
 
 /**
  * event listener class that propagates events to sub drivers
