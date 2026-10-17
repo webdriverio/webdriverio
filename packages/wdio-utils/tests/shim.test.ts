@@ -351,6 +351,7 @@ describe('executeAsync', () => {
             await vi.advanceTimersByTimeAsync(1)
 
             expect(await result).toBe(timeoutError)
+            expect(timeoutError.message).toBe('Timeout of 200ms exceeded.')
             expect(runnable._timeoutError).toHaveBeenCalledWith(200)
             expect(runnable.resetTimeout).toHaveBeenCalledTimes(1)
         })
@@ -370,10 +371,32 @@ describe('executeAsync', () => {
 
             await vi.advanceTimersByTimeAsync(197)
 
-            expect(await result).toEqual(new Error('Timeout of 200ms exceeded.'))
+            expect(await result).toEqual(new Error('Timeout of 200ms exceeded. (WDIO attempt 1/2)'))
             expect(fn).toHaveBeenCalledTimes(1)
             expect(retries).toEqual({ attempts: 0, limit: 1 })
             expect(runnable.resetTimeout).toHaveBeenCalledTimes(1)
+        })
+
+        it('should add the WDIO attempt to the Mocha timeout error of a retried test, once in its stack', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'retried mocha test',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
+            }
+            const fn = vi.fn()
+                .mockRejectedValueOnce(new Error('first attempt fails'))
+                .mockReturnValueOnce(new Promise(() => {}))
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, fn, { attempts: 0, limit: 2 }, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+
+            const err = await result as Error
+            expect(fn).toHaveBeenCalledTimes(2)
+            expect(err.message).toBe('Timeout of 200ms exceeded. (WDIO attempt 2/3)')
+            expect(err.stack?.split('\n')[0]).toBe('Error: Timeout of 200ms exceeded. (WDIO attempt 2/3)')
         })
     })
 
