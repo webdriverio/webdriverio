@@ -2,6 +2,7 @@ import { sleep } from '@wdio/utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
 import { getBrowsingContext } from '../../browsingContext.js'
+import { classicContext } from '../../utils/classicContext.js'
 import { historyReadiness } from '../../utils/traverseHistory.js'
 import type { NewWindowOptions } from '../../types.js'
 
@@ -16,7 +17,8 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * [browsing context](/docs/api/browsingContext) and does not switch to it: run
  * commands on the returned context, while `browser.url()` keeps navigating the
  * first one. In a WebDriver Classic session the command switches to the new window
- * and returns `{ handle, type }`.
+ * and returns the browser as its context, like `browser.url()`: it runs on the current window.
+ * In both, the result also has the window `handle` and the `type`.
  *
  * <example>
     :newWindow.js
@@ -34,7 +36,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * @param {NewWindowOptions=} options                newWindow command options
  * @param {string=}           options.type           type of new window: 'tab' or 'window'
  *
- * @return {BrowsingContext|Object}  In a BiDi session, the new browsing context. In a Classic session, `{handle, type}`.
+ * @return {BrowsingContext}  the browsing context of the new window or tab, with its window `handle` and its `type`
  *
  * @throws {Error} If `url` is invalid, if the command is used on mobile, or `type` is not 'tab' or 'window'.
  *
@@ -46,7 +48,7 @@ export async function newWindow (
     this: WebdriverIO.Browser,
     url: string,
     options: NewWindowOptions = {}
-): Promise<WebdriverIO.BrowsingContext | { handle: string, type: 'tab' | 'window' }> {
+): Promise<WebdriverIO.BrowsingContext & { handle: string, type: 'tab' | 'window' }> {
     /**
      * parameter check
      */
@@ -101,7 +103,8 @@ export async function newWindow (
          * mid-load races the next navigation, which Firefox never completes.
          */
         await this.browsingContextNavigate({ context, url, wait: historyReadiness(this.capabilities.pageLoadStrategy) })
-        return getBrowsingContext(this, context, { isFrame: false, url })
+        // the id of a top-level context is its window handle
+        return Object.assign(getBrowsingContext(this, context, { isFrame: false, url }), { handle: context, type })
     }
 
     await this.execute(newWindowHelper, url)
@@ -127,5 +130,5 @@ export async function newWindow (
     }
 
     await this.switchToWindow(newTab)
-    return { handle: newTab, type }
+    return classicContext(this, url, { handle: newTab, type })
 }

@@ -755,11 +755,11 @@ describe('WebdriverIO object brand matrix', () => {
         test.each<[string, Row]>([
             ['#M7 mock() (BiDi only)', { make: (b) => b.mock('**/api'), pending: 'other promise', awaited: 'rejects' }],
             /**
-             * A Classic session has no held contexts: `browser.url()` returns a
-             * stand-in for the browser, so it carries the browser brand.
+             * A Classic session has no held contexts: `browser.url()` and `browser.newWindow()`
+             * return a stand-in for the browser, so they carry the browser brand.
              */
             ['#C11 url(http)', { make: (b) => b.url('https://example.com'), pending: 'other promise', awaited: B, isMultiRemote: false }],
-            ['#C12 newWindow(), a window handle', {
+            ['#C12 newWindow(), a stand-in for the browser on the new window', {
                 from: (b) => {
                     const browser = b as unknown as WebdriverIO.Browser
                     vi.spyOn(browser, 'execute').mockResolvedValue(undefined)
@@ -769,7 +769,8 @@ describe('WebdriverIO object brand matrix', () => {
                 },
                 make: (b) => b.newWindow('https://webdriver.io'),
                 pending: 'other promise',
-                awaited: NONE
+                awaited: B,
+                isMultiRemote: false
             }]
         ])('%s', async (_, row) => {
             await check(await singleSession(), row)
