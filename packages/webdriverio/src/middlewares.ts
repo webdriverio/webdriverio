@@ -15,20 +15,24 @@ export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements']
 /**
  * Run an element command after the implicit wait, and retry it when the element
  * is stale or not yet interactable. `execute` is the command itself, without
- * this wrapper, so a retry does not wait a second time.
+ * this wrapper, so a retry does not wait a second time. `beforeCommand` runs the
+ * hooks after the wait, so they see the element that the wait found.
  */
 async function invokeElementCommand (
     element: WebdriverIO.Element,
     commandName: string,
-    execute: () => Promise<unknown>
+    execute: () => Promise<unknown>,
+    beforeCommand: () => Promise<void> = async () => {}
 ): Promise<unknown> {
     if (IMPLICIT_WAIT_EXCLUSION_LIST.includes(commandName)) {
+        await beforeCommand()
         return execute()
     }
 
     const fetched = await implicitWait(element, commandName)
     element.elementId = fetched.elementId
     element[ELEMENT_KEY] = fetched.elementId
+    await beforeCommand()
 
     try {
         const result = await execute()
@@ -150,9 +154,9 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
             }
             return list
         })
-        : fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element, ...callArgs: unknown[]) {
-            return invokeElementCommand(this, commandName, () => commandFn.apply(this, callArgs))
-        })
+        : fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element, beforeCommand: () => Promise<void>, ...callArgs: unknown[]) {
+            return invokeElementCommand(this, commandName, () => commandFn.apply(this, callArgs), beforeCommand)
+        }, { deferBeforeCommand: true })
 
     // the wrapper is built on the first call and kept: an element has ~280 commands and uses few
     let wrapped: Function | undefined

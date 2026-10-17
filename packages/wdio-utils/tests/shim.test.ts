@@ -39,6 +39,40 @@ describe('wrapCommand', () => {
         })
     })
 
+    // webdriverio runs beforeCommand of an element command after its implicit wait (middlewares.ts)
+    describe('beforeCommand run by the command', () => {
+        const record = () => {
+            const calls: string[] = []
+            const scope = { options: {
+                beforeCommand: [(name: string, args: unknown[]) => { calls.push(`before ${name} ${JSON.stringify(args)}`) }],
+                afterCommand: [(name: string, _args: unknown[], result: unknown, error?: Error) => { calls.push(`after ${name} ${result} ${error?.message}`) }]
+            } }
+            return { calls, scope }
+        }
+
+        it('runs beforeCommand when the command calls it, once', async () => {
+            const { calls, scope } = record()
+            const command = wrapCommand('foo', async (beforeCommand: () => Promise<void>, arg: string) => {
+                calls.push('wait')
+                await beforeCommand()
+                await beforeCommand()
+                calls.push(`run ${arg}`)
+                return 'result'
+            }, { deferBeforeCommand: true })
+
+            expect(await command.call(scope, 'x')).toBe('result')
+            expect(calls).toEqual(['wait', 'before foo ["x"]', 'run x', 'after foo result undefined'])
+        })
+
+        it('runs beforeCommand before afterCommand when the command fails before it calls it', async () => {
+            const { calls, scope } = record()
+            const command = wrapCommand('foo', async () => { throw new Error('not found') }, { deferBeforeCommand: true })
+
+            await expect(command.call(scope, 'x')).rejects.toThrow('not found')
+            expect(calls).toEqual(['before foo ["x"]', 'after foo undefined not found'])
+        })
+    })
+
     describe('brand of the chainable promise', () => {
         const scope = { options: { beforeCommand: [], afterCommand: [] } }
 

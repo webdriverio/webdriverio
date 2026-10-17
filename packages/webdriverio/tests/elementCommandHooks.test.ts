@@ -2,9 +2,14 @@ import path from 'node:path'
 
 import { describe, it, expect, vi } from 'vitest'
 import { remote } from '../src/index.js'
+import { waitForExist } from '../src/commands/element/waitForExist.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../src/commands/element/waitForExist.js', async (importOriginal) => {
+    const original = await importOriginal<Record<string, (...args: unknown[]) => unknown>>()
+    return { ...original, waitForExist: vi.fn(original.waitForExist) }
+})
 
 describe('element protocol command hooks', () => {
     it('fires as many afterCommand as beforeCommand hooks for one command', async () => {
@@ -105,6 +110,38 @@ describe('element protocol command hooks', () => {
         expect(await elem.readOnce('x')).toBe('done')
         expect(before.filter(([name]) => name === 'readOnce')).toEqual([['readOnce', ['x']]])
         expect(after.filter(([name]) => name === 'readOnce')).toEqual([['readOnce', ['x'], 'done', undefined]])
+    })
+
+    // beforeCommand runs after the implicit wait, so a hook sees the element that the wait found
+    describe('beforeCommand of an element that was not found yet', () => {
+        const session = async () => {
+            const calls: [string, string, string | undefined][] = []
+            const browser = await remote({
+                baseUrl: 'http://foobar.com',
+                waitforTimeout: 10,
+                capabilities: { browserName: 'foobar' },
+                beforeCommand: [function (this: WebdriverIO.Element, name: string) { calls.push(['before', name, this.elementId]) }],
+                afterCommand: [function (this: WebdriverIO.Element, name: string) { calls.push(['after', name, this.elementId]) }]
+            })
+            const elem = await browser.$('.foo')
+            const foundId = elem.elementId
+            elem.elementId = undefined as unknown as string
+            calls.length = 0
+            return { elem, foundId, calls, getText: () => calls.filter(([, name]) => name === 'getText') }
+        }
+
+        it('gets the element that the wait found', async () => {
+            const { elem, foundId, getText } = await session()
+            await elem.getText()
+            expect(getText()).toEqual([['before', 'getText', foundId], ['after', 'getText', foundId]])
+        })
+
+        it('runs once, before afterCommand, when the element is never found', async () => {
+            const { elem, getText } = await session()
+            vi.mocked(waitForExist).mockRejectedValueOnce(new Error('still not existing'))
+            await expect(elem.getText()).rejects.toThrow()
+            expect(getText()).toEqual([['before', 'getText', undefined], ['after', 'getText', undefined]])
+        })
     })
 
     // the hooks get the arguments of the command, as before
