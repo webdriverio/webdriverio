@@ -398,6 +398,26 @@ describe('executeAsync', () => {
             expect(err.message).toBe('Timeout of 200ms exceeded. (WDIO attempt 2/3)')
             expect(err.stack?.split('\n')[0]).toBe('Error: Timeout of 200ms exceeded. (WDIO attempt 2/3)')
         })
+
+        it('should keep a $ pattern of the test title in the stack of the Mocha timeout error', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'finds $$(selector)[5]',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded in "finds $$(selector)[5]" ($&).`))
+            }
+            const fn = vi.fn()
+                .mockRejectedValueOnce(new Error('first attempt fails'))
+                .mockReturnValueOnce(new Promise(() => {}))
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, fn, { attempts: 0, limit: 1 }, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+
+            const err = await result as Error
+            expect(err.stack?.split('\n')[0]).toBe('Error: Timeout of 200ms exceeded in "finds $$(selector)[5]" ($&). (WDIO attempt 2/2)')
+        })
     })
 
     it('should not trigger a timeout exception if the function finishes within the specified timeframe', async () => {

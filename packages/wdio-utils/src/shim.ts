@@ -754,7 +754,7 @@ function withAttempt (err: Error, attempt: number, totalAttempts: number) {
     const stack = err.stack
     err.message = `${message} (WDIO attempt ${attempt}/${totalAttempts})`
     if (typeof stack === 'string') {
-        err.stack = stack.replace(message, err.message)
+        err.stack = stack.replace(message, () => err.message)
     }
     return err
 }
