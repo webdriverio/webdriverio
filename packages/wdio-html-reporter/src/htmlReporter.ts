@@ -154,8 +154,26 @@ export default class HtmlReporter extends WDIOReporter {
         }
     }
 
+    /**
+     * A test that started and then is skipped or pending (Jasmine `pending()`, a
+     * pending Cucumber step) gets a new test object from the base reporter: the
+     * report shows the new object, so it takes the events of the started one
+     */
+    #keepEventsOfStartedTest(test: TestStats) {
+        const started = this._testUids.get(test.uid)
+        if (!started || started === test) {
+            return
+        }
+        //@ts-ignore
+        test.events = started.events
+        //@ts-ignore
+        test.errorIndex = started.errorIndex
+        this._testUids.set(test.uid, test)
+    }
+
     onTestSkip(test: TestStats) {
         this.LOG.info(`onTestSkip: ${test.cid}:${test.uid}`)
+        this.#keepEventsOfStartedTest(test)
         if (!this.#countScenarios) {
             this.metrics.skipped++
         }
@@ -167,6 +185,7 @@ export default class HtmlReporter extends WDIOReporter {
      */
     onTestPending(test: TestStats) {
         this.LOG.info(`onTestPending: ${test.cid}:${test.uid}`)
+        this.#keepEventsOfStartedTest(test)
         if (!this.#countScenarios) {
             this.metrics.skipped++
         }
