@@ -262,7 +262,7 @@ class JunitReporter extends WDIOReporter {
                     stepEmoji = '❗'
                 }
                 const output = this._getStandardOutput(step)
-                stepsOutput += output ? stepEmoji + ' ' + step.title : stepEmoji + ' ' + step.title + '\n' + output
+                stepsOutput += stepEmoji + ' ' + step.title + '\n' + (output ? output + '\n' : '')
             }
 
             // Add properties for each step (Cucumber steps are tests in the scenario)
