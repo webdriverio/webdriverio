@@ -639,6 +639,31 @@ describe('reporter', () => {
             expect([b.line, a.line]).toEqual([6, 3])
         })
 
+        it('gives the steps before a retake the lines of the scenario that it takes again', () => {
+            const featureFile = path.join(logFolderPath, 'retake.feature')
+            fs.writeFileSync(featureFile, [
+                'Feature: Shop',                // 1
+                '  Scenario: Buy milk',         // 2
+                '    Given I go to the shop',   // 3
+                '    Then I buy milk',          // 4
+                '  Scenario Outline: Buy <item>', // 5
+                '    Given I go to the shop',   // 6
+                '    Then I pay for <item>',    // 7
+                '    Examples:',                // 8
+                '      | item |',               // 9
+                '      | milk |',               // 10
+                ''
+            ].join('\n'))
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, title: 'Shop', file: featureFile, parent: undefined } as SuiteStatsExtended)
+            // only the example runs (a tag filter): it first takes the plain scenario with its name
+            const example = tmpReporter.getScenarioDataObject({ ...SUITE_SCENARIO_STATS, title: 'Buy milk' } as SuiteStatsExtended, 'shop')
+            tmpReporter.report.feature!.elements!.push(example)
+            tmpReporter.addStepData({ ...STEP_TEST_ONSTART_STATS, title: 'Given I go to the shop', keyword: 'Given' } as TestStatsExtended)
+            tmpReporter.addStepData({ ...STEP_TEST_ONSTART_STATS, title: 'Then I pay for milk', keyword: 'Then' } as TestStatsExtended)
+            expect(example.line).toBe(10)
+            expect(example.steps!.map((step) => step.line)).toEqual([6, 7])
+        })
+
         it('gives an example the line of its own Examples row: tags of the table, values in the name', () => {
             const featureFile = path.join(logFolderPath, 'examples-tags.feature')
             fs.writeFileSync(featureFile, [
