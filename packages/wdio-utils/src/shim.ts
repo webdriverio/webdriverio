@@ -533,33 +533,21 @@ function attachElementArrayHooks (
  * wrap command to enable before and after command to be executed
  * @param commandName name of the command (e.g. getTitle)
  * @param fn          command function
- * @param options.deferBeforeCommand  `fn` gets a function that runs `beforeCommand` as its first
- *                                    argument and calls it (e.g. after the implicit wait of an element)
  */
-export function wrapCommand<T>(commandName: string, fn: Function, options: { deferBeforeCommand?: boolean } = {}): (...args: unknown[]) => Promise<T> {
+export function wrapCommand<T>(commandName: string, fn: Function): (...args: unknown[]) => Promise<T> {
 
     async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
-        const hasBeforeCommand = !isInCommandHook() && this.options.beforeCommand
-        let beforeCommand: Promise<unknown> | undefined
-        const runBeforeCommand = () => beforeCommand ??= hasBeforeCommand
-            ? runInCommandHook(() => executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs))
-            : Promise.resolve()
-        if (hasBeforeCommand && !options.deferBeforeCommand) {
-            await runBeforeCommand()
+        if (!isInCommandHook() && this.options.beforeCommand) {
+            await runInCommandHook(() => executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs))
         }
 
         let commandResult
         let commandError
         try {
-            commandResult = await (options.deferBeforeCommand ? fn.call(this, runBeforeCommand, ...args) : fn.apply(this, args))
+            commandResult = await fn.apply(this, args)
         } catch (err) {
             commandError = err
-        }
-
-        // a command that failed before it called beforeCommand: the hooks still run as a pair
-        if (options.deferBeforeCommand) {
-            await runBeforeCommand()
         }
 
         if (!isInCommandHook() && this.options.afterCommand) {
