@@ -416,6 +416,22 @@ describe('pending tests', () => {
         reporter.onTestEnd(pending)
         expect(reporter.metrics).toMatchObject({ passed: 0, failed: 0, skipped: 1 })
     })
+
+    it('keeps the logs of a test that started and then is skipped (Jasmine pending())', async () => {
+        const dir = path.join(outputRoot, 'started-then-skipped') + path.sep
+        const reporter = new HtmlReporter({ logFile: os.devNull, outputDir: dir, filename: 'report.html', reportTitle: 'Skipped' } as never)
+        reporter.onRunnerStart(RUNNER)
+        // the base reporter puts a new test object in place of the started one
+        const test = { type: 'test:start', title: 'logs and then is pending', fullTitle: 'logs and then is pending', uid: 'spec0', cid: '0-0', parent: '', specs: [] }
+        reporter.emit('test:start', test)
+        new ReportEvents().logMessage('a message before pending')
+        reporter.emit('test:pending', { ...test, type: 'test:pending', state: 'skipped', pendingReason: 'not ready' })
+        await reporter.onRunnerEnd(RUNNER)
+        const json = JSON.parse(fs.readFileSync(path.join(dir, 'report-0-0.json'), 'utf-8'))
+        const tests = json.suites.flatMap((suite: { tests: { title: string, events?: unknown[] }[] }) => suite.tests)
+        expect(tests).toHaveLength(1)
+        expect(tests[0].events).toEqual([{ type: 'log', value: 'a message before pending' }])
+    })
 })
 
 describe('failed hooks', () => {
