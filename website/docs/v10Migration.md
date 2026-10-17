@@ -43,6 +43,8 @@ Code passed to `browser.execute` stays at ES2021, so it can run in older browser
 
 `mochaOpts.compilers` is gone. Mocha removed the long-deprecated `--compilers` flag, so leftover compiler mappings are ignored. Load transpilers or other setup files with `mochaOpts.require`.
 
+WebdriverIO follows the Mocha timeout: `this.timeout()` in a test or hook, and `mochaOpts.timeout: 0`, which turns the timeout off. In v9, WebdriverIO ignored `this.timeout()` in a test, and from 9.22 `mochaOpts.timeout: 0` failed every test ("Timeout after -3ms"). The `retry` argument of WebdriverIO does not run a test again after a timeout. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks), also for `mochaOpts.parallelMode`.
+
 `failHookAffectedTests` defaults to `true`. A failing `before` or `beforeEach` hook fails the tests that hook skipped. Set `mochaOpts.failHookAffectedTests` to `false` to report only the hook.
 
 Use `expect-webdriverio` 8, see [expect-webdriverio 8](#expect-webdriverio-8). Mocha can load that package twice in one process; it shares assertion state across those copies ([expect-webdriverio#2221](https://github.com/webdriverio/expect-webdriverio/pull/2221)).
@@ -155,9 +157,9 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
 
 ## expect-webdriverio 8
 
-`@wdio/globals`, `@wdio/runner` and `@wdio/browser-runner` require `expect-webdriverio` 8 as a peer dependency. In v9, it was `expect-webdriverio` 7. If your `package.json` lists `expect-webdriverio`, update it to version 8 in the same change as the `@wdio/*` packages.
+`@wdio/globals`, `@wdio/runner` and `@wdio/browser-runner` require `expect-webdriverio` 8 as a peer dependency. In v9, it was `expect-webdriverio` 5, 6 or 7. If your `package.json` lists `expect-webdriverio`, update it to version 8 in the same change as the `@wdio/*` packages.
 
-`expect-webdriverio` 8 has its own breaking changes. Its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8) lists each change and its replacement. These changes are the most likely to affect a test suite:
+`expect-webdriverio` 8 has its own breaking changes. Its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8) lists each change and its replacement. From `expect-webdriverio` 5 or 6, also read its [v5 to v6 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v5-to-v6): version 8 removes the APIs that 5.6.9 to 6.0.0 deprecated. Version 7 has no migration guide. It adds multi-remote support, and `toMatchSnapshot()` and `toMatchInlineSnapshot()` on `$$()` now store the `outerHTML` of each element: update those snapshots. These changes are the most likely to affect a test suite:
 
 - `toHaveText` on `$$()` compares the elements index by index. An expected array in another order than the page fails. Use the page order, `expect.oneOf()` or `expect.arrayContaining()`.
 - An array of expected values on a single element fails `toHaveText`, `toHaveHTML`, `toHaveComputedLabel`, `toHaveComputedRole` and `toHaveElementClass`. Use `expect.oneOf()`. For `toHaveElementClass`, an array meant "has any of these classes": use `expect.oneOf()`, or one assertion for each class when the element must have all of them.
@@ -370,7 +372,7 @@ The rule applies to every step of a chain (`$('form').$('input')`) and to every 
 
 ### What did not change
 
-- `$$` still returns zero or many elements. Since v10 that list is an [`ElementArray`](/docs/api/browser/$$): a real array you can `await`, with `for await` and async `map` / `filter` available before it resolves. `await $$('button').length` is the count. `$$('button').length > 0` is not, because `length` is a promise until the list resolves. `for (const el of $$('button'))` throws until you have awaited the list; use `for await`, or `for...of` after `await`.
+- `$$` still returns zero or many elements.
 - The dedicated helper commands `custom$`, `shadow$` and `react$` are not strict — they still return their first match, as do their `$$` counterparts.
 - A selector that matches nothing still returns a lazily-resolved element, so `waitForExist` and [auto-waiting](/docs/autowait) behave as before.
 - Passing an element reference, e.g. `$(await browser.getActiveElement())`, always refers to a single node and is never checked.
@@ -418,6 +420,46 @@ An element remembers how it was queried, so re-fetching it — after a stale ele
 Under the hood a strict `$` issues a `findElements` request instead of `findElement`, since counting the matches is the only way to enforce the rule. This is a single round trip either way, but it is visible to custom services and WebDriver mocks that key off the `findElement` command.
 
 :::
+
+## Element lists before `await`
+
+Since v10, `$$()` returns an [`ElementArray`](/docs/api/browser/$$): a real array that you can `await`. In v9, a `$$()` that you did not await was a promise.
+
+| `$$('li')` before `await` | v9 | v10 |
+| --- | --- | --- |
+| `instanceof Promise` | `true` | `false` |
+| `Array.isArray()` | `false` | `true` |
+| `then`, `catch`, `finally` | functions | functions, until the list is loaded |
+
+Until the list is loaded, `length` is a promise, and `[...list]`, `Array.from(list)` and `for...of` throw `Cannot synchronously iterate over an element list that has not resolved yet`.
+
+The same is true for `custom$$`, `shadow$$` and `react$$`, and for `$$()` on a multi-remote browser. A `$()` that you did not await is still a promise.
+
+`await` gives the same list, loaded and without `then`. Then `length` is a number, and `for...of`, `[...list]` and `Array.from()` work. Before `await`, you can use `for await`, an index (`$$('li')[0]`), `at()`, `slice()` and the async iteration methods (`map`, `filter`, `forEach`, ...). These methods give a promise: `await` the result of `filter()` before you read an index.
+
+An index past the end of a `$$(selector)` list is not `undefined`, also after `await`. It is an element that waits for the list to reach that index, as `$$('li')[5]` does before `await`: `isExisting()` gives `false` and a command such as `getText()` throws `Index out of bounds`, both after `waitforTimeout`. In v9, `(await $$('li'))[5]` was `undefined`. So `if (list[5])` is always true, and `list.at(5)` is never `undefined`. Compare the index with `length`, which does not wait:
+
+```diff
+  const list = await $$('li')
+- if (list[5]) {
++ if (list.length > 5) {
+```
+
+After `await`, a negative index, and a list from `slice()` or `filter()`, give `undefined` past the end. Before `await`, `list[i]` with an integer index of 0 or more, and `at()`, give a promise, which is always truthy.
+
+Code that awaits a value only when it is a `Promise`, or that reads `length` without `await`, does not throw. It reads a promise as the length: `list.length > 0` and a loop such as `for (let i = 0; i < list.length; i++)` see `false`, but `if (list.length)` and `list.length !== 0` see `true`. Always `await` the value. `await` on a value that is already loaded gives that value:
+
+```diff
+- if (value instanceof Promise) {
+-     value = await value
+- }
++ value = await value
+```
+
+```diff
+- if ($$('button').length > 0) {
++ if (await $$('button').length > 0) {
+```
 
 ## Legacy command signatures
 
@@ -487,6 +529,21 @@ String and string-array filters are rejected. Pass a [cookie filter object](http
 ```
 
 Use `type: 'tab'` to open a tab.
+
+In a WebDriver BiDi session, `newWindow()` returns the new [browsing context](/docs/api/browsingContext) and does not switch to it. In v9 it switched. Thus `browser.closeWindow()` after `newWindow()` now closes the first tab, not the new one. Run the commands for the new tab on the context that `newWindow()` returns, and close it with `closeWindow()` on that context:
+
+```diff
+- await browser.newWindow('https://webdriver.io', { type: 'tab' })
+- console.log(await browser.getTitle())
+- await browser.closeWindow()
++ const tab = await browser.newWindow('https://webdriver.io', { type: 'tab' })
++ console.log(await tab.getTitle())
++ await tab.closeWindow()
+```
+
+In TypeScript, the result type is `WebdriverIO.BrowsingContext | { handle, type }`, because a WebDriver Classic session returns the window handle. In a BiDi session, narrow it: `await browser.newWindow(url, { type: 'tab' }) as WebdriverIO.BrowsingContext`.
+
+The browser stays on the first tab. Remove a `switchWindow()` call that went back to it: `switchWindow` throws in a BiDi session. See [`switchToFrame`](#switchtoframe) for the browsing context model.
 
 ### `startActivity`
 
