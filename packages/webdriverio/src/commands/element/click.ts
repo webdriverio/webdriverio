@@ -236,7 +236,7 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
             }
             return new Promise<void>((resolve) => {
                 requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-                // only if no frame comes: a busy browser can render none for more than 100 ms
+                // only if no frame comes: a slow machine can take 500 ms for 2 frames (1.2 s right after start)
                 setTimeout(resolve, 1000)
             })
         }, element as unknown as HTMLElement, offset)

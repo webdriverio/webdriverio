@@ -22,7 +22,7 @@ export default async function isElementStable(elem: HTMLElement): Promise<boolea
         /**
          * Two animation frames, or 1 s when the browser renders no frames for
          * this document (Chromium throttles cross-origin frames it doesn't
-         * render; a busy browser can render none for more than 100 ms).
+         * render). A slow machine can take 500 ms for 2 frames (1.2 s right after start).
          * Without rendering, nothing can animate either.
          */
         await new Promise<void>((resolve) => {
