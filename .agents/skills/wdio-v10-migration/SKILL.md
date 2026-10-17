@@ -47,7 +47,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `jasmineOpts.stopSpecOnExpectationFailure` | `jasmineOpts.oneFailurePerSpec`. Setting the old key throws. |
 | `cucumberOpts.tagExpression` | `cucumberOpts.tags`. Setting the old key throws. |
 | `mochaOpts.compilers` | `mochaOpts.require`. A leftover `compilers` list is ignored. |
-| `this.timeout(ms)` in a Mocha test | keep it. WebdriverIO now follows it (v9 stopped the test at `mochaOpts.timeout`), and `mochaOpts.timeout: 0` turns the timeout off. With the WebdriverIO `retry` argument, all attempts share one timeout: a test that times out is not run again. |
+| `this.timeout(ms)` in a Mocha test | keep it. WebdriverIO now follows it (v9 stopped the test at `mochaOpts.timeout`), and `mochaOpts.timeout: 0` turns the timeout off. With `mochaOpts.parallelMode`, `this.timeout()` throws and only `mochaOpts.timeout` applies. With the WebdriverIO `retry` argument, all attempts share one timeout: a test that times out is not run again. |
 | `multiremotebrowser` | `multiRemoteBrowser` |
 | `browser.isMultiremote`, `isMultiremote` | `isMultiRemote` |
 | `multiremote(` | `multiRemote(` |
