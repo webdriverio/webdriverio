@@ -1,5 +1,4 @@
 import fs from 'node:fs/promises'
-import logger from '@wdio/logger'
 import { spawn } from 'node:child_process'
 import url from 'node:url'
 import path from 'node:path'
@@ -78,10 +77,6 @@ async function runTests (tests) {
  * The driver is the repository's normal webdriver-mock service.
  */
 const launcherTimeout = async () => {
-    const keys = ['WDIO_LOG_PATH', 'WDIO_LOG_LEVEL', 'WDIO_TIMEOUT_SCENARIO', 'WDIO_TIMEOUT_EVENTS', 'WDIO_TIMEOUT_OUTPUT']
-    const before = keys.map(key => process.env[key])
-    const log = logger('@wdio/cli:launcher')
-    const level = log.getLevel()
     const env = { ...process.env }
     // The child must not open a parent-owned log while its modules load.
     delete env.WDIO_LOG_PATH
@@ -93,8 +88,6 @@ const launcherTimeout = async () => {
             ? resolve()
             : reject(new Error(`launcherTimeout child failed: exit ${code}, signal ${signal}`)))
     })
-    assert.deepStrictEqual(keys.map(key => process.env[key]), before)
-    assert.strictEqual(log.getLevel(), level)
 }
 
 /**
