@@ -117,10 +117,22 @@ class ReportAggregator {
         if (files.length === 0) {
             this.LOG.error(`No Json files found in: ${this.options.outputDir}. Make sure options.produceJson is not false`)
         }
+        /**
+         * a file that cannot be read or parsed (a worker that stopped while it wrote it)
+         * makes the report incomplete; a valid JSON file of another tool is only skipped
+         */
+        let inputFailed = false
         for (let i = 0; i < files.length; i++) {
             try {
                 const filename = files[i]
-                const report = JSON.parse(fs.readFileSync(filename, 'utf-8'))
+                let report
+                try {
+                    report = JSON.parse(fs.readFileSync(filename, 'utf-8'))
+                } catch (ex) {
+                    inputFailed = true
+                    console.error(`Cannot read the report file ${filename}: ${ex}`)
+                    continue
+                }
                 // a master report of another name (for example from the command line)
                 if (report.master) {
                     this.LOG.info(`Skip the master report ${filename}`)
@@ -215,7 +227,7 @@ class ReportAggregator {
         this.failed = false
         try {
             await JsonGenerator.jsonOutput(this.options, reportData)
-            this.failed = !await HtmlGenerator.htmlOutput(this.options, reportData)
+            this.failed = !await HtmlGenerator.htmlOutput(this.options, reportData) || inputFailed
             await this.finalize()
             this.LOG.info('Report Aggregation completed')
 
