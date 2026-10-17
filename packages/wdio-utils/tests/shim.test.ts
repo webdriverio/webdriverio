@@ -172,6 +172,79 @@ describe('executeAsync', () => {
             expect(fn).toHaveBeenCalledTimes(2)
             expect(vi.getTimerCount()).toBe(0)
         })
+
+        it('should not time out when the framework timeout is turned off', async () => {
+            const scope = { _runnable: { _timeout: 0, title: 'no timeout' } }
+            let finish: (value: string) => void = () => {}
+            const result = executeAsync.call(
+                scope as any, () => new Promise((resolve) => (finish = resolve)), { attempts: 0, limit: 0 }, [], 200
+            )
+
+            await vi.advanceTimersByTimeAsync(60_000)
+            finish('done')
+            expect(await result).toBe('done')
+        })
+
+        it('should follow a timeout that the test changes while it runs', async () => {
+            const runnable = { _timeout: 200, title: 'extends its timeout' }
+            const fn = () => {
+                runnable._timeout = 1000
+                return new Promise((resolve) => setTimeout(() => resolve('done'), 500))
+            }
+            const result = executeAsync.call({ _runnable: runnable } as any, fn, { attempts: 0, limit: 0 }, [], 200)
+
+            await vi.advanceTimersByTimeAsync(500)
+            expect(await result).toBe('done')
+
+            runnable._timeout = 300
+            const late = executeAsync.call(
+                { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+            await vi.advanceTimersByTimeAsync(297)
+            expect(await late).toEqual(new Error('Timeout after 297ms in "extends its timeout" (WDIO attempt 1/1)'))
+        })
+
+        it('should restart the Mocha timer and fail with the Mocha timeout error', async () => {
+            const timeoutError = new Error('Timeout of 200ms exceeded.')
+            const runnable = {
+                _timeout: 200,
+                title: 'mocha test',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn(() => timeoutError)
+            }
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(196)
+            expect(runnable.resetTimeout).not.toHaveBeenCalled()
+            await vi.advanceTimersByTimeAsync(1)
+
+            expect(await result).toBe(timeoutError)
+            expect(runnable._timeoutError).toHaveBeenCalledWith(200)
+            expect(runnable.resetTimeout).toHaveBeenCalledTimes(1)
+        })
+
+        it('should not retry after a Mocha timeout, as Mocha fails a test that ran too long', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'retried mocha test',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
+            }
+            const retries = { attempts: 0, limit: 1 }
+            const fn = vi.fn(() => new Promise(() => {}))
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, fn, retries, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+
+            expect(await result).toEqual(new Error('Timeout of 200ms exceeded.'))
+            expect(fn).toHaveBeenCalledTimes(1)
+            expect(retries).toEqual({ attempts: 0, limit: 1 })
+            expect(runnable.resetTimeout).toHaveBeenCalledTimes(1)
+        })
     })
 
     it('should not trigger a timeout exception if the function finishes within the specified timeframe', async () => {
