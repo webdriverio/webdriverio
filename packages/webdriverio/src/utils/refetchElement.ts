@@ -58,7 +58,8 @@ export default async function refetchElement (
         const name = currentIndex + 1 < length ? '$' : commandName
         let nextElement: WebdriverIO.Element
         try {
-            nextElement = element.index !== undefined
+            // item [0] is the first match of $(), as before: a check (isDisplayed) answers without a wait
+            nextElement = element.index
                 ? await findItemAgain(element, parent, name)
                 : await parent.$(element.selector).getElement()
         } catch (err) {

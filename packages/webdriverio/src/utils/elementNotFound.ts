@@ -1,6 +1,6 @@
 /**
- * A leaf module (it imports only the error codes): `implicitWait`, the element middleware,
- * `setValue` and `waitForStable` import it.
+ * A leaf module (it imports only the error codes): `implicitWait`, the element middleware and
+ * `waitForStable` import it.
  *
  * The error of a command on a stale element that the lookup waited `waitforTimeout` for and
  * did not find again (the page removed it) is the "element wasn't found" error of

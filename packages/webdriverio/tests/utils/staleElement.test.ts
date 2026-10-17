@@ -204,6 +204,32 @@ describe('one wait for an element that the page removed', () => {
         expect(count).toBe(0)
     })
 
+    // item [0] is the first match of $(), as in 9.31.9 and on main
+    it('isDisplayed of a removed list item [0] is false without a wait', async () => {
+        const elem = await removedItem(0)
+        const { value, error, waits: count } = await waits(elem.isDisplayed())
+        expect(error).toBeUndefined()
+        expect(value).toBe(false)
+        expect(count).toBe(0)
+    })
+
+    // isExisting asks the list again and does not use the stale id
+    it('isExisting of a removed list item [2] is false without a wait', async () => {
+        const elem = await removedItem(2)
+        const { value, error, waits: count } = await waits(elem.isExisting())
+        expect(error).toBeUndefined()
+        expect(value).toBe(false)
+        expect(count).toBe(0)
+    })
+
+    // a later item waits for its index, as in 9.31.9 ("Index out of bounds")
+    it('isDisplayed of a removed list item [2] waits once and fails', async () => {
+        const elem = await removedItem(2)
+        const { error, waits: count } = await waits(elem.isDisplayed())
+        expectGone(error, 'Can\'t call isDisplayed on element with selector ".item" at index 2 because element wasn\'t found')
+        expect(count).toBe(1)
+    })
+
     it('waits once for a removed element', async () => {
         const elem = await removedRef()
         const { error, waits: count } = await waits(elem.getText())
@@ -211,10 +237,13 @@ describe('one wait for an element that the page removed', () => {
         expect(count).toBe(1)
     })
 
-    it.each([0, 2])('waits once for a removed list item [%i]', async (index) => {
+    it.each([
+        [0, 'Can\'t call getText on element with selector ".item" because element wasn\'t found'],
+        [2, 'Can\'t call getText on element with selector ".item" at index 2 because element wasn\'t found']
+    ])('waits once for a removed list item [%i]', async (index, message) => {
         const elem = await removedItem(index)
         const { error, waits: count } = await waits(elem.getText())
-        expectGone(error, `Can't call getText on element with selector ".item" at index ${index} because element wasn't found`)
+        expectGone(error, message)
         expect(count).toBe(1)
     })
 

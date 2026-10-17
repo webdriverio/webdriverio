@@ -77,10 +77,10 @@ await myElem.waitForDisplayed({ timeout: 10000 })
 
 When the page removes or renders again an element, WebdriverIO finds it again with its selector and waits up to `waitforTimeout`. If it is there, the command runs on it. If not, the command fails with:
 
-- `message`: `Can't call <command> on element with selector "<selector>" because element wasn't found` (a `$$()` item: `… "<selector>" at index <n> …`; a removed parent: the message is about the parent)
+- `message`: `Can't call <command> on element with selector "<selector>" because element wasn't found` (a `$$()` item after the first one: `… "<selector>" at index <n> …`; a removed parent: the message is about the parent)
 - `cause`: the stale element reference error of the driver
 
-`waitUntil` and `waitForEnabled` fail with their own error, which has this error as `cause`. `isDisplayed` and `isExisting` of the removed element do not wait: they give `false`. For a child of a removed parent, they wait and fail with this error.
+`waitUntil` and `waitForEnabled` fail with their own error, which has this error as `cause`. `isExisting` of the removed element does not wait: it gives `false`. `isDisplayed` also gives `false` at once, except for a `$$()` item after the first one: it waits and fails with this error. For a child of a removed parent, both wait and fail with this error.
 
 ```ts title="test/specs/removed.e2e.ts"
 import { $, browser, expect } from '@wdio/globals'
