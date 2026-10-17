@@ -35,7 +35,7 @@ export class ServerWorkerCommunicator {
     /**
      * keep track of custom commands per session
      */
-    #customCommands = new Map<string, Set<string>>()
+    #customCommands = new Map<string, Map<string, Workers.BrowserState['customCommands'][number]>>()
 
     /**
      * request/response messages waiting for a worker reply, keyed by the
@@ -78,12 +78,12 @@ export class ServerWorkerCommunicator {
         }
 
         if (payload.name === 'workerEvent' && isWorkerProcessEvent(payload.args, MESSAGE_TYPES.customCommand)) {
-            const { commandName, cid } = payload.args.value
+            const { commandName, cid, attachToElement = false } = payload.args.value
             if (!this.#customCommands.has(cid)) {
-                this.#customCommands.set(cid, new Set())
+                this.#customCommands.set(cid, new Map())
             }
-            const customCommands = this.#customCommands.get(cid) || new Set()
-            customCommands.add(commandName)
+            const customCommands = this.#customCommands.get(cid)!
+            customCommands.set(`${attachToElement ? 'element' : 'browser'}:${commandName}`, { commandName, attachToElement })
             return
         }
 
@@ -111,7 +111,7 @@ export class ServerWorkerCommunicator {
          */
         if (route.kind === 'browserState') {
             const result = browserChannelMessage(MESSAGE_TYPES.initiateBrowserStateResponse, {
-                customCommands: [...(this.#customCommands.get(route.cid) || [])]
+                customCommands: [...(this.#customCommands.get(route.cid)?.values() || [])]
             })
             return client.send(WDIO_EVENT_NAME, result)
         }

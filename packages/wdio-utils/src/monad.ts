@@ -287,6 +287,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
                     args: workerProcessEvent(MESSAGE_TYPES.customCommand, {
                         commandName: name,
                         cid: workerId,
+                        attachToElement: Boolean(attachToElement),
                     })
                 }
                 process.send(message)

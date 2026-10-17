@@ -77,6 +77,32 @@ describe('monad', () => {
         expect(client.foo()).toBe('bar')
     })
 
+    it('announces the scope of custom commands to the browser runner', () => {
+        const originalSend = process.send
+        const send = vi.fn()
+        vi.stubEnv('WDIO_WORKER_ID', '0-0')
+        process.send = send
+        try {
+            const client = webdriverMonad({}, (browser: any) => browser, prototype)(sessionId)
+            client.addCommand('browserCommand', () => 'browser')
+            client.addCommand('elementCommand', () => 'element', { attachToElement: true })
+
+            expect(send).toHaveBeenNthCalledWith(1, expect.objectContaining({
+                args: expect.objectContaining({
+                    value: { commandName: 'browserCommand', cid: '0-0', attachToElement: false }
+                })
+            }))
+            expect(send).toHaveBeenNthCalledWith(2, expect.objectContaining({
+                args: expect.objectContaining({
+                    value: { commandName: 'elementCommand', cid: '0-0', attachToElement: true }
+                })
+            }))
+        } finally {
+            process.send = originalSend
+            vi.unstubAllEnvs()
+        }
+    })
+
     it('should allow to overwrite command in base prototype', () => {
         const monad = webdriverMonad({}, (client: any) => client, { ...prototype })
         const commandWrapperMock = vi.fn().mockImplementation((name, fn) => fn)
