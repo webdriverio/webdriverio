@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { vi, describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest'
-import { wrapCommand, executeAsync, setCommandHookStore } from '../src/shim.js'
+import { wrapCommand, executeAsync, setCommandHookStore, WRAPPED_COMMAND } from '../src/shim.js'
 import { WDIO_KIND, WDIO_CHAINABLE } from '../src/kind.js'
 
 type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
@@ -12,6 +12,21 @@ const brandsOf = (value: unknown) => ({
 const W3C_ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
 describe('wrapCommand', () => {
+    // an element reads the mark to wrap the command once (webdriverio getElementObject.ts)
+    it('marks its function with the command it wraps', () => {
+        const command = () => 'result'
+        const wrapped = wrapCommand('foo', command) as unknown as Record<symbol, unknown>
+        expect(wrapped[WRAPPED_COMMAND]).toBe(command)
+        expect(Object.keys(wrapped)).toEqual([])
+    })
+
+    it('marks one layer only', () => {
+        const command = () => 'result'
+        const inner = wrapCommand('foo', command)
+        const outer = wrapCommand('foo', inner) as unknown as Record<symbol, unknown>
+        expect(outer[WRAPPED_COMMAND]).toBe(inner)
+    })
+
     it('serializes a chained element with the W3C element reference', async () => {
         const commandFn = vi.fn().mockResolvedValue({ elementId: 'abc-123', selector: '#foo' })
         const scope = { options: { beforeCommand: [], afterCommand: [] } }

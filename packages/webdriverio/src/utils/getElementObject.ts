@@ -59,23 +59,14 @@ function elementProperties (parent: WebdriverIO.Browser | WebdriverIO.Element, b
          */
         ...(Object.entries(clone(browser.__propertiesObject__)).reduce((commands, [name, descriptor]) => {
             if (!browserCommandKeys.includes(name)) {
-                commands[name] = descriptor
+                // the browser wrapped its commands: the element wraps the command itself, so its hooks run once
+                const command = (descriptor.value as { [WRAPPED_COMMAND]?: Function } | undefined)?.[WRAPPED_COMMAND]
+                commands[name] = command ? { ...descriptor, value: command } : descriptor
             }
             return commands
         }, {} as Record<string, PropertyDescriptor>)),
         ...getWDIOPrototype('element'),
         scope: { value: 'element' }
-    }
-    /**
-     * The browser wrapped its commands (the protocol commands, and the commands that
-     * `addCommand` attaches to elements). The element wraps the command itself, so the
-     * command hooks run once for each command.
-     */
-    for (const [name, descriptor] of Object.entries(propertiesObject)) {
-        const command = (descriptor.value as { [WRAPPED_COMMAND]?: Function } | undefined)?.[WRAPPED_COMMAND]
-        if (command) {
-            propertiesObject[name] = { ...descriptor, value: command }
-        }
     }
     routeElementEndpoints(propertiesObject)
     propertiesObject.emit = { value: parent.emit.bind(parent) }

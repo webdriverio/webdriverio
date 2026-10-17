@@ -155,8 +155,8 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
          * around the middleware; the command itself runs without a second wrapper, which ran the
          * hooks again (a leftover of the sync mode of v5)
          */
-        return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element) {
-            return invokeElementCommand(this, commandName, () => commandFn.apply(this, args))
+        return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element, ...callArgs: unknown[]) {
+            return invokeElementCommand(this, commandName, () => commandFn.apply(this, callArgs))
         }).apply(this, args)
     }
 }
