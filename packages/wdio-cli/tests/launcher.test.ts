@@ -1139,6 +1139,52 @@ describe('launcher', () => {
             }
         })
 
+        it('waits for service preparation to settle before matching timeout cleanup', async () => {
+            vi.useFakeTimers()
+            let releasePrepare!: () => void
+            const events: string[] = []
+            const service = {
+                onPrepare: () => new Promise<void>(resolve => {
+                    releasePrepare = () => { events.push('ready'); resolve() }
+                }),
+                onComplete: vi.fn(() => { events.push('cleanup') })
+            }
+            vi.mocked(initializeLauncherService).mockResolvedValueOnce({
+                launcherServices: [service], ignoredWorkerServices: []
+            })
+            config.timeout = 100
+            const pending = launcher.run()
+            try {
+                await vi.advanceTimersByTimeAsync(100)
+                const cleanedBeforeReady = service.onComplete.mock.calls.length > 0
+                releasePrepare()
+                expect(await pending).toBe(1)
+                expect(cleanedBeforeReady).toBe(false)
+                expect(events).toEqual(['ready', 'cleanup'])
+                expect(service.onComplete).toHaveBeenCalledOnce()
+                expect(launcher['_runMode']).not.toHaveBeenCalled()
+            } finally {
+                releasePrepare?.()
+                await pending
+                vi.useRealTimers()
+            }
+        })
+
+        it('preserves a service preparation failure while still running matching cleanup', async () => {
+            launcher.interface = undefined
+            const onComplete = vi.fn()
+            vi.mocked(initializeLauncherService).mockResolvedValueOnce({
+                launcherServices: [{
+                    onPrepare() { throw Object.assign(new Error('service startup failed'), { name: 'SevereServiceError' }) },
+                    onComplete
+                }], ignoredWorkerServices: []
+            })
+            await expect(launcher.run()).rejects.toThrow('service startup failed')
+            expect(onComplete).toHaveBeenCalledOnce()
+            expect(launcher.runner!.shutdown).toHaveBeenCalledOnce()
+            expect(launcher['_runMode']).not.toHaveBeenCalled()
+        })
+
         it('exit code 0', async () => {
             expect(await launcher.run()).toEqual(0)
             expect(launcher['configParser'].initialize).toBeCalledTimes(1)

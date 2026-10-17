@@ -7,6 +7,15 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 export function createConfig(scenario, events, output) {
     const record = (event) => appendFileSync(events, JSON.stringify(event) + '\n')
     let runtimeConfig
+    let ready = false
+    const service = {
+        async onPrepare() {
+            await delay(scenario.service)
+            ready = true
+            record({ event: 'serviceReady' })
+        },
+        onComplete() { record({ event: 'serviceCleanup', ready }) }
+    }
     return {
         ...base,
         timeout: scenario.timeout,
@@ -16,6 +25,7 @@ export function createConfig(scenario, events, output) {
         outputDir: output,
         logLevel: 'error',
         reporters: [],
+        services: scenario.service ? [[service], ...base.services] : base.services,
         specFileRetries: scenario.retry ? 1 : 0,
         specFileRetriesDelay: 0,
         async onPrepare(config) {

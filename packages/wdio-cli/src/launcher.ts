@@ -156,7 +156,9 @@ class Launcher {
             log.info('Run onPrepare hook')
             await runLauncherHook(config.onPrepare, config, caps)
             if (this._checkTimeout()) { return }
-            await runServiceHook(this._launcher, 'onPrepare', config, caps)
+            pendingSetup = runServiceHook(this._launcher, 'onPrepare', config, caps)
+            await pendingSetup
+            pendingSetup = undefined
             if (this._checkTimeout()) { return }
 
             /**
