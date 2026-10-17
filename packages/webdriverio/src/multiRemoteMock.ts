@@ -56,6 +56,13 @@ export class MultiRemoteMock implements WebdriverIO.MultiRemoteMock {
         return found
     }
 
+    /**
+     * The instance mocks in the order of `instances`, including select() order.
+     */
+    getAllInstances (): WebdriverIO.Mock[] {
+        return this.instances.map(name => this.getInstance(name))
+    }
+
     abort (...args: Parameters<WebdriverIO.Mock['abort']>) {
         return this.#each('abort', args)
     }
