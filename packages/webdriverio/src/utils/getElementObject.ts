@@ -61,7 +61,11 @@ function elementProperties (parent: WebdriverIO.Browser | WebdriverIO.Element, b
             if (!browserCommandKeys.includes(name)) {
                 // the browser wrapped its commands: the element wraps the command itself, so its hooks run once
                 const command = (descriptor.value as { [WRAPPED_COMMAND]?: Function } | undefined)?.[WRAPPED_COMMAND]
-                commands[name] = command ? { ...descriptor, value: command } : descriptor
+                if (command) {
+                    // the descriptor is a copy (clone above)
+                    descriptor.value = command
+                }
+                commands[name] = descriptor
             }
             return commands
         }, {} as Record<string, PropertyDescriptor>)),

@@ -1,7 +1,9 @@
 import path from 'node:path'
+import { AsyncLocalStorage } from 'node:async_hooks'
 
 import { describe, it, expect, vi } from 'vitest'
-import { remote } from '../src/index.js'
+import { setCommandHookStore } from '@wdio/utils'
+import { multiRemote, remote } from '../src/index.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -82,6 +84,48 @@ describe('element protocol command hooks', () => {
             expect(before).toEqual(['textOf', 'getElementText'])
             expect(after).toEqual(['getElementText', 'textOf'])
         })
+    })
+
+    // a retry after a stale element is part of the command: the driver events still show both requests
+    it('runs the hooks once for a command that is retried after a stale element, with the final result', async () => {
+        const before: [string, unknown[]][] = []
+        const after: [string, unknown[], unknown, unknown][] = []
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: { browserName: 'foobar' },
+            beforeCommand: [(name: string, args: unknown[]) => { before.push([name, args]) }],
+            afterCommand: [(name: string, args: unknown[], result: unknown, error: unknown) => { after.push([name, args, result, error]) }]
+        })
+        const stale = Object.assign(new Error('stale element reference: element is not attached'), { name: 'stale element reference' })
+        browser.addCommand('readOnce', vi.fn().mockRejectedValueOnce(stale).mockResolvedValueOnce('done'), { attachToElement: true })
+        const elem = await browser.$('.foo')
+        before.length = 0
+        after.length = 0
+        // @ts-expect-error custom command
+        expect(await elem.readOnce('x')).toBe('done')
+        expect(before.filter(([name]) => name === 'readOnce')).toEqual([['readOnce', ['x']]])
+        expect(after.filter(([name]) => name === 'readOnce')).toEqual([['readOnce', ['x'], 'done', undefined]])
+    })
+
+    it('runs the hooks of each instance once for a command of a multi-remote element', async () => {
+        const calls: Record<string, string[]> = { browserA: [], browserB: [] }
+        const hooks = (instance: string) => ({
+            beforeCommand: [(name: string) => { calls[instance].push(`before ${name}`) }],
+            afterCommand: [(name: string) => { calls[instance].push(`after ${name}`) }]
+        })
+        // as in Node (src/node.ts): the 2 instances run their hooks at the same time
+        setCommandHookStore(new AsyncLocalStorage<true>())
+        const browser = await multiRemote({
+            browserA: { capabilities: { browserName: 'chrome' }, ...hooks('browserA') },
+            browserB: { port: 4445, capabilities: { browserName: 'firefox' }, ...hooks('browserB') }
+        })
+        const elem = await browser.$('.foo')
+        calls.browserA.length = 0
+        calls.browserB.length = 0
+        await elem.getText()
+        for (const instance of ['browserA', 'browserB']) {
+            expect(calls[instance]).toEqual(['before getText', 'before getElementText', 'after getElementText', 'after getText'])
+        }
     })
 
     // the hooks get the arguments of the command, as before

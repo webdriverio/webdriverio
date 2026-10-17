@@ -53,8 +53,10 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
         before.length = 0
         after.length = 0
         await button.elementClick(button.elementId)
-        expect(before).toEqual([['elementClick', [button.elementId]]])
-        expect(after).toEqual([['elementClick', [button.elementId]]])
+        // in BiDi, background commands of the session can also run the hooks
+        const clicks = (calls: Call[]) => calls.filter(([name]) => name === 'elementClick')
+        expect(clicks(before)).toEqual([['elementClick', [button.elementId]]])
+        expect(clicks(after)).toEqual([['elementClick', [button.elementId]]])
     })
 
     test.each(['an element', 'a list item'])('setValue of %s gives the hooks its arguments, once', async (kind) => {
