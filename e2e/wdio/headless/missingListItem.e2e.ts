@@ -121,7 +121,8 @@ describe('an index that the list of $$ never reaches', () => {
         /**
          * the index waits once; the implicit wait of the command does not wait again
          */
-        expect(elapsed).toBeGreaterThanOrEqual(WAIT)
+        // the wait can end one waitforInterval early, when no time is left for another try
+        expect(elapsed).toBeGreaterThanOrEqual(WAIT - (browser.options.waitforInterval ?? 0))
         expect(elapsed).toBeLessThan(2 * WAIT)
     })
 
