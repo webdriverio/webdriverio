@@ -24,5 +24,6 @@ describe('element protocol command hooks', () => {
 
         expect(beforeCommand).toHaveBeenCalled()
         expect(afterCommand.mock.calls.length).toBe(beforeCommand.mock.calls.length)
+        expect(beforeCommand.mock.calls.map(([name]) => name)).not.toContain('emit')
     })
 })

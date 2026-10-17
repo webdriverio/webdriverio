@@ -202,8 +202,10 @@ describe('WebdriverIO module interface', () => {
                 expect.any(Function),
                 expect.any(Object),
                 expect.any(Function),
-                ['getElement', 'getElements']
+                expect.arrayContaining(['getElement', 'getElements'])
             )
+            // 'emit' is an event function, not an element command
+            expect(vi.mocked(WebDriver.newSession).mock.calls.every((call) => !(call[4] as string[]).includes('emit'))).toBe(true)
         })
     })
 
@@ -376,9 +378,10 @@ describe('WebdriverIO module interface', () => {
             expect.any(Function),
             expect.any(Object),
             expect.any(Function),
-            ['getElement', 'getElements']
-
+            expect.arrayContaining(['getElement', 'getElements'])
         )
+        // 'emit' is an event function, not an element command
+        expect(vi.mocked(WebDriver.newSession).mock.calls.every((call) => !(call[4] as string[]).includes('emit'))).toBe(true)
         expect(WebDriver.newSession).toHaveBeenCalledTimes(2)
     })
 
