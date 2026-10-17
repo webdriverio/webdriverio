@@ -145,15 +145,15 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
      * false. The implicit wait instead runs when the list is first read.
      */
     const wrap = () => (ELEMENT_ARRAY_COMMANDS as readonly string[]).includes(commandName)
-        ? fn(commandName, function (this: WebdriverIO.Element, beforeCommand: () => Promise<void>, ...commandArgs: unknown[]) {
+        ? fn(commandName, function (this: WebdriverIO.Element, ...commandArgs: unknown[]) {
             const list = commandFn.apply(this, commandArgs)
             const wrapList = list?.[ELEMENT_ARRAY_WRAP] as ((wrapper: (load: () => Promise<unknown>) => Promise<unknown>) => void) | undefined
             if (typeof wrapList === 'function') {
                 const element = this
-                wrapList(async (load) => invokeElementCommand(element, commandName, () => load(), beforeCommand))
+                wrapList(async (load) => invokeElementCommand(element, commandName, () => load()))
             }
             return list
-        }, { deferBeforeCommand: true })
+        })
         : fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element, beforeCommand: () => Promise<void>, ...callArgs: unknown[]) {
             return invokeElementCommand(this, commandName, () => commandFn.apply(this, callArgs), beforeCommand)
         }, { deferBeforeCommand: true })

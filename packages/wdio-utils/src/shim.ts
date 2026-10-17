@@ -493,22 +493,11 @@ function createElementPromiseProxy (
     )
 }
 
-/**
- * runs the beforeCommand hooks of one command call once, see `deferBeforeCommand`
- */
-function beforeCommandOnce (scope: { options?: Services.Hooks }, beforeHookArgs: unknown[]): () => Promise<unknown> {
-    let beforeCommand: Promise<unknown> | undefined
-    return () => beforeCommand ??= !isInCommandHook() && scope.options?.beforeCommand
-        ? runInCommandHook(() => executeHooksWithArgs.call(scope, 'beforeCommand', scope.options!.beforeCommand, beforeHookArgs))
-        : Promise.resolve()
-}
-
 function attachElementArrayHooks (
     this: { options?: Services.Hooks },
     elementArray: { [ELEMENT_ARRAY_WRAP]?: (wrapper: (load: () => Promise<unknown>) => Promise<unknown>) => void },
     commandName: string,
-    args: unknown[],
-    runDeferredBeforeCommand?: () => Promise<unknown>
+    args: unknown[]
 ) {
     const wrap = elementArray[ELEMENT_ARRAY_WRAP]
     if (typeof wrap !== 'function') {
@@ -518,7 +507,7 @@ function attachElementArrayHooks (
     const self = this
     wrap(async (load) => {
         const beforeHookArgs = [commandName, args]
-        if (!runDeferredBeforeCommand && !isInCommandHook() && self.options?.beforeCommand) {
+        if (!isInCommandHook() && self.options?.beforeCommand) {
             await runInCommandHook(() => executeHooksWithArgs.call(self, 'beforeCommand', self.options!.beforeCommand, beforeHookArgs))
         }
 
@@ -528,9 +517,6 @@ function attachElementArrayHooks (
         } catch (err) {
             commandError = err
         }
-
-        // a list that failed before it called beforeCommand: the hooks still run as a pair
-        await runDeferredBeforeCommand?.()
 
         if (!isInCommandHook() && self.options?.afterCommand) {
             const afterHookArgs = [...beforeHookArgs, elementArray, commandError]
@@ -554,8 +540,12 @@ export function wrapCommand<T>(commandName: string, fn: Function, options: { def
 
     async function wrapCommandFn(this: { options: Services.Hooks }, ...args: unknown[]) {
         const beforeHookArgs = [commandName, args]
-        const runBeforeCommand = beforeCommandOnce(this, beforeHookArgs)
-        if (!options.deferBeforeCommand && !isInCommandHook() && this.options.beforeCommand) {
+        const hasBeforeCommand = !isInCommandHook() && this.options.beforeCommand
+        let beforeCommand: Promise<unknown> | undefined
+        const runBeforeCommand = () => beforeCommand ??= hasBeforeCommand
+            ? runInCommandHook(() => executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs))
+            : Promise.resolve()
+        if (hasBeforeCommand && !options.deferBeforeCommand) {
             await runBeforeCommand()
         }
 
@@ -661,10 +651,9 @@ export function wrapCommand<T>(commandName: string, fn: Function, options: { def
             }
 
             if (!isChainedPromise) {
-                const runBeforeCommand = options.deferBeforeCommand ? beforeCommandOnce(this, [commandName, args]) : undefined
-                const result = runBeforeCommand ? fn.call(this, runBeforeCommand, ...args) : fn.apply(this, args)
+                const result = fn.apply(this, args)
                 if (result && typeof result[ELEMENT_ARRAY_WRAP] === 'function') {
-                    attachElementArrayHooks.call(this, result, commandName, args, runBeforeCommand)
+                    attachElementArrayHooks.call(this, result, commandName, args)
                     return result
                 }
 

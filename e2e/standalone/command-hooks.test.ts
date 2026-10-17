@@ -15,7 +15,7 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
     let browser: WebdriverIO.Browser
     const before: Call[] = []
     const after: Call[] = []
-    const beforeIds: [string, string | undefined, unknown][] = []
+    const beforeIds: [string, string | undefined][] = []
     const hook = (calls: Call[]) => async (name: string, args: unknown[]) => {
         calls.push([name, args])
         await new Promise((resolve) => setTimeout(resolve, 1))
@@ -23,7 +23,7 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
 
     beforeAll(async () => {
         browser = await startStandaloneChrome({
-            beforeCommand: [hook(before), function (this: WebdriverIO.Element, name: string, args: unknown[]) { beforeIds.push([name, this?.elementId, args[0]]) }],
+            beforeCommand: [hook(before), function (this: WebdriverIO.Element, name: string) { beforeIds.push([name, this?.elementId]) }],
             afterCommand: [hook(after)],
             capabilities: {
                 browserName: 'chrome',
@@ -88,17 +88,7 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
         beforeIds.length = 0
         expect(await late.getText()).toBe('late')
         expect(late.elementId).toBeDefined()
-        expect(beforeIds.filter(([name]) => name === 'getText')).toEqual([['getText', late.elementId, undefined]])
-    })
-
-    test('beforeCommand of $$ on a parent that shows up late sees the found parent', async () => {
-        await browser.execute(() => { setTimeout(() => document.body.insertAdjacentHTML('beforeend', '<ol id="late-list"><li>1</li><li>2</li></ol>'), 300) })
-        const parent = await browser.$('#late-list')
-        expect(parent.elementId).toBeUndefined()
-        beforeIds.length = 0
-        expect(await parent.$$('li')).toHaveLength(2)
-        // the wait runs its own `browser.$$('#late-list')`: read the query of the parent only
-        expect(beforeIds.filter(([name, , selector]) => name === '$$' && selector === 'li')).toEqual([['$$', parent.elementId, 'li']])
+        expect(beforeIds.filter(([name]) => name === 'getText')).toEqual([['getText', late.elementId]])
     })
 
     test('async hooks run for every command, with no emit', async () => {
