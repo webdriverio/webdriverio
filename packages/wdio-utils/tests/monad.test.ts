@@ -26,6 +26,22 @@ function createElement(elementOverrides: PropertyDescriptor, command: Function) 
 }
 
 describe('monad', () => {
+    it('does not pass event handler functions through the command wrapper', () => {
+        const commandWrapper = vi.fn().mockImplementation((_name, fn) => fn)
+        const noop = () => {}
+        const events = ['on', 'off', 'emit', 'once', 'removeListener', 'removeAllListeners']
+        webdriverMonad({}, (client: any) => client, {
+            ...prototype,
+            ...Object.fromEntries(events.map((name) => [name, { value: noop }]))
+        })(sessionId, commandWrapper)
+
+        const wrapped = commandWrapper.mock.calls.map(([name]) => name)
+        expect(wrapped).toContain('someFunc')
+        for (const name of events) {
+            expect(wrapped, name).not.toContain(name)
+        }
+    })
+
     it('should be able to initialize client with prototype with commands', () => {
         const modifier = vi.fn()
         const monad = webdriverMonad({ baseUrl: 'option' }, (client: any) => {

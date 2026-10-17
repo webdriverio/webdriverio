@@ -205,7 +205,7 @@ export default function WebDriver(options: object, modifier?: Function, properti
                  * - there is no wrapper
                  * - command is an event handler function
                  */
-                if (typeof value !== 'function' || Object.keys(EVENTHANDLER_FUNCTIONS).includes(commandName)) {
+                if (typeof value !== 'function' || (EVENTHANDLER_FUNCTIONS as readonly string[]).includes(commandName)) {
                     continue
                 }
 
