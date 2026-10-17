@@ -190,7 +190,7 @@ describe('getContexts test', () => {
         const [[sessionCallUrl], [callUrl]] = calls as any
 
         expect(sessionCallUrl.pathname).toEqual('/session')
-        expect(callUrl.pathname).toEqual('/session/foobar-123/contexts')
+        expect(callUrl.pathname).toEqual('/session/foobar-123/appium/contexts')
         expect(logSpy).toHaveBeenCalledWith('The standard Appium `contexts` method is used. If you want to get more detailed data, you can set `returnDetailedContexts` to `true`.')
         logSpy.mockRestore()
     })
@@ -212,7 +212,7 @@ describe('getContexts test', () => {
         const [[sessionCallUrl], [callUrl]] = calls as any
 
         expect(sessionCallUrl.pathname).toEqual('/session')
-        expect(callUrl.pathname).toEqual('/session/foobar-123/contexts')
+        expect(callUrl.pathname).toEqual('/session/foobar-123/appium/contexts')
         expect(logSpy).toHaveBeenCalledWith('The standard Appium `contexts` method is used. If you want to get more detailed data, you can set `returnDetailedContexts` to `true`.')
         logSpy.mockRestore()
     })
@@ -233,7 +233,7 @@ describe('getContexts test', () => {
         const [[sessionCallUrl], [callUrl]] = calls as any
 
         expect(sessionCallUrl.pathname).toEqual('/session')
-        expect(callUrl.pathname).toEqual('/session/foobar-123/contexts')
+        expect(callUrl.pathname).toEqual('/session/foobar-123/appium/contexts')
     })
 
     it('should return the detailed contexts for iOS if returnDetailedContexts is set to true', async () => {
@@ -385,6 +385,27 @@ describe('getContexts test', () => {
             } as any
         })
         await expect(browser.getContexts()).rejects.toThrow('The `getContexts` command is only available for mobile platforms.')
+    })
+
+    it('should fallback to getAppiumContexts if getAppiumProtocolContexts is not supported', async () => {
+        logSpy = vi.spyOn(log, 'warn')
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+            } as any,
+        })
+        vi.spyOn(browser, 'getAppiumProtocolContexts').mockRejectedValue(new Error('unknown command: getAppiumProtocolContexts'))
+        const getAppiumContextsSpy = vi.spyOn(browser, 'getAppiumContexts').mockResolvedValue([])
+
+        await browser.getContexts()
+
+        expect(getAppiumContextsSpy).toHaveBeenCalledTimes(1)
+        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('/appium/contexts'))
+
+        logSpy.mockRestore()
+        getAppiumContextsSpy.mockRestore()
     })
 
     it('should throw an error when the current app does not match', async () => {

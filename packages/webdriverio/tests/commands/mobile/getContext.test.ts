@@ -58,13 +58,13 @@ describe('getContext test', () => {
             } as any,
         })
 
-        const getAppiumContextSpy = vi.spyOn(browser, 'getAppiumContext').mockResolvedValue('NATIVE_APP')
+        const getContextSpy = vi.spyOn(browser, 'getCurrentAppiumContext').mockResolvedValue('NATIVE_APP')
         const result = await browser.getContext()
 
         expect(result).toEqual('NATIVE_APP')
-        expect(getAppiumContextSpy).toHaveBeenCalledTimes(1)
+        expect(getContextSpy).toHaveBeenCalledTimes(1)
 
-        getAppiumContextSpy.mockRestore()
+        getContextSpy.mockRestore()
     })
 
     it('should return detailed context information for Android', async () => {
@@ -78,15 +78,15 @@ describe('getContext test', () => {
         })
 
         const getContextsSpy = vi.spyOn(browser, 'getContexts').mockResolvedValue(androidContexts)
-        const getAppiumContextSpy = vi.spyOn(browser, 'getAppiumContext').mockResolvedValue('WEBVIEW_com.wdiodemoapp')
+        const getContextSpy = vi.spyOn(browser, 'getCurrentAppiumContext').mockResolvedValue('WEBVIEW_com.wdiodemoapp')
         const result = await browser.getContext({ returnDetailedContext: true })
 
         expect(getContextsSpy).toHaveBeenCalledTimes(1)
-        expect(getAppiumContextSpy).toHaveBeenCalledTimes(1)
+        expect(getContextSpy).toHaveBeenCalledTimes(1)
         expect(result).toEqual(androidContexts[1])
 
         getContextsSpy.mockRestore()
-        getAppiumContextSpy.mockRestore()
+        getContextSpy.mockRestore()
     })
 
     it('should return detailed context information for iOS', async () => {
@@ -100,15 +100,15 @@ describe('getContext test', () => {
         })
 
         const getContextsSpy = vi.spyOn(browser, 'getContexts').mockResolvedValue(iOSContexts)
-        const getAppiumContextSpy = vi.spyOn(browser, 'getAppiumContext').mockResolvedValue('WEBVIEW_86150.1')
+        const getContextSpy = vi.spyOn(browser, 'getCurrentAppiumContext').mockResolvedValue('WEBVIEW_86150.1')
         const result = await browser.getContext({ returnDetailedContext: true })
 
         expect(getContextsSpy).toHaveBeenCalledTimes(1)
-        expect(getAppiumContextSpy).toHaveBeenCalledTimes(1)
+        expect(getContextSpy).toHaveBeenCalledTimes(1)
         expect(result).toEqual(iOSContexts[1])
 
         getContextsSpy.mockRestore()
-        getAppiumContextSpy.mockRestore()
+        getContextSpy.mockRestore()
     })
 
     it('should log a warning and return a string if no detailed context is found', async () => {
@@ -122,12 +122,12 @@ describe('getContext test', () => {
         })
 
         const getContextsSpy = vi.spyOn(browser, 'getContexts').mockResolvedValue([])
-        const getAppiumContextSpy = vi.spyOn(browser, 'getAppiumContext').mockResolvedValue('WEBVIEW_unknown')
+        const getContextSpy = vi.spyOn(browser, 'getCurrentAppiumContext').mockResolvedValue('WEBVIEW_unknown')
 
         const result = await browser.getContext({ returnDetailedContext: true })
 
         expect(getContextsSpy).toHaveBeenCalledTimes(1)
-        expect(getAppiumContextSpy).toHaveBeenCalledTimes(1)
+        expect(getContextSpy).toHaveBeenCalledTimes(1)
         expect(result).toEqual('WEBVIEW_unknown')
         expect(logSpy).toHaveBeenCalledWith(
             "We did not get back any detailed context for the current context 'WEBVIEW_unknown'. We will return the current context as a string."
@@ -135,7 +135,7 @@ describe('getContext test', () => {
 
         logSpy.mockRestore()
         getContextsSpy.mockRestore()
-        getAppiumContextSpy.mockRestore()
+        getContextSpy.mockRestore()
     })
 
     it('should throw an error for non-mobile platforms', async () => {
@@ -148,6 +148,27 @@ describe('getContext test', () => {
         await expect(browser.getContext()).rejects.toThrow(
             'The `getContext` command is only available for mobile platforms.'
         )
+    })
+
+    it('should fallback to getAppiumContext if getCurrentAppiumContext is not supported', async () => {
+        logSpy = vi.spyOn(log, 'warn')
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar',
+                mobileMode: true,
+            } as any,
+        })
+        vi.spyOn(browser, 'getCurrentAppiumContext').mockRejectedValue(new Error('unknown command: getCurrentAppiumContext'))
+        const getContextSpy = vi.spyOn(browser, 'getAppiumContext').mockResolvedValue('WEBVIEW_unknown')
+
+        await browser.getContext()
+
+        expect(getContextSpy).toHaveBeenCalledTimes(1)
+        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('/appium/context'))
+
+        logSpy.mockRestore()
+        getContextSpy.mockRestore()
     })
 
     it('should log and return the first matching context when multiple detailed contexts are found', async () => {
@@ -164,12 +185,12 @@ describe('getContext test', () => {
             { id: 'WEBVIEW_duplicate' },
             { id: 'WEBVIEW_duplicate' },
         ])
-        const getAppiumContextSpy = vi.spyOn(browser, 'getAppiumContext').mockResolvedValue('WEBVIEW_duplicate')
+        const getContextSpy = vi.spyOn(browser, 'getCurrentAppiumContext').mockResolvedValue('WEBVIEW_duplicate')
 
         const result = await browser.getContext({ returnDetailedContext: true })
 
         expect(getContextsSpy).toHaveBeenCalledTimes(1)
-        expect(getAppiumContextSpy).toHaveBeenCalledTimes(1)
+        expect(getContextSpy).toHaveBeenCalledTimes(1)
         expect(result).toEqual({ id: 'WEBVIEW_duplicate' })
         expect(logSpy).toHaveBeenCalledWith(
             "We found more than 1 detailed context for the current context 'WEBVIEW_duplicate'. We will return the first context."
@@ -177,6 +198,6 @@ describe('getContext test', () => {
 
         logSpy.mockRestore()
         getContextsSpy.mockRestore()
-        getAppiumContextSpy.mockRestore()
+        getContextSpy.mockRestore()
     })
 })

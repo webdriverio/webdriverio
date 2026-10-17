@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 
 import type { AndroidDetailedContext, AppiumDetailedCrossPlatformContexts, IosDetailedContext, SwitchContextOptions } from '../../types.js'
+import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
 
 const log = logger('webdriver')
 
@@ -39,7 +40,7 @@ const log = logger('webdriver')
  *   - Exact or partial matches for `title` or `url` (supports both strings and regular expressions).
  *   - Android-specific checks to ensure webviews are attached and visible.
  * - **Fine-Grained Control**: Custom retry intervals and timeouts (Android-only) allow you to handle delays in webview initialization.
- * - **Default Appium Method Access**: If needed, you can use the default Appium `switchContext` command via `driver.switchAppiumContext()`.
+ * - **Default Appium Method Access**: If needed, you can use the default Appium `switchContext` command via `driver.setAppiumContext()` (since Appium 3.7) or `driver.switchAppiumContext()`.
  *
  * :::info Notes and Limitations
  *
@@ -47,6 +48,7 @@ const log = logger('webdriver')
  * - Android-specific options like `androidWebviewConnectionRetryTime` and `androidWebviewConnectTimeout` are not applicable to iOS.
  * - Logs reasons for context-matching failures to assist with debugging.
  * - When using an object as input, either `title` or `url` is required.
+ * - Uses the `/appium/context` endpoint by default, falling back to `/context` for Appium < 3.7.
  *
  * :::
  *
@@ -149,7 +151,7 @@ export async function switchContext(
     if (typeof options === 'string') {
         log.info('The standard Appium `context`-method is used. If you want to switch to a webview with a specific title or url, please provide an object with the `title` or `url` property. See https://webdriver.io/docs/api/mobile/switchContext for more information.')
 
-        return browser.switchAppiumContext(options as string)
+        return switchContextWithFallback(browser, options as string)
     }
 
     if (!options.title && !options.url) {
@@ -203,14 +205,16 @@ async function switchToContext(
     if (!browser.isIOS) {
         // So first switch to the Webview
         const webviewName = `WEBVIEW_${identifier}`
-        await browser.switchAppiumContext(webviewName)
+        await switchContextWithFallback(browser, webviewName)
     }
 
     // 4. Switch to the correct context/page
-    // For iOS we can just use the `browser.switchAppiumContext()` method to switch to the webview,
+    // For iOS we can just use the `browser.setAppiumContext()`/`browser.switchAppiumContext()` method to switch to the webview,
     // but for Android we are already in the webview. We now need to switch to the correct page inside the webview
     // that will be done by using the `browser.switchToWindow()` method
-    const switchFunction: (context: string) => Promise<void> = browser.isIOS ? browser.switchAppiumContext.bind(browser) : browser.switchToWindow.bind(browser)
+    const switchFunction: (context: string) => Promise<void> = browser.isIOS
+        ? (context) => switchContextWithFallback(browser, context)
+        : browser.switchToWindow.bind(browser)
     const matchingContextId = (browser.isIOS ? matchingContext.id : (matchingContext as AndroidDetailedContext).webviewPageId) as string
 
     // Now switch to the correct context
@@ -268,3 +272,15 @@ function findMatchingContext({
     return { matchingContext, reasons }
 }
 
+async function switchContextWithFallback(browser: WebdriverIO.Browser, context: string) {
+    try {
+        await browser.setAppiumContext(context)
+    } catch (err: unknown) {
+        if (!isUnknownMethodError(err)) {
+            throw err
+        }
+
+        logAppiumDeprecationWarning('/appium/context', '/context')
+        await browser.switchAppiumContext(context)
+    }
+}
