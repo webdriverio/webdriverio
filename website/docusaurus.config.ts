@@ -323,7 +323,8 @@ const config: Config = {
             {
                 id: 'community',
                 path: 'community',
-                editUrl: `https://github.com/${organizationName}/${projectName}/edit/${branch}/website/`,
+                // the community pages do not depend on the version: maintained on `main`
+                editUrl: `https://github.com/${organizationName}/${projectName}/edit/main/website/`,
                 routeBasePath: 'community',
                 sidebarPath: path.resolve(__dirname, 'sidebarsCommunity.ts')
             },
