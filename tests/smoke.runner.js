@@ -549,6 +549,7 @@ const cucumberGroupedSpecsRandomOrderHistory = async () => {
         historyIds[order] = {}
         for (const file of results) {
             const { name, historyId } = JSON.parse(await fs.readFile(path.join(outputDir, file), 'utf-8'))
+            assert.ok(typeof historyId === 'string' && historyId.length > 0, `Missing Allure historyId for ${name} in ${order}`)
             historyIds[order][name] = historyId
         }
         await fs.rm(outputDir, { recursive: true, force: true })
