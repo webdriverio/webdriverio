@@ -92,9 +92,25 @@ test('numbers replacement worker logs independently of the remaining retry budge
     expect(first.retries).toBe(-1)
     expect(retry.retries).toBe(5)
 
-    // Watch mode reuses the existing process instead of spawning a retry.
+    // Wait for the original run to reach the child before testing watch reuse.
+    const child = retry.childProcess
+    const initialCommand = {
+        cid: '0-0', command: 'run', configFile: '/wdio.conf.js', args: {},
+        caps: {}, specs: ['/test.feature'], retries: 5
+    }
     retry['_handleMessage']({ name: 'ready' } as any)
-    await retry.postMessage('run', {})
+    await vi.waitFor(() => expect(childProcessMock.send).toHaveBeenCalledWith(initialCommand))
+    const sentBeforeRerun = childProcessMock.send.mock.calls.length
+    expect(retry.isBusy).toBe(true)
+
+    // Watch mode reuses the completed worker instead of spawning a retry.
+    retry['_handleMessage']({ name: 'finishedCommand' } as any)
+    expect(retry.isBusy).toBe(false)
+    await retry.postMessage('run', { watch: true })
+    await vi.waitFor(() => expect(childProcessMock.send).toHaveBeenCalledTimes(sentBeforeRerun + 1))
+    expect(childProcessMock.send).toHaveBeenLastCalledWith({ ...initialCommand, args: { watch: true } })
+    expect(retry.isBusy).toBe(true)
+    expect(retry.childProcess).toBe(child)
     expect(vi.mocked(fork)).toHaveBeenCalledTimes(4)
     expect(retry.logFileAttempt).toBe(1)
 
