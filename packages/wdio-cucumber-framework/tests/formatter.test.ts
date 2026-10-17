@@ -494,18 +494,18 @@ describe('CucumberFormatter', () => {
             const events = runGroupedFeatures(false)
             const a = 'a.feature:3:1'
             const b = 'b.feature:3:1'
-            expect(events.map(({ event, type, uid, parent }) => [event, type, type === 'feature' ? uid : parent])).toEqual([
+            expect(events.map(({ event, type, uid, parent, fullTitle }) => type === 'feature' ? [event, type, uid] : [event, type, parent, fullTitle])).toEqual([
                 ['suite:start', 'feature', a],
-                ['suite:start', 'scenario', a],
-                ['suite:end', 'scenario', a],
+                ['suite:start', 'scenario', a, `${a}: a1`],
+                ['suite:end', 'scenario', a, `${a}: a1`],
                 ['suite:end', 'feature', a],
                 ['suite:start', 'feature', b],
-                ['suite:start', 'scenario', b],
-                ['suite:end', 'scenario', b],
+                ['suite:start', 'scenario', b, `${b}: b1`],
+                ['suite:end', 'scenario', b, `${b}: b1`],
                 ['suite:end', 'feature', b],
                 ['suite:start', 'feature', `${a}#2`],
-                ['suite:start', 'scenario', a],
-                ['suite:end', 'scenario', a],
+                ['suite:start', 'scenario', a, `${a}: a2`],
+                ['suite:end', 'scenario', a, `${a}: a2`],
                 ['suite:end', 'feature', `${a}#2`],
             ])
         })
