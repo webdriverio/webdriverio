@@ -331,6 +331,50 @@ describe('ShadowRootManager', () => {
         expect(elementsB).not.toContain('docElemA')
     })
 
+    it('ignores valid light-DOM custom elements without shadow roots (#14256)', async () => {
+        const browser = { ...defaultBrowser } as any
+        const manager = getShadowRootManager(browser)
+        const warnSpy = vi.spyOn(logger('webdriverio:ShadowRootManager'), 'warn')
+
+        const event = (shadowRoot?: unknown) => ({
+            level: 'debug',
+            args: [
+                { type: 'string', value: '[WDIO]' },
+                { type: 'string', value: 'newShadowRoot' },
+                { type: 'node', sharedId: 'host-with-light-dom', value: {
+                    localName: 'my-example',
+                    ...(shadowRoot === undefined ? {} : { shadowRoot })
+                } },
+                { type: 'node', sharedId: 'document-root' },
+                { type: 'boolean', value: true },
+                { type: 'node', sharedId: 'document-element' }
+            ],
+            source: { context: 'light-dom-context' }
+        })
+
+        // A connectedCallback that uses innerHTML is valid without attachShadow.
+        manager.handleLogEntry(event() as any)
+        expect(warnSpy).not.toHaveBeenCalled()
+        expect(await manager.getShadowElementsByContextId('light-dom-context')).toEqual([])
+
+        // attachShadow() later emits another event, which must still register.
+        manager.handleLogEntry(event({
+            sharedId: 'real-shadow',
+            value: { nodeType: 11, mode: 'open' }
+        }) as any)
+        expect(await manager.getShadowElementsByContextId('light-dom-context')).toContain('real-shadow')
+
+        // A malformed BiDi root claim is not silently treated as light DOM.
+        manager.handleLogEntry(event({
+            sharedId: 'invalid-shadow',
+            value: { nodeType: 1, mode: 'open' }
+        }) as any)
+        expect(warnSpy).toHaveBeenCalledWith(
+            'Expected element with shadow root but found <my-example />'
+        )
+        warnSpy.mockRestore()
+    })
+
     it('should ignore log entries that are not of interest', async () => {
         const browser = { ...defaultBrowser } as any
         const manager = getShadowRootManager(browser)
