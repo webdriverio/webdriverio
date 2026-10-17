@@ -21,8 +21,15 @@ const IGNORE_FILES = ['src', 'package.json', 'package-lock.json', 'README.md', '
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const octokit = new Octokit({ auth: GITHUB_TOKEN })
 
+/**
+ * The last commit of webdriverio/i18n with the translations of the v9 docs. Since
+ * debd81f84 (2026-10-09) the repo has the translations of the v10 docs, which use MDX
+ * components that the v9 website does not have (`<Option>`), and describe v10.
+ */
+const V9_TRANSLATIONS_REF = '163b9811aee1dbd938659f59c9d98cca4abbdc35'
+
 export function downloadDocsTranslations() {
-    return downloadAndExtractRepo(REPO_OWNER, REPO_NAME)
+    return downloadAndExtractRepo(REPO_OWNER, REPO_NAME, V9_TRANSLATIONS_REF)
 }
 
 const FLOWCHARTS_DIR = path.resolve(__dirname, '..', '..', 'website', 'docs', 'flowcharts')

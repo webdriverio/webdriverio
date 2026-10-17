@@ -11,7 +11,7 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const organizationName = 'webdriverio' // Usually your GitHub org/user name.
 const projectName = 'webdriverio' // Usually your repo name.
-const branch = 'main'
+const branch = 'v9'
 const repoUrl = `https://github.com/${organizationName}/${projectName}`
 const xUrl = `https://x.com/${projectName}`
 const youtubeUrl = `https://youtube.com/@${projectName}`
@@ -22,7 +22,10 @@ const mendableAnonKey = 'c4096c1b-8c46-4891-8ba2-5f0e2ef4fa81'
 const config: Config = {
     title: 'WebdriverIO',
     tagline: 'Next-gen browser and mobile automation test framework for Node.js',
-    url: 'https://webdriver.io',
+    /**
+     * the v9 docs are hosted at v9.webdriver.io, webdriver.io has the v10 docs
+     */
+    url: 'https://v9.webdriver.io',
     baseUrl: '/',
     onBrokenLinks: 'throw',
     favicon: 'img/favicon.png',
@@ -260,7 +263,10 @@ const config: Config = {
                     postsPerPage: 3,
                     blogSidebarCount: 7,
                     // Please change this to your repo.
-                    editUrl: `${repoUrl}/edit/${branch}/website/blog/`,
+                    /**
+                     * the blog is maintained on `main`
+                     */
+                    editUrl: `${repoUrl}/edit/main/website/blog/`,
                 },
                 theme: {
                     customCss: path.resolve(__dirname, 'src', 'css', 'custom.css'),
@@ -317,7 +323,8 @@ const config: Config = {
             {
                 id: 'community',
                 path: 'community',
-                editUrl: `https://github.com/${organizationName}/${projectName}/edit/${branch}/website/`,
+                // the community pages do not depend on the version: maintained on `main`
+                editUrl: `https://github.com/${organizationName}/${projectName}/edit/main/website/`,
                 routeBasePath: 'community',
                 sidebarPath: path.resolve(__dirname, 'sidebarsCommunity.ts')
             },
