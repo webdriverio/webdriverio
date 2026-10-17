@@ -26,7 +26,7 @@ Stop when one of these is true. Do not pick a workaround on your own.
 
 1. Use Node.js 22.19.0 or later. Cucumber 13 does not run on Node.js 20, 23, or 25. A project created with `npm create wdio@latest` gets `compilerOptions.target` and `compilerOptions.lib` of `es2024`. Leave an existing `tsconfig.json` unchanged. Type-checking the generated file needs TypeScript 5.7 or newer.
 2. Install WebdriverIO 10 for `webdriverio`, `webdriver`, and every `@wdio/*` package in the same change. Leave no v9 package behind.
-3. If `package.json` lists `expect-webdriverio`, update it to 8. WebdriverIO v9 used 5 or 6. Apply its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8), and from 5 also its [v5 to v6 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v5-to-v6). Since 7, a snapshot of `$$()` stores the `outerHTML` of each element: update those snapshots.
+3. If `package.json` lists `expect-webdriverio`, update it to 8. WebdriverIO v9 used 5 or 6. Apply its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8), and from 5 or 6 also its [v5 to v6 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v5-to-v6): 8 removes the APIs that 5.6.9 to 6.0.0 deprecated. Since 7, a snapshot of `$$()` stores the `outerHTML` of each element: update those snapshots.
 4. If `package.json` lists `geckodriver`, `edgedriver` or `safaridriver`, update them to 8, 8 and 3. Check their [upgrade notes](https://github.com/webdriverio/driver#upgrading-to-geckodriver-8-edgedriver-8-and-safaridriver-3). The driver downloads now use `HTTPS_PROXY` and `HTTP_PROXY`: if the project sets a proxy but reaches the driver CDN directly, add that host to `NO_PROXY`. Chrome, Chromium, Firefox and Chromedriver downloads use the proxy only with `proxy-agent` installed or `NODE_USE_ENV_PROXY=1`: if the project downloads browsers behind a proxy, add `proxy-agent` to its dev dependencies. If a Docker image downloads browsers, it needs the `unzip` command (slim images do not have it).
 5. With Appium, install `appium@^3` and run `appium driver update installed`.
 6. With `puppeteer-core`, use `>=24 <26`.
@@ -47,7 +47,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `jasmineOpts.stopSpecOnExpectationFailure` | `jasmineOpts.oneFailurePerSpec`. Setting the old key throws. |
 | `cucumberOpts.tagExpression` | `cucumberOpts.tags`. Setting the old key throws. |
 | `mochaOpts.compilers` | `mochaOpts.require`. A leftover `compilers` list is ignored. |
-| `this.timeout(ms)` in a Mocha test | keep it. WebdriverIO now follows it (v9 stopped the test at `mochaOpts.timeout`), and `mochaOpts.timeout: 0` turns the timeout off. With `mochaOpts.parallelMode`, `this.timeout()` throws and only `mochaOpts.timeout` applies. With the WebdriverIO `retry` argument, all attempts share one timeout: a test that times out is not run again. |
+| `this.timeout(ms)` in a Mocha test | keep it. WebdriverIO now follows it (v9 stopped the test at `mochaOpts.timeout`), and `mochaOpts.timeout: 0` turns the timeout off. The `retry` argument does not run a test again after a timeout. For `mochaOpts.parallelMode`, see the guide. |
 | `multiremotebrowser` | `multiRemoteBrowser` |
 | `browser.isMultiremote`, `isMultiremote` | `isMultiRemote` |
 | `multiremote(` | `multiRemote(` |
@@ -61,9 +61,9 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `getCookies('name')` or `getCookies(['name'])` | `getCookies({ name: 'name' })`. One call filters one name. |
 | `getHTML(false)` | `getHTML({ includeSelectorTag: false })` |
 | `newWindow` `windowName` / `windowFeatures` | delete them. `type: 'window'` or `type: 'tab'` remains. |
-| `browser.newWindow(url)`, then `browser.<command>` and `browser.closeWindow()` in a BiDi session | `const tab = await browser.newWindow(url)`, then `tab.<command>` and `tab.closeWindow()`. `newWindow` does not switch, so `browser.closeWindow()` closes the first tab. |
+| `browser.newWindow(url)`, then `browser.<command>` and `browser.closeWindow()` in a BiDi session | `const tab = await browser.newWindow(url, { type: 'tab' })` (in TypeScript, add `as WebdriverIO.BrowsingContext`), then `tab.<command>` and `tab.closeWindow()`. `newWindow` does not switch, so `browser.closeWindow()` closes the first tab. Remove `switchWindow()`: it throws in a BiDi session. |
 | `if (value instanceof Promise) value = await value` | `value = await value`. A `$$()` that is not awaited is an array, not a `Promise`. |
-| `if (list[i])` or `list.at(i) === undefined` on a `$$()` list, to check that an item exists | `if (list.length > i)`. An index past the end is an element that waits `waitforTimeout`, not `undefined`, also after `await`. A negative index, and a list from `slice()` or `filter()`, still give `undefined`. |
+| `if (list[i])` or `list.at(i) === undefined` on a `$$()` list, to check that an item exists | `if (list.length > i)`. An index past the end is an element that waits `waitforTimeout`, not `undefined`, also after `await`. After `await`, a negative index and a list from `slice()` or `filter()` give `undefined`. Before `await`, every index gives a truthy promise. |
 | `$$(...).length` without `await` | `await $$(...).length`. Before `await`, `length` is a promise: a comparison gives `false` and an index loop runs 0 times, with no error. |
 | `startActivity('pkg', '.Activity')` | `startActivity({ appPackage, appActivity })`. Delete `appWaitPackage`, `appWaitActivity`, and `optionalIntentArguments`. |
 | `browser.throttle(` | `browser.throttleNetwork(` |

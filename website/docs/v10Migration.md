@@ -43,7 +43,7 @@ Code passed to `browser.execute` stays at ES2021, so it can run in older browser
 
 `mochaOpts.compilers` is gone. Mocha removed the long-deprecated `--compilers` flag, so leftover compiler mappings are ignored. Load transpilers or other setup files with `mochaOpts.require`.
 
-WebdriverIO follows the Mocha timeout of a test or hook: `this.timeout(ms)`, also `this.timeout(0)`, and `mochaOpts.timeout: 0`, which turns the timeout off. With `mochaOpts.parallelMode`, `this.timeout()` throws and only `mochaOpts.timeout` applies. In v9, WebdriverIO ignored `this.timeout()` in a test and stopped it at `mochaOpts.timeout`, and from 9.22 `mochaOpts.timeout: 0` failed every test ("Timeout after -3ms"). When a test or hook times out, the next test starts after `afterTest` (or `afterHook`) ends. With the `retry` argument of WebdriverIO, all attempts of a test share one timeout, so a test that times out is not run again. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks).
+WebdriverIO follows the Mocha timeout: `this.timeout()` in a test or hook, and `mochaOpts.timeout: 0`, which turns the timeout off. In v9, WebdriverIO ignored `this.timeout()` in a test, and from 9.22 `mochaOpts.timeout: 0` failed every test ("Timeout after -3ms"). The `retry` argument of WebdriverIO does not run a test again after a timeout. See [Mocha timeouts and the WebdriverIO hooks](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks), also for `mochaOpts.parallelMode`.
 
 `failHookAffectedTests` defaults to `true`. A failing `before` or `beforeEach` hook fails the tests that hook skipped. Set `mochaOpts.failHookAffectedTests` to `false` to report only the hook.
 
@@ -157,9 +157,9 @@ The types follow the same rules. `@wdio/jasmine-framework` now types the global 
 
 ## expect-webdriverio 8
 
-`@wdio/globals`, `@wdio/runner` and `@wdio/browser-runner` require `expect-webdriverio` 8 as a peer dependency. In v9, it was `expect-webdriverio` 5 (up to WebdriverIO 9.29) or 6 (WebdriverIO 9.31). If your `package.json` lists `expect-webdriverio`, update it to version 8 in the same change as the `@wdio/*` packages.
+`@wdio/globals`, `@wdio/runner` and `@wdio/browser-runner` require `expect-webdriverio` 8 as a peer dependency. In v9, it was `expect-webdriverio` 5 or 6. If your `package.json` lists `expect-webdriverio`, update it to version 8 in the same change as the `@wdio/*` packages.
 
-`expect-webdriverio` 8 has its own breaking changes. Its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8) lists each change and its replacement. From `expect-webdriverio` 5, also read its [v5 to v6 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v5-to-v6). Version 7 has no migration guide. It adds multi-remote support, and `toMatchSnapshot()` and `toMatchInlineSnapshot()` on `$$()` now store the `outerHTML` of each element: update those snapshots. These changes are the most likely to affect a test suite:
+`expect-webdriverio` 8 has its own breaking changes. Its [v7 to v8 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v7-to-v8) lists each change and its replacement. From `expect-webdriverio` 5 or 6, also read its [v5 to v6 migration guide](https://github.com/webdriverio/expect-webdriverio/blob/main/docs/Migrations.md#migration-guide-v5-to-v6): version 8 removes the APIs that 5.6.9 to 6.0.0 deprecated. Version 7 has no migration guide. It adds multi-remote support, and `toMatchSnapshot()` and `toMatchInlineSnapshot()` on `$$()` now store the `outerHTML` of each element: update those snapshots. These changes are the most likely to affect a test suite:
 
 - `toHaveText` on `$$()` compares the elements index by index. An expected array in another order than the page fails. Use the page order, `expect.oneOf()` or `expect.arrayContaining()`.
 - An array of expected values on a single element fails `toHaveText`, `toHaveHTML`, `toHaveComputedLabel`, `toHaveComputedRole` and `toHaveElementClass`. Use `expect.oneOf()`. For `toHaveElementClass`, an array meant "has any of these classes": use `expect.oneOf()`, or one assertion for each class when the element must have all of them.
@@ -437,7 +437,7 @@ An index past the end of a `$$()` list is not `undefined`, also after `await`. I
 + if (list.length > 5) {
 ```
 
-A negative index, and a list from `slice()` or `filter()`, still give `undefined` past the end.
+After `await`, a negative index, and a list from `slice()` or `filter()`, give `undefined` past the end. Before `await`, every index gives a promise, which is always truthy.
 
 Code that awaits a value only when it is a `Promise`, or that reads `length` without `await`, does not throw. It reads a promise as the length, so a loop such as `for (let i = 0; i < list.length; i++)` runs 0 times. Always `await` the value. `await` on a value that is already loaded gives that value:
 
@@ -525,15 +525,17 @@ Use `type: 'tab'` to open a tab.
 In a WebDriver BiDi session, `newWindow()` returns the new [browsing context](/docs/api/browsingContext) and does not switch to it. In v9 it switched. Thus `browser.closeWindow()` after `newWindow()` now closes the first tab, not the new one. Run the commands for the new tab on the context that `newWindow()` returns, and close it with `closeWindow()` on that context:
 
 ```diff
-- await browser.newWindow('https://webdriver.io')
+- await browser.newWindow('https://webdriver.io', { type: 'tab' })
 - console.log(await browser.getTitle())
 - await browser.closeWindow()
-+ const tab = await browser.newWindow('https://webdriver.io')
++ const tab = await browser.newWindow('https://webdriver.io', { type: 'tab' })
 + console.log(await tab.getTitle())
 + await tab.closeWindow()
 ```
 
-The browser stays on the first tab, so you do not need `switchWindow()` after you close the new one. See [`switchToFrame`](#switchtoframe) for the browsing context model.
+In TypeScript, the result type is `WebdriverIO.BrowsingContext | { handle, type }`, because a WebDriver Classic session returns the window handle. In a BiDi session, narrow it: `await browser.newWindow(url, { type: 'tab' }) as WebdriverIO.BrowsingContext`.
+
+The browser stays on the first tab. Remove a `switchWindow()` call that went back to it: `switchWindow` throws in a BiDi session. See [`switchToFrame`](#switchtoframe) for the browsing context model.
 
 ### `startActivity`
 
