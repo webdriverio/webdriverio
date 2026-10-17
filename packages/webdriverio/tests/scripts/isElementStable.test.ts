@@ -22,6 +22,7 @@ describe('isElementStable script', () => {
         afterEach(() => {
             vi.useRealTimers()
             vi.unstubAllGlobals()
+            document.body.replaceChildren()
         })
 
         it('still sees an element that moves before the frames come', async () => {
@@ -40,7 +41,6 @@ describe('isElementStable script', () => {
             frames.splice(0).forEach((frame) => frame())
             await vi.advanceTimersByTimeAsync(1000)
             expect(await result).toBe(false)
-            elem.remove()
         })
     })
 })
