@@ -326,6 +326,14 @@ In the `afterAssertion` hook, the type of `params.result` is now `{ pass, messag
 
 `pass` is `true` when the value matches the expected value, also with `.not`. Thus with `.not`, the assertion passes when `pass` is `false`. The hook does not tell if the test used `.not`.
 
+## Command hooks
+
+An element command runs the `beforeCommand` and `afterCommand` hooks once, with the arguments of the command. In v9, it ran them 2 or 3 times, and the first call got `[]` as `args`. A command that runs inside another one (for example `getElementText` in `getText`) still has its own pair. The hooks do not run for the `emit` event function. A hook that counts commands or measures their time sees each command once.
+
+For an element command, `beforeCommand` runs before WebdriverIO waits for the element, so the element can still be missing there. `afterCommand` runs after the wait and any retry, with the result or the error of the last try. A hook that needs the found element uses `afterCommand`.
+
+A command changed with `overwriteCommand()`, and a chained query on a promise (`$('a').$('b')`), can still run the hooks more than once.
+
 ## Reporters
 
 The browser `result` event is forwarded to reporters as `client:afterCommand`. That payload and the `AfterCommandArgs` type no longer have a `name` property. Read `command` instead. Custom commands already sent `command`.
