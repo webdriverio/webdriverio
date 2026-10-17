@@ -134,19 +134,19 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
     /**
      * `fn` (the command wrapper) runs the command hooks and builds the chain of the result once,
      * around the middleware; the command itself runs without a second wrapper, which ran the
-     * hooks again (a leftover of the sync mode of v5). The wrapper is built once for each command.
+     * hooks again (a leftover of the sync mode of v5).
      *
      * `$$` and the other element-list commands return an array directly. An async wrapper would
      * turn that array into a promise and `Array.isArray` on `$('parent').$$('child')` would be
      * false. The implicit wait instead runs when the list is first read.
      */
-    const wrapped = (ELEMENT_ARRAY_COMMANDS as readonly string[]).includes(commandName)
+    const wrap = () => (ELEMENT_ARRAY_COMMANDS as readonly string[]).includes(commandName)
         ? fn(commandName, function (this: WebdriverIO.Element, ...commandArgs: unknown[]) {
             const list = commandFn.apply(this, commandArgs)
-            const wrap = list?.[ELEMENT_ARRAY_WRAP] as ((wrapper: (load: () => Promise<unknown>) => Promise<unknown>) => void) | undefined
-            if (typeof wrap === 'function') {
+            const wrapList = list?.[ELEMENT_ARRAY_WRAP] as ((wrapper: (load: () => Promise<unknown>) => Promise<unknown>) => void) | undefined
+            if (typeof wrapList === 'function') {
                 const element = this
-                wrap(async (load) => invokeElementCommand(element, commandName, () => load()))
+                wrapList(async (load) => invokeElementCommand(element, commandName, () => load()))
             }
             return list
         })
@@ -154,9 +154,10 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
             return invokeElementCommand(this, commandName, () => commandFn.apply(this, callArgs))
         })
 
-    // without the mark of `wrapCommand`: `unwrapCommand` never gives the middleware itself
+    // the wrapper is built on the first call and kept: an element has ~280 commands and uses few
+    let wrapped: Function | undefined
     return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: unknown[]) {
-        return wrapped.apply(this, args)
+        return (wrapped ??= wrap()).apply(this, args)
     }
 }
 

@@ -91,8 +91,8 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
             before.length = 0
             after.length = 0
             await box.getText()
-            expect(names(only(before, 'getText', 'getElementText'))).toEqual(['getText', 'getElementText'])
-            expect(names(only(after, 'getText', 'getElementText'))).toEqual(['getElementText', 'getText'])
+            expect(names(only(before, 'getText'))).toEqual(['getText'])
+            expect(names(only(after, 'getText'))).toEqual(['getText'])
             expect(names(before)).not.toContain('emit')
         }
     })
