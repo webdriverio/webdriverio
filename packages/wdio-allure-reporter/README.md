@@ -177,6 +177,8 @@ export const config = {
 
 - `includeVersionInHistoryId` - optional parameter (`false` by default). Allure `historyId` is derived from the test title plus the browser or device family (`chrome`, `iphone 12`, …), not the worker `cid` and not the browser/OS version. That keeps trends stable when Chrome or a mobile OS updates between runs. Vendor aliases such as `Google Chrome` / `googlechrome` and `msedge` / `Microsoft Edge` are collapsed to the same family. Allure still records the full version on the test as a `browser`/`device` parameter. Set this to `true` only if you run the same test against multiple versions of the same browser or device (for example iOS 14 vs iOS 15 on an iPhone 12) and need separate history trends per version.
 
+Generated `testCaseId` values use Allure's full test name, including the spec file, without reported browser, device or other parameter values. For the same full test name, they stay the same across runs and retries, including tests with an `ALLURE_ID`. `addTestCaseId(value)` overrides the generated value. The parameter-sensitive `historyId` behavior above is unchanged.
+
 ## Supported Allure API
 
 ### Core API Functions
