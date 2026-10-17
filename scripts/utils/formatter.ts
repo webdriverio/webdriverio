@@ -313,7 +313,7 @@ export default function (docfile: {
         description: description,
         examples: files,
         exampleReferences,
-        customEditUrl: `${repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
+        customEditUrl: `${repoUrl}/edit/v9/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
         isElementScope: scope === 'element' || tagMobileElement,
