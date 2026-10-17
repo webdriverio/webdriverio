@@ -46,17 +46,16 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
     })
 
     const names = (calls: Call[]) => calls.map(([name]) => name)
-    const count = (calls: Call[], name: string) => names(calls).filter((n) => n === name).length
+    // in BiDi, background commands of the session can also run the hooks: read only the given commands
+    const only = (calls: Call[], ...commands: string[]) => calls.filter(([name]) => commands.includes(name))
 
     test('a protocol command runs its hooks once, with its arguments', async () => {
         const button = await browser.$('#button')
         before.length = 0
         after.length = 0
         await button.elementClick(button.elementId)
-        // in BiDi, background commands of the session can also run the hooks
-        const clicks = (calls: Call[]) => calls.filter(([name]) => name === 'elementClick')
-        expect(clicks(before)).toEqual([['elementClick', [button.elementId]]])
-        expect(clicks(after)).toEqual([['elementClick', [button.elementId]]])
+        expect(only(before, 'elementClick')).toEqual([['elementClick', [button.elementId]]])
+        expect(only(after, 'elementClick')).toEqual([['elementClick', [button.elementId]]])
     })
 
     test.each(['an element', 'a list item'])('setValue of %s gives the hooks its arguments, once', async (kind) => {
@@ -64,10 +63,8 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
         before.length = 0
         after.length = 0
         await input.setValue('hello')
-        expect(before[0]).toEqual(['setValue', ['hello']])
-        expect(after.at(-1)).toEqual(['setValue', ['hello']])
-        expect(count(before, 'setValue')).toBe(1)
-        expect(count(after, 'setValue')).toBe(1)
+        expect(only(before, 'setValue')).toEqual([['setValue', ['hello']]])
+        expect(only(after, 'setValue')).toEqual([['setValue', ['hello']]])
     })
 
     test('$ of an element gives the hooks its selector', async () => {
@@ -75,8 +72,7 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
         before.length = 0
         after.length = 0
         await box.$('span').getText()
-        expect(before[0]).toEqual(['$', ['span']])
-        expect(count(before, '$')).toBe(1)
+        expect(only(before, '$')).toEqual([['$', ['span']]])
     })
 
     test('a custom element command gives the hooks its arguments, once', async () => {
@@ -85,9 +81,8 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
         after.length = 0
         // @ts-expect-error custom command
         await input.valueWith('!')
-        expect(before[0]).toEqual(['valueWith', ['!']])
-        expect(after.at(-1)).toEqual(['valueWith', ['!']])
-        expect(count(before, 'valueWith')).toBe(1)
+        expect(only(before, 'valueWith')).toEqual([['valueWith', ['!']]])
+        expect(only(after, 'valueWith')).toEqual([['valueWith', ['!']]])
     })
 
     test('async hooks run for every command, with no emit', async () => {
@@ -96,9 +91,8 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
             before.length = 0
             after.length = 0
             await box.getText()
-            expect(count(before, 'getText')).toBe(1)
-            expect(count(after, 'getText')).toBe(1)
-            expect(after.length).toBe(before.length)
+            expect(names(only(before, 'getText', 'getElementText'))).toEqual(['getText', 'getElementText'])
+            expect(names(only(after, 'getText', 'getElementText'))).toEqual(['getElementText', 'getText'])
             expect(names(before)).not.toContain('emit')
         }
     })

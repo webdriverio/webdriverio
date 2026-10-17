@@ -70,12 +70,17 @@ const ELEMENT_RETURN_COMMANDS = ['getElement', 'getElements']
  * on it.
  */
 export const ELEMENT_ARRAY_WRAP = Symbol.for('webdriverio.elementArray.wrap')
+// marks a function of `wrapCommand` with the command it wraps, see `unwrapCommand`
+const WRAPPED_COMMAND = Symbol.for('webdriverio.wrappedCommand')
+
 /**
- * The command that a function of `wrapCommand` wraps. An element copies the commands of the
- * browser, which the browser already wrapped: it wraps the command itself instead, so the
- * command hooks run once for each command.
+ * The command that `wrapCommand` wrapped, or the value as it is. An element copies the commands
+ * of the browser, which the browser already wrapped: it wraps the command itself, so the command
+ * hooks run once for each command.
  */
-export const WRAPPED_COMMAND = Symbol.for('webdriverio.wrappedCommand')
+export function unwrapCommand<T> (value: T): T | Function {
+    return (value as { [WRAPPED_COMMAND]?: Function } | null | undefined)?.[WRAPPED_COMMAND] ?? value
+}
 export const ELEMENT_ARRAY_COMMANDS = ['$$', 'custom$$', 'react$$', 'shadow$$']
 
 /**

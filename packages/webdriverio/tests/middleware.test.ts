@@ -6,6 +6,8 @@ import { waitForExist } from '../src/commands/element/waitForExist.js'
 import refetchElement from '../src/utils/refetchElement.js'
 import { StrictSelectorError } from '../src/utils/strictSelectorError.js'
 import { remote } from '../src/index.js'
+import { elementErrorHandler } from '../src/middlewares.js'
+import { unwrapCommand, wrapCommand } from '@wdio/utils'
 import { markWaited, recordNotFound } from '../src/utils/elementNotFound.js'
 import { ELEMENT_NOT_FOUND_AGAIN } from '../src/utils/errorCodes.js'
 
@@ -39,6 +41,14 @@ vi.mock('../src/commands/element/waitForEnabled', () => ({
 const { warn } = logger('foobar')
 
 describe('middleware', () => {
+    // an element command copied to the browser must never unwrap to the middleware, which would run twice
+    it('gives an element wrapper without the mark of wrapCommand', () => {
+        for (const name of ['getText', '$$']) {
+            const handler = elementErrorHandler(wrapCommand)(name, () => {})
+            expect(unwrapCommand(handler)).toBe(handler)
+        }
+    })
+
     let browser: WebdriverIO.Browser
 
     beforeAll(async () => {

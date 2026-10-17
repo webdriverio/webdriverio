@@ -131,33 +131,32 @@ async function invokeElementCommand (
  * @param  {Function} fn  command shim
  */
 export const elementErrorHandler = (fn: Function) => (commandName: string, commandFn: Function) => {
-    return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: unknown[]) {
-        /**
-         * `$$` and the other element-list commands return an array directly.
-         * An async wrapper would turn that array into a promise and `Array.isArray`
-         * on `$('parent').$$('child')` would be false. The implicit wait instead
-         * runs when the list is first read.
-         */
-        if ((ELEMENT_ARRAY_COMMANDS as readonly string[]).includes(commandName)) {
-            return fn(commandName, function (this: WebdriverIO.Element, ...commandArgs: unknown[]) {
-                const list = commandFn.apply(this, commandArgs)
-                const wrap = list?.[ELEMENT_ARRAY_WRAP] as ((wrapper: (load: () => Promise<unknown>) => Promise<unknown>) => void) | undefined
-                if (typeof wrap === 'function') {
-                    const element = this
-                    wrap(async (load) => invokeElementCommand(element, commandName, () => load()))
-                }
-                return list
-            }).apply(this, args)
-        }
-
-        /**
-         * `fn` (the command wrapper) runs the command hooks and builds the chain of the result once,
-         * around the middleware; the command itself runs without a second wrapper, which ran the
-         * hooks again (a leftover of the sync mode of v5)
-         */
-        return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element, ...callArgs: unknown[]) {
+    /**
+     * `fn` (the command wrapper) runs the command hooks and builds the chain of the result once,
+     * around the middleware; the command itself runs without a second wrapper, which ran the
+     * hooks again (a leftover of the sync mode of v5). The wrapper is built once for each command.
+     *
+     * `$$` and the other element-list commands return an array directly. An async wrapper would
+     * turn that array into a promise and `Array.isArray` on `$('parent').$$('child')` would be
+     * false. The implicit wait instead runs when the list is first read.
+     */
+    const wrapped = (ELEMENT_ARRAY_COMMANDS as readonly string[]).includes(commandName)
+        ? fn(commandName, function (this: WebdriverIO.Element, ...commandArgs: unknown[]) {
+            const list = commandFn.apply(this, commandArgs)
+            const wrap = list?.[ELEMENT_ARRAY_WRAP] as ((wrapper: (load: () => Promise<unknown>) => Promise<unknown>) => void) | undefined
+            if (typeof wrap === 'function') {
+                const element = this
+                wrap(async (load) => invokeElementCommand(element, commandName, () => load()))
+            }
+            return list
+        })
+        : fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element, ...callArgs: unknown[]) {
             return invokeElementCommand(this, commandName, () => commandFn.apply(this, callArgs))
-        }).apply(this, args)
+        })
+
+    // without the mark of `wrapCommand`: `unwrapCommand` never gives the middleware itself
+    return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: unknown[]) {
+        return wrapped.apply(this, args)
     }
 }
 

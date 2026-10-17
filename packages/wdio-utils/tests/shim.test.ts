@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { vi, describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest'
-import { wrapCommand, executeAsync, setCommandHookStore, WRAPPED_COMMAND } from '../src/shim.js'
+import { wrapCommand, executeAsync, setCommandHookStore, unwrapCommand } from '../src/shim.js'
 import { WDIO_KIND, WDIO_CHAINABLE } from '../src/kind.js'
 
 type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
@@ -12,19 +12,21 @@ const brandsOf = (value: unknown) => ({
 const W3C_ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
 describe('wrapCommand', () => {
-    // an element reads the mark to wrap the command once (webdriverio getElementObject.ts)
-    it('marks its function with the command it wraps', () => {
-        const command = () => 'result'
-        const wrapped = wrapCommand('foo', command) as unknown as Record<symbol, unknown>
-        expect(wrapped[WRAPPED_COMMAND]).toBe(command)
-        expect(Object.keys(wrapped)).toEqual([])
-    })
-
-    it('marks one layer only', () => {
+    // an element unwraps the commands of the browser to wrap them once (webdriverio getElementObject.ts)
+    it('gives the command it wraps to unwrapCommand, one layer only', () => {
         const command = () => 'result'
         const inner = wrapCommand('foo', command)
-        const outer = wrapCommand('foo', inner) as unknown as Record<symbol, unknown>
-        expect(outer[WRAPPED_COMMAND]).toBe(inner)
+        const outer = wrapCommand('foo', inner)
+        expect(unwrapCommand(inner)).toBe(command)
+        expect(unwrapCommand(outer)).toBe(inner)
+        expect(Object.keys(inner)).toEqual([])
+    })
+
+    it('unwrapCommand gives other values as they are', () => {
+        const fn = () => {}
+        for (const value of [fn, undefined, null, 'text', { a: 1 }]) {
+            expect(unwrapCommand(value)).toBe(value)
+        }
     })
 
     it('serializes a chained element with the W3C element reference', async () => {
