@@ -39,7 +39,8 @@ Frameworks: `mochaTestrunner`, `mochaAsyncTestrunner`, `jasmineTestrunner`,
 Cucumber extras: `cucumberTestrunnerByLineNumber`,
 `cucumberTestrunnerMultipleByLineNumber`, `cucumberFailAmbiguousDefinitions`,
 `cucumberPendingTest`, `cucumberReporter`, `cucumberFileOption`,
-`cucumberSkipTag`
+`cucumberSkipTag`, `cucumberGroupedSpecsRandomOrder`,
+`cucumberGroupedSpecsRandomOrderHistory`
 
 Jasmine extras: `jasmineSpecFiltering`, `jasmineReporter`, `jasmineTimeout`,
 `jasmineAfterAll`, `jasmineFailSpecWithNoExpectations`,
