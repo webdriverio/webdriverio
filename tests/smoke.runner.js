@@ -528,6 +528,36 @@ const cucumberGroupedSpecsRandomOrder = async () => {
 }
 
 /**
+ * Cucumber with grouped specs in a random order and scenario-level tests: a scenario
+ * keeps its Allure `historyId` when the random order splits its feature into parts
+ */
+const cucumberGroupedSpecsRandomOrderHistory = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'random-order')
+    const historyIds = {}
+    for (const order of ['random:42', 'defined']) {
+        const outputDir = path.resolve(basePath, `allure-${order.replace(':', '-')}`)
+        await fs.rm(outputDir, { recursive: true, force: true })
+        await launch(
+            'cucumberGroupedSpecsRandomOrderHistory',
+            path.resolve(basePath, 'random-order.conf.js'),
+            {
+                reporters: [['allure', { outputDir, disableWebdriverStepsReporting: true, disableWebdriverScreenshotsReporting: true }]],
+                cucumberOpts: { scenarioLevelReporter: true, order }
+            }
+        )
+        const results = (await fs.readdir(outputDir)).filter((file) => file.endsWith('-result.json'))
+        historyIds[order] = {}
+        for (const file of results) {
+            const { name, historyId } = JSON.parse(await fs.readFile(path.join(outputDir, file), 'utf-8'))
+            historyIds[order][name] = historyId
+        }
+        await fs.rm(outputDir, { recursive: true, force: true })
+    }
+    assert.equal(Object.keys(historyIds.defined).length, 6, `Allure did not get the 6 scenarios: ${JSON.stringify(historyIds)}`)
+    assert.deepStrictEqual(historyIds['random:42'], historyIds.defined, 'a scenario must keep its historyId in a random order')
+}
+
+/**
  * Cucumber file option
  */
 const cucumberFileOption = async () => {
@@ -1353,6 +1383,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberPendingTest,
         cucumberReporter,
         cucumberGroupedSpecsRandomOrder,
+        cucumberGroupedSpecsRandomOrderHistory,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,

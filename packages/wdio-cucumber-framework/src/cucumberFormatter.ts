@@ -145,10 +145,11 @@ export default class CucumberFormatter extends Formatter {
     }
 
     /**
-     * The uid of the feature of the current scenario. With grouped specs in a random
+     * The uid of the feature suite of the current scenario. With grouped specs in a random
      * order, a feature starts again when the run comes back to it: each part has its
      * own uid (`<feature id>#2`, ...), so a reporter does not replace the suite (and
-     * the tests) of the earlier part.
+     * the tests) of the earlier part. The scenarios keep the feature id as their parent:
+     * their `fullTitle` (Allure `historyId`) must not depend on the order.
      */
     featureUid(uri: string, feature: Feature) {
         return this.usesSpecGrouping() && this._currentFeatureUid
@@ -272,7 +273,7 @@ export default class CucumberFormatter extends Formatter {
             : {
                 type: 'scenario',
                 uid: scenario.id,
-                parent: this.featureUid(uri, feature),
+                parent: getFeatureId(uri, feature),
                 tags: scenario.tags,
                 ...common,
             }
@@ -428,7 +429,7 @@ export default class CucumberFormatter extends Formatter {
         const payload = {
             uid: reporterScenario.id,
             title: this.getTitle(reporterScenario),
-            parent: this.featureUid(scenario.uri, doc?.feature as Feature),
+            parent: getFeatureId(scenario.uri, doc?.feature as Feature),
             type: 'scenario',
             description: getScenarioDescription(doc?.feature as Feature, this._pickleMap.get(scenario.id)!),
             file: scenario.uri,
@@ -576,7 +577,7 @@ export default class CucumberFormatter extends Formatter {
         const payload = {
             uid: scenario.id,
             title: this.getTitle(scenario),
-            parent: this.featureUid(doc?.uri as string, doc?.feature as Feature),
+            parent: getFeatureId(doc?.uri as string, doc?.feature as Feature),
             type: 'scenario',
             file: doc?.uri,
             duration: this._scenarioStart
