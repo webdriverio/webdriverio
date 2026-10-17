@@ -434,7 +434,11 @@ Package releases are made using Lerna's release capabilities as GitHub workflow 
 - __Minor Release__: minor releases are always required if a new, user focused feature was added to one of the packages. For example, if a command was added to WebdriverIO or if a service provides a new form of integration, a minor version bump would be appropriate. However if an internal package like `@wdio/local-runner` exposes a new interface that is solely used internally, we can consider that as a patch release.
 - __Patch Release__: every time a bug is fixed, documentation (this includes TypeScript definitions) gets updated or existing functionality is improved, we should do a patch release.
 
-If you are unsure about which release type to pick, reach out in the `webdriverio/TSC` Matrix channel. By setting an NPM tag you can also release a current version with e.g. a `next` tag to test changes before we roll them out to all users.
+If you are unsure about which release type to pick, reach out in the `webdriverio/TSC` Matrix channel.
+
+### Dev Releases
+
+To test changes before we roll them out to all users, run the [`Manual NPM Publish`](https://github.com/webdriverio/webdriverio/actions/workflows/publish.yml) workflow with "Dev release" checked and pick your branch in "Use workflow from". The release type picks the version the dev release leads up to. It publishes all packages as `<next version>-dev.<run number>`, e.g. `10.0.2-dev.42`, with the `next` dist-tag unless you set a tag other than `latest`. The run number is unique across branches, so dev releases from different branches never get the same version. Dev releases don't create a git tag, a changelog entry or a GitHub release. The job summary shows the published version.
 
 ## Workshop
 
