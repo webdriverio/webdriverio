@@ -398,9 +398,10 @@ describe('utils', () => {
         })
 
         // an object without a prototype has no constructor
-        it('returns an object without a prototype as it is', () => {
+        it('returns an object without a constructor as it is', () => {
             const plain = Object.assign(Object.create(null), { a: 1 })
-            expect(verifyArgsAndStripIfElement([plain])).toEqual([plain])
+            const nullConstructor = { constructor: null, foo: 'bar' }
+            expect(verifyArgsAndStripIfElement([plain, nullConstructor])).toEqual([plain, nullConstructor])
         })
 
         it('strips down properties if value is element object', () => {
