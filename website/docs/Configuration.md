@@ -693,7 +693,7 @@ Parameters:
 
 ### afterTest
 
-Function to be executed after a test (in Mocha/Jasmine) ends.
+Function to be executed after a test (in Mocha/Jasmine) ends. It also runs after a test times out. With Mocha, the next test starts after this hook ends (Mocha waits for it up to one more timeout of the test, see [Timeouts](./Timeouts.md#mocha-timeouts-and-the-webdriverio-hooks)).
 
 Parameters:
 

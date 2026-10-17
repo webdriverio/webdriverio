@@ -345,6 +345,58 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
 }
 
 /**
+ * the parts of a Mocha runnable (test or hook) that `executeAsync` uses
+ */
+interface FrameworkRunnable {
+    _timeout?: number
+    title?: string
+    fullTitle?: () => string
+    resetTimeout?: (...args: unknown[]) => unknown
+    _timeoutError?: (ms: number) => Error
+}
+
+/**
+ * When Mocha last started the timer of a runnable, and who to tell when it
+ * starts it again
+ */
+interface FrameworkTimer {
+    startedAt: number
+    onRestart?: () => void
+}
+const frameworkTimers = new WeakMap<FrameworkRunnable, FrameworkTimer>()
+
+/**
+ * Follow the timer of a Mocha test or hook. Mocha starts it (`resetTimeout()`)
+ * when our wrapper returns its promise, so before `beforeTest` ends, and starts
+ * it again when `this.timeout()` changes the timeout. It does not start it
+ * again for a WebdriverIO retry. `executeAsync` uses these starts instead of
+ * guessing them. Call this before the wrapper awaits anything.
+ */
+export function followFrameworkTimer (runnable: unknown) {
+    const target = runnable as FrameworkRunnable | undefined
+    if (!target || typeof target.resetTimeout !== 'function') {
+        return
+    }
+    let timer = frameworkTimers.get(target)
+    if (!timer) {
+        const state: FrameworkTimer = { startedAt: Date.now() }
+        const resetTimeout = target.resetTimeout
+        target.resetTimeout = function (this: FrameworkRunnable, ...args: unknown[]) {
+            state.startedAt = Date.now()
+            const result = resetTimeout.apply(this, args)
+            state.onRestart?.()
+            return result
+        }
+        frameworkTimers.set(target, state)
+        timer = state
+    }
+    /**
+     * a hook runs again for each test; Mocha starts its timer right after this
+     */
+    timer.startedAt = Date.now()
+}
+
+/**
  * execute test or hook asynchronously
  *
  * @param  {Function} fn         spec or hook method
@@ -364,6 +416,11 @@ export async function executeAsync(
 
     let done = false
     let timer: ReturnType<typeof setTimeout> | undefined
+    /**
+     * Mocha fails a test that ran longer than its timeout even when it passes at
+     * last, so a retry after a Mocha timeout can't pass
+     */
+    let mochaTimedOut = false
 
     try {
         /**
@@ -372,12 +429,21 @@ export async function executeAsync(
          * window of time for an operation to complete before triggering a timeout. This approach ensures that test results are handled
          * properly without affecting the overall test execution timing.
          */
-        // @ts-expect-error - _runnable is set by Mocha/Jasmine at runtime
-        const runnable = this?._runnable
-        const runnableTimeout = runnable?._timeout
-        // @ts-expect-error - jasmine is set by Jasmine at runtime
-        const frameworkTimeout = runnableTimeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
-        const _timeout = (frameworkTimeout ?? timeout) - TIME_BUFFER
+        const runnable = (this as { _runnable?: FrameworkRunnable } | undefined)?._runnable
+        /**
+         * The current framework timeout. A Mocha test or hook can change it with
+         * `this.timeout()` while it runs, and `0` turns it off.
+         */
+        const frameworkTimeout = (): number => (
+            // @ts-expect-error - jasmine is set by Jasmine at runtime
+            runnable?._timeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
+        )
+        /**
+         * Mocha's own timer start, see `followFrameworkTimer`; other frameworks start now
+         */
+        const frameworkTimer = runnable ? frameworkTimers.get(runnable) : undefined
+        const start = Date.now()
+        const timerStart = () => frameworkTimer?.startedAt ?? start
         // Capture the identity before execution, as the framework may advance to another runnable on timeout.
         const fullTitle = typeof runnable?.fullTitle === 'function' ? runnable.fullTitle() : undefined
         const testTitle = fullTitle || runnable?.title || fn.name || 'unknown test or hook'
@@ -389,16 +455,52 @@ export async function executeAsync(
         const result = await Promise.race([
             fn.apply(this, args),
             new Promise<void>((resolve, reject) => {
-                timer = setTimeout(() => {
-                    if (done) {
-                        resolve()
-                    } else {
-                        reject(new Error(`Timeout after ${_timeout}ms in ${JSON.stringify(testTitle)} (WDIO attempt ${attempt}/${totalAttempts})`))
+                const check = () => {
+                    if (timer) {
+                        clearTimeout(timer)
+                        timer = undefined
                     }
-                }, _timeout)
+                    if (done) {
+                        return resolve()
+                    }
+                    const current = frameworkTimeout()
+                    /**
+                     * the timeout is off: wait for the function, or for Mocha to start
+                     * its timer again (`this.timeout(ms)`)
+                     */
+                    if (!(current > 0)) {
+                        return
+                    }
+                    const remaining = current - TIME_BUFFER - (Date.now() - timerStart())
+                    if (remaining > 0) {
+                        timer = setTimeout(check, remaining)
+                        return
+                    }
+                    /**
+                     * Mocha would fail the runnable TIME_BUFFER ms later and not wait for it, so
+                     * the after hooks (e.g. `afterTest`) would overlap the next test. Restart its
+                     * timer so it waits for them, and fail with Mocha's own timeout error so the
+                     * report stays the same.
+                     */
+                    if (frameworkTimer) {
+                        frameworkTimer.onRestart = undefined
+                    }
+                    runnable?.resetTimeout?.()
+                    mochaTimedOut = typeof runnable?._timeoutError === 'function'
+                    reject(typeof runnable?._timeoutError === 'function'
+                        ? runnable._timeoutError(current)
+                        : new Error(`Timeout after ${current - TIME_BUFFER}ms in ${JSON.stringify(testTitle)} (WDIO attempt ${attempt}/${totalAttempts})`))
+                }
+                if (frameworkTimer) {
+                    frameworkTimer.onRestart = check
+                }
+                check()
             })
         ])
         done = true
+        if (frameworkTimer) {
+            frameworkTimer.onRestart = undefined
+        }
         if (timer) {
             clearTimeout(timer)
         }
@@ -413,10 +515,15 @@ export async function executeAsync(
         /**
          * ensure we don't leak the timeout timer into follow-up retries
          */
+        const runnable = (this as { _runnable?: FrameworkRunnable } | undefined)?._runnable
+        const frameworkTimer = runnable ? frameworkTimers.get(runnable) : undefined
+        if (frameworkTimer) {
+            frameworkTimer.onRestart = undefined
+        }
         if (timer) {
             clearTimeout(timer)
         }
-        if (retries.limit > retries.attempts) {
+        if (retries.limit > retries.attempts && !mochaTimedOut) {
             retries.attempts++
             return await executeAsync.call(this, fn, retries, args, timeout)
         }
