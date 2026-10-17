@@ -397,6 +397,20 @@ export class CucumberJsJsonReporter extends WDIOReporter {
     }
 
     /**
+     * The line of the step and of its doc string in the lines of its scenario
+     */
+    #setStepLines(step: Step, scenario: TakenScenario['scenario'], usedLines: Set<number>) {
+        step.line = findStepLine(scenario, step.name ?? '', usedLines) ?? null
+        const docString = step.arguments?.[0] as Partial<DocString> | undefined
+        const docStringLine = step.line !== null && typeof docString?.content === 'string'
+            ? findDocStringLine(scenario, step.line)
+            : undefined
+        if (docString && docStringLine) {
+            docString.line = docStringLine
+        }
+    }
+
+    /**
      * Add step data to the current running scenario
      */
     public addStepData(test: TestStats | HookStats): void {
@@ -410,15 +424,15 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             if (retaken) {
                 scenarioLines.taken = retaken
                 scenario.line = retaken.line
+                // the steps before this one have the lines of the other scenario
+                scenarioLines.usedLines.clear()
+                for (const previous of scenario.steps ?? []) {
+                    if (!previous.hidden) {
+                        this.#setStepLines(previous, scenarioLines.taken.scenario, scenarioLines.usedLines)
+                    }
+                }
             }
-            step.line = findStepLine(scenarioLines.taken.scenario, step.name ?? '', scenarioLines.usedLines) ?? null
-            const docString = step.arguments?.[0] as Partial<DocString> | undefined
-            const docStringLine = step.line !== null && typeof docString?.content === 'string'
-                ? findDocStringLine(scenarioLines.taken.scenario, step.line)
-                : undefined
-            if (docString && docStringLine) {
-                docString.line = docStringLine
-            }
+            this.#setStepLines(step, scenarioLines.taken.scenario, scenarioLines.usedLines)
         }
         this.#dropPendingEmbeddingsOfOtherScenario(scenario)
         if (this.#pendingEmbeddings.length) {
