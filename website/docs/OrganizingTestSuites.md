@@ -295,14 +295,14 @@ Please see [Options Page](configuration) for additional information on the bail 
 
 When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence. Currently, this is how it works, from highest priority to lowest:
 
-> CLI `--spec` argument > capability `wdio:specs` > config `specs`
+> CLI `--spec` argument > capability `wdio:specs` > CLI `--suite` argument > config `specs`
 > CLI `--exclude` argument > config `exclude` > capability `wdio:exclude`
 
-If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line will override all other patterns given.
+If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, an explicit `--spec` overrides config and capability specs, while combining with any selected suites.
 
 ### Using capability-defined spec patterns
 
-When you define a spec pattern at the capability level, it will override any patterns defined at the config level. This is useful when needing to separate tests based on differentiating device capabilities. In cases like this, it is more useful to use a generic spec pattern at the config level, and more specific patterns at the capability level.
+When you define a spec pattern at the capability level, it will override any patterns defined at the config level. This also applies when running a suite with `--suite`: capabilities with `wdio:specs` run their own specs, while capabilities without it run the selected suite. An empty `wdio:specs` array skips that capability. An explicit `--spec` still overrides capability specs and runs alongside any selected suite. This is useful when needing to separate tests based on differentiating device capabilities. In cases like this, it is more useful to use a generic spec pattern at the config level, and more specific patterns at the capability level.
 
 For example, let's say you had two directories, with one for Android tests, and one for iOS tests.
 
