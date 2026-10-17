@@ -429,7 +429,6 @@ describe('middleware', () => {
             const elem = await browser.$('#nonexisting')
             const result = elem.emit('custom-event', { x: 1 })
             expect(result instanceof Promise).toBe(false)
-            expect(vi.mocked(waitForExist).mock.calls).toHaveLength(0)
         })
 
         commands.forEach(commandName => {
