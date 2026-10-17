@@ -17,6 +17,10 @@ const STACKTRACE_FILTER = [
     '(node:internal/process/task'
 ]
 
+const getSevereError = (results: unknown[] = []) => results.find(
+    (result): result is Error => result instanceof Error && result.name === 'SevereServiceError'
+)
+
 /**
  * wraps test framework spec/hook function with WebdriverIO before/after hooks
  *
@@ -85,7 +89,8 @@ export const testFrameworkFnWrapper = async function (
     if (type === 'Hook' && hookName) {
         beforeArgs.push(hookName)
     }
-    await logHookError(`Before${type}`, await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs), cid)
+    const beforeResults = await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs)
+    await logHookError(`Before${type}`, beforeResults, cid)
 
     /**
      * Snapshot the runnable identity BEFORE running the spec/hook body.
@@ -110,6 +115,10 @@ export const testFrameworkFnWrapper = async function (
 
     const testStart = Date.now()
     try {
+        const beforeError = type === 'Test' && getSevereError(beforeResults)
+        if (beforeError) {
+            throw beforeError
+        }
         result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout)
         const frameworkResult = readFrameworkResult?.()
         if (frameworkResult) {
@@ -206,7 +215,11 @@ export const testFrameworkFnWrapper = async function (
         }
     }
 
-    await logHookError(`After${type}`, await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]), cid)
+    const afterResults = await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs])
+    await logHookError(`After${type}`, afterResults, cid)
+    if (type === 'Test' && !error && !skip) {
+        error = getSevereError(afterResults)
+    }
 
     if (error && !error.matcherName) {
         throw error

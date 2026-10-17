@@ -1,4 +1,6 @@
 import fs from 'node:fs/promises'
+import os from 'node:os'
+import { Launcher } from '@wdio/cli'
 import { spawn } from 'node:child_process'
 import url from 'node:url'
 import path from 'node:path'
@@ -879,6 +881,81 @@ const standaloneTest = async () => {
     assert.strictEqual(skippedSpecs, 0)
 }
 
+const severeTestHooks = async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-severe-test-hooks-'))
+    const oldCase = process.env.WDIO_SEVERE_TEST_HOOKS_CASE
+    const oldOutput = process.env.WDIO_SEVERE_TEST_HOOKS_OUTPUT
+    try {
+        for (const framework of ['mocha', 'jasmine']) {
+            const modes = ['none', 'before-regular', 'after-regular', 'before-severe', 'after-severe', 'before-mixed', 'after-mixed', 'after-severe-body-failure']
+            if (framework === 'mocha') {
+                modes.push('before-severe-once', 'after-severe-once')
+            }
+            for (const mode of modes) {
+                const output = path.join(directory, framework + '-' + mode + '.jsonl')
+                process.env.WDIO_SEVERE_TEST_HOOKS_CASE = mode
+                process.env.WDIO_SEVERE_TEST_HOOKS_OUTPUT = output
+                const launcher = new Launcher(path.resolve(__dirname, 'helpers', 'severe-test-hooks.conf.js'), {
+                    strictSelectors: false,
+                    framework,
+                    specs: [path.resolve(__dirname, 'helpers', 'severe-test-hooks.spec.js')],
+                    maxInstances: 1,
+                    outputDir: directory,
+                    mochaOpts: { retries: mode.endsWith('once') ? 1 : 0 }
+                })
+                const result = await launcher.run()
+                const events = (await fs.readFile(output, 'utf8')).trim().split('\n').map(line => JSON.parse(line))
+                const shouldFail = mode.includes('severe') || mode.includes('mixed')
+                const recovers = mode.endsWith('once')
+                assert.strictEqual(result, shouldFail && !recovers ? 1 : 0, framework + ' ' + mode)
+                assert.ok(events.some(event => event.event === 'passed' && event.title === 'following test'))
+                const targetBodies = events.filter(event => event.event === 'body' && event.title === 'target test')
+                assert.strictEqual(targetBodies.length, mode.startsWith('before') && shouldFail && !recovers ? 0 : mode === 'after-severe-once' ? 2 : 1)
+                const failures = events.filter(event => event.event === 'failed')
+                assert.strictEqual(failures.length, shouldFail && !recovers ? 1 : 0)
+                if (shouldFail && !recovers) {
+                    assert.strictEqual(failures[0].title, 'target test')
+                    if (mode !== 'after-severe-body-failure') {
+                        const message = 'severe ' + mode.split('-')[0] + ' error'
+                        assert.strictEqual(failures[0].errors[0].message, framework === 'jasmine' ? 'SevereServiceError: ' + message : message)
+                        if (framework === 'mocha') {
+                            assert.strictEqual(failures[0].errors[0].name, 'SevereServiceError')
+                        }
+                    }
+                    const after = events.find(event => event.event === 'afterTest' && event.title === 'target test')
+                    if (mode.startsWith('before')) {
+                        assert.strictEqual(after.passed, false)
+                        assert.strictEqual(after.error.name, 'SevereServiceError')
+                    }
+                    if (mode === 'after-severe-body-failure') {
+                        assert.strictEqual(after.passed, false)
+                        assert.match(failures[0].errors[0].message, framework === 'jasmine' ? /Expected false to be true/ : /original body failure/)
+                        if (framework === 'jasmine') {
+                            assert.strictEqual(after.error.matcherName, 'toBe')
+                        }
+                    }
+                }
+                if (recovers) {
+                    assert.strictEqual(events.filter(event => event.event === 'retry').length, 1)
+                    assert.ok(events.some(event => event.event === 'passed' && event.title === 'target test'))
+                }
+                console.log('severeTestHooks', framework, mode, 'PASS', JSON.stringify({ launcherResult: result, targetBodies: targetBodies.length, failed: failures.length }))
+            }
+        }
+    } finally {
+        if (oldCase === undefined) {
+            delete process.env.WDIO_SEVERE_TEST_HOOKS_CASE
+        } else {
+            process.env.WDIO_SEVERE_TEST_HOOKS_CASE = oldCase
+        }
+        if (oldOutput === undefined) {
+            delete process.env.WDIO_SEVERE_TEST_HOOKS_OUTPUT
+        } else {
+            process.env.WDIO_SEVERE_TEST_HOOKS_OUTPUT = oldOutput
+        }
+    }
+}
+
 const severeErrorTest = async () => {
     const onPrepareFailed = await launch('severeErrorTest - onPrepareFailed', baseConfig, {
         specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
@@ -1374,6 +1451,7 @@ const jasmineAfterHookArgsValidation = async () => {
         sessionGoneReport,
         reporterTestrunner,
         severeErrorTest,
+        severeTestHooks,
         nonGlobalTestrunner,
         mochaHooksTestrunner,
         runSpecsWithFlagAllPassed,

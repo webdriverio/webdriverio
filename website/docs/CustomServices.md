@@ -148,6 +148,8 @@ If either check throws or rejects, service initialization fails with an error id
 
 An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner.
 
+In Mocha and Jasmine, a `SevereServiceError` from `beforeTest` or `afterTest` fails the affected test instead of stopping the worker. A severe `beforeTest` error prevents the test body from running; `afterTest` still runs with the failure. A severe `afterTest` error fails an otherwise passing test and preserves an existing test failure or skip. Later tests continue, and Mocha's native test retries can recover from a temporary severe hook error. Ordinary errors from these hooks remain non-fatal.
+
 ```js
 import { SevereServiceError } from 'webdriverio'
 
