@@ -153,7 +153,24 @@ export default class CucumberFormatter extends Formatter {
     featureUid(uri: string, feature: Feature) {
         return this.usesSpecGrouping() && this._currentFeatureUid
             ? this._currentFeatureUid
-            : getFeatureId(uri, feature)
+            : this.featureId(uri, feature)
+    }
+
+    /**
+     * The id of a feature: `<file name>:<line>:<column>`. When another feature file of
+     * the run has the same name (`admin/login.feature` and `user/login.feature`), the
+     * path of the file from the current folder (with `/`, and `:` encoded): else a reporter
+     * replaces the suite of one feature with the other.
+     */
+    featureId(uri: string, feature: Feature) {
+        const name = path.basename(uri)
+        const sameName = this._gherkinDocEvents.some((doc) => doc.uri && doc.uri !== uri && path.basename(doc.uri) === name)
+        if (!sameName) {
+            return getFeatureId(uri, feature)
+        }
+        // `:` separates the line and the column: encode it (and `%`), so 2 paths never give the same uid
+        const file = path.relative(process.cwd(), uri).split(path.sep).join('/').replace(/%/g, '%25').replace(/:/g, '%3A')
+        return getFeatureId(uri, feature, file)
     }
 
     getTitle(featureOrScenario: Feature | Pickle) {
@@ -310,7 +327,7 @@ export default class CucumberFormatter extends Formatter {
         this._featureStart = new Date()
 
         const payload = {
-            uid: getFeatureId(doc.uri as string, doc.feature as Feature),
+            uid: this.featureId(doc.uri as string, doc.feature as Feature),
             title: this.getTitle(doc.feature as Feature),
             type: 'feature',
             file: doc.uri,
@@ -385,7 +402,7 @@ export default class CucumberFormatter extends Formatter {
         ) {
             const starts = (this._featureStarts.get(doc.uri) ?? 0) + 1
             this._featureStarts.set(doc.uri, starts)
-            const featureId = getFeatureId(doc.uri as string, doc.feature as Feature)
+            const featureId = this.featureId(doc.uri as string, doc.feature as Feature)
             this._currentFeatureUid = starts === 1 ? featureId : `${featureId}#${starts}`
             const payload = {
                 uid: this._currentFeatureUid,
@@ -624,7 +641,7 @@ export default class CucumberFormatter extends Formatter {
         }
 
         const payload = {
-            uid: getFeatureId(
+            uid: this.featureId(
                 gherkinDocEvent.uri as string,
                 gherkinDocEvent.feature as Feature
             ),
