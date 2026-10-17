@@ -157,7 +157,7 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
          */
         return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element) {
             return invokeElementCommand(this, commandName, () => commandFn.apply(this, args))
-        }).apply(this)
+        }).apply(this, args)
     }
 }
 

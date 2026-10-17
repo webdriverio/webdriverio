@@ -83,4 +83,50 @@ describe('element protocol command hooks', () => {
             expect(after).toEqual(['getElementText', 'textOf'])
         })
     })
+
+    // the hooks get the arguments of the command, as before
+    describe('arguments of the hooks', () => {
+        const session = async () => {
+            const before: [string, unknown[]][] = []
+            const after: [string, unknown[]][] = []
+            const browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: { browserName: 'foobar' },
+                beforeCommand: [(name: string, args: unknown[]) => { before.push([name, args]) }],
+                afterCommand: [(name: string, args: unknown[]) => { after.push([name, args]) }]
+            })
+            return { browser, before, after, reset: () => { before.length = 0; after.length = 0 } }
+        }
+
+        it('of a protocol command of an element', async () => {
+            const { browser, before, after, reset } = await session()
+            const elem = await browser.$('.foo')
+            reset()
+            await elem.elementClick(elem.elementId)
+            expect(before).toEqual([['elementClick', [elem.elementId]]])
+            expect(after).toEqual([['elementClick', [elem.elementId]]])
+        })
+
+        it.each(['element', 'list item'])('of an element command of a %s', async (kind) => {
+            const { browser, before, after, reset } = await session()
+            const elem = kind === 'element' ? await browser.$('.foo') : (await browser.$$('.foo'))[0]
+            reset()
+            await elem.setValue('hello')
+            expect(before[0]).toEqual(['setValue', ['hello']])
+            expect(after.at(-1)).toEqual(['setValue', ['hello']])
+        })
+
+        it('of a custom element command', async () => {
+            const { browser, before, after, reset } = await session()
+            browser.addCommand('textWith', function (this: WebdriverIO.Element, suffix: string) {
+                return this.getElementText(this.elementId).then((text) => text + suffix)
+            }, { attachToElement: true })
+            const elem = await browser.$('.foo')
+            reset()
+            // @ts-expect-error custom command
+            await elem.textWith('!')
+            expect(before[0]).toEqual(['textWith', ['!']])
+            expect(after.at(-1)).toEqual(['textWith', ['!']])
+        })
+    })
 })
