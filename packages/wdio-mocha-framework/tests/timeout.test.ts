@@ -131,6 +131,19 @@ describe('Mocha timeout and the after hooks', () => {
         expectAfterHookBeforeMochaDone(await run(() => sleep(1000), { type: 'Hook' }), 300)
     })
 
+    it('names the WebdriverIO attempt of a hook that timed out, for Mocha and afterHook', async () => {
+        let attempt = 0
+        const result = await run(async () => {
+            if (++attempt === 1) {
+                throw new Error('first attempt fails')
+            }
+            await sleep(1000)
+        }, { retries: 1, type: 'Hook' })
+        expectAfterHookBeforeMochaDone(result, 300)
+        expect(result.err?.message).toMatch(/ \(WDIO attempt 2\/2\)$/)
+        expect(result.afterError).toBe(result.err)
+    })
+
     it('passes a test that made its timeout longer', async () => {
         const { err, afterPassed } = await run(async function () {
             this.timeout(1000)
