@@ -51,7 +51,7 @@ export const SMALL_RUNNER_STATS: RunnerStats = {
     instanceOptions: {},
     sanitizedCapabilities: 'chrome.75_0_3770_100.macosx',
     specs: ['/Users/wswebcreation/Sauce/Git/webdriverio-cucumberjs/__tests__/features/passed.feature'],
-    isMultiremote: false
+    isMultiRemote: false
 }
 export const FULL_RUNNER_STATS: RunnerStatsExtended = {
     type: 'runner',
@@ -166,7 +166,7 @@ export const FULL_RUNNER_STATS: RunnerStatsExtended = {
     },
     specs: ['/Users/wswebcreation/Sauce/Git/webdriverio-cucumberjs/__tests__/features/passed.feature'],
     sessionId: 'b2e560a6ed31a6551fa3509109b71f14',
-    isMultiremote: false,
+    isMultiRemote: false,
     retry: 0,
     duration: 0,
     complete: (): void => {
@@ -204,7 +204,7 @@ export const WDIO6_RUNNER_STATS: RunnerStatsExtended = {
     },
     specs: ['/Users/wimselles/Git/cucumberjs-json-demo/google.feature'],
     sessionId: '27e5b2b068aa1612e60d90a9e5164a7d',
-    isMultiremote: false,
+    isMultiRemote: false,
     retry: 0,
     duration: 0,
     complete: (): void => {
@@ -237,7 +237,7 @@ export const CAPS_METADATA_RUNNER_STATS: RunnerStatsExtended = {
     },
     specs: ['/Users/wimselles/Git/cucumberjs-json-demo/google.feature'],
     sessionId: '27e5b2b068aa1612e60d90a9e5164a7d',
-    isMultiremote: false,
+    isMultiRemote: false,
     retry: 0,
     duration: 0,
     complete: (): void => {
@@ -524,7 +524,7 @@ export const TEST_EMPTY_STATS: TestStatsExtended = TEST_EMPTY_STATS_Initial
 //                     'prefs': { 'download': { 'prompt_for_download': false, 'directory_upgrade': true, 'default_directory': './tmp' }
 // } }, 'mchr:metadata': { 'browser': { 'name': 'chrome', 'version': '58' }, 'device': 'MacBook Pro 15', 'platform': { 'name': 'OSX',
 // 'version': '10.12.6' } } } }, 'specs': [ '/Users/wimselles/Sauce/Git/webdriverio-cucumberjs/__tests__/features/failed.feature' ],
-// 'sessionId': 'c1c3d5fbe0e5f2cf391868253f7f80c1', 'isMultiremote': false, 'retry': 0 }
+// 'sessionId': 'c1c3d5fbe0e5f2cf391868253f7f80c1', 'isMultiRemote': false, 'retry': 0 }
 
 // Read the feature
 // const onSuiteStart = {
@@ -1012,7 +1012,7 @@ export const TEST_EMPTY_STATS: TestStatsExtended = TEST_EMPTY_STATS_Initial
 //     },
 //     'specs': [ '/Users/wimselles/Sauce/Git/webdriverio-cucumberjs/__tests__/features/failed.feature' ],
 //     'sessionId': 'c1c3d5fbe0e5f2cf391868253f7f80c1',
-//     'isMultiremote': false,
+//     'isMultiRemote': false,
 //     'retry': 0,
 //     'failures': 1,
 //     'end': '2019-07-19T21:15:02.661Z'
