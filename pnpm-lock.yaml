@@ -72,8 +72,8 @@ importers:
         specifier: workspace:*
         version: link:packages/wdio-repl
       camelcase:
-        specifier: ^9.0.0
-        version: 9.0.0
+        specifier: ^10.0.0
+        version: 10.0.0
       cddl:
         specifier: ^0.23.0
         version: 0.23.0
@@ -487,8 +487,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       camelcase:
-        specifier: ^9.0.0
-        version: 9.0.0
+        specifier: ^10.0.0
+        version: 10.0.0
       cddl:
         specifier: ^0.23.0
         version: 0.23.0
@@ -515,8 +515,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       camelcase:
-        specifier: ^9.0.0
-        version: 9.0.0
+        specifier: ^10.0.0
+        version: 10.0.0
       esbuild:
         specifier: ^0.28.1
         version: 0.28.2
@@ -7606,6 +7606,10 @@ packages:
   camelcase-keys@6.2.2:
     resolution: {integrity: sha512-YrwaA0vEKazPBkn0ipTiMpSajYDSe+KjQfrjhcBMxJt/znbvlHd8Pw/Vamaz5EB4Wfhs3SUR3Z9mwRu/P3s3Yg==}
     engines: {node: '>=8'}
+
+  camelcase@10.0.0:
+    resolution: {integrity: sha512-p1wew5BGDCONz/5R+xHF6ByqXQM2V+5r4e+FdlFUeROawuMPimdDOFLw5k2QSqp1rm5h2QAglToqJyvnsl3ArQ==}
+    engines: {node: '>=22'}
 
   camelcase@5.3.1:
     resolution: {integrity: sha512-L28STB170nwWS63UjtlEOE3dldQApaJXZkOI1uMFfzf3rRuPegHaHesyee+YxQ+W6SvRDQV6UrdOdRiR153wJg==}
@@ -21811,6 +21815,8 @@ snapshots:
       camelcase: 5.3.1
       map-obj: 4.3.0
       quick-lru: 4.0.1
+
+  camelcase@10.0.0: {}
 
   camelcase@5.3.1: {}
 
