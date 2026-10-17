@@ -192,7 +192,8 @@ export function findAllureReporter (reporters?: unknown[]): Record<string, unkno
 
 /**
  * The ffmpeg executable of the user: the `ffmpegPath` option, then the `FFMPEG_PATH`
- * environment variable, then `ffmpeg` on the `PATH`. WebdriverIO does not ship ffmpeg.
+ * environment variable (a path, or a command name on the `PATH`), then `ffmpeg` on
+ * the `PATH`. WebdriverIO does not ship ffmpeg.
  * On Windows only `ffmpeg.exe`: Node.js starts `.cmd` and `.bat` files only with a shell.
  */
 export function findFfmpeg (ffmpegPath?: string, env: NodeJS.ProcessEnv = process.env): string | undefined {
@@ -210,15 +211,20 @@ export function findFfmpeg (ffmpegPath?: string, env: NodeJS.ProcessEnv = proces
         }
     }
 
-    const chosen = ffmpegPath || env.FFMPEG_PATH
-    if (chosen) {
-        return isExecutable(chosen) ? chosen : undefined
-    }
-
-    const name = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
-    return (env.PATH ?? env.Path ?? '')
+    const onPath = (name: string) => (env.PATH ?? env.Path ?? '')
         .split(path.delimiter)
         .filter(Boolean)
         .map((dir) => path.join(dir, name))
         .find(isExecutable)
+
+    const chosen = ffmpegPath || env.FFMPEG_PATH
+    if (chosen) {
+        if (isExecutable(chosen)) {
+            return chosen
+        }
+        // a command name with no folder (`FFMPEG_PATH=ffmpeg`) is looked up on the PATH
+        return path.basename(chosen) === chosen ? onPath(chosen) : undefined
+    }
+
+    return onPath(process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg')
 }

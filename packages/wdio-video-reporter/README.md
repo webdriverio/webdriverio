@@ -235,8 +235,8 @@ Default: `webm`
 
 ### `ffmpegPath`
 
-Path of the ffmpeg executable. If it is not set, the reporter uses the `FFMPEG_PATH` environment variable, then
-`ffmpeg` on the `PATH`. See [Install ffmpeg](#install-ffmpeg).
+Path of the ffmpeg executable, or a command name that the reporter finds on the `PATH`. If it is not set, the
+reporter uses the `FFMPEG_PATH` environment variable (the same values), then `ffmpeg` on the `PATH`. See [Install ffmpeg](#install-ffmpeg).
 
 Type: `string`
 

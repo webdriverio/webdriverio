@@ -44,6 +44,12 @@ describe('findFfmpeg', () => {
         expect(findFfmpeg(undefined, { PATH: binDir, FFMPEG_PATH: path.join(dir, 'missing') })).toBeUndefined()
     })
 
+    it('finds a ffmpegPath or FFMPEG_PATH with no folder (a command name) on the PATH', () => {
+        expect(findFfmpeg(path.basename(onPath), { PATH: binDir })).toBe(onPath)
+        expect(findFfmpeg(undefined, { PATH: binDir, FFMPEG_PATH: path.basename(onPath) })).toBe(onPath)
+        expect(findFfmpeg('custom-ffmpeg', { PATH: binDir })).toBeUndefined()
+    })
+
     it.skipIf(process.platform === 'win32')('does not use a file on the PATH that is not executable', () => {
         const noExec = path.join(dir, 'no-exec')
         fs.mkdirSync(noExec)
