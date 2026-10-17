@@ -305,6 +305,141 @@ describe('testFnWrapper', () => {
     })
 })
 
+describe('SevereServiceError in test hooks', () => {
+    const severeError = () => Object.assign(new Error('service cannot continue'), { name: 'SevereServiceError' })
+    const run = (specFn: Function, frameworkResult?: Function, type = 'Test') => {
+        const args = [
+            type,
+            { specFn, specFnArgs: [], frameworkResult },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [] },
+            { afterFn: 'afterFn', afterFnArgs: () => [] },
+            '0-0',
+            0
+        ] as any[]
+        // @ts-expect-error test args
+        return testFnWrapper(...args)
+    }
+
+    afterEach(() => {
+        executeHooksWithArgs.mockReset()
+        setDebugAgentPause(undefined)
+    })
+
+    it('fails a test before its body and still runs afterTest with the failure', async () => {
+        const error = severeError()
+        const body = vi.fn()
+        executeHooksWithArgs.mockResolvedValueOnce([new Error('ordinary hook error'), error]).mockResolvedValueOnce([])
+
+        await expect(run(body)).rejects.toBe(error)
+        expect(body).not.toHaveBeenCalled()
+        expect(executeHooksWithArgs).toHaveBeenNthCalledWith(2, 'afterTest', 'afterFn', [expect.objectContaining({
+            error, passed: false, skipped: false
+        })])
+    })
+
+    it('fails an otherwise passing test for a severe afterTest result, including after an ordinary error', async () => {
+        const error = severeError()
+        const body = vi.fn().mockReturnValue('body result')
+        executeHooksWithArgs.mockResolvedValueOnce([]).mockResolvedValueOnce([new Error('ordinary hook error'), error])
+
+        await expect(run(body)).rejects.toBe(error)
+        expect(body).toHaveBeenCalledOnce()
+    })
+
+    it.each(['continue', 'close'])('pauses once with the test identity after a severe afterTest error (%s)', async (action) => {
+        const error = severeError()
+        const closed = new Error('Session closed from wdio session')
+        const order: string[] = []
+        const identity = { title: 'fails in afterTest', file: '/tmp/severe-after.spec.ts' }
+        const pause = vi.fn(async () => {
+            order.push('pause')
+            if (action === 'close') {
+                throw closed
+            }
+        })
+        setDebugAgentPause(pause)
+        executeHooksWithArgs.mockImplementation(async (name: string) => {
+            order.push(name)
+            return name === 'afterTest' ? [error] : []
+        })
+        const args = [
+            'Test',
+            { specFn: () => { order.push('body') }, specFnArgs: [] },
+            { beforeFn: 'beforeFn', beforeFnArgs: () => [identity] },
+            { afterFn: 'afterFn', afterFnArgs: () => [identity] },
+            '0-0',
+            0
+        ] as any[]
+
+        // @ts-expect-error test args
+        await expect(testFnWrapper(...args)).rejects.toBe(action === 'close' ? closed : error)
+        expect(order).toEqual(['beforeTest', 'body', 'afterTest', 'pause'])
+        expect(pause).toHaveBeenCalledExactlyOnceWith({ cid: '0-0', spec: identity.file, test: identity.title })
+        expect(executeHooksWithArgs).toHaveBeenNthCalledWith(2, 'afterTest', 'afterFn', [identity, expect.objectContaining({
+            passed: true, error: undefined
+        })])
+    })
+
+    it('does not pause twice when a body failure is followed by a severe afterTest error', async () => {
+        const bodyError = new Error('original body failure')
+        const pause = vi.fn(async () => {})
+        setDebugAgentPause(pause)
+        executeHooksWithArgs.mockResolvedValueOnce([]).mockResolvedValueOnce([severeError()])
+
+        await expect(run(() => { throw bodyError })).rejects.toBe(bodyError)
+        expect(pause).toHaveBeenCalledOnce()
+    })
+
+    it('does not pause twice for a severe beforeTest error', async () => {
+        const error = severeError()
+        const pause = vi.fn(async () => {})
+        const body = vi.fn()
+        setDebugAgentPause(pause)
+        executeHooksWithArgs.mockResolvedValueOnce([error]).mockResolvedValueOnce([])
+
+        await expect(run(body)).rejects.toBe(error)
+        expect(body).not.toHaveBeenCalled()
+        expect(pause).toHaveBeenCalledOnce()
+    })
+
+    it('keeps ordinary beforeTest and afterTest errors non-fatal', async () => {
+        executeHooksWithArgs.mockResolvedValueOnce([new Error('before')]).mockResolvedValueOnce([new Error('after')])
+        await expect(run(() => 'body result')).resolves.toBe('body result')
+    })
+
+    it('does not treat a plain hook return value with a severe name as an error', async () => {
+        executeHooksWithArgs.mockResolvedValueOnce([{ name: 'SevereServiceError' }]).mockResolvedValueOnce([])
+        await expect(run(() => 'body result')).resolves.toBe('body result')
+    })
+
+    it('preserves the original body failure when afterTest also returns a severe error', async () => {
+        const bodyError = new Error('original body failure')
+        executeHooksWithArgs.mockResolvedValueOnce([]).mockResolvedValueOnce([severeError()])
+        await expect(run(() => { throw bodyError })).rejects.toBe(bodyError)
+    })
+
+    it('preserves a framework-owned expectation failure when afterTest returns a severe error', async () => {
+        const error = { matcherName: 'toBe', message: 'original expectation failure' }
+        const result = { failedExpectations: [error] }
+        executeHooksWithArgs.mockResolvedValueOnce([]).mockResolvedValueOnce([severeError()])
+        await expect(run(() => undefined, () => ({ result, errors: [error] }))).resolves.toBe(result)
+        expect(executeHooksWithArgs).toHaveBeenNthCalledWith(2, 'afterTest', 'afterFn', [expect.objectContaining({
+            error, passed: false
+        })])
+    })
+
+    it('preserves a framework skip when afterTest returns a severe error', async () => {
+        const skip = new Error('sync skip; aborting execution')
+        executeHooksWithArgs.mockResolvedValueOnce([]).mockResolvedValueOnce([severeError()])
+        await expect(run(() => { throw skip })).rejects.toBe(skip)
+    })
+
+    it.each(['Hook', 'Step'])('does not change severe hook handling for %s wrappers', async (type) => {
+        executeHooksWithArgs.mockResolvedValueOnce([severeError()]).mockResolvedValueOnce([severeError()])
+        await expect(run(() => 'body result', undefined, type)).resolves.toBe('body result')
+    })
+})
+
 describe('filterStackTrace', () => {
     it('should remove internal webdriverio lines only', () => {
         const stackTraces = [

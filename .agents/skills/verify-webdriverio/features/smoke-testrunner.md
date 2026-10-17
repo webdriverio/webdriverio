@@ -28,6 +28,7 @@ Preconditions:
 
 - **List names.** Run `pnpm run test:smoke:list`. Exit 0 and stdout includes `standaloneTest`. This does not launch WebdriverIO.
 - **Mocha session.** Run `pnpm run test:smoke mochaTestrunner`. Exit 0, stdout contains `All smoke tests passed!`, and the suite assertion requires `passed` 4 and `skippedSpecs` 1. On Windows the suite returns before those counts; do not treat that early return as the count check.
+- **Severe test hooks.** Run `pnpm run test:smoke severeTestHooks`. Exit 0 and stdout contains `All smoke tests passed!`. Each printed case asserts actual launcher and reporter results: severe `beforeTest`/`afterTest` errors fail the affected test, ordinary hook errors remain non-fatal, later tests run, and a successful Mocha native retry recovers the run. Jasmine expectation failures keep their original error. The driver is mocked.
 - **Standalone client.** Run `pnpm run test:smoke standaloneTest`. Exit 0 and stdout contains `All smoke tests passed!`. The spec expects the mock title `Mock Page Title`.
 - **Plugin.** Run `pnpm run test:smoke customService` or `pnpm run test:smoke customReporterString`. Exit 0 and stdout contains `All smoke tests passed!`.
 - **Watch mode.** Run `pnpm run test:smoke watchMode`. Exit 0 and stdout contains `All smoke tests passed!`. The suite reruns a changed spec in the same WebDriver session, including one failing rerun.
