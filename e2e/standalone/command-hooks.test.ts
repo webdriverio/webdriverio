@@ -15,6 +15,7 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
     let browser: WebdriverIO.Browser
     const before: Call[] = []
     const after: Call[] = []
+    const ids: [string, string, string | undefined][] = []
     const hook = (calls: Call[]) => async (name: string, args: unknown[]) => {
         calls.push([name, args])
         await new Promise((resolve) => setTimeout(resolve, 1))
@@ -22,8 +23,8 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
 
     beforeAll(async () => {
         browser = await startStandaloneChrome({
-            beforeCommand: [hook(before)],
-            afterCommand: [hook(after)],
+            beforeCommand: [hook(before), function (this: WebdriverIO.Element, name: string) { ids.push(['before', name, this?.elementId]) }],
+            afterCommand: [hook(after), function (this: WebdriverIO.Element, name: string) { ids.push(['after', name, this?.elementId]) }],
             capabilities: {
                 browserName: 'chrome',
                 ...(classic ? { 'wdio:enforceWebDriverClassic': true } : {}),
@@ -78,6 +79,15 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
         await input.valueWith('!')
         expect(only(before, 'valueWith')).toEqual([['valueWith', ['!']]])
         expect(only(after, 'valueWith')).toEqual([['valueWith', ['!']]])
+    })
+
+    test('beforeCommand runs before the wait for an element that shows up late, afterCommand after it', async () => {
+        await browser.execute(() => { setTimeout(() => document.body.insertAdjacentHTML('beforeend', '<p id="late">late</p>'), 300) })
+        const late = await browser.$('#late')
+        expect(late.elementId).toBeUndefined()
+        ids.length = 0
+        expect(await late.getText()).toBe('late')
+        expect(ids.filter(([, name]) => name === 'getText')).toEqual([['before', 'getText', undefined], ['after', 'getText', late.elementId]])
     })
 
     test('async hooks run for every command, with no emit', async () => {

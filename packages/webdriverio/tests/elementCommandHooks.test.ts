@@ -107,6 +107,27 @@ describe('element protocol command hooks', () => {
         expect(after.filter(([name]) => name === 'readOnce')).toEqual([['readOnce', ['x'], 'done', undefined]])
     })
 
+    // beforeCommand runs when the command is called, before the implicit wait; afterCommand after it
+    it('runs beforeCommand before the wait for an element that was not found yet, and afterCommand after it', async () => {
+        const calls: [string, string, string | undefined][] = []
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: { browserName: 'foobar' },
+            beforeCommand: [function (this: WebdriverIO.Element, name: string) { calls.push(['before', name, this.elementId]) }],
+            afterCommand: [function (this: WebdriverIO.Element, name: string) { calls.push(['after', name, this.elementId]) }]
+        })
+        const elem = await browser.$('.foo')
+        const foundId = elem.elementId
+        elem.elementId = undefined as unknown as string
+        calls.length = 0
+
+        await elem.getText()
+
+        expect(calls[0]).toEqual(['before', 'getText', undefined])
+        expect(calls.at(-1)).toEqual(['after', 'getText', foundId])
+        expect(calls.filter(([, name]) => name === 'getText')).toHaveLength(2)
+    })
+
     // the hooks get the arguments of the command, as before
     describe('arguments of the hooks', () => {
         it('of a protocol command of an element', async () => {

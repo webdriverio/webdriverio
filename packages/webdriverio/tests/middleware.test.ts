@@ -431,16 +431,6 @@ describe('middleware', () => {
             'isExistingFoo',
             'isDisplayedFoo']
 
-        /**
-         * `emit` is an event function, not a command: the command wrapper does not wrap it, so
-         * the middleware never sees it (#16056)
-         */
-        it('elem NOT_FOUND: emit is not a command and returns at once (#16056; module.test.ts checks the list)', async () => {
-            const elem = await browser.$('#nonexisting')
-            const result = elem.emit('custom-event', { x: 1 })
-            expect(result instanceof Promise).toBe(false)
-        })
-
         commands.forEach(commandName => {
             it(`elem NOT_FOUND and command = ${commandName}`, async () => {
                 browser.addCommand(commandName, () => {}, { attachToElement: true })
