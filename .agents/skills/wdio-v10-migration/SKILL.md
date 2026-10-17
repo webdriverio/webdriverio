@@ -46,6 +46,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `jasmineOpts.failFast` | `jasmineOpts.stopOnSpecFailure`. A leftover `failFast` is ignored. Cucumber's `failFast` stays. |
 | `jasmineOpts.stopSpecOnExpectationFailure` | `jasmineOpts.oneFailurePerSpec`. Setting the old key throws. |
 | `cucumberOpts.tagExpression` | `cucumberOpts.tags`. Setting the old key throws. |
+| `wdio-cucumberjs-json-reporter` | `@wdio/cucumberjs-json-reporter`, also in the `import` of `attach`. Uninstall the old package. `reporters: ['cucumberjs-json']` stays. |
 | `mochaOpts.compilers` | `mochaOpts.require`. A leftover `compilers` list is ignored. |
 | `multiremotebrowser` | `multiRemoteBrowser` |
 | `browser.isMultiremote`, `isMultiremote` | `isMultiRemote` |

@@ -255,6 +255,12 @@ importers:
       '@wdio/config':
         specifier: workspace:*
         version: link:../packages/wdio-config
+      '@wdio/cucumber-framework':
+        specifier: workspace:*
+        version: link:../packages/wdio-cucumber-framework
+      '@wdio/cucumberjs-json-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-cucumberjs-json-reporter
       '@wdio/display-server':
         specifier: workspace:*
         version: link:../packages/wdio-display-server
@@ -1134,6 +1140,27 @@ importers:
         specifier: ^4.0.1
         version: 4.0.4
 
+  packages/wdio-cucumberjs-json-reporter:
+    dependencies:
+      '@cucumber/gherkin':
+        specifier: 42.0.1
+        version: 42.0.1
+      '@wdio/globals':
+        specifier: workspace:*
+        version: link:../wdio-globals
+      '@wdio/logger':
+        specifier: workspace:*
+        version: link:../wdio-logger
+      '@wdio/reporter':
+        specifier: workspace:*
+        version: link:../wdio-reporter
+      '@wdio/types':
+        specifier: workspace:*
+        version: link:../wdio-types
+      strip-ansi:
+        specifier: ^7.1.0
+        version: 7.2.0
+
   packages/wdio-display-server:
     dependencies:
       '@wdio/logger':
@@ -1916,6 +1943,9 @@ importers:
       '@wdio/cucumber-framework':
         specifier: workspace:*
         version: link:../packages/wdio-cucumber-framework
+      '@wdio/cucumberjs-json-reporter':
+        specifier: workspace:*
+        version: link:../packages/wdio-cucumberjs-json-reporter
       '@wdio/dot-reporter':
         specifier: workspace:*
         version: link:../packages/wdio-dot-reporter
@@ -2009,6 +2039,9 @@ importers:
       '@wdio/cucumber-framework':
         specifier: workspace:*
         version: link:../../packages/wdio-cucumber-framework
+      '@wdio/cucumberjs-json-reporter':
+        specifier: workspace:*
+        version: link:../../packages/wdio-cucumberjs-json-reporter
       '@wdio/junit-reporter':
         specifier: workspace:*
         version: link:../../packages/wdio-junit-reporter

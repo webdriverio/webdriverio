@@ -528,6 +528,109 @@ const cucumberGroupedSpecsRandomOrder = async () => {
 }
 
 /**
+ * The JSON folder of a Cucumber JSON suite: each suite has its own, because an
+ * unfiltered local run starts the suites at the same time
+ */
+const cucumberJsJsonFolder = (suite) => path.resolve(__dirname, 'cucumber', 'cucumberjs-json', 'json', suite)
+
+/**
+ * Cucumber with @wdio/cucumberjs-json-reporter: writes one JSON file per feature,
+ * with the attachments that the steps send with `attach()`
+ */
+const cucumberJsJsonReporter = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporter')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporter',
+        path.resolve(basePath, 'cucumberjs-json.config.js'),
+        {
+            specs: [path.resolve(basePath, 'cucumberjs-json.feature')],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
+    )
+    const files = await fs.readdir(jsonFolder)
+    assert.equal(files.length, 1)
+    const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+    assert.equal(feature.name, 'CucumberJS JSON report')
+    assert.equal(feature.elements.length, 1)
+    const steps = feature.elements[0].steps.filter((step) => !['Before', 'After'].includes(step.keyword))
+    assert.deepEqual(
+        steps.map((step) => [step.keyword, step.name, step.result.status]),
+        [
+            ['Given', 'I attach the text "hello"', 'passed'],
+            ['And', 'I attach the JSON value "world"', 'passed'],
+            ['Then', 'the page title is "Mock Page Title"', 'passed']
+        ]
+    )
+    assert.deepEqual(steps[0].embeddings, [{ data: Buffer.from('hello').toString('base64'), mime_type: 'text/plain' }])
+    // line numbers and ids as the Cucumber JSON format has them
+    assert.equal(feature.elements[0].id, 'cucumberjs-json-report;attach-data-to-the-steps')
+    assert.equal(feature.elements[0].line, 2)
+    assert.deepEqual(steps.map((step) => step.line), [3, 4, 5])
+    assert.ok(feature.elements[0].steps.filter((step) => ['Before', 'After'].includes(step.keyword)).every((hook) => hook.hidden === true))
+    assert.deepEqual(steps[1].embeddings, [{ data: Buffer.from('{"value":"world"}').toString('base64'), mime_type: 'application/json' }])
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
+ * Cucumber with @wdio/cucumberjs-json-reporter and 2 features in one worker: one
+ * JSON file for each feature
+ */
+const cucumberJsJsonReporterGroupedSpecs = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterGroupedSpecs')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporterGroupedSpecs',
+        path.resolve(basePath, 'cucumberjs-json.config.js'),
+        {
+            specs: [[
+                path.resolve(basePath, 'cucumberjs-json.feature'),
+                path.resolve(basePath, 'cucumberjs-json-second.feature')
+            ]],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
+    )
+    const features = []
+    for (const file of await fs.readdir(jsonFolder)) {
+        features.push(...JSON.parse(await fs.readFile(path.join(jsonFolder, file), 'utf-8')))
+    }
+    assert.deepEqual(
+        features.map((feature) => [feature.name, feature.elements.map((scenario) => scenario.name)]).sort(),
+        [
+            ['CucumberJS JSON report', ['Attach data to the steps']],
+            ['Second feature', ['Check the title']]
+        ]
+    )
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
+ * Cucumber with @wdio/cucumberjs-json-reporter in a multi-remote session: the
+ * metadata comes from the first instance
+ */
+const cucumberJsJsonReporterMultiRemote = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterMultiRemote')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporterMultiRemote',
+        path.resolve(basePath, 'cucumberjs-json.multiremote.config.js'),
+        {
+            specs: [path.resolve(basePath, 'cucumberjs-json.feature')],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
+    )
+    const files = await fs.readdir(jsonFolder)
+    assert.equal(files.length, 1)
+    const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+    assert.equal(feature.metadata.device, 'Device A')
+    assert.notEqual(feature.metadata.browser.name, 'No metadata.browser.name available')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
  * Cucumber file option
  */
 const cucumberFileOption = async () => {
@@ -1353,6 +1456,9 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberPendingTest,
         cucumberReporter,
         cucumberGroupedSpecsRandomOrder,
+        cucumberJsJsonReporter,
+        cucumberJsJsonReporterMultiRemote,
+        cucumberJsJsonReporterGroupedSpecs,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,

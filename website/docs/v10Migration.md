@@ -341,6 +341,29 @@ The browser `result` event is forwarded to reporters as `client:afterCommand`. T
 
 `addEnvironment(name, value)` on `@wdio/allure-reporter` was removed. It had no effect. Set environment rows with [`reportedEnvironmentVars`](/docs/allure-reporter) in the Allure reporter options.
 
+### Cucumber JSON reporter
+
+`wdio-cucumberjs-json-reporter` moved into the WebdriverIO repository as [`@wdio/cucumberjs-json-reporter`](/docs/cucumberjs-json-reporter). The community package is for v9 only: it installs `@wdio/reporter` 9 and `@wdio/logger` 9.
+
+```sh
+npm uninstall wdio-cucumberjs-json-reporter
+npm install @wdio/cucumberjs-json-reporter --save-dev
+```
+
+`reporters: ['cucumberjs-json']` stays the same: WebdriverIO loads `@wdio/cucumberjs-json-reporter` for that name. Replace the imports in your step files:
+
+```diff
+- import cucumberJson from 'wdio-cucumberjs-json-reporter'
++ import cucumberJson from '@wdio/cucumberjs-json-reporter'
+```
+
+The options are the same. The JSON files follow the Cucumber JSON format more closely. Check the tools that read them:
+
+- The scenario `id` is `<feature id>;<scenario id>`, and `<feature id>;<rule id>;<scenario id>` for a scenario in a `Rule:`, as in the Cucumber JSON format. Before, the parts had no separator.
+- Scenarios and steps have a `line`. Hooks are steps with `hidden: true`.
+- When a worker runs several feature files (grouped specs), the reporter writes one file for each feature. Before, all scenarios went into the file of the first feature.
+- In a multi-remote session, the metadata comes from the first instance.
+
 ## `$` is strict
 
 `$` now represents __exactly one__ element. If the selector resolves to more than one element, the command throws a `StrictSelectorError` instead of silently using the first match:

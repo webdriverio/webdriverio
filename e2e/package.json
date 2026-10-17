@@ -59,6 +59,8 @@
     "@wdio/browser-runner": "workspace:*",
     "@wdio/cli": "workspace:*",
     "@wdio/config": "workspace:*",
+    "@wdio/cucumber-framework": "workspace:*",
+    "@wdio/cucumberjs-json-reporter": "workspace:*",
     "@wdio/display-server": "workspace:*",
     "@wdio/dot-reporter": "workspace:*",
     "@wdio/globals": "workspace:*",

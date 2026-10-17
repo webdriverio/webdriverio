@@ -9,7 +9,18 @@ import { getSubPackages, buildPreface, getRootDir } from '@wdio/repo-utils'
  */
 const ACRONYMS = new Set(['ai'])
 
+/**
+ * titles of plugins that moved from the community, the same as on their old 3rd-party page
+ */
+const TITLES: Record<string, string> = {
+    'cucumberjs-json': 'CucumberJS JSON'
+}
+
 export function pluginTitle (nameParts: string[]) {
+    const title = TITLES[nameParts.join('-')]
+    if (title) {
+        return title
+    }
     return nameParts.map((n) => ACRONYMS.has(n) ? n.toUpperCase() : n[0].toUpperCase() + n.slice(1)).join(' ')
 }
 
