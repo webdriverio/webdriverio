@@ -9,6 +9,10 @@
   "dependencies": {
     "@wdio/repo-utils": "workspace:*",
     "depcheck": "^1.4.7",
+    "semver": "^7.8.5",
     "tsx": "^4.17.0"
+  },
+  "devDependencies": {
+    "@types/semver": "^7.8.0"
   }
 }
