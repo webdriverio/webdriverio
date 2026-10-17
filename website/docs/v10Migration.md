@@ -437,7 +437,7 @@ An index past the end of a `$$(selector)` list is not `undefined`, also after `a
 + if (list.length > 5) {
 ```
 
-After `await`, a negative index, and a list from `slice()` or `filter()`, give `undefined` past the end. Before `await`, `list[i]` with an index of 0 or more, and `at()`, give a promise, which is always truthy.
+After `await`, a negative index, and a list from `slice()` or `filter()`, give `undefined` past the end. Before `await`, `list[i]` with an integer index of 0 or more, and `at()`, give a promise, which is always truthy.
 
 Code that awaits a value only when it is a `Promise`, or that reads `length` without `await`, does not throw. It reads a promise as the length: `list.length > 0` and a loop such as `for (let i = 0; i < list.length; i++)` see `false`, but `if (list.length)` and `list.length !== 0` see `true`. Always `await` the value. `await` on a value that is already loaded gives that value:
 
