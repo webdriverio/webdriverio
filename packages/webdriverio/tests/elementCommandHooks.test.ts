@@ -115,32 +115,49 @@ describe('element protocol command hooks', () => {
     // beforeCommand runs after the implicit wait, so a hook sees the element that the wait found
     describe('beforeCommand of an element that was not found yet', () => {
         const session = async () => {
-            const calls: [string, string, string | undefined][] = []
+            const calls: [string, string, string | undefined, unknown][] = []
             const browser = await remote({
                 baseUrl: 'http://foobar.com',
                 waitforTimeout: 10,
                 capabilities: { browserName: 'foobar' },
-                beforeCommand: [function (this: WebdriverIO.Element, name: string) { calls.push(['before', name, this.elementId]) }],
-                afterCommand: [function (this: WebdriverIO.Element, name: string) { calls.push(['after', name, this.elementId]) }]
+                beforeCommand: [function (this: WebdriverIO.Element, name: string, args: unknown[]) { calls.push(['before', name, this.elementId, args[0]]) }],
+                afterCommand: [function (this: WebdriverIO.Element, name: string, args: unknown[]) { calls.push(['after', name, this.elementId, args[0]]) }]
             })
             const elem = await browser.$('.foo')
             const foundId = elem.elementId
             elem.elementId = undefined as unknown as string
             calls.length = 0
-            return { elem, foundId, calls, getText: () => calls.filter(([, name]) => name === 'getText') }
+            // the wait runs its own queries (`browser.$$('.foo')`): read the calls of the given command only
+            const of = (command: string, firstArg?: unknown) => calls
+                .filter(([, name, , arg]) => name === command && (firstArg === undefined || arg === firstArg))
+                .map(([phase, name, id]) => [phase, name, id])
+            return { elem, foundId, of }
         }
 
         it('gets the element that the wait found', async () => {
-            const { elem, foundId, getText } = await session()
+            const { elem, foundId, of } = await session()
             await elem.getText()
-            expect(getText()).toEqual([['before', 'getText', foundId], ['after', 'getText', foundId]])
+            expect(of('getText')).toEqual([['before', 'getText', foundId], ['after', 'getText', foundId]])
+        })
+
+        it('gets the element that the wait found, for $$', async () => {
+            const { elem, foundId, of } = await session()
+            await elem.$$('.bar')
+            expect(of('$$', '.bar')).toEqual([['before', '$$', foundId], ['after', '$$', foundId]])
         })
 
         it('runs once, before afterCommand, when the element is never found', async () => {
-            const { elem, getText } = await session()
+            const { elem, of } = await session()
             vi.mocked(waitForExist).mockRejectedValueOnce(new Error('still not existing'))
             await expect(elem.getText()).rejects.toThrow()
-            expect(getText()).toEqual([['before', 'getText', undefined], ['after', 'getText', undefined]])
+            expect(of('getText')).toEqual([['before', 'getText', undefined], ['after', 'getText', undefined]])
+        })
+
+        it('runs once, before afterCommand, when the parent of $$ is never found', async () => {
+            const { elem, of } = await session()
+            vi.mocked(waitForExist).mockRejectedValueOnce(new Error('still not existing'))
+            await expect(elem.$$('.bar')).rejects.toThrow()
+            expect(of('$$', '.bar')).toEqual([['before', '$$', undefined], ['after', '$$', undefined]])
         })
     })
 
