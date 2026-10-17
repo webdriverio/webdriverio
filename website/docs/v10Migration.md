@@ -541,7 +541,7 @@ In a WebDriver BiDi session, `newWindow()` returns the new [browsing context](/d
 + await tab.closeWindow()
 ```
 
-In TypeScript, the result type is `WebdriverIO.BrowsingContext | { handle, type }`, because a WebDriver Classic session returns the window handle. In a BiDi session, narrow it: `await browser.newWindow(url, { type: 'tab' }) as WebdriverIO.BrowsingContext`.
+In TypeScript, the result type is `WebdriverIO.BrowsingContext | { handle, type }`, because a WebDriver Classic session returns the window handle. Check `'contextId' in tab` before you call a context command: it narrows the type, and it is `false` in a Classic session. Do not use `as WebdriverIO.BrowsingContext`: in a Classic session, the code compiles and then fails with `tab.getTitle is not a function`.
 
 The browser stays on the first tab. Remove a `switchWindow()` call that went back to it: `switchWindow` throws in a BiDi session. See [`switchToFrame`](#switchtoframe) for the browsing context model.
 
