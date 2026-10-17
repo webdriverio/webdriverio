@@ -42,5 +42,20 @@ describe('isElementStable script', () => {
             await vi.advanceTimersByTimeAsync(1000)
             expect(await result).toBe(false)
         })
+
+        it('gives the answer after 1 s when no frame comes', async () => {
+            vi.useFakeTimers()
+            // a document that the browser does not render gets no frame
+            vi.stubGlobal('requestAnimationFrame', () => 0)
+            const elem = document.createElement('div')
+            document.body.appendChild(elem)
+            let settled = false
+            const result = isElementStable(elem).finally(() => { settled = true })
+
+            await vi.advanceTimersByTimeAsync(999)
+            expect(settled).toBe(false)
+            await vi.advanceTimersByTimeAsync(1)
+            expect(await result).toBe(true)
+        })
     })
 })
