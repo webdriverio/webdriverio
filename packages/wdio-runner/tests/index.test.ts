@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 'vitest'
@@ -157,11 +158,13 @@ describe('wdio-runner', () => {
 
     describe('run', () => {
         beforeEach(() => {
+            vi.stubEnv('WDIO_SPEC_FILES', undefined)
             // @ts-expect-error mock private
             vi.spyOn(ConfigParser.prototype, 'addConfigFile').mockReturnValue(undefined)
         })
 
         afterEach(() => {
+            vi.unstubAllEnvs()
             vi.spyOn(ConfigParser.prototype, 'initialize').mockRestore()
             // @ts-expect-error mock private
             vi.spyOn(ConfigParser.prototype, 'addConfigFile').mockRestore()
@@ -174,6 +177,36 @@ describe('wdio-runner', () => {
             runner['_shutdown'] = vi.fn()
             await runner.run({ args: {}, configFile: '/foo/bar' } as any)
             expect(runner['_shutdown']).toBeCalledWith(1, undefined, true)
+        })
+
+        it('exposes absolute spec paths before config initialization without changing the worker input', async () => {
+            const nativePath = path.resolve('native spec.js')
+            const encodedPath = path.resolve('spec ü with spaces.js')
+            const specs = [nativePath, pathToFileURL(encodedPath).href, 'relative.js']
+            const originalSpecs = [...specs]
+            let specsAtInitialization: string | undefined
+            vi.spyOn(ConfigParser.prototype, 'initialize').mockImplementationOnce(async () => {
+                specsAtInitialization = process.env.WDIO_SPEC_FILES
+                throw new Error('stop after checking worker setup')
+            })
+            const runner = new WDIORunner()
+            runner['_shutdown'] = vi.fn()
+            await runner.run({ args: {}, specs, configFile: '/foo/bar' } as any)
+            expect(JSON.parse(specsAtInitialization!)).toEqual([
+                nativePath, encodedPath, path.resolve('relative.js')
+            ])
+            expect(specs).toEqual(originalSpecs)
+        })
+
+        it('replaces stale spec paths on every run, including an empty assignment', async () => {
+            process.env.WDIO_SPEC_FILES = '["stale spec"]'
+            vi.spyOn(ConfigParser.prototype, 'initialize').mockRejectedValue(new Error('stop after worker setup'))
+            const runner = new WDIORunner()
+            runner['_shutdown'] = vi.fn()
+            await runner.run({ args: {}, specs: ['first.js'], configFile: '/foo/bar' } as any)
+            expect(JSON.parse(process.env.WDIO_SPEC_FILES!)).toEqual([path.resolve('first.js')])
+            await runner.run({ args: {}, specs: [], configFile: '/foo/bar' } as any)
+            expect(process.env.WDIO_SPEC_FILES).toBe('[]')
         })
 
         it('should run session hooks and return framework failures', async () => {

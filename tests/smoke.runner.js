@@ -866,6 +866,38 @@ const mochaSpecGrouping = async () => {
 }
 
 /**
+ * Public spec-file interface is available before Mocha loads grouped or single specs.
+ */
+const mochaSpecFiles = async () => {
+    const previous = process.env.WDIO_SPEC_FILES
+    process.env.WDIO_SPEC_FILES = '["stale parent spec"]'
+    try {
+        const { passed, skippedSpecs } = await launch('mochaSpecFiles', baseConfig, {
+            specs: [
+                [
+                    path.resolve(__dirname, 'mocha/spec-files/first spec.js'),
+                    path.resolve(__dirname, 'mocha/spec-files/second-ü.js')
+                ],
+                path.resolve(__dirname, 'mocha/spec-files/single.js')
+            ],
+            maxInstances: 2,
+            logLevel: 'error',
+            runnerEnv: { WDIO_SPEC_FILES: '["stale runner spec"]' },
+            mochaOpts: { require: [path.resolve(__dirname, 'mocha/spec-files/require.js')] }
+        })
+        assert.strictEqual(passed, 2)
+        assert.strictEqual(skippedSpecs, 0)
+        assert.strictEqual(process.env.WDIO_SPEC_FILES, '["stale parent spec"]')
+    } finally {
+        if (previous === undefined) {
+            delete process.env.WDIO_SPEC_FILES
+        } else {
+            process.env.WDIO_SPEC_FILES = previous
+        }
+    }
+}
+
+/**
  * Mocha wdio testrunner tests
  */
 const standaloneTest = async () => {
@@ -1346,6 +1378,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cjsTestrunner,
         sharedStoreServiceTest,
         mochaSpecGrouping,
+        mochaSpecFiles,
         cucumberTestrunner,
         cucumberTestrunnerByLineNumber,
         cucumberTestrunnerMultipleByLineNumber,

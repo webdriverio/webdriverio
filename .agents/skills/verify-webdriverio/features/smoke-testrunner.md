@@ -5,6 +5,7 @@ A user runs `wdio` and the testrunner loads config, starts workers, runs a frame
 ## Sub-features
 
 - `smoke-mocha` runs a Mocha testrunner session and checks passed and skipped counts.
+- `mochaSpecFiles` checks public worker spec paths during Mocha require setup, with a grouped pair and an independent single-file worker.
 - `smoke-jasmine` runs a Jasmine session, including spec filtering and reporters.
 - `smoke-cucumber` runs a Cucumber session, including line filters, tags, and pending steps.
 - `smoke-cli` runs spec and exclude selection from the CLI.
@@ -28,6 +29,7 @@ Preconditions:
 
 - **List names.** Run `pnpm run test:smoke:list`. Exit 0 and stdout includes `standaloneTest`. This does not launch WebdriverIO.
 - **Mocha session.** Run `pnpm run test:smoke mochaTestrunner`. Exit 0, stdout contains `All smoke tests passed!`, and the suite assertion requires `passed` 4 and `skippedSpecs` 1. On Windows the suite returns before those counts; do not treat that early return as the count check.
+- **Worker spec paths.** Run `pnpm run test:smoke mochaSpecFiles`. Exit 0 and stdout contains `All smoke tests passed!`; the suite requires two passed worker spec assignments and zero skipped specs, with three passing tests in the reporter. The require module reads `WDIO_SPEC_FILES` before any spec module loads; exact lists include space and Unicode filenames, and replace stale parent/runner environment values.
 - **Standalone client.** Run `pnpm run test:smoke standaloneTest`. Exit 0 and stdout contains `All smoke tests passed!`. The spec expects the mock title `Mock Page Title`.
 - **Plugin.** Run `pnpm run test:smoke customService` or `pnpm run test:smoke customReporterString`. Exit 0 and stdout contains `All smoke tests passed!`.
 - **Watch mode.** Run `pnpm run test:smoke watchMode`. Exit 0 and stdout contains `All smoke tests passed!`. The suite reruns a changed spec in the same WebDriver session, including one failing rerun.
