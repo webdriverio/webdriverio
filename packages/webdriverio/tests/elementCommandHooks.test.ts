@@ -26,30 +26,32 @@ describe('element protocol command hooks', () => {
         expect(afterCommand.mock.calls.length).toBe(beforeCommand.mock.calls.length)
     })
 
+    const session = async () => {
+        const before: [string, unknown[]][] = []
+        const after: [string, unknown[]][] = []
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: { browserName: 'foobar' },
+            beforeCommand: [(name: string, args: unknown[]) => { before.push([name, args]) }],
+            afterCommand: [(name: string, args: unknown[]) => { after.push([name, args]) }]
+        })
+        return { browser, before, after, reset: () => { before.length = 0; after.length = 0 } }
+    }
+    const names = (calls: [string, unknown[]][]) => calls.map(([name]) => name)
+
     /**
      * each command that runs gets one pair of hooks: the command that the user called and
      * the commands that it runs (#16086 item 36)
      */
     describe('run once for each command', () => {
-        const session = async () => {
-            const before: string[] = []
-            const after: string[] = []
-            const browser = await remote({
-                baseUrl: 'http://foobar.com',
-                capabilities: { browserName: 'foobar' },
-                beforeCommand: [(name: string) => { before.push(name) }],
-                afterCommand: [(name: string) => { after.push(name) }]
-            })
-            return { browser, before, after, reset: () => { before.length = 0; after.length = 0 } }
-        }
 
         it('of a protocol command of an element', async () => {
             const { browser, before, after, reset } = await session()
             const elem = await browser.$('.foo')
             reset()
             await elem.elementClick(elem.elementId)
-            expect(before).toEqual(['elementClick'])
-            expect(after).toEqual(['elementClick'])
+            expect(names(before)).toEqual(['elementClick'])
+            expect(names(after)).toEqual(['elementClick'])
         })
 
         it('of an element command and the protocol command that it runs', async () => {
@@ -57,8 +59,8 @@ describe('element protocol command hooks', () => {
             const elem = await browser.$('.foo')
             reset()
             await elem.getText()
-            expect(before).toEqual(['getText', 'getElementText'])
-            expect(after).toEqual(['getElementText', 'getText'])
+            expect(names(before)).toEqual(['getText', 'getElementText'])
+            expect(names(after)).toEqual(['getElementText', 'getText'])
         })
 
         it('of a command of a list item', async () => {
@@ -66,8 +68,8 @@ describe('element protocol command hooks', () => {
             const [item] = await browser.$$('.foo')
             reset()
             await item.getText()
-            expect(before).toEqual(['getText', 'getElementText'])
-            expect(after).toEqual(['getElementText', 'getText'])
+            expect(names(before)).toEqual(['getText', 'getElementText'])
+            expect(names(after)).toEqual(['getElementText', 'getText'])
         })
 
         it('of a custom element command and the command that it runs', async () => {
@@ -79,8 +81,8 @@ describe('element protocol command hooks', () => {
             reset()
             // @ts-expect-error custom command
             await elem.textOf()
-            expect(before).toEqual(['textOf', 'getElementText'])
-            expect(after).toEqual(['getElementText', 'textOf'])
+            expect(names(before)).toEqual(['textOf', 'getElementText'])
+            expect(names(after)).toEqual(['getElementText', 'textOf'])
         })
     })
 
@@ -107,18 +109,6 @@ describe('element protocol command hooks', () => {
 
     // the hooks get the arguments of the command, as before
     describe('arguments of the hooks', () => {
-        const session = async () => {
-            const before: [string, unknown[]][] = []
-            const after: [string, unknown[]][] = []
-            const browser = await remote({
-                baseUrl: 'http://foobar.com',
-                capabilities: { browserName: 'foobar' },
-                beforeCommand: [(name: string, args: unknown[]) => { before.push([name, args]) }],
-                afterCommand: [(name: string, args: unknown[]) => { after.push([name, args]) }]
-            })
-            return { browser, before, after, reset: () => { before.length = 0; after.length = 0 } }
-        }
-
         it('of a protocol command of an element', async () => {
             const { browser, before, after, reset } = await session()
             const elem = await browser.$('.foo')

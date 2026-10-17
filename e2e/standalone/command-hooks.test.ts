@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { startStandaloneChrome } from './helpers.js'
 
 const PAGE = 'data:text/html,' + encodeURIComponent(`
@@ -38,11 +38,6 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
 
     afterAll(async () => {
         await browser?.deleteSession()
-    })
-
-    beforeEach(() => {
-        before.length = 0
-        after.length = 0
     })
 
     const names = (calls: Call[]) => calls.map(([name]) => name)
