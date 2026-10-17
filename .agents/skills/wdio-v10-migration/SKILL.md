@@ -57,6 +57,7 @@ Do not set `strictSelectors: false` unless the user asks to keep the v9 behavior
 | `onAfterCommand` argument `name` | `command` |
 | `addEnvironment(` | `reportedEnvironmentVars` in the Allure reporter options |
 | `addCommand(name, fn, true)` | `addCommand(name, fn, { attachToElement: true })`. A boolean third argument throws. Same for `overwriteCommand`. |
+| `wdio-html-nice-reporter`, reporter name `html-nice` | `@wdio/html-reporter`, reporter name `html`. Uninstall the old package. `@rpii/wdio-report-events` can become `ReportEvents` from `@wdio/html-reporter`. `lib/makeReport.js` is `build/makeReport.js`. |
 | `getCookies('name')` or `getCookies(['name'])` | `getCookies({ name: 'name' })`. One call filters one name. |
 | `getHTML(false)` | `getHTML({ includeSelectorTag: false })` |
 | `newWindow` `windowName` / `windowFeatures` | delete them. `type: 'window'` or `type: 'tab'` remains. |

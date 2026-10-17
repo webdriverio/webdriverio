@@ -1,0 +1,53 @@
+{
+  "name": "@wdio/html-reporter",
+  "version": "10.0.2",
+  "description": "A WebdriverIO reporter that creates an HTML report",
+  "author": "rich peters",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-html-reporter",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-html-reporter"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-reporter",
+    "html",
+    "reporter"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
+    },
+    "./makeReport": {
+      "source": "./src/makeReport.ts",
+      "import": "./build/makeReport.js"
+    }
+  },
+  "typeScriptVersion": "6.0.3",
+  "dependencies": {
+    "@wdio/logger": "workspace:*",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "dayjs": "^1.11.9",
+    "nunjucks": "^3.2.4",
+    "open": "^8.4.0"
+  },
+  "devDependencies": {
+    "@types/nunjucks": "^3.2.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

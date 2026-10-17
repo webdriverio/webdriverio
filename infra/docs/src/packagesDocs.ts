@@ -7,7 +7,7 @@ import { getSubPackages, buildPreface, getRootDir } from '@wdio/repo-utils'
 /**
  * name parts written in capitals in page titles, e.g. "AI Service"
  */
-const ACRONYMS = new Set(['ai'])
+const ACRONYMS = new Set(['ai', 'html'])
 
 export function pluginTitle (nameParts: string[]) {
     return nameParts.map((n) => ACRONYMS.has(n) ? n.toUpperCase() : n[0].toUpperCase() + n.slice(1)).join(' ')

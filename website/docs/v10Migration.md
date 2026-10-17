@@ -341,6 +341,33 @@ The browser `result` event is forwarded to reporters as `client:afterCommand`. T
 
 `addEnvironment(name, value)` on `@wdio/allure-reporter` was removed. It had no effect. Set environment rows with [`reportedEnvironmentVars`](/docs/allure-reporter) in the Allure reporter options.
 
+### HTML reporter
+
+`wdio-html-nice-reporter` moved into the WebdriverIO repository as [`@wdio/html-reporter`](/docs/html-reporter). The old package is for v9 only.
+
+```sh
+npm uninstall wdio-html-nice-reporter
+npm install @wdio/html-reporter --save-dev
+```
+
+The reporter name is `html`. Change the name in `reporters` and the imports:
+
+```diff
+- import { ReportAggregator } from 'wdio-html-nice-reporter'
++ import { ReportAggregator } from '@wdio/html-reporter'
+
+  reporters: [
+-     ['html-nice', { outputDir: './reports/html-reports/' }]
++     ['html', { outputDir: './reports/html-reports/' }]
+  ]
+```
+
+The options are the same. Also change these:
+
+- `ReportEvents` comes from `@wdio/html-reporter`. Tests that still use `@rpii/wdio-report-events` work, because both send the same events.
+- The command line script is `node_modules/@wdio/html-reporter/build/makeReport.js`. It was `node_modules/wdio-html-nice-reporter/lib/makeReport.js`.
+- With Cucumber, the report counts scenarios, not steps, and counts only the last try of a retried scenario.
+
 ## `$` is strict
 
 `$` now represents __exactly one__ element. If the selector resolves to more than one element, the command throws a `StrictSelectorError` instead of silently using the first match:

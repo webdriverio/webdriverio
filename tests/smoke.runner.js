@@ -689,6 +689,36 @@ const reporterTestrunner = async () => {
 }
 
 /**
+ * wdio test run with @wdio/html-reporter: each worker writes a JSON file and
+ * the ReportAggregator in `onComplete` creates the HTML report
+ */
+const htmlReporter = async () => {
+    const basePath = path.resolve(__dirname, 'html-reporter')
+    const { passed } = await launch('htmlReporter', path.resolve(basePath, 'html-reporter.conf.js'))
+    assert.strictEqual(passed, 1)
+    const outDir = path.join(basePath, 'out')
+    const html = await fs.readFile(path.join(outDir, 'master-report.html'), 'utf-8')
+    for (const text of ['Smoke Master Report', 'html reporter', 'reports a passing test with a log line', 'a message from the test', 'as an object']) {
+        assert.ok(html.includes(text), `master-report.html does not contain "${text}"`)
+    }
+    await fs.access(path.join(outDir, 'report-styles.css'))
+    await fs.rm(outDir, { recursive: true, force: true })
+}
+
+/**
+ * @wdio/html-reporter with Cucumber: it counts scenarios, not steps, and a
+ * scenario that passes on retry counts as passed
+ */
+const htmlReporterCucumber = async () => {
+    const basePath = path.resolve(__dirname, 'html-reporter')
+    await launch('htmlReporterCucumber', path.resolve(basePath, 'html-reporter.cucumber.conf.js'))
+    const outDir = path.join(basePath, 'out-cucumber')
+    const { metrics } = JSON.parse(await fs.readFile(path.join(outDir, 'master-report.json'), 'utf-8'))
+    assert.deepStrictEqual({ passed: metrics.passed, failed: metrics.failed, skipped: metrics.skipped }, { passed: 2, failed: 0, skipped: 0 })
+    await fs.rm(outDir, { recursive: true, force: true })
+}
+
+/**
  * wdio test run with before/after Test/Hook
  */
 const wdioHooks = async () => {
@@ -1373,6 +1403,8 @@ const jasmineAfterHookArgsValidation = async () => {
         customReporterObject,
         sessionGoneReport,
         reporterTestrunner,
+        htmlReporter,
+        htmlReporterCucumber,
         severeErrorTest,
         nonGlobalTestrunner,
         mochaHooksTestrunner,

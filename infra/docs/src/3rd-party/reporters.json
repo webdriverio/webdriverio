@@ -13,13 +13,6 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-video-reporter"
   },
   {
-    "packageName": "wdio-html-nice-reporter",
-    "title": "HTML",
-    "branch": "master",
-    "githubUrl": "https://github.com/rpii/wdio-html-reporter",
-    "npmUrl": "https://www.npmjs.com/package/wdio-html-nice-reporter"
-  },
-  {
     "packageName": "wdio-timeline-reporter",
     "title": "Timeline",
     "branch": "master",

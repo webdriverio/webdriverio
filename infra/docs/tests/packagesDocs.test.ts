@@ -8,4 +8,8 @@ describe('pluginTitle', () => {
         expect(pluginTitle(['shared', 'store'])).toBe('Shared Store')
         expect(pluginTitle(['ai'])).toBe('AI')
     })
+
+    it('keeps the name of a moved community plugin', () => {
+        expect(pluginTitle(['html'])).toBe('HTML')
+    })
 })
