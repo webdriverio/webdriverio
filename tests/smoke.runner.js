@@ -675,6 +675,20 @@ const sessionGoneReport = async () => {
 }
 
 /**
+ * The command hooks run once for each command of an element, not two or three times
+ * (#16086 item 36)
+ */
+const commandHookCounts = async () => {
+    const { passed, failed } = await launch(
+        'commandHookCounts',
+        path.resolve(__dirname, 'helpers', 'command-hook-counts.conf.js'),
+        { specs: [path.resolve(__dirname, 'mocha', 'command_hook_counts.js')] }
+    )
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(failed, 0)
+}
+
+/**
  * wdio-reporter testrunner tests
  */
 const reporterTestrunner = async () => {
@@ -1372,6 +1386,7 @@ const jasmineAfterHookArgsValidation = async () => {
         customReporterString,
         customReporterObject,
         sessionGoneReport,
+        commandHookCounts,
         reporterTestrunner,
         severeErrorTest,
         nonGlobalTestrunner,

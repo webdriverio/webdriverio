@@ -10,7 +10,7 @@ import { isStaleElementError } from './utils/index.js'
  */
 import { StrictSelectorError } from './utils/strictSelectorError.js'
 
-export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
+export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements']
 
 /**
  * Run an element command after the implicit wait, and retry it when the element
@@ -131,28 +131,33 @@ async function invokeElementCommand (
  * @param  {Function} fn  command shim
  */
 export const elementErrorHandler = (fn: Function) => (commandName: string, commandFn: Function) => {
-    return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: unknown[]) {
-        /**
-         * `$$` and the other element-list commands return an array directly.
-         * An async wrapper would turn that array into a promise and `Array.isArray`
-         * on `$('parent').$$('child')` would be false. The implicit wait instead
-         * runs when the list is first read.
-         */
-        if ((ELEMENT_ARRAY_COMMANDS as readonly string[]).includes(commandName)) {
-            return fn(commandName, function (this: WebdriverIO.Element, ...commandArgs: unknown[]) {
-                const list = commandFn.apply(this, commandArgs)
-                const wrap = list?.[ELEMENT_ARRAY_WRAP] as ((wrapper: (load: () => Promise<unknown>) => Promise<unknown>) => void) | undefined
-                if (typeof wrap === 'function') {
-                    const element = this
-                    wrap(async (load) => invokeElementCommand(element, commandName, () => load()))
-                }
-                return list
-            }).apply(this, args)
-        }
+    /**
+     * `fn` (the command wrapper) runs the command hooks and builds the chain of the result once,
+     * around the middleware; the command itself runs without a second wrapper, which ran the
+     * hooks again (a leftover of the sync mode of v5).
+     *
+     * `$$` and the other element-list commands return an array directly. An async wrapper would
+     * turn that array into a promise and `Array.isArray` on `$('parent').$$('child')` would be
+     * false. The implicit wait instead runs when the list is first read.
+     */
+    const wrap = () => (ELEMENT_ARRAY_COMMANDS as readonly string[]).includes(commandName)
+        ? fn(commandName, function (this: WebdriverIO.Element, ...commandArgs: unknown[]) {
+            const list = commandFn.apply(this, commandArgs)
+            const wrapList = list?.[ELEMENT_ARRAY_WRAP] as ((wrapper: (load: () => Promise<unknown>) => Promise<unknown>) => void) | undefined
+            if (typeof wrapList === 'function') {
+                const element = this
+                wrapList(async (load) => invokeElementCommand(element, commandName, () => load()))
+            }
+            return list
+        })
+        : fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element, ...callArgs: unknown[]) {
+            return invokeElementCommand(this, commandName, () => commandFn.apply(this, callArgs))
+        })
 
-        return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element) {
-            return invokeElementCommand(this, commandName, () => fn(commandName, commandFn).apply(this, args))
-        }).apply(this)
+    // the wrapper is built on the first call and kept: an element has ~280 commands and uses few
+    let wrapped: Function | undefined
+    return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: unknown[]) {
+        return (wrapped ??= wrap()).apply(this, args)
     }
 }
 

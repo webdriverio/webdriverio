@@ -54,7 +54,7 @@ Plugins: `customService`, `customCJSService`, `customReporterString`,
 `customReporterObject`, `reporterTestrunner`, `sharedStoreServiceTest`
 
 Other: `multiRemote`, `parallelMultiRemote`, `wdioHooks`, `retryFail`,
-`retryPass`, `severeErrorTest`, `sessionGoneReport`
+`retryPass`, `severeErrorTest`, `sessionGoneReport`, `commandHookCounts`
 
 Unknown names fail with a list of valid suite names.
 

@@ -70,6 +70,17 @@ const ELEMENT_RETURN_COMMANDS = ['getElement', 'getElements']
  * on it.
  */
 export const ELEMENT_ARRAY_WRAP = Symbol.for('webdriverio.elementArray.wrap')
+// marks a function of `wrapCommand` with the command it wraps, see `unwrapCommand`
+const WRAPPED_COMMAND = Symbol.for('webdriverio.wrappedCommand')
+
+/**
+ * The command that `wrapCommand` wrapped, or the value as it is. An element copies the commands
+ * of the browser, which the browser already wrapped: it wraps the command itself, so the command
+ * hooks run once for each command.
+ */
+export function unwrapCommand<T> (value: T): T | Function {
+    return (value as { [WRAPPED_COMMAND]?: Function } | null | undefined)?.[WRAPPED_COMMAND] ?? value
+}
 export const ELEMENT_ARRAY_COMMANDS = ['$$', 'custom$$', 'react$$', 'shadow$$']
 
 /**
@@ -565,7 +576,7 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
         return wrapElementFn(this, wrapCommandFn, args)
     }
 
-    return function (this: { options?: Services.Hooks, then?: unknown }, ...args: unknown[]) {
+    const wrapped = function (this: { options?: Services.Hooks, then?: unknown }, ...args: unknown[]) {
         /**
          * `$$` and the other multi-element queries return an ElementArray, which
          * is itself thenable and async-iterable. Don't wrap that result in
@@ -672,6 +683,8 @@ export function wrapCommand<T>(commandName: string, fn: Function): (...args: unk
 
         return command.apply(this, args)
     }
+    Object.defineProperty(wrapped, WRAPPED_COMMAND, { value: fn })
+    return wrapped
 }
 
 /**
