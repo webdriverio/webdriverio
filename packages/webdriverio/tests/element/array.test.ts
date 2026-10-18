@@ -423,6 +423,76 @@ describe('ElementArray', () => {
             await expect(elements[1].getText()).rejects.toThrow('Index out of bounds! $$(one) returned only 1 elements.')
             expect(browser.waitUntil).toHaveBeenCalledOnce()
         })
+
+        /**
+         * #16122: a `$$([elemA, elemB])` list whose elements come from different
+         * selectors has no selector to run again, so an index past its end gives
+         * `undefined`, like a derived list, instead of a selector error
+         */
+        it('gives undefined for an index past a resolved list of elements without a common selector (#16122)', async () => {
+            const browser = {
+                options: { waitforTimeout: 50 },
+                $$: vi.fn(async () => {
+                    throw new Error('selector needs to be typeof `string` or `function`, but found: `undefined`')
+                }),
+                waitUntil: waitOnce()
+            }
+            const first = { elementId: 'a', selector: 'li:first-child', getText: vi.fn(async () => 'a') } as unknown as WebdriverIO.Element
+            const second = { elementId: 'b', selector: 'p', getText: vi.fn(async () => 'b') } as unknown as WebdriverIO.Element
+            const elements = ElementArray.fromResolved([first, second], {
+                selector: [first, second],
+                foundWith: '$$',
+                parent: browser as unknown as WebdriverIO.Browser,
+                props: []
+            })
+
+            expect(elements.selector).toBeUndefined()
+            expect(elements[5]).toBeUndefined()
+            expect(elements.at(5)).toBeUndefined()
+            expect(browser.$$).not.toHaveBeenCalled()
+            expect(browser.waitUntil).not.toHaveBeenCalled()
+        })
+
+        it('gives undefined for an index past a pending list of elements without a common selector (#16122)', async () => {
+            const browser = {
+                options: { waitforTimeout: 50 },
+                $$: vi.fn(async () => {
+                    throw new Error('selector needs to be typeof `string` or `function`, but found: `undefined`')
+                }),
+                waitUntil: waitOnce()
+            }
+            const first = { elementId: 'a', selector: 'li:first-child', getText: vi.fn(async () => 'a') } as unknown as WebdriverIO.Element
+            const second = { elementId: 'b', selector: 'p', getText: vi.fn(async () => 'b') } as unknown as WebdriverIO.Element
+            const elements = ElementArray.fromAsyncCallback(async () => [first, second], {
+                selector: [first, second],
+                foundWith: '$$',
+                parent: browser as unknown as WebdriverIO.Browser,
+                props: []
+            })
+
+            await expect(elements[5]).resolves.toBeUndefined()
+            expect(browser.$$).not.toHaveBeenCalled()
+            expect(browser.waitUntil).not.toHaveBeenCalled()
+        })
+
+        it('keeps waiting and refetching a list of elements that share one selector', async () => {
+            const late = element('late')
+            const browser = {
+                options: { waitforTimeout: 50 },
+                $$: vi.fn(async () => ElementArray.fromResolved([element('a'), late], { selector: '.item', foundWith: '$$', props: [] })),
+                waitUntil: waitOnce()
+            }
+            const elements = ElementArray.fromResolved([element('a')], {
+                selector: [element('a'), element('b')],
+                foundWith: '$$',
+                parent: browser as unknown as WebdriverIO.Browser,
+                props: []
+            })
+
+            expect(elements.selector).toBe('.item')
+            await expect(elements[1].elementId).resolves.toBe('late')
+            expect(browser.$$).toHaveBeenCalledWith('.item')
+        })
     })
 
     it('gives an index of a pending list that is in range without a wait', async () => {

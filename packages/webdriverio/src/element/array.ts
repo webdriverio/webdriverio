@@ -94,9 +94,19 @@ function normalizeSelector (selector: ElementArrayMetadata['selector']): Selecto
 }
 
 function prepareMetadata (metadata: ElementArrayMetadata): ElementArrayMetadata {
+    const isElementList = Array.isArray(metadata.selector)
     metadata.selector = normalizeSelector(metadata.selector)
     metadata.props = metadata.props ?? []
     metadata.foundWith = metadata.foundWith || '$$'
+    /**
+     * A list of elements or element references whose elements do not share one
+     * selector has no query to run again, so an index past its end must give
+     * `undefined`, like a derived list, instead of running `$$` with an
+     * `undefined` selector and surfacing its error (#16122).
+     */
+    if (isElementList && metadata.selector === undefined) {
+        metadata.refetch = false
+    }
     return metadata
 }
 
