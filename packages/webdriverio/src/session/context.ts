@@ -30,7 +30,7 @@ function parallelModeError(command: string) {
     }
     if (ALERT_COMMANDS.includes(command)) {
         return `${command} is not supported in parallel mode: alerts belong to a browsing context. ` +
-            'Use the per-context API instead, e.g. `const [context] = await browser.browsingContexts(); await context.acceptAlert()` ' +
+            'Use the per-context API instead on the context `browser.url()` returns, e.g. `const page = await browser.url(url); await page.acceptAlert()` ' +
             '(also `dismissAlert()` and `getAlertText()` on the BrowsingContext).'
     }
     if (COMPUTED_A11Y_COMMANDS.includes(command)) {

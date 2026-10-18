@@ -4,20 +4,20 @@ export interface MochaOpts {
     /**
      * Enable parallel test execution within a spec file. Each `it()` block
      * runs simultaneously in its own browsing context (window). Requires a
-     * WebDriver Bidi session.
+     * WebDriver Bidi session AND the `'wdio:experimentalBiDiCommands': true`
+     * capability; if either is missing, tests run sequentially with a warning.
      *
      * - `'contexts'`: windows share the default user context, so cookies,
      *   localStorage and service workers are shared across concurrent tests.
      * - `'userContexts'`: each test gets its own user context, so storage is
-     *   isolated per test. Every test pays its own login cost, and
-     *   `browser.mock()` remains session-wide. Throws if the driver does not
-     *   support `browser.createUserContext`.
+     *   isolated per test. Every test pays its own login cost. Throws if the
+     *   driver does not support `browser.createUserContext`.
      *
-     * If the browser session does not support Bidi (e.g. classic
-     * WebDriver is enforced via `'wdio:enforceWebDriverClassic': true`),
-     * parallel mode is silently disabled with a warning and tests
-     * execute sequentially.
+     * In both modes `browser.mock()` inside a test only intercepts that
+     * test's context. `before()`/`after()` run once per test, only
+     * `mochaOpts.timeout` applies, and `bail`/`retries` are not supported.
      *
+     * @see https://webdriver.io/docs/parallel-tests
      * @default undefined (sequential execution)
      */
     parallelMode?: 'contexts' | 'userContexts'
