@@ -584,6 +584,35 @@ describe('middleware', () => {
             expect(clicks).toEqual([OLD_ID, NEW_ID])
         })
 
+        it('gives the element the new id after the wait for a clickable element found it again', async () => {
+            classicBrowser.overwriteCommand('waitForClickable', async function (this: WebdriverIO.Element) {
+                this.elementId = NEW_ID
+                return true
+            }, { attachToElement: true })
+            const command = vi.fn(function (this: WebdriverIO.Element) {
+                if (command.mock.calls.length === 1) {
+                    throw Object.assign(new Error('element not interactable'), { name: 'element not interactable' })
+                }
+                return this.elementId
+            })
+            classicBrowser.addCommand('readIdWhenClickable', command, { attachToElement: true })
+            const elem = await classicBrowser.$('#foo')
+            /**
+             * not found yet: the implicit wait finds the element with a new object
+             */
+            elem.elementId = undefined as unknown as string
+
+            try {
+                // @ts-expect-error undefined custom command
+                expect(await elem.readIdWhenClickable()).toBe(NEW_ID)
+                expect(elem.elementId).toBe(NEW_ID)
+            } finally {
+                classicBrowser.overwriteCommand('waitForClickable', function (orig, ...args) {
+                    return orig(...args)
+                }, { attachToElement: true })
+            }
+        })
+
         it('sets the value of a date input that the page rendered again directly', async () => {
             vi.mocked(fetch).customResponseFor(/\/execute\/sync$/, { value: true })
             vi.mocked(fetch).mockClear()

@@ -90,9 +90,11 @@ async function invokeElementCommand (
         if (err.name === 'element not interactable') {
             try {
                 /**
-                 * the wait can find the element again: the retry gets its new id
+                 * the wait can find the element again: the element and the retry get its new id
                  */
                 await fetched.waitForClickable()
+                element.elementId = fetched.elementId
+                element[ELEMENT_KEY] = fetched.elementId
                 return await execute(withElementId(commandName, args, calledWithId, fetched.elementId))
             } catch {
                 const elementHTML = await fetched.getHTML()
