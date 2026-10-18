@@ -467,6 +467,16 @@ describe('cli interface', () => {
             expect(wdioClInterface.printSummary().some(x => String(x).includes('42% completed'))).toBe(true)
         })
 
+        it('spec files that the launcher skipped without a worker', () => {
+            wdioClInterface.totalWorkerCnt = 4
+            wdioClInterface.skipSpecs(3)
+            wdioClInterface.result.finished++
+            wdioClInterface.result.passed++
+            const summary = wdioClInterface.printSummary().map(String)
+            expect(summary.some(x => x.includes('gray 3 skipped'))).toBe(true)
+            expect(summary.some(x => x.includes('(100% completed)'))).toBe(true)
+        })
+
         it('percentCompleted without workers', () => {
             wdioClInterface.totalWorkerCnt = 0
             expect(wdioClInterface.printSummary().some(x => String(x).includes('(0% completed)'))).toBe(true)

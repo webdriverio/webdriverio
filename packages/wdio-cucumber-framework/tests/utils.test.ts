@@ -1,4 +1,7 @@
+import os from 'node:os'
+import url from 'node:url'
 import path from 'node:path'
+import fs from 'node:fs/promises'
 import { describe, expect, it, vi } from 'vitest'
 import { Status } from '@cucumber/cucumber'
 import {
@@ -9,7 +12,8 @@ import {
     addKeywordToStep,
     getRule,
     generateSkipTagsFromCapabilities,
-    convertStatus
+    convertStatus,
+    filterSpecs
 } from '../src/utils.js'
 import { featureWithRules } from './fixtures/features.js'
 
@@ -259,6 +263,50 @@ describe('utils', () => {
             expect(convertStatus(Status.FAILED)).toBe('fail')
             expect(convertStatus(Status.UNDEFINED)).toBe('pass')
             expect(convertStatus(Status.UNKNOWN)).toBe('fail')
+        })
+    })
+
+    describe('filterSpecs', () => {
+        const fixture = (name: string) => path.resolve(__dirname, 'fixtures', name)
+        const specs = [fixture('test_tags.feature'), fixture('test_no_tags.feature'), fixture('test_skip.feature')]
+
+        it('keeps all spec files without the tags and name options', async () => {
+            expect(await filterSpecs(specs, { cucumberOpts: {} })).toEqual(specs)
+            expect(await filterSpecs(specs, { cucumberOpts: { tags: '', name: [] } })).toEqual(specs)
+        })
+
+        it('keeps the spec files with a scenario that matches the tags', async () => {
+            // tags on an Examples table and on a scenario in a Rule
+            expect(await filterSpecs(specs, { cucumberOpts: { tags: '@runExample' } })).toEqual([specs[0]])
+            expect(await filterSpecs(specs, { cucumberOpts: { tags: '@runinrule' } })).toEqual([specs[0]])
+            expect(await filterSpecs(specs, { cucumberOpts: { tags: 'not @runall' } })).toEqual([specs[1], specs[2]])
+            expect(await filterSpecs(specs, { cucumberOpts: { tags: '@nothing' } })).toEqual([])
+        })
+
+        it('keeps the spec files with a scenario that matches the name', async () => {
+            expect(await filterSpecs(specs, { cucumberOpts: { name: ['Scenario #10'] } })).toEqual([specs[0], specs[1]])
+        })
+
+        it('returns file URLs as given', async () => {
+            const fileUrls = specs.map((spec) => url.pathToFileURL(spec).href)
+            expect(await filterSpecs(fileUrls, { cucumberOpts: { tags: '@runExample' } })).toEqual([fileUrls[0]])
+        })
+
+        it('keeps spec files that are no feature file or that Cucumber cannot parse', async () => {
+            const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-filter-specs-'))
+            const broken = path.join(dir, 'broken.feature')
+            // a step before the feature line is a parse error
+            await fs.writeFile(broken, 'Given a step\n')
+            try {
+                const result = await filterSpecs([...specs, broken, '/foo/steps.js'], { cucumberOpts: { tags: '@nothing' } })
+                expect(result).toEqual([broken, '/foo/steps.js'])
+            } finally {
+                await fs.rm(dir, { recursive: true, force: true })
+            }
+        })
+
+        it('rejects an invalid tag expression', async () => {
+            await expect(filterSpecs(specs, { cucumberOpts: { tags: '@a and' } })).rejects.toThrow()
         })
     })
 })

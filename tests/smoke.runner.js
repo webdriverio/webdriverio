@@ -565,6 +565,32 @@ const cucumberGroupedSpecsRandomOrder = async () => {
  * Cucumber with grouped specs in a random order and scenario-level tests: a scenario
  * keeps its Allure `historyId` when the random order splits its feature into parts
  */
+/**
+ * Cucumber wdio testrunner -- no worker starts for a spec file without a scenario that matches the tags
+ */
+const cucumberTagFilterWorkers = async () => {
+    for (const { tags, workers, passed } of [
+        { tags: '@wanted', workers: [['tagged-feature.feature'], ['tagged-scenario.feature']], passed: 2 },
+        { tags: '@nothing', workers: [], passed: 0 }
+    ]) {
+        const started = new Map()
+        const result = await launch(
+            'cucumberTagFilterWorkers',
+            path.resolve(__dirname, 'cucumber', 'tag-filter', 'tag-filter.conf.js'),
+            {
+                cucumberOpts: { tags },
+                onWorkerStart: [(cid, caps, specs) => {
+                    started.set(cid, specs.map((spec) => path.basename(spec.startsWith('file://') ? url.fileURLToPath(spec) : spec)))
+                }]
+            }
+        )
+        assert.deepStrictEqual([...started.values()].sort(), workers, `workers started for tags "${tags}"`)
+        // the summary still counts the spec files without a match as skipped
+        assert.strictEqual(result.passed, passed, `passed spec files for tags "${tags}"`)
+        assert.strictEqual(result.skippedSpecs, 4 - passed, `skipped spec files for tags "${tags}"`)
+    }
+}
+
 const cucumberGroupedSpecsRandomOrderHistory = async () => {
     const basePath = path.resolve(__dirname, 'cucumber', 'random-order')
     const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-random-order-history-'))
@@ -1455,6 +1481,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberReporter,
         cucumberGroupedSpecsRandomOrder,
         cucumberGroupedSpecsRandomOrderHistory,
+        cucumberTagFilterWorkers,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,

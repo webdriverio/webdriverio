@@ -54,6 +54,11 @@ const adapterFactory = {
     defineParameterType,
     defineStep,
 
+    filterSpecs: async function (specs: string[], config: WebdriverIO.Config) {
+        const { adapterFactory } = await import('./index.js')
+        return adapterFactory.filterSpecs!(specs, config)
+    },
+
     publishCucumberReport: async function (cucumberMessageDir: string) {
         const { publishCucumberReport } = await import('./index.js')
         await publishCucumberReport(cucumberMessageDir)

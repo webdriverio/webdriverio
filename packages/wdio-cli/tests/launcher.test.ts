@@ -111,6 +111,16 @@ describe('launcher', () => {
             expect(exitCode).toBe(1)
         })
 
+        it('should not fail if all spec files have no tests', async () => {
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(true)
+            launcher.interface!.skipSpecs = vi.fn()
+            launcher.configParser.getSpecs = vi.fn().mockReturnValue(['/a.feature', '/b.feature'])
+            launcher['_specsWithoutTests'] = new Set(['/a.feature', '/b.feature'])
+            const exitCode = await launcher['_runMode']({ specs: ['./'], shard } as any, [caps])
+            expect(launcher.interface!.skipSpecs).toBeCalledWith(2)
+            expect(exitCode).toBe(0)
+        })
+
         it('should fail when no capabilities are passed', async () => {
             launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
             // @ts-ignore test invalid parameter
@@ -488,6 +498,69 @@ describe('launcher', () => {
                 { files: ['/from-config.js'], retries: 0 }
             ])
             expect(getSpecs).toHaveBeenCalledWith(undefined, undefined)
+        })
+    })
+
+    describe('findSpecsWithoutTests', () => {
+        const filterSpecs = vi.fn()
+        const config = { framework: 'cucumber', cucumberOpts: { tags: '@wanted' } } as any
+        const mockFramework = (framework: object = { filterSpecs }) =>
+            vi.mocked(initializePlugin).mockResolvedValueOnce({ default: framework } as never)
+
+        beforeEach(() => {
+            filterSpecs.mockReset().mockResolvedValue(['/a.feature', '/c.feature'])
+            vi.mocked(initializePlugin).mockClear()
+            launcher.configParser = {
+                getSpecs: vi.fn().mockReturnValue(['/a.feature', ['/b.feature', '/c.feature'], ['/d.feature', '/e.feature'], '/f.feature', []])
+            } as any
+        })
+
+        it('should start no worker for spec files without tests', async () => {
+            mockFramework()
+            await launcher['_findSpecsWithoutTests'](config, [{}])
+            expect(initializePlugin).toBeCalledWith('cucumber', 'framework')
+            expect(filterSpecs).toBeCalledWith(['/a.feature', '/b.feature', '/c.feature', '/d.feature', '/e.feature', '/f.feature'], config)
+            // a group of spec files runs if one of its files has tests
+            expect(launcher['_formatSpecs']({}, 0)).toStrictEqual([
+                { files: ['/a.feature'], retries: 0 },
+                { files: ['/b.feature', '/c.feature'], retries: 0 },
+                { files: [], retries: 0 }
+            ])
+            expect(launcher['_skippedSpecs']).toBe(2)
+        })
+
+        it('should filter the spec files of each capability', async () => {
+            mockFramework()
+            await launcher['_findSpecsWithoutTests'](config, [
+                { 'wdio:specs': ['/x.feature'], 'wdio:exclude': ['/y.feature'] },
+                { alwaysMatch: { 'wdio:specs': ['/z.feature'] } }
+            ] as any)
+            expect(launcher.configParser.getSpecs).toBeCalledWith(['/x.feature'], ['/y.feature'])
+            expect(launcher.configParser.getSpecs).toBeCalledWith(['/z.feature'], undefined)
+            expect(filterSpecs).toBeCalledTimes(1)
+        })
+
+        it('should not load the framework without tags or name', async () => {
+            await launcher['_findSpecsWithoutTests']({ framework: 'cucumber', cucumberOpts: { tags: '', name: [] } } as any, [{}])
+            await launcher['_findSpecsWithoutTests']({ framework: 'mocha' } as any, [{}])
+            expect(initializePlugin).not.toBeCalled()
+            expect(launcher['_formatSpecs']({}, 0)).toHaveLength(5)
+        })
+
+        it('should keep all spec files if the framework cannot filter them', async () => {
+            mockFramework({})
+            await launcher['_findSpecsWithoutTests'](config, [{}])
+            expect(launcher['_formatSpecs']({}, 0)).toHaveLength(5)
+        })
+
+        it('should keep all spec files if the filter fails', async () => {
+            mockFramework()
+            filterSpecs.mockRejectedValue(new Error('invalid tag expression'))
+            await launcher['_findSpecsWithoutTests'](config, [{}])
+            expect(vi.mocked(logger('@wdio/cli:launcher').warn)).toBeCalledWith(
+                'Could not filter the spec files before the workers start: invalid tag expression')
+            expect(launcher['_formatSpecs']({}, 0)).toHaveLength(5)
+            expect(launcher['_skippedSpecs']).toBe(0)
         })
     })
 
