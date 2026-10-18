@@ -642,6 +642,34 @@ describe('click test', () => {
             expect(elem.elementClick).toHaveBeenCalledWith('some-elem')
         })
 
+        it('should wait 100 ms before the click when the driver gives {} for the promise of the script', async () => {
+            const elem = scope({ isMobile: true, isIOS: true, isNativeContext: false })
+            elem.execute.mockResolvedValueOnce({})
+            vi.useFakeTimers()
+            try {
+                const done = click.call(elem as never)
+                await vi.advanceTimersByTimeAsync(99)
+                expect(elem.elementClick).not.toHaveBeenCalled()
+                await vi.advanceTimersByTimeAsync(1)
+                await done
+                expect(elem.elementClick).toHaveBeenCalledTimes(1)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
+        it.each([null, undefined])('should not wait before the click when the driver gives %s', async (value) => {
+            const elem = scope({ isMobile: true, isIOS: true, isNativeContext: false })
+            elem.execute.mockResolvedValueOnce(value)
+            vi.useFakeTimers()
+            try {
+                await click.call(elem as never)
+                expect(elem.elementClick).toHaveBeenCalledTimes(1)
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
         it('should still click when the element could not be checked', async () => {
             const elem = scope({ isFirefox: true })
             elem.execute.mockRejectedValueOnce(new Error('stale element reference'))

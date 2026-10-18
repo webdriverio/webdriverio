@@ -179,7 +179,7 @@ async function workaround(element: WebdriverIO.Element) {
  */
 async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.Element, offset: { x: number, y: number }) {
     try {
-        await browser.execute((elem: HTMLElement, offset: { x: number, y: number }) => {
+        const result: unknown = await browser.execute((elem: HTMLElement, offset: { x: number, y: number }) => {
             const hitTest = () => {
                 const rect = elem.getClientRects()[0]
                 if (!rect) {
@@ -240,6 +240,16 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
                 setTimeout(resolve, 100)
             })
         }, element as unknown as HTMLElement, offset)
+
+        /**
+         * TODO: remove in the next major version. appium-xcuitest-driver before 12.18.2
+         * (appium-remote-debugger before 17.7.3, appium/appium#22978) does not wait for the
+         * promise of the script after a scroll: it gives `{}` at once. Wait here instead,
+         * as long as the page waits at most.
+         */
+        if (result && typeof result === 'object') {
+            await new Promise((resolve) => setTimeout(resolve, 100))
+        }
     } catch (err) {
         log.debug(`Could not scroll the element into view before the click: ${(err as Error).message}`)
     }
