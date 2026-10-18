@@ -547,6 +547,13 @@ describe('launcher', () => {
             expect(launcher['_formatSpecs']({}, 0)).toHaveLength(5)
         })
 
+        it('should not filter in watch mode', async () => {
+            launcher['_isWatchMode'] = true
+            await launcher['_findSpecsWithoutTests'](config, [{}])
+            expect(initializePlugin).not.toBeCalled()
+            expect(launcher['_formatSpecs']({}, 0)).toHaveLength(5)
+        })
+
         it('should keep all spec files if the framework cannot filter them', async () => {
             mockFramework({})
             await launcher['_findSpecsWithoutTests'](config, [{}])

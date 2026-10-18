@@ -367,7 +367,8 @@ class Launcher {
      */
     private async _findSpecsWithoutTests(config: Required<WebdriverIO.Config>, caps: Capabilities.TestrunnerCapabilities) {
         const { tags, name } = config.cucumberOpts ?? {}
-        if (!tags && !name?.length) {
+        // watch mode reruns only the workers of the first run, a file can get a matching scenario later
+        if (this._isWatchMode || (!tags && !name?.length)) {
             return
         }
 
