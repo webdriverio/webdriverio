@@ -284,7 +284,9 @@ describe('finding an element again', () => {
         })
 
         /**
-         * the command clicks the option through the select: the retry must keep the id of the option
+         * `selectBy*` finds the option again from the select that was found again, so its click
+         * gets a new option id. The unit test "keeps the id of another element in the retry of a
+         * protocol command" checks that a retry on the select keeps the id of the option
          */
         it('selectByVisibleText selects in a select that the page rendered again', async () => {
             const select = await $('#select')

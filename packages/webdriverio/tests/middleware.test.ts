@@ -552,6 +552,44 @@ describe('middleware', () => {
             expect(sentKeys()).toEqual([`${OLD_ID} ← ${OLD_ID}`, `${NEW_ID} ← ${OLD_ID}`])
         })
 
+        /**
+         * `selectByVisibleText` clicks an `<option>` through the `<select>`: the retry on the
+         * select keeps the id of the option
+         */
+        it('keeps the id of another element in the retry of a protocol command', async () => {
+            const OTHER_ID = 'other-elem-789'
+            vi.mocked(fetch).customResponseFor(
+                new RegExp(`/element/${OTHER_ID}/click$`),
+                { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
+            )
+            const elem = await classicBrowser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            const error = await elem.elementClick(OTHER_ID).then(() => null, (e: Error) => e)
+            const clicks = vi.mocked(fetch).mock.calls
+                .filter(([uri]) => String(uri).endsWith('/click'))
+                .map(([uri]) => String(uri).split('/').at(-2))
+            expect(clicks).toEqual([OTHER_ID, OTHER_ID])
+            expect(error?.name).toBe('stale element reference')
+        })
+
+        /**
+         * Geckodriver: the name of the error says stale, its message has none of the known texts
+         */
+        it('throws the stale error of the retry when only its name says stale', async () => {
+            const original = staleError()
+            const retryError = Object.assign(
+                new Error('The element with the reference abc is stale; either its node document is not the active document, or it is no longer connected to the DOM'),
+                { name: 'stale element reference' }
+            )
+            classicBrowser.addCommand('staleAgainByName', vi.fn().mockRejectedValueOnce(original).mockRejectedValueOnce(retryError), { attachToElement: true })
+            const elem = await classicBrowser.$('#foo')
+
+            // @ts-expect-error undefined custom command
+            const error = await elem.staleAgainByName().then(() => null, (e: Error) => e)
+            expect(error).toBe(retryError)
+        })
+
         it('keeps the arguments of a command that is not a protocol command', async () => {
             const command = vi.fn().mockRejectedValueOnce(staleError()).mockResolvedValueOnce('done')
             classicBrowser.addCommand('staleWithIds', command, { attachToElement: true })

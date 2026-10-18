@@ -8,7 +8,7 @@ import {
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
 import { isElementNotFoundAgain, nameNotFoundAgain, notFoundElement, waitedFor } from './utils/elementNotFound.js'
-import { isStaleElementError, isStaleElementToFindAgain } from './utils/index.js'
+import { isStaleElementToFindAgain } from './utils/index.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
  */
@@ -153,7 +153,7 @@ async function invokeElementCommand (
                  * it with an unrelated error, and an outer layer can find the element again
                  * (#15627).
                  */
-                if (!(refetchErr instanceof Error) || !isStaleElementError(refetchErr)) {
+                if (!(refetchErr instanceof Error) || !isStaleElementToFindAgain(refetchErr)) {
                     throw err
                 }
                 throw refetchErr
