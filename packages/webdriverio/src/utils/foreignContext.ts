@@ -65,23 +65,33 @@ function throwOnFailure<T> (result: T | ScriptFailure): T {
 }
 
 const STALE_ELEMENT_REFERENCE = 'stale element reference'
+const knownElementScripts = new Map<string, Function>()
 
 /**
  * W3C "get a known element": a detached element, or one of an inactive document,
  * is stale. BiDi still resolves it. Firefox gives the old document the new window
  * as `defaultView` after a reload.
  *
+ * @param script  a function, or the source of one (not a function body)
+ * @param at      the index of the element argument
  * @see https://w3c.github.io/webdriver/#dfn-get-a-known-element
  */
-export function withKnownElement<T extends Function> (script: T | string): T {
-    return new Function(
-        `const el = arguments[0]
-        const doc = el && el.ownerDocument
-        if (el && (el.isConnected === false || (doc && !(doc.defaultView && doc.defaultView.document === doc)))) {
-            throw new Error('${STALE_ELEMENT_REFERENCE}: the element is not attached to the active document')
-        }
-        return (${script}).apply(this, arguments)`
-    ) as T
+export function withKnownElement<T extends Function> (script: T | string, at = 0): T {
+    const source = String(script)
+    const key = `${at}:${source}`
+    let wrapped = knownElementScripts.get(key)
+    if (!wrapped) {
+        wrapped = new Function(
+            `const el = arguments[${at}]
+            const doc = el && el.ownerDocument
+            if (el && (el.isConnected === false || (doc && !(doc.defaultView && doc.defaultView.document === doc)))) {
+                throw new Error('${STALE_ELEMENT_REFERENCE}: the element is not attached to the active document')
+            }
+            return (${source}).apply(this, arguments)`
+        )
+        knownElementScripts.set(key, wrapped)
+    }
+    return wrapped as T
 }
 
 /**

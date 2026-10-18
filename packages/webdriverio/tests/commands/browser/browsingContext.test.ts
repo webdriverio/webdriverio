@@ -7,6 +7,7 @@ import { remote } from '../../../src/index.js'
 import { getBrowsingContext } from '../../../src/browsingContext.js'
 import { getContextManager } from '../../../src/session/context.js'
 import { getElement } from '../../../src/utils/getElementObject.js'
+import { findElement, findElements } from '../../../src/utils/index.js'
 import { StrictSelectorError } from '../../../src/utils/strictSelectorError.js'
 
 vi.mock('fetch')
@@ -700,6 +701,36 @@ describe('browsing context', () => {
 
             locate.mockResolvedValueOnce({ nodes: [] } as never)
             await expect(elem.findElementFromElement('elem-1', 'css selector', '.missing')).rejects.toThrow('no such element')
+        })
+
+        /**
+         * W3C "get a known element": BiDi still resolves a detached root element
+         */
+        it.each([
+            ['$$', () => findElements.call(heldElement('frame-1', true).elem, 'li')],
+            ['$', () => findElement.call(heldElement('frame-1', true).elem, 'li')],
+            ['$ by role', () => findElement.call(heldElement('frame-1', true).elem, 'role/button')]
+        ])('throws stale element reference for %s below a detached element of a held frame', async (_name, find) => {
+            const doc: { defaultView?: { document: unknown } } = {}
+            doc.defaultView = { document: doc }
+            const detached = { isConnected: false, ownerDocument: doc }
+            vi.spyOn(browser, 'browsingContextGetTree').mockResolvedValue({
+                contexts: [{ context: 'top-context', url: 'https://example.com', children: [{ context: 'frame-1', url: 'https://child.example', children: [] }] }]
+            } as never)
+            /**
+             * runs the BiDi script here, with `detached` for the root element
+             */
+            vi.spyOn(browser, 'scriptCallFunction').mockImplementation(async (params) => {
+                const args = (params.arguments ?? []).map((arg) => 'sharedId' in arg ? detached : (arg as { value?: unknown }).value ?? null)
+                try {
+                    await (0, eval)(`(${params.functionDeclaration})`)(...args)
+                    return { type: 'success', result: { type: 'number', value: 0 } } as never
+                } catch (err) {
+                    return { type: 'exception', exceptionDetails: { text: String(err) } } as never
+                }
+            })
+            const err = await find().catch((e: Error) => e)
+            expect((err as Error).name).toBe('stale element reference')
         })
 
         it('evaluates a relative XPath with the element as context node', async () => {

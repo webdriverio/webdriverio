@@ -41,7 +41,7 @@ describe('BiDi overwrites for takeScreenshot, refresh, takeElementScreenshot', (
             overwriteCommand: (name: string, fn: (...args: any[]) => Promise<unknown>) => overwrites.set(name, fn),
             browsingContextCaptureScreenshot: vi.fn().mockResolvedValue({ data: 'base64-data' }),
             browsingContextReload: vi.fn().mockResolvedValue({}),
-            execute: vi.fn().mockResolvedValue(null)
+            scriptCallFunction: vi.fn().mockResolvedValue({ type: 'success', result: { type: 'null' } })
         })
         await attach({ options: {}, capabilities: {} } as any)
     })
@@ -90,7 +90,10 @@ describe('BiDi overwrites for takeScreenshot, refresh, takeElementScreenshot', (
     it('takeElementScreenshot clips to the element over BiDi', async () => {
         const orig = vi.fn()
         expect(await overwrites.get('takeElementScreenshot')!.call(client, orig, 'el-1')).toBe('base64-data')
-        expect(client.execute).toHaveBeenCalledWith(expect.any(Function), { [ELEMENT_KEY]: 'el-1' })
+        expect(client.scriptCallFunction).toHaveBeenCalledWith(expect.objectContaining({
+            target: { context: 'ctx-1' },
+            arguments: [expect.objectContaining({ sharedId: 'el-1' })]
+        }))
         expect(client.browsingContextCaptureScreenshot).toHaveBeenCalledWith({
             context: 'ctx-1',
             clip: { type: 'element', element: { sharedId: 'el-1' } }
@@ -105,7 +108,14 @@ describe('BiDi overwrites for takeScreenshot, refresh, takeElementScreenshot', (
         const doc: { defaultView?: { document: unknown } } = {}
         doc.defaultView = { document: doc }
         const detached = { isConnected: false, ownerDocument: doc }
-        client.execute = vi.fn((script: (el: unknown) => unknown) => Promise.resolve().then(() => script(detached)))
+        client.scriptCallFunction = vi.fn(async (params: { functionDeclaration: string }) => {
+            try {
+                await (0, eval)(`(${params.functionDeclaration})`)(detached)
+                return { type: 'success', result: { type: 'null' } }
+            } catch (err) {
+                return { type: 'exception', exceptionDetails: { text: String(err) } }
+            }
+        })
         const err = await overwrites.get('takeElementScreenshot')!.call(client, vi.fn(), 'el-1').catch((e: Error) => e)
         expect((err as Error).name).toBe('stale element reference')
         expect(client.browsingContextCaptureScreenshot).not.toHaveBeenCalled()

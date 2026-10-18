@@ -176,6 +176,13 @@ it('isStaleElementError', () => {
     expect(isStaleElementError(staleElementJSError)).toBe(true)
     const staleElementBidiError = new Error('belongs to different document. Current document is')
     expect(isStaleElementError(staleElementBidiError)).toBe(true)
+    const goneNodeChromeError = new Error('no such node - SharedId "f.1A.d.2B.e.457" was not found.')
+    expect(isStaleElementError(goneNodeChromeError)).toBe(true)
+    const goneNodeLegacyChromeError = new Error('no such node - SharedId "2B_element_457" was not found.')
+    expect(isStaleElementError(goneNodeLegacyChromeError)).toBe(true)
+    // an id that Chrome cannot parse is not stale
+    const invalidIdChromeError = new Error('no such node - SharedId "not-an-id" was not found.')
+    expect(isStaleElementError(invalidIdChromeError)).toBe(false)
     const otherError = new Error('something else')
     expect(isStaleElementError(otherError)).toBe(false)
 })

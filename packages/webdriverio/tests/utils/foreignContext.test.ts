@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
-import { FOREIGN_ELEMENT_ENDPOINTS } from '../../src/utils/foreignContext.js'
+import { FOREIGN_ELEMENT_ENDPOINTS, withKnownElement } from '../../src/utils/foreignContext.js'
 
 type Endpoint = (held: WebdriverIO.BrowsingContext, elementId: string, ...args: unknown[]) => Promise<unknown>
 
@@ -96,5 +96,19 @@ describe('FOREIGN_ELEMENT_ENDPOINTS', () => {
             locator: { type: 'css', value: 'li' },
             startNodes: [{ sharedId: 'element-1' }]
         })
+    })
+})
+
+describe('withKnownElement', () => {
+    it('builds the wrapper of a script once', () => {
+        const script = (el: { tagName: string }) => el.tagName
+        expect(withKnownElement(script)).toBe(withKnownElement(script))
+        expect(withKnownElement(script, 1)).not.toBe(withKnownElement(script))
+    })
+
+    it('checks the element at the given argument index', () => {
+        const script = withKnownElement((_a: unknown, el: { tagName: string }) => el.tagName, 1)
+        expect(script(detached, connected)).toBe('LI')
+        expect(() => script(connected, detached)).toThrow('stale element reference')
     })
 })
