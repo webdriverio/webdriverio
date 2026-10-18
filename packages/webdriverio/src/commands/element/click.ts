@@ -20,9 +20,9 @@ const log = logger('webdriver')
  * its scroll containers (to the bottom or the top when something covers it at the center), and the page gets its
  * `scroll` events before the click. An element that the pointer already hits is not scrolled. In Firefox and in Safari
  * on iOS, a click without options does the same before the WebDriver `click` command, because geckodriver and Appium
- * scroll and click without giving the page its `scroll` events first. When something intercepts a click without
- * options in any browser (for example a sticky header), the element is brought under the pointer in the same way and
- * clicked again.
+ * scroll and click without giving the page its `scroll` events first (on iOS, the page gets them before the click with
+ * the Appium XCUITest driver 12.18.2 or later). When something intercepts a click without options in any browser (for
+ * example a sticky header), the element is brought under the pointer in the same way and clicked again.
  *
  * :::info
  *
