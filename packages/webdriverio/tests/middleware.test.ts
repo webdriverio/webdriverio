@@ -8,6 +8,7 @@ import { StrictSelectorError } from '../src/utils/strictSelectorError.js'
 import { remote } from '../src/index.js'
 import { elementErrorHandler } from '../src/middlewares.js'
 import { unwrapCommand, wrapCommand } from '@wdio/utils'
+import { ELEMENT_KEY } from 'webdriver'
 import { markWaited, recordNotFound } from '../src/utils/elementNotFound.js'
 import { ELEMENT_NOT_FOUND_AGAIN } from '../src/utils/errorCodes.js'
 
@@ -162,12 +163,6 @@ describe('middleware', () => {
             expect(error?.message).toMatch(/wasn't found/)
         }
         const real = vi.mocked(refetchElement).getMockImplementation()!
-        /**
-         * the element id and the text of each `elementSendKeys` request
-         */
-        const sentKeys = () => vi.mocked(fetch).mock.calls
-            .filter(([uri]) => String(uri).endsWith('/value'))
-            .map(([uri, opts]) => `${String(uri).split('/').at(-2)} ← ${JSON.parse((opts as RequestInit).body as string).text}`)
         /**
          * the refetch gives the results in order, then does not find the element
          */
@@ -511,6 +506,7 @@ describe('middleware', () => {
 
         afterEach(() => {
             vi.mocked(refetchElement).mockImplementation(real)
+            vi.mocked(fetch).resetCustomResponses()
         })
 
         it('sends the new element id to a protocol command', async () => {
@@ -569,15 +565,39 @@ describe('middleware', () => {
             ])
         })
 
+        it('sends the new element id after the wait for a clickable element found it again', async () => {
+            vi.mocked(fetch).customResponseFor(
+                new RegExp(`/element/${OLD_ID}/click$`),
+                { value: { error: 'element not interactable', message: 'element not interactable' } }
+            )
+            const elem = await classicBrowser.$('#foo')
+            vi.spyOn(elem, 'waitForClickable').mockImplementation(async () => {
+                elem.elementId = NEW_ID
+                return true
+            })
+            vi.mocked(fetch).mockClear()
+
+            await elem.elementClick(elem.elementId)
+            const clicks = vi.mocked(fetch).mock.calls
+                .filter(([uri]) => String(uri).endsWith('/click'))
+                .map(([uri]) => String(uri).split('/').at(-2))
+            expect(clicks).toEqual([OLD_ID, NEW_ID])
+        })
+
         it('sets the value of a date input that the page rendered again directly', async () => {
             vi.mocked(fetch).customResponseFor(/\/execute\/sync$/, { value: true })
             vi.mocked(fetch).mockClear()
             const elem = await classicBrowser.$('#foo')
 
             await elem.setValue('2026-10-17')
-            const paths = vi.mocked(fetch).mock.calls.map(([uri]) => new URL(uri as string).pathname)
-            expect(paths.filter((p) => p.endsWith('/execute/sync'))).toHaveLength(1)
-            expect(paths.filter((p) => p.endsWith('/value') || p.endsWith('/clear'))).toEqual([])
+            const calls = vi.mocked(fetch).mock.calls
+            const scripts = calls
+                .filter(([uri]) => String(uri).endsWith('/execute/sync'))
+                .map(([, opts]) => JSON.parse((opts as RequestInit).body as string))
+            expect(scripts).toHaveLength(1)
+            expect(scripts[0].script).toContain('setInputValue')
+            expect(scripts[0].args).toEqual([expect.objectContaining({ [ELEMENT_KEY]: NEW_ID }), '2026-10-17'])
+            expect(calls.filter(([uri]) => /\/(value|clear)$/.test(String(uri)))).toEqual([])
         })
     })
 })

@@ -89,8 +89,11 @@ async function invokeElementCommand (
         }
         if (err.name === 'element not interactable') {
             try {
+                /**
+                 * the wait can find the element again: the retry gets its new id
+                 */
                 await fetched.waitForClickable()
-                return await execute(args)
+                return await execute(withElementId(commandName, args, calledWithId, fetched.elementId))
             } catch {
                 const elementHTML = await fetched.getHTML()
                 err.name = 'webdriverio(middleware): element did not become interactable'
