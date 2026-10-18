@@ -397,10 +397,18 @@ function createElementPromiseProxy (
                  */
                 if (ELEMENT_QUERY_COMMANDS.includes(prop) || prop.endsWith('$')) {
                     // this: WebdriverIO.Element
-                    return wrapCommand(prop, function (this: Record<string, Function>, ...args: unknown[]) {
+                    const query = function (this: Record<string, Function>, ...args: unknown[]) {
                         // eslint-disable-next-line prefer-spread
                         return this[prop].apply(this, args)
-                    })
+                    }
+                    /**
+                     * a list query keeps its own path, see `wrapCommand`; the query of the resolved
+                     * element runs the command hooks, so the chain does not run them again
+                     */
+                    if (ELEMENT_ARRAY_COMMANDS.includes(prop)) {
+                        return wrapCommand(prop, query)
+                    }
+                    return chainQuery(prop, query)
                 }
 
                 /**
@@ -527,6 +535,20 @@ function attachElementArrayHooks (
             throw commandError
         }
     })
+}
+
+/**
+ * `fn` as a query that chains (`$('a').$('b')`), without the command hooks: the query of an element
+ * in a chain, and the original of an overwritten query, see `overwriteCommand`. Other commands as
+ * they are.
+ */
+export function chainQuery (commandName: string, fn: Function): Function {
+    if (!ELEMENT_QUERY_COMMANDS.includes(commandName) && !commandName.endsWith('$')) {
+        return fn
+    }
+    return function (this: Promise<unknown>, ...args: unknown[]) {
+        return createElementPromiseProxy(this, fn, args, commandName, undefined, chainKind(commandName), isMultiRemoteOrigin(this))
+    }
 }
 
 /**

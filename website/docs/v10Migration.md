@@ -334,7 +334,7 @@ An element command runs the `beforeCommand` and `afterCommand` hooks once, with 
 
 For an element command, `beforeCommand` runs before WebdriverIO waits for the element, so the element can still be missing there. `afterCommand` runs after the wait and any retry, with the result or the error of the last try. A hook that needs the found element uses `afterCommand`.
 
-A command changed with `overwriteCommand()`, and a chained query on a promise (`$('a').$('b')`), can still run the hooks more than once.
+A command changed with `overwriteCommand()` also runs the hooks once, and they no longer get the original command as the first argument. An element command changed with `overwriteCommand(name, fn, { attachToElement: true })` now runs after the wait for the element, like a command from `addCommand`.
 
 ## Reporters
 

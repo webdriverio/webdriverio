@@ -26,14 +26,25 @@ export function isAbsolute(p: string) {
 
 /**
  * overwrite native element commands with user defined
- * @param {object} propertiesObject propertiesObject
+ * @param {object}   propertiesObject propertiesObject
+ * @param {Function} only             the names of the commands to overwrite now
+ * @param {boolean}  reset            remove the overrides afterwards
+ * @param {Function} original         the original that an override calls, from the command
  */
-export function overwriteElementCommands(propertiesObject: { '__elementOverrides__'?: { value: Record<string, unknown> }, [key: string]: unknown }) {
+export function overwriteElementCommands(
+    propertiesObject: { '__elementOverrides__'?: { value: Record<string, unknown> }, [key: string]: unknown },
+    only: (commandName: string) => boolean = () => true,
+    reset = true,
+    original: (commandName: string, command: Function) => Function = (_, command) => command
+) {
     const elementOverrides = propertiesObject.__elementOverrides__
         ? propertiesObject.__elementOverrides__.value
         : {}
 
     for (const [commandName, userDefinedCommand] of Object.entries(elementOverrides)) {
+        if (!only(commandName)) {
+            continue
+        }
         if (typeof userDefinedCommand !== 'function') {
             throw new Error('overwriteCommand: commands be overwritten only with functions, command: ' + commandName)
         }
@@ -47,7 +58,7 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
             throw new Error('overwriteCommand: only functions can be overwritten, command: ' + commandName)
         }
 
-        const origCommand = propertiesObjectCommand
+        const origCommand = original(commandName, propertiesObjectCommand)
         delete propertiesObject[commandName]
 
         const newCommand = function (this: WebdriverIO.Browser, ...args: unknown[]) {
@@ -68,8 +79,10 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
         }
     }
 
-    delete propertiesObject.__elementOverrides__
-    propertiesObject.__elementOverrides__ = { value: {} }
+    if (reset) {
+        delete propertiesObject.__elementOverrides__
+        propertiesObject.__elementOverrides__ = { value: {} }
+    }
 }
 
 /**

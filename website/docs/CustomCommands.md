@@ -326,6 +326,8 @@ It is not recommended to do this, because it may lead to unpredictable behavior 
 
 The overall approach is similar to `addCommand`, the only difference is that the first argument in the command function is the original function that you are about to overwrite. Please see some examples below.
 
+The [command hooks](/docs/configuration#beforecommand) run once for an overwritten command, with the arguments of the call. The original function runs as part of it, without its own hooks. An element command overwritten with `attachToElement` runs after WebdriverIO waited for the element, like an element command from `addCommand`. A list query (`$$`, `custom$$`, `shadow$$`, `react$$`) runs the hooks when the original loads the list.
+
 ### Overwriting Browser Commands
 
 ```js
