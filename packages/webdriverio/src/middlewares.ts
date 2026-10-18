@@ -1,5 +1,9 @@
 import { ELEMENT_KEY } from 'webdriver'
 import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@wdio/utils'
+import {
+    WebDriverProtocol, AppiumProtocol, ChromiumProtocol, GeckoProtocol, SauceLabsProtocol, SeleniumProtocol,
+    type Protocol
+} from '@wdio/protocols'
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
@@ -13,11 +17,27 @@ import { StrictSelectorError } from './utils/strictSelectorError.js'
 export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements']
 
 /**
- * The arguments of a command, with the element id that went stale replaced by the id of the
- * element that was found again (e.g. `this.getElementText(this.elementId)`)
+ * The protocol commands that get the element id as their first argument: the `:elementId`
+ * of the endpoint, which is always its first variable
  */
-function withElementId (args: unknown[], staleId: string | undefined, newId: string | undefined) {
-    return staleId && newId ? args.map((arg) => arg === staleId ? newId : arg) : args
+const ELEMENT_ID_COMMANDS = new Set(
+    ([WebDriverProtocol, AppiumProtocol, ChromiumProtocol, GeckoProtocol, SauceLabsProtocol, SeleniumProtocol] as Protocol[])
+        .flatMap((protocol) => Object.values(protocol).flatMap((endpoint) => Object.values(endpoint)))
+        .filter((info) => info?.variables?.[0]?.name === 'elementId')
+        .map((info) => info!.command)
+)
+
+/**
+ * The arguments of a protocol command, with the element id that went stale replaced by the id
+ * of the element that was found again (e.g. `this.getElementText(this.elementId)`). Only the
+ * `elementId` argument changes: the other arguments (e.g. the text of `elementSendKeys`) and
+ * the arguments of other commands are data of the caller.
+ */
+function withElementId (commandName: string, args: unknown[], staleId: string | undefined, newId: string | undefined) {
+    if (!staleId || !newId || !ELEMENT_ID_COMMANDS.has(commandName) || args[0] !== staleId) {
+        return args
+    }
+    return [newId, ...args.slice(1)]
 }
 
 /**
@@ -97,7 +117,7 @@ async function invokeElementCommand (
                  */
                 element[ELEMENT_KEY] = refetched.elementId
                 element.parent = refetched.parent
-                return await execute(withElementId(args, calledWithId, refetched.elementId))
+                return await execute(withElementId(commandName, args, calledWithId, refetched.elementId))
             } catch (refetchErr) {
                 /**
                  * A strict-mode violation is a real error the user needs to see, as in
