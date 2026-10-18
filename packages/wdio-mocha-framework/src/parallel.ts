@@ -697,6 +697,7 @@ export async function runParallelTests(
     const allResults: PromiseSettledResult<TestRunResult>[] = new Array(tests.length)
     const cleanups: Promise<void>[] = []
     let cursor = 0
+    const spares: Promise<ParallelContextAllocation>[] = []
     let allocationError: unknown
     let allocationFailed = false
 
@@ -705,53 +706,45 @@ export async function runParallelTests(
         `Slots: ${slotCount}, max contexts: ${maxContexts}`
     )
 
-    // Each slot owns one live allocation, at most one prefetched for its next
-    // test, and at most one closing, so creating/closing windows stays off the
-    // gap between tests without unbounded concurrent closes.
+    // Each slot owns one live allocation and at most one closing. The run keeps
+    // a shared pool of spares, never more than the tests not yet taken (so never
+    // more than the slot count), which keeps creating windows off the gap
+    // between tests without unbounded concurrent closes.
     const runSlot = async () => {
-        let prefetched: Promise<ParallelContextAllocation> | undefined
         let closing: Promise<void> | undefined
         const scheduleClose = async (alloc: ParallelContextAllocation) => {
             await closing?.catch(() => {})
             closing = cleanupAllocation(bidi, alloc)
             cleanups.push(closing)
         }
-        try {
-            while (!allocationFailed) {
-                const index = cursor++
-                if (index >= tests.length) { break }
-                let allocation: ParallelContextAllocation
-                try {
-                    allocation = await (prefetched ?? allocateContext(bidi, mode))
-                } catch (err) {
-                    prefetched = undefined
-                    if (!allocationFailed) { allocationFailed = true; allocationError = err }
-                    break
-                }
-                prefetched = undefined
-                if (cursor < tests.length) {
-                    prefetched = allocateContext(bidi, mode)
-                    prefetched.catch(() => {})
-                }
-                try {
-                    allResults[index] = {
-                        status: 'fulfilled',
-                        value: await runOneTest(
-                            tests[index], allocation, cid, specs,
-                            `test-${cid}-${index}`,
-                            reporter, parallelStore, timeoutMs
-                        )
-                    }
-                } catch (reason) {
-                    allResults[index] = { status: 'rejected', reason }
-                } finally {
-                    await scheduleClose(allocation)
-                }
+        while (!allocationFailed) {
+            const index = cursor++
+            if (index >= tests.length) { break }
+            let allocation: ParallelContextAllocation
+            try {
+                allocation = await (spares.shift() ?? allocateContext(bidi, mode))
+            } catch (err) {
+                if (!allocationFailed) { allocationFailed = true; allocationError = err }
+                break
             }
-        } finally {
-            if (prefetched) {
-                const unused = await prefetched.catch(() => undefined)
-                if (unused) { await scheduleClose(unused) }
+            if (!allocationFailed && tests.length - cursor > spares.length) {
+                const next = allocateContext(bidi, mode)
+                next.catch(() => {})
+                spares.push(next)
+            }
+            try {
+                allResults[index] = {
+                    status: 'fulfilled',
+                    value: await runOneTest(
+                        tests[index], allocation, cid, specs,
+                        `test-${cid}-${index}`,
+                        reporter, parallelStore, timeoutMs
+                    )
+                }
+            } catch (reason) {
+                allResults[index] = { status: 'rejected', reason }
+            } finally {
+                await scheduleClose(allocation)
             }
         }
     }
@@ -759,6 +752,10 @@ export async function runParallelTests(
     try {
         await Promise.all(Array.from({ length: slotCount }, runSlot))
     } finally {
+        for (const spare of spares.splice(0)) {
+            const unused = await spare.catch(() => undefined)
+            if (unused) { cleanups.push(cleanupAllocation(bidi, unused)) }
+        }
         const settled = await Promise.allSettled(cleanups)
         for (const r of settled) {
             if (r.status === 'rejected') { log.warn(`[Parallel] cleanup failed: ${(r.reason as Error).message}`) }

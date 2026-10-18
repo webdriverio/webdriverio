@@ -374,11 +374,8 @@ describe('runParallelTests — suite hooks', () => {
 
         await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
 
-        // Prefetched-but-unused allocations may add creates; each must be closed too
-        const created = browser.browsingContextCreate.mock.calls.length
-        expect(created).toBeGreaterThanOrEqual(6)
-        expect(created).toBeLessThanOrEqual(6 + 2)
-        expect(browser.browsingContextClose).toHaveBeenCalledTimes(created)
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(6)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(6)
         // All contexts registered at allocate time are unregistered after close
         expect((browser as unknown as { __parallelContexts: Set<string> }).__parallelContexts.size).toBe(0)
     })
@@ -1057,14 +1054,33 @@ describe('runParallelTests — worker pool', () => {
         }
     })
 
-    test('cleans up a prefetched allocation that no test ends up using', async () => {
-        // 1 slot would prefetch only while tests remain; with 2 slots and 3 tests
-        // one slot's prefetch can lose the race for the last test.
+    test('creates exactly one context per test, with no spare left over', async () => {
         const browser = mockBrowser()
-        const suite = mockSuite('root', { tests: [mockTest('a'), mockTest('b'), mockTest('c')] })
-        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
+        const suite = mockSuite('root', { tests: Array.from({ length: 8 }, (_, i) => mockTest(`t${i}`)) })
+        await runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 4)
 
-        expect(browser.browsingContextClose).toHaveBeenCalledTimes(browser.browsingContextCreate.mock.calls.length)
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(8)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(8)
+        expect(browser.__parallelContexts.size).toBe(0)
+    })
+
+    test('cleans up a spare that no test ends up using after an allocation failure', async () => {
+        const browser = mockBrowser()
+        let n = 0
+        let failSecond!: (err: Error) => void
+        browser.browsingContextCreate.mockImplementation(async () => {
+            n++
+            if (n === 2) { return new Promise((_, reject) => { failSecond = reject }) }
+            if (n === 3) { failSecond(new Error('slot allocation failed')) }
+            return { context: `ctx-${n}` }
+        })
+        const suite = mockSuite('root', { tests: [mockTest('a'), mockTest('b'), mockTest('c')] })
+        await expect(
+            runParallelTests(suite as Suite, browser, reporter, '0-0', ['/spec.js'], 2)
+        ).rejects.toThrow('slot allocation failed')
+
+        expect(browser.browsingContextCreate).toHaveBeenCalledTimes(3)
+        expect(browser.browsingContextClose).toHaveBeenCalledTimes(2)
         expect(browser.__parallelContexts.size).toBe(0)
     })
 

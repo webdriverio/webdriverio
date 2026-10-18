@@ -5,7 +5,7 @@
  * replaces the sequential `runCucumber()` call with parallel execution:
  *   1. Parse Gherkin feature files to collect all pickles (scenarios)
  *   2. Run scenarios through a pool of `maxParallelContexts` slots; each
- *      slot prefetches its next browsing context (window) while a scenario runs
+ *      pool keeps spare browsing contexts (windows) ready while scenarios run
  *      and closes finished windows in the background (a slot never has more
  *      than one window close in flight; it awaits the previous close first)
  *   3. Await all pending window/user-context cleanups before returning
@@ -1029,8 +1029,9 @@ export async function runParallelCucumber(params: {
     }
 
     // --- 7. Run scenarios through the slot pool ---
-    // Each slot owns one live window plus at most one prefetched for its next
-    // scenario, so window create/close stays off the gap between scenarios.
+    // Each slot owns one live window and at most one closing. The run keeps a
+    // shared pool of spares, never more than the scenarios not yet taken, so
+    // window create/close stays off the gap between scenarios.
     const runStart = Date.now()
     const allResults: PromiseSettledResult<ScenarioResult>[] = []
     const cleanups: Promise<void>[] = []
@@ -1039,12 +1040,12 @@ export async function runParallelCucumber(params: {
         runtimeOptions, assembledTestCases, parallelStore, snippetBuilder,
     }
     let cursor = beforeAllOk && !runFailure ? 0 : allPickles.length
+    const spares: Promise<ParallelContextAllocation>[] = []
     let stopped = false
     let allocationFailed = false
     let allocationError: unknown
 
     const runSlot = async () => {
-        let prefetched: Promise<ParallelContextAllocation> | undefined
         let pendingClose: Promise<void> | undefined
         // A close failure is reported through `cleanups`; here we only serialize.
         const closeInBackground = async (allocation: ParallelContextAllocation) => {
@@ -1052,44 +1053,36 @@ export async function runParallelCucumber(params: {
             pendingClose = cleanupAllocation(bidi, allocation)
             cleanups.push(pendingClose)
         }
-        try {
-            while (!stopped) {
-                const index = cursor++
-                if (index >= allPickles.length) { break }
-                let allocation: ParallelContextAllocation
-                try {
-                    allocation = await (prefetched ?? allocateContext(bidi, mode))
-                } catch (err) {
-                    prefetched = undefined
-                    if (!allocationFailed) { allocationFailed = true; allocationError = err }
-                    stopped = true
-                    break
-                }
-                prefetched = undefined
-                if (cursor < allPickles.length && !stopped) {
-                    prefetched = allocateContext(bidi, mode)
-                    prefetched.catch(() => {})
-                }
-                const pickle = allPickles[index]
-                let result: PromiseSettledResult<ScenarioResult>
-                try {
-                    result = {
-                        status: 'fulfilled',
-                        value: await runScenario({ pickle, group: pickleToGroup.get(pickle)!, index, allocation }, runParams),
-                    }
-                } catch (reason) {
-                    result = { status: 'rejected', reason }
-                } finally {
-                    await closeInBackground(allocation)
-                }
-                allResults.push(result)
-                if (failFast && isFailedResult(result, cucumberOpts)) { stopped = true }
+        while (!stopped) {
+            const index = cursor++
+            if (index >= allPickles.length) { break }
+            let allocation: ParallelContextAllocation
+            try {
+                allocation = await (spares.shift() ?? allocateContext(bidi, mode))
+            } catch (err) {
+                if (!allocationFailed) { allocationFailed = true; allocationError = err }
+                stopped = true
+                break
             }
-        } finally {
-            if (prefetched) {
-                const unused = await prefetched.catch(() => undefined)
-                if (unused) { await closeInBackground(unused) }
+            if (!stopped && allPickles.length - cursor > spares.length) {
+                const next = allocateContext(bidi, mode)
+                next.catch(() => {})
+                spares.push(next)
             }
+            const pickle = allPickles[index]
+            let result: PromiseSettledResult<ScenarioResult>
+            try {
+                result = {
+                    status: 'fulfilled',
+                    value: await runScenario({ pickle, group: pickleToGroup.get(pickle)!, index, allocation }, runParams),
+                }
+            } catch (reason) {
+                result = { status: 'rejected', reason }
+            } finally {
+                await closeInBackground(allocation)
+            }
+            allResults.push(result)
+            if (failFast && isFailedResult(result, cucumberOpts)) { stopped = true }
         }
     }
 
@@ -1098,6 +1091,10 @@ export async function runParallelCucumber(params: {
     } catch (error) {
         runFailure ??= { error }
     } finally {
+        for (const spare of spares.splice(0)) {
+            const unused = await spare.catch(() => undefined)
+            if (unused) { cleanups.push(cleanupAllocation(bidi, unused)) }
+        }
         const settled = await Promise.allSettled(cleanups)
         for (const r of settled) {
             if (r.status === 'rejected') { log.warn(`[Parallel] cleanup failed: ${(r.reason as Error).message}`) }
