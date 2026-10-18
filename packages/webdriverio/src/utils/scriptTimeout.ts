@@ -108,6 +108,9 @@ const appiumScriptTimeouts = new WeakMap<WebdriverIO.Browser, string>()
  * set no `script` timeout (the WebDriver default is 30 s), and it ignores
  * `timeouts.script` in the capabilities. Set the timeout of the capabilities, else
  * the default, once per session, unless `browser.setTimeout()` set one.
+ *
+ * TODO: remove when the supported XCUITest drivers start with the W3C default
+ * (appium/appium-xcuitest-driver#3056, #3041) and apply the capability (appium/appium#23014).
  */
 export async function setAppiumScriptTimeout (browser: WebdriverIO.Browser) {
     if (!browser.isMobile || !browser.isIOS) {
