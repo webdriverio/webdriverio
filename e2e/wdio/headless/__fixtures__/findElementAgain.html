@@ -8,6 +8,9 @@
     <ul id="items"><li class="item">first</li></ul>
     <div id="host"></div>
     <div id="form-area"><form id="form"><p class="in-form">first</p><input type="date" class="date"></form></div>
+    <div id="dates"><input type="date" class="date"><input type="date" class="date"></div>
+    <div id="date-host-area"></div>
+    <div id="select-area"><select id="select"><option value="a">Alpha</option><option value="b">Beta</option></select></div>
 
     <script>
         const root = document.querySelector('#host').attachShadow({ mode: 'open' })
@@ -50,6 +53,33 @@
             date.className = 'date'
             form.append(date)
             document.querySelector('#form-area').replaceChildren(form)
+        }
+
+        /**
+         * replace every date input of `#dates` with new nodes
+         */
+        window.renderDates = () => {
+            const dates = document.querySelector('#dates')
+            dates.replaceChildren(...[...dates.children].map((el) => el.cloneNode(true)))
+        }
+
+        /**
+         * replace `#date-host` (a shadow host with a date input) with a new host
+         */
+        window.renderDateHost = () => {
+            const host = document.createElement('div')
+            host.id = 'date-host'
+            host.attachShadow({ mode: 'open' }).innerHTML = '<input type="date" class="date">'
+            document.querySelector('#date-host-area').replaceChildren(host)
+        }
+        window.renderDateHost()
+
+        /**
+         * replace `#select` and its options with new nodes
+         */
+        window.renderSelect = () => {
+            const select = document.querySelector('#select')
+            select.replaceWith(select.cloneNode(true))
         }
 
         /**
