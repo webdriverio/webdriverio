@@ -28,16 +28,18 @@ interface CommandResultEvent {
 const scriptTimeouts = new WeakMap<WebdriverIO.Browser, { sessionId: string, script: number | null }>()
 const trackedBrowsers = new WeakSet<WebdriverIO.Browser>()
 /**
- * sessions that `attach()` joined: their capabilities come from the user, not
- * from the driver, so their `timeouts` may be out of date
+ * the session that `attach()` joined: its capabilities come from the user, not
+ * from the driver, so their `timeouts` may be out of date. A session of
+ * `reloadSession()` is new.
  */
-const attachedBrowsers = new WeakSet<WebdriverIO.Browser>()
+const attachedSessions = new WeakMap<WebdriverIO.Browser, string>()
+const isAttachedSession = (browser: WebdriverIO.Browser) => attachedSessions.get(browser) === browser.sessionId
 
 /**
  * Read the `script` timeout from the session instead of its capabilities.
  */
 export function markAttachedSession (browser: WebdriverIO.Browser) {
-    attachedBrowsers.add(browser)
+    attachedSessions.set(browser, browser.sessionId)
 }
 
 /**
@@ -75,7 +77,7 @@ export async function scriptTimeoutOf (browser: WebdriverIO.Browser): Promise<nu
     if (set && set.sessionId === browser.sessionId) {
         return set.script
     }
-    const fromCapabilities = attachedBrowsers.has(browser)
+    const fromCapabilities = isAttachedSession(browser)
         ? undefined
         : (browser.capabilities as WebdriverIO.Capabilities | undefined)?.timeouts?.script
     if (fromCapabilities === null || typeof fromCapabilities === 'number') {
@@ -106,13 +108,13 @@ export async function scriptTimeoutOf (browser: WebdriverIO.Browser): Promise<nu
  * TODO: remove when XCUITest driver 12 is not supported (appium/appium-xcuitest-driver#3041)
  */
 export async function setIOSScriptTimeout (browser: WebdriverIO.Browser) {
-    if (!browser.isMobile || !browser.isIOS || attachedBrowsers.has(browser)) {
+    if (!browser.isMobile || !browser.isIOS || isAttachedSession(browser)) {
         return
     }
     const requested = browser.requestedCapabilities as Capabilities.W3CCapabilities | WebdriverIO.Capabilities | undefined
-    const script = requested && 'alwaysMatch' in requested
-        ? [requested.alwaysMatch, ...(requested.firstMatch ?? [])].find((caps) => caps?.timeouts?.script !== undefined)?.timeouts?.script
-        : requested?.timeouts?.script
+    // W3C "process capabilities": the driver uses the first `firstMatch` entry that matches
+    const matched = requested && 'alwaysMatch' in requested ? [requested.alwaysMatch, requested.firstMatch?.[0]] : [requested]
+    const script = matched.map((caps) => caps?.timeouts?.script).find((value) => value !== undefined)
     // a failed request keeps the driver's own limit, as before
     await browser.setTimeouts(undefined, undefined, script === null ? NO_LIMIT_SCRIPT_TIMEOUT : script ?? DEFAULT_SCRIPT_TIMEOUT).catch(() => undefined)
 }
