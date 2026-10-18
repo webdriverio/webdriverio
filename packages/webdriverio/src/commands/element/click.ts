@@ -18,10 +18,11 @@ const log = logger('webdriver')
  * Before the actions, when the pointer would not hit the element at its center (it is outside the window, hidden by a
  * scroll container or covered by a fixed header or footer), the element is scrolled to the center of the window and of
  * its scroll containers (to the bottom or the top when something covers it at the center), and the page gets its
- * `scroll` events before the click. An element that the pointer already hits is not scrolled. In Firefox, a click
- * without options does the same before the WebDriver `click` command, because geckodriver scrolls and clicks without
- * giving the page its `scroll` events first. When something intercepts a click without options in any browser
- * (for example a sticky header), the element is brought under the pointer in the same way and clicked again.
+ * `scroll` events before the click. An element that the pointer already hits is not scrolled. In Firefox and in Safari
+ * on iOS, a click without options does the same before the WebDriver `click` command, because geckodriver and Appium
+ * scroll and click without giving the page its `scroll` events first. When something intercepts a click without
+ * options in any browser (for example a sticky header), the element is brought under the pointer in the same way and
+ * clicked again.
  *
  * :::info
  *
@@ -250,9 +251,11 @@ async function elementClick(element: WebdriverIO.Element) {
      * geckodriver scrolls the element into view and clicks it in one step, so the page
      * gets its `scroll` events after the click. ChromeDriver almost always gives the page
      * a frame between the scroll and the click (it missed about 1 click in 300),
-     * safaridriver always does. This costs one more request, so only Firefox pays it.
+     * safaridriver always does. Appium does the same as geckodriver in Safari on iOS
+     * (web and webview contexts); it waits for the frames from appium-xcuitest-driver
+     * 12.18.2. This costs one more request, so only Firefox and iOS pay it.
      */
-    if (browser.isFirefox) {
+    if (browser.isFirefox || (browser.isIOS && !await browser.isNativeContext)) {
         await bringIntoView(browser, element, { x: 0, y: 0 })
     }
     try {

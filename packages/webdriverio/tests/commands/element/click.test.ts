@@ -407,7 +407,7 @@ describe('click test', () => {
             expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
         })
 
-        it('should not check or scroll for a click without options outside Firefox', async () => {
+        it('should not check or scroll for a click without options outside Firefox and iOS', async () => {
             const { elem, scrollIntoView, execute } = await setup()
 
             await elem.click()
@@ -620,16 +620,20 @@ describe('click test', () => {
         expect(scope.perform).toHaveBeenCalled()
     })
 
-    describe('click without options in Firefox', () => {
-        const scope = (isFirefox: boolean) => ({
+    describe('click without options in Firefox and in Safari on iOS', () => {
+        const scope = (context: Record<string, unknown>) => ({
             elementId: 'some-elem',
-            isFirefox,
+            isFirefox: false,
+            ...context,
             execute: vi.fn(),
             elementClick: vi.fn()
         })
 
-        it('should bring the element into view before the WebDriver click', async () => {
-            const elem = scope(true)
+        it.each([
+            ['Firefox', { isFirefox: true }],
+            ['Safari on iOS', { isMobile: true, isIOS: true, isNativeContext: false }]
+        ])('should bring the element into view before the WebDriver click in %s', async (_, context) => {
+            const elem = scope(context)
 
             await click.call(elem as never)
             expect(elem.execute).toHaveBeenCalledTimes(1)
@@ -639,15 +643,19 @@ describe('click test', () => {
         })
 
         it('should still click when the element could not be checked', async () => {
-            const elem = scope(true)
+            const elem = scope({ isFirefox: true })
             elem.execute.mockRejectedValueOnce(new Error('stale element reference'))
 
             await click.call(elem as never)
             expect(elem.elementClick).toHaveBeenCalledTimes(1)
         })
 
-        it('should send only the WebDriver click in other browsers', async () => {
-            const elem = scope(false)
+        it.each([
+            ['other desktop browsers', {}],
+            ['a native iOS context', { isMobile: true, isIOS: true, isNativeContext: true }],
+            ['Chrome on Android', { isMobile: true, isAndroid: true, isNativeContext: false }]
+        ])('should send only the WebDriver click in %s', async (_, context) => {
+            const elem = scope(context)
 
             await click.call(elem as never)
             expect(elem.execute).not.toHaveBeenCalled()
