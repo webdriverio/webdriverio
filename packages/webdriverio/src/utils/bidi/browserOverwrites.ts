@@ -1,8 +1,10 @@
+import { ELEMENT_KEY } from 'webdriver'
 import type * as WebDriverTypes from 'webdriver'
 
 import { isStub } from '../index.js'
 import { getContextManager } from '../../session/context.js'
 import { environment } from '../../environment.js'
+import { nameStaleElement, withKnownElement } from '../foreignContext.js'
 import { isBidiCommandsEnabled } from './elementCommands.js'
 
 const overwrittenBrowsers = new WeakSet<WebdriverIO.Browser>()
@@ -116,6 +118,10 @@ export function applyBidiBrowserOverwrites(browser: WebdriverIO.Browser) {
     overwrite('takeElementScreenshot', async function (this: WebdriverIO.Browser, origCommand: (elementId: string) => Promise<string>, elementId: string) {
         if (isBidiCommandsEnabled(this)) {
             const context = await getContextManager(this).getCurrentContext()
+            /**
+             * W3C "get a known element": BiDi clips a stale element to 0x0
+             */
+            await this.execute(withKnownElement(() => null), { [ELEMENT_KEY]: elementId }).catch(nameStaleElement)
             const clip: WebDriverTypes.remote.BrowsingContextElementClipRectangle = { type: 'element', element: { sharedId: elementId } }
             const { data } = await this.browsingContextCaptureScreenshot({ context, clip })
             return data

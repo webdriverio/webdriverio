@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { ELEMENT_KEY } from 'webdriver'
 
 import { attach } from '../src/index.js'
 import { applyBidiBrowserOverwrites } from '../src/utils/bidi/browserOverwrites.js'
@@ -39,7 +40,8 @@ describe('BiDi overwrites for takeScreenshot, refresh, takeElementScreenshot', (
             capabilities: {},
             overwriteCommand: (name: string, fn: (...args: any[]) => Promise<unknown>) => overwrites.set(name, fn),
             browsingContextCaptureScreenshot: vi.fn().mockResolvedValue({ data: 'base64-data' }),
-            browsingContextReload: vi.fn().mockResolvedValue({})
+            browsingContextReload: vi.fn().mockResolvedValue({}),
+            execute: vi.fn().mockResolvedValue(null)
         })
         await attach({ options: {}, capabilities: {} } as any)
     })
@@ -88,11 +90,25 @@ describe('BiDi overwrites for takeScreenshot, refresh, takeElementScreenshot', (
     it('takeElementScreenshot clips to the element over BiDi', async () => {
         const orig = vi.fn()
         expect(await overwrites.get('takeElementScreenshot')!.call(client, orig, 'el-1')).toBe('base64-data')
+        expect(client.execute).toHaveBeenCalledWith(expect.any(Function), { [ELEMENT_KEY]: 'el-1' })
         expect(client.browsingContextCaptureScreenshot).toHaveBeenCalledWith({
             context: 'ctx-1',
             clip: { type: 'element', element: { sharedId: 'el-1' } }
         })
         expect(orig).not.toHaveBeenCalled()
+    })
+
+    /**
+     * W3C "get a known element": BiDi still resolves a detached element
+     */
+    it('takeElementScreenshot throws stale element reference for a detached element', async () => {
+        const doc: { defaultView?: { document: unknown } } = {}
+        doc.defaultView = { document: doc }
+        const detached = { isConnected: false, ownerDocument: doc }
+        client.execute = vi.fn((script: (el: unknown) => unknown) => Promise.resolve().then(() => script(detached)))
+        const err = await overwrites.get('takeElementScreenshot')!.call(client, vi.fn(), 'el-1').catch((e: Error) => e)
+        expect((err as Error).name).toBe('stale element reference')
+        expect(client.browsingContextCaptureScreenshot).not.toHaveBeenCalled()
     })
 
     it('takeElementScreenshot passes the element id to the original command when BiDi commands are disabled', async () => {

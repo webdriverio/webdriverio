@@ -23,6 +23,11 @@ vi.mock('../../../src/session/context.js', () => ({
     getParallelContextStore: () => ({ getStore: () => undefined })
 }))
 
+/**
+ * An `execute` script (string or function) that contains `text`
+ */
+const scriptContaining = (text: string) => expect.toSatisfy((script: unknown) => String(script).includes(text))
+
 vi.mock('../../../src/session/networkManager.js', () => ({
     getNetworkManager: vi.fn().mockReturnValue({
         initialize: vi.fn(),
@@ -678,12 +683,14 @@ describe('browsing context', () => {
         })
 
         it('finds elements below an element of another context with browsingContext.locateNodes', async () => {
-            const { elem } = heldElement('frame-1', true)
+            const { context, elem } = heldElement('frame-1', true)
             const locate = vi.spyOn(browser, 'browsingContextLocateNodes').mockResolvedValue({
                 nodes: [{ type: 'node', sharedId: 'child-1' }]
             } as never)
+            const staleCheck = vi.spyOn(context, 'execute').mockResolvedValue(null)
 
             await expect(elem.findElementFromElement('elem-1', 'css selector', 'span')).resolves.toEqual({ [ELEMENT_KEY]: 'child-1' })
+            expect(staleCheck).toHaveBeenCalledWith(expect.any(Function), { [ELEMENT_KEY]: 'elem-1' })
             expect(locate).toHaveBeenCalledWith({
                 context: 'frame-1',
                 locator: { type: 'css', value: 'span' },
@@ -744,8 +751,7 @@ describe('browsing context', () => {
 
             const link = await context.$('=Done link')
             expect(link.elementId).toBe('link-1')
-            expect(execute.mock.calls[0][0]).toEqual(expect.stringContaining('querySelectorAll(\'a\')'))
-            expect(execute.mock.calls[0].slice(1)).toEqual([null, false, 'Done link'])
+            expect(execute).toHaveBeenCalledWith(scriptContaining('querySelectorAll(\'a\')'), null, false, 'Done link')
             expect(locate).not.toHaveBeenCalled()
         })
 
@@ -753,7 +759,7 @@ describe('browsing context', () => {
             const { context, elem } = heldElement('tab-2')
             const execute = vi.spyOn(context, 'execute').mockResolvedValue('Hello')
             await expect(elem.getText()).resolves.toBe('Hello')
-            expect(execute.mock.calls[0][0]).toEqual(expect.stringContaining('return (function(){return (function(){'))
+            expect(execute).toHaveBeenCalledWith(scriptContaining('return (function(){return (function(){'), { [ELEMENT_KEY]: 'elem-1' })
         })
 
         it('scrolls an element into view before clicking it in another context', async () => {
