@@ -2,6 +2,7 @@ import { getBrowserObject } from '@wdio/utils'
 
 import { Key } from '../../constants.js'
 import { isElementNotFoundAgain } from '../../utils/elementNotFound.js'
+import { isStaleElementToFindAgain } from '../../utils/index.js'
 import type { InputOptions } from '../../types.js'
 import { bidiGetProperty, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 
@@ -81,11 +82,16 @@ export async function setValue (
 }
 
 /**
- * A failed property lookup gives no value, except when the page removed the element: the
- * next command (`clearValue`, `addValue`) would wait for it again.
+ * A failed property lookup gives no value, except when the element changed:
+ * - the page removed it: the next command (`clearValue`, `addValue`) would wait for it again;
+ * - it is stale (the page rendered it again, and the lookup still failed): the `setValue` layer
+ *   finds it again and runs `setValue` again, as the middleware does for any command. With no
+ *   type, a date, range, time or color input would get key strokes instead of its value; with
+ *   no value after the clear, the value would be typed after the text of an input that the page
+ *   rendered again with its old text ("oldnew").
  */
-function noPropertyUnlessGone (err: unknown) {
-    if (isElementNotFoundAgain(err)) {
+function noPropertyUnlessElementChanged (err: unknown) {
+    if (isElementNotFoundAgain(err) || isStaleElementToFindAgain(err)) {
         throw err
     }
     return undefined
@@ -128,5 +134,5 @@ function readProperty (elem: WebdriverIO.Element, name: string): Promise<unknown
     const read = isBidiCommandsEnabled(getBrowserObject(elem) as WebdriverIO.Browser)
         ? bidiGetProperty(elem, name)
         : elem.getElementProperty(elem.elementId, name)
-    return read.catch(noPropertyUnlessGone)
+    return read.catch(noPropertyUnlessElementChanged)
 }

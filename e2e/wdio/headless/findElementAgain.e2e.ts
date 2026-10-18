@@ -9,6 +9,9 @@ interface Fixture {
     renderItems (texts: string[]): void
     renderShadow (className: string, texts: string[]): void
     renderForm (text: string): void
+    renderDates (): void
+    renderDateHost (): void
+    renderSelect (): void
 }
 
 const FIXTURE = url.pathToFileURL(path.resolve(__dirname, '__fixtures__', 'findElementAgain.html')).href
@@ -21,6 +24,9 @@ const renderShadow = (className: string, texts: string[]) => browser.execute(
     (className, texts) => (window as unknown as Fixture).renderShadow(className, texts), className, texts)
 const renderForm = (text: string) => browser.execute(
     (text) => (window as unknown as Fixture).renderForm(text), text)
+const renderDates = () => browser.execute(() => (window as unknown as Fixture).renderDates())
+const renderDateHost = () => browser.execute(() => (window as unknown as Fixture).renderDateHost())
+const renderSelect = () => browser.execute(() => (window as unknown as Fixture).renderSelect())
 const errorOf = (promise: Promise<unknown>) => promise.then(() => undefined, (e: Error) => e)
 
 /**
@@ -226,6 +232,69 @@ describe('finding an element again', () => {
             await browser.url(FIXTURE)
 
             expect(await elem.isDisplayed()).toBe(true)
+        })
+    })
+
+    /**
+     * A command runs again with the id of the element that was found again, not with the stale id
+     */
+    describe('a command that gets the element id', () => {
+        it('setValue sets a date input that the page rendered again directly', async () => {
+            const input = await $('#form .date')
+            expect(input.elementId).toBeDefined()
+
+            await renderForm('replaced')
+            await input.setValue('2026-10-17')
+            await expect($('#form .date')).toHaveValue('2026-10-17')
+        })
+
+        it('a protocol command gets the id of the element that was found again', async () => {
+            const elem = await $('.in-form')
+            await expect(elem.getText()).resolves.toBe('first')
+
+            await renderForm('replaced')
+            await expect(elem.getElementText(elem.elementId)).resolves.toBe('replaced')
+        })
+
+        it('setValue sets a date input in a shadow host that the page replaced', async () => {
+            const input = await $('#date-host').shadow$('.date')
+            expect(input.elementId).toBeDefined()
+
+            await renderDateHost()
+            await input.setValue('2026-10-17')
+            await expect($('#date-host').shadow$('.date')).toHaveValue('2026-10-17')
+        })
+
+        it('setValue sets a date input of a $$ list that the page rendered again', async () => {
+            const input = (await $$('#dates .date'))[1]
+            expect(input.elementId).toBeDefined()
+
+            await renderDates()
+            await input.setValue('2026-10-17')
+            expect(await browser.execute(() => [...document.querySelectorAll<HTMLInputElement>('#dates .date')].map((el) => el.value)))
+                .toEqual(['', '2026-10-17'])
+        })
+
+        it('setValue replaces the text of an input that the page renders again with its old text after the clear', async () => {
+            const input = await $('#restore')
+            expect(input.elementId).toBeDefined()
+
+            await input.setValue('new')
+            await expect($('#restore')).toHaveValue('new')
+        })
+
+        /**
+         * `selectBy*` finds the option again from the select that was found again, so its click
+         * gets a new option id. The unit test "keeps the id of another element in the retry of a
+         * protocol command" checks that a retry on the select keeps the id of the option
+         */
+        it('selectByVisibleText selects in a select that the page rendered again', async () => {
+            const select = await $('#select')
+            expect(select.elementId).toBeDefined()
+
+            await renderSelect()
+            await select.selectByVisibleText('Beta')
+            await expect($('#select')).toHaveValue('b')
         })
     })
 
