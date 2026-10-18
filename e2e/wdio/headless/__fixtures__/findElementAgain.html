@@ -7,7 +7,7 @@
     <div id="late-area"></div>
     <ul id="items"><li class="item">first</li></ul>
     <div id="host"></div>
-    <div id="form-area"><form id="form"><p class="in-form">first</p></form></div>
+    <div id="form-area"><form id="form"><p class="in-form">first</p><input type="date" class="date"></form></div>
 
     <script>
         const root = document.querySelector('#host').attachShadow({ mode: 'open' })
@@ -38,12 +38,17 @@
         }
 
         /**
-         * replace `#form` and its content with new nodes
+         * replace `#form` and its content with new nodes, as a framework does when it
+         * mounts a form again (e.g. a React form with a new `key`)
          */
         window.renderForm = (text) => {
             const form = document.createElement('form')
             form.id = 'form'
             form.append(...elements('p', 'in-form', [text]))
+            const date = document.createElement('input')
+            date.type = 'date'
+            date.className = 'date'
+            form.append(date)
             document.querySelector('#form-area').replaceChildren(form)
         }
 

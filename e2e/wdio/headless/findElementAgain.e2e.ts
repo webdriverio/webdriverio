@@ -229,6 +229,28 @@ describe('finding an element again', () => {
         })
     })
 
+    /**
+     * A command runs again with the id of the element that was found again, not with the stale id
+     */
+    describe('a command that gets the element id', () => {
+        it('setValue sets a date input that the page rendered again directly', async () => {
+            const input = await $('#form .date')
+            expect(input.elementId).toBeDefined()
+
+            await renderForm('replaced')
+            await input.setValue('2026-10-17')
+            await expect($('#form .date')).toHaveValue('2026-10-17')
+        })
+
+        it('a protocol command gets the id of the element that was found again', async () => {
+            const elem = await $('.in-form')
+            await expect(elem.getText()).resolves.toBe('first')
+
+            await renderForm('replaced')
+            await expect(elem.getElementText(elem.elementId)).resolves.toBe('replaced')
+        })
+    })
+
     it('a stale element of a held browsing context is found again in that context', async function () {
         if (!browser.isBidi) {
             return this.skip()
