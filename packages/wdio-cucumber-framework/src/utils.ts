@@ -296,9 +296,10 @@ export async function filterSpecs (specs: string[], config: WebdriverIO.Config):
         names: name ?? [],
         tagExpression: tags ?? ''
     })
-    const found = new Set([...plan, ...errors].map(({ uri }) => path.resolve(uri)))
+    // Cucumber makes the uri with `path.relative()`, which ignores the case on Windows
+    const found = new Set([...plan, ...errors].map(({ uri }) => uri))
     return specs.filter((spec) => {
         const file = toPath(spec)
-        return !file.endsWith('.feature') || found.has(path.resolve(file))
+        return !file.endsWith('.feature') || found.has(path.relative(process.cwd(), file))
     })
 }

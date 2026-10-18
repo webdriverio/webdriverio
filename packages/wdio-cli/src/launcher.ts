@@ -96,6 +96,8 @@ class Launcher {
          * catches ctrl+c event
          */
         exitHook(this._exitHandler.bind(this))
+        // the workers read the config file again, they do not see changes from `onPrepare`
+        const cucumberOpts = { ...config.cucumberOpts, name: [...(config.cucumberOpts?.name ?? [])] }
         let exitCode = 0
         let error: HookError | undefined = undefined
         const caps = this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
@@ -117,7 +119,7 @@ class Launcher {
             log.info('Run onPrepare hook')
             await runLauncherHook(config.onPrepare, config, caps)
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
-            await this._findSpecsWithoutTests(config, caps)
+            await this._findSpecsWithoutTests({ ...config, cucumberOpts }, caps)
 
             /**
              * For parallel multi-remote, only get the specs and excludes from the first object
@@ -368,7 +370,7 @@ class Launcher {
     private async _findSpecsWithoutTests(config: Required<WebdriverIO.Config>, caps: Capabilities.TestrunnerCapabilities) {
         const { tags, name } = config.cucumberOpts ?? {}
         // watch mode reruns only the workers of the first run, a file can get a matching scenario later
-        if (this._isWatchMode || (!tags && !name?.length)) {
+        if (this._isWatchMode || config.framework !== 'cucumber' || (!tags && !name?.length)) {
             return
         }
 

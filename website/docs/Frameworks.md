@@ -490,7 +490,7 @@ Fail if there are any undefined or pending steps.
 
 Only execute the features or scenarios with tags matching the expression.
 Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
-WebdriverIO starts no worker for a feature file without a scenario that matches `tags` and `name` (except in watch mode). The summary shows these files as skipped.
+WebdriverIO starts no worker for a feature file without a scenario that matches `tags` and `name` (except in watch mode). The summary shows these files as skipped, and the worker hooks (`onWorkerStart`, `beforeSession`, …) and reporters do not run for them.
 
 </Option>
 

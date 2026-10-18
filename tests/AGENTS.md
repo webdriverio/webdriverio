@@ -39,7 +39,7 @@ Frameworks: `mochaTestrunner`, `mochaAsyncTestrunner`, `jasmineTestrunner`,
 Cucumber extras: `cucumberTestrunnerByLineNumber`,
 `cucumberTestrunnerMultipleByLineNumber`, `cucumberFailAmbiguousDefinitions`,
 `cucumberPendingTest`, `cucumberReporter`, `cucumberFileOption`,
-`cucumberSkipTag`, `cucumberTagFilterWorkers`, `watchModeCucumberTags`, `cucumberGroupedSpecsRandomOrder`,
+`cucumberSkipTag`, `cucumberTagFilterWorkers`, `cucumberGroupedSpecsRandomOrder`,
 `cucumberGroupedSpecsRandomOrderHistory`
 
 Jasmine extras: `jasmineSpecFiltering`, `jasmineReporter`, `jasmineTimeout`,
@@ -55,7 +55,9 @@ Plugins: `customService`, `customCJSService`, `customReporterString`,
 `customReporterObject`, `reporterTestrunner`, `sharedStoreServiceTest`
 
 Other: `multiRemote`, `parallelMultiRemote`, `wdioHooks`, `retryFail`,
-`retryPass`, `severeErrorTest`, `sessionGoneReport`, `commandHookCounts`
+`retryPass`, `severeErrorTest`, `sessionGoneReport`
+
+Watch mode: `watchMode`, `watchFilesToWatch`, `watchModeCucumberTags`, `commandHookCounts`
 
 Unknown names fail with a list of valid suite names.
 

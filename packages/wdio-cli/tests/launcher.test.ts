@@ -540,9 +540,9 @@ describe('launcher', () => {
             expect(filterSpecs).toBeCalledTimes(1)
         })
 
-        it('should not load the framework without tags or name', async () => {
+        it('should not load the framework without tags or name, or for another framework', async () => {
             await launcher['_findSpecsWithoutTests']({ framework: 'cucumber', cucumberOpts: { tags: '', name: [] } } as any, [{}])
-            await launcher['_findSpecsWithoutTests']({ framework: 'mocha' } as any, [{}])
+            await launcher['_findSpecsWithoutTests']({ framework: 'mocha', cucumberOpts: { tags: '@wanted' } } as any, [{}])
             expect(initializePlugin).not.toBeCalled()
             expect(launcher['_formatSpecs']({}, 0)).toHaveLength(5)
         })
@@ -983,6 +983,21 @@ describe('launcher', () => {
             // @ts-ignore
             expect(config.onPrepare![0]).toBeCalledTimes(1)
             expect(launcher.interface!.finalise).toBeCalledTimes(1)
+        })
+
+        it('should filter the spec files with the Cucumber options from before onPrepare', async () => {
+            config.framework = 'cucumber'
+            config.cucumberOpts = { tags: '@before', name: ['before'] }
+            config.onPrepare = [(conf: WebdriverIO.Config) => {
+                conf.cucumberOpts!.tags = '@after'
+                conf.cucumberOpts!.name!.push('after')
+            }]
+            const findSpecsWithoutTests = vi.spyOn(launcher as any, '_findSpecsWithoutTests').mockResolvedValue(undefined)
+            expect(await launcher.run()).toEqual(0)
+            expect(findSpecsWithoutTests).toBeCalledWith(
+                expect.objectContaining({ cucumberOpts: { tags: '@before', name: ['before'] } }),
+                expect.anything()
+            )
         })
 
         it('should not shutdown runner if was called before', async () => {

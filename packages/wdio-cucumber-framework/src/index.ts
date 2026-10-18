@@ -192,7 +192,7 @@ export class CucumberAdapter {
         }
 
         // Filter the specs according to the tag expression, now with the skip tags of this capability
-        // (the launcher already removed the spec files without a match for `tags` and `name`, see `filterSpecs`)
+        // (outside watch mode the launcher removes the spec files without a match for `tags` and `name`, see `filterSpecs`)
         const { plan } = await loadSources({
             paths: this._specs,
             defaultDialect: this._cucumberOpts.language,
