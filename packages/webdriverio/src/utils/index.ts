@@ -281,8 +281,8 @@ export function isStaleElementError(err: Error) {
         err.message.includes('belongs to different document') ||
         err.message.includes('no such node - The node with the reference') ||
         // BIDI, Chrome: W3C "get a known element", a node that no longer exists is stale.
-        // Chrome gives the same text for an id it cannot parse: match only the id formats it parses.
-        /no such node - SharedId "(f\..+\.d\..+\.e\.\d+|.+_element_\d+)" was not found/.test(err.message)
+        // Like the Firefox text, it also matches an id that is not valid (the refetch then fails).
+        /no such node - SharedId ".*" was not found/.test(err.message)
     )
 }
 
