@@ -10,6 +10,7 @@
     <div id="form-area"><form id="form"><p class="in-form">first</p><input type="date" class="date"></form></div>
     <div id="dates"><input type="date" class="date"><input type="date" class="date"></div>
     <div id="date-host-area"></div>
+    <div id="restore-area"><input id="restore" value="old"></div>
     <div id="select-area"><select id="select"><option value="a">Alpha</option><option value="b">Beta</option></select></div>
 
     <script>
@@ -73,6 +74,20 @@
             document.querySelector('#date-host-area').replaceChildren(host)
         }
         window.renderDateHost()
+
+        /**
+         * an input whose framework keeps its own state: after the clear, the page replaces it
+         * once with a new input that has the old text again
+         */
+        document.querySelector('#restore').addEventListener('change', function restore () {
+            if (this.value !== '' || window.restored) {
+                return
+            }
+            window.restored = true
+            const next = this.cloneNode()
+            next.value = 'old'
+            this.replaceWith(next)
+        })
 
         /**
          * replace `#select` and its options with new nodes

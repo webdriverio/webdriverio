@@ -636,16 +636,18 @@ describe('middleware', () => {
         })
 
         /**
-         * only the type decides how the value is set: a value lookup that gets a stale element
-         * still gives no value, and the value is typed into the element that was found again
+         * the page renders the input again after the clear, and again during the retry of the
+         * value lookup: `setValue` runs again and clears the input that was found again, else the
+         * value would be typed after its text ("oldnew")
          */
-        it('types the value when the value lookup after the clear gets a stale element', async () => {
+        it('clears and types again when the value lookup after the clear gets a stale element', async () => {
             const MID_ID = 'mid-elem-789'
             const stale = { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
             vi.mocked(fetch).resetCustomResponses()
-            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${OLD_ID}/property/type$`), { value: 'text' })
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/(${OLD_ID}|${NEW_ID})/property/type$`), { value: 'text' })
             vi.mocked(fetch).customResponseFor(new RegExp(`/element/${OLD_ID}/property/value$`), stale)
-            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${MID_ID}/property/value$`), stale)
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${MID_ID}/(property/value|value|clear)$`), stale)
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${NEW_ID}/property/value$`), { value: '' })
             const mid = await classicBrowser.$('#foo')
             mid.elementId = MID_ID
             vi.mocked(refetchElement).mockResolvedValueOnce(mid)
@@ -653,8 +655,12 @@ describe('middleware', () => {
             vi.mocked(fetch).mockClear()
 
             await elem.setValue('abc')
-            expect(sentKeys()).toEqual([`${MID_ID} ← abc`])
-            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+            const steps = vi.mocked(fetch).mock.calls
+                .map(([uri]) => String(uri).match(/\/element\/([^/]+)\/(clear|value)$/))
+                .filter((match) => match !== null)
+                .map((match) => `${match[2]} ${match[1]}`)
+            expect(steps).toEqual([`clear ${OLD_ID}`, `clear ${NEW_ID}`, `value ${NEW_ID}`])
+            expect(sentKeys()).toEqual([`${NEW_ID} ← abc`])
         })
 
         it('sets a date input directly when the page renders it again during the retry of its type lookup', async () => {

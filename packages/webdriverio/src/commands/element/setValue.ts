@@ -82,27 +82,19 @@ export async function setValue (
 }
 
 /**
- * A failed property lookup gives no value, except when the page removed the element: the
- * next command (`clearValue`, `addValue`) would wait for it again.
+ * A failed property lookup gives no value, except when the element changed:
+ * - the page removed it: the next command (`clearValue`, `addValue`) would wait for it again;
+ * - it is stale (the page rendered it again, and the lookup still failed): the `setValue` layer
+ *   finds it again and runs `setValue` again, as the middleware does for any command. With no
+ *   type, a date, range, time or color input would get key strokes instead of its value; with
+ *   no value after the clear, the value would be typed after the text of an input that the page
+ *   rendered again with its old text ("oldnew").
  */
-function noPropertyUnlessGone (err: unknown) {
-    if (isElementNotFoundAgain(err)) {
+function noPropertyUnlessElementChanged (err: unknown) {
+    if (isElementNotFoundAgain(err) || isStaleElementToFindAgain(err)) {
         throw err
     }
     return undefined
-}
-
-/**
- * The type decides how `setValue` sets the value, so a stale element error goes up too (the
- * page rendered the input again, and the lookup still failed): the `setValue` layer finds the
- * input again and runs `setValue` again, as the middleware does for any command. With no type,
- * a date, range, time or color input would get key strokes instead of its value.
- */
-function noTypeUnlessElementChanged (err: unknown) {
-    if (isStaleElementToFindAgain(err)) {
-        throw err
-    }
-    return noPropertyUnlessGone(err)
 }
 
 /**
@@ -116,7 +108,7 @@ async function clearStubbornValue (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return
     }
-    const remaining = await readProperty(elem, 'value').catch(noPropertyUnlessGone)
+    const remaining = await readProperty(elem, 'value')
     if (typeof remaining !== 'string' || remaining === '') {
         return
     }
@@ -134,7 +126,7 @@ async function setsDirectly (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return false
     }
-    const type = await readProperty(elem, 'type').catch(noTypeUnlessElementChanged)
+    const type = await readProperty(elem, 'type')
     return typeof type === 'string' && SET_DIRECTLY.includes(type)
 }
 
@@ -142,5 +134,5 @@ function readProperty (elem: WebdriverIO.Element, name: string): Promise<unknown
     const read = isBidiCommandsEnabled(getBrowserObject(elem) as WebdriverIO.Browser)
         ? bidiGetProperty(elem, name)
         : elem.getElementProperty(elem.elementId, name)
-    return read
+    return read.catch(noPropertyUnlessElementChanged)
 }

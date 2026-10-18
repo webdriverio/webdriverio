@@ -275,6 +275,14 @@ describe('finding an element again', () => {
                 .toEqual(['', '2026-10-17'])
         })
 
+        it('setValue replaces the text of an input that the page renders again with its old text after the clear', async () => {
+            const input = await $('#restore')
+            expect(input.elementId).toBeDefined()
+
+            await input.setValue('new')
+            await expect($('#restore')).toHaveValue('new')
+        })
+
         /**
          * the command clicks the option through the select: the retry must keep the id of the option
          */
