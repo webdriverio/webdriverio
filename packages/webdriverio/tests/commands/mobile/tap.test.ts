@@ -85,11 +85,10 @@ describe('element tap test', () => {
 
         await elem.tap()
 
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[3][0].pathname)
-            .toBe('/session/foobar-123/execute/sync')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any))
-            .toMatchSnapshot()
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/execute/sync' }),
+            expect.objectContaining({ body: JSON.stringify({ script: 'mobile: tap', args: [{ x: 0, y: 0, elementId: 'some-elem-123' }] }) })
+        )
 
         clickSpy.mockRestore()
     })
@@ -266,11 +265,10 @@ describe('screen tap test', () => {
 
         await browser.tap({ x: 10, y: 20 })
 
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
-            .toBe('/session/foobar-123/execute/sync')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any))
-            .toMatchSnapshot()
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/execute/sync' }),
+            expect.objectContaining({ body: JSON.stringify({ script: 'mobile: tap', args: [{ x: 10, y: 20 }] }) })
+        )
     })
 
     it('should call the action command for mobile web when a tap is executed with x and y coordinates', async () => {
@@ -285,11 +283,20 @@ describe('screen tap test', () => {
 
         await browser.tap({ x: 10, y: 20 })
 
-        // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
-            .toBe('/session/foobar-123/actions')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions[0])
-            .toMatchSnapshot()
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/actions' }),
+            expect.objectContaining({ body: JSON.stringify({ actions: [{
+                id: 'pointer1',
+                type: 'pointer',
+                parameters: { pointerType: 'touch' },
+                actions: [
+                    { type: 'pointerMove', button: 0, x: 10, y: 20, duration: 100, origin: 'viewport' },
+                    { type: 'pointerDown', button: 0 },
+                    { type: 'pause', duration: 10 },
+                    { type: 'pointerUp', button: 0 }
+                ]
+            }] }) })
+        )
     })
 
     afterEach(() => {
