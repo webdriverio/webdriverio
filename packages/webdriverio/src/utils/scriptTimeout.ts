@@ -12,9 +12,9 @@ import type { Capabilities } from '@wdio/types'
  */
 const DEFAULT_SCRIPT_TIMEOUT = 30_000
 /**
- * the longest delay of a browser timer: a longer one fires at once
+ * W3C `null` (no limit): the 1 h limit of Appium (appium/appium-xcuitest-driver#3041)
  */
-const MAX_TIMER_DELAY = 2_147_483_647
+const NO_LIMIT_SCRIPT_TIMEOUT = 60 * 60 * 1000
 
 interface CommandResultEvent {
     command: string
@@ -114,5 +114,5 @@ export async function setIOSScriptTimeout (browser: WebdriverIO.Browser) {
         ? [requested.alwaysMatch, ...(requested.firstMatch ?? [])].find((caps) => caps?.timeouts?.script !== undefined)?.timeouts?.script
         : requested?.timeouts?.script
     // a failed request keeps the driver's own limit, as before
-    await browser.setTimeouts(undefined, undefined, script === null ? MAX_TIMER_DELAY : script ?? DEFAULT_SCRIPT_TIMEOUT).catch(() => undefined)
+    await browser.setTimeouts(undefined, undefined, script === null ? NO_LIMIT_SCRIPT_TIMEOUT : script ?? DEFAULT_SCRIPT_TIMEOUT).catch(() => undefined)
 }

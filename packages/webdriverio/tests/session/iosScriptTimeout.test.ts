@@ -10,7 +10,7 @@ const ios = { platformName: 'iOS', browserName: 'Safari', 'appium:automationName
 const timeoutRequests = () => vi.mocked(fetch).mock.calls
     .filter(([url, request]) => (url as URL).pathname === '/session/foobar-123/timeouts' && request?.method === 'POST')
     .map(([, request]) => JSON.parse((request as { body: string }).body))
-const calls = () => vi.mocked(fetch).mock.calls.map(([url]) => (url as URL).pathname.replace('/session/foobar-123/', ''))
+const executeAsync = [expect.objectContaining({ pathname: '/session/foobar-123/execute/async' }), expect.anything()]
 
 describe('script timeout of an iOS session (Appium)', () => {
     afterEach(() => {
@@ -25,7 +25,7 @@ describe('script timeout of an iOS session (Appium)', () => {
         await browser.execute(async () => 1)
         await browser.execute(async () => 2)
         expect(timeoutRequests()).toEqual([{ script: 30000 }])
-        expect(calls().slice(-2)).toEqual(['execute/async', 'execute/async'])
+        expect(fetch).toHaveBeenCalledWith(...executeAsync)
     })
 
     it('sets the timeout of the capabilities, which Appium ignores', async () => {
@@ -41,9 +41,9 @@ describe('script timeout of an iOS session (Appium)', () => {
         expect(timeoutRequests()).toEqual([{ script: 5000 }])
     })
 
-    it('gives no limit as the longest timer delay', async () => {
+    it('gives no limit as the 1 h limit of Appium', async () => {
         await remote({ baseUrl: 'http://foobar.com', capabilities: { ...ios, timeouts: { script: null } } })
-        expect(timeoutRequests()).toEqual([{ script: 2147483647 }])
+        expect(timeoutRequests()).toEqual([{ script: 3600000 }])
     })
 
     it('keeps a later browser.setTimeout()', async () => {
@@ -63,7 +63,7 @@ describe('script timeout of an iOS session (Appium)', () => {
         const browser = await attach({ sessionId: 'foobar-123', protocol: 'http', hostname: 'localhost', port: 4444, path: '/', capabilities: ios })
         await browser.execute(async () => 1)
         expect(timeoutRequests()).toEqual([])
-        expect(calls()).toEqual(['execute/async'])
+        expect(fetch).toHaveBeenCalledWith(...executeAsync)
     })
 
     it('starts the session when the driver rejects the timeout', async () => {
