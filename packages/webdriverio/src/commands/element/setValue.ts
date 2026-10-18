@@ -1,8 +1,8 @@
 import { getBrowserObject } from '@wdio/utils'
 
 import { Key } from '../../constants.js'
-import { isElementNotFoundAgain, waitedFor } from '../../utils/elementNotFound.js'
-import { isStaleElementError } from '../../utils/index.js'
+import { isElementNotFoundAgain } from '../../utils/elementNotFound.js'
+import { isStaleElementToFindAgain } from '../../utils/index.js'
 import type { InputOptions } from '../../types.js'
 import { bidiGetProperty, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 
@@ -82,24 +82,27 @@ export async function setValue (
 }
 
 /**
- * A failed property lookup gives no value, except when the element changed:
- * - the page removed it: the next command (`clearValue`, `addValue`) would wait for it again;
- * - it is stale (the page rendered it again, and the lookup still failed): the `setValue` layer
- *   finds it again and runs `setValue` again, as the middleware does for any command. With no
- *   value, a date, range, time or color input would get key strokes instead of its value.
+ * A failed property lookup gives no value, except when the page removed the element: the
+ * next command (`clearValue`, `addValue`) would wait for it again.
  */
-function noPropertyUnlessElementChanged (err: unknown) {
-    if (isElementNotFoundAgain(err) || isStaleError(err)) {
+function noPropertyUnlessGone (err: unknown) {
+    if (isElementNotFoundAgain(err)) {
         throw err
     }
     return undefined
 }
 
 /**
- * a stale element error that the element middleware handles (not the error of a wait)
+ * The type decides how `setValue` sets the value, so a stale element error goes up too (the
+ * page rendered the input again, and the lookup still failed): the `setValue` layer finds the
+ * input again and runs `setValue` again, as the middleware does for any command. With no type,
+ * a date, range, time or color input would get key strokes instead of its value.
  */
-function isStaleError (err: unknown) {
-    return err instanceof Error && !waitedFor(err) && (err.name === 'stale element reference' || isStaleElementError(err))
+function noTypeUnlessElementChanged (err: unknown) {
+    if (isStaleElementToFindAgain(err)) {
+        throw err
+    }
+    return noPropertyUnlessGone(err)
 }
 
 /**
@@ -113,7 +116,7 @@ async function clearStubbornValue (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return
     }
-    const remaining = await readProperty(elem, 'value')
+    const remaining = await readProperty(elem, 'value').catch(noPropertyUnlessGone)
     if (typeof remaining !== 'string' || remaining === '') {
         return
     }
@@ -131,7 +134,7 @@ async function setsDirectly (elem: WebdriverIO.Element) {
     if (browser.isMobile && (browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)) {
         return false
     }
-    const type = await readProperty(elem, 'type')
+    const type = await readProperty(elem, 'type').catch(noTypeUnlessElementChanged)
     return typeof type === 'string' && SET_DIRECTLY.includes(type)
 }
 
@@ -139,5 +142,5 @@ function readProperty (elem: WebdriverIO.Element, name: string): Promise<unknown
     const read = isBidiCommandsEnabled(getBrowserObject(elem) as WebdriverIO.Browser)
         ? bidiGetProperty(elem, name)
         : elem.getElementProperty(elem.elementId, name)
-    return read.catch(noPropertyUnlessElementChanged)
+    return read
 }

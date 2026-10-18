@@ -479,7 +479,7 @@ describe('middleware', () => {
          * the element id and the text of each `elementSendKeys` request
          */
         const sentKeys = () => vi.mocked(fetch).mock.calls
-            .filter(([uri]) => String(uri).endsWith('/value'))
+            .filter(([uri]) => /\/element\/[^/]+\/value$/.test(String(uri)))
             .map(([uri, opts]) => `${String(uri).split('/').at(-2)} ← ${JSON.parse((opts as RequestInit).body as string).text}`)
         let classicBrowser: WebdriverIO.Browser
 
@@ -585,8 +585,19 @@ describe('middleware', () => {
         })
 
         it('gives the element the new id after the wait for a clickable element found it again', async () => {
-            classicBrowser.overwriteCommand('waitForClickable', async function (this: WebdriverIO.Element) {
+            /**
+             * its own browser: the overwrite of `waitForClickable` stays on the browser
+             */
+            const ownBrowser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: { browserName: 'foobar' },
+                waitforInterval: 20,
+                waitforTimeout: 100
+            })
+            const newParent = await ownBrowser.$('#new-parent')
+            ownBrowser.overwriteCommand('waitForClickable', async function (this: WebdriverIO.Element) {
                 this.elementId = NEW_ID
+                this.parent = newParent
                 return true
             }, { attachToElement: true })
             const command = vi.fn(function (this: WebdriverIO.Element) {
@@ -595,22 +606,17 @@ describe('middleware', () => {
                 }
                 return this.elementId
             })
-            classicBrowser.addCommand('readIdWhenClickable', command, { attachToElement: true })
-            const elem = await classicBrowser.$('#foo')
+            ownBrowser.addCommand('readIdWhenClickable', command, { attachToElement: true })
+            const elem = await ownBrowser.$('#foo')
             /**
              * not found yet: the implicit wait finds the element with a new object
              */
             elem.elementId = undefined as unknown as string
 
-            try {
-                // @ts-expect-error undefined custom command
-                expect(await elem.readIdWhenClickable()).toBe(NEW_ID)
-                expect(elem.elementId).toBe(NEW_ID)
-            } finally {
-                classicBrowser.overwriteCommand('waitForClickable', function (orig, ...args) {
-                    return orig(...args)
-                }, { attachToElement: true })
-            }
+            // @ts-expect-error undefined custom command
+            expect(await elem.readIdWhenClickable()).toBe(NEW_ID)
+            expect(elem.elementId).toBe(NEW_ID)
+            expect(elem.parent).toBe(newParent)
         })
 
         it('sets the value of a date input that the page rendered again directly', async () => {
@@ -627,6 +633,28 @@ describe('middleware', () => {
             expect(scripts[0].script).toContain('setInputValue')
             expect(scripts[0].args).toEqual([expect.objectContaining({ [ELEMENT_KEY]: NEW_ID }), '2026-10-17'])
             expect(calls.filter(([uri]) => /\/(value|clear)$/.test(String(uri)))).toEqual([])
+        })
+
+        /**
+         * only the type decides how the value is set: a value lookup that gets a stale element
+         * still gives no value, and the value is typed into the element that was found again
+         */
+        it('types the value when the value lookup after the clear gets a stale element', async () => {
+            const MID_ID = 'mid-elem-789'
+            const stale = { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
+            vi.mocked(fetch).resetCustomResponses()
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${OLD_ID}/property/type$`), { value: 'text' })
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${OLD_ID}/property/value$`), stale)
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${MID_ID}/property/value$`), stale)
+            const mid = await classicBrowser.$('#foo')
+            mid.elementId = MID_ID
+            vi.mocked(refetchElement).mockResolvedValueOnce(mid)
+            const elem = await classicBrowser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            await elem.setValue('abc')
+            expect(sentKeys()).toEqual([`${MID_ID} ← abc`])
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
         })
 
         it('sets a date input directly when the page renders it again during the retry of its type lookup', async () => {

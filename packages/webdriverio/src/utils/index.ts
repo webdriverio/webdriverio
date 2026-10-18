@@ -28,6 +28,7 @@ import { parseScriptResult } from './bidi/index.js'
 import { ElementArray } from '../element/array.js'
 import { findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
+import { waitedFor } from './elementNotFound.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -280,6 +281,23 @@ export function isStaleElementError(err: Error) {
         err.message.includes('belongs to different document') ||
         err.message.includes('no such node - The node with the reference')
     )
+}
+
+/**
+ * A stale element error that the element middleware handles: it finds the element again and
+ * runs the command again. The "element wasn't found" error of a wait (an element that was not
+ * found again, or never found) is not one, also when its message has that text (a selector like
+ * `[data-error="stale element reference"]`).
+ */
+export function isStaleElementToFindAgain(err: unknown): err is Error {
+    /**
+     * also an error of another realm, which is not an `Error` instance
+     */
+    if (!err || typeof err !== 'object' || waitedFor(err)) {
+        return false
+    }
+    const { name, message } = err as Partial<Error>
+    return name === 'stale element reference' || (typeof message === 'string' && isStaleElementError(err as Error))
 }
 
 /**

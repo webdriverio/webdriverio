@@ -8,7 +8,7 @@ import {
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
 import { isElementNotFoundAgain, nameNotFoundAgain, notFoundElement, waitedFor } from './utils/elementNotFound.js'
-import { isStaleElementError } from './utils/index.js'
+import { isStaleElementError, isStaleElementToFindAgain } from './utils/index.js'
 /**
  * imported from the leaf module directly, see `utils/implicitWait.ts`
  */
@@ -38,6 +38,16 @@ function withElementId (commandName: string, args: unknown[], staleId: string | 
         return args
     }
     return [newId, ...args.slice(1)]
+}
+
+/**
+ * Give `element` the element id (also the w3c identifier, which e.g. an action origin reads) and
+ * the parent chain of the element that was found again
+ */
+function adoptElement (element: WebdriverIO.Element, found: WebdriverIO.Element) {
+    element.elementId = found.elementId
+    element[ELEMENT_KEY] = found.elementId
+    element.parent = found.parent
 }
 
 /**
@@ -93,8 +103,7 @@ async function invokeElementCommand (
                  * the wait can find the element again: the element and the retry get its new id
                  */
                 await fetched.waitForClickable()
-                element.elementId = fetched.elementId
-                element[ELEMENT_KEY] = fetched.elementId
+                adoptElement(element, fetched)
                 return await execute(withElementId(commandName, args, calledWithId, fetched.elementId))
             } catch {
                 const elementHTML = await fetched.getHTML()
@@ -105,23 +114,16 @@ async function invokeElementCommand (
         }
 
         /**
-         * The "element wasn't found" error of a wait (an element that was not found again, or
-         * never found) is not a stale element error, also when its message has that text (a
-         * selector like `[data-error="stale element reference"]`). So the outer layers of a
-         * command do not look for an element that an inner layer did not find, and do not run
-         * the command again (9.31.9 did not either: the command would repeat its steps and wait
-         * again for an element that it kept).
+         * The "element wasn't found" error of a wait is not a stale element error. So the outer
+         * layers of a command do not look for an element that an inner layer did not find, and
+         * do not run the command again (9.31.9 did not either: the command would repeat its steps
+         * and wait again for an element that it kept).
          */
-        const stale = !waitedFor(err) && (err.name === 'stale element reference' || isStaleElementError(err))
+        const stale = isStaleElementToFindAgain(err)
         if (stale) {
             try {
                 const refetched = await refetchElement(element, commandName)
-                element.elementId = refetched.elementId
-                /**
-                 * also the w3c identifier, which e.g. an action origin reads
-                 */
-                element[ELEMENT_KEY] = refetched.elementId
-                element.parent = refetched.parent
+                adoptElement(element, refetched)
                 return await execute(withElementId(commandName, args, calledWithId, refetched.elementId))
             } catch (refetchErr) {
                 /**
