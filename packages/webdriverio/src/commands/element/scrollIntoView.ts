@@ -4,6 +4,7 @@ import { getBrowserObject } from '@wdio/utils'
 import type { ChainablePromiseElement, CustomScrollIntoViewOptions, MobileScrollIntoViewOptions } from '../../types.js'
 import { MobileScrollDirection } from '../../types.js'
 import { StrictSelectorError } from '../../utils/strictSelectorError.js'
+import { isStaleElementToFindAgain } from '../../utils/index.js'
 
 const log = logger('webdriverio')
 
@@ -109,6 +110,10 @@ export async function scrollIntoView (
          * round-trip instead of three protocol calls.
          */
         const measure = async () => browser.execute((elem: HTMLElement) => {
+            // BiDi gives a script the node that the page removed: throw the stale element error of Classic
+            if ((typeof elem.isConnected === 'boolean' && !elem.isConnected) || (elem.ownerDocument?.defaultView && elem.ownerDocument.defaultView.document !== elem.ownerDocument)) {
+                throw new Error('stale element reference: element is not attached to the page document')
+            }
             const { left, top, width, height } = elem.getBoundingClientRect()
             // ground truth for "is this actually visible right now", independent of any
             // window-bounds arithmetic: is the element really the thing painted at its
@@ -291,6 +296,10 @@ export async function scrollIntoView (
          * animating underneath.
          */
         await browser.execute(async (elem: HTMLElement) => {
+            // BiDi gives a script the node that the page removed: throw the stale element error of Classic
+            if ((typeof elem.isConnected === 'boolean' && !elem.isConnected) || (elem.ownerDocument?.defaultView && elem.ownerDocument.defaultView.document !== elem.ownerDocument)) {
+                throw new Error('stale element reference: element is not attached to the page document')
+            }
             try {
                 let last = elem.getBoundingClientRect()
                 let stableFrames = 0
@@ -341,6 +350,13 @@ export async function scrollIntoView (
             await scrollIntoViewWeb.call(this, options)
         }
     } catch (err) {
+        /**
+         * the element is stale: the element layer finds it again and scrolls the element on the
+         * page, the Web API would only fail with the same error
+         */
+        if (isStaleElementToFindAgain(err)) {
+            throw err
+        }
         log.warn(
             `Failed to execute "scrollIntoView" using WebDriver Actions API: ${(err as Error).message}!\n` +
             'Re-attempting using `Element.scrollIntoView` via Web API.'
@@ -455,7 +471,13 @@ function scrollIntoViewWeb (
 ) {
     const browser = getBrowserObject(this)
     return browser.execute(
-        (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options),
+        (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => {
+            // BiDi gives a script the node that the page removed: throw the stale element error of Classic
+            if ((typeof elem.isConnected === 'boolean' && !elem.isConnected) || (elem.ownerDocument?.defaultView && elem.ownerDocument.defaultView.document !== elem.ownerDocument)) {
+                throw new Error('stale element reference: element is not attached to the page document')
+            }
+            return elem.scrollIntoView(options)
+        },
         this as unknown as HTMLElement,
         options,
     )

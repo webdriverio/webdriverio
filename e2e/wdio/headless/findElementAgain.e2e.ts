@@ -12,6 +12,7 @@ interface Fixture {
     renderDates (): void
     renderDateHost (): void
     renderSelect (): void
+    renderFar (): void
 }
 
 const FIXTURE = url.pathToFileURL(path.resolve(__dirname, '__fixtures__', 'findElementAgain.html')).href
@@ -27,6 +28,7 @@ const renderForm = (text: string) => browser.execute(
 const renderDates = () => browser.execute(() => (window as unknown as Fixture).renderDates())
 const renderDateHost = () => browser.execute(() => (window as unknown as Fixture).renderDateHost())
 const renderSelect = () => browser.execute(() => (window as unknown as Fixture).renderSelect())
+const renderFar = () => browser.execute(() => (window as unknown as Fixture).renderFar())
 const errorOf = (promise: Promise<unknown>) => promise.then(() => undefined, (e: Error) => e)
 
 /**
@@ -232,6 +234,40 @@ describe('finding an element again', () => {
             await browser.url(FIXTURE)
 
             expect(await elem.isDisplayed()).toBe(true)
+        })
+
+        it('isEqual compares the element that the page rendered again', async () => {
+            const elem = await $('.item')
+            await renderItems(['replaced'])
+
+            expect(await elem.isEqual(await $('.item'))).toBe(true)
+        })
+
+        it('isEqual of an element that the page removed gives false at once', async () => {
+            const elem = await $('.item')
+            const other = await $('#late-area')
+            await renderItems([])
+
+            const start = Date.now()
+            expect(await elem.isEqual(other)).toBe(false)
+            expect(Date.now() - start).toBeLessThan(browser.options.waitforTimeout ?? 5000)
+        })
+    })
+
+    /**
+     * BiDi gives a script the node that the page removed, with no error. A command that runs a
+     * script on its element checks that the element is still on the page, as `isDisplayed` does
+     */
+    describe('a script on an element that the page rendered again', () => {
+        it('scrollIntoView scrolls the element that the page rendered again', async () => {
+            const elem = await $('#far')
+            await renderFar()
+            await elem.scrollIntoView()
+
+            expect(await browser.execute(() => {
+                const rect = document.querySelector('#far')!.getBoundingClientRect()
+                return rect.top >= 0 && rect.bottom <= window.innerHeight
+            })).toBe(true)
         })
     })
 

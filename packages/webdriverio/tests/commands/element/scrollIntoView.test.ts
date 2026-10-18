@@ -347,6 +347,35 @@ describe('scrollIntoView test', () => {
             expect(scrollAction.y).toBe(0)
         })
 
+        /**
+         * BiDi gives a script the node that the page removed, with no error
+         */
+        describe('an element that the page rendered again', () => {
+            const removed = { isConnected: false, ownerDocument: {} } as unknown as HTMLElement
+            const stale = () => Object.assign(
+                new Error('stale element reference: element is not attached to the page document'),
+                { name: 'stale element reference' }
+            )
+
+            it('each script throws a stale element error for an element that is not on the page', async () => {
+                const execute = vi.spyOn(browser, 'execute')
+                await elem.scrollIntoView()
+                const scripts = execute.mock.calls.map(([script]) => script as (...args: unknown[]) => unknown)
+
+                expect(scripts.length).toBeGreaterThan(0)
+                for (const script of scripts) {
+                    await expect(Promise.resolve().then(() => script(removed, {}))).rejects.toThrow('stale element reference')
+                }
+            })
+
+            it('sends up a stale element error without the Web API fallback', async () => {
+                const execute = vi.spyOn(browser, 'execute').mockRejectedValue(stale())
+
+                await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
+                const webApiCalls = execute.mock.calls.filter(([script]) => /^\(elem, \w+\) => elem\.scrollIntoView\(/.test(String(script)))
+                expect(webApiCalls).toEqual([])
+            })
+        })
     })
 
     describe('mobile web', () => {
@@ -368,6 +397,16 @@ describe('scrollIntoView test', () => {
             vi.mocked(fetch).mockClear()
         })
 
+        it('the Web API script throws a stale element error for an element that is not on the page', async () => {
+            const removed = { isConnected: false, ownerDocument: {} } as unknown as HTMLElement
+            const execute = vi.spyOn(browser, 'execute')
+            await elem.scrollIntoView()
+            const [script] = execute.mock.calls[0] as unknown as [(...args: unknown[]) => unknown]
+            execute.mockRestore()
+
+            expect(() => script(removed, true)).toThrow('stale element reference')
+        })
+
         it('scrolls by default the element to the top', async () => {
             await elem.scrollIntoView()
             const { calls } = vi.mocked(fetch).mock
@@ -375,7 +414,7 @@ describe('scrollIntoView test', () => {
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
-                expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
+                expect.stringMatching(/stale element reference[\s\S]*return elem\.scrollIntoView\(options2\)/))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual({ block: 'start', inline: 'nearest' })
         })
@@ -387,7 +426,7 @@ describe('scrollIntoView test', () => {
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
-                expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
+                expect.stringMatching(/stale element reference[\s\S]*return elem\.scrollIntoView\(options2\)/))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual(true)
         })
@@ -399,7 +438,7 @@ describe('scrollIntoView test', () => {
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
-                expect.stringContaining('return ((elem, options2) => elem.scrollIntoView(options2)).apply(null, arguments)'))
+                expect.stringMatching(/stale element reference[\s\S]*return elem\.scrollIntoView\(options2\)/))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual({ block: 'end', inline: 'center' })
         })

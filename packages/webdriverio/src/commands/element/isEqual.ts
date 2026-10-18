@@ -1,5 +1,8 @@
 import { getBrowserObject } from '@wdio/utils'
 
+import { findElementAgain } from '../../utils/findElementAgain.js'
+import { isStaleElementToFindAgain } from '../../utils/index.js'
+
 /**
  *
  * Return true if the selected element matches with the provided one.
@@ -45,15 +48,39 @@ export async function isEqual (
     }
 
     // browser or webview
-    let result: boolean
     try {
-        result = await browser.execute(
-            /* istanbul ignore next */
-            function (el1: HTMLElement, el2: HTMLElement) { return el1 === el2 },
-            this as unknown as HTMLElement, el as unknown as HTMLElement)
-    } catch {
-        result = false
+        return await isSameNode(browser, this, el)
+    } catch (err) {
+        if (!isStaleElementToFindAgain(err)) {
+            return false
+        }
+        /**
+         * The page rendered an element again: compare the elements that are on the page now. As
+         * the other checks, look them up once, without a wait: an element that is gone is not equal.
+         */
+        const [found, other] = await Promise.all([findElementAgain(this), findElementAgain(el)])
+            .catch(() => [undefined, undefined])
+        if (!found?.elementId || !other?.elementId) {
+            return false
+        }
+        return isSameNode(browser, found, other).catch(() => false)
     }
+}
 
-    return result
+/**
+ * Whether 2 elements are the same node. BiDi gives a script the node that the page removed, so the
+ * script throws the stale element error of Classic for an element that is not on the page.
+ */
+function isSameNode (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, el1: WebdriverIO.Element, el2: WebdriverIO.Element) {
+    return (browser as WebdriverIO.Browser).execute(
+        /* istanbul ignore next */
+        function isSameElement (el1: HTMLElement, el2: HTMLElement) {
+            for (const el of [el1, el2]) {
+                if ((typeof el.isConnected === 'boolean' && !el.isConnected) || (el.ownerDocument?.defaultView && el.ownerDocument.defaultView.document !== el.ownerDocument)) {
+                    throw new Error('stale element reference: element is not attached to the page document')
+                }
+            }
+            return el1 === el2
+        },
+        el1 as unknown as HTMLElement, el2 as unknown as HTMLElement)
 }
