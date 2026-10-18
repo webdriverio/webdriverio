@@ -86,9 +86,9 @@ describe('element tap test', () => {
         await elem.tap()
 
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
+        expect(vi.mocked(fetch).mock.calls[3][0].pathname)
             .toBe('/session/foobar-123/execute/sync')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any))
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any))
             .toMatchSnapshot()
 
         clickSpy.mockRestore()
@@ -267,9 +267,9 @@ describe('screen tap test', () => {
         await browser.tap({ x: 10, y: 20 })
 
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[1][0].pathname)
+        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/execute/sync')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]?.body as any))
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any))
             .toMatchSnapshot()
     })
 
@@ -286,9 +286,9 @@ describe('screen tap test', () => {
         await browser.tap({ x: 10, y: 20 })
 
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[1][0].pathname)
+        expect(vi.mocked(fetch).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/actions')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]?.body as any).actions[0])
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[2][1]?.body as any).actions[0])
             .toMatchSnapshot()
     })
 

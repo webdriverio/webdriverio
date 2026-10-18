@@ -72,7 +72,7 @@ describe('keys', () => {
             }
         })
         await browser.keys(['c'])
-        expect(JSON.parse((vi.mocked(fetch).mock.calls[1][1] as any).body).actions[0].actions).toEqual([
+        expect(JSON.parse((vi.mocked(fetch).mock.calls[2][1] as any).body).actions[0].actions).toEqual([
             { type: 'keyDown', value: 'c' },
             { type: 'keyUp', value: 'c' }
         ])

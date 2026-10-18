@@ -5,7 +5,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 import { LocalValue } from '../../utils/bidi/value.js'
 import { parseScriptResult } from '../../utils/bidi/index.js'
 import { createBidiFunctionDeclaration } from '../../utils/bidi/serialize.js'
-import { scriptTimeoutOf, setAppiumScriptTimeout } from '../../utils/scriptTimeout.js'
+import { scriptTimeoutOf } from '../../utils/scriptTimeout.js'
 import { contextIdOf, heldBrowsingContext, assertFrameAttached } from '../../session/browsingContext.js'
 import { polyfillFn } from '../../scripts/polyfill.js'
 import type { TransformElement, TransformReturn } from '../../types.js'
@@ -138,7 +138,6 @@ export async function execute<ReturnValue, InnerArguments extends unknown[]> (
 
     const scriptArgs = verifyArgsAndStripIfElement(args) as (string | number | boolean)[]
     if (isAsyncFn) {
-        await setAppiumScriptTimeout(browser)
         const result = await browser.executeAsyncScript(script, scriptArgs)
         if (isScriptError(result)) {
             const error = new Error(result.message)

@@ -106,11 +106,11 @@ describe('dragAndDrop', () => {
 
         // move to
         // @ts-expect-error mock implementation
-        expect(vi.mocked(fetch).mock.calls[3][0].pathname).toContain('/foobar-123/actions')
-        expect(JSON.parse(vi.mocked(fetch).mock.calls[3][1]?.body as any).actions).toMatchSnapshot()
-        // @ts-expect-error mock implementation
         expect(vi.mocked(fetch).mock.calls[4][0].pathname).toContain('/foobar-123/actions')
-        expect(vi.mocked(fetch).mock.calls[4][1]?.method).toContain('DELETE')
+        expect(JSON.parse(vi.mocked(fetch).mock.calls[4][1]?.body as any).actions).toMatchSnapshot()
+        // @ts-expect-error mock implementation
+        expect(vi.mocked(fetch).mock.calls[5][0].pathname).toContain('/foobar-123/actions')
+        expect(vi.mocked(fetch).mock.calls[5][1]?.method).toContain('DELETE')
     })
 
     it('should do a dragAndDrop with coordinates', async () => {

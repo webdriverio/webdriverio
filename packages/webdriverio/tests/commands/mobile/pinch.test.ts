@@ -55,9 +55,10 @@ describe('pinch test', () => {
         await elem.pinch()
 
         const { calls } = vi.mocked(fetch).mock
-        expect(calls).toHaveLength(3)
-        const [[sessionCallUrl], [elementCallUrl], [executeCallUrl, executeCallOptions]] = calls as any
+        expect(calls).toHaveLength(4)
+        const [[sessionCallUrl], [timeoutsCallUrl], [elementCallUrl], [executeCallUrl, executeCallOptions]] = calls as any
         expect(sessionCallUrl.pathname).toEqual('/session')
+        expect(timeoutsCallUrl.pathname).toEqual('/session/foobar-123/timeouts')
         expect(elementCallUrl.pathname).toEqual('/session/foobar-123/element')
         expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
         expect(JSON.parse(executeCallOptions.body)).toMatchSnapshot()

@@ -99,31 +99,20 @@ export async function scriptTimeoutOf (browser: WebdriverIO.Browser): Promise<nu
 }
 
 /**
- * sessions that got their `script` timeout from `setAppiumScriptTimeout`
- */
-const appiumScriptTimeouts = new WeakMap<WebdriverIO.Browser, string>()
-
-/**
- * The Appium XCUITest driver (iOS) gives Execute Async Script 0 ms when the client
- * set no `script` timeout (the WebDriver default is 30 s), and it ignores
- * `timeouts.script` in the capabilities. Set the timeout of the capabilities, else
- * the default, once per session, unless `browser.setTimeout()` set one.
+ * Appium XCUITest (iOS) starts with a `script` timeout of 0 ms (W3C: 30 s) and
+ * ignores `timeouts.script` of the capabilities. Set it when the session starts.
+ * An attached session keeps the timeout that it has.
  *
- * TODO: remove when the supported XCUITest drivers start with the W3C default
- * (appium/appium-xcuitest-driver#3056, #3041) and apply the capability (appium/appium#23014).
+ * TODO: remove when XCUITest driver 12 is not supported (appium/appium-xcuitest-driver#3041)
  */
-export async function setAppiumScriptTimeout (browser: WebdriverIO.Browser) {
-    if (!browser.isMobile || !browser.isIOS) {
+export async function setIOSScriptTimeout (browser: WebdriverIO.Browser) {
+    if (!browser.isMobile || !browser.isIOS || attachedBrowsers.has(browser)) {
         return
     }
-    const sessionId = browser.sessionId
-    const set = scriptTimeouts.get(browser)
-    if ((set && set.sessionId === sessionId) || appiumScriptTimeouts.get(browser) === sessionId) {
-        return
-    }
-    appiumScriptTimeouts.set(browser, sessionId)
     const requested = browser.requestedCapabilities as Capabilities.W3CCapabilities | WebdriverIO.Capabilities | undefined
-    const script = (requested && 'alwaysMatch' in requested ? requested.alwaysMatch : requested as WebdriverIO.Capabilities | undefined)?.timeouts?.script
+    const script = requested && 'alwaysMatch' in requested
+        ? [requested.alwaysMatch, ...(requested.firstMatch ?? [])].find((caps) => caps?.timeouts?.script !== undefined)?.timeouts?.script
+        : requested?.timeouts?.script
     // a failed request keeps the driver's own limit, as before
-    await browser.setTimeout({ script: script === null ? MAX_TIMER_DELAY : script ?? DEFAULT_SCRIPT_TIMEOUT }).catch(() => undefined)
+    await browser.setTimeouts(undefined, undefined, script === null ? MAX_TIMER_DELAY : script ?? DEFAULT_SCRIPT_TIMEOUT).catch(() => undefined)
 }

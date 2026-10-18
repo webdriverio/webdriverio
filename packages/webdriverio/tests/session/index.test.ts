@@ -6,7 +6,7 @@ import { getNetworkManager } from '../../src/session/networkManager.js'
 import { getDialogManager } from '../../src/session/dialog.js'
 import { getContextManager } from '../../src/session/context.js'
 import { registerSessionManager } from '../../src/session/index.js'
-import { trackScriptTimeout } from '../../src/utils/scriptTimeout.js'
+import { setIOSScriptTimeout, trackScriptTimeout } from '../../src/utils/scriptTimeout.js'
 
 vi.mock('../../src/session/polyfill.js', () => ({
     getPolyfillManager: vi.fn(() => ({ initialize: vi.fn() }))
@@ -24,7 +24,8 @@ vi.mock('../../src/session/context.js', () => ({
     getContextManager: vi.fn(() => ({ initialize: vi.fn() }))
 }))
 vi.mock('../../src/utils/scriptTimeout.js', () => ({
-    trackScriptTimeout: vi.fn()
+    trackScriptTimeout: vi.fn(),
+    setIOSScriptTimeout: vi.fn()
 }))
 
 describe('webdriverio session manager', () => {
@@ -41,6 +42,7 @@ describe('webdriverio session manager', () => {
         expect(getDialogManager).toBeCalledWith(browser)
         expect(getContextManager).toBeCalledWith(browser)
         expect(trackScriptTimeout).toBeCalledWith(browser)
+        expect(setIOSScriptTimeout).toBeCalledWith(browser)
     })
 
     it('does not register for protocol stub', async () => {
