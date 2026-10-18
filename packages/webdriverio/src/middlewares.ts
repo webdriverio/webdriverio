@@ -13,6 +13,14 @@ import { StrictSelectorError } from './utils/strictSelectorError.js'
 export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements']
 
 /**
+ * The arguments of a command, with the element id that went stale replaced by the id of the
+ * element that was found again (e.g. `this.getElementText(this.elementId)`)
+ */
+function withElementId (args: unknown[], staleId: string | undefined, newId: string | undefined) {
+    return staleId && newId ? args.map((arg) => arg === staleId ? newId : arg) : args
+}
+
+/**
  * Run an element command after the implicit wait, and retry it when the element
  * is stale or not yet interactable. `execute` is the command itself, without
  * this wrapper, so a retry does not wait a second time.
@@ -20,18 +28,23 @@ export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements']
 async function invokeElementCommand (
     element: WebdriverIO.Element,
     commandName: string,
-    execute: () => Promise<unknown>
+    args: unknown[],
+    execute: (args: unknown[]) => Promise<unknown>
 ): Promise<unknown> {
     if (IMPLICIT_WAIT_EXCLUSION_LIST.includes(commandName)) {
-        return execute()
+        return execute(args)
     }
 
     const fetched = await implicitWait(element, commandName)
     element.elementId = fetched.elementId
     element[ELEMENT_KEY] = fetched.elementId
+    /**
+     * the id that the arguments can hold: an inner command can change the id of `element`
+     */
+    const calledWithId = fetched.elementId
 
     try {
-        const result = await execute()
+        const result = await execute(args)
 
         /**
          * assume Safari responses like { error: 'no such element', message: '', stacktrace: '' }
@@ -57,7 +70,7 @@ async function invokeElementCommand (
         if (err.name === 'element not interactable') {
             try {
                 await fetched.waitForClickable()
-                return await execute()
+                return await execute(args)
             } catch {
                 const elementHTML = await fetched.getHTML()
                 err.name = 'webdriverio(middleware): element did not become interactable'
@@ -84,7 +97,7 @@ async function invokeElementCommand (
                  */
                 element[ELEMENT_KEY] = refetched.elementId
                 element.parent = refetched.parent
-                return await execute()
+                return await execute(withElementId(args, calledWithId, refetched.elementId))
             } catch (refetchErr) {
                 /**
                  * A strict-mode violation is a real error the user needs to see, as in
@@ -146,12 +159,12 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
             const wrapList = list?.[ELEMENT_ARRAY_WRAP] as ((wrapper: (load: () => Promise<unknown>) => Promise<unknown>) => void) | undefined
             if (typeof wrapList === 'function') {
                 const element = this
-                wrapList(async (load) => invokeElementCommand(element, commandName, () => load()))
+                wrapList(async (load) => invokeElementCommand(element, commandName, [], () => load()))
             }
             return list
         })
         : fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element, ...callArgs: unknown[]) {
-            return invokeElementCommand(this, commandName, () => commandFn.apply(this, callArgs))
+            return invokeElementCommand(this, commandName, callArgs, (args) => commandFn.apply(this, args))
         })
 
     // the wrapper is built on the first call and kept: an element has ~280 commands and uses few

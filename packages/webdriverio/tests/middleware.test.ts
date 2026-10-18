@@ -1,4 +1,4 @@
-import { describe, it, beforeAll, afterEach, expect, vi } from 'vitest'
+import { describe, it, beforeAll, beforeEach, afterEach, expect, vi } from 'vitest'
 import path from 'node:path'
 import logger from '@wdio/logger'
 
@@ -462,6 +462,111 @@ describe('middleware', () => {
             // @ts-expect-error undefined custom command
             await elem.foo()
             expect(vi.mocked(waitForExist).mock.calls).toHaveLength(1)
+        })
+    })
+
+    /**
+     * a command that gets the element id as an argument runs again with the id of the element
+     * that was found again, not with the stale one
+     */
+    describe('the retry of a command after a stale element', () => {
+        const OLD_ID = 'some-elem-123'
+        const NEW_ID = 'new-elem-456'
+        const staleError = () => Object.assign(new Error('stale element reference: element is not attached'), { name: 'stale element reference' })
+        const real = vi.mocked(refetchElement).getMockImplementation()!
+        let classicBrowser: WebdriverIO.Browser
+
+        beforeAll(async () => {
+            classicBrowser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: { browserName: 'foobar' },
+                waitforInterval: 20,
+                waitforTimeout: 100
+            })
+        })
+
+        beforeEach(async () => {
+            const refetched = await classicBrowser.$('#foo')
+            refetched.elementId = NEW_ID
+            vi.mocked(refetchElement).mockClear()
+            vi.mocked(refetchElement).mockResolvedValue(refetched)
+            vi.mocked(fetch).customResponseFor(
+                new RegExp(`/element/${OLD_ID}/property/type$`),
+                { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
+            )
+            vi.mocked(fetch).customResponseFor(new RegExp(`/element/${NEW_ID}/property/type$`), { value: 'date' })
+        })
+
+        afterEach(() => {
+            vi.mocked(refetchElement).mockImplementation(real)
+        })
+
+        it('sends the new element id to a protocol command', async () => {
+            const elem = await classicBrowser.$('#foo')
+            expect(elem.elementId).toBe(OLD_ID)
+
+            expect(await elem.getElementProperty(elem.elementId, 'type')).toBe('date')
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        it('looks for the element once when a command passes the element id to an inner command', async () => {
+            classicBrowser.addCommand('readType', function (this: WebdriverIO.Element) {
+                return this.getElementProperty(this.elementId, 'type')
+            }, { attachToElement: true })
+            const elem = await classicBrowser.$('#foo')
+
+            // @ts-expect-error undefined custom command
+            expect(await elem.readType()).toBe('date')
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(1)
+        })
+
+        it('replaces only the arguments that are the stale element id', async () => {
+            const command = vi.fn().mockRejectedValueOnce(staleError()).mockResolvedValueOnce('done')
+            classicBrowser.addCommand('staleWithIds', command, { attachToElement: true })
+            const elem = await classicBrowser.$('#foo')
+
+            // @ts-expect-error undefined custom command
+            expect(await elem.staleWithIds(elem.elementId, 'other-elem-789', { id: OLD_ID })).toBe('done')
+            expect(command.mock.calls).toEqual([
+                [OLD_ID, 'other-elem-789', { id: OLD_ID }],
+                [NEW_ID, 'other-elem-789', { id: OLD_ID }]
+            ])
+        })
+
+        it('replaces the id of the call when an inner command found the element again before', async () => {
+            const found = async (id: string) => {
+                const el = await classicBrowser.$('#foo')
+                el.elementId = id
+                return el
+            }
+            vi.mocked(refetchElement).mockReset()
+            vi.mocked(refetchElement)
+                .mockResolvedValueOnce(await found('first-new-elem'))
+                .mockResolvedValueOnce(await found(NEW_ID))
+            const inner = vi.fn()
+                .mockRejectedValueOnce(staleError())
+                .mockRejectedValueOnce(staleError())
+                .mockResolvedValueOnce('ok')
+            classicBrowser.addCommand('innerStaleTwice', inner, { attachToElement: true })
+            classicBrowser.addCommand('outerWithId', async function (this: WebdriverIO.Element, id: string) {
+                // @ts-expect-error undefined custom command
+                return [id, await this.innerStaleTwice()]
+            }, { attachToElement: true })
+            const elem = await classicBrowser.$('#foo')
+
+            // @ts-expect-error undefined custom command
+            expect(await elem.outerWithId(elem.elementId)).toEqual([NEW_ID, 'ok'])
+        })
+
+        it('sets the value of a date input that the page rendered again directly', async () => {
+            vi.mocked(fetch).customResponseFor(/\/execute\/sync$/, { value: true })
+            vi.mocked(fetch).mockClear()
+            const elem = await classicBrowser.$('#foo')
+
+            await elem.setValue('2026-10-17')
+            const paths = vi.mocked(fetch).mock.calls.map(([uri]) => new URL(uri as string).pathname)
+            expect(paths.filter((p) => p.endsWith('/execute/sync'))).toHaveLength(1)
+            expect(paths.filter((p) => p.endsWith('/value') || p.endsWith('/clear'))).toEqual([])
         })
     })
 })
