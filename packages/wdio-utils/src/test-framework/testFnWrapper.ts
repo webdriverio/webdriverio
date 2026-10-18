@@ -102,6 +102,12 @@ export const testFrameworkFnWrapper = async function (
      * path also serves jasmine, and `afterFnArgs` is guarded in case it is undefined.
      */
     const identitySnapshot = typeof afterFnArgs === 'function' ? afterFnArgs(this) : undefined
+    /**
+     * Jasmine reports the running spec through the identity object instead of a
+     * runnable, so pass its title along for the WDIO timeout error (#16120)
+     */
+    const timeoutIdentity = identitySnapshot?.[0] as { fullName?: string, title?: string, description?: string } | undefined
+    const timeoutTitle = timeoutIdentity?.fullName || timeoutIdentity?.title || timeoutIdentity?.description
 
     let result
     let error: { stack?: string, matcherName?: string } | undefined
@@ -110,7 +116,7 @@ export const testFrameworkFnWrapper = async function (
 
     const testStart = Date.now()
     try {
-        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout)
+        result = await executeAsync.call(this, specFn, retries, specFnArgs, timeout, timeoutTitle)
         const frameworkResult = readFrameworkResult?.()
         if (frameworkResult) {
             if (frameworkResult.result !== undefined) {

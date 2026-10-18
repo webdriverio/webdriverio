@@ -765,7 +765,11 @@ function withAttempt (err: Error, attempt: number, totalAttempts: number) {
  * @param  {Function} fn         spec or hook method
  * @param  {object}   retries    { limit: number, attempts: number }
  * @param  {Array}    args       arguments passed to hook
- * @param  {number}   timeout    The maximum time (in milliseconds) to wait for the function to complete
+ * @param  {number}   timeout    The maximum time (in milliseconds) to wait for the function to
+ *                               complete, resolved by the framework adapter from the test's own
+ *                               timeout or the framework default
+ * @param  {string}   title      the title to report in the timeout error for frameworks that
+ *                               expose no runnable to read it from, like Jasmine
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 export async function executeAsync(
@@ -773,7 +777,8 @@ export async function executeAsync(
     fn: Function,
     retries: Frameworks.TestRetries,
     args: unknown[] = [],
-    timeout: number = 20000
+    timeout?: number,
+    title?: string
 ): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
@@ -796,10 +801,16 @@ export async function executeAsync(
         /**
          * The current framework timeout. A Mocha test or hook can change it with
          * `this.timeout()` while it runs, and `0` turns it off.
+         *
+         * The framework adapter resolves its own deadline into `timeout`: for Jasmine
+         * `wrapTestFunction` already defaults it to `jasmine.DEFAULT_TIMEOUT_INTERVAL`,
+         * so the Jasmine default must not win over it here, or a per-spec
+         * `it(title, fn, 15000)` timeout is ignored (#16120). It only stays as a
+         * fallback for direct callers that pass no timeout.
          */
         const frameworkTimeout = (): number => (
             // @ts-expect-error - jasmine is set by Jasmine at runtime
-            runnable?._timeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? timeout
+            runnable?._timeout ?? timeout ?? globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? 20000
         )
         /**
          * Mocha's own timer start, see `followFrameworkTimer`; other frameworks start now
@@ -809,7 +820,7 @@ export async function executeAsync(
         const timerStart = () => frameworkTimer?.startedAt ?? start
         // Capture the identity before execution, as the framework may advance to another runnable on timeout.
         const fullTitle = typeof runnable?.fullTitle === 'function' ? runnable.fullTitle() : undefined
-        const testTitle = fullTitle || runnable?.title || fn.name || 'unknown test or hook'
+        const testTitle = fullTitle || runnable?.title || title || fn.name || 'unknown test or hook'
         const attempt = retries.attempts + 1
         const totalAttempts = retries.limit + 1
         /**

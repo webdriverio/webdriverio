@@ -275,15 +275,48 @@ describe('executeAsync', () => {
             expect(await result).toEqual(new Error('Timeout after 197ms in "unknown test or hook" (WDIO attempt 1/1)'))
         })
 
-        it('should use the Jasmine deadline when no runnable is available', async () => {
+        it('should use the Jasmine deadline when no timeout is given', async () => {
             vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
             function jasmineHook () { return new Promise(() => {}) }
             const result = executeAsync.call(
-                {}, jasmineHook, { attempts: 0, limit: 0 }, [], 200
+                {}, jasmineHook, { attempts: 0, limit: 0 }
             ).catch((err: Error) => err)
 
             await vi.advanceTimersByTimeAsync(97)
             expect(await result).toEqual(new Error('Timeout after 97ms in "jasmineHook" (WDIO attempt 1/1)'))
+        })
+
+        it('should prefer the resolved spec timeout over the Jasmine default (#16120)', async () => {
+            vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
+            let finish: (value: string) => void = () => {}
+            const result = executeAsync.call(
+                {}, () => new Promise((resolve) => (finish = resolve)), { attempts: 0, limit: 0 }, [], 300
+            )
+
+            await vi.advanceTimersByTimeAsync(97)
+            finish('done')
+            expect(await result).toBe('done')
+        })
+
+        it('should time out at the resolved spec timeout, not the Jasmine default (#16120)', async () => {
+            vi.stubGlobal('jasmine', { DEFAULT_TIMEOUT_INTERVAL: 100 })
+            function jasmineSpec () { return new Promise(() => {}) }
+            const result = executeAsync.call(
+                {}, jasmineSpec, { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(97)
+            await vi.advanceTimersByTimeAsync(103)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "jasmineSpec" (WDIO attempt 1/1)'))
+        })
+
+        it('should name the spec given as title when there is no runnable (#16120)', async () => {
+            const result = executeAsync.call(
+                {}, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200, 'a spec with its own 15 s timeout'
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+            expect(await result).toEqual(new Error('Timeout after 197ms in "a spec with its own 15 s timeout" (WDIO attempt 1/1)'))
         })
 
         it('should report the final WDIO attempt after timeout retries are exhausted', async () => {
