@@ -1,5 +1,6 @@
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { wrapCommand, executeAsync } from '../src/shim.js'
+import { AsyncLocalStorage } from 'node:async_hooks'
+import { vi, describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest'
+import { wrapCommand, executeAsync, setCommandHookStore, unwrapCommand } from '../src/shim.js'
 import { WDIO_KIND, WDIO_CHAINABLE } from '../src/kind.js'
 
 type Branded = { [WDIO_KIND]?: unknown, [WDIO_CHAINABLE]?: unknown }
@@ -11,6 +12,23 @@ const brandsOf = (value: unknown) => ({
 const W3C_ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
 describe('wrapCommand', () => {
+    // an element unwraps the commands of the browser to wrap them once (webdriverio getElementObject.ts)
+    it('gives the command it wraps to unwrapCommand, one layer only', () => {
+        const command = () => 'result'
+        const inner = wrapCommand('foo', command)
+        const outer = wrapCommand('foo', inner)
+        expect(unwrapCommand(inner)).toBe(command)
+        expect(unwrapCommand(outer)).toBe(inner)
+        expect(Object.keys(inner)).toEqual([])
+    })
+
+    it('unwrapCommand gives other values as they are', () => {
+        const fn = () => {}
+        for (const value of [fn, undefined, null, 'text', { a: 1 }]) {
+            expect(unwrapCommand(value)).toBe(value)
+        }
+    })
+
     it('serializes a chained element with the W3C element reference', async () => {
         const commandFn = vi.fn().mockResolvedValue({ elementId: 'abc-123', selector: '#foo' })
         const scope = { options: { beforeCommand: [], afterCommand: [] } }
@@ -162,6 +180,37 @@ describe('wrapCommand', () => {
         expect(afterHook).toBeCalledWith('getData', ['param1', 'param2'], { success: true, data: 'test' }, undefined)
     })
 
+    describe('hook re-entrancy', () => {
+        beforeAll(() => setCommandHookStore(new AsyncLocalStorage<true>()))
+
+        it('should run hooks for every concurrent chain', async () => {
+            const delay = () => new Promise((resolve) => setTimeout(resolve, 5))
+            const beforeHook = vi.fn(delay)
+            const afterHook = vi.fn(delay)
+            const scope = { options: { beforeCommand: [beforeHook], afterCommand: [afterHook] } }
+            const command = wrapCommand('someCommand', vi.fn().mockResolvedValue('ok'))
+            const chain = async () => { for (let i = 0; i < 5; i++) { await command.call(scope) } }
+
+            await Promise.all([chain(), chain()])
+
+            expect(beforeHook).toBeCalledTimes(10)
+            expect(afterHook).toBeCalledTimes(10)
+        })
+
+        it('should skip hooks for commands issued from within a hook', async () => {
+            const inner = wrapCommand('inner', vi.fn().mockResolvedValue('inner'))
+            const scope: any = { options: {} }
+            const beforeHook = vi.fn(() => inner.call(scope))
+            const afterHook = vi.fn(() => inner.call(scope))
+            scope.options = { beforeCommand: [beforeHook], afterCommand: [afterHook] }
+
+            await wrapCommand('outer', vi.fn().mockResolvedValue('outer')).call(scope)
+
+            expect(beforeHook).toBeCalledTimes(1)
+            expect(afterHook).toBeCalledTimes(1)
+        })
+    })
+
 })
 
 describe('executeAsync', () => {
@@ -252,6 +301,122 @@ describe('executeAsync', () => {
             expect(retries).toEqual({ attempts: 1, limit: 1 })
             expect(fn).toHaveBeenCalledTimes(2)
             expect(vi.getTimerCount()).toBe(0)
+        })
+
+        it('should not time out when the framework timeout is turned off', async () => {
+            const scope = { _runnable: { _timeout: 0, title: 'no timeout' } }
+            let finish: (value: string) => void = () => {}
+            const result = executeAsync.call(
+                scope as any, () => new Promise((resolve) => (finish = resolve)), { attempts: 0, limit: 0 }, [], 200
+            )
+
+            await vi.advanceTimersByTimeAsync(60_000)
+            finish('done')
+            expect(await result).toBe('done')
+        })
+
+        it('should follow a timeout that the test changes while it runs', async () => {
+            const runnable = { _timeout: 200, title: 'extends its timeout' }
+            const fn = () => {
+                runnable._timeout = 1000
+                return new Promise((resolve) => setTimeout(() => resolve('done'), 500))
+            }
+            const result = executeAsync.call({ _runnable: runnable } as any, fn, { attempts: 0, limit: 0 }, [], 200)
+
+            await vi.advanceTimersByTimeAsync(500)
+            expect(await result).toBe('done')
+
+            runnable._timeout = 300
+            const late = executeAsync.call(
+                { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+            await vi.advanceTimersByTimeAsync(297)
+            expect(await late).toEqual(new Error('Timeout after 297ms in "extends its timeout" (WDIO attempt 1/1)'))
+        })
+
+        it('should restart the Mocha timer and fail with the Mocha timeout error', async () => {
+            const timeoutError = new Error('Timeout of 200ms exceeded.')
+            const runnable = {
+                _timeout: 200,
+                title: 'mocha test',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn(() => timeoutError)
+            }
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, () => new Promise(() => {}), { attempts: 0, limit: 0 }, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(196)
+            expect(runnable.resetTimeout).not.toHaveBeenCalled()
+            await vi.advanceTimersByTimeAsync(1)
+
+            expect(await result).toBe(timeoutError)
+            expect(timeoutError.message).toBe('Timeout of 200ms exceeded.')
+            expect(runnable._timeoutError).toHaveBeenCalledWith(200)
+            expect(runnable.resetTimeout).toHaveBeenCalledTimes(1)
+        })
+
+        it('should not retry after a Mocha timeout, as Mocha fails a test that ran too long', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'retried mocha test',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
+            }
+            const retries = { attempts: 0, limit: 1 }
+            const fn = vi.fn(() => new Promise(() => {}))
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, fn, retries, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+
+            expect(await result).toEqual(new Error('Timeout of 200ms exceeded. (WDIO attempt 1/2)'))
+            expect(fn).toHaveBeenCalledTimes(1)
+            expect(retries).toEqual({ attempts: 0, limit: 1 })
+            expect(runnable.resetTimeout).toHaveBeenCalledTimes(1)
+        })
+
+        it('should add the WDIO attempt to the Mocha timeout error of a retried test, once in its stack', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'retried mocha test',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded.`))
+            }
+            const fn = vi.fn()
+                .mockRejectedValueOnce(new Error('first attempt fails'))
+                .mockReturnValueOnce(new Promise(() => {}))
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, fn, { attempts: 0, limit: 2 }, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+
+            const err = await result as Error
+            expect(fn).toHaveBeenCalledTimes(2)
+            expect(err.message).toBe('Timeout of 200ms exceeded. (WDIO attempt 2/3)')
+            expect(err.stack?.split('\n')[0]).toBe('Error: Timeout of 200ms exceeded. (WDIO attempt 2/3)')
+        })
+
+        it('should keep a $ pattern of the test title in the stack of the Mocha timeout error', async () => {
+            const runnable = {
+                _timeout: 200,
+                title: 'finds $$(selector)[5]',
+                resetTimeout: vi.fn(),
+                _timeoutError: vi.fn((ms: number) => new Error(`Timeout of ${ms}ms exceeded in "finds $$(selector)[5]" ($&).`))
+            }
+            const fn = vi.fn()
+                .mockRejectedValueOnce(new Error('first attempt fails'))
+                .mockReturnValueOnce(new Promise(() => {}))
+            const result = executeAsync.call(
+                { _runnable: runnable } as any, fn, { attempts: 0, limit: 1 }, [], 200
+            ).catch((err: Error) => err)
+
+            await vi.advanceTimersByTimeAsync(197)
+
+            const err = await result as Error
+            expect(err.stack?.split('\n')[0]).toBe('Error: Timeout of 200ms exceeded in "finds $$(selector)[5]" ($&). (WDIO attempt 2/2)')
         })
     })
 

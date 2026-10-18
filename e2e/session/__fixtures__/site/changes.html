@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Changes Fixture</title>
+</head>
+<body>
+    <main>
+        <h1>Changes</h1>
+        <div role="group" aria-roledescription="carousel" aria-label="Offers">
+            <div id="slide" role="group" aria-roledescription="slide" aria-label="Slide 1 of 99">Offer 1</div>
+            <div role="tablist" aria-label="Offer pages">
+                <button id="dot-1" role="tab" aria-selected="true">Go to slide 1</button>
+                <button id="dot-2" role="tab" aria-selected="false">Go to slide 2</button>
+            </div>
+        </div>
+        <button id="noop">Do nothing</button>
+        <button id="add">Add To Basket</button>
+    </main>
+    <section id="cookies" aria-label="Cookie banner">
+        <p>We use cookies.</p>
+        <button id="reject" onclick="document.getElementById('cookies').remove()">Reject All</button>
+    </section>
+    <script>
+        let tick = 1
+        setInterval(() => {
+            tick++
+            document.getElementById('slide').setAttribute('aria-label', `Slide ${tick} of 99`)
+            document.getElementById('slide').textContent = `Offer ${tick}`
+            document.getElementById('dot-1').setAttribute('aria-selected', String(tick % 2 === 1))
+            document.getElementById('dot-2').setAttribute('aria-selected', String(tick % 2 === 0))
+        }, 250)
+        document.getElementById('add').addEventListener('click', (event) => {
+            event.target.disabled = true
+            const dialog = document.createElement('div')
+            dialog.setAttribute('role', 'dialog')
+            dialog.setAttribute('aria-label', 'Item added!')
+            dialog.innerHTML = '<a href="/cart.html">Continue to Checkout</a>'
+            document.body.append(dialog)
+        })
+    </script>
+</body>
+</html>

@@ -7,6 +7,12 @@ import type { remote } from 'webdriver'
 declare global {
     interface Window {
         __wdioEnv__: Environment
+        /**
+         * time (ms since epoch) when Mocha started to run the tests of the spec,
+         * set right before `mocha.run()`. Errors after this time belong to the
+         * tests: Mocha reports them, the runner must not end the spec for them.
+         */
+        __wdioTestsStartedAt__?: number
         __wdioNetworkIntercepts__?: Map<string | symbol, remote.NetworkUrlPattern[] | undefined>
         wdioDebugContinue: (value: unknown) => void
     }

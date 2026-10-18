@@ -20,10 +20,14 @@ import { getShadowRootManager, type ShadowRootManager } from '../session/shadowR
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, foreignContextId, heldBrowsingContext } from '../session/browsingContext.js'
 import { findLinksInContext, foreignContext } from './foreignContext.js'
+import { bidiGetRect, isBidiCommandsEnabled } from './bidi/elementCommands.js'
+import { isParallelContextActive, locateRelativeXPath } from './bidi/locate.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
 import { LocalValue } from './bidi/value.js'
 import { parseScriptResult } from './bidi/index.js'
 import { ElementArray } from '../element/array.js'
+import { findElementAgain } from './findElementAgain.js'
+import { describeSelector } from './describeSelector.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -205,6 +209,16 @@ export function checkUnicode(value: string) {
     return [UNICODE_CHARACTERS[value as keyof typeof UNICODE_CHARACTERS]]
 }
 
+/**
+ * The object that runs a custom strategy: the browser or the held browsing context
+ * that queries, so the strategy runs in that context and not in the session's current
+ * one. On an element, the element is an argument of the strategy, which routes the
+ * script to its own context, as `fetchElementByJSFunction` does.
+ */
+function strategyScope (scope: WebdriverIO.Browser | WebdriverIO.Element, browserObject: WebdriverIO.Browser) {
+    return 'elementId' in scope ? browserObject : scope as WebdriverIO.Browser
+}
+
 function fetchElementByJSFunction(
     selector: ElementFunction,
     scope: WebdriverIO.Browser | WebdriverIO.Element,
@@ -230,7 +244,7 @@ function fetchElementByJSFunction(
      * its own context; `execute` passes the element as first argument.
      */
     const browser = getBrowserObject(scope)
-    if (browser.isBidi && heldBrowsingContext(scope)) {
+    if (browser.isBidi && (heldBrowsingContext(scope) || isParallelContextActive())) {
         /**
          * Classic serializes a `NodeList` (e.g. from `querySelectorAll`) as a
          * list of elements; make that an array here so BiDi does the same.
@@ -613,7 +627,8 @@ type BidiStartNode = { sharedId: string }
 /**
  * Retry an `aria/` lookup with the XPath heuristic, searching the same
  * shadow-root start nodes as the primary BiDi query. Classic XPath is
- * used when BiDi rejects the relative expression or finds nothing.
+ * used when BiDi rejects the relative expression or finds nothing, except in
+ * a parallel scope where classic would search the session's main window.
  */
 async function findAriaElementViaXPathFallback(
     ctx: WebdriverIO.Browser | WebdriverIO.Element,
@@ -625,7 +640,8 @@ async function findAriaElementViaXPathFallback(
     shadowRoots: string[]
 ) {
     const xpathLocator = toAriaXPathLocator(value)
-    if (startNodes && startNodes.length > 0) {
+    const bidiOnly = isParallelContextActive()
+    if (bidiOnly || (startNodes && startNodes.length > 0)) {
         try {
             const result = await browser.browsingContextLocateNodes({
                 locator: xpathLocator,
@@ -642,8 +658,14 @@ async function findAriaElementViaXPathFallback(
                 return nodes[0]
             }
         } catch (err) {
+            if (bidiOnly) {
+                throw err
+            }
             log.warn(`BiDi XPath fallback for "aria/${value}" failed due to ${err}, using Classic`)
         }
+    }
+    if (bidiOnly) {
+        return undefined
     }
     return findElementViaClassic(ctx, browser, using, value, shadowRoots)
 }
@@ -658,7 +680,8 @@ async function findAriaElementsViaXPathFallback(
     shadowRoots: string[]
 ) {
     const xpathLocator = toAriaXPathLocator(value)
-    if (startNodes && startNodes.length > 0) {
+    const bidiOnly = isParallelContextActive()
+    if (bidiOnly || (startNodes && startNodes.length > 0)) {
         try {
             const result = await browser.browsingContextLocateNodes({
                 locator: xpathLocator,
@@ -675,8 +698,14 @@ async function findAriaElementsViaXPathFallback(
                 return nodes
             }
         } catch (err) {
+            if (bidiOnly) {
+                throw err
+            }
             log.warn(`BiDi XPath fallback for "aria/${value}" failed due to ${err}, using Classic`)
         }
+    }
+    if (bidiOnly) {
+        return []
     }
     return findElementsViaClassic(ctx, browser, using, value, shadowRoots)
 }
@@ -748,6 +777,10 @@ export async function findDeepElement(
      * does not support relative xpath selectors with a start node
      */
     if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+        if (isParallelContextActive()) {
+            const [first] = await locateRelativeXPath(browser, context, (this as WebdriverIO.Element).elementId, value)
+            return first
+        }
         return this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
@@ -905,6 +938,9 @@ export async function findDeepElement(
         if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findInFrameByScript(this, browser, using, value, 0) as Promise<ElementReference | undefined>
         }
+        if (isParallelContextActive()) {
+            throw err
+        }
         return findElementViaClassic(this, browser, using, value, shadowRoots)
     })
 
@@ -947,6 +983,9 @@ export async function findDeepElements(
      * does not support relative xpath selectors with a start node
      */
     if (using === 'xpath' && (value.startsWith('./') || value.startsWith('..')) && (this as WebdriverIO.Element).elementId) {
+        if (isParallelContextActive()) {
+            return locateRelativeXPath(browser, context, (this as WebdriverIO.Element).elementId, value)
+        }
         return this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value)
     }
 
@@ -1090,6 +1129,9 @@ export async function findDeepElements(
         if (heldBrowsingContext(this)?.isFrame || await foreignContextId(this)) {
             return findAllInFrame(this, browser, using, value)
         }
+        if (isParallelContextActive()) {
+            throw err
+        }
         return findElementsViaClassic(this, browser, using, value, shadowRoots)
     })
     return deepElementResult as ElementReference[]
@@ -1176,7 +1218,7 @@ export async function findElement(
     if (selector && typeof selector === 'object' && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyName, strategyArguments } = selector as CustomStrategyReference
         const notFoundError = new Error(`Custom Strategy "${strategyName}" did not return an HTMLElement`)
-        let elem = await browserObject.execute(strategy, ...strategyArguments)
+        let elem = await strategyScope(this, browserObject).execute(strategy, ...strategyArguments)
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
     }
@@ -1269,7 +1311,7 @@ export async function findElements(
      */
     if (isPlainObject(selector) && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyArguments } = selector as CustomStrategyReference
-        const elems = await browserObject.execute(strategy, ...strategyArguments)
+        const elems = await strategyScope(this, browserObject).execute(strategy, ...strategyArguments)
         const elemArray = Array.isArray(elems) ? elems as ElementReference[] : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
     }
@@ -1313,7 +1355,7 @@ export function verifyArgsAndStripIfElement(args: unknown) {
     function verify(arg: unknown) {
         if (isLoadedElement(arg)) {
             if (!arg.elementId) {
-                throw new Error(`The element with selector "${arg.selector}" you are trying to pass into the execute method wasn't found`)
+                throw new Error(`The element with selector "${describeSelector(arg)}" you are trying to pass into the execute method wasn't found`)
             }
 
             return {
@@ -1331,7 +1373,9 @@ export function verifyArgsAndStripIfElement(args: unknown) {
  * getElementRect
  */
 export async function getElementRect(scope: WebdriverIO.Element) {
-    const rect = await scope.getElementRect(scope.elementId)
+    const rect = isBidiCommandsEnabled(getBrowserObject(scope) as WebdriverIO.Browser)
+        ? await bidiGetRect(scope)
+        : await scope.getElementRect(scope.elementId)
 
     const defaults = { x: 0, y: 0, width: 0, height: 0 }
 
@@ -1398,13 +1442,12 @@ export async function hasElementId(element: WebdriverIO.Element) {
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
     if (!element.elementId) {
-        const parent = element.parent as WebdriverIO.Element | WebdriverIO.Browser
-        const command = element.isReactElement
-            ? parent.react$.bind(parent)
-            : element.isShadowElement
-                ? parent.shadow$.bind(parent)
-                : parent.$.bind(parent)
-        element.elementId = (await command(element.selector as string).getElement()).elementId
+        element.elementId = (await findElementAgain(element))?.elementId as string
+
+        if (element.elementId) {
+            element[ELEMENT_KEY] = element.elementId
+            delete element.error
+        }
     }
 
     /*

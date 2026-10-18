@@ -6,6 +6,7 @@ import { getNetworkManager } from '../../src/session/networkManager.js'
 import { getDialogManager } from '../../src/session/dialog.js'
 import { getContextManager } from '../../src/session/context.js'
 import { registerSessionManager } from '../../src/session/index.js'
+import { trackScriptTimeout } from '../../src/utils/scriptTimeout.js'
 
 vi.mock('../../src/session/polyfill.js', () => ({
     getPolyfillManager: vi.fn(() => ({ initialize: vi.fn() }))
@@ -22,6 +23,9 @@ vi.mock('../../src/session/dialog.js', () => ({
 vi.mock('../../src/session/context.js', () => ({
     getContextManager: vi.fn(() => ({ initialize: vi.fn() }))
 }))
+vi.mock('../../src/utils/scriptTimeout.js', () => ({
+    trackScriptTimeout: vi.fn()
+}))
 
 describe('webdriverio session manager', () => {
     it('registers all session manager', async () => {
@@ -36,6 +40,7 @@ describe('webdriverio session manager', () => {
         expect(getNetworkManager).toBeCalledWith(browser)
         expect(getDialogManager).toBeCalledWith(browser)
         expect(getContextManager).toBeCalledWith(browser)
+        expect(trackScriptTimeout).toBeCalledWith(browser)
     })
 
     it('does not register for protocol stub', async () => {
@@ -47,6 +52,7 @@ describe('webdriverio session manager', () => {
         expect(getShadowRootManager).not.toBeCalledWith(browser)
         expect(getNetworkManager).not.toBeCalledWith(browser)
         expect(getDialogManager).not.toBeCalledWith(browser)
+        expect(trackScriptTimeout).not.toBeCalledWith(browser)
         // ContextManager is always registered for caching current window handle
         expect(getContextManager).toBeCalledWith(browser)
     })

@@ -407,7 +407,7 @@ describe('bidi e2e test', () => {
 
         describe('Scripts', () => {
 
-            it('can return a ScriptEvaluateResultSuccess', async () => {
+            it('can return a ScriptEvaluationResultSuccess', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
                 const context = await browser.getWindowHandle()
 
@@ -420,7 +420,7 @@ describe('bidi e2e test', () => {
                 }
                 const result = await browser.scriptCallFunction(params)
 
-                const expectedSuccessResult: remote.ScriptEvaluateResultSuccess = {
+                const expectedSuccessResult: remote.ScriptEvaluationResultSuccess = {
                     realm: 'expect.any(String)',
                     type: 'success',
                     result: {
@@ -434,7 +434,7 @@ describe('bidi e2e test', () => {
                 })
             })
 
-            it('can return a ScriptEvaluateResultException', async () => {
+            it('can return a ScriptEvaluationResultException', async () => {
                 await browser.url('https://guinea-pig.webdriver.io')
                 const context = await browser.getWindowHandle()
 
@@ -447,7 +447,7 @@ describe('bidi e2e test', () => {
                 }
                 const result = await browser.scriptCallFunction(params)
 
-                const expectedExceptionResult: remote.ScriptEvaluateResultException = {
+                const expectedExceptionResult: remote.ScriptEvaluationResultException = {
                     exceptionDetails: {
                         columnNumber: 20,
                         exception: {

@@ -1,0 +1,44 @@
+{
+  "name": "@wdio/snapshot",
+  "version": "10.0.2",
+  "description": "Accessibility-style snapshots of web pages and native apps for WebdriverIO",
+  "author": "Vince Graics <wince17@gmail.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-snapshot",
+  "license": "MIT",
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "source": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "typeScriptVersion": "6.0.3",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-snapshot"
+  },
+  "keywords": [
+    "webdriverio",
+    "wdio",
+    "snapshot",
+    "accessibility",
+    "automation"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+    "@wdio/utils": "workspace:*",
+    "webdriverio": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

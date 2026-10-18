@@ -7,12 +7,16 @@ import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
 import { EVENTS } from '../src/constants.js'
+import { runParallelTests } from '../src/parallel.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 vi.mock('mocha')
 vi.mock('@wdio/utils')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../src/parallel.js', () => ({
+    runParallelTests: vi.fn().mockResolvedValue(0),
+}))
 
 const wdioReporter = {
     write: vi.fn(),
@@ -182,6 +186,227 @@ describe('prepareMessage', () => {
         expect(result.type).toBe('afterSuite')
         expect(result.title).toBeUndefined()
         expect(result.duration).toBeUndefined()
+    })
+
+    test('should fall back to _mocha.suite when _runner is unset (parallel mode)', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory()
+        await adapter.init()
+        // _runner is only set by the sequential mocha.run() path
+        adapter['_mocha']!.suite = { suites: [{ title: 'parallel suite' }] } as any
+
+        const result = adapter.prepareMessage('beforeSuite')
+        expect(result.type).toBe('beforeSuite')
+        expect(result.title).toBe('parallel suite')
+    })
+})
+
+describe('parallel mode config hooks', () => {
+    test('emits paired hook events around beforeSuite/afterSuite', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            const result = await adapter.run()
+            expect(result).toBe(0)
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        const hookStarts = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:start')
+        const hookEnds = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:end')
+
+        // beforeSuite + afterSuite → two start/end pairs
+        expect(hookStarts.length).toBe(2)
+        expect(hookEnds.length).toBe(2)
+        // prepareMessage payloads, not raw config-hook objects
+        expect(hookStarts[0][1].title).toBe('first suite')
+        expect(hookStarts[0][1].type).toBe('hook:start')
+        // start/end share a uid; afterSuite end carries duration + state
+        expect(hookStarts[0][1].uid).toBe(hookEnds[0][1].uid)
+        expect(hookStarts[1][1].uid).toBe(hookEnds[1][1].uid)
+        expect(hookEnds[1][1].state).toBe('pass')
+        expect(hookEnds[1][1].duration).toBeGreaterThanOrEqual(0)
+        expect(runParallelTests).toBeCalledTimes(1)
+    })
+
+    test('beforeSuite hook:end does not leak its duration into the afterSuite payload', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        const rootSuite = { title: 'first suite' }
+        adapter['_mocha']!.suite = { suites: [rootSuite] } as any
+        const now = vi.spyOn(Date, 'now')
+        now.mockReturnValue(1000)
+        vi.mocked(executeHooksWithArgs).mockImplementationOnce(async () => {
+            now.mockReturnValue(1500)
+            return []
+        })
+        vi.mocked(runParallelTests).mockImplementationOnce(async () => {
+            now.mockReturnValue(9000)
+            return 0
+        })
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+            now.mockRestore()
+        }
+
+        const hookEnds = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:end')
+        const hookStarts = wdioReporter.emit.mock.calls.filter((c) => c[0] === 'hook:start')
+        expect(hookEnds[0][1].duration).toBe(500)
+        expect(hookStarts[1][1].duration).toBe(8000)
+        expect(hookEnds[1][1].duration).toBe(8000)
+    })
+})
+
+describe('parallel mode setBrowser', () => {
+    test('uses the browser from setBrowser when globalThis.browser is unset', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+        const browser = { isBidi: true, __bidiCommandsEnabled: true } as any
+        adapter.setBrowser(browser)
+
+        expect(await adapter.run()).toBe(0)
+        expect(runParallelTests).toHaveBeenLastCalledWith(
+            expect.anything(), browser, expect.anything(), expect.anything(), expect.anything(),
+            undefined, expect.anything()
+        )
+    })
+
+    test('throws when neither setBrowser nor globalThis.browser provides one', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        await expect(adapter.run()).rejects.toThrow('Parallel mode requires a browser instance')
+    })
+})
+
+describe('parallel mode mocha options', () => {
+    test('threads grep/invert/timeout into runParallelTests', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts', timeout: 5000 } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+        adapter['_mocha']!.options = { grep: /beta/, invert: true } as any
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            const result = await adapter.run()
+            expect(result).toBe(0)
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        expect(runParallelTests).toBeCalledWith(
+            expect.anything(), expect.anything(), expect.anything(), '0-2', ['/foo/bar.test.js'],
+            undefined,
+            { grep: /beta/, invert: true, timeout: 5000, mode: 'contexts' }
+        )
+    })
+
+    test('passes parallelMode: userContexts through as mode', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'userContexts' } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+        vi.mocked(runParallelTests).mockClear()
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        expect(vi.mocked(runParallelTests).mock.calls[0][6]).toMatchObject({ mode: 'userContexts' })
+    })
+
+    test('interpolates the mode into the sequential-fallback warning', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'userContexts' } })
+        await adapter.init()
+        const warn = vi.mocked(logger('').warn)
+        warn.mockClear()
+
+        ;(globalThis as any).browser = { isBidi: false }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        expect(warn.mock.calls.some((c) => String(c[0]).includes('parallelMode: "userContexts"'))).toBe(true)
+    })
+
+    test('applies filterOnly when the suite has .only tests', async () => {
+        const filterOnly = vi.fn()
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }], hasOnly: () => true, filterOnly } as any
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        expect(filterOnly).toBeCalledTimes(1)
+    })
+
+    test('does not apply filterOnly without .only tests', async () => {
+        const filterOnly = vi.fn()
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts' } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }], hasOnly: () => false, filterOnly } as any
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await adapter.run()
+        } finally {
+            delete (globalThis as any).browser
+        }
+
+        expect(filterOnly).not.toBeCalled()
+    })
+
+    test('throws when bail is set', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts', bail: true } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await expect(adapter.run()).rejects.toThrow('bail is not supported in parallel mode')
+        } finally {
+            delete (globalThis as any).browser
+        }
+    })
+
+    test('throws when retries is set', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory({ mochaOpts: { parallelMode: 'contexts', retries: 3 } })
+        await adapter.init()
+        adapter['_mocha']!.suite = { suites: [{ title: 'first suite' }] } as any
+
+        ;(globalThis as any).browser = { isBidi: true, __bidiCommandsEnabled: true }
+        try {
+            await expect(adapter.run()).rejects.toThrow('retries is not supported in parallel mode')
+        } finally {
+            delete (globalThis as any).browser
+        }
     })
 })
 

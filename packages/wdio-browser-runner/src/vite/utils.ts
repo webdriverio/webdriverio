@@ -82,14 +82,20 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                 window.__wdioSpec__ = '${spec}'
                 window.__wdioEvents__ = []
                 /**
-                 * listen to window errors during bootstrap phase
+                 * listen to window errors during bootstrap phase; once Mocha runs
+                 * the tests, it reports their errors itself
                  */
                 window.__wdioErrors__ = []
-                addEventListener('error', (ev) => window.__wdioErrors__.push({
-                    filename: ev.filename,
-                    message: ev.message,
-                    error: ev.error && ev.error.stack
-                }))
+                addEventListener('error', (ev) => {
+                    if (window.__wdioTestsStartedAt__) {
+                        return
+                    }
+                    window.__wdioErrors__.push({
+                        filename: ev.filename,
+                        message: ev.message,
+                        error: ev.error && ev.error.stack
+                    })
+                })
                 /**
                  * mock process
                  */

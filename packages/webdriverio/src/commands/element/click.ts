@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 
 import { getBrowserObject } from '@wdio/utils'
+import { bidiAssertClickable, bidiGetRect, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 import { buttonValue } from '../../utils/actions/index.js'
 
 import type { ClickOptions } from '../../types.js'
@@ -14,6 +15,13 @@ const log = logger('webdriver')
  * selected element when no options are passed. When options object is passed it uses action class instead of webdriver click which
  * give added capabilities like passing button type, coordinates etc. By default, when using options a release action
  * command is send after performing the click action, pass `option.skipRelease=true` to skip this action.
+ * Before the actions, when the pointer would not hit the element at its center (it is outside the window, hidden by a
+ * scroll container or covered by a fixed header or footer), the element is scrolled to the center of the window and of
+ * its scroll containers (to the bottom or the top when something covers it at the center), and the page gets its
+ * `scroll` events before the click. An element that the pointer already hits is not scrolled. In Firefox, a click
+ * without options does the same before the WebDriver `click` command, because geckodriver scrolls and clicks without
+ * giving the page its `scroll` events first. When something intercepts a click without options in any browser
+ * (for example a sticky header), the element is brought under the pointer in the same way and clicked again.
  *
  * :::info
  *
@@ -118,6 +126,11 @@ export function click(
         return actionClick(this, options)
     }
 
+    const browser = getBrowserObject(this) as WebdriverIO.Browser
+    if (isBidiCommandsEnabled(browser)) {
+        return actionClick(this, {}, browser)
+    }
+
     return elementClick(this)
 }
 
@@ -130,7 +143,118 @@ async function workaround(element: WebdriverIO.Element) {
     await element.scrollIntoView({ block: 'center', inline: 'center' })
 }
 
+/**
+ * WebDriver actions don't scroll: the pointer goes to the in-view center point of the
+ * element, which only takes the window into account. ChromeDriver scrolls anyway,
+ * geckodriver follows the spec, so the click of an element that is inside the window
+ * but hidden by a scrollable ancestor landed on that ancestor, without an error.
+ * Bring the element under the pointer first, as the Element Click command does:
+ * - the pointer already hits the element: don't scroll, the page doesn't move. With an
+ *   offset, the window must not clip the element (the offset counts from the center of
+ *   the part in the window), and the pointer must hit the element at the click point
+ * - missed: scroll it to the center, and check again. At an edge of the window, a fixed
+ *   header or footer or a scrollbar can cover it: Safari shows its overlay scrollbar
+ *   after a scroll, and that scrollbar takes the click of an element at the bottom edge
+ * - still missed, for example under a sticky header or footer that covers the center of
+ *   a small scroll container: align it with the bottom ("end"), then with the top
+ *   ("start"). "nearest" would not move it: at the center, it is already in view
+ * An element without a box (`display: none`) is left to the driver, which throws.
+ *
+ * After a scroll, the script resolves after two animation frames. The browser fires the
+ * `scroll` events of the page before the animation frame callbacks, so the page handles
+ * them before the click, as it does for a user. The second frame is for Firefox 156, which
+ * rounds a fractional scroll position (the center) one frame later, with one more `scroll`
+ * event.
+ *
+ * All steps run in one `execute`. The page scrolls the element itself
+ * (`Element.scrollIntoView()`, without a smooth animation), not with the `scrollIntoView`
+ * command: its wheel actions release the keys and buttons that the test holds, so a
+ * Shift-click would become a plain click.
+ *
+ * The hit-test uses the in-view center point of the element, computed as in the WebDriver
+ * spec (the first client rect, clipped by the viewport only), or the click point (center
+ * plus offset) when it is on the element. The pointer hits the element when the top
+ * element at that point is the element or one of its descendants, also inside shadow roots.
+ */
+async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.Element, offset: { x: number, y: number }) {
+    try {
+        await browser.execute((elem: HTMLElement, offset: { x: number, y: number }) => {
+            const hitTest = () => {
+                const rect = elem.getClientRects()[0]
+                if (!rect) {
+                    return 'no-box'
+                }
+                const left = Math.max(0, Math.min(rect.x, rect.x + rect.width))
+                const right = Math.min(window.innerWidth, Math.max(rect.x, rect.x + rect.width))
+                const top = Math.max(0, Math.min(rect.y, rect.y + rect.height))
+                const bottom = Math.min(window.innerHeight, Math.max(rect.y, rect.y + rect.height))
+                let x = Math.floor((left + right) / 2)
+                let y = Math.floor((top + bottom) / 2)
+                if (x < 0 || x > window.innerWidth || y < 0 || y > window.innerHeight) {
+                    return 'missed'
+                }
+                if (offset.x || offset.y) {
+                    if (x !== Math.floor(rect.x + rect.width / 2) || y !== Math.floor(rect.y + rect.height / 2)) {
+                        return 'missed'
+                    }
+                    if (rect.left <= x + offset.x && x + offset.x <= rect.right && rect.top <= y + offset.y && y + offset.y <= rect.bottom) {
+                        x += offset.x
+                        y += offset.y
+                    }
+                }
+                let hit = document.elementFromPoint(x, y)
+                while (hit?.shadowRoot) {
+                    const inner = hit.shadowRoot.elementFromPoint(x, y)
+                    if (!inner || inner === hit) {
+                        break
+                    }
+                    hit = inner
+                }
+                for (let node: Node | null = hit; node; node = node.parentNode || (node as ShadowRoot).host || null) {
+                    if (node === elem) {
+                        return 'hit'
+                    }
+                }
+                return 'missed'
+            }
+            if (hitTest() !== 'missed') {
+                return
+            }
+            for (const scroll of [
+                { block: 'center', inline: 'center' },
+                { block: 'end', inline: 'nearest' },
+                { block: 'start', inline: 'nearest' }
+            ] as const) {
+                elem.scrollIntoView({ ...scroll, behavior: 'instant' })
+                if (hitTest() !== 'missed') {
+                    break
+                }
+            }
+            // a hidden page gets no animation frame
+            if (document.visibilityState === 'hidden') {
+                return
+            }
+            return new Promise<void>((resolve) => {
+                requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+                setTimeout(resolve, 100)
+            })
+        }, element as unknown as HTMLElement, offset)
+    } catch (err) {
+        log.debug(`Could not scroll the element into view before the click: ${(err as Error).message}`)
+    }
+}
+
 async function elementClick(element: WebdriverIO.Element) {
+    const browser = getBrowserObject(element) as WebdriverIO.Browser
+    /**
+     * geckodriver scrolls the element into view and clicks it in one step, so the page
+     * gets its `scroll` events after the click. ChromeDriver almost always gives the page
+     * a frame between the scroll and the click (it missed about 1 click in 300),
+     * safaridriver always does. This costs one more request, so only Firefox pays it.
+     */
+    if (browser.isFirefox) {
+        await bringIntoView(browser, element, { x: 0, y: 0 })
+    }
     try {
         return await element.elementClick(element.elementId)
     } catch (error) {
@@ -142,17 +266,33 @@ async function elementClick(element: WebdriverIO.Element) {
         if (typeof error === 'string') {
             err = new Error(error)
         }
-        if (!err.message.includes('element click intercepted')) {
+        /**
+         * The error name is the code: "element click intercepted", "click intercepted"
+         * in Safari. Only ChromeDriver also puts it in the message, geckodriver says
+         * "… obscures it".
+         */
+        if (!`${err.name} ${err.message}`.includes('click intercepted')) {
             // we only apply the workaround when the click got intercepted
             // so that the middleware can handle any other errors
             throw err
         }
-        await workaround(element)
+        /**
+         * The driver scrolled the element under something, e.g. a sticky header of its
+         * scroll container: bring it where the pointer hits it, and click again. The
+         * driver does not scroll an element that is in view. This costs nothing when the
+         * first click works.
+         */
+        const isNativeApp = browser.isMobile && (await browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)
+        await (isNativeApp ? workaround(element) : bringIntoView(browser, element, { x: 0, y: 0 }))
         return element.elementClick(element.elementId)
     }
 }
 
-async function actionClick(element: WebdriverIO.Element, options: Partial<ClickOptions>) {
+async function actionClick(
+    element: WebdriverIO.Element,
+    options: Partial<ClickOptions>,
+    bidiBrowser?: WebdriverIO.Browser
+) {
     const defaultOptions: ClickOptions = {
         button: 0,
         x: 0,
@@ -176,9 +316,11 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
         throw new Error('Button type not supported.')
     }
 
-    const browser = getBrowserObject(element) as WebdriverIO.Browser
+    const browser = bidiBrowser ?? getBrowserObject(element) as WebdriverIO.Browser
     if (x || y) {
-        const { width, height } = await browser.getElementRect(element.elementId)
+        const { width, height } = isBidiCommandsEnabled(browser)
+            ? await bidiGetRect(element)
+            : await browser.getElementRect(element.elementId)
         if ((x && x < (-Math.floor(width / 2))) || (x && x > Math.floor(width / 2))) {
             log.warn('x would cause a out of bounds error as it goes outside of element')
         }
@@ -186,11 +328,19 @@ async function actionClick(element: WebdriverIO.Element, options: Partial<ClickO
             log.warn('y would cause a out of bounds error as it goes outside of element')
         }
     }
+    const isNativeApp = browser.isMobile && (await browser.isNativeContext || browser.isWindowsApp || browser.isMacApp)
+    if (!isNativeApp) {
+        await bringIntoView(browser, element, { x, y })
+    }
+    if (bidiBrowser) {
+        await bidiAssertClickable(element)
+    }
+    const moveDuration = bidiBrowser ? { duration: 0 } : {}
     const clickNested = async () => {
         await browser.action('pointer', {
             parameters: { pointerType: browser.isMobile ? 'touch' : 'mouse' }
         })
-            .move({ origin: element, x, y })
+            .move({ origin: element, x, y, ...moveDuration })
             .down({ button })
             .pause(duration)
             .up({ button })

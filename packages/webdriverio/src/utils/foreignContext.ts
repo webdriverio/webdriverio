@@ -3,6 +3,7 @@ import { BIDI_MASK, ELEMENT_KEY, type remote } from 'webdriver'
 import { getContextManager } from '../session/context.js'
 import { contextIdValue, heldBrowsingContext } from '../session/browsingContext.js'
 import { frameOffset } from './frameOffset.js'
+import { withScreenshotEvents } from './screenshotEvents.js'
 import { GET_VISIBLE_TEXT } from './thirdParty/getVisibleText.js'
 
 /**
@@ -336,7 +337,14 @@ export async function findLinksInContext (
  * own document and clip a capture of the top-level context it is shown in.
  * Chromium only captures top-level contexts.
  */
-async function screenshotInContext (held: WebdriverIO.BrowsingContext, elementId: string) {
+function screenshotInContext (held: WebdriverIO.BrowsingContext, elementId: string) {
+    /**
+     * the Classic `takeElementScreenshot` that this replaces sends events to the reporters
+     */
+    return withScreenshotEvents(held.browser, 'takeElementScreenshot', () => captureInContext(held, elementId), elementId)
+}
+
+async function captureInContext (held: WebdriverIO.BrowsingContext, elementId: string) {
     await held.execute(prepareInteraction, ref(elementId), 'screenshot', held.isFrame)
     const rect = await held.execute((el: Element) => {
         const { x, y, width, height } = el.getBoundingClientRect()

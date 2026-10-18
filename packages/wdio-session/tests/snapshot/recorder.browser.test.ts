@@ -4,8 +4,8 @@ import { beforeAll, describe, expect, it } from 'vitest'
  * from the source: the `@wdio/utils` entry point needs Node.js
  */
 import { knownRoles, roleTable } from '../../../wdio-utils/src/roles.js'
-import { collectInPage, type CollectOptions } from '../../src/snapshot/web.js'
-import { formatSnapshot } from '../../src/snapshot/format.js'
+import { collectInPage, type CollectOptions } from '../../../wdio-snapshot/src/web.js'
+import { formatSnapshot } from '../../../wdio-snapshot/src/format.js'
 import { pageRecorder } from '../../src/snapshot/recorder.js'
 
 /**
@@ -42,8 +42,8 @@ describe('page recorder', () => {
                 icon.addEventListener('click', () => {})
             }
         })
-        expect(text).toMatch(/generic \[ref=e\d+\] \(icon 1 of 2 in "Invoice #1✎🗑"\)/)
-        expect(text).toMatch(/generic \[ref=e\d+\] \(icon 2 of 2 in "Invoice #1✎🗑"\)/)
+        expect(text).toMatch(/generic \[ref=e\d+\] \(icon 1 of 2 in "Invoice #1🗑"\)/)
+        expect(text).toMatch(/generic \[ref=e\d+\] \(icon 2 of 2 in "Invoice #1✎"\)/)
     })
 
     it('does not mark an element that delegates clicks for its children', () => {

@@ -1,6 +1,6 @@
 {
   "name": "create-wdio",
-  "version": "10.0.0",
+  "version": "10.0.2",
   "description": "Install and setup a WebdriverIO project with all its dependencies in a single run",
   "author": "WebdriverIO Team <mail@webdriver.io>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/create-wdio",
@@ -52,17 +52,17 @@
     "create-wdio": "./bin/wdio.js"
   },
   "dependencies": {
-    "chalk": "^5.3.0",
-    "commander": "^14.0.0",
+    "chalk": "^6.0.1",
+    "commander": "^15.0.0",
     "cross-spawn": "^7.0.3",
-    "ejs": "^3.1.10",
-    "execa": "^9.6.0",
+    "ejs": "^7.0.1",
+    "execa": "^10.1.0",
     "import-meta-resolve": "^4.1.0",
-    "inquirer": "^12.7.0",
-    "normalize-package-data": "^7.0.0",
-    "read-pkg-up": "^10.1.0",
+    "inquirer": "^14.2.3",
+    "normalize-package-data": "^8.0.0",
+    "read-package-up": "^12.0.0",
     "semver": "^7.6.3",
-    "type-fest": "^4.41.0",
+    "type-fest": "^5.10.0",
     "yargs": "^18.2.0"
   },
   "devDependencies": {

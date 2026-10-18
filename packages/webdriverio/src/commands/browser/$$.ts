@@ -42,6 +42,15 @@ import type { Selector } from '../../types.js'
  * filtered list does not resolve to an element the filter excluded. `.at()` uses the same index
  * conversion as a plain array, so `.at(1.5)` is element 1 and `.at(NaN)` is element 0.
  *
+ * When the list still does not reach the index after that wait, the item is a "not found"
+ * element, like `$('.missing')`: `isDisplayed()` and `isExisting()` give `false`, and a matcher
+ * such as `expect($$('li')[5]).not.toBeDisplayed()` passes. A command that needs the element,
+ * for example `click()`, throws `Index out of bounds! $$(li) returned only 3 elements.`
+ *
+ * The index already waited, so that command does not wait a second time: it looks for the item
+ * once more, and uses it if the list now reaches the index. To wait for an item that can appear
+ * later, call `waitForExist()` or `expect(item).toExist()` before the command.
+ *
  * Using the wdio testrunner this command is a global variable, see [Globals](https://webdriver.io/docs/api/globals)
  * for more information. Using WebdriverIO within a [standalone](https://webdriver.io/docs/setuptypes#standalone-mode)
  * script it will be located on the browser object instead (e.g. `browser.$$`).

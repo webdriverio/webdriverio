@@ -4,9 +4,10 @@ import vm from 'node:vm'
 import util from 'node:util'
 import module from 'node:module'
 
-import { resolveOptionalDependency } from '@wdio/utils/node'
-import { expect, setDefaultOptions } from 'expect-webdriverio'
+import { installCommand, resolveOptionalDependency } from '@wdio/utils/node'
 
+import type * as ExpectWebdriverio from 'expect-webdriverio'
+import { SessionError } from '../errors.js'
 import { IMPORT_FN } from './transform.js'
 import type { Session } from '../session.js'
 import { scopeOf } from '../snapshot/target.js'
@@ -30,6 +31,7 @@ export interface ExecContext {
 }
 
 const CONTEXT_KEY = 'exec:context'
+const EXPECT_PACKAGE = 'expect-webdriverio'
 
 /** the ref a selector names, if it is one: `e12`, `[ref=e12]`, `[ref="e12"]` */
 export function refSelector (selector: unknown): string | undefined {
@@ -87,9 +89,7 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
         return existing
     }
     const waitforTimeout = (session.browser.options as { waitforTimeout?: number }).waitforTimeout
-    if (waitforTimeout) {
-        setDefaultOptions({ wait: waitforTimeout })
-    }
+    const expectEntry = await resolveOptionalDependency(EXPECT_PACKAGE, { cwd: session.cwd, from: import.meta.url })
     /**
      * some matchers read the global browser object
      */
@@ -167,7 +167,6 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
             const id = refSelector(args[0])
             return id ? chainableList(id) : session.browser.$$(...args)
         },
-        expect,
         ref,
         session: {
             name: session.name,
@@ -206,6 +205,28 @@ export async function getExecContext (session: Session): Promise<ExecContext> {
         performance,
         crypto: globalThis.crypto
     }
+    // expect-webdriverio is an optional peer: loaded on first use of `expect`, not at startup.
+    // A Proxy rather than a getter: errors thrown by a global's getter are swallowed by the vm context.
+    let loaded: typeof ExpectWebdriverio | undefined
+    const load = () => {
+        if (!loaded) {
+            if (!expectEntry) {
+                throw new SessionError('MISSING_DEPENDENCY', `Cannot use expect in exec: ${EXPECT_PACKAGE} is not installed.`, {
+                    package: EXPECT_PACKAGE,
+                    install: [installCommand(EXPECT_PACKAGE, { cwd: session.cwd })]
+                })
+            }
+            loaded = module.createRequire(import.meta.url)(expectEntry) as typeof ExpectWebdriverio
+            if (waitforTimeout) {
+                loaded.setDefaultOptions({ wait: waitforTimeout })
+            }
+        }
+        return loaded.expect
+    }
+    globals.expect = new Proxy(function expect () {}, {
+        apply: (_target, thisArg, args) => Reflect.apply(load(), thisArg, args),
+        get: (_target, prop) => Reflect.get(load(), prop)
+    })
     const context = vm.createContext(globals, { name: `wdio session ${session.name}` })
     const ctx: ExecContext = {
         context,

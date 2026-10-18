@@ -68,6 +68,26 @@ If you use [Sauce Connect Proxy](https://docs.saucelabs.com/secure-connections/s
 sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
 ```
 
+## Proxy For Browser And Driver Downloads
+
+WebdriverIO downloads the browser and the driver it needs when they are not installed yet.
+
+- **Geckodriver and Edgedriver** downloads use `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY`. A dispatcher set with `setGlobalDispatcher` wins over these variables.
+- **Chrome, Chromium, Firefox and Chromedriver** downloads use `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY` only when one of these is true:
+  - the `proxy-agent` package is installed in your project:
+
+    ```bash
+    npm install --save-dev proxy-agent
+    ```
+
+  - Node.js runs with its built-in proxy support (Node.js 22.21.0 / 24.5.0 or later):
+
+    ```bash
+    NODE_USE_ENV_PROXY=1 npx wdio run ./wdio.conf.ts
+    ```
+
+  WebdriverIO does not install `proxy-agent` for you, because its dependency tree has security advisories without a fix. When a proxy variable is set and neither option is active, WebdriverIO logs a warning before the first download.
+
 ## Proxy Between Browser And Internet
 
 In order to tunnel the connection between the browser and the internet, you can set up a proxy which can be useful to (for example) capture network information and other data with tools like [BrowserMob Proxy](https://github.com/lightbody/browsermob-proxy).

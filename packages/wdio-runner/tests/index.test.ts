@@ -1,11 +1,12 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach, onTestFinished } from 'vitest'
-import { executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, initializePlugin } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config/node'
 import type { Instances } from 'webdriverio'
-import { attach } from 'webdriverio'
+import { attach, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setDefaultOptions, SnapshotService } from 'expect-webdriverio'
 
@@ -73,12 +74,14 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             runner['_isMultiRemote'] = true
             runner['_shutdown'] = vi.fn()
+            const instances: Record<string, { sessionId?: string, deleteSession: () => Promise<void> }> = {
+                foo: { sessionId: '123', deleteSession: vi.fn() },
+                bar: { sessionId: '456', deleteSession: vi.fn() }
+            }
             runner['_browser'] = {
                 deleteSession: vi.fn(),
                 instances: ['foo', 'bar'],
-                getInstance: vi.fn().mockReturnValue({
-                    sessionId: '123',
-                }),
+                getInstance: vi.fn((name: string) => instances[name]),
                 capabilities: {
                     foo: {
                         browserName: 'Chrome'
@@ -95,10 +98,60 @@ describe('wdio-runner', () => {
                 'afterSession',
                 [hook],
                 [{ logLevel: 'error', afterSession: [hook] }, { foo: undefined, bar: undefined }, undefined])
-            expect(runner['_browser']!.deleteSession).toBeCalledTimes(1)
+            expect(instances.foo.deleteSession).toBeCalledTimes(1)
+            expect(instances.bar.deleteSession).toBeCalledTimes(1)
+            expect(runner['_browser']!.deleteSession).not.toBeCalled()
             expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('foo').sessionId).toBe(true)
             expect(!(runner['_browser'] as unknown as MultiRemoteBrowserObject).getInstance('bar').sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
+        })
+
+        it('should still end the worker when the session is already gone', async () => {
+            const log = logger('wdio-runner')
+            vi.spyOn(log, 'error').mockImplementation(() => {})
+            const hook = vi.fn()
+            const runner = new WDIORunner()
+            runner['_cid'] = '0-0'
+            runner['_browser'] = {
+                deleteSession: vi.fn().mockRejectedValue(new Error('invalid session id: A session is either terminated or not started')),
+                sessionId: '123'
+            } as unknown as BrowserObject
+            runner['_config'] = { afterSession: [hook] } as any
+
+            await expect(runner.endSession()).resolves.toBeUndefined()
+
+            expect(log.error).toHaveBeenCalledWith(expect.stringContaining('Failed to end the session: invalid session id'))
+            expect(log.error).toHaveBeenCalledWith(expect.stringContaining('Close it manually if needed.'))
+            expect(process.send).toBeCalledWith({ origin: 'worker', name: 'sessionEnded', cid: '0-0' })
+            expect(runner['_browser']!.sessionId).toBeUndefined()
+            expect(executeHooksWithArgs).toBeCalledWith('afterSession', [hook], expect.any(Array))
+        })
+
+        it('should delete every multi-remote session when one of them is already gone', async () => {
+            const log = logger('wdio-runner')
+            vi.spyOn(log, 'error').mockImplementation(() => {})
+            const runner = new WDIORunner()
+            runner['_isMultiRemote'] = true
+            const instances: Record<string, { sessionId?: string, capabilities: object, deleteSession: () => Promise<void> }> = {
+                foo: { sessionId: '123', capabilities: {}, deleteSession: vi.fn().mockRejectedValue(new Error('fetch failed')) },
+                bar: { sessionId: '456', capabilities: {}, deleteSession: vi.fn().mockResolvedValue(undefined) }
+            }
+            runner['_browser'] = {
+                instances: ['foo', 'bar'],
+                getInstance: vi.fn((name: string) => instances[name]),
+                capabilities: {}
+            } as any
+            runner['_config'] = { afterSession: [] } as any
+
+            await expect(runner.endSession()).resolves.toBeUndefined()
+
+            expect(instances.foo.deleteSession).toBeCalledTimes(1)
+            expect(instances.bar.deleteSession).toBeCalledTimes(1)
+            expect(log.error).toHaveBeenCalledTimes(1)
+            expect(log.error).toHaveBeenCalledWith(expect.stringContaining('Failed to end the session of "foo": fetch failed'))
+            expect(instances.foo.sessionId).toBeUndefined()
+            expect(instances.bar.sessionId).toBeUndefined()
+            expect(executeHooksWithArgs).toBeCalledWith('afterSession', [], expect.any(Array))
         })
     })
 
@@ -163,6 +216,44 @@ describe('wdio-runner', () => {
             expect(runner['_reporter']?.caps).toEqual({ browserName: 'chrome' })
         })
 
+        it('should shut down and report when the session is already gone at the end', async () => {
+            const log = logger('wdio-runner')
+            vi.spyOn(log, 'error').mockImplementation(() => {})
+            const runner = new WDIORunner()
+            const config: any = {
+                reporters: [],
+                before: [],
+                beforeSession: [],
+                framework: 'testWithFailures',
+                runner: 'local'
+            }
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            runner['_shutdown'] = vi.fn().mockResolvedValue(123)
+            const stubBrowser = {
+                sessionId: '123',
+                capabilities: { browserName: 'chrome' },
+                options: {},
+                deleteSession: vi.fn().mockRejectedValue(new Error('invalid session id'))
+            }
+            runner['_initSession'] = vi.fn().mockImplementation(async () => {
+                runner['_browser'] = stubBrowser as unknown as BrowserObject
+                return stubBrowser
+            })
+
+            await expect(runner.run({
+                args: { reporters: [] },
+                cid: '0-0',
+                retries: 0,
+                caps: { browserName: '123' },
+                specs: ['foobar'],
+                configFile: '/foo/bar'
+            })).resolves.toBe(123)
+
+            expect(stubBrowser.deleteSession).toBeCalledTimes(1)
+            expect(process.send).toBeCalledWith({ origin: 'worker', name: 'sessionEnded', cid: '0-0' })
+            expect(runner['_shutdown']).toBeCalledWith(123, 0)
+        })
+
         it('should send the post-beforeSession retry budget with testFrameworkInit', async () => {
             const runner = new WDIORunner()
             const config: any = {
@@ -202,6 +293,28 @@ describe('wdio-runner', () => {
                 // sentinel, mirroring the `sessionStarted` accounting
                 specFileRetries: 6
             }))
+        })
+
+        it('should hand the browser to the framework before running it', async () => {
+            const calls: string[] = []
+            const stubBrowser = { capabilities: {}, options: {} }
+            const framework: any = {
+                init: () => framework,
+                hasTests: () => true,
+                setBrowser: vi.fn(() => calls.push('setBrowser')),
+                run: vi.fn(async () => { calls.push('run'); return 0 })
+            }
+            vi.mocked(initializePlugin).mockResolvedValueOnce({ default: framework } as any)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue({
+                framework: 'testNoFailures', reporters: [], beforeSession: [], runner: 'local'
+            } as any)
+            const runner = new WDIORunner()
+            runner['_shutdown'] = vi.fn()
+            runner['_initSession'] = vi.fn().mockReturnValue(stubBrowser)
+            await runner.run({ args: {}, caps: {}, configFile: '/bar/foo' } as any)
+
+            expect(framework.setBrowser).toBeCalledWith(stubBrowser)
+            expect(calls).toEqual(['setBrowser', 'run'])
         })
 
         it('should return failures count', async () => {
@@ -491,6 +604,29 @@ describe('wdio-runner', () => {
             expect(reporter.emit).toBeCalledWith(
                 'client:afterCommand',
                 { bar: 'foo', sessionId: 'fakeid' })
+        })
+
+        it('should forward the parallel context id from the async store', async () => {
+            const reporter = { emit: vi.fn() }
+            const runner = new WDIORunner()
+            runner['_reporter'] = reporter as any
+            const browser = await runner['_initSession'](
+                { hostname: 'foobar' } as any,
+                [{ browserName: 'chrome' }] as any
+            )
+            const store = new AsyncLocalStorage<string>()
+            ;(browser as any)[PARALLEL_CONTEXT_STORE_KEY] = store
+            const [, beforeListener] = vi.mocked(browser!.on).mock.calls[0] as any
+            const [, afterListener] = vi.mocked(browser!.on).mock.calls[1] as any
+
+            store.run('ctx-1', () => beforeListener({ foo: 'bar' }))
+            store.run('ctx-2', () => afterListener({ bar: 'foo' }))
+            expect(reporter.emit).toBeCalledWith('client:beforeCommand', { foo: 'bar', sessionId: 'fakeid', contextId: 'ctx-1' })
+            expect(reporter.emit).toBeCalledWith('client:afterCommand', { bar: 'foo', sessionId: 'fakeid', contextId: 'ctx-2' })
+
+            reporter.emit.mockClear()
+            beforeListener({ foo: 'bar' })
+            expect(reporter.emit).toBeCalledWith('client:beforeCommand', { foo: 'bar', sessionId: 'fakeid' })
         })
 
         it('should return null if initiating session fails', async () => {

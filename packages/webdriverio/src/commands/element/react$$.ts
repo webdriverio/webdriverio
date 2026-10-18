@@ -60,7 +60,7 @@ export function react$$(
             react$$Script as any, selector, props, state, this
         ) as ElementReference[]
 
-        return getElements.call(this, selector, res, { isReactElement: true })
+        return getElements.call(this, selector, res, { isReactElement: true, reactOptions: { props, state } })
     }, {
         selector,
         foundWith: 'react$$',

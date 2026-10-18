@@ -19,8 +19,8 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
 
 /**
- * a React app with 3 `Item` components and a button that adds one, mounted with `mount`
- * and the React build of `/{build}/`
+ * a React app with 3 `Item` components, a button that adds one and a button that mounts
+ * the list again with new DOM nodes, mounted with `mount` and the React build of `/{build}/`
  */
 const reactApp = (build: string, mount: string) => `<title>React</title><div id="root"></div>
 <script src="/${build}/react.js"></script><script src="/${build}/react-dom.js"></script>
@@ -29,9 +29,11 @@ const h = React.createElement
 function Item (props) { return h('li', null, props.color) }
 function App () {
     const [colors, setColors] = React.useState(['red', 'blue', 'red'])
+    const [mounts, setMounts] = React.useState(0)
     return h('div', null,
-        h('ul', null, colors.map((color, index) => h(Item, { key: index, color }))),
-        h('button', { id: 'add', onClick: () => setColors(colors.concat('green')) }, 'add'))
+        h('ul', { key: mounts }, colors.map((color, index) => h(Item, { key: index, color }))),
+        h('button', { id: 'add', onClick: () => setColors(colors.concat('green')) }, 'add'),
+        h('button', { id: 'remount', onClick: () => setMounts(mounts + 1) }, 'remount'))
 }
 ${mount}
 </script>`
@@ -85,11 +87,13 @@ describe('main suite 1', () => {
      * the React builds of the `e2e` package, so the React pages need no network. They cover
      * the 3 root structures: `_reactRootContainer._internalRoot` (React 16 and 17
      * `render`), `_reactRootContainer` (React 18 `render`) and `__reactContainer$`
-     * (`createRoot` in React 18 and 19). React 19 comes from `react19Script`.
+     * (`createRoot` in React 18 and 19). React 19 comes from `react19Script`. React 18
+     * is an alias too: the plain `react` of the `e2e` package is React 19 for the
+     * component tests, and React 19 has no UMD build.
      */
     const reactBuilds: Record<string, Record<string, string>> = {
         react17: { react: 'react-17', 'react-dom': 'react-dom-17' },
-        react18: { react: 'react', 'react-dom': 'react-dom' }
+        react18: { react: 'react-18', 'react-dom': 'react-dom-18' }
     }
     /**
      * `/basic_auth` accepts only `admin:admin`. It sends no `WWW-Authenticate` header, so a
@@ -316,25 +320,18 @@ describe('main suite 1', () => {
             await browser.$('#parent').waitForExist()
         })
 
-        it('moveTo without iframe', async function () {
-            // Unstable on Windows: expected "center", received "center\nout"
-            this.retries(3)
+        it('moveTo without iframe', async () => {
             await browser.$('#parent').moveTo()
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo without iframe with 0 offsets', async function () {
-            // Unstable on Windows: expected "center", received "center\nout"
-            this.retries(3)
+        it('moveTo without iframe with 0 offsets', async () => {
             await browser.$('#parent').moveTo({ xOffset: 0, yOffset: 0 })
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
         inputs.forEach((input) => {
-            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async function() {
-                // Unstable test, retry up to 3 times `Expected: 90 Received: 504` with when input = `{"xOffset":10}`
-                this.retries(3)
-
+            it(`moves to position x,y outside of iframe when passing the arguments ${JSON.stringify(input)}`, async () => {
                 await setupMouseTracking()
                 await browser.$('#parent').moveTo()
                 const rectBefore = await waitForMousePosition(0)
@@ -356,29 +353,19 @@ describe('main suite 1', () => {
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo in iframe with 0 offsets', async function () {
-            /**
-             * too unstable on Windows: expected "center", received "center\nout"
-             */
-            if (os.platform() === 'win32') {
-                this.skip()
-            }
+        it('moveTo in iframe with 0 offsets', async () => {
             await browser.$('#parent').moveTo({ xOffset: 0, yOffset: 0 })
             await expect(browser.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo to parent frame with auto scrolling', async function () {
-            // Unstable on Windows: expected "center", received "center\nout"
-            this.retries(3)
+        it('moveTo to parent frame with auto scrolling', async () => {
             await browser.setWindowSize(500, 500)
             const page = (await browser.browsingContexts())[0]
             await page.$('#parent').moveTo()
             await expect(page.$('#text')).toHaveValue('center')
         })
 
-        it('moveTo to nested iframe with auto scrolling', async function () {
-            // Unstable on Windows: expected "center", received "center\nout"
-            this.retries(3)
+        it('moveTo to nested iframe with auto scrolling', async () => {
             const page = (await browser.browsingContexts())[0]
             const frame = await page.frame('iframe.code-tabs__result')
             await frame.$('#parent').moveTo()
@@ -729,6 +716,48 @@ describe('main suite 1', () => {
                 expect(await browser.react$('Item', { props: { color: 'green' } }).getText()).toBe('green')
             })
         }
+
+        /**
+         * a React element is found again with `react$` or `react$$` and its props, when
+         * it wasn't rendered yet or React replaced its DOM node
+         */
+        describe('finding a component again', () => {
+            beforeEach(async () => {
+                await browser.url(`${navigationOrigin}/react18-create-root`)
+                await expect($$('li')).toBeElementsArrayOfSize(3)
+            })
+
+            it('isDisplayed finds a react$ element with its props once it is rendered', async () => {
+                const green = await browser.react$('Item', { props: { color: 'green' } })
+                expect(green.elementId).toBeUndefined()
+
+                await $('#add').click()
+                await browser.waitUntil(() => green.isDisplayed(), { timeout: 5000 })
+                await expect(green).toHaveText('green')
+            })
+
+            it('a command waits for a react$ element with its props', async () => {
+                const green = await browser.react$('Item', { props: { color: 'green' } })
+                await $('#add').click()
+                await expect(green.getText()).resolves.toBe('green')
+            })
+
+            it('a stale react$ element is found again with its props', async () => {
+                const blue = await browser.react$('Item', { props: { color: 'blue' } })
+                await expect(blue.getText()).resolves.toBe('blue')
+
+                await $('#remount').click()
+                await expect(blue.getText()).resolves.toBe('blue')
+            })
+
+            it('a stale react$$ element is found again at the same index', async () => {
+                const second = (await $('ul').react$$('Item'))[1]
+                await expect(second.getText()).resolves.toBe('blue')
+
+                await $('#remount').click()
+                await expect(second.getText()).resolves.toBe('blue')
+            })
+        })
 
         /**
          * the commands inject their script and wait in the context of the frame

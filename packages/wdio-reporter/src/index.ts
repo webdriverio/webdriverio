@@ -54,6 +54,30 @@ export default class WDIOReporter extends EventEmitter {
             : fs.createWriteStream(this.options.logFile!)
 
         let currentTest: TestStats
+        const contextTests = new Map<string, TestStats>()
+        const contextByUid = new Map<string, string>()
+        const retriesByContext = new Map<string, number>()
+        const getContextId = (test: Test) => test.contextId ?? contextByUid.get(test.uid)
+        const getRetries = (contextId?: string) => contextId ? retriesByContext.get(contextId) ?? 0 : this.retries
+        const setRetries = (contextId: string | undefined, count: number) => {
+            if (contextId) {
+                retriesByContext.set(contextId, count)
+            } else {
+                this.retries = count
+            }
+        }
+        const trackContext = (test: Test, testStat: TestStats) => {
+            if (test.contextId) {
+                contextTests.set(test.contextId, testStat)
+                contextByUid.set(testStat.uid, test.contextId)
+            }
+        }
+        const getCommandTarget = (payload: { contextId?: string }) => {
+            if (payload.contextId) {
+                return contextTests.get(payload.contextId)
+            }
+            return contextTests.size === 0 ? currentTest : undefined
+        }
 
         const rootSuite = new SuiteStats({
             title: '(root)',
@@ -87,7 +111,7 @@ export default class WDIOReporter extends EventEmitter {
             }
 
             const suite = new SuiteStats(params)
-            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            const currentSuite = this.#owningSuite(params.parentUid)
             currentSuite.suites.push(suite)
             this.currentSuites.push(suite)
             this.suites[suite.uid] = suite
@@ -107,7 +131,7 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('hook:start', (hook: Hook) => {
             const hookStats = new HookStats(hook)
-            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            const currentSuite = this.#owningSuite(hook.parentUid)
             currentSuite.hooks.push(hookStats)
             currentSuite.hooksAndTests.push(hookStats)
             this.hooks[hook.uid!] = hookStats
@@ -122,9 +146,10 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:start', (test: Test) => {
-            test.retries = this.retries
+            test.retries = getRetries(test.contextId)
             currentTest = new TestStats(test)
-            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            trackContext(test, currentTest)
+            const currentSuite = this.#owningSuite(test.parentUid)
             currentSuite.tests.push(currentTest)
             currentSuite.hooksAndTests.push(currentTest)
             this.tests[test.uid] = currentTest
@@ -140,8 +165,11 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:skip', (test: Test) => {
-            const testStat = this.tests[test.uid]
-            currentTest.skip(test.pendingReason!)
+            const testStat = this.tests[test.uid] ?? currentTest
+            if (!testStat) {
+                return
+            }
+            testStat.skip(test.pendingReason!)
             this.counts.skipping++
             this.counts.tests++
             this.onTestSkip(testStat)
@@ -161,32 +189,51 @@ export default class WDIOReporter extends EventEmitter {
 
             testStat.fail(getErrorsFromEvent(test))
             this.onTestRetry(testStat)
-            this.retries++
+            const contextId = getContextId(test)
+            setRetries(contextId, getRetries(contextId) + 1)
         })
 
         this.on('test:pending', (test: Test) => {
-            test.retries = this.retries
-            const currentSuite = this.currentSuites[this.currentSuites.length - 1]
+            test.retries = getRetries(test.contextId)
+            const currentSuite = this.#owningSuite(test.parentUid)
+            /**
+             * a test that started and did not end, and now ends as pending or skipped
+             * (for example a Cucumber step that returns 'pending', or Jasmine
+             * `pending()`), keeps its start, to give its duration, and its commands
+             */
+            const existingTest = this.tests[test.uid]
+            const startedTest = existingTest?.state === 'pending' && !existingTest.end ? existingTest : undefined
             currentTest = new TestStats(test)
+            if (startedTest) {
+                currentTest.start = startedTest.start
+                currentTest.output = startedTest.output
+            }
+            // a pending test that never started (Mocha `it.skip`) ends now, with no duration
+            currentTest.complete()
 
             /**
              * In Mocha: tests that are skipped don't have a start event but a test end.
              * In Jasmine: tests have a start event, therefore we need to replace the
              * test instance with the pending test here
              */
-            if (test.uid in this.tests && this.tests[test.uid].state !== 'pending') {
-                currentTest.uid = test.uid in this.tests ? 'skipped-' + this.counts.skipping : currentTest.uid
+            if (existingTest && existingTest.state !== 'pending') {
+                currentTest.uid = 'skipped-' + this.counts.skipping
             }
-            const suiteTests = currentSuite.tests
-            if (!suiteTests.length || currentTest.uid !== suiteTests[suiteTests.length - 1].uid) {
+            const testIndex = currentSuite.tests.findLastIndex((entry) => entry.uid === currentTest.uid)
+            if (testIndex === -1) {
                 currentSuite.tests.push(currentTest)
+            } else {
+                currentSuite.tests[testIndex] = currentTest
+            }
+            const hooksAndTestsIndex = currentSuite.hooksAndTests.findLastIndex((entry) => entry.uid === currentTest.uid)
+            if (hooksAndTestsIndex === -1) {
                 currentSuite.hooksAndTests.push(currentTest)
             } else {
-                suiteTests[suiteTests.length - 1] = currentTest
-                currentSuite.hooksAndTests[currentSuite.hooksAndTests.length - 1] = currentTest
+                currentSuite.hooksAndTests[hooksAndTestsIndex] = currentTest
             }
 
             this.tests[currentTest.uid] = currentTest
+            trackContext(test, currentTest)
             if (test.state === 'pending') {
                 currentTest.state = 'pending'
                 this.counts.pending++
@@ -202,14 +249,24 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('test:end', (test: Test) => {
             const testStat = this.tests[test.uid]
-            this.retries = 0
+            const contextId = getContextId(test)
+            if (contextId) {
+                retriesByContext.delete(contextId)
+                contextTests.delete(contextId)
+                contextByUid.delete(test.uid)
+            } else {
+                this.retries = 0
+            }
             this.onTestEnd(testStat)
         })
 
         this.on('suite:end', (suite: Suite) => {
             const suiteStat = this.suites[suite.uid!]
             suiteStat.complete()
-            this.currentSuites.pop()
+            const index = this.currentSuites.lastIndexOf(suiteStat)
+            if (index !== -1) {
+                this.currentSuites.splice(index, 1)
+            }
             this.onSuiteEnd(suiteStat)
         })
 
@@ -232,7 +289,8 @@ export default class WDIOReporter extends EventEmitter {
          * browser client event handlers
          */
         this.on('client:beforeCommand', (payload) => {
-            if (!currentTest) {
+            const target = getCommandTarget(payload)
+            if (!target) {
                 return
             }
             if (payload.body?.script) {
@@ -241,10 +299,11 @@ export default class WDIOReporter extends EventEmitter {
                     script: transformCommandScript(payload.body.script)
                 }
             }
-            currentTest.output.push(Object.assign(payload, { type: 'command' }))
+            target.output.push(Object.assign(payload, { type: 'command' }))
         })
         this.on('client:afterCommand', (payload) => {
-            if (!currentTest) {
+            const target = getCommandTarget(payload)
+            if (!target) {
                 return
             }
             if (payload.body?.script) {
@@ -253,8 +312,15 @@ export default class WDIOReporter extends EventEmitter {
                     script: transformCommandScript(payload.body.script)
                 }
             }
-            currentTest.output.push(Object.assign(payload, { type: 'result' }))
+            target.output.push(Object.assign(payload, { type: 'result' }))
         })
+    }
+
+    #owningSuite(parentUid?: string | null) {
+        if (parentUid === null) {
+            return this.currentSuites[0]
+        }
+        return (parentUid && this.suites[parentUid]) || this.currentSuites[this.currentSuites.length - 1]
     }
 
     /**

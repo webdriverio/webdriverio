@@ -3,9 +3,14 @@ import { ELEMENT_ARRAY_COMMANDS, ELEMENT_ARRAY_WRAP, getBrowserObject } from '@w
 
 import refetchElement from './utils/refetchElement.js'
 import implicitWait from './utils/implicitWait.js'
+import { isElementNotFoundAgain, nameNotFoundAgain, notFoundElement, waitedFor } from './utils/elementNotFound.js'
 import { isStaleElementError } from './utils/index.js'
+/**
+ * imported from the leaf module directly, see `utils/implicitWait.ts`
+ */
+import { StrictSelectorError } from './utils/strictSelectorError.js'
 
-export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements', 'emit']
+export const IMPLICIT_WAIT_EXCLUSION_LIST = ['getElement', 'getElements']
 
 /**
  * Run an element command after the implicit wait, and retry it when the element
@@ -43,6 +48,12 @@ async function invokeElementCommand (
         return result
     } catch (_err: unknown) {
         const err = _err as Error
+        /**
+         * an inner layer of the command did not find the element again: name this command
+         */
+        if (isElementNotFoundAgain(err)) {
+            nameNotFoundAgain(err, element, commandName)
+        }
         if (err.name === 'element not interactable') {
             try {
                 await fetched.waitForClickable()
@@ -55,18 +66,52 @@ async function invokeElementCommand (
             }
         }
 
-        if (err.name === 'stale element reference' || isStaleElementError(err)) {
+        /**
+         * The "element wasn't found" error of a wait (an element that was not found again, or
+         * never found) is not a stale element error, also when its message has that text (a
+         * selector like `[data-error="stale element reference"]`). So the outer layers of a
+         * command do not look for an element that an inner layer did not find, and do not run
+         * the command again (9.31.9 did not either: the command would repeat its steps and wait
+         * again for an element that it kept).
+         */
+        const stale = !waitedFor(err) && (err.name === 'stale element reference' || isStaleElementError(err))
+        if (stale) {
             try {
                 const refetched = await refetchElement(element, commandName)
                 element.elementId = refetched.elementId
+                /**
+                 * also the w3c identifier, which e.g. an action origin reads
+                 */
+                element[ELEMENT_KEY] = refetched.elementId
                 element.parent = refetched.parent
                 return await execute()
             } catch (refetchErr) {
                 /**
-                 * If refetch fails (e.g., page navigated away and elements
-                 * are no longer found), re-throw the original stale element
-                 * error instead of masking it with "Index out of bounds"
-                 * or other refetch errors.
+                 * A strict-mode violation is a real error the user needs to see, as in
+                 * `implicitWait`.
+                 */
+                if (refetchErr instanceof StrictSelectorError) {
+                    throw refetchErr
+                }
+                /**
+                 * The lookup, or a lookup of the command run again, waited `waitforTimeout` for
+                 * the element (or a parent) and did not find it: throw its "element wasn't found"
+                 * error. The outer layers of the command do not handle it, so they do not wait
+                 * for the element again (#16072). A lookup records the element that it did not
+                 * find: name the error for this command, with the stale element error of the
+                 * driver as its cause. An element that the command never found keeps its plain
+                 * error.
+                 */
+                if (waitedFor(refetchErr)) {
+                    if (refetchErr instanceof Error && notFoundElement(refetchErr) !== undefined) {
+                        nameNotFoundAgain(refetchErr, element, commandName, err)
+                    }
+                    throw refetchErr
+                }
+                /**
+                 * Any other failure gives the original stale element error instead of masking
+                 * it with an unrelated error, and an outer layer can find the element again
+                 * (#15627).
                  */
                 if (!(refetchErr instanceof Error) || !isStaleElementError(refetchErr)) {
                     throw err
@@ -86,28 +131,33 @@ async function invokeElementCommand (
  * @param  {Function} fn  command shim
  */
 export const elementErrorHandler = (fn: Function) => (commandName: string, commandFn: Function) => {
-    return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: unknown[]) {
-        /**
-         * `$$` and the other element-list commands return an array directly.
-         * An async wrapper would turn that array into a promise and `Array.isArray`
-         * on `$('parent').$$('child')` would be false. The implicit wait instead
-         * runs when the list is first read.
-         */
-        if ((ELEMENT_ARRAY_COMMANDS as readonly string[]).includes(commandName)) {
-            return fn(commandName, function (this: WebdriverIO.Element, ...commandArgs: unknown[]) {
-                const list = commandFn.apply(this, commandArgs)
-                const wrap = list?.[ELEMENT_ARRAY_WRAP] as ((wrapper: (load: () => Promise<unknown>) => Promise<unknown>) => void) | undefined
-                if (typeof wrap === 'function') {
-                    const element = this
-                    wrap(async (load) => invokeElementCommand(element, commandName, () => load()))
-                }
-                return list
-            }).apply(this, args)
-        }
+    /**
+     * `fn` (the command wrapper) runs the command hooks and builds the chain of the result once,
+     * around the middleware; the command itself runs without a second wrapper, which ran the
+     * hooks again (a leftover of the sync mode of v5).
+     *
+     * `$$` and the other element-list commands return an array directly. An async wrapper would
+     * turn that array into a promise and `Array.isArray` on `$('parent').$$('child')` would be
+     * false. The implicit wait instead runs when the list is first read.
+     */
+    const wrap = () => (ELEMENT_ARRAY_COMMANDS as readonly string[]).includes(commandName)
+        ? fn(commandName, function (this: WebdriverIO.Element, ...commandArgs: unknown[]) {
+            const list = commandFn.apply(this, commandArgs)
+            const wrapList = list?.[ELEMENT_ARRAY_WRAP] as ((wrapper: (load: () => Promise<unknown>) => Promise<unknown>) => void) | undefined
+            if (typeof wrapList === 'function') {
+                const element = this
+                wrapList(async (load) => invokeElementCommand(element, commandName, () => load()))
+            }
+            return list
+        })
+        : fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element, ...callArgs: unknown[]) {
+            return invokeElementCommand(this, commandName, () => commandFn.apply(this, callArgs))
+        })
 
-        return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element) {
-            return invokeElementCommand(this, commandName, () => fn(commandName, commandFn).apply(this, args))
-        }).apply(this)
+    // the wrapper is built on the first call and kept: an element has ~280 commands and uses few
+    let wrapped: Function | undefined
+    return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: unknown[]) {
+        return (wrapped ??= wrap()).apply(this, args)
     }
 }
 

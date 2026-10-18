@@ -153,6 +153,7 @@ export const SUPPORTED_PACKAGES = {
     ],
     service: [
         // internal or community driver services
+        { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'visual', value: '@wdio/visual-service$--$visual' },
         { name: 'ai', value: '@wdio/ai-service$--$ai' },
         { name: 'vite', value: 'wdio-vite-service$--$vite' },
@@ -239,6 +240,21 @@ Learn more about Serenity/JS:
   🔗 https://serenity-js.org/handbook/test-runners/webdriverio/
   🔗 https://serenity-js.org/handbook/reporting/html-reporter/
 `
+
+/**
+ * With the install skipped the wizard has only printed the install command,
+ * so the service cannot start until the user runs it.
+ */
+export function buildDevtoolsBanner (installed: boolean) {
+    const status = installed
+        ? 'DevTools is set up: running your tests opens a live dashboard of the run.'
+        : 'DevTools is configured: once you install the dependencies listed above,\nrunning your tests opens a live dashboard of the run.'
+    return `
+${status}
+Set \`mode: 'trace'\` in its options to record a replayable trace instead.
+  🔗 https://webdriver.io/docs/devtools/wdio
+`
+}
 
 export function usesSerenity (answers: Questionnair) {
     return answers.framework.includes('serenity-js')
@@ -465,12 +481,12 @@ function prioServiceOrderFor (serviceNamesParam: string | string[]) {
 }
 
 export const QUESTIONNAIRE = [{
-    type: 'list',
+    type: 'select',
     name: 'runner',
     message: 'What type of testing would you like to do?',
     choices: SUPPORTED_PACKAGES.runner
 }, {
-    type: 'list',
+    type: 'select',
     name: 'preset',
     message: 'Which framework do you use for building components?',
     choices: SUPPORTED_BROWSER_RUNNER_PRESETS,
@@ -490,13 +506,13 @@ export const QUESTIONNAIRE = [{
         answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
-    type: 'list',
+    type: 'select',
     name: 'desktopFramework',
     message: 'What type of desktop application are you testing?',
     choices: Object.values(DesktopFrameworkChoice),
     when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'desktop'
 }, {
-    type: 'list',
+    type: 'select',
     name: 'electronBuildTool',
     message: 'Which tool are you using to build your Electron app?',
     choices: Object.values(ElectronBuildToolChoice),
@@ -507,7 +523,7 @@ export const QUESTIONNAIRE = [{
     message: 'What is the path to the binary of your built Electron app?',
     when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'electron' && (answers.electronBuildTool === ElectronBuildToolChoice.SomethingElse)
 }, {
-    type: 'list',
+    type: 'select',
     name: 'tauriDriverProvider',
     message: 'Which WebDriver provider would you like to use for Tauri?',
     choices: Object.values(TauriDriverProviderChoice),
@@ -524,7 +540,7 @@ export const QUESTIONNAIRE = [{
     message: 'Path to your built Tauri binary (leave blank to use the default `cargo tauri build` output)?',
     when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'tauri'
 }, {
-    type: 'list',
+    type: 'select',
     name: 'dioxusDriverProvider',
     message: 'Which WebDriver provider would you like to use for Dioxus?',
     choices: Object.values(DioxusDriverProviderChoice),
@@ -535,20 +551,20 @@ export const QUESTIONNAIRE = [{
     message: 'Path to your built Dioxus debug binary (e.g. ./target/debug/my-app)?',
     when: /* istanbul ignore next */ (answers: Questionnair) => getResolvedPurpose(answers) === 'dioxus'
 }, {
-    type: 'list',
+    type: 'select',
     name: 'backend',
     message: 'Where is your automation backend located?',
     choices: Object.values(BackendChoice),
     when: /* instanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'e2e'
 }, {
-    type: 'list',
+    type: 'select',
     name: 'e2eEnvironment',
     message: 'Which environment you would like to automate?',
     choices: E2E_ENVIRONMENTS,
     default: 'web',
     when: /* istanbul ignore next */ (answers: Questionnair) => getTestingPurpose(answers) === 'e2e'
 }, {
-    type: 'list',
+    type: 'select',
     name: 'mobileEnvironment',
     message: 'Which mobile environment you\'d like to automate?',
     choices: MOBILE_ENVIRONMENTS,
@@ -595,7 +611,7 @@ export const QUESTIONNAIRE = [{
     default: '443',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Experitest
 }, {
-    type: 'list',
+    type: 'select',
     name: 'expEnvProtocol',
     message: 'Choose a protocol for environment variable',
     default: ProtocolOptions.HTTPS,
@@ -648,7 +664,7 @@ export const QUESTIONNAIRE = [{
     default: 'SAUCE_ACCESS_KEY',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BackendChoice.Saucelabs
 }, {
-    type: 'list',
+    type: 'select',
     name: 'region',
     message: 'In which region do you want to run your Sauce Labs tests in?',
     choices: Object.values(RegionOptions),
@@ -684,7 +700,7 @@ export const QUESTIONNAIRE = [{
     default: '/',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend && answers.backend.toString().indexOf('own Selenium cloud') > -1
 }, {
-    type: 'list',
+    type: 'select',
     name: 'framework',
     message: 'Which framework do you want to use?',
     choices: /* instanbul ignore next */ (answers: Questionnair) => {

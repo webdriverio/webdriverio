@@ -19,7 +19,8 @@ vi.mock('../../../src/session/context.js', () => ({
         setCurrentContext: vi.fn(),
         findParentContext: vi.fn().mockReturnValue(undefined),
         findContext: vi.fn()
-    }))
+    })),
+    getParallelContextStore: () => ({ getStore: () => undefined })
 }))
 
 vi.mock('../../../src/session/networkManager.js', () => ({

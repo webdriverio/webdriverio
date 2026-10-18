@@ -3,21 +3,27 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { getContextManager } from 'webdriverio'
+import { onlyInteractive, type RefEntry, type SnapshotNode, type SnapshotRef } from '@wdio/snapshot'
 
 import { attachedPlan } from './debug.js'
 import { Session } from './session.js'
+import { SessionError } from './errors.js'
+import type { ErrorCode } from './constants.js'
+import type { HintFormatter } from './hints.js'
 import { ACTIONS, type ActionSpec } from './actions/specs.js'
-import { takeSnapshot, type SnapshotOptions, type TakenSnapshot } from './actions/observe.js'
+import type { SnapshotOptions, TakenSnapshot } from './actions/observe.js'
+import type { ActionArgsOf, AgentActionName } from './actions/args.js'
+import type { ActionData, ActionDataMap, AgentActionResult, AgentSnapshot, AgentSnapshotOptions, PageChange, PageInfo } from './agent/types.js'
 import { startEventCapture } from './daemon/capture.js'
+import { formatSnapshot } from './snapshot/render.js'
 import { installPageRecorder } from './snapshot/recorder.js'
-import { formatSnapshot, onlyInteractive, type SnapshotNode, type SnapshotRef } from './snapshot/format.js'
-import type { RefEntry } from './snapshot/refs.js'
 import type { LogEntry, NetworkEntry } from './daemon/events.js'
-import type { ActionResult, HistoryEntry } from './types.js'
+import type { HistoryEntry } from './types.js'
 import { resolveElement, scopeOf } from './snapshot/target.js'
 
 export type { ActionSpec, LogEntry, NetworkEntry, RefEntry, SnapshotNode, SnapshotOptions, SnapshotRef, TakenSnapshot, HistoryEntry }
-export { formatSnapshot, onlyInteractive }
+export { formatSnapshot, onlyInteractive, SessionError }
+export type { ErrorCode, HintFormatter, ActionData, ActionDataMap, AgentActionResult, AgentSnapshot, AgentSnapshotOptions, PageChange, PageInfo, ActionArgsOf, AgentActionName }
 
 export interface AgentSessionOptions {
     /**
@@ -40,18 +46,21 @@ export interface AgentSessionOptions {
      */
     captureEvents?: boolean
     /**
+     * collect BiDi network events into `network`, which failed requests in
+     * `notes` come from; `captureEvents` includes it (default `true`)
+     */
+    captureNetwork?: boolean
+    /**
      * Record closed shadow roots and click listeners in every page loaded
      * from now on, so snapshots include them (needs WebDriver BiDi,
      * default `false`)
      */
     recordPage?: boolean
-}
-
-export interface AgentActionResult extends ActionResult {
     /**
-     * the WebdriverIO code the action ran, e.g. `await $('role/button[name="Save"]').click()`
+     * rewrite the commands named in hints, e.g. `wdio session snapshot`, for
+     * the caller's own interface
      */
-    code?: string
+    hint?: HintFormatter
 }
 
 /**
@@ -86,7 +95,7 @@ export class AgentSession {
      * actions that apply to this browser, app or desktop session
      */
     get actions (): ActionSpec[] {
-        return ACTIONS.filter((spec) => !spec.applies || spec.applies.some((a) => this.session.applies.includes(a)))
+        return (ACTIONS as readonly ActionSpec[]).filter((spec) => !spec.applies || spec.applies.some((a) => this.session.applies.includes(a)))
     }
 
     /**
@@ -94,15 +103,33 @@ export class AgentSession {
      *
      * @experimental the text layout of the snapshot may change
      */
-    snapshot (opts: SnapshotOptions = {}): Promise<TakenSnapshot> {
-        return takeSnapshot(this.session, opts)
+    async snapshot (opts: AgentSnapshotOptions = {}): Promise<AgentSnapshot> {
+        const result = await this.session.dispatch({ action: 'snapshot', args: { ...opts, $agent: true }, cwd: this.session.cwd }, { detail: true })
+        const data = result.data as ActionData<'snapshot'>
+        return {
+            text: result.text ?? '',
+            tree: data.tree!,
+            lines: data.lines,
+            refs: data.refs,
+            chars: data.chars,
+            tooBig: Boolean(data.tooBig),
+            ...(result.page ? { page: result.page } : {}),
+            ...(result.notes ? { notes: result.notes } : {})
+        }
     }
 
     /**
      * run a `wdio session` action, e.g. `run('click', { target: 'e3' })`
      */
-    run (action: string, args: Record<string, unknown> = {}): Promise<AgentActionResult> {
-        return this.session.dispatch({ action, args, cwd: this.session.cwd })
+    run<A extends AgentActionName> (action: A, ...[args]: {} extends ActionArgsOf<A> ? [args?: ActionArgsOf<A>] : [args: ActionArgsOf<A>]): Promise<AgentActionResult<A>> {
+        return this.runAction(action, args ?? {}) as Promise<AgentActionResult<A>>
+    }
+
+    /**
+     * run an action by a name only known at runtime, e.g. from a recorded step
+     */
+    runAction (action: string, args: Record<string, unknown> = {}): Promise<AgentActionResult> {
+        return this.session.dispatch({ action, args, cwd: this.session.cwd }, { detail: true })
     }
 
     /**
@@ -232,10 +259,13 @@ export async function createAgentSession (browser: WebdriverIO.Browser, opts: Ag
         runtimeDir: artifactsDir,
         browser,
         plan: attachedPlan(browser, { name, cwd, artifactsDir, runtimeDir: artifactsDir, target: 'agent' }),
-        persistHistory: false
+        persistHistory: false,
+        hint: opts.hint
     })
     if (opts.captureEvents) {
         await startEventCapture(session)
+    } else if (opts.captureNetwork !== false) {
+        await startEventCapture(session, { logs: false }).catch(() => {})
     }
     if (opts.recordPage) {
         await installPageRecorder(session).catch(() => {})

@@ -12,6 +12,11 @@ export const config: WebdriverIO.Config = {
      * CI machine has cores make the steps time out
      */
     maxInstances: 4,
+    /**
+     * several Firefox sessions start at once on a Windows CI runner: a busy Firefox
+     * can accept the BiDi connection more than 10 s after the session starts
+     */
+    bidiConnectTimeout: 30000,
     capabilities: [{
         browserName: 'chrome',
         webSocketUrl: true,
@@ -22,7 +27,12 @@ export const config: WebdriverIO.Config = {
         'moz:firefoxOptions': { args: ['-headless'] }
     }],
     services: [['ai', { model: actModel, cache: 'off', cacheDir, workspace: { dir: path.join(cacheDir, 'workspaces') }, effects: { ignore: ['/telemetry'] } }]],
-    logLevel: 'warn',
+    /**
+     * the logs are uploaded when CI fails: the command times and what the effect
+     * recorder counted are what explains a flaky step
+     */
+    logLevel: 'info',
+    logLevels: { '@wdio/ai-service': 'debug' },
     framework: 'mocha',
     reporters: ['spec'],
     outputDir: __dirname,

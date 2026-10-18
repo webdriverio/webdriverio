@@ -10,6 +10,56 @@ updates:
   # pnpm rejects versions younger than its 1 day minimumReleaseAge
   cooldown:
     default-days: 2
+  ignore:
+    # @wdio/jasmine-framework patches private Jasmine internals (Spec, Suite)
+    # that Jasmine 7 removed. Remove once the adapter supports Jasmine 7.
+    - dependency-name: "jasmine"
+      update-types: ["version-update:semver-major"]
+    - dependency-name: "@types/jasmine"
+      update-types: ["version-update:semver-major"]
+    # @types/node is a dependency of the published packages, so users get it. It
+    # must match the lowest supported Node.js version (22), not the newest one.
+    - dependency-name: "@types/node"
+      update-types: ["version-update:semver-major"]
+    # htmlfy 1 changes the output of `getHTML()` (prettify is on by default) and
+    # of the element in error messages: `<br />` becomes `<br>`, textarea
+    # whitespace is lost. Update on purpose, with release notes.
+    - dependency-name: "htmlfy"
+      update-types: ["version-update:semver-major"]
+    # normalize-package-data 9 (create-wdio) requires Node.js ^22.22.2, but
+    # WebdriverIO supports Node.js 22.19.0. Version 8 is fine.
+    - dependency-name: "normalize-package-data"
+      versions: [">=9.0.0"]
+    # Vite 8 (Rolldown, oxc) is a migration of @wdio/browser-runner: its default
+    # config uses esbuild and Rollup plugins, and users' viteConfig and framework
+    # plugins change. Update all Vite packages together in that migration.
+    - dependency-name: "vite"
+      update-types: ["version-update:semver-major"]
+    # Version 6 requires Vite 8, see vite.
+    - dependency-name: "@vitejs/plugin-react"
+      update-types: ["version-update:semver-major"]
+    # Version 7 requires Vite 8, see vite.
+    - dependency-name: "@sveltejs/vite-plugin-svelte"
+      update-types: ["version-update:semver-major"]
+    # @nuxt/kit 4 is for Nuxt 4 and changes how the Nuxt preset of
+    # @wdio/browser-runner reads Nuxt 3 projects. Update with Vite 8, see vite.
+    - dependency-name: "@nuxt/kit"
+      update-types: ["version-update:semver-major"]
+    # unimport 6 and 7 (Nuxt preset) move to unplugin 3 and Rolldown. Update with
+    # Vite 8, see vite.
+    - dependency-name: "unimport"
+      update-types: ["version-update:semver-major"]
+    # typescript-eslint does not support TypeScript 7 ("typescript-eslint does not
+    # support TS 7.0"), which the eslint-plugin-wdio tests use.
+    - dependency-name: "typescript"
+      update-types: ["version-update:semver-major"]
+    # react and react-dom are the React 18 entry of the React selector tests
+    # (React 19 is tested through the react-19 alias), and they load the React 18
+    # UMD builds that React 19 no longer ships.
+    - dependency-name: "react"
+      update-types: ["version-update:semver-major"]
+    - dependency-name: "react-dom"
+      update-types: ["version-update:semver-major"]
   groups:
     patch-deps-updates-main:
       update-types:

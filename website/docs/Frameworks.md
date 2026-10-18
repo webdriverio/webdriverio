@@ -340,7 +340,7 @@ With Jasmine, the global `expect` combines Jasmine's matchers and the [Webdriver
 - Jasmine's matchers (`toBe`, `toEqual`, `toHaveBeenCalled`, …) and the matchers that you add with `jasmine.addMatchers` are synchronous. They return `undefined`, so you do not need `await`.
 - WebdriverIO matchers, Jasmine's async matchers (`toBeResolved`, `toBeRejectedWith`, …) and the matchers that you add with `jasmine.addAsyncMatchers` return a promise. Always `await` them.
 
-Use `expect()` for both kinds: it sends each matcher to Jasmine's `expect` or `expectAsync` for you. `await expectAsync($('#logo')).toBeDisplayed()` also works. For TypeScript, `expectAsync()` with WebdriverIO matchers needs `expect-webdriverio/jasmine` in `types`.
+Use `expect()` for both kinds: it sends each matcher to Jasmine's `expect` or `expectAsync` for you. `await expectAsync($('#logo')).toBeDisplayed()` also works. For TypeScript, `@wdio/jasmine-framework` in `types` also gives `expectAsync()` the WebdriverIO matchers.
 
 ```js
 it('checks the page', async () => {
@@ -352,7 +352,7 @@ it('checks the page', async () => {
 
 `toHaveSize` exists in both libraries. The WebdriverIO matcher runs on WebdriverIO values: an element, an element array or `Element[]` (for example the result of `$$().filter()`), a multi-remote element, a browser, a browsing context, a mock, the `some()` wrapper, or a promise such as a chainable `$()`. Jasmine's matcher runs on every other value.
 
-The asymmetric matchers of both libraries work, in Jasmine and in WebdriverIO matchers: `jasmine.any()`, `jasmine.objectContaining()`, `jasmine.stringMatching()`, … and `expect.any()`, `expect.stringContaining()`, `expect.oneOf()`, `expect.not.stringContaining()`, …. To use `some()`, import it:
+The asymmetric matchers of both libraries work, in Jasmine and in WebdriverIO matchers: `jasmine.any()`, `jasmine.objectContaining()`, `jasmine.stringMatching()`, … and `expect.any()`, `expect.stringContaining()`, `expect.oneOf()`, `expect.multiRemote()`, `expect.not.stringContaining()`, …. To use `some()`, import it:
 
 ```js
 import { some } from 'expect-webdriverio/api'
@@ -360,7 +360,7 @@ import { some } from 'expect-webdriverio/api'
 await expect(some($$('li'))).toHaveAttribute('data-state', 'on')
 ```
 
-The Jest parts of `expect` are not available with Jasmine: Jest-only matchers such as `toStrictEqual` or `toHaveLength`, `expect.soft()` and `expect.extend()`. To add a custom matcher, use `jasmine.addMatchers` for a sync matcher or `jasmine.addAsyncMatchers` for an async matcher.
+The Jest parts of `expect` are not available with Jasmine: Jest-only matchers such as `toStrictEqual` or `toHaveLength`, and `expect.soft()`. To add a custom matcher, use `expect.extend()` in a spec file or the `before` hook (see [Custom Matchers](/docs/custommatchers)), or `jasmine.addMatchers` for a sync matcher and `jasmine.addAsyncMatchers` for an async matcher.
 
 For TypeScript, add `jasmine` to `types`, see [TypeScript Setup](/docs/typescript).
 

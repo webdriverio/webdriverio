@@ -66,6 +66,8 @@ export function browserPlan (target: BrowserTarget, args: OpenArgs, { cwd, platf
                 ...(headless ? ['--headless=new', '--enable-unsafe-swiftshader'] : []),
                 `--window-size=${viewport.width},${viewport.height}`,
                 ...(args.profile ? [`--user-data-dir=${fsPath.resolve(cwd, String(args.profile))}`] : []),
+                // keeps `navigator.webdriver` false; Chrome honors one such switch, so a user's own wins
+                ...(extraArgs.some((arg) => arg.startsWith('--disable-blink-features')) ? [] : ['--disable-blink-features=AutomationControlled']),
                 ...extraArgs
             ]
             options.args = browserArgs

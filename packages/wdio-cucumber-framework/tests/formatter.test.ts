@@ -301,43 +301,78 @@ describe('CucumberFormatter', () => {
             eventBroadcaster.emit('envelope', { testRunFinished })
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
-    })
 
-    describe('provides a fail counter', () => {
-        function reportedFailedCount (status: TestStepResultStatus, ignoreUndefinedDefinitions = false) {
-            const eventBroadcaster = new EventEmitter()
-            const events = new EventEmitter()
-            const counts: unknown[] = []
-            events.on('getFailedCount', (count) => counts.push(count))
-            new CucumberFormatter({
-                eventBroadcaster,
-                parsedArgvOptions: {
-                    _reporter: wdioReporter,
-                    _cid: cid,
-                    _specs: specs,
-                    _eventEmitter: events,
-                    _scenarioLevelReporter: false,
-                    _tagsInTitle: false,
-                    _ignoreUndefinedDefinitions: ignoreUndefinedDefinitions,
-                    _failAmbiguousDefinitions: true,
-                },
-            } as any)
-
+        /**
+         * the scenario is the test: its end event has the title, type and parent of
+         * its start event, also when the scenario is pending
+         */
+        function finishScenarioWith (status: string) {
+            const step: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            ;(step.testStepResult as { status: string }).status = status
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
             prepareSuite(eventBroadcaster)
             startSuite(eventBroadcaster)
-
-            const step: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
-            step.testStepResult = {
-                ...step.testStepResult,
-                status,
-            }
+            const [, started] = wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:start')
+            eventBroadcaster.emit('envelope', { testStepStarted })
             eventBroadcaster.emit('envelope', { testStepFinished: step })
-            eventBroadcaster.emit('envelope', { testRunFinished })
-            return counts
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('envelope', { testCaseFinished })
+            return { started, finished: wdioReporter.emit.mock.calls[0] }
         }
 
+        it('keeps the scenario title of a pending scenario', () => {
+            const { started, finished: [event, payload] } = finishScenarioWith('PENDING')
+            expect(event).toBe('test:pending')
+            expect(payload).toMatchObject({ uid: started.uid, title: 'Get size of an element', type: 'scenario', parent: started.parent })
+        })
+
+        it('names the scenario in the error of an undefined step', () => {
+            const { finished: [event, payload] } = finishScenarioWith('UNDEFINED')
+            expect(event).toBe('test:fail')
+            expect(payload.title).toBe('Get size of an element')
+            expect(payload.error.message).toContain('Scenario Get size of an element has undefined steps.')
+        })
+    })
+
+    /**
+     * the events of a scenario with one step that ends with this status, and the failed counts
+     */
+    function reportedFailedCount (status: TestStepResultStatus, ignoreUndefinedDefinitions = false) {
+        const eventBroadcaster = new EventEmitter()
+        const events = new EventEmitter()
+        const counts: unknown[] = []
+        events.on('getFailedCount', (count) => counts.push(count))
+        new CucumberFormatter({
+            eventBroadcaster,
+            parsedArgvOptions: {
+                _reporter: wdioReporter,
+                _cid: cid,
+                _specs: specs,
+                _eventEmitter: events,
+                _scenarioLevelReporter: false,
+                _tagsInTitle: false,
+                _ignoreUndefinedDefinitions: ignoreUndefinedDefinitions,
+                _failAmbiguousDefinitions: true,
+            },
+        } as any)
+
+        loadGherkin(eventBroadcaster)
+        acceptPickle(eventBroadcaster)
+        prepareSuite(eventBroadcaster)
+        startSuite(eventBroadcaster)
+
+        const step: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+        step.testStepResult = {
+            ...step.testStepResult,
+            status,
+        }
+        eventBroadcaster.emit('envelope', { testStepFinished: step })
+        eventBroadcaster.emit('envelope', { testRunFinished })
+        return counts
+    }
+
+    describe('provides a fail counter', () => {
         it('should increment failed counter on `failed` status', () => {
             expect(reportedFailedCount(TestStepResultStatus.FAILED)).toEqual([1])
         })
@@ -352,6 +387,18 @@ describe('CucumberFormatter', () => {
 
         it('should not increment failed counter on `undefined` status if ignoreUndefinedDefinitions set to true', () => {
             expect(reportedFailedCount(TestStepResultStatus.UNDEFINED, true)).toEqual([0])
+        })
+    })
+
+    describe('undefined steps', () => {
+        it('marks an undefined step as pending with "(undefined step)" in its title (ignoreUndefinedDefinitions)', () => {
+            wdioReporter.emit.mockClear()
+            reportedFailedCount(TestStepResultStatus.UNDEFINED, true)
+            const [, payload] = wdioReporter.emit.mock.calls.find(([event]: [string]) => event === 'test:pending')
+            expect(payload.state).toBe('pending')
+            expect(payload.title).toMatch(/ \(undefined step\)$/)
+            // the keyword stays: reporters find the step by its title
+            expect(payload.title).toMatch(/^(Given|When|Then|And|But) /)
         })
     })
 
@@ -389,5 +436,99 @@ describe('CucumberFormatter', () => {
         wdioReporter.on.mockClear()
         wdioReporter.write.mockClear()
         wdioReporter.emit.mockClear()
+    })
+
+    describe('grouped specs in a random order (A/B/A)', () => {
+        afterEach(() => {
+            vi.useRealTimers()
+        })
+
+        /**
+         * 2 feature files in one worker, and their scenarios in the order a1, b1, a2,
+         * each scenario takes 10 ms
+         */
+        function runGroupedFeatures (scenarioLevelReporter: boolean) {
+            vi.useFakeTimers({ toFake: ['Date'] })
+            vi.setSystemTime(0)
+            wdioReporter.emit.mockClear()
+            const eventBroadcaster = new EventEmitter()
+            new CucumberFormatter({
+                eventBroadcaster,
+                parsedArgvOptions: {
+                    _reporter: wdioReporter,
+                    _cid: cid,
+                    _specs: specs,
+                    _eventEmitter: new EventEmitter(),
+                    _scenarioLevelReporter: scenarioLevelReporter,
+                    _tagsInTitle: false,
+                    _ignoreUndefinedDefinitions: false,
+                    _failAmbiguousDefinitions: true,
+                },
+            } as any)
+            const doc = (name: string) => ({ ...gherkinDocument, uri: `/features/${name}.feature`, feature: { ...gherkinDocument.feature!, name: `Feature ${name}` } })
+            const scenario = (name: string, uri: string) => ({ ...pickle, id: `pickle-${name}`, name, uri })
+            for (const gherkin of [doc('a'), doc('b')]) {
+                eventBroadcaster.emit('envelope', { gherkinDocument: gherkin })
+            }
+            eventBroadcaster.emit('envelope', { testRunStarted })
+            for (const [name, uri] of [['a1', '/features/a.feature'], ['b1', '/features/b.feature'], ['a2', '/features/a.feature']]) {
+                eventBroadcaster.emit('envelope', { pickle: scenario(name, uri) })
+                eventBroadcaster.emit('envelope', { testCase: { ...testCase, id: `case-${name}`, pickleId: `pickle-${name}` } })
+            }
+            for (const name of ['a1', 'b1', 'a2']) {
+                eventBroadcaster.emit('envelope', { testCaseStarted: { ...testCaseStarted, testCaseId: `case-${name}` } })
+                vi.advanceTimersByTime(10)
+                if (scenarioLevelReporter) {
+                    // the result of the scenario test comes from the results of its steps
+                    eventBroadcaster.emit('envelope', { testStepFinished })
+                }
+                eventBroadcaster.emit('envelope', { testCaseFinished })
+            }
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            return wdioReporter.emit.mock.calls
+                .filter(([event]: [string]) => /^(suite|test):(start|end|pass)$/.test(event))
+                .map(([event, payload]: [string, any]) => ({ event, type: payload.type, title: payload.title, uid: payload.uid, parent: payload.parent, fullTitle: payload.fullTitle, duration: payload.duration }))
+        }
+
+        it('starts a feature again when the run comes back to it, with its own uid, and the feature uid as the parent of its scenarios', () => {
+            const events = runGroupedFeatures(false)
+            const a = 'a.feature:3:1'
+            const b = 'b.feature:3:1'
+            expect(events.map(({ event, type, uid, parent, fullTitle }) => type === 'feature' ? [event, type, uid] : [event, type, parent, fullTitle])).toEqual([
+                ['suite:start', 'feature', a],
+                ['suite:start', 'scenario', a, `${a}: a1`],
+                ['suite:end', 'scenario', a, `${a}: a1`],
+                ['suite:end', 'feature', a],
+                ['suite:start', 'feature', b],
+                ['suite:start', 'scenario', b, `${b}: b1`],
+                ['suite:end', 'scenario', b, `${b}: b1`],
+                ['suite:end', 'feature', b],
+                ['suite:start', 'feature', `${a}#2`],
+                ['suite:start', 'scenario', a, `${a}: a2`],
+                ['suite:end', 'scenario', a, `${a}: a2`],
+                ['suite:end', 'feature', `${a}#2`],
+            ])
+        })
+
+        it('gives each part of a feature its duration', () => {
+            const featureEnds = runGroupedFeatures(false).filter(({ event, type }) => event === 'suite:end' && type === 'feature')
+            expect(featureEnds.map(({ duration }) => duration)).toEqual([10, 10, 10])
+        })
+
+        /**
+         * the `fullTitle` of a scenario test gives its Allure `historyId`: it must not
+         * depend on the random order that splits the feature into parts
+         */
+        it('uses the feature uid, not the uid of the part, as the parent of the scenario tests (scenarioLevelReporter)', () => {
+            const tests = runGroupedFeatures(true).filter(({ event }) => event.startsWith('test:'))
+            expect(tests.map(({ event, title, parent, fullTitle }) => [event, title, parent, fullTitle])).toEqual([
+                ['test:start', 'a1', 'a.feature:3:1', 'a.feature:3:1: a1'],
+                ['test:pass', 'a1', 'a.feature:3:1', 'a.feature:3:1: a1'],
+                ['test:start', 'b1', 'b.feature:3:1', 'b.feature:3:1: b1'],
+                ['test:pass', 'b1', 'b.feature:3:1', 'b.feature:3:1: b1'],
+                ['test:start', 'a2', 'a.feature:3:1', 'a.feature:3:1: a2'],
+                ['test:pass', 'a2', 'a.feature:3:1', 'a.feature:3:1: a2'],
+            ])
+        })
     })
 })

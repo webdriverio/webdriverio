@@ -38,6 +38,7 @@ export function fakeAgent (responses: (action: string, args: Record<string, unkn
         scope: browser,
         actions: ACTIONS.filter((spec) => !spec.applies || spec.applies.includes('W')),
         run,
+        runAction: run,
         pin: vi.fn(async () => 'e100'),
         enter: vi.fn(async () => vi.fn(async () => {})),
         contains: vi.fn(async () => true),

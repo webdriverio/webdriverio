@@ -20,11 +20,12 @@ import { runProgram, getPackageVersion,
     findInConfig,
     replaceConfig,
     formatConfigFilePaths,
+    specifyVersionIfNeeded,
 
 } from '../src/utils.js'
 import { parseAnswers } from '../src/cli/utils.js'
 import path from 'node:path'
-import { readPackageUp } from 'read-pkg-up'
+import { readPackageUp } from 'read-package-up'
 import type { Questionnair } from '../src/types.js'
 import inquirer from 'inquirer'
 import { installPackages } from '../src/install.js'
@@ -51,7 +52,7 @@ vi.mock('child_process', () => {
     return m
 })
 vi.mock('inquirer')
-vi.mock('read-pkg-up')
+vi.mock('read-package-up')
 vi.mock('ejs')
 vi.mock('execa', () => ({
     execa: vi.fn(()=>({ stdout:'', stderr:'', exitCode:0 })),
@@ -726,6 +727,28 @@ test('setupTypeScript extends the root config with a relative path from a nested
     const writtenContent = JSON.parse(vi.mocked(fs.writeFile).mock.calls[0][1] as string)
     expect(writtenContent.extends).toBe('../tsconfig.json')
     expect(writtenContent.include).toEqual(['.', '../wdio.conf.ts'])
+})
+
+describe('specifyVersionIfNeeded', () => {
+    const PRERELEASE = '10.1.0-alpha.3+4bc237701'
+
+    it('pins monorepo packages to a prerelease CLI\'s version', () => {
+        expect(specifyVersionIfNeeded(['@wdio/local-runner', 'webdriverio'], PRERELEASE, 'latest'))
+            .toEqual(['@wdio/local-runner@^10.1.0-alpha.3', 'webdriverio@^10.1.0-alpha.3'])
+    })
+
+    it.each(['@wdio/devtools-service', '@wdio/visual-service'])(
+        'leaves %s unpinned, since it never publishes the CLI\'s prerelease',
+        (pkg) => {
+            expect(specifyVersionIfNeeded([pkg, '@wdio/local-runner'], PRERELEASE, 'latest'))
+                .toEqual([pkg, '@wdio/local-runner@^10.1.0-alpha.3'])
+        }
+    )
+
+    it('leaves the independently versioned packages untagged on a dist-tag install', () => {
+        expect(specifyVersionIfNeeded(['@wdio/devtools-service', '@wdio/cli'], '10.1.0', 'next'))
+            .toEqual(['@wdio/devtools-service', '@wdio/cli@next'])
+    })
 })
 
 test('createWDIOConfig', async () => {

@@ -49,6 +49,7 @@ declare global {
         __wdioErrors__: WDIOErrorEvent[]
         __wdioEvents__: BrowserTestEvent[]
         __wdioFailures__: number
+        __wdioTestsStartedAt__?: number
         __coverage__?: unknown
     }
 }
@@ -495,7 +496,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 ?  [{ message: `Failed to load test page (title = "${document.title}", source: ${document.documentElement.innerHTML})` }]
                 : null
             const errors = viteError || window.__wdioErrors__ || loadError
-            return { errors, hasViteError: Boolean(viteError) }
+            return { errors, hasViteError: Boolean(viteError), testsStartedAt: window.__wdioTestsStartedAt__ }
         }).catch((err) => {
             /**
              * ignore error, see https://github.com/GoogleChromeLabs/chromium-bidi/issues/1102
@@ -511,11 +512,12 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             return
         }
 
-        if ((testError.errors && testError.errors.length > 0) || testError.hasViteError) {
+        const { testsStartedAt: startedAtBeforeLogs, ...executionState } = testError
+        if ((executionState.errors && executionState.errors.length > 0) || executionState.hasViteError) {
             this.#resolveTestStatePromise?.({
                 events: [],
                 failures: 1,
-                ...testError
+                ...executionState
             })
         }
 
@@ -526,13 +528,28 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             ? (await browser.getLogs('browser').catch(() => []))
             : []
         const severeLogs = logs.filter((log: LogMessage) => log.level === 'SEVERE' && log.source !== 'deprecation') as LogMessage[]
-        if (severeLogs.length) {
-            if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
-                log.info('Retry test run due to outdated optimize dep')
-                this.#retryOutdatedOptimizeDep = true
-                return browser.refresh()
-            }
+        if (!this.#retryOutdatedOptimizeDep && severeLogs.some((log) => log.message?.includes('(Outdated Optimize Dep)'))) {
+            log.info('Retry test run due to outdated optimize dep')
+            this.#retryOutdatedOptimizeDep = true
+            return browser.refresh()
+        }
 
+        /**
+         * Once Mocha runs the tests, an error in the browser log belongs to a test
+         * (a caught failed request, a `console.error`, an invalid attribute): Mocha
+         * reports the test result, so it must not end the spec. Only errors logged
+         * before the tests started (setup) end it.
+         *
+         * Mocha can start between the execution state read above and `getLogs`,
+         * so without a start time, read it again after the logs.
+         */
+        const testsStartedAt = typeof startedAtBeforeLogs !== 'number' && severeLogs.length
+            ? await browser.execute(() => window.__wdioTestsStartedAt__).catch(() => undefined)
+            : startedAtBeforeLogs
+        const setupLogs = typeof testsStartedAt === 'number'
+            ? severeLogs.filter((log) => log.timestamp < testsStartedAt)
+            : severeLogs
+        if (setupLogs.length) {
             this.#resolveTestStatePromise?.({
                 events: [],
                 failures: 1,
@@ -541,7 +558,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                  * error messages often look like:
                  * "http://localhost:40167/node_modules/.vite/deps/expect.js?v=bca8e2f3 - Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
                  */
-                errors: severeLogs.map((log) => {
+                errors: setupLogs.map((log) => {
                     const [filename, message] = log.message!.split(' - ')
                     return {
                         filename: filename.startsWith('http') ? filename : undefined,

@@ -1,6 +1,6 @@
 {
   "name": "webdriver",
-  "version": "10.0.0",
+  "version": "10.0.2",
   "description": "A Node.js bindings implementation for the W3C WebDriver and WebDriver Bidi protocols",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",
@@ -44,7 +44,7 @@
     "@wdio/types": "workspace:*",
     "@wdio/utils": "workspace:*",
     "deepmerge-ts": "^8.0.0",
-    "https-proxy-agent": "^7.0.6",
+    "https-proxy-agent": "^9.1.0",
     "undici": "^8.11.2",
     "ws": "^8.21.0"
   }

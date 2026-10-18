@@ -57,7 +57,10 @@ export async function initializeInstance (
     capabilities: Capabilities.RequestedStandaloneCapabilities | Capabilities.RequestedMultiRemoteCapabilities,
     isMultiRemote?: boolean
 ): Promise<WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser> {
-    await enableFileLogging(config.outputDir)
+    /**
+     * keep the log file that @wdio/local-runner gave this worker
+     */
+    await enableFileLogging(config.outputDir, { keepLogPath: true })
 
     /**
      * check if config has sessionId and attach it to a running session if so

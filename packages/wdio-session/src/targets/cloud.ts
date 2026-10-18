@@ -161,6 +161,7 @@ function stripLocalBrowserOptions (caps: Record<string, unknown>) {
             !arg.startsWith('--user-data-dir') &&
             arg !== '--disable-gpu' &&
             arg !== '--enable-unsafe-swiftshader' &&
+            arg !== '--disable-blink-features=AutomationControlled' &&
             arg !== '-headless' &&
             !arg.startsWith('--width') &&
             !arg.startsWith('--height') &&

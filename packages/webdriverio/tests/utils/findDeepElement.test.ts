@@ -29,6 +29,7 @@ vi.mock('../../src/session/context.js', () => ({
     getContextManager: vi.fn(() => ({
         getCurrentContext: mockGetCurrentContext,
     })),
+    getParallelContextStore: () => ({ getStore: () => undefined }),
 }))
 
 vi.mock('is-plain-obj', () => ({

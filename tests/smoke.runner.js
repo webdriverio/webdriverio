@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 import url from 'node:url'
 import path from 'node:path'
+import os from 'node:os'
 import assert from 'node:assert'
 import { expect } from 'expect-webdriverio'
 
@@ -176,6 +177,29 @@ const jasmineTestrunner = async () => {
 }
 
 /**
+ * Jasmine: a matcher added with `expect.extend()` in the `before` hook
+ */
+const jasmineCustomMatcher = async () => {
+    await launch('jasmineCustomMatcher', path.resolve(__dirname, 'helpers', 'jasmine-custom-matcher.conf.js'), {
+        specs: [path.resolve(__dirname, 'jasmine', 'custom-matcher.js')]
+    })
+}
+
+/**
+ * Jasmine: `expect.multiRemote()` on the global `expect` and on the one of `@wdio/globals`
+ */
+const jasmineMultiRemote = async () => {
+    await launch('jasmineMultiRemote', baseConfig, {
+        specs: [path.resolve(__dirname, 'jasmine', 'multi-remote.js')],
+        framework: 'jasmine',
+        capabilities: {
+            browserA: { capabilities: { browserName: 'chrome' } },
+            browserB: { capabilities: { browserName: 'chrome' } }
+        }
+    })
+}
+
+/**
  * Jasmine reporter
  */
 const jasmineReporter = async () => {
@@ -225,6 +249,39 @@ const jasmineTimeout = async () => {
     assert.ok(
         specLogs.includes('✓ should allow also async assertions afterwards'),
         'spec should also allow async assertions afterwards'
+    )
+}
+
+/**
+ * Mocha timeout error names the WebdriverIO attempt of a retried test
+ * https://github.com/webdriverio/webdriverio/issues/16121
+ */
+const mochaTimeout = async () => {
+    const logFile = path.resolve(__dirname, 'mochaTimeout.spec.log')
+    await launch('mochaTimeout', baseConfig, {
+        specs: [path.resolve(__dirname, 'mocha', 'timeout.js')],
+        mochaOpts: { ui: 'bdd', timeout: 1000 },
+        reporters: [
+            ['spec', {
+                outputDir: __dirname,
+                stdout: false,
+                logFile
+            }]
+        ]
+    }).catch((err) => err) // error expected
+
+    const errors = (await fs.readFile(logFile)).toString().replace(ansiColorRegex, '')
+        .split('\n')
+        .filter((line) => line.includes('Error: Timeout of 1000ms exceeded.'))
+    await fs.unlink(logFile)
+    assert.strictEqual(errors.length, 2, `expected 2 timeout errors, got:\n${errors.join('\n')}`)
+    assert.ok(
+        errors.some((line) => line.includes('"Mocha timeout times out without retries"') && !line.includes('WDIO attempt')),
+        'a timeout without retries should keep the Mocha error'
+    )
+    assert.ok(
+        errors.some((line) => line.includes('"Mocha timeout times out in the 2nd attempt"') && line.endsWith(' (WDIO attempt 2/2)')),
+        'a timeout of a retried test should name the WDIO attempt'
     )
 }
 
@@ -457,6 +514,107 @@ const cucumberReporter = async () => {
 }
 
 /**
+ * Cucumber with grouped specs in a random order: the scenarios of 2 features mix,
+ * and the reporters must still get each scenario
+ */
+const cucumberGroupedSpecsRandomOrder = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'random-order')
+    const scenarios = ['a one', 'a two', 'a three', 'b one', 'b two', 'b three']
+    // the scenarios are suites (step level) or tests (scenarioLevelReporter)
+    for (const scenarioLevelReporter of [false, true]) {
+        const logFile = path.resolve(basePath, `spec-reporter-${scenarioLevelReporter}.log`)
+        await fs.rm(logFile, { force: true })
+        await launch(
+            'cucumberGroupedSpecsRandomOrder',
+            path.resolve(basePath, 'random-order.conf.js'),
+            {
+                reporters: [['spec', { stdout: false, logFile }]],
+                cucumberOpts: { scenarioLevelReporter }
+            }
+        )
+        // the spec reporter colors its output when the terminal supports colors
+        const logs = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '')
+        assert.ok(logs.includes('6 passing'), `the spec reporter does not count the 6 scenarios:\n${logs}`)
+        /**
+         * each scenario under the heading of its feature: a scenario is a suite title
+         * (step level) or a passed test (`✓ a one`, scenario level)
+         */
+        const headings = []
+        const listed = []
+        for (const line of logs.split('\n').map((text) => text.replace(/^\[[^\]]*\]\s*/, '').trim())) {
+            const feature = line.match(/^Feature ([ab])$/)
+            const scenario = line.replace(/^✓ /, '')
+            if (feature) {
+                headings.push(feature[1])
+            } else if (scenarios.includes(scenario)) {
+                listed.push(`${headings.at(-1)}: ${scenario}`)
+            }
+        }
+        assert.deepStrictEqual(
+            [...listed].sort(),
+            scenarios.map((scenario) => `${scenario[0]}: ${scenario}`).sort(),
+            `scenarioLevelReporter: ${scenarioLevelReporter}, each scenario must be under its feature:\n${logs}`
+        )
+        // the test needs the features to alternate (a, b, a, ...), as the random order gives them
+        assert.ok(headings.length > 2, `the scenarios of the features did not mix, the test checks nothing: ${headings}`)
+        await fs.rm(logFile, { force: true })
+    }
+}
+
+/**
+ * Cucumber with grouped specs in a random order and scenario-level tests: a scenario
+ * keeps its Allure `historyId` when the random order splits its feature into parts
+ */
+const cucumberGroupedSpecsRandomOrderHistory = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'random-order')
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'wdio-random-order-history-'))
+    const historyIds = {}
+    let passed = false
+    try {
+        for (const order of ['random:42', 'defined']) {
+            const name = order.replace(':', '-')
+            const outputDir = path.join(tmpDir, `allure-${name}`)
+            const logFile = path.join(tmpDir, `spec-${name}.log`)
+            await launch(
+                'cucumberGroupedSpecsRandomOrderHistory',
+                path.resolve(basePath, 'random-order.conf.js'),
+                {
+                    reporters: [
+                        ['allure', { outputDir, disableWebdriverStepsReporting: true, disableWebdriverScreenshotsReporting: true }],
+                        ['spec', { stdout: false, logFile }]
+                    ],
+                    cucumberOpts: { scenarioLevelReporter: true, order }
+                }
+            )
+            const results = (await fs.readdir(outputDir)).filter((file) => file.endsWith('-result.json'))
+            historyIds[order] = {}
+            for (const file of results) {
+                const { name: scenario, historyId } = JSON.parse(await fs.readFile(path.join(outputDir, file), 'utf-8'))
+                assert.ok(typeof historyId === 'string' && historyId.length > 0, `Missing Allure historyId for ${scenario} in ${order}`)
+                historyIds[order][scenario] = historyId
+            }
+            if (order !== 'defined') {
+                // the test needs the features to alternate (a, b, a, ...), so that a feature has a second part
+                const headings = (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '').split('\n')
+                    .filter((line) => /^Feature [ab]$/.test(line.replace(/^\[[^\]]*\]\s*/, '').trim()))
+                assert.ok(headings.length > 2, `the scenarios of the features did not mix in order ${order}, the test checks nothing`)
+            }
+        }
+        assert.equal(Object.keys(historyIds.defined).length, 6, `Allure did not get the 6 scenarios: ${JSON.stringify(historyIds)}`)
+        assert.equal(new Set(Object.values(historyIds.defined)).size, 6, `each scenario must have its own historyId: ${JSON.stringify(historyIds)}`)
+        assert.deepStrictEqual(historyIds['random:42'], historyIds.defined, 'a scenario must keep its historyId in a random order')
+        passed = true
+    } finally {
+        // keep the Allure results of a failed run to examine them
+        if (passed) {
+            await fs.rm(tmpDir, { recursive: true, force: true })
+        } else {
+            console.error(`cucumberGroupedSpecsRandomOrderHistory: Allure and spec output kept in ${tmpDir}`)
+        }
+    }
+}
+
+/**
  * Cucumber file option
  */
 const cucumberFileOption = async () => {
@@ -582,6 +740,39 @@ const customReporterObject = async () => {
     const reporterLogsWithReporterAsObject = await fs.readFile(reporterLogsWithReporterAsObjectPath)
     assert.equal(reporterLogsWithReporterAsObject.toString(), REPORTER_LOGS)
     await fs.unlink(reporterLogsWithReporterAsObjectPath)
+}
+
+/**
+ * The session is already gone when the run ends (#13114, #9436): `deleteSession`
+ * fails, but the worker still ends cleanly and the reporters get `runner:end`.
+ */
+const sessionGoneReport = async () => {
+    const outputDir = path.resolve(__dirname, 'helpers', 'session-gone')
+    await fs.rm(outputDir, { recursive: true, force: true })
+    const { passed, failed } = await launch('sessionGoneReport', baseConfig, {
+        specs: [path.resolve(__dirname, 'mocha', 'session_gone.js')],
+        reporters: [['smoke-test', { outputDir }]]
+    })
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(failed, 0)
+    await sleep(100)
+    const reporterLogs = (await fs.readFile(path.join(outputDir, 'wdio-0-0-smoke-test-reporter.log'))).toString()
+    await fs.rm(outputDir, { recursive: true, force: true })
+    assert.ok(reporterLogs.trim().endsWith('onRunnerEnd'), `expected the report to end with onRunnerEnd, got:\n${reporterLogs}`)
+}
+
+/**
+ * The command hooks run once for each command of an element, not two or three times
+ * (#16086 item 36)
+ */
+const commandHookCounts = async () => {
+    const { passed, failed } = await launch(
+        'commandHookCounts',
+        path.resolve(__dirname, 'helpers', 'command-hook-counts.conf.js'),
+        { specs: [path.resolve(__dirname, 'mocha', 'command_hook_counts.js')] }
+    )
+    assert.strictEqual(passed, 1)
+    assert.strictEqual(failed, 0)
 }
 
 /**
@@ -1262,6 +1453,8 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberFailAmbiguousDefinitions,
         cucumberPendingTest,
         cucumberReporter,
+        cucumberGroupedSpecsRandomOrder,
+        cucumberGroupedSpecsRandomOrderHistory,
         cucumberFileOption,
         cucumberSkipTag,
         standaloneTest,
@@ -1271,13 +1464,18 @@ const jasmineAfterHookArgsValidation = async () => {
         mochaSpecFiltering,
         jasmineSpecFiltering,
         jasmineReporter,
+        jasmineCustomMatcher,
+        jasmineMultiRemote,
         jasmineTimeout,
+        mochaTimeout,
         jasmineAfterAll,
         jasmineFailSpecWithNoExpectations,
         retryFail,
         retryPass,
         customReporterString,
         customReporterObject,
+        sessionGoneReport,
+        commandHookCounts,
         reporterTestrunner,
         severeErrorTest,
         nonGlobalTestrunner,

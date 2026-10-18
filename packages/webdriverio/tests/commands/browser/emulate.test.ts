@@ -376,6 +376,31 @@ describe('emulate', () => {
         expect(fakeScope.emulationSetViewportMetaOverride).toHaveBeenCalledTimes(1)
     })
 
+    it('should still emulate a mobile device when Chrome says viewport meta is not implemented', async () => {
+        const fakeScope = bidiBrowser()
+        fakeScope.emulationSetViewportMetaOverride = vi.fn().mockRejectedValue(new Error(
+            'WebDriver Bidi command "emulation.setViewportMetaOverride" failed with error: unknown error - ' +
+            'Method emulation.setViewportMetaOverride is not implemented.'
+        ))
+
+        const restore = await fakeScope.emulate('device', 'iPhone X')
+        expect(fakeScope.emulationSetUserAgentOverride).toHaveBeenLastCalledWith({
+            userAgent: expect.stringContaining('iPhone'),
+            contexts: CONTEXTS
+        })
+
+        await restore()
+        expect(fakeScope.emulationSetViewportMetaOverride).toHaveBeenCalledTimes(1)
+    })
+
+    it('should not swallow other unknown errors from viewport meta', async () => {
+        const fakeScope = bidiBrowser()
+        fakeScope.emulationSetViewportMetaOverride = vi.fn().mockRejectedValue(new Error('unknown error - boom'))
+
+        await expect(fakeScope.emulate('device', 'iPhone 8')).rejects.toThrow(/boom/)
+        expect(fakeScope.emulationSetUserAgentOverride).toHaveBeenLastCalledWith({ userAgent: null, contexts: CONTEXTS })
+    })
+
     it('should not swallow other errors from text layout', async () => {
         const fakeScope = bidiBrowser()
         fakeScope.emulationSetTextLayoutModeOverride = vi.fn().mockRejectedValue(new Error('invalid argument'))

@@ -23,6 +23,86 @@ See [CHANGELOG - v8](https://github.com/webdriverio/webdriverio/blob/v8/CHANGELO
 
 ---
 
+## v10.0.2 (2026-10-08)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`, `webdriver`, `webdriverio`
+  * [#15977](https://github.com/webdriverio/webdriverio/pull/15977) fix(webdriver): regenerate BiDi types for the script.EvaluationResult rename ([@plum117](https://github.com/plum117))
+
+#### :rocket: New Feature
+* `wdio-session`, `wdio-snapshot`
+  * [#15964](https://github.com/webdriverio/webdriverio/pull/15964) feat(snapshot): tag repeated controls with their row context ([@Winify](https://github.com/Winify))
+* `wdio-ai-service`, `wdio-session`, `wdio-snapshot`
+  * [#15943](https://github.com/webdriverio/webdriverio/pull/15943) feat(snapshot): prepare @wdio/snapshot and session packages for MCP integration ([@Winify](https://github.com/Winify))
+* `create-wdio`, `wdio-session`, `wdio-snapshot`
+  * [#15942](https://github.com/webdriverio/webdriverio/pull/15942) feat(snapshot): @wdio/snapshot POC implementation ([@Winify](https://github.com/Winify))
+
+#### :bug: Bug Fix
+* `create-wdio`, `wdio-session`, `wdio-snapshot`
+  * [#15965](https://github.com/webdriverio/webdriverio/pull/15965) fix(@wdio/session): keep agents on the UI path and fail fast ([@Winify](https://github.com/Winify))
+* `webdriverio`
+  * [#15976](https://github.com/webdriverio/webdriverio/pull/15976) fix(webdriverio): find custom strategy, matcher and argument elements again ([@dprevost-LMI](https://github.com/dprevost-LMI))
+  * [#15957](https://github.com/webdriverio/webdriverio/pull/15957) fix(webdriverio): preserve strict option and index in hasElementId ([@sh011](https://github.com/sh011))
+* `wdio-jasmine-framework`
+  * [#15967](https://github.com/webdriverio/webdriverio/pull/15967) fix(@wdio/jasmine-framework): add expect.multiRemote() to the Jasmine expect ([@dprevost-LMI](https://github.com/dprevost-LMI))
+  * [#15947](https://github.com/webdriverio/webdriverio/pull/15947) fix(@wdio/jasmine-framework): support expect.extend() for custom matchers ([@devangpratap](https://github.com/devangpratap))
+* `wdio-globals`, `wdio-jasmine-framework`
+  * [#15954](https://github.com/webdriverio/webdriverio/pull/15954) fix(@wdio/jasmine-framework): keep expect-webdriverio's expect types and type expectAsync matchers ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### :house: Internal
+* [#15979](https://github.com/webdriverio/webdriverio/pull/15979) chore(deps): bump the minor-deps-updates-main group across 1 directory with 3 updates ([@dependabot[bot]](https://github.com/apps/dependabot))
+* [#15953](https://github.com/webdriverio/webdriverio/pull/15953) chore(deps): bump nx from 22.5.4 to 22.7.12 ([@dependabot[bot]](https://github.com/apps/dependabot))
+* [#15952](https://github.com/webdriverio/webdriverio/pull/15952) chore(deps): bump proxy-addr from 2.0.7 to 2.0.8 ([@dependabot[bot]](https://github.com/apps/dependabot))
+* [#15951](https://github.com/webdriverio/webdriverio/pull/15951) chore(deps): bump @modelcontextprotocol/sdk from 1.30.1 to 1.32.1 ([@dependabot[bot]](https://github.com/apps/dependabot))
+* [#15950](https://github.com/webdriverio/webdriverio/pull/15950) chore(deps): bump dompurify from 3.4.13 to 3.4.16 ([@dependabot[bot]](https://github.com/apps/dependabot))
+* [#15960](https://github.com/webdriverio/webdriverio/pull/15960) test(e2e): keep the Windows OS cursor away from the testrunner e2e browsers ([@dprevost-LMI](https://github.com/dprevost-LMI))
+
+#### Committers: 5
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- David Prévost ([@plum117](https://github.com/plum117))
+- Shrey Shekhar ([@sh011](https://github.com/sh011))
+- Vince Graics ([@Winify](https://github.com/Winify))
+- [@devangpratap](https://github.com/devangpratap)
+
+
+## v10.0.1 (2026-10-07)
+
+#### :rocket: New Feature
+* `create-wdio`
+  * [#15934](https://github.com/webdriverio/webdriverio/pull/15934) feat(create-wdio): offer the devtools service in the wizard ([@vishnuv688](https://github.com/vishnuv688))
+* `wdio-sauce-service`, `wdio-spec-reporter`, `wdio-types`, `webdriverio`
+  * [#15929](https://github.com/webdriverio/webdriverio/pull/15929) feat: support the Sauce Labs asia-south-2 data center ([@bahrimootaz](https://github.com/bahrimootaz))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#15940](https://github.com/webdriverio/webdriverio/pull/15940) Fix/emulate device unsupported bidi 15938 ([@mccmrunal](https://github.com/mccmrunal))
+* Other
+  * [#15923](https://github.com/webdriverio/webdriverio/pull/15923) fix(website): fix and align the mobile navbar menu ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#15926](https://github.com/webdriverio/webdriverio/pull/15926) docs(blog): benchmark results in the v10 release post ([@christian-bromann](https://github.com/christian-bromann))
+* [#15925](https://github.com/webdriverio/webdriverio/pull/15925) feat(website): add large social share card ([@christian-bromann](https://github.com/christian-bromann))
+* [#15924](https://github.com/webdriverio/webdriverio/pull/15924) docs(website): update testrunner page to the v10 CLI ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-browser-runner`, `wdio-lighthouse-service`
+  * [#15933](https://github.com/webdriverio/webdriverio/pull/15933) chore(deps): bump the minor-deps-updates-main group across 1 directory with 22 updates ([@dependabot[bot]](https://github.com/apps/dependabot))
+* `wdio-cucumber-framework`, `wdio-lighthouse-service`
+  * [#15919](https://github.com/webdriverio/webdriverio/pull/15919) chore(deps): bump the patch-deps-updates-main group across 1 directory with 20 updates ([@dependabot[bot]](https://github.com/apps/dependabot))
+* Other
+  * [#15931](https://github.com/webdriverio/webdriverio/pull/15931) fix: template for v10 ([@dprevost-LMI](https://github.com/dprevost-LMI))
+  * [#15917](https://github.com/webdriverio/webdriverio/pull/15917) chore(deps): bump fedora from 43 to 44 in /e2e/wdio/display-server/docker in the docker-major-updates group ([@dependabot[bot]](https://github.com/apps/dependabot))
+  * [#15918](https://github.com/webdriverio/webdriverio/pull/15918) chore(deps): bump alpine from 3.22 to 3.24 in /e2e/wdio/display-server/docker in the docker-minor-updates group ([@dependabot[bot]](https://github.com/apps/dependabot))
+  * [#15922](https://github.com/webdriverio/webdriverio/pull/15922) chore(website): temporarily disable translated locales ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Prevost ([@dprevost-LMI](https://github.com/dprevost-LMI))
+- MRUNAL CHAUDHARI ([@mccmrunal](https://github.com/mccmrunal))
+- Vishnu Vardhan ([@vishnuv688](https://github.com/vishnuv688))
+- [@bahrimootaz](https://github.com/bahrimootaz)
+
+
 ## v10.0.0 (2026-10-05)
 
 #### :eyeglasses: Spec Compliancy

@@ -30,6 +30,9 @@ import { printError, printResult, useColor, type OutputOptions } from './output.
 import { spawnDaemon, waitForExit } from './spawn.js'
 import type { ActionResult, StateFile } from '../types.js'
 
+/** a longer wait on one action is a hung page; `wait` sets its own limit */
+export const MAX_ACTION_TIMEOUT_MS = 60_000
+
 export interface CliIO {
     stdin?: NodeJS.ReadStream
     stdout?: NodeJS.WriteStream
@@ -73,7 +76,7 @@ export function buildParser (onAction: (spec: ActionSpec, argv: Record<string, u
         .help(false)
         .demandCommand(1, 'Specify an action, e.g. `wdio session open chrome`.')
 
-    for (const spec of ACTIONS) {
+    for (const spec of ACTIONS as readonly ActionSpec[]) {
         parser = parser.command(
             commandString(spec),
             spec.desc,
@@ -212,6 +215,11 @@ export async function runSessionCli (rawArgs: string[], io: CliIO = {}): Promise
     if (spec.name === 'wait' && ctx.timeout !== undefined && actionArgs.limit === undefined) {
         actionArgs.limit = ctx.timeout
         ctx.timeout += 5_000
+    }
+
+    if (!spec.local && spec.name !== 'wait' && ctx.timeout !== undefined && ctx.timeout > MAX_ACTION_TIMEOUT_MS) {
+        stderr.write(`--timeout ${ctx.timeout} is capped at ${MAX_ACTION_TIMEOUT_MS} ms: an action that has not finished by then is stuck, not slow.\n`)
+        ctx.timeout = MAX_ACTION_TIMEOUT_MS
     }
 
     try {

@@ -6,7 +6,7 @@ import { initializeWorkerService, initializePlugin, executeHooksWithArgs, Timing
 import { ConfigParser } from '@wdio/config/node'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setDefaultOptions, getDefaultOptions, wdioCustomMatchers, SnapshotService, SoftAssertionService } from 'expect-webdriverio'
-import { attach } from 'webdriverio'
+import { attach, PARALLEL_CONTEXT_STORE_KEY } from 'webdriverio'
 import type { Browser, Selector } from 'webdriverio'
 import type { Options, Capabilities, CustomCommands } from '@wdio/types'
 
@@ -20,6 +20,12 @@ import type {
 } from './types.js'
 
 const log = logger('@wdio/runner')
+
+function getContextIdPayload(browser: WebdriverIO.Browser) {
+    const store = (browser as unknown as Record<string, { getStore?: () => unknown } | undefined>)[PARALLEL_CONTEXT_STORE_KEY]
+    const contextId = store?.getStore?.()
+    return typeof contextId === 'string' ? { contextId } : {}
+}
 
 export default class Runner extends EventEmitter {
     private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
@@ -89,7 +95,7 @@ export default class Runner extends EventEmitter {
          */
         const softAssertionService = new SoftAssertionService({
             autoAssertOnTestEnd: this._config.autoAssertOnTestEnd || true
-        }, this._caps, this._config)
+        })
 
         const snapshotService = SnapshotService.initiate({
             updateState: this._config.updateSnapshots,
@@ -244,6 +250,9 @@ export default class Runner extends EventEmitter {
          */
         let failures = 0
         try {
+            if (!this._isMultiRemote) {
+                this._framework.setBrowser?.(browser as WebdriverIO.Browser)
+            }
             failures = await this._framework.run()
         } catch (err: any) {
             log.error(err)
@@ -337,7 +346,7 @@ export default class Runner extends EventEmitter {
          */
         browser.on('command', (command: any) => this._reporter?.emit(
             'client:beforeCommand',
-            Object.assign(command, { sessionId: browser.sessionId })
+            Object.assign(command, { sessionId: browser.sessionId }, getContextIdPayload(browser))
         ))
 
         /**
@@ -345,7 +354,7 @@ export default class Runner extends EventEmitter {
          */
         browser.on('result', (result: any) => this._reporter?.emit(
             'client:afterCommand',
-            Object.assign(result, { sessionId: browser.sessionId })
+            Object.assign(result, { sessionId: browser.sessionId }, getContextIdPayload(browser))
         ))
 
         return browser
@@ -547,7 +556,7 @@ export default class Runner extends EventEmitter {
             })
         }
 
-        await this._browser?.deleteSession()
+        await this.#deleteSessions()
         process.send!(<SessionEndedMessage>{
             origin: 'worker',
             name: 'sessionEnded',
@@ -568,6 +577,36 @@ export default class Runner extends EventEmitter {
 
         const afterSessionArgs: AfterSessionArgs = [this._config!, capabilities, this._specs as string[]]
         await executeHooksWithArgs('afterSession', this._config!.afterSession!, afterSessionArgs)
+    }
+
+    /**
+     * Delete the session of every browser. A session can already be gone (a
+     * browser crash, a cloud timeout, a lost network): then `deleteSession`
+     * fails. Log it and go on, so the worker still sends `sessionEnded`, runs
+     * the `afterSession` hook and gives the reporters `runner:end`. Otherwise
+     * no report is written.
+     */
+    async #deleteSessions () {
+        const multiRemoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
+        const sessions = this._isMultiRemote
+            ? multiRemoteBrowser.instances.map((browserName: string) => ({
+                browserName,
+                browser: multiRemoteBrowser.getInstance(browserName) as WebdriverIO.Browser
+            }))
+            : [{ browserName: undefined, browser: this._browser as WebdriverIO.Browser }]
+
+        const results = await Promise.allSettled(sessions.map(({ browser }) => browser?.deleteSession()))
+        results.forEach((result, i) => {
+            if (result.status === 'fulfilled') {
+                return
+            }
+            const { browserName } = sessions[i]
+            const reason = result.reason instanceof Error ? result.reason.message : String(result.reason)
+            log.error(
+                `Failed to end the session${browserName ? ` of "${browserName}"` : ''}: ${reason}\n` +
+                'The browser may still be running (for example on a cloud service). Close it manually if needed.'
+            )
+        })
     }
 }
 

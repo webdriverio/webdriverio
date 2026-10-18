@@ -1,25 +1,32 @@
-import type { Options } from 'yargs'
-
 import { DEFAULT_ACTION_TIMEOUT, DEFAULT_EXEC_TIMEOUT } from '../constants.js'
 import type { Applies } from '../types.js'
 
-export interface PositionalSpec {
-    name: string
+export interface OptionSpec {
+    type: 'boolean' | 'number' | 'string'
     desc: string
-    required?: boolean
-    variadic?: boolean
-    choices?: string[]
+    alias?: string
+    default?: unknown
+    choices?: readonly string[]
+    array?: boolean
+}
+
+export interface PositionalSpec {
+    readonly name: string
+    readonly desc: string
+    readonly required?: boolean
+    readonly variadic?: boolean
+    readonly choices?: readonly string[]
 }
 
 export interface ActionSpec {
     name: string
     desc: string
-    positionals?: PositionalSpec[]
-    options?: Record<string, Options>
+    positionals?: readonly PositionalSpec[]
+    options?: Readonly<Record<string, OptionSpec>>
     /**
      * platforms the action applies to, `undefined` means all
      */
-    applies?: Applies[]
+    applies?: readonly Applies[]
     timeout?: number
     /**
      * runs in the CLI process without contacting a daemon
@@ -39,8 +46,8 @@ export interface ActionSpec {
      * `[command, description]` pairs. Commands are full shell lines that
      * start with `wdio session` and may chain actions with `&&`.
      */
-    examples: [string, string][]
-    seeAlso?: string[]
+    examples: readonly (readonly [string, string])[]
+    seeAlso?: readonly string[]
 }
 
 /**
@@ -54,9 +61,9 @@ export function actionIsMutation (spec: ActionSpec, argv: Record<string, unknown
     return Boolean(spec.mutation)
 }
 
-const target = (desc = 'Ref (e12) or WebdriverIO selector'): PositionalSpec => ({ name: 'target', desc, required: true })
+const target = (desc = 'Ref (e12) or WebdriverIO selector') => ({ name: 'target', desc, required: true } as const)
 
-export const OPEN_OPTIONS: Record<string, Options> = {
+export const OPEN_OPTIONS = {
     replace: { type: 'boolean', desc: 'Close a running session with the same name first' },
     'launch-timeout': { type: 'number', desc: 'Milliseconds to wait for the session to become ready' },
     'idle-timeout': { type: 'string', desc: 'Shut down after this long without requests (e.g. 30m, 0 disables)' },
@@ -100,9 +107,9 @@ export const OPEN_OPTIONS: Record<string, Options> = {
     project: { type: 'string', desc: 'Cloud: project label' },
     build: { type: 'string', desc: 'Cloud: build label' },
     name: { type: 'string', desc: 'Cloud: session name label' }
-}
+} as const satisfies Record<string, OptionSpec>
 
-export const ACTIONS: ActionSpec[] = [
+export const ACTIONS = [
     /**
      * lifecycle
      */
@@ -220,6 +227,8 @@ export const ACTIONS: ActionSpec[] = [
             interactive: { type: 'boolean', alias: 'i', desc: 'Only interactive elements' },
             all: { type: 'boolean', desc: 'Include hidden elements' },
             boxes: { type: 'boolean', desc: 'Append bounding boxes' },
+            viewport: { type: 'boolean', desc: 'Only what is in the viewport (web: does not update the diff baseline)' },
+            selectors: { type: 'boolean', desc: 'End each ref line with its best selector' },
             compact: { type: 'boolean', desc: 'Drop unnamed nodes that have no content' },
             urls: { type: 'boolean', alias: 'u', desc: 'Include link hrefs' },
             'file-only': { type: 'boolean', desc: 'Only write the file' },
@@ -230,6 +239,8 @@ export const ACTIONS: ActionSpec[] = [
             ['wdio session snapshot -i', 'Interactive elements only, the usual first look'],
             ['wdio session snapshot --compact --urls', 'Whole page with link targets'],
             ['wdio session snapshot --scope "#checkout" --depth 4', 'Only part of the page'],
+            ['wdio session snapshot --viewport -i', 'What is on screen now'],
+            ['wdio session snapshot --selectors -i', 'Each ref with a selector to put in a test'],
             ['wdio session click e3 && wdio session snapshot -i', 'Act, then look again']
         ],
         seeAlso: ['find', 'diff', 'screenshot']
@@ -237,10 +248,11 @@ export const ACTIONS: ActionSpec[] = [
     {
         name: 'read', group: 'Observation', applies: ['W'],
         desc: 'Read the page text as Markdown',
-        details: 'Headings, paragraphs, list items, table rows and links with their URL, from the main content when the page marks it (main, article), else the whole page; navigation, footers and hidden text are left out. Cut at --max-chars (default 6000). Use it to answer "what does the page say"; use snapshot or find for refs to act on.',
+        details: 'Headings, paragraphs, list items, table rows and links with their URL, from the main content when the page marks it (main, article), else the whole page; navigation, footers and hidden text are left out. Cut at --max-chars (default 6000); the cut says which --offset reads the next part. With --scope, the section is scrolled into view. Use it to answer "what does the page say"; use snapshot or find for refs to act on.',
         options: {
             scope: { type: 'string', desc: 'Only read below this ref or selector' },
-            'max-chars': { type: 'number', desc: 'Print up to this many characters (default 6000)' }
+            'max-chars': { type: 'number', desc: 'Print up to this many characters (default 6000)' },
+            offset: { type: 'number', desc: 'Start at this character of the text, for the next part of a long page' }
         },
         examples: [
             ['wdio session read', 'Read the main content'],
@@ -258,7 +270,8 @@ export const ACTIONS: ActionSpec[] = [
             scope: { type: 'string', desc: 'Only search below this ref or selector' },
             context: { type: 'number', alias: 'C', desc: 'Lines of context before and after instead of the surrounding node' },
             'after-context': { type: 'number', alias: 'A', desc: 'Lines of context after each match' },
-            'before-context': { type: 'number', alias: 'B', desc: 'Lines of context before each match' }
+            'before-context': { type: 'number', alias: 'B', desc: 'Lines of context before each match' },
+            offset: { type: 'number', desc: 'Skip this many matches, for the next ones when the output is cut' }
         },
         examples: [
             ['wdio session find "Add to cart"', 'Find the ref of a button'],
@@ -269,7 +282,7 @@ export const ACTIONS: ActionSpec[] = [
     {
         name: 'diff', group: 'Observation', applies: ['W', 'M', 'D'],
         desc: 'Diff a fresh snapshot against the previous one',
-        details: 'Prints a unified diff of what changed since the last snapshot, or "No changes". The first call stores a baseline. Use it after an action to see what the action did without reading the whole page again.',
+        details: 'Prints a unified diff of what changed since the last snapshot, or "No changes". The first call stores a baseline. Use it after an action to see what the action did without reading the whole page again. On the web the baseline is the last snapshot taken without `--viewport`.',
         options: {
             baseline: { type: 'string', desc: 'Snapshot file to compare with' },
             scope: { type: 'string', desc: 'Only snapshot within this ref or selector, like `snapshot --scope`' },
@@ -879,9 +892,9 @@ export const ACTIONS: ActionSpec[] = [
             ['wdio session skill --install .', 'Add it to this project']
         ]
     }
-]
+] as const satisfies readonly ActionSpec[]
 
-export const ACTION_MAP = new Map(ACTIONS.map((a) => [a.name, a]))
+export const ACTION_MAP: Map<string, ActionSpec> = new Map(ACTIONS.map((a) => [a.name, a]))
 
 export function actionTimeout (name: string) {
     return ACTION_MAP.get(name)?.timeout ?? DEFAULT_ACTION_TIMEOUT
