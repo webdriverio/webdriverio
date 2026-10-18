@@ -628,5 +628,30 @@ describe('middleware', () => {
             expect(scripts[0].args).toEqual([expect.objectContaining({ [ELEMENT_KEY]: NEW_ID }), '2026-10-17'])
             expect(calls.filter(([uri]) => /\/(value|clear)$/.test(String(uri)))).toEqual([])
         })
+
+        it('sets a date input directly when the page renders it again during the retry of its type lookup', async () => {
+            const MID_ID = 'mid-elem-789'
+            const mid = await classicBrowser.$('#foo')
+            mid.elementId = MID_ID
+            vi.mocked(refetchElement).mockResolvedValueOnce(mid)
+            vi.mocked(fetch).customResponseFor(
+                new RegExp(`/element/${MID_ID}/property/type$`),
+                { value: { error: 'stale element reference', message: 'stale element reference: element is not attached' } }
+            )
+            vi.mocked(fetch).customResponseFor(/\/execute\/sync$/, { value: true })
+            const elem = await classicBrowser.$('#foo')
+            vi.mocked(fetch).mockClear()
+
+            await elem.setValue('2026-10-17')
+            const calls = vi.mocked(fetch).mock.calls
+            const scripts = calls
+                .filter(([uri]) => String(uri).endsWith('/execute/sync'))
+                .map(([, opts]) => JSON.parse((opts as RequestInit).body as string))
+            expect(scripts).toHaveLength(1)
+            expect(scripts[0].script).toContain('setInputValue')
+            expect(scripts[0].args).toEqual([expect.objectContaining({ [ELEMENT_KEY]: NEW_ID }), '2026-10-17'])
+            expect(calls.filter(([uri]) => /\/(value|clear)$/.test(String(uri)))).toEqual([])
+            expect(vi.mocked(refetchElement)).toHaveBeenCalledTimes(2)
+        })
     })
 })
