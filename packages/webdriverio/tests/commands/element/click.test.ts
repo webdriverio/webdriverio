@@ -356,12 +356,10 @@ describe('click test', () => {
     })
 
     describe('bring the element under the pointer before a click with options', () => {
-        const setup = async () => {
+        const setup = async (capabilities: WebdriverIO.Capabilities = { browserName: 'foobar' }) => {
             const browser = await remote({
                 baseUrl: 'http://foobar.com',
-                capabilities: {
-                    browserName: 'foobar'
-                }
+                capabilities
             })
             const elem = await browser.$('#foo')
             const scrollIntoView = vi.spyOn(elem, 'scrollIntoView').mockResolvedValue(undefined)
@@ -407,6 +405,28 @@ describe('click test', () => {
             expect(actionCalls().filter(({ method }) => method === 'POST')).toHaveLength(1)
         })
 
+        it.each([
+            ['waits 100 ms in Safari on iOS', { platformName: 'iOS', browserName: 'Safari' }, 100],
+            ['does not wait in other browsers', { browserName: 'foobar' }, 0]
+        ])('%s when the driver gives {} for the promise of the script', async (_, capabilities, wait) => {
+            const { elem, execute } = await setup(capabilities)
+            expect(getBrowserObject(elem).isIOS).toBe(wait > 0)
+            execute.mockResolvedValueOnce({})
+            vi.useFakeTimers()
+            try {
+                const done = elem.click({ button: 'left' })
+                if (wait) {
+                    await vi.advanceTimersByTimeAsync(wait - 1)
+                    expect(actionCalls()).toHaveLength(0)
+                }
+                await vi.advanceTimersByTimeAsync(1)
+                expect(actionCalls()).toHaveLength(2)
+                await done
+            } finally {
+                vi.useRealTimers()
+            }
+        })
+
         it('should not check or scroll for a click without options outside Firefox and iOS', async () => {
             const { elem, scrollIntoView, execute } = await setup()
 
@@ -434,7 +454,7 @@ describe('click test', () => {
             }) => {
                 const { elem: element, execute } = await setup()
                 await element.click(options.offset ?? {})
-                const script = execute.mock.calls[0][0] as unknown as (elem: unknown, offset: { x: number, y: number }) => Promise<void> | undefined
+                const script = execute.mock.calls[0][0] as unknown as (elem: unknown, offset: { x: number, y: number }, maxFrameWait: number) => Promise<void> | undefined
 
                 const scrolls: unknown[] = []
                 const elem = {
@@ -460,7 +480,8 @@ describe('click test', () => {
                 page.requestAnimationFrame = (callback: () => void) => frames.push(callback)
                 let result: Promise<void> | undefined
                 try {
-                    result = script(elem, options.offset ?? { x: 0, y: 0 })
+                    const [, , offset, maxFrameWait] = execute.mock.calls[0] as unknown as [unknown, unknown, { x: number, y: number }, number]
+                    result = script(elem, offset, maxFrameWait)
                 } finally {
                     page.window = saved.window
                     page.document = saved.document
@@ -663,8 +684,11 @@ describe('click test', () => {
             elem.execute.mockResolvedValueOnce(value)
             vi.useFakeTimers()
             try {
-                await click.call(elem as never)
+                const done = click.call(elem as never)
+                await vi.advanceTimersByTimeAsync(0)
                 expect(elem.elementClick).toHaveBeenCalledTimes(1)
+                await vi.advanceTimersByTimeAsync(100)
+                await done
             } finally {
                 vi.useRealTimers()
             }

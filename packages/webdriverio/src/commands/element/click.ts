@@ -1,12 +1,14 @@
 import logger from '@wdio/logger'
 
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject, sleep } from '@wdio/utils'
 import { bidiAssertClickable, bidiGetRect, isBidiCommandsEnabled } from '../../utils/bidi/elementCommands.js'
 import { buttonValue } from '../../utils/actions/index.js'
 
 import type { ClickOptions } from '../../types.js'
 
 const log = logger('webdriver')
+// the longest wait in ms for the two animation frames after a scroll
+const MAX_FRAME_WAIT = 100
 /**
  *
  * Click on an element.
@@ -20,9 +22,9 @@ const log = logger('webdriver')
  * its scroll containers (to the bottom or the top when something covers it at the center), and the page gets its
  * `scroll` events before the click. An element that the pointer already hits is not scrolled. In Firefox and in Safari
  * on iOS, a click without options does the same before the WebDriver `click` command, because geckodriver and Appium
- * scroll and click without giving the page its `scroll` events first (on iOS, the page gets them before the click with
- * the Appium XCUITest driver 12.18.2 or later). When something intercepts a click without options in any browser (for
- * example a sticky header), the element is brought under the pointer in the same way and clicked again.
+ * scroll and click without giving the page its `scroll` events first. When something intercepts a click without
+ * options in any browser (for example a sticky header), the element is brought under the pointer in the same way and
+ * clicked again.
  *
  * :::info
  *
@@ -179,7 +181,7 @@ async function workaround(element: WebdriverIO.Element) {
  */
 async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.Element, offset: { x: number, y: number }) {
     try {
-        const result: unknown = await browser.execute((elem: HTMLElement, offset: { x: number, y: number }) => {
+        const result: unknown = await browser.execute((elem: HTMLElement, offset: { x: number, y: number }, maxFrameWait: number) => {
             const hitTest = () => {
                 const rect = elem.getClientRects()[0]
                 if (!rect) {
@@ -237,9 +239,9 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
             }
             return new Promise<void>((resolve) => {
                 requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-                setTimeout(resolve, 100)
+                setTimeout(resolve, maxFrameWait)
             })
-        }, element as unknown as HTMLElement, offset)
+        }, element as unknown as HTMLElement, offset, MAX_FRAME_WAIT)
 
         /**
          * TODO: remove in the next major version. appium-xcuitest-driver before 12.18.2
@@ -247,8 +249,8 @@ async function bringIntoView(browser: WebdriverIO.Browser, element: WebdriverIO.
          * promise of the script after a scroll: it gives `{}` at once. Wait here instead,
          * as long as the page waits at most.
          */
-        if (result && typeof result === 'object') {
-            await new Promise((resolve) => setTimeout(resolve, 100))
+        if (browser.isIOS && result && typeof result === 'object') {
+            await sleep(MAX_FRAME_WAIT)
         }
     } catch (err) {
         log.debug(`Could not scroll the element into view before the click: ${(err as Error).message}`)
@@ -262,8 +264,8 @@ async function elementClick(element: WebdriverIO.Element) {
      * gets its `scroll` events after the click. ChromeDriver almost always gives the page
      * a frame between the scroll and the click (it missed about 1 click in 300),
      * safaridriver always does. Appium does the same as geckodriver in Safari on iOS
-     * (web and webview contexts); it waits for the frames from appium-xcuitest-driver
-     * 12.18.2. This costs one more request, so only Firefox and iOS pay it.
+     * (web and webview contexts). This costs one more request, so only Firefox and iOS
+     * pay it.
      */
     if (browser.isFirefox || (browser.isIOS && !await browser.isNativeContext)) {
         await bringIntoView(browser, element, { x: 0, y: 0 })
