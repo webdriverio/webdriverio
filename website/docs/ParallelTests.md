@@ -1,10 +1,12 @@
 ---
 id: parallel-tests
 title: Parallel Tests in a Spec File
-description: "Run the Mocha tests or Cucumber scenarios of one spec file at the same time, each in its own WebDriver BiDi browsing context, with mochaOpts.parallelMode or cucumberOpts.parallelMode."
+description: "Run the Mocha tests or Cucumber scenarios of one spec file at the same time, each in its own WebDriver BiDi browsing context, with mochaOpts.parallelMode or cucumberOpts.parallelMode, a form of browser pooling similar to Playwright's fullyParallel."
 ---
 
 Since v10, WebdriverIO can run the tests of one spec file at the same time. Every Mocha `it()` or Cucumber scenario gets its own browser window (a WebDriver BiDi [browsing context](https://w3c.github.io/webdriver-bidi/#browsing-context)) in one worker and one browser session. Use it for spec files with many independent tests: they finish faster, and you don't need more worker processes or browser sessions, because each test only pays for opening a window.
+
+It is a form of browser pooling: the tests share a pool of windows in one browser, not a pool of browsers. If you come from Playwright, `parallelMode: 'userContexts'` is the closest equivalent of [`fullyParallel: true`](https://playwright.dev/docs/test-parallel#parallelize-tests-in-a-single-file): every test gets its own isolated context. The difference is that Playwright spreads the tests of a file across worker processes, each with its own browser, while WebdriverIO runs them at the same time in one worker and one browser.
 
 This is separate from [`maxInstances`](./OrganizingTestSuites.md), which runs whole spec files in parallel, one worker and one session per spec. You can combine the two: `maxInstances` sets how many spec files run at the same time, and `maxParallelContexts` sets how many tests run at the same time inside each of those files.
 
