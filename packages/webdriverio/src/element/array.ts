@@ -5,6 +5,7 @@ import type { Selector } from '../types.js'
  * imported from the leaf module directly, see `utils/implicitWait.ts`
  */
 import { INDEX_NOT_FOUND, itemOf } from '../utils/findElementAgain.js'
+import { hasCode, WAIT_UNTIL_TIMEOUT } from '../utils/errorCodes.js'
 
 /**
  * A plain element or a multi-remote element. Both travel in the same list
@@ -233,7 +234,7 @@ async function elementAt (array: ElementList, index: number): Promise<WebdriverI
                 timeoutMsg
             })
         } catch (err) {
-            if (!(err instanceof Error) || err.message !== timeoutMsg) {
+            if (!hasCode(err, WAIT_UNTIL_TIMEOUT)) {
                 throw err
             }
 

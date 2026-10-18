@@ -5,6 +5,7 @@ import { type local, type remote } from 'webdriver'
 import { URLPattern } from 'urlpattern-polyfill'
 
 import Timer from '../Timer.js'
+import { hasCode, TIMER_TIMEOUT } from '../errorCodes.js'
 import { encodeBase64, decodeBase64 } from '../base64.js'
 import { parseOverwrite, getPatternParam } from './utils.js'
 import { SESSION_MOCKS } from '../../commands/browser/mock.js'
@@ -1257,7 +1258,7 @@ export default class WebDriverInterception {
         const timer = new Timer(interval, timeout, isResponseReceived, true)
 
         return this.#browser.call(() => timer.catch((e) => {
-            if (e.message === 'timeout') {
+            if (hasCode(e, TIMER_TIMEOUT)) {
                 /**
                  * The response completed, but the browser did not return its body in time.
                  * Firefox can leave `network.getData` unanswered for a response that it

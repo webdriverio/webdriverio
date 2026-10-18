@@ -2,6 +2,7 @@ import { expect, describe, it, vi } from 'vitest'
 
 import { ElementArray } from '../../src/element/array.js'
 import { INDEX_NOT_FOUND } from '../../src/utils/findElementAgain.js'
+import { WAIT_UNTIL_TIMEOUT } from '../../src/utils/errorCodes.js'
 
 /**
  * the "not found" element of an index that the list never reaches (#12576)
@@ -266,14 +267,30 @@ describe('ElementArray', () => {
     describe('index past the end', () => {
         /**
          * A `waitUntil` that runs the condition once and, like the real command,
-         * rejects with `timeoutMsg` when it gives no element.
+         * rejects with `timeoutMsg` and the timeout code when it gives no element.
          */
         const waitOnce = () => vi.fn(async (condition: () => Promise<WebdriverIO.Element | false>, options: { timeoutMsg: string }) => {
             const match = await condition()
             if (!match) {
-                throw new Error(options.timeoutMsg)
+                throw Object.assign(new Error(options.timeoutMsg), { code: WAIT_UNTIL_TIMEOUT })
             }
             return match
+        })
+
+        it('throws an error of the wait that is not its timeout, also with the same message', async () => {
+            const failure = new Error('Index out of bounds! $$(.item) returned only 1 elements.')
+            const browser = {
+                options: { waitforTimeout: 50 },
+                waitUntil: vi.fn(async () => { throw failure })
+            }
+            const elements = await ElementArray.fromAsyncCallback(async () => [element('a')], {
+                selector: '.item',
+                foundWith: '$$',
+                parent: browser as unknown as WebdriverIO.Browser,
+                props: []
+            })
+
+            await expect(elements[1]).rejects.toBe(failure)
         })
 
         it('waits with the browser timeout, then gives a not found element (#12576)', async () => {
