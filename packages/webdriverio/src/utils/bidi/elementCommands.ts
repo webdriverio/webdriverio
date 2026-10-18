@@ -16,7 +16,7 @@ import { getBrowserObject } from '@wdio/utils'
 
 import { contextIdValue, heldBrowsingContext } from '../../session/browsingContext.js'
 import { getContextManager, getParallelContextStore } from '../../session/context.js'
-import { nameStaleElement, withKnownElement } from '../foreignContext.js'
+import { withKnownElement } from '../foreignContext.js'
 import { GET_VISIBLE_TEXT } from '../thirdParty/getVisibleText.js'
 
 /** Check if the experimental Bidi commands capability is enabled.  Merges the
@@ -41,7 +41,6 @@ function exec<T>(
     const rawEl = { [ELEMENT_KEY]: element.elementId }
     return (target.execute(withKnownElement(fn), rawEl, ...args) as Promise<T>)
         .catch(nameNotInteractable)
-        .catch(nameStaleElement)
 }
 
 const NOT_INTERACTABLE = 'element not interactable'

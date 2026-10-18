@@ -4,7 +4,7 @@ import type * as WebDriverTypes from 'webdriver'
 import { isStub } from '../index.js'
 import { getContextManager } from '../../session/context.js'
 import { environment } from '../../environment.js'
-import { nameStaleElement, withKnownElement } from '../foreignContext.js'
+import { withKnownElement } from '../foreignContext.js'
 import { isBidiCommandsEnabled } from './elementCommands.js'
 import { executeInContext } from './index.js'
 
@@ -122,7 +122,7 @@ export function applyBidiBrowserOverwrites(browser: WebdriverIO.Browser) {
             /**
              * W3C "get a known element": BiDi clips a stale element to 0x0
              */
-            await executeInContext(this, context, withKnownElement(() => null), { [ELEMENT_KEY]: elementId }).catch(nameStaleElement)
+            await executeInContext(this, context, withKnownElement(() => null), { [ELEMENT_KEY]: elementId })
             const clip: WebDriverTypes.remote.BrowsingContextElementClipRectangle = { type: 'element', element: { sharedId: elementId } }
             const { data } = await this.browsingContextCaptureScreenshot({ context, clip })
             return data

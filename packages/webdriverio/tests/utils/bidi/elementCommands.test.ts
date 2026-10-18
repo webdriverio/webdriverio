@@ -352,15 +352,6 @@ describe('bidi stale elements', () => {
         const { fn } = await captureExecutedFn(bidiGetTagName)
         expect(fn({ isConnected: true, ownerDocument: activeDocument(), tagName: 'LI' })).toBe('li')
     })
-
-    it('names the error so the middleware finds the element again', async () => {
-        const { getBrowserObject } = await import('@wdio/utils')
-        vi.mocked(getBrowserObject).mockReturnValue({
-            execute: vi.fn().mockRejectedValue(new Error('Error: stale element reference: the element is not attached to the active document'))
-        } as any)
-        const err = await bidiGetText({ elementId: 'e-stale' } as any).catch((e: Error) => e)
-        expect((err as Error).name).toBe('stale element reference')
-    })
 })
 
 describe('bidiAddValue', () => {

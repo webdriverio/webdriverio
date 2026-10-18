@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { ELEMENT_KEY } from 'webdriver'
 
 import { FOREIGN_ELEMENT_ENDPOINTS, withKnownElement } from '../../src/utils/foreignContext.js'
+import { isStaleElementToFindAgain } from '../../src/utils/index.js'
 
 type Endpoint = (held: WebdriverIO.BrowsingContext, elementId: string, ...args: unknown[]) => Promise<unknown>
 
@@ -69,12 +70,11 @@ describe('FOREIGN_ELEMENT_ENDPOINTS', () => {
         ['an element of a document that is no longer active', inactive],
         ['an element of a document that a reload replaced', replaced]
     ])('for %s', (_name, element) => {
-        it.each(commands)('%s throws stale element reference (%j)', async (command, args) => {
+        it.each(commands)('%s throws a stale element error (%j)', async (command, args) => {
             const { held, browser } = heldFrame(element)
             const endpoint = FOREIGN_ELEMENT_ENDPOINTS[command] as unknown as Endpoint
             const err = await endpoint(held, 'element-1', ...args).catch((e: Error) => e)
-            expect(err).toBeInstanceOf(Error)
-            expect((err as Error).name).toBe('stale element reference')
+            expect(isStaleElementToFindAgain(err)).toBe(true)
             expect(browser.browsingContextLocateNodes).not.toHaveBeenCalled()
             expect(browser.inputPerformActions).not.toHaveBeenCalled()
             expect(browser.browsingContextCaptureScreenshot).not.toHaveBeenCalled()
@@ -100,10 +100,9 @@ describe('FOREIGN_ELEMENT_ENDPOINTS', () => {
 })
 
 describe('withKnownElement', () => {
-    it('builds the wrapper of a script once', () => {
-        const script = (el: { tagName: string }) => el.tagName
-        expect(withKnownElement(script)).toBe(withKnownElement(script))
-        expect(withKnownElement(script, 1)).not.toBe(withKnownElement(script))
+    it('keeps an async script async', () => {
+        expect(withKnownElement(async () => null).constructor.name).toBe('AsyncFunction')
+        expect(withKnownElement(() => null).constructor.name).toBe('Function')
     })
 
     it('checks the element at the given argument index', () => {

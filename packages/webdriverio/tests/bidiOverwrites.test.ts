@@ -4,6 +4,7 @@ import { ELEMENT_KEY } from 'webdriver'
 
 import { attach } from '../src/index.js'
 import { applyBidiBrowserOverwrites } from '../src/utils/bidi/browserOverwrites.js'
+import { isStaleElementToFindAgain } from '../src/utils/index.js'
 
 const overwrites = new Map<string, (...args: any[]) => Promise<unknown>>()
 let client: Record<string, any> = {}
@@ -117,7 +118,7 @@ describe('BiDi overwrites for takeScreenshot, refresh, takeElementScreenshot', (
             }
         })
         const err = await overwrites.get('takeElementScreenshot')!.call(client, vi.fn(), 'el-1').catch((e: Error) => e)
-        expect((err as Error).name).toBe('stale element reference')
+        expect(isStaleElementToFindAgain(err)).toBe(true)
         expect(client.browsingContextCaptureScreenshot).not.toHaveBeenCalled()
     })
 

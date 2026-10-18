@@ -64,8 +64,7 @@ function throwOnFailure<T> (result: T | ScriptFailure): T {
     return result
 }
 
-const STALE_ELEMENT_REFERENCE = 'stale element reference'
-const knownElementScripts = new Map<string, Function>()
+const AsyncFunction = (async () => {}).constructor as FunctionConstructor
 
 /**
  * W3C "get a known element": a detached element, or one of an inactive document,
@@ -77,31 +76,18 @@ const knownElementScripts = new Map<string, Function>()
  * @see https://w3c.github.io/webdriver/#dfn-get-a-known-element
  */
 export function withKnownElement<T extends Function> (script: T | string, at = 0): T {
-    const source = String(script)
-    const key = `${at}:${source}`
-    let wrapped = knownElementScripts.get(key)
-    if (!wrapped) {
-        wrapped = new Function(
-            `const el = arguments[${at}]
-            const doc = el && el.ownerDocument
-            if (el && (el.isConnected === false || (doc && !(doc.defaultView && doc.defaultView.document === doc)))) {
-                throw new Error('${STALE_ELEMENT_REFERENCE}: the element is not attached to the active document')
-            }
-            return (${source}).apply(this, arguments)`
-        )
-        knownElementScripts.set(key, wrapped)
-    }
-    return wrapped as T
-}
-
-/**
- * Name the script error like the W3C error code, so the middleware finds the element again
- */
-export function nameStaleElement (err: unknown): never {
-    if (err instanceof Error && err.message.includes(STALE_ELEMENT_REFERENCE)) {
-        err.name = STALE_ELEMENT_REFERENCE
-    }
-    throw err
+    /**
+     * `execute` sends an async function to Classic as an async script
+     */
+    const isAsync = typeof script === 'function' && script.constructor.name === 'AsyncFunction'
+    return new (isAsync ? AsyncFunction : Function)(
+        `const el = arguments[${at}]
+        const doc = el && el.ownerDocument
+        if (el && (el.isConnected === false || (doc && !(doc.defaultView && doc.defaultView.document === doc)))) {
+            throw new Error('stale element reference: the element is not attached to the active document')
+        }
+        return (${script}).apply(this, arguments)`
+    ) as T
 }
 
 /**
@@ -114,8 +100,7 @@ function inElement<T> (
     script: ((el: any, ...args: any[]) => T) | string,
     ...args: unknown[]
 ): Promise<Awaited<T>> {
-    return (held.execute(withKnownElement(script), elementId ? ref(elementId) : null, ...args) as Promise<Awaited<T>>)
-        .catch(nameStaleElement)
+    return held.execute(withKnownElement(script), elementId ? ref(elementId) : null, ...args) as Promise<Awaited<T>>
 }
 
 /**

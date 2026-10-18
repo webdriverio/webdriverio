@@ -19,7 +19,7 @@ import { accessibilityScript } from '../commands/constant.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, foreignContextId, heldBrowsingContext } from '../session/browsingContext.js'
-import { findLinksInContext, foreignContext, nameStaleElement, withKnownElement } from './foreignContext.js'
+import { findLinksInContext, foreignContext, withKnownElement } from './foreignContext.js'
 import { bidiGetRect, isBidiCommandsEnabled } from './bidi/elementCommands.js'
 import { isParallelContextActive, locateRelativeXPath } from './bidi/locate.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
@@ -280,7 +280,8 @@ export function isStaleElementError(err: Error) {
         // BIDI
         err.message.includes('belongs to different document') ||
         err.message.includes('no such node - The node with the reference') ||
-        // BIDI, Chrome: W3C "get a known element", a node that no longer exists is stale
+        // BIDI, Chrome: W3C "get a known element", a node that no longer exists is stale.
+        // Chrome gives the same text for an id it cannot parse: match only the id formats it parses.
         /no such node - SharedId "(f\..+\.d\..+\.e\.\d+|.+_element_\d+)" was not found/.test(err.message)
     )
 }
@@ -577,12 +578,6 @@ async function findInFrameByScript (
         return nodes[at] || null
     }
     const rootId = (scope as { [ELEMENT_KEY]?: string })[ELEMENT_KEY]
-    /**
-     * the scripts check that the root element is not stale
-     */
-    const callInFrame = (params: remote.ScriptCallFunctionParameters) => browser.scriptCallFunction(params)
-        .then((result) => parseScriptResult(params, result))
-        .catch(nameStaleElement)
     if (using === 'role') {
         const { role, name } = JSON.parse(value) as RoleSelector
         const roleParams: remote.ScriptCallFunctionParameters = {
@@ -596,10 +591,10 @@ async function findInFrameByScript (
             ] as remote.ScriptLocalValue[],
             target: { context: held.contextId }
         }
-        let found = await callInFrame(roleParams)
+        let found = parseScriptResult(roleParams, await browser.scriptCallFunction(roleParams))
         if (found === ACCESSIBILITY_API_MISSING) {
             await browser.scriptEvaluate({ expression: accessibilityScript, target: { context: held.contextId }, awaitPromise: false })
-            found = await callInFrame(roleParams)
+            found = parseScriptResult(roleParams, await browser.scriptCallFunction(roleParams))
         }
         if (typeof found === 'number') {
             return found
@@ -620,7 +615,7 @@ async function findInFrameByScript (
         ] as remote.ScriptLocalValue[],
         target: { context: held.contextId }
     }
-    const parsed = await callInFrame(params)
+    const parsed = parseScriptResult(params, await browser.scriptCallFunction(params))
     if (typeof parsed === 'number') {
         return parsed
     }

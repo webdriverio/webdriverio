@@ -7,7 +7,7 @@ import { remote } from '../../../src/index.js'
 import { getBrowsingContext } from '../../../src/browsingContext.js'
 import { getContextManager } from '../../../src/session/context.js'
 import { getElement } from '../../../src/utils/getElementObject.js'
-import { findElement, findElements } from '../../../src/utils/index.js'
+import { findElement, findElements, isStaleElementToFindAgain } from '../../../src/utils/index.js'
 import { StrictSelectorError } from '../../../src/utils/strictSelectorError.js'
 
 vi.mock('fetch')
@@ -730,7 +730,7 @@ describe('browsing context', () => {
                 }
             })
             const err = await find().catch((e: Error) => e)
-            expect((err as Error).name).toBe('stale element reference')
+            expect(isStaleElementToFindAgain(err)).toBe(true)
         })
 
         it('evaluates a relative XPath with the element as context node', async () => {
