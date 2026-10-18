@@ -348,6 +348,7 @@
         "frameworks",
         "typescript",
         "headless-and-display-servers",
+        "parallel-tests",
         "sharding",
         "retry",
         "watcher",

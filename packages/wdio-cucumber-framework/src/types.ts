@@ -195,19 +195,23 @@ export interface CucumberOptions {
      * package swaps element-command implementations for ALL BiDi tests.
      * Notable behavioral differences: `addValue`/`clearValue` dispatch
      * untrusted synthetic DOM events (no trusted key events), `getText`
-     * uses `innerText`, `getAttribute` normalizes property/attribute
+     * returns the visible text, `getAttribute` normalizes property/attribute
      * resolution, and `click` is driven via the Actions API.
      *
      * Constraints in parallel mode:
-     * - No window management: `switchToWindow`, `switchToParentFrame`,
-     *   `refresh` and `closeWindow` throw inside a parallel scenario.
+     * - No window management: `switchWindow`, `newWindow`, `closeWindow`,
+     *   `switchToParentFrame`, `getWindowSize`/`setWindowSize` and every
+     *   other WebDriver Classic command throw inside a parallel scenario.
+     *   `refresh` reloads the scenario's own context.
      * - `'contexts'` shares cookies and storage across all browsing contexts;
      *   `'userContexts'` isolates them.
-     * - `beforeFeature`/`afterFeature` (BeforeAll/AfterAll) run once per
-     *   test run, not per feature.
+     * - `BeforeAll`/`AfterAll` and the `beforeFeature`/`afterFeature` config
+     *   hooks run once per test run, not per feature, outside any
+     *   scenario's context.
      * - Do not fire-and-forget timers that outlive the test: the context
      *   is closed as soon as the scenario finishes.
      *
+     * @see https://webdriver.io/docs/parallel-tests
      * @default undefined (sequential execution)
      */
     parallelMode?: ParallelMode
