@@ -705,6 +705,7 @@ describe('click test', () => {
         it.each([
             ['other desktop browsers', {}],
             ['a native iOS context', { isMobile: true, isIOS: true, isNativeContext: true }],
+            ['the Appium Safari driver (safaridriver) on iOS', { isMobile: false, isIOS: true, isNativeContext: false }],
             ['Chrome on Android', { isMobile: true, isAndroid: true, isNativeContext: false }]
         ])('should send only the WebDriver click in %s', async (_, context) => {
             const elem = scope(context)
