@@ -94,11 +94,12 @@ describe('middleware', () => {
         vi.mocked(fetch).retryCnt = 0
     })
 
-    it('should refetch an element after a BiDi no such node error', async () => {
+    it.each([
+        ['Firefox', 'no such node - The node with the reference stale-element-123 is not known'],
+        ['Chrome', 'no such node - SharedId "f.1.d.2.e.457" was not found.']
+    ])('should refetch an element after a BiDi no such node error (%s)', async (_browser, message) => {
         const isAfterNavigationDisplayed = vi.fn()
-            .mockRejectedValueOnce(new Error(
-                'WebDriver Bidi command "script.callFunction" failed with error: no such node - The node with the reference stale-element-123 is not known'
-            ))
+            .mockRejectedValueOnce(new Error(`WebDriver Bidi command "script.callFunction" failed with error: ${message}`))
             .mockResolvedValueOnce(false)
         browser.addCommand('isAfterNavigationDisplayed', isAfterNavigationDisplayed, { attachToElement: true })
         const elem = await browser.$('#foo')

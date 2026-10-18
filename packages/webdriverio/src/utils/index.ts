@@ -19,7 +19,7 @@ import { accessibilityScript } from '../commands/constant.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, foreignContextId, heldBrowsingContext } from '../session/browsingContext.js'
-import { findLinksInContext, foreignContext } from './foreignContext.js'
+import { findLinksInContext, foreignContext, withKnownElement } from './foreignContext.js'
 import { bidiGetRect, isBidiCommandsEnabled } from './bidi/elementCommands.js'
 import { isParallelContextActive, locateRelativeXPath } from './bidi/locate.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
@@ -279,7 +279,10 @@ export function isStaleElementError(err: Error) {
         err.message.includes('stale element not found in the current frame') ||
         // BIDI
         err.message.includes('belongs to different document') ||
-        err.message.includes('no such node - The node with the reference')
+        err.message.includes('no such node - The node with the reference') ||
+        // BIDI, Chrome: W3C "get a known element", a node that no longer exists is stale.
+        // Like the Firefox text, it also matches an id that is not valid (the refetch then fails).
+        /no such node - SharedId ".*" was not found/.test(err.message)
     )
 }
 
@@ -578,7 +581,7 @@ async function findInFrameByScript (
     if (using === 'role') {
         const { role, name } = JSON.parse(value) as RoleSelector
         const roleParams: remote.ScriptCallFunctionParameters = {
-            functionDeclaration: createBidiFunctionDeclaration(findByRole as unknown as Function),
+            functionDeclaration: createBidiFunctionDeclaration(withKnownElement(findByRole as unknown as Function, 3)),
             awaitPromise: true,
             arguments: [
                 LocalValue.getArgument(role),
@@ -602,7 +605,7 @@ async function findInFrameByScript (
         ? { using: 'xpath', value: getAriaXPathSelector(value) }
         : { using, value }
     const params: remote.ScriptCallFunctionParameters = {
-        functionDeclaration: createBidiFunctionDeclaration(query as unknown as Function),
+        functionDeclaration: createBidiFunctionDeclaration(withKnownElement(query as unknown as Function, 3)),
         awaitPromise: true,
         arguments: [
             LocalValue.getArgument(resolved.using),
