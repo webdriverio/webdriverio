@@ -66,3 +66,15 @@ the spec CDDL due to the following error:
 
 %s
 `
+
+/**
+ * Types that the WebDriver BiDi spec renamed, old name to new name. The generated
+ * files keep each old name as a deprecated alias while the spec defines the new
+ * one and not the old one, so a spec rename does not remove a public type.
+ */
+export const RENAMED_TYPES: Record<string, string> = {
+    // w3c/webdriver-bidi#1172
+    ScriptEvaluateResult: 'ScriptEvaluationResult',
+    ScriptEvaluateResultSuccess: 'ScriptEvaluationResultSuccess',
+    ScriptEvaluateResultException: 'ScriptEvaluationResultException',
+}

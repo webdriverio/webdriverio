@@ -23,3 +23,19 @@ test('should get initialized', () => {
     expect(runner.config).toEqual(config)
     expect(runner.specs).toEqual(specs)
 })
+
+test('should expose isMultiRemote with the value of isMultiremote', () => {
+    const config = { outputDir: 'foo', logFile: 'bar', capabilities: {} }
+    for (const isMultiremote of [true, false]) {
+        const runner = new RunnerStats({
+            cid: '0-0',
+            capabilities: { browserName: 'chrome' },
+            instanceOptions: {},
+            sessionId: 'some-sessionId',
+            config,
+            specs: ['./foo/bar.js'],
+            isMultiremote
+        })
+        expect(runner.isMultiRemote).toBe(isMultiremote)
+    }
+})

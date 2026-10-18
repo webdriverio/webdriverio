@@ -140,6 +140,16 @@ describe('launcher', () => {
             expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
         })
 
+        it('should expose isMultiRemote and isParallelMultiRemote with the values of the old names', () => {
+            expect(launcher.isMultiRemote).toBe(false)
+            expect(launcher.isParallelMultiRemote).toBe(false)
+
+            launcher.isMultiremote = true
+            launcher.isParallelMultiremote = true
+            expect(launcher.isMultiRemote).toBe(true)
+            expect(launcher.isParallelMultiRemote).toBe(true)
+        })
+
         it('should start instance in multiremote', () => {
             launcher['_runSpecs'] = vi.fn()
             launcher.isMultiremote = true

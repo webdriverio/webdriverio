@@ -53,7 +53,7 @@ If you created a custom [asymmetric matcher](https://jestjs.io/docs/expect#expec
 declare global {
   namespace ExpectWebdriverIO {
     interface AsymmetricMatchers {
-      myCustomMatcher(value: string): ExpectWebdriverIO.PartialMatcher;
+      myCustomMatcher(value: string): ExpectWebdriverIO.PartialMatcher<string>;
     }
   }
 }

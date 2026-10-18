@@ -14,7 +14,11 @@ export default class RunnerStats extends RunnableStats {
     config: Options.Testrunner
     specs: string[]
     sessionId: string
+    /**
+     * @deprecated removed in v10, use `isMultiRemote`
+     */
     isMultiremote: boolean
+    isMultiRemote: boolean
     instanceOptions: Record<string, Options.WebdriverIO>
     retry?: number
     failures?: number
@@ -30,6 +34,7 @@ export default class RunnerStats extends RunnableStats {
         this.specs = runner.specs
         this.sessionId = runner.sessionId
         this.isMultiremote = runner.isMultiremote
+        this.isMultiRemote = runner.isMultiremote
         this.instanceOptions = runner.instanceOptions
         this.retry = runner.retry
     }

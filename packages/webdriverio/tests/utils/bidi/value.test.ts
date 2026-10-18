@@ -6,6 +6,18 @@ import { deserialize } from '../../../src/utils/bidi/index.js'
 import { LocalValue } from '../../../src/utils/bidi/value.js'
 
 describe('LocalValue', () => {
+    it('should serialize every item of an array whose forEach is async, as an element list', () => {
+        // `$$()` gives an array whose `forEach` is async, like its other array methods
+        class ElementList extends Array {
+            // @ts-expect-error an async forEach, as the one of an element list
+            forEach () {
+                return Promise.resolve()
+            }
+        }
+        const list = ElementList.from(['a', 'b'])
+        expect(LocalValue.getArgument(list).asMap()).toEqual(LocalValue.getArgument(['a', 'b']).asMap())
+    })
+
     const value = LocalValue.getArgument([
         undefined,
         'string',

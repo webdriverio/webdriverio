@@ -10,7 +10,7 @@ import { parse as parseCDDL, type PropertyReference, type Property } from 'cddl'
 
 import downloadSpec from './downloadSpec.js'
 import type { CddlType } from './utils.js'
-import { findGroupByName, writeFile } from './utils.js'
+import { addRenamedTypeAliases, findGroupByName, writeFile } from './utils.js'
 import { BASE_PROTOCOL_SPEC, CDDL_PARSE_ERROR_MESSAGE } from './constants.js'
 
 const b = types.builders
@@ -46,7 +46,7 @@ const [astLocal, astRemote] = await Promise.all(cddlTypes.map(async (type) => {
 
     await writeFile(
         path.resolve(__dirname, '..', '..', 'packages', 'webdriver', 'src', 'bidi', `${type}Types.ts`),
-        cddl
+        addRenamedTypeAliases(cddl)
     )
     return ast
 }))

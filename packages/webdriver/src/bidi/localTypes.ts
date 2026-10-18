@@ -57,6 +57,18 @@ export type SessionCapabilityRequest = Extensible & {
     unhandledPromptBehavior?: SessionUserPromptHandler;
 }
 
+export type SessionCapabilityResponse = Extensible & {
+    acceptInsecureCerts: boolean;
+    browserName: string;
+    browserVersion: string;
+    platformName: string;
+    setWindowRect: boolean;
+    userAgent: string;
+    proxy?: SessionProxyConfiguration;
+    unhandledPromptBehavior?: SessionUserPromptHandler;
+    webSocketUrl?: string;
+}
+
 export type SessionProxyConfiguration = SessionAutodetectProxyConfiguration | SessionDirectProxyConfiguration | SessionManualProxyConfiguration | SessionPacProxyConfiguration | SessionSystemProxyConfiguration
 
 export type SessionAutodetectProxyConfiguration = Extensible & {
@@ -107,17 +119,7 @@ export interface SessionStatusResult {
 
 export interface SessionNewResult {
     sessionId: string;
-    capabilities: {
-        acceptInsecureCerts: boolean;
-        browserName: string;
-        browserVersion: string;
-        platformName: string;
-        setWindowRect: boolean;
-        userAgent: string;
-        proxy?: SessionProxyConfiguration;
-        unhandledPromptBehavior?: SessionUserPromptHandler;
-        webSocketUrl?: string;
-    };
+    capabilities: SessionCapabilityResponse;
 }
 
 export type SessionEndResult = EmptyResult
@@ -594,15 +596,15 @@ export interface ScriptChannelProperties {
     ownership?: ScriptResultOwnership;
 }
 
-export type ScriptEvaluateResult = ScriptEvaluateResultSuccess | ScriptEvaluateResultException
+export type ScriptEvaluationResult = ScriptEvaluationResultSuccess | ScriptEvaluationResultException
 
-export interface ScriptEvaluateResultSuccess {
+export interface ScriptEvaluationResultSuccess {
     type: 'success';
     result: ScriptRemoteValue;
     realm: ScriptRealm;
 }
 
-export interface ScriptEvaluateResultException {
+export interface ScriptEvaluationResultException {
     type: 'exception';
     exceptionDetails: ScriptExceptionDetails;
     realm: ScriptRealm;
@@ -933,7 +935,8 @@ export interface ScriptAddPreloadScriptResult {
 }
 
 export type ScriptDisownResult = EmptyResult
-export type ScriptCallFunctionResult = ScriptEvaluateResult
+export type ScriptCallFunctionResult = ScriptEvaluationResult
+export type ScriptEvaluateResult = ScriptEvaluationResult
 
 export interface ScriptGetRealmsResult {
     realms: ScriptRealmInfo[];
@@ -1043,3 +1046,13 @@ export interface WebExtensionInstallResult {
 }
 
 export type WebExtensionUninstallResult = EmptyResult
+
+/**
+ * @deprecated renamed to `ScriptEvaluationResultSuccess` in the WebDriver BiDi spec
+ */
+export type ScriptEvaluateResultSuccess = ScriptEvaluationResultSuccess
+
+/**
+ * @deprecated renamed to `ScriptEvaluationResultException` in the WebDriver BiDi spec
+ */
+export type ScriptEvaluateResultException = ScriptEvaluationResultException

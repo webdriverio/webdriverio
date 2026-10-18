@@ -175,6 +175,7 @@ export default class MultiRemote {
 
             client.instances = Object.keys(instances)
             client.isMultiremote = true
+            client.isMultiRemote = true
             client.selector = selector ?? (Array.isArray(result) && result[0]
                 ? result[0].selector
                 : null)
@@ -276,7 +277,7 @@ export default class MultiRemote {
                 )
 
                 // TODO expose this property in v10 with a new MultiRemoteElementArray type
-                Object.assign(elementArray, { isMultiremote: true })
+                Object.assign(elementArray, { isMultiremote: true, isMultiRemote: true })
                 return elementArray
             }
             return result
@@ -291,6 +292,7 @@ export default class MultiRemote {
 export class MultiRemoteDriver {
     instances: string[]
     isMultiremote = true as const
+    isMultiRemote = true as const
     __propertiesObject__: Record<string, PropertyDescriptor>
 
     constructor (
