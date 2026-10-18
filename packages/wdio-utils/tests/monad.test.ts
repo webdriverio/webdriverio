@@ -26,6 +26,22 @@ function createElement(elementOverrides: PropertyDescriptor, command: Function) 
 }
 
 describe('monad', () => {
+    it('does not pass event handler functions through the command wrapper', () => {
+        const commandWrapper = vi.fn().mockImplementation((_name, fn) => fn)
+        const noop = () => {}
+        const events = ['on', 'off', 'emit', 'once', 'removeListener', 'removeAllListeners']
+        webdriverMonad({}, (client: any) => client, {
+            ...prototype,
+            ...Object.fromEntries(events.map((name) => [name, { value: noop }]))
+        })(sessionId, commandWrapper)
+
+        const wrapped = commandWrapper.mock.calls.map(([name]) => name)
+        expect(wrapped).toContain('someFunc')
+        for (const name of events) {
+            expect(wrapped, name).not.toContain(name)
+        }
+    })
+
     it('should be able to initialize client with prototype with commands', () => {
         const modifier = vi.fn()
         const monad = webdriverMonad({ baseUrl: 'option' }, (client: any) => {
@@ -381,6 +397,56 @@ describe('monad', () => {
             }
         })
         expect(client.someFunc(123)).toBe('someFunc(123) = result-123')
+    })
+
+    /**
+     * `getElements` gives one property object to the monad of every item of a list
+     */
+    describe('clients built from one property object', () => {
+        const layer = (commandName: string, commandFn: Function) => function (this: unknown, ...args: unknown[]) {
+            return `[${commandFn.apply(this, args)}]`
+        }
+
+        it('wraps the commands of each client once', () => {
+            const first = webdriverMonad({}, (client: any) => client, prototype)(sessionId, layer)
+            const second = webdriverMonad({}, (client: any) => client, prototype)(sessionId, layer)
+
+            expect(first.someFunc(1)).toBe('[result-1]')
+            expect(second.someFunc(1)).toBe('[result-1]')
+        })
+
+        it('wraps the commands of each client of one monad once', () => {
+            const monad = webdriverMonad({}, (client: any) => client, prototype)
+            const first = monad(sessionId, layer)
+            const second = monad(sessionId, layer)
+
+            expect(first.someFunc(1)).toBe('[result-1]')
+            expect(second.someFunc(1)).toBe('[result-1]')
+        })
+
+        it('applies the element overrides to each client once', () => {
+            const properties = {
+                scope: { value: 'element' },
+                someFunc: { value: (arg: number) => `result-${arg}` },
+                __elementOverrides__: { value: { someFunc (origCommand: Function, arg: number) { return `override(${origCommand(arg)})` } } }
+            }
+            const first = webdriverMonad({}, (client: any) => client, properties)(sessionId, layer)
+            const second = webdriverMonad({}, (client: any) => client, properties)(sessionId, layer)
+
+            expect(first.someFunc(1)).toBe('override([result-1])')
+            expect(second.someFunc(1)).toBe('override([result-1])')
+        })
+
+        it('does not change the property object of the caller', () => {
+            const command = prototype.someFunc.value
+            prototype.scope.value = 'element'
+            const client = webdriverMonad({}, (client: any) => client, prototype)(sessionId, layer)
+
+            expect(client.constructor.name).toBe('Element')
+            expect(prototype.someFunc.value).toBe(command)
+            expect(Object.keys(prototype)).toEqual(['scope', 'someFunc'])
+            expect(prototype.scope).toEqual({ value: 'element' })
+        })
     })
 
     it('should allow empty prototype object', () => {

@@ -3,6 +3,7 @@ import type { WebDriverResultEvent } from 'webdriver'
 
 import Timer from '../../utils/Timer.js'
 import type { WaitUntilOptions } from '../../types.js'
+import { hasCode, TIMER_TIMEOUT, WAIT_UNTIL_TIMEOUT } from '../../utils/errorCodes.js'
 
 /**
  * This wait command is your universal weapon if you want to wait on something. It expects a condition
@@ -62,17 +63,19 @@ export function waitUntil<ReturnValue>(
     const fn = condition.bind(this)
     const timer = new Timer(interval as number, timeout as number, fn, true, abort.signal)
     return timer.catch<Exclude<ReturnValue, false | 0 | '' | null | undefined>>((e: Error) => {
-        if (e.message === 'timeout') {
-            if (typeof timeoutMsg === 'function') {
-                throw new Error(timeoutMsg())
-            }
-            if (typeof timeoutMsg === 'string') {
-                throw new Error(timeoutMsg)
-            }
-            throw new Error(`waitUntil condition timed out after ${timeout}ms`)
+        if (hasCode(e, TIMER_TIMEOUT)) {
+            const message = typeof timeoutMsg === 'function'
+                ? timeoutMsg()
+                : typeof timeoutMsg === 'string' ? timeoutMsg : `waitUntil condition timed out after ${timeout}ms`
+            throw Object.assign(new Error(message), { code: WAIT_UNTIL_TIMEOUT })
         }
 
-        const err = new Error(`waitUntil condition failed with the following reason: ${e && e.message || e}`)
+        const err: Error & { cause?: unknown } = new Error(`waitUntil condition failed with the following reason: ${e && e.message || e}`)
+        /**
+         * the error of the condition, e.g. the "element wasn't found" error of an element that
+         * the page removed, with its code and its own cause
+         */
+        err.cause = e
         const origStack = e.stack
         if (!origStack || !err.stack) {
             throw err

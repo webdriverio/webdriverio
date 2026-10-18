@@ -47,14 +47,13 @@ function setElementOverride(overrides: Record<string, Function>, name: string, c
     overrides[name] = composeElementOverrides(overrides[name], command)
 }
 
-export default function WebDriver(options: object, modifier?: Function, propertiesObject: PropertiesObject = {}) {
+export default function WebDriver(options: object, modifier?: Function, properties: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
      * info within the `propertiesObject` object. This doesn't have any functional
      * advantages just provides better description of objects when debugging them
      */
-    const scopeType = SCOPE_TYPES[propertiesObject.scope?.value || 'browser']
-    delete propertiesObject.scope
+    const scopeType = SCOPE_TYPES[properties.scope?.value || 'browser']
 
     const prototype = Object.create(scopeType.prototype)
     const log = logger('webdriver')
@@ -175,6 +174,16 @@ export default function WebDriver(options: object, modifier?: Function, properti
      */
     function unit(this: void, sessionId: string, commandWrapper?: Function, elementCmdImplicitWaitExclusionList?: string[]) {
         /**
+         * The client gets its own map of the property descriptors, and a new descriptor
+         * for each command that it wraps or overrides: the descriptors of the caller do
+         * not change. A caller can give the same object to the monad of many clients,
+         * e.g. `getElements` to all items of a list. Wrapped in place, the commands of
+         * each new client were wrapped again: item `[n]` had `n + 1` layers.
+         */
+        const propertiesObject: PropertiesObject = { ...properties }
+        delete propertiesObject.scope
+
+        /**
          * capabilities attached to the instance prototype not being shown if
          * logging the instance
          */
@@ -189,18 +198,22 @@ export default function WebDriver(options: object, modifier?: Function, properti
          * e.g. in wdio-cli to allow element chaining
          */
         if (typeof commandWrapper === 'function') {
-            for (const [commandName, { value }] of Object.entries(propertiesObject)) {
+            for (const [commandName, descriptor] of Object.entries(propertiesObject)) {
+                const { value } = descriptor
                 /**
                  * no need to apply a command wrapper if:
                  * - there is no wrapper
                  * - command is an event handler function
                  */
-                if (typeof value !== 'function' || Object.keys(EVENTHANDLER_FUNCTIONS).includes(commandName)) {
+                if (typeof value !== 'function' || (EVENTHANDLER_FUNCTIONS as readonly string[]).includes(commandName)) {
                     continue
                 }
 
-                propertiesObject[commandName].value = commandWrapper(commandName, value, propertiesObject)
-                propertiesObject[commandName].configurable = true
+                propertiesObject[commandName] = {
+                    ...descriptor,
+                    value: commandWrapper(commandName, value, propertiesObject),
+                    configurable: true
+                }
             }
         }
 

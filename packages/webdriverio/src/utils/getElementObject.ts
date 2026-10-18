@@ -140,6 +140,11 @@ export const getElements = function getElements(
         return []
     }
 
+    /**
+     * one object for all items: the monad gives each element its own copy
+     */
+    propertiesObject.scope = { value: 'element' }
+    propertiesObject.emit = { value: this.emit.bind(this) }
     const elements = [elemResponse].flat(1).map((res: ElementReference | ExtendedElementReference | Element | Error | WebDriverError, i) => {
         /**
          * if we already deal with an element, just return it
@@ -148,8 +153,6 @@ export const getElements = function getElements(
             return res as WebdriverIO.Element
         }
 
-        propertiesObject.scope = { value: 'element' }
-        propertiesObject.emit = { value: this.emit.bind(this) }
         const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
             const elementId = getElementFromResponse(res as ElementReference)
 
