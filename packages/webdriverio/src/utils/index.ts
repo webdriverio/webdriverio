@@ -279,7 +279,9 @@ export function isStaleElementError(err: Error) {
         err.message.includes('stale element not found in the current frame') ||
         // BIDI
         err.message.includes('belongs to different document') ||
-        err.message.includes('no such node - The node with the reference')
+        err.message.includes('no such node - The node with the reference') ||
+        // BIDI, Chrome: W3C "get a known element", a node that no longer exists is stale
+        /no such node - SharedId ".*" was not found/.test(err.message)
     )
 }
 
