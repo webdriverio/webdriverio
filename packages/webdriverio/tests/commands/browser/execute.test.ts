@@ -94,4 +94,54 @@ describe('execute test', () => {
         // @ts-expect-error
         await expect(() => browser.execute(1234)).rejects.toThrow()
     })
+
+    describe('script timeout on iOS (Appium)', () => {
+        const ios = { platformName: 'iOS', browserName: 'Safari', 'appium:automationName': 'XCUITest' }
+        const timeoutRequests = () => vi.mocked(fetch).mock.calls
+            .filter(([url, request]) => (url as URL).pathname === '/session/foobar-123/timeouts' && request?.method === 'POST')
+            .map(([, request]) => JSON.parse((request as { body: string }).body))
+        const calls = () => vi.mocked(fetch).mock.calls.map(([url]) => (url as URL).pathname.replace('/session/foobar-123/', ''))
+
+        it('sets the WebDriver default once, before the first async script', async () => {
+            const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: ios })
+            vi.mocked(fetch).mockClear()
+            await browser.execute(async () => 1)
+            await browser.execute(async () => 2)
+            expect(timeoutRequests()).toEqual([{ script: 30000 }])
+            expect(calls()).toEqual(['timeouts', 'execute/async', 'execute/async'])
+        })
+
+        it('sets the timeout of the capabilities, which Appium ignores', async () => {
+            const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { ...ios, timeouts: { script: 5000 } } })
+            vi.mocked(fetch).mockClear()
+            await browser.execute(async () => 1)
+            expect(timeoutRequests()).toEqual([{ script: 5000 }])
+        })
+
+        it('gives no limit as the longest timer delay', async () => {
+            const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: { ...ios, timeouts: { script: null } } })
+            vi.mocked(fetch).mockClear()
+            await browser.execute(async () => 1)
+            expect(timeoutRequests()).toEqual([{ script: 2147483647 }])
+        })
+
+        it('keeps a script timeout of browser.setTimeout()', async () => {
+            const browser = await remote({ baseUrl: 'http://foobar.com', capabilities: ios })
+            await browser.setTimeout({ script: 1000 })
+            vi.mocked(fetch).mockClear()
+            await browser.execute(async () => 1)
+            expect(timeoutRequests()).toEqual([])
+        })
+
+        it.each([
+            ['a function that is not async on iOS', ios, () => 1],
+            ['an async function in other browsers', { browserName: 'foobar' }, async () => 1],
+            ['an async function on Android', { platformName: 'Android', browserName: 'Chrome', 'appium:automationName': 'UiAutomator2' }, async () => 1]
+        ])('does not set a timeout for %s', async (_, capabilities, script) => {
+            const browser = await remote({ baseUrl: 'http://foobar.com', capabilities })
+            vi.mocked(fetch).mockClear()
+            await browser.execute(script)
+            expect(timeoutRequests()).toEqual([])
+        })
+    })
 })

@@ -18,8 +18,14 @@ export function registerSessionManager(instance: WebdriverIO.Browser) {
      * only register session manager for sessions that appear to support
      * WebDriver Bidi
      */
-    if (typeof instance.capabilities.webSocketUrl === 'string') {
+    const isBidi = typeof instance.capabilities.webSocketUrl === 'string'
+    /**
+     * `execute` reads the `script` timeout: BiDi has none, and Appium on iOS needs one
+     */
+    if (isBidi || (instance.isMobile && instance.isIOS)) {
         trackScriptTimeout(instance)
+    }
+    if (isBidi) {
         initializationPromises.push(
             getPolyfillManager(instance).initialize(),
             getShadowRootManager(instance).initialize(),

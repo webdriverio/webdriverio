@@ -5,10 +5,16 @@
  * driver applies it to `executeScript`.
  */
 
+import type { Capabilities } from '@wdio/types'
+
 /**
  * the default `script` timeout of the WebDriver spec
  */
 const DEFAULT_SCRIPT_TIMEOUT = 30_000
+/**
+ * the longest delay of a browser timer: a longer one fires at once
+ */
+const MAX_TIMER_DELAY = 2_147_483_647
 
 interface CommandResultEvent {
     command: string
@@ -90,4 +96,31 @@ export async function scriptTimeoutOf (browser: WebdriverIO.Browser): Promise<nu
     }
     scriptTimeouts.set(browser, { sessionId, script })
     return script
+}
+
+/**
+ * sessions that got their `script` timeout from `setAppiumScriptTimeout`
+ */
+const appiumScriptTimeouts = new WeakMap<WebdriverIO.Browser, string>()
+
+/**
+ * The Appium XCUITest driver (iOS) gives Execute Async Script 0 ms when the client
+ * set no `script` timeout (the WebDriver default is 30 s), and it ignores
+ * `timeouts.script` in the capabilities. Set the timeout of the capabilities, else
+ * the default, once per session, unless `browser.setTimeout()` set one.
+ */
+export async function setAppiumScriptTimeout (browser: WebdriverIO.Browser) {
+    if (!browser.isMobile || !browser.isIOS) {
+        return
+    }
+    const sessionId = browser.sessionId
+    const set = scriptTimeouts.get(browser)
+    if ((set && set.sessionId === sessionId) || appiumScriptTimeouts.get(browser) === sessionId) {
+        return
+    }
+    appiumScriptTimeouts.set(browser, sessionId)
+    const requested = browser.requestedCapabilities as Capabilities.W3CCapabilities | WebdriverIO.Capabilities | undefined
+    const script = (requested && 'alwaysMatch' in requested ? requested.alwaysMatch : requested as WebdriverIO.Capabilities | undefined)?.timeouts?.script
+    // a failed request keeps the driver's own limit, as before
+    await browser.setTimeout({ script: script === null ? MAX_TIMER_DELAY : script ?? DEFAULT_SCRIPT_TIMEOUT }).catch(() => undefined)
 }
