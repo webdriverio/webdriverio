@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 
 import type { AndroidDetailedContext, AppiumDetailedCrossPlatformContexts, IosDetailedContext, SwitchContextOptions } from '../../types.js'
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { isUnknownMethodError } from '../../utils/mobile.js'
 
 const log = logger('webdriver')
 
@@ -279,8 +279,6 @@ async function switchContextWithFallback(browser: WebdriverIO.Browser, context: 
         if (!isUnknownMethodError(err)) {
             throw err
         }
-
-        logAppiumDeprecationWarning('/appium/context', '/context')
         await browser.switchAppiumContext(context)
     }
 }

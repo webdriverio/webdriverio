@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 
 import type { AndroidDetailedContext, AppiumDetailedCrossPlatformContexts, GetContextsOptions, IosDetailedContext } from '../../types.js'
-import { isUnknownMethodError, logAppiumDeprecationWarning } from '../../utils/mobile.js'
+import { isUnknownMethodError } from '../../utils/mobile.js'
 import type { Context } from '@wdio/protocols'
 
 const log = logger('webdriver')
@@ -195,8 +195,6 @@ export async function getContexts(
             if (!isUnknownMethodError(err)) {
                 throw err
             }
-
-            logAppiumDeprecationWarning('/appium/contexts', '/contexts')
             return await browser.getAppiumContexts()
         }
     }

@@ -1,8 +1,4 @@
-import logger from '@wdio/logger'
-
 import type { PinchAndZoomOptions } from '../types.js'
-
-const log = logger('webdriver')
 
 const APPIUM3_UPGRADE_HINT =
     'WebdriverIO 10 requires Appium 3 and a current official driver. ' +
@@ -20,21 +16,6 @@ export function isUnknownMethodError(err: unknown): boolean {
     }
     const msg = `${err.name} ${err.message}`.toLowerCase()
     return msg.includes('unknown method') || msg.includes('unknown command')
-}
-
-/**
- * Log a deprecation warning when an Appium endpoint falls back to its legacy
- * version because the driver is too old to support the replacement endpoint.
- *
- * @param replacementEndpoint e.g. `'/appium/device/lock'`
- * @param deprecatedEndpoint e.g. `'/device/lock'`
- */
-export function logAppiumDeprecationWarning(replacementEndpoint: string, deprecatedEndpoint: string): void {
-    log.warn(
-        `The \`${replacementEndpoint}\` endpoint is not supported by your Appium driver. ` +
-        `Falling back to the deprecated \`${deprecatedEndpoint}\` protocol endpoint. ` +
-        `Please upgrade your Appium driver to a version that supports \`${replacementEndpoint}\`.`
-    )
 }
 
 /**
