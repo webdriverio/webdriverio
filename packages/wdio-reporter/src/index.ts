@@ -336,6 +336,11 @@ export default class WDIOReporter extends EventEmitter {
         return this.#getTestByContext(this.#contextIdResolver?.())
     }
 
+    /** Context id of the caller's parallel test, also in hooks that run before `test:start`. Undefined without parallel mode. */
+    getContextId(): string | undefined {
+        return this.#contextIdResolver?.()
+    }
+
     #owningSuite(parentUid?: string | null) {
         if (parentUid === null) {
             return this.currentSuites[0]

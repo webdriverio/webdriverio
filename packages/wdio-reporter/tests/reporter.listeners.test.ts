@@ -891,6 +891,19 @@ describe('WDIOReporter Listeners', () => {
             })
         })
 
+        describe('getContextId', () => {
+            it('returns the resolver context, also before a test of that context starts', () => {
+                reporter.setContextIdResolver(() => 'ctx-a')
+                expect(reporter.getContextId()).toBe('ctx-a')
+                expect(reporter.getContextTest()).toBeUndefined()
+            })
+
+            it('returns undefined without a resolver', () => {
+                start('A')
+                expect(reporter.getContextId()).toBeUndefined()
+            })
+        })
+
         it('keeps serial behavior without contextId', () => {
             start('A')
             command('client:beforeCommand', 'a1')

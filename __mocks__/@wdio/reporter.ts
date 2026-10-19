@@ -56,7 +56,13 @@ export default class WDIOReporter extends EventEmitter {
         this.outputStream.write(content)
     }
 
+    setContextIdResolver (_resolver: () => string | undefined): void {}
+
     getContextTest (): TestStats | undefined {
+        return undefined
+    }
+
+    getContextId (): string | undefined {
         return undefined
     }
 
