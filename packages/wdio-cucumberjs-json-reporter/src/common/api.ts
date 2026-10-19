@@ -18,3 +18,11 @@ export function attach(data: CucumberAttachmentData, type: AttachmentType = 'tex
 export default {
     attach
 }
+
+/**
+ * CommonJS: `require('@wdio/cucumberjs-json-reporter').CucumberJsJsonReporter.attach()`,
+ * as in `wdio-cucumberjs-json-reporter`
+ */
+export const CucumberJsJsonReporter = {
+    attach
+}
