@@ -15,6 +15,8 @@ import { locateChrome, locateFirefox, locateApp } from 'locate-app'
 import type { EdgedriverParameters } from 'edgedriver'
 import type { Options } from '@wdio/types'
 
+import { unzipWithOsTool } from './unzip.js'
+
 const log = logger('webdriver')
 const EXCLUDED_PARAMS = ['version', 'help']
 export const DEFAULT_EDGEDRIVER_CDN_URL = 'https://msedgedriver.microsoft.com'
@@ -203,7 +205,7 @@ function describeRejection (err: unknown) {
  * @returns {Promise<void>} A Promise that resolves once the package is installed and clear the progress log.
  */
 const _install = async (args: InstallOptions & { unpack?: true | undefined }, retry = false): Promise<void> => {
-    await install(args).catch(async (err) => {
+    await unzipWithOsTool(args).then(() => install(args)).catch(async (err) => {
         /**
          * a rejection is not guaranteed to be an Error, so never assume a writable
          * `message` and never let `new Error()` stringify an object into `[object Object]`
