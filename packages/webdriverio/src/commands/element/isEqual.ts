@@ -2,6 +2,7 @@ import { getBrowserObject } from '@wdio/utils'
 
 import { findElementAgain } from '../../utils/findElementAgain.js'
 import { isStaleElementToFindAgain } from '../../utils/index.js'
+import { withKnownElement } from '../../utils/foreignContext.js'
 
 /**
  *
@@ -68,19 +69,14 @@ export async function isEqual (
 }
 
 /**
- * Whether 2 elements are the same node. BiDi gives a script the node that the page removed, so the
- * script throws the stale element error of Classic for an element that is not on the page.
+ * Whether 2 elements are the same node, after the stale check of both
  */
 function isSameNode (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, el1: WebdriverIO.Element, el2: WebdriverIO.Element) {
     return (browser as WebdriverIO.Browser).execute(
-        /* istanbul ignore next */
-        function isSameElement (el1: HTMLElement, el2: HTMLElement) {
-            for (const el of [el1, el2]) {
-                if ((typeof el.isConnected === 'boolean' && !el.isConnected) || (el.ownerDocument?.defaultView && el.ownerDocument.defaultView.document !== el.ownerDocument)) {
-                    throw new Error('stale element reference: element is not attached to the page document')
-                }
-            }
-            return el1 === el2
-        },
+        withKnownElement(withKnownElement(
+            /* istanbul ignore next */
+            function isSameElement (el1: HTMLElement, el2: HTMLElement) {
+                return el1 === el2
+            }, 1)),
         el1 as unknown as HTMLElement, el2 as unknown as HTMLElement)
 }

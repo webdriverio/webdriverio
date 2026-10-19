@@ -5,6 +5,7 @@ import type { ChainablePromiseElement, CustomScrollIntoViewOptions, MobileScroll
 import { MobileScrollDirection } from '../../types.js'
 import { StrictSelectorError } from '../../utils/strictSelectorError.js'
 import { isStaleElementToFindAgain } from '../../utils/index.js'
+import { withKnownElement } from '../../utils/foreignContext.js'
 
 const log = logger('webdriverio')
 
@@ -109,11 +110,7 @@ export async function scrollIntoView (
          * Fetch element rect, viewport size, and current scroll in one execute
          * round-trip instead of three protocol calls.
          */
-        const measure = async () => browser.execute((elem: HTMLElement) => {
-            // BiDi gives a script the node that the page removed: throw the stale element error of Classic
-            if ((typeof elem.isConnected === 'boolean' && !elem.isConnected) || (elem.ownerDocument?.defaultView && elem.ownerDocument.defaultView.document !== elem.ownerDocument)) {
-                throw new Error('stale element reference: element is not attached to the page document')
-            }
+        const measure = async () => browser.execute(withKnownElement((elem: HTMLElement) => {
             const { left, top, width, height } = elem.getBoundingClientRect()
             // ground truth for "is this actually visible right now", independent of any
             // window-bounds arithmetic: is the element really the thing painted at its
@@ -158,7 +155,7 @@ export async function scrollIntoView (
                 },
                 isPainted
             }
-        }, this as unknown as HTMLElement)
+        }), this as unknown as HTMLElement)
 
         /**
          * Whether the element is already fully (or, for an element bigger than the
@@ -295,11 +292,7 @@ export async function scrollIntoView (
          * against ever changes) while the container's own inertial scroll is still
          * animating underneath.
          */
-        await browser.execute(async (elem: HTMLElement) => {
-            // BiDi gives a script the node that the page removed: throw the stale element error of Classic
-            if ((typeof elem.isConnected === 'boolean' && !elem.isConnected) || (elem.ownerDocument?.defaultView && elem.ownerDocument.defaultView.document !== elem.ownerDocument)) {
-                throw new Error('stale element reference: element is not attached to the page document')
-            }
+        await browser.execute(withKnownElement(async (elem: HTMLElement) => {
             try {
                 let last = elem.getBoundingClientRect()
                 let stableFrames = 0
@@ -326,7 +319,7 @@ export async function scrollIntoView (
             } catch {
                 // element can disappear between the scroll and the settle check
             }
-        }, this as unknown as HTMLElement)
+        }), this as unknown as HTMLElement)
 
         /**
          * Not every WebDriver implementation performs the element-origin pre-scroll
@@ -471,13 +464,7 @@ function scrollIntoViewWeb (
 ) {
     const browser = getBrowserObject(this)
     return browser.execute(
-        (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => {
-            // BiDi gives a script the node that the page removed: throw the stale element error of Classic
-            if ((typeof elem.isConnected === 'boolean' && !elem.isConnected) || (elem.ownerDocument?.defaultView && elem.ownerDocument.defaultView.document !== elem.ownerDocument)) {
-                throw new Error('stale element reference: element is not attached to the page document')
-            }
-            return elem.scrollIntoView(options)
-        },
+        withKnownElement((elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options)),
         this as unknown as HTMLElement,
         options,
     )

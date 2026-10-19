@@ -372,7 +372,7 @@ describe('scrollIntoView test', () => {
                 const execute = vi.spyOn(browser, 'execute').mockRejectedValue(stale())
 
                 await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
-                const webApiCalls = execute.mock.calls.filter(([script]) => /^\(elem, \w+\) => elem\.scrollIntoView\(/.test(String(script)))
+                const webApiCalls = execute.mock.calls.filter(([script]) => /elem\.scrollIntoView\(/.test(String(script)))
                 expect(webApiCalls).toEqual([])
             })
         })
@@ -414,7 +414,7 @@ describe('scrollIntoView test', () => {
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
-                expect.stringMatching(/stale element reference[\s\S]*return elem\.scrollIntoView\(options2\)/))
+                expect.stringMatching(/stale element reference[\s\S]*\(\(elem, options2\) => elem\.scrollIntoView\(options2\)\)\.apply/))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual({ block: 'start', inline: 'nearest' })
         })
@@ -426,7 +426,7 @@ describe('scrollIntoView test', () => {
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
-                expect.stringMatching(/stale element reference[\s\S]*return elem\.scrollIntoView\(options2\)/))
+                expect.stringMatching(/stale element reference[\s\S]*\(\(elem, options2\) => elem\.scrollIntoView\(options2\)\)\.apply/))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual(true)
         })
@@ -438,7 +438,7 @@ describe('scrollIntoView test', () => {
             const [[executeCallUrl, executeCallOptions]] = calls as any
             expect(executeCallUrl.pathname).toEqual('/session/foobar-123/execute/sync')
             expect(JSON.parse(executeCallOptions.body).script).toEqual(
-                expect.stringMatching(/stale element reference[\s\S]*return elem\.scrollIntoView\(options2\)/))
+                expect.stringMatching(/stale element reference[\s\S]*\(\(elem, options2\) => elem\.scrollIntoView\(options2\)\)\.apply/))
             expect(JSON.parse(executeCallOptions.body).args).toHaveLength(2)
             expect(JSON.parse(executeCallOptions.body).args[1]).toEqual({ block: 'end', inline: 'center' })
         })
