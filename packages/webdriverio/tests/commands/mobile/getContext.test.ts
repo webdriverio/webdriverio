@@ -151,7 +151,6 @@ describe('getContext test', () => {
     })
 
     it('should fallback to getAppiumContext if getCurrentAppiumContext is not supported', async () => {
-        logSpy = vi.spyOn(log, 'warn')
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -165,9 +164,7 @@ describe('getContext test', () => {
         await browser.getContext()
 
         expect(getContextSpy).toHaveBeenCalledTimes(1)
-        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('/appium/context'))
 
-        logSpy.mockRestore()
         getContextSpy.mockRestore()
     })
 

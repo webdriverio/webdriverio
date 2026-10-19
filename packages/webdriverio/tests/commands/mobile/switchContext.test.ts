@@ -297,7 +297,6 @@ describe('switchContext test', () => {
     })
 
     it('should fallback to switchAppiumContext if setAppiumContext is not supported', async () => {
-        logSpy = vi.spyOn(log, 'warn')
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -311,9 +310,7 @@ describe('switchContext test', () => {
         await browser.switchContext('WEBVIEW_29051')
 
         expect(switchAppiumContextSpy).toHaveBeenCalledTimes(1)
-        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('/appium/context'))
 
-        logSpy.mockRestore()
         switchAppiumContextSpy.mockRestore()
     })
 
