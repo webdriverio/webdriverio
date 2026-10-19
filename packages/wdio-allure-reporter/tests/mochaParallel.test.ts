@@ -194,9 +194,9 @@ function interleave(scripts: Array<Array<() => void>>) {
     }
 }
 
-async function play(mode: Mode, tests: PlannedTest[], extra?: (h: Harness) => void) {
+async function play(mode: Mode, tests: PlannedTest[], extra?: (h: Harness) => void | Promise<void>, parallelConfigured = mode === 'parallel') {
     const h = createHarness(mode, tests)
-    const config = { framework: 'mocha', mochaOpts: mode === 'parallel' ? { parallelMode: true } : {} }
+    const config = { framework: 'mocha', mochaOpts: parallelConfigured ? { parallelMode: true } : {} }
     h.emit('runner:start', {
         cid: CID, specs: [SPEC], capabilities: { browserName: 'chrome' }, config,
         isMultiRemote: false, sessionId: 'session', instanceOptions: {},
@@ -205,7 +205,7 @@ async function play(mode: Mode, tests: PlannedTest[], extra?: (h: Harness) => vo
     if (mode === 'parallel') {
         suiteKeys.forEach((key) => h.emit('suite:start', h.suiteMessage('suite:start', key)))
         interleave(tests.map((test) => scriptOf(h, test)))
-        extra?.(h)
+        await extra?.(h)
         suiteKeys.reverse().forEach((key) => h.emit('suite:end', h.suiteMessage('suite:end', key)))
     } else {
         // tests of one top-level suite run one after another, suites nested in order
@@ -225,7 +225,7 @@ async function play(mode: Mode, tests: PlannedTest[], extra?: (h: Harness) => vo
             scriptOf(h, shared).forEach((step) => step())
         }
         while (open.length) { h.emit('suite:end', h.suiteMessage('suite:end', open.pop()!)) }
-        extra?.(h)
+        await extra?.(h)
     }
     h.emit('runner:end', { cid: CID, failures: 0, retries: 0 })
     await vi.waitFor(() => expect(h.reporter.isSynchronised).toBe(true))
@@ -429,6 +429,40 @@ describe('Mocha parallel mode', () => {
             const eachHookContainers = (data: typeof parallelData) =>
                 data.containers.filter((c) => ![...c.befores, ...c.afters].some((f: Result) => /^"(before|after) all"/.test(f.name)))
             expect(eachHookContainers(parallelData)).toEqual(eachHookContainers(sequentialData))
+        })
+    })
+
+    describe('result timing and console logs', () => {
+        const writtenNames = (h: Harness) => getResults(h.outputDir).results.map((r: Result) => r.name)
+
+        it('writes a test without an after all hook when its test ends, while another lane is open', async () => {
+            const done: PlannedTest = { ...A1, noAfterAll: true }
+            const unfinished: PlannedTest = { id: 'x1', title: 'never ends', suites: ['X'], outcome: 'pass', unfinished: true }
+            let writtenEarly: string[] = []
+            await play('parallel', [done, unfinished], async (h) => {
+                await vi.waitFor(() => expect(writtenNames(h)).toContain(done.title))
+                writtenEarly = writtenNames(h)
+            })
+            expect(writtenEarly).toEqual([done.title])
+        })
+
+        it('keeps console logs and incremental writes when parallel mode falls back to sequential', async () => {
+            const first: PlannedTest = { id: 's1', title: 'first', suites: ['S'], outcome: 'pass' }
+            const second: PlannedTest = { id: 's2', title: 'second', suites: ['S'], outcome: 'pass' }
+            let writtenEarly: string[] = []
+            const { results, h } = await play('sequential', [first, second], async (h) => {
+                await vi.waitFor(() => expect(writtenNames(h)).toContain(first.title))
+                writtenEarly = writtenNames(h)
+            }, true)
+
+            expect(writtenEarly).toContain(first.title)
+            for (const test of [first, second]) {
+                const result = byName(results, test.title)
+                const attachments = result.attachments.concat(...result.steps.map((s: Result) => s.attachments))
+                const logs = attachments.find((a: Result) => a.name === 'Console Logs')
+                expect(logs, `Console Logs of ${test.id}`).toBeDefined()
+                expect(attachmentText(h.outputDir, logs)).toContain(`body-log-${test.id}`)
+            }
         })
     })
 })

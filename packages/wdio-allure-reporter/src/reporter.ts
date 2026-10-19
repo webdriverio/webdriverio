@@ -158,6 +158,8 @@ export default class AllureReporter extends WDIOReporter {
     private _cukeScenarioActiveByCid = new Map<string, boolean>()
 
     private _laneMode = false
+    // lane config alone is not enough: Mocha falls back to sequential runs without BiDi, and then no context id resolves
+    private _lanesSeen = false
     private _lanes = new Map<string, ReportLane>()
     private _closedLaneKeys = new Set<string>()
 
@@ -225,7 +227,7 @@ export default class AllureReporter extends WDIOReporter {
                 if (!str.includes('mwebdriver')) {
                     const lane = self._openLane()
                     if (!lane) {
-                        if (!self._laneMode) { self._consoleOutput += str }
+                        if (!self._lanesSeen) { self._consoleOutput += str }
                     } else if (!lane.inTail) {
                         lane.console += str
                     }
@@ -246,7 +248,12 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _laneKey(): string | undefined {
-        return this._laneMode ? this.getContextId?.() : undefined
+        const key = this._laneMode ? this.getContextId?.() : undefined
+        if (key && !this._lanesSeen) {
+            this._lanesSeen = true
+            this._consoleOutput = ''
+        }
+        return key
     }
 
     private _lane(): ReportLane | undefined {
@@ -287,7 +294,7 @@ export default class AllureReporter extends WDIOReporter {
             { type: 'allure:suite:start', data: { name } },
             ...lane.main,
             ...lane.tail,
-            { type: 'allure:suite:end', data: {} },
+            { type: 'allure:suite:end', data: { writeTest: true } },
         ]
         messages.forEach((m) => state.pushRuntimeMessage(m))
     }
@@ -435,7 +442,7 @@ export default class AllureReporter extends WDIOReporter {
          * following test starts, because its own scope has to stay open past its test:end
          * for "after each" hooks to attach to
          */
-        if (!this._laneMode) { this._flushIncrementally() }
+        if (!this._lanesSeen) { this._flushIncrementally() }
     }
 
     private _endTest(payload: {
@@ -653,6 +660,7 @@ export default class AllureReporter extends WDIOReporter {
         this._isMultiRemote = runner.isMultiRemote || false
         const mochaOpts = (runner.config as { mochaOpts?: { parallelMode?: boolean } } | undefined)?.mochaOpts
         this._laneMode = runner.config?.framework === 'mocha' && Boolean(mochaOpts?.parallelMode)
+        this._lanesSeen = false
 
         const specs = (runner as unknown as { specs?: string[] }).specs || []
         if (specs.length) {
@@ -976,7 +984,8 @@ export default class AllureReporter extends WDIOReporter {
             })
         }
 
-        if (!this._laneMode) { this._ensureSuitesStarted(cid) }
+        this._laneKey()
+        if (!this._lanesSeen) { this._ensureSuitesStarted(cid) }
         const start = AllureReporter.getTimeOrNow((test as TestStats).start)
         const uuid = (test as MaybeUid).uid
         const ft = (test as TestStats).fullTitle || this._mochaFullTitle(cid, test.title)

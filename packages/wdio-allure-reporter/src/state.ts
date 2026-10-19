@@ -351,7 +351,7 @@ export class AllureReportState {
                 continue
 
             case 'allure:suite:end':
-                await this._endSuite(lastMessage)
+                await this._endSuite(lastMessage || Boolean(message.data?.writeTest))
                 continue
 
             case 'allure:test:start':
