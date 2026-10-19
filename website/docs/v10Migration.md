@@ -373,12 +373,19 @@ npm install @wdio/cucumberjs-json-reporter --save-dev
 + import cucumberJson from '@wdio/cucumberjs-json-reporter'
 ```
 
-The options are the same. The JSON files follow the Cucumber JSON format more closely. Check the tools that read them:
+The options are the same. The JSON files follow the Cucumber JSON format more closely. Check the tools and scripts that read them:
 
 - The scenario `id` is `<feature id>;<scenario id>`, and `<feature id>;<rule id>;<scenario id>` for a scenario in a `Rule:`, as in the Cucumber JSON format. Before, the parts had no separator.
-- Scenarios and steps have a `line`. Hooks are steps with `hidden: true`.
+- Scenarios and steps have a `line`.
+- Hooks are steps with `hidden: true` and no `name`. Before, a hook had an empty `name`.
+- A doc string argument is `{ content, line }`. Before, it was the text of the doc string.
+- The status of an undefined step is `undefined`. Before, it was `failed`, or `pending` with `cucumberOpts.ignoreUndefinedDefinitions`.
+- A scenario that Cucumber runs again (`cucumberOpts.retry`) has only the steps of its last try. Before, it had the steps of all tries.
+- With `cucumberOpts.tagsInTitle`, the feature and scenario names, the ids and the file names have no tags.
 - When a worker runs several feature files (grouped specs), the reporter writes one file for each feature. Before, all scenarios went into the file of the first feature.
 - In a multi-remote session, the metadata comes from the first instance.
+
+These were missing or wrong before: `*` steps, the keyword of `But` steps, attachments from the WebdriverIO `before` hook, and an object attached as `text/plain` (it is JSON text, not `[object Object]`). The step keywords follow the `# language:` header of the feature file, then `cucumberOpts.language`. With `cucumberOpts.scenarioLevelReporter: true`, the reporter writes no file and logs a warning: the format needs the steps.
 
 ## `$` is strict
 
