@@ -47,51 +47,64 @@ export async function unzipWithOsTool (args: InstallOptions) {
         }
     } catch (err) {
         // never reuse a folder or an archive that failed to unzip
-        await fsp.rm(outputPath, { recursive: true, force: true })
-        await fsp.rm(archivePath, { force: true })
+        await removeOrWarn(outputPath)
+        await removeOrWarn(archivePath)
         throw err
     }
 
-    await fsp.rm(outputPath, { recursive: true, force: true })
+    await removeOrWarn(outputPath)
     log.warn(
         `No unzip tool found, ${args.browser} v${args.buildId} is unzipped with extract-zip, which fails on Node 26. ` +
         'Install `unzip` (or `tar.exe`/PowerShell on Windows) to fix this.'
     )
 }
 
+async function removeOrWarn (file: string) {
+    await fsp.rm(file, { recursive: true, force: true }).catch((err) => {
+        log.warn(`Couldn't remove ${file}, the retry can fail: ${err}`)
+    })
+}
+
 /**
  * Same tools and order as `@puppeteer/browsers` v3.
  * @returns the tool that unzipped the archive, or `undefined` if no tool is installed
+ * @throws the error of the first tool that is installed but failed
  */
 async function extractZip (archivePath: string, folderPath: string): Promise<string | undefined> {
     const execFile = promisify(cp.execFile)
-    try {
-        if (process.platform !== 'win32') {
-            await execFile('unzip', ['-o', archivePath, '-d', folderPath])
-            return 'unzip'
-        }
+    const systemRoot = process.env.SystemRoot ?? process.env.SYSTEMROOT ?? 'C:\\Windows'
+    // PowerShell joins and parses again all arguments after -Command, which splits paths with spaces
+    const expandArchive = ['-NoProfile', '-NonInteractive', '-Command', 'Expand-Archive -LiteralPath $env:WDIO_ZIP_ARCHIVE -DestinationPath $env:WDIO_ZIP_FOLDER -Force']
+    const powershellOptions = { env: { ...process.env, WDIO_ZIP_ARCHIVE: archivePath, WDIO_ZIP_FOLDER: folderPath } }
+    const tools: [string, string, string[], cp.ExecFileOptions][] = process.platform === 'win32'
+        ? [
+            ['tar.exe', `${systemRoot}\\System32\\tar.exe`, ['-xf', archivePath, '-C', folderPath], {}],
+            ['powershell.exe', 'powershell.exe', expandArchive, powershellOptions],
+            ['pwsh.exe', 'pwsh.exe', expandArchive, powershellOptions]
+        ]
+        : [['unzip', 'unzip', ['-o', archivePath, '-d', folderPath], {}]]
 
-        const systemRoot = process.env.SystemRoot ?? process.env.SYSTEMROOT ?? 'C:\\Windows'
+    let failure: Error | undefined
+    for (const [name, file, toolArgs, options] of tools) {
         try {
-            await execFile(`${systemRoot}\\System32\\tar.exe`, ['-xf', archivePath, '-C', folderPath])
-            return 'tar.exe'
+            await execFile(file, toolArgs, options)
+            return name
         } catch (err) {
-            log.debug(`tar.exe failed to unzip ${archivePath}: ${err}`)
+            const { code, stderr } = err as { code?: string | number, stderr?: string | Buffer }
+            if (code === 'ENOENT') {
+                continue
+            }
+            // unzip exits with 1 when it printed warnings but extracted all files
+            if (name === 'unzip' && code === 1) {
+                log.info(`unzip exited with code 1 (warnings) for ${archivePath}: ${stderr?.toString().trim()}`)
+                return name
+            }
+            log.debug(`${name} failed to unzip ${archivePath}: ${err}`)
+            failure ??= new Error(`Failed to unzip ${archivePath} with ${name}: ${stderr?.toString().trim() || (err as Error)?.message || err}`)
         }
-        const expandArchive = ['-NoProfile', '-NonInteractive', '-Command', '& { Expand-Archive -LiteralPath $args[0] -DestinationPath $args[1] -Force }', archivePath, folderPath]
-        try {
-            await execFile('powershell.exe', expandArchive)
-            return 'powershell.exe'
-        } catch (err) {
-            log.debug(`powershell.exe failed to unzip ${archivePath}: ${err}`)
-        }
-        await execFile('pwsh.exe', expandArchive)
-        return 'pwsh.exe'
-    } catch (err) {
-        if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') {
-            return undefined
-        }
-        const stderr = (err as { stderr?: string })?.stderr?.toString()
-        throw new Error(`Failed to unzip ${archivePath}: ${stderr || (err as Error)?.message || err}`)
     }
+    if (failure) {
+        throw failure
+    }
+    return undefined
 }

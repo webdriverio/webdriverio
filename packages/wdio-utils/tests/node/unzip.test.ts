@@ -33,11 +33,15 @@ const outputPath = '/cache/chromedriver/linux-133.0.6943.141'
 const archivePath = '/cache/chromedriver/133.0.6943.141-chromedriver-linux64.zip'
 const args = { cacheDir: '/cache', browser: 'chromedriver', buildId: '133.0.6943.141' } as Parameters<typeof unzipWithOsTool>[0]
 
-type ExecFileResult = Error & { code?: string, stderr?: string } | undefined
+type ExecFileResult = Error & { code?: string | number, stderr?: string } | undefined
 function execFileResults (results: Record<string, ExecFileResult>) {
-    vi.mocked(cp.execFile).mockImplementation(((file: string, _args: string[], callback: (err?: Error | null) => void) => {
+    vi.mocked(cp.execFile).mockImplementation(((file: string, _args: string[], _options: unknown, callback: (err?: Error | null) => void) => {
         callback(results[file] ?? null)
     }) as never)
+}
+
+function exitError (code: number, stderr: string) {
+    return Object.assign(new Error(`Command failed with exit code ${code}`), { code, stderr })
 }
 
 function errnoError (code: string) {
@@ -67,7 +71,8 @@ describe('unzipWithOsTool', () => {
     })
 
     afterEach(() => {
-        restore.forEach((fn) => fn())
+        // restore the last stub first: it saved the value of the stub before it
+        restore.reverse().forEach((fn) => fn())
     })
 
     it('unzips the downloaded archive with unzip into the build folder', async () => {
@@ -77,7 +82,7 @@ describe('unzipWithOsTool', () => {
 
         expect(install).toHaveBeenCalledWith({ ...args, platform: 'linux', unpack: false })
         expect(fsp.mkdir).toHaveBeenCalledWith(outputPath, { recursive: true })
-        expect(cp.execFile).toHaveBeenCalledWith('unzip', ['-o', archivePath, '-d', outputPath], expect.any(Function))
+        expect(cp.execFile).toHaveBeenCalledWith('unzip', ['-o', archivePath, '-d', outputPath], {}, expect.any(Function))
         expect(fsp.rm).not.toHaveBeenCalled()
         expect(logMock.info).toHaveBeenCalledWith('Unzipped chromedriver v133.0.6943.141 with unzip')
     })
@@ -120,12 +125,36 @@ describe('unzipWithOsTool', () => {
     })
 
     it('removes the build folder and the archive when unzip fails', async () => {
-        execFileResults({ unzip: Object.assign(new Error('exit 9'), { stderr: 'End-of-central-directory signature not found' }) })
+        execFileResults({ unzip: exitError(9, 'End-of-central-directory signature not found') })
 
-        await expect(unzipWithOsTool(args)).rejects.toThrow(`Failed to unzip ${archivePath}: End-of-central-directory signature not found`)
+        await expect(unzipWithOsTool(args)).rejects.toThrow(`Failed to unzip ${archivePath} with unzip: End-of-central-directory signature not found`)
 
         expect(fsp.rm).toHaveBeenCalledWith(outputPath, { recursive: true, force: true })
-        expect(fsp.rm).toHaveBeenCalledWith(archivePath, { force: true })
+        expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
+    })
+
+    it('keeps the unzip error and warns when the cleanup fails', async () => {
+        execFileResults({ unzip: exitError(9, 'End-of-central-directory signature not found') })
+        vi.mocked(fsp.rm).mockRejectedValueOnce(new Error('EBUSY: resource busy or locked'))
+
+        await expect(unzipWithOsTool(args)).rejects.toThrow('End-of-central-directory signature not found')
+
+        expect(logMock.warn).toHaveBeenCalledWith(`Couldn't remove ${outputPath}, the retry can fail: Error: EBUSY: resource busy or locked`)
+        expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
+    })
+
+    /**
+     * unzip exits with 1 when it printed warnings but extracted all files,
+     * e.g. for a zip with extra bytes at the start
+     */
+    it('accepts the unzip warning exit code and logs it', async () => {
+        execFileResults({ unzip: exitError(1, 'warning: 4 extra bytes at beginning or within zipfile') })
+
+        await unzipWithOsTool(args)
+
+        expect(fsp.rm).not.toHaveBeenCalled()
+        expect(logMock.info).toHaveBeenCalledWith(`unzip exited with code 1 (warnings) for ${archivePath}: warning: 4 extra bytes at beginning or within zipfile`)
+        expect(logMock.info).toHaveBeenCalledWith('Unzipped chromedriver v133.0.6943.141 with unzip')
     })
 
     describe('on Windows', () => {
@@ -144,17 +173,38 @@ describe('unzipWithOsTool', () => {
             await unzipWithOsTool(args)
 
             expect(cp.execFile).toHaveBeenCalledTimes(1)
-            expect(cp.execFile).toHaveBeenCalledWith('C:\\Windows\\System32\\tar.exe', ['-xf', archivePath, '-C', outputPath], expect.any(Function))
+            expect(cp.execFile).toHaveBeenCalledWith('C:\\Windows\\System32\\tar.exe', ['-xf', archivePath, '-C', outputPath], {}, expect.any(Function))
         })
 
-        it('tries PowerShell when tar.exe fails', async () => {
-            execFileResults({ 'C:\\Windows\\System32\\tar.exe': new Error('tar failed') })
+        /**
+         * PowerShell joins and parses again all arguments after -Command, so the
+         * paths go in env vars: a cache dir like `C:\\Users\\John Doe\\...` has a space
+         */
+        it('tries PowerShell when tar.exe fails, with the paths in env vars', async () => {
+            execFileResults({ 'C:\\Windows\\System32\\tar.exe': exitError(1, 'tar failed') })
 
             await unzipWithOsTool(args)
 
             expect(cp.execFile).toHaveBeenCalledTimes(2)
-            expect(cp.execFile).toHaveBeenLastCalledWith('powershell.exe', expect.arrayContaining([archivePath, outputPath]), expect.any(Function))
+            const [file, toolArgs, options] = vi.mocked(cp.execFile).mock.lastCall as unknown as [string, string[], { env: Record<string, string> }]
+            expect(file).toBe('powershell.exe')
+            expect(toolArgs).not.toContain(archivePath)
+            expect(toolArgs.at(-1)).toBe('Expand-Archive -LiteralPath $env:WDIO_ZIP_ARCHIVE -DestinationPath $env:WDIO_ZIP_FOLDER -Force')
+            expect(options.env).toEqual(expect.objectContaining({ WDIO_ZIP_ARCHIVE: archivePath, WDIO_ZIP_FOLDER: outputPath }))
             expect(logMock.info).toHaveBeenCalledWith('Unzipped chromedriver v133.0.6943.141 with powershell.exe')
+        })
+
+        it('throws the first real tool error when the other tools are missing', async () => {
+            execFileResults({
+                'C:\\Windows\\System32\\tar.exe': errnoError('ENOENT'),
+                'powershell.exe': exitError(1, 'Expand-Archive : The archive file is corrupt'),
+                'pwsh.exe': errnoError('ENOENT')
+            })
+
+            await expect(unzipWithOsTool(args)).rejects.toThrow(`Failed to unzip ${archivePath} with powershell.exe: Expand-Archive : The archive file is corrupt`)
+
+            expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
+            expect(logMock.warn).not.toHaveBeenCalledWith(expect.stringContaining('No unzip tool found'))
         })
 
         it('leaves the archive to extract-zip when no tool is installed', async () => {
@@ -166,7 +216,7 @@ describe('unzipWithOsTool', () => {
 
             await unzipWithOsTool(args)
 
-            expect(cp.execFile).toHaveBeenLastCalledWith('pwsh.exe', expect.arrayContaining([archivePath, outputPath]), expect.any(Function))
+            expect(cp.execFile).toHaveBeenLastCalledWith('pwsh.exe', expect.any(Array), expect.any(Object), expect.any(Function))
             expect(fsp.rm).toHaveBeenCalledWith(outputPath, { recursive: true, force: true })
         })
     })
