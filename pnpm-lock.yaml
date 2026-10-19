@@ -246,6 +246,9 @@ importers:
       '@wdio/ai-service':
         specifier: workspace:*
         version: link:../packages/wdio-ai-service
+      '@wdio/appium-service':
+        specifier: workspace:*
+        version: link:../packages/wdio-appium-service
       '@wdio/browser-runner':
         specifier: workspace:*
         version: link:../packages/wdio-browser-runner
