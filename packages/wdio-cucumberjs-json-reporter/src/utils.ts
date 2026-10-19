@@ -2,7 +2,7 @@ import stripAnsi from 'strip-ansi'
 import { dialects } from '@cucumber/gherkin'
 import type { HookStats, TestStats } from '@wdio/reporter'
 
-import { FAILED } from './constants.js'
+import { FAILED, UNDEFINED, UNDEFINED_STEP_ERROR, UNDEFINED_STEP_SUFFIX } from './constants.js'
 import type { ErrorMessage, Step } from './types.js'
 
 /**
@@ -49,6 +49,21 @@ export function getFailedMessage(testObject: TestStats | HookStats): ErrorMessag
     }
 
     return {}
+}
+
+/**
+ * The status of a step as Cucumber writes it: the framework reports an undefined step
+ * as failed, or as pending with `ignoreUndefinedDefinitions`
+ */
+export function getStepStatus(testObject: TestStats | HookStats): string {
+    const message = testObject.error?.message ?? ''
+    if (
+        (testObject.title ?? '').endsWith(UNDEFINED_STEP_SUFFIX) ||
+        (testObject.state === FAILED && message.startsWith('Step "') && message.endsWith(UNDEFINED_STEP_ERROR))
+    ) {
+        return UNDEFINED
+    }
+    return testObject.state || ''
 }
 
 /**

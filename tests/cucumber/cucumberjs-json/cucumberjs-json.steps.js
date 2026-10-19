@@ -12,3 +12,5 @@ Given('I attach the JSON value {string}', (value) => {
 Then('the page title is {string}', async (title) => {
     await expect(browser).toHaveTitle(title)
 })
+
+Given('je passe', () => {})

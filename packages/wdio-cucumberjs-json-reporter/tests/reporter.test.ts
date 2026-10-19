@@ -32,6 +32,7 @@ const jsonFolder = path.join(logFolderPath, 'ut-folder')
 
 vi.mock('../src/utils', async (importOriginal) => ({
     escapeRegExp: (await importOriginal<typeof UtilsModule>()).escapeRegExp,
+    getStepStatus: (await importOriginal<typeof UtilsModule>()).getStepStatus,
     containsSteps: vi.fn(),
     getFailedMessage: vi.fn(),
     keywordStartsWith: vi.fn()
@@ -812,6 +813,67 @@ describe('reporter', () => {
                 'tags'
             )
             expect(scenario.line).toBe(3)
+        })
+    })
+
+    describe('Cucumber step statuses', () => {
+        const start = (reporter: WdioCucumberJsJsonReporter, title: string) => {
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            reporter.report.feature = EMPTY_FEATURE
+            reporter.report.feature.elements!.push(EMPTY_SCENARIO)
+            reporter.onTestStart({ ...STEP_TEST_ONSTART_STATS, title, keyword: 'Given' } as TestStatsExtended)
+        }
+
+        it('writes "undefined" for an undefined step', () => {
+            start(tmpReporter, 'Given an unknown step')
+            const error = new Error('Step "an unknown step" is not defined. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.')
+            tmpReporter.onTestFail({ ...STEP_TEST_ONSTART_STATS, title: 'Given an unknown step', keyword: 'Given', state: FAILED, error } as TestStatsExtended)
+            expect(tmpReporter.getCurrentStep()!.result.status).toBe('undefined')
+        })
+
+        it('writes "undefined" and the name without the suffix with ignoreUndefinedDefinitions', () => {
+            start(tmpReporter, 'Given an unknown step')
+            tmpReporter.onTestPending({ ...STEP_TEST_ONSTART_STATS, title: 'Given an unknown step (undefined step)', keyword: 'Given', state: PENDING, _duration: 2 } as TestStatsExtended)
+            expect(tmpReporter.getCurrentStep()).toMatchObject({ name: 'an unknown step', result: { status: 'undefined', duration: 2000000 } })
+        })
+
+        it('writes the duration of a pending step', () => {
+            start(tmpReporter, 'Given a pending step')
+            tmpReporter.onTestPending({ ...STEP_TEST_ONSTART_STATS, title: 'Given a pending step', keyword: 'Given', state: PENDING, _duration: 3 } as TestStatsExtended)
+            expect(tmpReporter.getCurrentStep()!.result).toMatchObject({ status: PENDING, duration: 3000000 })
+        })
+
+    })
+
+    describe('language of the feature file', () => {
+        const run = async (reporter: WdioCucumberJsJsonReporter, file: string, content: string, config = {}) => {
+            const utils = await vi.importActual<typeof UtilsModule>('../src/utils.js')
+            vi.mocked(keywordStartsWith).mockImplementation(utils.keywordStartsWith)
+            vi.mocked(containsSteps).mockImplementation(utils.containsSteps)
+            vi.mocked(getFailedMessage).mockReturnValue({})
+            const featureFile = path.join(logFolderPath, file)
+            fs.writeFileSync(featureFile, content)
+            // no browser in a unit test: metadata is not part of this check
+            reporter.instanceMetadata = {}
+            reporter.onRunnerStart({ config, capabilities: {} } as unknown as RunnerStatsExtended)
+            reporter.onSuiteStart({ ...SUITE_FEATURE_STATS, file: featureFile, parent: undefined } as SuiteStatsExtended)
+            reporter.onSuiteStart({ ...SUITE_SCENARIO_STATS, title: 'Premier', file: featureFile } as SuiteStatsExtended)
+            reporter.onTestStart({ ...STEP_TEST_ONSTART_STATS, title: 'Soit je passe', keyword: undefined } as TestStatsExtended)
+            reporter.onHookStart({ ...STEP_HOOK_ONSTART_STATS } as HookStatsExtended)
+            const steps = reporter.getCurrentScenario().steps!
+            return { keyword: steps[0].keyword, name: steps[0].name, line: steps[0].line, hook: steps[1].keyword }
+        }
+
+        it('uses the "# language:" header of the file, not the default language', async () => {
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, logFile })
+            expect(await run(reporter, 'header.fr.feature', '# language: fr\nFonctionnalité: F\n  Scénario: Premier\n    Soit je passe\n'))
+                .toEqual({ keyword: 'Soit', name: 'je passe', line: 4, hook: AFTER })
+        })
+
+        it('uses cucumberOpts.language for a file without a header', async () => {
+            const reporter = new WdioCucumberJsJsonReporter({ jsonFolder, logFile })
+            expect(await run(reporter, 'no-header.fr.feature', 'Fonctionnalité: F\n  Scénario: Premier\n    Soit je passe\n', { cucumberOpts: { language: 'fr' } }))
+                .toEqual({ keyword: 'Soit', name: 'je passe', line: 3, hook: AFTER })
         })
     })
 

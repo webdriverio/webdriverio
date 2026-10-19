@@ -49,6 +49,8 @@ export interface ExampleRow {
 
 export interface FeatureLines {
     scenarios: ScenarioLines[]
+    /** the language of the file: its `# language:` header, else the default language */
+    language: string
 }
 
 interface GherkinStep { text: string, location: { line: number }, docString?: { location: { line: number } } }
@@ -84,7 +86,7 @@ export function readFeatureLines (file: string, language: string): FeatureLines 
         let id = 0
         const parser = new Parser(new AstBuilder(() => String(id++)), new GherkinClassicTokenMatcher(language))
         const document = parser.parse(fs.readFileSync(file, 'utf-8'))
-        const lines: FeatureLines = { scenarios: [] }
+        const lines: FeatureLines = { scenarios: [], language: document.feature?.language ?? language }
         /**
          * a background applies to the scenarios of its feature or of its rule
          */

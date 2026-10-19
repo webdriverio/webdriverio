@@ -13,11 +13,12 @@ import {
     FEATURE,
     PASSED,
     SCENARIO,
+    UNDEFINED_STEP_SUFFIX,
 } from './constants.js'
 import { attach, events } from './common/api.js'
 import { Metadata } from './metadata.js'
 import { findDocStringLine, findStepLine, readFeatureLines, retakeScenarioLines, scenarioNameOf, takeScenarioLines, type FeatureLines, type TakenScenario } from './featureLines.js'
-import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage } from './utils.js'
+import { containsSteps, escapeRegExp, keywordStartsWith, getFailedMessage, getStepStatus } from './utils.js'
 import { withFileLock, writeFileAtomic } from './files.js'
 import type { CucumberJsJsonReporterInterface, AttachmentType, CucumberAttachmentData, CucumberJsAttachment, DocString, Embedding, Feature, MetadataObject, Report, Scenario, Step } from './types.js'
 import type { HookStatsExtended, SuiteStatsExtended, TestStatsExtended } from './types/wdio.js'
@@ -46,10 +47,13 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * CucumberJS JSON format needs them, so make no report
      */
     #noSteps = false
+    /** `true` when the user set the `language` option, else `cucumberOpts.language` is the default */
+    #languageOption: boolean
 
     public constructor(public options: CucumberJsJsonReporterInterface) {
         super(options)
         this.options = options
+        this.#languageOption = Boolean(options.language)
 
         if (!this.options.jsonFolder) {
             this.options.jsonFolder = DEFAULT_JSON_FOLDER
@@ -71,6 +75,14 @@ export class CucumberJsJsonReporter extends WDIOReporter {
 
         this.registerListeners()
         this.metadataClassObject = new Metadata()
+    }
+
+    /**
+     * The language of the keywords: the language of the feature file (its `# language:`
+     * header), else the `language` option
+     */
+    get #language () {
+        return this.#featureLines?.language ?? this.options.language!
     }
 
     /**
@@ -112,7 +124,11 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * This hook is used to retrieve the browser data, but this is done only once
      */
     public onRunnerStart(runnerData: RunnerStats): void {
-        const cucumberOpts = (runnerData.config as { cucumberOpts?: { scenarioLevelReporter?: boolean } } | undefined)?.cucumberOpts
+        const cucumberOpts = (runnerData.config as { cucumberOpts?: { scenarioLevelReporter?: boolean, language?: string } } | undefined)?.cucumberOpts
+        // the default language of the feature files without a `# language:` header
+        if (!this.#languageOption && cucumberOpts?.language) {
+            this.options.language = cucumberOpts.language
+        }
         if (cucumberOpts?.scenarioLevelReporter) {
             this.#noSteps = true
             const message = 'The CucumberJS JSON report needs the steps of the scenarios: set ' +
@@ -193,7 +209,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         }
         const currentSteps = this.getCurrentScenario().steps
         payload.state = PASSED
-        payload.keyword = containsSteps(currentSteps!, this.options.language!) ? AFTER : BEFORE
+        payload.keyword = containsSteps(currentSteps!, this.#language) ? AFTER : BEFORE
 
         this.addStepData(payload)
     }
@@ -248,6 +264,17 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * The skippe step
      */
     public onTestSkip(payload: TestStats): void {
+        if (this.#noSteps) {
+            return
+        }
+        this.updateStepStatus(payload)
+    }
+
+    /**
+     * The pending step: it returned 'pending', or it is undefined with
+     * `cucumberOpts.ignoreUndefinedDefinitions`
+     */
+    public onTestPending(payload: TestStats): void {
         if (this.#noSteps) {
             return
         }
@@ -345,11 +372,15 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * Get the step data object
      */
     public getStepDataObject(stepData: TestStatsExtended | HookStatsExtended): Step {
+        // the name without the suffix that the framework adds to an undefined step
+        const fullTitle = stepData.title.endsWith(UNDEFINED_STEP_SUFFIX)
+            ? stepData.title.slice(0, -UNDEFINED_STEP_SUFFIX.length)
+            : stepData.title
         const keyword =
-            stepData?.keyword || keywordStartsWith(stepData.title, this.options.language!) || ''
+            stepData?.keyword || keywordStartsWith(fullTitle, this.#language) || ''
         const regex = new RegExp(`^(${escapeRegExp(keyword)})\\s`)
-        const result = regex.exec(stepData.title)
-        const title = (stepData.title.slice(result ? result.index + keyword.length : 0) || '').trim()
+        const result = regex.exec(fullTitle)
+        const title = (fullTitle.slice(result ? result.index + keyword.length : 0) || '').trim()
         const step: Step = {
             /**
              * the framework sends a doc string as text: the Cucumber JSON format has
@@ -361,7 +392,7 @@ export class CucumberJsJsonReporter extends WDIOReporter {
             keyword,
             name: title,
             result: {
-                status: stepData.state || '',
+                status: getStepStatus(stepData),
                 duration: (stepData._duration || 0) * 1000000,
                 ...getFailedMessage(stepData),
             },

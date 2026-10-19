@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { TEST_SCENARIO_STATS, TEST_SCENARIO_STATS_ERROR } from './__mocks__/mocks.js'
-import { getFailedMessage, containsSteps, keywordStartsWith } from '../src/utils.js'
+import { getFailedMessage, containsSteps, getStepStatus, keywordStartsWith } from '../src/utils.js'
 
 describe('utils', () => {
     describe('getFailedMessage', () => {
@@ -82,6 +82,28 @@ describe('utils', () => {
         it('knows the But keyword', () => {
             expect(keywordStartsWith('But I have no milk', 'en')).toEqual('But')
         })
+    })
+})
+
+describe('getStepStatus', () => {
+    const step = (state: string, title: string, message?: string) =>
+        ({ state, title, error: message === undefined ? undefined : new Error(message) }) as unknown as Parameters<typeof getStepStatus>[0]
+
+    it('gives the status of the framework', () => {
+        expect(getStepStatus(step('passed', 'Given a step'))).toBe('passed')
+        expect(getStepStatus(step('failed', 'Given a step', 'expected 1 to be 2'))).toBe('failed')
+        expect(getStepStatus(step('skipped', 'Given a step'))).toBe('skipped')
+        expect(getStepStatus(step('pending', 'Given a step'))).toBe('pending')
+    })
+
+    it('gives "undefined" for an undefined step, also with ignoreUndefinedDefinitions', () => {
+        const error = 'Step "a step" is not defined. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.'
+        expect(getStepStatus(step('failed', 'Given a step', error))).toBe('undefined')
+        expect(getStepStatus(step('pending', 'Given a step (undefined step)'))).toBe('undefined')
+    })
+
+    it('keeps "failed" for a step whose own error looks like these messages', () => {
+        expect(getStepStatus(step('failed', 'Given a step', 'Step "a" is not defined in the page'))).toBe('failed')
     })
 })
 

@@ -796,6 +796,38 @@ const cucumberJsJsonReporterMultiRemote = async () => {
 }
 
 /**
+ * Cucumber with @wdio/cucumberjs-json-reporter: the keywords of a feature file with a
+ * `# language:` header, and the `undefined` status of a step with no definition
+ */
+const cucumberJsJsonReporterLanguageAndUndefined = async () => {
+    const basePath = path.resolve(__dirname, 'cucumber', 'cucumberjs-json')
+    const jsonFolder = cucumberJsJsonFolder('cucumberJsJsonReporterLanguageAndUndefined')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+    await launch(
+        'cucumberJsJsonReporterLanguageAndUndefined',
+        path.resolve(basePath, 'cucumberjs-json.undefined.config.js'),
+        {
+            specs: [path.resolve(basePath, 'cucumberjs-json.fr.feature')],
+            reporters: [['cucumberjs-json', { jsonFolder }]]
+        }
+    )
+    const files = await fs.readdir(jsonFolder)
+    assert.equal(files.length, 1)
+    const [feature] = JSON.parse(await fs.readFile(path.join(jsonFolder, files[0]), 'utf-8'))
+    const steps = feature.elements[0].steps.filter((step) => !step.hidden)
+    assert.deepEqual(
+        steps.map((step) => [step.keyword, step.name, step.line, step.result.status]),
+        [
+            ['Soit', 'je passe', 4, 'passed'],
+            ['Alors', 'une étape sans définition', 5, 'undefined']
+        ]
+    )
+    // the last hook comes after the steps
+    assert.equal(feature.elements[0].steps.at(-1).keyword, 'After')
+    await fs.rm(jsonFolder, { recursive: true, force: true })
+}
+
+/**
  * Cucumber file option
  */
 const cucumberFileOption = async () => {
@@ -1639,6 +1671,7 @@ const jasmineAfterHookArgsValidation = async () => {
         cucumberSameFeatureFileName,
         cucumberJsJsonReporter,
         cucumberJsJsonReporterMultiRemote,
+        cucumberJsJsonReporterLanguageAndUndefined,
         cucumberJsJsonReporterGroupedSpecs,
         cucumberFileOption,
         cucumberSkipTag,

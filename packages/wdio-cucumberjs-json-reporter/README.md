@@ -69,6 +69,8 @@ where the script is executed. Executing it from the root of your project will al
 
 The language in which the Gherkin scenarios are written (defaults to English). The list of language codes and its keywords can be found [here](https://cucumber.io/docs/gherkin/reference/#overview).
 
+A `# language:` header in a feature file is used for that file. Without this option, the reporter uses `cucumberOpts.language`.
+
 ### `disableHooks`
 - **Type:** `boolean`
 - **Mandatory:** No
