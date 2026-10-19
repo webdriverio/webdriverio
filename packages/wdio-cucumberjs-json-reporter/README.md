@@ -126,6 +126,16 @@ export const config = {
 
 > The metadata object needs to have the `cjson` prefix, otherwise it will not work!
 
+With TypeScript, add `@wdio/cucumberjs-json-reporter` to the `types` in your `tsconfig.json` to type the `cjson:metadata` capability:
+
+```json
+{
+    "compilerOptions": {
+        "types": ["node", "@wdio/globals/types", "@wdio/cucumberjs-json-reporter"]
+    }
+}
+```
+
 ### Metadata values
 #### `metadata.app.name`
 - **Type:** `string`

@@ -145,6 +145,15 @@ export interface cjson_metadata {
     };
 }
 
+declare global {
+    namespace WebdriverIO {
+        interface Capabilities {
+            /** the metadata of the CucumberJS JSON report (`@wdio/cucumberjs-json-reporter`) */
+            'cjson:metadata'?: cjson_metadata
+        }
+    }
+}
+
 /**
  * A doc string argument in the Cucumber JSON format
  */
