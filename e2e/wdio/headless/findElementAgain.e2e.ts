@@ -253,6 +253,14 @@ describe('finding an element again', () => {
             expect(Date.now() - start).toBeLessThan(browser.options.waitforTimeout ?? 5000)
         })
 
+        it('isEqual of a valid element and an element that the page removed gives false', async () => {
+            const elem = await $('.item')
+            const other = await $('#late-area')
+            await renderItems([])
+
+            expect(await other.isEqual(elem)).toBe(false)
+        })
+
         it('isEqual finds again only the stale element: a valid one can match another node now', async () => {
             await renderItems(['first', 'second'])
             const stale = await $$('.item')[1]

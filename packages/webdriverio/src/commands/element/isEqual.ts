@@ -83,7 +83,8 @@ export async function isEqual (
         if (lookupErrs.length) {
             return false
         }
-        const [found, other = found] = lookups.map((lookup) => (lookup as PromiseFulfilledResult<WebdriverIO.Element | undefined>).value)
+        const [found, otherFound] = lookups.map((lookup) => (lookup as PromiseFulfilledResult<WebdriverIO.Element | undefined>).value)
+        const other = el === this ? found : otherFound
         if (!found?.elementId || !other?.elementId) {
             return false
         }

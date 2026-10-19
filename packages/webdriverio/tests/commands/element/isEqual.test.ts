@@ -111,6 +111,16 @@ describe('isEqual test', () => {
                 expect(execute).not.toHaveBeenCalledWith(expect.any(Function), gone, expect.anything())
             })
 
+            it('gives false when the other element is not on the page any more', async () => {
+                const other = await browser.$('#other')
+                renderedAgain(other)
+                const gone = await browser.$('#gone')
+                gone.elementId = undefined as unknown as string
+                vi.mocked(findElementAgain).mockResolvedValueOnce(gone)
+
+                expect(await elem.isEqual(other)).toBe(false)
+            })
+
             it('sends up a strict mode error of the lookup', async () => {
                 renderedAgain(elem)
                 vi.mocked(findElementAgain).mockRejectedValueOnce(new StrictSelectorError('#foo', 2))
