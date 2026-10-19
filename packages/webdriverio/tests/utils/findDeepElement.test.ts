@@ -36,7 +36,10 @@ vi.mock('is-plain-obj', () => ({
     default: vi.fn().mockReturnValue(false),
 }))
 
-import { findDeepElement, findDeepElements } from '../../src/utils/index.js'
+import { findDeepElement, findDeepElements, findElement, findElements } from '../../src/utils/index.js'
+import isPlainObject from 'is-plain-obj'
+import { custom$ } from '../../src/commands/element/custom$.js'
+import { custom$$ } from '../../src/commands/element/custom$$.js'
 
 /**
  * Helper to create a mock browser instance used as `this` context
@@ -877,5 +880,137 @@ describe('findDeepElement / findDeepElements - role selector', () => {
         ])
         expect(browser.execute).toHaveBeenCalledWith(expect.any(Function), 'button', 'Pay now', -1, null)
         expect(browser.findElement).not.toHaveBeenCalled()
+    })
+})
+
+/**
+ * W3C "get a known element": a search from a stale element is a stale element error,
+ * so the middleware finds the element again. BiDi still searches the removed subtree.
+ */
+describe('findDeepElement / findDeepElements - a stale scope element', () => {
+    const page: any = {}
+    page.defaultView = { document: page }
+    const node = (props: Record<string, unknown>) => ({ isConnected: true, ownerDocument: page, ...props })
+    const scope = node({})
+    const removedScope = node({ isConnected: false })
+    const nodes: Record<string, unknown> = {
+        scope,
+        removedScope,
+        child: node({ parentNode: scope }),
+        oldChild: node({ isConnected: false, parentNode: removedScope })
+    }
+    /**
+     * run the page scripts that the search sends on the fake nodes above
+     */
+    function inPage (browser: any) {
+        const resolve = (arg: unknown): unknown => Array.isArray(arg)
+            ? arg.map(resolve)
+            : arg && typeof arg === 'object' && ELEMENT_KEY in arg ? nodes[(arg as any)[ELEMENT_KEY]] : arg
+        browser.execute.mockImplementation(async (script: Function, ...args: unknown[]) => script(...args.map(resolve)))
+    }
+    const elementOf = (browser: any, elementId: string): any => ({
+        isMobile: false, elementId, [ELEMENT_KEY]: elementId, __browser: browser, findElementFromElement: vi.fn(), findElementsFromElement: vi.fn()
+    })
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockGetCurrentContext.mockResolvedValue('ctx-1')
+        mockGetShadowElementsByContextId.mockReturnValue([])
+    })
+
+    it.each([
+        ['findDeepElements', findDeepElements, [{ sharedId: 'oldChild' }]],
+        ['findDeepElements, no match', findDeepElements, []],
+        ['findDeepElement', findDeepElement, [{ sharedId: 'oldChild' }]],
+        ['findDeepElement, no match', findDeepElement, []]
+    ])('%s throws a stale element error', async (_, find, found) => {
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: found })
+        inPage(browser)
+
+        await expect((find as Function).call(elementOf(browser, 'removedScope'), 'li')).rejects.toThrow('stale element reference')
+        expect(browser.findElementsFromElement).not.toHaveBeenCalled()
+        expect(browser.findElementFromElement).not.toHaveBeenCalled()
+    })
+
+    it.each([
+        ['findDeepElements', findDeepElements],
+        ['findDeepElement', findDeepElement]
+    ])('%s with shadow roots throws a stale element error', async (_, find) => {
+        mockGetShadowElementsByContextId.mockReturnValue(['shadow-1'])
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'oldChild' }] })
+        inPage(browser)
+
+        await expect((find as Function).call(elementOf(browser, 'removedScope'), 'li')).rejects.toThrow('stale element reference')
+    })
+
+    it('checks the scope in the containment check, with no other request', async () => {
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [{ sharedId: 'child' }] })
+        inPage(browser)
+
+        const result = await findDeepElements.call(elementOf(browser, 'scope'), 'li')
+
+        expect(result.map((found) => found[ELEMENT_KEY])).toEqual(['child'])
+        expect(browser.execute).toHaveBeenCalledTimes(1)
+    })
+
+    it.each([
+        ['findDeepElement', findDeepElement],
+        ['findDeepElements', findDeepElements]
+    ])('%s with a role, when the browser rejects the locator, throws a stale element error', async (_, find) => {
+        const browser = createMockBrowser({ isBidi: true })
+        browser.browsingContextLocateNodes.mockRejectedValue(new Error('unsupported locator'))
+        inPage(browser)
+
+        await expect((find as Function).call(elementOf(browser, 'removedScope'), 'role/listitem')).rejects.toThrow('stale element reference')
+    })
+
+    it.each([
+        ['findElement', findElement],
+        ['findElements', findElements]
+    ])('%s with a deep selector throws a stale element error', async (_, find) => {
+        const browser = createMockBrowser()
+        inPage(browser)
+
+        await expect((find as Function).call(elementOf(browser, 'removedScope'), '>>>li')).rejects.toThrow('stale element reference')
+    })
+
+    it.each([
+        ['custom$', custom$],
+        ['custom$$', custom$$]
+    ])('%s throws a stale element error', async (_, command) => {
+        const browser = createMockBrowser({ strategies: new Map([['allLi', (selector: string, root: any) => root.querySelectorAll(selector)]]) })
+        inPage(browser)
+
+        await expect((command as Function).call(elementOf(browser, 'removedScope'), 'allLi', 'li')).rejects.toThrow('stale element reference')
+    })
+
+    it.each([
+        ['findElement', findElement],
+        ['findElements', findElements]
+    ])('%s finds a custom strategy element again only from a known root', async (_, find) => {
+        const browser = createMockBrowser()
+        inPage(browser)
+        const root = elementOf(browser, 'removedScope')
+        const strategy = (selector: string, scope: any) => scope.querySelectorAll(selector)
+        vi.mocked(isPlainObject).mockReturnValue(true)
+
+        try {
+            await expect((find as Function).call(root, { strategy, strategyName: 'allLi', strategyArguments: ['li', root] }))
+                .rejects.toThrow('stale element reference')
+        } finally {
+            vi.mocked(isPlainObject).mockReturnValue(false)
+        }
+    })
+
+    it('finds nothing in a scope that is in the page', async () => {
+        const browser = createMockBrowser()
+        browser.browsingContextLocateNodes.mockResolvedValue({ nodes: [] })
+        inPage(browser)
+
+        expect(await findDeepElements.call(elementOf(browser, 'scope'), 'li')).toEqual([])
+        expect(await findDeepElement.call(elementOf(browser, 'scope'), 'li')).toBeUndefined()
     })
 })

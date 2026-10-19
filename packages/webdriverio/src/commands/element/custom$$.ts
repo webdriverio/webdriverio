@@ -5,6 +5,7 @@ import { getElements } from '../../utils/getElementObject.js'
 import { ElementArray } from '../../element/array.js'
 import type { CustomStrategyFunction } from '../../types.js'
 import { describeSelector } from '../../utils/describeSelector.js'
+import { withKnownElement } from '../../utils/foreignContext.js'
 
 /**
  *
@@ -56,7 +57,7 @@ export function custom$$ (
 
         const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
 
-        let res = await browserObject.execute(strategy, ...strategyArguments, this)
+        let res = await browserObject.execute(withKnownElement(strategy, strategyArguments.length), ...strategyArguments, this)
 
         /**
          * if the user's script return just one element

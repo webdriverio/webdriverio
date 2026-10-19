@@ -65,6 +65,10 @@ function throwOnFailure<T> (result: T | ScriptFailure): T {
 }
 
 const AsyncFunction = (async () => {}).constructor as FunctionConstructor
+/**
+ * the error of `withKnownElement`
+ */
+export const UNKNOWN_ELEMENT_ERROR = 'stale element reference: the element is not attached to the active document'
 
 /**
  * W3C "get a known element": a detached element, or one of an inactive document,
@@ -84,7 +88,7 @@ export function withKnownElement<T extends Function> (script: T | string, at = 0
         `const el = arguments[${at}]
         const doc = el && el.ownerDocument
         if (el && (el.isConnected === false || (doc && !(doc.defaultView && doc.defaultView.document === doc)))) {
-            throw new Error('stale element reference: the element is not attached to the active document')
+            throw new Error(${JSON.stringify(UNKNOWN_ELEMENT_ERROR)})
         }
         return (${script}).apply(this, arguments)`
     ) as T
