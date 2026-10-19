@@ -346,21 +346,33 @@ describe('finding an element again', () => {
                 return rect.top >= Math.max(0, box.top) && rect.bottom <= Math.min(window.innerHeight, box.bottom)
             }, selector, index, host ?? '', container ?? '')
 
-        it('scrolls an element that a component renders when it becomes visible, with block center', async () => {
-            const elem = await $('#far')
-            await browser.execute(() => {
-                const observer = new IntersectionObserver((entries) => {
-                    if (entries.some((entry) => entry.isIntersecting)) {
-                        observer.disconnect()
-                        ;(window as unknown as Fixture).renderFar()
-                    }
-                })
-                observer.observe(document.querySelector('#far')!)
-            })
-            await elem.scrollIntoView({ block: 'center' })
+        /**
+         * the distance in px of the element from its `block` position in the viewport
+         */
+        const offsetFrom = (selector: string, block: 'start' | 'center') => browser.execute((selector, block) => {
+            const rect = document.querySelector(selector)!.getBoundingClientRect()
+            return Math.abs(block === 'start' ? rect.top : rect.top + rect.height / 2 - window.innerHeight / 2)
+        }, selector, block)
 
-            expect(await isInView('#far')).toBe(true)
-        })
+        for (const block of ['start', 'center'] as const) {
+            it(`aligns an element that a component renders when it becomes visible, with block ${block}`, async () => {
+                const elem = await $('#far')
+                await browser.execute(() => {
+                    // room below, so the page can scroll the element to its block position
+                    document.body.insertAdjacentHTML('beforeend', '<div style="height: 3000px"></div>')
+                    const observer = new IntersectionObserver((entries) => {
+                        if (entries.some((entry) => entry.isIntersecting)) {
+                            observer.disconnect()
+                            ;(window as unknown as Fixture).renderFar()
+                        }
+                    })
+                    observer.observe(document.querySelector('#far')!)
+                })
+                await elem.scrollIntoView({ block })
+
+                expect(await offsetFrom('#far', block)).toBeLessThanOrEqual(2)
+            })
+        }
 
         it('throws for an element off screen that its scroll removes', async () => {
             const elem = await $('#far')

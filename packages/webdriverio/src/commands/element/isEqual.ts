@@ -73,18 +73,17 @@ export async function isEqual (
         const onPage = async (element: WebdriverIO.Element) => (
             await isKnown(browser, element) ? element : findChainAgain(element)
         )
-        let found: WebdriverIO.Element | undefined
-        let other: WebdriverIO.Element | undefined
-        try {
-            [found, other] = await Promise.all([onPage(this), el === this ? undefined : onPage(el)])
-            other = el === this ? found : other
-        } catch (lookupErr) {
-            // a strict-mode violation is a real error, as in the middleware
-            if (lookupErr instanceof StrictSelectorError) {
-                throw lookupErr
-            }
+        const lookups = await Promise.allSettled(el === this ? [onPage(this)] : [onPage(this), onPage(el)])
+        const lookupErrs = lookups.flatMap((lookup) => lookup.status === 'rejected' ? [lookup.reason] : [])
+        // a strict-mode violation is a real error, as in the middleware, also when the other lookup fails first
+        const strictErr = lookupErrs.find((lookupErr) => lookupErr instanceof StrictSelectorError)
+        if (strictErr) {
+            throw strictErr
+        }
+        if (lookupErrs.length) {
             return false
         }
+        const [found, other = found] = lookups.map((lookup) => (lookup as PromiseFulfilledResult<WebdriverIO.Element | undefined>).value)
         if (!found?.elementId || !other?.elementId) {
             return false
         }

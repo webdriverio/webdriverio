@@ -102,73 +102,72 @@ export async function scrollIntoView (
         options = { block: 'end', inline: 'nearest' }
     }
 
-    let scrolled = false
-    let paintedAgain: (() => Promise<boolean>) | undefined
-    try {
-        /**
-         * by default the WebDriver action scrolls the element just into the
-         * viewport. In order to stay compliant with `Element.scrollIntoView()`
-         * we need to adjust the values a bit.
-         *
-         * Fetch element rect, viewport size, and current scroll in one execute
-         * round-trip instead of three protocol calls.
-         */
-        const measure = async (element: WebdriverIO.Element = this) => browser.execute(withKnownElement((elem: HTMLElement) => {
-            const { left, top, width, height } = elem.getBoundingClientRect()
-            // ground truth for "is this actually visible right now", independent of any
-            // window-bounds arithmetic: is the element really the thing painted at its
-            // own center point? This correctly accounts for clipping by a nested scroll
-            // container *and* for occlusion by an unrelated overlapping element (a fixed
-            // header/footer, a sticky toolbar) - things pure geometry against
-            // `window.innerWidth/Height` can't see. Point can legitimately be outside the
-            // current viewport (that's still "not painted", which is the right answer),
-            // so this never throws.
-            //
-            // `(Document|ShadowRoot).elementsFromPoint()` does NOT pierce into an open
-            // shadow root on its own - it stops at the shadow host - so for an element
-            // nested inside one or more shadow roots (the exact scenario this whole
-            // command exists to handle) it would never find it. Recurse into each hit's
-            // own `.shadowRoot.elementsFromPoint()` until the hit stack stops bottoming
-            // out on a shadow host.
-            let isPainted = false
-            try {
-                const cx = left + width / 2
-                const cy = top + height / 2
-                const deepElementsFromPoint = (root: Document | ShadowRoot): Element[] => {
-                    const hits = root.elementsFromPoint(cx, cy)
-                    const topHit = hits[0] as (Element & { shadowRoot?: ShadowRoot | null }) | undefined
-                    return topHit?.shadowRoot ? deepElementsFromPoint(topHit.shadowRoot) : hits
-                }
-                isPainted = deepElementsFromPoint(document).includes(elem)
-            } catch { /* keep isPainted: false */ }
-            return {
-                elemRect: {
-                    x: left + window.scrollX,
-                    y: top + window.scrollY,
-                    width,
-                    height
-                },
-                viewport: {
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                },
-                scroll: {
-                    x: window.scrollX,
-                    y: window.scrollY
-                },
-                isPainted
+    /**
+     * by default the WebDriver action scrolls the element just into the
+     * viewport. In order to stay compliant with `Element.scrollIntoView()`
+     * we need to adjust the values a bit.
+     *
+     * Fetch element rect, viewport size, and current scroll in one execute
+     * round-trip instead of three protocol calls.
+     */
+    const measure = async (element: WebdriverIO.Element = this) => browser.execute(withKnownElement((elem: HTMLElement) => {
+        const { left, top, width, height } = elem.getBoundingClientRect()
+        // ground truth for "is this actually visible right now", independent of any
+        // window-bounds arithmetic: is the element really the thing painted at its
+        // own center point? This correctly accounts for clipping by a nested scroll
+        // container *and* for occlusion by an unrelated overlapping element (a fixed
+        // header/footer, a sticky toolbar) - things pure geometry against
+        // `window.innerWidth/Height` can't see. Point can legitimately be outside the
+        // current viewport (that's still "not painted", which is the right answer),
+        // so this never throws.
+        //
+        // `(Document|ShadowRoot).elementsFromPoint()` does NOT pierce into an open
+        // shadow root on its own - it stops at the shadow host - so for an element
+        // nested inside one or more shadow roots (the exact scenario this whole
+        // command exists to handle) it would never find it. Recurse into each hit's
+        // own `.shadowRoot.elementsFromPoint()` until the hit stack stops bottoming
+        // out on a shadow host.
+        let isPainted = false
+        try {
+            const cx = left + width / 2
+            const cy = top + height / 2
+            const deepElementsFromPoint = (root: Document | ShadowRoot): Element[] => {
+                const hits = root.elementsFromPoint(cx, cy)
+                const topHit = hits[0] as (Element & { shadowRoot?: ShadowRoot | null }) | undefined
+                return topHit?.shadowRoot ? deepElementsFromPoint(topHit.shadowRoot) : hits
             }
-        }), element as unknown as HTMLElement)
-
-        /**
-         * the scroll can make the page render the element again (a virtual list): the scroll is
-         * done when the element on the page is painted (a stale element reference fails the measure)
-         */
-        paintedAgain = async () => {
-            const found = await findChainAgain(this)
-            return Boolean(found && (await measure(found)).isPainted)
+            isPainted = deepElementsFromPoint(document).includes(elem)
+        } catch { /* keep isPainted: false */ }
+        return {
+            elemRect: {
+                x: left + window.scrollX,
+                y: top + window.scrollY,
+                width,
+                height
+            },
+            viewport: {
+                width: window.innerWidth,
+                height: window.innerHeight
+            },
+            scroll: {
+                x: window.scrollX,
+                y: window.scrollY
+            },
+            isPainted
         }
+    }), element as unknown as HTMLElement)
 
+    /**
+     * the scroll can make the page render the element again (a virtual list): the scroll is
+     * done when the element on the page is painted (a stale element reference fails the measure)
+     */
+    const paintedAgain = async () => {
+        const found = await findChainAgain(this)
+        return Boolean(found && (await measure(found)).isPainted)
+    }
+
+    let aligned = false
+    try {
         /**
          * Whether the element is already fully (or, for an element bigger than the
          * viewport, at least as fully as possible) visible on each axis - used both to
@@ -255,13 +254,9 @@ export async function scrollIntoView (
             return
         }
 
-        const wheelScroll = async (deltaX: number, deltaY: number) => {
-            await browser.action('wheel')
-                .scroll({ duration: 0, x: 0, y: 0, deltaX, deltaY, origin: this })
-                .perform()
-            // also a zero delta: the W3C pre-scroll of the element origin can scroll the page
-            scrolled = true
-        }
+        const wheelScroll = (deltaX: number, deltaY: number) => browser.action('wheel')
+            .scroll({ duration: 0, x: 0, y: 0, deltaX, deltaY, origin: this })
+            .perform()
 
         /**
          * Per the WebDriver spec, resolving an element `origin` requires the browser to
@@ -295,6 +290,8 @@ export async function scrollIntoView (
                 await wheelScroll(remainingDelta.deltaX, remainingDelta.deltaY)
             }
         }
+        // after the probe only, the retry of the element layer aligns the element again
+        aligned = true
 
         /**
          * real browsers apply wheel-driven scrolling asynchronously (e.g. inertial
@@ -364,7 +361,7 @@ export async function scrollIntoView (
          * page, the Web API would only fail with the same error
          */
         if (isStaleElementToFindAgain(err)) {
-            if (scrolled && await paintedAgain?.().catch(() => false)) {
+            if (aligned && await paintedAgain().catch(() => false)) {
                 return
             }
             throw err

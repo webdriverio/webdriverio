@@ -392,11 +392,11 @@ describe('scrollIntoView test', () => {
                     isPainted: true
                 }
                 /**
-                 * the first measure passes, then a script that gets the old element throws a stale
+                 * the first measure gives `first`, then a script that gets the old element throws a stale
                  * element error, and a measure of another element gives `measured`
                  */
-                const renderedAgainOnScroll = (measured: object) => vi.spyOn(browser, 'execute')
-                    .mockResolvedValueOnce(painted)
+                const renderedAgainOnScroll = (measured: object, first: object = painted) => vi.spyOn(browser, 'execute')
+                    .mockResolvedValueOnce(first)
                     .mockImplementation((async (_script: unknown, element: unknown) => {
                         if (element === elem) {
                             throw stale()
@@ -437,6 +437,13 @@ describe('scrollIntoView test', () => {
                     renderedAgainOnScroll(painted)
 
                     await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
+                })
+
+                it('sends up the stale element error after the probe, so the retry aligns the element', async () => {
+                    vi.mocked(findChainAgain).mockResolvedValueOnce(await browser.$('#found'))
+                    renderedAgainOnScroll(painted, { ...painted, isPainted: false })
+
+                    await expect(elem.scrollIntoView({ block: 'center' })).rejects.toThrow('stale element reference')
                 })
             })
         })

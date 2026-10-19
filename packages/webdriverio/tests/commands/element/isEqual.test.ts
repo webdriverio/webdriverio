@@ -118,6 +118,21 @@ describe('isEqual test', () => {
                 await expect(elem.isEqual(elem)).rejects.toThrow(StrictSelectorError)
             })
 
+            it('sends up a strict mode error of the lookup also when the other lookup fails first', async () => {
+                const other = await browser.$('#other')
+                renderedAgain(elem, other)
+                const lookup = async (element: unknown) => {
+                    if (element === elem) {
+                        await new Promise((resolve) => setTimeout(resolve, 10))
+                        throw new StrictSelectorError('#foo', 2)
+                    }
+                    throw new Error('lookup failed')
+                }
+                vi.mocked(findElementAgain).mockImplementationOnce(lookup as never).mockImplementationOnce(lookup as never)
+
+                await expect(elem.isEqual(other)).rejects.toThrow(StrictSelectorError)
+            })
+
             it('keeps an element that has no selector to find it again (an element reference)', async () => {
                 const execute = renderedAgain(elem)
                 const ref = await browser.$({ 'element-6066-11e4-a52e-4f735466cecf': 'ref-id' } as unknown as string)
