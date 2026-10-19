@@ -171,7 +171,7 @@ Run your suite once with the capability and without `parallelMode` to find tests
 
 Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel tests under the right suite, and attach a command to the test whose browsing context sent it.
 
-`@wdio/allure-reporter` and `@wdio/junit-reporter` don't support parallel mode yet. They track one current test per worker, so when tests overlap, Allure results, steps and attachments, and JUnit properties and worker logs, can land under the wrong test. Use them with sequential runs. With `addConsoleLogs`, `@wdio/spec-reporter` doesn't attribute the console output of overlapping tests reliably.
+`@wdio/allure-reporter` doesn't support parallel mode yet. It tracks one current test per worker, so when tests overlap, results, steps and attachments can land under the wrong test. Use it with sequential runs. With `addConsoleLogs`, `@wdio/spec-reporter` doesn't attribute the console output of overlapping tests reliably.
 
 A custom reporter must not assume that a test ends before the next one starts. See [Reporters and parallel tests](./CustomReporter.md#reporters-and-parallel-tests).
 

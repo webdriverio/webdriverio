@@ -1,6 +1,8 @@
 import { vi } from 'vitest'
 
 import { EventEmitter } from 'node:events'
+import type { Reporters } from '@wdio/types'
+import type * as ReporterModule from '../../packages/wdio-reporter/src/index'
 import HookStats from '../../packages/wdio-reporter/src/stats/hook.ts'
 import RunnerStats from '../../packages/wdio-reporter/src/stats/runner.ts'
 import SuiteStats from '../../packages/wdio-reporter/src/stats/suite.ts'
@@ -25,7 +27,7 @@ export default class WDIOReporter extends EventEmitter {
     retries: number
     _chalk: Chalk
     runnerStat?: RunnerStats
-    constructor (public options: any) {
+    constructor (public options: Partial<Reporters.Options>) {
         super()
         this.options = options
         this.outputStream = { write: vi.fn() }
@@ -50,8 +52,12 @@ export default class WDIOReporter extends EventEmitter {
         return true
     }
 
-    write (content: any) {
+    write (content: unknown) {
         this.outputStream.write(content)
+    }
+
+    getContextTest (): TestStats | undefined {
+        return undefined
     }
 
     /* istanbul ignore next */
@@ -81,6 +87,6 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     onRunnerEnd () {}
 }
-const { getBrowserName } = await vi.importActual<typeof import('../../packages/wdio-reporter/src/index')>('../../packages/wdio-reporter/src/index')
+const { getBrowserName } = await vi.importActual<typeof ReporterModule>('../../packages/wdio-reporter/src/index')
 
 export { HookStats, RunnerStats, SuiteStats, TestStats, getBrowserName }
