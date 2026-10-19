@@ -207,6 +207,14 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     /**
+     * count spec files that the launcher skipped without a worker like a worker without tests
+     */
+    skipSpecs(count: number) {
+        this._skippedSpecs += count
+        this.result.finished += count
+    }
+
+    /**
      * clear job from interface
      */
     clearJob({ cid, passed, retries }: { cid: string, passed: boolean, retries: number }) {

@@ -28,7 +28,7 @@ import type { IConfiguration, IRunEnvironment } from '@cucumber/cucumber/api'
 import { loadConfiguration, loadSources, runCucumber } from '@cucumber/cucumber/api'
 
 import { DEFAULT_OPTS } from './constants.js'
-import { generateSkipTagsFromCapabilities, setUserHookNames } from './utils.js'
+import { filterSpecs, generateSkipTagsFromCapabilities, setUserHookNames } from './utils.js'
 import type {
     CucumberOptions,
     HookFunctionExtension as HookFunctionExtensionImport,
@@ -191,9 +191,8 @@ export class CucumberAdapter {
             this._cucumberOpts.tags = this.generateDynamicSkipTags().concat(this._cucumberOpts.tags || []).join(' and ')
         }
 
-        // Filter the specs according to the tag expression
-        // Some workers would only spawn to then skip the spec (Feature) file
-        // Filtering at this stage can prevent the spawning of a massive number of workers
+        // Filter the specs according to the tag expression, now with the skip tags of this capability
+        // (outside watch mode the launcher removes the spec files without a match for `tags` and `name`, see `filterSpecs`)
         const { plan } = await loadSources({
             paths: this._specs,
             defaultDialect: this._cucumberOpts.language,
@@ -713,7 +712,7 @@ export const publishCucumberReport = async (cucumberMessageDir: string): Promise
 }
 
 const _CucumberAdapter = CucumberAdapter
-export const adapterFactory: { init?: Function } = {}
+export const adapterFactory: { init?: Function, filterSpecs?: typeof filterSpecs } = { filterSpecs }
 
 /**
  * tested by smoke tests

@@ -59,6 +59,8 @@ class Launcher {
 
     private _launcher?: Services.ServiceInstance[]
     private _resolve?: Function
+    private _specsWithoutTests = new Set<string>()
+    private _skippedSpecs = 0
 
     constructor(
         private _configFilePath: string,
@@ -94,6 +96,8 @@ class Launcher {
          * catches ctrl+c event
          */
         exitHook(this._exitHandler.bind(this))
+        // the workers read the config file again, they do not see changes from `onPrepare`
+        const cucumberOpts = { ...config.cucumberOpts, name: [...(config.cucumberOpts?.name ?? [])] }
         let exitCode = 0
         let error: HookError | undefined = undefined
         const caps = this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
@@ -115,6 +119,7 @@ class Launcher {
             log.info('Run onPrepare hook')
             await runLauncherHook(config.onPrepare, config, caps)
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
+            await this._findSpecsWithoutTests({ ...config, cucumberOpts }, caps)
 
             /**
              * For parallel multi-remote, only get the specs and excludes from the first object
@@ -335,7 +340,10 @@ class Launcher {
             /**
              * fail if no specs were found or specified
              */
-            if (Object.values(this._schedule).reduce((specCnt, schedule) => specCnt + schedule.specs.length, 0) === 0) {
+            if (this._skippedSpecs > 0) {
+                this.interface?.skipSpecs(this._skippedSpecs)
+            }
+            if (Object.values(this._schedule).reduce((specCnt, schedule) => specCnt + schedule.specs.length, 0) === 0 && this._skippedSpecs === 0) {
                 const { total, current } = config.shard
                 if (total > 1) {
                     log.info(`No specs to execute in shard ${current}/${total}, exiting!`)
@@ -356,6 +364,38 @@ class Launcher {
     }
 
     /**
+     * ask the framework adapter which spec files have no test (e.g. no Cucumber scenario
+     * matches `cucumberOpts.tags`) so that no worker starts only to skip them
+     */
+    private async _findSpecsWithoutTests(config: Required<WebdriverIO.Config>, caps: Capabilities.TestrunnerCapabilities) {
+        const { tags, name } = config.cucumberOpts ?? {}
+        // watch mode reruns only the workers of the first run, a file can get a matching scenario later
+        if (this._isWatchMode || config.framework !== 'cucumber' || (!tags && !name?.length)) {
+            return
+        }
+
+        try {
+            const framework = (await initializePlugin(config.framework, 'framework') as unknown as {
+                default: { filterSpecs?: (specs: string[], config: WebdriverIO.Config) => Promise<string[]> }
+            }).default
+            if (typeof framework.filterSpecs !== 'function') {
+                return
+            }
+
+            const capSpecs = (Array.isArray(caps) ? caps : [caps]).map((capabilities) => {
+                const cap = (('alwaysMatch' in capabilities ? capabilities.alwaysMatch : capabilities) || {}) as WebdriverIO.Capabilities
+                return this.configParser.getSpecs(cap['wdio:specs'], cap['wdio:exclude'])
+            })
+            const specs = [...new Set(capSpecs.flat(2))]
+            const specsWithTests = new Set(await framework.filterSpecs(specs, config))
+            this._specsWithoutTests = new Set(specs.filter((spec) => !specsWithTests.has(spec)))
+            log.info(`${this._specsWithoutTests.size} of ${specs.length} spec files have no test for the framework options, no worker starts for them`)
+        } catch (err) {
+            log.warn(`Could not filter the spec files before the workers start: ${(err as Error).message}`)
+        }
+    }
+
+    /**
      * Format the specs into an array of objects with files and retries
      */
     private _formatSpecs(capabilities: (Capabilities.RequestedMultiRemoteCapabilities | Capabilities.RequestedStandaloneCapabilities), specFileRetries: number) {
@@ -367,9 +407,14 @@ class Launcher {
         } else {
             caps = capabilities as WebdriverIO.Capabilities
         }
-        const specs = caps['wdio:specs']
-        const excludes = caps['wdio:exclude']
-        const files = this.configParser.getSpecs(specs, excludes)
+        const files = this.configParser.getSpecs(caps['wdio:specs'], caps['wdio:exclude'])
+            .filter((file) => {
+                const hasNoTests = [file].flat().length > 0 && [file].flat().every((spec) => this._specsWithoutTests.has(spec))
+                if (hasNoTests) {
+                    this._skippedSpecs++
+                }
+                return !hasNoTests
+            })
 
         return files.map((file: string | string[]) => {
             if (typeof file === 'string') {

@@ -1,6 +1,8 @@
+import url from 'node:url'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import { isFunctionAsync } from '@wdio/utils'
+import { loadSources } from '@cucumber/cucumber/api'
 import type { supportCodeLibraryBuilder, World } from '@cucumber/cucumber'
 
 import type {
@@ -15,7 +17,7 @@ import type {
 } from '@cucumber/messages'
 import type { Capabilities } from '@wdio/types'
 import type { ReporterStep, TestHookDefinitionConfig, Payload } from './types.js'
-import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
+import { CUCUMBER_HOOK_DEFINITION_TYPES, DEFAULT_OPTS } from './constants.js'
 const log = logger('@wdio/cucumber-framework:utils')
 
 function createStepArgument ({ argument }: PickleStep) {
@@ -272,4 +274,32 @@ export function convertStatus(status: TestStepResultStatus): 'pass' | 'fail' | '
     case 'UNDEFINED': return 'pass'
     default: return 'fail'
     }
+}
+
+/**
+ * Return the spec files that can have a scenario for the `tags` and `name` options, so that the
+ * launcher starts no worker for the others. The `@skip()` tags depend on the capability, so the
+ * worker applies them. A file that Cucumber cannot parse stays, the worker reports its error.
+ */
+export async function filterSpecs (specs: string[], config: WebdriverIO.Config): Promise<string[]> {
+    const { tags, name, language } = config.cucumberOpts ?? {}
+    const toPath = (spec: string) => spec.startsWith('file://') ? url.fileURLToPath(spec) : spec
+    const features = specs.filter((spec) => toPath(spec).endsWith('.feature'))
+    if ((!tags && !name?.length) || features.length === 0) {
+        return specs
+    }
+
+    const { plan, errors } = await loadSources({
+        paths: features.map(toPath),
+        defaultDialect: language ?? DEFAULT_OPTS.language!,
+        order: 'defined',
+        names: name ?? [],
+        tagExpression: tags ?? ''
+    })
+    // Cucumber makes the uri with `path.relative()`, which ignores the case on Windows
+    const found = new Set([...plan, ...errors].map(({ uri }) => uri))
+    return specs.filter((spec) => {
+        const file = toPath(spec)
+        return !file.endsWith('.feature') || found.has(path.relative(process.cwd(), file))
+    })
 }
