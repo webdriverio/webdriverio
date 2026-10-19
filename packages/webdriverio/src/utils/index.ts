@@ -10,7 +10,7 @@ import type { ElementReference } from '@wdio/protocols'
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
-import { checkElementsContainedIn, checkElementsConnected } from './elementChecks.js'
+import { checkElementsContainedInKnownScope, checkElementsConnected } from './elementChecks.js'
 import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
 import { DEEP_SELECTOR, ROLE_SELECTOR, Key } from '../constants.js'
 import { findStrategy, getAriaXPathSelector, type RoleSelector } from './findStrategy.js'
@@ -19,7 +19,7 @@ import { accessibilityScript } from '../commands/constant.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, foreignContextId, heldBrowsingContext } from '../session/browsingContext.js'
-import { findLinksInContext, foreignContext, withKnownElement } from './foreignContext.js'
+import { findLinksInContext, foreignContext, UNKNOWN_ELEMENT_ERROR, withKnownElement } from './foreignContext.js'
 import { bidiGetRect, isBidiCommandsEnabled } from './bidi/elementCommands.js'
 import { isParallelContextActive, locateRelativeXPath } from './bidi/locate.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
@@ -220,6 +220,14 @@ function strategyScope (scope: WebdriverIO.Browser | WebdriverIO.Element, browse
     return 'elementId' in scope ? browserObject : scope as WebdriverIO.Browser
 }
 
+/**
+ * A custom strategy of an element gets the element as last argument
+ * (`custom$`, `custom$$`): W3C "get a known element" for it.
+ */
+function customStrategyOf<T extends Function> (scope: WebdriverIO.Browser | WebdriverIO.Element, strategy: T, strategyArguments: unknown[]): T {
+    return 'elementId' in scope ? withKnownElement(strategy, strategyArguments.length - 1) : strategy
+}
+
 function fetchElementByJSFunction(
     selector: ElementFunction,
     scope: WebdriverIO.Browser | WebdriverIO.Element,
@@ -404,8 +412,9 @@ async function findRoleElementsByScript(
         )
     }
     const root = getScopedElementId(ctx) ? ctx as WebdriverIO.Element : null
+    const script = withKnownElement(findByRole as unknown as (...args: unknown[]) => ElementReference[] | string, 3)
     const find = () => browser.execute(
-        findByRole as unknown as (...args: unknown[]) => ElementReference[] | string,
+        script,
         role,
         name ?? null,
         -1,
@@ -895,7 +904,7 @@ export async function findDeepElement(
          * determine if node is within tree of current element (batched into a single
          * round trip, with per-element fallback for stale references)
          */
-        const containment = await checkElementsContainedIn(
+        const containment = await checkElementsContainedInKnownScope(
             browser,
             (this as WebdriverIO.Element).elementId,
             nodes.map((node) => node[ELEMENT_KEY] as string),
@@ -944,6 +953,12 @@ export async function findDeepElement(
         }
         return found
     }, async (err) => {
+        /**
+         * a stale scope element: the element middleware finds it again
+         */
+        if (String(err?.message).includes(UNKNOWN_ELEMENT_ERROR)) {
+            throw err
+        }
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
         if (using === 'role') {
             return (await findRoleElementsByScript(this, browser, value))[0]
@@ -1097,7 +1112,7 @@ export async function findDeepElements(
          * determine if node is within tree of current element (batched into a single
          * round trip, with per-element fallback for stale references)
          */
-        const containment = await checkElementsContainedIn(
+        const containment = await checkElementsContainedInKnownScope(
             browser,
             (this as WebdriverIO.Element).elementId,
             nodes.map((node) => node[ELEMENT_KEY] as string),
@@ -1135,6 +1150,12 @@ export async function findDeepElements(
         }
         return found
     }, async (err) => {
+        /**
+         * a stale scope element: the element middleware finds it again
+         */
+        if (String(err?.message).includes(UNKNOWN_ELEMENT_ERROR)) {
+            throw err
+        }
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
         if (using === 'role') {
             return findRoleElementsByScript(this, browser, value)
@@ -1223,7 +1244,7 @@ export async function findElement(
     if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const notFoundError = new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
         let elem: ElementReference | ElementReference[] = await browserObject.execute(
-            querySelectorAllDeep,
+            withKnownElement(querySelectorAllDeep, 2),
             false,
             selector.slice(DEEP_SELECTOR.length),
             // hard conversion from element id to Element is done by browser driver
@@ -1239,7 +1260,7 @@ export async function findElement(
     if (selector && typeof selector === 'object' && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyName, strategyArguments } = selector as CustomStrategyReference
         const notFoundError = new Error(`Custom Strategy "${strategyName}" did not return an HTMLElement`)
-        let elem = await strategyScope(this, browserObject).execute(strategy, ...strategyArguments)
+        let elem = await strategyScope(this, browserObject).execute(customStrategyOf(this, strategy, strategyArguments), ...strategyArguments)
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
     }
@@ -1317,7 +1338,7 @@ export async function findElements(
      */
     if (typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const elems: ElementReference | ElementReference[] = await browserObject.execute(
-            querySelectorAllDeep,
+            withKnownElement(querySelectorAllDeep, 2),
             true,
             selector.slice(DEEP_SELECTOR.length),
             // hard conversion from element id to Element is done by browser driver
@@ -1332,7 +1353,7 @@ export async function findElements(
      */
     if (isPlainObject(selector) && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyArguments } = selector as CustomStrategyReference
-        const elems = await strategyScope(this, browserObject).execute(strategy, ...strategyArguments)
+        const elems = await strategyScope(this, browserObject).execute(customStrategyOf(this, strategy, strategyArguments), ...strategyArguments)
         const elemArray = Array.isArray(elems) ? elems as ElementReference[] : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
     }

@@ -4,6 +4,7 @@ import { getElement } from '../../utils/getElementObject.js'
 import { getBrowserObject } from '@wdio/utils'
 import type { CustomStrategyFunction } from '../../types.js'
 import { describeSelector } from '../../utils/describeSelector.js'
+import { withKnownElement } from '../../utils/foreignContext.js'
 
 /**
  *
@@ -55,7 +56,7 @@ export async function custom$ (
 
     const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
 
-    let res = await browserObject.execute(strategy, ...strategyArguments, this)
+    let res = await browserObject.execute(withKnownElement(strategy, strategyArguments.length), ...strategyArguments, this)
 
     /**
      * if the user's script returns multiple elements

@@ -6,6 +6,7 @@ import { createServer } from 'node:http'
 import { once } from 'node:events'
 import type { AddressInfo } from 'node:net'
 import { browser, expect } from '@wdio/globals'
+import type { ChainablePromiseArray } from 'webdriverio'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -982,6 +983,37 @@ describe('browsing contexts', () => {
                 await context.refresh()
                 expect(await list.getAttribute('data-state')).toBeNull()
             })
+        }
+
+        /**
+         * BiDi searches the removed subtree of a stale element: the search finds the
+         * element again, like classic WebDriver
+         */
+        const withPage = { 'the page': () => open('/tab-b'), ...targets }
+        before(() => {
+            browser.addLocatorStrategy('within', (selector: string, root: HTMLElement) => root.querySelectorAll(selector))
+        })
+        const searches: Record<string, (list: WebdriverIO.Element) => ChainablePromiseArray> = {
+            'CSS': (list) => list.$$('.item'),
+            'role': (list) => list.$$('role/listitem'),
+            'deep selector': (list) => list.$$('>>>.item'),
+            'custom strategy': (list) => list.custom$$('within', '.item')
+        }
+        for (const [where, target] of Object.entries(withPage)) {
+            for (const [kind, search] of Object.entries(searches)) {
+                it(`searches with a ${kind} from a stale element of ${where} again`, async () => {
+                    const context = await target()
+                    const list = await context.$('#list')
+                    await list.getText()
+                    await context.execute(() => {
+                        const fresh = document.createElement('ul')
+                        fresh.id = 'list'
+                        fresh.innerHTML = '<li class="item">uno</li><li class="item">dos</li><li class="item">tres</li><li class="item">cuatro</li>'
+                        document.getElementById('list')!.replaceWith(fresh)
+                    })
+                    expect(await search(list).map((item) => item.getText())).toEqual(['uno', 'dos', 'tres', 'cuatro'])
+                })
+            }
         }
     })
 
