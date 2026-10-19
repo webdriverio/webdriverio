@@ -13,7 +13,8 @@ import { StrictSelectorError } from '../../utils/strictSelectorError.js'
  *
  * As the other element commands, `isEqual` compares the elements that are on the page now. When the
  * page renders an element again (for example a React re-render), the command finds it again with its
- * selector, once and without a wait. An element that is gone is not equal.
+ * selector, once and without a wait. An element that is gone is not equal. A strict element that
+ * matches more than once then throws a `StrictSelectorError`, as the other checks do.
  *
  * :::
  *
@@ -75,8 +76,8 @@ export async function isEqual (
         let found: WebdriverIO.Element | undefined
         let other: WebdriverIO.Element | undefined
         try {
-            found = await onPage(this)
-            other = el === this ? found : await onPage(el)
+            [found, other] = await Promise.all([onPage(this), el === this ? undefined : onPage(el)])
+            other = el === this ? found : other
         } catch (lookupErr) {
             // a strict-mode violation is a real error, as in the middleware
             if (lookupErr instanceof StrictSelectorError) {
