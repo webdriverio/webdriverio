@@ -253,6 +253,21 @@ describe('finding an element again', () => {
             expect(Date.now() - start).toBeLessThan(browser.options.waitforTimeout ?? 5000)
         })
 
+        it('isEqual finds again only the stale element: a valid one can match another node now', async () => {
+            await renderItems(['first', 'second'])
+            const stale = await $$('.item')[1]
+            await renderItems(['first', 'second'])
+            const valid = await $$('.item')[1]
+            await browser.execute(() => {
+                const top = document.createElement('li')
+                top.className = 'item'
+                document.querySelector('#items')!.prepend(top)
+            })
+
+            // `stale` is found again as the item at index 1 now ("first"), `valid` is still "second"
+            expect(await stale.isEqual(valid)).toBe(false)
+        })
+
         it('isEqual compares with an element reference, which has no selector', async () => {
             const elem = await $('.item')
             await renderItems(['replaced'])
@@ -292,6 +307,13 @@ describe('finding an element again', () => {
                 const rect = document.querySelector('#far')!.getBoundingClientRect()
                 return rect.top >= 0 && rect.bottom <= window.innerHeight
             })).toBe(true)
+        })
+
+        it('scrollIntoView of an element in view that its scroll removes throws', async () => {
+            const elem = await $('#select')
+            await browser.execute(() => window.addEventListener('scroll', () => document.querySelector('#select')?.remove()))
+
+            expect((await errorOf(elem.scrollIntoView()))?.message).toContain("element wasn't found")
         })
 
         it('scrollIntoView scrolls an element that the page renders again on each scroll', async () => {

@@ -6,6 +6,7 @@ import { MobileScrollDirection } from '../../types.js'
 import { StrictSelectorError } from '../../utils/strictSelectorError.js'
 import { isStaleElementToFindAgain } from '../../utils/index.js'
 import { withKnownElement } from '../../utils/foreignContext.js'
+import { findChainAgain } from '../../utils/findChainAgain.js'
 
 const log = logger('webdriverio')
 
@@ -248,7 +249,8 @@ export async function scrollIntoView (
             await browser.action('wheel')
                 .scroll({ duration: 0, x: 0, y: 0, deltaX, deltaY, origin: this })
                 .perform()
-            scrolled ||= deltaX !== 0 || deltaY !== 0
+            // also a zero delta: the W3C pre-scroll of the element origin can scroll the page
+            scrolled = true
         }
 
         /**
@@ -349,11 +351,12 @@ export async function scrollIntoView (
     } catch (err) {
         /**
          * the element is stale: the element layer finds it again and scrolls the element on the
-         * page, the Web API would only fail with the same error. After a scroll, the scroll made
-         * the page render the element again (a virtual list): the scroll is done.
+         * page, the Web API would only fail with the same error. After a scroll, the scroll can
+         * make the page render the element again (a virtual list): when it is on the page, the
+         * scroll is done.
          */
         if (isStaleElementToFindAgain(err)) {
-            if (scrolled) {
+            if (scrolled && (await findChainAgain(this).catch(() => undefined))) {
                 return
             }
             throw err

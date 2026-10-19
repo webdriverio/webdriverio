@@ -1,6 +1,6 @@
-import { getBrowserObject, getWdioKind } from '@wdio/utils'
+import { getBrowserObject } from '@wdio/utils'
 
-import { canFindAgain, findElementAgain } from '../../utils/findElementAgain.js'
+import { findChainAgain } from '../../utils/findChainAgain.js'
 import { isStaleElementToFindAgain } from '../../utils/index.js'
 import { withKnownElement } from '../../utils/foreignContext.js'
 import { StrictSelectorError } from '../../utils/strictSelectorError.js'
@@ -65,16 +65,25 @@ export async function isEqual (
             return false
         }
         /**
-         * The page rendered an element again: compare the elements that are on the page now. As
-         * the other checks, look them up once, without a wait: an element that is gone is not equal.
+         * The page rendered an element again: compare the elements that are on the page now. Find
+         * again only a stale element, as a valid one can match another node now. As the other
+         * checks, look them up once, without a wait: an element that is gone is not equal.
          */
-        const [found, other] = await Promise.all([findOnPage(this), findOnPage(el)]).catch((lookupErr) => {
+        const onPage = async (element: WebdriverIO.Element) => (
+            await isKnown(browser, element) ? element : findChainAgain(element)
+        )
+        let found: WebdriverIO.Element | undefined
+        let other: WebdriverIO.Element | undefined
+        try {
+            found = await onPage(this)
+            other = el === this ? found : await onPage(el)
+        } catch (lookupErr) {
             // a strict-mode violation is a real error, as in the middleware
             if (lookupErr instanceof StrictSelectorError) {
                 throw lookupErr
             }
-            return [undefined, undefined]
-        })
+            return false
+        }
         if (!found?.elementId || !other?.elementId) {
             return false
         }
@@ -83,23 +92,16 @@ export async function isEqual (
 }
 
 /**
- * Find the chain again from the browser, once, without a wait: a stale parent waits for itself,
- * and in BiDi finds its removed child. Keeps an element reference. `undefined` when one is gone.
+ * Whether the element is still on the page; a stale element error gives `false`
  */
-async function findOnPage (element: WebdriverIO.Element) {
-    const chain: WebdriverIO.Element[] = []
-    for (let current = element; getWdioKind(current) === 'element'; current = current.parent as WebdriverIO.Element) {
-        chain.unshift(current)
-    }
-    let parent = chain[0]?.parent as WebdriverIO.Browser | WebdriverIO.Element
-    for (const item of chain) {
-        const found = canFindAgain(item) ? await findElementAgain(item, { parent }) : item
-        if (!found?.elementId) {
-            return undefined
-        }
-        parent = found
-    }
-    return parent as WebdriverIO.Element
+function isKnown (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, element: WebdriverIO.Element) {
+    return (browser as WebdriverIO.Browser).execute(withKnownElement(() => true), element as unknown as HTMLElement)
+        .then(() => true, (err) => {
+            if (isStaleElementToFindAgain(err)) {
+                return false
+            }
+            throw err
+        })
 }
 
 /**

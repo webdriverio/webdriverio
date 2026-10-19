@@ -4,8 +4,13 @@ import { expect, describe, it, vi, beforeAll, beforeEach, afterEach } from 'vite
 
 import { remote } from '../../../src/index.js'
 import { StrictSelectorError } from '../../../src/utils/strictSelectorError.js'
+import { findChainAgain } from '../../../src/utils/findChainAgain.js'
 
 vi.mock('fetch')
+vi.mock('../../../src/utils/findChainAgain.js', async (importOriginal) => {
+    const actual = (await importOriginal()) as { findChainAgain: typeof findChainAgain }
+    return { findChainAgain: vi.fn(actual.findChainAgain) }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 /**
@@ -376,18 +381,33 @@ describe('scrollIntoView test', () => {
                 expect(webApiCalls).toEqual([])
             })
 
+            const painted = {
+                elemRect: { x: 15, y: 400, height: 30, width: 50 },
+                viewport: { width: 600, height: 800 },
+                scroll: { x: 0, y: 0 },
+                isPainted: true
+            }
+
             it('ends without an error when the scroll made the page render the element again', async () => {
-                const painted = {
-                    elemRect: { x: 15, y: 400, height: 30, width: 50 },
-                    viewport: { width: 600, height: 800 },
-                    scroll: { x: 0, y: 0 },
-                    isPainted: true
-                }
                 const execute = vi.spyOn(browser, 'execute').mockResolvedValueOnce(painted).mockRejectedValue(stale())
 
                 await expect(elem.scrollIntoView()).resolves.toBeUndefined()
+                expect(findChainAgain).toHaveBeenCalledWith(elem)
                 const webApiCalls = execute.mock.calls.filter(([script]) => /elem\.scrollIntoView\(/.test(String(script)))
                 expect(webApiCalls).toEqual([])
+            })
+
+            it('ends without an error when the pre-scroll of the probe made the page render the element again', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce({ ...painted, isPainted: false }).mockRejectedValue(stale())
+
+                await expect(elem.scrollIntoView()).resolves.toBeUndefined()
+            })
+
+            it('sends up the stale element error when the element is gone after the scroll', async () => {
+                vi.spyOn(browser, 'execute').mockResolvedValueOnce(painted).mockRejectedValue(stale())
+                vi.mocked(findChainAgain).mockResolvedValueOnce(undefined)
+
+                await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
             })
         })
     })
