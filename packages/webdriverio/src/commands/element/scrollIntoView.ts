@@ -158,12 +158,18 @@ export async function scrollIntoView (
     }), element as unknown as HTMLElement)
 
     /**
-     * the scroll can make the page render the element again (a virtual list): the scroll is
-     * done when the element on the page is painted (a stale element reference fails the measure)
+     * the scroll can make the page render the element again (a virtual list): the scroll is done when the element
+     * on the page is painted, else the Web API scrolls it, as below (a stale element reference fails the measure)
      */
-    const paintedAgain = async () => {
+    const scrolledAgain = async () => {
         const found = await findChainAgain(this)
-        return Boolean(found && (await measure(found)).isPainted)
+        if (!found) {
+            return false
+        }
+        if (!(await measure(found)).isPainted) {
+            await scrollIntoViewWeb.call(found, options)
+        }
+        return true
     }
 
     let aligned = false
@@ -361,7 +367,7 @@ export async function scrollIntoView (
          * page, the Web API would only fail with the same error
          */
         if (isStaleElementToFindAgain(err)) {
-            if (aligned && await paintedAgain().catch(() => false)) {
+            if (aligned && await scrolledAgain().catch(() => false)) {
                 return
             }
             throw err

@@ -418,9 +418,26 @@ describe('scrollIntoView test', () => {
                     expect(execute).toHaveBeenLastCalledWith(expect.any(Function), found)
                 })
 
-                it('sends up the stale element error when the element that the page rendered again is not painted', async () => {
-                    vi.mocked(findChainAgain).mockResolvedValueOnce(await browser.$('#found'))
+                it('scrolls the element that the page rendered again with the Web API when it is not painted', async () => {
+                    const found = await browser.$('#found')
+                    vi.mocked(findChainAgain).mockResolvedValueOnce(found)
+                    const execute = renderedAgainOnScroll({ ...painted, isPainted: false })
+
+                    await expect(elem.scrollIntoView({ block: 'center' })).resolves.toBeUndefined()
+                    expect(execute).toHaveBeenLastCalledWith(expect.any(Function), found, { block: 'center' })
+                })
+
+                it('sends up the stale element error when the Web API fails on the element that the page rendered again', async () => {
+                    const found = await browser.$('#found')
+                    vi.mocked(findChainAgain).mockResolvedValueOnce(found)
+                    // the Web API script also gets the options
                     renderedAgainOnScroll({ ...painted, isPainted: false })
+                        .mockImplementation((async (_script: unknown, element: unknown, options?: unknown) => {
+                            if (element === elem || options) {
+                                throw stale()
+                            }
+                            return { ...painted, isPainted: false }
+                        }) as never)
 
                     await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
                 })

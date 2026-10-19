@@ -450,6 +450,23 @@ describe('finding an element again', () => {
 
             expect(await isInView('#deep', { container: '#box' })).toBe(true)
         })
+
+        it('scrolls an element in a nested scroll container lower on the page that renders it again on each scroll', async () => {
+            await browser.execute(() => {
+                // the window delta of the element is more than the box height: the wheel scrolls it out of the box
+                document.body.insertAdjacentHTML('afterbegin', '<div style="height: 300px"></div>' +
+                    '<div id="box" style="height: 100px; overflow: auto"><div style="height: 1000px"></div><p id="deep">deep</p><div style="height: 1000px"></div></div>')
+                const box = document.querySelector('#box')!
+                box.addEventListener('scroll', () => {
+                    const deep = box.querySelector('#deep')!
+                    deep.replaceWith(deep.cloneNode(true))
+                })
+            })
+            const elem = await $('#deep')
+            await elem.scrollIntoView()
+
+            expect(await isInView('#deep', { container: '#box' })).toBe(true)
+        })
     })
 
     /**
