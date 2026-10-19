@@ -1,9 +1,10 @@
 import fsp from 'node:fs/promises'
+import path from 'node:path'
 import cp from 'node:child_process'
 import { promisify } from 'node:util'
 
 import logger from '@wdio/logger'
-import { install, Cache, detectBrowserPlatform, type InstallOptions } from '@puppeteer/browsers'
+import { install, Cache, detectBrowserPlatform, getDownloadUrl, type InstallOptions } from '@puppeteer/browsers'
 
 const log = logger('webdriver')
 
@@ -12,7 +13,8 @@ const log = logger('webdriver')
  * promise never settles and the extracted folder has no executable (#15608).
  * Like `@puppeteer/browsers` v3, unzip the archive with an OS tool first, so that
  * `install()` finds a complete build folder and only runs its setup.
- * Without an OS tool, `install()` unpacks the archive with `extract-zip` as before.
+ * Other archive types (Firefox `.tar.xz`, `.tar.bz2`, `.dmg`, `.exe`) and the case without
+ * an OS tool stay with `install()`, as before.
  * Only on Node 26 and later: older versions keep `extract-zip`, which works there.
  */
 export async function unzipWithOsTool (args: InstallOptions) {
@@ -26,17 +28,25 @@ export async function unzipWithOsTool (args: InstallOptions) {
         return
     }
 
-    const outputPath = new Cache(args.cacheDir).installationDir(args.browser, platform, args.buildId)
+    // same file name as `install()`, so that it uses the archive downloaded here
+    const fileName = decodeURIComponent(getDownloadUrl(args.browser, platform, args.buildId, args.baseUrl).toString()).split('/').pop()
+    if (!fileName?.endsWith('.zip')) {
+        // `install()` downloads and unpacks it as before, nothing is downloaded here
+        return
+    }
+
+    const cache = new Cache(args.cacheDir)
+    const outputPath = cache.installationDir(args.browser, platform, args.buildId)
     if (await fsp.access(outputPath).then(() => true, () => false)) {
         // installed already, or a partial folder that `install()` reports
         return
     }
 
-    const archivePath = await install({ ...args, platform, unpack: false })
-    if (!archivePath.endsWith('.zip')) {
-        // `install()` unpacks other archive types from the downloaded file
-        return
-    }
+    const archivePath = await install({ ...args, platform, unpack: false }).catch(async (err) => {
+        // `install()` reuses an archive that exists, so never keep a partial download
+        await removeOrWarn(path.join(cache.browserRoot(args.browser), `${args.buildId}-${fileName}`))
+        throw err
+    })
 
     try {
         await fsp.mkdir(outputPath, { recursive: true })

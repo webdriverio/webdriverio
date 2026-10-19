@@ -2,7 +2,7 @@ import path from 'node:path'
 import fsp from 'node:fs/promises'
 import cp from 'node:child_process'
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
-import { install } from '@puppeteer/browsers'
+import { install, getDownloadUrl } from '@puppeteer/browsers'
 
 import { unzipWithOsTool } from '../../src/node/unzip.js'
 
@@ -23,14 +23,19 @@ vi.mock('node:child_process', () => ({
 
 vi.mock('@puppeteer/browsers', () => ({
     Cache: vi.fn(function () {
-        return { installationDir: () => '/cache/chromedriver/linux-133.0.6943.141' }
+        return {
+            installationDir: () => '/cache/chromedriver/linux-133.0.6943.141',
+            browserRoot: () => '/cache/chromedriver'
+        }
     }),
     detectBrowserPlatform: vi.fn().mockReturnValue('linux'),
+    getDownloadUrl: vi.fn(),
     install: vi.fn()
 }))
 
 const outputPath = '/cache/chromedriver/linux-133.0.6943.141'
 const archivePath = '/cache/chromedriver/133.0.6943.141-chromedriver-linux64.zip'
+const chromedriverUrl = 'https://storage.googleapis.com/chrome-for-testing-public/133.0.6943.141/linux64/chromedriver-linux64.zip'
 const args = { cacheDir: '/cache', browser: 'chromedriver', buildId: '133.0.6943.141' } as Parameters<typeof unzipWithOsTool>[0]
 
 type ExecFileResult = Error & { code?: string | number, stderr?: string } | undefined
@@ -64,6 +69,7 @@ describe('unzipWithOsTool', () => {
         vi.mocked(fsp.mkdir).mockReset().mockResolvedValue(undefined)
         vi.mocked(fsp.rm).mockReset().mockResolvedValue(undefined)
         vi.mocked(install).mockReset().mockResolvedValue(archivePath as never)
+        vi.mocked(getDownloadUrl).mockReset().mockReturnValue(new URL(chromedriverUrl))
         vi.mocked(cp.execFile).mockReset()
         logMock.info.mockClear()
         logMock.warn.mockClear()
@@ -96,13 +102,54 @@ describe('unzipWithOsTool', () => {
         expect(cp.execFile).not.toHaveBeenCalled()
     })
 
-    it('leaves other archive types to install()', async () => {
-        vi.mocked(install).mockResolvedValue('/cache/firefox/stable_157.0-firefox-157.0.tar.xz' as never)
+    /**
+     * only zip archives go to the OS tool; for the other types nothing is
+     * downloaded here, so `install()` downloads and unpacks them once, as before
+     */
+    it.each([
+        ['Firefox stable, Linux', 'https://archive.mozilla.org/pub/firefox/releases/157.0/linux-x86_64/en-US/firefox-157.0.tar.xz'],
+        ['Firefox < 135, Linux', 'https://archive.mozilla.org/pub/firefox/releases/134.0/linux-x86_64/en-US/firefox-134.0.tar.bz2'],
+        ['Firefox, macOS', 'https://archive.mozilla.org/pub/firefox/releases/157.0/mac/en-US/Firefox%20157.0.dmg'],
+        ['Firefox stable, Windows', 'https://archive.mozilla.org/pub/firefox/releases/157.0/win64/en-US/Firefox%20Setup%20157.0.exe']
+    ])('leaves %s to install() without a download', async (_, url) => {
+        vi.mocked(getDownloadUrl).mockReturnValue(new URL(url))
 
         await unzipWithOsTool(args)
 
+        expect(install).not.toHaveBeenCalled()
         expect(cp.execFile).not.toHaveBeenCalled()
         expect(fsp.mkdir).not.toHaveBeenCalled()
+    })
+
+    it.each([
+        ['Chrome', 'https://storage.googleapis.com/chrome-for-testing-public/133.0.6943.141/linux64/chrome-linux64.zip'],
+        ['Chromedriver', chromedriverUrl],
+        ['Firefox Nightly, Windows', 'https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/firefox-158.0a1.en-US.win64.zip']
+    ])('unzips %s with the OS tool', async (_, url) => {
+        vi.mocked(getDownloadUrl).mockReturnValue(new URL(url))
+        execFileResults({})
+
+        await unzipWithOsTool(args)
+
+        expect(install).toHaveBeenCalledWith(expect.objectContaining({ unpack: false }))
+        expect(cp.execFile).toHaveBeenCalledWith('unzip', ['-o', archivePath, '-d', outputPath], {}, expect.any(Function))
+    })
+
+    it('reads the archive type from the custom download host', async () => {
+        execFileResults({})
+
+        await unzipWithOsTool({ ...args, baseUrl: 'https://mirror.example.com/chrome' })
+
+        expect(getDownloadUrl).toHaveBeenCalledWith('chromedriver', 'linux', '133.0.6943.141', 'https://mirror.example.com/chrome')
+    })
+
+    it('removes a partial archive and throws when the download fails', async () => {
+        vi.mocked(install).mockRejectedValue(new Error('ENOSPC: no space left on device'))
+
+        await expect(unzipWithOsTool(args)).rejects.toThrow('ENOSPC: no space left on device')
+
+        expect(fsp.rm).toHaveBeenCalledWith(archivePath, { recursive: true, force: true })
+        expect(cp.execFile).not.toHaveBeenCalled()
     })
 
     it('does nothing before Node 26, where extract-zip works', async () => {
@@ -110,6 +157,7 @@ describe('unzipWithOsTool', () => {
 
         await unzipWithOsTool(args)
 
+        expect(getDownloadUrl).not.toHaveBeenCalled()
         expect(install).not.toHaveBeenCalled()
         expect(cp.execFile).not.toHaveBeenCalled()
     })
