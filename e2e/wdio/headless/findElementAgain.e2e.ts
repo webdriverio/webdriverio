@@ -329,6 +329,110 @@ describe('finding an element again', () => {
     })
 
     /**
+     * The scroll itself makes the page render the element again: a component that renders when it
+     * becomes visible, a list or a parent that renders again on `scroll`. The command must end with
+     * the element on the page in view, or throw when the element is gone.
+     */
+    describe('scrollIntoView when its scroll makes the page render the element again', () => {
+        /**
+         * whether the element that the selector finds now (in `host`'s shadow root, if given) is in
+         * the viewport, and in its scroll container if given
+         */
+        const isInView = (selector: string, { index = 0, host, container }: { index?: number, host?: string, container?: string } = {}) => browser.execute(
+            (selector, index, host, container) => {
+                const root = host ? document.querySelector(host)!.shadowRoot! : document
+                const rect = root.querySelectorAll(selector)[index].getBoundingClientRect()
+                const box = container ? document.querySelector(container)!.getBoundingClientRect() : { top: 0, bottom: window.innerHeight }
+                return rect.top >= Math.max(0, box.top) && rect.bottom <= Math.min(window.innerHeight, box.bottom)
+            }, selector, index, host ?? '', container ?? '')
+
+        it('scrolls an element that a component renders when it becomes visible, with block center', async () => {
+            const elem = await $('#far')
+            await browser.execute(() => {
+                const observer = new IntersectionObserver((entries) => {
+                    if (entries.some((entry) => entry.isIntersecting)) {
+                        observer.disconnect()
+                        ;(window as unknown as Fixture).renderFar()
+                    }
+                })
+                observer.observe(document.querySelector('#far')!)
+            })
+            await elem.scrollIntoView({ block: 'center' })
+
+            expect(await isInView('#far')).toBe(true)
+        })
+
+        it('throws for an element off screen that its scroll removes', async () => {
+            const elem = await $('#far')
+            await browser.execute(() => window.addEventListener('scroll', () => document.querySelector('#far')?.remove()))
+
+            expect((await errorOf(elem.scrollIntoView()))?.message).toContain("element wasn't found")
+        })
+
+        it('scrolls an item of $$ in a list that renders all its rows again on each scroll', async () => {
+            await browser.execute(() => {
+                document.querySelector('#far-area')!.insertAdjacentHTML('beforeend',
+                    `<ul id="rows">${[0, 1, 2, 3, 4].map((i) => `<li class="row">row ${i}</li>`).join('')}</ul>`)
+                const rows = document.querySelector('#rows')!
+                window.addEventListener('scroll', () => {
+                    rows.replaceChildren(...[...rows.children].map((row) => row.cloneNode(true)))
+                })
+            })
+            const row = await $$('.row')[3]
+            await row.scrollIntoView()
+
+            expect(await isInView('.row', { index: 3 })).toBe(true)
+        })
+
+        it('scrolls an element of a parent that renders again on each scroll', async () => {
+            await browser.execute(() => {
+                document.querySelector('#far-area')!.insertAdjacentHTML('beforeend',
+                    `<ul id="rows">${[0, 1, 2, 3, 4].map((i) => `<li class="row">row ${i}</li>`).join('')}</ul>`)
+                window.addEventListener('scroll', () => {
+                    const rows = document.querySelector('#rows')!
+                    rows.replaceWith(rows.cloneNode(true))
+                })
+            })
+            const row = await $('#rows').$('li:nth-child(4)')
+            await row.scrollIntoView()
+
+            expect(await isInView('.row', { index: 3 })).toBe(true)
+        })
+
+        it('scrolls an element in a shadow root that renders again on each scroll', async () => {
+            await browser.execute(() => {
+                const host = document.createElement('div')
+                host.id = 'scroll-host'
+                host.attachShadow({ mode: 'open' }).innerHTML = '<p class="target">in shadow</p>'
+                document.querySelector('#far-area')!.append(host)
+                window.addEventListener('scroll', () => {
+                    host.shadowRoot!.innerHTML = '<p class="target">in shadow</p>'
+                })
+            })
+            const elem = await $('#scroll-host').shadow$('.target')
+            await elem.scrollIntoView()
+
+            expect(await isInView('.target', { host: '#scroll-host' })).toBe(true)
+        })
+
+        it('scrolls an element in a nested scroll container that renders it again on each scroll', async () => {
+            await browser.execute(() => {
+                document.body.insertAdjacentHTML('afterbegin',
+                    '<div id="box" style="height: 150px; overflow: auto"><div style="height: 1000px"></div><p id="deep">deep</p></div>')
+                const box = document.querySelector('#box')!
+                box.addEventListener('scroll', () => {
+                    const deep = box.querySelector('#deep')!
+                    deep.replaceWith(deep.cloneNode(true))
+                })
+            })
+            const elem = await $('#deep')
+            await elem.scrollIntoView()
+
+            expect(await isInView('#deep', { container: '#box' })).toBe(true)
+        })
+    })
+
+    /**
      * A command runs again with the id of the element that was found again, not with the stale id
      */
     describe('a command that gets the element id', () => {
