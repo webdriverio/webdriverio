@@ -105,7 +105,7 @@ export async function scriptTimeoutOf (browser: WebdriverIO.Browser): Promise<nu
  * ignores `timeouts.script` of the capabilities. Set it when the session starts.
  * An attached session keeps the timeout that it has.
  *
- * TODO: remove when XCUITest driver 12 is not supported (appium/appium-xcuitest-driver#3041)
+ * TODO: remove when the supported XCUITest drivers start with the W3C default (30 s)
  */
 export async function setIOSScriptTimeout (browser: WebdriverIO.Browser) {
     if (!browser.isMobile || !browser.isIOS || isAttachedSession(browser)) {
