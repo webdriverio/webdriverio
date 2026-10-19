@@ -573,6 +573,28 @@ describe('wdio-junit-reporter', () => {
         }
     })
 
+    it('addWorkerLogs: writes each Cucumber step on its own line, followed by its output (Cucumber-style)', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, addWorkerLogs: true })
+        reporter.suites = featuresLog as any
+        reporter['_testToAdditionalInformation']['step has passed6'] = {
+            uid: 'step has passed6',
+            workerConsoleLog: 'output of the first step',
+            properties: {}
+        }
+
+        const output = reporter['_buildJunitXml'](cucumberRunnerLog as any).toString()
+        const systemOut = /<system-out><!\[CDATA\[([\s\S]*?)\]\]><\/system-out>/.exec(output)?.[1]
+        expect(systemOut).toBe([
+            '',
+            '✅ Given step has passed',
+            'output of the first step',
+            '✅ When step has passed',
+            '❗ Then step has failed',
+            '',
+            ''
+        ].join('\n'))
+    })
+
     it('addProperty adds a property to currently running testcase', () => {
         reporter = new WDIOJunitReporter({ stdout: true })
         reporter.suites = suitesLog as any
