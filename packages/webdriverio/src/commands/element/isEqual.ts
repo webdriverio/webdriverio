@@ -1,6 +1,6 @@
-import { getBrowserObject } from '@wdio/utils'
+import { getBrowserObject, getWdioKind } from '@wdio/utils'
 
-import { findElementAgain } from '../../utils/findElementAgain.js'
+import { canFindAgain, findElementAgain } from '../../utils/findElementAgain.js'
 import { isStaleElementToFindAgain } from '../../utils/index.js'
 import { withKnownElement } from '../../utils/foreignContext.js'
 
@@ -59,13 +59,33 @@ export async function isEqual (
          * The page rendered an element again: compare the elements that are on the page now. As
          * the other checks, look them up once, without a wait: an element that is gone is not equal.
          */
-        const [found, other] = await Promise.all([findElementAgain(this), findElementAgain(el)])
+        const [found, other] = await Promise.all([findOnPage(this), findOnPage(el)])
             .catch(() => [undefined, undefined])
         if (!found?.elementId || !other?.elementId) {
             return false
         }
         return isSameNode(browser, found, other).catch(() => false)
     }
+}
+
+/**
+ * Find the chain again from the browser, once, without a wait: a stale parent waits for itself,
+ * and in BiDi finds its removed child. Keeps an element reference. `undefined` when one is gone.
+ */
+async function findOnPage (element: WebdriverIO.Element) {
+    const chain: WebdriverIO.Element[] = []
+    for (let current = element; getWdioKind(current) === 'element'; current = current.parent as WebdriverIO.Element) {
+        chain.unshift(current)
+    }
+    let parent = chain[0]?.parent as WebdriverIO.Browser | WebdriverIO.Element
+    for (const item of chain) {
+        const found = canFindAgain(item) ? await findElementAgain(item, { parent }) : item
+        if (!found?.elementId) {
+            return undefined
+        }
+        parent = found
+    }
+    return parent as WebdriverIO.Element
 }
 
 /**

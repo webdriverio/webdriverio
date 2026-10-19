@@ -252,6 +252,30 @@ describe('finding an element again', () => {
             expect(await elem.isEqual(other)).toBe(false)
             expect(Date.now() - start).toBeLessThan(browser.options.waitforTimeout ?? 5000)
         })
+
+        it('isEqual compares with an element reference, which has no selector', async () => {
+            const elem = await $('.item')
+            await renderItems(['replaced'])
+
+            expect(await elem.isEqual(await $(await browser.findElement('css selector', '.item')))).toBe(true)
+        })
+
+        it('isEqual compares an element whose parent the page rendered again', async () => {
+            const elem = await $('#form').$('.in-form')
+            await renderForm('replaced')
+
+            expect(await elem.isEqual(await $('#form').$('.in-form'))).toBe(true)
+        })
+
+        it('isEqual of an element whose parent the page removed gives false at once', async () => {
+            const elem = await $('#form').$('.in-form')
+            const other = await $('#late-area')
+            await browser.execute(() => document.querySelector('#form')!.remove())
+
+            const start = Date.now()
+            expect(await elem.isEqual(other)).toBe(false)
+            expect(Date.now() - start).toBeLessThan(browser.options.waitforTimeout ?? 5000)
+        })
     })
 
     /**

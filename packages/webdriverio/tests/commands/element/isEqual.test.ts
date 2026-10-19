@@ -71,7 +71,8 @@ describe('isEqual test', () => {
 
                 expect(await elem.isEqual(elem)).toBe(true)
                 expect(execute).toHaveBeenCalledTimes(2)
-                expect(vi.mocked(findElementAgain).mock.calls.map(([, options]) => options?.wait ?? false)).toEqual([false, false])
+                expect(findElementAgain).toHaveBeenCalledWith(elem, { parent: browser })
+                expect(findElementAgain).not.toHaveBeenCalledWith(elem, expect.objectContaining({ wait: true }))
             })
 
             it('gives false when an element is not on the page any more', async () => {
@@ -82,6 +83,35 @@ describe('isEqual test', () => {
 
                 expect(await elem.isEqual(elem)).toBe(false)
                 expect(execute).toHaveBeenCalledTimes(1)
+            })
+
+            it('keeps an element that has no selector to find it again (an element reference)', async () => {
+                const execute = vi.spyOn(browser, 'execute').mockRejectedValueOnce(stale()).mockResolvedValueOnce(true)
+                const ref = await browser.$({ 'element-6066-11e4-a52e-4f735466cecf': 'ref-id' } as unknown as string)
+
+                expect(await elem.isEqual(ref)).toBe(true)
+                expect(execute).toHaveBeenLastCalledWith(expect.any(Function), expect.objectContaining({ selector: '#foo' }), ref)
+            })
+
+            it('finds the parents again from the browser, without a wait', async () => {
+                vi.spyOn(browser, 'execute').mockRejectedValueOnce(stale()).mockResolvedValueOnce(true)
+                const child = await browser.$('#parent').$('#child')
+
+                expect(await child.isEqual(child)).toBe(true)
+                expect(findElementAgain).toHaveBeenCalledWith(child.parent, { parent: browser })
+                expect(findElementAgain).toHaveBeenCalledWith(child, { parent: expect.objectContaining({ selector: '#parent' }) })
+            })
+
+            it('gives false at once when a parent is not on the page any more', async () => {
+                vi.spyOn(browser, 'execute').mockRejectedValueOnce(stale())
+                const child = await browser.$('#parent').$('#child')
+                const gone = await browser.$('#gone')
+                gone.elementId = undefined as unknown as string
+                vi.mocked(findElementAgain).mockResolvedValueOnce(gone)
+
+                expect(await child.isEqual(elem)).toBe(false)
+                expect(findElementAgain).not.toHaveBeenCalledWith(child)
+                expect(findElementAgain).not.toHaveBeenCalledWith(child, expect.anything())
             })
         })
 
