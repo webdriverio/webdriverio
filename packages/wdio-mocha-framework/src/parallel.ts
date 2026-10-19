@@ -281,9 +281,9 @@ function emitTestStart(reporter: EventEmitter, test: CollectedTest, cid: string,
     reporter.emit('test:start', baseMessage('test:start', test, cid, specs, uid, contextId))
 }
 
-function emitTestPass(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number) {
-    reporter.emit('test:pass', { ...baseMessage('test:pass', test, cid, specs, uid), duration, passed: true })
-    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid), duration, passed: true })
+function emitTestPass(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number, contextId: string) {
+    reporter.emit('test:pass', { ...baseMessage('test:pass', test, cid, specs, uid, contextId), duration, passed: true })
+    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid, contextId), duration, passed: true })
 }
 
 function emitTestFail(
@@ -293,47 +293,77 @@ function emitTestFail(
     specs: string[],
     uid: string,
     duration: number,
-    error: Error
+    error: Error,
+    contextId: string
 ) {
     const errorPayload = {
         name: error.name || 'Error',
         message: error.message,
         stack: error.stack
     }
-    reporter.emit('test:fail', { ...baseMessage('test:fail', test, cid, specs, uid), duration, error: errorPayload })
-    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid), duration, passed: false, error: errorPayload })
+    reporter.emit('test:fail', { ...baseMessage('test:fail', test, cid, specs, uid, contextId), duration, error: errorPayload })
+    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid, contextId), duration, passed: false, error: errorPayload })
 }
 
 type HookKind = 'before all' | 'after all' | 'before each' | 'after each'
 
 function emitTestPending(reporter: EventEmitter, test: CollectedTest, cid: string, specs: string[], uid: string, duration: number, contextId: string) {
     reporter.emit('test:pending', { ...baseMessage('test:pending', test, cid, specs, uid, contextId), duration, pending: true })
-    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid), duration, passed: false, pending: true })
+    reporter.emit('test:end', { ...baseMessage('test:end', test, cid, specs, uid, contextId), duration, passed: false, pending: true })
 }
 
-function hookBaseMessage(type: string, kind: HookKind, test: CollectedTest, cid: string, specs: string[], uid: string) {
+interface MochaHookLike {
+    title?: string
+    originalTitle?: string
+    parent?: { title?: string, tests?: { title: string }[] }
+}
+
+/**
+ * Reproduces what reporters see in sequential mode: formatMessage (common.ts)
+ * rewrites the title to `"<hook>" hook for <declaring suite>` when the hook's
+ * suite has a title; for root-level hooks Mocha's native title is kept
+ * (runner.js setHookTitle).
+ */
+function hookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTest) {
+    const declaringSuite = hook.parent?.title
+    if (declaringSuite) {
+        return `"${kind}" hook for ${declaringSuite}`
+    }
+    const original = hook.originalTitle ?? hook.title ?? `"${kind}" hook`
+    const siblings = hook.parent?.tests
+    const currentTest = kind === 'before all' ? siblings?.[0]?.title
+        : kind === 'after all' ? siblings?.[siblings.length - 1]?.title
+            : test.title
+    return currentTest !== undefined
+        ? `${original} for "${currentTest}"`
+        : `${original} in "{root}"`
+}
+
+function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
     return {
         type, cid, specs, uid,
-        // matches the sequential formatMessage hook-title rewrite (common.ts)
-        title: `${kind} hook for "${test.parentTitle}"`,
+        title: hookTitle(kind, hook, test),
         fullTitle: `${test.parentTitle}.${kind} hook`,
         parent: test.parentTitle,
         file: test.file || specs[0],
-        ...parentUidField(cid, test.suiteIndex)
+        ...parentUidField(cid, test.suiteIndex),
+        contextId
     } satisfies TestMessage
 }
 
-function emitHookStart(reporter: EventEmitter, kind: HookKind, test: CollectedTest, cid: string, specs: string[], uid: string) {
-    reporter.emit('hook:start', hookBaseMessage('hook:start', kind, test, cid, specs, uid))
+function emitHookStart(reporter: EventEmitter, kind: HookKind, hook: MochaHookLike, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
+    reporter.emit('hook:start', hookBaseMessage('hook:start', kind, hook, test, cid, specs, uid, contextId))
 }
 
 function emitHookEnd(
     reporter: EventEmitter,
     kind: HookKind,
+    hook: MochaHookLike,
     test: CollectedTest,
     cid: string,
     specs: string[],
     uid: string,
+    contextId: string,
     duration: number,
     error?: Error
 ) {
@@ -343,7 +373,7 @@ function emitHookEnd(
         stack: error.stack
     } : undefined
     reporter.emit('hook:end', {
-        ...hookBaseMessage('hook:end', kind, test, cid, specs, uid),
+        ...hookBaseMessage('hook:end', kind, hook, test, cid, specs, uid, contextId),
         duration,
         state: error ? 'fail' : 'pass',
         ...(errorPayload ? { error: errorPayload } : {})
@@ -545,16 +575,17 @@ async function runOneTest(
          * and the failing hook is reported as its own failure.
          */
         const runHookChain = async (hooks: Function[], kind: HookKind, fatal: boolean) => {
-            for (const hook of hooks) {
+            for (const fn of hooks) {
+                const hook = fn as MochaHookLike
                 const hookUid = `hook-${uid}-${hookCnt++}`
-                emitHookStart(reporter, kind, test, cid, specs, hookUid)
+                emitHookStart(reporter, kind, hook, test, cid, specs, hookUid, contextId)
                 const hookStart = Date.now()
                 try {
-                    await callHook(hook, ctx, timeoutMs)
-                    emitHookEnd(reporter, kind, test, cid, specs, hookUid, Date.now() - hookStart)
+                    await callHook(fn, ctx, timeoutMs)
+                    emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart)
                 } catch (err) {
                     const hookError = err instanceof Error ? err : new Error(String(err))
-                    emitHookEnd(reporter, kind, test, cid, specs, hookUid, Date.now() - hookStart, hookError)
+                    emitHookEnd(reporter, kind, hook, test, cid, specs, hookUid, contextId, Date.now() - hookStart, hookError)
                     if (fatal) {
                         caughtError = hookError
                         break
@@ -597,8 +628,8 @@ async function runOneTest(
                 return { status: 'pending' as const, name: test.title, duration: 0, hookFailures }
             }
             // WDIOReporter's test:fail handler needs a prior test:start for this uid
-            emitTestStart(reporter, test, cid, specs, uid)
-            emitTestFail(reporter, test, cid, specs, uid, 0, caughtError!)
+            emitTestStart(reporter, test, cid, specs, uid, contextId)
+            emitTestFail(reporter, test, cid, specs, uid, 0, caughtError!, contextId)
             return { status: 'failed' as const, name: test.title, duration: 0, error: caughtError!.message, hookFailures }
         }
         if (isSkipError(caughtError)) {
@@ -606,10 +637,10 @@ async function runOneTest(
             return { status: 'pending' as const, name: test.title, duration: fnDuration, hookFailures }
         }
         if (passed) {
-            emitTestPass(reporter, test, cid, specs, uid, fnDuration)
+            emitTestPass(reporter, test, cid, specs, uid, fnDuration, contextId)
             return { status: 'passed' as const, name: test.title, duration: fnDuration, hookFailures }
         }
-        emitTestFail(reporter, test, cid, specs, uid, fnDuration, caughtError!)
+        emitTestFail(reporter, test, cid, specs, uid, fnDuration, caughtError!, contextId)
         return { status: 'failed' as const, name: test.title, duration: fnDuration, error: caughtError!.message, hookFailures }
     })
 }
