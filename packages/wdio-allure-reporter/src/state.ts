@@ -26,6 +26,10 @@ const ALL_HOOK_PATTERN = /^"(?:before|after)\s+all"/i
 const EACH_HOOK_PATTERN = /^"(?:before|after)\s+each"/i
 const AFTER_ALL_HOOK_PATTERN = /^"after\s+all"/i
 
+export function isOpen(messages: WDIORuntimeMessage[], startType: WDIORuntimeMessage['type'], endType: WDIORuntimeMessage['type']): boolean {
+    return findLastIndex(messages, ({ type }) => type === startType) > findLastIndex(messages, ({ type }) => type === endType)
+}
+
 export class AllureReportState {
     private _scopesStack: string[] = []
     private _scopeKindsStack: Array<'suite' | 'test'> = []
@@ -98,15 +102,11 @@ export class AllureReportState {
     }
 
     get hasPendingTest(): boolean {
-        const s = findLastIndex(this.messages, ({ type }) => type === 'allure:test:start')
-        const e = findLastIndex(this.messages, ({ type }) => type === 'allure:test:end')
-        return s > e
+        return isOpen(this.messages, 'allure:test:start', 'allure:test:end')
     }
 
     get hasPendingHook(): boolean {
-        const s = findLastIndex(this.messages, ({ type }) => type === 'allure:hook:start')
-        const e = findLastIndex(this.messages, ({ type }) => type === 'allure:hook:end')
-        return s > e
+        return isOpen(this.messages, 'allure:hook:start', 'allure:hook:end')
     }
 
     get currentFeature(): string | undefined {
