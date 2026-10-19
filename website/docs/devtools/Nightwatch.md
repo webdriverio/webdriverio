@@ -157,7 +157,7 @@ desiredCapabilities: {
 }
 ```
 
-When BiDi is attached, the per-command Chrome performance-log network capture path is gated off so requests don't appear twice in the dashboard. If `webSocketUrl` is missing or the chromedriver version doesn't expose BiDi, the attach logs a warning and the perf-log fallback continues to work.
+When BiDi is attached, the per-command Chrome performance-log network capture path is gated off so requests don't appear twice in the dashboard. If `webSocketUrl` is missing or the chromedriver version doesn't expose BiDi, the attach logs a warning and the perf-log fallback continues to work. The injected collector lists every request as well, from two sources of the page's own: a `fetch` / `XMLHttpRequest` call goes through its patch and carries method, headers, status and body, and every other load comes from the page's Resource Timing buffer with its timing and size. On Chrome the performance log then upgrades those Resource Timing rows in place with headers and status; on Safari, or any session Appium serves, they stay as the page saw them, without headers or bodies, and on Safari without a status. See [Network Logs](/docs/devtools/wdio/network-logs#without-webdriver-bidi).
 
 **Set `webSocketUrl: true` even without `bidi: true`.** With it, the adapter registers its page collector at document start on every page, so DOM time-travel stays accurate across navigations. Without it, the adapter falls back to injecting the collector after each navigation, which can miss the first moments of a new page.
 

@@ -10,7 +10,7 @@ DevTools captures Appium sessions in both live mode and [Trace Mode](/docs/devto
 
 | Session | Has a document | What is captured |
 |---|---|---|
-| **Mobile browser** (Chrome on Android, Safari on iOS) | always | the same as a desktop run — DOM time-travel, console, network, replay |
+| **Mobile browser** (Chrome on Android, Safari on iOS) | always | DOM time-travel, console and replay as on desktop; network from the page's own record, since Appium serves no BiDi (see [Network Logs](/docs/devtools/wdio/network-logs#without-webdriver-bidi)) |
 | **Native app** | never | commands, screenshots and element data from the platform's XML tree; no DOM |
 | **Hybrid app** | only while in a webview context | native halves as an app, webview halves as a page |
 
@@ -45,7 +45,7 @@ On a native session the A11y tab and element data come from the platform's XML t
 
 Per-action snapshots are issued from inside the command hook, and Appium serialises a probe behind the command it is observing. Where a session has a document to probe, that snapshot is therefore skipped.
 
-In practice: **a hybrid app's webview actions carry no per-action element data, accessibility tree or settle screenshot.** Native sessions, mobile browsers and every desktop session are unaffected. Command rows and their screenshots, console, network and the archive itself are always captured.
+In practice: **a hybrid app's webview actions carry no per-action element data, accessibility tree or settle screenshot.** Native sessions, mobile browsers and every desktop session are unaffected. Command rows and their screenshots, console and the archive itself are always captured. A mobile browser's network comes from the page's Resource Timing buffer and its `fetch` / `XMLHttpRequest` patch rather than from BiDi, and a native session has no network capture, because the driver exposes none.
 
 These absences are by design. They are not a capture failure, and they are the main thing to know before debugging a hybrid trace.
 

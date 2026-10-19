@@ -676,7 +676,9 @@ The plugin patches `selenium-webdriver`'s `Builder`, `WebDriver`, and `WebElemen
 - **Every public `WebDriver` / `WebElement` method** - wrapped with command capture (args + result + screenshot + call source).
 - **`WebDriver.quit()`** - an awaited cleanup hook flushes screencast encoding, WebSocket buffer, and final metadata before the original quit runs.
 
-When BiDi is available (Chrome ≥114), console logs, JavaScript exceptions, and network events stream directly via the Selenium BiDi handlers. Otherwise the plugin falls back to an injected browser-side collector script.
+When BiDi is available (Chrome ≥114), console logs, JavaScript exceptions, and network events stream directly via the Selenium BiDi handlers. Otherwise the plugin falls back to an injected browser-side collector script, so a Safari or Appium session still lists every request, from two sources of the page's own. A `fetch` / `XMLHttpRequest` call goes through the collector's patch and carries its method, headers, status and body. Every other load (the document, scripts, styles, images, fonts) comes from the page's Resource Timing buffer with its timing and size, but no headers or body, and on Safari no status; the Network tab says so on each such row.
+
+A `driver.wait()` shows as the one command the test made, not a row per poll.
 
 The page-side collector is registered at document start through BiDi (`script.addPreloadScript`), so every page instruments itself before any of its own script runs; without BiDi it falls back to injecting a `<script>` after each navigation. It records the page's **DOM mutation stream** and a per-command element / accessibility snapshot, so a trace carries enough to rebuild the live DOM at each step (per-navigation mapping) — this is what powers the player's DOM time-travel and A11y tab rather than a screenshot-only replay.
 
@@ -689,7 +691,7 @@ There are no prototypes to patch, so the Python adapter wraps one method instead
 - **Session setup** - on the first real command the driver is registered, metadata is sent, and BiDi, the collector and the screencast are armed.
 - **`quit()`** - intercepted before the session is torn down, so the screencast is encoded and the final frames flushed while the driver still exists.
 
-Console, JavaScript exceptions and network stream over selenium's BiDi layer (4.44+), which the adapter enables for you by injecting the `webSocketUrl` capability into the `newSession` request.
+Console, JavaScript exceptions and network stream over selenium's BiDi layer (4.44+), which the adapter enables for you by injecting the `webSocketUrl` capability into the `newSession` request. Where the driver exposes no BiDi at all (Safari, and every session Appium serves) the injected page collector fills the Network tab instead, from two sources of the page's own. A `fetch` / `XMLHttpRequest` call goes through its patch and carries method, headers, status and body. Every other load comes from the document's Resource Timing buffer with its timing and size, but no headers or body, and on Safari no status.
 
 The **DOM mutation stream** comes from the same browser-side collector as Node.js, registered at document start through BiDi so a page instruments itself before any of its own script runs. With BiDi disabled (`DEVTOOLS_BIDI=0`) the collector is injected per document with a `<script>` instead. On Chrome the screencast is pushed by the browser over a CDP websocket of its own — separate from the session's command channel, which is what makes a real frame stream safe when a Selenium session is not thread-safe.
 
@@ -713,6 +715,7 @@ Try it with `pnpm demo:selenium:mobile` (Node.js) or `pnpm demo:python:mobile` (
 | Headless mode caveat | `headless: true` injects `--headless=old`; `--headless=new` produces all-black CDP frames in the screencast. |
 | Initial viewport | The dashboard's snapshot iframe falls back to 1280×800 until the first navigation completes and the browser-side collector reports the real viewport. |
 | Parallel workers | Jest/Vitest worker processes each load the plugin and report as a separate run, so the dashboard keeps only the latest worker's state. Run serially (`--runInBand`) for a single dashboard run. |
+| Safari in live mode | Safari delivers synthesized input only to its frontmost window and still reports success, so input issued while another window is in front reaches nothing. On Safari the plugin opens the dashboard behind the browser and brings the session's own window forward before each element click, key input, clear or submit. Trace mode opens no window and is not affected. |
 
 </TabItem>
 <TabItem value="python" label="Python">

@@ -34,7 +34,7 @@ Selenium and Nightwatch ship the same trace pipeline — see their adapter pages
 | File | Contents |
 |---|---|
 | `trace.trace` | NDJSON `context-options` + `before` / `after` action events; one line per record |
-| `trace.network` | HAR-style network entries, one per line |
+| `trace.network` | HAR-style network entries, one per line; an entry read from the page's Resource Timing buffer (no BiDi, e.g. Safari or Appium) carries `_source: "resource-timing"` and `_resourceType` |
 | `trace.mutations` | NDJSON DOM mutation stream behind DOM time-travel; omitted when nothing was captured |
 | `transcript.md` | Human/LLM-readable Markdown summary with timing, selectors, value annotations |
 | `resources/page@<id>-<ts>.jpeg` | Screenshot taken at each user-facing action |
