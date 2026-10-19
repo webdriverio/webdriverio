@@ -293,6 +293,17 @@ describe('finding an element again', () => {
                 return rect.top >= 0 && rect.bottom <= window.innerHeight
             })).toBe(true)
         })
+
+        it('scrollIntoView scrolls an element that the page renders again on each scroll', async () => {
+            const elem = await $('#far')
+            await browser.execute(() => window.addEventListener('scroll', () => (window as unknown as Fixture).renderFar()))
+            await elem.scrollIntoView()
+
+            expect(await browser.execute(() => {
+                const rect = document.querySelector('#far')!.getBoundingClientRect()
+                return rect.top >= 0 && rect.bottom <= window.innerHeight
+            })).toBe(true)
+        })
     })
 
     /**

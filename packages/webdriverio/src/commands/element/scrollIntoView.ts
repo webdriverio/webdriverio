@@ -101,6 +101,7 @@ export async function scrollIntoView (
         options = { block: 'end', inline: 'nearest' }
     }
 
+    let scrolled = false
     try {
         /**
          * by default the WebDriver action scrolls the element just into the
@@ -243,9 +244,12 @@ export async function scrollIntoView (
             return
         }
 
-        const wheelScroll = (deltaX: number, deltaY: number) => browser.action('wheel')
-            .scroll({ duration: 0, x: 0, y: 0, deltaX, deltaY, origin: this })
-            .perform()
+        const wheelScroll = async (deltaX: number, deltaY: number) => {
+            await browser.action('wheel')
+                .scroll({ duration: 0, x: 0, y: 0, deltaX, deltaY, origin: this })
+                .perform()
+            scrolled ||= deltaX !== 0 || deltaY !== 0
+        }
 
         /**
          * Per the WebDriver spec, resolving an element `origin` requires the browser to
@@ -317,7 +321,7 @@ export async function scrollIntoView (
                     requestAnimationFrame(check)
                 })
             } catch {
-                // element can disappear between the scroll and the settle check
+                // a page error ends the wait; a removed element throws before, in withKnownElement
             }
         }), this as unknown as HTMLElement)
 
@@ -345,9 +349,13 @@ export async function scrollIntoView (
     } catch (err) {
         /**
          * the element is stale: the element layer finds it again and scrolls the element on the
-         * page, the Web API would only fail with the same error
+         * page, the Web API would only fail with the same error. After a scroll, the scroll made
+         * the page render the element again (a virtual list): the scroll is done.
          */
         if (isStaleElementToFindAgain(err)) {
+            if (scrolled) {
+                return
+            }
             throw err
         }
         log.warn(

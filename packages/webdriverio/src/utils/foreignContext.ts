@@ -72,19 +72,21 @@ const AsyncFunction = (async () => {}).constructor as FunctionConstructor
  * as `defaultView` after a reload.
  *
  * @param script  a function, or the source of one (not a function body)
- * @param at      the index of the element argument
+ * @param at      the index of the element argument, or a list of them
  * @see https://w3c.github.io/webdriver/#dfn-get-a-known-element
  */
-export function withKnownElement<T extends Function> (script: T | string, at = 0): T {
+export function withKnownElement<T extends Function> (script: T | string, at: number | number[] = 0): T {
     /**
      * `execute` sends an async function to Classic as an async script
      */
     const isAsync = typeof script === 'function' && script.constructor.name === 'AsyncFunction'
+    const elements = (Array.isArray(at) ? at : [at]).map((index) => `arguments[${index}]`).join(', ')
     return new (isAsync ? AsyncFunction : Function)(
-        `const el = arguments[${at}]
-        const doc = el && el.ownerDocument
-        if (el && (el.isConnected === false || (doc && !(doc.defaultView && doc.defaultView.document === doc)))) {
-            throw new Error('stale element reference: the element is not attached to the active document')
+        `for (const el of [${elements}]) {
+            const doc = el && el.ownerDocument
+            if (el && (el.isConnected === false || (doc && !(doc.defaultView && doc.defaultView.document === doc)))) {
+                throw new Error('stale element reference: the element is not attached to the active document')
+            }
         }
         return (${script}).apply(this, arguments)`
     ) as T

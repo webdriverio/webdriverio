@@ -3,6 +3,7 @@ import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
 import { findElementAgain } from '../../../src/utils/findElementAgain.js'
+import { StrictSelectorError } from '../../../src/utils/strictSelectorError.js'
 
 vi.mock('fetch')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -56,7 +57,7 @@ describe('isEqual test', () => {
             it('the compare script throws a stale element error for an element that is not on the page', async () => {
                 const execute = vi.spyOn(browser, 'execute')
                 await elem.isEqual(elem)
-                const [script] = execute.mock.calls[0] as unknown as [(a: unknown, b: unknown) => boolean]
+                const script = execute.mock.calls.map(([fn]) => fn).find((fn) => String(fn).includes('isSameElement')) as unknown as (a: unknown, b: unknown) => boolean
                 const removed = { isConnected: false, ownerDocument: {} }
                 const onPage = { isConnected: true, ownerDocument: { defaultView: {} } }
                 ;(onPage.ownerDocument.defaultView as { document: unknown }).document = onPage.ownerDocument
@@ -70,7 +71,6 @@ describe('isEqual test', () => {
                 const execute = vi.spyOn(browser, 'execute').mockRejectedValueOnce(stale()).mockResolvedValueOnce(true)
 
                 expect(await elem.isEqual(elem)).toBe(true)
-                expect(execute).toHaveBeenCalledTimes(2)
                 expect(findElementAgain).toHaveBeenCalledWith(elem, { parent: browser })
                 expect(findElementAgain).not.toHaveBeenCalledWith(elem, expect.objectContaining({ wait: true }))
             })
@@ -82,7 +82,14 @@ describe('isEqual test', () => {
                 vi.mocked(findElementAgain).mockResolvedValueOnce(gone)
 
                 expect(await elem.isEqual(elem)).toBe(false)
-                expect(execute).toHaveBeenCalledTimes(1)
+                expect(execute).not.toHaveBeenCalledWith(expect.any(Function), gone, expect.anything())
+            })
+
+            it('sends up a strict mode error of the lookup', async () => {
+                vi.spyOn(browser, 'execute').mockRejectedValueOnce(stale())
+                vi.mocked(findElementAgain).mockRejectedValueOnce(new StrictSelectorError('#foo', 2))
+
+                await expect(elem.isEqual(elem)).rejects.toThrow(StrictSelectorError)
             })
 
             it('keeps an element that has no selector to find it again (an element reference)', async () => {

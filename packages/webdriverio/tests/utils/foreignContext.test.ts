@@ -110,4 +110,11 @@ describe('withKnownElement', () => {
         expect(script(detached, connected)).toBe('LI')
         expect(() => script(connected, detached)).toThrow('stale element reference')
     })
+
+    it('checks the elements at each given argument index', () => {
+        const script = withKnownElement((a: { tagName: string }, b: { tagName: string }) => a.tagName + b.tagName, [0, 1])
+        expect(script(connected, connected)).toBe('LILI')
+        expect(() => script(detached, connected)).toThrow('stale element reference')
+        expect(() => script(connected, detached)).toThrow('stale element reference')
+    })
 })

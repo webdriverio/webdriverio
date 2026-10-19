@@ -375,6 +375,20 @@ describe('scrollIntoView test', () => {
                 const webApiCalls = execute.mock.calls.filter(([script]) => /elem\.scrollIntoView\(/.test(String(script)))
                 expect(webApiCalls).toEqual([])
             })
+
+            it('ends without an error when the scroll made the page render the element again', async () => {
+                const painted = {
+                    elemRect: { x: 15, y: 400, height: 30, width: 50 },
+                    viewport: { width: 600, height: 800 },
+                    scroll: { x: 0, y: 0 },
+                    isPainted: true
+                }
+                const execute = vi.spyOn(browser, 'execute').mockResolvedValueOnce(painted).mockRejectedValue(stale())
+
+                await expect(elem.scrollIntoView()).resolves.toBeUndefined()
+                const webApiCalls = execute.mock.calls.filter(([script]) => /elem\.scrollIntoView\(/.test(String(script)))
+                expect(webApiCalls).toEqual([])
+            })
         })
     })
 
@@ -401,7 +415,7 @@ describe('scrollIntoView test', () => {
             const removed = { isConnected: false, ownerDocument: {} } as unknown as HTMLElement
             const execute = vi.spyOn(browser, 'execute')
             await elem.scrollIntoView()
-            const [script] = execute.mock.calls[0] as unknown as [(...args: unknown[]) => unknown]
+            const script = execute.mock.calls.map(([fn]) => fn).find((fn) => /elem\.scrollIntoView\(/.test(String(fn))) as unknown as (...args: unknown[]) => unknown
             execute.mockRestore()
 
             expect(() => script(removed, true)).toThrow('stale element reference')

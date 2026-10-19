@@ -3,10 +3,19 @@ import { getBrowserObject, getWdioKind } from '@wdio/utils'
 import { canFindAgain, findElementAgain } from '../../utils/findElementAgain.js'
 import { isStaleElementToFindAgain } from '../../utils/index.js'
 import { withKnownElement } from '../../utils/foreignContext.js'
+import { StrictSelectorError } from '../../utils/strictSelectorError.js'
 
 /**
  *
  * Return true if the selected element matches with the provided one.
+ *
+ * :::info
+ *
+ * As the other element commands, `isEqual` compares the elements that are on the page now. When the
+ * page renders an element again (for example a React re-render), the command finds it again with its
+ * selector, once and without a wait. An element that is gone is not equal.
+ *
+ * :::
  *
  * <example>
     :isEqual.js
@@ -59,8 +68,13 @@ export async function isEqual (
          * The page rendered an element again: compare the elements that are on the page now. As
          * the other checks, look them up once, without a wait: an element that is gone is not equal.
          */
-        const [found, other] = await Promise.all([findOnPage(this), findOnPage(el)])
-            .catch(() => [undefined, undefined])
+        const [found, other] = await Promise.all([findOnPage(this), findOnPage(el)]).catch((lookupErr) => {
+            // a strict-mode violation is a real error, as in the middleware
+            if (lookupErr instanceof StrictSelectorError) {
+                throw lookupErr
+            }
+            return [undefined, undefined]
+        })
         if (!found?.elementId || !other?.elementId) {
             return false
         }
@@ -93,10 +107,10 @@ async function findOnPage (element: WebdriverIO.Element) {
  */
 function isSameNode (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, el1: WebdriverIO.Element, el2: WebdriverIO.Element) {
     return (browser as WebdriverIO.Browser).execute(
-        withKnownElement(withKnownElement(
+        withKnownElement(
             /* istanbul ignore next */
             function isSameElement (el1: HTMLElement, el2: HTMLElement) {
                 return el1 === el2
-            }, 1)),
+            }, [0, 1]),
         el1 as unknown as HTMLElement, el2 as unknown as HTMLElement)
 }
