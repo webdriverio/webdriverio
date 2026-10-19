@@ -504,6 +504,32 @@ describe('executeAsync', () => {
         }
     })
 
+    it('should keep the title for follow-up retry timeouts', async () => {
+        vi.useFakeTimers()
+
+        try {
+            let attempts = 0
+            const retryFunction = () => {
+                attempts++
+                if (attempts === 1) {
+                    return Promise.reject(new Error('Failed'))
+                }
+                return new Promise(() => {})
+            }
+
+            const resultPromise = executeAsync.call(
+                {}, retryFunction, { attempts: 0, limit: 1 }, [], 50, 'named Jasmine spec'
+            ).catch((err: Error) => err)
+            await vi.advanceTimersByTimeAsync(47)
+
+            await expect(resultPromise).resolves.toEqual(
+                new Error('Timeout after 47ms in "named Jasmine spec" (WDIO attempt 2/2)')
+            )
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
     it('should handle errors during execution', async () => {
         const fn = () => Promise.reject(new Error('Execution Error'))
         const result = await executeAsync.call({}, fn, { attempts: 1, limit: 1 }, [], 200).catch((err) => err.message)

@@ -899,7 +899,7 @@ export async function executeAsync(
         }
         if (retries.limit > retries.attempts && !mochaTimedOut) {
             retries.attempts++
-            return await executeAsync.call(this, fn, retries, args, timeout)
+            return await executeAsync.call(this, fn, retries, args, timeout, title)
         }
 
         throw err

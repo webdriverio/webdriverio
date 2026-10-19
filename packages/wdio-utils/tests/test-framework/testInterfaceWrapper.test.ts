@@ -89,6 +89,24 @@ describe('wrapTestFunction', () => {
         )
     })
 
+    it('should use the Jasmine default timeout when a spec omits one', () => {
+        global.jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
+        const specFn = vi.fn()
+        const fn = wrapTestFunction(testFunction, true, 'beforeFn' as any, () => [] as any, 'afterFn' as any, () => [] as any, 'cid')
+        fn('test title', specFn)
+
+        expect(testFnWrapper).toBeCalledWith(
+            'Test',
+            { specFn, specFnArgs: ['foo', 'bar'] },
+            { beforeFn: 'beforeFn', beforeFnArgs: expect.any(Function) },
+            { afterFn: 'afterFn', afterFnArgs: expect.any(Function) },
+            'cid',
+            0,
+            undefined,
+            60000
+        )
+    })
+
     it('should run hook', () => {
         const specFn = vi.fn()
         const fn = wrapTestFunction(hookFunction, false, 'beforeFn' as any, () => [] as any, 'afterFn' as any, () => [] as any, 'cid')

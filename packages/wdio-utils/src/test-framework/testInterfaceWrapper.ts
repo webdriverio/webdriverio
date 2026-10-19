@@ -186,23 +186,24 @@ export const wrapTestFunction = function (
          * [title, fn], [title], [fn]
          * [title, fn, retryCnt], [title, retryCnt], [fn, retryCnt]
          */
-        let retryCnt = typeof specArguments[specArguments.length - 1] === 'number'
-            ? specArguments.pop() :
-            0
+        const hasTrailingNumber = typeof specArguments[specArguments.length - 1] === 'number'
+        let retryCnt = hasTrailingNumber
+            ? specArguments.pop()
+            : 0
 
         /**
          * Jasmine uses a timeout value as last parameter, in this case the arguments
          * should be [title, fn, timeout, retryCnt]
          */
         // @ts-expect-error
-        let timeout = globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL
+        let timeout = globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL ?? 0
         // @ts-expect-error
         if (globalThis.jasmine) {
             // if we have [title, fn, timeout, retryCnt]
             if (typeof specArguments[specArguments.length - 1] === 'number') {
                 timeout = specArguments.pop() as number
             // if we have [title, fn, timeout]
-            } else {
+            } else if (hasTrailingNumber) {
                 timeout = retryCnt as number
                 retryCnt = 0
             }
