@@ -861,6 +861,36 @@ describe('WDIOReporter Listeners', () => {
             expect(reporter.tests.B.output).toHaveLength(0)
         })
 
+        describe('getContextTest', () => {
+            it('resolves the test owning the resolver context', () => {
+                start('A', 'ctx-a')
+                start('B', 'ctx-b')
+                reporter.setContextIdResolver(() => 'ctx-a')
+                expect(reporter.getContextTest()).toBe(reporter.tests.A)
+                reporter.setContextIdResolver(() => 'ctx-b')
+                expect(reporter.getContextTest()).toBe(reporter.tests.B)
+            })
+
+            it('returns undefined for an ended context', () => {
+                start('A', 'ctx-a')
+                start('B', 'ctx-b')
+                reporter.emit('test:end', { uid: 'A', contextId: 'ctx-a' })
+                reporter.setContextIdResolver(() => 'ctx-a')
+                expect(reporter.getContextTest()).toBeUndefined()
+            })
+
+            it('returns the current test without a resolver for a sequential test', () => {
+                start('A')
+                expect(reporter.getContextTest()).toBe(reporter.tests.A)
+            })
+
+            it('returns undefined without a resolver while parallel tests are tracked', () => {
+                start('A', 'ctx-a')
+                start('B', 'ctx-b')
+                expect(reporter.getContextTest()).toBeUndefined()
+            })
+        })
+
         it('keeps serial behavior without contextId', () => {
             start('A')
             command('client:beforeCommand', 'a1')
