@@ -458,6 +458,24 @@ describe('runParallelTests — hook events and pending', () => {
         expect(await hookTitles(suite)).toEqual(['"before each" hook for A'])
     })
 
+    test('dot-joins the hook fullTitle from the native title and the declaring suite path', async () => {
+        const outer = { title: 'A', parent: { title: 'top' }, tests: [{ title: 'a1' }] }
+        const suite = mockSuite('', {
+            suites: [mockSuite('A', {
+                tests: [mockTest('t1')],
+                _beforeAll: [mockHook('"before all" hook: setup', outer)],
+                _beforeEach: [mockHook('"before each" hook', outer)],
+                _afterAll: [mockHook('"after all" hook', { title: 'A', tests: [] })],
+            })]
+        })
+        await runParallelTests(suite as Suite, mockBrowser(), reporter, '0-0', ['/spec.js'])
+        expect(emittedEvents.filter((e) => e.event === 'hook:start').map((e) => e.payload.fullTitle)).toEqual([
+            'top.A."before all" hook: setup for "a1"',
+            'top.A."before each" hook for "t1"',
+            'A."after all" hook in "A"',
+        ])
+    })
+
     test('keeps the native Mocha title, function name included, for root-level hooks', async () => {
         const root = { title: '', tests: [{ title: 'first' }, { title: 'last' }] }
         const suite = mockSuite('', {
@@ -476,7 +494,7 @@ describe('runParallelTests — hook events and pending', () => {
     test('uses "in {root}" for root-level suite hooks when the root has no tests', async () => {
         const suite = mockSuite('', {
             tests: [mockTest('t1')],
-            _beforeAll: [mockHook('"before all" hook', { title: '', tests: [] })],
+            _beforeAll: [mockHook('"before all" hook', { title: '', root: true, tests: [] })],
         })
         expect(await hookTitles(suite)).toEqual(['"before all" hook in "{root}"'])
     })
@@ -1375,5 +1393,50 @@ describe('runParallelTests timeout warning', () => {
         await run(mockSuite('root', { tests: [{ ...mockTest('t'), _timeout: 5000 }] }))
 
         expect(timeoutWarnings()).toHaveLength(0)
+    })
+})
+
+// ===========================================================================
+// TESTS: runParallelTests — reported fullTitle matches sequential mode
+// ===========================================================================
+
+describe('runParallelTests — reported fullTitle', () => {
+    function nestedTree(fn: Function) {
+        const t = mockTest('t', fn)
+        const inner = mockSuite('inner', { tests: [t] }) as any
+        const outer = mockSuite('outer', { suites: [inner] }) as any
+        const root = mockSuite('', { suites: [outer] }) as any
+        outer.parent = root
+        inner.parent = outer
+        t.parent = inner
+        t.fullTitle = () => 'outer inner t'
+        return root as Suite
+    }
+
+    function run(grep?: RegExp) {
+        const reporter = new EventEmitter()
+        const emitted: any[] = []
+        for (const ev of ['test:start', 'test:pass', 'test:end', 'suite:start', 'suite:end']) {
+            reporter.on(ev, (p) => emitted.push({ event: ev, payload: p }))
+        }
+        const fn = vi.fn().mockResolvedValue(undefined)
+        const done = runParallelTests(nestedTree(fn), mockBrowser({ contexts: ['ctx-a'] }), reporter, '0-0', ['/spec.js'], undefined, grep ? { grep } : undefined)
+        return { done, emitted, fn }
+    }
+
+    test('dot-joins test and suite fullTitle like sequential mode', async () => {
+        const { done, emitted } = run()
+        await done
+        for (const ev of ['test:start', 'test:pass', 'test:end']) {
+            expect(emitted.filter((e) => e.event === ev).map((e) => e.payload.fullTitle)).toEqual(['outer.inner.t'])
+        }
+        expect(emitted.filter((e) => e.event === 'suite:start').map((e) => e.payload.fullTitle)).toEqual(['outer', 'outer.inner'])
+        expect(emitted.filter((e) => e.event === 'suite:end').map((e) => e.payload.fullTitle)).toEqual(['outer.inner', 'outer'])
+    })
+
+    test('grep still matches the space-joined Mocha fullTitle', async () => {
+        const { done, fn } = run(/^outer inner t$/)
+        await done
+        expect(fn).toBeCalledTimes(1)
     })
 })

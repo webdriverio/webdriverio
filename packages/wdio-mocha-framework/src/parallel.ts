@@ -18,6 +18,7 @@ import os from 'node:os'
 import type { AsyncLocalStorage } from 'node:async_hooks'
 import type { Suite } from 'mocha'
 import logger from '@wdio/logger'
+import { dottedFullTitle, type TitledNode } from './common.js'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework:parallel')
@@ -99,7 +100,10 @@ export function resolveMaxContexts(value: number | undefined, fallback: number):
 
 interface CollectedTest {
     title: string
+    /** space-joined like Mocha's fullTitle(); used for grep and hook context parity */
     fullTitle: string
+    /** dot-joined like the sequential adapter reports it */
+    reportFullTitle: string
     fn: Function
     parentTitle: string
     _beforeEach: Function[]
@@ -184,6 +188,7 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
             const collected = {
                 title: test.title,
                 fullTitle: test.fullTitle(),
+                reportFullTitle: dottedFullTitle(test.title, test.parent),
                 fn: fn || (() => {}),
                 parentTitle: s.title,
                 _beforeEach: mergedBeforeEach,
@@ -208,7 +213,7 @@ function collectAll(suite: Suite, match?: (test: CollectedTest) => boolean): Sui
         if (depth > 0) {
             suiteStubs.set(s, {
                 title: s.title,
-                fullTitle: typeof s.fullTitle === 'function' ? s.fullTitle() : s.title,
+                fullTitle: dottedFullTitle(s.title, s.parent),
                 file: (s as unknown as { file?: string }).file,
                 depth: suiteIndex!,
                 parentIndex,
@@ -269,7 +274,7 @@ function baseMessage(type: string, test: CollectedTest, cid: string, specs: stri
     return {
         type, cid, specs, uid,
         title: test.title,
-        fullTitle: test.fullTitle,
+        fullTitle: test.reportFullTitle,
         parent: test.parentTitle,
         file: test.file || specs[0],
         ...parentUidField(cid, test.suiteIndex),
@@ -315,20 +320,11 @@ function emitTestPending(reporter: EventEmitter, test: CollectedTest, cid: strin
 interface MochaHookLike {
     title?: string
     originalTitle?: string
-    parent?: { title?: string, tests?: { title: string }[] }
+    parent?: TitledNode & { root?: boolean, tests?: { title: string }[] }
 }
 
-/**
- * Reproduces what reporters see in sequential mode: formatMessage (common.ts)
- * rewrites the title to `"<hook>" hook for <declaring suite>` when the hook's
- * suite has a title; for root-level hooks Mocha's native title is kept
- * (runner.js setHookTitle).
- */
-function hookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTest) {
-    const declaringSuite = hook.parent?.title
-    if (declaringSuite) {
-        return `"${kind}" hook for ${declaringSuite}`
-    }
+/** Mocha's own hook title (runner.js setHookTitle). */
+function nativeHookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTest) {
     const original = hook.originalTitle ?? hook.title ?? `"${kind}" hook`
     const siblings = hook.parent?.tests
     const currentTest = kind === 'before all' ? siblings?.[0]?.title
@@ -336,14 +332,21 @@ function hookTitle(kind: HookKind, hook: MochaHookLike, test: CollectedTest) {
             : test.title
     return currentTest !== undefined
         ? `${original} for "${currentTest}"`
-        : `${original} in "{root}"`
+        : `${original} in "${hook.parent?.title || (hook.parent?.root ? '{root}' : '')}"`
 }
 
+/**
+ * Reproduces what reporters see in sequential mode: formatMessage (common.ts)
+ * rewrites the title to `"<hook>" hook for <declaring suite>` when the hook's
+ * suite has a title, but builds fullTitle from the native title.
+ */
 function hookBaseMessage(type: string, kind: HookKind, hook: MochaHookLike, test: CollectedTest, cid: string, specs: string[], uid: string, contextId: string) {
+    const native = nativeHookTitle(kind, hook, test)
+    const declaringSuite = hook.parent?.title
     return {
         type, cid, specs, uid,
-        title: hookTitle(kind, hook, test),
-        fullTitle: `${test.parentTitle}.${kind} hook`,
+        title: declaringSuite ? `"${kind}" hook for ${declaringSuite}` : native,
+        fullTitle: dottedFullTitle(native, hook.parent),
         parent: test.parentTitle,
         file: test.file || specs[0],
         ...parentUidField(cid, test.suiteIndex),
