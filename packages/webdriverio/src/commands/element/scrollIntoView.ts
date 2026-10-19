@@ -6,6 +6,7 @@ import { MobileScrollDirection } from '../../types.js'
 import { StrictSelectorError } from '../../utils/strictSelectorError.js'
 import { isStaleElementToFindAgain } from '../../utils/index.js'
 import { withKnownElement } from '../../utils/foreignContext.js'
+import { findChainAgain } from '../../utils/findChainAgain.js'
 
 const log = logger('webdriverio')
 
@@ -101,6 +102,8 @@ export async function scrollIntoView (
         options = { block: 'end', inline: 'nearest' }
     }
 
+    let scrolled = false
+    let paintedAgain: (() => Promise<boolean>) | undefined
     try {
         /**
          * by default the WebDriver action scrolls the element just into the
@@ -110,7 +113,7 @@ export async function scrollIntoView (
          * Fetch element rect, viewport size, and current scroll in one execute
          * round-trip instead of three protocol calls.
          */
-        const measure = async () => browser.execute(withKnownElement((elem: HTMLElement) => {
+        const measure = async (element: WebdriverIO.Element = this) => browser.execute(withKnownElement((elem: HTMLElement) => {
             const { left, top, width, height } = elem.getBoundingClientRect()
             // ground truth for "is this actually visible right now", independent of any
             // window-bounds arithmetic: is the element really the thing painted at its
@@ -155,7 +158,16 @@ export async function scrollIntoView (
                 },
                 isPainted
             }
-        }), this as unknown as HTMLElement)
+        }), element as unknown as HTMLElement)
+
+        /**
+         * the scroll can make the page render the element again (a virtual list): the scroll is
+         * done when the element on the page is painted (a stale element reference fails the measure)
+         */
+        paintedAgain = async () => {
+            const found = await findChainAgain(this)
+            return Boolean(found && (await measure(found)).isPainted)
+        }
 
         /**
          * Whether the element is already fully (or, for an element bigger than the
@@ -243,9 +255,13 @@ export async function scrollIntoView (
             return
         }
 
-        const wheelScroll = (deltaX: number, deltaY: number) => browser.action('wheel')
-            .scroll({ duration: 0, x: 0, y: 0, deltaX, deltaY, origin: this })
-            .perform()
+        const wheelScroll = async (deltaX: number, deltaY: number) => {
+            await browser.action('wheel')
+                .scroll({ duration: 0, x: 0, y: 0, deltaX, deltaY, origin: this })
+                .perform()
+            // also a zero delta: the W3C pre-scroll of the element origin can scroll the page
+            scrolled = true
+        }
 
         /**
          * Per the WebDriver spec, resolving an element `origin` requires the browser to
@@ -348,6 +364,9 @@ export async function scrollIntoView (
          * page, the Web API would only fail with the same error
          */
         if (isStaleElementToFindAgain(err)) {
+            if (scrolled && await paintedAgain?.().catch(() => false)) {
+                return
+            }
             throw err
         }
         log.warn(

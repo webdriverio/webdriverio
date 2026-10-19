@@ -4,8 +4,13 @@ import { expect, describe, it, vi, beforeAll, beforeEach, afterEach } from 'vite
 
 import { remote } from '../../../src/index.js'
 import { StrictSelectorError } from '../../../src/utils/strictSelectorError.js'
+import { findChainAgain } from '../../../src/utils/findChainAgain.js'
 
 vi.mock('fetch')
+vi.mock('../../../src/utils/findChainAgain.js', async (importOriginal) => {
+    const actual = (await importOriginal()) as { findChainAgain: typeof findChainAgain }
+    return { findChainAgain: vi.fn(actual.findChainAgain) }
+})
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 /**
@@ -376,16 +381,63 @@ describe('scrollIntoView test', () => {
                 expect(webApiCalls).toEqual([])
             })
 
-            it('sends up a stale element error after the scroll, for the element layer to find it again', async () => {
+            /**
+             * after a scroll, the scroll can make the page render the element again (a virtual list)
+             */
+            describe('after a scroll', () => {
                 const painted = {
                     elemRect: { x: 15, y: 400, height: 30, width: 50 },
                     viewport: { width: 600, height: 800 },
                     scroll: { x: 0, y: 0 },
                     isPainted: true
                 }
-                vi.spyOn(browser, 'execute').mockResolvedValueOnce(painted).mockRejectedValue(stale())
+                /**
+                 * the first measure passes, then a script that gets the old element throws a stale
+                 * element error, and a measure of another element gives `measured`
+                 */
+                const renderedAgainOnScroll = (measured: object) => vi.spyOn(browser, 'execute')
+                    .mockResolvedValueOnce(painted)
+                    .mockImplementation((async (_script: unknown, element: unknown) => {
+                        if (element === elem) {
+                            throw stale()
+                        }
+                        return measured
+                    }) as never)
 
-                await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
+                afterEach(() => {
+                    vi.mocked(findChainAgain).mockReset()
+                    vi.mocked(browser.execute).mockRestore()
+                })
+
+                it('ends without an error when the element that the page rendered again is painted', async () => {
+                    const found = await browser.$('#found')
+                    vi.mocked(findChainAgain).mockResolvedValueOnce(found)
+                    const execute = renderedAgainOnScroll(painted)
+
+                    await expect(elem.scrollIntoView()).resolves.toBeUndefined()
+                    expect(execute).toHaveBeenLastCalledWith(expect.any(Function), found)
+                })
+
+                it('sends up the stale element error when the element that the page rendered again is not painted', async () => {
+                    vi.mocked(findChainAgain).mockResolvedValueOnce(await browser.$('#found'))
+                    renderedAgainOnScroll({ ...painted, isPainted: false })
+
+                    await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
+                })
+
+                it('sends up the stale element error when the element is gone', async () => {
+                    vi.mocked(findChainAgain).mockResolvedValueOnce(undefined)
+                    renderedAgainOnScroll(painted)
+
+                    await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
+                })
+
+                it('sends up the stale element error for an element that cannot be found again (an element reference)', async () => {
+                    vi.mocked(findChainAgain).mockImplementationOnce(async (element) => element)
+                    renderedAgainOnScroll(painted)
+
+                    await expect(elem.scrollIntoView()).rejects.toThrow('stale element reference')
+                })
             })
         })
     })
