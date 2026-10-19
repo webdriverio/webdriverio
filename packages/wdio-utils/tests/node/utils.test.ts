@@ -12,6 +12,7 @@ import {
     parseParams, getBuildIdByChromePath, getBuildIdByFirefoxPath, setupPuppeteerBrowser,
     canAccess, getCacheDir, setupChromedriver
 } from '../../src/node/utils.js'
+import { unzipWithOsTool } from '../../src/node/unzip.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -66,6 +67,10 @@ vi.mock('node:child_process', () => ({
         execSync: vi.fn(),
         spawnSync: vi.fn()
     }
+}))
+
+vi.mock('../../src/node/unzip.js', () => ({
+    unzipWithOsTool: vi.fn().mockResolvedValue(undefined)
 }))
 
 vi.mock('@puppeteer/browsers', () => ({
@@ -320,6 +325,18 @@ describe('driver utils', () => {
             vi.mocked(locateChrome).mockRejectedValueOnce(new Error('not found'))
             await expect(setupPuppeteerBrowser('/foo/bar', { browserName: 'chrome' }))
                 .rejects.toThrow(/Couldn't find a matching chrome browser/)
+        })
+
+        it('unzips with an OS tool before install() runs', async () => {
+            vi.mocked(detectBrowserPlatform).mockReturnValueOnce('linux' as any)
+            const calls: string[] = []
+            vi.mocked(unzipWithOsTool).mockImplementationOnce(async () => { calls.push('unzipWithOsTool') })
+            vi.mocked(install).mockImplementationOnce(async () => { calls.push('install'); return {} as never })
+
+            await setupPuppeteerBrowser('/foo/bar', { browserName: 'chrome', browserVersion: '133.0.6943.141' })
+
+            expect(calls).toEqual(['unzipWithOsTool', 'install'])
+            expect(unzipWithOsTool).toHaveBeenLastCalledWith(vi.mocked(install).mock.lastCall![0])
         })
 
         it('should install chrome browser with specific version provided', async () => {
