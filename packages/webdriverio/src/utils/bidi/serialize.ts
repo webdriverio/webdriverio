@@ -17,7 +17,7 @@
  * This module does not import Node builtins. The browser runner loads it too.
  */
 
-import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../../commands/constant.js'
+import { SCRIPT_PREFIX, SCRIPT_SUFFIX, UNKNOWN_ELEMENT_ERROR } from '../../commands/constant.js'
 import { decodeBase64 } from '../base64.js'
 
 export const SERIALIZED_BLOB_KEY = '__wdioSerializedBlob__'
@@ -275,7 +275,19 @@ const SERIALIZER_HELPER = `
  * A rejected user promise is returned as-is: the `.then` has no rejection
  * handler, so the original throw location is preserved.
  */
-export function createBidiFunctionDeclaration (script: string | Function): string {
+/**
+ * W3C "get a known element" for every element of the arguments, also in an array or an
+ * object (W3C "JSON deserialize"). One line without `;`: `WebdriverBidiExeception` finds
+ * the failing line of the user script by its line, and in a one-line script by its `;`.
+ */
+const KNOWN_ELEMENTS_CHECK = 'if (!Array.prototype.every.call(arguments, (arg) => (function isKnown (value, depth) { ' +
+    'return !value || typeof value !== "object" || depth > 32 || (value.nodeType === 1 ' +
+    '? value.isConnected !== false && Boolean(value.ownerDocument && value.ownerDocument.defaultView && value.ownerDocument.defaultView.document === value.ownerDocument) ' +
+    ': Array.isArray(value) ? value.every((item) => isKnown(item, depth + 1)) ' +
+    ': Object.getPrototypeOf(value) !== Object.prototype || Object.values(value).every((item) => isKnown(item, depth + 1))) ' +
+    `})(arg, 0))) { throw new Error(${JSON.stringify(UNKNOWN_ELEMENT_ERROR)}) } `
+
+export function createBidiFunctionDeclaration (script: string | Function, { knownElements = false } = {}): string {
     const userScript = typeof script === 'string' ? new Function(script) : script
     const declaration = new Function(
         `return (${SCRIPT_PREFIX}${userScript.toString()}${SCRIPT_SUFFIX}).apply(this, arguments);`
@@ -290,7 +302,7 @@ export function createBidiFunctionDeclaration (script: string | Function): strin
         throw new Error('Unable to wrap BiDi execute script')
     }
 
-    const resultPrefix = 'const __wdioResult = ('
+    const resultPrefix = `${knownElements ? KNOWN_ELEMENTS_CHECK : ''}const __wdioResult = (`
     const withResult = declaration.slice(0, returnIndex)
         + resultPrefix
         + declaration.slice(returnIndex + 'return ('.length)

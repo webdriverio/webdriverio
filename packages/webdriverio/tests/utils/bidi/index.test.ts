@@ -207,3 +207,50 @@ describe('getFailureLine', () => {
         expect(getErrorStack()).not.toContain('__wdioSerializeValue')
     })
 })
+
+/**
+ * The check of the element arguments (W3C "get a known element") is on the line of the
+ * user script: the failing line of a script error stays the same
+ */
+describe('getFailureLine with the check of the element arguments', () => {
+    const stack = `Error: Error: Hello Bidi
+    at parseScriptResult (file:///path/to/webdriverio/packages/webdriverio/build/index.js:750:19)
+    at Browser.execute (file:///path/to/webdriverio/packages/webdriverio/build/index.js:2982:12)
+    at Context.<anonymous> (file:///path/to/webdriverio/e2e/wdio/headless/bidi.e2e.ts:16:28)
+    at Context.executeAsync (file:///path/to/webdriverio/packages/wdio-utils/build/index.js:1488:20)`
+    const failureLine = (declaration: string, throwText: string) => {
+        const lines = declaration.split('\n')
+        const index = lines.findIndex((line) => line.includes(throwText))
+        params.functionDeclaration = declaration
+        exception.exceptionDetails = {
+            columnNumber: lines[index].indexOf(throwText),
+            exception: { type: 'error' },
+            /**
+             * Chrome counts 6 lines more than the declaration has before the throw
+             */
+            lineNumber: index + 6,
+            stackTrace: { callFrames: [] },
+            text: 'Error: Hello Bidi'
+        }
+        customStack = stack
+        return getErrorStack().split('\n').find((line) => line.includes(' │ '))
+    }
+
+    it.each([
+        ['a one-line user script', 'return () => { const a = 1; if(a){if(a){throw new Error("Hello Bidi")}} }'],
+        ['a user script of several lines', 'return () => {\n    const a = 1\n    if (a) {\n        throw new Error("Hello Bidi")\n    }\n}']
+    ])('reports the throw from %s', (_, source) => {
+        const userScript = new Function(source)() as () => void
+        const checked = createBidiFunctionDeclaration(userScript, { knownElements: true })
+
+        expect(checked).toContain('stale element reference')
+        expect(checked.split('\n')).toHaveLength(createBidiFunctionDeclaration(userScript).split('\n').length)
+        expect(failureLine(checked, 'throw new Error("Hello Bidi")')).toBe(failureLine(createBidiFunctionDeclaration(userScript), 'throw new Error("Hello Bidi")'))
+    })
+
+    it('reports the throw from a one-line user script that gets an element', () => {
+        const userScript = new Function('return () => { const a = 1; if(a){if(a){throw new Error("Hello Bidi")}} }')() as () => void
+
+        expect(failureLine(createBidiFunctionDeclaration(userScript, { knownElements: true }), 'throw new Error("Hello Bidi")')).toContain('throw new Error("Hello Bidi")')
+    })
+})

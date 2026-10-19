@@ -9,6 +9,10 @@ import { LocalValue } from './value.js'
  * `execute` in an explicit browsing context. Element references in `args`
  * are only valid in the context they were found in, so use this when the
  * caller knows that context but only holds element ids.
+ *
+ * Unlike `execute`, it does not check that the elements are in the page: internal
+ * checks give it removed elements on purpose (`checkElementsConnected`). Wrap the
+ * script with `withKnownElement` when an element must be in the page.
  */
 export async function executeInContext<ReturnValue> (
     browser: WebdriverIO.Browser,

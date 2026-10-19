@@ -5,6 +5,7 @@ import { contextIdValue, heldBrowsingContext } from '../session/browsingContext.
 import { frameOffset } from './frameOffset.js'
 import { withScreenshotEvents } from './screenshotEvents.js'
 import { GET_VISIBLE_TEXT } from './thirdParty/getVisibleText.js'
+import { UNKNOWN_ELEMENT_ERROR } from '../commands/constant.js'
 
 /**
  * Classic WebDriver element endpoints only see the session's current
@@ -65,7 +66,6 @@ function throwOnFailure<T> (result: T | ScriptFailure): T {
 }
 
 const AsyncFunction = (async () => {}).constructor as FunctionConstructor
-
 /**
  * W3C "get a known element": a detached element, or one of an inactive document,
  * is stale. BiDi still resolves it. Firefox gives the old document the new window
@@ -85,7 +85,7 @@ export function withKnownElement<T extends Function> (script: T | string, at: nu
         `for (const el of [${elements}]) {
             const doc = el && el.ownerDocument
             if (el && (el.isConnected === false || (doc && !(doc.defaultView && doc.defaultView.document === doc)))) {
-                throw new Error('stale element reference: the element is not attached to the active document')
+                throw new Error(${JSON.stringify(UNKNOWN_ELEMENT_ERROR)})
             }
         }
         return (${script}).apply(this, arguments)`

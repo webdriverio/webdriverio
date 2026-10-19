@@ -3,6 +3,10 @@
  */
 export const SCRIPT_PREFIX = '/* __wdio script__ */'
 export const SCRIPT_SUFFIX = '/* __wdio script end__ */'
+/**
+ * the error of a script that got an element that is not in the page (W3C "get a known element")
+ */
+export const UNKNOWN_ELEMENT_ERROR = 'stale element reference: the element is not attached to the active document'
 
 /**
  * These scripts are loaded by Esbuild at build time and injected into the bundle

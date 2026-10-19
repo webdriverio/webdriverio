@@ -10,8 +10,8 @@ import type { ElementReference } from '@wdio/protocols'
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
-import { checkElementsContainedIn, checkElementsConnected } from './elementChecks.js'
-import { SCRIPT_PREFIX, SCRIPT_SUFFIX } from '../commands/constant.js'
+import { checkElementsContainedInKnownScope, checkElementsConnected } from './elementChecks.js'
+import { SCRIPT_PREFIX, SCRIPT_SUFFIX, UNKNOWN_ELEMENT_ERROR } from '../commands/constant.js'
 import { DEEP_SELECTOR, ROLE_SELECTOR, Key } from '../constants.js'
 import { findStrategy, getAriaXPathSelector, type RoleSelector } from './findStrategy.js'
 import findByRole, { ACCESSIBILITY_API_MISSING } from '../scripts/findByRole.js'
@@ -895,7 +895,7 @@ export async function findDeepElement(
          * determine if node is within tree of current element (batched into a single
          * round trip, with per-element fallback for stale references)
          */
-        const containment = await checkElementsContainedIn(
+        const containment = await checkElementsContainedInKnownScope(
             browser,
             (this as WebdriverIO.Element).elementId,
             nodes.map((node) => node[ELEMENT_KEY] as string),
@@ -944,6 +944,12 @@ export async function findDeepElement(
         }
         return found
     }, async (err) => {
+        /**
+         * a stale scope element: the element middleware finds it again
+         */
+        if (String(err?.message).includes(UNKNOWN_ELEMENT_ERROR)) {
+            throw err
+        }
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
         if (using === 'role') {
             return (await findRoleElementsByScript(this, browser, value))[0]
@@ -1097,7 +1103,7 @@ export async function findDeepElements(
          * determine if node is within tree of current element (batched into a single
          * round trip, with per-element fallback for stale references)
          */
-        const containment = await checkElementsContainedIn(
+        const containment = await checkElementsContainedInKnownScope(
             browser,
             (this as WebdriverIO.Element).elementId,
             nodes.map((node) => node[ELEMENT_KEY] as string),
@@ -1135,6 +1141,12 @@ export async function findDeepElements(
         }
         return found
     }, async (err) => {
+        /**
+         * a stale scope element: the element middleware finds it again
+         */
+        if (String(err?.message).includes(UNKNOWN_ELEMENT_ERROR)) {
+            throw err
+        }
         log.warn(`Failed to execute browser.browsingContextLocateNodes({ ... }) due to ${err}, falling back to regular WebDriver Classic command`)
         if (using === 'role') {
             return findRoleElementsByScript(this, browser, value)

@@ -158,3 +158,52 @@ describe('execute BiDi element arguments', () => {
         expect(browser.scriptCallFunction).not.toHaveBeenCalled()
     })
 })
+
+/**
+ * W3C "get a known element": an element argument that the page removed is stale, as in
+ * Classic Execute Script. BiDi still resolves the removed node.
+ */
+describe('execute BiDi stale element arguments', () => {
+    const element = (elementId: string) => setWdioKind({ selector: '#el', elementId, [ELEMENT_KEY]: elementId, addCommand () {} }, 'element')
+    const page: Record<string, unknown> = {}
+    page.defaultView = { document: page }
+    const inPage = { isConnected: true, ownerDocument: page, nodeType: 1, id: 'in-page' }
+    const removed = { isConnected: false, ownerDocument: page, nodeType: 1, id: 'removed' }
+    const oldDocument: Record<string, unknown> = { defaultView: { document: {} } }
+    const ofOldDocument = { isConnected: true, ownerDocument: oldDocument, nodeType: 1, id: 'old' }
+
+    it.each([
+        ['an argument', [removed], [element('removed')]],
+        ['an argument after others', ['text', removed], ['text', element('removed')]],
+        ['an argument in an array', [[inPage, removed]], [[element('in-page'), element('removed')]]],
+        ['an argument in an object', [{ list: removed }], [{ list: element('removed') }]],
+        ['an argument of an old document', [ofOldDocument], [element('old')]]
+    ])('throws a stale element error for %s', async (_, pageArgs, args) => {
+        const browser = bidiBrowser(pageArgs)
+        const script = vi.fn((...values: unknown[]) => values.length)
+
+        await expect(execute.call(browser as unknown as WebdriverIO.Browser, script as never, ...(args as never[])))
+            .rejects.toThrow('stale element reference')
+    })
+
+    it('throws a stale element error for a string script', async () => {
+        const browser = bidiBrowser([removed])
+
+        await expect(execute.call(browser as unknown as WebdriverIO.Browser, 'return arguments[0].id', element('removed') as never))
+            .rejects.toThrow('stale element reference')
+    })
+
+    it('runs the script with an element that is in the page', async () => {
+        const browser = bidiBrowser([[inPage], { el: inPage }, 'text'])
+
+        expect(await execute.call(browser as unknown as WebdriverIO.Browser, ((list: { id: string }[], obj: { el: { id: string } }, text: string) => `${list[0].id} ${obj.el.id} ${text}`) as never, [element('in-page')] as never, { el: element('in-page') } as never, 'text' as never))
+            .toBe('in-page in-page text')
+    })
+
+    it('sends a script without element arguments unchanged', async () => {
+        const browser = bidiBrowser([1])
+        await execute.call(browser as unknown as WebdriverIO.Browser, ((n: number) => n) as never, 1 as never)
+
+        expect(browser.scriptCallFunction.mock.calls[0][0].functionDeclaration).not.toContain('stale element reference')
+    })
+})
