@@ -202,6 +202,17 @@ describe('cli run', () => {
         })
     })
 
+    it('should not try to kill Appium when it already exited, e.g. after Ctrl+C', async () => {
+        mockProcess.exitCode = 0
+
+        await testCleanup('SIGINT', async (handler) => {
+            await handler()
+            expect(mockPromisifiedTreeKill).not.toHaveBeenCalled()
+            expect(console.error).not.toHaveBeenCalled()
+            expect(process.exit).toHaveBeenCalledWith(0)
+        })
+    })
+
     it('should handle error when determineAppiumCliCommand throws', async () => {
         await testErrorHandling(
             vi.mocked(cliUtils.determineAppiumCliCommand),

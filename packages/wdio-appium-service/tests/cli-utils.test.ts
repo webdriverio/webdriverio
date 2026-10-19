@@ -620,7 +620,7 @@ describe('ensureInspectorPluginInstalled', () => {
         expect(spawn).toHaveBeenCalledWith(
             'npm',
             ['install', '--save-dev', 'appium-inspector-plugin'],
-            { stdio: 'inherit', shell: false }
+            { stdio: 'inherit' }
         )
         expect(execFile).toHaveBeenCalledTimes(2)
     })
@@ -637,7 +637,7 @@ describe('ensureInspectorPluginInstalled', () => {
 
         await ensureInspectorPluginInstalled('/path/to/appium')
 
-        expect(spawn).toHaveBeenCalledWith(command, args, { stdio: 'inherit', shell: false })
+        expect(spawn).toHaveBeenCalledWith(command, args, { stdio: 'inherit' })
     })
 
     it('should use a shell for the package manager on Windows', async () => {
@@ -648,7 +648,7 @@ describe('ensureInspectorPluginInstalled', () => {
 
         await ensureInspectorPluginInstalled('/path/to/appium')
 
-        expect(spawn).toHaveBeenCalledWith('npm', expect.any(Array), { stdio: 'inherit', shell: true })
+        expect(spawn).toHaveBeenCalledWith('npm install --save-dev appium-inspector-plugin', { stdio: 'inherit', shell: true })
     })
 
     it('should install the plugin into Appium only when chosen', async () => {
@@ -661,7 +661,7 @@ describe('ensureInspectorPluginInstalled', () => {
         expect(spawn).toHaveBeenCalledWith(
             'node',
             ['/path/to/appium', 'plugin', 'install', '--source=npm', 'appium-inspector-plugin'],
-            { stdio: 'inherit', shell: false }
+            { stdio: 'inherit' }
         )
     })
 
@@ -685,8 +685,16 @@ describe('ensureInspectorPluginInstalled', () => {
         expect(mockQuestion).not.toHaveBeenCalled()
     })
 
-    it('should throw when the installation fails', async () => {
-        mockPluginList(missing)
+    it('should continue when the installation reports an error but the plugin is installed afterwards', async () => {
+        mockPluginList(missing, installed, installed)
+        mockQuestion.mockResolvedValue('2')
+        mockInstall(1)
+
+        await expect(ensureInspectorPluginInstalled('/path/to/appium')).resolves.toBeUndefined()
+    })
+
+    it('should throw when the installation fails and the plugin is still missing', async () => {
+        mockPluginList(missing, missing)
         mockQuestion.mockResolvedValue('1')
         mockInstall(1)
 

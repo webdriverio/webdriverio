@@ -154,9 +154,11 @@ function getPackageManagerAddCommand(): [string, string[]] {
     return ['npm', ['install', '--save-dev']]
 }
 
-function runInstall(command: string, args: string[]): Promise<void> {
+function runInstall(command: string, args: string[], useShell = false): Promise<void> {
     return new Promise((resolve, reject) => {
-        const installProcess = spawn(command, args, { stdio: 'inherit', shell: os.platform() === 'win32' })
+        const installProcess = useShell && os.platform() === 'win32'
+            ? spawn([command, ...args].join(' '), { stdio: 'inherit', shell: true })
+            : spawn(command, args, { stdio: 'inherit' })
         installProcess.once('error', reject)
         installProcess.once('exit', (exitCode) => {
             if (exitCode === 0) {
@@ -170,7 +172,7 @@ function runInstall(command: string, args: string[]): Promise<void> {
 function installInspectorPlugin(appiumCommandPath: string, choice: 'dependency' | 'appium'): Promise<void> {
     if (choice === 'dependency') {
         const [command, args] = getPackageManagerAddCommand()
-        return runInstall(command, [...args, INSPECTOR_PLUGIN_PACKAGE])
+        return runInstall(command, [...args, INSPECTOR_PLUGIN_PACKAGE], true)
     }
     return runInstall('node', [appiumCommandPath, 'plugin', 'install', '--source=npm', INSPECTOR_PLUGIN_PACKAGE])
 }
@@ -194,7 +196,15 @@ export async function ensureInspectorPluginInstalled(appiumCommandPath: string):
     }
 
     console.log('📦 Installing the Appium Inspector plugin...')
-    await installInspectorPlugin(appiumCommandPath, choice)
+    try {
+        await installInspectorPlugin(appiumCommandPath, choice)
+    } catch (err) {
+        /**
+         * Appium can fail to register the plugin because its manifest still lists it from an
+         * earlier install, although the package itself was installed. Only fail if it is still missing.
+         */
+        await checkInspectorPluginInstalled(appiumCommandPath).catch(() => { throw err })
+    }
     await checkInspectorPluginInstalled(appiumCommandPath)
     console.log('✅ Appium Inspector plugin installed.')
 }

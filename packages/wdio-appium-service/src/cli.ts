@@ -48,7 +48,7 @@ export async function run() {
         }
         isCleaningUp = true
 
-        if (appiumProcess && appiumProcess.pid) {
+        if (appiumProcess && appiumProcess.pid && typeof appiumProcess.exitCode !== 'number') {
             console.log('\n🛑 Stopping Appium server...')
             try {
                 await promisifiedTreeKill(appiumProcess.pid, 'SIGTERM')
