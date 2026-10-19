@@ -101,4 +101,34 @@ describe.each([false, true])('command hooks of element commands (classic: %s)', 
             expect(names(before)).not.toContain('emit')
         }
     })
+
+    test('a query chained on a promise runs the hooks once for each query', async () => {
+        before.length = 0
+        await browser.$('#box').$('span').getText()
+        expect(only(before, '$')).toEqual([['$', ['#box']], ['$', ['span']]])
+    })
+
+    // the overrides stay on the browser: these tests run last
+    test('a browser command changed with overwriteCommand runs its hooks once, with its arguments', async () => {
+        browser.overwriteCommand('getTitle', async function (origCommand) {
+            return origCommand()
+        })
+        before.length = 0
+        after.length = 0
+        await browser.getTitle()
+        expect(only(before, 'getTitle')).toEqual([['getTitle', []]])
+        expect(only(after, 'getTitle')).toEqual([['getTitle', []]])
+    })
+
+    test('an element command changed with overwriteCommand and attachToElement runs its hooks once', async () => {
+        browser.overwriteCommand('getText', async function (origCommand) {
+            return (await origCommand()) + '!'
+        }, { attachToElement: true })
+        const box = await browser.$('#box')
+        before.length = 0
+        after.length = 0
+        expect(await box.getText()).toBe('inside!')
+        expect(only(before, 'getText')).toEqual([['getText', []]])
+        expect(only(after, 'getText')).toEqual([['getText', []]])
+    })
 })

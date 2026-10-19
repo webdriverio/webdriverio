@@ -4,6 +4,27 @@ import _mitt from 'mitt'
 
 import { resolveCustomCommandOptions } from './customCommands.js'
 import { commandCallStructure, overwriteElementCommands } from './utils.js'
+import { ELEMENT_ARRAY_COMMANDS, chainQuery, unwrapCommand } from './shim.js'
+
+/**
+ * the commands that `addCommand` and `overwriteCommand` added, without their wrapper
+ */
+const liftedCommands = new WeakMap<Function, Function>()
+
+/**
+ * A list command keeps the hooks on its original command: they run when the list loads, see
+ * `wrapCommand`. Its override and the original keep their own wrappers.
+ */
+const isListCommand = (name: string) => (ELEMENT_ARRAY_COMMANDS as readonly string[]).includes(name)
+
+/**
+ * the original of a command that `overwriteCommand` replaces, without its wrapper: an added or
+ * overwritten command, a command of the client (see `__rawProperties__`), or a wrapped command
+ */
+function rawCommandOf (client: { __rawProperties__?: PropertiesObject }, name: string, wrapped: Function): Function {
+    const raw = client.__rawProperties__?.[name]?.value
+    return liftedCommands.get(wrapped) ?? (typeof raw === 'function' ? raw : unwrapCommand(wrapped) as Function)
+}
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser() { },
@@ -96,6 +117,22 @@ function clientProperties(this: void, options: object, properties: PropertiesObj
      * allow to wrap commands if necessary
      * e.g. in wdio-cli to allow element chaining
      */
+    /**
+     * overwrite native element commands with user defined: on the commands, so the wrapper wraps
+     * the override once, with the arguments of the call
+     */
+    const overrides = Object.keys((propertiesObject.__elementOverrides__?.value || {}) as object).filter((commandName) => !isListCommand(commandName))
+    overwriteElementCommands.call(this, propertiesObject, (commandName) => !isListCommand(commandName), false, chainQuery)
+
+    /**
+     * the commands without their wrapper, for `overwriteCommand`: one reference for each client,
+     * not in `__propertiesObject__`, which an element copies
+     */
+    const rawProperties: PropertiesObject = Object.create(properties)
+    for (const commandName of overrides) {
+        rawProperties[commandName] = propertiesObject[commandName]
+    }
+
     if (typeof commandWrapper === 'function') {
         for (const [commandName, descriptor] of Object.entries(propertiesObject)) {
             const { value } = descriptor
@@ -117,9 +154,9 @@ function clientProperties(this: void, options: object, properties: PropertiesObj
     }
 
     /**
-     * overwrite native element commands with user defined
+     * a list command keeps its override around the wrapped command, see `isListCommand`
      */
-    overwriteElementCommands.call(this, propertiesObject)
+    overwriteElementCommands.call(this, propertiesObject, isListCommand)
 
     /**
      * assign propertiesObject to itself so the client can be recreated
@@ -127,6 +164,7 @@ function clientProperties(this: void, options: object, properties: PropertiesObj
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { puppeteer, ...propertiesObjectWithoutPuppeteer } = propertiesObject
     propertiesObject.__propertiesObject__ = { value: propertiesObjectWithoutPuppeteer }
+    propertiesObject.__rawProperties__ = { value: rawProperties }
     return propertiesObject
 }
 
@@ -369,7 +407,7 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                     Object.prototype.hasOwnProperty.call(shared.commands, name) &&
                     !Object.prototype.hasOwnProperty.call(prototype, name))
             ) {
-                unit.lift(name, customCommand, _proto)
+                unit.lift(name, customCommand, _proto, undefined, func as Function)
             }
 
             /**
@@ -403,10 +441,13 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
          */
         client.overwriteCommand = function (name: string, func: Function, options?: CustomCommands.CustomCommandOptions<boolean>) {
             const { attachToElement, proto, instances } = resolveCustomCommandOptions('overwriteCommand', options)
-            const customCommand = typeof commandWrapper === 'function'
-                ? commandWrapper(name, func)
-                : func
+            const wrap = (command: Function) => typeof commandWrapper === 'function' ? commandWrapper(name, command) : command
             if (attachToElement) {
+                /**
+                 * an element applies the override on its command and wraps it once, see
+                 * `clientProperties`; a list command keeps its own wrapper, see `isListCommand`
+                 */
+                const customCommand = isListCommand(name) ? wrap(func) : func
                 if (instances) {
                     /**
                      * add command to every multi-remote instance
@@ -423,7 +464,16 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
             } else if (client[name]) {
                 const origCommand = client[name]
                 delete client[name]
-                unit.lift(name, customCommand, proto, (...args: unknown[]) => origCommand.apply(this, args))
+                /**
+                 * The override runs the command hooks once, with the arguments of the call, and
+                 * calls the original without its wrapper (a list command: with it).
+                 */
+                const original = isListCommand(name) ? origCommand : chainQuery(name, rawCommandOf(client, name, origCommand))
+                const self = this
+                const override = function (this: unknown, ...args: unknown[]) {
+                    return func.call(this, (...origArgs: unknown[]) => original.apply(self, origArgs), ...args)
+                }
+                unit.lift(name, wrap(override), proto, undefined, override)
             } else {
                 throw new Error('overwriteCommand: no command to be overwritten: ' + name)
             }
@@ -438,10 +488,11 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
      * @param  {Function} func          function to be added to prototype
      * @param  {Object}   proto         prototype to add function to (optional)
      * @param  {Function} origCommand   original command to be passed to custom command as first argument
+     * @param  {Function} rawCommand    the command without its wrapper, for a later `overwriteCommand`
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    unit.lift = function (name: string, func: Function, proto?: Record<string, any>, origCommand?: Function) {
-        setOnPrototype(proto || prototype, name, function next(this: { emit: (event: string, payload: unknown) => unknown }, ...args: unknown[]) {
+    unit.lift = function (name: string, func: Function, proto?: Record<string, any>, origCommand?: Function, rawCommand?: Function) {
+        const next = function next(this: { emit: (event: string, payload: unknown) => unknown }, ...args: unknown[]) {
             log.info('COMMAND', commandCallStructure(name, args))
             this.emit('command', { command: name, body: args })
 
@@ -488,7 +539,11 @@ export default function WebDriver(monadOptions: object, modifier?: Function, pro
                 this.emit('result', { command: name, result: { error } })
                 throw error
             }
-        })
+        }
+        if (rawCommand) {
+            liftedCommands.set(next, rawCommand)
+        }
+        setOnPrototype(proto || prototype, name, next)
     }
 
     /**

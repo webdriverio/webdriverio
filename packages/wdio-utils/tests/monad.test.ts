@@ -17,12 +17,12 @@ beforeEach(() => {
 
 const sessionId = 'c5fa4320-07d5-48f5-b7c2-922d4405e17f'
 
-function createElement(elementOverrides: PropertyDescriptor, command: Function) {
+function createElement(elementOverrides: PropertyDescriptor, command: Function, commandWrapper?: Function) {
     return webdriverMonad({}, (element: any) => element, {
         scope: { value: 'element' },
         someFunc: { value: command },
         __elementOverrides__: elementOverrides
-    })(sessionId)
+    })(sessionId, commandWrapper)
 }
 
 describe('monad', () => {
@@ -343,22 +343,24 @@ describe('monad', () => {
         ])
     })
 
-    it('should invoke command wrappers once for each composed element override', () => {
+    // the element wraps the composed overrides once, so the command hooks run once (#16096)
+    it('should wrap the composed element overrides once, with the command wrapper of the element', () => {
         const calls: string[] = []
-        const client = webdriverMonad({}, (browser: any) => browser, { ...prototype })(sessionId, (commandName: string, commandFn: Function) => {
+        const wrapper = (commandName: string, commandFn: Function) => {
             return function (this: unknown, ...args: unknown[]) {
                 calls.push(`wrapper: ${commandName}`)
                 return commandFn.apply(this, args)
             }
-        })
+        }
+        const client = webdriverMonad({}, (browser: any) => browser, { ...prototype })(sessionId, wrapper)
 
         client.overwriteCommand('someFunc', (originalCommand: Function) => originalCommand(), { attachToElement: true })
         client.overwriteCommand('someFunc', (originalCommand: Function) => originalCommand(), { attachToElement: true })
 
-        const element = createElement(client.__propertiesObject__.__elementOverrides__, () => calls.push('base'))
+        const element = createElement(client.__propertiesObject__.__elementOverrides__, () => calls.push('base'), wrapper)
 
         element.someFunc()
-        expect(calls).toEqual(['wrapper: someFunc', 'wrapper: someFunc', 'base'])
+        expect(calls).toEqual(['wrapper: someFunc', 'base'])
     })
 
     it('should keep composing sequential browser command overrides', () => {
@@ -422,8 +424,9 @@ describe('monad', () => {
             const first = webdriverMonad({}, (client: any) => client, properties)(sessionId, layer)
             const second = webdriverMonad({}, (client: any) => client, properties)(sessionId, layer)
 
-            expect(first.someFunc(1)).toBe('override([result-1])')
-            expect(second.someFunc(1)).toBe('override([result-1])')
+            // the wrapper wraps the override, which calls the command without the wrapper
+            expect(first.someFunc(1)).toBe('[override(result-1)]')
+            expect(second.someFunc(1)).toBe('[override(result-1)]')
         })
 
         it('does not change the property object of the caller', () => {
