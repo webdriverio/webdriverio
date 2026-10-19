@@ -19,6 +19,8 @@ pnpm run test:e2e:session      # @wdio/session (Chrome, Firefox, Electron)
 pnpm run test:e2e:display-server # @wdio/display-server
 pnpm run test:e2e:chromedriver # Chromedriver setup; needs CHROMIUM_130_BINARY (see test-chromedriver.yml)
 pnpm run test:e2e:cloud        # Sauce — needs credentials, main-branch CI
+pnpm run test:ios:local        # iOS Safari Simulator with Appium — local only, not in CI
+pnpm run test:android:local    # Android emulator Chrome with Appium — local only, not in CI
 ```
 
 `pnpm run test:e2e` runs every `test:e2e:*` script, including cloud. Do not
@@ -46,6 +48,12 @@ Match that locally. A reporter-only change does not need this folder.
   not installed and Safari (needs "Allow remote automation"); CI runs all of
   them. Pick browsers with `WDIO_E2E_BROWSERS=chrome,firefox`.
 - `pnpm run test:typings:e2e` type-checks the testrunner specs in `e2e/wdio`.
+- `test:ios:local` and `test:android:local` (`e2e/wdio/mobile`) need a global
+  Appium 3 with the XCUITest or UiAutomator2 driver, and Xcode with an iOS
+  runtime or the Android SDK with an AVD (see CONTRIBUTING, "Mobile e2e
+  Tests"). Run them when a change can affect Appium: `execute`, the session
+  start (`session/`, `utils/scriptTimeout.ts`), mobile commands. They are not
+  named `test:e2e:*`, so `pnpm run test:e2e` does not run them.
 - Do not commit screenshots (`e2e/screenshot.png`, `e2e/wdio/headless/*.png`).
 - Framework-specific browser-runner scripts are in `e2e/package.json`
   (`test:browser:react`, …).

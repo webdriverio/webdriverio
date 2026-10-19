@@ -312,6 +312,45 @@ Every of these test suites are functions that trigger the wdio testrunner progra
 
 If you test custom WebDriver commands, you can define your own scenario of mock responses in the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-webdriver-mock-service/src/index.js#L136-L147).
 
+#### Mobile e2e Tests (local only)
+
+CI has no iOS or Android job. The suite in [`e2e/wdio/mobile`](https://github.com/webdriverio/webdriverio/tree/main/e2e/wdio/mobile) runs the browser of a mobile device with Appium: iOS Safari on a Simulator, and Chrome on an Android emulator. Run it when you change how WebdriverIO talks to Appium, for example `execute`, the session start, or the mobile commands.
+
+You need Appium 3 and a build of this repository. `@wdio/appium-service` starts Appium, and Appium starts the Simulator or the emulator.
+
+```sh
+npm install --global appium@3
+pnpm run build
+```
+
+**iOS** needs macOS and Xcode with an iOS runtime. The first run builds WebDriverAgent and can take several minutes.
+
+```sh
+appium driver install xcuitest
+pnpm run test:ios:local
+```
+
+| Variable | Default | Use |
+|---|---|---|
+| `IOS_DEVICE_NAME` | `iPhone 17` | Simulator name |
+| `IOS_PLATFORM_VERSION` | (any) | iOS version, for example `27.0` |
+| `IOS_UDID` | (any) | A specific Simulator |
+| `PREBUILT_WDA_PATH` | (none) | A prebuilt `WebDriverAgentRunner-Runner.app`, to skip the build |
+
+**Android** needs the Android SDK (`ANDROID_HOME`) and an emulator (AVD) with Chrome, for example a Google Play image. Appium downloads a Chromedriver for the Chrome version of the emulator.
+
+```sh
+appium driver install uiautomator2
+ANDROID_AVD=<name of your AVD> pnpm run test:android:local
+```
+
+| Variable | Default | Use |
+|---|---|---|
+| `ANDROID_AVD` | (none) | The AVD that Appium starts when no device is connected |
+| `ANDROID_UDID` | (any) | A specific device, for example `emulator-5554` |
+
+For both, `APPIUM_COMMAND` (default `appium`) selects another Appium binary. The logs, also the Appium log (`wdio-appium.log`), are in `e2e/wdio/mobile/logs/`.
+
 #### Testing Type Definitions
 
 To make sure that we don't accidentally change the types and cause users' test to break, we run some simple TypeScript checks. You can run all the type definition tests by running:
