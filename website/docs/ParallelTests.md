@@ -175,6 +175,12 @@ Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel te
 
 A custom reporter must not assume that a test ends before the next one starts. See [Reporters and parallel tests](./CustomReporter.md#reporters-and-parallel-tests).
 
+## Cloud vendors
+
+Cloud vendors record one video, one set of logs and one test status per browser session. In parallel mode, many tests share that session, so the vendor dashboard can't split the video, logs or pass/fail status by test. `userContexts` also needs the vendor's grid to support `browser.createUserContext` (and `browser.removeUserContext` with Mocha). Parallel mode hasn't been tested on any cloud vendor yet.
+
+We recommend that you leave parallel mode off when you run on a cloud vendor and use [`maxInstances`](./OrganizingTestSuites.md) to run spec files in parallel. To turn it off, remove `parallelMode` from the framework options. If you remove only `'wdio:experimentalBiDiCommands'`, the tests run one after another and every run logs a warning.
+
 ## Troubleshooting
 
 ### `parallelMode: "contexts" requires 'wdio:experimentalBiDiCommands': true to be set in capabilities`
