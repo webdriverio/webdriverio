@@ -897,6 +897,7 @@ describe('Video Reporter', () => {
         })
 
         describe('screenshots', () => {
+            const sessionEnded = () => Object.assign(new Error('the connection was closed'), { name: 'session ended' })
             const bidiReporter = async (options = {}) => {
                 browser.isBidi = true
                 vi.mocked(browser.getWindowHandle).mockResolvedValue('main-tab')
@@ -972,6 +973,22 @@ describe('Video Reporter', () => {
                 await Promise.all(reporter.screenshotPromises)
                 delete (browser as any).sessionId
                 expect(browser.browsingContextCaptureScreenshot).toHaveBeenLastCalledWith(expect.objectContaining({ context: 'new-main-tab' }))
+            })
+
+            it('repeats the last frame when the session ends before the screenshot', async () => {
+                const reporter = await bidiReporter()
+                vi.mocked(browser.browsingContextCaptureScreenshot).mockRejectedValueOnce(sessionEnded())
+                reporter.addFrame()
+                vi.mocked(browser.browsingContextCaptureScreenshot)
+                    .mockResolvedValueOnce({ data: 'bGFzdA==' } as any)
+                    .mockRejectedValue(sessionEnded())
+                reporter.addFrame()
+                reporter.addFrame()
+                await Promise.all(reporter.screenshotPromises)
+                // no frame before: the "not available" image
+                expect(fs.writeFileSync).toBeCalledWith(path.resolve('/foo/bar', '0000.png'), notAvailableImage, 'base64')
+                expect(fs.writeFileSync).toBeCalledWith(path.resolve('/foo/bar', '0001.png'), 'bGFzdA==', 'base64')
+                expect(fs.writeFileSync).toBeCalledWith(path.resolve('/foo/bar', '0002.png'), 'bGFzdA==', 'base64')
             })
         })
 

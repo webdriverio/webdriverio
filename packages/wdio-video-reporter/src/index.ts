@@ -79,6 +79,10 @@ export default class VideoReporter extends WdioReporter {
     #mainContextSession?: string
     #frameContext?: string
     /**
+     * the screenshot of the last frame, for a frame whose session ended first
+     */
+    #lastScreenshot: Promise<string | undefined> = Promise.resolve(undefined)
+    /**
      * the top-level browsing context (tab or window) of each context, for frames
      */
     #topLevelContexts = new Map<string, Promise<string | undefined>>()
@@ -589,9 +593,27 @@ export default class VideoReporter extends WdioReporter {
          * has a time limit, so a lost screenshot cannot stop the video.
          */
         const instance = getScreenshotBrowser(browser)
-        const capture: Promise<string> = this.#mainContextReady
+        const previous = this.#lastScreenshot
+        const capture: Promise<string> = (this.#mainContextReady
             ? this.#bidiScreenshot(instance, this.#frameContext, frame)
             : instance.takeScreenshot()
+        ).catch((error: unknown) => {
+            /**
+             * the session ended first (end of the run, `reloadSession()`): show the page
+             * of the last frame, not the "not available" image
+             */
+            if (!isSessionEndedError(error)) {
+                throw error
+            }
+            return previous.then((data) => {
+                if (!data) {
+                    throw error
+                }
+                this.#log(`Session ended before the screenshot (frame: ${frame}), using the last frame`)
+                return data
+            })
+        })
+        this.#lastScreenshot = capture.catch(() => undefined)
         /**
          * after the timeout, the frame has the "not available" image and ffmpeg can read
          * it: a screenshot that ends later must not write the frame again

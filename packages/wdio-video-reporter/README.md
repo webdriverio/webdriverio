@@ -19,7 +19,8 @@ In a multi-remote session, the reporter records the first browser instance.
 In a WebDriver BiDi session, when a test works in another tab or window (for example the browsing context that
 `newWindow()` returns), the reporter takes the frames of that tab or window. If that screenshot fails, for
 example right after the tab opens, the frame shows the main window. A frame that the reporter starts when the
-session ends (after the last step of the last test of a spec file) can show the "not available" image.
+session ends (after the last step of the last test of a spec file, or at `reloadSession()`) shows the page of the
+frame before it.
 
 That said, taking a screenshot after almost every command can slow down your tests. Also, note that the videos don't include alert-boxes and popups.
 
