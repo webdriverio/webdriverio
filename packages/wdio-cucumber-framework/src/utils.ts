@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import { isFunctionAsync } from '@wdio/utils'
@@ -76,8 +77,23 @@ export function getStepType (step: TestStep) {
     return step.hookId ? StepType.hook : StepType.test
 }
 
-export function getFeatureId (uri: string, feature: Feature) {
-    return `${path.basename(uri)}:${feature.location?.line}:${feature.location?.column}`
+function realPath (p: string) {
+    try {
+        return fs.realpathSync.native(p)
+    } catch {
+        return p
+    }
+}
+
+/**
+ * `<path from rootDir>:<line>:<column>`, the same in every run. Only the folder is resolved,
+ * so 2 links to one shared feature file keep their own uid.
+ */
+export function getFeatureId (uri: string, feature: Feature, rootDir = process.cwd()) {
+    const file = path.resolve(uri)
+    const relative = path.relative(realPath(rootDir), path.join(realPath(path.dirname(file)), path.basename(file)))
+    const id = relative.split(path.sep).join('/').replaceAll('%', '%25').replaceAll(':', '%3A')
+    return `${id}:${feature.location?.line}:${feature.location?.column}`
 }
 
 /**
