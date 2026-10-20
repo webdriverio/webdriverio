@@ -173,6 +173,8 @@ Reporters that extend [`@wdio/reporter`](./CustomReporter.md) report parallel te
 
 `@wdio/allure-reporter` supports parallel mode with Mocha. It writes a test's result when the test ends. `before()` and `after()` hooks run once per test in parallel mode, so the report shows their fixtures once per test. With Cucumber, Allure doesn't support parallel mode yet: results, steps and attachments of overlapping scenarios can land under the wrong scenario, so use it with sequential runs.
 
+`@wdio/cucumberjs-json-reporter` doesn't support parallel mode yet: steps and attachments of overlapping scenarios can land in the wrong scenario, and the reporter logs a warning. Use it with sequential runs.
+
 A custom reporter must not assume that a test ends before the next one starts. See [Reporters and parallel tests](./CustomReporter.md#reporters-and-parallel-tests).
 
 ## Cloud vendors

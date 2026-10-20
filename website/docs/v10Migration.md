@@ -357,6 +357,41 @@ The browser `result` event is forwarded to reporters as `client:afterCommand`. T
 
 `addEnvironment(name, value)` on `@wdio/allure-reporter` was removed. It had no effect. Set environment rows with [`reportedEnvironmentVars`](/docs/allure-reporter) in the Allure reporter options.
 
+### Cucumber JSON reporter
+
+`wdio-cucumberjs-json-reporter` moved into the WebdriverIO repository as [`@wdio/cucumberjs-json-reporter`](/docs/cucumberjs-json-reporter). The community package is for v9 only: it installs `@wdio/reporter` 9 and `@wdio/logger` 9.
+
+```sh
+npm uninstall wdio-cucumberjs-json-reporter
+npm install @wdio/cucumberjs-json-reporter --save-dev
+```
+
+`reporters: ['cucumberjs-json']` stays the same: WebdriverIO loads `@wdio/cucumberjs-json-reporter` for that name. Replace the imports in your step files:
+
+```diff
+- import cucumberJson from 'wdio-cucumberjs-json-reporter'
++ import cucumberJson from '@wdio/cucumberjs-json-reporter'
+```
+
+The options are the same. The JSON files follow the Cucumber JSON format more closely. Check the tools and scripts that read them:
+
+- The scenario `id` is `<feature id>;<scenario id>`, and `<feature id>;<rule id>;<scenario id>` for a scenario in a `Rule:`, as in the Cucumber JSON format. Before, the parts had no separator.
+- The feature `id` keeps characters such as `:` and `/` (only spaces become `-`), as in the Cucumber JSON format. The names of the JSON files do not change, but a feature part of more than 200 bytes (for example many non-ASCII characters) is cut and ends with a hash (Linux allows 255 bytes in a file name), and a Windows device name such as `con` starts with `_`.
+- The feature and scenario `keyword` are the keywords of the file, for example `Scenario Outline` or `Fonctionnalité`, as in the Cucumber JSON format. Before, they were always `Feature` and `Scenario`.
+- Scenarios and steps have a `line`.
+- Tags are `{ name, line }`, as in the Cucumber JSON format; the tags of a scenario get the line of the feature file. Before, they were internal Cucumber objects with `location`, `id` or `astNodeId` (random at each run), and the tags of a scenario had no line.
+- Hooks are steps with `hidden: true` and no `name`. Before, a hook had an empty `name`.
+- A doc string argument is `{ content, line }`. Before, it was the text of the doc string.
+- A hook that Cucumber skips (after a failed hook, or a hook that returns `'skipped'`) has the status `skipped`, and a hook that returns `'pending'` has `pending`, as in the Cucumber JSON format. Before, they were `passed`.
+- The status of an ambiguous step is `ambiguous`, as in the Cucumber JSON format, and its `error_message` lists the matching step definitions. Before, it was `skipped` with no reason, or `failed` with `cucumberOpts.failAmbiguousDefinitions`.
+- The status of an undefined step is `undefined`. Before, it was `failed`, or `pending` with `cucumberOpts.ignoreUndefinedDefinitions`.
+- A scenario that Cucumber runs again (`cucumberOpts.retry`) has only the steps of its last try. Before, it had the steps of all tries.
+- With `cucumberOpts.tagsInTitle`, the feature and scenario names, the ids and the file names have no tags.
+- When a worker runs several feature files (grouped specs), the reporter writes one file for each feature. Before, all scenarios went into the file of the first feature.
+- In a multi-remote session, the metadata comes from the first instance.
+
+These were missing or wrong before: `*` steps, the keyword of `But` steps, attachments from the WebdriverIO `before` hook, an object attached as `text/plain` (it is JSON text, not `[object Object]`), and a JSON string attached as `application/json` (it stays as it is, it is not encoded a second time). The step keywords follow the `# language:` header of the feature file, then `cucumberOpts.language` (the `language` option of the reporter only when `cucumberOpts.language` is not set). With `cucumberOpts.scenarioLevelReporter: true`, the reporter writes no file and logs a warning: the format needs the steps.
+
 ## `$` is strict
 
 `$` now represents __exactly one__ element. If the selector resolves to more than one element, the command throws a `StrictSelectorError` instead of silently using the first match:

@@ -18,6 +18,7 @@ pnpm run test:component        # e2e/browser-runner (needs @wdio/browser-runner)
 pnpm run test:e2e:session      # @wdio/session (Chrome, Firefox, Electron)
 pnpm run test:e2e:display-server # @wdio/display-server
 pnpm run test:e2e:chromedriver # Chromedriver setup; needs CHROMIUM_130_BINARY (see test-chromedriver.yml)
+pnpm run test:e2e:cucumberjs-json-reporter # @wdio/cucumberjs-json-reporter in Chrome, with its multiple-cucumber-html-reporter report (local only)
 pnpm run test:e2e:cloud        # Sauce — needs credentials, main-branch CI
 pnpm run test:ios:local        # iOS Safari Simulator with Appium — local only, not in CI
 pnpm run test:android:local    # Android emulator Chrome with Appium — local only, not in CI
@@ -38,7 +39,8 @@ diff.
 - Chromedriver setup in `packages/wdio-utils` (`utils.ts`, `electronChromedriverProvider.ts`, `startWebDriver.ts`, `manager.ts`, `package.json`) + `e2e/wdio/chromedriver` → Chromedriver (Linux ARM64, macOS, Windows)
 - most other `packages/**` / `e2e/**` → core e2e + unit + smoke
 
-Match that locally. A reporter-only change does not need this folder.
+Match that locally. A reporter-only change does not need this folder, except the
+reporters with a real-browser suite in `e2e/wdio/reporters/` (run its `test:e2e:*` script).
 
 ## Guardrails
 

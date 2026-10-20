@@ -6,6 +6,7 @@ import { getRootDir, getSubPackages } from '@wdio/repo-utils'
 
 import reporters3rdParty from './3rd-party/reporters.json' with { type: 'json' }
 import services3rdParty from './3rd-party/services.json' with { type: 'json' }
+import { pluginTitle } from './packagesDocs.js'
 
 interface Entry {
     name: string
@@ -24,7 +25,7 @@ function officialPlugins (type: 'service' | 'reporter', packagesDir: string): En
             const name = pkg.split('-').slice(1, -1)
             const pkgJson = JSON.parse(fs.readFileSync(path.join(packagesDir, pkg, 'package.json'), 'utf-8'))
             return {
-                name: name.map((n) => n[0].toUpperCase() + n.slice(1)).join(' '),
+                name: pluginTitle(name),
                 packageName: pkgJson.name,
                 docId: `${name.join('-')}-${type}`,
                 description: pkgJson.description,

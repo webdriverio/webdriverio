@@ -27,12 +27,6 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-timeline-reporter"
   },
   {
-    "packageName": "wdio-cucumberjs-json-reporter",
-    "title": "CucumberJS JSON",
-    "githubUrl": "https://github.com/webdriverio-community/wdio-cucumberjs-json-reporter",
-    "npmUrl": "https://www.npmjs.com/package/wdio-cucumberjs-json-reporter"
-  },
-  {
     "packageName": "wdio-delta-reporter-service",
     "title": "Delta Reporter",
     "branch": "master",
