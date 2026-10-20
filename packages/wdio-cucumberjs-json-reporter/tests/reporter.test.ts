@@ -23,7 +23,7 @@ import {
 } from './__mocks__/mocks.js'
 import type { HookStatsExtended, RunnerStatsExtended, SuiteStatsExtended, TestStatsExtended } from '../src/types/wdio.js'
 import { Metadata } from '../src/metadata.js'
-import type { Step } from '../src/types.js'
+import type { MetadataObject, Scenario, Step } from '../src/types.js'
 import WdioCucumberJsJsonReporter from '../src/index.js'
 
 const logFolderPath = path.join(os.tmpdir(), 'wdio-cucumberjs-json-reporter-tests')
@@ -107,7 +107,7 @@ describe('reporter', () => {
 
     describe('onRunnerStart', () => {
         it('should set instance data if it is not available yet', () => {
-            const metadata = { foo: 'bar' }
+            const metadata = { foo: 'bar' } as unknown as MetadataObject
             const metadataClassObject: Metadata = tmpReporter.metadataClassObject
             const determineMetadataSpy: MockInstance = vi
                 .spyOn(metadataClassObject, 'determineMetadata')
@@ -122,7 +122,7 @@ describe('reporter', () => {
         })
 
         it('should set not set instance data if it is already available', () => {
-            const metadata = { foo: 'bar' }
+            const metadata = { foo: 'bar' } as unknown as MetadataObject
             const determineMetadataSpy: MockInstance = vi
                 .spyOn(new Metadata(), 'determineMetadata')
                 .mockReturnValue(metadata)
@@ -152,7 +152,7 @@ describe('reporter', () => {
         })
 
         it('should add instance data to the feature if the feature is already there', () => {
-            const metadata = { foo: 'bar' }
+            const metadata = { foo: 'bar' } as unknown as MetadataObject
             const featureData = { keyword: 'feature' }
             const getFeatureDataObjectSpy = vi
                 .spyOn(tmpReporter, 'getFeatureDataObject')
@@ -467,7 +467,7 @@ describe('reporter', () => {
     describe('getCurrentScenario', () => {
         it('should return the last number of the scenario array as the current running scenario number', () => {
             tmpReporter.report.feature = {
-                elements: [{ foo: 'first-scenario' }, { bar: 'second-scenario' }, { foobar: 'current-scenario' }],
+                elements: [{ foo: 'first-scenario' }, { bar: 'second-scenario' }, { foobar: 'current-scenario' }] as unknown as Scenario[],
             }
 
             expect(tmpReporter.getCurrentScenario()).toEqual({ foobar: 'current-scenario' })
@@ -477,7 +477,7 @@ describe('reporter', () => {
     describe('getCurrentStep', () => {
         it('should return current running step', () => {
             const currentScenarioMock = {
-                steps: [{ foo: 'first-step' }, { foo: 'second-step' }, { foo: 'current-step' }] as Step[],
+                steps: [{ foo: 'first-step' }, { foo: 'second-step' }, { foo: 'current-step' }] as unknown as Step[],
             }
             const getCurrentScenarioSpy = vi
                 .spyOn(tmpReporter, 'getCurrentScenario')
@@ -493,7 +493,7 @@ describe('reporter', () => {
             const getCurrentScenarioSpy = vi.spyOn(tmpReporter, 'getCurrentScenario')
             const getStepDataObjectSpy = vi
                 .spyOn(tmpReporter, 'getStepDataObject')
-                .mockReturnValue({ foo: 'current-step' })
+                .mockReturnValue({ foo: 'current-step' } as unknown as Step)
 
             tmpReporter.report.feature = EMPTY_FEATURE
             tmpReporter.report.feature.elements!.push(EMPTY_SCENARIO)
@@ -948,13 +948,13 @@ describe('reporter', () => {
 
     describe('updateStepStatus', () => {
         it('should update step data of the current scenario step', () => {
-            const pendingStep = { foo: 'current-step', status: PENDING }
-            const updatedStep = { foo: 'current-step', status: PASSED, bar: false }
+            const pendingStep = { foo: 'current-step', status: PENDING } as unknown as Step
+            const updatedStep = { foo: 'current-step', status: PASSED, bar: false } as unknown as Step
             const getCurrentScenarioSpy = vi.spyOn(tmpReporter, 'getCurrentScenario')
             const getStepDataObjectSpy = vi.spyOn(tmpReporter, 'getStepDataObject').mockReturnValue(updatedStep)
             const getCurrentStepSpy = vi
                 .spyOn(tmpReporter, 'getCurrentStep')
-                .mockReturnValue({ foo: 'current-step' })
+                .mockReturnValue({ foo: 'current-step' } as unknown as Step)
 
             tmpReporter.report.feature = EMPTY_FEATURE
             tmpReporter.report.feature.elements!.push(EMPTY_SCENARIO)
@@ -1011,7 +1011,7 @@ describe('reporter', () => {
 
     describe('cucumberJsAttachment', () => {
         it('should be able to add embeddings to a current step when they have not been added', () => {
-            const pendingStep = { foo: 'current-step', status: PENDING }
+            const pendingStep = { foo: 'current-step', status: PENDING } as unknown as Step
             const getCurrentStepSpy = vi.spyOn(tmpReporter, 'getCurrentStep').mockReturnValue(pendingStep)
 
             tmpReporter.report.feature = EMPTY_FEATURE
@@ -1027,11 +1027,11 @@ describe('reporter', () => {
         })
 
         it('should be able to add embeddings to a current step which already has embeddings', () => {
-            const pendingStep: Step = {
+            const pendingStep = {
                 foo: 'current-step',
                 result: { duration: 1, status: PENDING },
                 embeddings: [{ data: 'data-1', mime_type: 'text/plain' }],
-            }
+            } as unknown as Step
             const getCurrentStepSpy = vi.spyOn(tmpReporter, 'getCurrentStep').mockReturnValue(pendingStep)
 
             tmpReporter.report.feature = EMPTY_FEATURE

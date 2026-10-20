@@ -42,7 +42,6 @@ export interface MetadataObject {
     };
     keyword?: string;
     type?: string;
-    foo?: string;
 }
 
 export interface Report {
@@ -82,9 +81,6 @@ export interface Scenario {
     id?: string;
     line?: number | null;
     steps?: Step[];
-    foo?: string;
-    bar?: string;
-    foobar?: string;
 }
 
 export interface Step {
@@ -103,7 +99,6 @@ export interface Step {
         location: number | string;
     };
     embeddings?: Embedding[];
-    foo?: string;
 }
 
 export interface Result extends ErrorMessage {
