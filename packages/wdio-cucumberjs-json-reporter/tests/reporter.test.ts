@@ -794,6 +794,33 @@ describe('reporter', () => {
         })
     })
 
+    describe('cucumberOpts.parallelMode', () => {
+        const scenario = (title: string) => ({ ...SUITE_SCENARIO_STATS, title } as SuiteStatsExtended)
+
+        it('warns once when a scenario starts before the previous one ended', () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, parent: undefined } as SuiteStatsExtended)
+            tmpReporter.onSuiteStart(scenario('A'))
+            tmpReporter.onSuiteStart(scenario('B'))
+            tmpReporter.onSuiteStart(scenario('C'))
+            expect(warn).toHaveBeenCalledTimes(1)
+            expect(warn).toHaveBeenCalledWith(expect.stringContaining('cucumberOpts.parallelMode'))
+            warn.mockRestore()
+        })
+
+        it('does not warn for scenarios that run one after the other', () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+            tmpReporter.onSuiteStart({ ...SUITE_FEATURE_STATS, parent: undefined } as SuiteStatsExtended)
+            for (const title of ['A', 'B', 'C']) {
+                tmpReporter.onSuiteStart(scenario(title))
+                tmpReporter.onSuiteEnd(scenario(title))
+            }
+            tmpReporter.onSuiteEnd({ ...SUITE_FEATURE_STATS, parent: undefined } as SuiteStatsExtended)
+            expect(warn).not.toHaveBeenCalled()
+            warn.mockRestore()
+        })
+    })
+
     describe('cucumberOpts.scenarioLevelReporter', () => {
         it('does not fail the run: the CucumberJS JSON format needs the steps', () => {
             tmpReporter.onRunnerStart({ config: { cucumberOpts: { scenarioLevelReporter: true } }, capabilities: {} } as unknown as RunnerStatsExtended)

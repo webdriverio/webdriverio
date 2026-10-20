@@ -270,6 +270,10 @@ To create an HTML report with the [multiple-cucumber-html-reporter](https://gith
     }
     ```
 
+## Parallel mode
+
+The reporter does not support [`cucumberOpts.parallelMode`](https://webdriver.io/docs/parallel-tests) yet. When scenarios run at the same time, steps and attachments can be in the wrong scenario of the JSON file, and the reporter logs a warning.
+
 ## Older WebdriverIO Versions
 
 This package supports WebdriverIO v10 and later. For WebdriverIO v9, use the community package

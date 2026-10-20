@@ -47,6 +47,9 @@ export class CucumberJsJsonReporter extends WDIOReporter {
      * CucumberJS JSON format needs them, so make no report
      */
     #noSteps = false
+    /** scenarios that started and did not end: more than one only in `cucumberOpts.parallelMode` */
+    #runningScenarios = 0
+    #parallelWarned = false
     /** `true` when the user set the `language` option, else `cucumberOpts.language` is the default */
     #languageOption: boolean
 
@@ -178,8 +181,32 @@ export class CucumberJsJsonReporter extends WDIOReporter {
         }
 
         if (typeof this.report.feature.elements !== 'undefined' && payload.parent) {
+            this.#warnParallelScenarios()
+            this.#runningScenarios++
             this.report.feature.elements.push(this.getScenarioDataObject(payload, this.report.feature.id!))
         }
+    }
+
+    public onSuiteEnd(payload: SuiteStats): void {
+        if (payload.parent && this.#runningScenarios > 0) {
+            this.#runningScenarios--
+        }
+    }
+
+    /**
+     * The reporter adds each event to the last scenario: with scenarios that run at the
+     * same time (`cucumberOpts.parallelMode`), steps and attachments can go into the
+     * wrong scenario
+     */
+    #warnParallelScenarios() {
+        if (this.#runningScenarios === 0 || this.#parallelWarned) {
+            return
+        }
+        this.#parallelWarned = true
+        const message = 'Scenarios run at the same time ("cucumberOpts.parallelMode"), which the CucumberJS JSON ' +
+            'report does not support yet: steps and attachments can be in the wrong scenario.'
+        log.warn(message)
+        console.warn(`[@wdio/cucumberjs-json-reporter] ${message}`)
     }
 
     /**
