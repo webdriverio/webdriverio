@@ -2,10 +2,27 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 /**
- * the time after which a lock with no owner process id is taken as left by a worker
+ * the age after which a lock with no owner process id is taken as left by a worker
  * that ended between the creation of the lock and the write of its process id
  */
 const LOCK_TIMEOUT = 10_000
+/**
+ * the age after which a lock is taken as left also when its process id runs: the id can
+ * belong to another process now (a lock of an earlier run, a new container), and one
+ * write takes much less time
+ */
+const LOCK_MAX_AGE = 60_000
+
+/**
+ * milliseconds since the last change of the lock, undefined when it does not exist anymore
+ */
+function lockAge (lock: string) {
+    try {
+        return Date.now() - fs.statSync(lock).mtimeMs
+    } catch {
+        return undefined
+    }
+}
 
 /**
  * true when the process that holds the lock does not run anymore, undefined when the
@@ -35,12 +52,12 @@ export function isLeft (lock: string) {
  * Run `action` while this worker holds the lock of `file`: workers that run the same
  * feature (for example with other capabilities) read and write the same JSON file.
  * The lock is a folder next to the file, because `mkdir` fails when it exists, with
- * the process id of its owner: a worker takes the lock of another worker only when
- * that process does not run anymore, never while it writes.
+ * the process id of its owner: a worker takes the lock of another worker when that
+ * process does not run anymore, or when the lock is older than `maxAge`. The limits
+ * use the age of the lock, not the time that this worker waited.
  */
-export function withFileLock<T> (file: string, action: () => T, timeout = LOCK_TIMEOUT): T {
+export function withFileLock<T> (file: string, action: () => T, timeout = LOCK_TIMEOUT, maxAge = LOCK_MAX_AGE): T {
     const lock = `${file}.lock`
-    const start = Date.now()
     for (;;) {
         try {
             fs.mkdirSync(lock)
@@ -51,7 +68,12 @@ export function withFileLock<T> (file: string, action: () => T, timeout = LOCK_T
                 throw error
             }
             const left = isLeft(lock)
-            if (left || (left === undefined && Date.now() - start > timeout)) {
+            const age = lockAge(lock)
+            // the owner removed it in the meantime: try again
+            if (age === undefined) {
+                continue
+            }
+            if (left || (left === undefined && age > timeout) || age > maxAge) {
                 fs.rmSync(lock, { recursive: true, force: true })
                 continue
             }
