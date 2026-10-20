@@ -1,8 +1,10 @@
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { ELEMENT_KEY } from 'webdriver'
 
 import { attach } from '../src/index.js'
 import { applyBidiBrowserOverwrites } from '../src/utils/bidi/browserOverwrites.js'
+import { isStaleElementToFindAgain } from '../src/utils/index.js'
 
 const overwrites = new Map<string, (...args: any[]) => Promise<unknown>>()
 let client: Record<string, any> = {}
@@ -39,7 +41,8 @@ describe('BiDi overwrites for takeScreenshot, refresh, takeElementScreenshot', (
             capabilities: {},
             overwriteCommand: (name: string, fn: (...args: any[]) => Promise<unknown>) => overwrites.set(name, fn),
             browsingContextCaptureScreenshot: vi.fn().mockResolvedValue({ data: 'base64-data' }),
-            browsingContextReload: vi.fn().mockResolvedValue({})
+            browsingContextReload: vi.fn().mockResolvedValue({}),
+            scriptCallFunction: vi.fn().mockResolvedValue({ type: 'success', result: { type: 'null' } })
         })
         await attach({ options: {}, capabilities: {} } as any)
     })
@@ -88,11 +91,35 @@ describe('BiDi overwrites for takeScreenshot, refresh, takeElementScreenshot', (
     it('takeElementScreenshot clips to the element over BiDi', async () => {
         const orig = vi.fn()
         expect(await overwrites.get('takeElementScreenshot')!.call(client, orig, 'el-1')).toBe('base64-data')
+        expect(client.scriptCallFunction).toHaveBeenCalledWith(expect.objectContaining({
+            target: { context: 'ctx-1' },
+            arguments: [expect.objectContaining({ sharedId: 'el-1' })]
+        }))
         expect(client.browsingContextCaptureScreenshot).toHaveBeenCalledWith({
             context: 'ctx-1',
             clip: { type: 'element', element: { sharedId: 'el-1' } }
         })
         expect(orig).not.toHaveBeenCalled()
+    })
+
+    /**
+     * W3C "get a known element": BiDi still resolves a detached element
+     */
+    it('takeElementScreenshot throws stale element reference for a detached element', async () => {
+        const doc: { defaultView?: { document: unknown } } = {}
+        doc.defaultView = { document: doc }
+        const detached = { isConnected: false, ownerDocument: doc }
+        client.scriptCallFunction = vi.fn(async (params: { functionDeclaration: string }) => {
+            try {
+                await (0, eval)(`(${params.functionDeclaration})`)(detached)
+                return { type: 'success', result: { type: 'null' } }
+            } catch (err) {
+                return { type: 'exception', exceptionDetails: { text: String(err) } }
+            }
+        })
+        const err = await overwrites.get('takeElementScreenshot')!.call(client, vi.fn(), 'el-1').catch((e: Error) => e)
+        expect(isStaleElementToFindAgain(err)).toBe(true)
+        expect(client.browsingContextCaptureScreenshot).not.toHaveBeenCalled()
     })
 
     it('takeElementScreenshot passes the element id to the original command when BiDi commands are disabled', async () => {

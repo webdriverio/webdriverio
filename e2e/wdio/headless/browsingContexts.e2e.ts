@@ -956,6 +956,33 @@ describe('browsing contexts', () => {
                 }
             })
         }
+
+        /**
+         * BiDi resolves a stale element: the command finds it again, like classic WebDriver
+         */
+        for (const [where, target] of Object.entries(targets)) {
+            it(`finds a stale element of ${where} again`, async () => {
+                const context = await target()
+                const item = await second(context)
+                const check = await context.$('#check')
+                await context.execute(() => {
+                    document.getElementById('list')!.innerHTML = '<li class="item">uno</li><li class="item">dos</li><li class="item">tres</li>'
+                    const old = document.getElementById('check') as HTMLInputElement
+                    const copy = old.cloneNode() as HTMLInputElement
+                    copy.checked = false
+                    old.replaceWith(copy)
+                })
+                expect(await item.getText()).toBe('dos')
+                expect(await check.isSelected()).toBe(false)
+
+                const list = await context.$('#list')
+                await context.execute(() => {
+                    document.getElementById('list')!.dataset.state = 'before reload'
+                })
+                await context.refresh()
+                expect(await list.getAttribute('data-state')).toBeNull()
+            })
+        }
     })
 
     describe('dialogs', () => {

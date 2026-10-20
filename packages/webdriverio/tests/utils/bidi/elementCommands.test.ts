@@ -329,6 +329,31 @@ describe('bidi in-page not interactable errors', () => {
     })
 })
 
+describe('bidi stale elements', () => {
+    /**
+     * A document that is the active document of its window
+     */
+    const activeDocument = () => {
+        const doc: { defaultView?: { document: unknown } } = {}
+        doc.defaultView = { document: doc }
+        return doc
+    }
+
+    it.each([
+        ['a detached element', { isConnected: false, ownerDocument: activeDocument(), tagName: 'LI' }],
+        ['an element of a document that is no longer active', { isConnected: true, ownerDocument: { defaultView: null }, tagName: 'LI' }],
+        ['an element of a document that a reload replaced', { isConnected: true, ownerDocument: { defaultView: { document: {} } }, tagName: 'LI' }]
+    ])('throws stale element reference in the page for %s', async (_name, el) => {
+        const { fn } = await captureExecutedFn(bidiGetTagName)
+        expect(() => fn(el)).toThrow('stale element reference')
+    })
+
+    it('runs the command for a connected element', async () => {
+        const { fn } = await captureExecutedFn(bidiGetTagName)
+        expect(fn({ isConnected: true, ownerDocument: activeDocument(), tagName: 'LI' })).toBe('li')
+    })
+})
+
 describe('bidiAddValue', () => {
     it('writes through the prototype setter and fires input then change', async () => {
         const { fn } = await captureExecutedFn(bidiAddValue, ['x'], undefined)
@@ -472,10 +497,12 @@ describe('bidiAddValue', () => {
 
 describe('bidiAddMaskedValue', () => {
     function makeInput(overrides: Record<string, unknown> = {}) {
+        const ownerDocument: any = { activeElement: null as unknown }
+        ownerDocument.defaultView = { document: ownerDocument }
         const el: any = {
             tagName: 'INPUT', disabled: false, readOnly: false, isContentEditable: false, value: '',
             scrollIntoView: vi.fn(), focus: vi.fn(), setSelectionRange: vi.fn(), contains: (n: unknown) => n === el,
-            shadowRoot: null, getRootNode: () => ({}), ownerDocument: { activeElement: null as unknown }, ...overrides
+            shadowRoot: null, getRootNode: () => ({}), ownerDocument, ...overrides
         }
         return el
     }

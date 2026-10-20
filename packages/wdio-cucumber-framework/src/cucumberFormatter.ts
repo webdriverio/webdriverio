@@ -6,7 +6,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 
 import type { Payload } from './types.js'
-import { convertStatus } from './utils.js'
+import { convertStatus, getAmbiguousStepMessage } from './utils.js'
 
 const log = logger('CucumberFormatter')
 
@@ -25,7 +25,8 @@ import type {
     TestStepFinished,
     TestStepResult,
     TestCaseFinished,
-    Hook
+    Hook,
+    StepDefinition
 } from '@cucumber/messages'
 
 import {
@@ -45,6 +46,7 @@ export default class CucumberFormatter extends Formatter {
     private _hookEvent: Hook[] = []
     private _scenarios: Pickle[] = []
     private _testCases: TestCase[] = []
+    private _stepDefinitions = new Map<string, StepDefinition>()
     private _currentTestCase?: TestCaseStarted
     private _currentPickle?: HookParams = {}
     private _suiteMap: Map<string, string> = new Map()
@@ -90,8 +92,9 @@ export default class CucumberFormatter extends Formatter {
             } else if (envelope.testStepStarted) {
                 this.onTestStepStarted(envelope.testStepStarted)
             } else if (envelope.testStepFinished) {
-                results.push(envelope.testStepFinished.testStepResult!)
-                this.onTestStepFinished(envelope.testStepFinished)
+                const testStepFinished = this.withAmbiguousMessage(envelope.testStepFinished)
+                results.push(testStepFinished.testStepResult!)
+                this.onTestStepFinished(testStepFinished)
             } else if (envelope.testCaseFinished) {
                 /**
                  * only store result if step isn't retried
@@ -106,6 +109,8 @@ export default class CucumberFormatter extends Formatter {
                 this.onTestRunFinished()
             } else if (envelope.hook) {
                 this.onHook(envelope.hook)
+            } else if (envelope.stepDefinition) {
+                this._stepDefinitions.set(envelope.stepDefinition.id, envelope.stepDefinition)
             } else {
                 // do nothing for other envelopes
             }
@@ -227,17 +232,7 @@ export default class CucumberFormatter extends Formatter {
                     'You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.'
                 )
 
-                err.stack = `${err.message}\n\tat Feature(${uri}):1:1\n`
-                const featChildren = feature.children?.find(c => scenario.astNodeIds && c.scenario?.id === scenario.astNodeIds[0])
-                if (featChildren) {
-                    err.stack += `\tat Scenario(${featChildren.scenario?.name}):${featChildren.scenario?.location?.line}:${featChildren.scenario?.location?.column}\n`
-
-                    const featStep = featChildren.scenario?.steps?.find(s => step?.astNodeIds && s.id === step.astNodeIds[0])
-                    if (featStep) {
-                        err.stack += `\tat Step(${featStep.text}):${featStep.location?.line}:${featStep.location?.column}\n`
-                    }
-                }
-
+                err.stack = `${err.message}\n${this.getFeatureStack(uri, feature, scenario, step)}`
                 error = err
             }
         } else if (result.status === Status.FAILED && !(result as unknown as TestCaseFinished).willBeRetried) {
@@ -248,14 +243,23 @@ export default class CucumberFormatter extends Formatter {
         } else if (result.status === Status.AMBIGUOUS && this.failAmbiguousDefinitions) {
             state = 'fail'
             this.failedCount++
-            error = new Error(result.message?.split('\n')[0])
-            error.stack = result.message as string
+            const message = result.message || (
+                (step
+                    ? `Step "${title}" matches multiple step definitions. `
+                    : `Scenario "${title}" contains a step matching multiple step definitions. `) +
+                'Make the step definitions unique by removing duplicate or overlapping expressions.'
+            )
+            error = new Error(message.split('\n')[0])
+            error.stack = `${message}\n${this.getFeatureStack(uri, feature, scenario, step)}`
         }
 
+        // reporters show the reason of a skipped test from `pendingReason`, not from its error
+        const pendingReason = result.status === Status.AMBIGUOUS && state === 'skip' ? result.message : undefined
         const common = {
             title: title,
             state,
             error,
+            ...(pendingReason ? { pendingReason } : {}),
             duration: this._testStart
                 ? Date.now() - this._testStart.getTime()
                 : 0,
@@ -284,6 +288,25 @@ export default class CucumberFormatter extends Formatter {
             payload.title += titleSuffix
         }
         this.emit('test:' + state, payload)
+    }
+
+    /**
+     * stack lines with the location of the scenario and the step in the feature file
+     */
+    private getFeatureStack(uri: string, feature: Feature, scenario: Pickle, step?: PickleStep) {
+        let stack = `\tat Feature(${uri}):1:1\n`
+        const children = feature.children?.flatMap((child) => child.rule ? child.rule.children : [child]) ?? []
+        const featScenario = children.find(c => scenario.astNodeIds && c.scenario?.id === scenario.astNodeIds[0])?.scenario
+        if (featScenario) {
+            stack += `\tat Scenario(${featScenario.name}):${featScenario.location?.line}:${featScenario.location?.column}\n`
+
+            const steps = [...children.flatMap((c) => c.background?.steps ?? []), ...(featScenario.steps ?? [])]
+            const featStep = steps.find(s => step?.astNodeIds && s.id === step.astNodeIds[0])
+            if (featStep) {
+                stack += `\tat Step(${featStep.text}):${featStep.location?.line}:${featStep.location?.column}\n`
+            }
+        }
+        return stack
     }
 
     onGherkinDocument(gherkinDocEvent: GherkinDocument) {
@@ -493,6 +516,24 @@ export default class CucumberFormatter extends Formatter {
 
             this.emit(`${type}:start`, payload)
         }
+    }
+
+    /**
+     * Cucumber 13 sends no message for an ambiguous step: list the matching step definitions
+     */
+    private withAmbiguousMessage(event: TestStepFinished): TestStepFinished {
+        const result = event.testStepResult
+        if (result?.status !== Status.AMBIGUOUS || result.message) {
+            return event
+        }
+        const testStep = this._testCases
+            .find((tc) => tc.id === this._currentTestCase?.testCaseId)
+            ?.testSteps.find((step) => step.id === event.testStepId)
+        const stepDefinitions = (testStep?.stepDefinitionIds ?? [])
+            .map((id) => this._stepDefinitions.get(id))
+            .filter((definition): definition is StepDefinition => Boolean(definition))
+        const message = getAmbiguousStepMessage(stepDefinitions)
+        return message ? { ...event, testStepResult: { ...result, message } } : event
     }
 
     onTestStepFinished(testStepFinishedEvent: TestStepFinished) {

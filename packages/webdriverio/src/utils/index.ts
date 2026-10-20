@@ -19,7 +19,7 @@ import { accessibilityScript } from '../commands/constant.js'
 import { getShadowRootManager, type ShadowRootManager } from '../session/shadowRoot.js'
 import { getContextManager } from '../session/context.js'
 import { contextIdOf, foreignContextId, heldBrowsingContext } from '../session/browsingContext.js'
-import { findLinksInContext, foreignContext } from './foreignContext.js'
+import { findLinksInContext, foreignContext, withKnownElement } from './foreignContext.js'
 import { bidiGetRect, isBidiCommandsEnabled } from './bidi/elementCommands.js'
 import { isParallelContextActive, locateRelativeXPath } from './bidi/locate.js'
 import { createBidiFunctionDeclaration } from './bidi/serialize.js'
@@ -28,6 +28,7 @@ import { parseScriptResult } from './bidi/index.js'
 import { ElementArray } from '../element/array.js'
 import { findElementAgain } from './findElementAgain.js'
 import { describeSelector } from './describeSelector.js'
+import { waitedFor } from './elementNotFound.js'
 import type { ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference, ExtendedElementReference } from '../types.js'
 
@@ -278,8 +279,28 @@ export function isStaleElementError(err: Error) {
         err.message.includes('stale element not found in the current frame') ||
         // BIDI
         err.message.includes('belongs to different document') ||
-        err.message.includes('no such node - The node with the reference')
+        err.message.includes('no such node - The node with the reference') ||
+        // BIDI, Chrome: W3C "get a known element", a node that no longer exists is stale.
+        // Like the Firefox text, it also matches an id that is not valid (the refetch then fails).
+        /no such node - SharedId ".*" was not found/.test(err.message)
     )
+}
+
+/**
+ * A stale element error that the element middleware handles: it finds the element again and
+ * runs the command again. The "element wasn't found" error of a wait (an element that was not
+ * found again, or never found) is not one, also when its message has that text (a selector like
+ * `[data-error="stale element reference"]`).
+ */
+export function isStaleElementToFindAgain(err: unknown): err is Error {
+    /**
+     * also an error of another realm, which is not an `Error` instance
+     */
+    if (!err || typeof err !== 'object' || waitedFor(err)) {
+        return false
+    }
+    const { name, message } = err as Partial<Error>
+    return name === 'stale element reference' || (typeof message === 'string' && isStaleElementError(err as Error))
 }
 
 /**
@@ -560,7 +581,7 @@ async function findInFrameByScript (
     if (using === 'role') {
         const { role, name } = JSON.parse(value) as RoleSelector
         const roleParams: remote.ScriptCallFunctionParameters = {
-            functionDeclaration: createBidiFunctionDeclaration(findByRole as unknown as Function),
+            functionDeclaration: createBidiFunctionDeclaration(withKnownElement(findByRole as unknown as Function, 3)),
             awaitPromise: true,
             arguments: [
                 LocalValue.getArgument(role),
@@ -584,7 +605,7 @@ async function findInFrameByScript (
         ? { using: 'xpath', value: getAriaXPathSelector(value) }
         : { using, value }
     const params: remote.ScriptCallFunctionParameters = {
-        functionDeclaration: createBidiFunctionDeclaration(query as unknown as Function),
+        functionDeclaration: createBidiFunctionDeclaration(withKnownElement(query as unknown as Function, 3)),
         awaitPromise: true,
         arguments: [
             LocalValue.getArgument(resolved.using),

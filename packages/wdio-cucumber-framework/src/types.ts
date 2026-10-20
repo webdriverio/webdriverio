@@ -164,7 +164,11 @@ export interface CucumberOptions {
      */
     ignoreUndefinedDefinitions?: boolean;
     /**
-     * Treat ambiguous definitions as errors.
+     * Report an ambiguous step (a step that matches more than one step definition)
+     * as failed, with the list of the matching step definitions. With `false`, the
+     * step is reported as skipped, with the list as its reason. In both cases, the
+     * run fails. Exception: without `parallelMode`, the run passes with
+     * `ignoreUndefinedDefinitions: true` and `failAmbiguousDefinitions: false`.
      *
      * Please note that this is a @wdio/cucumber-framework specific option
      * and not recognized by cucumber-js itself.
@@ -194,20 +198,25 @@ export interface CucumberOptions {
      * That capability is not parallel-specific: when set, the webdriverio
      * package swaps element-command implementations for ALL BiDi tests.
      * Notable behavioral differences: `addValue`/`clearValue` dispatch
-     * untrusted synthetic DOM events (no trusted key events), `getText`
-     * uses `innerText`, `getAttribute` normalizes property/attribute
-     * resolution, and `click` is driven via the Actions API.
+     * untrusted synthetic DOM events (no trusted key events), `getAttribute`
+     * normalizes property/attribute resolution, and `click` is driven via the
+     * Actions API.
      *
      * Constraints in parallel mode:
-     * - No window management: `switchToWindow`, `switchToParentFrame`,
-     *   `refresh` and `closeWindow` throw inside a parallel scenario.
+     * - No window management: `switchWindow`, `closeWindow`,
+     *   `switchToParentFrame`, `getWindowSize`/`setWindowSize` and every
+     *   other WebDriver Classic command throw inside a parallel scenario.
+     *   `refresh` reloads the scenario's own context.
      * - `'contexts'` shares cookies and storage across all browsing contexts;
      *   `'userContexts'` isolates them.
-     * - `beforeFeature`/`afterFeature` (BeforeAll/AfterAll) run once per
-     *   test run, not per feature.
+     * - `BeforeAll`/`AfterAll` and the `beforeFeature`/`afterFeature` config
+     *   hooks run once per worker, not per feature; `beforeFeature`/`afterFeature`
+     *   receive the first feature's uri and feature. They run outside any
+     *   scenario's context.
      * - Do not fire-and-forget timers that outlive the test: the context
      *   is closed as soon as the scenario finishes.
      *
+     * @see https://webdriver.io/docs/parallel-tests
      * @default undefined (sequential execution)
      */
     parallelMode?: ParallelMode

@@ -439,22 +439,45 @@ const cucumberTestrunnerMultipleByLineNumber = async () => {
  * Cucumber fail due to failAmbiguousDefinitions
  */
 const cucumberFailAmbiguousDefinitions = async () => {
-    const hasFailed = await launch(
-        'cucumberFailAmbiguousDefinitions',
-        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
-        {
-            specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
-            cucumberOpts: {
-                ignoreUndefinedDefinitions: true,
-                failAmbiguousDefinitions: true,
-                name: ['failAmbiguousDefinitions']
-            }
+    const logFile = path.resolve(__dirname, 'cucumber', 'cucumberAmbiguousDefinitions.log')
+    const run = async (cucumberOpts) => {
+        await fs.rm(logFile, { force: true })
+        try {
+            const hasFailed = await launch(
+                'cucumberFailAmbiguousDefinitions',
+                path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+                {
+                    specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
+                    reporters: [['spec', { stdout: false, logFile }]],
+                    cucumberOpts: { ...cucumberOpts, name: ['failAmbiguousDefinitions'] }
+                }
+            ).then(
+                () => false,
+                () => true
+            )
+            assert.equal(hasFailed, true)
+            return (await fs.readFile(logFile, 'utf-8')).replace(ansiColorRegex, '')
+        } finally {
+            await fs.rm(logFile, { force: true })
         }
-    ).then(
-        () => false,
-        () => true
+    }
+
+    // Cucumber writes the step definition files with the path separator of the OS
+    const definitionLine = (file, line) => new RegExp(
+        `this is ambiguous - \\S*${path.join('step-definitions', file).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:${line}`
     )
-    assert.equal(hasFailed, true)
+
+    const failLogs = await run({ ignoreUndefinedDefinitions: true, failAmbiguousDefinitions: true })
+    assert.match(failLogs, /Multiple step definitions match:/)
+    assert.match(failLogs, definitionLine('given.js', 89))
+    assert.match(failLogs, definitionLine('then.js', 20))
+    assert.match(failLogs, /at Step\(this is ambiguous\):50:9/)
+
+    // default: the step is skipped, with the definitions as its reason
+    const skipLogs = await run({ failAmbiguousDefinitions: false })
+    assert.match(skipLogs, /Pending Reasons[\s\S]*Multiple step definitions match:/)
+    assert.match(skipLogs, definitionLine('given.js', 89))
+    assert.match(skipLogs, definitionLine('then.js', 20))
 }
 
 /**

@@ -11,11 +11,12 @@ import type {
     Feature,
     Pickle,
     TestStepResultStatus,
-    FeatureChild
+    FeatureChild,
+    StepDefinition
 } from '@cucumber/messages'
 import type { Capabilities } from '@wdio/types'
 import type { ReporterStep, TestHookDefinitionConfig, Payload } from './types.js'
-import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
+import { AMBIGUOUS_STEP_MESSAGE, CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 const log = logger('@wdio/cucumber-framework:utils')
 
 function createStepArgument ({ argument }: PickleStep) {
@@ -102,6 +103,7 @@ export function buildStepPayload(
         type: string
         state?: TestStepResultStatus | string | null
         error?: Error
+        pendingReason?: string
         duration?: number
         title?: string | null
         passed?: boolean
@@ -272,4 +274,27 @@ export function convertStatus(status: TestStepResultStatus): 'pass' | 'fail' | '
     case 'UNDEFINED': return 'pass'
     default: return 'fail'
     }
+}
+
+/**
+ * The error text of an ambiguous step: one line for each matching step definition.
+ * @param {StepDefinition[]} stepDefinitions - the definitions that match the step
+ * @returns {string | undefined} - the text, or `undefined` without a definition
+ */
+export function getAmbiguousStepMessage(stepDefinitions: readonly StepDefinition[]): string | undefined {
+    if (stepDefinitions.length === 0) {
+        return undefined
+    }
+    const lines = stepDefinitions.map(({ pattern, sourceReference }) => {
+        // Cucumber sends `pattern.toString()`, with the slashes, for a regular expression with flags
+        const source = pattern.type === 'REGULAR_EXPRESSION' && !pattern.source.startsWith('/')
+            ? `/${pattern.source}/`
+            : pattern.source
+        if (!sourceReference.uri) {
+            return `  ${source}`
+        }
+        const line = sourceReference.location ? `:${sourceReference.location.line}` : ''
+        return `  ${source} - ${sourceReference.uri}${line}`
+    })
+    return [AMBIGUOUS_STEP_MESSAGE, ...lines].join('\n')
 }

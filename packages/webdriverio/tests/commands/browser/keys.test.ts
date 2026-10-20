@@ -72,10 +72,10 @@ describe('keys', () => {
             }
         })
         await browser.keys(['c'])
-        expect(JSON.parse((vi.mocked(fetch).mock.calls[1][1] as any).body).actions[0].actions).toEqual([
-            { type: 'keyDown', value: 'c' },
-            { type: 'keyUp', value: 'c' }
-        ])
+        expect(fetch).toHaveBeenCalledWith(
+            expect.objectContaining({ pathname: '/session/foobar-123/actions' }),
+            expect.objectContaining({ body: expect.stringContaining('"actions":[{"type":"keyDown","value":"c"},{"type":"keyUp","value":"c"}]') })
+        )
     })
 
     afterEach(() => {

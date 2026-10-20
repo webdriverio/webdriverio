@@ -9,8 +9,10 @@ import {
     addKeywordToStep,
     getRule,
     generateSkipTagsFromCapabilities,
-    convertStatus
+    convertStatus,
+    getAmbiguousStepMessage
 } from '../src/utils.js'
+import type { StepDefinition } from '@cucumber/messages'
 import { featureWithRules } from './fixtures/features.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -259,6 +261,33 @@ describe('utils', () => {
             expect(convertStatus(Status.FAILED)).toBe('fail')
             expect(convertStatus(Status.UNDEFINED)).toBe('pass')
             expect(convertStatus(Status.UNKNOWN)).toBe('fail')
+        })
+    })
+
+    describe('getAmbiguousStepMessage', () => {
+        const definitions = [
+            { id: '16', pattern: { source: 'I do something', type: 'CUCUMBER_EXPRESSION' }, sourceReference: { uri: 'features/steps.js', location: { line: 3 } } },
+            { id: '99', pattern: { source: '^I do', type: 'REGULAR_EXPRESSION' }, sourceReference: { uri: 'features/steps.js', location: { line: 7 } } }
+        ] as StepDefinition[]
+
+        it('lists each definition with its pattern and location', () => {
+            expect(getAmbiguousStepMessage(definitions)).toBe(
+                'Multiple step definitions match:\n  I do something - features/steps.js:3\n  /^I do/ - features/steps.js:7')
+        })
+
+        it('does not add slashes to a regular expression with flags', () => {
+            // Cucumber sends `pattern.toString()` for a regular expression with flags
+            const withFlags = { ...definitions[1], pattern: { source: '/^I do/i', type: 'REGULAR_EXPRESSION' } } as StepDefinition
+            expect(getAmbiguousStepMessage([withFlags])).toBe('Multiple step definitions match:\n  /^I do/i - features/steps.js:7')
+        })
+
+        it('writes the pattern alone without a uri', () => {
+            expect(getAmbiguousStepMessage([{ ...definitions[0], sourceReference: {} }]))
+                .toBe('Multiple step definitions match:\n  I do something')
+        })
+
+        it('gives undefined for no definition', () => {
+            expect(getAmbiguousStepMessage([])).toBeUndefined()
         })
     })
 })

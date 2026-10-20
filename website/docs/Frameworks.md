@@ -61,7 +61,7 @@ it('should test something', (done) => {
 
 ### Mocha Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all Mocha options are supported. `parallel` still belongs to Mocha's own worker pool and will error here — the WDIO testrunner already parallelizes specs across capabilities and workers. Mocha 12's CLI also moved off yargs onto Node's `util.parseArgs`; that only affects a direct `mocha` invocation, not `mochaOpts` passed through `wdio`. You can pass these framework options as arguments, e.g.:
+The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all Mocha options are supported. `parallel` still belongs to Mocha's own worker pool and will error here — the WDIO testrunner already parallelizes specs across capabilities and workers. To run the tests of one spec file at the same time, use [`parallelMode`](#parallelmode). Mocha 12's CLI also moved off yargs onto Node's `util.parseArgs`; that only affects a direct `mocha` invocation, not `mochaOpts` passed through `wdio`. You can pass these framework options as arguments, e.g.:
 
 ```sh
 wdio run wdio.conf.ts --mochaOpts.grep "my test" --mochaOpts.bail --no-mochaOpts.checkLeaks
@@ -180,6 +180,22 @@ Test filter given regular expression. Mocha 12 accepts modern RegExp flags in th
 <Option type="boolean" default="false">
 
 Invert test filter matches.
+
+</Option>
+
+#### maxParallelContexts
+
+<Option type="number" default="os.cpus().length">
+
+Number of tests that run at the same time when [`parallelMode`](#parallelmode) is set. See [Parallel Tests in a Spec File](./ParallelTests.md#options).
+
+</Option>
+
+#### parallelMode
+
+<Option type="'contexts' | 'userContexts'" default="undefined">
+
+Run the tests of a spec file at the same time, each in its own WebDriver BiDi browsing context. `'contexts'` shares cookies and storage between tests, `'userContexts'` isolates them. Requires the `'wdio:experimentalBiDiCommands': true` capability. `bail` and `retries` are not supported in this mode. See [Parallel Tests in a Spec File](./ParallelTests.md).
 
 </Option>
 
@@ -572,7 +588,7 @@ Treat undefined definitions as warnings.
 
 <Option type="Boolean" default="false">
 
-Treat ambiguous definitions as errors.
+Report an ambiguous step (a step that matches more than one step definition) as failed, with the list of the matching step definitions. With `false`, the step is reported as skipped, with the list as its reason. In both cases, the run fails. Exception: without `parallelMode`, the run passes with `ignoreUndefinedDefinitions: true` and `failAmbiguousDefinitions: false`.
 
 </Option>
 ***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
@@ -585,6 +601,24 @@ Specify the profile to use.
 
 </Option>
 ***Kindly take note that only specific values (worldParameters, name, retryTagFilter) are supported within profiles, as `cucumberOpts` takes precedence. Additionally, when using a profile, make sure that the mentioned values are not declared within `cucumberOpts`.***
+
+#### parallelMode
+
+<Option type="'contexts' | 'userContexts'" default="undefined">
+
+Run the scenarios of a feature file at the same time, each in its own WebDriver BiDi browsing context. `'contexts'` shares cookies and storage between scenarios, `'userContexts'` isolates them. Requires the `'wdio:experimentalBiDiCommands': true` capability. See [Parallel Tests in a Spec File](./ParallelTests.md).
+
+</Option>
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
+
+#### maxParallelContexts
+
+<Option type="number" default="os.cpus().length">
+
+Number of scenarios that run at the same time when [`parallelMode`](#parallelmode-1) is set. See [Parallel Tests in a Spec File](./ParallelTests.md#options).
+
+</Option>
+***Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself***<br/>
 
 ### Skipping tests in cucumber
 
