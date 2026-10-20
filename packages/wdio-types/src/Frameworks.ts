@@ -158,6 +158,10 @@ export interface FrameworkLaunchParams {
     /** Resolved absolute spec file paths, after `--spec` and `exclude` filtering. */
     specs: string[]
     configFile: string
+    /** CLI arguments the launcher was started with, so framework workers can rebuild the same config. */
+    args?: Record<string, unknown>
+    /** Aborted when the launcher receives SIGINT/SIGTERM. The framework must cancel its run and resolve. */
+    signal?: AbortSignal
     /** Receives the job and reporter events the CLI needs to render the run. */
     onEvent?: (event: FrameworkLaunchEvent) => void
 }
@@ -170,6 +174,9 @@ export type FrameworkLaunchEvent =
 /**
  * Frameworks that schedule specs themselves export `launch`. The CLI then
  * calls it in the launcher process instead of starting WDIO workers.
+ *
+ * @experimental Internal to first-party frameworks (the CLI only honors an
+ * allowlist). The contract may change in any release, without a major version.
  */
 export interface FrameworkLauncher {
     /** @returns number of failures, `0` when the run passed */

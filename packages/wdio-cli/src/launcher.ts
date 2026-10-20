@@ -15,6 +15,8 @@ import { TESTRUNNER_DEFAULTS, TS_FILE_EXTENSIONS, WORKER_GROUPLOGS_MESSAGES } fr
 import type { RunCommandArguments } from './types.js'
 const log = logger('@wdio/cli:launcher')
 
+const LAUNCHER_FRAMEWORKS = new Set(['vitest', '@wdio/vitest-framework'])
+
 interface Schedule {
     cid: number
     caps: WebdriverIO.Capabilities
@@ -27,6 +29,18 @@ interface WorkerSpecs {
     files: string[]
     retries: number
     rid?: string
+}
+
+/** Vitest `provide` structured-clones the args into forked workers, and programmatic callers may pass functions or classes */
+function cloneableEntries<T extends object>(args: T): Partial<T> {
+    return Object.fromEntries(Object.entries(args).filter(([, value]) => {
+        try {
+            structuredClone(value)
+            return true
+        } catch {
+            return false
+        }
+    })) as Partial<T>
 }
 
 export interface EndMessage {
@@ -60,6 +74,8 @@ class Launcher {
 
     private _launcher?: Services.ServiceInstance[]
     private _resolve?: Function
+    #frameworkAbort = new AbortController()
+    #frameworkLaunch?: Promise<number>
 
     constructor(
         private _configFilePath: string,
@@ -99,6 +115,12 @@ class Launcher {
         let error: HookError | undefined = undefined
         const caps = this.configParser.getCapabilities() as Capabilities.TestrunnerCapabilities
 
+        // Rejecting here keeps every hook, service and runner shutdown from running for a run that never starts
+        const framework = await this.#loadFrameworkLauncher(config)
+        if (framework) {
+            this.#assertFrameworkSupportsRun(config.framework, caps)
+        }
+
         try {
             const { ignoredWorkerServices, launcherServices } = await initializeLauncherService(config, caps)
             this._launcher = launcherServices
@@ -135,7 +157,6 @@ class Launcher {
                     .reduce((a, b) => a + b, 0)
                 : 1
 
-            const framework = await this.#loadFrameworkLauncher(config)
             if (framework && config.specFileRetries > 0) {
                 log.warn('specFileRetries is not supported with this framework and is ignored')
             }
@@ -152,12 +173,14 @@ class Launcher {
             ])
 
             const cliInterface = this.interface
-            exitCode = framework
-                ? Number(await framework.launch({
+            if (framework) {
+                this.#frameworkLaunch = framework.launch({
                     // ConfigParser keeps capabilities outside of getConfig()
                     config: { ...config, capabilities: caps } as WebdriverIO.Config,
                     specs: this.configParser.getSpecs().flat().map((spec) => spec.startsWith('file://') ? fileURLToPath(spec) : spec),
                     configFile: this._configFilePath,
+                    args: cloneableEntries(this._args),
+                    signal: this.#frameworkAbort.signal,
                     onEvent: (event) => {
                         if (event.type === 'job:start') {
                             const { cid, caps, specs } = event
@@ -168,7 +191,10 @@ class Launcher {
                             cliInterface.onMessage(event.message as Parameters<CLInterface['onMessage']>[0])
                         }
                     }
-                }).catch((err) => {
+                })
+            }
+            exitCode = this.#frameworkLaunch
+                ? Number(await this.#frameworkLaunch.catch((err) => {
                     // onComplete hooks must not see a green exit code for a crashed run
                     exitCode = 1
                     throw err
@@ -209,21 +235,36 @@ class Launcher {
         return exitCode
     }
 
+    #assertFrameworkSupportsRun(framework: string, caps: Capabilities.TestrunnerCapabilities) {
+        if (this._isWatchMode) {
+            throw new Error(`--watch is not supported by the ${framework} framework yet`)
+        }
+        const capList = (Array.isArray(caps) ? caps : [caps]) as unknown as Record<string, unknown>[]
+        for (const cap of capList) {
+            const matches = cap && 'alwaysMatch' in cap
+                ? [cap.alwaysMatch, ...(Array.isArray(cap.firstMatch) ? cap.firstMatch : [])]
+                : [cap]
+            for (const match of matches as (Record<string, unknown> | undefined)[]) {
+                for (const key of ['wdio:specs', 'wdio:exclude']) {
+                    if (match && key in match) {
+                        throw new Error(`Capability "${key}" is set, but per-capability specs are not supported by the ${framework} framework yet`)
+                    }
+                }
+            }
+        }
+    }
+
     /**
-     * Frameworks that export `launch` schedule specs themselves, so the
-     * launcher skips WDIO workers. Import failures are left to the worker,
-     * which reports them as it does for any framework.
+     * Only frameworks in {@link LAUNCHER_FRAMEWORKS} may export `launch` to
+     * schedule specs themselves; all others run in WDIO workers and are never
+     * imported here. A listed framework that fails to load is a hard error.
      */
     async #loadFrameworkLauncher(config: Required<WebdriverIO.Config>) {
-        if (!config.framework) {
+        if (!config.framework || !LAUNCHER_FRAMEWORKS.has(config.framework)) {
             return
         }
-        try {
-            const plugin = await initializePlugin(config.framework, 'framework') as Partial<Frameworks.FrameworkLauncher>
-            return typeof plugin.launch === 'function' ? plugin as Frameworks.FrameworkLauncher : undefined
-        } catch (err) {
-            log.debug(`Could not load framework "${config.framework}" in the launcher: ${(err as Error).message}`)
-        }
+        const plugin = await initializePlugin(config.framework, 'framework') as Partial<Frameworks.FrameworkLauncher>
+        return typeof plugin.launch === 'function' ? plugin as Frameworks.FrameworkLauncher : undefined
     }
 
     /**
@@ -768,6 +809,7 @@ class Launcher {
      * session first before killing
      */
     private _exitHandler(callback?: (value: boolean) => void): void | Promise<void> {
+        this.#frameworkAbort.abort()
         if (!callback || !this.runner || !this.interface) {
             return
         }
@@ -778,6 +820,10 @@ class Launcher {
 
         this._hasTriggeredExitRoutine = true
         this.interface.sigintTrigger()
+        if (this.#frameworkLaunch) {
+            const runner = this.runner
+            return this.#frameworkLaunch.then(() => undefined, () => undefined).then(() => runner.shutdown()).then(callback)
+        }
         return this.runner.shutdown().then(callback) // no dispose(): the process exits next, and that kills the display server
     }
 
