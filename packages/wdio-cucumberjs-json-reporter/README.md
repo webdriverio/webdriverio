@@ -15,6 +15,9 @@ feature files, and hooks are steps with `hidden: true`. It also adds `metadata` 
 (attachments) to the steps, which [multiple-cucumber-html-reporter](https://github.com/wswebcreation/multiple-cucumber-html-reporter)
 uses. When a worker runs several feature files (grouped specs), the reporter writes one file for each feature.
 
+With `cucumberOpts.order: 'random'`, the examples of a Scenario Outline whose name has no `<placeholder>` can get the
+line of another row of the Examples table.
+
 With the Cucumber `retry` option, a scenario has only the steps of its last try, as in the JSON of Cucumber.
 
 The reporter needs the steps of the scenarios. With `cucumberOpts.scenarioLevelReporter: true`, the framework reports
