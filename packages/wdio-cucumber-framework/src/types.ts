@@ -164,7 +164,9 @@ export interface CucumberOptions {
      */
     ignoreUndefinedDefinitions?: boolean;
     /**
-     * Treat ambiguous definitions as errors.
+     * Report an ambiguous step (a step that matches more than one step definition)
+     * as failed, with the list of the matching step definitions. With `false`, the
+     * step is reported as skipped. In both cases, the run fails.
      *
      * Please note that this is a @wdio/cucumber-framework specific option
      * and not recognized by cucumber-js itself.
