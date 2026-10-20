@@ -82,7 +82,12 @@ function assertCanRunConcurrently(instance: ParallelBrowser | undefined): assert
     }
 }
 
-aroundEach(async (runTest, context) => {
+/**
+ * Vitest parses the source of a hook's second parameter for fixture names and rejects
+ * anything but object destructuring without rest, so the context is read from `args`
+ */
+aroundEach(async (...args) => {
+    const [runTest, context] = args
     const { task } = context
     const test = { title: task.name, fullTitle: task.fullName, parent: task.suite?.name ?? '', file: specFile }
     const startedAt = Date.now()

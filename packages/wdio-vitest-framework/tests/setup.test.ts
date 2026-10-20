@@ -65,6 +65,10 @@ describe('setup', () => {
         expect(fileTask.meta.wdio).toEqual({ sessionId: 'sess-1', capabilities: { browserName: 'chrome', browserVersion: '130' } })
     })
 
+    it('declares no named context parameter, which Vitest would parse for fixtures', () => {
+        expect(hooks.aroundEach.length).toBe(0)
+    })
+
     it('runs non-concurrent tests directly', async () => {
         const runTest = vi.fn(async () => {})
         await hooks.aroundEach(runTest, task(false))
